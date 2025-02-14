@@ -1,0 +1,253 @@
+digraph G {
+	graph [bb="0,0,2977.8,1323.6",
+		bgcolor="#111111",
+		layout=dot,
+		overlap=false,
+		pad=0.3,
+		rankdir=LR
+	];
+	node [color="#c6c5fe",
+		fontcolor="#c6c5fe",
+		fontname=Arial,
+		fontsize="14px",
+		height=0,
+		label="\N",
+		shape=box,
+		style=rounded
+	];
+	edge [color="#757575"];
+	"core/default.config.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="2907.5,1051.6",
+		width=1.9514];
+	"core/helpers/FormatHelper.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="2156.8,435.55",
+		width=2.6493];
+	"core/models/Project.ts"	[height=0.32986,
+		pos="2719.4,1053.6",
+		width=2.0868];
+	"core/models/Project.ts" -> "core/default.config.ts"	[pos="e,2836.8,1052.3 2794.7,1052.8 2804.8,1052.6 2815.2,1052.5 2825.4,1052.4"];
+	"core/types.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="2907.5,1093.6",
+		width=1.2847];
+	"core/models/Project.ts" -> "core/types.ts"	[pos="e,2860.8,1083.7 2777.7,1065.9 2800.6,1070.8 2826.8,1076.4 2849.6,1081.3"];
+	"core/models/Segment.ts"	[height=0.32986,
+		pos="2470.1,1093.6",
+		width=2.2639];
+	"core/models/Segment.ts" -> "core/types.ts"	[pos="e,2860.8,1093.6 2552,1093.6 2638.5,1093.6 2773.6,1093.6 2849.6,1093.6"];
+	"core/models/Template.ts"	[height=0.32986,
+		pos="2719.4,917.55",
+		width=2.2743];
+	"core/models/Template.ts" -> "core/types.ts"	[pos="e,2861,1084.2 2728.9,929.78 2753.4,964.61 2822.7,1062.4 2837.2,1072.6 2841.4,1075.4 2845.9,1077.9 2850.6,1080.1"];
+	"director/TemplateConcreteBuilder.ts"	[height=0.32986,
+		pos="527,701.55",
+		width=3.2014];
+	"director/TemplateConcreteBuilder.ts" -> "core/models/Project.ts"	[pos="e,2712.5,1065.7 631.18,713.82 635.15,716.33 638.87,719.23 642.25,722.55 700.39,779.79 636.94,832.2 678.25,902.55 797.87,1106.3 846.38,\
+1247.6 1082.6,1247.6 1082.6,1247.6 1082.6,1247.6 2157.8,1247.6 2356.3,1247.6 2427.2,1290.6 2601.5,1195.6 2652.4,1167.8 2689.9,1108 \
+2707.4,1075.6"];
+	"editor/SegmentBuilder.ts"	[height=0.32986,
+		pos="1349.4,912.55",
+		width=2.2743];
+	"director/TemplateConcreteBuilder.ts" -> "editor/SegmentBuilder.ts"	[pos="e,1291.3,924.9 630.34,713.85 634.59,716.34 638.6,719.23 642.25,722.55 685.65,762.03 637.58,807.26 678.25,849.55 761.69,936.32 816.86,\
+914.65 935.75,933.55 1065.6,954.19 1100.6,945.22 1231.5,933.55 1247.3,932.14 1264.1,929.69 1280,926.94"];
+	"editor/factories/SegmentFactory.ts"	[height=0.32986,
+		pos="789,828.55",
+		width=3.0764];
+	"director/TemplateConcreteBuilder.ts" -> "editor/factories/SegmentFactory.ts"	[pos="e,771.44,816.2 617.11,713.87 625.76,716.27 634.28,719.13 642.25,722.55 648.91,725.41 722.23,779.62 762.27,809.38"];
+	"platform/ffmpeg/AbstractFFmpeg.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="2156.8,515.55",
+		width=3.191];
+	"director/TemplateConcreteBuilder.ts" -> "platform/ffmpeg/AbstractFFmpeg.ts"	[pos="e,2041.8,515.9 563.13,689.21 593.33,678.99 638.22,664.7 678.25,655.55 1131.5,551.99 1251.1,536.87 1715.8,521.55 1821.8,518.05 1942.3,\
+516.59 2030.4,515.97"];
+	"platform/filesystem/AbstractFilesystem.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="2470.1,319.55",
+		width=3.6493];
+	"director/TemplateConcreteBuilder.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2408.2,331.86 642.61,691.07 754.68,681.74 930.24,669.55 1082.6,669.55 1082.6,669.55 1082.6,669.55 1574.5,669.55 1577.1,669.55 \
+2300.9,566.32 2302.8,564.55 2364.8,505.13 2284.7,441.41 2338.8,374.55 2353.6,356.16 2375.7,343.82 2397.5,335.58"];
+	"platform/logging/AbstractLogger.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="2470.1,395.55",
+		width=3.0764];
+	"director/TemplateConcreteBuilder.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2462.7,407.72 642.62,711.7 754.7,720.74 930.25,732.55 1082.6,732.55 1082.6,732.55 1082.6,732.55 1350.4,732.55 1564.2,732.55 2122.7,\
+711.79 2302.8,596.55 2376.3,549.48 2433.4,459.32 2457.2,417.66"];
+	"editor/SegmentBuilder.ts" -> "core/models/Project.ts"	[pos="e,2707.9,1065.9 1353.1,924.75 1362.2,962.03 1394.7,1075.1 1467.2,1129.6 1604.3,1232.3 1673,1209.6 1844.2,1209.6 1844.2,1209.6 1844.2,\
+1209.6 2157.8,1209.6 2356.7,1209.6 2419.2,1230.3 2601.5,1150.6 2641.8,1132.9 2679.2,1097.1 2700.4,1074.2"];
+	"editor/SegmentBuilder.ts" -> "core/models/Segment.ts"	[pos="e,2426.6,1105.9 1354.5,924.67 1366.2,956.79 1403,1044 1467.2,1078.6 1789.7,1251.9 2259.1,1150.4 2415.9,1108.8"];
+	"editor/SegmentBuilder.ts" -> "core/models/Template.ts"	[pos="e,2645.6,905.18 1420.9,900.19 1516.5,884.53 1692.7,859.55 1844.2,859.55 1844.2,859.55 1844.2,859.55 2157.8,859.55 2327.6,859.55 \
+2524.9,886.22 2634.3,903.39"];
+	"editor/SegmentBuilder.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2406.8,331.91 1360.2,900.24 1378.7,877.95 1421,830.95 1467.2,806.55 1636.1,717.53 2173.3,747.83 2302.8,607.55 2373.8,530.53 2274.3,\
+457.17 2338.8,374.55 2353,356.24 2374.5,343.95 2396,335.74"];
+	"editor/SegmentBuilder.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2466.8,407.64 1366.4,900.39 1387.9,884.7 1428.2,857.94 1467.2,845.55 1825.1,731.96 2006.9,952.69 2302.8,721.55 2406,640.84 2450.9,\
+478.52 2464.4,418.53"];
+	"editor/managers/AssetManager.ts"	[height=0.32986,
+		pos="2156.8,899.55",
+		width=3.0451];
+	"editor/SegmentBuilder.ts" -> "editor/managers/AssetManager.ts"	[pos="e,2046.7,901.31 1431.7,911.24 1574.1,908.94 1869.3,904.17 2035.4,901.49"];
+	"editor/managers/FilterManager.ts"	[height=0.32986,
+		pos="1845.2,1017.6",
+		width=2.9931];
+	"editor/SegmentBuilder.ts" -> "editor/managers/FilterManager.ts"	[pos="e,1737.3,1024.8 1363.5,924.9 1383.8,943.23 1425.1,977.04 1467.2,991.55 1550.4,1020.2 1649.9,1026 1725.8,1025"];
+	"editor/managers/FormatterManager.ts"	[height=0.32986,
+		pos="2156.8,1017.6",
+		width=3.3993];
+	"editor/SegmentBuilder.ts" -> "editor/managers/FormatterManager.ts"	[pos="e,2054.3,1005.2 1379.1,924.92 1402.4,934.4 1436.3,946.93 1467.2,953.55 1688.6,1001 1749.5,973.95 1974.8,996.55 1996.8,998.77 2020.4,\
+1001.3 2043,1003.9"];
+	"editor/managers/MapManager.ts"	[height=0.32986,
+		pos="1573.5,1057.6",
+		width=2.9514];
+	"editor/SegmentBuilder.ts" -> "editor/managers/MapManager.ts"	[pos="e,1502.5,1045.2 1358.8,924.69 1376.2,948.76 1418.5,1002.6 1467.2,1030.6 1474.8,1034.9 1483.1,1038.6 1491.6,1041.6"];
+	"editor/managers/VariableManager.ts"	[height=0.32986,
+		pos="2470.1,937.55",
+		width=3.2535];
+	"editor/SegmentBuilder.ts" -> "editor/managers/VariableManager.ts"	[pos="e,2352.6,938.46 1431.7,920.25 1443.6,921.16 1455.8,921.97 1467.2,922.55 1781,938.3 2150.5,939.29 2341.1,938.51"];
+	"editor/segments/ColorBackgroundSegment.ts"	[height=0.32986,
+		pos="1083.6,870.55",
+		width=4.0243];
+	"editor/factories/SegmentFactory.ts" -> "editor/segments/ColorBackgroundSegment.ts"	[pos="e,996.03,858.18 875.54,840.89 895.31,843.74 916.26,846.75 935.75,849.55 951.6,851.83 968.41,854.23 984.78,856.58"];
+	"editor/segments/ImageBackgroundSegment.ts"	[height=0.32986,
+		pos="1083.6,828.55",
+		width=4.1076];
+	"editor/factories/SegmentFactory.ts" -> "editor/segments/ImageBackgroundSegment.ts"	[pos="e,935.36,828.55 900.21,828.55 908.03,828.55 916,828.55 924.01,828.55"];
+	"editor/segments/ProjectVideoSegment.ts"	[height=0.32986,
+		pos="1083.6,786.55",
+		width=3.6389];
+	"editor/factories/SegmentFactory.ts" -> "editor/segments/ProjectVideoSegment.ts"	[pos="e,996.03,798.92 875.54,816.21 895.31,813.36 916.26,810.35 935.75,807.55 951.6,805.28 968.41,802.87 984.78,800.53"];
+	"editor/segments/VideoSegment.ts"	[height=0.32986,
+		pos="1083.6,912.55",
+		width=3.0556];
+	"editor/factories/SegmentFactory.ts" -> "editor/segments/VideoSegment.ts"	[pos="e,973.27,900.21 813.02,840.79 841.17,855.22 890.65,878.82 935.75,891.55 944.3,893.96 953.21,896.11 962.23,898.01"];
+	"director/TemplateDirector.ts"	[height=0.32986,
+		pos="285.25,441.55",
+		width=2.5139];
+	"director/TemplateDirector.ts" -> "core/models/Project.ts"	[pos="e,2714.9,1065.9 287.36,453.81 297.45,557.6 382.72,1285.6 788,1285.6 788,1285.6 788,1285.6 2157.8,1285.6 2356,1285.6 2433.2,1345.3 \
+2601.5,1240.6 2663.3,1202.1 2697.8,1117.5 2711.4,1076.6"];
+	"director/TemplateDirector.ts" -> "core/models/Template.ts"	[pos="e,2718.5,905.45 295.02,429.34 313.5,404.63 359.1,348.84 411.75,322.55 734.17,161.58 1651.6,82.656 2010.8,52.551 2273.6,30.514 2419.2,\
+-81.104 2601.5,109.55 2712.9,226.06 2718.6,773.42 2718.5,894.01"];
+	"director/TemplateDirector.ts" -> "director/TemplateConcreteBuilder.ts"	[pos="e,514.78,689.39 297.49,453.74 335.48,494.94 459.36,629.29 507.05,681"];
+	"director/TemplateDirector.ts" -> "platform/ffmpeg/AbstractFFmpeg.ts"	[pos="e,2078.2,503.21 375.98,441.55 476.37,441.55 643.83,441.55 788,441.55 788,441.55 788,441.55 1574.5,441.55 1668.3,441.55 1928.7,479.96 \
+2066.9,501.44"];
+	"director/TemplateDirector.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2464.2,307.19 287.17,429.31 291.37,383.02 313.05,217.66 411.75,145.55 653.53,-31.096 783.19,83.551 1082.6,83.551 1082.6,83.551 \
+1082.6,83.551 1846.2,83.551 2049.3,83.551 2122.6,8.934 2302.8,102.55 2385.5,145.53 2439.2,250.24 2459.7,296.7"];
+	"director/TemplateDirector.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2388.4,383.19 308.69,429.23 333.29,416.24 374.24,396.1 411.75,384.55 573.94,334.61 618.3,319.55 788,319.55 788,319.55 788,319.55 \
+1574.5,319.55 1899,319.55 1980.7,332.14 2302.8,371.55 2326.9,374.5 2352.9,378.08 2377.1,381.55"];
+	"editor/MusicComposer.ts"	[height=0.32986,
+		pos="1845.2,359.55",
+		width=2.3056];
+	"director/TemplateDirector.ts" -> "editor/MusicComposer.ts"	[pos="e,1762.2,365.45 348.93,429.19 443.63,411.63 628.99,381.55 788,381.55 788,381.55 788,381.55 1350.4,381.55 1490,381.55 1651.7,372.66 \
+1751,366.18"];
+	"editor/VideoEditor.ts"	[height=0.32986,
+		pos="1573.5,555.55",
+		width=1.8993];
+	"director/TemplateDirector.ts" -> "editor/VideoEditor.ts"	[pos="e,1504.7,550.31 376.03,451.84 388.03,453.14 400.19,454.41 411.75,455.55 818.14,495.72 1305.5,534.73 1493.3,549.42"];
+	"platform/EventManager.ts"	[color="#cfffac",
+		fontcolor="#cfffac",
+		height=0.32986,
+		pos="527,743.55",
+		width=2.3785];
+	"director/TemplateDirector.ts" -> "platform/EventManager.ts"	[pos="e,441.14,737.63 287.71,453.83 293.68,498.11 320.39,650.73 411.75,722.55 417.42,727.01 423.74,730.63 430.41,733.56"];
+	"editor/MusicComposer.ts" -> "core/helpers/FormatHelper.ts"	[pos="e,2061.2,425.67 1928.6,366.55 1944.4,369.67 1960.4,374.14 1974.8,380.55 1993.5,388.93 1992.1,401.03 2010.8,409.55 2023.1,415.2 2036.7,\
+419.63 2050.3,423.09"];
+	"editor/MusicComposer.ts" -> "core/models/Project.ts"	[pos="e,2707.6,1041.3 1928.5,361.05 1945,364.49 1961.4,370.49 1974.8,380.55 2004.6,403.03 1980.5,434.56 2010.8,456.55 2116.6,533.54 2186,\
+435.39 2302.8,494.55 2474.3,581.48 2506.8,640.2 2601.5,807.55 2631.2,860.1 2611.8,883.94 2637.5,938.55 2654.3,974.13 2682,1010.5 \
+2700.2,1032.5"];
+	"editor/MusicComposer.ts" -> "core/models/Template.ts"	[pos="e,2717.4,905.53 1883.4,347.21 1912.8,335.5 1952.5,314.95 1974.8,283.55 2022.2,216.63 1947.3,154.58 2010.8,102.55 2111.1,20.22 2178.4,\
+65.401 2302.8,102.55 2454.9,148.01 2513.4,166.45 2601.5,298.55 2669.2,399.97 2707.6,794.27 2716.4,894.35"];
+	"editor/MusicComposer.ts" -> "platform/ffmpeg/AbstractFFmpeg.ts"	[pos="e,2041.4,507.47 1928.5,359.62 1945.3,363.09 1961.8,369.47 1974.8,380.55 2013.5,413.69 1972.2,456.12 2010.8,489.55 2016.9,494.91 \
+2023.8,499.33 2031.2,502.98"];
+	"editor/MusicComposer.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2338.4,327.95 1928.6,354.26 2030,347.75 2203.9,336.58 2327,328.68"];
+	"editor/MusicComposer.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2359.3,390.44 1928.6,365.89 1954.9,367.82 1984,369.88 2010.8,371.55 2125.1,378.71 2255.5,385.4 2348,389.89"];
+	"platform/ffmpeg/AbstractMusic.ts"	[height=0.32986,
+		pos="2156.8,203.55",
+		width=2.9826];
+	"editor/MusicComposer.ts" -> "platform/ffmpeg/AbstractMusic.ts"	[pos="e,2131.2,215.92 1870.8,347.18 1925.5,319.59 2057.7,252.95 2121,221.09"];
+	"editor/VideoEditor.ts" -> "core/models/Project.ts"	[pos="e,2711.3,1041.3 1593,567.72 1619.4,584.65 1669.8,615.5 1715.8,635.55 2094.3,800.66 2257.4,688.2 2601.5,916.55 2647.9,947.32 2686.3,\
+1001.5 2705.4,1031.7"];
+	"editor/VideoEditor.ts" -> "core/models/Template.ts"	[pos="e,2709.2,905.48 1615.1,567.92 1643.3,576.34 1681.7,587.55 1715.8,596.55 2107,699.87 2245.3,615.5 2601.5,807.55 2643.5,830.18 2681.6,\
+871.71 2702.2,896.76"];
+	"editor/VideoEditor.ts" -> "platform/ffmpeg/AbstractFFmpeg.ts"	[pos="e,2041.7,521.04 1642.3,548.27 1665.6,545.93 1691.8,543.44 1715.8,541.55 1821.7,533.17 1942.2,526.23 2030.3,521.63"];
+	"editor/VideoEditor.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2409.2,331.91 1642.2,558.44 1813.2,565.08 2252.6,577.89 2302.8,536.55 2359.7,489.65 2291.5,431.19 2338.8,374.55 2354,356.23 2376.5,\
+343.89 2398.5,335.64"];
+	"editor/VideoEditor.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2462.5,407.52 1642.4,563.86 1799.8,582.01 2185.3,619.75 2302.8,569.55 2376.2,538.17 2432.7,456.73 2456.6,417.41"];
+	"editor/VideoEditor.ts" -> "editor/MusicComposer.ts"	[pos="e,1762,363.89 1580.4,543.24 1596.7,510.53 1645.9,421.19 1715.8,380.55 1726.6,374.27 1738.7,369.72 1751.1,366.44"];
+	"platform/ffmpeg/AbstractMusic.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2451.1,307.25 2251.7,215.88 2268.9,219.41 2286.6,223.89 2302.8,229.55 2354.5,247.66 2409.5,280.42 2441.5,301.02"];
+	"platform/ffmpeg/AbstractMusic.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2412.7,383.24 2264.5,208.89 2278.5,213.36 2291.8,219.97 2302.8,229.55 2341.8,263.64 2303.7,302.34 2338.8,340.55 2355.5,358.83 \
+2379.4,371.25 2402.1,379.58"];
+	"editor/managers/AssetManager.ts" -> "core/models/Segment.ts"	[pos="e,2449.7,1081.4 2177.2,911.69 2230.2,944.69 2377.1,1036.2 2440,1075.4"];
+	"editor/managers/AssetManager.ts" -> "core/models/Template.ts"	[pos="e,2637.3,914.95 2266.8,903.05 2371.3,906.41 2527.3,911.41 2625.8,914.58"];
+	"editor/managers/AssetManager.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2405.8,331.83 2168.9,887.59 2197,856.67 2270.7,770.41 2302.8,683.55 2350.6,553.84 2255.8,485.14 2338.8,374.55 2352.6,356.14 2373.7,\
+343.84 2395,335.65"];
+	"editor/managers/AssetManager.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2466.7,407.66 2183.4,887.3 2215.3,870.9 2269.6,839 2302.8,797.55 2401.4,674.3 2449.9,484.31 2464.3,418.74"];
+	"editor/managers/AssetManager.ts" -> "editor/managers/VariableManager.ts"	[pos="e,2367.7,925.18 2258.8,911.89 2290.1,915.7 2324.6,919.92 2356.6,923.81"];
+	"editor/managers/FilterManager.ts" -> "core/models/Segment.ts"	[pos="e,2388.4,1084 1941.9,1029.9 1964.5,1032.8 1988.5,1035.8 2010.8,1038.6 2137.7,1054.3 2284.5,1071.8 2377.1,1082.7"];
+	"editor/managers/FilterManager.ts" -> "core/models/Template.ts"	[pos="e,2690.2,929.9 1934.9,1005.2 1959.5,1002.1 1986.1,998.91 2010.8,996.55 2272.6,971.44 2343.7,1011 2601.5,958.55 2628.3,953.1 2657.3,\
+942.94 2679.7,934.1"];
+	"editor/managers/FilterManager.ts" -> "editor/managers/FormatterManager.ts"	[pos="e,2033.9,1017.6 1953.2,1017.6 1975.6,1017.6 1999.4,1017.6 2022.6,1017.6"];
+	"editor/managers/FormatterManager.ts" -> "core/models/Project.ts"	[pos="e,2643.8,1048.9 2279.4,1025.7 2299.3,1027 2319.6,1028.3 2338.8,1029.6 2439.7,1036.1 2555.8,1043.4 2632.8,1048.2"];
+	"editor/managers/FormatterManager.ts" -> "core/models/Segment.ts"	[pos="e,2388.4,1082.6 2257.6,1029.9 2273,1033.3 2288.5,1037.8 2302.8,1043.6 2320.6,1050.7 2321,1060.2 2338.8,1067.6 2350.9,1072.6 2364.1,\
+1076.7 2377.3,1080"];
+	"editor/managers/FormatterManager.ts" -> "core/models/Template.ts"	[pos="e,2704.5,929.74 2279.4,1026.6 2370.3,1029.5 2496.5,1025.4 2601.5,991.55 2637.5,979.96 2673.4,954.62 2695.8,936.84"];
+	"editor/managers/FormatterManager.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2468.2,407.55 2187.1,1005.2 2219.9,989.95 2272.4,961 2302.8,920.55 2426.2,756.14 2459.6,497.52 2467.2,418.95"];
+	"editor/managers/FormatterManager.ts" -> "editor/managers/VariableManager.ts"	[pos="e,2421.1,949.89 2205.7,1005.2 2260.7,991.1 2350.8,967.95 2410,952.73"];
+	"editor/managers/MapManager.ts" -> "core/models/Segment.ts"	[pos="e,2388.4,1090.3 1680.2,1061.8 1856.9,1068.9 2209.6,1083.1 2376.9,1089.8"];
+	"editor/managers/MapManager.ts" -> "core/models/Template.ts"	[pos="e,2708.5,929.77 1634.4,1069.9 1829.2,1108.6 2441.2,1219.2 2601.5,1114.6 2634.8,1092.8 2618,1067.2 2637.5,1032.6 2656.9,998.1 2684.2,\
+961.19 2701.5,938.74"];
+	"editor/managers/MapManager.ts" -> "editor/managers/FilterManager.ts"	[pos="e,1760.9,1029.9 1657.6,1045.2 1686.7,1040.9 1719.6,1036 1749.6,1031.6"];
+	"editor/managers/MapManager.ts" -> "editor/managers/FormatterManager.ts"	[pos="e,2060.1,1029.9 1680,1054.5 1760.7,1051.7 1874.9,1046.7 1974.8,1038.6 1998.7,1036.6 2024.4,1034 2048.6,1031.2"];
+	"editor/managers/VariableManager.ts" -> "core/models/Project.ts"	[pos="e,2692.4,1041.3 2497.1,949.75 2541.5,970.54 2631.8,1012.9 2682.2,1036.6"];
+	"editor/managers/VariableManager.ts" -> "core/models/Template.ts"	[pos="e,2637.2,924.12 2587.5,928.14 2600.4,927.1 2613.3,926.05 2625.8,925.04"];
+	"editor/segments/ColorBackgroundSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,1282,900.2 1174.8,882.93 1193.6,885.64 1213.2,888.6 1231.5,891.55 1244.3,893.61 1257.9,895.93 1271,898.25"];
+	"editor/segments/ImageBackgroundSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,1330.7,900.41 1199,840.86 1210.1,843.26 1221.1,846.13 1231.5,849.55 1264.1,860.29 1298.3,879.86 1321.3,894.35"];
+	"editor/segments/ProjectVideoSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,1339,900.3 1208.8,798.87 1216.6,801.3 1224.3,804.17 1231.5,807.55 1273.6,827.2 1311.4,867.16 1332,891.72"];
+	"editor/segments/VideoSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,1267.1,912.55 1193.8,912.55 1214.4,912.55 1235.7,912.55 1255.8,912.55"];
+	"index.ts"	[height=0.32986,
+		pos="127.5,441.55",
+		width=0.86806];
+	"index.ts" -> "core/types.ts"	[pos="e,2894.2,1105.9 128.2,453.68 126.22,559.62 125.84,1323.6 526,1323.6 526,1323.6 526,1323.6 2471.1,1323.6 2650,1323.6 2827.4,1169.9 \
+2886.1,1113.8"];
+	"index.ts" -> "director/TemplateDirector.ts"	[pos="e,194.36,441.55 158.9,441.55 166.16,441.55 174.32,441.55 182.89,441.55"];
+	"platform/PlatformBridge.ts"	[height=0.32986,
+		pos="1573.5,203.55",
+		width=2.4097];
+	"index.ts" -> "platform/PlatformBridge.ts"	[pos="e,1537.8,191.28 135.19,429.28 162.09,381.44 267.85,207.02 411.75,145.55 813.57,-26.091 1366.2,134.16 1526.9,187.62"];
+	"platform/ffmpeg/FFmpegNodeAdapter.ts"	[height=0.32986,
+		pos="1845.2,401.55",
+		width=3.5972];
+	"platform/PlatformBridge.ts" -> "platform/ffmpeg/FFmpegNodeAdapter.ts"	[pos="e,1734,389.23 1580.1,215.53 1596,248.21 1645.2,339.24 1715.8,380.55 1718.3,382.02 1720.9,383.4 1723.5,384.69"];
+	"platform/ffmpeg/MusicNodeAdapter.ts"	[height=0.32986,
+		pos="1845.2,203.55",
+		width=3.3889];
+	"platform/PlatformBridge.ts" -> "platform/ffmpeg/MusicNodeAdapter.ts"	[pos="e,1723.1,203.55 1660.6,203.55 1676.9,203.55 1694.3,203.55 1711.7,203.55"];
+	"platform/filesystem/FilesystemNodeAdapter.ts"	[height=0.32986,
+		pos="2156.8,123.55",
+		width=4.0556];
+	"platform/PlatformBridge.ts" -> "platform/filesystem/FilesystemNodeAdapter.ts"	[pos="e,2060.9,135.88 1656.3,191.19 1675.7,188.3 1696.5,185.27 1715.8,182.55 1829.7,166.44 1960.5,149.04 2049.6,137.35"];
+	"platform/logging/PinoLogAdapter.ts"	[height=0.32986,
+		pos="1845.2,262.55",
+		width=3.1493];
+	"platform/PlatformBridge.ts" -> "platform/logging/PinoLogAdapter.ts"	[pos="e,1787.8,250.2 1631,215.92 1673.5,225.2 1731.8,237.95 1776.7,247.77"];
+	"main.ts"	[height=0.32986,
+		pos="30.125,441.55",
+		width=0.83681];
+	"main.ts" -> "index.ts"	[pos="e,96.049,441.55 60.519,441.55 68.182,441.55 76.589,441.55 84.759,441.55"];
+	"platform/ffmpeg/FFmpegNodeAdapter.ts" -> "platform/ffmpeg/AbstractFFmpeg.ts"	[pos="e,2041.5,505.01 1948.9,413.87 1958.1,417.43 1966.9,421.91 1974.8,427.55 2000.6,446.12 1984.7,471.27 2010.8,489.55 2017,493.94 2023.8,\
+497.65 2030.9,500.8"];
+	"platform/ffmpeg/MusicNodeAdapter.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2459.5,307.24 1926.8,191.19 1953.5,187.66 1983.3,184.29 2010.8,182.55 2140.3,174.32 2180.6,138.73 2302.8,182.55 2367.5,205.78 \
+2425.1,266.3 2452.4,298.57"];
+	"platform/ffmpeg/MusicNodeAdapter.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2422,383.23 1938.7,215.92 2063.3,233.2 2272.9,264.67 2302.8,284.55 2327.4,300.95 2316.1,321.5 2338.8,340.55 2359.6,358.1 2386.9,\
+370.77 2411.1,379.5"];
+	"platform/ffmpeg/MusicNodeAdapter.ts" -> "platform/ffmpeg/AbstractMusic.ts"	[pos="e,2049.2,203.55 1967.7,203.55 1990.7,203.55 2014.8,203.55 2037.7,203.55"];
+	"platform/filesystem/FilesystemNodeAdapter.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,2461.2,307.18 2268.3,135.89 2280.3,139.4 2292,143.87 2302.8,149.55 2371.5,185.93 2429.1,260.76 2454.8,297.8"];
+	"platform/filesystem/FilesystemNodeAdapter.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2409.6,383.26 2222.8,135.85 2251.2,144.41 2282.5,158.73 2302.8,182.55 2349.4,237.44 2292.5,285.36 2338.8,340.55 2354.1,358.91 \
+2376.7,371.27 2398.8,379.52"];
+	"platform/logging/PinoLogAdapter.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,2434.1,383.18 1935.3,274.92 2027.8,288.57 2176.5,312.74 2302.8,343.55 2344.1,353.63 2390.2,368.33 2423.4,379.53"];
+}

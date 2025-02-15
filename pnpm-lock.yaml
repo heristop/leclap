@@ -42,18 +42,6 @@ importers:
       '@swc/core':
         specifier: ^1.7.26
         version: 1.7.26
-      '@types/ffmpeg':
-        specifier: ^1.0.7
-        version: 1.0.7
-      '@types/ffprobe':
-        specifier: ^1.1.8
-        version: 1.1.8
-      '@types/ffprobe-static':
-        specifier: ^2.0.3
-        version: 2.0.3
-      '@types/fluent-ffmpeg':
-        specifier: ^2.1.26
-        version: 2.1.26
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.13
@@ -68,10 +56,10 @@ importers:
         version: 8.5.0(eslint@9.10.0)(typescript@5.6.2)
       '@vitest/coverage-istanbul':
         specifier: ^2.1.1
-        version: 2.1.1(vitest@2.1.1(@types/node@22.5.4)(@vitest/ui@2.1.1))
+        version: 2.1.1(vitest@2.1.1)
       '@vitest/coverage-v8':
         specifier: ^2.1.1
-        version: 2.1.1(vitest@2.1.1(@types/node@22.5.4)(@vitest/ui@2.1.1))
+        version: 2.1.1(vitest@2.1.1)
       '@vitest/ui':
         specifier: ^2.1.1
         version: 2.1.1(vitest@2.1.1)
@@ -951,18 +939,6 @@ packages:
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
-
-  '@types/ffmpeg@1.0.7':
-    resolution: {integrity: sha512-7Pw61IDG9Tj+gXGNshJ7JIM2fhDe0IrK7/F+b8midmsiljiugWKbW5KoNmhtZS3pPXWVfVHP3wOwquF/wbVxiw==}
-
-  '@types/ffprobe-static@2.0.3':
-    resolution: {integrity: sha512-86Q8dIzhjknxA6935ZcVLkVU3t6bP+F08mdriWZk2+3UqjxIbT3QEADjbO5Yq8826cVs/aZBREVZ7jUoSTgHiw==}
-
-  '@types/ffprobe@1.1.8':
-    resolution: {integrity: sha512-qPxx8Dy0HyH12hQCESN39NQOmU2Yl2b7tCyUhWy0l11HQv/8Yv7U+vcaveFXmXK8hcAP0oj29DPFuSM7vcC3Tg==}
-
-  '@types/fluent-ffmpeg@2.1.26':
-    resolution: {integrity: sha512-0JVF3wdQG+pN0ImwWD0bNgJiKF2OHg/7CDBHw5UIbRTvlnkgGHK6V5doE54ltvhud4o31/dEiHm23CAlxFiUQg==}
 
   '@types/graceful-fs@4.1.9':
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
@@ -4284,16 +4260,6 @@ snapshots:
 
   '@types/estree@1.0.5': {}
 
-  '@types/ffmpeg@1.0.7': {}
-
-  '@types/ffprobe-static@2.0.3': {}
-
-  '@types/ffprobe@1.1.8': {}
-
-  '@types/fluent-ffmpeg@2.1.26':
-    dependencies:
-      '@types/node': 22.5.4
-
   '@types/graceful-fs@4.1.9':
     dependencies:
       '@types/node': 22.5.4
@@ -4415,7 +4381,7 @@ snapshots:
       '@typescript-eslint/types': 8.5.0
       eslint-visitor-keys: 3.4.3
 
-  '@vitest/coverage-istanbul@2.1.1(vitest@2.1.1(@types/node@22.5.4)(@vitest/ui@2.1.1))':
+  '@vitest/coverage-istanbul@2.1.1(vitest@2.1.1)':
     dependencies:
       '@istanbuljs/schema': 0.1.3
       debug: 4.3.7
@@ -4431,7 +4397,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@2.1.1(vitest@2.1.1(@types/node@22.5.4)(@vitest/ui@2.1.1))':
+  '@vitest/coverage-v8@2.1.1(vitest@2.1.1)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3

@@ -171,7 +171,6 @@ graph TD
         subgraph CoreUtils ["Core Utilities"]
             core_types["types.ts"]:::core
             core_config["default.config.ts"]:::core
-            core_format["FormatHelper.ts"]:::core
         end
     end
 

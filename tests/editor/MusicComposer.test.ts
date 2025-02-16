@@ -1,22 +1,32 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MusicComposer from '@/editor/MusicComposer';
-import { Section, MusicConfig } from '@/core/types';
+import { Section, MusicConfig, FFMpegInfos } from '@/core/types';
 import Project from '@/core/models/Project';
 import Template from '@/core/models/Template';
+import type AbstractLogger from '@/platform/logging/AbstractLogger';
+import type AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
+import type AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
+import type AbstractMusic from '@/platform/ffmpeg/AbstractMusic';
 
-// Mock dependencies
-const mockLogger = {
+// Mock dependencies with proper interfaces
+const mockLogger: Partial<AbstractLogger> = {
   info: vi.fn(),
   error: vi.fn(),
   debug: vi.fn(),
 };
 
-const mockFFmpegAdapter = {
+const mockFFmpegAdapter: Partial<AbstractFFmpeg> = {
   execute: vi.fn().mockResolvedValue({ rc: 0 }),
+  getInfos: vi.fn().mockResolvedValue({
+    duration: null,
+    videoCodec: null,
+    audioCodec: null,
+    sampleRate: null,
+  } as FFMpegInfos),
 };
 
-const mockFilesystemAdapter = {
+const mockFilesystemAdapter: Partial<AbstractFilesystem> = {
   getBuildPath: vi.fn().mockResolvedValue('/build/path'),
   getAssetsPath: vi.fn().mockResolvedValue('/assets/path'),
   move: vi.fn(),
@@ -24,14 +34,15 @@ const mockFilesystemAdapter = {
   stat: vi.fn(),
   getTempDir: vi.fn().mockReturnValue('/temp'),
   unlink: vi.fn(),
+  getBuildDir: vi.fn().mockReturnValue('/build'),
 };
 
-const mockMusicAdapter = {
+const mockMusicAdapter: Partial<AbstractMusic> = {
   process: vi.fn().mockResolvedValue({ rc: 0 }),
 };
 
-// Mock Project and Template
-const createMockProject = (musicConfig?: MusicConfig) => ({
+// Test factories
+const createMockProject = (musicConfig?: MusicConfig): Partial<Project> => ({
   config: {
     music: musicConfig,
     audioConfig: {
@@ -44,16 +55,21 @@ const createMockProject = (musicConfig?: MusicConfig) => ({
     currentIncrement: 0,
     totalSegments: 1,
     musicFilters: [],
-    durations: {},
+    totalLength: 0,
+    currentProgress: 0,
+    videoInputs: [],
+    musicInputs: [],
+    fileConcatPath: '',
+    durations: [],
   },
 });
 
-const createMockTemplate = () => ({
+const createMockTemplate = (): Partial<Template> => ({
   descriptor: {
     global: {
       transitionDuration: 0.3,
       audioVolumeLevel: 1,
-      music: undefined as MusicConfig | undefined,
+      music: undefined,
     },
   },
 });
@@ -64,7 +80,6 @@ describe('MusicComposer', () => {
   let mockTemplate: Template;
 
   beforeEach(() => {
-    // Reset mocks
     vi.clearAllMocks();
 
     mockProject = createMockProject() as Project;
@@ -73,10 +88,10 @@ describe('MusicComposer', () => {
     musicComposer = new MusicComposer(
       mockProject,
       mockTemplate,
-      mockLogger,
-      mockFFmpegAdapter,
-      mockFilesystemAdapter,
-      mockMusicAdapter
+      mockLogger as AbstractLogger,
+      mockFFmpegAdapter as AbstractFFmpeg,
+      mockFilesystemAdapter as AbstractFilesystem,
+      mockMusicAdapter as AbstractMusic
     );
   });
 
@@ -85,7 +100,7 @@ describe('MusicComposer', () => {
       // Arrange
       const musicConfig = { name: 'test', url: 'http://test.com/test.mp3' };
       mockProject.config.music = musicConfig;
-      mockFilesystemAdapter.stat.mockResolvedValue(true);
+      vi.spyOn(mockFilesystemAdapter, 'stat').mockResolvedValue(true);
 
       // Act
       await musicComposer.loadMusic();
@@ -99,8 +114,8 @@ describe('MusicComposer', () => {
       // Arrange
       const musicConfig = { name: 'test', url: 'http://test.com/test.mp3' };
       mockProject.config.music = musicConfig;
-      mockFilesystemAdapter.stat.mockResolvedValue(false);
-      mockFilesystemAdapter.fetch.mockResolvedValue('/temp/downloaded.mp3');
+      vi.spyOn(mockFilesystemAdapter, 'stat').mockResolvedValue(false);
+      vi.spyOn(mockFilesystemAdapter, 'fetch').mockResolvedValue('/temp/downloaded.mp3');
 
       // Act
       await musicComposer.loadMusic();
@@ -115,7 +130,7 @@ describe('MusicComposer', () => {
       // Arrange
       const templateMusic = { name: 'template', url: 'http://test.com/template.mp3' };
       mockTemplate.descriptor.global.music = templateMusic;
-      mockFilesystemAdapter.stat.mockResolvedValue(false);
+      vi.spyOn(mockFilesystemAdapter, 'stat').mockResolvedValue(false);
 
       // Act
       await musicComposer.loadMusic();
@@ -206,16 +221,16 @@ describe('MusicComposer', () => {
       const allFilters = mockProject.buildInfos.musicFilters.join(' ');
 
       // Check main filter components
-      expect(allFilters).toContain('[section1]');     // First section
-      expect(allFilters).toContain('[lastsection]');  // Last section
+      expect(allFilters).toContain('[section1]'); // First section
+      expect(allFilters).toContain('[lastsection]'); // Last section
       expect(allFilters).toContain('acrossfade=d=0.3:c1=tri:c2=tri'); // Crossfade
-      expect(allFilters).toContain('[lastcrossed]');  // Crossfade output
+      expect(allFilters).toContain('[lastcrossed]'); // Crossfade output
 
       // Verify the sequence of operations
       const filters = mockProject.buildInfos.musicFilters;
       expect(filters[0]).toContain('atrim=start=0'); // First section starts at 0
       expect(filters[1]).toContain('atrim=start=5'); // Second section starts at 5 (duration of first)
-      expect(filters[2]).toContain('acrossfade');    // Crossfade is last operation
+      expect(filters[2]).toContain('acrossfade'); // Crossfade is last operation
     });
 
     it('should accumulate correct timestamps', () => {
@@ -279,27 +294,27 @@ describe('MusicComposer', () => {
       const filter = mockProject.buildInfos.musicFilters[0];
       expect(filter).toContain('volume=0.5'); // Default value
     });
-});
+  });
 
   describe('appendMusic', () => {
     it('should mix audio for single segment', async () => {
       // Arrange
-      const segments: Section[] = [{
-        name: 'section1',
-        type: 'video',
-        visibility: ['video_segment'],
-        options: {
-          duration: 5,
+      const segments: Section[] = [
+        {
+          name: 'section1',
+          type: 'video',
+          visibility: ['video_segment'],
+          options: {
+            duration: 5,
+          },
         },
-      }];
+      ];
 
       // Act
       await musicComposer.appendMusic(segments, 'output.mp4');
 
       // Assert
-      expect(mockFFmpegAdapter.execute).toHaveBeenCalledWith(
-        expect.stringContaining('amix=inputs=2:duration=first')
-      );
+      expect(mockFFmpegAdapter.execute).toHaveBeenCalledWith(expect.stringContaining('amix=inputs=2:duration=first'));
     });
 
     it('should handle multiple segments with filters', async () => {
@@ -314,15 +329,15 @@ describe('MusicComposer', () => {
       await musicComposer.appendMusic(segments, 'output.mp4');
 
       // Assert
-      expect(mockFFmpegAdapter.execute).toHaveBeenCalledWith(
-        expect.stringContaining('[lastcrossed]')
-      );
+      expect(mockFFmpegAdapter.execute).toHaveBeenCalledWith(expect.stringContaining('[lastcrossed]'));
     });
 
     it('should throw error if ffmpeg fails', async () => {
       // Arrange
-      mockFFmpegAdapter.execute.mockResolvedValue({ rc: 1 });
-      const segments: Section[] = [{ name: 'section1', type: 'video', visibility: ['video_segment'], options: { duration: 5 } }];
+      mockFFmpegAdapter.execute = vi.fn().mockResolvedValue({ rc: 1 });
+      const segments: Section[] = [
+        { name: 'section1', type: 'video', visibility: ['video_segment'], options: { duration: 5 } },
+      ];
 
       // Act & Assert
       await expect(musicComposer.appendMusic(segments, 'output.mp4')).rejects.toThrow('Error on music add');
@@ -339,12 +354,7 @@ describe('MusicComposer', () => {
       await musicComposer.loopMusic();
 
       // Assert
-      expect(mockMusicAdapter.process).toHaveBeenCalledWith(
-        mockLogger,
-        mockFilesystemAdapter,
-        10,
-        'music.mp3'
-      );
+      expect(mockMusicAdapter.process).toHaveBeenCalledWith(mockLogger, mockFilesystemAdapter, 10, 'music.mp3');
     });
   });
 });

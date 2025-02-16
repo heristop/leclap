@@ -8,35 +8,40 @@ import globals from 'globals';
 export default [
   js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         project: './tsconfig.json',
+        ecmaVersion: 2020,
+        sourceType: 'module'
       },
+      globals: {
+        ...globals.node
+      }
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
+      prettier: prettierPlugin
     },
     rules: {
-      ...tsPlugin.configs.recommended.rules,
+      ...tsPlugin.configs['recommended'].rules,
       ...prettierConfig.rules,
       '@typescript-eslint/dot-notation': 'error',
       'eol-last': 'error',
-      'prettier/prettier': 'error',
-    },
+      'prettier/prettier': 'error'
+    }
   },
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     languageOptions: {
       globals: {
         ...globals.jest,
-        ...globals.node,
-      },
-    },
+        ...globals.node
+      }
+    }
   },
   {
-    ignores: ['eslint.config.js'],
-  },
+    ignores: ['eslint.config.js', 'dist/**']
+  }
 ];

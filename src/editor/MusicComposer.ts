@@ -1,11 +1,11 @@
 import { inject, injectable } from 'tsyringe';
 import { MusicConfig, Section } from '@/core/types';
-import AbstractLogger from '../platform/logging/AbstractLogger';
-import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
-import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import AbstractMusic from '../platform/ffmpeg/AbstractMusic';
-import Template from '../core/models/Template';
-import Project from '../core/models/Project';
+import AbstractLogger from '@/platform/logging/AbstractLogger';
+import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
+import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
+import AbstractMusic from '@/platform/ffmpeg/AbstractMusic';
+import Template from '@/core/models/Template';
+import Project from '@/core/models/Project';
 
 /**
  * Handles all music-related operations for video composition

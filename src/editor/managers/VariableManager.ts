@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
-import Template from '../../core/models/Template';
-import Project from '../../core/models/Project';
+import Template from '@/core/models/Template';
+import Project from '@/core/models/Project';
 import { Variables } from '@/core/types';
 
 @singleton()

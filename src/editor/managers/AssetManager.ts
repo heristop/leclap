@@ -1,9 +1,9 @@
 import { inject, singleton } from 'tsyringe';
-import AbstractLogger from '../../platform/logging/AbstractLogger';
-import AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
+import AbstractLogger from '@/platform/logging/AbstractLogger';
+import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
 import { Media, MapAnimationInput } from '@/core/types';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
+import Template from '@/core/models/Template';
+import Segment from '@/core/models/Segment';
 import VariableManager from './VariableManager';
 
 @singleton()

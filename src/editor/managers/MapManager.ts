@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
+import Template from '@/core/models/Template';
+import Segment from '@/core/models/Segment';
 import { Map, MapAnimationInput } from '@/core/types';
 import FormattersManager from './FormatterManager';
 import FilterManager from './FilterManager';

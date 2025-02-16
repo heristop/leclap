@@ -1,8 +1,8 @@
 import { inject, singleton } from 'tsyringe';
-import AbstractLogger from '../../platform/logging/AbstractLogger';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
-import Project from '../../core/models/Project';
+import AbstractLogger from '@/platform/logging/AbstractLogger';
+import Template from '@/core/models/Template';
+import Segment from '@/core/models/Segment';
+import Project from '@/core/models/Project';
 import { Filter } from '@/core/types';
 import VariableManager from './VariableManager';
 

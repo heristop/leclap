@@ -5,7 +5,7 @@ import path from 'node:path';
 import axios from 'axios';
 import extract from 'extract-zip';
 import AbstractFilesystem from './AbstractFilesystem';
-import AbstractLogger from '../logging/AbstractLogger';
+import AbstractLogger from '@/platform/logging/AbstractLogger';
 
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {
@@ -51,8 +51,8 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     const writer = createWriteStream(dest);
     response.data.pipe(writer);
 
-    await new Promise((resolve, reject) => {
-      writer.on('finish', resolve);
+    await new Promise<void>((resolve, reject) => {
+      writer.on('finish', () => resolve());
       writer.on('error', reject);
     });
 

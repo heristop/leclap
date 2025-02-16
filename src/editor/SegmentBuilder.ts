@@ -1,15 +1,15 @@
 import { autoInjectable, inject } from 'tsyringe';
-import AbstractLogger from '../platform/logging/AbstractLogger';
-import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
+import AbstractLogger from '@/platform/logging/AbstractLogger';
+import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
 import { MapAnimationInput, Section } from '@/core/types';
-import Template from '../core/models/Template';
-import Project from '../core/models/Project';
-import Segment from '../core/models/Segment';
-import AssetManager from './managers/AssetManager';
-import VariableManager from './managers/VariableManager';
-import MapManager from './managers/MapManager';
-import FilterManager from './managers/FilterManager';
-import FormattersManager from './managers/FormatterManager';
+import Template from '@/core/models/Template';
+import Project from '@/core/models/Project';
+import Segment from '@/core/models/Segment';
+import AssetManager from '@/editor/managers/AssetManager';
+import VariableManager from '@/editor/managers/VariableManager';
+import MapManager from '@/editor/managers/MapManager';
+import FilterManager from '@/editor/managers/FilterManager';
+import FormattersManager from '@/editor/managers/FormatterManager';
 
 @autoInjectable()
 class SegmentBuilder {

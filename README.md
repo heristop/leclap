@@ -40,16 +40,19 @@ brew install ffmpeg
 #### Linux
 
 For Debian/Ubuntu:
+
 ```bash
 sudo apt update && sudo apt install ffmpeg
 ```
 
 For Fedora:
+
 ```bash
 sudo dnf install ffmpeg
 ```
 
 For Arch Linux:
+
 ```bash
 sudo pacman -S ffmpeg
 ```
@@ -57,6 +60,7 @@ sudo pacman -S ffmpeg
 #### Verify Installation
 
 After installation, verify that FFmpeg is properly installed:
+
 ```bash
 ffmpeg -version
 ffprobe -version

@@ -46,9 +46,7 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     try {
       // Execute ffprobe with JSON output format
-      const { stdout } = await execAsync(
-        `ffprobe -v quiet -print_format json -show_streams "${source}"`
-      );
+      const { stdout } = await execAsync(`ffprobe -v quiet -print_format json -show_streams "${source}"`);
 
       const info: FFProbeData = JSON.parse(stdout);
 

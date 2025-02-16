@@ -76,7 +76,7 @@ class MusicNodeAdapter implements AbstractMusic {
         }
 
         const command: string = `ffmpeg -y -i "${input}" -acodec copy "${loop}"`;
-        logger.info(`[Music][Command] ${command}`);
+        logger.debug(`[Music][Command] ${command}`);
 
         try {
           await execAsync(command);

@@ -12,7 +12,7 @@ export type ProjectConfig = {
   videoConfig?: VideoConfig;
 };
 
-type MusicConfig = {
+export type MusicConfig = {
   name: string;
   url?: string;
 };

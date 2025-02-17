@@ -18,7 +18,8 @@
     "test:ci": "vitest run --coverage.enabled --coverage.reporter='text-summary'",
     "test:coverage": "vitest run --coverage",
     "build": "tsup",
-    "graph": "madge --dot --extensions ts src/ > graph.dot"
+    "graph": "madge --dot --extensions ts src/ > graph.dot",
+    "prepare": "husky"
   },
   "tsup": {
     "entry": [

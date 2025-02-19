@@ -1,13 +1,16 @@
 import { inject, injectable } from 'tsyringe';
-import { Section } from '@/core/types';
+import { MusicConfig, Section } from '@/core/types';
 import AbstractLogger from '../platform/logging/AbstractLogger';
 import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import AbstractMusic from '../platform/ffmpeg/AbstractMusic';
-import { fancyTimeFormat } from '../core/helpers/FormatHelper';
 import Template from '../core/models/Template';
 import Project from '../core/models/Project';
 
+/**
+ * Handles all music-related operations for video composition
+ * including loading, processing, looping, and mixing with video audio
+ */
 @injectable()
 class MusicComposer {
   private buildAssetsDir: string;
@@ -24,24 +27,26 @@ class MusicComposer {
     @inject('musicAdapter') private readonly musicAdapter: AbstractMusic
   ) {}
 
+  /**
+   * Loads and prepares the background music track
+   * Checks cache first, then downloads if needed
+   */
   loadMusic = async (): Promise<void> => {
     this.buildAssetsDir = await this.filesystemAdapter.getBuildPath('assets');
     this.musicAssetsDir = await this.filesystemAdapter.getAssetsPath('musics');
 
     if (!this.project.config.music) {
-      // Use template music
+      // Fallback to template music if project doesn't specify one
       if (this.template.descriptor.global?.music) {
         this.project.config.music = this.template.descriptor.global.music;
       }
 
-      // Add a default music
       if (!this.project.config.music) {
         return;
       }
     }
 
-    const musicName = this.project.config.music.name;
-    const musicFormattedName = this.formatMusicName(musicName.substring(0, musicName.lastIndexOf('.')));
+    const musicFormattedName = this.formatMusicName(this.project.config.music);
     const destination = `${this.buildAssetsDir}/${musicFormattedName}.mp3`;
     const musicPathInCache = `${this.musicAssetsDir}/${musicFormattedName}.mp3`;
 
@@ -57,55 +62,70 @@ class MusicComposer {
     }
   };
 
+  /**
+   * Downloads and saves music file to the specified destination
+   */
   private async downloadAndSaveMusic(url: string, destination: string): Promise<void> {
     const musicPath = await this.downloadMusic(url);
-
     await this.filesystemAdapter.move(musicPath, destination);
-
     this.logger.info(`[Music] Fetched ${destination}`);
   }
 
+  /**
+   * Downloads music file using filesystem adapter
+   */
   private async downloadMusic(url: string): Promise<string> {
     return await this.filesystemAdapter.fetch(url);
   }
 
-  private formatMusicName(name: string): string {
-    return name.replace(/[:.' ]/g, '_').toLowerCase();
+  /**
+   * Formats music name based on config
+   * Extracts name from URL if not provided explicitly
+   */
+  private formatMusicName(music: MusicConfig): string {
+    if (music.name) {
+      return this.removeExtension(music.name);
+    }
+
+    const urlParts = music.url.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+    return this.removeExtension(fileName);
   }
 
+  /**
+   * Removes file extension from filename
+   */
+  private removeExtension(filename: string): string {
+    return filename.replace(/\.[^/.]+$/, '');
+  }
+
+  /**
+   * Checks if a music file exists in the cache
+   */
   private async checkMusicExists(filePath: string): Promise<boolean> {
     return await this.filesystemAdapter.stat(filePath);
   }
 
+  /**
+   * Prepares audio filters and settings for a video segment
+   * Handles volume, transitions, and crossfades between segments
+   * @param section - Video section to prepare music for
+   */
   prepareMusicTrack = (section: Section): void => {
     const sectionData = this.template.descriptor[section.name];
 
-    // Apply default values
-    let musicVolumeLevel = 0.5;
-    let transitionDuration = 0.3;
+    // Initialize audio settings
+    let musicVolumeLevel = section.options.musicVolumeLevel ?? 0.5;
+    let transitionDuration = this.template.descriptor.global.transitionDuration ?? 0.3;
+    this.project.buildInfos.currentLength ??= 0.0;
 
-    if (!this.project.buildInfos.currentLength) {
-      this.project.buildInfos.currentLength = 0.0;
-    }
+    // Calculate duration based on section type
+    const duration =
+      section.type === 'project_video' && sectionData?.info
+        ? this.project.buildInfos.durations[section.name]
+        : (section.options.duration ?? 0);
 
-    if (section.options.musicVolumeLevel) {
-      musicVolumeLevel = section.options.musicVolumeLevel;
-    }
-
-    if (this.template.descriptor.global.transitionDuration) {
-      transitionDuration = this.template.descriptor.global.transitionDuration;
-    }
-
-    let duration = 0;
-
-    if (section.type === 'project_video' && sectionData?.info) {
-      // Retrieve video duration from info
-      duration = this.project.buildInfos.durations[section.name];
-    } else if (section.options.duration) {
-      // Or retrieve from template config
-      duration = section.options.duration;
-    }
-
+    // Setup section metadata
     const sectionIncrement = this.project.buildInfos.currentIncrement + 1;
     const isFirstSection = sectionIncrement === 1;
     const isLastSection = sectionIncrement == this.project.buildInfos.totalSegments;
@@ -113,106 +133,72 @@ class MusicComposer {
 
     this.project.buildInfos.currentIncrement = sectionIncrement;
 
-    let tCmd = '';
-    let ssCmd = '';
+    // Calculate segment timing
     const ss = this.project.buildInfos.currentLength;
-    let t = duration;
-
-    if (ss > 0) {
-      ssCmd = ` -ss ${fancyTimeFormat(ss * 1000, true, true)} `;
-    }
-
-    t += transitionDuration;
-
-    tCmd = ` -t ${fancyTimeFormat(t * 1000, true, true)} `;
+    const t = duration + transitionDuration;
     this.project.buildInfos.currentLength += duration;
-    this.project.buildInfos.musicInputs.push(` ${ssCmd} ` + ` ${tCmd} ` + ` -i ${this.project.buildInfos.musicPath} `);
 
-    let filterConfig = '';
+    // Build audio filters based on section position
+    const baseFilter = `[1:a]atrim=start=${ss}:duration=${t},asetpts=PTS-STARTPTS`;
+    let filter: string;
 
     if (isFirstSection) {
-      // Fade in first audio section
-      filterConfig = `afade=t=in:ss=0:d=${transitionDuration},`;
+      filter = `${baseFilter},afade=t=in:st=0:d=${transitionDuration},volume=${musicVolumeLevel}[${mapName}];`;
     } else if (isLastSection) {
-      // Fade out last audio section
-      filterConfig = `afade=t=out:st=${duration - transitionDuration}:d=${transitionDuration},`;
+      filter = `${baseFilter},afade=t=out:st=${duration - transitionDuration}:d=${transitionDuration},volume=${musicVolumeLevel}[${mapName}];`;
+    } else {
+      filter = `${baseFilter},volume=${musicVolumeLevel}[${mapName}];`;
     }
 
-    filterConfig += `volume=${musicVolumeLevel}`;
-    this.project.buildInfos.musicFilters.push(` [${sectionIncrement}:a]${filterConfig}[${mapName}]; `);
+    this.project.buildInfos.musicFilters.push(` ${filter}`);
 
-    // Add accrossfade effect "Mix DJ style" between 2 sections
+    // Add crossfade between segments
     if (sectionIncrement > 1) {
-      const acrossfadeConfig = `acrossfade=d=${transitionDuration}:c1=tri:c2=tri`;
-      let acrossfadeMapName = '';
+      const acrossfadeMapName = isLastSection ? 'lastcrossed' : `crossed${sectionIncrement - 1}`;
+      const previousMapName =
+        sectionIncrement === 2 ? `section${sectionIncrement - 1}` : `crossed${sectionIncrement - 2}`;
 
-      if (isLastSection === false) {
-        acrossfadeMapName = `crossed${sectionIncrement - 1}`;
-      } else {
-        acrossfadeMapName = 'lastcrossed';
-      }
-
-      let previousMapName = '';
-
-      if (sectionIncrement === 2) {
-        previousMapName = `section${sectionIncrement - 1}`;
-      } else {
-        previousMapName = `crossed${sectionIncrement - 2}`;
-      }
-
-      if (acrossfadeConfig) {
-        this.project.buildInfos.musicFilters.push(
-          ` [${previousMapName}][${mapName}]${acrossfadeConfig}[${acrossfadeMapName}]; `
-        );
-      }
+      const crossfade = ` [${previousMapName}][${mapName}]acrossfade=d=${transitionDuration}:c1=tri:c2=tri[${acrossfadeMapName}];`;
+      this.project.buildInfos.musicFilters.push(crossfade);
     }
   };
 
   /**
-   * Loop music if length is lt than video length
-   */
-  loopMusic = async (): Promise<void> => {
-    const { totalLength, musicPath } = this.project.buildInfos;
-
-    await this.musicAdapter.process(this.logger, this.filesystemAdapter, totalLength, musicPath);
-  };
-
-  /**
-   * Append music of option is enabled
+   * Appends background music to the final video
+   * Handles audio mixing, noise reduction, and channel configuration
+   * @param segments - Video segments to process
+   * @param finalVideo - Path to the final video file
    */
   appendMusic = async (segments: Section[], finalVideo: string): Promise<void> => {
     const time = new Date().getTime();
     const temp = `${this.filesystemAdapter.getTempDir()}/tmp_video_${time}.mp4`;
     const reduceNoiseConfig = 'afftdn=nr=20:nf=-20';
 
-    // Default audio volume level
-    const audioVolumeLevel = this.template.descriptor.global.audioVolumeLevel || 1;
+    const audioVolumeLevel = this.template.descriptor.global.audioVolumeLevel ?? 1;
     const sampleRate = this.project.config.audioConfig.sampleRate;
 
     await this.filesystemAdapter.move(finalVideo, temp);
 
-    // Audio channel configuration
+    // Configure audio format and channels
     const channelConfig = `aformat=sample_fmts=fltp:sample_rates=${sampleRate}:channel_layouts=stereo`;
 
-    // Building the FFmpeg command
-    let command = ` -y -i ${temp} ${this.project.buildInfos.musicInputs.join(' ')} `;
-    let filterComplex = `[0:a]${channelConfig},volume=${audioVolumeLevel},${reduceNoiseConfig},apad[audio_formatted]; `;
+    // Build FFmpeg command with appropriate filters
+    let command = ` -y -i ${temp} -i ${this.project.buildInfos.musicPath} `;
+    let filterComplex = `[0:a]${channelConfig},volume=${audioVolumeLevel},${reduceNoiseConfig}[audio_formatted]; `;
 
-    // Check if there are multiple segments and if music should be mixed
     if (segments.length > 1) {
-      filterComplex += `   ${this.project.buildInfos.musicFilters.join(' ')} `;
-      filterComplex += `   [lastcrossed]${channelConfig}[music_formatted]; `;
-      filterComplex += '   [audio_formatted][music_formatted]amix=inputs=2[final]';
+      filterComplex += `${this.project.buildInfos.musicFilters.join(' ')} `;
+      filterComplex += `[lastcrossed]${channelConfig}[music_formatted]; `;
+      filterComplex += '[audio_formatted][music_formatted]amix=inputs=2:duration=first[final]';
     } else {
-      filterComplex += ` [1:a]${channelConfig}[music_formatted]; `;
-      filterComplex += ` [audio_formatted][music_formatted]amix=inputs=2[final]`;
+      filterComplex += `[1:a]${channelConfig}[music_formatted]; `;
+      filterComplex += `[audio_formatted][music_formatted]amix=inputs=2:duration=first[final]`;
     }
 
-    // Completing the command
     command += ` -filter_complex "${filterComplex}" `;
-    command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 -shortest ${finalVideo} `;
+    command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 ${finalVideo} `;
 
-    this.logger.debug(`[Music][Command] ffmpeg ${command}`);
+    this.logger.info(`[Music][Command] ffmpeg ${command}`);
     const result = await this.ffmpegAdapter.execute(command);
     this.logger.info(`[Music] ffmpeg process exited with rc ${result.rc}`);
 
@@ -220,8 +206,15 @@ class MusicComposer {
       throw new Error('Error on music add');
     }
 
-    // Clean up the temporary file
     await this.filesystemAdapter.unlink(temp);
+  };
+
+  /**
+   * Loops music track if it's shorter than the video duration
+   */
+  loopMusic = async (): Promise<void> => {
+    const { totalLength, musicPath } = this.project.buildInfos;
+    await this.musicAdapter.process(this.logger, this.filesystemAdapter, totalLength, musicPath);
   };
 }
 

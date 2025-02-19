@@ -1,11 +1,11 @@
 import { inject, injectable } from 'tsyringe';
-import AbstractLogger from '@/platform/logging/AbstractLogger';
-import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
-import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
+import AbstractLogger from '../platform/logging/AbstractLogger';
+import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import { Section } from '@/core/types';
-import Project from '@/core/models/Project';
-import SegmentFactory from '@/editor/factories/SegmentFactory';
-import SegmentBuilder from '@/editor/SegmentBuilder';
+import Project from '../core/models/Project';
+import SegmentFactory from '../editor/factories/SegmentFactory';
+import SegmentBuilder from '../editor/SegmentBuilder';
 
 @injectable()
 class TemplateConcreteBuilder {

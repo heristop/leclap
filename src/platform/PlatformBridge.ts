@@ -1,7 +1,7 @@
-import PinoLogAdapter from '@/platform/logging/PinoLogAdapter';
-import FFmpegNodeAdapter from '@/platform/ffmpeg/FFmpegNodeAdapter';
-import MusicNodeAdapter from '@/platform/ffmpeg/MusicNodeAdapter';
-import FilesystemNodeAdapter from '@/platform/filesystem/FilesystemNodeAdapter';
+import PinoLogAdapter from './logging/PinoLogAdapter';
+import FFmpegNodeAdapter from './ffmpeg/FFmpegNodeAdapter';
+import MusicNodeAdapter from './ffmpeg/MusicNodeAdapter';
+import FilesystemNodeAdapter from './filesystem/FilesystemNodeAdapter';
 
 class PlatformBridge {
   create = (adapter: string) => {

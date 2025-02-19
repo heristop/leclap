@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
-import Template from '@/core/models/Template';
-import Segment from '@/core/models/Segment';
+import Template from '../../core/models/Template';
+import Segment from '../../core/models/Segment';
 import { Filter } from '@/core/types';
 import FormatterManager from './FormatterManager';
 

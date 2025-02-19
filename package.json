@@ -17,6 +17,7 @@
     "test:ui": "vitest --ui",
     "test:ci": "vitest run --coverage.enabled --coverage.reporter='text-summary'",
     "test:coverage": "vitest run --coverage",
+    "test:precommit": "vitest --run",
     "build": "tsup",
     "graph": "madge --dot --extensions ts src/ > graph.dot",
     "prepare": "husky"

@@ -1,7 +1,7 @@
-import ImageBackground from '@/editor/segments/ImageBackgroundSegment';
-import ProjectVideo from '@/editor/segments/ProjectVideoSegment';
-import Video from '@/editor/segments/VideoSegment';
-import ColorBackground from '@/editor/segments/ColorBackgroundSegment';
+import ImageBackground from '../../editor/segments/ImageBackgroundSegment';
+import ProjectVideo from '../../editor/segments/ProjectVideoSegment';
+import Video from '../../editor/segments/VideoSegment';
+import ColorBackground from '../../editor/segments/ColorBackgroundSegment';
 import { Section } from '@/core/types';
 
 class SegmentFactory {

@@ -1,10 +1,10 @@
 import EventEmitter from 'events';
 import { inject, injectable } from 'tsyringe';
-import AbstractLogger from '@/platform/logging/AbstractLogger';
-import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
-import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
-import Template from '@/core/models/Template';
-import Project from '@/core/models/Project';
+import AbstractLogger from '../platform/logging/AbstractLogger';
+import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
+import Template from '../core/models/Template';
+import Project from '../core/models/Project';
 import { Section } from '@/core/types';
 import MusicComposer from './MusicComposer';
 

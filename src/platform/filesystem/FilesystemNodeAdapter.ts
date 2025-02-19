@@ -5,7 +5,7 @@ import path from 'node:path';
 import axios from 'axios';
 import extract from 'extract-zip';
 import AbstractFilesystem from './AbstractFilesystem';
-import AbstractLogger from '@/platform/logging/AbstractLogger';
+import AbstractLogger from '../../platform/logging/AbstractLogger';
 
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {

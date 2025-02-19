@@ -3,8 +3,8 @@ import fs from 'fs/promises';
 import { exec, ExecException } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
-import AbstractLogger from '@/platform/logging/AbstractLogger';
-import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
+import AbstractLogger from '../../platform/logging/AbstractLogger';
+import AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
 import AbstractMusic from './AbstractMusic';
 
 const execAsync = promisify(exec);

@@ -1,14 +1,14 @@
 import EventEmitter from 'events';
 import { inject, injectable } from 'tsyringe';
-import AbstractLogger from '@/platform/logging/AbstractLogger';
-import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
-import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
-import EventManager from '@/platform/EventManager';
-import VideoEditor from '@/editor/VideoEditor';
-import MusicComposer from '@/editor/MusicComposer';
+import AbstractLogger from '../platform/logging/AbstractLogger';
+import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
+import EventManager from '../platform/EventManager';
+import VideoEditor from '../editor/VideoEditor';
+import MusicComposer from '../editor/MusicComposer';
 import { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
-import Project from '@/core/models/Project';
-import Template from '@/core/models/Template';
+import Project from '../core/models/Project';
+import Template from '../core/models/Template';
 import TemplateConcreteBuilder from './TemplateConcreteBuilder';
 
 @injectable()

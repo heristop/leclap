@@ -1,5 +1,5 @@
-import AbstractFilesystem from '../filesystem/AbstractFilesystem';
-import AbstractLogger from '../logging/AbstractLogger';
+import AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
+import AbstractLogger from '../../platform/logging/AbstractLogger';
 
 abstract class AbstractMusic {
   abstract process(

@@ -128,15 +128,13 @@ class SegmentBuilder {
 
       // Manage background color input
       this.sources.push(
-        `-f lavfi -i color=c=${backgroundColor}` +
-          `:s=${this.project.config.videoConfig.scale.replace(':', 'x')}` +
-          `:d=${this.section.options.duration}`
+        `-f lavfi -i color=c=${backgroundColor}:s=${this.project.config.videoConfig.scale.replace(':', 'x')}:d=${this.section.options.duration}`
       );
     }
 
     if (this.segment.inputsAsset) {
       for (const property in this.segment.inputsAsset) {
-        if (Object.prototype.hasOwnProperty.call(this.segment.inputsAsset, property)) {
+        if (property in this.segment.inputsAsset) {
           this.sources.push(`-i ${this.segment.inputsAsset[property]}`);
         }
       }
@@ -146,45 +144,44 @@ class SegmentBuilder {
   buildMaps = async (): Promise<void> => {
     this.segment.inputsAsset = [];
 
-    await Promise.all(
-      this.section.inputs.map((item: MapAnimationInput) => {
-        if (
-          item.type === 'frame' &&
-          new RegExp('(.*?).(zip)$').test(item.url) &&
-          this.template.assets.inputs[item.name]
-        ) {
-          // Retrieve unzipped frames
-          for (let i = 1; i <= this.template.assets.inputs[item.name].length; i++) {
-            this.segment.inputsAsset[`asset_${item.name}_${i}`] = this.template.assets.inputs[item.name][i - 1];
-            this.mapManager.addMapAnimation(item, i);
-          }
-
-          if (!item.options.frames) {
-            item.options.frames = this.template.assets.inputs[item.name].length;
-          }
-        } else if (item.type === 'frame' && item.options && item.options.frames) {
-          // Retrieve cached frames
-          for (let i = 1; i <= item.options.frames; i++) {
-            this.segment.inputsAsset[`asset_${item}`] = this.assetManager.fetchCachedMedia(item, i);
-            this.mapManager.addMapAnimation(item, i);
-          }
-        } else {
-          // Process single media
-          this.segment.inputsAsset[`asset_${item}`] = this.assetManager.fetchCachedMedia(item);
+    for (const input of this.section.inputs) {
+      if (
+        (input as MapAnimationInput).type === 'frame' &&
+        new RegExp('(.*?).(zip)$').test(input.url) &&
+        this.template.assets.inputs[input.name]
+      ) {
+        // Retrieve unzipped frames
+        const mapAnimationInput = input as MapAnimationInput;
+        const frames = this.template.assets.inputs[input.name];
+        if (!mapAnimationInput.options.frames) {
+          mapAnimationInput.options.frames = frames.length;
         }
-      })
-    );
+        for (let i = 1; i <= frames.length; i++) {
+          this.segment.inputsAsset[`asset_${input.name}_${i}`] = frames[i - 1];
+          this.mapManager.addMapAnimation(mapAnimationInput, i);
+        }
+      } else if (
+        (input as MapAnimationInput).type === 'frame' &&
+        (input as MapAnimationInput).options &&
+        (input as MapAnimationInput).options.frames
+      ) {
+        // Retrieve cached frames
+        const mapAnimationInput = input as MapAnimationInput;
+        for (let i = 1; i <= mapAnimationInput.options.frames; i++) {
+          this.segment.inputsAsset[`asset_${input}`] = this.assetManager.fetchCachedMedia(input, i);
+          this.mapManager.addMapAnimation(mapAnimationInput, i);
+        }
+      } else {
+        // Process single media
+        this.segment.inputsAsset[`asset_${input}`] = this.assetManager.fetchCachedMedia(input);
+      }
+    }
   };
 
   buildFilters = async (): Promise<void> => {
     // Initalized filters if section doesn't have config
-    if (!this.section.maps) {
-      this.section.maps = [];
-    }
-
-    if (!this.section.filters) {
-      this.section.filters = [];
-    }
+    this.section.maps ??= [];
+    this.section.filters ??= [];
 
     // Force ratio
     if (this.section.options.forceAspectRatio !== false || this.section.options.forceOriginalAspectRatio) {
@@ -202,21 +199,21 @@ class SegmentBuilder {
     }
 
     // Build simple filters
-    for (let i = 0; i < Object.keys(this.section.filters).length; i++) {
-      this.segment.filtersList.push(this.filterManager.addFilter(this.section.filters[i]));
-    }
+    this.section.filters.forEach((filter) => {
+      this.segment.filtersList.push(this.filterManager.addFilter(filter));
+    });
 
     // Build map configuration with their filters
-    for (let i = 0; i < Object.keys(this.section.maps).length; i++) {
-      this.mapManager.addMap(this.section.maps[i]);
+    this.section.maps.forEach((map) => {
+      this.mapManager.addMap(map);
       this.segment.inputsMapCount++;
-    }
+    });
 
     // Formatted filters
     if (this.segment.filtersList.length > 0) {
       let filtersFormatted = '';
 
-      if (Object.keys(this.segment.filtersMapList).length > 0) {
+      if (this.segment.filtersMapList.length > 0) {
         // Manage complex filter with maps
         filtersFormatted = this.segment.filtersMapList.join(';');
       } else {
@@ -241,8 +238,11 @@ class SegmentBuilder {
   addBlankAudio = (): string => {
     return (
       ' -f lavfi ' +
-      ` -i anullsrc=channel_layout=${this.project.config.audioConfig.channelLayout}` +
-      `:sample_rate=${this.project.config.audioConfig.sampleRate} `
+      ' -i anullsrc=channel_layout=' +
+      this.project.config.audioConfig.channelLayout +
+      ':sample_rate=' +
+      this.project.config.audioConfig.sampleRate +
+      ' '
     );
   };
 }

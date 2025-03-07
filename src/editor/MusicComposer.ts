@@ -198,7 +198,7 @@ class MusicComposer {
     command += ` -filter_complex "${filterComplex}" `;
     command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 ${finalVideo} `;
 
-    this.logger.info(`[Music][Command] ffmpeg ${command}`);
+    this.logger.debug(`[Music][Command] ffmpeg ${command}`);
     const result = await this.ffmpegAdapter.execute(command);
     this.logger.info(`[Music] ffmpeg process exited with rc ${result.rc}`);
 

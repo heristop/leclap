@@ -19,16 +19,39 @@ class FormattersManager {
   ) {}
 
   formatMultipleTypesValue = (filter: Filter): string => {
+    let result = '';
+
     switch (filter.type) {
-      case 'setpts':
+      case 'setpts': {
         // Retrieve speed from section option
-        return this.segment.currentSection.options.speed
-          ? `setpts=${this.segment.currentSection.options.speed}*PTS`
-          : `setpts=PTS`;
+        const speed = this.segment.currentSection.options.speed;
+
+        // Speed < 1 accelerates video (0.25 = 4x faster)
+        if (speed) {
+          // Directly use speed value as PTS multiplier
+          result = `setpts=${speed}*PTS`;
+        } else {
+          result = 'setpts=PTS'; // Normal speed
+        }
+        break;
+      }
+
+      case 'atempo': {
+        // For audio, we need to use inverse of speed to stay in sync
+        const speed = this.segment.currentSection.options.speed || 1;
+        const audioSpeed = 1 / speed;
+
+        // Limits for audio compatibility (0.5 to 2.0)
+        const safeAudioSpeed = Math.max(0.5, Math.min(2.0, audioSpeed));
+        result = `atempo=${safeAudioSpeed}`;
+        break;
+      }
 
       default:
-        return `${filter.type}=${filter.value}`;
+        result = `${filter.type}=${filter.value}`;
     }
+
+    return result;
   };
 
   formatMultipleTypesValues = (filter: Filter): string => {

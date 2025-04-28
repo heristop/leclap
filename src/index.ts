@@ -54,7 +54,7 @@ export async function compile(
 }
 
 // Export necessary classes and types for external use (like the server)
-export { TemplateDirector }; // Assuming TemplateDirector uses named export
+export { TemplateDirector };
 export { default as VideoEditor } from './editor/VideoEditor';
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
 export { default as FilesystemNodeAdapter } from './platform/filesystem/FilesystemNodeAdapter';

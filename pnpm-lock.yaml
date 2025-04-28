@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       axios:
-        specifier: ^1.8.4
+        specifier: ^1.9.0
         version: 1.9.0
       extract-zip:
         specifier: ^2.0.1
@@ -21,7 +21,7 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
       tsyringe:
-        specifier: ^4.9.1
+        specifier: ^4.10.0
         version: 4.10.0
     devDependencies:
       '@eslint/js':
@@ -1191,7 +1191,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@0.22.26':
     resolution: {integrity: sha512-I689wc8Fn/AX7aUGiwrh3HnssiORMJtR2fpksX+JIe8Cj/EDleblYMSwRPd0025wrwOV9UN1KM/RuEt/QjCS3Q==}

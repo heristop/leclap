@@ -539,8 +539,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 1,
     elevation: 1,
-    borderWidth: 1,
-    borderColor: colors.divider,
   },
   sectionItemContent: {
     flexDirection: 'row',

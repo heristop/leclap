@@ -45,6 +45,8 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
    */
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     try {
+      console.log(`[FFmpegNodeAdapter] Getting info for file: ${source}`);
+
       // Execute ffprobe with JSON output format
       const { stdout } = await execAsync(`ffprobe -v quiet -print_format json -show_streams "${source}"`);
 
@@ -53,6 +55,13 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
       const videoStream = info.streams.find((s) => s.codec_type === 'video');
       const audioStream = info.streams.find((s) => s.codec_type === 'audio');
 
+      console.log(`[FFmpegNodeAdapter] File info:`, {
+        videoFound: !!videoStream,
+        audioFound: !!audioStream,
+        duration: videoStream ? parseFloat(videoStream.duration) : null,
+        videoCodec: videoStream?.codec_name || null,
+      });
+
       return {
         duration: videoStream ? parseFloat(videoStream.duration) : null,
         videoCodec: videoStream?.codec_name || null,
@@ -60,6 +69,7 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
         sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate) : null,
       };
     } catch (error) {
+      console.error(`[FFmpegNodeAdapter] Error analyzing file ${source}:`, error);
       if (error instanceof Error) {
         if (error instanceof SyntaxError) {
           throw new Error(`Failed to parse FFprobe output: ${error.message}`);

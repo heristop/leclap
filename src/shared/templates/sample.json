@@ -19,7 +19,6 @@
     {
       "name": "intro_1",
       "type": "video",
-      "visibility": ["video_segment"],
       "options": {
         "useVideoSection": "video_1",
         "duration": 6,
@@ -143,7 +142,6 @@
     {
       "name": "form_1",
       "type": "form",
-      "visibility": ["storyboard"],
       "title": {
         "fr": "Des infos avant de commencer",
         "en": "A few info before we start"
@@ -182,7 +180,6 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "visibility": ["storyboard", "video_segment"],
       "title": {
         "en": "Tell us a little bit about you"
       },
@@ -255,11 +252,9 @@
         }
       ]
     },
-
     {
       "name": "intertitle_1_1",
       "type": "color_background",
-      "visibility": ["video_segment"],
       "options": {
         "backgroundColor": "{{ color1 }}",
         "duration": 0.5,
@@ -307,7 +302,6 @@
     {
       "name": "intertitle_1_2",
       "type": "color_background",
-      "visibility": ["video_segment"],
       "options": {
         "backgroundColor": "{{ color2 }}",
         "duration": 0.5,
@@ -371,7 +365,6 @@
     {
       "name": "intertitle_1_3",
       "type": "color_background",
-      "visibility": ["video_segment"],
       "options": {
         "backgroundColor": "{{ color2 }}",
         "duration": 1.1,
@@ -445,7 +438,6 @@
     {
       "name": "form_2",
       "type": "form",
-      "visibility": ["storyboard"],
       "title": {
         "en": "3 keywords to describe your job"
       },
@@ -475,6 +467,13 @@
             "label": {
               "en": "Keyword 3"
             }
+          },
+          {
+            "name": "form_2_keyword4",
+            "maxLength": 25,
+            "label": {
+              "en": "Keyword 4"
+            }
           }
         ]
       }
@@ -482,7 +481,6 @@
     {
       "name": "video_2",
       "type": "project_video",
-      "visibility": ["storyboard", "video_segment"],
       "title": {
         "en": "Make your speech"
       },
@@ -593,7 +591,6 @@
     {
       "name": "form_3",
       "type": "form",
-      "visibility": ["storyboard"],
       "title": {
         "en": "Describe your work environment"
       },
@@ -616,7 +613,6 @@
     {
       "name": "video_3",
       "type": "project_video",
-      "visibility": ["storyboard", "video_segment"],
       "title": {
         "en": "Show the work environment"
       },
@@ -673,7 +669,6 @@
     {
       "name": "outro",
       "type": "video",
-      "visibility": ["video_segment"],
       "options": {
         "videoUrl": "{{ videoOutro }}",
         "duration": 3,
@@ -711,7 +706,6 @@
     {
       "name": "music_1",
       "type": "music",
-      "visibility": ["storyboard"],
       "title": {
         "en": "Pick your music"
       },

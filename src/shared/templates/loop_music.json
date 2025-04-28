@@ -16,7 +16,6 @@
     {
       "name": "test_loop_intro",
       "type": "video",
-      "visibility": ["video_segment"],
       "options": {
         "useVideoSection": "video_4",
         "duration": 6,

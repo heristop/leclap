@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import AbstractLogger from '../platform/logging/AbstractLogger';
 import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import { Section } from '@/core/types';
+import { Section, ProjectConfig } from '@/core/types';
 import Project from '../core/models/Project';
 import SegmentFactory from '../editor/factories/SegmentFactory';
 import SegmentBuilder from '../editor/SegmentBuilder';
@@ -20,16 +20,23 @@ class TemplateConcreteBuilder {
     @inject('filesystemAdapter') private readonly filesystemAdapter: AbstractFilesystem
   ) {}
 
-  buildPart = async (section: Section): Promise<boolean> => {
+  // Add projectConfig argument
+  buildPart = async (section: Section, projectConfig: ProjectConfig): Promise<boolean> => {
     this.section = section;
-    this.segment = new SegmentFactory().create(section);
+    // Pass projectConfig to the factory/segment for path resolution and userVideoPaths
+    this.segment = new SegmentFactory(projectConfig).create(section);
 
     if (!this.segment) {
       this.logger.error(`[${section.name}][BuildPart] create section`);
       return false;
     }
 
-    this.project.finalVideo = `${this.filesystemAdapter.getBuildDir()}/output.mp4`;
+    // If it's a project_video section, make sure config is available
+    if (section.type === 'project_video' && this.segment.getProject()) {
+      this.segment.getProject().config = projectConfig;
+    }
+
+    // this.project.finalVideo = `${this.filesystemAdapter.getBuildDir()}/output.mp4`; // Removed: Should be set in finalize/concat step
     this.logger.info(`[${section.name}][BuildPart] init`);
 
     return await this.segment.init();

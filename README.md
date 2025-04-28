@@ -130,6 +130,40 @@ Ensure the quality of the codebase by running the test suite:
 pnpm test
 ```
 
+## 📱 LeClap Expo Playground
+
+The project includes a mobile playground (LeClap) built with Expo that allows you to test and interact with the video composer functionality on your mobile device.
+
+![LeClap Playground](/docs/leclap.gif)
+
+### Starting the Server
+
+Before using the mobile playground, you need to start the server:
+
+```bash
+pnpm server:dev
+```
+
+This command builds and starts the server that the mobile app will communicate with.
+
+### Running the Playground
+
+To start the Expo development server:
+
+```bash
+pnpm playground:start
+```
+
+To run the playground on specific platforms:
+
+```bash
+# Run on Android
+pnpm playground:android
+
+# Run on iOS
+pnpm playground:ios
+```
+
 ## 🏗 Architecture
 
 ```mermaid

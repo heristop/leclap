@@ -383,7 +383,7 @@ const TemplateDetailScreen = () => {
           {filteredSections.filter(s => isSectionCompleted(s)).length} of {filteredSections.length} sections completed
         </Text>
         
-        <Text style={styles.sectionTitle}>Video Sections</Text>
+        <Text style={styles.sectionTitle}>Sections</Text>
         
         {filteredSections.map((section) => (
           <TouchableOpacity 

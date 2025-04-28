@@ -21,10 +21,9 @@
     "build": "tsup",
     "graph": "madge --dot --extensions ts src/ > graph.dot",
     "prepare": "husky",
-    "expo:start": "pnpm --filter playground-rn run start",
-    "expo:android": "pnpm --filter playground-rn run android",
-    "expo:ios": "pnpm --filter playground-rn run ios",
-    "expo:web": "pnpm --filter playground-rn run web",
+    "playground:start": "pnpm --filter leclap-playground run start",
+    "playground:android": "pnpm --filter leclap-playground run android",
+    "playground:ios": "pnpm --filter leclap-playground run ios",
     "server:dev": "pnpm --filter server run build && pnpm --filter server run start"
   },
   "tsup": {

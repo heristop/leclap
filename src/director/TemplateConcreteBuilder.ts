@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import AbstractLogger from '../platform/logging/AbstractLogger';
 import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import { Section, ProjectConfig } from '@/core/types'; // Import ProjectConfig
+import { Section, ProjectConfig } from '@/core/types';
 import Project from '../core/models/Project';
 import SegmentFactory from '../editor/factories/SegmentFactory';
 import SegmentBuilder from '../editor/SegmentBuilder';
@@ -23,7 +23,7 @@ class TemplateConcreteBuilder {
   // Add projectConfig argument
   buildPart = async (section: Section, projectConfig: ProjectConfig): Promise<boolean> => {
     this.section = section;
-    // Pass projectConfig to the factory/segment for path resolution and userVideoPath
+    // Pass projectConfig to the factory/segment for path resolution and userVideoPaths
     this.segment = new SegmentFactory(projectConfig).create(section);
 
     if (!this.segment) {

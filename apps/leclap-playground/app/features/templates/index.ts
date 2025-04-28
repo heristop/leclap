@@ -5,7 +5,6 @@ import TemplateList from './components/TemplateList';
 
 export { BrowseTemplatesScreen, TemplateDetailScreen, TemplateCard, TemplateList };
 
-// Default export for Expo Router
 export default {
   BrowseTemplatesScreen,
   TemplateDetailScreen,

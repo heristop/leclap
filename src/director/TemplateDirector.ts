@@ -232,22 +232,6 @@ class TemplateDirector {
       }
     }
 
-    // If no section-specific video or it wasn't accessible, try general userVideoPath (backwards compatibility)
-    if (!source && section.type === 'project_video' && this.project.config.userVideoPath) {
-      source = this.project.config.userVideoPath;
-      this.logger.info(`[fetchSectionInfos] Using general userVideoPath for section ${section.name}: ${source}`);
-
-      // Check if the file exists
-      try {
-        await this.filesystemAdapter.stat(source);
-        this.logger.info(`[fetchSectionInfos] Verified file exists: ${source}`);
-      } catch (error) {
-        this.logger.error(`[fetchSectionInfos] Error accessing userVideoPath: ${source}`, error);
-        // Fall back to default video instead of failing
-        source = null;
-      }
-    }
-
     // If no user videos are available or accessible, use default from assets
     if (!source) {
       const assetsDir = this.filesystemAdapter.getAssetsDir('videos');

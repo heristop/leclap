@@ -282,12 +282,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.m,
   },
   thumbnail: {
-    width: 60, // Adjust size as needed
-    height: 60, // Adjust size as needed
-    borderRadius: 8, // Optional: add border radius
+    width: 60,
+    height: 60,
+    borderRadius: 8,
     marginRight: spacing.m,
-    backgroundColor: colors.divider, // Placeholder background
-    resizeMode: 'cover', // Or 'contain' depending on desired look
+    backgroundColor: colors.divider,
+    resizeMode: 'cover',
   },
   touchable: {
     overflow: 'hidden',

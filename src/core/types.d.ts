@@ -10,8 +10,7 @@ export type ProjectConfig = {
   hardwareConfig?: HardwareConfig;
   audioConfig?: AudioConfig;
   videoConfig?: VideoConfig;
-  userVideoPath?: string; // Path to the user's uploaded video for project_video sections (legacy single-video mode)
-  userVideoPaths?: { [sectionName: string]: string }; // Map section names to video paths (multi-video mode)
+  userVideoPaths?: { [sectionName: string]: string };
 };
 
 export type MusicConfig = {

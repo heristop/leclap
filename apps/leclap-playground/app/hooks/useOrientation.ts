@@ -55,7 +55,6 @@ export const useOrientation = (requiredOrientation?: OrientationType) => {
   };
 };
 
-// Add a dummy export for Expo Router
 const OrientationHook = {
   name: 'OrientationHook',
 };

@@ -38,7 +38,6 @@ export async function compile(
     console.log('Starting compilation with config:', {
       hasUserVideoPaths: !!projectConfig.userVideoPaths,
       videoPaths: projectConfig.userVideoPaths ? Object.keys(projectConfig.userVideoPaths) : 'none',
-      hasUserVideoPath: !!projectConfig.userVideoPath,
     });
 
     const director = container.resolve(TemplateDirector).config(projectConfig, templateDescriptor);

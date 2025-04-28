@@ -22,15 +22,6 @@ class ProjectVideo extends SegmentBuilder {
       this.source = this.project.config.userVideoPaths[this.section.name];
       this.logger.info(`[ProjectVideo] Using section-specific video for ${this.section.name}: ${this.source}`);
     }
-    // Fall back to general userVideoPath (for backwards compatibility)
-    else if (this.project.config.userVideoPath) {
-      this.source = this.project.config.userVideoPath;
-      this.logger.info(`[ProjectVideo] Using general userVideoPath for ${this.section.name}: ${this.source}`);
-    } else {
-      this.logger.info(
-        `[ProjectVideo] No user video found for section ${this.section.name}, using default: ${this.source}`
-      );
-    }
 
     const sourceVideo = `-i ${this.source}`;
 

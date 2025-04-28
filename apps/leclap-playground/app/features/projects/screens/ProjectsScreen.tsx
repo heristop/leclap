@@ -8,7 +8,6 @@ import { getProjects, deleteAllProjects } from '@/app/services/api';
 import SwipeableProjectItem from '@/app/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/app/components/ui/dialog/ConfirmDialog';
 
-
 export default function ProjectsScreen() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);

@@ -2,7 +2,7 @@ import ImageBackground from '../../editor/segments/ImageBackgroundSegment';
 import ProjectVideo from '../../editor/segments/ProjectVideoSegment';
 import Video from '../../editor/segments/VideoSegment';
 import ColorBackground from '../../editor/segments/ColorBackgroundSegment';
-import { Section, ProjectConfig } from '@/core/types'; // Import ProjectConfig
+import { Section, ProjectConfig } from '@/core/types';
 
 class SegmentFactory {
   private projectConfig: ProjectConfig;

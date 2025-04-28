@@ -134,7 +134,7 @@ pnpm test
 
 The project includes a mobile playground (LeClap) built with Expo that allows you to test and interact with the video composer functionality on your mobile device.
 
-![LeClap Playground](/docs/leclap.gif)
+<img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap Playground" width="300" />
 
 ### Starting the Server
 

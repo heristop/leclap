@@ -15,6 +15,10 @@ class PinoLogAdapter implements AbstractLogger {
     this.logger.info({ ...params }, message);
   }
 
+  warn(message: string, params?: LogParams): void {
+    this.logger.warn({ ...params }, message);
+  }
+
   error(message: string, params?: LogParams): void {
     this.logger.error({ ...params }, message);
   }

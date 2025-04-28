@@ -98,7 +98,9 @@ This generates `sample_output.mp4` in the `build` directory.
 import { compile, loadConfig } from 'ffmpeg-video-composer';
 
 const projectConfig = {
-  assetsDir: './assets',
+  buildDir, // Build directory for output files
+  assetsDir, // Assets directory for video segments
+  // Other project configurations...
   currentLocale: 'en',
   fields: {
     form_1_firstname: 'Firstname',
@@ -109,10 +111,10 @@ const projectConfig = {
 // Using a template descriptor object
 compile(projectConfig, {
   global: {
-    // ... (template configuration)
+    // ... (template global configuration)
   },
   sections: [
-    // ... (section configurations)
+    // ... (template sections configurations)
   ],
 });
 

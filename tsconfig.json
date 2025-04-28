@@ -18,6 +18,7 @@
   "exclude": ["dist", "./src/shared/assets/**/*"],
   "ts-node": {
     "esm": true,
-    "experimentalSpecifierResolution": "node"
+    "experimentalSpecifierResolution": "node",
+    "transpileOnly": true
   }
 }

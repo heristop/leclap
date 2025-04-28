@@ -48,21 +48,39 @@ class TemplateDirector {
 
     this.project.applyDefault();
 
+    // Log available section-specific videos
+    if (this.project.config.userVideoPaths) {
+      this.logger.info(
+        `TemplateDirector received userVideoPaths with ${Object.keys(this.project.config.userVideoPaths).length} videos for sections:`,
+        { sections: Object.keys(this.project.config.userVideoPaths).join(', ') }
+      );
+    } else {
+      this.logger.info('TemplateDirector: No userVideoPaths provided in config');
+    }
+
     return this;
   };
 
-  construct = async (): Promise<boolean> => {
+  // Return output path on success, null on failure
+  construct = async (): Promise<string | null> => {
     try {
       await this.init();
 
-      await this.compileVideoSegments();
+      // compileVideoSegments now implicitly calls finalizeCompilation which returns the path
+      const finalPath = await this.compileVideoSegments();
+      // Return the final path if compilation was successful (not stopped and no error)
+      if (!this.stopBuild) {
+        return finalPath;
+      }
     } catch (err) {
       this.fireError(err);
 
-      return false;
+      // If construct fails, fireError is called, which stops the build. Return null.
+      return null;
     }
 
-    return true;
+    // Return null if stopped or error occurred
+    return null;
   };
 
   init = async (): Promise<void> => {
@@ -75,9 +93,17 @@ class TemplateDirector {
     this.logger.info(`[Init] Segment file saved to ${this.project.buildInfos.fileConcatPath}`);
   };
 
-  compileVideoSegments = async (): Promise<void> => {
-    const sections = this.template.descriptor.sections;
-    const videoSegments = this.filterVideoSections(sections);
+  // Update return type to match what finalizeCompilation returns
+  compileVideoSegments = async (): Promise<string | null> => {
+    // Filter sections to only include those relevant for video compilation
+    const allSections = this.template.descriptor.sections || [];
+    const videoSegmentTypes = ['video', 'project_video', 'image_background', 'color_background']; // Add other types if needed
+    const videoSegments = allSections.filter((section) => videoSegmentTypes.includes(section.type)); // Add parentheses
+
+    if (videoSegments.length === 0) {
+      this.logger.info('No video segments found in the template to compile.'); // Use info instead of warn
+      return null; // Or handle as an error?
+    }
 
     await this.calculateTotalLength(videoSegments);
 
@@ -86,14 +112,15 @@ class TemplateDirector {
 
     await this.processVideoSegments(videoSegments);
 
+    // Call finalizeCompilation and return its result (the path or null)
     if (!this.stopBuild) {
-      await this.finalizeCompilation(videoSegments);
+      return await this.finalizeCompilation(videoSegments);
     }
+    // Return null if build was stopped before finalization
+    return null;
   };
 
-  filterVideoSections = (sections: Section[]): Section[] => {
-    return sections.filter((section) => section.visibility.includes('video_segment'));
-  };
+  // calculateTotalLength remains, but filterVideoSections is removed entirely.
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
     for (const segment of segments) {
@@ -159,17 +186,79 @@ class TemplateDirector {
     this.emitter.emit('compilation-progress', this.project.progress);
   };
 
-  finalizeCompilation = async (segments: Section[]): Promise<void> => {
-    await this.videoEditor.concat();
+  // Make this return the final path from concat
+  finalizeCompilation = async (segments: Section[]): Promise<string | null> => {
+    // Capture the path returned by concat
+    const finalPath = await this.videoEditor.concat();
 
+    // Finalize might modify the file (e.g., add music), but uses the same path
     await this.videoEditor.finalize(segments);
+
+    // Return the path determined by concat
+    return finalPath;
   };
 
-  fetchSectionInfos = async (section: { name: string }): Promise<FFMpegInfos> => {
-    const source = `${this.filesystemAdapter.getAssetsDir('videos')}/${section.name}.mp4`;
+  fetchSectionInfos = async (section: Section): Promise<FFMpegInfos> => {
+    let source: string;
+
+    this.logger.info(`[fetchSectionInfos] Processing section ${section.name} (${section.type})`);
+    if (this.project.config.userVideoPaths) {
+      this.logger.info(
+        `[fetchSectionInfos] Available userVideoPaths:`,
+        Object.keys(this.project.config.userVideoPaths).reduce((obj, key) => {
+          obj[key] = true;
+          return obj;
+        }, {})
+      );
+    }
+
+    // First check if there's a specific video for this section in userVideoPaths
+    if (
+      section.type === 'project_video' &&
+      this.project.config.userVideoPaths &&
+      this.project.config.userVideoPaths[section.name]
+    ) {
+      source = this.project.config.userVideoPaths[section.name];
+      this.logger.info(`[fetchSectionInfos] Using section-specific video for ${section.name}: ${source}`);
+
+      // Check if the file exists
+      try {
+        await this.filesystemAdapter.stat(source);
+        this.logger.info(`[fetchSectionInfos] Verified file exists: ${source}`);
+      } catch (error) {
+        this.logger.error(`[fetchSectionInfos] Error accessing section-specific video: ${source}`, error);
+        // Fall back to default video instead of failing
+        source = null;
+      }
+    }
+
+    // If no section-specific video or it wasn't accessible, try general userVideoPath (backwards compatibility)
+    if (!source && section.type === 'project_video' && this.project.config.userVideoPath) {
+      source = this.project.config.userVideoPath;
+      this.logger.info(`[fetchSectionInfos] Using general userVideoPath for section ${section.name}: ${source}`);
+
+      // Check if the file exists
+      try {
+        await this.filesystemAdapter.stat(source);
+        this.logger.info(`[fetchSectionInfos] Verified file exists: ${source}`);
+      } catch (error) {
+        this.logger.error(`[fetchSectionInfos] Error accessing userVideoPath: ${source}`, error);
+        // Fall back to default video instead of failing
+        source = null;
+      }
+    }
+
+    // If no user videos are available or accessible, use default from assets
+    if (!source) {
+      const assetsDir = this.filesystemAdapter.getAssetsDir('videos');
+      source = `${assetsDir}/${section.name}.mp4`;
+      this.logger.info(`[fetchSectionInfos] Using default assets path for section ${section.name}: ${source}`);
+    }
+
     const info = await this.ffmpegAdapter.getInfos(source);
 
-    if (null === info.duration) {
+    if (info.duration === null) {
+      // Check for null explicitly
       throw new Error(`Duration not found for ${section.name}`);
     }
 
@@ -180,7 +269,8 @@ class TemplateDirector {
     this.builder = this.concreteBuilder;
 
     // First, build configuration and retrieve updated assets
-    await this.builder.buildPart(section);
+    // Pass the project config down to the builder
+    await this.builder.buildPart(section, this.project.config);
 
     // Then, compile part with FFmpeg
     await this.builder.renderPart();

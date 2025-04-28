@@ -8,7 +8,6 @@
     {
       "name": "video_3",
       "type": "project_video",
-      "visibility": ["storyboard", "video_segment"],
       "title": {
         "en": "Show accelerated video"
       },

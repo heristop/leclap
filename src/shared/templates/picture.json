@@ -11,7 +11,6 @@
     {
       "name": "test_picture",
       "type": "image_background",
-      "visibility": ["video_segment"],
       "options": {
         "duration": 6,
         "pictureUrl": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/SamplePNGImage_3mbmb.png"

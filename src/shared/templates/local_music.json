@@ -14,7 +14,6 @@
     {
       "name": "earth",
       "type": "project_video",
-      "visibility": ["video_segment"],
       "options": {
         "duration": 6
       },

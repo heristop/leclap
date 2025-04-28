@@ -1,0 +1,54 @@
+{
+  "global": {
+    "variables": {
+      "colorsList": ["#FFFFFF"]
+    },
+    "music": {
+      "name": "default",
+      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3"
+    },
+    "orientation": "portrait",
+    "musicEnabled": true,
+    "audioVolumeLevel": 1,
+    "transitionDuration": 0.5
+  },
+  "sections": [
+    {
+      "name": "portrait",
+      "type": "project_video",
+      "options": {
+        "useVideoSection": "video_portrait",
+        "duration": 6,
+        "musicVolumeLevel": 0.4
+      },
+      "inputs": [],
+      "maps": [],
+      "filters": [
+        {
+          "type": "boxblur",
+          "value": "5"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 720,
+            "h": 1280,
+            "c": "{{ color1 }}@0.15",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#000000"
+          }
+        }
+      ]
+    }
+  ]
+}

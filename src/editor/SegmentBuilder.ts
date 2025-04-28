@@ -35,7 +35,7 @@ class SegmentBuilder {
     protected filterManager: FilterManager,
     protected formattersManager: FormattersManager,
 
-    @inject('logger') private readonly logger: AbstractLogger,
+    @inject('logger') protected readonly logger: AbstractLogger,
     @inject('filesystemAdapter')
     protected readonly filesystemAdapter: AbstractFilesystem
   ) {
@@ -117,6 +117,10 @@ class SegmentBuilder {
   protected configure = (): void => {};
 
   getCommand = () => this.command;
+
+  getProject() {
+    return this.project;
+  }
 
   buildInputs = (): void => {
     let { backgroundColor } = this.section.options;

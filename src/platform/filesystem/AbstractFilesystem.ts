@@ -21,13 +21,13 @@ abstract class AbstractFilesystem {
   abstract fetchAndRead(url: string): Promise<string>;
 
   setBuildDir = (buildDir: string) => {
-    this.buildDir = `${this.root}/${buildDir}`;
+    this.buildDir = buildDir;
   };
 
   getBuildDir = (): string | undefined => this.buildDir;
 
   setAssetsDir = (assetsDir: string) => {
-    this.assetsDir = `${this.root}/${assetsDir}`;
+    this.assetsDir = assetsDir;
   };
 
   getAssetsDir = (assetsType: string): string | undefined => `${this.assetsDir}/${assetsType}`;

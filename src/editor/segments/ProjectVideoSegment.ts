@@ -9,6 +9,29 @@ class ProjectVideo extends SegmentBuilder {
       this.command = ` -y ${this.addBlankAudio()} `;
     }
 
+    this.logger.info(`[ProjectVideo] Configuring project_video section: ${this.section.name}`);
+
+    // First try to use section-specific video from userVideoPaths
+    if (this.project.config.userVideoPaths) {
+      this.logger.info('[ProjectVideo] Available userVideoPaths:', {
+        paths: Object.keys(this.project.config.userVideoPaths),
+      });
+    }
+
+    if (this.project.config.userVideoPaths && this.project.config.userVideoPaths[this.section.name]) {
+      this.source = this.project.config.userVideoPaths[this.section.name];
+      this.logger.info(`[ProjectVideo] Using section-specific video for ${this.section.name}: ${this.source}`);
+    }
+    // Fall back to general userVideoPath (for backwards compatibility)
+    else if (this.project.config.userVideoPath) {
+      this.source = this.project.config.userVideoPath;
+      this.logger.info(`[ProjectVideo] Using general userVideoPath for ${this.section.name}: ${this.source}`);
+    } else {
+      this.logger.info(
+        `[ProjectVideo] No user video found for section ${this.section.name}, using default: ${this.source}`
+      );
+    }
+
     const sourceVideo = `-i ${this.source}`;
 
     let duration = '';

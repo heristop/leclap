@@ -5,6 +5,8 @@ abstract class AbstractLogger {
 
   abstract info(message: string, params?: LogParams): void;
 
+  abstract warn(message: string, params?: LogParams): void;
+
   abstract error(message: string, params?: LogParams): void;
 }
 

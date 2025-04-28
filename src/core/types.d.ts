@@ -10,6 +10,7 @@ export type ProjectConfig = {
   hardwareConfig?: HardwareConfig;
   audioConfig?: AudioConfig;
   videoConfig?: VideoConfig;
+  userVideoPaths?: { [sectionName: string]: string };
 };
 
 export type MusicConfig = {
@@ -75,7 +76,6 @@ export interface Variables {
 export interface Section {
   name: string;
   type: string;
-  visibility: string[];
   options?: SectionOptions;
   inputs?: Input[];
   maps?: Map[];

@@ -20,6 +20,9 @@
     "test:precommit": "vitest --run",
     "build": "tsup",
     "graph": "madge --dot --extensions ts src/ > graph.dot",
+    "deps:check": "depcruise src",
+    "deps:graph": "depcruise src --output-type dot | dot -T svg > docs/dependency-graph.svg",
+    "deps:html": "depcruise src --output-type html > docs/dependency-report.html",
     "prepare": "husky",
     "playground:start": "pnpm --filter leclap-playground run start",
     "playground:android": "pnpm --filter leclap-playground run android",
@@ -56,35 +59,36 @@
   "dependencies": {
     "axios": "^1.9.0",
     "extract-zip": "^2.0.1",
-    "pino": "^9.6.0",
+    "pino": "^9.7.0",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.25.1",
-    "@swc/core": "^1.11.22",
+    "@eslint/js": "^9.27.0",
+    "@swc/core": "^1.11.24",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.15.3",
-    "@typescript-eslint/eslint-plugin": "^8.31.0",
-    "@typescript-eslint/parser": "^8.31.0",
-    "@vitest/coverage-v8": "^3.1.2",
-    "@vitest/ui": "^3.1.2",
-    "eslint": "^9.25.1",
-    "eslint-config-prettier": "^10.1.2",
+    "@types/node": "^22.15.20",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@vitest/coverage-v8": "^3.1.4",
+    "@vitest/ui": "^3.1.4",
+    "dependency-cruiser": "^16.10.4",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.6",
-    "globals": "^16.0.0",
+    "eslint-plugin-prettier": "^5.4.0",
+    "globals": "^16.1.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.5.1",
+    "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
-    "ts-jest": "^29.3.2",
+    "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
-    "tsup": "^8.4.0",
+    "tsup": "^8.5.0",
     "typescript": "^5.8.3",
-    "unplugin-swc": "^1.5.2",
-    "vite-plugin-checker": "^0.9.1",
+    "unplugin-swc": "^1.5.3",
+    "vite-plugin-checker": "^0.9.3",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.1.2"
+    "vitest": "^3.1.4"
   },
   "engines": {
     "node": ">=22.14.0"
@@ -94,5 +98,6 @@
       "@swc/core",
       "esbuild"
     ]
-  }
+  },
+  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }

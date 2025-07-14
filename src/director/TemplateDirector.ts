@@ -120,8 +120,6 @@ class TemplateDirector {
     return null;
   };
 
-  // calculateTotalLength remains, but filterVideoSections is removed entirely.
-
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
     for (const segment of segments) {
       let duration = segment.options.duration;

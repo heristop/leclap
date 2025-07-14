@@ -33,6 +33,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Check Dependencies
+        run: pnpm deps:check
+
       - name: Build
         run: pnpm build
 

@@ -1,8 +1,9 @@
-import { exec } from 'node:child_process';
+import { exec, ExecException } from 'node:child_process';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
 import { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
+import { FFmpegError } from '@/core/errors/FFmpegError';
 
 const execAsync = promisify(exec);
 
@@ -30,10 +31,8 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
       await execAsync(`ffmpeg ${command}`);
       return { rc: 0 };
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`FFmpeg command failed: ${error.message}`);
-      }
-      throw new Error('Unknown error during FFmpeg execution');
+      const execError = error as ExecException & { stderr: string };
+      throw new FFmpegError('FFmpeg command failed', execError.stderr);
     }
   };
 
@@ -69,14 +68,8 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
         sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate) : null,
       };
     } catch (error) {
-      console.error(`[FFmpegNodeAdapter] Error analyzing file ${source}:`, error);
-      if (error instanceof Error) {
-        if (error instanceof SyntaxError) {
-          throw new Error(`Failed to parse FFprobe output: ${error.message}`);
-        }
-        throw new Error(`FFprobe analysis failed: ${error.message}`);
-      }
-      throw new Error('Unknown error during FFprobe analysis');
+      const execError = error as ExecException & { stderr: string };
+      throw new FFmpegError(`FFprobe analysis failed for ${source}`, execError.stderr);
     }
   };
 }

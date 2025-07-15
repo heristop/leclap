@@ -274,7 +274,6 @@ class TemplateDirector {
   };
 
   fireError = (error: unknown): void => {
-    globalThis.console.error(error);
     this.logger.error(`[TemplateDirector][Error] ${JSON.stringify(error)}`);
 
     // Stop the Director build

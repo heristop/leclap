@@ -36,7 +36,7 @@ async function main(configFilePath: string): Promise<string | null> {
     return await compile(projectConfig, templateDescriptor);
   } catch (error) {
     console.error('Error in main function:', error);
-    return null;
+    process.exit(1);
   }
 }
 

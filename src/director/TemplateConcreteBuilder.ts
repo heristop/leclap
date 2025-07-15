@@ -36,7 +36,6 @@ class TemplateConcreteBuilder {
       this.segment.getProject().config = projectConfig;
     }
 
-    // this.project.finalVideo = `${this.filesystemAdapter.getBuildDir()}/output.mp4`; // Removed: Should be set in finalize/concat step
     this.logger.info(`[${section.name}][BuildPart] init`);
 
     return await this.segment.init();

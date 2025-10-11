@@ -4,6 +4,13 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "author": "heristop",
   "repository": {
     "type": "git",
@@ -18,7 +25,7 @@
     "test:ci": "vitest run --coverage.enabled --coverage.reporter='text-summary'",
     "test:coverage": "vitest run --coverage",
     "test:precommit": "vitest --run",
-    "build": "tsup",
+    "build": "tsdown",
     "graph": "madge --dot --extensions ts src/ > graph.dot",
     "deps:check": "depcruise src",
     "deps:graph": "depcruise src --output-type dot | dot -T svg > docs/dependency-graph.svg",
@@ -28,23 +35,6 @@
     "playground:android": "pnpm --filter le-clap run android",
     "playground:ios": "pnpm --filter le-clap run ios",
     "server:dev": "pnpm --filter server run build && pnpm --filter server run start"
-  },
-  "tsup": {
-    "entry": [
-      "src",
-      "!src/main.ts",
-      "!src/shared/assets/*",
-      "!src/shared/assets/**/*"
-    ],
-    "format": [
-      "esm",
-      "cjs"
-    ],
-    "splitting": false,
-    "sourcemap": true,
-    "dts": true,
-    "clean": true,
-    "minify": false
   },
   "type": "module",
   "files": [
@@ -83,7 +73,7 @@
     "prettier": "^3.5.3",
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
-    "tsup": "^8.5.0",
+    "tsdown": "^0.15.6",
     "typescript": "^5.8.3",
     "unplugin-swc": "^1.5.3",
     "vite-plugin-checker": "^0.9.3",

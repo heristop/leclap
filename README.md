@@ -130,23 +130,23 @@ Ensure the quality of the codebase by running the test suite:
 pnpm test
 ```
 
-## 📱 LeClap Expo Playground
+## 📱 LeClap Expo App
 
-The project includes a mobile playground (LeClap) built with Expo that allows you to test and interact with the video composer functionality on your mobile device.
+The repository includes a modern Expo client (`apps/le-clap`) that provides an intuitive mobile interface for the video composer workflow on device or simulator.
 
-<img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap Playground" width="300" />
+<img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap App" width="300" />
 
 ### Starting the Server
 
-Before using the mobile playground, you need to start the server:
+Before using the mobile app, you need to start the server:
 
 ```bash
 pnpm server:dev
 ```
 
-This command builds and starts the server that the mobile app will communicate with.
+This command builds and starts the server that the mobile client will communicate with.
 
-### Running the Playground
+### Running the App
 
 To start the Expo development server:
 
@@ -154,7 +154,7 @@ To start the Expo development server:
 pnpm playground:start
 ```
 
-To run the playground on specific platforms:
+To run the app on specific platforms:
 
 ```bash
 # Run on Android

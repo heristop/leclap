@@ -42,6 +42,27 @@ export default [
     }
   },
   {
-    ignores: ['eslint.config.js', 'dist', '**/dist/**'],
+    files: ['**/metro.config.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: 'commonjs',
+      globals: {
+        ...globals.node
+      }
+    }
+  },
+  {
+    files: ['**/*.js'],
+    ignores: ['**/metro.config.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: 'module',
+      globals: {
+        ...globals.node
+      }
+    }
+  },
+  {
+    ignores: ['eslint.config.js', 'dist', '**/dist/**', '**/node_modules/**'],
   }
 ];

@@ -1,6 +1,6 @@
 {
   "name": "ffmpeg-video-composer",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -24,9 +24,9 @@
     "deps:graph": "depcruise src --output-type dot | dot -T svg > docs/dependency-graph.svg",
     "deps:html": "depcruise src --output-type html > docs/dependency-report.html",
     "prepare": "husky",
-    "playground:start": "pnpm --filter leclap-playground run start",
-    "playground:android": "pnpm --filter leclap-playground run android",
-    "playground:ios": "pnpm --filter leclap-playground run ios",
+    "playground:start": "pnpm --filter le-clap run start",
+    "playground:android": "pnpm --filter le-clap run android",
+    "playground:ios": "pnpm --filter le-clap run ios",
     "server:dev": "pnpm --filter server run build && pnpm --filter server run start"
   },
   "tsup": {

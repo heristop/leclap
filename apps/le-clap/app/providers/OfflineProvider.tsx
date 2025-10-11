@@ -1,0 +1,86 @@
+import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import { useNetworkState, useOnlineStatusChange } from '../hooks/useNetworkState';
+import { useAutoProcessQueue, useCleanupQueue } from '../hooks/useCompilationQueue';
+import { useRefreshTemplates } from '../hooks/useTemplates';
+
+interface OfflineContextType {
+  isOnline: boolean;
+  isOffline: boolean;
+  networkType: string | null;
+  hasInternet: boolean;
+}
+
+const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
+
+interface OfflineProviderProps {
+  children: ReactNode;
+}
+
+export function OfflineProvider({ children }: OfflineProviderProps) {
+  const networkState = useNetworkState();
+  const autoProcessQueue = useAutoProcessQueue();
+  const cleanupQueue = useCleanupQueue();
+  const refreshTemplates = useRefreshTemplates();
+
+  const isOnline = networkState.isConnected && (networkState.isInternetReachable ?? false);
+  const isOffline = !isOnline;
+
+  // Handle network state changes
+  useOnlineStatusChange(
+    () => {
+      console.log('Device came online, processing queued operations...');
+
+      // Process queued compilations
+      autoProcessQueue.mutateAsync().catch((error) => {
+        console.error('Failed to process compilation queue:', error);
+      });
+
+      // Refresh templates if needed
+      refreshTemplates.mutateAsync().catch((error) => {
+        console.warn('Failed to refresh templates:', error);
+      });
+
+      // Cleanup old queue items
+      cleanupQueue.mutateAsync().catch((error) => {
+        console.warn('Failed to cleanup queue:', error);
+      });
+    },
+    () => {
+      console.log('Device went offline');
+    }
+  );
+
+  // Periodic cleanup when online
+  useEffect(() => {
+    if (isOnline) {
+      const interval = setInterval(() => {
+        cleanupQueue.mutateAsync().catch((error) => {
+          console.warn('Periodic cleanup failed:', error);
+        });
+      }, 60 * 60 * 1000); // Every hour
+
+      return () => clearInterval(interval);
+    }
+  }, [isOnline, cleanupQueue]);
+
+  const contextValue: OfflineContextType = {
+    isOnline,
+    isOffline,
+    networkType: networkState.type,
+    hasInternet: networkState.isInternetReachable ?? false,
+  };
+
+  return (
+    <OfflineContext.Provider value={contextValue}>
+      {children}
+    </OfflineContext.Provider>
+  );
+}
+
+export function useOffline() {
+  const context = useContext(OfflineContext);
+  if (context === undefined) {
+    throw new Error('useOffline must be used within an OfflineProvider');
+  }
+  return context;
+}

@@ -5,6 +5,8 @@ import TemplateList from '../components/TemplateList';
 import { useTemplates } from '../../../hooks/useTemplates';
 import { Template } from '@/app/types';
 import { colors, spacing, typography } from '@/app/styles/theme';
+import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
+import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
 
 const BrowseTemplatesScreen = () => {
   const router = useRouter();
@@ -47,9 +49,12 @@ const BrowseTemplatesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <NetworkStatusIndicator />
+      <CompilationQueueStatus />
+
       <Text style={styles.screenTitle}>Scenarios</Text>
       <Text style={styles.subtitle}>Select a scenario to create your video</Text>
-      
+
       <TemplateList
         templates={templates}
         onSelectTemplate={handleSelectTemplate}

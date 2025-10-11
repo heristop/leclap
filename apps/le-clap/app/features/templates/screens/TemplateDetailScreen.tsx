@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
   SafeAreaView,
   Alert,
   Modal
@@ -15,53 +15,35 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/app/features/editor/components/FormSection';
 import { Template, Section, Project } from '@/app/types';
 import { colors, spacing, typography } from '@/app/styles/theme';
-import { fetchTemplateByName, saveProject, compileVideo, getProjectById } from '@/app/services/api';
+import { useTemplate } from '../../../hooks/useTemplates';
+import { useProject, useSaveProject } from '../../../hooks/useProjects';
+import { useVideoCompilation } from '../../../hooks/useVideoCompilation';
+import { getProjectById } from '@/app/services/api';
 
 const TemplateDetailScreen = () => {
   const params = useLocalSearchParams<{ id: string; projectId?: string }>();
   const router = useRouter();
   const templateName = params.id;
   const projectId = params.projectId;
-  
-  const [template, setTemplate] = useState<Template | null>(null);
+
+  const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
+  const { data: existingProject } = useProject(projectId || '');
+  const saveProjectMutation = useSaveProject();
+  const videoCompilationMutation = useVideoCompilation();
+
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
   const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCompiling, setIsCompiling] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData(); 
-  }, [templateName, projectId]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      if (!templateName) throw new Error("Template name is missing");
-      const templateData = await fetchTemplateByName(templateName);
-      setTemplate(templateData);
-      
-      if (projectId) {
-        const existingProject = await getProjectById(projectId);
-        if (existingProject) {
-          setProject(existingProject);
-        } else {
-          console.warn(`Project with ID ${projectId} not found, creating new one.`);
-          createNewProject(templateData);
-        }
+    if (template) {
+      if (existingProject) {
+        setProject(existingProject);
       } else {
-        createNewProject(templateData);
+        createNewProject(template);
       }
-    } catch (err: any) {
-      setError(`Failed to load template details: ${err.message}`);
-      console.error('Error loading data:', err);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [template, existingProject]);
 
   const createNewProject = (templateData: Template) => {
     const newProject: Project = {
@@ -77,7 +59,7 @@ const TemplateDetailScreen = () => {
     };
     setProject(newProject);
     
-    saveProject(newProject);
+    saveProjectMutation.mutate(newProject);
   };
   
   const handleFormDataChange = (field: string, value: string) => {
@@ -96,7 +78,7 @@ const TemplateDetailScreen = () => {
       };
       
       setTimeout(() => {
-        saveProject(updatedProject);
+        saveProjectMutation.mutate(updatedProject);
       }, 500);
       
       return updatedProject;
@@ -156,52 +138,52 @@ const TemplateDetailScreen = () => {
 
   const handleCompileVideo = async () => {
     if (!project || !template) return;
-    
-    setIsCompiling(true);
-    
-    try {
-      const processedTemplate = JSON.parse(JSON.stringify(template.content));
-      
-      let templateString = JSON.stringify(processedTemplate);
-      Object.entries(project.formData).forEach(([key, value]) => {
-        const placeholder = `{{ ${key} }}`;
-        templateString = templateString.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
-      });
-      
-      const finalTemplate = JSON.parse(templateString);
-      
-      const result = await compileVideo(finalTemplate, project.recordedVideos);
-      
-      if (result.success) {
-        const updatedProject = {
-          ...project,
-          outputVideoUri: result.outputUri,
-          status: 'completed' as 'draft' | 'processing' | 'completed',
-          updatedAt: new Date().toISOString(),
-        };
-        
-        setProject(updatedProject);
-        saveProject(updatedProject);
-        
-        router.push({
-          pathname: '/(fullscreen)/preview',
-          params: { projectId: project.id, videoUri: result.outputUri },
-        });
-      } else {
-        Alert.alert(
-          'Compilation Failed',
-          result.error || 'An error occurred during video compilation.'
-        );
+
+    const processedTemplate = JSON.parse(JSON.stringify(template.content));
+
+    let templateString = JSON.stringify(processedTemplate);
+    Object.entries(project.formData).forEach(([key, value]) => {
+      const placeholder = `{{ ${key} }}`;
+      templateString = templateString.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
+    });
+
+    const finalTemplate = JSON.parse(templateString);
+
+    videoCompilationMutation.mutate(
+      { templateDescriptor: finalTemplate, recordedVideos: project.recordedVideos },
+      {
+        onSuccess: (result) => {
+          if (result.success) {
+            const updatedProject = {
+              ...project,
+              outputVideoUri: result.outputUri,
+              status: 'completed' as 'draft' | 'processing' | 'completed',
+              updatedAt: new Date().toISOString(),
+            };
+
+            setProject(updatedProject);
+            saveProjectMutation.mutate(updatedProject);
+
+            router.push({
+              pathname: '/(fullscreen)/preview',
+              params: { projectId: project.id, videoUri: result.outputUri },
+            });
+          } else {
+            Alert.alert(
+              'Compilation Failed',
+              result.error || 'An error occurred during video compilation.'
+            );
+          }
+        },
+        onError: (error: any) => {
+          console.error('Error during compilation:', error);
+          Alert.alert(
+            'Compilation Error',
+            `An unexpected error occurred: ${error.message}`
+          );
+        },
       }
-    } catch (error: any) {
-      console.error('Error during compilation:', error);
-      Alert.alert(
-        'Compilation Error',
-        `An unexpected error occurred: ${error.message}`
-      );
-    } finally {
-      setIsCompiling(false);
-    }
+    );
   };
 
   const getSectionIcon = (section: Section): keyof typeof Ionicons.glyphMap => {
@@ -287,7 +269,7 @@ const TemplateDetailScreen = () => {
                       updatedAt: new Date().toISOString(),
                     };
                     setProject(updatedProject);
-                    saveProject(updatedProject);
+                    saveProjectMutation.mutate(updatedProject);
                   }
                   setActiveMusicSection(null);
                 }}
@@ -323,7 +305,7 @@ const TemplateDetailScreen = () => {
   };
 
 
-  if (isLoading) {
+  if (templateLoading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -332,10 +314,12 @@ const TemplateDetailScreen = () => {
     );
   }
 
-  if (error || !template || !project) {
+  if (templateError || !template || !project) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error || 'Template or Project not found'}</Text>
+        <Text style={styles.errorText}>
+          {templateError instanceof Error ? templateError.message : 'Template or Project not found'}
+        </Text>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backButtonText}>Back to Templates</Text>
         </TouchableOpacity>
@@ -441,15 +425,15 @@ const TemplateDetailScreen = () => {
           style={[
             styles.createButton,
             !areAllSectionsCompleted() && styles.disabledButton,
-            isCompiling && styles.disabledButton
+            videoCompilationMutation.isPending && styles.disabledButton
           ]}
-          disabled={!areAllSectionsCompleted() || isCompiling}
+          disabled={!areAllSectionsCompleted() || videoCompilationMutation.isPending}
           onPress={handleCompileVideo}
         >
           <Text style={styles.createButtonText}>
-            {isCompiling ? 'Creating Video...' : 'Create My Video'}
+            {videoCompilationMutation.isPending ? 'Creating Video...' : 'Create My Video'}
           </Text>
-          {isCompiling && <ActivityIndicator size="small" color="white" style={styles.loader} />}
+          {videoCompilationMutation.isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
         </TouchableOpacity>
       </View>
 

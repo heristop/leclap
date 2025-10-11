@@ -1,39 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Text, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
-import { fetchTemplates } from '../../../services/api';
+import { useTemplates } from '../../../hooks/useTemplates';
 import { Template } from '@/app/types';
 import { colors, spacing, typography } from '@/app/styles/theme';
-import Constants from 'expo-constants';
 
 const BrowseTemplatesScreen = () => {
   const router = useRouter();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadTemplates();
-    
-    // Debug API URL configuration
-    const apiUrl = Constants.expoConfig?.extra?.API_URL;
-  }, []);
-
-  const loadTemplates = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const data = await fetchTemplates();
-      setTemplates(data);
-    } catch (err) {
-      console.error('Error in template loading:', err);
-      setError('Failed to load templates.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: templates = [], isLoading, error, refetch } = useTemplates();
 
   const handleSelectTemplate = (template: Template) => {
     // Use router.push with the pathname and params
@@ -55,12 +30,14 @@ const BrowseTemplatesScreen = () => {
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>
+          {error instanceof Error ? error.message : 'Failed to load templates'}
+        </Text>
         <Text style={styles.errorSubtext}>
           Make sure the ffmpeg-video-composer server is running.
         </Text>
         <View style={styles.buttonContainer}>
-          <Text style={styles.retryButton} onPress={loadTemplates}>
+          <Text style={styles.retryButton} onPress={() => refetch()}>
             Try Again
           </Text>
         </View>

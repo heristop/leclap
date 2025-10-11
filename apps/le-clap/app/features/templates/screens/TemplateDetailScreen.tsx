@@ -17,7 +17,8 @@ import { Template, Section, Project } from '@/app/types';
 import { colors, spacing, typography } from '@/app/styles/theme';
 import { useTemplate } from '../../../hooks/useTemplates';
 import { useProject, useSaveProject } from '../../../hooks/useProjects';
-import { useVideoCompilation } from '../../../hooks/useVideoCompilation';
+import { useQueueVideoCompilation } from '../../../hooks/useCompilationQueue';
+import { useOffline } from '../../../providers/OfflineProvider';
 import { getProjectById } from '@/app/services/api';
 
 const TemplateDetailScreen = () => {
@@ -29,7 +30,8 @@ const TemplateDetailScreen = () => {
   const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
   const { data: existingProject } = useProject(projectId || '');
   const saveProjectMutation = useSaveProject();
-  const videoCompilationMutation = useVideoCompilation();
+  const queueVideoCompilation = useQueueVideoCompilation();
+  const { isOffline } = useOffline();
 
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
@@ -149,14 +151,19 @@ const TemplateDetailScreen = () => {
 
     const finalTemplate = JSON.parse(templateString);
 
-    videoCompilationMutation.mutate(
-      { templateDescriptor: finalTemplate, recordedVideos: project.recordedVideos },
+    queueVideoCompilation.mutate(
+      {
+        projectId: project.id,
+        templateDescriptor: finalTemplate,
+        recordedVideos: project.recordedVideos
+      },
       {
         onSuccess: (result) => {
-          if (result.success) {
+          if (result.immediate && result.result?.success) {
+            // Immediate success
             const updatedProject = {
               ...project,
-              outputVideoUri: result.outputUri,
+              outputVideoUri: result.result.outputUri,
               status: 'completed' as 'draft' | 'processing' | 'completed',
               updatedAt: new Date().toISOString(),
             };
@@ -166,12 +173,27 @@ const TemplateDetailScreen = () => {
 
             router.push({
               pathname: '/(fullscreen)/preview',
-              params: { projectId: project.id, videoUri: result.outputUri },
+              params: { projectId: project.id, videoUri: result.result.outputUri },
             });
+          } else if (!result.immediate) {
+            // Added to queue
+            Alert.alert(
+              isOffline ? 'Added to Queue (Offline)' : 'Added to Queue',
+              isOffline
+                ? 'Your video will be processed automatically when you connect to the internet.'
+                : 'Your video has been queued for processing. You\'ll be notified when it\'s ready.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => router.back(),
+                },
+              ]
+            );
           } else {
+            // Immediate failure
             Alert.alert(
               'Compilation Failed',
-              result.error || 'An error occurred during video compilation.'
+              result.result?.error || 'An error occurred during video compilation.'
             );
           }
         },
@@ -425,15 +447,19 @@ const TemplateDetailScreen = () => {
           style={[
             styles.createButton,
             !areAllSectionsCompleted() && styles.disabledButton,
-            videoCompilationMutation.isPending && styles.disabledButton
+            queueVideoCompilation.isPending && styles.disabledButton
           ]}
-          disabled={!areAllSectionsCompleted() || videoCompilationMutation.isPending}
+          disabled={!areAllSectionsCompleted() || queueVideoCompilation.isPending}
           onPress={handleCompileVideo}
         >
           <Text style={styles.createButtonText}>
-            {videoCompilationMutation.isPending ? 'Creating Video...' : 'Create My Video'}
+            {queueVideoCompilation.isPending
+              ? isOffline
+                ? 'Adding to Queue...'
+                : 'Creating Video...'
+              : 'Create My Video'}
           </Text>
-          {videoCompilationMutation.isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
+          {queueVideoCompilation.isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
         </TouchableOpacity>
       </View>
 

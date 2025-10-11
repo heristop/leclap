@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, SafeAreaView, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '../../../hooks/useTemplates';
@@ -7,25 +7,54 @@ import { Template } from '@/app/types';
 import { colors, spacing, typography } from '@/app/styles/theme';
 import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
 import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
+import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
+import { useOffline } from '../../../providers/OfflineProvider';
+import * as Haptics from 'expo-haptics';
 
 const BrowseTemplatesScreen = () => {
   const router = useRouter();
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
+  const { isOffline } = useOffline();
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  const handleSelectTemplate = (template: Template) => {
-    // Use router.push with the pathname and params
+  const handleSelectTemplate = async (template: Template) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/(app)/template/[id]',
       params: { id: template.name },
     });
   };
 
-  if (isLoading) {
+  const handleRefresh = async () => {
+    if (isOffline) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setRefreshing(true);
+
+    try {
+      await refetch();
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  if (isLoading && templates.length === 0) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading templates...</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <NetworkStatusIndicator showSyncStatus={false} />
+        <CompilationQueueStatus />
+
+        <Text style={styles.screenTitle}>Scenarios</Text>
+        <Text style={styles.subtitle}>Select a scenario to create your video</Text>
+
+        <TemplateListSkeleton count={6} />
+      </SafeAreaView>
     );
   }
 
@@ -49,16 +78,39 @@ const BrowseTemplatesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NetworkStatusIndicator />
+      <NetworkStatusIndicator
+        showSyncStatus={true}
+        expandable={true}
+      />
       <CompilationQueueStatus />
 
-      <Text style={styles.screenTitle}>Scenarios</Text>
-      <Text style={styles.subtitle}>Select a scenario to create your video</Text>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            title={isOffline ? "Pull to sync when online" : "Pull to refresh"}
+            titleColor={colors.textSecondary}
+            colors={[colors.primary]}
+          />
+        }
+      >
+        <Text style={styles.screenTitle}>Scenarios</Text>
+        <Text style={styles.subtitle}>
+          {isOffline
+            ? "📴 Browsing cached templates (offline)"
+            : "Select a scenario to create your video"
+          }
+        </Text>
 
-      <TemplateList
-        templates={templates}
-        onSelectTemplate={handleSelectTemplate}
-      />
+        <TemplateList
+          templates={templates}
+          onSelectTemplate={handleSelectTemplate}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -68,6 +120,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingTop: 5,
+  },
+  scrollView: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,

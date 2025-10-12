@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Image, 
-  StatusBar, 
-  SafeAreaView,
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  StatusBar,
   Animated,
   Easing
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useNavigation } from 'expo-router';
 import { colors, typography, spacing } from '@/app/styles/theme';
@@ -197,8 +197,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
-    marginTop: spacing.m,
-    minHeight: 90,
+    minHeight: 70,
     zIndex: 10,
   },
   leftSection: {

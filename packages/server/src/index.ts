@@ -45,6 +45,36 @@ fastify.register(fastifyStatic, {
 });
 fastify.log.info(`Serving static files from ${serverBuildDir} under /serve/`);
 
+// --- GET /health Endpoint ---
+fastify.get('/health', async (request, reply) => {
+  try {
+    const memoryUsage = process.memoryUsage();
+    const uptime = process.uptime();
+
+    const healthResponse = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(uptime),
+      version: '0.0.1',
+      memory: {
+        used: Math.round((memoryUsage.heapUsed / 1024 / 1024) * 100) / 100, // MB
+        total: Math.round((memoryUsage.heapTotal / 1024 / 1024) * 100) / 100, // MB
+      },
+      pid: process.pid,
+    };
+
+    fastify.log.info('Health check requested - server is healthy');
+    reply.status(200).send(healthResponse);
+  } catch (error) {
+    fastify.log.error(`Health check failed: ${error.message}`);
+    reply.status(503).send({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
 // --- GET /templates Endpoint ---
 fastify.get('/templates', async (request, reply) => {
   try {

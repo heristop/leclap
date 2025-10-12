@@ -1,20 +1,30 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, View, TextInput } from 'react-native';
+import { FlatList, StyleSheet, View, TextInput, RefreshControl, Text } from 'react-native';
 import { Template } from '@/app/types';
 import TemplateCard from './TemplateCard';
-import { colors, spacing } from '@/app/styles/theme';
+import { colors, spacing, typography } from '@/app/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 interface TemplateListProps {
   templates: Template[];
   onSelectTemplate: (template: Template) => void;
+  isOffline?: boolean;
+  onRefresh?: () => Promise<void> | void;
+  screenTitle?: string;
+  subtitle?: string;
 }
 
 const TemplateList: React.FC<TemplateListProps> = ({
   templates,
   onSelectTemplate,
+  isOffline = false,
+  onRefresh,
+  screenTitle,
+  subtitle,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   
   const filteredTemplates = templates.filter(template => {
     const searchTerms = searchQuery.toLowerCase();
@@ -35,8 +45,32 @@ const TemplateList: React.FC<TemplateListProps> = ({
     return false;
   });
 
-  return (
-    <View style={styles.container}>
+  const handleRefresh = async () => {
+    if (isOffline) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
+
+    if (!onRefresh) return;
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setRefreshing(true);
+
+    try {
+      await onRefresh();
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      {screenTitle && <Text style={styles.screenTitle}>{screenTitle}</Text>}
+      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
@@ -46,35 +80,62 @@ const TemplateList: React.FC<TemplateListProps> = ({
           onChangeText={setSearchQuery}
         />
         {searchQuery.length > 0 && (
-          <Ionicons 
-            name="close-circle" 
-            size={20} 
-            color={colors.textSecondary} 
+          <Ionicons
+            name="close-circle"
+            size={20}
+            color={colors.textSecondary}
             style={styles.clearIcon}
             onPress={() => setSearchQuery('')}
           />
         )}
       </View>
-      
-      <FlatList
-        data={filteredTemplates}
-        renderItem={({ item }) => (
-          <TemplateCard
-            template={item}
-            onPress={onSelectTemplate}
-          />
-        )}
-        keyExtractor={(item) => item.name}
-        numColumns={2}
-        contentContainerStyle={styles.list}
-      />
     </View>
+  );
+
+  return (
+    <FlatList
+      data={filteredTemplates}
+      renderItem={({ item, index }) => (
+        <TemplateCard
+          template={item}
+          onPress={onSelectTemplate}
+          index={index}
+        />
+      )}
+      keyExtractor={(item) => item.name}
+      numColumns={2}
+      contentContainerStyle={styles.list}
+      ListHeaderComponent={renderHeader}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            title={isOffline ? "Pull to sync when online" : "Pull to refresh"}
+            titleColor={colors.textSecondary}
+            colors={[colors.primary]}
+          />
+        ) : undefined
+      }
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  headerContainer: {
+    paddingTop: spacing.s,
+  },
+  screenTitle: {
+    ...typography.title,
+    margin: spacing.m,
+    marginBottom: spacing.s,
+  },
+  subtitle: {
+    ...typography.caption,
+    marginHorizontal: spacing.m,
+    marginBottom: spacing.m,
   },
   searchContainer: {
     flexDirection: 'row',

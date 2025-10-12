@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { XStack, YStack, Text, Card } from 'tamagui';
 import { useOffline } from '../../providers/OfflineProvider';
 import { useTemplatesSyncStatus } from '../../hooks/useTemplates';
-import { colors, spacing, typography } from '../../styles/theme';
+import * as Haptics from 'expo-haptics';
 
 interface NetworkStatusIndicatorProps {
   showWhenOnline?: boolean;
@@ -12,7 +13,7 @@ interface NetworkStatusIndicatorProps {
   showSyncStatus?: boolean;
 }
 
-export function NetworkStatusIndicator({
+function NetworkStatusIndicator({
   showWhenOnline = false,
   compact = false,
   expandable = true,
@@ -21,7 +22,6 @@ export function NetworkStatusIndicator({
   const { isOnline, isOffline, networkType, hasInternet } = useOffline();
   const { data: syncStatus } = useTemplatesSyncStatus();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [slideAnim] = useState(new Animated.Value(0));
   const [lastStatusChange, setLastStatusChange] = useState<Date | null>(null);
 
   // Track status changes for auto-expand
@@ -43,291 +43,176 @@ export function NetworkStatusIndicator({
     }
   }, [isOnline, isExpanded, showWhenOnline]);
 
-  // Animation for expand/collapse
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: isExpanded ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [isExpanded, slideAnim]);
-
   // Don't show when online unless explicitly requested
   if (isOnline && !showWhenOnline) {
     return null;
   }
 
-  const getConnectionQuality = () => {
-    if (!isOnline) return 'none';
-    if (networkType === 'wifi') return 'excellent';
-    if (networkType === 'cellular') return hasInternet ? 'good' : 'poor';
-    return 'unknown';
+  const handleToggleExpand = async () => {
+    if (!expandable) return;
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsExpanded(!isExpanded);
   };
 
-  const getStatusColor = () => {
-    const quality = getConnectionQuality();
-    switch (quality) {
-      case 'excellent': return colors.success;
-      case 'good': return '#8BC34A'; // Light green
-      case 'poor': return colors.warning;
-      case 'none': return colors.error;
-      default: return colors.textSecondary;
-    }
+  const getConnectionIcon = () => {
+    if (isOffline) return 'wifi-outline';
+    if (networkType === 'wifi') return 'wifi';
+    if (networkType === 'cellular') return 'cellular';
+    return 'globe-outline';
   };
 
-  const getStatusIcon = () => {
-    const quality = getConnectionQuality();
-    switch (quality) {
-      case 'excellent': return 'wifi' as const;
-      case 'good': return 'cellular' as const;
-      case 'poor': return 'cellular-outline' as const;
-      case 'none': return 'wifi-off' as const;
-      default: return 'help-circle-outline' as const;
-    }
+  const getConnectionColor = () => {
+    if (isOffline) return '$error';
+    if (hasInternet) return '$success';
+    return '$warning';
   };
 
   const getStatusText = () => {
-    if (compact) {
-      return isOnline ? 'Online' : 'Offline';
-    }
-
-    if (!isOnline) {
-      return 'No internet connection';
-    }
-
-    const quality = getConnectionQuality();
-    switch (quality) {
-      case 'excellent': return `Connected via WiFi`;
-      case 'good': return `Connected via ${networkType}`;
-      case 'poor': return `Weak ${networkType} connection`;
-      default: return `Connected (${networkType || 'Unknown'})`;
-    }
+    if (isOffline) return 'Offline';
+    if (!hasInternet) return 'No Internet';
+    return 'Online';
   };
 
-  const getSyncStatusText = () => {
-    if (!syncStatus || !showSyncStatus) return null;
-
-    if (!syncStatus.hasCache) {
-      return 'No offline content';
-    }
-
-    if (syncStatus.isCacheStale && syncStatus.isOnline) {
-      return 'Syncing latest content...';
-    }
-
-    if (syncStatus.isCacheStale && !syncStatus.isOnline) {
-      return 'Content may be outdated';
-    }
-
-    return 'Content up to date';
-  };
-
-  const handlePress = () => {
-    if (expandable) {
-      setIsExpanded(!isExpanded);
-    }
-  };
-
-  const containerHeight = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [compact ? 32 : 40, compact ? 80 : 120],
-  });
-
-  const syncStatusText = getSyncStatusText();
-  const shouldShow = isOffline || showWhenOnline || isExpanded;
-
-  if (!shouldShow && !lastStatusChange) {
-    return null;
+  if (compact) {
+    return (
+      <XStack padding="$xs">
+        <Ionicons
+          name={getConnectionIcon()}
+          size={16}
+          color={getConnectionColor()}
+        />
+      </XStack>
+    );
   }
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPress={handleToggleExpand}
       disabled={!expandable}
-      activeOpacity={expandable ? 0.7 : 1}
+      activeOpacity={0.8}
     >
-      <Animated.View style={[
-        styles.container,
-        compact && styles.containerCompact,
-        { height: expandable ? containerHeight : 'auto' },
-        isOffline && styles.containerOffline
-      ]}>
-        <View style={styles.mainRow}>
-          <View style={styles.iconContainer}>
-            <Ionicons
-              name={getStatusIcon()}
-              size={compact ? 16 : 20}
-              color={getStatusColor()}
-            />
-            {/* Connection quality indicators */}
-            {isOnline && (
-              <View style={styles.qualityBars}>
-                {[1, 2, 3].map((bar) => (
-                  <View
-                    key={bar}
-                    style={[
-                      styles.qualityBar,
-                      {
-                        height: bar * 3 + 3,
-                        backgroundColor: getConnectionQuality() === 'excellent' ||
-                                       (getConnectionQuality() === 'good' && bar <= 2) ||
-                                       (getConnectionQuality() === 'poor' && bar <= 1)
-                          ? getStatusColor()
-                          : colors.divider
-                      }
-                    ]}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
+      <Card
+        margin="$s"
+        overflow="hidden"
+        backgroundColor="$backgroundStrong"
+        borderColor="$borderColor"
+        borderRadius="$3"
+      >
+        <XStack alignItems="center" justifyContent="space-between" space="$m">
+          <XStack alignItems="center" space="$s" flex={1}>
+            <XStack alignItems="center" space="$xs">
+              <Ionicons
+                name={getConnectionIcon()}
+                size={20}
+                color={getConnectionColor()}
+              />
 
-          <View style={styles.textContainer}>
-            <Text style={[
-              styles.text,
-              { color: getStatusColor() },
-              compact && styles.textCompact
-            ]}>
-              {getStatusText()}
-            </Text>
+              {/* Connection quality bars for mobile networks */}
+              {networkType === 'cellular' && hasInternet && (
+                <XStack alignItems="flex-end" space={1}>
+                  {[1, 2, 3, 4].map((bar) => (
+                    <YStack
+                      key={bar}
+                      width={3}
+                      height={bar * 3 + 6}
+                      backgroundColor={bar <= 3 ? '$success' : '$color9'}
+                      borderRadius={1}
+                    />
+                  ))}
+                </XStack>
+              )}
+            </XStack>
 
-            {lastStatusChange && (
-              <Text style={styles.timestamp}>
-                {lastStatusChange.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+            <YStack flex={1}>
+              <Text
+                fontSize="$4"
+                fontWeight="600"
+                color="$color"
+              >
+                {getStatusText()}
               </Text>
-            )}
-          </View>
+              {networkType && isOnline && (
+                <Text
+                  fontSize="$2"
+                  color="$colorTransparent"
+                  opacity={0.7}
+                >
+                  {networkType.toUpperCase()}
+                </Text>
+              )}
+            </YStack>
+          </XStack>
 
           {expandable && (
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
               size={16}
-              color={colors.textSecondary}
-              style={styles.expandIcon}
+              color="$colorTransparent"
             />
           )}
-        </View>
+        </XStack>
 
-        {/* Expanded content */}
-        {expandable && (
-          <Animated.View style={[
-            styles.expandedContent,
-            {
-              opacity: slideAnim,
-              transform: [{
-                translateY: slideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-10, 0],
-                })
-              }]
-            }
-          ]}>
-            {syncStatusText && (
-              <Text style={styles.syncStatusText}>
-                📋 {syncStatusText}
+        {isExpanded && showSyncStatus && syncStatus && (
+          <YStack marginTop="$s" space="$xs">
+            <XStack justifyContent="space-between" alignItems="center">
+              <Text
+                fontSize="$2"
+                color="$colorTransparent"
+                opacity={0.7}
+              >
+                Cache:
               </Text>
-            )}
+              <Text
+                fontSize="$2"
+                color="$color"
+                fontWeight="500"
+              >
+                {syncStatus.hasCache ? '✅' : '❌'} {syncStatus.hasCache ? 'Available' : 'Empty'}
+              </Text>
+            </XStack>
 
-            {isOffline && (
-              <Text style={styles.offlineHelpText}>
-                💡 You can still browse cached templates and create projects
+            <XStack justifyContent="space-between" alignItems="center">
+              <Text
+                fontSize="$2"
+                color="$colorTransparent"
+                opacity={0.7}
+              >
+                Status:
               </Text>
+              <Text
+                fontSize="$2"
+                color="$color"
+                fontWeight="500"
+              >
+                {syncStatus.isCacheStale ? '⚠️ Stale' : '✅ Fresh'}
+              </Text>
+            </XStack>
+
+            {syncStatus.needsSync && (
+              <XStack justifyContent="space-between" alignItems="center">
+                <Text
+                  fontSize="$2"
+                  color="$colorTransparent"
+                  opacity={0.7}
+                >
+                  Sync:
+                </Text>
+                <Text
+                  fontSize="$2"
+                  color="$warning"
+                  fontWeight="500"
+                >
+                  📡 Pending
+                </Text>
+              </XStack>
             )}
-          </Animated.View>
+          </YStack>
         )}
-      </Animated.View>
+      </Card>
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    marginHorizontal: spacing.m,
-    marginVertical: spacing.s,
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.s,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    overflow: 'hidden',
-  },
-  containerCompact: {
-    paddingHorizontal: spacing.s,
-    paddingVertical: spacing.xs,
-    marginHorizontal: spacing.s,
-    marginVertical: spacing.xs,
-    borderRadius: 8,
-  },
-  containerOffline: {
-    borderColor: colors.error,
-    backgroundColor: colors.error + '08', // Very light error background
-  },
-  mainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 24,
-  },
-  iconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: spacing.s,
-  },
-  qualityBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginLeft: spacing.xs,
-    height: 12,
-  },
-  qualityBar: {
-    width: 2,
-    marginLeft: 1,
-    borderRadius: 1,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  text: {
-    ...typography.caption,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  textCompact: {
-    fontSize: 12,
-    marginBottom: 0,
-  },
-  timestamp: {
-    ...typography.smallText,
-    color: colors.textSecondary,
-    fontSize: 10,
-  },
-  expandIcon: {
-    marginLeft: spacing.s,
-  },
-  expandedContent: {
-    marginTop: spacing.s,
-    paddingTop: spacing.s,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  syncStatusText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontSize: 12,
-    marginBottom: spacing.xs,
-  },
-  offlineHelpText: {
-    ...typography.caption,
-    color: colors.warning,
-    fontSize: 12,
-    fontStyle: 'italic',
-  },
-});
+export default NetworkStatusIndicator;
+export { NetworkStatusIndicator };

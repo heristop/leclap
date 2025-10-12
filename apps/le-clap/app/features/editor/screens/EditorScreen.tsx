@@ -3,13 +3,14 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  SafeAreaView, 
+  
   TouchableOpacity, 
   ActivityIndicator,
   Alert,
   ScrollView,
   StatusBar
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FormSection from '../components/FormSection';
 import { Template, Section, Project } from '@/app/types';

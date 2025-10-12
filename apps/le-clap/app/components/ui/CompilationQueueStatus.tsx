@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export function CompilationQueueStatus() {
+function CompilationQueueStatus() {
   const { data: pendingCompilations = [] } = usePendingCompilations();
   const { isOffline } = useOffline();
   const retryQueueItem = useRetryQueueItem();
@@ -467,3 +467,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+
+export default CompilationQueueStatus;
+export { CompilationQueueStatus };

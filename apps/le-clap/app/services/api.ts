@@ -13,15 +13,50 @@ const PROJECTS_STORAGE_KEY = 'ffmpeg_video_composer_projects';
  */
 export const fetchTemplates = async (): Promise<Template[]> => {
   try {
-    const response = await fetch(`${API_URL}/templates`);
+    // First check if server is healthy
+    const healthCheck = await checkServerHealth();
+    if (!healthCheck.isHealthy) {
+      throw new Error(healthCheck.error || 'Server is not available');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    const response = await fetch(`${API_URL}/templates`, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     return data;
   } catch (error) {
+    const err = error as Error;
+    if (err.name === 'AbortError') {
+      throw new Error('Request timeout - server took too long to respond (10s). Please try again.');
+    }
+
+    let errorMessage = 'Failed to fetch templates';
+
+    if (err.message?.includes('Network request failed')) {
+      errorMessage =
+        'Network connection failed. Please check your internet connection and ensure the server is running.';
+    } else if (err.message?.includes('timeout')) {
+      errorMessage = 'Request timeout. The server may be overloaded. Please try again.';
+    } else if (err.message?.includes('Server is unreachable')) {
+      errorMessage = err.message;
+    } else {
+      errorMessage = err.message || errorMessage;
+    }
+
     console.error('Error fetching templates:', error);
-    throw error;
+    throw new Error(errorMessage);
   }
 };
 
@@ -30,6 +65,12 @@ export const fetchTemplates = async (): Promise<Template[]> => {
  */
 export const fetchTemplateByName = async (templateName: string): Promise<Template> => {
   try {
+    // First check if server is healthy
+    const healthCheck = await checkServerHealth();
+    if (!healthCheck.isHealthy) {
+      throw new Error(healthCheck.error || 'Server is not available');
+    }
+
     const templates = await fetchTemplates();
     const template = templates.find((t) => t.name === templateName);
 
@@ -122,6 +163,77 @@ export const deleteAllProjects = async (): Promise<void> => {
 };
 
 /**
+ * Checks if the server is reachable
+ */
+export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?: string }> => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const response = await fetch(`${API_URL}/health`, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      return { isHealthy: true };
+    } else {
+      return { isHealthy: false, error: `Server responded with status: ${response.status}` };
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { isHealthy: false, error: 'Server connection timeout (5s)' };
+    }
+    return {
+      isHealthy: false,
+      error: error.message?.includes('Network request failed')
+        ? 'Server is unreachable. Please check if the ffmpeg-video-composer server is running.'
+        : `Server health check failed: ${error.message}`,
+    };
+  }
+};
+
+/**
+ * Retries a function with exponential backoff
+ */
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> => {
+  let lastError: Error;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+
+      // Don't retry on certain types of errors
+      if (lastError.message?.includes('404') || lastError.message?.includes('400')) {
+        throw error;
+      }
+
+      if (attempt === maxRetries) {
+        throw lastError;
+      }
+
+      // Exponential backoff with jitter
+      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+      console.warn(`Attempt ${attempt + 1} failed, retrying in ${Math.round(delay)}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError!;
+};
+
+/**
  * Sends videos and template to server for compilation
  */
 export const compileVideo = async (
@@ -129,6 +241,15 @@ export const compileVideo = async (
   recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>
 ): Promise<{ success: boolean; outputUri?: string; error?: string }> => {
   try {
+    // First check if server is healthy
+    const healthCheck = await checkServerHealth();
+    if (!healthCheck.isHealthy) {
+      return {
+        success: false,
+        error: healthCheck.error || 'Server is not available',
+      };
+    }
+
     const formData = new FormData();
 
     // Add template descriptor
@@ -146,20 +267,38 @@ export const compileVideo = async (
       } as any);
     });
 
-    // Send request to server
-    const response = await fetch(`${API_URL}/compile`, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        Accept: 'application/json',
-      },
-    });
+    // Send request to server with retry logic
+    const result = await retryWithBackoff(async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for compilation
 
-    const result = await response.json();
+      try {
+        const response = await fetch(`${API_URL}/compile`, {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+          headers: {
+            Accept: 'application/json',
+          },
+        });
 
-    if (!response.ok) {
-      throw new Error(result.error || `HTTP error! status: ${response.status}`);
-    }
+        clearTimeout(timeoutId);
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return result;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('Request timeout - compilation took too long (30s). Please try again.');
+        }
+        throw error;
+      }
+    }, 2); // Retry up to 2 times
 
     if (result.success && result.outputPath) {
       // Construct the playable URL using the server's static path
@@ -176,9 +315,24 @@ export const compileVideo = async (
     }
   } catch (error) {
     console.error('Error compiling video:', error);
+    const err = error as Error;
+
+    let errorMessage = 'An unknown error occurred';
+
+    if (err.message?.includes('Network request failed')) {
+      errorMessage =
+        'Network connection failed. Please check your internet connection and ensure the server is running.';
+    } else if (err.message?.includes('timeout')) {
+      errorMessage = 'Request timeout. The server may be overloaded. Please try again.';
+    } else if (err.message?.includes('Server is unreachable')) {
+      errorMessage = err.message;
+    } else {
+      errorMessage = err.message || errorMessage;
+    }
+
     return {
       success: false,
-      error: (error as Error).message || 'An unknown error occurred',
+      error: errorMessage,
     };
   }
 };

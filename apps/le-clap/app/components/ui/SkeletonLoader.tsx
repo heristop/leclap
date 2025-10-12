@@ -206,3 +206,6 @@ const styles = StyleSheet.create({
     right: spacing.m,
   },
 });
+
+// Default export (use TemplateListSkeleton as the main component)
+export default TemplateListSkeleton;

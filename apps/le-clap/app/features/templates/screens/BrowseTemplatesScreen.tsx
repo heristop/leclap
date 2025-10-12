@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, SafeAreaView, ScrollView, RefreshControl } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '../../../hooks/useTemplates';
@@ -9,13 +10,17 @@ import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndi
 import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
 import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
 import { useOffline } from '../../../providers/OfflineProvider';
+import Button from '../../../components/ui/Button';
 import * as Haptics from 'expo-haptics';
 
-const BrowseTemplatesScreen = () => {
+interface BrowseTemplatesScreenProps {
+  onRecordPress?: () => void;
+}
+
+const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) => {
   const router = useRouter();
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
   const { isOffline } = useOffline();
-  const [refreshing, setRefreshing] = React.useState(false);
 
   const handleSelectTemplate = async (template: Template) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -25,24 +30,6 @@ const BrowseTemplatesScreen = () => {
     });
   };
 
-  const handleRefresh = async () => {
-    if (isOffline) {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      return;
-    }
-
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setRefreshing(true);
-
-    try {
-      await refetch();
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   if (isLoading && templates.length === 0) {
     return (
@@ -67,10 +54,15 @@ const BrowseTemplatesScreen = () => {
         <Text style={styles.errorSubtext}>
           Make sure the ffmpeg-video-composer server is running.
         </Text>
-        <View style={styles.buttonContainer}>
-          <Text style={styles.retryButton} onPress={() => refetch()}>
+        <View style={{ marginTop: spacing.m }}>
+          <Button
+            variant="primary"
+            onPress={async () => { await refetch(); }}
+            icon="refresh"
+            size="medium"
+          >
             Try Again
-          </Text>
+          </Button>
         </View>
       </View>
     );
@@ -84,33 +76,18 @@ const BrowseTemplatesScreen = () => {
       />
       <CompilationQueueStatus />
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            title={isOffline ? "Pull to sync when online" : "Pull to refresh"}
-            titleColor={colors.textSecondary}
-            colors={[colors.primary]}
-          />
+      <TemplateList
+        templates={templates}
+        onSelectTemplate={handleSelectTemplate}
+        isOffline={isOffline}
+        onRefresh={() => refetch()}
+        screenTitle="Scenarios"
+        subtitle={isOffline
+          ? "📴 Browsing cached templates (offline)"
+          : "Select a scenario to create your video"
         }
-      >
-        <Text style={styles.screenTitle}>Scenarios</Text>
-        <Text style={styles.subtitle}>
-          {isOffline
-            ? "📴 Browsing cached templates (offline)"
-            : "Select a scenario to create your video"
-          }
-        </Text>
+      />
 
-        <TemplateList
-          templates={templates}
-          onSelectTemplate={handleSelectTemplate}
-        />
-      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -119,10 +96,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingTop: 5,
-  },
-  scrollView: {
-    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -157,18 +130,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     color: colors.textSecondary,
   },
-  buttonContainer: {
-    marginTop: spacing.m,
-  },
-  retryButton: {
-    ...typography.body,
-    color: colors.primary,
-    padding: spacing.m,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    textAlign: 'center',
-  }
 });
 
 export default BrowseTemplatesScreen;

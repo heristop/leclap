@@ -1,22 +1,11 @@
 import React from 'react';
 import { Tabs } from "expo-router";
-import * as SplashScreen from 'expo-splash-screen';
 import CustomTabBar from '../components/ui/CustomTabBar';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import Header from '../components/common/Header';
 import { useOrientation } from '../hooks/useOrientation';
 
-SplashScreen.preventAutoHideAsync();
-
 export default function AppLayout() {
-  const onLayoutRootView = useCallback(async () => {
-    await SplashScreen.hideAsync();
-  }, []);
-
-  useEffect(() => {
-    onLayoutRootView();
-  }, [onLayoutRootView]);
-
   const { lockOrientation, unlockOrientation } = useOrientation();
 
   useEffect(() => {

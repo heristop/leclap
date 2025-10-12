@@ -16,20 +16,21 @@ interface OfflineProviderProps {
   children: ReactNode;
 }
 
+
 export function OfflineProvider({ children }: OfflineProviderProps) {
   const networkState = useNetworkState();
-  const autoProcessQueue = useAutoProcessQueue();
-  const cleanupQueue = useCleanupQueue();
-  const refreshTemplates = useRefreshTemplates();
 
   const isOnline = networkState.isConnected && (networkState.isInternetReachable ?? false);
   const isOffline = !isOnline;
 
+  // QueryClient-dependent hooks
+  const autoProcessQueue = useAutoProcessQueue();
+  const cleanupQueue = useCleanupQueue();
+  const refreshTemplates = useRefreshTemplates();
+
   // Handle network state changes
   useOnlineStatusChange(
     () => {
-      console.log('Device came online, processing queued operations...');
-
       // Process queued compilations
       autoProcessQueue.mutateAsync().catch((error) => {
         console.error('Failed to process compilation queue:', error);
@@ -46,7 +47,7 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
       });
     },
     () => {
-      console.log('Device went offline');
+      // Device went offline - no action needed
     }
   );
 

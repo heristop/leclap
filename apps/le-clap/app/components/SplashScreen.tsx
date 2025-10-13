@@ -9,7 +9,7 @@ import {
   Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../styles/theme';
+import { colors, spacing } from '../styles/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: 'bold',
     color: colors.surface,
-    marginTop: 20,
+    marginTop: spacing.m,
     letterSpacing: 2,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xl,
   },
   taglineLetter: {
     fontSize: 18,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 50,
     flexDirection: 'row',
-    gap: 10,
+    gap: spacing.s,
   },
   filmFrame: {
     width: 40,

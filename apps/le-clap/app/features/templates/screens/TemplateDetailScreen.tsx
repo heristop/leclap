@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
   },
   contentContainer: {
-    paddingBottom: 100,
+    paddingBottom: spacing.xxl,
   },
   orientationRow: {
     flexDirection: 'row',
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   previewButtonText: {
     ...typography.caption,
     color: colors.primary,
-    marginLeft: 3,
+    marginLeft: spacing.xs,
     fontWeight: '500',
   },
   footer: {
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: spacing.m,
-    paddingBottom: spacing.m + 5,
+    paddingBottom: spacing.l,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
     backgroundColor: colors.background,
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: spacing.m + 2,
+    paddingVertical: spacing.m,
     paddingHorizontal: spacing.m,
     borderRadius: 12,
     minHeight: 56,
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.l,
   },
   placeholderText: {
     ...typography.body,

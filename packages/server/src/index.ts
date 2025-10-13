@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import Fastify from 'fastify';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
+import fastifyCors from '@fastify/cors';
 import fs from 'fs/promises';
 import * as fsSync from 'fs';
 import path from 'path';
@@ -24,6 +25,12 @@ interface VideoFile {
 
 const fastify = Fastify({
   logger: true,
+});
+
+// Register CORS plugin to allow cross-origin requests from web demo and mobile
+fastify.register(fastifyCors, {
+  origin: true, // Allow all origins for development and mobile access
+  credentials: true,
 });
 
 // Register multipart plugin for file uploads

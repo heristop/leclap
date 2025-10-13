@@ -1,13 +1,23 @@
-import { compile, loadConfig } from '.';
+#!/usr/bin/env node
+
+// Standalone compile script that uses the built version
+// This avoids TypeScript path resolution issues
+
+import { compile, loadConfig } from './dist/index.js';
+import { TerminalUI } from './dist/index.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { TerminalUI } from './utils/TerminalUI';
 import pc from 'picocolors';
 
-const configFilePath = globalThis.process.argv[2];
+const configFilePath = process.argv[2];
 
-async function main(configFilePath: string): Promise<string | null> {
+async function main(configFilePath) {
   try {
+    if (!configFilePath) {
+      console.error('Usage: pnpm compile <template.json>');
+      process.exit(1);
+    }
+
     // Show welcome banner for first-time users
     if (shouldShowWelcome()) {
       showWelcomeBanner();
@@ -40,17 +50,16 @@ async function main(configFilePath: string): Promise<string | null> {
     };
 
     // Call the compilation function with progress indicator
-    console.log(`${pc.cyan('🎬')} ${pc.bold('Starting video compilation...')}\n`);
-
-    TerminalUI.startSpinner('🎞️ Processing your video magic...');
+    console.log(`${pc.cyan('🎬')} ${pc.bold('Starting video compilation...')}`);
+    console.log(`${pc.dim('🎞️ Processing your video magic...')}\n`);
 
     const result = await compile(projectConfig, templateDescriptor);
 
-    TerminalUI.stopSpinner('success', '🎉 Compilation completed successfully!');
+    console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`)
 
     return result;
   } catch (error) {
-    TerminalUI.stopSpinner('error', '❌ Compilation failed');
+    console.log(`\n${pc.red('❌')} ${pc.bold('Compilation failed')}`);
 
     if (error instanceof Error) {
       // Check if it's an FFmpeg-related error
@@ -64,9 +73,7 @@ async function main(configFilePath: string): Promise<string | null> {
           '🐧 Linux: sudo apt install ffmpeg',
         ]);
 
-        console.log(
-          `\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('pnpm diagnose')} ${pc.dim('for detailed system analysis')}\n`
-        );
+        console.log(`\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('pnpm diagnose')} ${pc.dim('for detailed system analysis')}\n`);
       } else {
         console.error(`${pc.red('Error:')} ${error.message}`);
         if (error.stack) console.error(error.stack);
@@ -76,6 +83,27 @@ async function main(configFilePath: string): Promise<string | null> {
     }
     process.exit(1);
   }
+}
+
+/**
+ * Check if we should show welcome banner
+ */
+function shouldShowWelcome() {
+  // Don't show in CI or non-interactive terminals
+  if (process.env.CI || !process.stdout.isTTY) {
+    return false;
+  }
+
+  // Show welcome if it looks like a first run
+  return !process.env.FFMPEG_COMPOSER_SKIP_WELCOME;
+}
+
+/**
+ * Show welcome banner for first-time users
+ */
+function showWelcomeBanner() {
+  console.log(`\n${pc.cyan('🎬')} ${pc.bold('Welcome to FFmpeg Video Composer!')}`);
+  console.log(pc.dim('✨ Creating video magic from templates...\n'));
 }
 
 if (configFilePath) {
@@ -100,26 +128,3 @@ if (configFilePath) {
     }
   })();
 }
-
-/**
- * Check if we should show welcome banner
- */
-function shouldShowWelcome(): boolean {
-  // Don't show in CI or non-interactive terminals
-  if (process.env.CI || !process.stdout.isTTY) {
-    return false;
-  }
-
-  // Show welcome if it looks like a first run
-  return !process.env.FFMPEG_COMPOSER_SKIP_WELCOME;
-}
-
-/**
- * Show welcome banner for first-time users
- */
-function showWelcomeBanner(): void {
-  console.log(`\n${pc.cyan('🎬')} ${pc.bold('Welcome to FFmpeg Video Composer!')}`);
-  console.log(pc.dim('✨ Creating video magic from templates...\n'));
-}
-
-export { main };

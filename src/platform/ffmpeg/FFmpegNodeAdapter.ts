@@ -1,9 +1,9 @@
 import { exec, ExecException } from 'node:child_process';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
-import { FFMpegInfos } from '@/core/types';
+import { FFMpegInfos } from '../../core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
-import { FFmpegError } from '@/core/errors/FFmpegError';
+import { FFmpegError } from '../../core/errors/FFmpegError';
 
 const execAsync = promisify(exec);
 

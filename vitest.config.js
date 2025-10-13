@@ -6,7 +6,7 @@ import checker from 'vite-plugin-checker';
 export default defineConfig({
   plugins: [swc.vite(), tsconfigPaths(), checker({ typescript: true })],
   test: {
-    globals: true,
+    globals: false,
     environment: 'node',
     root: './',
     coverage: {

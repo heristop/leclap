@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useNavigation } from 'expo-router';
-import { colors, typography, spacing } from '@/app/styles/theme';
+import { colors, typography, spacing } from '@/src/styles/theme';
 
 interface HeaderProps {
   title?: string;
@@ -22,11 +22,11 @@ interface HeaderProps {
   onBackPress?: () => void;
   showSlogan?: boolean;
   variant?: 'primary' | 'transparent' | 'light';
-  actions?: Array<{
+  actions?: {
     icon: string;
     onPress: () => void;
     color?: string;
-  }>;
+  }[];
 }
 
 export default function Header({ 
@@ -39,7 +39,6 @@ export default function Header({
   variant = 'primary',
   actions = [],
 }: HeaderProps) {
-  const router = useRouter();
   const navigation = useNavigation();
   const logoScaleAnim = useRef(new Animated.Value(1)).current;
   

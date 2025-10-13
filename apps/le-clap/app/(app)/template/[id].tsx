@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import TemplateDetailScreen from '../../features/templates/screens/TemplateDetailScreen';
-import { colors } from '../../styles/theme';
+import { colors } from '@/src/styles/theme';
 
 export default function TemplateDetailPage() {
   const { id } = useLocalSearchParams();

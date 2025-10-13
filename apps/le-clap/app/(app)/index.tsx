@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { colors } from '../styles/theme';
+import { colors } from '@/src/styles/theme';
 import BrowseTemplatesScreen from '../features/templates/screens/BrowseTemplatesScreen';
 import CameraModal from '../components/CameraModal';
 

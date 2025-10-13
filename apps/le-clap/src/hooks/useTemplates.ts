@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTemplates, fetchTemplateByName } from '../services/api';
-import { Template } from '../types';
-import { getCachedTemplates, cacheTemplates, isTemplatesCacheStale } from '../services/storage';
-import { hasInternetConnection } from '../services/network';
+import { fetchTemplates, fetchTemplateByName } from '@/src/services/api';
+import { Template } from '@/src/types';
+import { getCachedTemplates, cacheTemplates, isTemplatesCacheStale } from '@/src/services/storage';
+import { hasInternetConnection } from '@/src/services/network';
 
 export const useTemplates = () => {
   return useQuery({
@@ -30,7 +30,7 @@ export const useTemplates = () => {
         const freshTemplates = await fetchTemplates();
         await cacheTemplates(freshTemplates);
         return freshTemplates;
-      } catch (error) {
+      } catch {
         // If fetch fails but we have cached data, return it
         if (cachedTemplates) {
           console.warn('Failed to fetch fresh templates, using cached data:', error);
@@ -70,7 +70,7 @@ export const useTemplate = (templateName: string) => {
       if (isOnline) {
         try {
           return await fetchTemplateByName(templateName);
-        } catch (error) {
+        } catch {
           // If fetch fails but we have cached template, return it
           if (cachedTemplates) {
             const cachedTemplate = cachedTemplates.find((t) => t.name === templateName);

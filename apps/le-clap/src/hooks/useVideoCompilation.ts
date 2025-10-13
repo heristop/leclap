@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { compileVideo } from '../services/api';
+import { compileVideo } from '@/src/services/api';
 
 export const useVideoCompilation = () => {
   return useMutation({

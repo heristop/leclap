@@ -17,14 +17,13 @@ import {
   useRemoveQueueItem,
   useCleanupQueue,
   useProcessQueuedCompilations,
-} from '../../../hooks/useCompilationQueue';
-import { useOffline } from '../../../providers/OfflineProvider';
+} from '@/src/hooks/useCompilationQueue';
+import { useOffline } from '@/src/providers/OfflineProvider';
 import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
 import { styles } from './QueueManagerScreenStyles';
-import { colors } from '../../../styles/theme';
+import { colors } from '@/src/styles/theme';
 import * as Haptics from 'expo-haptics';
-
-const { width: screenWidth } = Dimensions.get('window');
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function QueueManagerScreen() {
   const router = useRouter();
@@ -98,7 +97,7 @@ export default function QueueManagerScreen() {
             for (const itemId of selectedItems) {
               try {
                 await retryQueueItem.mutateAsync(itemId);
-              } catch (error) {
+              } catch {
                 console.error(`Failed to retry item ${itemId}:`, error);
               }
             }
@@ -126,7 +125,7 @@ export default function QueueManagerScreen() {
             for (const itemId of selectedItems) {
               try {
                 await removeQueueItem.mutateAsync(itemId);
-              } catch (error) {
+              } catch {
                 console.error(`Failed to remove item ${itemId}:`, error);
               }
             }
@@ -150,7 +149,7 @@ export default function QueueManagerScreen() {
     try {
       await processQueue.mutateAsync(3);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
+    } catch {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('❌ Process Failed', (error as Error).message);
     }
@@ -170,7 +169,7 @@ export default function QueueManagerScreen() {
             try {
               await cleanupQueue.mutateAsync();
               await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            } catch (error) {
+            } catch {
               await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             }
           },

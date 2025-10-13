@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProjects, getProjectById, saveProject, deleteProject, deleteAllProjects } from '../services/api';
-import { Project } from '../types';
+import { getProjects, getProjectById, saveProject, deleteProject, deleteAllProjects } from '@/src/services/api';
 
 export const useProjects = () => {
   return useQuery({

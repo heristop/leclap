@@ -3,32 +3,49 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Ale
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Project } from '@/app/types';
-import { colors, spacing, typography } from '@/app/styles/theme';
-import { getProjects, deleteAllProjects } from '@/app/services/api';
+import { Project } from '@/src/types';
+import { colors, spacing, typography } from '@/src/styles/theme';
+import { getProjects } from '@/src/services/api';
 import SwipeableProjectItem from '@/app/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/app/components/ui/dialog/ConfirmDialog';
+import {
+  useProjectStore,
+  useSetProjects,
+  useSetLoading,
+  useDeleteProject,
+  useDeleteAllProjects
+} from '@/src/stores/useProjectStore';
 
 export default function ProjectsScreen() {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use the raw projects and sort them in a useMemo to avoid calling function in render
+  const rawProjects = useProjectStore((state) => state.projects);
+  // Use individual selectors for stable references
+  const setProjects = useSetProjects();
+  const setLoading = useSetLoading();
+  const deleteProject = useDeleteProject();
+  const deleteAllProjects = useDeleteAllProjects();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
+  // Sort projects in a stable way
+  const projects = React.useMemo(() => {
+    if (!rawProjects) return [];
+    return [...rawProjects].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [rawProjects]);
+
   const loadProjects = useCallback(async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       const projectsData = await getProjects();
-      const sortedProjects = projectsData.sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-      setProjects(sortedProjects);
+      setProjects(projectsData);
     } catch (err) {
       console.error('Error loading projects:', err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, []);
+  }, [setProjects, setLoading]);
 
   useFocusEffect(
     useCallback(() => {
@@ -46,8 +63,8 @@ export default function ProjectsScreen() {
   };
 
   const handleDeleteProject = useCallback((projectId: string) => {
-    setProjects(currentProjects => currentProjects.filter(project => project.id !== projectId));
-  }, []);
+    deleteProject(projectId);
+  }, [deleteProject]);
 
   const handleProjectPress = (project: Project) => {
     if (project.status === 'completed' && project.outputVideoUri) {
@@ -71,8 +88,7 @@ export default function ProjectsScreen() {
 
   const handleDeleteAllProjects = async () => {
     try {
-      await deleteAllProjects();
-      setProjects([]); // Clear the local state
+      deleteAllProjects();
       setShowDeleteAllDialog(false); // Close the dialog
     } catch (error) {
       console.error('Error deleting all projects:', error);
@@ -139,7 +155,7 @@ export default function ProjectsScreen() {
         cancelText="Cancel"
         confirmIconName="trash"
         confirmType="danger"
-        onConfirm={handleDeleteAllProjects} // Implement this function next
+        onConfirm={handleDeleteAllProjects}
         onCancel={() => setShowDeleteAllDialog(false)}
       />
       </View>

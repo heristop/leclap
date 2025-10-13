@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { useNetworkState, useOnlineStatusChange } from '../hooks/useNetworkState';
-import { useAutoProcessQueue, useCleanupQueue } from '../hooks/useCompilationQueue';
-import { useRefreshTemplates } from '../hooks/useTemplates';
+import { useNetworkState, useOnlineStatusChange } from '@/src/hooks/useNetworkState';
+import { useAutoProcessQueue, useCleanupQueue } from '@/src/hooks/useCompilationQueue';
+import { useRefreshTemplates } from '@/src/hooks/useTemplates';
 
 interface OfflineContextType {
   isOnline: boolean;

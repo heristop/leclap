@@ -13,13 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/app/features/editor/components/FormSection';
-import { Template, Section, Project } from '@/app/types';
-import { colors, spacing, typography } from '@/app/styles/theme';
-import { useTemplate } from '../../../hooks/useTemplates';
-import { useProject, useSaveProject } from '../../../hooks/useProjects';
-import { useQueueVideoCompilation } from '../../../hooks/useCompilationQueue';
-import { useOffline } from '../../../providers/OfflineProvider';
-import { getProjectById } from '@/app/services/api';
+import { Template, Section, Project } from '@/src/types';
+import { colors, spacing, typography } from '@/src/styles/theme';
+import { useTemplate } from '@/src/hooks/useTemplates';
+import { useProject, useSaveProject } from '@/src/hooks/useProjects';
+import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
+import { useOffline } from '@/src/providers/OfflineProvider';
 
 const TemplateDetailScreen = () => {
   const params = useLocalSearchParams<{ id: string; projectId?: string }>();
@@ -483,7 +482,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.m,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
@@ -500,11 +500,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
   },
   contentContainer: {
-    paddingBottom: spacing.xxl,
+    paddingTop: spacing.l,
+    paddingBottom: spacing.xxl + 30,
   },
   orientationRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: spacing.s,
   },
   orientationText: {
     ...typography.body,

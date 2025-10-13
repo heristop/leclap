@@ -3,13 +3,12 @@ import {
   View,
   StyleSheet,
   Animated,
-  Text,
   Image,
   Dimensions,
   Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing } from '../styles/theme';
+import { colors, spacing } from '@/src/styles/theme';
 
 const { width, height } = Dimensions.get('window');
 

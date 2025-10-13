@@ -11,10 +11,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/app/features/editor/components/VideoRecorder';
-import { Section } from '@/app/types';
-import { colors, spacing, typography } from '@/app/styles/theme';
-import { saveProject, getProjectById } from '@/app/services/api';
-import { useOrientation } from '@/app/hooks/useOrientation';
+import { Section } from '@/src/types';
+import { colors, spacing, typography } from '@/src/styles/theme';
+import { saveProject, getProjectById } from '@/src/services/api';
+import { useOrientation } from '@/src/hooks/useOrientation';
 
 // Helper function to parse JSON safely
 const safeJsonParse = (jsonString: string | undefined | null): any | null => {
@@ -48,7 +48,7 @@ const RecordSectionScreen = () => {
   const orientation = params.orientation || 'portrait';
   const existingVideoPath = params.existingVideoPath;
 
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -159,7 +159,7 @@ const RecordSectionScreen = () => {
         });
       }
 
-    } catch (error) {
+    } catch {
       console.error('Error saving recorded video:', error);
       Alert.alert('Error', 'Failed to save recorded video. Please try again.');
     }

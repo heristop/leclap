@@ -17,7 +17,7 @@ import {
   VideoFile
 } from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography } from '@/app/styles/theme';
+import { colors, spacing, typography } from '@/src/styles/theme';
 
 interface VideoRecorderProps {
   orientation: 'portrait' | 'landscape';
@@ -88,7 +88,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
           cameraPermission === 'granted' && 
           micPermission === 'granted'
         );
-      } catch (error) {
+      } catch {
         console.error('Error checking permissions:', error);
         setHasPermission(false);
       } finally {
@@ -184,7 +184,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     if (!cameraRef.current || !isRecording) return;
     try {
       await cameraRef.current.stopRecording();
-    } catch (error) {
+    } catch {
       console.error('Failed to stop recording:', error);
       setIsRecording(false); // Ensure recording state is false on error
     }

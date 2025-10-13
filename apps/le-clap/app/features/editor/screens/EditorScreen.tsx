@@ -59,7 +59,7 @@ export const EditorScreen = ({ route, navigation }) => {
         createNewProject(templateData);
       }
       
-    } catch {
+    } catch (error) {
       console.error('Failed to load data:', error);
       Alert.alert(
         'Error',
@@ -165,7 +165,7 @@ export const EditorScreen = ({ route, navigation }) => {
           result.error || 'An error occurred during video compilation.'
         );
       }
-    } catch {
+    } catch (error) {
       console.error('Error during compilation:', error);
       Alert.alert(
         'Compilation Error',

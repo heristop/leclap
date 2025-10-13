@@ -27,7 +27,7 @@ const TemplateDetailScreen = () => {
   const projectId = params.projectId;
 
   const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
-  const { data: existingProject } = useProject(projectId || '');
+  const { data: existingProject, isLoading: projectLoading } = useProject(projectId || '');
   const saveProjectMutation = useSaveProject();
   const queueVideoCompilation = useQueueVideoCompilation();
   const { isOffline } = useOffline();
@@ -38,13 +38,20 @@ const TemplateDetailScreen = () => {
 
   useEffect(() => {
     if (template) {
+      // If we have a projectId, wait for the project to load
+      if (projectId && projectLoading) {
+        return; // Don't create a new project while loading
+      }
+
       if (existingProject) {
         setProject(existingProject);
-      } else {
+      } else if (!projectId) {
+        // Only create a new project if no projectId was provided
         createNewProject(template);
       }
+      // If projectId exists but no project found after loading, don't create a new one
     }
-  }, [template, existingProject]);
+  }, [template, existingProject, projectLoading, projectId]);
 
   const createNewProject = (templateData: Template) => {
     const newProject: Project = {

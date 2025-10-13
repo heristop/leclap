@@ -3,28 +3,17 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Ale
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Project } from '@/src/types';
+import { Project } from '@/src/domain/entities/Project';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { getProjects } from '@/src/services/api';
 import SwipeableProjectItem from '@/app/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/app/components/ui/dialog/ConfirmDialog';
-import {
-  useProjectStore,
-  useSetProjects,
-  useSetLoading,
-  useDeleteProject,
-  useDeleteAllProjects
-} from '@/src/stores/useProjectStore';
+import { useProjectStore } from '@/src/stores/useProjectStore';
+import { useProjectService } from '@/src/presentation/hooks/useProjectService';
 
 export default function ProjectsScreen() {
   const router = useRouter();
-  // Use the raw projects and sort them in a useMemo to avoid calling function in render
   const rawProjects = useProjectStore((state) => state.projects);
-  // Use individual selectors for stable references
-  const setProjects = useSetProjects();
-  const setLoading = useSetLoading();
-  const deleteProject = useDeleteProject();
-  const deleteAllProjects = useDeleteAllProjects();
+  const { loadProjects, deleteProject, deleteAllProjects } = useProjectService();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
   // Sort projects in a stable way
@@ -34,18 +23,6 @@ export default function ProjectsScreen() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [rawProjects]);
-
-  const loadProjects = useCallback(async () => {
-    setLoading(true);
-    try {
-      const projectsData = await getProjects();
-      setProjects(projectsData);
-    } catch (err) {
-      console.error('Error loading projects:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [setProjects, setLoading]);
 
   useFocusEffect(
     useCallback(() => {
@@ -62,8 +39,8 @@ export default function ProjectsScreen() {
     setRefreshing(false);
   };
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    deleteProject(projectId);
+  const handleDeleteProject = useCallback(async (projectId: string) => {
+    await deleteProject(projectId);
   }, [deleteProject]);
 
   const handleProjectPress = (project: Project) => {
@@ -88,12 +65,12 @@ export default function ProjectsScreen() {
 
   const handleDeleteAllProjects = async () => {
     try {
-      deleteAllProjects();
-      setShowDeleteAllDialog(false); // Close the dialog
+      await deleteAllProjects();
+      setShowDeleteAllDialog(false);
     } catch (error) {
       console.error('Error deleting all projects:', error);
       Alert.alert('Error', 'Failed to delete all projects. Please try again.');
-      setShowDeleteAllDialog(false); // Close the dialog on error
+      setShowDeleteAllDialog(false);
     }
   };
 

@@ -12,14 +12,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Project } from '@/src/types';
-import { deleteProject } from '@/src/services/api';
 import ConfirmDialog from './dialog/ConfirmDialog';
 import * as Haptics from 'expo-haptics';
 
 interface SwipeableProjectItemProps {
   project: Project;
   onPress: () => void;
-  onDelete: () => void;
+  onDelete: () => Promise<void>;
 }
 
 const SWIPE_THRESHOLD = 80;
@@ -108,13 +107,14 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
 
   const confirmDelete = async () => {
     setIsDeleting(true);
+    setShowDialog(false);
     try {
-      await deleteProject(project.id);
-      setShowDialog(false);
-      onDelete();
+      await onDelete();
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error('Error deleting project:', error);
       Alert.alert('Error', 'Failed to delete the project. Please try again.');
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsDeleting(false);
 

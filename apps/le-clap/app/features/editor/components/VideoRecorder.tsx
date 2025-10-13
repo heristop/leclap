@@ -88,7 +88,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
           cameraPermission === 'granted' && 
           micPermission === 'granted'
         );
-      } catch {
+      } catch (error) {
         console.error('Error checking permissions:', error);
         setHasPermission(false);
       } finally {
@@ -184,7 +184,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     if (!cameraRef.current || !isRecording) return;
     try {
       await cameraRef.current.stopRecording();
-    } catch {
+    } catch (error) {
       console.error('Failed to stop recording:', error);
       setIsRecording(false); // Ensure recording state is false on error
     }

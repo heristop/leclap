@@ -59,7 +59,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
     try {
       await onRefresh();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
+    } catch (error) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setRefreshing(false);

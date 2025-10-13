@@ -20,7 +20,7 @@ import {
 } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
 import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
-import { styles } from './QueueManagerScreenStyles';
+import { styles } from './styles/QueueManagerScreenStyles';
 import { colors } from '@/src/styles/theme';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -97,7 +97,7 @@ export default function QueueManagerScreen() {
             for (const itemId of selectedItems) {
               try {
                 await retryQueueItem.mutateAsync(itemId);
-              } catch {
+              } catch (error) {
                 console.error(`Failed to retry item ${itemId}:`, error);
               }
             }
@@ -125,7 +125,7 @@ export default function QueueManagerScreen() {
             for (const itemId of selectedItems) {
               try {
                 await removeQueueItem.mutateAsync(itemId);
-              } catch {
+              } catch (error) {
                 console.error(`Failed to remove item ${itemId}:`, error);
               }
             }
@@ -149,7 +149,7 @@ export default function QueueManagerScreen() {
     try {
       await processQueue.mutateAsync(3);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
+    } catch (error) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('❌ Process Failed', (error as Error).message);
     }
@@ -169,7 +169,7 @@ export default function QueueManagerScreen() {
             try {
               await cleanupQueue.mutateAsync();
               await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            } catch {
+            } catch (error) {
               await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             }
           },

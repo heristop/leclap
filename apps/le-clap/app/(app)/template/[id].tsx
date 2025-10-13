@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
 import TemplateDetailScreen from '../../features/templates/screens/TemplateDetailScreen';
 import { colors } from '@/src/styles/theme';
 
 export default function TemplateDetailPage() {
-  const { id } = useLocalSearchParams();
-  
+  // TemplateDetailScreen will read params directly using useLocalSearchParams
+  // This includes both 'id' (templateName) and 'projectId' when available
+
   return (
     <View style={styles.container}>
-      <TemplateDetailScreen templateId={id} />
+      <TemplateDetailScreen />
     </View>
   );
 }

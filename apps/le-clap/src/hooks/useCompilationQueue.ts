@@ -57,7 +57,7 @@ export const useQueueVideoCompilation = () => {
           if (result.success) {
             return { immediate: true, result };
           }
-        } catch {
+        } catch (error) {
           console.warn('Immediate compilation failed, adding to queue:', error);
         }
       }
@@ -129,7 +129,7 @@ export const useProcessQueuedCompilations = () => {
 
             results.push({ id: item.id, success: false, error: result.error });
           }
-        } catch {
+        } catch (error) {
           // Mark as failed and increment retry count
           await updateCompilationQueueItem(item.id, {
             status: 'failed',
@@ -202,7 +202,7 @@ export const useRetryQueueItem = () => {
           });
           return { success: false, error: result.error };
         }
-      } catch {
+      } catch (error) {
         await updateCompilationQueueItem(itemId, {
           status: 'failed',
           retryCount: item.retryCount + 1,

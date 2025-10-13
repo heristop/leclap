@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { getProjectById } from '@/src/services/api';
+import { useProject } from '@/src/hooks/useProjects';
 import { Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useOrientation } from '@/src/hooks/useOrientation';
@@ -20,9 +20,9 @@ export default function PreviewPage() {
   const params = useLocalSearchParams<{ projectId?: string; videoUri?: string; orientation?: 'portrait' | 'landscape'; sectionName?: string }>();
   const router = useRouter();
   const { projectId, videoUri, orientation: paramOrientation, sectionName } = params;
-  const [project, setProject] = useState<Project | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Use Clean Architecture hook for project data
+  const { data: project, isLoading: projectLoading, error: projectError } = useProject(projectId || '');
 
   const { lockOrientation, unlockOrientation } = useOrientation(paramOrientation);
 
@@ -37,29 +37,6 @@ export default function PreviewPage() {
       unlockOrientation();
     };
   }, [paramOrientation, lockOrientation, unlockOrientation]);
-
-  useEffect(() => {
-    const loadProject = async () => {
-      if (projectId) {
-        try {
-          const projectData = await getProjectById(projectId);
-          if (projectData) {
-            setProject(projectData);
-          } else {
-            setError('Project not found');
-          }
-        } catch (err: any) {
-          setError(`Failed to load project: ${err.message}`);
-          console.error('Error loading project:', err);
-        }
-      } else if (!videoUri) {
-        setError('No project ID or video URI provided');
-      }
-      setIsLoading(false);
-    };
-
-    loadProject();
-  }, [projectId, videoUri]);
 
   const handleRetake = () => {
     if (projectId && sectionName && project?.templateContent?.sections) {
@@ -104,6 +81,9 @@ export default function PreviewPage() {
     playerInstance.loop = true;
   });
 
+  // Determine loading state - only show loading if we're fetching a project
+  const isLoading = projectId ? projectLoading : false;
+
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
@@ -113,10 +93,19 @@ export default function PreviewPage() {
     );
   }
 
-  if (error || (!project && !videoUri)) {
+  // Build error message
+  const errorMessage = projectError
+    ? (projectError instanceof Error ? projectError.message : 'Failed to load project')
+    : (!projectId && !videoUri)
+      ? 'No project ID or video URI provided'
+      : (!project && projectId)
+        ? 'Project not found'
+        : null;
+
+  if (errorMessage || (!project && !videoUri)) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error || 'Preview not available'}</Text>
+        <Text style={styles.errorText}>{errorMessage || 'Preview not available'}</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>

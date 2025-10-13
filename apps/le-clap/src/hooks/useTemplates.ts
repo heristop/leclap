@@ -30,7 +30,7 @@ export const useTemplates = () => {
         const freshTemplates = await fetchTemplates();
         await cacheTemplates(freshTemplates);
         return freshTemplates;
-      } catch {
+      } catch (error) {
         // If fetch fails but we have cached data, return it
         if (cachedTemplates) {
           console.warn('Failed to fetch fresh templates, using cached data:', error);
@@ -70,7 +70,7 @@ export const useTemplate = (templateName: string) => {
       if (isOnline) {
         try {
           return await fetchTemplateByName(templateName);
-        } catch {
+        } catch (error) {
           // If fetch fails but we have cached template, return it
           if (cachedTemplates) {
             const cachedTemplate = cachedTemplates.find((t) => t.name === templateName);

@@ -13,7 +13,7 @@ import { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/app/features/editor/components/VideoRecorder';
 import { Section } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { saveProject, getProjectById } from '@/src/services/api';
+import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
 // Helper function to parse JSON safely
@@ -47,6 +47,10 @@ const RecordSectionScreen = () => {
   const section = safeJsonParse(params.sectionJson) as Section | null;
   const orientation = params.orientation || 'portrait';
   const existingVideoPath = params.existingVideoPath;
+
+  // Use Clean Architecture hooks
+  const { data: project } = useProject(projectId || '');
+  const saveProjectMutation = useSaveProject();
 
   const [isRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -95,16 +99,9 @@ const RecordSectionScreen = () => {
   }
 
   const handleVideoRecorded = async (video: VideoFile) => {
-    if (!projectId || !section) return;
+    if (!projectId || !section || !project) return;
 
     try {
-      // Fetch the latest project data
-      const project = await getProjectById(projectId);
-      if (!project) {
-        throw new Error('Project not found');
-      }
-
-      // Update the project with the new video path
       // Check if this is the first recorded section for this project
       const isFirstSectionRecorded = Object.keys(project.recordedVideos).length === 0;
 
@@ -115,6 +112,11 @@ const RecordSectionScreen = () => {
           [section.name]: {
             path: video.path,
             orientation: orientation,
+            // Add optional metadata if available
+            duration: (video as any).duration,
+            width: (video as any).width,
+            height: (video as any).height,
+            recordedAt: new Date().toISOString(),
           },
         },
         updatedAt: new Date().toISOString(),
@@ -125,8 +127,8 @@ const RecordSectionScreen = () => {
         updatedProject.thumbnailUri = video.path;
       }
 
-      // Save the updated project
-      await saveProject(updatedProject);
+      // Save the updated project using Clean Architecture
+      await saveProjectMutation.mutateAsync(updatedProject);
 
       const sections = project.templateContent?.sections;
       if (!sections || sections.length === 0) {
@@ -159,7 +161,7 @@ const RecordSectionScreen = () => {
         });
       }
 
-    } catch {
+    } catch (error) {
       console.error('Error saving recorded video:', error);
       Alert.alert('Error', 'Failed to save recorded video. Please try again.');
     }

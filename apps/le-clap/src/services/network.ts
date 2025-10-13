@@ -17,7 +17,7 @@ export const getNetworkState = async (): Promise<NetworkState> => {
       isInternetReachable: state.isInternetReachable,
       type: state.type,
     };
-  } catch {
+  } catch (error) {
     console.error('Error getting network state:', error);
     return {
       isConnected: false,
@@ -34,7 +34,7 @@ export const hasInternetConnection = async (): Promise<boolean> => {
   try {
     const state = await getNetworkState();
     return state.isConnected && (state.isInternetReachable ?? false);
-  } catch {
+  } catch (error) {
     console.error('Error checking internet connection:', error);
     return false;
   }
@@ -110,7 +110,7 @@ export const testConnectivity = async (url: string = 'https://www.google.com'): 
 
     clearTimeout(timeoutId);
     return response.ok;
-  } catch {
+  } catch (error) {
     console.error('Connectivity test failed:', error);
     return false;
   }

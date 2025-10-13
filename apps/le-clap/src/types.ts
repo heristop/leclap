@@ -59,13 +59,15 @@ export interface Project {
   name: string;
   templateName: string;
   templateContent: TemplateDescriptor;
-  status: 'draft' | 'processing' | 'completed';
-  formData: Record<string, string>;
+  status: 'draft' | 'processing' | 'completed' | 'failed';
+  formData: Record<string, unknown>;
   recordedVideos: Record<
     string,
     {
       path: string;
       orientation: 'portrait' | 'landscape';
+      duration?: number;
+      fileSize?: number;
     }
   >;
   outputVideoUri?: string;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Text, Image, YStack, XStack } from 'tamagui';
-import { Template } from '@/app/types';
+import { Template } from '@/src/types';
 
 interface TemplateCardProps {
   template: Template;

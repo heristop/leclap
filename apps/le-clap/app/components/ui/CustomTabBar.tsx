@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/app/styles/theme';
+import { colors } from '@/src/styles/theme';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -69,9 +69,9 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    height: 80,
-    paddingBottom: 12,
-    paddingTop: 12,
+    height: 60,
+    paddingBottom: 6,
+    paddingTop: 6,
   },
   tabItem: {
     flex: 1,
@@ -85,18 +85,18 @@ const styles = StyleSheet.create({
   },
   activeIconContainer: {
     backgroundColor: `${colors.primary}15`,
-    padding: 8,
-    borderRadius: 12,
-    width: 40,
-    height: 40,
+    padding: 6,
+    borderRadius: 10,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
   inactiveIconContainer: {
-    padding: 8,
-    borderRadius: 12,
-    width: 40,
-    height: 40,
+    padding: 6,
+    borderRadius: 10,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },

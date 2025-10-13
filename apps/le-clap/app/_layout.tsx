@@ -2,8 +2,8 @@ import { Stack } from "expo-router";
 import { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { TamaguiProvider } from '@tamagui/core';
-import { QueryProvider } from './providers/QueryProvider';
-import { OfflineProvider } from './providers/OfflineProvider';
+import { QueryProvider } from '@/src/providers/QueryProvider';
+import { OfflineProvider } from '@/src/providers/OfflineProvider';
 import AnimatedSplashScreen from './components/SplashScreen';
 import config from '../tamagui.config';
 
@@ -39,14 +39,17 @@ export default function RootLayout() {
       <QueryProvider>
         <OfflineProvider>
           <Stack
+            initialRouteName="index"
             screenOptions={{
               headerShown: false,
-              animation: 'slide_from_right',
-              animationDuration: 250,
-              gestureEnabled: true,
-              gestureDirection: 'horizontal',
+              // Minimal configuration to avoid LinkPreviewContext issues
             }}
-          />
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(app)" />
+            <Stack.Screen name="(fullscreen)" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
         </OfflineProvider>
       </QueryProvider>
     </TamaguiProvider>

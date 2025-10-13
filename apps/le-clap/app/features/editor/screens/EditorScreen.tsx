@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+
+  TouchableOpacity,
   ActivityIndicator,
   Alert,
   ScrollView,
@@ -13,22 +13,26 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FormSection from '../components/FormSection';
-import { Template, Section, Project } from '@/app/types';
-import { colors, spacing, typography } from '@/app/styles/theme';
-import { fetchTemplateByName, saveProject, compileVideo, getProjectById } from '../../../services/api';
+import { Template, Section, Project } from '@/src/types';
+import { colors, spacing, typography } from '@/src/styles/theme';
+import { fetchTemplateByName, compileVideo } from '@/src/services/api';
+import { useProjectStore, useProjectActions } from '@/src/stores/useProjectStore';
 
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 export const EditorScreen = ({ route, navigation }) => {
   const { templateName, projectId } = route.params;
-  const params = useLocalSearchParams();
   const router = useRouter();
   
   const [template, setTemplate] = useState<Template | null>(null);
-  const [project, setProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCompiling, setIsCompiling] = useState(false);
+
+  // Zustand store hooks
+  const currentProject = useProjectStore((state) => state.currentProject);
+  const projects = useProjectStore((state) => state.projects);
+  const { addProject, updateProject, setCurrentProject } = useProjectActions();
   
   useEffect(() => {
     loadData();
@@ -43,9 +47,9 @@ export const EditorScreen = ({ route, navigation }) => {
       
       // If projectId exists, load existing project
       if (projectId) {
-        const existingProject = await getProjectById(projectId);
+        const existingProject = projects?.find(p => p.id === projectId);
         if (existingProject) {
-          setProject(existingProject);
+          setCurrentProject(existingProject);
         } else {
           // If project doesn't exist, create new one
           createNewProject(templateData);
@@ -55,7 +59,7 @@ export const EditorScreen = ({ route, navigation }) => {
         createNewProject(templateData);
       }
       
-    } catch (error) {
+    } catch {
       console.error('Failed to load data:', error);
       Alert.alert(
         'Error',
@@ -78,49 +82,41 @@ export const EditorScreen = ({ route, navigation }) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setProject(newProject);
-    
-    // Save to storage
-    saveProject(newProject);
+
+    // Save to Zustand store
+    addProject(newProject);
+    setCurrentProject(newProject);
   };
 
   const handleFormDataChange = (field: string, value: string) => {
-    if (!project) return;
-    
-    setProject(prev => {
-      if (!prev) return prev;
-      
-      const updatedProject = {
-        ...prev,
-        formData: {
-          ...prev.formData,
-          [field]: value,
-        },
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Auto-save project
-      setTimeout(() => {
-        saveProject(updatedProject);
-      }, 500);
-      
-      return updatedProject;
-    });
+    if (!currentProject) return;
+
+    const updatedProject = {
+      ...currentProject,
+      formData: {
+        ...currentProject.formData,
+        [field]: value,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Auto-save to Zustand store
+    updateProject(updatedProject);
   };
   
   const isSectionCompleted = (section: Section): boolean => {
-    if (!project) return false;
-    
+    if (!currentProject) return false;
+
     if (section.type === 'project_video') {
-      return !!project.recordedVideos[section.name];
+      return !!currentProject.recordedVideos[section.name];
     } else if (section.type === 'form') {
       const fields = section.options?.fields || [];
-      return fields.every(field => !!project.formData[field.name]);
+      return fields.every(field => !!currentProject.formData[field.name]);
     } else if (section.type === 'music') {
       // Check if we have a music selection
-      return !!project.formData[`music_${section.name}`];
+      return !!currentProject.formData[`music_${section.name}`];
     } else if (section.type === 'picture') {
-      return !!project.recordedVideos[section.name];
+      return !!currentProject.recordedVideos[section.name];
     }
     return false;
   };
@@ -131,38 +127,37 @@ export const EditorScreen = ({ route, navigation }) => {
   };
   
   const handleCompileVideo = async () => {
-    if (!project || !template) return;
-    
+    if (!currentProject || !template) return;
+
     setIsCompiling(true);
-    
+
     try {
       // Replace template variables with form data
       const processedTemplate = JSON.parse(JSON.stringify(template.content));
-      
+
       // Replace variables in template string representation
       let templateString = JSON.stringify(processedTemplate);
-      Object.entries(project.formData).forEach(([key, value]) => {
+      Object.entries(currentProject.formData).forEach(([key, value]) => {
         const placeholder = `{{ ${key} }}`;
         templateString = templateString.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
       });
-      
+
       // Parse back to object
       const finalTemplate = JSON.parse(templateString);
-      
+
       // Compile video
-      const result = await compileVideo(finalTemplate, project.recordedVideos);
-      
+      const result = await compileVideo(finalTemplate, currentProject.recordedVideos);
+
       if (result.success) {
         // Update project with output video
         const updatedProject = {
-          ...project,
+          ...currentProject,
           outputVideoUri: result.outputUri,
           status: 'completed' as 'completed',
           updatedAt: new Date().toISOString(),
         };
-        
-        setProject(updatedProject);
-        saveProject(updatedProject);
+
+        updateProject(updatedProject);
       } else {
         // Handle compilation error
         Alert.alert(
@@ -170,7 +165,7 @@ export const EditorScreen = ({ route, navigation }) => {
           result.error || 'An error occurred during video compilation.'
         );
       }
-    } catch (error) {
+    } catch {
       console.error('Error during compilation:', error);
       Alert.alert(
         'Compilation Error',
@@ -181,7 +176,7 @@ export const EditorScreen = ({ route, navigation }) => {
     }
   };
   
-  if (isLoading || !template || !project) {
+  if (isLoading || !template || !currentProject) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -227,7 +222,7 @@ export const EditorScreen = ({ route, navigation }) => {
           <View style={styles.formContainer}>
             <FormSection
               section={activeSection}
-              formData={project.formData}
+              formData={currentProject.formData}
               onFormDataChange={handleFormDataChange}
             />
           </View>
@@ -240,17 +235,16 @@ export const EditorScreen = ({ route, navigation }) => {
             <TouchableOpacity 
               style={styles.tempCompleteButton}
               onPress={() => {
-                if (project) {
+                if (currentProject) {
                   const updatedProject = {
-                    ...project,
+                    ...currentProject,
                     formData: {
-                      ...project.formData,
+                      ...currentProject.formData,
                       [`music_${activeSection.name}`]: 'default',
                     },
                     updatedAt: new Date().toISOString(),
                   };
-                  setProject(updatedProject);
-                  saveProject(updatedProject);
+                  updateProject(updatedProject);
                 }
                 setActiveSection(null);
               }}

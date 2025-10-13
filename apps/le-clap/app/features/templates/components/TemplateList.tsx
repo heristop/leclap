@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, View, TextInput, RefreshControl, Text } from 'react-native';
-import { Template } from '@/app/types';
+import { Template } from '@/src/types';
 import TemplateCard from './TemplateCard';
-import { colors, spacing, typography } from '@/app/styles/theme';
+import { colors, spacing, typography } from '@/src/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
@@ -59,7 +59,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
     try {
       await onRefresh();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
+    } catch {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setRefreshing(false);

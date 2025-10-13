@@ -3,13 +3,12 @@ import {
   View, 
   StyleSheet,
   StatusBar,
-  Dimensions,
   Platform,
   BackHandler
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { useOrientation } from '@/app/hooks/useOrientation';
+import { useOrientation } from '@/src/hooks/useOrientation';
 import { useNavigation } from 'expo-router';
 
 /**

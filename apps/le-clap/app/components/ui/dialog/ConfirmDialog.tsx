@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography } from '@/app/styles/theme';
+import { colors, spacing, typography } from '@/src/styles/theme';
 
 interface ConfirmDialogProps {
   visible: boolean;

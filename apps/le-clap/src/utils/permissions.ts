@@ -1,7 +1,6 @@
-import * as ImagePicker from 'expo-image-picker';
-import * as Camera from 'expo-camera';
+import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking } from 'react-native';
 
 /**
  * Utility functions for handling app permissions

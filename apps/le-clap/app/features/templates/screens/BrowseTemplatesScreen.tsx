@@ -1,14 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
-import { useTemplates } from '../../../hooks/useTemplates';
-import { Template } from '@/app/types';
-import { colors, spacing, typography } from '@/app/styles/theme';
+import { useTemplates } from '@/src/hooks/useTemplates';
+import { Template } from '@/src/types';
+import { colors, spacing, typography } from '@/src/styles/theme';
 import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
 import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
 import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
-import { useOffline } from '../../../providers/OfflineProvider';
+import { useOffline } from '@/src/providers/OfflineProvider';
 import Button from '../../../components/ui/Button';
 import * as Haptics from 'expo-haptics';
 

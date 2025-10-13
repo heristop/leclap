@@ -1,15 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  CompilationQueueItem,
   addToCompilationQueue,
   getCompilationQueue,
   updateCompilationQueueItem,
   removeFromCompilationQueue,
   getPendingCompilations,
   cleanupCompilationQueue,
-} from '../services/storage';
-import { compileVideo } from '../services/api';
-import { hasInternetConnection, waitForConnection } from '../services/network';
+} from '@/src/services/storage';
+import { compileVideo } from '@/src/services/api';
+import { hasInternetConnection, waitForConnection } from '@/src/services/network';
 
 /**
  * Hook for managing the compilation queue
@@ -58,7 +57,7 @@ export const useQueueVideoCompilation = () => {
           if (result.success) {
             return { immediate: true, result };
           }
-        } catch (error) {
+        } catch {
           console.warn('Immediate compilation failed, adding to queue:', error);
         }
       }
@@ -94,7 +93,7 @@ export const useProcessQueuedCompilations = () => {
       }
 
       const pendingItems = await getPendingCompilations();
-      const results: Array<{ id: string; success: boolean; error?: string }> = [];
+      const results: { id: string; success: boolean; error?: string }[] = [];
 
       for (const item of pendingItems) {
         // Skip if too many retries
@@ -130,7 +129,7 @@ export const useProcessQueuedCompilations = () => {
 
             results.push({ id: item.id, success: false, error: result.error });
           }
-        } catch (error) {
+        } catch {
           // Mark as failed and increment retry count
           await updateCompilationQueueItem(item.id, {
             status: 'failed',
@@ -203,7 +202,7 @@ export const useRetryQueueItem = () => {
           });
           return { success: false, error: result.error };
         }
-      } catch (error) {
+      } catch {
         await updateCompilationQueueItem(itemId, {
           status: 'failed',
           retryCount: item.retryCount + 1,

@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tabs } from "expo-router";
 import CustomTabBar from '../components/ui/CustomTabBar';
-import { useEffect } from 'react';
 import Header from '../components/common/Header';
-import { useOrientation } from '../hooks/useOrientation';
+import { useOrientation } from '@/src/hooks/useOrientation';
 
 export default function AppLayout() {
   const { lockOrientation, unlockOrientation } = useOrientation();

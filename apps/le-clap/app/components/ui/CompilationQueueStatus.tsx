@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { usePendingCompilations, useRetryQueueItem, useRemoveQueueItem } from '../../hooks/useCompilationQueue';
-import { useOffline } from '../../providers/OfflineProvider';
-import { colors, spacing, typography } from '../../styles/theme';
+import { usePendingCompilations, useRetryQueueItem, useRemoveQueueItem } from '@/src/hooks/useCompilationQueue';
+import { useOffline } from '@/src/providers/OfflineProvider';
+import { colors, spacing, typography } from '@/src/styles/theme';
 import * as Haptics from 'expo-haptics';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 function CompilationQueueStatus() {
   const { data: pendingCompilations = [] } = usePendingCompilations();

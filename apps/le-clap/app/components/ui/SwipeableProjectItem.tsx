@@ -8,14 +8,13 @@ import {
   PanResponder,
   Alert,
   Image,
-} from 'react-native';
+ ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography } from '@/app/styles/theme';
-import { Project } from '@/app/types';
-import { deleteProject } from '@/app/services/api';
+import { colors, spacing, typography } from '@/src/styles/theme';
+import { Project } from '@/src/types';
+import { deleteProject } from '@/src/services/api';
 import ConfirmDialog from './dialog/ConfirmDialog';
 import * as Haptics from 'expo-haptics';
-import { ActivityIndicator } from 'react-native';
 
 interface SwipeableProjectItemProps {
   project: Project;
@@ -118,7 +117,7 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
       Alert.alert('Error', 'Failed to delete the project. Please try again.');
     } finally {
       setIsDeleting(false);
-      
+
       // Reset animation
       Animated.spring(pan, {
         toValue: { x: 0, y: 0 },

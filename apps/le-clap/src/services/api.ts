@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Template, Project } from '../types';
+import { Template, Project } from '@/src/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Environment variables
@@ -36,7 +36,7 @@ export const fetchTemplates = async (): Promise<Template[]> => {
     }
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch {
     const err = error as Error;
     if (err.name === 'AbortError') {
       throw new Error('Request timeout - server took too long to respond (10s). Please try again.');
@@ -79,7 +79,7 @@ export const fetchTemplateByName = async (templateName: string): Promise<Templat
     }
 
     return template;
-  } catch (error) {
+  } catch {
     console.error(`Error fetching template ${templateName}:`, error);
     throw error;
   }
@@ -104,7 +104,7 @@ export const saveProject = async (project: Project): Promise<void> => {
 
     // Save back to storage
     await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
-  } catch (error) {
+  } catch {
     console.error('Error saving project:', error);
     throw error;
   }
@@ -117,7 +117,7 @@ export const getProjects = async (): Promise<Project[]> => {
   try {
     const projectsJson = await AsyncStorage.getItem(PROJECTS_STORAGE_KEY);
     return projectsJson ? JSON.parse(projectsJson) : [];
-  } catch (error) {
+  } catch {
     console.error('Error getting projects:', error);
     throw error;
   }
@@ -130,7 +130,7 @@ export const getProjectById = async (projectId: string): Promise<Project | null>
   try {
     const projects = await getProjects();
     return projects.find((p) => p.id === projectId) || null;
-  } catch (error) {
+  } catch {
     console.error(`Error getting project ${projectId}:`, error);
     throw error;
   }
@@ -144,7 +144,7 @@ export const deleteProject = async (projectId: string): Promise<void> => {
     const projects = await getProjects();
     const updatedProjects = projects.filter((p) => p.id !== projectId);
     await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
-  } catch (error) {
+  } catch {
     console.error(`Error deleting project ${projectId}:`, error);
     throw error;
   }
@@ -156,7 +156,7 @@ export const deleteProject = async (projectId: string): Promise<void> => {
 export const deleteAllProjects = async (): Promise<void> => {
   try {
     await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([]));
-  } catch (error) {
+  } catch {
     console.error('Error deleting all projects:', error);
     throw error;
   }
@@ -185,7 +185,7 @@ export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?:
     } else {
       return { isHealthy: false, error: `Server responded with status: ${response.status}` };
     }
-  } catch (error) {
+  } catch {
     if (error.name === 'AbortError') {
       return { isHealthy: false, error: 'Server connection timeout (5s)' };
     }
@@ -211,7 +211,7 @@ const retryWithBackoff = async <T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch {
       lastError = error as Error;
 
       // Don't retry on certain types of errors
@@ -291,7 +291,7 @@ export const compileVideo = async (
         }
 
         return result;
-      } catch (error) {
+      } catch {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
           throw new Error('Request timeout - compilation took too long (30s). Please try again.');
@@ -313,7 +313,7 @@ export const compileVideo = async (
     } else {
       throw new Error(result.message || 'Compilation failed on server.');
     }
-  } catch (error) {
+  } catch {
     console.error('Error compiling video:', error);
     const err = error as Error;
 

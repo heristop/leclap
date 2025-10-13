@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { subscribeToNetworkState, getNetworkState, hasInternetConnection, NetworkState } from '../services/network';
+import { subscribeToNetworkState, getNetworkState, hasInternetConnection, NetworkState } from '@/src/services/network';
 
 /**
  * Hook for monitoring network state with real-time updates

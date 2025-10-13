@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { colors } from '../../styles/theme';
+import { colors } from '@/src/styles/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -18,11 +18,11 @@ interface FloatingActionButtonProps {
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
   showMenu?: boolean;
-  menuItems?: Array<{
+  menuItems?: {
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
     onPress: () => void;
-  }>;
+  }[];
 }
 
 export default function FloatingActionButton({

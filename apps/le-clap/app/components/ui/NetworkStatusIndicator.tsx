@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { XStack, YStack, Text, Card } from 'tamagui';
-import { useOffline } from '../../providers/OfflineProvider';
-import { useTemplatesSyncStatus } from '../../hooks/useTemplates';
+import { useOffline } from '@/src/providers/OfflineProvider';
+import { useTemplatesSyncStatus } from '@/src/hooks/useTemplates';
 import * as Haptics from 'expo-haptics';
 
 interface NetworkStatusIndicatorProps {

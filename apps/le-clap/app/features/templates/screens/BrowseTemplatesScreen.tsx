@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '../../../hooks/useTemplates';
@@ -33,7 +32,7 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
 
   if (isLoading && templates.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <NetworkStatusIndicator showSyncStatus={false} />
         <CompilationQueueStatus />
 
@@ -41,7 +40,7 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
         <Text style={styles.subtitle}>Select a scenario to create your video</Text>
 
         <TemplateListSkeleton count={6} />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -54,7 +53,7 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
         <Text style={styles.errorSubtext}>
           Make sure the ffmpeg-video-composer server is running.
         </Text>
-        <View style={{ marginTop: spacing.m }}>
+        <View style={{ marginTop: spacing.s }}>
           <Button
             variant="primary"
             onPress={async () => { await refetch(); }}
@@ -69,7 +68,7 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <NetworkStatusIndicator
         showSyncStatus={true}
         expandable={true}
@@ -88,7 +87,7 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
         }
       />
 
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -101,12 +100,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.l,
     backgroundColor: colors.background,
   },
   screenTitle: {
     ...typography.title,
-    margin: spacing.m,
+    marginHorizontal: spacing.m,
     marginBottom: spacing.s,
   },
   subtitle: {

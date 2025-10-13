@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     zIndex: 100,
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 20,
-    padding: 8,
+    padding: spacing.s,
   },
   fullscreenTitleContainer: {
     position: 'absolute',
@@ -512,8 +512,8 @@ const styles = StyleSheet.create({
     zIndex: 100,
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 20,
-    padding: 8,
-    paddingHorizontal: 15,
+    padding: spacing.s,
+    paddingHorizontal: spacing.m,
   },
   fullscreenTitle: {
     color: 'white',
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.l,
     backgroundColor: colors.background,
   },
   placeholderText: {

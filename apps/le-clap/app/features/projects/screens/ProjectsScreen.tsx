@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Project } from '@/app/types';
@@ -91,7 +92,8 @@ export default function ProjectsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.innerContainer}>
       <Text style={styles.screenTitle}>My Videos</Text>
       
       <TouchableOpacity 
@@ -140,7 +142,8 @@ export default function ProjectsScreen() {
         onConfirm={handleDeleteAllProjects} // Implement this function next
         onCancel={() => setShowDeleteAllDialog(false)}
       />
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -149,9 +152,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  innerContainer: {
+    flex: 1,
+  },
   screenTitle: {
     ...typography.title,
-    margin: spacing.m,
+    marginHorizontal: spacing.m,
     marginBottom: spacing.m,
   },
   createNewButton: {
@@ -183,14 +189,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.l,
   },
   emptyContainer: {
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing.l,
     backgroundColor: colors.surface,
     borderRadius: 16,
-    margin: spacing.l,
+    margin: spacing.m,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,

@@ -14,67 +14,95 @@ https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 
 ## 🚀 Features
 
-- Dynamic video and audio template generation
-- Easy video compilation and audio mixing using FFmpeg
-- Flexible JSON-based template descriptor system
-- CLI for quick video creation
-- JSON configuration for complex project setups
-- Custom project configurations support
-- Audio overlay and mixing capabilities
-- Automated video editing and composition
+- ✅ **Cross-platform FFmpeg support** (Node.js, Browser, React Native ready)
+- ✅ **Automatic FFmpeg detection** with intelligent fallbacks
+- ✅ **Optional static FFmpeg bundling** for zero-configuration setup
+- ✅ **Browser support via WebAssembly** (no server required)
+- ✅ Dynamic video and audio template generation
+- ✅ Easy video compilation and audio mixing using FFmpeg
+- ✅ Flexible JSON-based template descriptor system
+- ✅ CLI for quick video creation
+- ✅ JSON configuration for complex project setups
+- ✅ Custom project configurations support
+- ✅ Audio overlay and mixing capabilities
+- ✅ Automated video editing and composition
 
-## ⚠️ Prerequisites
+## 🌍 Platform Support
 
-This tool requires **FFmpeg** to be installed on your system and available in your PATH. FFmpeg is used directly for all video and audio processing operations.
+This package provides **intelligent FFmpeg support** across multiple platforms with automatic fallback mechanisms:
 
-### FFmpeg Installation Guide
+### **Automatic FFmpeg Detection**
+
+The package automatically detects and uses the best available FFmpeg implementation:
+
+1. **🖥️ System FFmpeg** (best performance) - Uses your installed FFmpeg binary
+2. **📦 Static FFmpeg** (fallback) - Uses bundled FFmpeg binary via `ffmpeg-static`
+3. **🌐 WebAssembly FFmpeg** (browser) - Uses FFmpeg compiled to WebAssembly
+4. **❌ No FFmpeg** - Provides clear installation instructions
+
+### **Supported Environments**
+
+- ✅ **Node.js** - Full FFmpeg support with system or static binaries
+- ✅ **Browsers** - WebAssembly-based video processing (2GB file limit)
+- ✅ **React Native** - Architecture ready (requires `ffmpeg-kit-react-native`)
+- ✅ **Electron** - Works with both Node.js and browser implementations
+
+## 📦 Installation Options
+
+### **Basic Installation (Recommended)**
+
+```bash
+npm install ffmpeg-video-composer
+```
+
+The package will automatically detect and use available FFmpeg implementations.
+
+### **With Static FFmpeg (Zero Configuration)**
+
+For environments without system FFmpeg or as a reliable fallback:
+
+```bash
+npm install ffmpeg-video-composer ffmpeg-static
+```
+
+### **For Browser Use**
+
+To enable client-side video processing in browsers:
+
+```bash
+npm install ffmpeg-video-composer @ffmpeg/ffmpeg @ffmpeg/util
+```
+
+### **Optional: System FFmpeg (Best Performance)**
+
+For optimal performance, install FFmpeg system-wide:
 
 #### macOS
-
-Using [Homebrew](https://brew.sh/):
 
 ```bash
 brew install ffmpeg
 ```
 
-#### Linux
-
-For Debian/Ubuntu:
+#### Linux (Debian/Ubuntu)
 
 ```bash
 sudo apt update && sudo apt install ffmpeg
 ```
 
-For Fedora:
+#### Linux (Fedora)
 
 ```bash
 sudo dnf install ffmpeg
 ```
 
-For Arch Linux:
-
-```bash
-sudo pacman -S ffmpeg
-```
-
 #### Verify Installation
-
-After installation, verify that FFmpeg is properly installed:
 
 ```bash
 ffmpeg -version
 ffprobe -version
 ```
 
-## 📦 Installation
-
-### Using npm (or yarn/pnpm)
-
-```bash
-pnpm add ffmpeg-video-composer
-```
-
-### Development Setup
+## 🛠️ Development Setup
 
 ```bash
 git clone https://github.com/heristop/ffmpeg-video-composer.git
@@ -84,7 +112,7 @@ pnpm i
 
 ## 📖 Usage
 
-### Command Line Interface
+### **Command Line Interface**
 
 ```bash
 pnpm compile src/shared/templates/sample.json
@@ -92,15 +120,14 @@ pnpm compile src/shared/templates/sample.json
 
 This generates `sample_output.mp4` in the `build` directory.
 
-### Programmatic Usage
+### **Node.js Usage**
 
 ```javascript
 import { compile, loadConfig } from 'ffmpeg-video-composer';
 
 const projectConfig = {
-  buildDir, // Build directory for output files
-  assetsDir, // Assets directory for video segments
-  // Other project configurations...
+  buildDir: './build', // Build directory for output files
+  assetsDir: './assets', // Assets directory for video segments
   currentLocale: 'en',
   fields: {
     form_1_firstname: 'Firstname',
@@ -109,7 +136,7 @@ const projectConfig = {
 };
 
 // Using a template descriptor object
-compile(projectConfig, {
+const result = await compile(projectConfig, {
   global: {
     // ... (template global configuration)
   },
@@ -119,8 +146,41 @@ compile(projectConfig, {
 });
 
 // Or using a JSON file
-await compile(projectConfig, await loadConfig('./src/shared/templates/sample.json'));
+const template = await loadConfig('./src/shared/templates/sample.json');
+const result = await compile(projectConfig, template);
 ```
+
+## 🚨 Troubleshooting
+
+### **"No FFmpeg implementation found"**
+
+1. **Install system FFmpeg** (recommended):
+
+   ```bash
+   # macOS
+   brew install ffmpeg
+
+   # Linux
+   sudo apt install ffmpeg
+   ```
+
+2. **Or install static FFmpeg**:
+
+   ```bash
+   npm install ffmpeg-static
+   ```
+
+3. **For browsers, install WebAssembly FFmpeg**:
+
+   ```bash
+   npm install @ffmpeg/ffmpeg @ffmpeg/util
+   ```
+
+### **Performance Issues**
+
+- **System FFmpeg** → Fastest (recommended for production)
+- **Static FFmpeg** → Good performance, larger bundle size
+- **WebAssembly** → Slower, suitable for demos and client-side apps
 
 ## 🧪 Running Tests
 
@@ -164,143 +224,21 @@ pnpm playground:android
 pnpm playground:ios
 ```
 
-## 🏗 Architecture
+## 📚 Documentation
 
-```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'fontFamily': 'system-ui',
-    'fontSize': '13px',
-    'primaryColor': '#fff',
-    'primaryTextColor': '#2A3F4D',
-    'primaryBorderColor': '#7C8D9D',
-    'lineColor': '#7C8D9D',
-    'tertiaryColor': '#fff'
-  }
-}}%%
+- **[🏗 Architecture](docs/architecture.md)** - Detailed system architecture and design patterns
+- **[📋 Template Schema](docs/template-schema.md)** - Complete JSON schema documentation for video templates
+- **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** - How automatic FFmpeg detection works
 
-graph TD
-    %% Style Definitions
-    classDef core fill:#EDF7FF,stroke:#4B83B8,stroke-width:2px
-    classDef abstract fill:#F9F3FF,stroke:#9D7AB8,stroke-width:2px,stroke-dasharray: 5 5
-    classDef implementation fill:#E8F3EC,stroke:#67B58A,stroke-width:2px
-    classDef entry fill:#FFF4E6,stroke:#E8A364,stroke-width:2px
-    classDef builder fill:#FFE8E8,stroke:#E88B8B,stroke-width:2px
-    classDef title fill:none,stroke:none
+## 🔍 Diagnostics & Troubleshooting
 
-    %% Entry Points
-    subgraph Flow ["🚀 Application Entry"]
-        direction TB
-        main[("main.ts")]:::entry --> index["index.ts"]:::entry
-    end
+Run comprehensive system diagnostics to check your setup:
 
-    %% Core Domain
-    subgraph Core ["💎 Domain Layer"]
-        direction TB
-        subgraph CoreModels ["Domain Models"]
-            core_project["Project.ts"]:::core
-            core_segment["Segment.ts"]:::core
-            core_template["Template.ts"]:::core
-        end
-
-        subgraph CoreUtils ["Core Utilities"]
-            core_types["types.ts"]:::core
-            core_config["default.config.ts"]:::core
-        end
-    end
-
-    %% Director Pattern
-    subgraph Builder ["👷 Builder Pattern"]
-        direction TB
-        director["TemplateDirector.ts"]:::builder
-        template_builder["TemplateConcreteBuilder.ts"]:::builder
-    end
-
-    %% Platform Layer
-    subgraph Platform ["⚡ Platform Layer"]
-        direction TB
-        subgraph PlatformCore ["Core Platform"]
-            platform_bridge["PlatformBridge.ts"]:::implementation
-            event_manager["EventManager.ts"]:::implementation
-        end
-
-        subgraph Abstractions ["Interfaces"]
-            abstract_ffmpeg["AbstractFFmpeg.ts"]:::abstract
-            abstract_music["AbstractMusic.ts"]:::abstract
-            abstract_fs["AbstractFilesystem.ts"]:::abstract
-            abstract_logger["AbstractLogger.ts"]:::abstract
-        end
-
-        subgraph Adapters ["Platform Adapters"]
-            ffmpeg_node["FFmpegNodeAdapter.ts"]:::implementation
-            music_node["MusicNodeAdapter.ts"]:::implementation
-            fs_node["FilesystemNodeAdapter.ts"]:::implementation
-            pino_adapter["PinoLogAdapter.ts"]:::implementation
-        end
-    end
-
-    %% Editor Components
-    subgraph Editor ["🎥 Video Processing"]
-        direction TB
-        subgraph EditorCore ["Core Processing"]
-            video_editor["VideoEditor.ts"]:::implementation
-            music_composer["MusicComposer.ts"]:::implementation
-            segment_builder["SegmentBuilder.ts"]:::implementation
-        end
-
-        subgraph Segments ["Video Segments"]
-            segment_factory["SegmentFactory.ts"]:::implementation
-            video_segment["VideoSegment.ts"]:::implementation
-            color_bg_segment["ColorBackgroundSegment.ts"]:::implementation
-            image_bg_segment["ImageBackgroundSegment.ts"]:::implementation
-            project_video_segment["ProjectVideoSegment.ts"]:::implementation
-        end
-    end
-
-    %% Resource Management
-    subgraph Resources ["📊 Resource Management"]
-        direction TB
-        asset_manager["AssetManager.ts"]:::implementation
-        filter_manager["FilterManager.ts"]:::implementation
-        formatter_manager["FormatterManager.ts"]:::implementation
-        map_manager["MapManager.ts"]:::implementation
-        var_manager["VariableManager.ts"]:::implementation
-    end
-
-    %% Main Flow
-    index --> director
-    director --> template_builder
-    director --> video_editor
-    director --> event_manager
-
-    %% Builder Pattern Flow
-    template_builder --> segment_builder
-    template_builder --> segment_factory
-
-    %% Segment Creation Flow
-    segment_factory --> video_segment & color_bg_segment & image_bg_segment & project_video_segment
-    video_segment & color_bg_segment & image_bg_segment & project_video_segment --> segment_builder
-
-    %% Platform Relations
-    platform_bridge --> ffmpeg_node & music_node & fs_node & pino_adapter
-    ffmpeg_node --> abstract_ffmpeg
-    music_node --> abstract_music
-    fs_node --> abstract_fs
-    pino_adapter --> abstract_logger
-
-    %% Resource Management
-    segment_builder --> asset_manager & filter_manager & formatter_manager & map_manager & var_manager
-
-    %% Core Dependencies
-    core_project --> core_config & core_types
-
-    %% Editor Flow
-    video_editor --> music_composer
-
-    %% Link Styling
-    linkStyle default stroke:#7C8D9D,stroke-width:1px
+```bash
+pnpm diagnose
 ```
+
+This will analyze your system and provide personalized recommendations for optimal performance. The package automatically detects and uses the best available FFmpeg implementation, so manual configuration is rarely needed.
 
 ## 📄 License
 

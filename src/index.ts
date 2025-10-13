@@ -4,15 +4,31 @@ import PlatformBridge from './platform/PlatformBridge';
 import TemplateDirector from './director/TemplateDirector';
 import { ProjectConfig, TemplateDescriptor } from './core/types';
 
-const bridge = new PlatformBridge();
-const fileSystem = bridge.create('filesystem');
-container.registerInstance('logger', bridge.create('logger'));
-container.registerInstance('ffmpegAdapter', bridge.create('ffmpeg'));
-container.registerInstance('filesystemAdapter', fileSystem);
-container.registerInstance('musicAdapter', bridge.create('music'));
+let isInitialized = false;
+let initializationPromise: Promise<void> | null = null;
+
+async function initializePlatform(): Promise<void> {
+  if (isInitialized) return;
+  if (initializationPromise) return initializationPromise;
+
+  initializationPromise = (async () => {
+    const bridge = new PlatformBridge();
+    const fileSystem = await bridge.create('filesystem');
+    container.registerInstance('logger', await bridge.create('logger'));
+    container.registerInstance('ffmpegAdapter', await bridge.create('ffmpeg'));
+    container.registerInstance('filesystemAdapter', fileSystem);
+    container.registerInstance('musicAdapter', await bridge.create('music'));
+    isInitialized = true;
+  })();
+
+  return initializationPromise;
+}
 
 export async function loadConfig(configPath: string): Promise<TemplateDescriptor> {
+  await initializePlatform();
+
   try {
+    const fileSystem = container.resolve('filesystemAdapter');
     const content = await fileSystem.read(configPath);
     return JSON.parse(content);
   } catch (error) {
@@ -29,6 +45,8 @@ export async function compile(
   projectConfig: ProjectConfig,
   templateDescriptor: TemplateDescriptor
 ): Promise<string | null> {
+  await initializePlatform();
+
   try {
     // Ensure required paths are provided and are absolute
     if (!projectConfig.buildDir) {
@@ -62,5 +80,7 @@ export { default as PinoLogAdapter } from './platform/logging/PinoLogAdapter';
 export { default as AbstractFFmpeg } from './platform/ffmpeg/AbstractFFmpeg';
 export { default as AbstractFilesystem } from './platform/filesystem/AbstractFilesystem';
 export { default as AbstractLogger } from './platform/logging/AbstractLogger';
+export { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
+export { TerminalUI } from './utils/TerminalUI';
 export { container }; // Export container for DI registration if needed externally
 export type { ProjectConfig, TemplateDescriptor } from './core/types'; // Re-export types

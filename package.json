@@ -4,6 +4,9 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "ffmpeg-video-composer": "./src/cli/executable.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,8 +21,12 @@
   },
   "license": "MIT",
   "scripts": {
-    "compile": "node --loader ts-node/esm src/main.ts",
-    "lint": "eslint .",
+    "compile": "node compile.js",
+    "diagnose": "node diagnose.js",
+    "build:exe": "pkg src/cli/executable.js --targets node22-win-x64,node22-macos-x64,node22-linux-x64 --output-path dist/bin",
+    "build:exe:all": "pnpm build && pnpm build:exe",
+    "lint": "eslint . && pnpm lint:le-clap",
+    "lint:le-clap": "pnpm --filter le-clap run lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:ci": "vitest run --coverage.enabled --coverage.reporter='text-summary'",
@@ -38,7 +45,11 @@
   },
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "compile.js",
+    "diagnose.js",
+    "src/shared/templates/**/*.json",
+    "README.md"
   ],
   "keywords": [
     "ffmpeg",
@@ -48,7 +59,12 @@
   ],
   "dependencies": {
     "axios": "^1.12.2",
+    "boxen": "^8.0.1",
+    "cli-spinners": "^3.3.0",
     "extract-zip": "^2.0.1",
+    "figlet": "^1.9.3",
+    "gradient-string": "^3.0.0",
+    "picocolors": "^1.1.1",
     "pino": "^10.0.0",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0"
@@ -70,6 +86,7 @@
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.4",
+    "pkg": "^5.8.1",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
@@ -83,11 +100,24 @@
   "engines": {
     "node": ">=22.14.0"
   },
+  "optionalDependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.0",
+    "ffmpeg-static": "^5.2.0"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
       "esbuild"
     ]
   },
-  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
+  "packageManager": "pnpm@10.18.2",
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": [
+      "dist/**/*",
+      "src/shared/templates/**/*.json"
+    ],
+    "outputPath": "dist/bin"
+  }
 }

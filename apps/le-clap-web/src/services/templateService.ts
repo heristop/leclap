@@ -40,13 +40,13 @@ interface ServerTemplate {
 
 // Environment configuration
 const getServerUrl = () => {
-  // In development, use localhost:3000
+  // In development, use localhost:8082
   // In production, this could be configured via environment variables
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'http://localhost:3000';
+    return 'http://localhost:8082';
   }
   // For production, you would set this to your actual server URL
-  return 'http://localhost:3000';
+  return 'http://localhost:8082';
 };
 
 // Real template definitions - these provide metadata about templates

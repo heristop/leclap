@@ -92,7 +92,7 @@ export const TemplateSelector = ({
               Retry Loading
             </button>
             <p className="text-xs text-red-600">
-              Make sure the server is running on localhost:3000
+              Make sure the server is running on localhost:8082
             </p>
           </div>
         </div>

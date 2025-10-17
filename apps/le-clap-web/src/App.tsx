@@ -157,6 +157,7 @@ function App() {
                 error={error}
                 template={selectedTemplate}
                 formData={formData}
+                uploadedFiles={uploadedFiles}
               />
             </div>
 

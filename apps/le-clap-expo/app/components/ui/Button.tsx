@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'success';
-type ButtonSize = 'small' | 'medium' | 'large';
+type ButtonSize = 'small' | 'medium' | 'large' | 'x-large';
 
 interface ButtonProps {
   children?: React.ReactNode;
@@ -102,16 +102,16 @@ export default function Button({
       case 'medium':
         return {
           paddingHorizontal: '$l',
-          paddingVertical: '$m',
+          paddingVertical: '$s',
           fontSize: '$4',
-          height: 44,
+          height: 52,
         };
       case 'large':
         return {
           paddingHorizontal: '$xl',
-          paddingVertical: '$l',
+          paddingVertical: '$s',
           fontSize: '$5',
-          height: 52,
+          height: 62,
         };
       default:
         return {};

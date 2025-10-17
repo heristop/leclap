@@ -31,7 +31,7 @@ This app requires the **FFmpeg Video Composer** backend server to be running for
 
 1. **FFmpeg** installed on your system and available in PATH
 2. **Node.js** >= 22.x
-3. The backend server running on `localhost:3000`
+3. The backend server running on `localhost:8082`
 
 ### Mobile Development
 
@@ -45,7 +45,7 @@ This app requires the **FFmpeg Video Composer** backend server to be running for
 1. **Navigate to the app directory:**
 
    ```bash
-   cd apps/le-clap
+   cd apps/le-clap-expo
    ```
 
 2. **Install dependencies:**
@@ -85,17 +85,17 @@ pnpm server:dev
 
 ### Android Port Forwarding
 
-If running the app on an Android device or emulator with the backend on `localhost:3000`, enable port forwarding:
+If running the app on an Android device or emulator with the backend on `localhost:8082`, enable port forwarding:
 
 ```bash
-adb reverse tcp:3000 tcp:3000
+adb reverse tcp:8082 tcp:8082
 ```
 
 Run this command **after** starting the backend server and **before** launching the mobile app. This step is not required for iOS simulators.
 
 ### Configuration
 
-The app is configured to connect to `http://localhost:3000` by default (defined in `app.json`). Update the `extra.API_URL` field if your backend runs on a different address.
+The app is configured to connect to `http://localhost:8082` by default (defined in `app.json`). Update the `extra.API_URL` field if your backend runs on a different address.
 
 ## Usage
 
@@ -184,8 +184,8 @@ This app replaces the deprecated `leclap-playground` with:
 
 **Backend Connection Fails**
 
-- Ensure the backend server is running on `localhost:3000`
-- For Android, verify `adb reverse tcp:3000 tcp:3000` was executed
+- Ensure the backend server is running on `localhost:8082`
+- For Android, verify `adb reverse tcp:8082 tcp:8082` was executed
 - Check that FFmpeg is properly installed and accessible
 
 **Camera Permissions Denied**

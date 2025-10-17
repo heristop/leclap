@@ -42,7 +42,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 150,
           "resizeMode": "contain",
           "backgroundColor": "#7C83FD"
         }
@@ -53,7 +53,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "API_URL": "http://localhost:3000"
+      "API_URL": "http://localhost:8082"
     }
   }
 }

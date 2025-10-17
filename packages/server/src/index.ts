@@ -306,8 +306,8 @@ fastify.post('/compile', async (request, reply) => {
 const start = async () => {
   try {
     // Listen on 0.0.0.0 to accept connections from network devices/emulators
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
-    fastify.log.info(`Server listening on port 3000, accessible on all network interfaces`);
+    await fastify.listen({ port: 8082, host: '0.0.0.0' });
+    fastify.log.info(`Server listening on port 8082, accessible on all network interfaces`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

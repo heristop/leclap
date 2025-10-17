@@ -10,6 +10,7 @@ interface VideoProcessorProps {
   error: string | null
   template: Template | null
   formData: Record<string, string>
+  uploadedFiles?: File[]
 }
 
 export const VideoProcessor = ({
@@ -18,7 +19,8 @@ export const VideoProcessor = ({
   onStartProcessing,
   error,
   template,
-  formData
+  formData,
+  uploadedFiles
 }: VideoProcessorProps) => {
   const [isOptimisticProcessing, setIsOptimisticProcessing] = useState(false)
 
@@ -192,7 +194,7 @@ export const VideoProcessor = ({
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span className="text-gray-700">FFmpeg WebAssembly loaded</span>
+              <span className="text-gray-700">Video processing engine ready</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               {template ? (
@@ -217,8 +219,14 @@ export const VideoProcessor = ({
               </div>
             )}
             <div className="flex items-center space-x-2 text-sm">
-              <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
-              <span className="text-gray-500">Upload at least one video file</span>
+              {uploadedFiles && uploadedFiles.length > 0 ? (
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+              ) : (
+                <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+              )}
+              <span className={uploadedFiles && uploadedFiles.length > 0 ? 'text-gray-700' : 'text-gray-500'}>
+                Upload at least one video file
+              </span>
             </div>
           </div>
         </div>

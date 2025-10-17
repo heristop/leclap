@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useOptimistic, startTransition } from 'react';
-import { useFFmpeg } from './useFFmpeg';
-import { compilationService, type CompilationConfig } from '../services/compilationService';
+import { simpleBrowserCompilationService, type CompilationConfig } from '../services/simpleBrowserCompilationService';
 import { type Template } from '../services/templateService';
 
 interface ProcessingProgress {
@@ -27,8 +26,6 @@ export interface ProcessedVideo {
 }
 
 export const useVideoProcessing = () => {
-  const { ffmpeg, isReady } = useFFmpeg();
-
   const [state, setState] = useState<ProcessingState>({
     isProcessing: false,
     progress: {
@@ -92,17 +89,6 @@ export const useVideoProcessing = () => {
 
   const processVideo = useCallback(
     async (files: File[], templateWithFormData: Template & { formData?: Record<string, string> }) => {
-      if (!ffmpeg || !isReady) {
-        setState((prev) => ({
-          ...prev,
-          error: 'FFmpeg is not ready yet. Please wait a moment and try again.',
-        }));
-        return;
-      }
-
-      // Set up compilation service with FFmpeg instance
-      compilationService.setFFmpeg(ffmpeg);
-
       if (files.length === 0) {
         setState((prev) => ({
           ...prev,
@@ -144,8 +130,8 @@ export const useVideoProcessing = () => {
       startTime.current = Date.now();
 
       try {
-        // Use the real compilation service
-        const result = await compilationService.compileVideo(compilationConfig, (progress) => {
+        // Use the simple browser compilation service
+        const result = await simpleBrowserCompilationService.compileVideo(compilationConfig, (progress) => {
           updateProgress(progress);
         });
 
@@ -167,7 +153,7 @@ export const useVideoProcessing = () => {
         abortController.current = null;
       }
     },
-    [ffmpeg, isReady, updateProgress]
+    [updateProgress]
   );
 
   const cancelProcessing = useCallback(() => {
@@ -223,6 +209,6 @@ export const useVideoProcessing = () => {
     processVideo,
     cancelProcessing,
     clearResults,
-    isFFmpegReady: isReady,
+    isFFmpegReady: true, // Browser compilation service handles FFmpeg initialization internally
   };
 };

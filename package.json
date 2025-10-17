@@ -1,11 +1,11 @@
 {
   "name": "ffmpeg-video-composer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "ffmpeg-video-composer": "./src/cli/executable.js"
+    "ffmpeg-video-composer": "./packages/core/src/cli/executable.js"
   },
   "exports": {
     ".": {
@@ -23,24 +23,24 @@
   "scripts": {
     "compile": "node compile.js",
     "diagnose": "node diagnose.js",
-    "build:exe": "pkg src/cli/executable.js --targets node22-win-x64,node22-macos-x64,node22-linux-x64 --output-path dist/bin",
+    "build:exe": "pkg packages/core/src/cli/executable.js --targets node22-win-x64,node22-macos-x64,node22-linux-x64 --output-path dist/bin",
     "build:exe:all": "pnpm build && pnpm build:exe",
-    "lint": "eslint . && pnpm lint:le-clap",
-    "lint:le-clap": "pnpm --filter le-clap run lint",
-    "test": "vitest",
+    "lint": "eslint ./packages/core && pnpm --filter le-clap-expo run lint",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:ci": "vitest run --coverage.enabled --coverage.reporter='text-summary'",
     "test:coverage": "vitest run --coverage",
     "test:precommit": "vitest --run",
     "build": "tsdown",
-    "graph": "madge --dot --extensions ts src/ > graph.dot",
-    "deps:check": "depcruise src",
-    "deps:graph": "depcruise src --output-type dot | dot -T svg > docs/dependency-graph.svg",
-    "deps:html": "depcruise src --output-type html > docs/dependency-report.html",
+    "graph": "madge --dot --extensions ts packages/core/src/ > graph.dot",
+    "deps:check": "depcruise packages/core/src",
+    "deps:graph": "depcruise packages/core/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
+    "deps:html": "depcruise packages/core/src --output-type html > docs/dependency-report.html",
     "prepare": "husky",
-    "playground:start": "pnpm --filter le-clap run start",
-    "playground:android": "pnpm --filter le-clap run android",
-    "playground:ios": "pnpm --filter le-clap run ios",
+    "playground:start": "pnpm --filter le-clap-expo run start",
+    "playground:android": "pnpm --filter le-clap-expo run android",
+    "playground:ios": "pnpm --filter le-clap-expo run ios",
+    "playground:web": "pnpm --filter le-clap-web run dev",
     "server:dev": "pnpm --filter server run build && pnpm --filter server run start"
   },
   "type": "module",
@@ -48,7 +48,8 @@
     "dist",
     "compile.js",
     "diagnose.js",
-    "src/shared/templates/**/*.json",
+    "packages/core/src/cli/executable.js",
+    "packages/core/src/shared/templates/**/*.json",
     "README.md"
   ],
   "keywords": [
@@ -67,7 +68,8 @@
     "picocolors": "^1.1.1",
     "pino": "^10.0.0",
     "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.10.0"
+    "tsyringe": "^4.10.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
@@ -116,7 +118,7 @@
     "scripts": "dist/**/*.js",
     "assets": [
       "dist/**/*",
-      "src/shared/templates/**/*.json"
+      "packages/core/src/shared/templates/**/*.json"
     ],
     "outputPath": "dist/bin"
   }

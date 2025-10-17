@@ -75,11 +75,13 @@ export async function compile(
 export { TemplateDirector };
 export { default as VideoEditor } from './editor/VideoEditor';
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
+export { default as FFmpegWasmAdapter } from './platform/ffmpeg/FFmpegWasmAdapter';
 export { default as FilesystemNodeAdapter } from './platform/filesystem/FilesystemNodeAdapter';
 export { default as PinoLogAdapter } from './platform/logging/PinoLogAdapter';
 export { default as AbstractFFmpeg } from './platform/ffmpeg/AbstractFFmpeg';
 export { default as AbstractFilesystem } from './platform/filesystem/AbstractFilesystem';
 export { default as AbstractLogger } from './platform/logging/AbstractLogger';
+export { default as AbstractMusic } from './platform/ffmpeg/AbstractMusic';
 export { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 export { TerminalUI } from './utils/TerminalUI';
 export { container }; // Export container for DI registration if needed externally

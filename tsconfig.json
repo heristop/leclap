@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDirs": ["src"],
+    "rootDirs": ["packages/core/src"],
     "outDir": "dist",
     "lib": ["es2022"],
     "target": "es2022",
@@ -12,10 +12,10 @@
     "types": ["node", "jest"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./packages/core/src/*"]
     }
   },
-  "exclude": ["dist", "./src/shared/assets/**/*"],
+  "exclude": ["dist", "./packages/core/src/shared/assets/**/*"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",

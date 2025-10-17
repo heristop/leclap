@@ -1,13 +1,13 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { ProjectConfig } from '@/core/types';
-import { compile, loadConfig } from '../src';
+import { compile, loadConfig } from '@/index';
 import { main } from '@/main';
 
 // Get absolute paths for proper configuration
 const cwd = process.cwd();
 const buildDir = path.resolve(cwd, 'build');
-const assetsDir = path.resolve(cwd, 'src/shared/assets');
+const assetsDir = path.resolve(cwd, 'packages/core/src/shared/assets');
 
 // Project Configuration
 const projectConfig: ProjectConfig = {
@@ -33,7 +33,7 @@ const projectConfig: ProjectConfig = {
 };
 
 async function runTemplateCompilation(configName: string): Promise<string | null> {
-  return await compile(projectConfig, await loadConfig(`./src/shared/templates/${configName}.json`));
+  return await compile(projectConfig, await loadConfig(`./packages/core/src/shared/templates/${configName}.json`));
 }
 
 describe('Segments', () => {
@@ -78,6 +78,6 @@ describe('Concat', () => {
 
 describe('Mixed Template', () => {
   it('should compile a mixed template successfully', async () => {
-    expect(await main('src/shared/templates/sample.json')).not.toBeNull();
+    expect(await main('packages/core/src/shared/templates/sample.json')).not.toBeNull();
   }, 100000);
 });

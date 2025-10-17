@@ -17,7 +17,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   }
 
   getAssetsPath = async (dir: string): Promise<string> => {
-    const fullPath = path.join(this.root, 'src', 'shared', 'assets', dir);
+    const fullPath = path.join(this.root, 'packages', 'core', 'src', 'shared', 'assets', dir);
 
     return fullPath;
   };

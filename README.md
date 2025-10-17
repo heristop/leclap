@@ -10,7 +10,7 @@ Check out the video sample to see `ffmpeg-video-composer` in action (unmute for 
 
 https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 
-[View the template descriptor](https://github.com/heristop/ffmpeg-video-composer/blob/main/src/shared/templates/sample.json)
+[View the template descriptor](https://github.com/heristop/ffmpeg-video-composer/blob/main/packages/core/src/shared/templates/sample.json)
 
 ## 🚀 Features
 
@@ -115,7 +115,7 @@ pnpm i
 ### **Command Line Interface**
 
 ```bash
-pnpm compile src/shared/templates/sample.json
+   pnpm compile packages/core/src/shared/templates/sample.json
 ```
 
 This generates `sample_output.mp4` in the `build` directory.
@@ -146,7 +146,7 @@ const result = await compile(projectConfig, {
 });
 
 // Or using a JSON file
-const template = await loadConfig('./src/shared/templates/sample.json');
+const template = await loadConfig('./packages/core/src/shared/templates/sample.json');
 const result = await compile(projectConfig, template);
 ```
 
@@ -192,7 +192,7 @@ pnpm test
 
 ## 📱 LeClap Expo App
 
-The repository includes a modern Expo client (`apps/le-clap`) that provides an intuitive mobile interface for the video composer workflow on device or simulator.
+The repository includes a modern Expo client (`apps/le-clap-expo`) that provides an intuitive mobile interface for the video composer workflow on device or simulator.
 
 <img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap App" width="300" />
 

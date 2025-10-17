@@ -51,14 +51,18 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
           {error instanceof Error ? error.message : 'Failed to load templates'}
         </Text>
         <Text style={styles.errorSubtext}>
-          Make sure the ffmpeg-video-composer server is running.
+          Make sure the server is running.
         </Text>
-        <View style={{ marginTop: spacing.s }}>
+        <View style={{ marginTop: spacing.m, alignItems: 'center', height: 160 }}>
           <Button
             variant="primary"
-            onPress={async () => { await refetch(); }}
+            onPress={async () => {
+              await refetch();
+              return;
+            }}
             icon="refresh"
-            size="medium"
+            size="large"
+            fullWidth={false}
           >
             Try Again
           </Button>
@@ -79,7 +83,10 @@ const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) =>
         templates={templates}
         onSelectTemplate={handleSelectTemplate}
         isOffline={isOffline}
-        onRefresh={() => refetch()}
+        onRefresh={async () => {
+          await refetch();
+          return;
+        }}
         screenTitle="Scenarios"
         subtitle={isOffline
           ? "📴 Browsing cached templates (offline)"

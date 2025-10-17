@@ -20,7 +20,7 @@ import {
 } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
 import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
-import { styles } from './styles/QueueManagerScreenStyles';
+import { styles } from '@/src/styles/screens/QueueManagerScreenStyles';
 import { colors } from '@/src/styles/theme';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';

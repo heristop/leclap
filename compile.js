@@ -29,7 +29,7 @@ async function main(configFilePath) {
     // Get absolute paths for proper configuration
     const cwd = process.cwd();
     const buildDir = path.resolve(cwd, 'build');
-    const assetsDir = path.resolve(cwd, 'src/shared/assets');
+    const assetsDir = path.resolve(cwd, 'packages/core/src/shared/assets');
 
     // Ensure build directory exists
     await fs.mkdir(buildDir, { recursive: true });

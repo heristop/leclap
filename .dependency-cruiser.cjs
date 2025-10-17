@@ -26,8 +26,8 @@ module.exports = {
           '\\.d\\.ts$',                         // TypeScript declaration files
           '(^|/)tsconfig\\..*\\.json$',         // tsconfig files
           '(^|/)(babel|jest|webpack)\\..*\\.(c?js|ts|mjs|cjs|json)$', // tool configurations
-          '(^|/)src/index\\.(c?js|ts|mjs|cjs)$', // index files
-          '(^|/)src/main\\.ts$'                 // main entry point
+          '(^|/)packages/core/src/index\\.(c?js|ts|mjs|cjs)$', // index files
+          '(^|/)packages/core/src/main\\.ts$'                 // main entry point
         ]
       },
       to: {}
@@ -81,45 +81,45 @@ module.exports = {
           },
           modules: [
             {
-              criteria: { source: '^src/core' },
+              criteria: { source: '^packages/core/src/core' },
               attributes: { fillcolor: '#ccccff' }
             },
             {
-              criteria: { source: '^src/director' },
+              criteria: { source: '^packages/core/src/director' },
               attributes: { fillcolor: '#ccffcc' }
             },
             {
-              criteria: { source: '^src/editor' },
+              criteria: { source: '^packages/core/src/editor' },
               attributes: { fillcolor: '#ffcccc' }
             },
             {
-              criteria: { source: '^src/platform' },
+              criteria: { source: '^packages/core/src/platform' },
               attributes: { fillcolor: '#ffffcc' }
             },
             {
-              criteria: { source: '^src/shared' },
+              criteria: { source: '^packages/core/src/shared' },
               attributes: { fillcolor: '#ffccff' }
             }
           ],
           dependencies: [
             {
-              criteria: { resolved: '^src/core' },
+              criteria: { resolved: '^packages/core/src/core' },
               attributes: { color: '#0000ff77' }
             },
             {
-              criteria: { resolved: '^src/director' },
+              criteria: { resolved: '^packages/core/src/director' },
               attributes: { color: '#00770077' }
             },
             {
-              criteria: { resolved: '^src/editor' },
+              criteria: { resolved: '^packages/core/src/editor' },
               attributes: { color: '#ff000077' }
             },
             {
-              criteria: { resolved: '^src/platform' },
+              criteria: { resolved: '^packages/core/src/platform' },
               attributes: { color: '#ffff0077' }
             },
             {
-              criteria: { resolved: '^src/shared' },
+              criteria: { resolved: '^packages/core/src/shared' },
               attributes: { color: '#ff00ff77' }
             }
           ]

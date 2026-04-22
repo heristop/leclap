@@ -12,7 +12,7 @@ export default defineConfig({
       globals: {
         Buffer: true,
         global: true,
-        process: true,
+        process: false,
       },
       // Enable polyfill for specific Node.js modules
       protocolImports: true,
@@ -22,6 +22,11 @@ export default defineConfig({
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    },
+    cors: {
+      origin: true,
+      credentials: true,
     },
   },
   optimizeDeps: {
@@ -63,6 +68,13 @@ export default defineConfig({
         'node:path',
         'node:os',
         'node:process',
+        'node:util',
+        'node:child_process',
+        'fs/promises',
+        'zlib',
+        'yauzl',
+        'fd-slicer',
+        'get-stream'
       ],
     },
   },

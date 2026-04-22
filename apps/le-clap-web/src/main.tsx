@@ -1,9 +1,10 @@
+import 'reflect-metadata'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-// Enhanced React 19 setup with improved error boundaries
+// React 19 setup with StrictMode
 const rootElement = document.getElementById('root')
 
 if (!rootElement) {

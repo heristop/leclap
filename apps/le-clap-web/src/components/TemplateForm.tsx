@@ -82,14 +82,14 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
 
   if (fields.length === 0) {
     return (
-      <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="p-6 bg-blue-900/20 border border-blue-500/30 rounded-xl">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-500 rounded-lg">
+          <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h4 className="font-semibold text-blue-900">No Form Required</h4>
-            <p className="text-sm text-blue-700">
+            <h4 className="font-semibold text-blue-300">No Form Required</h4>
+            <p className="text-sm text-blue-200/70">
               This template doesn't require any custom input. You can proceed directly to processing.
             </p>
           </div>
@@ -99,20 +99,20 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center">
-        <div className="p-3 bg-brand-500 rounded-lg inline-block mb-3">
+        <div className="p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl inline-block mb-4 shadow-lg shadow-blue-500/20">
           <FileText className="w-6 h-6 text-white" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-xl font-bold text-white mb-2 font-display">
           Template Configuration
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-400">
           Fill in the required information to personalize your video
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {fields.map((field, index) => {
           const IconComponent = getFieldIcon(field.name)
           const fieldType = getFieldType(field)
@@ -124,8 +124,8 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
 
           return (
             <div key={field.name} className="space-y-2 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <IconComponent className="w-4 h-4 text-brand-600" />
+              <label className="flex items-center space-x-2 text-sm font-medium text-gray-300">
+                <IconComponent className="w-4 h-4 text-blue-400" />
                 <span>{label}</span>
                 {field.maxLength && (
                   <span className="text-xs text-gray-500">
@@ -142,11 +142,11 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
                   maxLength={field.maxLength}
                   rows={3}
                   className={clsx(
-                    'w-full px-4 py-3 border rounded-lg resize-none transition-all duration-200',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent',
+                    'w-full px-4 py-3 bg-gray-800/50 border rounded-xl resize-none transition-all duration-300 text-white placeholder-gray-500',
+                    'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800',
                     hasError
-                      ? 'border-red-300 bg-red-50'
-                      : 'border-gray-300 hover:border-brand-300'
+                      ? 'border-red-500/50 bg-red-900/10 focus:ring-red-500/50'
+                      : 'border-white/10 hover:border-white/20'
                   )}
                 />
               ) : (
@@ -157,28 +157,28 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
                   placeholder={placeholder}
                   maxLength={field.maxLength}
                   className={clsx(
-                    'w-full px-4 py-3 border rounded-lg transition-all duration-200',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent',
+                    'w-full px-4 py-3 bg-gray-800/50 border rounded-xl transition-all duration-300 text-white placeholder-gray-500',
+                    'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800',
                     hasError
-                      ? 'border-red-300 bg-red-50'
-                      : 'border-gray-300 hover:border-brand-300'
+                      ? 'border-red-500/50 bg-red-900/10 focus:ring-red-500/50'
+                      : 'border-white/10 hover:border-white/20'
                   )}
                 />
               )}
 
               <div className="flex justify-between items-center">
                 {hasError ? (
-                  <span className="text-sm text-red-600">{errors[field.name]}</span>
+                  <span className="text-sm text-red-400">{errors[field.name]}</span>
                 ) : (
                   <span className="text-sm text-gray-500">
-                    {value.trim() === '' ? 'Required field' : 'Field completed ✓'}
+                    {value.trim() === '' ? 'Required field' : <span className="text-green-400">Field completed ✓</span>}
                   </span>
                 )}
 
                 {remainingChars !== null && (
                   <span className={clsx(
                     'text-xs',
-                    remainingChars < 10 ? 'text-red-600' : 'text-gray-400'
+                    remainingChars < 10 ? 'text-red-400' : 'text-gray-500'
                   )}>
                     {remainingChars} remaining
                   </span>
@@ -191,31 +191,31 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
 
       {/* Form Validation Summary */}
       <div className={clsx(
-        'p-4 rounded-lg border transition-all duration-200',
+        'p-4 rounded-xl border transition-all duration-300 backdrop-blur-sm',
         isFormValid()
-          ? 'bg-green-50 border-green-200'
-          : 'bg-yellow-50 border-yellow-200'
+          ? 'bg-green-900/20 border-green-500/30'
+          : 'bg-yellow-900/20 border-yellow-500/30'
       )}>
         <div className="flex items-center space-x-3">
           <div className={clsx(
-            'p-2 rounded-lg',
-            isFormValid() ? 'bg-green-500' : 'bg-yellow-500'
+            'p-2 rounded-lg shadow-lg',
+            isFormValid() ? 'bg-green-600 shadow-green-500/20' : 'bg-yellow-600 shadow-yellow-500/20'
           )}>
             <FileText className="w-4 h-4 text-white" />
           </div>
           <div>
             <h4 className={clsx(
               'font-semibold',
-              isFormValid() ? 'text-green-900' : 'text-yellow-900'
+              isFormValid() ? 'text-green-400' : 'text-yellow-400'
             )}>
               {isFormValid() ? 'Form Complete!' : 'Form Incomplete'}
             </h4>
             <p className={clsx(
               'text-sm',
-              isFormValid() ? 'text-green-700' : 'text-yellow-700'
+              isFormValid() ? 'text-green-200/70' : 'text-yellow-200/70'
             )}>
               {isFormValid()
-                ? 'All required fields are filled. Ready to proceed with video processing.'
+                ? 'All required fields are filled. Ready to proceed.'
                 : `Please fill in ${fields.filter(f => !formData[f.name]?.trim()).length} remaining field(s).`
               }
             </p>
@@ -225,11 +225,11 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
 
       {/* Debug Info (Development) */}
       {process.env.NODE_ENV === 'development' && (
-        <details className="p-3 bg-gray-50 rounded-lg text-xs">
-          <summary className="cursor-pointer font-medium text-gray-700 mb-2">
+        <details className="p-3 bg-gray-800/50 border border-white/10 rounded-xl text-xs">
+          <summary className="cursor-pointer font-medium text-gray-400 mb-2 hover:text-white transition-colors">
             Debug: Form Data
           </summary>
-          <pre className="text-gray-600 overflow-auto">
+          <pre className="text-gray-500 overflow-auto">
             {JSON.stringify(formData, null, 2)}
           </pre>
         </details>

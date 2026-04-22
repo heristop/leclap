@@ -1,26 +1,9 @@
-export interface TemplateDescriptor {
-  global: {
-    variables?: Record<string, any>;
-    music?: {
-      name: string;
-      url?: string;
-    };
-    orientation: 'landscape' | 'portrait';
-    musicEnabled: boolean;
-    audioVolumeLevel?: number;
-    transitionDuration: number;
-  };
-  sections: Array<{
-    name: string;
-    type: 'video' | 'form' | 'project_video' | 'color_background' | 'music';
-    title?: Record<string, string>;
-    description?: Record<string, string>;
-    options?: Record<string, any>;
-    inputs?: Array<any>;
-    maps?: Array<any>;
-    filters?: Array<any>;
-  }>;
-}
+// Re-export from core package for consistency
+export type { TemplateDescriptor } from '@ffmpeg-video-composer/core';
+// Import the sophisticated core template service
+import { coreTemplateService, type CoreTemplate } from './coreTemplateService';
+import { type TemplateDescriptor } from '@ffmpeg-video-composer/core';
+import { templateLogger } from '../lib/logger';
 
 export interface Template {
   id: string;
@@ -32,11 +15,7 @@ export interface Template {
   descriptor: TemplateDescriptor;
 }
 
-// Server response interface
-interface ServerTemplate {
-  name: string; // filename like "sample.json"
-  content: TemplateDescriptor;
-}
+// Server response interface - removed as unused
 
 // Environment configuration
 const getServerUrl = () => {
@@ -124,11 +103,18 @@ const TEMPLATE_METADATA: Record<string, Omit<Template, 'id' | 'descriptor'>> = {
     hasForm: false,
     complexity: 'intermediate',
   },
+  debug_grayscale: {
+    name: 'Debug / Grayscale',
+    description: 'Applies a simple grayscale filter to test the video processing pipeline.',
+    orientation: 'landscape',
+    hasForm: false,
+    complexity: 'simple',
+  },
 };
 
 class TemplateService {
-  private templatesCache = new Map<string, TemplateDescriptor>();
   private serverUrl = getServerUrl();
+  private templatesCache = new Map<string, TemplateDescriptor>();
 
   async loadTemplate(templateId: string): Promise<TemplateDescriptor> {
     if (this.templatesCache.has(templateId)) {
@@ -136,83 +122,86 @@ class TemplateService {
     }
 
     try {
-      // Fetch all templates from server and find the one we need
-      const response = await fetch(`${this.serverUrl}/templates`);
+      templateLogger.log(`Loading template: ${templateId}`);
 
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
+      // Use core template service for sophisticated templates
+      const coreTemplate = await coreTemplateService.getTemplate(templateId);
+
+      if (coreTemplate) {
+        const descriptor = coreTemplate.templateDescriptor;
+        this.templatesCache.set(templateId, descriptor);
+        return descriptor;
       }
 
-      const serverTemplates: ServerTemplate[] = await response.json();
-
-      // Find the template by matching the filename
-      const targetFileName = `${templateId}.json`;
-      const serverTemplate = serverTemplates.find((t) => t.name === targetFileName);
-
-      if (!serverTemplate) {
-        throw new Error(`Template ${templateId} not found on server`);
+      // Fallback to legacy metadata-based templates if core template not found
+      const metadata = TEMPLATE_METADATA[templateId];
+      if (!metadata) {
+        throw new Error(`Template ${templateId} not found in core or legacy templates`);
       }
 
-      const descriptor = serverTemplate.content;
-      this.templatesCache.set(templateId, descriptor);
-      return descriptor;
+      // Create a simple template descriptor for legacy templates
+      const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
+
+      this.templatesCache.set(templateId, fallbackDescriptor);
+      return fallbackDescriptor;
     } catch (error) {
-      console.error(`Failed to load template ${templateId}:`, error);
+      templateLogger.error(`Failed to load template ${templateId}:`, error);
       throw new Error(`Template ${templateId} not found: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async getAllTemplates(): Promise<Template[]> {
     try {
-      // Fetch all templates from server in one request
-      const response = await fetch(`${this.serverUrl}/templates`);
+      templateLogger.log('Loading core templates');
 
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-
-      const serverTemplates: ServerTemplate[] = await response.json();
+      // Get all sophisticated core templates
+      const coreTemplates = await coreTemplateService.getTemplates();
       const templates: Template[] = [];
 
-      for (const serverTemplate of serverTemplates) {
+      // Convert core templates to Template interface
+      for (const coreTemplate of coreTemplates) {
+        const template: Template = {
+          id: coreTemplate.id,
+          name: coreTemplate.name,
+          description: coreTemplate.description,
+          orientation: coreTemplate.orientation,
+          hasForm: coreTemplate.hasForm,
+          complexity: this.mapCoreComplexity(coreTemplate.category),
+          descriptor: coreTemplate.templateDescriptor,
+        };
+
+        // Cache the descriptor
+        this.templatesCache.set(coreTemplate.id, coreTemplate.templateDescriptor);
+        templates.push(template);
+      }
+
+      // Add legacy templates that aren't in core
+      for (const [templateId, metadata] of Object.entries(TEMPLATE_METADATA)) {
+        // Skip if already loaded from core
+        if (templates.some(t => t.id === templateId)) {
+          continue;
+        }
+
         try {
-          // Extract template ID from filename (remove .json extension)
-          const templateId = serverTemplate.name.replace('.json', '');
+          const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
 
-          // Get metadata for this template
-          const metadata = TEMPLATE_METADATA[templateId];
-
-          if (!metadata) {
-            console.warn(`No metadata found for template ${templateId}, skipping`);
-            continue;
-          }
-
-          // Cache the descriptor
-          this.templatesCache.set(templateId, serverTemplate.content);
-
-          // Create template object with metadata and descriptor
           const template: Template = {
             id: templateId,
             ...metadata,
-            // Override complexity and hasForm based on actual content
-            complexity: this.getTemplateComplexity(serverTemplate.content),
-            hasForm: this.extractFormFields(serverTemplate.content).length > 0,
-            descriptor: serverTemplate.content,
+            descriptor: fallbackDescriptor,
           };
 
+          this.templatesCache.set(templateId, fallbackDescriptor);
           templates.push(template);
         } catch (templateError) {
-          console.warn(`Failed to process template ${serverTemplate.name}:`, templateError);
+          templateLogger.warn(`Failed to process legacy template ${templateId}:`, templateError);
         }
       }
 
-      if (templates.length === 0) {
-        throw new Error('No valid templates found on server');
-      }
-
+      templateLogger.success(`Loaded ${templates.length} templates`);
       return templates;
     } catch (error) {
-      console.error('Failed to load templates from server:', error);
+      templateLogger.error('Failed to load templates:', error);
       throw new Error(`Failed to load templates: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -220,8 +209,23 @@ class TemplateService {
   async getTemplate(templateId: string): Promise<Template | null> {
     try {
       const descriptor = await this.loadTemplate(templateId);
-      const metadata = TEMPLATE_METADATA[templateId];
 
+      // Try to get from core templates first
+      const coreTemplate = await coreTemplateService.getTemplate(templateId);
+      if (coreTemplate) {
+        return {
+          id: coreTemplate.id,
+          name: coreTemplate.name,
+          description: coreTemplate.description,
+          orientation: coreTemplate.orientation,
+          hasForm: coreTemplate.hasForm,
+          complexity: this.mapCoreComplexity(coreTemplate.category),
+          descriptor: coreTemplate.templateDescriptor,
+        };
+      }
+
+      // Fallback to legacy metadata
+      const metadata = TEMPLATE_METADATA[templateId];
       if (!metadata) {
         return null;
       }
@@ -234,8 +238,22 @@ class TemplateService {
         descriptor,
       };
     } catch (error) {
-      console.error(`Failed to get template ${templateId}:`, error);
+      templateLogger.error(`Failed to get template ${templateId}:`, error);
       return null;
+    }
+  }
+
+  private mapCoreComplexity(category: CoreTemplate['category']): 'simple' | 'intermediate' | 'advanced' {
+    switch (category) {
+      case 'advanced':
+        return 'advanced';
+      case 'sample':
+      case 'demo':
+        return 'intermediate';
+      case 'video':
+      case 'portrait':
+      default:
+        return 'simple';
     }
   }
 
@@ -277,13 +295,42 @@ class TemplateService {
       const response = await fetch(`${this.serverUrl}/health`);
       return response.ok;
     } catch (error) {
-      console.error('Server connection test failed:', error);
+      templateLogger.error('Server connection test failed:', error);
       return false;
     }
   }
 
   getServerUrl(): string {
     return this.serverUrl;
+  }
+
+  private createLegacyDescriptor(id: string, metadata: Omit<Template, 'id' | 'descriptor'>): TemplateDescriptor {
+    const descriptor: TemplateDescriptor = {
+      global: {
+        orientation: metadata.orientation,
+        musicEnabled: false,
+        transitionDuration: 0.5
+      },
+      sections: [
+        {
+          name: "main",
+          type: "video",
+          options: {
+            duration: 5
+          }
+        }
+      ]
+    };
+
+    // Add grayscale filter for debug template
+    if (id === 'debug_grayscale') {
+      descriptor.sections![0].filters = [{
+        type: 'hue',
+        value: 's=0'
+      }];
+    }
+
+    return descriptor;
   }
 }
 

@@ -1,7 +1,8 @@
 import { useState, useEffect, startTransition } from 'react'
-import { Check, Play, Settings, Zap, Video, Users, Image } from 'lucide-react'
+import { Check, Play, Zap, Video, Users, Image, Sparkles } from 'lucide-react'
 import clsx from 'clsx'
 import { templateService, type Template } from '../services/templateService'
+import { logger } from '../lib/logger'
 
 interface TemplateSelectorProps {
   onTemplateSelected: (template: Template) => void
@@ -22,11 +23,6 @@ const complexityColors = {
   advanced: 'bg-green-500'
 }
 
-const orientationColors = {
-  landscape: 'text-blue-600 bg-blue-100',
-  portrait: 'text-purple-600 bg-purple-100'
-}
-
 export const TemplateSelector = ({
   onTemplateSelected,
   selectedTemplate
@@ -34,7 +30,6 @@ export const TemplateSelector = ({
   const [templates, setTemplates] = useState<Template[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null)
 
   useEffect(() => {
     const loadTemplates = async () => {
@@ -44,7 +39,7 @@ export const TemplateSelector = ({
         setTemplates(loadedTemplates)
         setError(null)
       } catch (err) {
-        console.error('Failed to load templates:', err)
+        logger.error('Failed to load templates:', err)
         setError('Failed to load templates. Please try again.')
       } finally {
         setLoading(false)
@@ -63,15 +58,9 @@ export const TemplateSelector = ({
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="text-center mb-6">
-          <div className="h-6 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-64 mx-auto"></div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="p-4 border-2 border-gray-200 rounded-xl">
-              <div className="h-32 bg-gray-200 rounded"></div>
-            </div>
+            <div key={i} className="h-64 bg-gray-800/50 rounded-xl border border-white/5"></div>
           ))}
         </div>
       </div>
@@ -80,183 +69,135 @@ export const TemplateSelector = ({
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-          <div className="text-red-600 mb-2 font-medium">Failed to Load Templates</div>
-          <p className="text-sm text-red-700 mb-4">{error}</p>
-          <div className="space-y-2">
-            <button
-              onClick={() => window.location.reload()}
-              className="block mx-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Retry Loading
-            </button>
-            <p className="text-xs text-red-600">
-              Make sure the server is running on localhost:8082
-            </p>
-          </div>
+      <div className="text-center py-12">
+        <div className="p-6 bg-red-900/20 border border-red-500/30 rounded-xl inline-block backdrop-blur-sm">
+          <div className="text-red-400 mb-2 font-medium font-display text-lg">Failed to Load Templates</div>
+          <p className="text-sm text-red-300 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-lg shadow-red-900/20 cursor-pointer"
+          >
+            Retry Loading
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Choose Your Video Template
-        </h3>
-        <p className="text-sm text-gray-600">
-          Select from real templates with advanced video processing capabilities
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-2">
         {templates.map((template) => {
           const IconComponent = getTemplateIcon(template)
           const isSelected = selectedTemplate?.id === template.id
-          const isHovered = hoveredTemplate === template.id
           const formFields = templateService.extractFormFields(template.descriptor)
 
           return (
             <div
               key={template.id}
               className={clsx(
-                'relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 fade-in',
-                'hover:shadow-lg hover:scale-[1.02] group',
+                'relative p-6 border rounded-xl cursor-pointer transition-all duration-300 fade-in group overflow-hidden backdrop-blur-sm',
                 isSelected
-                  ? 'border-brand-500 bg-brand-50 shadow-lg scale-[1.02]'
-                  : 'border-gray-200 hover:border-brand-300 bg-white'
+                  ? 'border-brand-500 bg-brand-900/20 shadow-xl shadow-brand-500/10 scale-[1.02]'
+                  : 'border-white/10 hover:border-brand-500/50 bg-gray-800/40 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-brand-500/5'
               )}
               onClick={() => handleTemplateSelect(template)}
-              onMouseEnter={() => setHoveredTemplate(template.id)}
-              onMouseLeave={() => setHoveredTemplate(null)}
             >
-              {/* Selected Indicator */}
+              {/* Selection Ring Animation */}
               {isSelected && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
+                <div className="absolute inset-0 border-2 border-brand-500 rounded-xl animate-pulse opacity-50 pointer-events-none" />
               )}
 
-              {/* Complexity and Orientation Badges */}
-              <div className="flex items-center justify-between mb-3">
-                <span className={clsx(
-                  'px-2 py-1 rounded-full text-xs font-medium text-white capitalize',
-                  complexityColors[template.complexity]
-                )}>
-                  {template.complexity}
-                </span>
-                <div className="flex items-center space-x-2">
-                  <span className={clsx(
-                    'px-2 py-1 rounded-full text-xs font-medium capitalize',
-                    orientationColors[template.orientation]
-                  )}>
-                    {template.orientation}
-                  </span>
-                  {template.hasForm && (
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
-                      Interactive
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Template Icon and Title */}
-              <div className="flex items-start space-x-3 mb-3">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-4">
                 <div className={clsx(
-                  'p-3 rounded-lg transition-all duration-200',
-                  isSelected ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600',
-                  isHovered && !isSelected && 'bg-brand-100 text-brand-600'
+                  'p-3 rounded-xl transition-colors duration-300 shadow-lg',
+                  isSelected ? 'bg-brand-600 text-white shadow-brand-500/20' : 'bg-gray-700/50 text-gray-400 group-hover:bg-brand-500/20 group-hover:text-brand-400'
                 )}>
-                  <IconComponent className="w-6 h-6" />
+                  <IconComponent className="w-8 h-8" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">
-                    {template.name}
-                  </h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {template.description}
-                  </p>
+
+                <div className="flex flex-col items-end space-y-2">
+                  <span className={clsx(
+                    'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm',
+                    complexityColors[template.complexity],
+                    'text-white'
+                  )}>
+                    {template.complexity}
+                  </span>
+                  {isSelected && (
+                    <span className="flex items-center text-brand-400 text-sm font-bold animate-in fade-in slide-in-from-right-4">
+                      <Check className="w-4 h-4 mr-1" />
+                      Selected
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Template Info */}
-              <div className="mb-3 p-2 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-gray-500">Sections:</span>
-                    <span className="ml-1 font-mono text-gray-700">
-                      {template.descriptor.sections.length}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Forms:</span>
-                    <span className="ml-1 font-mono text-gray-700">
-                      {formFields.length} fields
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-gray-700 flex items-center">
-                  <Settings className="w-3 h-3 mr-1" />
-                  Capabilities:
+              {/* Content */}
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold font-display text-white mb-2 group-hover:text-brand-400 transition-colors">
+                  {template.name}
+                </h3>
+                <p className="text-gray-400 leading-relaxed">
+                  {template.description}
                 </p>
-                <ul className="space-y-1">
-                  {template.descriptor.global.musicEnabled && (
-                    <li className="flex items-center text-xs text-gray-600">
-                      <div className="w-1 h-1 bg-brand-500 rounded-full mr-2"></div>
-                      Background Music
-                    </li>
-                  )}
-                  {formFields.length > 0 && (
-                    <li className="flex items-center text-xs text-gray-600">
-                      <div className="w-1 h-1 bg-brand-500 rounded-full mr-2"></div>
-                      Custom Text Input
-                    </li>
-                  )}
-                  <li className="flex items-center text-xs text-gray-600">
-                    <div className="w-1 h-1 bg-brand-500 rounded-full mr-2"></div>
-                    {template.orientation === 'portrait' ? 'Mobile Optimized' : 'Wide Screen'}
-                  </li>
-                  <li className="flex items-center text-xs text-gray-600">
-                    <div className="w-1 h-1 bg-brand-500 rounded-full mr-2"></div>
-                    Advanced Effects
-                  </li>
-                </ul>
               </div>
 
-              {/* Hover Effect */}
-              <div className={clsx(
-                'absolute inset-0 rounded-xl bg-gradient-to-r from-brand-500/5 to-purple-500/5 opacity-0 transition-opacity duration-200',
-                (isHovered || isSelected) && 'opacity-100'
-              )} />
+              {/* Features Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-gray-900/50 p-3 rounded-lg border border-white/5">
+                  <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold block mb-1">Format</span>
+                  <div className="flex items-center text-sm font-medium text-gray-200">
+                    {template.orientation === 'portrait' ? (
+                      <>
+                        <Image className="w-4 h-4 mr-2 text-purple-400" />
+                        Portrait (9:16)
+                      </>
+                    ) : (
+                      <>
+                        <Video className="w-4 h-4 mr-2 text-blue-400" />
+                        Landscape (16:9)
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-gray-900/50 p-3 rounded-lg border border-white/5">
+                  <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold block mb-1">Interactive</span>
+                  <div className="flex items-center text-sm font-medium text-gray-200">
+                    {template.hasForm ? (
+                      <>
+                        <Users className="w-4 h-4 mr-2 text-green-400" />
+                        {formFields.length} Fields
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2 text-yellow-400" />
+                        Auto-Process
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Capabilities */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex flex-wrap gap-2">
+                  {template.descriptor.global.musicEnabled && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-900/30 text-pink-300 border border-pink-500/20">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Music
+                    </span>
+                  )}
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700/50 text-gray-300 border border-white/10">
+                    {template.descriptor.sections.length} Sections
+                  </span>
+                </div>
+              </div>
             </div>
           )
         })}
       </div>
-
-      {/* Selected Template Summary */}
-      {selectedTemplate && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-brand-50 to-purple-50 rounded-lg border border-brand-200 fade-in">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-brand-500 rounded-lg">
-              <Check className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-brand-900">
-                Selected: {selectedTemplate.name}
-              </h4>
-              <p className="text-sm text-brand-700">
-                Ready to process with {selectedTemplate.complexity} complexity template
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </div >
   )
 }

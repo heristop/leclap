@@ -1,5 +1,5 @@
 import { useCallback, useState, startTransition } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, type FileRejection } from 'react-dropzone'
 import { Upload, X, File, AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -19,11 +19,11 @@ export const FileUpload = ({
   const [dragActive, setDragActive] = useState(false)
   const [uploadErrors, setUploadErrors] = useState<string[]>([])
 
-  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     // Handle rejected files
     const errors: string[] = []
-    rejectedFiles.forEach((file) => {
-      file.errors.forEach((error: any) => {
+    for (const file of rejectedFiles) {
+      for (const error of file.errors) {
         if (error.code === 'file-too-large') {
           errors.push(`${file.file.name} is too large (max ${maxSizeInMB}MB)`)
         } else if (error.code === 'file-invalid-type') {
@@ -31,8 +31,8 @@ export const FileUpload = ({
         } else if (error.code === 'too-many-files') {
           errors.push(`Too many files. Maximum ${maxFiles} files allowed`)
         }
-      })
-    })
+      }
+    }
 
     if (errors.length > 0) {
       setUploadErrors(errors)
@@ -82,10 +82,10 @@ export const FileUpload = ({
       <div
         {...getRootProps()}
         className={clsx(
-          'relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer fade-in',
+          'relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm',
           isDragActive || dragActive
-            ? 'border-brand-500 bg-brand-50 scale-[1.02]'
-            : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50/50',
+            ? 'border-brand-500 bg-brand-900/20 scale-[1.02] shadow-lg shadow-brand-500/10'
+            : 'border-white/10 hover:border-brand-500/50 hover:bg-gray-800/40',
           uploadedFiles.length >= maxFiles && 'opacity-50 cursor-not-allowed'
         )}
       >
@@ -93,22 +93,22 @@ export const FileUpload = ({
 
         <div className="flex flex-col items-center space-y-4">
           <div className={clsx(
-            'p-3 rounded-full transition-all duration-200',
+            'p-4 rounded-full transition-all duration-300 shadow-lg',
             isDragActive || dragActive
-              ? 'bg-brand-500 text-white scale-110'
-              : 'bg-gray-100 text-gray-500'
+              ? 'bg-brand-600 text-white scale-110 shadow-brand-500/30'
+              : 'bg-gray-800 text-gray-400 shadow-black/20'
           )}>
             <Upload className="w-8 h-8" />
           </div>
 
           <div>
-            <p className="text-lg font-medium text-gray-900">
+            <p className="text-lg font-medium text-white">
               {isDragActive ? 'Drop the files here' : 'Drag & drop video files here'}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               or click to browse files ({maxFiles - uploadedFiles.length} remaining)
             </p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               Supports MP4, AVI, MOV, MKV, WebM • Max {maxSizeInMB}MB per file
             </p>
           </div>
@@ -117,7 +117,7 @@ export const FileUpload = ({
         {/* Upload Progress Indicator */}
         {uploadedFiles.length > 0 && (
           <div className="absolute top-2 right-2">
-            <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+            <div className="bg-green-900/30 text-green-400 border border-green-500/30 text-xs px-2 py-1 rounded-full">
               {uploadedFiles.length}/{maxFiles} files
             </div>
           </div>
@@ -125,58 +125,62 @@ export const FileUpload = ({
       </div>
 
       {/* Error Messages */}
-      {uploadErrors.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 fade-in">
-          <div className="flex items-start">
-            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
-            <div>
-              <h4 className="text-sm font-medium text-red-800 mb-1">Upload errors:</h4>
-              <ul className="text-sm text-red-600 space-y-1">
-                {uploadErrors.map((error, index) => (
-                  <li key={index}>• {error}</li>
-                ))}
-              </ul>
+      {
+        uploadErrors.length > 0 && (
+          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 fade-in backdrop-blur-sm">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 mr-2 flex-shrink-0" />
+              <div>
+                <h4 className="text-sm font-medium text-red-300 mb-1">Upload errors:</h4>
+                <ul className="text-sm text-red-400 space-y-1">
+                  {uploadErrors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Uploaded Files List */}
-      {uploadedFiles.length > 0 && (
-        <div className="space-y-2 fade-in">
-          <h4 className="text-sm font-medium text-gray-900">Uploaded Files:</h4>
-          <div className="space-y-2">
-            {uploadedFiles.map((file, index) => (
-              <div
-                key={`${file.name}-${index}`}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <File className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => removeFile(index)}
-                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                  aria-label={`Remove ${file.name}`}
+      {
+        uploadedFiles.length > 0 && (
+          <div className="space-y-2 fade-in">
+            <h4 className="text-sm font-medium text-gray-300">Uploaded Files:</h4>
+            <div className="space-y-2">
+              {uploadedFiles.map((file, index) => (
+                <div
+                  key={`${file.name}-${index}`}
+                  className="flex items-center justify-between p-3 bg-gray-800/40 rounded-lg border border-white/5 hover:bg-gray-800/60 transition-colors backdrop-blur-sm"
                 >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-900/30 rounded-lg border border-blue-500/20">
+                      <File className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-200 truncate max-w-[200px]">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="p-1 text-gray-500 hover:text-red-400 transition-colors"
+                    aria-label={`Remove ${file.name}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }

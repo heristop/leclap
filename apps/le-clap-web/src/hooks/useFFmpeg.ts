@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useOptimistic, startTransition } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
+import { ffmpegLogger } from '../lib/logger';
 
 interface FFmpegState {
   isReady: boolean;
@@ -41,13 +42,13 @@ export const useFFmpeg = () => {
       try {
         const ffmpeg = new FFmpeg();
 
-        // Enhanced progress tracking
+        // Track FFmpeg processing progress
         ffmpeg.on('progress', ({ progress, time }) => {
-          console.log(`FFmpeg processing: ${Math.round(progress * 100)}% (${time}s)`);
+          ffmpegLogger.log(`Processing: ${Math.round(progress * 100)}% (${time}s)`);
         });
 
         ffmpeg.on('log', ({ message }) => {
-          console.log('FFmpeg log:', message);
+          ffmpegLogger.log('FFmpeg log:', message);
           // Update loading progress based on log messages
           if (message.includes('Loading')) {
             startTransition(() => {
@@ -56,7 +57,7 @@ export const useFFmpeg = () => {
           }
         });
 
-        // Load FFmpeg WebAssembly with enhanced progress tracking
+        // Load FFmpeg WebAssembly and track loading progress
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
 
         startTransition(() => {
@@ -89,9 +90,9 @@ export const useFFmpeg = () => {
           }));
         });
 
-        console.log('FFmpeg loaded successfully');
+        ffmpegLogger.success('FFmpeg loaded');
       } catch (err) {
-        console.error('Failed to load FFmpeg:', err);
+        ffmpegLogger.error('Failed to load FFmpeg:', err);
         const errorMessage = err instanceof Error ? err.message : 'Failed to load FFmpeg';
         setState((prev) => ({
           ...prev,
@@ -110,7 +111,8 @@ export const useFFmpeg = () => {
         ffmpegRef.current = null;
       }
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // setOptimisticState is stable (from useOptimistic) and doesn't need to be in deps
 
   return {
     ffmpeg: ffmpegRef.current,

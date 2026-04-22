@@ -1,5 +1,7 @@
+import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
 
+@injectable()
 class ProjectVideo extends SegmentBuilder {
   configure = (): void => {
     this.command = ' -y ';

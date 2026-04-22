@@ -1,18 +1,18 @@
-import { singleton } from 'tsyringe';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
-import { Map, MapAnimationInput } from '@/core/types';
-import FormattersManager from './FormatterManager';
-import FilterManager from './FilterManager';
+import { inject, injectable, singleton } from 'tsyringe';
+import type Template from '../../core/models/Template';
+import type Segment from '../../core/models/Segment';
+import type { Map, MapAnimationInput } from '@/core/types';
+import type FormattersManager from './FormatterManager';
+import type FilterManager from './FilterManager';
 
-@singleton()
+@injectable()
 class MapManager {
   constructor(
-    private readonly template: Template,
-    protected formattersManager: FormattersManager,
-    protected filterManager: FilterManager,
-    public segment: Segment
-  ) {}
+    @inject('template') private readonly template: Template,
+    @inject('FormattersManager') protected formattersManager: FormattersManager,
+    @inject('FilterManager') protected filterManager: FilterManager,
+    @inject('segment') public segment: Segment
+  ) { }
 
   addMap = (map: Map): void => {
     let mappedInputs = '';
@@ -20,18 +20,18 @@ class MapManager {
 
     // Manage mandatory attributs
     if (map.inputs) {
-      map.inputs.forEach((input: string) => {
+      for (const input of map.inputs) {
         mappedInputs += `[${this.mapInputsVariables(input)}]`;
-      });
+      }
     } else {
       throw new Error(`[Map][${this.segment.currentSection.name}] Missing inputs`);
     }
 
     if (map.outputs) {
-      map.outputs.forEach((output: string) => {
+      for (const output of map.outputs) {
         mappedOutputs += `[${output}]`;
         this.segment.mapsList.push(output);
-      });
+      }
     } else {
       throw new Error(`[Map][${this.segment.currentSection.name}] Missing outputs for [${map.inputs.join(',')}]`);
     }
@@ -67,7 +67,7 @@ class MapManager {
   };
 
   addMapAnimation = (input: MapAnimationInput, frame: number): void => {
-    let videoInputIncrement: number = this.getVideoInputIncrement();
+    let videoInputIncrement = this.getVideoInputIncrement();
     videoInputIncrement += this.segment.inputsMapCount;
 
     let useSectionFilters = false;
@@ -183,18 +183,18 @@ class MapManager {
     if (inputs && Object.keys(inputs).length > 0) {
       let hasAnimation = false;
 
-      Object.keys(inputs).forEach((key) => {
+      for (const key of Object.keys(inputs)) {
         value = value.replace(new RegExp(/^@video$/, 'g'), `${this.getVideoInputIncrement()}:v`);
 
         // Manage last input for animation
-        if (inputs[key].type == 'frame') {
+        if (inputs[key].type === 'frame') {
           value = value.replace(
             new RegExp(`@${inputs[key].name}`, 'g'),
             `${inputs[key].name}_${inputs[key].options.frames}`
           );
           hasAnimation = true;
         } else {
-          let increment: number = this.getVideoInputIncrement();
+          let increment = this.getVideoInputIncrement();
 
           if (hasAnimation) {
             increment += this.segment.inputsMapCount + 1;
@@ -204,7 +204,7 @@ class MapManager {
 
           value = value.replace(new RegExp(`@${inputs[key].name}`, 'g'), `${increment}:v`);
         }
-      });
+      }
     }
 
     return value;

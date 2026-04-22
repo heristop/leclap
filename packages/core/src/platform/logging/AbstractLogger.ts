@@ -1,4 +1,4 @@
-import { LogParams } from '@/core/types';
+import type { LogParams } from '@/core/types';
 
 abstract class AbstractLogger {
   abstract debug(message: string, params?: LogParams): void;

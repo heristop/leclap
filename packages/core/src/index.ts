@@ -2,7 +2,10 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import PlatformBridge from './platform/PlatformBridge';
 import TemplateDirector from './director/TemplateDirector';
-import { ProjectConfig, TemplateDescriptor } from './core/types';
+import Project from './core/models/Project';
+import Template from './core/models/Template';
+import Segment from './core/models/Segment';
+import type { ProjectConfig, TemplateDescriptor } from './core/types';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -18,6 +21,36 @@ async function initializePlatform(): Promise<void> {
     container.registerInstance('ffmpegAdapter', await bridge.create('ffmpeg'));
     container.registerInstance('filesystemAdapter', fileSystem);
     container.registerInstance('musicAdapter', await bridge.create('music'));
+
+    container.registerInstance('project', new Project());
+    container.registerInstance('template', new Template());
+    container.registerInstance('segment', new Segment());
+
+    const EventManager = (await import('./platform/EventManager')).default;
+    container.registerInstance('eventManager', new EventManager());
+
+    const AssetManager = (await import('./editor/managers/AssetManager')).default;
+    const VariableManager = (await import('./editor/managers/VariableManager')).default;
+    const MapManager = (await import('./editor/managers/MapManager')).default;
+    const FilterManager = (await import('./editor/managers/FilterManager')).default;
+    const FormattersManager = (await import('./editor/managers/FormatterManager')).default;
+
+    container.register('AssetManager', { useClass: AssetManager });
+    container.register('VariableManager', { useClass: VariableManager });
+    container.register('MapManager', { useClass: MapManager });
+    container.register('FilterManager', { useClass: FilterManager });
+    container.register('FormattersManager', { useClass: FormattersManager });
+
+    const VideoEditor = (await import('./editor/VideoEditor')).default;
+    const MusicComposer = (await import('./editor/MusicComposer')).default;
+    const TemplateConcreteBuilder = (await import('./director/TemplateConcreteBuilder')).default;
+    const TemplateDirector = (await import('./director/TemplateDirector')).default;
+
+    container.register('VideoEditor', { useClass: VideoEditor });
+    container.register('MusicComposer', { useClass: MusicComposer });
+    container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
+    container.register('TemplateDirector', { useClass: TemplateDirector });
+
     isInitialized = true;
   })();
 
@@ -33,14 +66,12 @@ export async function loadConfig(configPath: string): Promise<TemplateDescriptor
     return JSON.parse(content);
   } catch (error) {
     if (error instanceof Error) {
-      // Keep the original error's stack and message
       throw new Error(`Failed to load config from ${configPath}: ${error.message}`);
     }
     throw error;
   }
 }
 
-// Return the output path string on success, null on failure
 export async function compile(
   projectConfig: ProjectConfig,
   templateDescriptor: TemplateDescriptor
@@ -48,7 +79,6 @@ export async function compile(
   await initializePlatform();
 
   try {
-    // Ensure required paths are provided and are absolute
     if (!projectConfig.buildDir) {
       throw new Error('buildDir is required in projectConfig');
     }
@@ -71,7 +101,6 @@ export async function compile(
   }
 }
 
-// Export necessary classes and types for external use (like the server)
 export { TemplateDirector };
 export { default as VideoEditor } from './editor/VideoEditor';
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
@@ -83,6 +112,6 @@ export { default as AbstractFilesystem } from './platform/filesystem/AbstractFil
 export { default as AbstractLogger } from './platform/logging/AbstractLogger';
 export { default as AbstractMusic } from './platform/ffmpeg/AbstractMusic';
 export { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
-export { TerminalUI } from './utils/TerminalUI';
-export { container }; // Export container for DI registration if needed externally
-export type { ProjectConfig, TemplateDescriptor } from './core/types'; // Re-export types
+export { Terminal } from './utils/terminal';
+export { container };
+export type { ProjectConfig, TemplateDescriptor } from './core/types';

@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { TemplateValidator } from '../services/TemplateValidator';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 describe('Template Validation', () => {
   let validator: TemplateValidator;
@@ -292,7 +292,7 @@ describe('Template Validation', () => {
       const result = validator.validateTemplate(template);
       const summary = validator.getValidationSummary(result);
 
-      expect(summary).toBe('Template validation passed successfully');
+      expect(summary).toBe('Template validation passed');
     });
 
     test('should provide error summary', () => {

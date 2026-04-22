@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { TemplateDescriptorSchema, SectionSchema } from '../schemas/template.schemas';
 import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 
@@ -74,7 +74,7 @@ export class TemplateValidator {
 
     const variablePattern = /\{\{\s*(\w+)\s*\}\}/g;
 
-    const checkVariableReferences = (obj: unknown, path: string = ''): void => {
+    const checkVariableReferences = (obj: unknown, path = ''): void => {
       if (typeof obj === 'string') {
         let match;
         while ((match = variablePattern.exec(obj)) !== null) {
@@ -88,14 +88,14 @@ export class TemplateValidator {
           }
         }
       } else if (Array.isArray(obj)) {
-        obj.forEach((item, index) => {
-          checkVariableReferences(item, `${path}[${index}]`);
-        });
+        for (let index = 0; index < obj.length; index++) {
+          checkVariableReferences(obj[index], `${path}[${index}]`);
+        }
       } else if (obj && typeof obj === 'object') {
-        Object.entries(obj).forEach(([key, value]) => {
+        for (const [key, value] of Object.entries(obj)) {
           const newPath = path ? `${path}.${key}` : key;
           checkVariableReferences(value, newPath);
-        });
+        }
       }
     };
 
@@ -112,7 +112,8 @@ export class TemplateValidator {
 
     const sectionNames = new Set(template.sections.map((section) => section.name));
 
-    template.sections.forEach((section, index) => {
+    for (let index = 0; index < template.sections.length; index++) {
+      const section = template.sections[index];
       if (section.options?.useVideoSection) {
         const referencedSection = section.options.useVideoSection;
         if (!sectionNames.has(referencedSection)) {
@@ -123,7 +124,7 @@ export class TemplateValidator {
           });
         }
       }
-    });
+    }
 
     return errors;
   }
@@ -228,8 +229,21 @@ export class TemplateValidator {
   }
 
   async validateTemplateFromFile(filePath: string): Promise<ValidationResult> {
+    if (process.env.PLATFORM === 'browser') {
+      return {
+        success: false,
+        errors: [
+          {
+            path: 'file',
+            message: 'File system operations are only supported in Node.js environment',
+            code: 'unsupported_environment',
+          },
+        ],
+      };
+    }
+
     try {
-      const fs = await import('fs');
+      const fs = await import('node:fs');
       const templateContent = fs.readFileSync(filePath, 'utf-8');
       const templateData = JSON.parse(templateContent);
       return this.validateTemplate(templateData);
@@ -271,7 +285,7 @@ export class TemplateValidator {
 
   getValidationSummary(result: ValidationResult): string {
     if (result.success) {
-      return 'Template validation passed successfully';
+      return 'Template validation passed';
     }
 
     const errorCount = result.errors?.length || 0;

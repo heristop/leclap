@@ -1,7 +1,7 @@
-import { exec, ExecException } from 'node:child_process';
+import { exec, type ExecException } from 'node:child_process';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
-import { FFMpegInfos } from '@/core/types';
+import type { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
 import { FFmpegError } from '@/core/errors/FFmpegError';
 

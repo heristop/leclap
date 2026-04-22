@@ -5,7 +5,7 @@ import path from 'node:path';
 import axios from 'axios';
 import extract from 'extract-zip';
 import AbstractFilesystem from './AbstractFilesystem';
-import AbstractLogger from '../../platform/logging/AbstractLogger';
+import type AbstractLogger from '../../platform/logging/AbstractLogger';
 
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {
@@ -16,30 +16,30 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     super();
   }
 
-  getAssetsPath = async (dir: string): Promise<string> => {
+  override getAssetsPath = async (dir: string): Promise<string> => {
     const fullPath = path.join(this.root, 'packages', 'core', 'src', 'shared', 'assets', dir);
 
     return fullPath;
   };
 
-  getBuildPath = async (dir: string): Promise<string> => {
-    const fullPath = path.join(this.buildDir, dir);
+  override getBuildPath = async (dir: string): Promise<string> => {
+    const fullPath = path.join(this.buildDir || '', dir);
     await fs.mkdir(fullPath, { recursive: true });
 
     return fullPath;
   };
 
-  getSource = (segmentName: string | undefined): string => {
+  override getSource = (segmentName: string | undefined): string => {
     if (!segmentName) {
       segmentName = this.segmentName;
     }
 
-    return segmentName ? path.join(this.assetsDir, 'videos', `${segmentName}.mp4`) : '';
+    return segmentName ? path.join(this.assetsDir || '', 'videos', `${segmentName}.mp4`) : '';
   };
 
-  getDestination = (): string => path.join(this.buildDir, `${this.segmentName}_output.mp4`);
+  override getDestination = (): string => path.join(this.buildDir || '', `${this.segmentName}_output.mp4`);
 
-  fetch = async (url: string): Promise<string> => {
+  override fetch = async (url: string): Promise<string> => {
     const dest = path.join(this.tempDir, path.basename(url));
 
     const response = await axios({
@@ -59,7 +59,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     return dest;
   };
 
-  stat = async (filePath: string): Promise<boolean> => {
+  override stat = async (filePath: string): Promise<boolean> => {
     try {
       await fs.stat(filePath);
       return true;
@@ -68,15 +68,19 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     }
   };
 
-  read = async (filePath: string): Promise<string> => {
+  override read = async (filePath: string): Promise<string> => {
     return await fs.readFile(filePath, 'utf-8');
   };
 
-  copy = async (sourcePath: string, targetPath: string): Promise<void> => {
+  override readFile = async (filePath: string): Promise<Uint8Array> => {
+    return await fs.readFile(filePath);
+  };
+
+  override copy = async (sourcePath: string, targetPath: string): Promise<void> => {
     return await fs.copyFile(sourcePath, targetPath);
   };
 
-  move = async (sourcePath: string, targetPath: string): Promise<void> => {
+  override move = async (sourcePath: string, targetPath: string): Promise<void> => {
     if (
       await fs
         .access(sourcePath)
@@ -89,13 +93,17 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     throw new Error(`${sourcePath} not found`);
   };
 
-  unlink = (filePath: string): Promise<void> => {
+  override unlink = (filePath: string): Promise<void> => {
     this.write(filePath);
 
     return fs.unlink(filePath);
   };
 
-  write = (targetPath: string): Promise<void> => fs.writeFile(targetPath, '');
+  override write = (targetPath: string): Promise<void> => fs.writeFile(targetPath, '');
+
+  override writeFile = async (path: string, data: Uint8Array): Promise<void> => {
+    await fs.writeFile(path, data);
+  };
 
   append = async (targetPath: string, content: string): Promise<void> => {
     if (

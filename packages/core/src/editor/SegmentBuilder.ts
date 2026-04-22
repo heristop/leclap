@@ -1,45 +1,45 @@
-import { autoInjectable, inject } from 'tsyringe';
-import AbstractLogger from '../platform/logging/AbstractLogger';
-import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import { MapAnimationInput, Section } from '@/core/types';
-import Template from '../core/models/Template';
-import Project from '../core/models/Project';
-import Segment from '../core/models/Segment';
-import AssetManager from '../editor/managers/AssetManager';
-import VariableManager from '../editor/managers/VariableManager';
-import MapManager from '../editor/managers/MapManager';
-import FilterManager from '../editor/managers/FilterManager';
-import FormattersManager from '../editor/managers/FormatterManager';
+import { injectable, inject } from 'tsyringe';
+import type AbstractLogger from '../platform/logging/AbstractLogger';
+import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
+import type { MapAnimationInput, Section } from '@/core/types';
+import type Template from '../core/models/Template';
+import type Project from '../core/models/Project';
+import type Segment from '../core/models/Segment';
+import type AssetManager from '../editor/managers/AssetManager';
+import type VariableManager from '../editor/managers/VariableManager';
+import type MapManager from '../editor/managers/MapManager';
+import type FilterManager from '../editor/managers/FilterManager';
+import type FormattersManager from '../editor/managers/FormatterManager';
 
-@autoInjectable()
+@injectable()
 class SegmentBuilder {
-  protected command: string = '-version';
+  protected command = '-version';
 
-  protected filters: string = ''; // FFmpeg filters
+  protected filters = ''; // FFmpeg filters
   protected sources: string[] = []; // FFmpeg inputs
 
-  protected source: string = '';
-  protected destination: string = '';
-  protected hwaccelArg: string = '';
+  protected source = '';
+  public destination = '';
+  protected hwaccelArg = '';
 
-  protected section: Section;
+  protected section!: Section;
 
   constructor(
-    protected project: Project,
-    protected template: Template,
-    protected segment: Segment,
+    @inject('project') protected project: Project,
+    @inject('template') protected template: Template,
+    @inject('segment') protected segment: Segment,
 
-    protected assetManager: AssetManager,
-    protected variableManager: VariableManager,
-    protected mapManager: MapManager,
-    protected filterManager: FilterManager,
-    protected formattersManager: FormattersManager,
+    @inject('AssetManager') protected assetManager: AssetManager,
+    @inject('VariableManager') protected variableManager: VariableManager,
+    @inject('MapManager') protected mapManager: MapManager,
+    @inject('FilterManager') protected filterManager: FilterManager,
+    @inject('FormattersManager') protected formattersManager: FormattersManager,
 
     @inject('logger') protected readonly logger: AbstractLogger,
     @inject('filesystemAdapter')
     protected readonly filesystemAdapter: AbstractFilesystem
   ) {
-    if (this.template.descriptor.global.orientation === 'portrait') {
+    if (this.template.descriptor?.global?.orientation === 'portrait') {
       const [width, height] = this.project.config.videoConfig.scale.split(':');
       this.project.config.videoConfig.scale = `${height}:${width}`;
     }
@@ -50,6 +50,14 @@ class SegmentBuilder {
     this.section.inputs ??= [];
 
     this.segment.currentSection = this.section;
+
+    // Reset segment state for new section
+    this.segment.filtersList = [];
+    this.segment.filtersMapList = [];
+    this.segment.mapsList = [];
+    this.segment.tempFonts = [];
+    this.segment.inputsAsset = [];
+    this.segment.inputsMapCount = 0;
 
     this.assetManager.segment = this.segment;
     this.mapManager.segment = this.segment;
@@ -114,7 +122,7 @@ class SegmentBuilder {
     return true;
   };
 
-  protected configure = (): void => {};
+  protected configure = (): void => { };
 
   getCommand = () => this.command;
 
@@ -183,7 +191,7 @@ class SegmentBuilder {
   };
 
   buildFilters = async (): Promise<void> => {
-    // Initalized filters if section doesn't have config
+    // Initialize filters if not set
     this.section.maps ??= [];
     this.section.filters ??= [];
 
@@ -203,25 +211,25 @@ class SegmentBuilder {
     }
 
     // Build simple filters
-    this.section.filters.forEach((filter) => {
+    for (const filter of this.section.filters) {
       this.segment.filtersList.push(this.filterManager.addFilter(filter));
-    });
+    }
 
     // Build map configuration with their filters
-    this.section.maps.forEach((map) => {
+    for (const map of this.section.maps) {
       this.mapManager.addMap(map);
       this.segment.inputsMapCount++;
-    });
+    }
 
-    // Formatted filters
+    // Format filters
     if (this.segment.filtersList.length > 0) {
       let filtersFormatted = '';
 
       if (this.segment.filtersMapList.length > 0) {
-        // Manage complex filter with maps
+        // Complex filter with maps
         filtersFormatted = this.segment.filtersMapList.join(';');
       } else {
-        // Manage complex filter without maps
+        // Complex filter without maps
         filtersFormatted = this.segment.filtersList.join(',');
       }
 
@@ -229,7 +237,7 @@ class SegmentBuilder {
       this.logger.debug(`[${this.section.name}][Filters] ${filtersFormatted}`);
     }
 
-    // And finally add the final map if any
+    // Add final map if present
     if (this.segment.mapsList.length > 0) {
       this.filters = `${this.filters} -map [${this.segment.mapsList[this.segment.mapsList.length - 1]}] `;
       this.logger.debug(`[${this.section.name}][Maps] ${this.segment.mapsList.join(' ')}`);
@@ -237,7 +245,7 @@ class SegmentBuilder {
   };
 
   /**
-   * Add blank audio to avoid silent map on cancatenation
+   * Generate blank audio track for concatenation
    */
   addBlankAudio = (): string => {
     return (

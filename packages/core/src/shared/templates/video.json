@@ -2,7 +2,7 @@
   "global": {
     "variables": {
       "videoSample": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/earth.mp4",
-      "colorTransition": "#000000"
+      "colorTransition": "#FFFFFF"
     },
     "orientation": "landscape",
     "musicEnabled": false,

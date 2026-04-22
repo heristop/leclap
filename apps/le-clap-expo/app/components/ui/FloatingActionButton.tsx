@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { colors } from '@/src/styles/theme';
 
-const { width } = Dimensions.get('window');
+const { width: _width } = Dimensions.get('window');
 
 interface FloatingActionButtonProps {
   onPress: () => void;
@@ -76,6 +76,7 @@ export default function FloatingActionButton({
     return () => {
       pulseAnimation.stop();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scaleAnim and pulseAnim are stable ref values
   }, []);
 
   const toggleMenu = () => {

@@ -11,7 +11,7 @@ import {
  ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { Project } from '@/src/types';
+import type { Project } from '@/src/types';
 import ConfirmDialog from './dialog/ConfirmDialog';
 import * as Haptics from 'expo-haptics';
 
@@ -28,7 +28,7 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
   onPress,
   onDelete,
 }: SwipeableProjectItemProps) {
-  const [isPressed, setIsPressed] = useState(false);
+  const [_isPressed, setIsPressed] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const pan = useRef(new Animated.ValueXY()).current;
@@ -41,7 +41,7 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
       },
       onPanResponderGrant: () => {
         pan.setOffset({
-          x: (pan.x as any)._value,
+          x: (pan.x as { _value: number })._value,
           y: 0,
         });
         pan.setValue({ x: 0, y: 0 });

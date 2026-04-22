@@ -18,8 +18,8 @@ export const generateThumbnail = async (videoPath: string): Promise<string | nul
     });
 
     return thumbnail.path;
-  } catch (error: any) {
-    console.error('Error generating thumbnail:', error.message || error);
+  } catch (error: unknown) {
+    console.error('Error generating thumbnail:', error instanceof Error ? error.message : error);
     // Return null or a default placeholder path on error instead of throwing
     return null;
   }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePendingCompilations, useRetryQueueItem, useRemoveQueueItem } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
@@ -171,7 +171,7 @@ function CompilationQueueStatus() {
           opacity: expandAnim,
         }
       ]}>
-        {visibleItems.map((item, index) => (
+        {visibleItems.map((item, _index) => (
           <Animated.View
             key={item.id}
             style={[

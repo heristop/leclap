@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Project } from '@/src/domain/entities/Project';
-import { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
+import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
 
 const PROJECTS_STORAGE_KEY = 'ffmpeg_video_composer_projects';
 

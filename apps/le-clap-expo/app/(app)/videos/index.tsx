@@ -8,7 +8,7 @@ export default function VideosTab() {
   const [cameraModalVisible, setCameraModalVisible] = useState(false);
   
   // Handle recorded video
-  const handleVideoRecorded = (video) => {
+  const handleVideoRecorded = (_video: unknown) => {
     // Handle the recorded video here
   };
 

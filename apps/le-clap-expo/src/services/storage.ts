@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Template } from '@/src/types';
+import type { Template } from '@/src/types';
 
 // Storage keys
 const TEMPLATES_CACHE_KEY = 'ffmpeg_video_composer_templates_cache';
@@ -14,7 +14,7 @@ export interface TemplatesCacheMetadata {
 export interface CompilationQueueItem {
   id: string;
   projectId: string;
-  templateDescriptor: any;
+  templateDescriptor: unknown;
   recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>;
   status: 'pending' | 'processing' | 'failed' | 'completed';
   createdAt: string;

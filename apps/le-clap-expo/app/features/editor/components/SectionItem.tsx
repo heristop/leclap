@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Section } from '@/src/types';
+import type { Section } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
 interface SectionItemProps {

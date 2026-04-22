@@ -1,6 +1,7 @@
 import { Project as DomainProject } from '@/src/domain/entities/Project';
-import { Project as UIProject, TemplateDescriptor } from '@/src/types';
+import type { Project as UIProject, TemplateDescriptor } from '@/src/types';
 import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
+import { ProjectStatus } from '@/src/domain/valueObjects/ProjectStatus';
 
 /**
  * Mapper to convert between domain entities and UI types
@@ -9,7 +10,7 @@ export class ProjectMapper {
   /**
    * Convert domain Project entity to UI Project interface
    */
-  static toUI(domainProject: DomainProject): UIProject {
+  static toUI(domainProject: InstanceType<typeof DomainProject>): UIProject {
     // Convert VideoMetadata instances to plain objects
     const recordedVideos: Record<
       string,
@@ -21,14 +22,14 @@ export class ProjectMapper {
       }
     > = {};
 
-    Object.entries(domainProject.recordedVideos).forEach(([key, metadata]) => {
+    for (const [key, metadata] of Object.entries(domainProject.recordedVideos)) {
       recordedVideos[key] = {
         path: metadata.path,
         orientation: metadata.orientation || 'portrait',
         duration: metadata.duration,
         fileSize: undefined, // VideoMetadata doesn't have fileSize
       };
-    });
+    }
 
     return {
       id: domainProject.id,
@@ -48,11 +49,11 @@ export class ProjectMapper {
   /**
    * Convert UI Project interface to domain Project entity
    */
-  static toDomain(uiProject: UIProject): DomainProject {
+  static toDomain(uiProject: UIProject): InstanceType<typeof DomainProject> {
     // Convert plain objects to VideoMetadata instances
-    const recordedVideos: Record<string, VideoMetadata> = {};
+    const recordedVideos: Record<string, InstanceType<typeof VideoMetadata>> = {};
 
-    Object.entries(uiProject.recordedVideos).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(uiProject.recordedVideos)) {
       recordedVideos[key] = new VideoMetadata(
         value.path,
         value.orientation,
@@ -61,14 +62,23 @@ export class ProjectMapper {
         undefined, // height
         new Date()
       );
-    });
+    }
+
+    // Convert status string to ProjectStatus enum
+    const statusMap: Record<string, ProjectStatus> = {
+      draft: ProjectStatus.DRAFT,
+      processing: ProjectStatus.PROCESSING,
+      completed: ProjectStatus.COMPLETED,
+      failed: ProjectStatus.FAILED,
+    };
+    const domainStatus = statusMap[uiProject.status] || ProjectStatus.DRAFT;
 
     return new DomainProject(
       uiProject.id,
       uiProject.name,
       uiProject.templateName,
       uiProject.templateContent as Record<string, unknown>,
-      uiProject.status as any, // Will be converted to ProjectStatus enum
+      domainStatus,
       uiProject.formData,
       recordedVideos,
       new Date(uiProject.createdAt),
@@ -81,7 +91,7 @@ export class ProjectMapper {
   /**
    * Convert array of domain Projects to UI Projects
    */
-  static toUIArray(domainProjects: DomainProject[]): UIProject[] {
+  static toUIArray(domainProjects: InstanceType<typeof DomainProject>[]): UIProject[] {
     return domainProjects.map((project) => ProjectMapper.toUI(project));
   }
 }

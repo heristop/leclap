@@ -1,4 +1,4 @@
-import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
 export interface NetworkState {
   isConnected: boolean;
@@ -59,7 +59,7 @@ export const subscribeToNetworkState = (callback: (state: NetworkState) => void)
 /**
  * Wait for internet connection with timeout
  */
-export const waitForConnection = (timeoutMs: number = 30000): Promise<boolean> => {
+export const waitForConnection = (timeoutMs = 30000): Promise<boolean> => {
   return new Promise((resolve) => {
     let timeoutId: NodeJS.Timeout;
     let unsubscribe: (() => void) | null = null;
@@ -97,7 +97,7 @@ export const waitForConnection = (timeoutMs: number = 30000): Promise<boolean> =
 /**
  * Test actual connectivity by making a lightweight request
  */
-export const testConnectivity = async (url: string = 'https://www.google.com'): Promise<boolean> => {
+export const testConnectivity = async (url = 'https://www.google.com'): Promise<boolean> => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout

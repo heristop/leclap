@@ -1,10 +1,9 @@
-import { createTamagui } from '@tamagui/core';
+import { createTamagui, createFont } from '@tamagui/core';
 import { config } from '@tamagui/config';
-import { createInterFont } from '@tamagui/font-inter';
 
 // Custom font configuration
-const interFont = createInterFont({
-  family: 'Inter',
+const oswaldFont = createFont({
+  family: 'Oswald',
   size: {
     1: 11,
     2: 12,
@@ -33,6 +32,13 @@ const interFont = createInterFont({
     6: '800',
     7: '900',
   },
+  face: {
+    300: { normal: 'Oswald_300Light' },
+    400: { normal: 'Oswald_400Regular' },
+    500: { normal: 'Oswald_500Medium' },
+    600: { normal: 'Oswald_600SemiBold' },
+    700: { normal: 'Oswald_700Bold' },
+  },
 });
 
 // Custom media queries
@@ -57,8 +63,8 @@ const media = {
 const leClapConfig = createTamagui({
   ...config,
   fonts: {
-    body: interFont,
-    heading: interFont,
+    body: oswaldFont,
+    heading: oswaldFont,
   },
   media,
   themes: {
@@ -197,5 +203,6 @@ export default leClapConfig;
 export type Conf = typeof leClapConfig;
 
 declare module '@tamagui/core' {
-  interface TamaguiCustomConfig extends Conf {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface TamaguiCustomConfig extends Conf { }
 }

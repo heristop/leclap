@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/app/features/editor/components/FormSection';
-import { Template, Section, Project } from '@/src/types';
+import type { Template, Section, Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
@@ -51,6 +51,7 @@ const TemplateDetailScreen = () => {
       }
       // If projectId exists but no project found after loading, don't create a new one
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- createNewProject is defined below and uses template
   }, [template, existingProject, projectLoading, projectId]);
 
   const createNewProject = (templateData: Template) => {
@@ -150,10 +151,10 @@ const TemplateDetailScreen = () => {
     const processedTemplate = JSON.parse(JSON.stringify(template.content));
 
     let templateString = JSON.stringify(processedTemplate);
-    Object.entries(project.formData).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(project.formData)) {
       const placeholder = `{{ ${key} }}`;
-      templateString = templateString.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
-    });
+      templateString = templateString.replace(new RegExp(placeholder.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
+    }
 
     const finalTemplate = JSON.parse(templateString);
 
@@ -203,7 +204,7 @@ const TemplateDetailScreen = () => {
             );
           }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           console.error('Error during compilation:', error);
           Alert.alert(
             'Compilation Error',

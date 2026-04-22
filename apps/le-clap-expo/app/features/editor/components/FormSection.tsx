@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, Dimensions } from 'react-native';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { Section } from '@/src/types';
+import type { Section } from '@/src/types';
 
 interface FormSectionProps {
   section: Section;

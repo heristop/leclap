@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '@/src/hooks/useTemplates';
-import { Template } from '@/src/types';
+import type { Template } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
 import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
@@ -16,7 +16,7 @@ interface BrowseTemplatesScreenProps {
   onRecordPress?: () => void;
 }
 
-const BrowseTemplatesScreen = ({ onRecordPress }: BrowseTemplatesScreenProps) => {
+const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplatesScreenProps) => {
   const router = useRouter();
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
   const { isOffline } = useOffline();

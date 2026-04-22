@@ -1,7 +1,7 @@
-import { Project } from '@/src/domain/entities/Project';
+import type { Project } from '@/src/domain/entities/Project';
 import { container } from '@/src/infrastructure/di/Container';
-import { CreateProjectDTO } from '@/src/application/usecases/projects/CreateProject';
-import { UpdateProjectDTO } from '@/src/application/usecases/projects/UpdateProject';
+import type { CreateProjectDTO } from '@/src/application/usecases/projects/CreateProject';
+import type { UpdateProjectDTO } from '@/src/application/usecases/projects/UpdateProject';
 import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 
 export class ProjectAdapter {

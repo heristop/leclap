@@ -9,15 +9,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { VideoFile } from 'react-native-vision-camera';
+import type { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/app/features/editor/components/VideoRecorder';
-import { Section } from '@/src/types';
+import type { Section } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
 // Helper function to parse JSON safely
-const safeJsonParse = (jsonString: string | undefined | null): any | null => {
+const safeJsonParse = (jsonString: string | undefined | null): unknown | null => {
   if (!jsonString) return null;
   try {
     return JSON.parse(jsonString);
@@ -113,9 +113,9 @@ const RecordSectionScreen = () => {
             path: video.path,
             orientation: orientation,
             // Add optional metadata if available
-            duration: (video as any).duration,
-            width: (video as any).width,
-            height: (video as any).height,
+            duration: (video as unknown as { duration?: number }).duration,
+            width: (video as unknown as { width?: number }).width,
+            height: (video as unknown as { height?: number }).height,
             recordedAt: new Date().toISOString(),
           },
         },
@@ -161,7 +161,7 @@ const RecordSectionScreen = () => {
         });
       }
 
-    } catch (error) {
+    } catch {
       console.error('Error saving recorded video:', error);
       Alert.alert('Error', 'Failed to save recorded video. Please try again.');
     }

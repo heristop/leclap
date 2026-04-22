@@ -9,7 +9,6 @@ import {
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useOrientation } from '@/src/hooks/useOrientation';
-import { useNavigation } from 'expo-router';
 
 /**
  * This is a completely standalone screen for recording videos
@@ -23,7 +22,7 @@ export const VideoRecordingScreen = ({
   const [cameraType, setCameraType] = useState('back');
   const device = useCameraDevice(cameraType);
   const cameraRef = useRef(null);
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   
   const { lockOrientation, unlockOrientation } = useOrientation(orientation);
   
@@ -58,6 +57,7 @@ export const VideoRecordingScreen = ({
         StatusBar.setHidden(false);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lockOrientation and unlockOrientation are stable functions
   }, [orientation]);
   
   // Handle recording start

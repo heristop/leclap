@@ -24,7 +24,7 @@ export const animatePress = (scaleValue: Animated.Value, pressed: boolean): void
  * @param {number} duration - The duration of the animation in ms
  * @param {function} callback - Function to call when animation completes
  */
-export const fadeIn = (opacityValue: Animated.Value, duration: number = 300, callback?: () => void): void => {
+export const fadeIn = (opacityValue: Animated.Value, duration = 300, callback?: () => void): void => {
   Animated.timing(opacityValue, {
     toValue: 1,
     duration,
@@ -39,7 +39,7 @@ export const fadeIn = (opacityValue: Animated.Value, duration: number = 300, cal
  * @param {number} duration - The duration of the animation in ms
  * @param {function} callback - Function to call when animation completes
  */
-export const fadeOut = (opacityValue: Animated.Value, duration: number = 300, callback?: () => void): void => {
+export const fadeOut = (opacityValue: Animated.Value, duration = 300, callback?: () => void): void => {
   Animated.timing(opacityValue, {
     toValue: 0,
     duration,
@@ -57,8 +57,8 @@ export const fadeOut = (opacityValue: Animated.Value, duration: number = 300, ca
  */
 export const slideInFromBottom = (
   translateYValue: Animated.Value,
-  initialOffset: number = 100,
-  duration: number = 300,
+  initialOffset = 100,
+  duration = 300,
   callback?: () => void
 ): void => {
   Animated.timing(translateYValue, {
@@ -77,8 +77,8 @@ export const slideInFromBottom = (
  */
 export const staggerAnimations = (
   animations: Animated.Value[],
-  staggerDelay: number = 50,
-  duration: number = 300
+  staggerDelay = 50,
+  duration = 300
 ): void => {
   const animationSequence = animations.map((anim, i) => {
     return Animated.timing(anim, {

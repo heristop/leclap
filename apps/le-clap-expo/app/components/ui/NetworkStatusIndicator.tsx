@@ -22,7 +22,7 @@ function NetworkStatusIndicator({
   const { isOnline, isOffline, networkType, hasInternet } = useOffline();
   const { data: syncStatus } = useTemplatesSyncStatus();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [lastStatusChange, setLastStatusChange] = useState<Date | null>(null);
+  const [_lastStatusChange, setLastStatusChange] = useState<Date | null>(null);
 
   // Track status changes for auto-expand
   useEffect(() => {

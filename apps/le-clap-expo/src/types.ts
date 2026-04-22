@@ -41,8 +41,8 @@ export interface Section {
     forceOriginalAspectRatio?: boolean;
   };
   inputs?: { name: string; url: string }[];
-  maps?: any[]; // Maps for FFMPEG operations
-  filters?: any[]; // Filters for FFMPEG operations
+  maps?: unknown[]; // Maps for FFMPEG operations
+  filters?: unknown[]; // Filters for FFMPEG operations
   title?: { [key: string]: string };
   description?: { [key: string]: string }; // Section description for UI display
 }

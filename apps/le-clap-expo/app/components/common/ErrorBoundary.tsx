@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, typography, spacing } from '@/src/styles/theme';
 

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchTemplates, fetchTemplateByName } from '@/src/services/api';
-import { Template } from '@/src/types';
+import type { Template } from '@/src/types';
 import { getCachedTemplates, cacheTemplates, isTemplatesCacheStale } from '@/src/services/storage';
 import { hasInternetConnection } from '@/src/services/network';
 
@@ -41,7 +41,7 @@ export const useTemplates = () => {
     },
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
-    retry: (failureCount, error) => {
+    retry: (failureCount, _error) => {
       // Don't retry if we have cached data
       return failureCount < 2 && !getCachedTemplates();
     },

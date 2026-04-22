@@ -45,7 +45,7 @@ export const useQueueVideoCompilation = () => {
       recordedVideos,
     }: {
       projectId: string;
-      templateDescriptor: any;
+      templateDescriptor: unknown;
       recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>;
     }) => {
       const isOnline = await hasInternetConnection();
@@ -86,7 +86,7 @@ export const useProcessQueuedCompilations = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (maxRetries: number = 3) => {
+    mutationFn: async (maxRetries = 3) => {
       const isOnline = await hasInternetConnection();
       if (!isOnline) {
         throw new Error('No internet connection for processing queue');
@@ -252,7 +252,7 @@ export const useCleanupQueue = () => {
 /**
  * Hook for auto-processing queue when coming online
  */
-export const useAutoProcessQueue = (enabled: boolean = true) => {
+export const useAutoProcessQueue = (enabled = true) => {
   const processQueue = useProcessQueuedCompilations();
 
   return useMutation({

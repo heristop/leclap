@@ -41,14 +41,20 @@ const features = [
 
 export const FeaturesSection = () => {
   return (
-    <section id="features" className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+    <section id="features" className="py-24 bg-gray-900 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-900/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-900/20 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
             Real Video Composer Features
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Experience the full power of FFmpeg Video Composer running directly in your browser
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto font-light">
+            Experience the full power of LeClap running directly in your browser
             with real templates and production-grade processing capabilities.
           </p>
         </div>
@@ -59,66 +65,38 @@ export const FeaturesSection = () => {
             return (
               <div
                 key={feature.title}
-                className="relative p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 fade-in"
+                className="group relative p-8 glass-panel-dark rounded-2xl transition-all duration-500 hover:bg-white/5 hover:-translate-y-2 fade-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Highlight Badge */}
                 <div className="absolute -top-3 -right-3">
-                  <span className="px-3 py-1 bg-gradient-to-r from-brand-500 to-purple-600 text-white text-xs font-bold rounded-full">
+                  <span className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full shadow-lg">
                     {feature.highlight}
                   </span>
                 </div>
 
                 {/* Icon */}
-                <div className="flex items-center mb-4">
-                  <div className="p-3 bg-gradient-to-r from-brand-100 to-purple-100 rounded-lg mr-4">
-                    <IconComponent className="w-6 h-6 text-brand-600" />
+                <div className="flex items-center mb-6">
+                  <div className="p-4 bg-white/5 rounded-xl mr-4 group-hover:bg-blue-500/20 transition-colors duration-300">
+                    <IconComponent className="w-8 h-8 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-2xl font-semibold text-white">
                     {feature.title}
                   </h3>
                 </div>
 
                 {/* Description */}
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
                   {feature.description}
                 </p>
 
                 {/* Decorative Border */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
             )
           })}
         </div>
 
-        {/* Tech Stack */}
-        <div className="mt-16 text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">
-            Built with Modern Technologies
-          </h3>
-          <div className="flex flex-wrap justify-center items-center gap-8 text-gray-600">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="font-medium">React 19</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-              <span className="font-medium">Tailwind CSS v4</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="font-medium">WebAssembly FFmpeg</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="font-medium">TypeScript</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="font-medium">Template Engine</span>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   )

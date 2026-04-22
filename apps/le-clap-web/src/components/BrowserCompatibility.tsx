@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle2, XCircle, AlertTriangle, Info, Monitor, Globe } from 'lucide-react'
+import { CheckCircle2, XCircle, AlertTriangle, Info, Monitor, Globe, ChevronDown, ChevronUp } from 'lucide-react'
 import clsx from 'clsx'
 
 interface CompatibilityCheck {
@@ -20,13 +20,13 @@ export const BrowserCompatibility = () => {
     {
       name: 'SharedArrayBuffer',
       status: 'checking',
-      description: 'Enables multi-threaded processing',
+      description: 'Required for multi-threaded processing',
       required: true
     },
     {
       name: 'Cross-Origin Isolation',
       status: 'checking',
-      description: 'Enables advanced WebAssembly features',
+      description: 'Required for SharedArrayBuffer support',
       required: true
     },
     {
@@ -38,7 +38,7 @@ export const BrowserCompatibility = () => {
     {
       name: 'Web Workers',
       status: 'checking',
-      description: 'Enables background processing',
+      description: 'Allows background processing',
       required: false
     }
   ])
@@ -48,6 +48,9 @@ export const BrowserCompatibility = () => {
     version: string
     recommendation?: string
   } | null>(null)
+
+  const [isVisible, setIsVisible] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     const runCompatibilityChecks = () => {
@@ -70,6 +73,14 @@ export const BrowserCompatibility = () => {
       newChecks[4].status = typeof Worker !== 'undefined' ? 'supported' : 'unsupported'
 
       setChecks(newChecks)
+
+      // Auto-hide if all required checks pass
+      const allRequiredPassed = newChecks.every(check => !check.required || check.status === 'supported')
+      if (allRequiredPassed) {
+        setTimeout(() => {
+          setIsVisible(false)
+        }, 3000)
+      }
     }
 
     const detectBrowser = () => {
@@ -102,12 +113,15 @@ export const BrowserCompatibility = () => {
       setBrowserInfo(browser)
     }
 
-    // Run checks after a short delay for better UX
+    // Delay checks slightly to avoid flash during page load
     setTimeout(() => {
       runCompatibilityChecks()
       detectBrowser()
     }, 500)
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // checks is used but intentionally excluded - this effect should only run once on mount
+
+  if (!isVisible) return null
 
   const supportedCount = checks.filter(check => check.status === 'supported').length
   const requiredCount = checks.filter(check => check.required).length
@@ -129,17 +143,20 @@ export const BrowserCompatibility = () => {
   return (
     <div className="mb-8 fade-in">
       <div className={clsx(
-        'p-6 rounded-lg border-2 transition-all duration-300',
+        'rounded-xl border transition-all duration-300 backdrop-blur-sm overflow-hidden',
         overallStatus === 'supported'
-          ? 'bg-green-50 border-green-200'
-          : 'bg-yellow-50 border-yellow-200'
+          ? 'bg-green-900/20 border-green-500/30'
+          : 'bg-yellow-900/20 border-yellow-500/30'
       )}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Header - Always Visible */}
+        <div
+          className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <div className="flex items-center space-x-3">
             <div className={clsx(
-              'p-2 rounded-lg',
-              overallStatus === 'supported' ? 'bg-green-500' : 'bg-yellow-500'
+              'p-2 rounded-lg shadow-lg',
+              overallStatus === 'supported' ? 'bg-green-600 shadow-green-500/20' : 'bg-yellow-600 shadow-yellow-500/20'
             )}>
               {overallStatus === 'supported' ? (
                 <CheckCircle2 className="w-5 h-5 text-white" />
@@ -148,108 +165,124 @@ export const BrowserCompatibility = () => {
               )}
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-white">
                 Browser Compatibility
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-400">
                 {overallStatus === 'supported'
-                  ? 'Your browser supports all required features!'
-                  : 'Some features may not work optimally'
+                  ? 'All systems go'
+                  : 'Some features may be limited'
                 }
               </p>
             </div>
           </div>
 
-          {/* Browser Info */}
-          {browserInfo && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <BrowserIcon className="w-4 h-4" />
-              <span>{browserInfo.name} {browserInfo.version}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="font-medium text-gray-700">
-              Compatibility: {supportedCount}/{checks.length} features supported
-            </span>
-            <span className={clsx(
-              'font-semibold',
-              overallStatus === 'supported' ? 'text-green-600' : 'text-yellow-600'
-            )}>
-              {Math.round((supportedCount / checks.length) * 100)}%
-            </span>
-          </div>
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={clsx(
-                'h-full transition-all duration-500',
-                overallStatus === 'supported'
-                  ? 'bg-green-500'
-                  : 'bg-yellow-500'
-              )}
-              style={{ width: `${(supportedCount / checks.length) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Feature Checks */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-          {checks.map((check) => (
-            <div key={check.name} className="flex items-center space-x-3 p-2 rounded-lg bg-white/50">
-              <div className={clsx(
-                'flex-shrink-0',
-                check.status === 'supported' && 'text-green-500',
-                check.status === 'unsupported' && 'text-red-500',
-                check.status === 'partial' && 'text-yellow-500',
-                check.status === 'checking' && 'text-gray-400'
-              )}>
-                {check.status === 'supported' && <CheckCircle2 className="w-4 h-4" />}
-                {check.status === 'unsupported' && <XCircle className="w-4 h-4" />}
-                {check.status === 'partial' && <AlertTriangle className="w-4 h-4" />}
-                {check.status === 'checking' && <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />}
+          <div className="flex items-center space-x-4">
+            {/* Browser Info */}
+            {browserInfo && (
+              <div className="hidden sm:flex items-center space-x-2 text-xs text-gray-400 bg-gray-800/50 px-3 py-1.5 rounded-full border border-white/5">
+                <BrowserIcon className="w-3 h-3" />
+                <span>{browserInfo.name} {browserInfo.version}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {check.name}
-                  </p>
-                  {check.required && (
-                    <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-600 rounded">
-                      Required
-                    </span>
+            )}
+
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </div>
+        </div>
+
+        {/* Expanded Content */}
+        <div className={clsx(
+          'transition-all duration-300 ease-in-out overflow-hidden',
+          isExpanded ? 'max-h-[500px] opacity-100 border-t border-white/5' : 'max-h-0 opacity-0'
+        )}>
+          <div className="p-4 space-y-4">
+            {/* Progress Bar */}
+            <div>
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="font-medium text-gray-300">
+                  {supportedCount}/{checks.length} features supported
+                </span>
+                <span className={clsx(
+                  'font-semibold',
+                  overallStatus === 'supported' ? 'text-green-400' : 'text-yellow-400'
+                )}>
+                  {Math.round((supportedCount / checks.length) * 100)}%
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={clsx(
+                    'h-full transition-all duration-500',
+                    overallStatus === 'supported'
+                      ? 'bg-green-500'
+                      : 'bg-yellow-500'
                   )}
-                </div>
-                <p className="text-xs text-gray-500">
-                  {check.description}
-                </p>
+                  style={{ width: `${(supportedCount / checks.length) * 100}%` }}
+                />
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Recommendations */}
-        {(browserInfo?.recommendation || overallStatus !== 'supported') && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-800 mb-2">
-              💡 Recommendations
-            </h4>
-            <ul className="text-sm text-blue-700 space-y-1">
-              {browserInfo?.recommendation && (
-                <li>• {browserInfo.recommendation}</li>
-              )}
-              {overallStatus !== 'supported' && (
-                <>
-                  <li>• For best performance, use Chrome 88+, Firefox 79+, or Safari 14+</li>
-                  <li>• Ensure your browser supports WebAssembly and SharedArrayBuffer</li>
-                  <li>• Some features require HTTPS or localhost for security reasons</li>
-                </>
-              )}
-            </ul>
+            {/* Feature Checks */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {checks.map((check) => (
+                <div key={check.name} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-800/40 border border-white/5">
+                  <div className={clsx(
+                    'flex-shrink-0',
+                    check.status === 'supported' && 'text-green-400',
+                    check.status === 'unsupported' && 'text-red-400',
+                    check.status === 'partial' && 'text-yellow-400',
+                    check.status === 'checking' && 'text-gray-500'
+                  )}>
+                    {check.status === 'supported' && <CheckCircle2 className="w-4 h-4" />}
+                    {check.status === 'unsupported' && <XCircle className="w-4 h-4" />}
+                    {check.status === 'partial' && <AlertTriangle className="w-4 h-4" />}
+                    {check.status === 'checking' && <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm font-medium text-gray-200 truncate">
+                        {check.name}
+                      </p>
+                      {check.required && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-900/30 text-red-300 border border-red-500/20 rounded">
+                          Required
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {check.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Recommendations */}
+            {(browserInfo?.recommendation || overallStatus !== 'supported') && (
+              <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-300 mb-2">
+                  💡 Recommendations
+                </h4>
+                <ul className="text-sm text-blue-200/70 space-y-1">
+                  {browserInfo?.recommendation && (
+                    <li>• {browserInfo.recommendation}</li>
+                  )}
+                  {overallStatus !== 'supported' && (
+                    <>
+                      <li>• For best performance, use Chrome 88+, Firefox 79+, or Safari 14+</li>
+                      <li>• Ensure your browser supports WebAssembly and SharedArrayBuffer</li>
+                      <li>• Some features require HTTPS or localhost for security reasons</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

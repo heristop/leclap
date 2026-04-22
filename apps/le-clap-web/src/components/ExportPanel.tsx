@@ -1,6 +1,7 @@
 import { useState, useRef, startTransition } from 'react'
 import { Download, Play, Pause, Share2, Copy, Check, FileVideo, HardDrive } from 'lucide-react'
 import clsx from 'clsx'
+import { logger } from '../lib/logger'
 
 interface ProcessedVideo {
   blob: Blob
@@ -45,7 +46,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
   }
 
   const handleDownload = () => {
-    // Simulate download progress for better UX
+    // Show visual feedback during download
     setDownloadProgress(0)
     const interval = setInterval(() => {
       setDownloadProgress(prev => {
@@ -76,7 +77,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
       })
       setTimeout(() => setShowCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy:', err)
+      logger.error('Failed to copy:', err)
     }
   }
 
@@ -92,7 +93,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
           files: [file]
         })
       } catch (err) {
-        console.error('Error sharing:', err)
+        logger.error('Error sharing:', err)
       }
     }
   }
@@ -100,7 +101,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
   return (
     <div className="space-y-6 fade-in">
       {/* Video Preview */}
-      <div className="relative bg-black rounded-lg overflow-hidden shadow-xl">
+      <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10">
         <video
           ref={videoRef}
           src={processedVideo.url}
@@ -112,10 +113,14 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
         />
 
         {/* Custom Play/Pause Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <button
             onClick={handlePlayPause}
-            className="p-4 bg-black/50 rounded-full text-white hover:bg-black/70 transition-all duration-200 hover:scale-110"
+            className={clsx(
+              "p-4 bg-black/50 rounded-full text-white transition-all duration-200 pointer-events-auto backdrop-blur-sm border border-white/10 cursor-pointer",
+              isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100 hover:scale-110 hover:bg-black/70"
+            )}
+            aria-label={isPlaying ? "Pause video" : "Play video"}
           >
             {isPlaying ? (
               <Pause className="w-8 h-8" />
@@ -126,40 +131,40 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
         </div>
 
         {/* Video Controls Bar */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 pt-12">
           <div className="flex items-center justify-between text-white text-sm">
             <div className="flex items-center space-x-2">
-              <FileVideo className="w-4 h-4" />
-              <span>Processed Video</span>
+              <FileVideo className="w-4 h-4 text-brand-400" />
+              <span className="font-medium">Processed Video</span>
             </div>
             {processedVideo.duration && (
-              <span>{formatDuration(processedVideo.duration)}</span>
+              <span className="font-mono text-gray-300">{formatDuration(processedVideo.duration)}</span>
             )}
           </div>
         </div>
       </div>
 
       {/* Video Information */}
-      <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+      <div className="grid grid-cols-2 gap-4 p-4 bg-gray-800/40 border border-white/10 rounded-xl backdrop-blur-sm">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <HardDrive className="w-5 h-5 text-blue-600" />
+          <div className="p-2 bg-blue-500/20 rounded-lg border border-blue-500/20">
+            <HardDrive className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">File Size</p>
-            <p className="text-lg font-semibold text-blue-600">
+            <p className="text-sm font-medium text-gray-400">File Size</p>
+            <p className="text-lg font-semibold text-white">
               {formatFileSize(processedVideo.size)}
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <FileVideo className="w-5 h-5 text-green-600" />
+          <div className="p-2 bg-green-500/20 rounded-lg border border-green-500/20">
+            <FileVideo className="w-5 h-5 text-green-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Format</p>
-            <p className="text-lg font-semibold text-green-600">MP4</p>
+            <p className="text-sm font-medium text-gray-400">Format</p>
+            <p className="text-lg font-semibold text-white">MP4</p>
           </div>
         </div>
       </div>
@@ -172,8 +177,8 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
           disabled={downloadProgress > 0 && downloadProgress < 100}
           className={clsx(
             'w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-200',
-            'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700',
-            'focus:outline-none focus:ring-4 focus:ring-green-200 hover:scale-105 shadow-lg hover:shadow-xl',
+            'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500',
+            'focus:outline-none focus:ring-4 focus:ring-green-500/30 hover:scale-[1.02] shadow-lg hover:shadow-green-500/20 cursor-pointer',
             downloadProgress > 0 && downloadProgress < 100 && 'cursor-wait opacity-75'
           )}
         >
@@ -190,9 +195,9 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
 
         {/* Progress Bar for Download */}
         {downloadProgress > 0 && downloadProgress < 100 && (
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-300"
+              className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"
               style={{ width: `${downloadProgress}%` }}
             />
           </div>
@@ -203,9 +208,9 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
           <button
             onClick={handleCopyLink}
             className={clsx(
-              'flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200',
-              'border-2 border-gray-300 text-gray-700 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50',
-              showCopied && 'border-green-400 text-green-600 bg-green-50'
+              'flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all duration-200 cursor-pointer',
+              'border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white hover:border-white/20',
+              showCopied && 'border-green-500/50 text-green-400 bg-green-500/10'
             )}
           >
             {showCopied ? (
@@ -224,7 +229,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
           {'share' in navigator && (
             <button
               onClick={handleShare}
-              className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 border-2 border-gray-300 text-gray-700 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50"
+              className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all duration-200 border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white hover:border-white/20 cursor-pointer"
             >
               <Share2 className="w-4 h-4" />
               <span>Share</span>
@@ -234,12 +239,12 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
       </div>
 
       {/* Success Message */}
-      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-        <h4 className="font-semibold text-green-800 mb-2">
-          🎉 Video Processing Complete!
+      <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-xl backdrop-blur-sm">
+        <h4 className="font-semibold text-green-400 mb-2 flex items-center">
+          <span className="mr-2">🎉</span> Video Processing Complete!
         </h4>
-        <ul className="text-sm text-green-700 space-y-1">
-          <li>• Your video has been processed successfully</li>
+        <ul className="text-sm text-green-200/70 space-y-1">
+          <li>• Your video has been processed</li>
           <li>• All processing was done locally in your browser</li>
           <li>• No data was sent to external servers</li>
           <li>• You can download and share your video now</li>

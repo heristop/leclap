@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useOptimistic, startTransition } from 'react';
-import { simpleBrowserCompilationService, type CompilationConfig } from '../services/simpleBrowserCompilationService';
+import { coreCompilationService, type CompilationConfig } from '../services/coreCompilationService';
 import { type Template } from '../services/templateService';
+import { logger } from '../lib/logger';
 
 interface ProcessingProgress {
   stage: string;
@@ -46,7 +47,7 @@ export const useVideoProcessing = () => {
       ...optimisticUpdate,
       progress: {
         ...currentState.progress,
-        ...(optimisticUpdate.progress || {}),
+        ...optimisticUpdate.progress,
       },
     })
   );
@@ -84,7 +85,9 @@ export const useVideoProcessing = () => {
         progress: { ...prev.progress, ...progressUpdate },
       }));
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [optimisticState.progress.percentage]
+    // setOptimisticState is stable (from useOptimistic) and doesn't need to be in deps
   );
 
   const processVideo = useCallback(
@@ -130,8 +133,8 @@ export const useVideoProcessing = () => {
       startTime.current = Date.now();
 
       try {
-        // Use the simple browser compilation service
-        const result = await simpleBrowserCompilationService.compileVideo(compilationConfig, (progress) => {
+        // Use the core compilation service
+        const result = await coreCompilationService.compileVideo(compilationConfig, (progress) => {
           updateProgress(progress);
         });
 
@@ -142,18 +145,30 @@ export const useVideoProcessing = () => {
           isProcessing: false,
         }));
       } catch (err) {
-        console.error('Video compilation error:', err);
+        logger.error('Video compilation error:', err);
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during video compilation';
         setState((prev) => ({
           ...prev,
           error: errorMessage,
           isProcessing: false,
+          progress: { ...prev.progress, stage: 'Error' }
         }));
+
+        // Also update optimistic state to ensure UI reflects error immediately
+        startTransition(() => {
+          setOptimisticState({
+            isProcessing: false,
+            error: errorMessage,
+            progress: { ...optimisticState.progress, stage: 'Error' }
+          });
+        });
       } finally {
         abortController.current = null;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [updateProgress]
+    // setOptimisticState is stable (from useOptimistic) and doesn't need to be in deps
   );
 
   const cancelProcessing = useCallback(() => {
@@ -174,7 +189,8 @@ export const useVideoProcessing = () => {
         error: 'Processing was cancelled by user',
       }));
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // setOptimisticState is stable (from useOptimistic) and doesn't need to be in deps
 
   const clearResults = useCallback(() => {
     if (optimisticState.processedVideo) {
@@ -199,7 +215,8 @@ export const useVideoProcessing = () => {
     });
 
     setState((prev) => ({ ...prev, ...clearedState }));
-  }, [optimisticState.processedVideo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optimisticState.processedVideo]); // setOptimisticState is stable (from useOptimistic) and doesn't need to be in deps
 
   return {
     isProcessing: optimisticState.isProcessing,
@@ -209,6 +226,6 @@ export const useVideoProcessing = () => {
     processVideo,
     cancelProcessing,
     clearResults,
-    isFFmpegReady: true, // Browser compilation service handles FFmpeg initialization internally
+    isFFmpegReady: true, // Core compilation service handles all initialization internally
   };
 };

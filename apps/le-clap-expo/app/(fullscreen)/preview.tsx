@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
-  Dimensions
+  StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { useProject } from '@/src/hooks/useProjects';
-import { Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useOrientation } from '@/src/hooks/useOrientation';
 

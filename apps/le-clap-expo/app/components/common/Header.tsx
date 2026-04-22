@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useNavigation } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import { colors, typography, spacing } from '@/src/styles/theme';
 
 interface HeaderProps {
@@ -82,6 +82,7 @@ export default function Header({
     return () => {
       logoScaleAnim.stopAnimation();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- logoScaleAnim is a stable ref value
   }, []);
 
   const handleBackPress = () => {

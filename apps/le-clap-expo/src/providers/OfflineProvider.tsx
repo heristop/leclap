@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useNetworkState, useOnlineStatusChange } from '@/src/hooks/useNetworkState';
 import { useAutoProcessQueue, useCleanupQueue } from '@/src/hooks/useCompilationQueue';
 import { useRefreshTemplates } from '@/src/hooks/useTemplates';

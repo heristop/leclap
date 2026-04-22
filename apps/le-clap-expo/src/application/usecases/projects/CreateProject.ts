@@ -4,9 +4,9 @@
  */
 
 import { Project } from '@/src/domain/entities/Project';
-import { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
-import { ProjectStatus } from '@/src/domain/valueObjects/ProjectStatus';
-import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
+import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
+import type { ProjectStatus } from '@/src/domain/valueObjects/ProjectStatus';
+import type { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 
 export interface CreateProjectDTO {
   id?: string;
@@ -25,7 +25,7 @@ export interface CreateProjectDTO {
 export class CreateProjectUseCase {
   constructor(private readonly projectRepository: IProjectRepository) {}
 
-  async execute(data: CreateProjectDTO): Promise<Project> {
+  async execute(data: CreateProjectDTO): Promise<InstanceType<typeof Project>> {
     // Business rule validation
     if (!data.name || data.name.trim().length === 0) {
       throw new Error('Project name is required');

@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FormSection from '../components/FormSection';
-import { Template, Section, Project } from '@/src/types';
+import type { Template, Section } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { fetchTemplateByName, compileVideo } from '@/src/services/api';
 import { useProjectStore, useProjectActions } from '@/src/stores/useProjectStore';
@@ -36,6 +36,7 @@ export const EditorScreen = ({ route, navigation }) => {
   
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadData is defined below and depends on templateName and projectId
   }, [templateName, projectId]);
   
   const loadData = async () => {
@@ -137,10 +138,10 @@ export const EditorScreen = ({ route, navigation }) => {
 
       // Replace variables in template string representation
       let templateString = JSON.stringify(processedTemplate);
-      Object.entries(currentProject.formData).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(currentProject.formData)) {
         const placeholder = `{{ ${key} }}`;
-        templateString = templateString.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
-      });
+        templateString = templateString.replace(new RegExp(placeholder.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
+      }
 
       // Parse back to object
       const finalTemplate = JSON.parse(templateString);
@@ -153,7 +154,7 @@ export const EditorScreen = ({ route, navigation }) => {
         const updatedProject = {
           ...currentProject,
           outputVideoUri: result.outputUri,
-          status: 'completed' as 'completed',
+          status: 'completed' as const,
           updatedAt: new Date().toISOString(),
         };
 

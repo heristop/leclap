@@ -3,8 +3,8 @@
  * Handles the business logic for retrieving projects
  */
 
-import { Project } from '@/src/domain/entities/Project';
-import { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
+import type { Project } from '@/src/domain/entities/Project';
+import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
 
 export class GetProjectsUseCase {
   constructor(private readonly projectRepository: IProjectRepository) {}

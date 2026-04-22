@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectAdapter } from '@/src/presentation/adapters/ProjectAdapter';
 import { ProjectMapper } from '@/src/presentation/mappers/ProjectMapper';
-import { Project } from '@/src/types';
+import type { Project } from '@/src/types';
 
 export const useProjects = () => {
   return useQuery({

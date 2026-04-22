@@ -17,7 +17,7 @@ export default function ScenariosTab() {
     uri: string;
   }
 
-  const handleVideoRecorded = (video: Video) => {
+  const handleVideoRecorded = (_video: Video) => {
   };
   
   return (

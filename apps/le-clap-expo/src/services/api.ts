@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Template, Project } from '@/src/types';
+import type { Template, Project } from '@/src/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Environment variables
@@ -203,8 +203,8 @@ export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?:
  */
 const retryWithBackoff = async <T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000
+  maxRetries = 3,
+  baseDelay = 1000
 ): Promise<T> => {
   let lastError: Error;
 
@@ -237,7 +237,7 @@ const retryWithBackoff = async <T>(
  * Sends videos and template to server for compilation
  */
 export const compileVideo = async (
-  templateDescriptor: any,
+  templateDescriptor: unknown,
   recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>
 ): Promise<{ success: boolean; outputUri?: string; error?: string }> => {
   try {
@@ -256,7 +256,7 @@ export const compileVideo = async (
     formData.append('template', JSON.stringify(templateDescriptor));
 
     // Add video files
-    Object.entries(recordedVideos).forEach(([sectionName, videoData]) => {
+    for (const [sectionName, videoData] of Object.entries(recordedVideos)) {
       const filename = `${sectionName}-${Date.now()}.mp4`;
       const videoUri = videoData.path.startsWith('file://') ? videoData.path : `file://${videoData.path}`;
 
@@ -264,8 +264,8 @@ export const compileVideo = async (
         uri: videoUri,
         name: filename,
         type: 'video/mp4',
-      } as any);
-    });
+      } as unknown as Blob);
+    }
 
     // Send request to server with retry logic
     const result = await retryWithBackoff(async () => {
@@ -302,7 +302,7 @@ export const compileVideo = async (
 
     if (result.success && result.outputPath) {
       // Construct the playable URL using the server's static path
-      const pathParts = result.outputPath.split(/[\\\/]/); // Split by / or \\
+      const pathParts = result.outputPath.split(/[\\/]/); // Split by / or \\
       const filename = pathParts.pop(); // Get last part
       const url = `${API_URL}/serve/${filename}`;
 

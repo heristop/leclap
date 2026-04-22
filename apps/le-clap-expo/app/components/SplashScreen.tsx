@@ -96,6 +96,7 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: SplashScre
       // Animation complete, trigger the callback after a short delay
       setTimeout(onAnimationComplete, 300);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- All animations are stable ref values and onAnimationComplete is a prop callback
   }, []);
 
   const rotateInterpolate = rotateAnim.interpolate({

@@ -7,7 +7,7 @@ import {
   Alert,
   RefreshControl,
   Modal,
-  Dimensions,
+  
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -97,7 +97,7 @@ export default function QueueManagerScreen() {
             for (const itemId of selectedItems) {
               try {
                 await retryQueueItem.mutateAsync(itemId);
-              } catch (error) {
+              } catch {
                 console.error(`Failed to retry item ${itemId}:`, error);
               }
             }
@@ -125,7 +125,7 @@ export default function QueueManagerScreen() {
             for (const itemId of selectedItems) {
               try {
                 await removeQueueItem.mutateAsync(itemId);
-              } catch (error) {
+              } catch {
                 console.error(`Failed to remove item ${itemId}:`, error);
               }
             }
@@ -149,7 +149,7 @@ export default function QueueManagerScreen() {
     try {
       await processQueue.mutateAsync(3);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
+    } catch {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('❌ Process Failed', (error as Error).message);
     }
@@ -169,7 +169,7 @@ export default function QueueManagerScreen() {
             try {
               await cleanupQueue.mutateAsync();
               await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            } catch (error) {
+            } catch {
               await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             }
           },

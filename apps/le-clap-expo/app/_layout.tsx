@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { TamaguiProvider } from '@tamagui/core';
+import { useFonts, Oswald_300Light, Oswald_400Regular, Oswald_500Medium, Oswald_600SemiBold, Oswald_700Bold } from '@expo-google-fonts/oswald';
 import { QueryProvider } from '@/src/providers/QueryProvider';
 import { OfflineProvider } from '@/src/providers/OfflineProvider';
 import AnimatedSplashScreen from './components/SplashScreen';
@@ -14,11 +15,21 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
+  const [fontsLoaded] = useFonts({
+    Oswald_300Light,
+    Oswald_400Regular,
+    Oswald_500Medium,
+    Oswald_600SemiBold,
+    Oswald_700Bold,
+  });
+
   const onLayoutRootView = useCallback(async () => {
-    // Hide the native splash screen to show a custom one
-    await SplashScreen.hideAsync();
-    setIsReady(true);
-  }, []);
+    if (fontsLoaded) {
+      // Hide the native splash screen to show a custom one
+      await SplashScreen.hideAsync();
+      setIsReady(true);
+    }
+  }, [fontsLoaded]);
 
   useEffect(() => {
     onLayoutRootView();
@@ -28,7 +39,7 @@ export default function RootLayout() {
     setShowAnimatedSplash(false);
   };
 
-  if (!isReady || showAnimatedSplash) {
+  if (!isReady || !fontsLoaded || showAnimatedSplash) {
     return showAnimatedSplash ? (
       <AnimatedSplashScreen onAnimationComplete={handleAnimationComplete} />
     ) : null;

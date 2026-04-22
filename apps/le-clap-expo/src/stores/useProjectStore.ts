@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { shallow } from 'zustand/shallow';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Project } from '@/src/types';
+import type { Project } from '@/src/types';
 
 interface ProjectStore {
   // State

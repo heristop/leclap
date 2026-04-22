@@ -3,9 +3,9 @@
  * Handles the business logic for updating a project
  */
 
-import { Project } from '@/src/domain/entities/Project';
-import { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
-import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
+import type { Project } from '@/src/domain/entities/Project';
+import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
+import type { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 
 export interface UpdateProjectDTO {
   id: string;
@@ -38,15 +38,15 @@ export class UpdateProjectUseCase {
     }
 
     if (data.formData !== undefined) {
-      Object.entries(data.formData).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(data.formData)) {
         project.updateFormData(key, value);
-      });
+      }
     }
 
     if (data.recordedVideos !== undefined) {
-      Object.entries(data.recordedVideos).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(data.recordedVideos)) {
         project.addRecordedVideo(key, value);
-      });
+      }
     }
 
     if (data.outputVideoUri !== undefined) {

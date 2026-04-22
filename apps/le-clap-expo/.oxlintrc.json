@@ -1,0 +1,40 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "unicorn", "import"],
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "globals": {
+    "__DEV__": "readonly"
+  },
+  "rules": {
+    "eol-last": "error",
+    "eqeqeq": "error",
+    "typescript/no-unused-vars": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/no-inferrable-types": "error",
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/exhaustive-deps": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "import/no-cycle": "error",
+    "import/no-named-as-default": "off",
+    "no-duplicate-imports": "error",
+    "no-empty-pattern": "error",
+    "no-unused-vars": "error",
+    "no-useless-escape": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/prefer-code-point": "error",
+    "unicorn/no-array-for-each": "error",
+    "unicorn/no-useless-undefined": "error",
+    "unicorn/prefer-array-some": "error",
+    "unicorn/prefer-includes": "error",
+    "unicorn/prefer-string-starts-ends-with": "error",
+    "unicorn/throw-new-error": "error"
+  }
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { subscribeToNetworkState, getNetworkState, hasInternetConnection, NetworkState } from '@/src/services/network';
+import { subscribeToNetworkState, getNetworkState, hasInternetConnection, type NetworkState } from '@/src/services/network';
 
 /**
  * Hook for monitoring network state with real-time updates
@@ -28,7 +28,7 @@ export const useNetworkState = () => {
 /**
  * Hook for checking internet connectivity with periodic updates
  */
-export const useInternetConnectivity = (refetchInterval: number = 30000) => {
+export const useInternetConnectivity = (refetchInterval = 30000) => {
   return useQuery({
     queryKey: ['internet-connectivity'],
     queryFn: hasInternetConnection,

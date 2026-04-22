@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Ale
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Project } from '@/src/domain/entities/Project';
+import type { Project } from '@/src/domain/entities/Project';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import SwipeableProjectItem from '@/app/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/app/components/ui/dialog/ConfirmDialog';
@@ -67,7 +67,7 @@ export default function ProjectsScreen() {
     try {
       await deleteAllProjects();
       setShowDeleteAllDialog(false);
-    } catch (error) {
+    } catch {
       console.error('Error deleting all projects:', error);
       Alert.alert('Error', 'Failed to delete all projects. Please try again.');
       setShowDeleteAllDialog(false);

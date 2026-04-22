@@ -3,7 +3,7 @@
  * Handles the business logic for deleting projects
  */
 
-import { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
+import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
 
 export class DeleteProjectUseCase {
   constructor(private readonly projectRepository: IProjectRepository) {}

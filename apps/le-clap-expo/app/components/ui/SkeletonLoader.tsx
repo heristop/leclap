@@ -6,7 +6,7 @@ interface SkeletonLoaderProps {
   width?: number | string;
   height?: number;
   borderRadius?: number;
-  style?: any;
+  style?: object;
 }
 
 export function SkeletonLoader({
@@ -60,7 +60,7 @@ export function SkeletonLoader({
 }
 
 interface TemplateCardSkeletonProps {
-  style?: any;
+  style?: object;
 }
 
 export function TemplateCardSkeleton({ style }: TemplateCardSkeletonProps) {
@@ -91,9 +91,11 @@ export function TemplateListSkeleton({ count = 6 }: TemplateListSkeletonProps) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface TemplateDetailSkeletonProps {}
 
-export function TemplateDetailSkeleton({}: TemplateDetailSkeletonProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function TemplateDetailSkeleton(_props: TemplateDetailSkeletonProps) {
   return (
     <View style={styles.templateDetail}>
       {/* Header */}

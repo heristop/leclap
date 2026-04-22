@@ -1,5 +1,7 @@
+import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
 
+@injectable()
 class ColorBackground extends SegmentBuilder {
   configure = (): void => {
     this.command =

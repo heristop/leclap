@@ -1,16 +1,16 @@
-import { singleton } from 'tsyringe';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
-import { Filter } from '@/core/types';
-import FormatterManager from './FormatterManager';
+import { inject, injectable, singleton } from 'tsyringe';
+import type Template from '../../core/models/Template';
+import type Segment from '../../core/models/Segment';
+import type { Filter } from '@/core/types';
+import type FormatterManager from './FormatterManager';
 
-@singleton()
+@injectable()
 class FilterManager {
   constructor(
-    private readonly template: Template,
-    protected readonly formattersManager: FormatterManager,
-    public segment: Segment
-  ) {}
+    @inject('template') private readonly template: Template,
+    @inject('FormattersManager') protected readonly formattersManager: FormatterManager,
+    @inject('segment') public segment: Segment
+  ) { }
 
   addFilter = (filter: Filter): string => {
     let output = '';
@@ -49,7 +49,7 @@ class FilterManager {
       return filter;
     }
 
-    let end = this.template.descriptor.global.transitionDuration;
+    let end = this.template.descriptor.global?.transitionDuration || 0;
     let start = 0;
 
     const extractTimeValue = (pattern: RegExp, duration: string): number | undefined => {

@@ -1,0 +1,76 @@
+{
+  "name": "@ffmpeg-video-composer/core",
+  "version": "1.0.0",
+  "description": "Cross-platform video composition library with template support",
+  "type": "module",
+  "main": "./dist/index.js",
+  "browser": "./dist/browser.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "browser": "./dist/browser.js",
+      "node": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./src/*": "./src/*",
+    "./src/index": "./src/index.ts",
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "default": "./dist/browser.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "lint": "oxlint src -c .oxlintrc.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.0",
+    "picocolors": "^1.1.1",
+    "pino": "^9.5.0",
+    "pino-pretty": "^12.0.0",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.8.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@rollup/plugin-replace": "^6.0.3",
+    "tsdown": "^0.15.6",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "ffmpeg-static": "^5.2.0"
+  },
+  "peerDependenciesMeta": {
+    "ffmpeg-static": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "templates",
+    "assets"
+  ],
+  "keywords": [
+    "ffmpeg",
+    "video",
+    "composition",
+    "templates",
+    "browser",
+    "wasm",
+    "cross-platform"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/ffmpeg-video-composer.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/ffmpeg-video-composer/issues"
+  },
+  "homepage": "https://github.com/your-org/ffmpeg-video-composer#readme",
+  "license": "MIT"
+}

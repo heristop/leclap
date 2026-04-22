@@ -1,7 +1,7 @@
 {
   "*.{ts,json,md,yml}": ["prettier --write"],
   "**/*.ts": [
-    "pnpm lint --fix",
+    "pnpm lint",
     "pnpm run test:precommit --"
   ]
 }

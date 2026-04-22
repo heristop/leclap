@@ -1,20 +1,20 @@
-import { singleton } from 'tsyringe';
-import Template from '../../core/models/Template';
-import Project from '../../core/models/Project';
-import { Variables } from '@/core/types';
+import { inject, injectable, singleton } from 'tsyringe';
+import type Template from '../../core/models/Template';
+import type Project from '../../core/models/Project';
+import type { Variables } from '@/core/types';
 
-@singleton()
+@injectable()
 class VariableManager {
   constructor(
-    private readonly template: Template,
-    private readonly project: Project
-  ) {}
+    @inject('template') private readonly template: Template,
+    @inject('project') private readonly project: Project
+  ) { }
 
   mapVariables = (value: string): string => {
     const variables = this.template.descriptor.global?.variables;
 
     if (!variables) {
-      return;
+      return value;
     }
 
     return this.mapPlaceholders(value, variables);
@@ -22,14 +22,14 @@ class VariableManager {
 
   private mapPlaceholders = (value: string, placeholders: Variables): string => {
     if (placeholders && Object.keys(placeholders).length > 0) {
-      Object.keys(placeholders).forEach((key) => {
+      for (const key of Object.keys(placeholders)) {
         const placeholder = `{{ ${key} }}`;
         const placeholderValue = placeholders[key];
 
         const valueToReplace = Array.isArray(placeholderValue) ? placeholderValue.join(', ') : placeholderValue;
 
         value = value.replace(new RegExp(placeholder, 'g'), valueToReplace);
-      });
+      }
     }
 
     return value;

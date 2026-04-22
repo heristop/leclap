@@ -1,45 +1,39 @@
-import EventEmitter from 'events';
+import type { IEventEmitter } from '../platform/AbstractEventManager';
 import { inject, injectable } from 'tsyringe';
-import AbstractLogger from '../platform/logging/AbstractLogger';
-import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
-import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import Template from '../core/models/Template';
-import Project from '../core/models/Project';
-import { Section } from '@/core/types';
-import MusicComposer from './MusicComposer';
+import type AbstractLogger from '../platform/logging/AbstractLogger';
+import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
+import type Template from '../core/models/Template';
+import type Project from '../core/models/Project';
+import type { Section } from '@/core/types';
+import type MusicComposer from './MusicComposer';
 
 @injectable()
 class VideoEditor {
-  public emitter: EventEmitter;
+  public emitter: IEventEmitter;
 
   constructor(
-    private readonly project: Project,
-    private readonly template: Template,
-    private readonly musicComposer: MusicComposer,
+    @inject('project') private readonly project: Project,
+    @inject('template') private readonly template: Template,
+    @inject('MusicComposer') private readonly musicComposer: MusicComposer,
 
     @inject('logger') private readonly logger: AbstractLogger,
     @inject('ffmpegAdapter') private readonly ffmpegAdapter: AbstractFFmpeg,
     @inject('filesystemAdapter')
     private readonly filesystemAdapter: AbstractFilesystem
-  ) {}
+  ) { }
 
-  // Make concat return the final path string on success
   concat = async (): Promise<string> => {
     try {
-      // Use a fallback if getBuildDir returns undefined
       const buildDir = this.filesystemAdapter.getBuildDir() || 'build';
-
-      // Define the final output path consistently
       const finalOutputPath = `${buildDir}/output.mp4`;
-      this.project.finalVideo = finalOutputPath; // Set it on the project model
+      this.project.finalVideo = finalOutputPath;
 
-      // Ensure the concat file exists
       const concatFilePath = this.project.buildInfos.fileConcatPath;
       if (!concatFilePath) {
         throw new Error('Concat file path is not defined');
       }
 
-      // Ensure the concat file has content
       const fileList = await this.filesystemAdapter.read(concatFilePath);
       const files = fileList.split('\n').filter(Boolean);
 
@@ -48,7 +42,7 @@ class VideoEditor {
       }
 
       if (files.length === 1) {
-        const sourceFile = files[0].replace(/^file\s+'?|'?$/g, '').trim(); // More robust cleaning
+        const sourceFile = files[0].replace(/^file\s+'?|'?$/g, '').trim();
         await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
         this.logger.info(`[Concat][Command] Copied single file to ${finalOutputPath}`);
       } else {
@@ -66,7 +60,7 @@ class VideoEditor {
           throw new Error('[Concat] Errors on concatenation');
         }
       }
-      // Return the final path on success
+
       return finalOutputPath;
     } catch (error) {
       this.logger.error(`[Concat] Error: ${error.message || 'Unknown error'}`);
@@ -74,28 +68,19 @@ class VideoEditor {
     }
   };
 
-  /**
-   * Attach mounted video to the current project
-   */
-  // Finalize doesn't need to return the path, concat does. Keep return type void.
   finalize = async (segments: Section[]): Promise<void> => {
     try {
-      // Append music if option is enabled
-      // Ensure finalVideo path is set before this runs
       if (this.template.descriptor.global?.musicEnabled && this.project.finalVideo) {
         await this.musicComposer.loopMusic();
         await this.musicComposer.appendMusic(segments, this.project.finalVideo);
       }
 
-      // Finalize only if no errors had been rejected
       if (this.project.errors.length === 0) {
-        // Call event
         this.emitter.emit('finalize', {
           video_source: this.project.finalVideo || '',
           template_assets: this.template.assets,
         });
 
-        // Delete concatenation file if it exists
         const concatFilePath = this.project.buildInfos.fileConcatPath;
         if (concatFilePath) {
           try {

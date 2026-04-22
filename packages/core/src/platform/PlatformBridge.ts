@@ -2,16 +2,16 @@ import PinoLogAdapter from './logging/PinoLogAdapter';
 import FFmpegNodeAdapter from './ffmpeg/FFmpegNodeAdapter';
 import FFmpegStaticAdapter from './ffmpeg/FFmpegStaticAdapter';
 import FFmpegWasmAdapter from './ffmpeg/FFmpegWasmAdapter';
-import AbstractFFmpeg from './ffmpeg/AbstractFFmpeg';
+import type AbstractFFmpeg from './ffmpeg/AbstractFFmpeg';
 import MusicNodeAdapter from './ffmpeg/MusicNodeAdapter';
 import FilesystemNodeAdapter from './filesystem/FilesystemNodeAdapter';
 import { FFmpegDetector, FFmpegAvailability } from './ffmpeg/FFmpegDetector';
-import { TerminalUI } from '../utils/TerminalUI';
+import { Terminal } from '../utils/terminal';
 import pc from 'picocolors';
 
 class PlatformBridge {
   private ffmpegAdapterCache: AbstractFFmpeg | null = null;
-  private isFirstRun: boolean = true;
+  private isFirstRun = true;
 
   create = async (adapter: string) => {
     if (false === ['logger', 'ffmpeg', 'filesystem', 'music'].includes(adapter)) {
@@ -63,7 +63,7 @@ class PlatformBridge {
   };
 
   /**
-   * Create FFmpeg adapter with intelligent fallback and pretty UI
+   * Create FFmpeg adapter with fallback detection
    */
   private createFFmpegAdapter = async () => {
     // Return cached adapter if available
@@ -76,14 +76,14 @@ class PlatformBridge {
       if (this.isFirstRun && this.shouldShowInteractiveSetup()) {
         console.log(pc.cyan('\n🎬 Welcome to FFmpeg Video Composer! 🎬\n'));
 
-        TerminalUI.startSpinner('🔍 Detecting FFmpeg installations...');
+        Terminal.startSpinner('🔍 Detecting FFmpeg installations...');
         await new Promise((resolve) => setTimeout(resolve, 1500)); // Add some suspense
       }
 
       const detection = await FFmpegDetector.detect();
 
       if (this.isFirstRun && this.shouldShowInteractiveSetup()) {
-        TerminalUI.stopSpinner('success', 'Detection complete!');
+        Terminal.stopSpinner('success', 'Detection complete!');
       }
 
       let adapter;
@@ -91,9 +91,9 @@ class PlatformBridge {
         case FFmpegAvailability.SYSTEM: {
           if (this.shouldShowInteractiveSetup()) {
             console.log(
-              `${pc.green('✅')} ${pc.bold('Perfect!')} Using system FFmpeg ${pc.dim(`(${detection.version})`)}`
+              `${pc.green('✅')} ${pc.bold('Found:')} Using system FFmpeg ${pc.dim(`(${detection.version})`)}`
             );
-            console.log(`${pc.cyan('🚀')} ${pc.dim('Optimal performance expected!')}\n`);
+            console.log(`${pc.cyan('🚀')} ${pc.dim('Fastest processing speed')}\n`);
           }
           adapter = new FFmpegNodeAdapter();
           break;
@@ -102,9 +102,9 @@ class PlatformBridge {
         case FFmpegAvailability.STATIC: {
           if (this.shouldShowInteractiveSetup()) {
             console.log(
-              `${pc.yellow('📦')} ${pc.bold('Good!')} Using static FFmpeg ${pc.dim(`(${detection.version})`)}`
+              `${pc.yellow('📦')} ${pc.bold('Found:')} Using static FFmpeg ${pc.dim(`(${detection.version})`)}`
             );
-            console.log(`${pc.dim('💡 Consider installing system FFmpeg for better performance')}\n`);
+            console.log(`${pc.dim('💡 Consider installing system FFmpeg for faster processing')}\n`);
           }
           adapter = new FFmpegStaticAdapter();
           break;
@@ -140,7 +140,7 @@ class PlatformBridge {
       const message = error instanceof Error ? error.message : 'Unknown error during FFmpeg detection';
 
       if (this.shouldShowInteractiveSetup()) {
-        TerminalUI.showError(message, [
+        Terminal.showError(message, [
           'Check FFmpeg installation',
           'Run diagnostic: pnpm diagnose',
           'Install static fallback: pnpm add ffmpeg-static',
@@ -162,7 +162,7 @@ class PlatformBridge {
     const systemInfo = FFmpegDetector.getSystemInfo();
 
     // Show system info
-    TerminalUI.showSystemInfo(systemInfo);
+    Terminal.showSystemInfo(systemInfo);
 
     // Show helpful error with suggestions
     const platform = systemInfo.os.toLowerCase();
@@ -178,10 +178,10 @@ class PlatformBridge {
       suggestions = ['📦 pnpm add ffmpeg-static (universal solution)'];
     }
 
-    TerminalUI.showError('No FFmpeg implementation found', suggestions);
+    Terminal.showError('No FFmpeg implementation found', suggestions);
 
     // Show installation commands
-    TerminalUI.showInstallationCommands(systemInfo.os);
+    Terminal.showInstallationCommands(systemInfo.os);
 
     throw new Error('FFmpeg setup required. Please follow the installation instructions above.');
   }
@@ -205,8 +205,8 @@ class PlatformBridge {
 
   isNodeEnvironment = () =>
     typeof globalThis.process !== 'undefined' &&
-    globalThis.process.versions != null &&
-    globalThis.process.versions.node != null;
+    globalThis.process.versions !== null &&
+    globalThis.process.versions.node !== null;
 
   isBrowserEnvironment = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 

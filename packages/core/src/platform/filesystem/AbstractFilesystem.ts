@@ -12,9 +12,11 @@ abstract class AbstractFilesystem {
   abstract stat(filePath: string): Promise<boolean>;
   abstract fetch(url: string): Promise<string>;
   abstract write(targetPath: string): Promise<void>;
+  abstract writeFile(path: string, data: Uint8Array): Promise<void>;
   abstract append(targetPath: string, file: string): Promise<void>;
   abstract unlink(path: string): Promise<void>;
   abstract read(filePath: string): Promise<string>;
+  abstract readFile(filePath: string): Promise<Uint8Array>;
   abstract copy(sourcePath: string, targetPath: string): Promise<void>;
   abstract move(sourcePath: string, targetPath: string): Promise<void>;
   abstract unzip(url: string, targetPath: string): Promise<string[]>;

@@ -1,13 +1,13 @@
 import { singleton } from 'tsyringe';
-import { ProjectBuildInfos, ProjectConfig } from '../types';
+import type { ProjectBuildInfos, ProjectConfig } from '../types';
 import defaultConfig from '../default.config';
 
 @singleton()
 class Project {
   public config: ProjectConfig;
   public buildInfos: ProjectBuildInfos;
-  public finalVideo: string = '';
-  public progress: number = 0;
+  public finalVideo = '';
+  public progress = 0;
   public errors: string[] = [];
 
   constructor() {

@@ -1,19 +1,19 @@
 import { injectable } from 'tsyringe';
-import { Section } from '../types';
+import type { Section } from '../types';
 
 @injectable()
 class Segment {
-  public currentSection: Section;
+  public currentSection?: Section;
 
   public filtersList: string[] = [];
   public filtersMapList: string[] = [];
   public mapsList: string[] = [];
-  public assetsDir: string = '';
-  public fontsDir: string = '';
-  public animationsDir: string = '';
+  public assetsDir = '';
+  public fontsDir = '';
+  public animationsDir = '';
   public tempFonts: string[] = [];
   public inputsAsset: string[] = [];
-  public inputsMapCount: number = 0;
+  public inputsMapCount = 0;
 }
 
 export default Segment;

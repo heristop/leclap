@@ -1,6 +1,6 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import { TerminalUI } from '../../utils/TerminalUI';
+import { Terminal } from '../../utils/terminal';
 
 const execAsync = promisify(exec);
 
@@ -204,8 +204,8 @@ To install FFmpeg:
   static isNodeEnvironment(): boolean {
     return (
       typeof globalThis.process !== 'undefined' &&
-      globalThis.process.versions != null &&
-      globalThis.process.versions.node != null
+      globalThis.process.versions !== null &&
+      globalThis.process.versions.node !== null
     );
   }
 
@@ -286,25 +286,25 @@ To install FFmpeg:
   }
 
   /**
-   * Run comprehensive diagnostics with pretty UI
+   * Run full system diagnostics and display results
    */
-  static async runFullDiagnostics(showUI: boolean = true): Promise<DiagnosticReport> {
+  static async runFullDiagnostics(showUI = true): Promise<DiagnosticReport> {
     if (showUI) {
-      TerminalUI.showWelcomeBanner();
-      TerminalUI.startSpinner('🔍 Analyzing your system...');
+      Terminal.showWelcomeBanner();
+      Terminal.startSpinner('🔍 Analyzing your system...');
     }
 
     // Get system info
     const systemInfo = this.getSystemInfo();
 
     if (showUI) {
-      TerminalUI.stopSpinner('success', 'System analysis complete!');
-      TerminalUI.showSystemInfo(systemInfo);
+      Terminal.stopSpinner('success', 'System analysis complete!');
+      Terminal.showSystemInfo(systemInfo);
     }
 
     // Check all FFmpeg implementations
     if (showUI) {
-      TerminalUI.startSpinner('🕵️ Detecting FFmpeg implementations...');
+      Terminal.startSpinner('🕵️ Detecting FFmpeg implementations...');
     }
 
     const [systemResult, staticResult, wasmResult] = await Promise.all([
@@ -332,8 +332,8 @@ To install FFmpeg:
     };
 
     if (showUI) {
-      TerminalUI.stopSpinner('success', 'FFmpeg detection complete!');
-      TerminalUI.showFFmpegStatus(ffmpegStatus);
+      Terminal.stopSpinner('success', 'FFmpeg detection complete!');
+      Terminal.showFFmpegStatus(ffmpegStatus);
     }
 
     // Generate recommendations
@@ -371,7 +371,7 @@ To install FFmpeg:
 
       recommendations.push('📦 Quick alternative: Run "pnpm add ffmpeg-static" for zero-config setup');
     } else if (!ffmpegStatus.system.available && ffmpegStatus.static.available) {
-      recommendations.push('⚡ Consider installing system FFmpeg for better performance');
+      recommendations.push('⚡ Consider installing system FFmpeg for faster processing');
       recommendations.push('📦 Current static FFmpeg works great but is slower');
     } else if (ffmpegStatus.system.available) {
       recommendations.push('🚀 Perfect! System FFmpeg detected - optimal performance expected');
@@ -406,16 +406,16 @@ To install FFmpeg:
       report.ffmpegStatus.wasm.available;
 
     if (hasFFmpeg) {
-      TerminalUI.showSuccess('Your system is ready for video magic! 🎉');
+      Terminal.showSuccess('Your system is ready for video magic! 🎉');
       return true;
     }
 
     // Show installation options
-    TerminalUI.showInstallationOptions();
+    Terminal.showInstallationOptions();
 
     // In a real implementation, you'd handle user input here
     // For now, we'll show the platform-specific commands
-    TerminalUI.showInstallationCommands(report.systemInfo.os);
+    Terminal.showInstallationCommands(report.systemInfo.os);
 
     return false;
   }

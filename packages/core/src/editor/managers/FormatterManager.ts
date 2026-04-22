@@ -1,22 +1,23 @@
-import { inject, singleton } from 'tsyringe';
-import AbstractLogger from '../../platform/logging/AbstractLogger';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
-import Project from '../../core/models/Project';
-import { Filter } from '@/core/types';
-import VariableManager from './VariableManager';
+import { inject, injectable, singleton } from 'tsyringe';
+import type AbstractLogger from '../../platform/logging/AbstractLogger';
+import type Template from '../../core/models/Template';
+import type Segment from '../../core/models/Segment';
+import type Project from '../../core/models/Project';
+import type { Filter } from '@/core/types';
+import type VariableManager from './VariableManager';
 
-@singleton()
-class FormattersManager {
-  public segment: Segment;
+@injectable()
+class FormatterManager {
+
 
   constructor(
-    private readonly project: Project,
-    private readonly template: Template,
-    private readonly variableManager: VariableManager,
+    @inject('project') private readonly project: Project,
+    @inject('template') private readonly template: Template,
+    @inject('VariableManager') private readonly variableManager: VariableManager,
+    @inject('segment') public segment: Segment,
 
     @inject('logger') private readonly logger: AbstractLogger
-  ) {}
+  ) { }
 
   formatMultipleTypesValue = (filter: Filter): string => {
     let result = '';
@@ -72,9 +73,9 @@ class FormattersManager {
         case 'd': {
           let duration = filter.values[key]
             .toString()
-            .replace('{{ transitionDuration }}', this.template.descriptor.global.transitionDuration);
+            .replace('{{ transitionDuration }}', this.template.descriptor.global?.transitionDuration?.toString() || '0');
 
-          const dTime: number = this.segment.currentSection.options.duration;
+          const dTime = this.segment.currentSection.options.duration;
           duration = duration.replace('{{ section_duration }}', dTime.toString());
 
           if (!isNaN(Number(duration))) {
@@ -86,13 +87,13 @@ class FormattersManager {
 
         case 'start_time':
         case 'st': {
-          let stTime: number = this.segment.currentSection.options.duration;
+          let stTime = this.segment.currentSection.options.duration;
 
           if (this.segment.currentSection.options.speed) {
             stTime *= this.segment.currentSection.options.speed;
           }
 
-          stTime = parseFloat(stTime.toString()) - this.template.descriptor.global.transitionDuration;
+          stTime = parseFloat(stTime.toString()) - (this.template.descriptor.global?.transitionDuration || 0);
           const startTimeStr = filter.values[key].replace('{{ transitionStartTime }}', stTime.toString());
 
           if (!isNaN(Number(startTimeStr))) {
@@ -123,7 +124,7 @@ class FormattersManager {
   };
 
   /**
-   * Format text display on video
+   * Applies text formatting for video overlay
    */
   formatText(text: string): string {
     // Use i18n
@@ -156,7 +157,7 @@ class FormattersManager {
   }
 
   /**
-   * Format font
+   * Resolves font file path
    */
   formatFont(fontFile: string): string {
     let font = '';
@@ -180,8 +181,13 @@ class FormattersManager {
    * Replace color variables and handle both HEX and RGB formats
    */
   formatColor = (color: string): string => {
+    // Handle undefined or null color values with a default
+    if (!color) {
+      return 'black';
+    }
+
     if (!this.template.descriptor.global.variables?.colorsList) {
-      return this.variableManager.mapVariables(color);
+      return this.variableManager.mapVariables(color) || 'black';
     }
 
     for (let i = 0; i < this.template.descriptor.global.variables.colorsList.length; i++) {
@@ -208,4 +214,4 @@ class FormattersManager {
   };
 }
 
-export default FormattersManager;
+export default FormatterManager;

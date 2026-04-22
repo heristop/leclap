@@ -1,7 +1,7 @@
 import { singleton } from 'tsyringe';
-import { TemplateAssets } from '../types';
-import { TemplateDescriptor } from '../../schemas/template.schemas';
-import { TemplateValidator, ValidationResult } from '../../services/TemplateValidator';
+import type { TemplateAssets } from '../types';
+import type { TemplateDescriptor } from '../../schemas/template.schemas';
+import { TemplateValidator, type ValidationResult } from '../../services/TemplateValidator';
 
 @singleton()
 class Template {

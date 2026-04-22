@@ -1,22 +1,22 @@
-import { inject, singleton } from 'tsyringe';
-import AbstractLogger from '../../platform/logging/AbstractLogger';
-import AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
-import { Media, MapAnimationInput } from '@/core/types';
-import Template from '../../core/models/Template';
-import Segment from '../../core/models/Segment';
-import VariableManager from './VariableManager';
+import { inject, injectable, singleton } from 'tsyringe';
+import type AbstractLogger from '../../platform/logging/AbstractLogger';
+import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
+import type { Media, MapAnimationInput } from '@/core/types';
+import type Template from '../../core/models/Template';
+import type Segment from '../../core/models/Segment';
+import type VariableManager from './VariableManager';
 
-@singleton()
+@injectable()
 class AssetManager {
   constructor(
-    private readonly template: Template,
-    private readonly variableManager: VariableManager,
+    @inject('template') private readonly template: Template,
+    @inject('VariableManager') private readonly variableManager: VariableManager,
 
-    public segment: Segment,
+    @inject('segment') public segment: Segment,
 
     @inject('logger') private readonly logger: AbstractLogger,
     @inject('filesystemAdapter') private readonly filesystemAdapter: AbstractFilesystem
-  ) {}
+  ) { }
 
   async setUpPaths(): Promise<void> {
     this.segment.assetsDir = await this.filesystemAdapter.getBuildPath('assets');
@@ -51,7 +51,8 @@ class AssetManager {
             item.url = this.variableManager.mapVariables(item.url);
 
             // Check url format
-            if (!/^http/.exec(item.url)) {
+            // Allow HTTP URLs and local paths starting with /
+            if (!/^http/.exec(item.url) && !item.url.startsWith('/')) {
               throw new Error(
                 `[${this.segment.currentSection.name}][Assets] Url for ${item.name} is not valid: ${item.url}`
               );

@@ -1,11 +1,11 @@
 import { injectable } from 'tsyringe';
-import fs from 'fs/promises';
-import { exec, ExecException } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
-import AbstractLogger from '../../platform/logging/AbstractLogger';
-import AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
-import AbstractMusic from './AbstractMusic';
+import fs from 'node:fs/promises';
+import { exec, type ExecException } from 'node:child_process';
+import { promisify } from 'node:util';
+import path from 'node:path';
+import type AbstractLogger from '../../platform/logging/AbstractLogger';
+import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
+import type AbstractMusic from './AbstractMusic';
 
 const execAsync = promisify(exec);
 
@@ -31,7 +31,7 @@ class MusicNodeAdapter implements AbstractMusic {
       const { stdout }: ExecResult = await execAsync(
         `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`
       );
-      const duration: number = parseFloat(stdout.trim());
+      const duration = parseFloat(stdout.trim());
 
       if (isNaN(duration)) {
         throw new Error('Invalid duration value returned by ffprobe');
@@ -56,26 +56,26 @@ class MusicNodeAdapter implements AbstractMusic {
   process = async (
     logger: AbstractLogger,
     filesystemAdapter: AbstractFilesystem,
-    totalLength: number = 0,
+    totalLength = 0,
     musicPath: string
   ): Promise<ProcessResult> => {
     try {
-      const musicLength: number = await this.getMediaDuration(musicPath);
+      const musicLength = await this.getMediaDuration(musicPath);
       logger.info(`[Music] Duration: ${musicLength} / ${totalLength}`);
 
       if (musicLength < totalLength) {
-        const loop: string = path.join(filesystemAdapter.getBuildDir(), 'loop_music.mp4');
+        const loop = path.join(filesystemAdapter.getBuildDir(), 'loop_music.mp4');
 
         // Create concatenation string for ffmpeg input
-        let input: string = `concat:${musicPath}`;
-        let repetitions: number = 1;
+        let input = `concat:${musicPath}`;
+        let repetitions = 1;
 
         while (repetitions * musicLength < totalLength) {
           input += `|${musicPath}`;
           repetitions++;
         }
 
-        const command: string = `ffmpeg -y -i "${input}" -acodec copy "${loop}"`;
+        const command = `ffmpeg -y -i "${input}" -acodec copy "${loop}"`;
         logger.debug(`[Music][Command] ${command}`);
 
         try {
@@ -85,7 +85,7 @@ class MusicNodeAdapter implements AbstractMusic {
           await fs.unlink(musicPath);
           await fs.rename(loop, musicPath);
 
-          logger.info(`[Music][Loop] ffmpeg process completed successfully`);
+          logger.info(`[Music][Loop] ffmpeg process completed`);
           return { rc: 0 };
         } catch (error: unknown) {
           const execError = error as ExecException;

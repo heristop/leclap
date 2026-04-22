@@ -1,31 +1,31 @@
-import EventEmitter from 'events';
 import { inject, injectable } from 'tsyringe';
-import AbstractLogger from '../platform/logging/AbstractLogger';
-import AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
-import AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import EventManager from '../platform/EventManager';
-import VideoEditor from '../editor/VideoEditor';
-import MusicComposer from '../editor/MusicComposer';
-import { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
-import Project from '../core/models/Project';
-import Template from '../core/models/Template';
-import TemplateConcreteBuilder from './TemplateConcreteBuilder';
+import type AbstractLogger from '../platform/logging/AbstractLogger';
+import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
+import type AbstractEventManager from '../platform/AbstractEventManager';
+import type { IEventEmitter } from '../platform/AbstractEventManager';
+import type VideoEditor from '../editor/VideoEditor';
+import type MusicComposer from '../editor/MusicComposer';
+import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
+import type Project from '../core/models/Project';
+import type Template from '../core/models/Template';
+import type TemplateConcreteBuilder from './TemplateConcreteBuilder';
 
 @injectable()
 class TemplateDirector {
-  private readonly emitter: EventEmitter;
+  private readonly emitter: IEventEmitter;
 
   private builder: TemplateConcreteBuilder;
-  private stopBuild: boolean = false;
+  private stopBuild = false;
 
   constructor(
-    private readonly eventManager: EventManager,
-    private readonly concreteBuilder: TemplateConcreteBuilder,
-    private readonly musicComposer: MusicComposer,
-    private readonly videoEditor: VideoEditor,
+    @inject('eventManager') private readonly eventManager: AbstractEventManager,
+    @inject('TemplateConcreteBuilder') private readonly concreteBuilder: TemplateConcreteBuilder,
+    @inject('MusicComposer') private readonly musicComposer: MusicComposer,
+    @inject('VideoEditor') private readonly videoEditor: VideoEditor,
 
-    private project: Project,
-    private template: Template,
+    @inject('project') private project: Project,
+    @inject('template') private template: Template,
 
     @inject('logger') private readonly logger: AbstractLogger,
     @inject('ffmpegAdapter') private readonly ffmpegAdapter: AbstractFFmpeg,
@@ -48,7 +48,6 @@ class TemplateDirector {
 
     this.project.applyDefault();
 
-    // Log available section-specific videos
     if (this.project.config.userVideoPaths) {
       this.logger.info(
         `TemplateDirector received userVideoPaths with ${Object.keys(this.project.config.userVideoPaths).length} videos for sections:`,
@@ -61,25 +60,19 @@ class TemplateDirector {
     return this;
   };
 
-  // Return output path on success, null on failure
   construct = async (): Promise<string | null> => {
     try {
       await this.init();
 
-      // compileVideoSegments now implicitly calls finalizeCompilation which returns the path
       const finalPath = await this.compileVideoSegments();
-      // Return the final path if compilation was successful (not stopped and no error)
       if (!this.stopBuild) {
         return finalPath;
       }
     } catch (err) {
       this.fireError(err);
-
-      // If construct fails, fireError is called, which stops the build. Return null.
       return null;
     }
 
-    // Return null if stopped or error occurred
     return null;
   };
 
@@ -93,16 +86,14 @@ class TemplateDirector {
     this.logger.info(`[Init] Segment file saved to ${this.project.buildInfos.fileConcatPath}`);
   };
 
-  // Update return type to match what finalizeCompilation returns
   compileVideoSegments = async (): Promise<string | null> => {
-    // Filter sections to only include those relevant for video compilation
     const allSections = this.template.descriptor.sections || [];
-    const videoSegmentTypes = ['video', 'project_video', 'image_background', 'color_background']; // Add other types if needed
-    const videoSegments = allSections.filter((section) => videoSegmentTypes.includes(section.type)); // Add parentheses
+    const videoSegmentTypes = ['video', 'project_video', 'image_background', 'color_background'];
+    const videoSegments = allSections.filter((section) => videoSegmentTypes.includes(section.type));
 
     if (videoSegments.length === 0) {
-      this.logger.info('No video segments found in the template to compile.'); // Use info instead of warn
-      return null; // Or handle as an error?
+      this.logger.info('No video segments found in the template to compile.');
+      return null;
     }
 
     await this.calculateTotalLength(videoSegments);
@@ -112,11 +103,10 @@ class TemplateDirector {
 
     await this.processVideoSegments(videoSegments);
 
-    // Call finalizeCompilation and return its result (the path or null)
     if (!this.stopBuild) {
       return await this.finalizeCompilation(videoSegments);
     }
-    // Return null if build was stopped before finalization
+
     return null;
   };
 
@@ -159,19 +149,15 @@ class TemplateDirector {
   };
 
   processSingleVideoSegment = async (segment: Section): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      try {
-        this.addToQueue(segment).then(() => {
-          this.updateProgress(segment);
-          this.logger.info(`[${segment.name}][Editing] finalized (${Math.round(this.project.progress * 100)}%)`);
-          resolve(true);
-        });
-      } catch (err) {
-        this.fireError(err);
-
-        reject(false);
-      }
-    });
+    try {
+      await this.addToQueue(segment);
+      this.updateProgress(segment);
+      this.logger.info(`[${segment.name}][Editing] finalized (${Math.round(this.project.progress * 100)}%)`);
+      return true;
+    } catch (err) {
+      this.fireError(err);
+      return false;
+    }
   };
 
   updateProgress = (segment: Section): void => {
@@ -184,15 +170,9 @@ class TemplateDirector {
     this.emitter.emit('compilation-progress', this.project.progress);
   };
 
-  // Make this return the final path from concat
   finalizeCompilation = async (segments: Section[]): Promise<string | null> => {
-    // Capture the path returned by concat
     const finalPath = await this.videoEditor.concat();
-
-    // Finalize might modify the file (e.g., add music), but uses the same path
     await this.videoEditor.finalize(segments);
-
-    // Return the path determined by concat
     return finalPath;
   };
 
@@ -210,7 +190,6 @@ class TemplateDirector {
       );
     }
 
-    // First check if there's a specific video for this section in userVideoPaths
     if (
       section.type === 'project_video' &&
       this.project.config.userVideoPaths &&
@@ -219,18 +198,15 @@ class TemplateDirector {
       source = this.project.config.userVideoPaths[section.name];
       this.logger.info(`[fetchSectionInfos] Using section-specific video for ${section.name}: ${source}`);
 
-      // Check if the file exists
       try {
         await this.filesystemAdapter.stat(source);
         this.logger.info(`[fetchSectionInfos] Verified file exists: ${source}`);
       } catch (error) {
         this.logger.error(`[fetchSectionInfos] Error accessing section-specific video: ${source}`, error);
-        // Fall back to default video instead of failing
         source = null;
       }
     }
 
-    // If no user videos are available or accessible, use default from assets
     if (!source) {
       const assetsDir = this.filesystemAdapter.getAssetsDir('videos');
       source = `${assetsDir}/${section.name}.mp4`;
@@ -240,7 +216,6 @@ class TemplateDirector {
     const info = await this.ffmpegAdapter.getInfos(source);
 
     if (info.duration === null) {
-      // Check for null explicitly
       throw new Error(`Duration not found for ${section.name}`);
     }
 
@@ -250,17 +225,10 @@ class TemplateDirector {
   addToQueue = async (section: Section): Promise<void> => {
     this.builder = this.concreteBuilder;
 
-    // First, build configuration and retrieve updated assets
-    // Pass the project config down to the builder
     await this.builder.buildPart(section, this.project.config);
-
-    // Then, compile part with FFmpeg
     await this.builder.renderPart();
 
-    // Prepare music timeline for volume variations
     this.musicComposer.prepareMusicTrack(section);
-
-    // Append file for concat
     await this.append(section);
   };
 
@@ -274,15 +242,11 @@ class TemplateDirector {
   };
 
   fireError = (error: unknown): void => {
-    this.logger.error(`[TemplateDirector][Error] ${JSON.stringify(error)}`);
+    const errorMessage = error instanceof Error ? `${error.message}\n${error.stack}` : JSON.stringify(error);
+    this.logger.error(`[TemplateDirector][Error] ${errorMessage}`);
 
-    // Stop the Director build
     this.stopBuild = true;
-
-    // Delete concatenation file
     this.filesystemAdapter.unlink(this.project.buildInfos.fileConcatPath);
-
-    // Fire event
     this.emitter.emit('task-stopped', error);
   };
 }

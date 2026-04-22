@@ -1,7 +1,7 @@
 import pino from 'pino';
 import { injectable } from 'tsyringe';
-import AbstractLogger from './AbstractLogger';
-import { LogParams } from '@/core/types';
+import type AbstractLogger from './AbstractLogger';
+import type { LogParams } from '@/core/types';
 
 @injectable()
 class PinoLogAdapter implements AbstractLogger {

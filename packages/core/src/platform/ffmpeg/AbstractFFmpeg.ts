@@ -1,4 +1,4 @@
-import { FFMpegInfos } from '@/core/types';
+import type { FFMpegInfos } from '@/core/types';
 
 abstract class AbstractFFmpeg {
   abstract execute(command: string): Promise<{ rc: number }>;

@@ -195,6 +195,7 @@ const templateHasFormFields = (selectedTemplate: Template | null): boolean => {
     if (!selectedTemplate) return false
     const sections: Array<{ type: string; options?: { fields?: Array<{ name: string }> } }> =
         Array.isArray(selectedTemplate.descriptor.sections) ? selectedTemplate.descriptor.sections : []
+
     return sections.filter(s => s.type === 'form').flatMap(s => s.options?.fields ?? []).length > 0
 }
 
@@ -226,7 +227,8 @@ export const Builder = () => {
     const nextStep = () => {
         setCurrentStep(prev => {
             const next = prev + 1
-            const target = next === FORM_STEP && !hasForm ? next + 1 : next // skip empty Configure step
+            const target = next === FORM_STEP && !hasForm ? next + 1 : next
+ // skip empty Configure step
             return Math.min(target, STEPS.length - 1)
         })
     }
@@ -234,6 +236,7 @@ export const Builder = () => {
         setCurrentStep(prev => {
             const back = prev - 1
             const target = back === FORM_STEP && !hasForm ? back - 1 : back
+
             return Math.max(target, 0)
         })
     }

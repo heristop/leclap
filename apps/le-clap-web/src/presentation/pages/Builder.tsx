@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import { FileUpload } from '@/presentation/components/FileUpload';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
 import { TemplateForm } from '@/presentation/components/TemplateForm';
@@ -9,15 +9,17 @@ import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibi
 import { Seo } from '@/presentation/components/Seo';
 import { Stepper } from '@/presentation/components/ui/Stepper';
 import { VideoEditor } from '@/features/editor/VideoEditor';
-import { useVideoProcessing, type ProcessedVideo } from '@/hooks/useVideoProcessing';
+import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { type Template } from '@/services/templateService';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
+import { MediaPicker } from '@/presentation/components/admin/MediaPicker';
+import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 
-const STEPS = ['Template', 'Configure', 'Upload', 'Edit', 'Process', 'Result'];
+const STEPS = ['Template', 'Configure', 'Upload', 'Media', 'Edit', 'Process', 'Result'];
 
 const StepTemplate = ({
   selectedTemplate,
@@ -72,6 +74,59 @@ const StepUpload = ({
     </Card>
   </div>
 );
+
+const StepMedia = ({
+  selectedTemplate,
+  musicChoice,
+  backgroundChoice,
+  onMusicChange,
+  onBackgroundChange,
+}: {
+  selectedTemplate: Template;
+  musicChoice: MediaChoice | null;
+  backgroundChoice: MediaChoice | null;
+  onMusicChange: (c: MediaChoice | null) => void;
+  onBackgroundChange: (c: MediaChoice | null) => void;
+}) => {
+  const g = selectedTemplate.descriptor.global ?? {};
+  const showMusic = (g.allowedMusic?.length ?? 0) > 0 || Boolean(g.allowUploadMusic);
+  const showBackground = (g.allowedBackgrounds?.length ?? 0) > 0 || Boolean(g.allowUploadBackground);
+
+  return (
+    <div className="fade-in max-w-3xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-4xl font-bold font-display text-foreground mb-2">Music &amp; Background</h2>
+        <p className="text-gray-400 text-lg">Choose the soundtrack and backdrop for your video</p>
+      </div>
+      <div className="space-y-8">
+        {showMusic && (
+          <Card elevation="flat" className="glass-panel-dark p-6 md:p-8 shadow-2xl">
+            <h3 className="text-lg font-semibold mb-4 font-display text-foreground">Music</h3>
+            <MediaPicker
+              kind="music"
+              value={musicChoice}
+              onChange={onMusicChange}
+              allowedIds={g.allowedMusic}
+              allowUpload={Boolean(g.allowUploadMusic)}
+            />
+          </Card>
+        )}
+        {showBackground && (
+          <Card elevation="flat" className="glass-panel-dark p-6 md:p-8 shadow-2xl">
+            <h3 className="text-lg font-semibold mb-4 font-display text-foreground">Background Image</h3>
+            <MediaPicker
+              kind="picture"
+              value={backgroundChoice}
+              onChange={onBackgroundChange}
+              allowedIds={g.allowedBackgrounds}
+              allowUpload={Boolean(g.allowUploadBackground)}
+            />
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const StepEdit = ({
   uploadedFiles,
@@ -249,13 +304,13 @@ const NavButtons = ({
       <Button
         variant="ghost"
         onClick={onPrev}
-        disabled={currentStep === 0 || currentStep === 5}
+        disabled={currentStep === 0 || currentStep === 6}
         className="group px-6 py-3"
       >
         <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" />
         Back
       </Button>
-      {currentStep < 4 && (
+      {currentStep < 5 && (
         <Button
           variant="primary"
           onClick={onNext}
@@ -285,6 +340,7 @@ const checkFormComplete = (selectedTemplate: Template | null, formData: Record<s
 };
 
 const FORM_STEP = 1;
+const MEDIA_STEP = 3;
 
 // Whether the template defines any form fields — drives skipping the Configure step.
 const templateHasFormFields = (selectedTemplate: Template | null): boolean => {
@@ -298,18 +354,162 @@ const templateHasFormFields = (selectedTemplate: Template | null): boolean => {
   return sections.filter((s) => s.type === 'form').flatMap((s) => s.options?.fields ?? []).length > 0;
 };
 
+// Whether the template requires a Media selection step.
+const templateNeedsMediaStep = (selectedTemplate: Template | null): boolean => {
+  if (!selectedTemplate) return false;
+  const g = selectedTemplate.descriptor.global ?? {};
+
+  return (
+    (g.allowedMusic?.length ?? 0) > 0 ||
+    Boolean(g.allowUploadMusic) ||
+    (g.allowedBackgrounds?.length ?? 0) > 0 ||
+    Boolean(g.allowUploadBackground)
+  );
+};
+
+interface StepContentProps {
+  currentStep: number;
+  selectedTemplate: Template | null;
+  uploadedFiles: File[];
+  formData: Record<string, string>;
+  videoEdits: Record<number, VideoEdit | undefined>;
+  musicChoice: MediaChoice | null;
+  backgroundChoice: MediaChoice | null;
+  isFFmpegReady: boolean;
+  isProcessing: boolean;
+  canProcess: boolean;
+  progress: ReturnType<typeof useVideoProcessing>['progress'];
+  error: string | null;
+  processedVideo: ProcessedVideo | null;
+  onTemplateSelected: (t: Template) => void;
+  onFormDataChange: (d: Record<string, string>) => void;
+  onFilesUploaded: (files: File[]) => void;
+  onMusicChange: (c: MediaChoice | null) => void;
+  onBackgroundChange: (c: MediaChoice | null) => void;
+  onEditChange: (index: number, edit: VideoEdit | undefined) => void;
+  onStartProcessing: () => void;
+  onBack: () => void;
+  onReset: () => void;
+}
+
+const StepContent = ({
+  currentStep,
+  selectedTemplate,
+  uploadedFiles,
+  formData,
+  videoEdits,
+  musicChoice,
+  backgroundChoice,
+  isFFmpegReady,
+  isProcessing,
+  canProcess,
+  progress,
+  error,
+  processedVideo,
+  onTemplateSelected,
+  onFormDataChange,
+  onFilesUploaded,
+  onMusicChange,
+  onBackgroundChange,
+  onEditChange,
+  onStartProcessing,
+  onBack,
+  onReset,
+}: StepContentProps) => {
+  if (currentStep === 0) {
+    return <StepTemplate selectedTemplate={selectedTemplate} onTemplateSelected={onTemplateSelected} />;
+  }
+
+  if (currentStep === 1 && selectedTemplate) {
+    return (
+      <StepConfigure selectedTemplate={selectedTemplate} formData={formData} onFormDataChange={onFormDataChange} />
+    );
+  }
+
+  if (currentStep === 2) {
+    return <StepUpload uploadedFiles={uploadedFiles} onFilesUploaded={onFilesUploaded} />;
+  }
+
+  if (currentStep === 3 && selectedTemplate) {
+    return (
+      <StepMedia
+        selectedTemplate={selectedTemplate}
+        musicChoice={musicChoice}
+        backgroundChoice={backgroundChoice}
+        onMusicChange={onMusicChange}
+        onBackgroundChange={onBackgroundChange}
+      />
+    );
+  }
+
+  if (currentStep === 4) {
+    return <StepEdit uploadedFiles={uploadedFiles} videoEdits={videoEdits} onEditChange={onEditChange} />;
+  }
+
+  if (currentStep === 5) {
+    return (
+      <StepProcess
+        selectedTemplate={selectedTemplate}
+        uploadedFiles={uploadedFiles}
+        formData={formData}
+        isFFmpegReady={isFFmpegReady}
+        isProcessing={isProcessing}
+        canProcess={canProcess}
+        progress={progress}
+        error={error}
+        onStartProcessing={onStartProcessing}
+      />
+    );
+  }
+
+  if (currentStep === 6 && processedVideo) {
+    return <StepResult processedVideo={processedVideo} onBack={onBack} onReset={onReset} />;
+  }
+
+  return null;
+};
+
+const makeStepNav = (setCurrentStep: Dispatch<SetStateAction<number>>, hasForm: boolean, hasMediaStep: boolean) => ({
+  nextStep: () => {
+    setCurrentStep((prev) => {
+      let next = prev + 1;
+
+      if (next === FORM_STEP && !hasForm) next += 1;
+
+      if (next === MEDIA_STEP && !hasMediaStep) next += 1;
+
+      return Math.min(next, STEPS.length - 1);
+    });
+  },
+  prevStep: () => {
+    setCurrentStep((prev) => {
+      let back = prev - 1;
+
+      if (back === MEDIA_STEP && !hasMediaStep) back -= 1;
+
+      if (back === FORM_STEP && !hasForm) back -= 1;
+
+      return Math.max(back, 0);
+    });
+  },
+});
+
 export const Builder = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [videoEdits, setVideoEdits] = useState<Record<number, VideoEdit | undefined>>({});
+  const [musicChoice, setMusicChoice] = useState<MediaChoice | null>(null);
+  const [backgroundChoice, setBackgroundChoice] = useState<MediaChoice | null>(null);
   const { isProcessing, progress, processedVideo, error, processVideo, isFFmpegReady } = useVideoProcessing();
   const { loadingProgress } = useFFmpeg();
 
   const handleTemplateSelected = (template: Template) => {
     setSelectedTemplate(template);
     setFormData({});
+    setMusicChoice(null);
+    setBackgroundChoice(null);
   };
   // Re-uploading changes the clip set, so clear edits (they are keyed by file index).
   const handleFilesUploaded = (files: File[]) => {
@@ -321,9 +521,10 @@ export const Builder = () => {
   };
   const handleStartProcessingSync = () => {
     if (!selectedTemplate || uploadedFiles.length === 0) return;
-    processVideo(uploadedFiles, { ...selectedTemplate, formData }, videoEdits).then(
+    const mediaChoices: MediaChoices = { music: musicChoice, background: backgroundChoice };
+    processVideo(uploadedFiles, { ...selectedTemplate, formData }, videoEdits, mediaChoices).then(
       () => {
-        if (!error) setCurrentStep(5);
+        if (!error) setCurrentStep(6);
       },
       (error_: unknown) => {
         console.error('Processing error', error_);
@@ -333,29 +534,18 @@ export const Builder = () => {
 
   const isFormComplete = checkFormComplete(selectedTemplate, formData);
   const hasForm = templateHasFormFields(selectedTemplate);
+  const hasMediaStep = templateNeedsMediaStep(selectedTemplate);
   const canProcess = Boolean(selectedTemplate) && uploadedFiles.length > 0 && isFFmpegReady && isFormComplete;
-  const nextStep = () => {
-    setCurrentStep((prev) => {
-      const next = prev + 1;
-      const target = next === FORM_STEP && !hasForm ? next + 1 : next;
-      // skip empty Configure step
-      return Math.min(target, STEPS.length - 1);
-    });
-  };
-  const prevStep = () => {
-    setCurrentStep((prev) => {
-      const back = prev - 1;
-      const target = back === FORM_STEP && !hasForm ? back - 1 : back;
+  const { nextStep, prevStep } = makeStepNav(setCurrentStep, hasForm, hasMediaStep);
 
-      return Math.max(target, 0);
-    });
-  };
   const handleReset = () => {
     setCurrentStep(0);
     setUploadedFiles([]);
     setFormData({});
     setSelectedTemplate(null);
     setVideoEdits({});
+    setMusicChoice(null);
+    setBackgroundChoice(null);
   };
 
   return (
@@ -379,38 +569,32 @@ export const Builder = () => {
           <Stepper steps={STEPS} currentStep={currentStep} />
         </div>
         <div className="max-w-6xl mx-auto">
-          {currentStep === 0 && (
-            <StepTemplate selectedTemplate={selectedTemplate} onTemplateSelected={handleTemplateSelected} />
-          )}
-          {currentStep === 1 && selectedTemplate && (
-            <StepConfigure selectedTemplate={selectedTemplate} formData={formData} onFormDataChange={setFormData} />
-          )}
-          {currentStep === 2 && <StepUpload uploadedFiles={uploadedFiles} onFilesUploaded={handleFilesUploaded} />}
-          {currentStep === 3 && (
-            <StepEdit uploadedFiles={uploadedFiles} videoEdits={videoEdits} onEditChange={handleEditChange} />
-          )}
-          {currentStep === 4 && (
-            <StepProcess
-              selectedTemplate={selectedTemplate}
-              uploadedFiles={uploadedFiles}
-              formData={formData}
-              isFFmpegReady={isFFmpegReady}
-              isProcessing={isProcessing}
-              canProcess={canProcess}
-              progress={progress}
-              error={error}
-              onStartProcessing={handleStartProcessingSync}
-            />
-          )}
-          {currentStep === 5 && processedVideo && (
-            <StepResult
-              processedVideo={processedVideo}
-              onBack={() => {
-                setCurrentStep(hasForm ? 1 : 2);
-              }}
-              onReset={handleReset}
-            />
-          )}
+          <StepContent
+            currentStep={currentStep}
+            selectedTemplate={selectedTemplate}
+            uploadedFiles={uploadedFiles}
+            formData={formData}
+            videoEdits={videoEdits}
+            musicChoice={musicChoice}
+            backgroundChoice={backgroundChoice}
+            isFFmpegReady={isFFmpegReady}
+            isProcessing={isProcessing}
+            canProcess={canProcess}
+            progress={progress}
+            error={error}
+            processedVideo={processedVideo}
+            onTemplateSelected={handleTemplateSelected}
+            onFormDataChange={setFormData}
+            onFilesUploaded={handleFilesUploaded}
+            onMusicChange={setMusicChoice}
+            onBackgroundChange={setBackgroundChoice}
+            onEditChange={handleEditChange}
+            onStartProcessing={handleStartProcessingSync}
+            onBack={() => {
+              setCurrentStep(hasForm ? 1 : 2);
+            }}
+            onReset={handleReset}
+          />
           <NavButtons
             currentStep={currentStep}
             selectedTemplate={selectedTemplate}

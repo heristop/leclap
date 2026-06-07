@@ -25,7 +25,10 @@ describe('MusicWasmAdapter.process', () => {
 
   it('loops the track when it is shorter than the video', async () => {
     const execute = vi.fn(async () => ({ rc: 0 }));
-    registerFfmpeg(vi.fn(async () => ({ duration: 10, videoCodec: null, audioCodec: 'mp3', sampleRate: null })), execute);
+    registerFfmpeg(
+      vi.fn(async () => ({ duration: 10, videoCodec: null, audioCodec: 'mp3', sampleRate: null })),
+      execute
+    );
     const fs = makeFilesystem();
     const logger = makeLogger();
 
@@ -42,7 +45,10 @@ describe('MusicWasmAdapter.process', () => {
 
   it('does nothing when the track already covers the video', async () => {
     const execute = vi.fn(async () => ({ rc: 0 }));
-    registerFfmpeg(vi.fn(async () => ({ duration: 60, videoCodec: null, audioCodec: 'mp3', sampleRate: null })), execute);
+    registerFfmpeg(
+      vi.fn(async () => ({ duration: 60, videoCodec: null, audioCodec: 'mp3', sampleRate: null })),
+      execute
+    );
     const fs = makeFilesystem();
 
     const result = await new MusicWasmAdapter().process(makeLogger() as never, fs as never, 30, '/m.mp3');
@@ -53,8 +59,13 @@ describe('MusicWasmAdapter.process', () => {
   });
 
   it('throws when the loop command fails', async () => {
-    registerFfmpeg(vi.fn(async () => ({ duration: 5, videoCodec: null, audioCodec: 'mp3', sampleRate: null })), vi.fn(async () => ({ rc: 1 })));
+    registerFfmpeg(
+      vi.fn(async () => ({ duration: 5, videoCodec: null, audioCodec: 'mp3', sampleRate: null })),
+      vi.fn(async () => ({ rc: 1 }))
+    );
 
-    await expect(new MusicWasmAdapter().process(makeLogger() as never, makeFilesystem() as never, 30, '/m.mp3')).rejects.toThrow();
+    await expect(
+      new MusicWasmAdapter().process(makeLogger() as never, makeFilesystem() as never, 30, '/m.mp3')
+    ).rejects.toThrow();
   });
 });

@@ -26,7 +26,7 @@ const Card = ({
   let statusIcon = iconName;
   let statusColor = colors.primary;
   let statusText = '';
-  
+
   if (status === 'completed') {
     statusIcon = 'checkmark-circle';
     statusColor = colors.success;
@@ -46,27 +46,21 @@ const Card = ({
   }
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={onPress}
-      activeOpacity={0.9}
-    >
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
       {imageUri ? (
-        <ImageBackground 
-          source={{ uri: imageUri }} 
-          style={styles.cardImageContainer}
-          imageStyle={{ opacity: 0.8 }}
-        >
+        <ImageBackground source={{ uri: imageUri }} style={styles.cardImageContainer} imageStyle={{ opacity: 0.8 }}>
           <View style={[styles.overlay, { backgroundColor: `${colors.primary}80` }]} />
           <View style={[styles.cardImage, { borderColor: accentColor }]}>
             <Ionicons name={statusIcon as keyof typeof Ionicons.glyphMap} size={32} color={statusColor} />
           </View>
-          
+
           {/* Add gradient overlay for better text readability */}
           <View style={styles.gradientOverlay} />
-          
+
           <View style={styles.imageTextContainer}>
-            <Text style={styles.imageTitle} numberOfLines={1}>{title}</Text>
+            <Text style={styles.imageTitle} numberOfLines={1}>
+              {title}
+            </Text>
           </View>
         </ImageBackground>
       ) : (
@@ -76,27 +70,32 @@ const Card = ({
           </View>
         </View>
       )}
-      
+
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{title}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {title}
+        </Text>
         {description && (
           <Text style={styles.cardDescription} numberOfLines={2}>
             {description}
           </Text>
         )}
       </View>
-      
+
       {status && (
-        <View style={[styles.statusBadge, { 
-          backgroundColor: `${statusColor}20`,
-          borderColor: `${statusColor}40`
-        }]}>
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            {statusText}
-          </Text>
+        <View
+          style={[
+            styles.statusBadge,
+            {
+              backgroundColor: `${statusColor}20`,
+              borderColor: `${statusColor}40`,
+            },
+          ]}
+        >
+          <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
         </View>
       )}
-      
+
       <View style={[styles.cardBorder, { backgroundColor: accentColor }]} />
     </TouchableOpacity>
   );

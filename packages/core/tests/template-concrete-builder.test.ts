@@ -73,12 +73,7 @@ function makeBuilder(opts: {
   const ffmpeg = opts.ffmpeg ?? { execute: vi.fn(async () => ({ rc: 0 })) };
   const filesystem = opts.filesystem ?? makeFilesystem();
 
-  const builder = new TemplateConcreteBuilder(
-    project as never,
-    logger as never,
-    ffmpeg as never,
-    filesystem as never
-  );
+  const builder = new TemplateConcreteBuilder(project as never, logger as never, ffmpeg as never, filesystem as never);
 
   return { builder, project, logger, ffmpeg, filesystem };
 }
@@ -260,9 +255,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     await builder.buildPart(baseSection, { buildDir: '/build' });
     await builder.renderPart();
 
-    expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('[intro][WASM] Warning: Large file'),
-    );
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('[intro][WASM] Warning: Large file'));
   });
 
   it('throws and records an error when a WASM input file fails to write', async () => {
@@ -278,7 +271,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     await expect(builder.renderPart()).rejects.toThrow('Failed to write input file asset_a');
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('[intro][WASM] Failed to write input file asset_a'),
+      expect.stringContaining('[intro][WASM] Failed to write input file asset_a')
     );
   });
 
@@ -288,9 +281,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     // In WASM, the destination is a bare filename living in MEMFS.
     segmentStub.destination = 'seg_output.mp4';
     // direct readFile at root rejects -> triggers directory search
-    wasm.readFile
-      .mockRejectedValueOnce(new Error('not at root'))
-      .mockResolvedValueOnce(new Uint8Array([7, 7])); // read from /tmp
+    wasm.readFile.mockRejectedValueOnce(new Error('not at root')).mockResolvedValueOnce(new Uint8Array([7, 7])); // read from /tmp
     wasm.listDir.mockImplementation(async (p: string) => {
       if (p === '/') {
         return [{ name: 'other.txt', isDir: false }];
@@ -363,9 +354,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     await builder.buildPart(baseSection, { buildDir: '/build' });
 
     await expect(builder.renderPart()).rejects.toThrow('Failed to read output file from FFmpeg');
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining('[intro][RenderPart] Could not check /tmp'),
-    );
+    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('[intro][RenderPart] Could not check /tmp'));
     expect(project.errors).toContain('intro');
   });
 
@@ -382,9 +371,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     await builder.buildPart(baseSection, { buildDir: '/build' });
 
     await expect(builder.renderPart()).rejects.toThrow('Failed to read output file from FFmpeg');
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('Output file not found in WASM'),
-    );
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Output file not found in WASM'));
     expect(project.errors).toContain('intro');
   });
 
@@ -439,9 +426,10 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
     const { builder, filesystem } = makeBuilder({ ffmpeg: ffmpeg as never });
     await builder.buildPart(baseSection, { buildDir: '/build' });
 
-    await (
-      builder as unknown as { writeAssetToWasm: (k: string, p: string) => Promise<void> }
-    ).writeAssetToWasm('asset_a', '/assets/a.png');
+    await (builder as unknown as { writeAssetToWasm: (k: string, p: string) => Promise<void> }).writeAssetToWasm(
+      'asset_a',
+      '/assets/a.png'
+    );
 
     expect(filesystem.readFile).not.toHaveBeenCalled();
     expect(ffmpeg.writeFile).not.toHaveBeenCalled();

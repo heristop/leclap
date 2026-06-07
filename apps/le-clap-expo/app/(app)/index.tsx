@@ -18,8 +18,7 @@ export default function ScenariosTab() {
   };
 
   // Handle recorded video
-  const handleVideoRecorded = (_video: VideoFile) => {
-  };
+  const handleVideoRecorded = (_video: VideoFile) => {};
 
   return (
     <View style={styles.container}>
@@ -30,7 +29,9 @@ export default function ScenariosTab() {
         <Suspense fallback={null}>
           <CameraModal
             visible={cameraModalVisible}
-            onClose={() => { setCameraModalVisible(false); }}
+            onClose={() => {
+              setCameraModalVisible(false);
+            }}
             onVideoRecorded={handleVideoRecorded}
           />
         </Suspense>

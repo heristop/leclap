@@ -36,9 +36,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={styles.container}>
           <Text style={styles.title}>Something went wrong</Text>
-          <Text style={styles.message}>
-            {this.state.error?.message ?? 'An unexpected error occurred'}
-          </Text>
+          <Text style={styles.message}>{this.state.error?.message ?? 'An unexpected error occurred'}</Text>
         </View>
       );
     }

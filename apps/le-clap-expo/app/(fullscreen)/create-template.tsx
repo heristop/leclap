@@ -34,9 +34,14 @@ export default function CreateTemplateScreen() {
     return toEditorState(existing ?? null);
   });
 
-  const patch = (p: Partial<EditorState>) => { setState((s) => ({ ...s, ...p })); };
+  const patch = (p: Partial<EditorState>) => {
+    setState((s) => ({ ...s, ...p }));
+  };
   const patchSection = (i: number, p: Partial<EditorSection>) => {
-    setState((s) => ({ ...s, sections: s.sections.map((sec, idx) => (idx === i ? ({ ...sec, ...p } as EditorSection) : sec)) }));
+    setState((s) => ({
+      ...s,
+      sections: s.sections.map((sec, idx) => (idx === i ? ({ ...sec, ...p } as EditorSection) : sec)),
+    }));
   };
   const addSection = (kind: EditorSection['kind']) => {
     Haptics.selectionAsync().catch(() => {});
@@ -66,6 +71,7 @@ export default function CreateTemplateScreen() {
 
       return;
     }
+
     if (state.sections.length === 0) {
       Alert.alert('Add a section', 'A template needs at least one section.');
 
@@ -85,7 +91,14 @@ export default function CreateTemplateScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity testID="close-editor" onPress={() => { router.back(); }} style={styles.iconBtn} accessibilityLabel="Close">
+        <TouchableOpacity
+          testID="close-editor"
+          onPress={() => {
+            router.back();
+          }}
+          style={styles.iconBtn}
+          accessibilityLabel="Close"
+        >
           <Ionicons name="close" size={26} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{id ? 'Edit template' : 'Create a template'}</Text>
@@ -98,7 +111,9 @@ export default function CreateTemplateScreen() {
           testID="tpl-name"
           style={styles.input}
           value={state.name}
-          onChangeText={(name) => { patch({ name }); }}
+          onChangeText={(name) => {
+            patch({ name });
+          }}
           placeholder="My template"
           placeholderTextColor={colors.textSecondary}
         />
@@ -109,7 +124,9 @@ export default function CreateTemplateScreen() {
             <TouchableOpacity
               key={o}
               testID={`orient-${o}`}
-              onPress={() => { patch({ orientation: o }); }}
+              onPress={() => {
+                patch({ orientation: o });
+              }}
               style={[styles.segmentItem, state.orientation === o && styles.segmentItemActive]}
             >
               <Ionicons
@@ -129,7 +146,9 @@ export default function CreateTemplateScreen() {
           <Switch
             testID="music-toggle"
             value={state.musicEnabled}
-            onValueChange={(musicEnabled) => { patch({ musicEnabled }); }}
+            onValueChange={(musicEnabled) => {
+              patch({ musicEnabled });
+            }}
             trackColor={{ true: colors.primary, false: colors.divider }}
             thumbColor="#fff"
           />
@@ -142,15 +161,28 @@ export default function CreateTemplateScreen() {
             index={i}
             count={state.sections.length}
             section={section}
-            onChange={(p) => { patchSection(i, p); }}
-            onRemove={() => { removeSection(i); }}
-            onMove={(dir) => { move(i, dir); }}
+            onChange={(p) => {
+              patchSection(i, p);
+            }}
+            onRemove={() => {
+              removeSection(i);
+            }}
+            onMove={(dir) => {
+              move(i, dir);
+            }}
           />
         ))}
 
         <View style={styles.addRow}>
           {SECTION_KINDS.map((kind) => (
-            <TouchableOpacity key={kind} testID={`add-${kind}`} onPress={() => { addSection(kind); }} style={styles.addBtn}>
+            <TouchableOpacity
+              key={kind}
+              testID={`add-${kind}`}
+              onPress={() => {
+                addSection(kind);
+              }}
+              style={styles.addBtn}
+            >
               <Ionicons name="add" size={16} color={colors.primary} />
               <Text style={styles.addBtnText}>{SECTION_LABELS[kind]}</Text>
             </TouchableOpacity>
@@ -186,10 +218,24 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
         <Text style={styles.cardTitleText}>{SECTION_LABELS[section.kind]}</Text>
       </View>
       <View style={styles.cardActions}>
-        <TouchableOpacity testID={`section-${index}-up`} disabled={index === 0} onPress={() => { onMove(-1); }} style={styles.iconBtnSm}>
+        <TouchableOpacity
+          testID={`section-${index}-up`}
+          disabled={index === 0}
+          onPress={() => {
+            onMove(-1);
+          }}
+          style={styles.iconBtnSm}
+        >
           <Ionicons name="chevron-up" size={18} color={index === 0 ? colors.divider : colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity testID={`section-${index}-down`} disabled={index === count - 1} onPress={() => { onMove(1); }} style={styles.iconBtnSm}>
+        <TouchableOpacity
+          testID={`section-${index}-down`}
+          disabled={index === count - 1}
+          onPress={() => {
+            onMove(1);
+          }}
+          style={styles.iconBtnSm}
+        >
           <Ionicons name="chevron-down" size={18} color={index === count - 1 ? colors.divider : colors.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity testID={`section-${index}-remove`} onPress={onRemove} style={styles.iconBtnSm}>
@@ -201,14 +247,34 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
     {section.kind === 'video' && (
       <View>
         <FieldRow label="Duration (s)">
-          <NumberInput value={section.duration} onChange={(duration) => { onChange({ duration }); }} />
+          <NumberInput
+            value={section.duration}
+            onChange={(duration) => {
+              onChange({ duration });
+            }}
+          />
         </FieldRow>
         <View style={styles.rowBetween}>
           <Text style={styles.fieldLabel}>Mute audio</Text>
-          <Switch value={section.mute} onValueChange={(mute) => { onChange({ mute }); }} trackColor={{ true: colors.primary, false: colors.divider }} thumbColor="#fff" />
+          <Switch
+            value={section.mute}
+            onValueChange={(mute) => {
+              onChange({ mute });
+            }}
+            trackColor={{ true: colors.primary, false: colors.divider }}
+            thumbColor="#fff"
+          />
         </View>
         <FieldRow label="Overlay text (optional)">
-          <TextInput style={styles.inputSm} value={section.text} onChangeText={(text) => { onChange({ text }); }} placeholder="supports {{ firstname }}" placeholderTextColor={colors.textSecondary} />
+          <TextInput
+            style={styles.inputSm}
+            value={section.text}
+            onChangeText={(text) => {
+              onChange({ text });
+            }}
+            placeholder="supports {{ firstname }}"
+            placeholderTextColor={colors.textSecondary}
+          />
         </FieldRow>
       </View>
     )}
@@ -216,12 +282,26 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
     {section.kind === 'color' && (
       <View>
         <FieldRow label="Duration (s)">
-          <NumberInput value={section.duration} onChange={(duration) => { onChange({ duration }); }} />
+          <NumberInput
+            value={section.duration}
+            onChange={(duration) => {
+              onChange({ duration });
+            }}
+          />
         </FieldRow>
         <FieldRow label="Color (hex)">
           <View style={styles.colorRow}>
             <View style={[styles.swatch, { backgroundColor: section.color }]} />
-            <TextInput style={styles.inputSm} value={section.color} autoCapitalize="none" onChangeText={(color) => { onChange({ color }); }} placeholder="#7C83FD" placeholderTextColor={colors.textSecondary} />
+            <TextInput
+              style={styles.inputSm}
+              value={section.color}
+              autoCapitalize="none"
+              onChangeText={(color) => {
+                onChange({ color });
+              }}
+              placeholder="#7C83FD"
+              placeholderTextColor={colors.textSecondary}
+            />
           </View>
         </FieldRow>
       </View>
@@ -243,7 +323,12 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
                 placeholderTextColor={colors.textSecondary}
               />
               {section.fields.length > 1 && (
-                <TouchableOpacity onPress={() => { onChange({ fields: section.fields.filter((_, idx) => idx !== fi) }); }} style={styles.iconBtnSm}>
+                <TouchableOpacity
+                  onPress={() => {
+                    onChange({ fields: section.fields.filter((_, idx) => idx !== fi) });
+                  }}
+                  style={styles.iconBtnSm}
+                >
                   <Ionicons name="close" size={16} color={colors.error} />
                 </TouchableOpacity>
               )}
@@ -251,7 +336,11 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
           </FieldRow>
         ))}
         <TouchableOpacity
-          onPress={() => { onChange({ fields: [...section.fields, { name: `field_${section.fields.length + 1}`, label: '', maxLength: 40 }] }); }}
+          onPress={() => {
+            onChange({
+              fields: [...section.fields, { name: `field_${section.fields.length + 1}`, label: '', maxLength: 40 }],
+            });
+          }}
           style={[styles.addBtn, { alignSelf: 'flex-start', marginTop: spacing.s }]}
         >
           <Ionicons name="add" size={14} color={colors.primary} />
@@ -297,23 +386,76 @@ const styles = StyleSheet.create({
   iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   iconBtnSm: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: spacing.m },
-  label: { ...typography.smallText, color: colors.textSecondary, textTransform: 'uppercase', marginBottom: spacing.xs, marginTop: spacing.m },
+  label: {
+    ...typography.smallText,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+    marginTop: spacing.m,
+  },
   fieldLabel: { ...typography.smallText, color: colors.textSecondary, marginBottom: spacing.xs },
-  input: { ...typography.body, color: colors.text, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.divider, paddingHorizontal: spacing.m, paddingVertical: spacing.s },
-  inputSm: { ...typography.body, fontSize: 14, color: colors.text, backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.divider, paddingHorizontal: spacing.s, paddingVertical: 6 },
+  input: {
+    ...typography.body,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+  },
+  inputSm: {
+    ...typography.body,
+    fontSize: 14,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 6,
+  },
   segment: { flexDirection: 'row', gap: spacing.s },
-  segmentItem: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.s, borderRadius: 12, borderWidth: 1, borderColor: colors.divider, backgroundColor: colors.surface },
+  segmentItem: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.s,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    backgroundColor: colors.surface,
+  },
   segmentItemActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   segmentText: { ...typography.caption, color: colors.textSecondary },
   segmentTextActive: { color: '#fff' },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.m },
-  card: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.divider, padding: spacing.m, marginTop: spacing.s },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    padding: spacing.m,
+    marginTop: spacing.s,
+  },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardTitle: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
   cardTitleText: { ...typography.button, color: colors.text },
   cardActions: { flexDirection: 'row', alignItems: 'center' },
   addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s, marginTop: spacing.m },
-  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.m, paddingVertical: spacing.s, borderRadius: 999, borderWidth: 1, borderColor: colors.primary, backgroundColor: 'rgba(124,131,253,0.08)' },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(124,131,253,0.08)',
+  },
   addBtnText: { ...typography.caption, color: colors.primary, fontWeight: '600' },
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s },
   swatch: { width: 28, height: 28, borderRadius: 8, borderWidth: 1, borderColor: colors.divider },

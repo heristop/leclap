@@ -1,12 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { VideoFile } from 'react-native-vision-camera';
@@ -22,7 +15,7 @@ const safeJsonParse = (jsonString: string | undefined | null): unknown => {
   try {
     return JSON.parse(jsonString);
   } catch (error) {
-    console.error("Failed to parse JSON string:", error);
+    console.error('Failed to parse JSON string:', error);
 
     return null;
   }
@@ -42,20 +35,11 @@ interface RecordSectionHeaderProps {
   onBack: () => void;
 }
 
-const RecordSectionHeader = ({
-  section,
-  isRecording,
-  recordingDuration,
-  onBack,
-}: RecordSectionHeaderProps) => (
+const RecordSectionHeader = ({ section, isRecording, recordingDuration, onBack }: RecordSectionHeaderProps) => (
   <View style={styles.headerBar}>
-    <TouchableOpacity
-      style={styles.headerButton}
-      onPress={onBack}
-      disabled={isRecording}
-    >
-      <Ionicons name="arrow-back" size={24} color={isRecording ? "rgba(255,255,255,0.5)" : "white"} />
-      <Text style={[styles.headerButtonText, isRecording && { color: "rgba(255,255,255,0.5)" }]}>Back</Text>
+    <TouchableOpacity style={styles.headerButton} onPress={onBack} disabled={isRecording}>
+      <Ionicons name="arrow-back" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
+      <Text style={[styles.headerButtonText, isRecording && { color: 'rgba(255,255,255,0.5)' }]}>Back</Text>
     </TouchableOpacity>
 
     <View style={styles.headerTitleContainer}>
@@ -77,7 +61,7 @@ const buildUpdatedProject = (
   project: NonNullable<ReturnType<typeof useProject>['data']>,
   section: Section,
   video: VideoFile,
-  orientation: 'portrait' | 'landscape',
+  orientation: 'portrait' | 'landscape'
 ) => {
   const isFirstSectionRecorded = Object.keys(project.recordedVideos).length === 0;
 
@@ -123,7 +107,7 @@ const useRecordingTimer = (isRecording: boolean) => {
   useEffect(() => {
     if (isRecording) {
       timerRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 1);
+        setRecordingDuration((prev) => prev + 1);
       }, 1000);
     }
 
@@ -198,8 +182,7 @@ const RecordSectionScreen = () => {
 
   const projectId = params.projectId;
   const section = safeJsonParse(params.sectionJson) as Section | null;
-  const orientation: 'portrait' | 'landscape' =
-    params.orientation === 'landscape' ? 'landscape' : 'portrait';
+  const orientation: 'portrait' | 'landscape' = params.orientation === 'landscape' ? 'landscape' : 'portrait';
   const existingVideoPath = params.existingVideoPath;
 
   const { data: project } = useProject(projectId);
@@ -213,7 +196,12 @@ const RecordSectionScreen = () => {
   if (!projectId || !section) {
     console.error('RecordSectionScreen: Missing projectId or section data');
     Alert.alert('Error', 'Could not load recording screen. Missing data.', [
-      { text: 'OK', onPress: () => { router.back(); } },
+      {
+        text: 'OK',
+        onPress: () => {
+          router.back();
+        },
+      },
     ]);
 
     return (
@@ -245,12 +233,16 @@ const RecordSectionScreen = () => {
         section={section}
         isRecording={isRecording}
         recordingDuration={recordingDuration}
-        onBack={() => { router.back(); }}
+        onBack={() => {
+          router.back();
+        }}
       />
 
       <VideoRecorder
         orientation={orientation}
-        onVideoRecorded={(video) => { handleVideoRecorded(video).catch(console.error); }}
+        onVideoRecorded={(video) => {
+          handleVideoRecorded(video).catch(console.error);
+        }}
         existingVideoUri={existingVideoPath}
         sectionDescription={section.description?.en}
         fullscreen

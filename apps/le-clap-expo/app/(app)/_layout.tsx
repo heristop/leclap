@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Tabs } from "expo-router";
+import { Tabs } from 'expo-router';
 import CustomTabBar from '../components/ui/CustomTabBar';
 import Header from '../components/common/Header';
 import { useOrientation } from '@/src/hooks/useOrientation';
@@ -18,7 +18,7 @@ export default function AppLayout() {
   return (
     <>
       <Header />
-      
+
       <Tabs
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
@@ -28,19 +28,19 @@ export default function AppLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Scenarios",
+            title: 'Scenarios',
           }}
         />
         <Tabs.Screen
           name="videos/index"
           options={{
-            title: "Videos",
+            title: 'Videos',
           }}
         />
         <Tabs.Screen
           name="template/[id]"
           options={{
-            title: "Template",
+            title: 'Template',
             tabBarButton: () => null,
           }}
         />

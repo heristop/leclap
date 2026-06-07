@@ -53,7 +53,9 @@ class Template {
     return validation;
   };
 
-  clean = (): void => { this.init(); };
+  clean = (): void => {
+    this.init();
+  };
 }
 
 export default Template;

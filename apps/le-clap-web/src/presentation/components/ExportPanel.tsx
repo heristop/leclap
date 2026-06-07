@@ -1,62 +1,62 @@
-import { useState, useRef, startTransition } from 'react'
-import { Download, Play, Pause, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from 'lucide-react'
-import clsx from 'clsx'
-import { logger } from '@/lib/logger'
-import { Button, Card } from '@/presentation/components/ui'
+import { useState, useRef, startTransition } from 'react';
+import { Download, Play, Pause, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from 'lucide-react';
+import clsx from 'clsx';
+import { logger } from '@/lib/logger';
+import { Button, Card } from '@/presentation/components/ui';
 
 interface ProcessedVideo {
-  blob: Blob
-  url: string
-  size: number
-  duration?: number
+  blob: Blob;
+  url: string;
+  size: number;
+  duration?: number;
 }
 
 interface ExportPanelProps {
-  processedVideo: ProcessedVideo
+  processedVideo: ProcessedVideo;
 }
 
 const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 const formatDuration = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = Math.floor(seconds % 60)
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
 
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-}
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
 
 interface VideoPreviewProps {
-  processedVideo: ProcessedVideo
-  isPlaying: boolean
-  onPlayPause: () => void
-  onPlay: () => void
-  onPause: () => void
+  processedVideo: ProcessedVideo;
+  isPlaying: boolean;
+  onPlayPause: () => void;
+  onPlay: () => void;
+  onPause: () => void;
 }
 
 const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause }: VideoPreviewProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlayPause = () => {
-    if (!videoRef.current) return
+    if (!videoRef.current) return;
 
     if (isPlaying) {
-      videoRef.current.pause()
-      onPlayPause()
+      videoRef.current.pause();
+      onPlayPause();
 
-      return
+      return;
     }
 
     videoRef.current.play().catch((error: unknown) => {
-      logger.error('Error playing video:', error)
-    })
-    onPlayPause()
-  }
+      logger.error('Error playing video:', error);
+    });
+    onPlayPause();
+  };
 
   return (
     <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl border border-foreground/10">
@@ -65,8 +65,12 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
         src={processedVideo.url}
         aria-label="Processed video preview"
         className="w-full h-auto max-h-96 object-contain"
-        onPlay={() => { onPlay(); }}
-        onPause={() => { onPause(); }}
+        onPlay={() => {
+          onPlay();
+        }}
+        onPause={() => {
+          onPause();
+        }}
         controls={false}
         preload="metadata"
       />
@@ -78,16 +82,12 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
           size="icon"
           onClick={handlePlayPause}
           className={clsx(
-            "p-4 bg-black/50 rounded-full text-foreground pointer-events-auto backdrop-blur-sm border border-foreground/10 hover:bg-black/70 [&_svg]:size-8",
-            isPlaying ? "opacity-0 hover:opacity-100" : "opacity-100 hover:scale-110"
+            'p-4 bg-black/50 rounded-full text-foreground pointer-events-auto backdrop-blur-sm border border-foreground/10 hover:bg-black/70 [&_svg]:size-8',
+            isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100 hover:scale-110'
           )}
-          aria-label={isPlaying ? "Pause video" : "Play video"}
+          aria-label={isPlaying ? 'Pause video' : 'Play video'}
         >
-          {isPlaying ? (
-            <Pause />
-          ) : (
-            <Play className="ml-1" />
-          )}
+          {isPlaying ? <Pause /> : <Play className="ml-1" />}
         </Button>
       </div>
 
@@ -104,24 +104,25 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 interface VideoInfoProps {
-  processedVideo: ProcessedVideo
+  processedVideo: ProcessedVideo;
 }
 
 const VideoInfo = ({ processedVideo }: VideoInfoProps) => (
-  <Card elevation="flat" className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm">
+  <Card
+    elevation="flat"
+    className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm"
+  >
     <div className="flex items-center space-x-3">
       <div className="p-2 bg-info/20 rounded-lg border border-info/20">
         <HardDrive className="w-5 h-5 text-info" />
       </div>
       <div>
         <p className="text-sm font-medium text-gray-400">File Size</p>
-        <p className="text-lg font-semibold text-foreground">
-          {formatFileSize(processedVideo.size)}
-        </p>
+        <p className="text-lg font-semibold text-foreground">{formatFileSize(processedVideo.size)}</p>
       </div>
     </div>
 
@@ -135,18 +136,25 @@ const VideoInfo = ({ processedVideo }: VideoInfoProps) => (
       </div>
     </div>
   </Card>
-)
+);
 
 interface ActionButtonsProps {
-  processedVideo: ProcessedVideo
-  downloadProgress: number
-  showCopied: boolean
-  onDownload: () => void
-  onCopyLink: () => void
-  onShare: () => void
+  processedVideo: ProcessedVideo;
+  downloadProgress: number;
+  showCopied: boolean;
+  onDownload: () => void;
+  onCopyLink: () => void;
+  onShare: () => void;
 }
 
-const ActionButtons = ({ processedVideo: _processedVideo, downloadProgress, showCopied, onDownload, onCopyLink, onShare }: ActionButtonsProps) => (
+const ActionButtons = ({
+  processedVideo: _processedVideo,
+  downloadProgress,
+  showCopied,
+  onDownload,
+  onCopyLink,
+  onShare,
+}: ActionButtonsProps) => (
   <div className="space-y-3">
     {/* Primary Download Button */}
     <Button
@@ -162,20 +170,14 @@ const ActionButtons = ({ processedVideo: _processedVideo, downloadProgress, show
         <Download />
       </span>
       <span>
-        {downloadProgress > 0 && downloadProgress < 100
-          ? `Downloading... ${downloadProgress}%`
-          : 'Download Video'
-        }
+        {downloadProgress > 0 && downloadProgress < 100 ? `Downloading... ${downloadProgress}%` : 'Download Video'}
       </span>
     </Button>
 
     {/* Progress Bar for Download */}
     {downloadProgress > 0 && downloadProgress < 100 && (
       <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-success transition-all duration-300"
-          style={{ width: `${downloadProgress}%` }}
-        />
+        <div className="h-full bg-success transition-all duration-300" style={{ width: `${downloadProgress}%` }} />
       </div>
     )}
 
@@ -214,7 +216,7 @@ const ActionButtons = ({ processedVideo: _processedVideo, downloadProgress, show
       )}
     </div>
   </div>
-)
+);
 
 const SuccessMessage = () => (
   <Card elevation="flat" className="p-4 bg-success/[0.12] border-success/30 rounded-xl backdrop-blur-sm">
@@ -228,61 +230,70 @@ const SuccessMessage = () => (
       <li>• You can download and share your video now</li>
     </ul>
   </Card>
-)
+);
 
 export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [showCopied, setShowCopied] = useState(false)
-  const [downloadProgress, setDownloadProgress] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const handleDownload = () => {
-    setDownloadProgress(0)
+    setDownloadProgress(0);
     const interval = setInterval(() => {
-      setDownloadProgress(prev => {
+      setDownloadProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval)
+          clearInterval(interval);
 
-          return 100
+          return 100;
         }
 
-        return prev + 10
-      })
-    }, 50)
+        return prev + 10;
+      });
+    }, 50);
 
-    const link = document.createElement('a')
-    link.href = processedVideo.url
-    link.download = `processed-video-${Date.now()}.mp4`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const link = document.createElement('a');
+    link.href = processedVideo.url;
+    link.download = `processed-video-${Date.now()}.mp4`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-    setTimeout(() => { setDownloadProgress(0); }, 2000)
-  }
+    setTimeout(() => {
+      setDownloadProgress(0);
+    }, 2000);
+  };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(processedVideo.url).then(() => {
-      startTransition(() => {
-        setShowCopied(true)
+    navigator.clipboard
+      .writeText(processedVideo.url)
+      .then(() => {
+        startTransition(() => {
+          setShowCopied(true);
+        });
+        setTimeout(() => {
+          setShowCopied(false);
+        }, 2000);
       })
-      setTimeout(() => { setShowCopied(false); }, 2000)
-    }).catch((error: unknown) => {
-      logger.error('Failed to copy:', error)
-    })
-  }
+      .catch((error: unknown) => {
+        logger.error('Failed to copy:', error);
+      });
+  };
 
   const handleShare = () => {
-    if (!('share' in navigator)) return
+    if (!('share' in navigator)) return;
     const file = new File([processedVideo.blob], 'processed-video.mp4', {
-      type: 'video/mp4'
-    })
-    navigator.share({
-      title: 'Processed Video',
-      text: 'Check out this video I created with FFmpeg Video Composer!',
-      files: [file]
-    }).catch((error: unknown) => {
-      logger.error('Error sharing:', error)
-    })
-  }
+      type: 'video/mp4',
+    });
+    navigator
+      .share({
+        title: 'Processed Video',
+        text: 'Check out this video I created with FFmpeg Video Composer!',
+        files: [file],
+      })
+      .catch((error: unknown) => {
+        logger.error('Error sharing:', error);
+      });
+  };
 
   return (
     <div className="space-y-6 fade-in">
@@ -290,9 +301,15 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
       <VideoPreview
         processedVideo={processedVideo}
         isPlaying={isPlaying}
-        onPlayPause={() => { setIsPlaying(prev => !prev); }}
-        onPlay={() => { setIsPlaying(true); }}
-        onPause={() => { setIsPlaying(false); }}
+        onPlayPause={() => {
+          setIsPlaying((prev) => !prev);
+        }}
+        onPlay={() => {
+          setIsPlaying(true);
+        }}
+        onPause={() => {
+          setIsPlaying(false);
+        }}
       />
 
       {/* Video Information */}
@@ -311,5 +328,5 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
       {/* Success Message */}
       <SuccessMessage />
     </div>
-  )
-}
+  );
+};

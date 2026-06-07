@@ -40,15 +40,15 @@ describe('CreateProjectUseCase', () => {
 
   it('rejects a blank name', async () => {
     const useCase = new CreateProjectUseCase(new FakeProjectRepository());
-    await expect(
-      useCase.execute({ name: '   ', templateName: 't', templateContent: {} })
-    ).rejects.toThrow('Project name is required');
+    await expect(useCase.execute({ name: '   ', templateName: 't', templateContent: {} })).rejects.toThrow(
+      'Project name is required'
+    );
   });
 
   it('rejects a missing template name', async () => {
     const useCase = new CreateProjectUseCase(new FakeProjectRepository());
-    await expect(
-      useCase.execute({ name: 'P', templateName: '', templateContent: {} })
-    ).rejects.toThrow('Template name is required');
+    await expect(useCase.execute({ name: 'P', templateName: '', templateContent: {} })).rejects.toThrow(
+      'Template name is required'
+    );
   });
 });

@@ -9,12 +9,7 @@ interface SkeletonLoaderProps {
   style?: object;
 }
 
-export function SkeletonLoader({
-  width = '100%',
-  height = 20,
-  borderRadius = 4,
-  style,
-}: SkeletonLoaderProps) {
+export function SkeletonLoader({ width = '100%', height = 20, borderRadius = 4, style }: SkeletonLoaderProps) {
   const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -35,7 +30,9 @@ export function SkeletonLoader({
 
     animation.start();
 
-    return () =>{  animation.stop(); };
+    return () => {
+      animation.stop();
+    };
   }, [animatedValue]);
 
   const opacity = animatedValue.interpolate({

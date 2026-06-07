@@ -158,9 +158,25 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
   return (
     <div className="select-none">
       <div className="flex items-center justify-between mb-2.5 text-sm tabular-nums">
-        <span className={cn('transition-colors', dragging === 'start' ? 'text-brand-700 dark:text-brand-300 font-semibold' : 'text-gray-300')}>{formatTime(value.start)}</span>
-        <span className="px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-semibold text-xs ring-1 ring-brand-500/20">{formatTime(value.end - value.start)} selected</span>
-        <span className={cn('transition-colors', dragging === 'end' ? 'text-brand-700 dark:text-brand-300 font-semibold' : 'text-gray-300')}>{formatTime(value.end)}</span>
+        <span
+          className={cn(
+            'transition-colors',
+            dragging === 'start' ? 'text-brand-700 dark:text-brand-300 font-semibold' : 'text-gray-300'
+          )}
+        >
+          {formatTime(value.start)}
+        </span>
+        <span className="px-2.5 py-0.5 rounded-full bg-brand-500/15 text-brand-700 dark:text-brand-300 font-semibold text-xs ring-1 ring-brand-500/20">
+          {formatTime(value.end - value.start)} selected
+        </span>
+        <span
+          className={cn(
+            'transition-colors',
+            dragging === 'end' ? 'text-brand-700 dark:text-brand-300 font-semibold' : 'text-gray-300'
+          )}
+        >
+          {formatTime(value.end)}
+        </span>
       </div>
 
       {/* Unclipped stage: the track clips its waveform/overlays, while handles + bubbles overflow above it. */}
@@ -169,7 +185,9 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
           ref={trackRef}
           onPointerDown={seekFromTrack}
           onPointerMove={onTrackHover}
-          onPointerLeave={() => { setHoverPct(null); }}
+          onPointerLeave={() => {
+            setHoverPct(null);
+          }}
           className="relative h-14 rounded-2xl overflow-hidden cursor-pointer ring-1 ring-white/10 shadow-inner"
           style={{ background: 'linear-gradient(to bottom, oklch(0.28 0.02 280), oklch(0.19 0.02 280))' }}
         >
@@ -181,8 +199,14 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
           </div>
 
           {/* dimmed outside-selection regions */}
-          <div className="absolute inset-y-0 left-0 bg-black/60 backdrop-blur-[1px]" style={{ width: `${startPct}%` }} />
-          <div className="absolute inset-y-0 right-0 bg-black/60 backdrop-blur-[1px]" style={{ width: `${100 - endPct}%` }} />
+          <div
+            className="absolute inset-y-0 left-0 bg-black/60 backdrop-blur-[1px]"
+            style={{ width: `${startPct}%` }}
+          />
+          <div
+            className="absolute inset-y-0 right-0 bg-black/60 backdrop-blur-[1px]"
+            style={{ width: `${100 - endPct}%` }}
+          />
 
           {/* selected window */}
           <div
@@ -197,12 +221,18 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
 
           {/* hover-scrub ghost line */}
           {showHover && (
-            <div className="pointer-events-none absolute inset-y-0 -ml-px w-px bg-white/45" style={{ left: `${hoverPct}%` }} />
+            <div
+              className="pointer-events-none absolute inset-y-0 -ml-px w-px bg-white/45"
+              style={{ left: `${hoverPct}%` }}
+            />
           )}
 
           {/* playhead */}
           <div
-            className={cn('absolute inset-y-1 -ml-px w-0.5 bg-white rounded-full shadow-md shadow-white/70', !dragging && 'transition-[left] duration-100 ease-linear')}
+            className={cn(
+              'absolute inset-y-1 -ml-px w-0.5 bg-white rounded-full shadow-md shadow-white/70',
+              !dragging && 'transition-[left] duration-100 ease-linear'
+            )}
             style={{ left: `${playPct}%` }}
           >
             <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 rounded-[2px] bg-white shadow-md shadow-white/70" />
@@ -220,8 +250,22 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
         )}
 
         {/* handles (siblings of the clipped track so they can overflow) */}
-        <TrimHandle side="start" pct={startPct} label={formatTime(value.start)} valueNow={Math.round(value.start)} dragging={dragging === 'start'} onPointerDown={dragHandle('start')} />
-        <TrimHandle side="end" pct={endPct} label={formatTime(value.end)} valueNow={Math.round(value.end)} dragging={dragging === 'end'} onPointerDown={dragHandle('end')} />
+        <TrimHandle
+          side="start"
+          pct={startPct}
+          label={formatTime(value.start)}
+          valueNow={Math.round(value.start)}
+          dragging={dragging === 'start'}
+          onPointerDown={dragHandle('start')}
+        />
+        <TrimHandle
+          side="end"
+          pct={endPct}
+          label={formatTime(value.end)}
+          valueNow={Math.round(value.end)}
+          dragging={dragging === 'end'}
+          onPointerDown={dragHandle('end')}
+        />
       </div>
     </div>
   );

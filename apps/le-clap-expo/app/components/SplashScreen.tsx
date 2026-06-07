@@ -9,9 +9,41 @@ const { width, height } = Dimensions.get('window');
 // implement Intl.Segmenter, and converting a string with spread/split conflicts with lint
 // rules, so the ASCII characters are listed directly here.
 const TAGLINE_LETTERS = [
-  'Y', 'o', 'u', 'r', ' ', 's', 't', 'o', 'r', 'y', '.', ' ',
-  'Y', 'o', 'u', 'r', ' ', 's', 'c', 'e', 'n', 'e', 's', '.', ' ',
-  'Y', 'o', 'u', 'r', ' ', 'c', 'l', 'a', 'p', '.',
+  'Y',
+  'o',
+  'u',
+  'r',
+  ' ',
+  's',
+  't',
+  'o',
+  'r',
+  'y',
+  '.',
+  ' ',
+  'Y',
+  'o',
+  'u',
+  'r',
+  ' ',
+  's',
+  'c',
+  'e',
+  'n',
+  'e',
+  's',
+  '.',
+  ' ',
+  'Y',
+  'o',
+  'u',
+  'r',
+  ' ',
+  'c',
+  'l',
+  'a',
+  'p',
+  '.',
 ];
 
 interface SplashScreenProps {
@@ -36,21 +68,36 @@ function buildAnimationSequence(refs: AnimationRefs): Animated.CompositeAnimatio
       Animated.spring(scaleAnim, { toValue: 1, friction: 4, tension: 10, useNativeDriver: true }),
     ]),
     Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.1, duration: 400, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
-      Animated.timing(pulseAnim, { toValue: 1, duration: 400, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+      Animated.timing(pulseAnim, {
+        toValue: 1.1,
+        duration: 400,
+        useNativeDriver: true,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+        easing: Easing.inOut(Easing.ease),
+      }),
     ]),
-    Animated.timing(rotateAnim, { toValue: 1, duration: 600, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+    Animated.timing(rotateAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+      easing: Easing.inOut(Easing.ease),
+    }),
     Animated.timing(taglineOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-    Animated.stagger(30, letterAnimations.map((anim) =>
-      Animated.timing(anim, { toValue: 1, duration: 50, useNativeDriver: true })
-    )),
+    Animated.stagger(
+      30,
+      letterAnimations.map((anim) => Animated.timing(anim, { toValue: 1, duration: 50, useNativeDriver: true }))
+    ),
     Animated.delay(500),
   ]);
 }
 
 function DecorativeBackground({ fadeAnim }: { fadeAnim: Animated.Value }) {
-  const makeOpacity = (output: number) =>
-    fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0, output] });
+  const makeOpacity = (output: number) => fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0, output] });
 
   return (
     <View style={styles.decorativeContainer}>
@@ -70,10 +117,13 @@ interface LogoContainerProps {
 function LogoContainer({ fadeAnim, scaleAnim, pulseAnim, rotateInterpolate }: LogoContainerProps) {
   return (
     <Animated.View
-      style={[styles.logoContainer, {
-        opacity: fadeAnim,
-        transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }, { rotate: rotateInterpolate }],
-      }]}
+      style={[
+        styles.logoContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }, { rotate: rotateInterpolate }],
+        },
+      ]}
     >
       <View style={styles.logoBackground}>
         <Image source={logoImage} style={styles.logo} resizeMode="contain" />
@@ -83,17 +133,28 @@ function LogoContainer({ fadeAnim, scaleAnim, pulseAnim, rotateInterpolate }: Lo
   );
 }
 
-function TaglineView({ taglineOpacity, letterAnimations }: { taglineOpacity: Animated.Value; letterAnimations: Animated.Value[] }) {
+function TaglineView({
+  taglineOpacity,
+  letterAnimations,
+}: {
+  taglineOpacity: Animated.Value;
+  letterAnimations: Animated.Value[];
+}) {
   return (
     <Animated.View style={[styles.taglineContainer, { opacity: taglineOpacity }]}>
       <View style={styles.taglineRow}>
         {TAGLINE_LETTERS.map((letter, index) => (
           <Animated.Text
             key={index}
-            style={[styles.taglineLetter, {
-              opacity: letterAnimations[index],
-              transform: [{ translateY: letterAnimations[index]?.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
-            }]}
+            style={[
+              styles.taglineLetter,
+              {
+                opacity: letterAnimations[index],
+                transform: [
+                  { translateY: letterAnimations[index]?.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) },
+                ],
+              },
+            ]}
           >
             {letter}
           </Animated.Text>
@@ -105,10 +166,17 @@ function TaglineView({ taglineOpacity, letterAnimations }: { taglineOpacity: Ani
 
 function FilmStrip({ fadeAnim }: { fadeAnim: Animated.Value }) {
   return (
-    <Animated.View style={[styles.filmStrip, {
-      opacity: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.15] }),
-    }]}>
-      {Array.from({ length: 5 }).map((_, i) => <View key={i} style={styles.filmFrame} />)}
+    <Animated.View
+      style={[
+        styles.filmStrip,
+        {
+          opacity: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.15] }),
+        },
+      ]}
+    >
+      {Array.from({ length: 5 }).map((_, i) => (
+        <View key={i} style={styles.filmFrame} />
+      ))}
     </Animated.View>
   );
 }
@@ -128,11 +196,24 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: SplashScre
   onAnimationCompleteRef.current = onAnimationComplete;
 
   const runAnimation = useCallback(() => {
-    const sequence = buildAnimationSequence({ fadeAnim, scaleAnim, pulseAnim, rotateAnim, taglineOpacity, letterAnimations });
-    sequence.start(() => { setTimeout(() => { onAnimationCompleteRef.current(); }, 300); });
+    const sequence = buildAnimationSequence({
+      fadeAnim,
+      scaleAnim,
+      pulseAnim,
+      rotateAnim,
+      taglineOpacity,
+      letterAnimations,
+    });
+    sequence.start(() => {
+      setTimeout(() => {
+        onAnimationCompleteRef.current();
+      }, 300);
+    });
   }, [fadeAnim, scaleAnim, pulseAnim, rotateAnim, taglineOpacity, letterAnimations]);
 
-  useEffect(() => { runAnimation(); }, [runAnimation]);
+  useEffect(() => {
+    runAnimation();
+  }, [runAnimation]);
 
   const rotateInterpolate = rotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '5deg'] });
 
@@ -144,7 +225,12 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: SplashScre
       style={styles.container}
     >
       <DecorativeBackground fadeAnim={fadeAnim} />
-      <LogoContainer fadeAnim={fadeAnim} scaleAnim={scaleAnim} pulseAnim={pulseAnim} rotateInterpolate={rotateInterpolate} />
+      <LogoContainer
+        fadeAnim={fadeAnim}
+        scaleAnim={scaleAnim}
+        pulseAnim={pulseAnim}
+        rotateInterpolate={rotateInterpolate}
+      />
       <TaglineView taglineOpacity={taglineOpacity} letterAnimations={letterAnimations} />
       <FilmStrip fadeAnim={fadeAnim} />
     </LinearGradient>
@@ -211,5 +297,12 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   filmStrip: { position: 'absolute', bottom: 50, flexDirection: 'row', gap: spacing.s },
-  filmFrame: { width: 40, height: 30, backgroundColor: colors.surface, borderRadius: 4, borderWidth: 2, borderColor: colors.primary },
+  filmFrame: {
+    width: 40,
+    height: 30,
+    backgroundColor: colors.surface,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
 });

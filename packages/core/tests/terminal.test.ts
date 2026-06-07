@@ -195,10 +195,7 @@ describe('Terminal', () => {
 
   describe('showError', () => {
     it('should display error with suggestions', () => {
-      const suggestions = [
-        'Install ffmpeg via Homebrew',
-        'Use ffmpeg-static package',
-      ];
+      const suggestions = ['Install ffmpeg via Homebrew', 'Use ffmpeg-static package'];
 
       Terminal.showError('FFmpeg not found', suggestions);
 

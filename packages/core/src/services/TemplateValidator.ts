@@ -1,5 +1,10 @@
 import type { z } from 'zod';
-import { TemplateDescriptorSchema, SectionSchema, type TemplateDescriptor, type Section } from '../schemas/template.schemas';
+import {
+  TemplateDescriptorSchema,
+  SectionSchema,
+  type TemplateDescriptor,
+  type Section,
+} from '../schemas/template.schemas';
 
 export interface ValidationResult {
   success: boolean;

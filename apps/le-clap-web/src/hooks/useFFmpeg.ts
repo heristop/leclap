@@ -48,6 +48,7 @@ export const useFFmpeg = () => {
 
         ffmpeg.on('log', ({ message }) => {
           ffmpegLogger.log('FFmpeg log:', message);
+
           if (message.includes('Loading')) {
             startTransition(() => {
               setOptimisticState({ loadingProgress: 25 });

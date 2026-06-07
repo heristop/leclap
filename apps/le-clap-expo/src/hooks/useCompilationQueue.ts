@@ -18,10 +18,7 @@ function noop(): undefined {
   return undefined;
 }
 
-async function processQueueItem(
-  item: PendingItem,
-  maxRetries: number,
-): Promise<QueueItemResult | null> {
+async function processQueueItem(item: PendingItem, maxRetries: number): Promise<QueueItemResult | null> {
   if (item.retryCount >= maxRetries) {
     return null;
   }
@@ -71,10 +68,7 @@ function delayMs(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function processAllQueueItems(
-  pendingItems: PendingItem[],
-  maxRetries: number,
-): Promise<QueueItemResult[]> {
+function processAllQueueItems(pendingItems: PendingItem[], maxRetries: number): Promise<QueueItemResult[]> {
   return pendingItems.reduce<Promise<QueueItemResult[]>>(
     (acc, item, index) =>
       acc.then(async (results) => {
@@ -90,7 +84,7 @@ function processAllQueueItems(
 
         return results;
       }),
-    Promise.resolve([]),
+    Promise.resolve([])
   );
 }
 
@@ -227,15 +221,14 @@ export const useRetryQueueItem = () => {
 
           return { success: true, result };
         }
-          await updateCompilationQueueItem(itemId, {
-            status: 'failed',
-            retryCount: item.retryCount + 1,
-            lastRetryAt: new Date().toISOString(),
-            error: result.error,
-          });
+        await updateCompilationQueueItem(itemId, {
+          status: 'failed',
+          retryCount: item.retryCount + 1,
+          lastRetryAt: new Date().toISOString(),
+          error: result.error,
+        });
 
-          return { success: false, error: result.error };
-
+        return { success: false, error: result.error };
       } catch (error) {
         await updateCompilationQueueItem(itemId, {
           status: 'failed',
@@ -291,7 +284,8 @@ export const useAutoProcessQueue = (enabled = true) => {
     mutationFn: async () => {
       if (!enabled) return;
 
-      const hasConnection = await waitForConnection(10000); // 10 s
+      const hasConnection = await waitForConnection(10000);
+ // 10 s
       if (!hasConnection) {
         throw new Error('Failed to establish stable internet connection');
       }

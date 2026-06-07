@@ -67,11 +67,7 @@ const FRIENDLY: Record<string, string> = {
 function siblingsOf(parent: AstNode | null | undefined): AstNode[] | null {
   if (!parent) return null;
 
-  if (
-    parent.type === 'BlockStatement' ||
-    parent.type === 'Program' ||
-    parent.type === 'StaticBlock'
-  ) {
+  if (parent.type === 'BlockStatement' || parent.type === 'Program' || parent.type === 'StaticBlock') {
     return parent.body ?? null;
   }
 
@@ -143,8 +139,7 @@ const noDisableComments = {
     },
     schema: [],
     messages: {
-      noDisable:
-        'Disable directives are forbidden. Refactor the code or update the rule config.',
+      noDisable: 'Disable directives are forbidden. Refactor the code or update the rule config.',
     },
   },
   create(context: RuleContext) {
@@ -155,10 +150,7 @@ const noDisableComments = {
         for (const comment of comments) {
           const text = comment.value.trim();
 
-          if (
-            text.startsWith('eslint-disable') ||
-            text.startsWith('oxlint-disable')
-          ) {
+          if (text.startsWith('eslint-disable') || text.startsWith('oxlint-disable')) {
             context.report({
               loc: comment.loc,
               messageId: 'noDisable',

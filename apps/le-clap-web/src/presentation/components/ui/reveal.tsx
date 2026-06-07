@@ -1,26 +1,26 @@
-import type { HTMLAttributes } from 'react'
-import { cn } from '@/lib/utils'
-import { useInView } from '@/hooks/useInView'
+import type { HTMLAttributes } from 'react';
+import { cn } from '@/lib/utils';
+import { useInView } from '@/hooks/useInView';
 
 export interface RevealProps extends HTMLAttributes<HTMLDivElement> {
   /** Stagger delay in ms applied when the element enters the viewport. */
-  delay?: number
+  delay?: number;
   /** Entrance direction (default 'up'). */
-  from?: 'up' | 'down' | 'none'
+  from?: 'up' | 'down' | 'none';
 }
 
 const HIDDEN = {
   up: 'opacity-0 translate-y-6',
   down: 'opacity-0 -translate-y-6',
   none: 'opacity-0',
-} as const
+} as const;
 
 /**
  * Scroll-reveal wrapper: fades/rises its children in when they enter the viewport
  * (IntersectionObserver via {@link useInView}). Reduced-motion users see content immediately.
  */
 export const Reveal = ({ className, delay = 0, from = 'up', style, children, ...props }: RevealProps) => {
-  const [ref, inView] = useInView<HTMLDivElement>()
+  const [ref, inView] = useInView();
 
   return (
     <div
@@ -36,5 +36,5 @@ export const Reveal = ({ className, delay = 0, from = 'up', style, children, ...
     >
       {children}
     </div>
-  )
-}
+  );
+};

@@ -29,7 +29,7 @@ class TemplateConcreteBuilder {
     @inject('logger') private readonly logger: AbstractLogger,
     @inject('ffmpegAdapter') private readonly ffmpegAdapter: AbstractFFmpeg,
     @inject('filesystemAdapter') private readonly filesystemAdapter: AbstractFilesystem
-  ) { }
+  ) {}
 
   buildPart = async (section: Section, projectConfig: ProjectConfig): Promise<boolean> => {
     this.section = section;
@@ -154,7 +154,7 @@ class TemplateConcreteBuilder {
     this.logger.info(`[${this.section.name}][RenderPart] Output not found at root, checking directories...`);
 
     const files = await this.ffmpegAdapter.listDir('/');
-    this.logger.info(`[${this.section.name}][RenderPart] Files in WASM root: ${files.map(f => f.name).join(', ')}`);
+    this.logger.info(`[${this.section.name}][RenderPart] Files in WASM root: ${files.map((f) => f.name).join(', ')}`);
 
     const fromTmp = await this.searchWasmTmpDir(outputFile);
 
@@ -162,7 +162,7 @@ class TemplateConcreteBuilder {
       return fromTmp;
     }
 
-    const foundInRoot = files.find(f => f.name === outputFile);
+    const foundInRoot = files.find((f) => f.name === outputFile);
 
     if (foundInRoot && this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
       const data = await this.ffmpegAdapter.readFile(outputFile);
@@ -182,9 +182,9 @@ class TemplateConcreteBuilder {
 
     try {
       const tmpFiles = await this.ffmpegAdapter.listDir('/tmp');
-      this.logger.info(`[${this.section.name}][RenderPart] Files in /tmp: ${tmpFiles.map(f => f.name).join(', ')}`);
+      this.logger.info(`[${this.section.name}][RenderPart] Files in /tmp: ${tmpFiles.map((f) => f.name).join(', ')}`);
 
-      const tmpFile = tmpFiles.find(f => f.name === outputFile);
+      const tmpFile = tmpFiles.find((f) => f.name === outputFile);
 
       if (tmpFile) {
         const data = await this.ffmpegAdapter.readFile(`/tmp/${outputFile}`);
@@ -213,7 +213,9 @@ class TemplateConcreteBuilder {
       return;
     }
 
-    this.logger.info(`[${this.section.name}][WASM] Writing ${Object.keys(inputAssets).length} input files to WASM memory...`);
+    this.logger.info(
+      `[${this.section.name}][WASM] Writing ${Object.keys(inputAssets).length} input files to WASM memory...`
+    );
 
     const entries = Object.entries(inputAssets);
 
@@ -239,7 +241,9 @@ class TemplateConcreteBuilder {
       this.logger.info(`[${this.section.name}][WASM] Loading ${fileName} (${fileSizeMB} MB)...`);
 
       if (data.byteLength > 50 * 1024 * 1024) {
-        this.logger.warn(`[${this.section.name}][WASM] Warning: Large file (${fileSizeMB} MB). May cause memory issues.`);
+        this.logger.warn(
+          `[${this.section.name}][WASM] Warning: Large file (${fileSizeMB} MB). May cause memory issues.`
+        );
       }
 
       await this.ffmpegAdapter.writeFile(fileName, data);

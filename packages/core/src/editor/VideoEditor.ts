@@ -21,7 +21,7 @@ class VideoEditor {
     @inject('ffmpegAdapter') private readonly ffmpegAdapter: AbstractFFmpeg,
     @inject('filesystemAdapter')
     private readonly filesystemAdapter: AbstractFilesystem
-  ) { }
+  ) {}
 
   private buildConcatCommand(concatFilePath: string, finalOutputPath: string): string {
     return (

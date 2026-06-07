@@ -82,7 +82,9 @@ function makeDeps() {
   };
   const ffmpeg = {
     execute: vi.fn(async () => ({ rc: 0 })),
-    getInfos: vi.fn(async (): Promise<FFMpegInfos> => ({ duration: 5, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 44100 })),
+    getInfos: vi.fn(
+      async (): Promise<FFMpegInfos> => ({ duration: 5, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 44100 })
+    ),
   };
 
   return {
@@ -115,11 +117,7 @@ function makeDirector() {
     finalize: vi.fn(async () => undefined),
   };
 
-  const director = new TemplateDirector(
-    eventManager as never,
-    videoEditor as never,
-    deps.directorDeps as never
-  );
+  const director = new TemplateDirector(eventManager as never, videoEditor as never, deps.directorDeps as never);
 
   return { director, emitter, eventManager, videoEditor, ...deps };
 }
@@ -162,10 +160,9 @@ describe('TemplateDirector.config', () => {
 
     director.config(config, {});
 
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining('received userVideoPaths with 2 videos'),
-      { sections: 'clip1, clip2' }
-    );
+    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('received userVideoPaths with 2 videos'), {
+      sections: 'clip1, clip2',
+    });
   });
 });
 
@@ -231,18 +228,18 @@ describe('TemplateDirector.getVideoSectionDuration / fetchSectionInfos', () => {
     const { director, ffmpeg } = makeDirector();
     ffmpeg.getInfos.mockResolvedValue({ duration: 0, videoCodec: null, audioCodec: null, sampleRate: null });
 
-    await expect(
-      director.getVideoSectionDuration({ name: 'v', type: 'project_video' })
-    ).rejects.toThrow('No section info found');
+    await expect(director.getVideoSectionDuration({ name: 'v', type: 'project_video' })).rejects.toThrow(
+      'No section info found'
+    );
   });
 
   it('throws when ffmpeg reports a null duration for the section', async () => {
     const { director, ffmpeg } = makeDirector();
     ffmpeg.getInfos.mockResolvedValue({ duration: null, videoCodec: null, audioCodec: null, sampleRate: null });
 
-    await expect(
-      director.fetchSectionInfos({ name: 'broken', type: 'project_video' })
-    ).rejects.toThrow('Duration not found for broken');
+    await expect(director.fetchSectionInfos({ name: 'broken', type: 'project_video' })).rejects.toThrow(
+      'Duration not found for broken'
+    );
   });
 
   it('uses a verified section-specific user video path', async () => {
@@ -317,10 +314,7 @@ describe('TemplateDirector.addToQueue / append', () => {
     expect(concreteBuilder.buildPart).toHaveBeenCalledWith(section, project.config);
     expect(concreteBuilder.renderPart).toHaveBeenCalled();
     expect(musicComposer.prepareMusicTrack).toHaveBeenCalledWith(section);
-    expect(filesystem.append).toHaveBeenCalledWith(
-      '/build/segments.list',
-      'file /build/clip_output.mp4\n'
-    );
+    expect(filesystem.append).toHaveBeenCalledWith('/build/segments.list', 'file /build/clip_output.mp4\n');
     expect(project.buildInfos.videoInputs).toContain('/build/clip_output.mp4');
   });
 });

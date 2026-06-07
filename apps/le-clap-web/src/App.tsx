@@ -1,38 +1,45 @@
-import { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { haptic } from '@/lib/haptics'
-import { Header } from '@/presentation/components/Header'
-import { Home } from '@/presentation/pages/Home'
-import { Builder } from '@/presentation/pages/Builder'
-import { About } from '@/presentation/pages/About'
-import { Admin } from '@/presentation/pages/Admin'
-import { Design } from '@/presentation/pages/Design'
-import { NotFound } from '@/presentation/pages/NotFound'
-import { Onboarding } from '@/presentation/components/Onboarding'
-import { useOnboarding } from '@/hooks/useOnboarding'
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { haptic } from '@/lib/haptics';
+import { Header } from '@/presentation/components/Header';
+import { Home } from '@/presentation/pages/Home';
+import { Builder } from '@/presentation/pages/Builder';
+import { About } from '@/presentation/pages/About';
+import { Admin } from '@/presentation/pages/Admin';
+import { Design } from '@/presentation/pages/Design';
+import { NotFound } from '@/presentation/pages/NotFound';
+import { Onboarding } from '@/presentation/components/Onboarding';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 function App() {
-  const { show, dismiss } = useOnboarding()
+  const { show, dismiss } = useOnboarding();
 
   // App-wide tactile feedback: a subtle haptic on every press of an interactive
   // element gives the web app a native, responsive feel (web-haptics).
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
-      const el = event.target as Element | null
+      const el = event.target as Element | null;
 
       if (el?.closest('button, a, [role="button"], input[type="range"], .tap')) {
-        haptic('selection')
+        haptic('selection');
       }
-    }
-    document.addEventListener('pointerdown', onPointerDown, { passive: true })
+    };
+    document.addEventListener('pointerdown', onPointerDown, { passive: true });
 
-    return () => { document.removeEventListener('pointerdown', onPointerDown) }
-  }, [])
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, []);
 
   return (
     <Router>
       <div className="min-h-screen bg-background">
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-brand-600 focus:text-white">Skip to main content</a>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-brand-600 focus:text-white"
+        >
+          Skip to main content
+        </a>
         <Header />
 
         <main id="main-content">
@@ -59,7 +66,7 @@ function App() {
       {/* First-visit guided intro (record → compile a sample → download). */}
       {show && <Onboarding onDone={dismiss} />}
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 const cardVariants = cva('bg-surface border border-divider rounded-2xl', {
   variants: {
@@ -15,37 +15,41 @@ const cardVariants = cva('bg-surface border border-divider rounded-2xl', {
     },
   },
   defaultVariants: { elevation: 'raised', interactive: false },
-})
+});
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
-  gradientBorder?: boolean
+  gradientBorder?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, elevation, interactive, gradientBorder, ...props }, ref) => (
-    <div ref={ref} className={cn(cardVariants({ elevation, interactive }), gradientBorder && 'gradient-border', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn(cardVariants({ elevation, interactive }), gradientBorder && 'gradient-border', className)}
+      {...props}
+    />
   )
-)
-Card.displayName = 'Card'
+);
+Card.displayName = 'Card';
 
 const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('flex flex-col gap-1 p-6 pb-3', className)} {...props} />
-)
+);
 
 const CardTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
   <h3 className={cn('text-xl font-bold font-display text-foreground', className)} {...props} />
-)
+);
 
 const CardDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
   <p className={cn('text-sm text-gray-400', className)} {...props} />
-)
+);
 
 const CardContent = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('p-6 pt-0', className)} {...props} />
-)
+);
 
 const CardFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn('flex items-center gap-2 p-6 pt-0', className)} {...props} />
-)
+);
 
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants }
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants };

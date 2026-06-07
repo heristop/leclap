@@ -42,11 +42,25 @@ export function VideoEditor({ file, label, edit, onChange }: VideoEditorProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display font-semibold text-foreground truncate">{label}</h3>
         <div className="flex gap-2">
-          <ModeButton active={mode === 'trim'} dot={trimActive} onClick={() => { switchMode('trim'); }}>
-            <Scissors className="w-4 h-4" />Trim
+          <ModeButton
+            active={mode === 'trim'}
+            dot={trimActive}
+            onClick={() => {
+              switchMode('trim');
+            }}
+          >
+            <Scissors className="w-4 h-4" />
+            Trim
           </ModeButton>
-          <ModeButton active={mode === 'crop'} dot={cropActive} onClick={() => { switchMode('crop'); }}>
-            <Crop className="w-4 h-4" />Crop
+          <ModeButton
+            active={mode === 'crop'}
+            dot={cropActive}
+            onClick={() => {
+              switchMode('crop');
+            }}
+          >
+            <Crop className="w-4 h-4" />
+            Crop
           </ModeButton>
         </div>
       </div>
@@ -88,7 +102,8 @@ export function VideoEditor({ file, label, edit, onChange }: VideoEditorProps) {
                 onClick={resetTrim}
                 className="mt-3 gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
               >
-                <RotateCcw className="w-3.5 h-3.5" />Reset trim
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset trim
               </Button>
             )}
           </>
@@ -101,7 +116,8 @@ export function VideoEditor({ file, label, edit, onChange }: VideoEditorProps) {
               onClick={resetCrop}
               className="gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
             >
-              <RotateCcw className="w-3.5 h-3.5" />Reset crop
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset crop
             </Button>
           </div>
         )}
@@ -133,7 +149,12 @@ function ModeButton({
       )}
     >
       {children}
-      {dot && <span aria-hidden="true" className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-400 shadow shadow-brand-500/50 animate-pulse" />}
+      {dot && (
+        <span
+          aria-hidden="true"
+          className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-400 shadow shadow-brand-500/50 animate-pulse"
+        />
+      )}
     </button>
   );
 }

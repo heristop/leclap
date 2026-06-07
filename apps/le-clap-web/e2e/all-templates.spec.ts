@@ -12,8 +12,7 @@ import { test, expect } from '@playwright/test';
 // Run with the dev server up:  pnpm --filter le-clap dev   (port 5174)
 // then:                        pnpm --filter le-clap test:e2e
 
-const VIDEO_DIR =
-  '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/core/src/shared/assets/videos';
+const VIDEO_DIR = '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/core/src/shared/assets/videos';
 
 const FIXTURES = [
   { label: 'with-audio', video: `${VIDEO_DIR}/earth.mp4` },

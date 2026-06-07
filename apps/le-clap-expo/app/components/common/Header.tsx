@@ -1,14 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  StatusBar,
-  Animated,
-  Easing
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -129,7 +120,9 @@ function ActionButtons({
     }
 
     if (action.icon === 'options-outline') {
-      return () => { /* no-op: options not yet implemented */ };
+      return () => {
+        /* no-op: options not yet implemented */
+      };
     }
 
     return action.onPress;
@@ -138,16 +131,8 @@ function ActionButtons({
   return (
     <>
       {actions.map((action, index) => (
-        <TouchableOpacity
-          key={`action-${index}`}
-          style={styles.actionButton}
-          onPress={getActionHandler(action)}
-        >
-          <Ionicons
-            name={action.icon as keyof typeof Ionicons.glyphMap}
-            size={24}
-            color={action.color ?? textColor}
-          />
+        <TouchableOpacity key={`action-${index}`} style={styles.actionButton} onPress={getActionHandler(action)}>
+          <Ionicons name={action.icon as keyof typeof Ionicons.glyphMap} size={24} color={action.color ?? textColor} />
         </TouchableOpacity>
       ))}
     </>
@@ -184,7 +169,10 @@ export default function Header({
 
   return (
     <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: variant === 'transparent' ? 'transparent' : containerStyles.backgroundColor }]}
+      style={[
+        styles.safeArea,
+        { backgroundColor: variant === 'transparent' ? 'transparent' : containerStyles.backgroundColor },
+      ]}
     >
       <StatusBar barStyle={getStatusBarStyle(variant)} backgroundColor="transparent" translucent />
       <View style={[styles.container, containerStyles]}>

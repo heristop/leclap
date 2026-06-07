@@ -8,7 +8,7 @@ class VariableManager {
   constructor(
     @inject('template') private readonly template: Template,
     @inject('project') private readonly project: Project
-  ) { }
+  ) {}
 
   mapVariables = (value: string): string => {
     const variables = this.template.descriptor.global?.variables;

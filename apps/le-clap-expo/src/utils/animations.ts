@@ -75,11 +75,7 @@ export const slideInFromBottom = (
  * @param {number} staggerDelay - Delay between each animation
  * @param {number} duration - The duration of each animation
  */
-export const staggerAnimations = (
-  animations: Animated.Value[],
-  staggerDelay = 50,
-  duration = 300
-): void => {
+export const staggerAnimations = (animations: Animated.Value[], staggerDelay = 50, duration = 300): void => {
   const animationSequence = animations.map((anim, i) => {
     return Animated.timing(anim, {
       toValue: 1,

@@ -63,23 +63,20 @@ function makeTemplate(descriptor: TemplateDescriptor = {}, inputs: unknown = [])
   return { descriptor, assets: { fonts: {}, musics: {}, inputs } };
 }
 
-function makeBuilder(opts: {
-  project?: ReturnType<typeof makeProject>;
-  template?: ReturnType<typeof makeTemplate>;
-  segment?: ReturnType<typeof makeSegment>;
-  managers?: ReturnType<typeof makeManagers>;
-} = {}) {
+function makeBuilder(
+  opts: {
+    project?: ReturnType<typeof makeProject>;
+    template?: ReturnType<typeof makeTemplate>;
+    segment?: ReturnType<typeof makeSegment>;
+    managers?: ReturnType<typeof makeManagers>;
+  } = {}
+) {
   const project = opts.project ?? makeProject({ videoConfig: { scale: '1280:720', setsar: '1/1' } });
   const template = opts.template ?? makeTemplate();
   const segment = opts.segment ?? makeSegment();
   const managers = opts.managers ?? makeManagers();
 
-  const builder = new SegmentBuilder(
-    project as never,
-    template as never,
-    segment as never,
-    managers as never
-  );
+  const builder = new SegmentBuilder(project as never, template as never, segment as never, managers as never);
 
   return { builder, project, template, segment, managers };
 }
@@ -155,7 +152,11 @@ describe('SegmentBuilder.init', () => {
   it('normalizes a background color through the formatter before building', async () => {
     const managers = makeManagers();
     const { builder } = makeBuilder({ managers });
-    const section: Section = { name: 'bg', type: 'color_background', options: { backgroundColor: 'ff0000', duration: 2 } };
+    const section: Section = {
+      name: 'bg',
+      type: 'color_background',
+      options: { backgroundColor: 'ff0000', duration: 2 },
+    };
     builder.hydrate(section);
 
     await builder.init();
@@ -183,7 +184,11 @@ describe('SegmentBuilder.buildMaps', () => {
     const segment = makeSegment();
     const { builder, managers } = makeBuilder({ segment });
     builder.hydrate({ name: 'clip', type: 'video' });
-    (builder as unknown as { section: Section }).section = { name: 'clip', type: 'video', inputs: [{ name: 'logo', url: 'http://x/logo.png' }] } as never;
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'video',
+      inputs: [{ name: 'logo', url: 'http://x/logo.png' }],
+    } as never;
 
     await builder.buildMaps();
 
@@ -253,7 +258,7 @@ describe('SegmentBuilder.buildMaps', () => {
     expect(managers.mapManager.addMapAnimation).toHaveBeenCalledTimes(1);
   });
 
-  it("substitutes an empty string for an undefined frame in the cache array (line 250 nullish side)", async () => {
+  it('substitutes an empty string for an undefined frame in the cache array (line 250 nullish side)', async () => {
     const segment = makeSegment();
     // middle element is undefined -> framesArray[i - 1] ?? '' takes the nullish side
     const inputs = { gap: ['/cache/a.png', undefined, '/cache/c.png'] };
@@ -383,9 +388,7 @@ describe('SegmentBuilder.buildFilters / formatFilters', () => {
     (builder as unknown as { section: Section }).section = section;
 
     // Invoke the private scale-prepending helper directly with options set.
-    (builder as unknown as { prependScaleFilters: (o: unknown) => void }).prependScaleFilters(
-      section.options
-    );
+    (builder as unknown as { prependScaleFilters: (o: unknown) => void }).prependScaleFilters(section.options);
 
     const scaleFilter = section.filters?.find((f) => (f as { type: string }).type === 'scale') as {
       value: string;
@@ -407,9 +410,7 @@ describe('SegmentBuilder.buildFilters / formatFilters', () => {
     } as unknown as Section;
     (builder as unknown as { section: Section }).section = section;
 
-    (builder as unknown as { prependScaleFilters: (o: unknown) => void }).prependScaleFilters(
-      section.options
-    );
+    (builder as unknown as { prependScaleFilters: (o: unknown) => void }).prependScaleFilters(section.options);
 
     // setsar + scale prepended, with no pre-existing filters appended
     expect(section.filters).toHaveLength(2);

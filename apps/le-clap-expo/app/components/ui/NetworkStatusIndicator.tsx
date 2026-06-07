@@ -149,13 +149,7 @@ function ConnectionHeader({
         </YStack>
       </XStack>
 
-      {expandable && (
-        <Ionicons
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color="$colorTransparent"
-        />
-      )}
+      {expandable && <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="$colorTransparent" />}
     </XStack>
   );
 }
@@ -165,7 +159,7 @@ function useAutoExpand(
   isExpanded: boolean,
   showWhenOnline: boolean,
   setIsExpanded: (v: boolean) => void,
-  setLastStatusChange: (d: Date) => void,
+  setLastStatusChange: (d: Date) => void
 ) {
   useEffect(() => {
     setLastStatusChange(new Date());
@@ -246,9 +240,7 @@ function NetworkStatusIndicator({
           expandable={expandable}
         />
 
-        {isExpanded && showSyncStatus && syncStatus && (
-          <SyncStatusRows syncStatus={syncStatus} />
-        )}
+        {isExpanded && showSyncStatus && syncStatus && <SyncStatusRows syncStatus={syncStatus} />}
       </Card>
     </TouchableOpacity>
   );

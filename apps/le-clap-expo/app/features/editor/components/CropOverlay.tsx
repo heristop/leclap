@@ -161,10 +161,44 @@ export function CropOverlay({
   return (
     <>
       {/* Dim mask around the crop region (four bands). */}
-      <View pointerEvents="none" style={[styles.mask, { left: videoRect.left, top: videoRect.top, width: videoRect.width, height: rect.top - videoRect.top }]} />
-      <View pointerEvents="none" style={[styles.mask, { left: videoRect.left, top: rect.top + rect.height, width: videoRect.width, height: videoRect.top + videoRect.height - (rect.top + rect.height) }]} />
-      <View pointerEvents="none" style={[styles.mask, { left: videoRect.left, top: rect.top, width: rect.left - videoRect.left, height: rect.height }]} />
-      <View pointerEvents="none" style={[styles.mask, { left: rect.left + rect.width, top: rect.top, width: videoRect.left + videoRect.width - (rect.left + rect.width), height: rect.height }]} />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.mask,
+          { left: videoRect.left, top: videoRect.top, width: videoRect.width, height: rect.top - videoRect.top },
+        ]}
+      />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.mask,
+          {
+            left: videoRect.left,
+            top: rect.top + rect.height,
+            width: videoRect.width,
+            height: videoRect.top + videoRect.height - (rect.top + rect.height),
+          },
+        ]}
+      />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.mask,
+          { left: videoRect.left, top: rect.top, width: rect.left - videoRect.left, height: rect.height },
+        ]}
+      />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.mask,
+          {
+            left: rect.left + rect.width,
+            top: rect.top,
+            width: videoRect.left + videoRect.width - (rect.left + rect.width),
+            height: rect.height,
+          },
+        ]}
+      />
 
       {/* Draggable crop frame body. */}
       <View

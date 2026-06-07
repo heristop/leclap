@@ -46,7 +46,13 @@ export const useSaveProject = () => {
           recordedVideos: Object.fromEntries(
             Object.entries(project.recordedVideos).map(([key, value]) => [
               key,
-              new VideoMetadata({ path: value.path, orientation: value.orientation, duration: value.duration, trim: value.trim, crop: value.crop }),
+              new VideoMetadata({
+                path: value.path,
+                orientation: value.orientation,
+                duration: value.duration,
+                trim: value.trim,
+                crop: value.crop,
+              }),
             ])
           ),
           outputVideoUri: project.outputVideoUri,

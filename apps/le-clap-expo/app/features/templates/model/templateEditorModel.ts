@@ -42,6 +42,7 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
   if (kind === 'form') {
     return { kind: 'form', fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }] };
   }
+
   if (kind === 'color') {
     return { kind: 'color', duration: 3, color: '#7C83FD' };
   }
@@ -53,6 +54,7 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
 export function makeTemplateId(): string {
   try {
     const uuid = globalThis.crypto?.randomUUID?.();
+
     if (uuid) {
       return `user-${uuid}`;
     }
@@ -75,7 +77,9 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
       return {
         name: `form_${i + 1}`,
         type: 'form',
-        options: { fields: section.fields.map((f) => ({ name: f.name, maxLength: f.maxLength, label: { en: f.label } })) },
+        options: {
+          fields: section.fields.map((f) => ({ name: f.name, maxLength: f.maxLength, label: { en: f.label } })),
+        },
       };
     }
 
@@ -126,7 +130,11 @@ type DrawtextFilter = {
 };
 
 function formSectionFrom(s: Section): EditorSection {
-  const fields = (s.options?.fields ?? []) as Array<{ name: string; maxLength?: number; label?: Record<string, string> }>;
+  const fields = (s.options?.fields ?? []) as Array<{
+    name: string;
+    maxLength?: number;
+    label?: Record<string, string>;
+  }>;
 
   return {
     kind: 'form',
@@ -155,6 +163,7 @@ function storedSectionToEditor(s: Section): EditorSection {
   if (s.type === 'form') {
     return formSectionFrom(s);
   }
+
   if (s.type === 'color_background') {
     return colorSectionFrom(s);
   }

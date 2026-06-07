@@ -35,7 +35,11 @@ export const SAMPLE_TEMPLATES: CatalogTemplate[] = [
     descriptor: {
       global: { orientation: 'portrait', musicEnabled: true, transitionDuration: 0.5 },
       sections: [
-        { name: 'form_1', type: 'form', options: { fields: [{ name: 'firstname', maxLength: 40, label: { en: 'Your name' } }] } },
+        {
+          name: 'form_1',
+          type: 'form',
+          options: { fields: [{ name: 'firstname', maxLength: 40, label: { en: 'Your name' } }] },
+        },
         {
           name: 'video_1',
           type: 'project_video',

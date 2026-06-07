@@ -29,13 +29,15 @@ function makeFilesystem() {
   };
 }
 
-function makeEditor(opts: {
-  project?: ReturnType<typeof makeProject>;
-  template?: ReturnType<typeof makeTemplate>;
-  filesystem?: ReturnType<typeof makeFilesystem>;
-  ffmpeg?: { execute: ReturnType<typeof vi.fn> };
-  musicComposer?: { loopMusic: ReturnType<typeof vi.fn>; appendMusic: ReturnType<typeof vi.fn> };
-} = {}) {
+function makeEditor(
+  opts: {
+    project?: ReturnType<typeof makeProject>;
+    template?: ReturnType<typeof makeTemplate>;
+    filesystem?: ReturnType<typeof makeFilesystem>;
+    ffmpeg?: { execute: ReturnType<typeof vi.fn> };
+    musicComposer?: { loopMusic: ReturnType<typeof vi.fn>; appendMusic: ReturnType<typeof vi.fn> };
+  } = {}
+) {
   const project = opts.project ?? makeProject();
   const template = opts.template ?? makeTemplate();
   const filesystem = opts.filesystem ?? makeFilesystem();
@@ -105,9 +107,7 @@ describe('VideoEditor.concat', () => {
     const result = await editor.concat();
 
     expect(result).toBe('/build/output.mp4');
-    expect(ffmpeg.execute).toHaveBeenCalledWith(
-      expect.stringContaining('-f concat -safe 0 -auto_convert 1')
-    );
+    expect(ffmpeg.execute).toHaveBeenCalledWith(expect.stringContaining('-f concat -safe 0 -auto_convert 1'));
   });
 
   it('throws and records an error when the ffmpeg concat fails (rc 1)', async () => {

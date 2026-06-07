@@ -249,8 +249,12 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
           <View style={styles.content}>
             <ProjectThumbnail project={project} />
             <View style={styles.textContainer}>
-              <Text style={styles.title} numberOfLines={1}>{project.name}</Text>
-              <Text style={styles.subtitle} numberOfLines={1}>{getSubtitleText(project.status)}</Text>
+              <Text style={styles.title} numberOfLines={1}>
+                {project.name}
+              </Text>
+              <Text style={styles.subtitle} numberOfLines={1}>
+                {getSubtitleText(project.status)}
+              </Text>
               <View style={styles.dateContainer}>
                 <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
                 <Text style={styles.date}>{new Date(project.updatedAt).toLocaleDateString()}</Text>
@@ -269,7 +273,9 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
         confirmIconName="trash"
         confirmType="danger"
         onConfirm={handleConfirm}
-        onCancel={() => { setShowDialog(false); }}
+        onCancel={() => {
+          setShowDialog(false);
+        }}
       />
     </View>
   );

@@ -11,12 +11,7 @@ interface SectionItemProps {
   onPress: () => void;
 }
 
-const SectionItem: React.FC<SectionItemProps> = ({
-  section,
-  isActive,
-  isCompleted,
-  onPress,
-}) => {
+const SectionItem: React.FC<SectionItemProps> = ({ section, isActive, isCompleted, onPress }) => {
   const getIconName = () => {
     switch (section.type) {
       case 'project_video':
@@ -31,31 +26,21 @@ const SectionItem: React.FC<SectionItemProps> = ({
   };
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
       style={[styles.container, isActive && styles.activeContainer]}
     >
       <View
-        style={[
-          styles.statusIndicator,
-          isCompleted && styles.completedIndicator,
-          isActive && styles.activeIndicator,
-        ]}
+        style={[styles.statusIndicator, isCompleted && styles.completedIndicator, isActive && styles.activeIndicator]}
       >
-        <Ionicons 
-          name={isCompleted ? 'checkmark' : getIconName()} 
-          size={16} 
+        <Ionicons
+          name={isCompleted ? 'checkmark' : getIconName()}
+          size={16}
           color={isCompleted || isActive ? 'white' : colors.textSecondary}
         />
       </View>
-      <Text
-        style={[
-          styles.title,
-          isActive && styles.activeTitle,
-        ]}
-        numberOfLines={1}
-      >
+      <Text style={[styles.title, isActive && styles.activeTitle]} numberOfLines={1}>
         {section.title?.en ?? section.name}
       </Text>
     </TouchableOpacity>

@@ -7,6 +7,7 @@ import {
   X,
   Type,
   Video as VideoIcon,
+  Image as ImageIcon,
   Square,
   FileText,
   Save,
@@ -35,6 +36,7 @@ import {
   type EditorSection,
   type EditorState,
 } from './templateEditorModel';
+import { MediaPicker } from './MediaPicker';
 
 export { buildDescriptor } from './templateEditorModel';
 
@@ -92,6 +94,18 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
 
     if (state.sections.length === 0) {
       setError('Add at least one section.');
+
+      return;
+    }
+
+    if (state.musicEnabled && !state.music) {
+      setError('Pick a music track, or turn off background music.');
+
+      return;
+    }
+
+    if (state.sections.some((s) => s.kind === 'image' && !s.background)) {
+      setError('Choose a background image for each Background image section.');
 
       return;
     }
@@ -216,15 +230,28 @@ const MetadataFields = ({ state, patch }: { state: EditorState; patch: (p: Parti
           </SelectContent>
         </Select>
       </div>
-      <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-        <Checkbox
-          checked={state.musicEnabled}
-          onCheckedChange={(c) => {
-            patch({ musicEnabled: c === true });
-          }}
-        />
-        Background music
-      </label>
+      <div className="sm:col-span-2">
+        <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+          <Checkbox
+            checked={state.musicEnabled}
+            onCheckedChange={(c) => {
+              patch({ musicEnabled: c === true });
+            }}
+          />
+          Background music
+        </label>
+        {state.musicEnabled && (
+          <div className="mt-3">
+            <MediaPicker
+              kind="music"
+              value={state.music}
+              onChange={(music) => {
+                patch({ music });
+              }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -353,7 +380,7 @@ const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection
 
 const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
   <div className="flex flex-wrap gap-2 mb-6">
-    {(['video', 'form', 'color'] as const).map((kind) => (
+    {(['video', 'form', 'color', 'image'] as const).map((kind) => (
       <button
         key={kind}
         type="button"
@@ -372,6 +399,8 @@ const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
   if (kind === 'form') return <FileText className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 
   if (kind === 'color') return <Square className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
+
+  if (kind === 'image') return <ImageIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 
   return <VideoIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 };
@@ -453,14 +482,23 @@ function SectionFields({
 
   if (section.kind === 'image') {
     return (
-      <div className="grid sm:grid-cols-2 gap-3 pl-7">
-        <NumberField
-          label="Duration (s)"
-          value={section.duration}
-          onChange={(v) => {
-            onChange({ duration: v });
+      <div className="space-y-3 pl-7">
+        <div className="sm:w-40">
+          <NumberField
+            label="Duration (s)"
+            value={section.duration}
+            onChange={(v) => {
+              onChange({ duration: v });
+            }}
+            inputCls={inputCls}
+          />
+        </div>
+        <MediaPicker
+          kind="picture"
+          value={section.background}
+          onChange={(background) => {
+            onChange({ background });
           }}
-          inputCls={inputCls}
         />
       </div>
     );

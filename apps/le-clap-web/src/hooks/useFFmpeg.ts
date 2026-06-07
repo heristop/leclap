@@ -91,9 +91,9 @@ export const useFFmpeg = () => {
         });
 
         ffmpegLogger.success('FFmpeg loaded');
-      } catch (err) {
-        ffmpegLogger.error('Failed to load FFmpeg:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load FFmpeg';
+      } catch (error) {
+        ffmpegLogger.error('Failed to load FFmpeg:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load FFmpeg';
         setState((prev) => ({
           ...prev,
           error: errorMessage,
@@ -103,7 +103,9 @@ export const useFFmpeg = () => {
       }
     };
 
-    loadFFmpeg();
+    loadFFmpeg().catch((error: unknown) => {
+      ffmpegLogger.error('Unhandled error in loadFFmpeg:', error);
+    });
 
     // Cleanup on unmount
     return () => {
@@ -111,8 +113,8 @@ export const useFFmpeg = () => {
         ffmpegRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // setOptimisticState is stable (from useOptimistic) and doesn't need to be in deps
+    // setOptimisticState is a stable setter from useOptimistic, so the effect still runs once.
+  }, [setOptimisticState]);
 
   return {
     ffmpeg: ffmpegRef.current,

@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { createConsola } from 'consola/browser'
 
 // Create base logger instance

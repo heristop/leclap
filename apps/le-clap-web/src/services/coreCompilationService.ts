@@ -1,8 +1,8 @@
-// Core-powered compilation service for sophisticated video processing
+// Browser/WASM compilation service backed by the core package.
 import 'reflect-metadata';
-import { compile } from '@ffmpeg-video-composer/core/browser';
-import BrowserFilesystemAdapter from '@ffmpeg-video-composer/core/src/platform/filesystem/BrowserFilesystemAdapter';
-import type { ProjectConfig, TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types';
+import { compileBrowser as compile } from '@ffmpeg-video-composer/core/src/browser.ts';
+import BrowserFilesystemAdapter from '@ffmpeg-video-composer/core/src/platform/filesystem/BrowserFilesystemAdapter.ts';
+import type { ProjectConfig, TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
 import { type Template } from './templateService';
 import { compilationLogger } from '../lib/logger';
 
@@ -29,7 +29,7 @@ export interface CompilationResult {
 }
 
 class CoreCompilationService {
-  private filesystemAdapter = new BrowserFilesystemAdapter();
+  private readonly filesystemAdapter = new BrowserFilesystemAdapter();
 
   async compileVideo(
     config: CompilationConfig,
@@ -38,7 +38,6 @@ class CoreCompilationService {
     const { template, formData, files } = config;
 
     try {
-      // Stage 1: Initialize
       onProgress({
         stage: 'Initializing',
         percentage: 5,
@@ -47,176 +46,256 @@ class CoreCompilationService {
         currentStepIndex: 1,
       });
 
-      // Stage 2: Prepare Files
+      await this.filesystemAdapter.clear();
+
+      const userVideoPaths = await this.storeUploadedFiles(files, onProgress);
+
+      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress);
+
+      // Pre-load bundled TTF fonts so drawtext works in WASM: the WASM
+      // ffmpeg-core's freetype cannot decode the woff2 that Google Fonts serves
+      // ("Could not load font: unimplemented feature"). With the TTF already in
+      // place, fetchFonts() finds it cached and skips the (unusable) woff2 fetch.
+      await this.preloadBundledFonts();
+
+      const templateDescriptor = this.prepareTemplateDescriptor(template, formData, userVideoPaths, onProgress);
+
+      const outputPath = await this.runCompilation(projectConfig, templateDescriptor, onProgress);
+
+      const result = await this.finalizeResult(outputPath, onProgress);
+
+      await this.cleanupFiles(outputPath, userVideoPaths);
+
+      return result;
+    } catch (error) {
+      compilationLogger.error('Compilation error:', error);
+
+      throw new Error(`Video compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Bundled TTF fonts (served from /public/fonts) loaded into the build dir so
+  // WASM drawtext can use them instead of the unsupported Google-Fonts woff2.
+  private async preloadBundledFonts(): Promise<void> {
+    const fonts = ['Rubik.ttf'];
+    const fontsDir = '/tmp/build/fonts';
+
+    await this.filesystemAdapter.ensureDir(fontsDir);
+    await Promise.all(
+      fonts.map(async (font) => {
+        try {
+          const response = await fetch(`/fonts/${font}`);
+
+          if (!response.ok) {
+            return;
+          }
+
+          const data = new Uint8Array(await response.arrayBuffer());
+          await this.filesystemAdapter.writeFile(`${fontsDir}/${font}`, data);
+        } catch {
+          // Best-effort: fall back to the remote font fetch if the bundle is missing.
+        }
+      })
+    );
+  }
+
+  private async storeUploadedFiles(
+    files: File[],
+    onProgress: (progress: CompilationProgress) => void
+  ): Promise<Record<string, string>> {
+    onProgress({
+      stage: 'Preparing',
+      percentage: 15,
+      currentStep: 'Loading video files into browser storage',
+      totalSteps: 7,
+      currentStepIndex: 2,
+    });
+
+    const entries = files.map((file, i) => {
+      const fileName = `video_${i + 1}.${file.name.split('.').pop() ?? 'mp4'}`;
+      const storagePath = `/tmp/${fileName}`;
+
+      return { file, key: `video_${i + 1}`, storagePath };
+    });
+
+    await Promise.all(entries.map(({ file, storagePath }) =>
+      this.filesystemAdapter.storeFile(file, storagePath)
+    ));
+
+    const userVideoPaths: Record<string, string> = {};
+
+    for (const [i, entry] of entries.entries()) {
+      userVideoPaths[entry.key] = entry.storagePath;
       onProgress({
         stage: 'Preparing',
-        percentage: 15,
-        currentStep: 'Loading video files into browser storage',
+        percentage: 15 + ((i + 1) * 20) / files.length,
+        currentStep: `Loaded ${entry.file.name} (${this.formatFileSize(entry.file.size)})`,
         totalSteps: 7,
         currentStepIndex: 2,
       });
+    }
 
-      // Clear previous files
-      await this.filesystemAdapter.clear();
+    return userVideoPaths;
+  }
 
-      // Store uploaded files with proper naming
-      const userVideoPaths: Record<string, string> = {};
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileName = `video_${i + 1}.${file.name.split('.').pop()}`;
-        const storagePath = `/tmp/${fileName}`;
+  private async setupProjectConfig(
+    userVideoPaths: Record<string, string>,
+    formData: Record<string, string>,
+    onProgress: (progress: CompilationProgress) => void
+  ): Promise<ProjectConfig> {
+    onProgress({
+      stage: 'Configuring',
+      percentage: 40,
+      currentStep: 'Setting up project configuration',
+      totalSteps: 7,
+      currentStepIndex: 3,
+    });
 
-        await this.filesystemAdapter.storeFile(file, storagePath);
-        userVideoPaths[`video_${i + 1}`] = storagePath;
+    const buildDir = '/tmp/build';
+    await this.filesystemAdapter.ensureDir(buildDir);
 
-        onProgress({
-          stage: 'Preparing',
-          percentage: 15 + ((i + 1) * 20) / files.length,
-          currentStep: `Loaded ${file.name} (${this.formatFileSize(file.size)})`,
-          totalSteps: 7,
-          currentStepIndex: 2,
-        });
-      }
+    return { buildDir, userVideoPaths, fields: formData };
+  }
 
+  private prepareTemplateDescriptor(
+    template: Template,
+    formData: Record<string, string>,
+    userVideoPaths: Record<string, string>,
+    onProgress: (progress: CompilationProgress) => void
+  ): TemplateDescriptor {
+    onProgress({
+      stage: 'Processing',
+      percentage: 50,
+      currentStep: 'Parsing template and applying effects',
+      totalSteps: 7,
+      currentStepIndex: 4,
+    });
 
+    const templateDescriptor = this.convertToTemplateDescriptor(template, formData);
 
-      // Stage 3: Setup Project Config
-      onProgress({
-        stage: 'Configuring',
-        percentage: 40,
-        currentStep: 'Setting up project configuration',
-        totalSteps: 7,
-        currentStepIndex: 3,
-      });
+    compilationLogger.log('Starting core compilation with:', {
+      userVideoPaths: Object.keys(userVideoPaths),
+      templateId: template.id,
+      formData,
+      templateDescriptor,
+    });
 
-      const buildDir = '/tmp/build';
-      await this.filesystemAdapter.ensureDir(buildDir);
+    return templateDescriptor;
+  }
 
-      const projectConfig: ProjectConfig = {
-        buildDir,
-        userVideoPaths,
-        fields: formData,
-      };
+  private async runCompilation(
+    projectConfig: ProjectConfig,
+    templateDescriptor: TemplateDescriptor,
+    onProgress: (progress: CompilationProgress) => void
+  ): Promise<string> {
+    onProgress({
+      stage: 'Compiling',
+      percentage: 60,
+      currentStep: 'Running video processing pipeline',
+      totalSteps: 7,
+      currentStepIndex: 5,
+    });
 
-      // Stage 4: Process Template
-      onProgress({
-        stage: 'Processing',
-        percentage: 50,
-        currentStep: 'Parsing template and applying effects',
-        totalSteps: 7,
-        currentStepIndex: 4,
-      });
-
-      // Convert our template format to core TemplateDescriptor
-      const templateDescriptor: TemplateDescriptor = this.convertToTemplateDescriptor(template, formData);
-
-      compilationLogger.log('Starting core compilation with:', {
-        userVideoPaths: Object.keys(userVideoPaths),
-        templateId: template.id,
-        formData,
-        templateDescriptor
-      });
-
-      // Stage 5: Core Compilation
+    // Forward the engine's real-time per-segment progress (0..1) into the
+    // 60–85% band of the UI, so the bar animates during the long render instead
+    // of sitting frozen at 60% (the console already showed this fine-grained
+    // progress; now the front does too).
+    const outputPath = await compile(projectConfig, templateDescriptor, (fraction) => {
+      const clamped = Math.min(Math.max(fraction, 0), 1);
       onProgress({
         stage: 'Compiling',
-        percentage: 60,
-        currentStep: 'Running sophisticated video processing pipeline',
+        percentage: 60 + Math.round(clamped * 25),
+        currentStep: `Rendering video segments… ${Math.round(clamped * 100)}%`,
         totalSteps: 7,
         currentStepIndex: 5,
       });
+    });
 
-      // Use the core compile function
-      const outputPath = await compile(projectConfig, templateDescriptor);
+    if (!outputPath) {
+      throw new Error('Core compilation failed - no output produced');
+    }
 
-      if (!outputPath) {
-        throw new Error('Core compilation failed - no output produced');
-      }
+    onProgress({
+      stage: 'Compiling',
+      percentage: 85,
+      currentStep: 'Core compilation completed',
+      totalSteps: 7,
+      currentStepIndex: 5,
+    });
 
-      onProgress({
-        stage: 'Compiling',
-        percentage: 85,
-        currentStep: 'Core compilation completed',
-        totalSteps: 7,
-        currentStepIndex: 5,
-      });
+    return outputPath;
+  }
 
-      // Stage 6: Retrieve Result
-      onProgress({
-        stage: 'Finalizing',
-        percentage: 90,
-        currentStep: 'Retrieving processed video',
-        totalSteps: 7,
-        currentStepIndex: 6,
-      });
+  private async finalizeResult(
+    outputPath: string,
+    onProgress: (progress: CompilationProgress) => void
+  ): Promise<CompilationResult> {
+    onProgress({
+      stage: 'Finalizing',
+      percentage: 90,
+      currentStep: 'Retrieving processed video',
+      totalSteps: 7,
+      currentStepIndex: 6,
+    });
 
-      const outputData = await this.filesystemAdapter.readFile(outputPath);
-      const blob = new Blob([outputData], { type: 'video/mp4' });
-      const url = URL.createObjectURL(blob);
+    const outputData = await this.filesystemAdapter.readFile(outputPath);
+    const blob = new Blob([new Uint8Array(outputData)], { type: 'video/mp4' });
+    const url = URL.createObjectURL(blob);
 
-      // Stage 7: Complete
-      onProgress({
-        stage: 'Complete',
-        percentage: 100,
-        currentStep: 'Professional video compilation complete!',
-        totalSteps: 7,
-        currentStepIndex: 7,
-      });
+    onProgress({
+      stage: 'Complete',
+      percentage: 100,
+      currentStep: 'Video compilation complete!',
+      totalSteps: 7,
+      currentStepIndex: 7,
+    });
 
-      compilationLogger.success('Compilation completed', {
-        outputSize: blob.size,
-        outputPath
-      });
+    compilationLogger.success('Compilation completed', {
+      outputSize: blob.size,
+      outputPath,
+    });
 
-      // Cleanup
-      try {
-        await this.filesystemAdapter.remove(outputPath);
-        for (const path of Object.values(userVideoPaths)) {
-          await this.filesystemAdapter.remove(path);
-        }
-      } catch (cleanupError) {
-        compilationLogger.warn('Cleanup warning:', cleanupError);
-      }
+    return { blob, url, size: blob.size };
+  }
 
-      return {
-        blob,
-        url,
-        size: blob.size,
-      };
-    } catch (error) {
-      compilationLogger.error('Compilation error:', error);
-      throw new Error(`Professional video compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  private async cleanupFiles(
+    outputPath: string,
+    userVideoPaths: Record<string, string>
+  ): Promise<void> {
+    try {
+      await Promise.all([
+        this.filesystemAdapter.remove(outputPath),
+        ...Object.values(userVideoPaths).map((path) =>
+          this.filesystemAdapter.remove(path)
+        ),
+      ]);
+    } catch (cleanupError) {
+      compilationLogger.warn('Cleanup warning:', cleanupError);
     }
   }
 
   private convertToTemplateDescriptor(template: Template, formData: Record<string, string>): TemplateDescriptor {
-    // Use the sophisticated template descriptor directly from the template
     const templateDescriptor = { ...template.descriptor };
 
     // Merge form data into global variables
-    if (!templateDescriptor.global.variables) {
-      templateDescriptor.global.variables = {};
-    }
+    templateDescriptor.global ??= {};
+    templateDescriptor.global.variables ??= {};
 
     // Add form data to template variables
     templateDescriptor.global.variables = {
+      // Default colors for templates that use them; overridden by any existing
+      // variables or form data that follow in the spread.
+      color1: 'rgb(255 0 0)',
+      color2: 'rgb(250 250 249)',
       ...templateDescriptor.global.variables,
-      ...formData
+      ...formData,
     };
-
-    // Add default color variables for templates that use them
-    if (!templateDescriptor.global.variables.color1) {
-      templateDescriptor.global.variables.color1 = 'rgb(255 0 0)';
-    }
-    if (!templateDescriptor.global.variables.color2) {
-      templateDescriptor.global.variables.color2 = 'rgb(250 250 249)';
-    }
 
     compilationLogger.log('Using template descriptor:', {
       templateId: template.id,
-      sectionCount: templateDescriptor.sections.length,
+      sectionCount: templateDescriptor.sections?.length ?? 0,
       hasMusic: templateDescriptor.global.musicEnabled,
-      variables: Object.keys(templateDescriptor.global.variables || {})
+      variables: Object.keys(templateDescriptor.global.variables ?? {}),
     });
 
     return templateDescriptor;
@@ -227,6 +306,7 @@ class CoreCompilationService {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 

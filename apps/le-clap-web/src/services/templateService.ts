@@ -1,6 +1,5 @@
 // Re-export from core package for consistency
 export type { TemplateDescriptor } from '@ffmpeg-video-composer/core';
-// Import the sophisticated core template service
 import { coreTemplateService, type CoreTemplate } from './coreTemplateService';
 import { type TemplateDescriptor } from '@ffmpeg-video-composer/core';
 import { templateLogger } from '../lib/logger';
@@ -21,7 +20,7 @@ export interface Template {
 const getServerUrl = () => {
   // In development, use localhost:8082
   // In production, this could be configured via environment variables
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  if (window.location.hostname === 'localhost') {
     return 'http://localhost:8082';
   }
   // For production, you would set this to your actual server URL
@@ -29,7 +28,7 @@ const getServerUrl = () => {
 };
 
 // Real template definitions - these provide metadata about templates
-const TEMPLATE_METADATA: Record<string, Omit<Template, 'id' | 'descriptor'>> = {
+const TEMPLATE_METADATA: Partial<Record<string, Omit<Template, 'id' | 'descriptor'>>> = {
   sample: {
     name: 'Interactive Profile Video',
     description:
@@ -113,28 +112,31 @@ const TEMPLATE_METADATA: Record<string, Omit<Template, 'id' | 'descriptor'>> = {
 };
 
 class TemplateService {
-  private serverUrl = getServerUrl();
-  private templatesCache = new Map<string, TemplateDescriptor>();
+  private readonly serverUrl = getServerUrl();
+  private readonly templatesCache = new Map<string, TemplateDescriptor>();
 
   async loadTemplate(templateId: string): Promise<TemplateDescriptor> {
-    if (this.templatesCache.has(templateId)) {
-      return this.templatesCache.get(templateId)!;
+    const cached = this.templatesCache.get(templateId);
+
+    if (cached !== undefined) {
+      return cached;
     }
 
     try {
       templateLogger.log(`Loading template: ${templateId}`);
 
-      // Use core template service for sophisticated templates
       const coreTemplate = await coreTemplateService.getTemplate(templateId);
 
       if (coreTemplate) {
         const descriptor = coreTemplate.templateDescriptor;
         this.templatesCache.set(templateId, descriptor);
+
         return descriptor;
       }
 
       // Fallback to legacy metadata-based templates if core template not found
       const metadata = TEMPLATE_METADATA[templateId];
+
       if (!metadata) {
         throw new Error(`Template ${templateId} not found in core or legacy templates`);
       }
@@ -143,10 +145,42 @@ class TemplateService {
       const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
 
       this.templatesCache.set(templateId, fallbackDescriptor);
+
       return fallbackDescriptor;
     } catch (error) {
       templateLogger.error(`Failed to load template ${templateId}:`, error);
+
       throw new Error(`Template ${templateId} not found: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private convertCoreTemplate(coreTemplate: CoreTemplate): Template {
+    const template: Template = {
+      id: coreTemplate.id,
+      name: coreTemplate.name,
+      description: coreTemplate.description,
+      orientation: coreTemplate.orientation,
+      hasForm: coreTemplate.hasForm,
+      complexity: this.mapCoreComplexity(coreTemplate.category),
+      descriptor: coreTemplate.templateDescriptor,
+    };
+    this.templatesCache.set(coreTemplate.id, coreTemplate.templateDescriptor);
+
+    return template;
+  }
+
+  private addLegacyTemplate(
+    templateId: string,
+    metadata: Omit<Template, 'id' | 'descriptor'>,
+    templates: Template[],
+  ): void {
+    try {
+      const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
+      const template: Template = { id: templateId, ...metadata, descriptor: fallbackDescriptor };
+      this.templatesCache.set(templateId, fallbackDescriptor);
+      templates.push(template);
+    } catch (templateError) {
+      templateLogger.warn(`Failed to process legacy template ${templateId}:`, templateError);
     }
   }
 
@@ -154,54 +188,22 @@ class TemplateService {
     try {
       templateLogger.log('Loading core templates');
 
-      // Get all sophisticated core templates
       const coreTemplates = await coreTemplateService.getTemplates();
-      const templates: Template[] = [];
+      const templates: Template[] = coreTemplates.map(ct => this.convertCoreTemplate(ct));
 
-      // Convert core templates to Template interface
-      for (const coreTemplate of coreTemplates) {
-        const template: Template = {
-          id: coreTemplate.id,
-          name: coreTemplate.name,
-          description: coreTemplate.description,
-          orientation: coreTemplate.orientation,
-          hasForm: coreTemplate.hasForm,
-          complexity: this.mapCoreComplexity(coreTemplate.category),
-          descriptor: coreTemplate.templateDescriptor,
-        };
-
-        // Cache the descriptor
-        this.templatesCache.set(coreTemplate.id, coreTemplate.templateDescriptor);
-        templates.push(template);
-      }
-
-      // Add legacy templates that aren't in core
       for (const [templateId, metadata] of Object.entries(TEMPLATE_METADATA)) {
-        // Skip if already loaded from core
-        if (templates.some(t => t.id === templateId)) {
+        if (metadata === undefined || templates.some(t => t.id === templateId)) {
           continue;
         }
-
-        try {
-          const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
-
-          const template: Template = {
-            id: templateId,
-            ...metadata,
-            descriptor: fallbackDescriptor,
-          };
-
-          this.templatesCache.set(templateId, fallbackDescriptor);
-          templates.push(template);
-        } catch (templateError) {
-          templateLogger.warn(`Failed to process legacy template ${templateId}:`, templateError);
-        }
+        this.addLegacyTemplate(templateId, metadata, templates);
       }
 
       templateLogger.success(`Loaded ${templates.length} templates`);
+
       return templates;
     } catch (error) {
       templateLogger.error('Failed to load templates:', error);
+
       throw new Error(`Failed to load templates: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -212,6 +214,7 @@ class TemplateService {
 
       // Try to get from core templates first
       const coreTemplate = await coreTemplateService.getTemplate(templateId);
+
       if (coreTemplate) {
         return {
           id: coreTemplate.id,
@@ -226,6 +229,7 @@ class TemplateService {
 
       // Fallback to legacy metadata
       const metadata = TEMPLATE_METADATA[templateId];
+
       if (!metadata) {
         return null;
       }
@@ -239,6 +243,7 @@ class TemplateService {
       };
     } catch (error) {
       templateLogger.error(`Failed to get template ${templateId}:`, error);
+
       return null;
     }
   }
@@ -250,8 +255,6 @@ class TemplateService {
       case 'sample':
       case 'demo':
         return 'intermediate';
-      case 'video':
-      case 'portrait':
       default:
         return 'simple';
     }
@@ -270,9 +273,11 @@ class TemplateService {
       type?: string;
     }> = [];
 
-    for (const section of template.sections) {
+    for (const section of template.sections ?? []) {
       if (section.type === 'form' && section.options?.fields) {
-        formFields.push(...section.options.fields);
+        // Core's Field.label is a Translation (values may be undefined); the
+        // consumers here only read field names/length, so coerce the shape.
+        formFields.push(...(section.options.fields as unknown as typeof formFields));
       }
     }
 
@@ -280,12 +285,23 @@ class TemplateService {
   }
 
   getTemplateComplexity(template: TemplateDescriptor): 'simple' | 'intermediate' | 'advanced' {
-    const formSections = template.sections.filter((s) => s.type === 'form').length;
-    const videoSections = template.sections.filter((s) => s.type === 'project_video').length;
-    const totalFilters = template.sections.reduce((acc, section) => acc + (section.filters?.length || 0), 0);
+    // Single pass over the sections instead of three separate traversals.
+    let formSections = 0;
+    let videoSections = 0;
+    let totalFilters = 0;
+
+    for (const section of template.sections ?? []) {
+      if (section.type === 'form') formSections++;
+
+      if (section.type === 'project_video') videoSections++;
+
+      totalFilters += section.filters?.length ?? 0;
+    }
 
     if (formSections > 2 || totalFilters > 15) return 'advanced';
+
     if (formSections > 0 || videoSections > 1 || totalFilters > 5) return 'intermediate';
+
     return 'simple';
   }
 
@@ -293,9 +309,11 @@ class TemplateService {
   async testConnection(): Promise<boolean> {
     try {
       const response = await fetch(`${this.serverUrl}/health`);
+
       return response.ok;
     } catch (error) {
       templateLogger.error('Server connection test failed:', error);
+
       return false;
     }
   }
@@ -313,8 +331,10 @@ class TemplateService {
       },
       sections: [
         {
-          name: "main",
-          type: "video",
+          // Name matches the uploaded-file key (video_1) and the project_video
+          // type consumes userVideoPaths[name], so the upload reaches the segment.
+          name: "video_1",
+          type: "project_video",
           options: {
             duration: 5
           }
@@ -323,8 +343,10 @@ class TemplateService {
     };
 
     // Add grayscale filter for debug template
-    if (id === 'debug_grayscale') {
-      descriptor.sections![0].filters = [{
+    const firstSection = descriptor.sections?.[0];
+
+    if (id === 'debug_grayscale' && firstSection !== undefined) {
+      firstSection.filters = [{
         type: 'hue',
         value: 's=0'
       }];

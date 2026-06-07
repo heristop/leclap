@@ -8,6 +8,18 @@ interface StepperProps {
     onStepClick?: (stepIndex: number) => void
 }
 
+const getLabelColorClass = (isCurrent: boolean, isCompleted: boolean): string => {
+    if (isCurrent) {
+        return "text-brand-300 translate-y-0 opacity-100"
+    }
+
+    if (isCompleted) {
+        return "text-gray-400 group-hover:text-gray-200"
+    }
+
+    return "text-gray-600"
+}
+
 export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperProps) => {
     return (
         <nav aria-label="Progress" className={cn("w-full py-6", className)}>
@@ -17,7 +29,7 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
 
                 {/* Progress Bar Fill */}
                 <div
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 -z-10 transition-all duration-500 ease-in-out"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 brand-gradient -z-10 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                     style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
                 />
 
@@ -33,20 +45,20 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
                                 "flex flex-col items-center group relative",
                                 isClickable && "cursor-pointer"
                             )}
-                            onClick={() => isClickable && onStepClick(index)}
+                            onClick={() => { if (isClickable) { onStepClick(index) } }}
                             aria-current={isCurrent ? "step" : undefined}
                         >
                             <div
                                 className={cn(
-                                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 relative z-10",
-                                    isCompleted && "bg-gradient-to-br from-blue-600 to-purple-600 border-transparent text-white shadow-[0_0_15px_rgba(124,131,253,0.5)]",
-                                    isCurrent && "bg-gray-900 border-blue-500 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110",
-                                    !isCompleted && !isCurrent && "bg-gray-900 border-gray-700 text-gray-600",
-                                    isClickable && "group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(59,130,246,0.4)]"
+                                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative z-10",
+                                    isCompleted && "brand-gradient border-transparent text-white shadow-[0_0_15px_rgba(124,131,253,0.55)]",
+                                    isCurrent && "bg-surface border-brand-500 text-brand-300 shadow-[0_0_22px_rgba(124,131,253,0.4)] scale-110",
+                                    !isCompleted && !isCurrent && "bg-surface border-gray-700 text-gray-600",
+                                    isClickable && "group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(124,131,253,0.45)]"
                                 )}
                             >
                                 {isCurrent && (
-                                    <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
+                                    <div className="absolute inset-0 rounded-full bg-brand-500/25 animate-ping" />
                                 )}
 
                                 {isCompleted ? (
@@ -60,8 +72,7 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
                             <span
                                 className={cn(
                                     "absolute -bottom-8 text-xs font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
-                                    isCurrent ? "text-blue-400 translate-y-0 opacity-100" :
-                                        isCompleted ? "text-gray-400 group-hover:text-gray-200" : "text-gray-600",
+                                    getLabelColorClass(isCurrent, isCompleted),
                                     !isCurrent && "opacity-0 group-hover:opacity-100 group-hover:translate-y-0 -translate-y-2"
                                 )}
                             >

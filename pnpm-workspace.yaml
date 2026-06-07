@@ -2,6 +2,12 @@ packages:
   - apps/*
   - packages/*
 
+# ffmpeg-expo@0.0.1 ships a postinstall that downloads its prebuilt FFmpeg binaries from
+# GitHub release `v0.0.3` — a tag that does not exist (404), so the download silently fails.
+# The real binaries are published at `v0.0.1`; this patch corrects the version constant.
+patchedDependencies:
+  ffmpeg-expo@0.0.1: patches/ffmpeg-expo@0.0.1.patch
+
 allowBuilds:
   '@swc/core': true
   esbuild: true

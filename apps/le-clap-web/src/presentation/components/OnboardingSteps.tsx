@@ -84,7 +84,7 @@ export const CreateStep = ({
         <span className="flex items-center gap-2 text-sm text-success font-medium">
           <Check className="w-5 h-5" /> Intro recorded
         </span>
-        <Button onClick={onOpenCamera} variant="ghost" size="sm" className="gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-700 dark:text-gray-300 [&_svg]:size-3.5">
+        <Button onClick={onOpenCamera} variant="ghost" size="sm" className="gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-300 [&_svg]:size-3.5">
           <RotateCcw /> Re-record
         </Button>
       </div>
@@ -94,7 +94,7 @@ export const CreateStep = ({
           <VideoIcon className="w-6 h-6" />
           <span className="text-sm font-semibold">Record</span>
         </button>
-        <button onClick={() => fileInputRef.current?.click()} className="tap flex flex-col items-center justify-center gap-2 py-5 rounded-xl border border-foreground/10 bg-foreground/5 text-gray-700 dark:text-gray-300 hover:text-foreground hover:bg-foreground/10 hover:-translate-y-0.5 transition-all">
+        <button onClick={() => fileInputRef.current?.click()} className="tap flex flex-col items-center justify-center gap-2 py-5 rounded-xl border border-foreground/10 bg-foreground/5 text-gray-300 hover:text-foreground hover:bg-foreground/10 hover:-translate-y-0.5 transition-all">
           <Upload className="w-6 h-6" />
           <span className="text-sm font-semibold">Upload</span>
         </button>

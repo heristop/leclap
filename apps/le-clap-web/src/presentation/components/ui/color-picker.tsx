@@ -22,8 +22,14 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
 
     const commit = (raw: string) => {
       const hex = normalizeHex(raw)
-      if (hex) onChange(hex)
-      else setDraft(value.replace(/^#/, '')) // revert an invalid entry
+
+      if (hex) {
+        onChange(hex)
+
+        return
+      }
+
+      setDraft(value.replace(/^#/, '')) // revert an invalid entry
     }
 
     return (
@@ -57,6 +63,7 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
           <div className="flex flex-wrap gap-1.5">
             {presets.map((c) => {
               const active = normalizeHex(c) === normalizeHex(value)
+
               return (
                 <button
                   key={c}

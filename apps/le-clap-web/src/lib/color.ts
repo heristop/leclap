@@ -6,7 +6,7 @@ export function normalizeHex(input: string): string | null {
 
   // Expand 3-digit shorthand (#abc -> #aabbcc).
   if (/^#[0-9a-f]{3}$/.test(v)) {
-    v = `#${v.slice(1).split('').map((c) => c + c).join('')}`
+    v = v.replace(/^#(.)(.)(.)$/, '#$1$1$2$2$3$3')
   }
 
   return /^#[0-9a-f]{6}$/.test(v) ? v : null

@@ -1,5 +1,6 @@
 import { Crop, Scissors, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/presentation/components/ui';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import { TrimBar } from '@/features/editor/components/TrimBar';
 import { CropFrame } from '@/features/editor/components/CropFrame';
@@ -81,17 +82,27 @@ export function VideoEditor({ file, label, edit, onChange }: VideoEditorProps) {
               onSeek={seek}
             />
             {trimActive && (
-              <button onClick={resetTrim} className="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-foreground transition-colors cursor-pointer">
+              <Button
+                variant="link"
+                size="sm"
+                onClick={resetTrim}
+                className="mt-3 gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
+              >
                 <RotateCcw className="w-3.5 h-3.5" />Reset trim
-              </button>
+              </Button>
             )}
           </>
         ) : (
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-400">Drag the frame or its corners to crop.</p>
-            <button onClick={resetCrop} className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-foreground transition-colors cursor-pointer">
+            <Button
+              variant="link"
+              size="sm"
+              onClick={resetCrop}
+              className="gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
+            >
               <RotateCcw className="w-3.5 h-3.5" />Reset crop
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -115,8 +126,8 @@ function ModeButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer',
-        active ? 'bg-brand-500/20 text-brand-200 border border-brand-400/40' : 'text-gray-400 hover:text-foreground hover:bg-foreground/5 border border-transparent'
+        'tap relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer',
+        active ? 'bg-brand-500/20 text-brand-700 dark:text-brand-200 border border-brand-400/40' : 'text-gray-400 hover:text-foreground hover:bg-foreground/5 border border-transparent'
       )}
     >
       {children}

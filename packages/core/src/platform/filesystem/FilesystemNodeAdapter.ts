@@ -17,9 +17,14 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   }
 
   override getAssetsPath = async (dir: string): Promise<string> => {
-    const fullPath = path.join(this.root, 'packages', 'core', 'src', 'shared', 'assets', dir);
+    // Resolve under the configured assets directory (set from ProjectConfig.assetsDir by the
+    // director), consistent with getSource() for videos. This keeps asset resolution independent
+    // of process.cwd(). Fall back to the monorepo source layout only when nothing is configured.
+    if (this.assetsDir) {
+      return path.join(this.assetsDir, dir);
+    }
 
-    return fullPath;
+    return path.join(this.root, 'packages', 'core', 'src', 'shared', 'assets', dir);
   };
 
   override getBuildPath = async (dir: string): Promise<string> => {
@@ -55,7 +60,9 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
         // looks like a successful fetch.
         response.data.on('error', reject);
         writer.on('error', reject);
-        writer.on('finish', () => { resolve(); });
+        writer.on('finish', () => {
+          resolve();
+        });
         response.data.pipe(writer);
       });
     } catch (error) {
@@ -88,7 +95,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   override copy = async (sourcePath: string, targetPath: string): Promise<void> => {
-     await fs.copyFile(sourcePath, targetPath);
+    await fs.copyFile(sourcePath, targetPath);
   };
 
   override move = async (sourcePath: string, targetPath: string): Promise<void> => {

@@ -1,5 +1,6 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { totalmem } from 'node:os';
 import { Terminal } from '../../utils/terminal';
 
 const execAsync = promisify(exec);
@@ -201,7 +202,7 @@ export class FFmpegDetector {
       arch: process.arch,
       nodeVersion: process.version,
       packageManager: this.detectPackageManager(),
-      memoryGB: Math.round((process.memoryUsage().rss / 1024 / 1024 / 1024) * 100) / 100,
+      memoryGB: Math.round((totalmem() / 1024 / 1024 / 1024) * 100) / 100,
     };
   }
 

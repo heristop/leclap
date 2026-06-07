@@ -29,9 +29,11 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
   execute = async (command: string): Promise<{ rc: number }> => {
     try {
       await execAsync(`ffmpeg ${command}`);
+
       return { rc: 0 };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
+
       throw new FFmpegError('FFmpeg command failed', execError.stderr);
     }
   };
@@ -55,20 +57,21 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
       const audioStream = info.streams.find((s) => s.codec_type === 'audio');
 
       console.log(`[FFmpegNodeAdapter] File info:`, {
-        videoFound: !!videoStream,
-        audioFound: !!audioStream,
+        videoFound: Boolean(videoStream),
+        audioFound: Boolean(audioStream),
         duration: videoStream ? parseFloat(videoStream.duration) : null,
-        videoCodec: videoStream?.codec_name || null,
+        videoCodec: videoStream?.codec_name ?? null,
       });
 
       return {
         duration: videoStream ? parseFloat(videoStream.duration) : null,
-        videoCodec: videoStream?.codec_name || null,
-        audioCodec: audioStream?.codec_name || null,
-        sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate) : null,
+        videoCodec: videoStream?.codec_name ?? null,
+        audioCodec: audioStream?.codec_name ?? null,
+        sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate, 10) : null,
       };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
+
       throw new FFmpegError(`FFprobe analysis failed for ${source}`, execError.stderr);
     }
   };

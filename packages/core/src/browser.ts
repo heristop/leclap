@@ -43,49 +43,60 @@ class BrowserLogger extends AbstractLogger {
 }
 
 let isInitialized = false;
-let initializationPromise = null;
+let initializationPromise: Promise<void> | null = null;
+
+async function registerAdapters(logger: AbstractLogger): Promise<void> {
+  const fileSystem = new BrowserFilesystemAdapter();
+
+  logger.info('Initializing FFmpeg WASM adapter...');
+  const ffmpegAdapter = new FFmpegWasmAdapter(fileSystem);
+
+  logger.info('Waiting for FFmpeg WASM to be ready...');
+  await ffmpegAdapter.waitForReady();
+  logger.info('FFmpeg WASM adapter fully loaded and ready');
+
+  const musicAdapter = new MusicWasmAdapter();
+
+  container.registerInstance('ffmpegAdapter', ffmpegAdapter);
+  container.registerInstance('filesystemAdapter', fileSystem);
+  container.registerInstance('musicAdapter', musicAdapter);
+}
+
+function registerServices(): void {
+  container.register('AssetManager', { useClass: AssetManager });
+  container.register('VariableManager', { useClass: VariableManager });
+  container.register('MapManager', { useClass: MapManager });
+  container.register('FilterManager', { useClass: FilterManager });
+  container.register('FormattersManager', { useClass: FormattersManager });
+
+  const eventManager = new BrowserEventManager();
+  container.registerInstance('eventManager', eventManager);
+
+  container.register('VideoEditor', { useClass: VideoEditor });
+  container.register('MusicComposer', { useClass: MusicComposer });
+  container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
+  container.register('TemplateDirector', { useClass: TemplateDirector });
+}
 
 async function initializeBrowserPlatform(): Promise<void> {
   if (isInitialized) return;
+
   if (initializationPromise) return initializationPromise;
 
   initializationPromise = (async () => {
     try {
-      const fileSystem = new BrowserFilesystemAdapter();
       const logger = new BrowserLogger();
 
-      logger.info('Initializing FFmpeg WASM adapter...');
-      const ffmpegAdapter = new FFmpegWasmAdapter(fileSystem);
-
-      logger.info('Waiting for FFmpeg WASM to be ready...');
-      await ffmpegAdapter.waitForReady();
-      logger.info('FFmpeg WASM adapter fully loaded and ready');
-
-      const musicAdapter = new MusicWasmAdapter();
-
       container.registerInstance('logger', logger);
-      container.registerInstance('ffmpegAdapter', ffmpegAdapter);
-      container.registerInstance('filesystemAdapter', fileSystem);
-      container.registerInstance('musicAdapter', musicAdapter);
 
-      container.register('AssetManager', { useClass: AssetManager });
-      container.register('VariableManager', { useClass: VariableManager });
-      container.register('MapManager', { useClass: MapManager });
-      container.register('FilterManager', { useClass: FilterManager });
-      container.register('FormattersManager', { useClass: FormattersManager });
-
-      const eventManager = new BrowserEventManager();
-      container.registerInstance('eventManager', eventManager);
-
-      container.register('VideoEditor', { useClass: VideoEditor });
-      container.register('MusicComposer', { useClass: MusicComposer });
-      container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
-      container.register('TemplateDirector', { useClass: TemplateDirector });
+      await registerAdapters(logger);
+      registerServices();
 
       logger.info('Browser platform initialized with all dependencies');
       isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize browser platform:', error);
+
       throw error;
     }
   })();
@@ -93,102 +104,188 @@ async function initializeBrowserPlatform(): Promise<void> {
   return initializationPromise;
 }
 
-export async function compileBrowser(
-  projectConfig: ProjectConfig,
-  templateDescriptor: TemplateDescriptor
-): Promise<string | null> {
+function validateTemplate(template: Template, templateDescriptor: TemplateDescriptor): void {
+  console.log('[Browser] Setting template descriptor:', templateDescriptor);
+  const templateValidation = template.setDescriptor(templateDescriptor);
+  console.log('[Browser] Template validation result:', templateValidation);
+
+  if (!templateValidation.success) {
+    console.error('[Browser] Template validation failed:', templateValidation);
+    const errorMessage = templateValidation.errors?.map((e) => e.message).join(', ') ?? 'Invalid template descriptor';
+
+    throw new Error(`Template validation failed: ${errorMessage}`);
+  }
+
+  console.log('[Browser] Template descriptor set:', template.descriptor);
+}
+
+interface ResolvedAdapters {
+  eventManager: BrowserEventManager;
+  logger: AbstractLogger;
+  ffmpegAdapter: FFmpegWasmAdapter;
+  filesystemAdapter: BrowserFilesystemAdapter;
+  musicAdapter: MusicWasmAdapter;
+}
+
+interface CompilationContext extends ResolvedAdapters {
+  project: Project;
+  template: Template;
+}
+
+function resolveDirectorViaDI(): TemplateDirector {
+  container.resolve(MusicComposer);
+  container.resolve(TemplateConcreteBuilder);
+  const director = container.resolve(TemplateDirector);
+
+  console.log('[Browser Compile] Used DI container for instantiation');
+
+  return director;
+}
+
+function resolveDirectorManually(ctx: CompilationContext): TemplateDirector {
+  const { eventManager, logger, ffmpegAdapter, filesystemAdapter, project, template } = ctx;
+
+  const musicComposer = new MusicComposer(project, template, logger, ffmpegAdapter, filesystemAdapter);
+  const videoEditor = new VideoEditor(project, template, musicComposer, logger, ffmpegAdapter, filesystemAdapter);
+  const concreteBuilder = new TemplateConcreteBuilder(project, logger, ffmpegAdapter, filesystemAdapter);
+
+  const director = new TemplateDirector(eventManager, videoEditor, {
+    concreteBuilder,
+    musicComposer,
+    project,
+    template,
+    logger,
+    ffmpegAdapter,
+    filesystemAdapter,
+  });
+
+  console.log('[Browser Compile] Created instances with manual instantiation');
+
+  return director;
+}
+
+function resolveDirector(ctx: CompilationContext): TemplateDirector {
   try {
-    console.log('[Browser Compile] Starting sophisticated video compilation with:', {
-      projectConfig,
-      templateDescriptor,
-      userVideos: Object.keys(projectConfig.userVideoPaths || {}).length,
-    });
+    return resolveDirectorViaDI();
+  } catch (diError) {
+    console.warn('[Browser Compile] DI container failed, falling back to manual instantiation:', diError);
 
-    await initializeBrowserPlatform();
+    return resolveDirectorManually(ctx);
+  }
+}
 
-    const eventManager = container.resolve<BrowserEventManager>('eventManager');
-    const logger = container.resolve<AbstractLogger>('logger');
-    const ffmpegAdapter = container.resolve<FFmpegWasmAdapter>('ffmpegAdapter');
-    const filesystemAdapter = container.resolve<BrowserFilesystemAdapter>('filesystemAdapter');
-    const musicAdapter = container.resolve<MusicWasmAdapter>('musicAdapter');
+function prepareDirector(ctx: CompilationContext): TemplateDirector {
+  const { project, template } = ctx;
 
-    const project = new Project();
-    const template = new Template();
+  container.registerInstance('project', project);
+  container.registerInstance('template', template);
+  container.registerInstance('segment', new Segment());
 
-    console.log('[Browser] Setting template descriptor:', templateDescriptor);
-    const templateValidation = template.setDescriptor(templateDescriptor);
-    console.log('[Browser] Template validation result:', templateValidation);
+  const director = resolveDirector(ctx);
 
-    if (!templateValidation.success) {
-      console.error('[Browser] Template validation failed:', templateValidation);
-      const errorMessage = templateValidation.errors?.map((e) => e.message).join(', ') || 'Invalid template descriptor';
-      throw new Error(`Template validation failed: ${errorMessage}`);
-    }
+  console.log('[Browser Compile] TemplateDirector created with all dependencies');
 
-    console.log('[Browser] Template descriptor set:', template.descriptor);
+  return director;
+}
 
-    container.registerInstance('project', project);
-    container.registerInstance('template', template);
-    container.registerInstance('segment', new Segment());
+interface CompilationListeners {
+  // Reads any error captured from a `task-stopped` event during compilation.
+  getError: () => unknown;
+  // Removes the listeners from the singleton emitter.
+  detach: () => void;
+}
 
-    let musicComposer: MusicComposer;
-    let videoEditor: VideoEditor;
-    let concreteBuilder: TemplateConcreteBuilder;
-    let director: TemplateDirector;
+function attachCompilationListeners(
+  emitter: ReturnType<BrowserEventManager['connect']>,
+  onProgress?: (progress: number) => void
+): CompilationListeners {
+  let compilationError: unknown = null;
+  const onStopped = (err: unknown): void => {
+    compilationError = err;
+  };
+  // Forward the director's per-segment progress (0..1) to the caller so the UI
+  // can animate in real time instead of sitting frozen between coarse stages.
+  const onProgressEvent = (fraction: unknown): void => {
+    onProgress?.(typeof fraction === 'number' ? fraction : 0);
+  };
+  emitter.on('task-stopped', onStopped);
+  emitter.on('compilation-progress', onProgressEvent);
 
-    try {
-      musicComposer = container.resolve(MusicComposer);
-      concreteBuilder = container.resolve(TemplateConcreteBuilder);
-      director = container.resolve(TemplateDirector);
+  return {
+    getError: () => compilationError,
+    // The event manager is a singleton; remove our listeners so they don't
+    // accumulate (and double-fire) across successive compilations.
+    detach: () => {
+      emitter.off?.('task-stopped', onStopped);
+      emitter.off?.('compilation-progress', onProgressEvent);
+    },
+  };
+}
 
-      console.log('[Browser Compile] Used DI container for instantiation');
-    } catch (diError) {
-      console.warn('[Browser Compile] DI container failed, falling back to manual instantiation:', diError);
+async function runCompilation(
+  projectConfig: ProjectConfig,
+  templateDescriptor: TemplateDescriptor,
+  ctx: CompilationContext,
+  onProgress?: (progress: number) => void
+): Promise<string> {
+  const director = prepareDirector(ctx);
 
-      musicComposer = new MusicComposer(project, template, logger, ffmpegAdapter, filesystemAdapter, musicAdapter);
-      videoEditor = new VideoEditor(project, template, musicComposer, logger, ffmpegAdapter, filesystemAdapter);
-      concreteBuilder = new TemplateConcreteBuilder(project, logger, ffmpegAdapter, filesystemAdapter);
+  const emitter = ctx.eventManager.connect();
+  const { getError, detach } = attachCompilationListeners(emitter, onProgress);
 
-      director = new TemplateDirector(
-        eventManager,
-        concreteBuilder,
-        musicComposer,
-        videoEditor,
-        project,
-        template,
-        logger,
-        ffmpegAdapter,
-        filesystemAdapter
-      );
+  director.config(projectConfig, templateDescriptor);
 
-      console.log('[Browser Compile] Created instances with manual instantiation');
-    }
-
-    console.log('[Browser Compile] TemplateDirector created with all dependencies');
-
-    let compilationError: unknown = null;
-    // eventManager is already resolved above
-    eventManager.connect().on('task-stopped', (err) => {
-      compilationError = err;
-    });
-
-    director.config(projectConfig, templateDescriptor);
+  try {
     const outputPath = await director.construct();
 
-    // Remove listener to avoid leaks?
-    // eventManager.connect().off('task-stopped', errorListener); // If EventEmitter supports off with listener
-
     if (!outputPath) {
+      const compilationError = getError();
+
       if (compilationError) {
         throw compilationError;
       }
+
       throw new Error('Video compilation failed - no output generated');
     }
 
     console.log('[Browser Compile] Video compilation completed:', outputPath);
+
     return outputPath;
+  } finally {
+    detach();
+  }
+}
+
+export async function compileBrowser(
+  projectConfig: ProjectConfig,
+  templateDescriptor: TemplateDescriptor,
+  onProgress?: (progress: number) => void
+): Promise<string | null> {
+  try {
+    console.log('[Browser Compile] Starting video compilation with:', {
+      projectConfig,
+      templateDescriptor,
+      userVideos: Object.keys(projectConfig.userVideoPaths ?? {}).length,
+    });
+
+    await initializeBrowserPlatform();
+
+    const ctx: CompilationContext = {
+      eventManager: container.resolve<BrowserEventManager>('eventManager'),
+      logger: container.resolve<AbstractLogger>('logger'),
+      ffmpegAdapter: container.resolve<FFmpegWasmAdapter>('ffmpegAdapter'),
+      filesystemAdapter: container.resolve<BrowserFilesystemAdapter>('filesystemAdapter'),
+      musicAdapter: container.resolve<MusicWasmAdapter>('musicAdapter'),
+      project: new Project(),
+      template: new Template(),
+    };
+
+    validateTemplate(ctx.template, templateDescriptor);
+
+    return await runCompilation(projectConfig, templateDescriptor, ctx, onProgress);
   } catch (error) {
     console.error('[Browser Compile] Compilation failed:', error);
+
     throw new Error(`Browser video compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

@@ -6,6 +6,7 @@ export class FFmpegError extends BaseError {
     public readonly stderr?: string
   ) {
     super(message);
+
     if (stderr) {
       this.message += `\n--- FFmpeg stderr ---\n${stderr}`;
     }

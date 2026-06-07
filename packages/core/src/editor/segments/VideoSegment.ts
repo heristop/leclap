@@ -7,7 +7,7 @@ class Video extends SegmentBuilder {
     this.command = ` -y ${this.addBlankAudio()} `;
 
     // Is there a mute option?
-    if (false === this.section.options?.muteSection) {
+    if (this.section.options?.muteSection === false) {
       this.command = ' -y ';
     }
 
@@ -17,7 +17,7 @@ class Video extends SegmentBuilder {
     const isWasm = typeof window !== 'undefined';
     const encodingParams = isWasm
       ? '-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast -movflags +faststart'
-      : `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high -movflags +faststart -preset ${this.project.config.hardwareConfig.preset}`;
+      : `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high -movflags +faststart -preset ${this.project.config.hardwareConfig?.preset ?? 'medium'}`;
 
     if (this.section.options?.videoUrl) {
       // Use a video as second input
@@ -40,7 +40,19 @@ class Video extends SegmentBuilder {
         ` -r 30 -t ${this.section.options.duration} ` +
         ` ${encodingParams} ` +
         ` ${this.filters} ${this.destination} `;
+
+      return;
     }
+
+    // Default: drive the segment from its primary (e.g. uploaded) source video.
+    // Without this, a `video` section that has neither videoUrl nor
+    // useVideoSection produced an input-only command (no output), which FFmpeg
+    // rejects with "At least one output file must be specified".
+    this.command +=
+      ` ${this.hwaccelArg} -i ${this.source} ${this.sources.join(' ')} ` +
+      ` -r 30 -t ${this.section.options?.duration} ` +
+      ` ${encodingParams} ` +
+      ` ${this.filters} ${this.destination} `;
   };
 }
 

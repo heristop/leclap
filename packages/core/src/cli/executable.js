@@ -80,13 +80,15 @@ ${report.recommendations.map(rec => `  ${pc.cyan('•')} ${rec}`).join('\n')}
     }
 
     // Show summary
-    const hasFFmpeg = report.ffmpegStatus.system.available ||
-                     report.ffmpegStatus.static.available ||
+    const hasFFmpeg = report.ffmpegStatus.system.available ??
+                     report.ffmpegStatus.static.available ??
                      report.ffmpegStatus.wasm.available;
 
     if (hasFFmpeg) {
       TerminalUI.showSuccess('Your system is ready for video magic! 🎉');
-    } else {
+    }
+
+    if (!hasFFmpeg) {
       console.log(`\n${pc.yellow('⚠️')} ${pc.bold('Setup required before you can compile videos')}\n`);
     }
   } catch (error) {
@@ -95,90 +97,104 @@ ${report.recommendations.map(rec => `  ${pc.cyan('•')} ${rec}`).join('\n')}
   }
 }
 
+function buildProjectConfig(cwd) {
+  const buildDir = path.resolve(cwd, 'build');
+  const assetsDir = path.resolve(cwd, 'assets');
+
+  return {
+    buildDir,
+    assetsDir,
+    fields: {
+      form_1_firstname: 'Emily',
+      form_1_lastname: 'Parker',
+      form_1_job: 'Video Creator',
+      form_2_keyword1: 'creativity',
+      form_2_keyword2: 'innovation',
+      form_2_keyword3: 'technology',
+      form_2_keyword4: 'magic',
+    },
+  };
+}
+
+function handleFFmpegError(error) {
+  console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
+
+  TerminalUI.showError(error.message, [
+    '🔧 Run diagnostics: ffmpeg-video-composer --diagnose',
+    '📦 Quick fix: npm install ffmpeg-static',
+    '🍺 macOS: brew install ffmpeg',
+    '🐧 Linux: sudo apt install ffmpeg',
+  ]);
+
+  console.log(`\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('ffmpeg-video-composer --diagnose')} ${pc.dim('for detailed system analysis')}\n`);
+  process.exit(1);
+}
+
+async function validateAndLoadTemplate(templatePath) {
+  if (!templatePath) {
+    console.error(`${pc.red('Error:')} Template file path is required`);
+    console.log(`${pc.dim('Usage:')} ffmpeg-video-composer ${pc.yellow('<template.json>')}`);
+    console.log(`${pc.dim('Help:')} ffmpeg-video-composer ${pc.yellow('--help')}`);
+    process.exit(1);
+  }
+
+  try {
+    await fs.access(templatePath);
+  } catch {
+    console.error(`${pc.red('Error:')} Template file not found: ${templatePath}`);
+    process.exit(1);
+  }
+
+  return loadConfig(templatePath);
+}
+
+async function runCompilation(templatePath) {
+  console.log(`\n${pc.cyan('🎬')} ${pc.bold('Welcome to FFmpeg Video Composer!')}`);
+  console.log(`${pc.dim('✨ Creating video magic from templates...')}\n`);
+
+  const templateDescriptor = await validateAndLoadTemplate(templatePath);
+  const projectConfig = buildProjectConfig(process.cwd());
+
+  await fs.mkdir(projectConfig.buildDir, { recursive: true });
+
+  console.log(`${pc.cyan('🎬')} ${pc.bold('Starting video compilation...')}`);
+  console.log(`${pc.dim('🎞️ Processing your video magic...')}\n`);
+
+  const result = await compile(projectConfig, templateDescriptor);
+
+  console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`);
+
+  if (result) {
+    console.log(`${pc.dim('Output:')} ${result}`);
+  }
+
+  return result;
+}
+
+function handleCompileError(error) {
+  if (!(error instanceof Error)) {
+    console.error('Unknown error:', String(error));
+    process.exit(1);
+  }
+
+  if (error.message.includes('FFmpeg') || error.message.includes('ffmpeg')) {
+    handleFFmpegError(error);
+  }
+
+  console.error(`${pc.red('Error:')} ${error.message}`);
+
+  if (error.stack) console.error(error.stack);
+  process.exit(1);
+}
+
 async function compileVideo(templatePath) {
   try {
-    if (!templatePath) {
-      console.error(`${pc.red('Error:')} Template file path is required`);
-      console.log(`${pc.dim('Usage:')} ffmpeg-video-composer ${pc.yellow('<template.json>')}`);
-      console.log(`${pc.dim('Help:')} ffmpeg-video-composer ${pc.yellow('--help')}`);
-      process.exit(1);
-    }
-
-    // Check if template file exists
-    try {
-      await fs.access(templatePath);
-    } catch {
-      console.error(`${pc.red('Error:')} Template file not found: ${templatePath}`);
-      process.exit(1);
-    }
-
-    // Show welcome banner
-    console.log(`\n${pc.cyan('🎬')} ${pc.bold('Welcome to FFmpeg Video Composer!')}`);
-    console.log(`${pc.dim('✨ Creating video magic from templates...')}\n`);
-
-    // Load the template descriptor
-    const templateDescriptor = await loadConfig(templatePath);
-
-    // Get absolute paths for proper configuration
-    const cwd = process.cwd();
-    const buildDir = path.resolve(cwd, 'build');
-    const assetsDir = path.resolve(cwd, 'assets');
-
-    // Ensure build directory exists
-    await fs.mkdir(buildDir, { recursive: true });
-
-    // Set up configuration
-    const projectConfig = {
-      buildDir,
-      assetsDir,
-      fields: {
-        form_1_firstname: 'Emily',
-        form_1_lastname: 'Parker',
-        form_1_job: 'Video Creator',
-        form_2_keyword1: 'creativity',
-        form_2_keyword2: 'innovation',
-        form_2_keyword3: 'technology',
-        form_2_keyword4: 'magic',
-      },
-    };
-
-    // Call the compilation function
-    console.log(`${pc.cyan('🎬')} ${pc.bold('Starting video compilation...')}`);
-    console.log(`${pc.dim('🎞️ Processing your video magic...')}\n`);
-
-    const result = await compile(projectConfig, templateDescriptor);
-
-    console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`);
-
-    if (result) {
-      console.log(`${pc.dim('Output:')} ${result}`);
-    }
-
-    return result;
+    return await runCompilation(templatePath);
   } catch (error) {
     console.log(`\n${pc.red('❌')} ${pc.bold('Compilation failed')}`);
+    handleCompileError(error);
 
-    if (error instanceof Error) {
-      // Check if it's an FFmpeg-related error
-      if (error.message.includes('FFmpeg') || error.message.includes('ffmpeg')) {
-        console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
-
-        TerminalUI.showError(error.message, [
-          '🔧 Run diagnostics: ffmpeg-video-composer --diagnose',
-          '📦 Quick fix: npm install ffmpeg-static',
-          '🍺 macOS: brew install ffmpeg',
-          '🐧 Linux: sudo apt install ffmpeg',
-        ]);
-
-        console.log(`\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('ffmpeg-video-composer --diagnose')} ${pc.dim('for detailed system analysis')}\n`);
-      } else {
-        console.error(`${pc.red('Error:')} ${error.message}`);
-        if (error.stack) console.error(error.stack);
-      }
-    } else {
-      console.error('Unknown error:', String(error));
-    }
-    process.exit(1);
+    return null;
   }
 }
 
@@ -205,9 +221,9 @@ async function main() {
         if (!command) {
           await showHelp();
           process.exit(1);
-        } else {
-          await compileVideo(command);
         }
+
+        await compileVideo(command);
         break;
     }
   } catch (error) {
@@ -216,4 +232,7 @@ async function main() {
   }
 }
 
-main();
+main().catch(error => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});

@@ -1,9 +1,23 @@
-import { inject, injectable, singleton } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
-import type { Map, MapAnimationInput } from '@/core/types';
+import type { Section, Map, MapAnimationInput } from '@/core/types';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
+
+// The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
+// but it is used at runtime as a string-keyed cache of string or string[] values.
+type InputsCache = Record<string, string | string[]>;
+
+// Array.prototype.at is available at runtime but not in ES2020 lib types.
+// This interface bridges the gap so the linter's prefer-at rule is satisfiable.
+interface ArrayWithAt<T> extends Array<T> {
+  at(index: number): T | undefined;
+}
+
+// Section.inputs is typed as Input[] for schema purposes, but at runtime it holds
+// MapAnimationInput objects indexed by string keys (used as a keyed record).
+type SectionInputsCache = Record<string, MapAnimationInput>;
 
 @injectable()
 class MapManager {
@@ -14,56 +28,62 @@ class MapManager {
     @inject('segment') public segment: Segment
   ) { }
 
+  private get currentSection(): Section {
+    if (!this.segment.currentSection) {
+      throw new Error('[MapManager] currentSection is not set');
+    }
+
+    return this.segment.currentSection;
+  }
+
+  private get inputsCache(): InputsCache {
+    return this.template.assets.inputs as unknown as InputsCache;
+  }
+
   addMap = (map: Map): void => {
     let mappedInputs = '';
     let mappedOutputs = '';
 
-    // Manage mandatory attributs
-    if (map.inputs) {
-      for (const input of map.inputs) {
-        mappedInputs += `[${this.mapInputsVariables(input)}]`;
-      }
-    } else {
-      throw new Error(`[Map][${this.segment.currentSection.name}] Missing inputs`);
+    for (const input of map.inputs) {
+      mappedInputs += `[${this.mapInputsVariables(input)}]`;
     }
 
-    if (map.outputs) {
-      for (const output of map.outputs) {
-        mappedOutputs += `[${output}]`;
-        this.segment.mapsList.push(output);
-      }
-    } else {
-      throw new Error(`[Map][${this.segment.currentSection.name}] Missing outputs for [${map.inputs.join(',')}]`);
+    for (const output of map.outputs) {
+      mappedOutputs += `[${output}]`;
+      this.segment.mapsList.push(output);
     }
 
     // Manage optional attributs
-    if (!map.options) {
-      map.options = {};
-    }
-
-    if (!map.filters) {
-      map.filters = [];
-    }
+    map.options ??= {};
+    map.filters ??= [];
 
     if (
       (map.options.useSectionFilters || Object.keys(map.filters).length === 0) &&
-      this.segment.currentSection.filters
+      this.currentSection.filters
     ) {
       map.filters = [
         // Add background filters
         ...map.filters,
-        ...this.segment.currentSection.filters,
+        ...this.currentSection.filters,
       ];
     }
 
-    const filtersMapList: string[] = [];
-
-    for (let i = 0; i < Object.keys(map.filters).length; i++) {
-      // Process single filters
-      filtersMapList.push(this.filterManager.addFilter(map.filters[i]));
-    }
+    // Process single filters
+    const filtersMapList = map.filters.map((filter) => this.filterManager.addFilter(filter));
 
     this.segment.filtersMapList.push(mappedInputs + filtersMapList.join(',') + mappedOutputs);
+  };
+
+  private readonly buildAnimationInputsForFirstFrame = (
+    videoInputIncrement: number
+  ): string[] => {
+    const lastMap = (this.segment.mapsList as ArrayWithAt<string>).at(-1);
+
+    return lastMap
+      ? // Concat with the last frame of previous animation
+        [lastMap, `${videoInputIncrement + 1}:v`]
+      : // Concat with the last frame
+        [`${videoInputIncrement}:v`, `${videoInputIncrement + 1}:v`];
   };
 
   addMapAnimation = (input: MapAnimationInput, frame: number): void => {
@@ -71,11 +91,7 @@ class MapManager {
     videoInputIncrement += this.segment.inputsMapCount;
 
     let useSectionFilters = false;
-    let frequency = 0.5;
-
-    if (input.options.frequency) {
-      frequency = input.options.frequency;
-    }
+    const frequency = input.options.frequency;
 
     let inputs = [`${input.name}_${frame - 1}`, `${videoInputIncrement}:v`];
     const outputs = [`${input.name}_${frame}`];
@@ -84,11 +100,7 @@ class MapManager {
 
     // Persist last frame on screen
     if (this.hasLastFrameAnimationPersisted(input, frame)) {
-      end = this.segment.currentSection.options.duration;
-    }
-
-    if (!input.filters) {
-      input.filters = [];
+      end = this.currentSection.options?.duration ?? end;
     }
 
     const filters = [
@@ -107,13 +119,7 @@ class MapManager {
 
     // Concat main video for the first frame only
     if (frame === 1) {
-      if (this.segment.mapsList[this.segment.mapsList.length - 1]) {
-        // Concat with the last frame of previous animation
-        inputs = [`${this.segment.mapsList[this.segment.mapsList.length - 1]}`, `${videoInputIncrement + 1}:v`];
-      } else {
-        // Concat with the last frame
-        inputs = [`${videoInputIncrement}:v`, `${videoInputIncrement + 1}:v`];
-      }
+      inputs = this.buildAnimationInputsForFirstFrame(videoInputIncrement);
 
       // Apply filters for first frame of first animation
       if (this.segment.inputsMapCount === 0) {
@@ -137,21 +143,21 @@ class MapManager {
   getVideoInputIncrement = (): number => {
     let increment = 0;
 
-    switch (this.segment.currentSection.type) {
+    switch (this.currentSection.type) {
       case 'project_video':
         increment = 0;
         break;
-      case 'video':
-        if (
-          !this.segment.currentSection.options.useVideoSection ||
-          this.segment.currentSection.options.muteSection === false
-        ) {
-          increment = 0;
-        } else {
-          // 0 is used by fake audio
-          increment = 1;
-        }
+      case 'video': {
+        // 0 is used by fake audio when a video section is reused and not muted
+        const sectionOptions = this.currentSection.options;
+
+        increment =
+          !sectionOptions?.useVideoSection ||
+          sectionOptions.muteSection === false
+            ? 0
+            : 1;
         break;
+      }
       default:
         increment = 1;
     }
@@ -163,7 +169,8 @@ class MapManager {
     if (input.options.persistent) {
       if (!input.options.frames) {
         // Option frames is optional with Zip animation
-        input.options.frames = this.template.assets.inputs[input.name].length;
+        const cached = this.inputsCache[input.name];
+        input.options.frames = Array.isArray(cached) ? cached.length : 0;
       }
 
       if (frame === input.options.frames) {
@@ -178,36 +185,39 @@ class MapManager {
    * Replace variables in inputs
    */
   mapInputsVariables = (value: string): string => {
-    const { inputs } = this.segment.currentSection;
+    const section = this.currentSection;
+    const inputs = section.inputs as unknown as SectionInputsCache | undefined;
+
+    let result = value;
 
     if (inputs && Object.keys(inputs).length > 0) {
+      // `@video` is anchored to the whole string, so it can only ever match once.
+      // Resolve it a single time instead of re-scanning on every input.
+      result = result.replace(/^@video$/g, `${this.getVideoInputIncrement()}:v`);
+
       let hasAnimation = false;
 
       for (const key of Object.keys(inputs)) {
-        value = value.replace(new RegExp(/^@video$/, 'g'), `${this.getVideoInputIncrement()}:v`);
-
         // Manage last input for animation
         if (inputs[key].type === 'frame') {
-          value = value.replace(
+          result = result.replace(
             new RegExp(`@${inputs[key].name}`, 'g'),
             `${inputs[key].name}_${inputs[key].options.frames}`
           );
           hasAnimation = true;
-        } else {
-          let increment = this.getVideoInputIncrement();
 
-          if (hasAnimation) {
-            increment += this.segment.inputsMapCount + 1;
-          } else {
-            increment += parseInt(key) + 1;
-          }
-
-          value = value.replace(new RegExp(`@${inputs[key].name}`, 'g'), `${increment}:v`);
+          continue;
         }
+
+        let increment = this.getVideoInputIncrement();
+
+        increment += hasAnimation ? this.segment.inputsMapCount + 1 : parseInt(key, 10) + 1;
+
+        result = result.replace(new RegExp(`@${inputs[key].name}`, 'g'), `${increment}:v`);
       }
     }
 
-    return value;
+    return result;
   };
 }
 

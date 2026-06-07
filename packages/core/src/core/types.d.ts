@@ -24,7 +24,7 @@ type CodecConfig = {
 };
 
 type HardwareConfig = {
-  hwaccel?: string;
+  hwaccel?: string | null;
   preset?: string;
 };
 

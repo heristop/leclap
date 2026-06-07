@@ -3,15 +3,22 @@ import type { TemplateAssets } from '../types';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
 import { TemplateValidator, type ValidationResult } from '../../services/TemplateValidator';
 
+function isTemplateDescriptor(data: unknown): data is TemplateDescriptor {
+  return typeof data === 'object' && data !== null && !('name' in data && 'type' in data);
+}
+
 @singleton()
 class Template {
-  public descriptor: TemplateDescriptor;
-  public assets: TemplateAssets;
-  private validator: TemplateValidator;
+  public descriptor: TemplateDescriptor = {};
+  public assets: TemplateAssets = {
+    fonts: {},
+    musics: {},
+    inputs: [],
+  };
+  private readonly validator: TemplateValidator;
 
   constructor() {
     this.validator = new TemplateValidator();
-    this.init();
   }
 
   init = (): void => {
@@ -25,7 +32,7 @@ class Template {
   setDescriptor = (descriptor: unknown): ValidationResult => {
     const validation = this.validator.validateTemplate(descriptor);
 
-    if (validation.success && validation.data) {
+    if (validation.success && validation.data && isTemplateDescriptor(validation.data)) {
       this.descriptor = validation.data;
     }
 
@@ -39,14 +46,14 @@ class Template {
   loadFromJSON = (jsonString: string): ValidationResult => {
     const validation = this.validator.validateTemplateFromJSON(jsonString);
 
-    if (validation.success && validation.data) {
+    if (validation.success && validation.data && isTemplateDescriptor(validation.data)) {
       this.descriptor = validation.data;
     }
 
     return validation;
   };
 
-  clean = (): void => this.init();
+  clean = (): void => { this.init(); };
 }
 
 export default Template;

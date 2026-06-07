@@ -10,7 +10,7 @@ import type MusicComposer from './MusicComposer';
 
 @injectable()
 class VideoEditor {
-  public emitter: IEventEmitter;
+  public emitter: IEventEmitter | undefined;
 
   constructor(
     @inject('project') private readonly project: Project,
@@ -23,13 +23,46 @@ class VideoEditor {
     private readonly filesystemAdapter: AbstractFilesystem
   ) { }
 
+  private buildConcatCommand(concatFilePath: string, finalOutputPath: string): string {
+    return (
+      ' -y -f concat -safe 0 -auto_convert 1 ' +
+      ` -i ${concatFilePath} ` +
+      ` -c copy -movflags +faststart ${finalOutputPath} `
+    );
+  }
+
+  private async copySingleFile(sourceRaw: string, finalOutputPath: string): Promise<string> {
+    const sourceFile = sourceRaw.replace(/^file\s+'?|'?$/g, '').trim();
+    await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
+    this.logger.info(`[Concat][Command] Copied single file to ${finalOutputPath}`);
+
+    return finalOutputPath;
+  }
+
+  private async runConcatCommand(concatFilePath: string, finalOutputPath: string): Promise<string> {
+    const command = this.buildConcatCommand(concatFilePath, finalOutputPath);
+    this.logger.debug(`[Concat][Command] ffmpeg ${command}`);
+
+    const result = await this.ffmpegAdapter.execute(command);
+    this.logger.info(`[Concat] ffmpeg process exited with rc ${result.rc}`);
+
+    if (result.rc === 1) {
+      this.project.errors.push('concat');
+
+      throw new Error('[Concat] Errors on concatenation');
+    }
+
+    return finalOutputPath;
+  }
+
   concat = async (): Promise<string> => {
     try {
-      const buildDir = this.filesystemAdapter.getBuildDir() || 'build';
+      const buildDir = this.filesystemAdapter.getBuildDir() ?? 'build';
       const finalOutputPath = `${buildDir}/output.mp4`;
       this.project.finalVideo = finalOutputPath;
 
       const concatFilePath = this.project.buildInfos.fileConcatPath;
+
       if (!concatFilePath) {
         throw new Error('Concat file path is not defined');
       }
@@ -42,31 +75,30 @@ class VideoEditor {
       }
 
       if (files.length === 1) {
-        const sourceFile = files[0].replace(/^file\s+'?|'?$/g, '').trim();
-        await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
-        this.logger.info(`[Concat][Command] Copied single file to ${finalOutputPath}`);
-      } else {
-        const command =
-          ' -y -f concat -safe 0 -auto_convert 1 ' +
-          ` -i ${concatFilePath} ` +
-          ` -c copy -movflags +faststart ${finalOutputPath} `;
-        this.logger.debug(`[Concat][Command] ffmpeg ${command}`);
-
-        const result = await this.ffmpegAdapter.execute(command);
-        this.logger.info(`[Concat] ffmpeg process exited with rc ${result.rc}`);
-
-        if (result.rc === 1) {
-          this.project.errors.push('concat');
-          throw new Error('[Concat] Errors on concatenation');
-        }
+        return await this.copySingleFile(files[0], finalOutputPath);
       }
 
-      return finalOutputPath;
+      return await this.runConcatCommand(concatFilePath, finalOutputPath);
     } catch (error) {
-      this.logger.error(`[Concat] Error: ${error.message || 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`[Concat] Error: ${message}`);
+
       throw error;
     }
   };
+
+  private async cleanupConcatFile(): Promise<void> {
+    const concatFilePath = this.project.buildInfos.fileConcatPath;
+
+    if (concatFilePath) {
+      try {
+        await this.filesystemAdapter.unlink(concatFilePath);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        this.logger.warn(`Could not delete segments file: ${message}`);
+      }
+    }
+  }
 
   finalize = async (segments: Section[]): Promise<void> => {
     try {
@@ -76,28 +108,22 @@ class VideoEditor {
       }
 
       if (this.project.errors.length === 0) {
-        this.emitter.emit('finalize', {
-          video_source: this.project.finalVideo || '',
+        this.emitter?.emit('finalize', {
+          video_source: this.project.finalVideo,
           template_assets: this.template.assets,
         });
 
-        const concatFilePath = this.project.buildInfos.fileConcatPath;
-        if (concatFilePath) {
-          try {
-            await this.filesystemAdapter.unlink(concatFilePath);
-          } catch (e) {
-            this.logger.warn(`Could not delete segments file: ${e.message}`);
-          }
-        }
+        await this.cleanupConcatFile();
 
-        this.emitter.emit('compilation-progress', 1);
+        this.emitter?.emit('compilation-progress', 1);
         this.logger.info('[End] project cleaned');
 
         this.project.clean();
         this.template.clean();
       }
     } catch (error) {
-      this.logger.error(`[Finalize] Error: ${error.message || 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`[Finalize] Error: ${message}`);
     }
   };
 }

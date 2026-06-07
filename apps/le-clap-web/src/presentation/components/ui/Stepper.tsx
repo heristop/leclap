@@ -39,11 +39,10 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
             >
               <div
                 className={cn(
-                  'relative z-10 grid h-10 w-10 place-items-center rounded-full border-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-                  isCompleted && 'brand-gradient border-transparent text-white shadow-md shadow-brand-500/25',
-                  isCurrent &&
-                    'step-pulse bg-background border-brand-500 text-brand-600 dark:text-brand-300 ring-4 ring-brand-500/15 scale-105',
-                  !isCompleted && !isCurrent && 'bg-surface border-foreground/15 text-gray-500',
+                  'relative z-10 grid h-10 w-10 place-items-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+                  isCompleted && 'brand-gradient text-white shadow-sm shadow-brand-500/20',
+                  isCurrent && 'step-pulse bg-background text-brand-600 dark:text-brand-300 ring-2 ring-brand-500 scale-105',
+                  !isCompleted && !isCurrent && 'bg-surface text-gray-500 ring-1 ring-foreground/15',
                   isClickable && 'group-hover:scale-110'
                 )}
               >

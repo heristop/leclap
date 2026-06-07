@@ -3,7 +3,7 @@
   "plugins": ["typescript", "react", "unicorn", "import"],
   "env": {
     "browser": true,
-    "es2020": true
+    "es2024": true
   },
   "globals": {
     "__DEV__": "readonly"

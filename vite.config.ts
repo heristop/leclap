@@ -28,7 +28,7 @@ export default defineConfig({
     ignorePatterns: ["dist/**", "**/dist/**", "node_modules/**", "build/**", "**/.expo/**", "**/e2e/**", "**/playwright.config.ts"],
     env: {
       node: true,
-      es2020: true,
+      es2024: true,
     },
     options: {
       typeAware: true,
@@ -254,7 +254,10 @@ export default defineConfig({
       "unicorn/prefer-date-now": "error",
       "unicorn/prefer-event-target": "error",
       "unicorn/prefer-includes": "error",
-      "unicorn/no-array-sort": "error",
+      // Off: the codebase sorts via the non-mutating `[...arr].sort()` idiom (the
+      // spread copies first, so nothing is mutated) because `Array#toSorted()` is
+      // not guaranteed on the React Native (Hermes) runtime.
+      "unicorn/no-array-sort": "off",
       "unicorn/no-array-reverse": "error",
 
       // --- carried over from the previous .oxlintrc.json ---
@@ -302,6 +305,40 @@ export default defineConfig({
           "unicorn/catch-error-name": "off",
         },
       },
+
+      // --- Per-package rule overrides ------------------------------------------------------
+      // Each workspace package gets a dedicated slot so it can tune lint rules independently of
+      // the shared defaults above, without touching another package's config. Add package-local
+      // rule entries inside the matching block (more specific file overrides further below still
+      // win, since oxlint applies later overrides last).
+      {
+        // @ffmpeg-video-composer/core (Node library)
+        files: ["packages/core/**"],
+        env: { node: true, es2024: true },
+        rules: {},
+      },
+      {
+        // @ffmpeg-video-composer/server (Node/Fastify service)
+        files: ["packages/server/**"],
+        env: { node: true, es2024: true },
+        rules: {},
+      },
+      {
+        // le-clap-web (React + Vite browser app)
+        files: ["apps/le-clap-web/**"],
+        plugins: ["typescript", "unicorn", "import", "oxc", "react"],
+        env: { browser: true, es2024: true },
+        rules: {},
+      },
+      {
+        // le-clap-expo (React Native / Expo app)
+        files: ["apps/le-clap-expo/**"],
+        plugins: ["typescript", "unicorn", "import", "oxc", "react"],
+        env: { browser: true, es2024: true },
+        rules: {},
+      },
+      // -------------------------------------------------------------------------------------
+
       {
         files: [
           "packages/core/src/platform/filesystem/BrowserFilesystemAdapter.ts",
@@ -309,7 +346,7 @@ export default defineConfig({
         ],
         env: {
           browser: true,
-          es2020: true,
+          es2024: true,
         },
       },
       {
@@ -317,7 +354,7 @@ export default defineConfig({
         plugins: ["typescript", "unicorn", "import", "oxc", "react"],
         env: {
           browser: true,
-          es2020: true,
+          es2024: true,
         },
       },
       {
@@ -336,6 +373,15 @@ export default defineConfig({
         files: ["packages/core/src/editor/VideoEditor.ts"],
         rules: {
           "max-params": "off",
+        },
+      },
+      {
+        // A single ffmpeg.wasm instance can only run one exec at a time and the clips share one
+        // mutable wasm FS, so the per-clip write -> exec -> read -> delete passes are strictly
+        // sequential and cannot be parallelized. Promise.all would corrupt the shared FS.
+        files: ["apps/le-clap-web/src/**/videoEdits.ts"],
+        rules: {
+          "no-await-in-loop": "off",
         },
       },
       {

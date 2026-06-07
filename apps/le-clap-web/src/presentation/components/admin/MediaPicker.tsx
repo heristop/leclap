@@ -1,128 +1,224 @@
-import { useState, useId, useRef } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/presentation/components/ui'
-import { browserMediaService } from '@/services/browserMediaService'
-import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/mediaCatalog'
-import type { MediaChoice } from './templateEditorModel'
+import { useState, useId, useRef } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/presentation/components/ui';
+import { browserMediaService } from '@/services/browserMediaService';
+import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/mediaCatalog';
+import type { MediaChoice } from './templateEditorModel';
 
-type MediaKind = 'music' | 'picture'
-type Tab = 'library' | 'upload'
+type MediaKind = 'music' | 'picture';
+type Tab = 'library' | 'upload';
 
-interface MediaPickerProps {
-  kind: MediaKind
-  value: MediaChoice | null
-  onChange: (choice: MediaChoice | null) => void
+export interface MediaPickerProps {
+  kind: MediaKind;
+  // single-select (existing + Builder):
+  value?: MediaChoice | null;
+  onChange?: (choice: MediaChoice | null) => void;
+  // multi-select (template editor shortlist):
+  multiple?: boolean;
+  selectedIds?: string[];
+  onToggleId?: (id: string) => void;
+  // restrict the library grid to these ids
+  allowedIds?: string[];
+  // hide the Upload tab when uploads aren't allowed (default: shown)
+  allowUpload?: boolean;
 }
 
 interface CardProps {
-  item: MediaCredit
-  selected: boolean
-  onPick: () => void
+  item: MediaCredit;
+  selected: boolean;
+  onPick: () => void;
 }
 
 const ACCEPT: Record<MediaKind, Record<string, string[]>> = {
   music: { 'audio/*': ['.mp3', '.wav', '.m4a', '.aac', '.ogg'] },
   picture: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
-}
+};
 
 // Deterministic two-stop gradient per track, so a track without cover art still
 // gets a stable, distinct "cover" (Spotify/Deezer-style) instead of a flat block.
 function coverGradient(seed: string): string {
-  let hash = 7
+  let hash = 7;
 
   for (const char of seed) {
-    hash = (hash * 31 + (char.codePointAt(0) ?? 0)) % 360
+    hash = (hash * 31 + (char.codePointAt(0) ?? 0)) % 360;
   }
 
-  const second = (hash + 48) % 360
+  const second = (hash + 48) % 360;
 
-  return `linear-gradient(135deg, oklch(0.62 0.19 ${hash}), oklch(0.5 0.21 ${second}))`
+  return `linear-gradient(135deg, oklch(0.62 0.19 ${hash}), oklch(0.5 0.21 ${second}))`;
 }
 
-export const MediaPicker = ({ kind, value, onChange }: MediaPickerProps) => {
-  const [tab, setTab] = useState<Tab>(value?.source === 'upload' ? 'upload' : 'library')
+function filterByAllowed(items: MediaCredit[], allowedIds: string[] | undefined): MediaCredit[] {
+  if (!allowedIds) return items;
+
+  return items.filter((i) => allowedIds.includes(i.id));
+}
+
+export const MediaPicker = ({
+  kind,
+  value,
+  onChange,
+  multiple,
+  selectedIds,
+  onToggleId,
+  allowedIds,
+  allowUpload = true,
+}: MediaPickerProps) => {
+  const initialTab: Tab = !multiple && value?.source === 'upload' ? 'upload' : 'library';
+  const [tab, setTab] = useState<Tab>(initialTab);
+
+  if (multiple) {
+    return (
+      <div className="rounded-xl border border-foreground/10 bg-surface-2/40 p-3">
+        <MultiLibraryGrid
+          kind={kind}
+          selectedIds={selectedIds ?? []}
+          onToggleId={onToggleId ?? (() => {})}
+          allowedIds={allowedIds}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-foreground/10 bg-surface-2/40 p-3">
-      <TabSwitch tab={tab} setTab={setTab} />
-      {tab === 'library' ? <LibraryGrid kind={kind} value={value} onChange={onChange} /> : null}
-      {tab === 'upload' ? <UploadPane kind={kind} value={value} onChange={onChange} /> : null}
+      <TabSwitch tab={tab} setTab={setTab} allowUpload={allowUpload} />
+      {tab === 'library' ? (
+        <SingleLibraryGrid
+          kind={kind}
+          value={value ?? null}
+          onChange={onChange ?? (() => {})}
+          allowedIds={allowedIds}
+        />
+      ) : null}
+      {tab === 'upload' ? <UploadPane kind={kind} value={value ?? null} onChange={onChange ?? (() => {})} /> : null}
     </div>
-  )
+  );
+};
+
+const TabSwitch = ({ tab, setTab, allowUpload }: { tab: Tab; setTab: (t: Tab) => void; allowUpload: boolean }) => {
+  const tabs = allowUpload ? (['library', 'upload'] as const) : (['library'] as const);
+
+  return (
+    <div role="tablist" aria-label="Media source" className="mb-3 inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm">
+      {tabs.map((t) => (
+        <button
+          key={t}
+          type="button"
+          role="tab"
+          aria-selected={tab === t}
+          onClick={() => {
+            setTab(t);
+          }}
+          className={cn(
+            'rounded-md px-3 py-1.5 font-medium capitalize transition-colors',
+            tab === t ? 'bg-surface text-foreground shadow-sm' : 'text-gray-400 hover:text-foreground'
+          )}
+        >
+          {t}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+interface SingleLibraryGridProps {
+  kind: MediaKind;
+  value: MediaChoice | null;
+  onChange: (choice: MediaChoice | null) => void;
+  allowedIds?: string[];
 }
 
-const TabSwitch = ({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) => (
-  <div role="tablist" aria-label="Media source" className="mb-3 inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm">
-    {(['library', 'upload'] as const).map((t) => (
-      <button
-        key={t}
-        type="button"
-        role="tab"
-        aria-selected={tab === t}
-        onClick={() => { setTab(t) }}
-        className={cn(
-          'rounded-md px-3 py-1.5 font-medium capitalize transition-colors',
-          tab === t ? 'bg-surface text-foreground shadow-sm' : 'text-gray-400 hover:text-foreground'
-        )}
-      >
-        {t}
-      </button>
-    ))}
-  </div>
-)
-
-const LibraryGrid = ({ kind, value, onChange }: MediaPickerProps) => {
-  const items = kind === 'music' ? MUSIC_LIBRARY : BACKGROUND_LIBRARY
+const SingleLibraryGrid = ({ kind, value, onChange, allowedIds }: SingleLibraryGridProps) => {
+  const rawItems = kind === 'music' ? MUSIC_LIBRARY : BACKGROUND_LIBRARY;
+  const items = filterByAllowed(rawItems, allowedIds);
 
   if (items.length === 0) {
-    return <p className="px-1 py-6 text-center text-sm text-gray-400">Nothing here yet — upload your own instead.</p>
+    return <p className="px-1 py-6 text-center text-sm text-gray-400">Nothing here yet — upload your own instead.</p>;
   }
 
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {items.map((item) => {
-        const selected = value?.source === 'library' && value.id === item.id
-        const pick = () => { onChange({ source: 'library', id: item.id }) }
+        const selected = value?.source === 'library' && value.id === item.id;
+        const pick = () => {
+          onChange({ source: 'library', id: item.id });
+        };
 
         if (kind === 'music') {
-          return <MusicCard key={item.id} item={item} selected={selected} onPick={pick} />
+          return <MusicCard key={item.id} item={item} selected={selected} onPick={pick} />;
         }
 
-        return <PictureCard key={item.id} item={item} selected={selected} onPick={pick} />
+        return <PictureCard key={item.id} item={item} selected={selected} onPick={pick} />;
       })}
     </div>
-  )
+  );
+};
+
+interface MultiLibraryGridProps {
+  kind: MediaKind;
+  selectedIds: string[];
+  onToggleId: (id: string) => void;
+  allowedIds?: string[];
 }
 
+const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLibraryGridProps) => {
+  const rawItems = kind === 'music' ? MUSIC_LIBRARY : BACKGROUND_LIBRARY;
+  const items = filterByAllowed(rawItems, allowedIds);
+
+  if (items.length === 0) {
+    return <p className="px-1 py-6 text-center text-sm text-gray-400">Nothing in the library yet.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {items.map((item) => {
+        const selected = selectedIds.includes(item.id);
+        const toggle = () => {
+          onToggleId(item.id);
+        };
+
+        if (kind === 'music') {
+          return <MusicCard key={item.id} item={item} selected={selected} onPick={toggle} />;
+        }
+
+        return <PictureCard key={item.id} item={item} selected={selected} onPick={toggle} />;
+      })}
+    </div>
+  );
+};
+
 const MusicCard = ({ item, selected, onPick }: CardProps) => {
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const [playing, setPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
 
   const toggle = () => {
-    const audio = audioRef.current
+    const audio = audioRef.current;
 
     if (!audio) {
-      return
+      return;
     }
 
     if (playing) {
-      audio.pause()
-      setPlaying(false)
+      audio.pause();
+      setPlaying(false);
 
-      return
+      return;
     }
 
-    audio.play().catch(() => {})
-    setPlaying(true)
-  }
+    audio.play().catch(() => {});
+    setPlaying(true);
+  };
 
   return (
     <div
       className={cn(
         'relative rounded-xl border p-2 transition-all',
-        selected ? 'border-brand-500 bg-brand-500/5 ring-2 ring-brand-500/30' : 'border-foreground/10 hover:border-brand-500/40'
+        selected
+          ? 'border-brand-500 bg-brand-500/5 ring-2 ring-brand-500/30'
+          : 'border-foreground/10 hover:border-brand-500/40'
       )}
     >
       <button type="button" onClick={onPick} aria-pressed={selected} className="block w-full text-left">
@@ -135,6 +231,11 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
           ) : (
             <Music className="absolute inset-0 m-auto h-8 w-8 text-white/85" />
           )}
+          {selected ? (
+            <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-brand-500">
+              <Check className="h-3 w-3 text-white" />
+            </span>
+          ) : null}
         </span>
         <span className="mt-2 block truncate text-sm font-semibold text-foreground">{item.title}</span>
         <span className="block truncate text-xs text-gray-400">{item.author}</span>
@@ -147,10 +248,18 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
       >
         {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-px" />}
       </button>
-      <audio ref={audioRef} src={item.url} preload="none" onEnded={() => { setPlaying(false) }} className="sr-only" />
+      <audio
+        ref={audioRef}
+        src={item.url}
+        preload="none"
+        onEnded={() => {
+          setPlaying(false);
+        }}
+        className="sr-only"
+      />
     </div>
-  )
-}
+  );
+};
 
 const PictureCard = ({ item, selected, onPick }: CardProps) => (
   <button
@@ -163,35 +272,63 @@ const PictureCard = ({ item, selected, onPick }: CardProps) => (
     )}
   >
     <span className="block aspect-video w-full overflow-hidden">
-      <img src={item.url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+      <img
+        src={item.url}
+        alt=""
+        loading="lazy"
+        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+      />
     </span>
     <span className="block px-2 py-1.5">
       <span className="block truncate text-xs font-semibold text-foreground">{item.title}</span>
-      <span className="block truncate text-[0.65rem] text-gray-400">{item.author} · {item.license}</span>
+      <span className="block truncate text-[0.65rem] text-gray-400">
+        {item.author} · {item.license}
+      </span>
     </span>
     {selected ? <Check className="absolute right-2 top-2 h-4 w-4 rounded-full bg-brand-500 p-0.5 text-white" /> : null}
   </button>
-)
+);
 
-const UploadPane = ({ kind, value, onChange }: MediaPickerProps) => {
-  const inputId = useId()
+interface UploadPaneProps {
+  kind: MediaKind;
+  value: MediaChoice | null;
+  onChange: (choice: MediaChoice | null) => void;
+}
+
+const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
+  const inputId = useId();
 
   const onDrop = (files: File[]) => {
     if (files.length === 0) {
-      return
+      return;
     }
 
-    const file = files[0]
+    const file = files[0];
     browserMediaService
       .save(file, kind)
-      .then(({ key }) => { onChange({ source: 'upload', key, label: file.name }) })
-      .catch(() => {})
-  }
+      .then(({ key }) => {
+        onChange({ source: 'upload', key, label: file.name });
+      })
+      .catch(() => {});
+  };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: ACCEPT[kind], maxFiles: 1, multiple: false })
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: ACCEPT[kind],
+    maxFiles: 1,
+    multiple: false,
+  });
 
   if (value?.source === 'upload') {
-    return <SelectedUpload kind={kind} label={value.label} onClear={() => { onChange(null) }} />
+    return (
+      <SelectedUpload
+        kind={kind}
+        label={value.label}
+        onClear={() => {
+          onChange(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -203,13 +340,19 @@ const UploadPane = ({ kind, value, onChange }: MediaPickerProps) => {
         isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
       )}
     >
-      <input {...getInputProps()} id={inputId} aria-label={kind === 'music' ? 'Upload a music file' : 'Upload a background image'} />
+      <input
+        {...getInputProps()}
+        id={inputId}
+        aria-label={kind === 'music' ? 'Upload a music file' : 'Upload a background image'}
+      />
       <Upload className="h-6 w-6 text-gray-400" />
       <span className="text-sm text-gray-300">Drop a {kind === 'music' ? 'track' : 'image'} or click to browse</span>
-      <span className="text-xs text-gray-500">{kind === 'music' ? 'MP3, WAV, M4A' : 'JPG, PNG, WebP'} · stored on this device</span>
+      <span className="text-xs text-gray-500">
+        {kind === 'music' ? 'MP3, WAV, M4A' : 'JPG, PNG, WebP'} · stored on this device
+      </span>
     </div>
-  )
-}
+  );
+};
 
 const SelectedUpload = ({ kind, label, onClear }: { kind: MediaKind; label: string; onClear: () => void }) => (
   <div className="flex items-center gap-3 rounded-lg border border-brand-500/30 bg-brand-500/10 p-3">
@@ -224,4 +367,4 @@ const SelectedUpload = ({ kind, label, onClear }: { kind: MediaKind; label: stri
       <X className="h-4 w-4" />
     </Button>
   </div>
-)
+);

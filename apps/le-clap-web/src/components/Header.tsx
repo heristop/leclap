@@ -1,7 +1,72 @@
 import { useState, useEffect } from 'react'
-import { Clapperboard, Github, Menu, X } from 'lucide-react'
+import { Clapperboard, Code2, Menu, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
+
+const navigationItems = [
+  { name: 'Home', href: '/' },
+  { name: 'Builder', href: '/builder' },
+  { name: 'About', href: '/about' },
+]
+
+type NavLinkProps = {
+  item: { name: string; href: string }
+  isActive: boolean
+  mobile?: boolean
+  onClick?: () => void
+}
+
+const getNavLinkClass = (mobile: boolean | undefined, isActive: boolean): string => {
+  if (mobile) {
+    const base = "block px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200"
+    const state = isActive
+      ? "text-white bg-brand-500/20 border border-brand-500/25"
+      : "text-gray-400 hover:text-white hover:bg-white/5"
+
+    return clsx(base, state)
+  }
+
+  const base = "px-4 py-2 text-sm font-medium rounded-full transition-all duration-200"
+  const state = isActive ? "text-white bg-white/10" : "text-gray-400 hover:text-white hover:bg-white/5"
+
+  return clsx(base, state)
+}
+
+const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => (
+  <Link
+    key={item.name}
+    to={item.href}
+    className={getNavLinkClass(mobile, isActive)}
+    onClick={onClick}
+  >
+    {item.name}
+  </Link>
+)
+
+type MobileMenuProps = {
+  isOpen: boolean
+  currentPath: string
+  onClose: () => void
+}
+
+const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => (
+  <div className={clsx(
+    'md:hidden transition-all duration-300 ease-in-out overflow-hidden',
+    isOpen ? 'max-h-64 opacity-100 mt-4' : 'max-h-0 opacity-0'
+  )}>
+    <nav className="p-4 space-y-2 bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-white/10">
+      {navigationItems.map((item) => (
+        <NavLink
+          key={item.name}
+          item={item}
+          isActive={currentPath === item.href}
+          mobile
+          onClick={onClose}
+        />
+      ))}
+    </nav>
+  </div>
+)
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -13,14 +78,9 @@ export const Header = () => {
       setScrolled(window.scrollY > 20)
     }
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
-  const navigationItems = [
-    { name: 'Home', href: '/' },
-    { name: 'Builder', href: '/builder' },
-    { name: 'About', href: '/about' },
-  ]
+    return () => { window.removeEventListener('scroll', handleScroll) }
+  }, [])
 
   return (
     <header
@@ -33,7 +93,7 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg group-hover:shadow-blue-500/20 transition-all duration-300">
+            <div className="tap p-2 brand-gradient rounded-xl shadow-lg shadow-brand-900/30 group-hover:shadow-brand-500/30 group-hover:-rotate-6 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
               <Clapperboard className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -45,23 +105,13 @@ export const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.href
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={clsx(
-                    "px-4 py-2 text-sm font-medium rounded-full transition-all duration-200",
-                    isActive
-                      ? "text-white bg-white/10"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  )}
-                >
-                  {item.name}
-                </Link>
-              )
-            })}
+            {navigationItems.map((item) => (
+              <NavLink
+                key={item.name}
+                item={item}
+                isActive={location.pathname === item.href}
+              />
+            ))}
           </nav>
 
           {/* Action Buttons */}
@@ -74,13 +124,13 @@ export const Header = () => {
               className="hidden sm:flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all duration-200 border border-white/5 hover:border-white/10 cursor-pointer"
               aria-label="View source code on GitHub"
             >
-              <Github className="w-4 h-4" />
+              <Code2 className="w-4 h-4" />
               <span>GitHub</span>
             </a>
 
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => { setIsMenuOpen(!isMenuOpen) }}
               className="md:hidden p-2 text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer"
               aria-label="Toggle menu"
             >
@@ -94,31 +144,11 @@ export const Header = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className={clsx(
-          'md:hidden transition-all duration-300 ease-in-out overflow-hidden',
-          isMenuOpen ? 'max-h-64 opacity-100 mt-4' : 'max-h-0 opacity-0'
-        )}>
-          <nav className="p-4 space-y-2 bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-white/10">
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.href
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={clsx(
-                    "block px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                    isActive
-                      ? "text-white bg-blue-600/20 border border-blue-500/20"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  )}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
+        <MobileMenu
+          isOpen={isMenuOpen}
+          currentPath={location.pathname}
+          onClose={() => { setIsMenuOpen(false) }}
+        />
       </div>
     </header>
   )

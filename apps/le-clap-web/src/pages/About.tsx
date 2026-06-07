@@ -1,4 +1,4 @@
-import { Github, Globe, Twitter } from 'lucide-react'
+import { Code2, Globe, AtSign } from 'lucide-react'
 
 export const About = () => {
     return (
@@ -27,7 +27,7 @@ export const About = () => {
                         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                             {/* Avatar/Profile Image Placeholder */}
                             <div className="relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
                                 <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-gray-900 bg-gray-800 flex items-center justify-center">
                                     <span className="text-4xl font-bold text-gray-600">AM</span>
                                 </div>
@@ -56,7 +56,7 @@ export const About = () => {
                                         rel="noopener noreferrer"
                                         className="flex items-center space-x-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all duration-300 hover:scale-105 border border-white/5 cursor-pointer"
                                     >
-                                        <Github className="w-5 h-5" />
+                                        <Code2 className="w-5 h-5" />
                                         <span>GitHub</span>
                                     </a>
                                     <a
@@ -65,7 +65,7 @@ export const About = () => {
                                         rel="noopener noreferrer"
                                         className="flex items-center space-x-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all duration-300 hover:scale-105 border border-white/5 cursor-pointer"
                                     >
-                                        <Twitter className="w-5 h-5" />
+                                        <AtSign className="w-5 h-5" />
                                         <span>Twitter</span>
                                     </a>
                                 </div>

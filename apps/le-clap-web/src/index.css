@@ -1,227 +1,235 @@
 @import "tailwindcss";
 
-
 html {
-  font-size: 1.125rem;
-  /* 18px equivalent */
+  /* Fluid base: ~16px on phones → 18px on desktop, so the whole rem-based UI
+     scales down gracefully on small screens instead of overflowing. */
+  font-size: clamp(1rem, 0.92rem + 0.4vw, 1.125rem);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  /* font-size is inherited from html */
+  /* Oswald is a condensed face — a touch of tracking keeps body copy legible
+     on the dark surface. */
+  letter-spacing: 0.012em;
+  /* Native-app feel: no blue tap flash, no rubber-band chaining, no accidental
+     text selection on UI chrome during taps. */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
-
 
 @theme {
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-background: #111827;
-  /* gray-900 */
-  --color-foreground: #f9fafb;
-  /* gray-50 */
+  /* ---------------------------------------------------------------------- */
+  /* LeClap brand system — mirrors the Expo (Tamagui) design language:      */
+  /* lavender primary, pink secondary, pastel-yellow accent, near-black     */
+  /* surfaces, Oswald display type. All values are OKLCH.                   */
+  /* ---------------------------------------------------------------------- */
 
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
+  /* Surfaces (Expo dark theme) */
+  --color-background: oklch(0.182 0 0);
+  --color-surface: oklch(0.235 0 0);
+  --color-surface-2: oklch(0.269 0 0);
+  --color-foreground: oklch(0.976 0.001 286.4);
+  --color-muted-foreground: oklch(0.757 0 0);
+  --color-divider: oklch(0.321 0 0);
 
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  /* Primary — Bleu lavande (#7C83FD) */
+  --color-brand-50: oklch(0.964 0.016 282.3);
+  --color-brand-100: oklch(0.93 0.031 281.8);
+  --color-brand-200: oklch(0.864 0.062 282);
+  --color-brand-300: oklch(0.787 0.104 281.3);
+  --color-brand-400: oklch(0.717 0.143 279.5);
+  --color-brand-500: oklch(0.663 0.178 277.9);
+  --color-brand-600: oklch(0.598 0.171 277.6);
+  --color-brand-700: oklch(0.525 0.159 276.9);
+  --color-brand-800: oklch(0.44 0.127 277.1);
+  --color-brand-900: oklch(0.332 0.09 277.8);
 
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  /* Secondary — Rose clair (#FF8AAE) */
+  --color-secondary-50: oklch(0.97 0.016 358);
+  --color-secondary-100: oklch(0.939 0.033 359.2);
+  --color-secondary-200: oklch(0.883 0.066 0.8);
+  --color-secondary-300: oklch(0.823 0.106 2.4);
+  --color-secondary-400: oklch(0.771 0.146 1.5);
+  --color-secondary-500: oklch(0.719 0.173 3.4);
+  --color-secondary-600: oklch(0.646 0.174 5.3);
+  --color-secondary-700: oklch(0.557 0.152 3.5);
 
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
+  /* Accent — Jaune pastel (#FFF685) */
+  --color-accent-300: oklch(0.975 0.075 103.6);
+  --color-accent-400: oklch(0.957 0.135 104.6);
+  --color-accent-500: oklch(0.918 0.159 103.3);
 
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
+  /* Semantic (Expo) */
+  --color-success: oklch(0.673 0.162 144.2);
+  --color-error: oklch(0.643 0.215 28.8);
+  --color-warning: oklch(0.77 0.174 64.1);
+  --color-info: oklch(0.658 0.169 248.8);
 
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
+  /* Muted text — brightened vs. Tailwind defaults for legible body copy on the
+     dark surface (these steps are used for text, not structural borders), with
+     a faint lavender tint to tie into the brand. */
+  --color-gray-400: oklch(0.8 0.012 280);
+  --color-gray-500: oklch(0.7 0.014 280);
+  --color-gray-600: oklch(0.6 0.014 280);
 
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
+  --font-sans: "Oswald", "sans-serif";
+  --font-display: "Oswald", "sans-serif";
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 0.125rem);
-  --radius-sm: calc(var(--radius) - 0.25rem);
+  /* Radii (Expo radius scale) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
 
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-
-    to {
-      height: 0;
-    }
-  }
-
-  /* Custom color palette for video composer */
-  --color-brand-50: oklch(0.98 0.01 250);
-  --color-brand-100: oklch(0.94 0.05 250);
-  --color-brand-200: oklch(0.89 0.1 250);
-  --color-brand-300: oklch(0.8 0.15 250);
-  --color-brand-400: oklch(0.7 0.2 250);
-  --color-brand-500: oklch(0.6 0.25 250);
-  --color-brand-600: oklch(0.5 0.25 250);
-  --color-brand-700: oklch(0.4 0.2 250);
-  --color-brand-800: oklch(0.3 0.15 250);
-  --color-brand-900: oklch(0.2 0.1 250);
-
-  --font-sans: "Oswald",
-  "sans-serif";
-
-  /* Video processing specific colors */
-  --color-processing-50: oklch(0.98 0.02 180);
-  --color-processing-500: oklch(0.65 0.12 180);
-  --color-processing-600: oklch(0.55 0.15 180);
-
-  /* Custom easing curves */
+  /* Motion — one smooth curve, one springy curve, used everywhere for a */
+  /* cohesive "juicy" feel rather than scattered ad-hoc transitions.     */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Animation durations */
   --animate-shimmer: shimmer 2s infinite linear;
   --animate-processing: processing 2s ease-in-out infinite;
-  --animate-fade-in: fade-in 0.6s var(--ease-smooth);
+  --animate-fade-in: fade-in 0.55s var(--ease-smooth) both;
+  --animate-rise-in: rise-in 0.5s var(--ease-spring) both;
   --animate-float: float 6s ease-in-out infinite;
+  --animate-glow: glow 2.4s ease-in-out infinite;
+  --animate-gradient: gradient-pan 6s ease infinite;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — brand-tinted on the dark surface */
 ::-webkit-scrollbar {
   width: 0.5rem;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: oklch(0.96 0.01 250);
+  background-color: oklch(0.2 0 0);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: oklch(0.86 0.03 250);
+  background-color: oklch(0.32 0.02 280);
   border-radius: 0.5rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(0.76 0.05 250);
+  background-color: var(--color-brand-600);
 }
 
-/* Glassmorphism Utility */
+/* Glassmorphism — restrained, over the Expo surface */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.7);
+  background: oklch(1 0 0 / 0.7);
   backdrop-filter: blur(0.75rem);
   -webkit-backdrop-filter: blur(0.75rem);
-  border: 0.0625rem solid rgba(255, 255, 255, 0.5);
+  border: 0.0625rem solid oklch(1 0 0 / 0.5);
 }
 
 .glass-panel-dark {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(0.75rem);
-  -webkit-backdrop-filter: blur(0.75rem);
-  border: 0.0625rem solid rgba(255, 255, 255, 0.1);
+  background: oklch(0.235 0 0 / 0.72);
+  backdrop-filter: blur(0.75rem) saturate(1.1);
+  -webkit-backdrop-filter: blur(0.75rem) saturate(1.1);
+  border: 0.0625rem solid oklch(1 0 0 / 0.08);
 }
 
-/* Animations using modern CSS */
-@keyframes shimmer {
-  0% {
-    background-position: -468px 0;
-  }
+/* The brand's signature gradient — lavender → pink. Used sparingly (primary */
+/* CTAs, active states, hero accents) so it reads as identity, not noise.    */
+.brand-gradient {
+  background-image: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-secondary-400) 100%);
+}
 
-  100% {
-    background-position: 468px 0;
-  }
+.brand-gradient-text {
+  background-image: linear-gradient(120deg, var(--color-brand-300), var(--color-secondary-300) 55%, var(--color-accent-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Juicy, reusable hover-lift for cards/CTAs. */
+.lift {
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
+}
+
+.lift:hover {
+  transform: translateY(-0.25rem);
+}
+
+/* Tactile press feedback — gives buttons/cards a native, springy "give". */
+.tap {
+  touch-action: manipulation;
+  transition: transform 0.18s var(--ease-spring);
+}
+
+.tap:active {
+  transform: scale(0.96);
+}
+
+/* Honour iOS/Android safe areas for full-bleed bars. */
+.safe-b {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
 }
 
 @keyframes processing {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.7;
-    transform: scale(0.98);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.98); }
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
 
-  50% {
-    transform: translateY(-10px);
-  }
+@keyframes glow {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
 
-  100% {
-    transform: translateY(0px);
-  }
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .shimmer {
   animation: var(--animate-shimmer);
-  background: linear-gradient(to right,
-      #eeeeee 8%,
-      #dddddd 18%,
-      #eeeeee 33%);
+  background: linear-gradient(to right, oklch(0.22 0 0) 8%, oklch(0.28 0 0) 18%, oklch(0.22 0 0) 33%);
   background-size: 800px 104px;
 }
 
-.processing {
-  animation: var(--animate-processing);
-}
+.processing { animation: var(--animate-processing); }
+.animate-float { animation: var(--animate-float); }
+.animate-glow { animation: var(--animate-glow); }
+.fade-in { animation: var(--animate-fade-in); }
+.rise-in { animation: var(--animate-rise-in); }
 
-.animate-float {
-  animation: var(--animate-float);
-}
-
-/* Entry animations using @starting-style for modern browsers */
-.fade-in {
-  animation: var(--animate-fade-in);
-}
-
-@supports (transition-behavior: allow-discrete) {
-  .fade-in {
-    transition: opacity 0.6s var(--ease-smooth), transform 0.6s var(--ease-smooth);
-    transition-behavior: allow-discrete;
-  }
-
-  .fade-in:is(:popover-open) {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  @starting-style {
-    .fade-in:is(:popover-open) {
-      opacity: 0;
-      transform: translateY(20px);
-    }
+/* Respect users who prefer less motion — disable looping/entrance FX. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

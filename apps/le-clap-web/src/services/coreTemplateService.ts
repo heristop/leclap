@@ -1,6 +1,30 @@
 // Core package template loading service
-import type { TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types';
 import { templateLogger } from '../lib/logger';
+
+type Translation = Record<string, string | undefined>;
+type Variables = Record<string, string | string[]>;
+type Field = { name: string; maxLength: number; label: Translation };
+type FilterValues = {
+  h?: number | string; w?: number | string; x?: number | string; y?: number | string;
+  c?: string; t?: string | number; text?: Translation; fontcolor?: string;
+  fontsize?: number | string; fontfile?: string; alpha?: string;
+  d?: string; st?: string; color?: string;
+  box?: number; boxcolor?: string; boxborderw?: number;
+};
+type SectionFilter = { type: string; value?: string | number; values?: FilterValues; range?: string };
+type SectionOptions = { duration?: number; fields?: Field[]; forceAspectRatio?: boolean; [key: string]: unknown };
+type TemplateSection = {
+  name: string; type: string; options?: SectionOptions; filters?: SectionFilter[];
+  title?: Translation; description?: Translation;
+};
+type TemplateDescriptorGlobal = {
+  variables?: Variables; orientation?: string; colorsList?: string[];
+  musicEnabled?: boolean; audioVolumeLevel?: number; transitionDuration?: number;
+};
+interface TemplateDescriptor {
+  global?: TemplateDescriptorGlobal;
+  sections?: TemplateSection[];
+}
 
 export interface CoreTemplate {
   id: string;
@@ -14,7 +38,7 @@ export interface CoreTemplate {
 }
 
 // Core package templates with metadata
-const CORE_TEMPLATES: Record<string, CoreTemplate> = {
+const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = {
   'simple-video': {
     id: 'simple-video',
     name: 'Simple Video Processing',
@@ -136,6 +160,7 @@ const CORE_TEMPLATES: Record<string, CoreTemplate> = {
                 text: {
                   en: "{{ form_1_firstname }} {{ form_1_lastname }}"
                 },
+                fontfile: "Rubik.ttf",
                 fontcolor: "white",
                 fontsize: 40,
                 x: "(w-text_w)/2",
@@ -151,6 +176,7 @@ const CORE_TEMPLATES: Record<string, CoreTemplate> = {
                 text: {
                   en: "{{ form_1_job }}"
                 },
+                fontfile: "Rubik.ttf",
                 fontcolor: "white",
                 fontsize: 25,
                 x: "(w-text_w)/2",
@@ -220,27 +246,33 @@ class CoreTemplateService {
   async getTemplates(): Promise<CoreTemplate[]> {
     try {
       templateLogger.log('Loading core templates');
-      return Object.values(CORE_TEMPLATES);
+
+      return Object.values(CORE_TEMPLATES).filter((t): t is CoreTemplate => t !== undefined);
     } catch (error) {
       templateLogger.error('Failed to load templates:', error);
+
       throw new Error(`Failed to load core templates: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async getTemplate(id: string): Promise<CoreTemplate | null> {
     const template = CORE_TEMPLATES[id];
+
     if (!template) {
       templateLogger.warn(`Template not found: ${id}`);
+
       return null;
     }
 
     templateLogger.log(`Loading template: ${template.name}`);
+
     return template;
   }
 
   async getTemplatesByCategory(category: CoreTemplate['category']): Promise<CoreTemplate[]> {
-    const templates = Object.values(CORE_TEMPLATES).filter(template => template.category === category);
+    const templates = Object.values(CORE_TEMPLATES).filter((template): template is CoreTemplate => template?.category === category);
     templateLogger.log(`Found ${templates.length} templates in category: ${category}`);
+
     return templates;
   }
 
@@ -248,12 +280,11 @@ class CoreTemplateService {
     return ['sample', 'video', 'portrait', 'advanced', 'demo'];
   }
 
-  // Load template from core package JSON files (future enhancement)
+  // Stub for loading templates from the core package's JSON files.
   async loadTemplateFromFile(templatePath: string): Promise<TemplateDescriptor> {
     try {
-      // This would load from the actual core package template files
-      // For now, we'll use the embedded templates above
       templateLogger.log(`Would load template from: ${templatePath}`);
+
       throw new Error('File-based template loading not yet implemented');
     } catch (error) {
       throw new Error(`Failed to load template from file: ${error instanceof Error ? error.message : 'Unknown error'}`);

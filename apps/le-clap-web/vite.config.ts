@@ -1,11 +1,18 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import react, { type Options as ReactPluginOptions } from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
-    react(),
+    // React Compiler runs through the React plugin's own Babel pass, which only
+    // transforms this app's JSX/TSX. A standalone Babel preset would also try to
+    // compile packages/core (which uses TS decorators) and fail to parse them.
+    react({
+      babel: {
+        plugins: [['babel-plugin-react-compiler', {}]],
+      },
+    } as ReactPluginOptions & { babel?: { plugins?: unknown[] } }),
     tailwindcss(),
     nodePolyfills({
       // Enable polyfills for specific globals and modules
@@ -34,7 +41,7 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),
   },
   resolve: {
     alias: {

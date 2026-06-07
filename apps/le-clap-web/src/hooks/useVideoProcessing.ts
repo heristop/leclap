@@ -1,9 +1,15 @@
 import { useState, useRef, useOptimistic, startTransition } from 'react';
-import { coreCompilationService, type CompilationConfig } from '@/application/usecases/coreCompilationService';
+import {
+  coreCompilationService,
+  type CompilationConfig,
+  type MediaChoices,
+} from '@/application/usecases/coreCompilationService';
 import { type Template } from '@/services/templateService';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import { logger } from '@/lib/logger';
 import { haptic } from '@/lib/haptics';
+
+export type { MediaChoices };
 
 interface ProcessingProgress {
   stage: string;
@@ -53,11 +59,12 @@ function computeEstimatedTimeRemaining(elapsed: number, percentage: number): num
 function buildCompilationConfig(
   files: File[],
   templateWithFormData: Template & { formData?: Record<string, string> },
-  videoEdits?: Record<number, VideoEdit | undefined>
+  videoEdits?: Record<number, VideoEdit | undefined>,
+  mediaChoices?: MediaChoices
 ): CompilationConfig {
   const { formData, ...template } = templateWithFormData;
 
-  return { template, formData: formData ?? {}, files, videoEdits };
+  return { template, formData: formData ?? {}, files, videoEdits, mediaChoices };
 }
 
 function applyProgressUpdate(
@@ -125,7 +132,8 @@ export const useVideoProcessing = () => {
   const processVideo = async (
     files: File[],
     templateWithFormData: Template & { formData?: Record<string, string> },
-    videoEdits?: Record<number, VideoEdit | undefined>
+    videoEdits?: Record<number, VideoEdit | undefined>,
+    mediaChoices?: MediaChoices
   ) => {
     if (files.length === 0) {
       setState((prev) => ({ ...prev, error: 'Please select at least one video file.' }));
@@ -133,7 +141,7 @@ export const useVideoProcessing = () => {
       return;
     }
 
-    const compilationConfig = buildCompilationConfig(files, templateWithFormData, videoEdits);
+    const compilationConfig = buildCompilationConfig(files, templateWithFormData, videoEdits, mediaChoices);
 
     startTransition(() => {
       setOptimisticState({

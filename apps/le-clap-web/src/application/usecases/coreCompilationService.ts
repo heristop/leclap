@@ -8,6 +8,9 @@ import { compilationLogger } from '@/lib/logger';
 import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
+import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
+
+export type { MediaChoices };
 
 export interface CompilationConfig {
   template: Template;
@@ -16,6 +19,8 @@ export interface CompilationConfig {
   // Per-clip trim/crop selected on the Edit step, keyed by file index. Applied client-side
   // (ffmpeg.wasm) before compilation.
   videoEdits?: Record<number, VideoEdit | undefined>;
+  // Music and background selections from the Builder Media step.
+  mediaChoices?: MediaChoices;
 }
 
 export interface CompilationProgress {
@@ -41,7 +46,7 @@ class CoreCompilationService {
     config: CompilationConfig,
     onProgress: (progress: CompilationProgress) => void
   ): Promise<CompilationResult> {
-    const { template, formData, files, videoEdits } = config;
+    const { template, formData, files, videoEdits, mediaChoices } = config;
 
     try {
       onProgress({
@@ -67,6 +72,10 @@ class CoreCompilationService {
       await this.preloadBundledFonts();
 
       const templateDescriptor = this.prepareTemplateDescriptor(template, formData, userVideoPaths, onProgress);
+
+      if (mediaChoices) {
+        applyMediaChoices(templateDescriptor, mediaChoices);
+      }
 
       await materializeTemplateMedia(templateDescriptor, browserMediaService, this.filesystemAdapter);
 

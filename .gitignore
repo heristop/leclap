@@ -13,3 +13,7 @@ playwright-report
 # local smoke-test / preview screenshots
 *-smoke.png
 form-banner-*.png
+
+# local Claude Code state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

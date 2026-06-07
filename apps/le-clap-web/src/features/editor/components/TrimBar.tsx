@@ -81,7 +81,7 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
     <div className="select-none">
       <div className="flex items-center justify-between mb-2 text-sm tabular-nums">
         <span className="text-gray-300">{formatTime(value.start)}</span>
-        <span className="text-brand-300 font-medium">{formatTime(value.end - value.start)} selected</span>
+        <span className="text-brand-700 dark:text-brand-300 font-medium">{formatTime(value.end - value.start)} selected</span>
         <span className="text-gray-300">{formatTime(value.end)}</span>
       </div>
 

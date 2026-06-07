@@ -1,18 +1,17 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight } from 'lucide-react'
-import clsx from 'clsx'
 import { templateService, type Template } from '@/services/templateService'
 import { userTemplateService } from '@/services/userTemplateService'
 import { TemplateEditor } from '@/presentation/components/admin/TemplateEditor'
 import { Seo } from '@/presentation/components/Seo'
-import { Button, Card } from '@/presentation/components/ui'
+import { Badge, Button, Card, type BadgeProps } from '@/presentation/components/ui'
 import { logger } from '@/lib/logger'
 
-const complexityColors: Record<Template['complexity'], string> = {
-  simple: 'bg-brand-600 text-white',
-  intermediate: 'bg-secondary-600 text-white',
-  advanced: 'bg-accent-400 text-gray-900',
+const complexityBadgeVariant: Record<Template['complexity'], BadgeProps['variant']> = {
+  simple: 'brand',
+  intermediate: 'secondary',
+  advanced: 'accent',
 }
 
 interface CardProps {
@@ -24,9 +23,9 @@ const TemplateCard = ({ template, actions }: CardProps) => (
   <Card interactive className="rise-in p-5">
     <div className="flex items-start justify-between mb-2">
       <h3 className="text-lg font-bold font-display text-foreground pr-2">{template.name}</h3>
-      <span className={clsx('shrink-0 px-2.5 py-0.5 rounded-full text-[0.65rem] font-bold uppercase tracking-wider', complexityColors[template.complexity])}>
+      <Badge variant={complexityBadgeVariant[template.complexity] ?? 'neutral'} className="shrink-0">
         {template.complexity}
-      </span>
+      </Badge>
     </div>
     <p className="text-sm text-gray-400 mb-4 line-clamp-2 min-h-[2.5rem]">{template.description || 'No description'}</p>
     <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">

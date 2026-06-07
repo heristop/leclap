@@ -31,7 +31,9 @@ export type ToggleOrigin = { x: number; y: number };
  * The View Transitions API isn't in TS's DOM lib yet — declare the minimal
  * surface we use and feature-detect via this cast (no bare `any`).
  */
-type VTDocument = Document & {
+// The DOM lib now types Document.startViewTransition as always-present, but it's a progressive
+// API absent in older browsers — Omit it so the runtime feature-detect below stays meaningful.
+type VTDocument = Omit<Document, 'startViewTransition'> & {
   startViewTransition?: (cb: () => void) => { ready: Promise<void> };
 };
 
@@ -79,7 +81,7 @@ export const toggleTheme = (origin?: ToggleOrigin): Theme => {
 
     // Animate the NEW snapshot's clip-path once the transition is ready. Run
     // detached so `next` is returned immediately for synchronous callers.
-    void (async () => {
+    (async () => {
       try {
         await transition.ready;
         const wipe = root.animate(
@@ -98,7 +100,7 @@ export const toggleTheme = (origin?: ToggleOrigin): Theme => {
       } finally {
         root.classList.remove('theme-vt');
       }
-    })();
+    })().catch(() => {});
 
     return next;
   }

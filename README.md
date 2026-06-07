@@ -2,7 +2,7 @@
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.x-brightgreen.svg)](https://nodejs.org/en/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`ffmpeg-video-composer` is a tool designed to streamline the process of video compilation and audio mixing using FFmpeg. It enables dynamic template generation, video rendering, and audio composition, making it a comprehensive solution for creating personalized multimedia content programmatically.
+`ffmpeg-video-composer` is a tool designed to streamline the process of video compilation and audio mixing using FFmpeg. It enables dynamic template generation, video rendering, and audio composition for creating personalized multimedia content programmatically.
 
 ## 🎥 Demo
 
@@ -73,25 +73,25 @@ To enable client-side video processing in browsers:
 npm install ffmpeg-video-composer @ffmpeg/ffmpeg @ffmpeg/util
 ```
 
-### **Optional: System FFmpeg (Best Performance)**
+### **System FFmpeg via mise (Recommended)**
 
-For optimal performance, install FFmpeg system-wide:
-
-#### macOS
+The recommended way to install FFmpeg for this project is [mise](https://mise.jdx.dev), which installs a pinned, full-featured build (with the `drawtext` filter and `ffprobe`) defined in [`mise.toml`](mise.toml):
 
 ```bash
-brew install ffmpeg
+mise install
 ```
 
-#### Linux (Debian/Ubuntu)
+This works cross-platform (macOS, Linux, Windows) and keeps every contributor and CI on the same FFmpeg version.
+
+> ⚠️ **Homebrew note:** Homebrew split its formula — the regular `brew install ffmpeg` no longer bundles `libfreetype`, so the `drawtext` filter is **missing** and text/intertitle segments fail. Use mise (above), or `brew install ffmpeg-full` if you prefer Homebrew.
+
+#### Other package managers
 
 ```bash
+# Linux (Debian/Ubuntu)
 sudo apt update && sudo apt install ffmpeg
-```
 
-#### Linux (Fedora)
-
-```bash
+# Linux (Fedora)
 sudo dnf install ffmpeg
 ```
 
@@ -100,15 +100,21 @@ sudo dnf install ffmpeg
 ```bash
 ffmpeg -version
 ffprobe -version
+ffmpeg -hide_banner -filters | grep drawtext   # must list the drawtext filter
 ```
 
 ## 🛠️ Development Setup
 
+This repository uses [mise](https://mise.jdx.dev) to install and pin a full-featured FFmpeg (the version is declared in [`mise.toml`](mise.toml)). This guarantees the `drawtext` filter and `ffprobe` are available, which the test suite and text/intertitle segments require.
+
 ```bash
 git clone https://github.com/heristop/ffmpeg-video-composer.git
 cd ffmpeg-video-composer
+mise install   # installs the pinned FFmpeg (drawtext + ffprobe enabled)
 pnpm i
 ```
+
+> If you don't have mise yet, see [mise installation](https://mise.jdx.dev/getting-started.html). Once activated in your shell, the project FFmpeg is automatically placed on your `PATH` when you `cd` into the repo. Otherwise prefix commands with `mise exec --`, e.g. `mise exec -- pnpm test`.
 
 ## 📖 Usage
 
@@ -154,14 +160,10 @@ const result = await compile(projectConfig, template);
 
 ### **"No FFmpeg implementation found"**
 
-1. **Install system FFmpeg** (recommended):
+1. **Install FFmpeg via mise** (recommended):
 
    ```bash
-   # macOS
-   brew install ffmpeg
-
-   # Linux
-   sudo apt install ffmpeg
+   mise install
    ```
 
 2. **Or install static FFmpeg**:
@@ -176,6 +178,16 @@ const result = await compile(projectConfig, template);
    npm install @ffmpeg/ffmpeg @ffmpeg/util
    ```
 
+### **"No such filter: 'drawtext'"**
+
+Your FFmpeg was built without `libfreetype`, so the text/intertitle/background-color segments fail. This is common with Homebrew's split `ffmpeg` formula.
+
+```bash
+mise install                 # recommended: installs a full build with drawtext
+# or, if you use Homebrew directly:
+brew install ffmpeg-full
+```
+
 ### **Performance Issues**
 
 - **System FFmpeg** → Fastest (recommended for production)
@@ -184,10 +196,12 @@ const result = await compile(projectConfig, template);
 
 ## 🧪 Running Tests
 
-Ensure the quality of the codebase by running the test suite:
+Ensure the quality of the codebase by running the test suite. The tests render real video segments, so a `drawtext`-capable FFmpeg must be on your `PATH` — run `mise install` first (see [Development Setup](#️-development-setup)):
 
 ```bash
 pnpm test
+# or, if mise is not activated in your shell:
+mise exec -- pnpm test
 ```
 
 ## 📱 LeClap Expo App
@@ -232,7 +246,7 @@ pnpm playground:ios
 
 ## 🔍 Diagnostics & Troubleshooting
 
-Run comprehensive system diagnostics to check your setup:
+Run system diagnostics to check your setup:
 
 ```bash
 pnpm diagnose

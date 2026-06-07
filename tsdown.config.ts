@@ -5,7 +5,9 @@ export default defineConfig([
   {
     entry: 'packages/core/src/index.ts',
     format: ['esm', 'cjs'],
-    splitting: false,
+    // tsdown >=0.20 defaults to fixed .mjs/.cjs when emitting both formats;
+    // keep the ESM entry as index.js to match this package's exports/module fields.
+    outExtensions: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.js' }),
     sourcemap: true,
     dts: true,
     clean: true,
@@ -17,7 +19,6 @@ export default defineConfig([
   {
     entry: 'packages/core/src/browser.ts',
     format: ['esm'],
-    splitting: false,
     sourcemap: true,
     dts: false,
     clean: false, // Don't clean to avoid deleting node build

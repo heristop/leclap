@@ -6,7 +6,6 @@
     "es2020": true
   },
   "rules": {
-    "eol-last": "error",
     "eqeqeq": "error",
     "typescript/dot-notation": "error",
     "typescript/no-explicit-any": "error",

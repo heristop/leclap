@@ -22,12 +22,12 @@ module.exports = {
       from: {
         orphan: true,
         pathNot: [
-          '(^|/)\\.[^/]+\\.(c?js|ts|mjs|cjs)$', // dot files
-          '\\.d\\.ts$',                         // TypeScript declaration files
-          '(^|/)tsconfig\\..*\\.json$',         // tsconfig files
-          '(^|/)(babel|jest|webpack)\\..*\\.(c?js|ts|mjs|cjs|json)$', // tool configurations
-          '(^|/)packages/core/src/index\\.(c?js|ts|mjs|cjs)$', // index files
-          '(^|/)packages/core/src/main\\.ts$'                 // main entry point
+          String.raw`(^|/)\.[^/]+\.(c?js|ts|mjs|cjs)$`, // dot files
+          String.raw`\.d\.ts$`,                         // TypeScript declaration files
+          String.raw`(^|/)tsconfig\..*\.json$`,         // tsconfig files
+          String.raw`(^|/)(babel|jest|webpack)\..*\.(c?js|ts|mjs|cjs|json)$`, // tool configurations
+          String.raw`(^|/)packages/core/src/index\.(c?js|ts|mjs|cjs)$`, // index files
+          String.raw`(^|/)packages/core/src/main\.ts$`                 // main entry point
         ]
       },
       to: {}

@@ -5,12 +5,11 @@
     "lib": ["es2022"],
     "target": "es2022",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "types": ["node", "jest"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./packages/core/src/*"]
     }

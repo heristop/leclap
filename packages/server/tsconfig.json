@@ -7,7 +7,6 @@
     "experimentalDecorators": true, // Crucial for tsyringe
     "module": "NodeNext", // Use NodeNext for modern Node.js ESM compatibility
     "moduleResolution": "NodeNext",
-    "baseUrl": ".", // Ensure baseUrl is set for potential path mappings
     "paths": {
       // Ensure workspace dependency can be resolved if needed, though pnpm should handle this
       "ffmpeg-video-composer": ["../../dist"] // Point to the built output of the core package

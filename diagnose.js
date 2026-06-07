@@ -3,40 +3,64 @@
 // Standalone diagnose script that uses the built version
 // This avoids TypeScript path resolution issues
 
-import { FFmpegDetector, TerminalUI } from './dist/index.js';
+import 'reflect-metadata';
+import { FFmpegDetector } from './dist/index.js';
+import pc from 'picocolors';
+
+function formatShort(info) {
+  return info.available ? pc.green('✓') : pc.dim('✗');
+}
+
+function printSystemRow({ os, arch, nodeVersion, packageManager, memoryGB }) {
+  const systemRow = `${pc.dim('OS')} ${os} ${arch}  ${pc.dim('Node')} ${nodeVersion}  ${pc.dim('PM')} ${packageManager}  ${pc.dim('RAM')} ${memoryGB}GB`;
+  console.log(systemRow);
+}
+
+function printFFmpegRow({ system, staticFFmpeg, wasm }) {
+  const ffmpegRow = `${pc.dim('FFmpeg')} ${formatShort(system)} sys ${system.available ? pc.green(system.version) : ''}  ${formatShort(staticFFmpeg)} static  ${formatShort(wasm)} wasm`;
+  console.log(ffmpegRow);
+}
+
+function printRecommendations(recommendations) {
+  if (recommendations.length > 0) {
+    console.log(pc.dim('\nInfo:'));
+
+    for (const rec of recommendations) {
+      const clean = rec.replace(/🚀|⚠️|✨|Perfect!|/g, '').trim();
+      console.log(`  ${clean}`);
+    }
+  }
+}
 
 async function runDiagnostics() {
   try {
     console.clear();
-    console.log(TerminalUI.createTitle('FFmpeg Diagnostics'));
 
-    const report = await FFmpegDetector.runFullDiagnostics(true);
+    const report = await FFmpegDetector.runFullDiagnostics(false);
+    const { os, arch, nodeVersion, packageManager, memoryGB } = report.systemInfo;
+    const { system, static: staticFFmpeg, wasm } = report.ffmpegStatus;
 
-    // Show recommendations
-    if (report.recommendations.length > 0) {
-      const recommendationText = `
-🎯 Personalized Recommendations:
+    // Grid layout - ultra synthetic
+    console.log(pc.bold(pc.cyan('\nFFmpeg Video Composer Diagnostics\n')));
 
-${report.recommendations.map(rec => `  • ${rec}`).join('\n')}
-`;
+    printSystemRow({ os, arch, nodeVersion, packageManager, memoryGB });
+    printFFmpegRow({ system, staticFFmpeg, wasm });
 
-      console.log(TerminalUI.createBox(recommendationText, '💡 Smart Suggestions', 'info'));
-    }
+    // Status
+    const hasFFmpeg = system.available || staticFFmpeg.available || wasm.available;
+    const status = hasFFmpeg ? pc.green('✓ Ready') : pc.yellow('⚠ No FFmpeg');
+    console.log(`\n${status}`);
 
-    // Show summary
-    const hasFFmpeg = report.ffmpegStatus.system.available ||
-                     report.ffmpegStatus.static.available ||
-                     report.ffmpegStatus.wasm.available;
+    printRecommendations(report.recommendations);
 
-    if (hasFFmpeg) {
-      TerminalUI.showSuccess('Your system is ready for video magic! 🎉');
-    } else {
-      console.log(`\n⚠️ Setup required before you can compile videos\n`);
-    }
+    console.log();
   } catch (error) {
-    console.error('Diagnostics failed:', error.message);
+    console.error(pc.red('\n✗ Failed:'), error.message);
     process.exit(1);
   }
 }
 
-runDiagnostics();
+runDiagnostics().catch((error) => {
+  console.error(pc.red('\n✗ Unexpected:'), error.message);
+  process.exit(1);
+});

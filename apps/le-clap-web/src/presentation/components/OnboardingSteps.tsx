@@ -1,7 +1,7 @@
 import type { RefObject } from 'react'
 import { Sparkles, Video as VideoIcon, Upload, Check, Download, ArrowRight, RotateCcw, X, Clapperboard } from 'lucide-react'
-import clsx from 'clsx'
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay'
+import { Button, Input } from '@/presentation/components/ui'
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService'
 
 const WELCOME_FEATURES = [
@@ -34,13 +34,13 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
       ))}
     </div>
 
-    <button onClick={onStart} className="tap group w-full flex items-center justify-center gap-2 brand-gradient text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-brand-900/40 hover:-translate-y-0.5 transition-transform">
+    <Button onClick={onStart} variant="primary" size="lg" className="group w-full text-base">
       Create my intro
-      <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-    </button>
-    <button onClick={onDone} className="tap mt-3 w-full text-sm text-gray-400 hover:text-foreground py-2 transition-colors">
+      <ArrowRight className="transition-transform group-hover:translate-x-1" />
+    </Button>
+    <Button onClick={onDone} variant="ghost" size="sm" className="mt-3 w-full text-gray-400">
       Skip for now
-    </button>
+    </Button>
   </div>
 )
 
@@ -70,13 +70,13 @@ export const CreateStep = ({
     <p className="text-gray-300 mb-6 text-sm">Tell us your name and record a short clip — that's all we need.</p>
 
     <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2" htmlFor="ob-name">Your name</label>
-    <input
+    <Input
       id="ob-name"
       required
       value={name}
       onChange={(e) => { onNameChange(e.target.value) }}
       placeholder="e.g. Alex"
-      className="w-full mb-6 px-4 py-3 rounded-xl bg-surface-2 border border-foreground/10 text-foreground placeholder:text-gray-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 transition-all"
+      className="mb-6 px-4 py-3 rounded-xl"
     />
 
     {videoFile ? (
@@ -84,9 +84,9 @@ export const CreateStep = ({
         <span className="flex items-center gap-2 text-sm text-success font-medium">
           <Check className="w-5 h-5" /> Intro recorded
         </span>
-        <button onClick={onOpenCamera} className="tap flex items-center gap-1.5 text-xs text-gray-300 hover:text-foreground px-3 py-1.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-colors">
-          <RotateCcw className="w-3.5 h-3.5" /> Re-record
-        </button>
+        <Button onClick={onOpenCamera} variant="ghost" size="sm" className="gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-700 dark:text-gray-300 [&_svg]:size-3.5">
+          <RotateCcw /> Re-record
+        </Button>
       </div>
     ) : (
       <div className="grid grid-cols-2 gap-3 mb-6">
@@ -94,7 +94,7 @@ export const CreateStep = ({
           <VideoIcon className="w-6 h-6" />
           <span className="text-sm font-semibold">Record</span>
         </button>
-        <button onClick={() => fileInputRef.current?.click()} className="tap flex flex-col items-center justify-center gap-2 py-5 rounded-xl border border-foreground/10 bg-foreground/5 text-gray-300 hover:bg-foreground/10 hover:-translate-y-0.5 transition-all">
+        <button onClick={() => fileInputRef.current?.click()} className="tap flex flex-col items-center justify-center gap-2 py-5 rounded-xl border border-foreground/10 bg-foreground/5 text-gray-700 dark:text-gray-300 hover:text-foreground hover:bg-foreground/10 hover:-translate-y-0.5 transition-all">
           <Upload className="w-6 h-6" />
           <span className="text-sm font-semibold">Upload</span>
         </button>
@@ -102,18 +102,9 @@ export const CreateStep = ({
       </div>
     )}
 
-    <button
-      onClick={onCreate}
-      disabled={!canCreate}
-      className={clsx(
-        'tap w-full flex items-center justify-center gap-2 font-semibold py-3.5 rounded-xl transition-all',
-        canCreate
-          ? 'brand-gradient text-white shadow-lg shadow-brand-900/40 hover:-translate-y-0.5'
-          : 'bg-surface text-gray-500 cursor-not-allowed border border-foreground/5'
-      )}
-    >
-      <Sparkles className="w-5 h-5" /> Create my video
-    </button>
+    <Button onClick={onCreate} disabled={!canCreate} variant="primary" size="lg" className="w-full text-base">
+      <Sparkles /> Create my video
+    </Button>
   </div>
 )
 
@@ -142,12 +133,14 @@ export const DoneStep = ({ result, onDone }: DoneStepProps) => (
     <h2 className="text-2xl font-bold font-display brand-gradient-text mb-2">Your first video is ready!</h2>
     <video src={result.url} aria-label="Your created video" controls playsInline className="w-full rounded-xl border border-foreground/10 bg-black mb-6" />
     <div className="flex flex-col sm:flex-row gap-3">
-      <a href={result.url} download="leclap-intro.mp4" className="tap flex-1 flex items-center justify-center gap-2 brand-gradient text-white font-semibold py-3 rounded-xl shadow-lg shadow-brand-900/40 hover:-translate-y-0.5 transition-transform">
-        <Download className="w-5 h-5" /> Download
-      </a>
-      <button onClick={onDone} className="tap flex-1 flex items-center justify-center gap-2 bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold py-3 rounded-xl border border-foreground/10 transition-colors">
-        Start creating <ArrowRight className="w-5 h-5" />
-      </button>
+      <Button asChild variant="primary" className="flex-1">
+        <a href={result.url} download="leclap-intro.mp4">
+          <Download /> Download
+        </a>
+      </Button>
+      <Button onClick={onDone} variant="secondary" className="flex-1">
+        Start creating <ArrowRight />
+      </Button>
     </div>
   </div>
 )
@@ -166,12 +159,12 @@ export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => 
     <h2 className="text-2xl font-bold font-display text-foreground mb-2">That didn't work</h2>
     <p className="text-gray-300 mb-6 text-sm">{errorMessage}</p>
     <div className="flex flex-col sm:flex-row gap-3">
-      <button onClick={onRetry} className="tap flex-1 brand-gradient text-white font-semibold py-3 rounded-xl shadow-lg shadow-brand-900/40 hover:-translate-y-0.5 transition-transform">
+      <Button onClick={onRetry} variant="primary" className="flex-1">
         Try again
-      </button>
-      <button onClick={onDone} className="tap flex-1 bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold py-3 rounded-xl border border-foreground/10 transition-colors">
+      </Button>
+      <Button onClick={onDone} variant="secondary" className="flex-1">
         Continue to builder
-      </button>
+      </Button>
     </div>
   </div>
 )

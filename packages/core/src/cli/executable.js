@@ -3,7 +3,8 @@
 // Executable entry point for ffmpeg-video-composer
 // This creates a standalone executable that includes Node.js runtime
 
-import { compile, loadConfig, FFmpegDetector, TerminalUI } from '../dist/index.js';
+import 'reflect-metadata';
+import { compile, loadConfig, FFmpegDetector, Terminal } from '../../../../dist/index.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import pc from 'picocolors';
@@ -11,8 +12,23 @@ import pc from 'picocolors';
 const args = process.argv.slice(2);
 const command = args[0];
 
+/**
+ * Print a bold section title.
+ */
+function printTitle(title) {
+  console.log(`\n${pc.bold(pc.cyan(title))}\n`);
+}
+
+/**
+ * Print a labelled block of text.
+ */
+function printBox(content, label) {
+  console.log(pc.dim(`── ${label} ──`));
+  console.log(content);
+}
+
 async function showHelp() {
-  console.log(TerminalUI.createTitle('FFmpeg Video Composer'));
+  printTitle('FFmpeg Video Composer');
 
   const helpText = `
 ${pc.cyan('🎬')} ${pc.bold('FFmpeg Video Composer')} - Create videos from templates
@@ -42,7 +58,7 @@ ${pc.bold('FFmpeg Requirements:')}
   Run ${pc.yellow('--diagnose')} for detailed setup information.
 `;
 
-  console.log(TerminalUI.createBox(helpText, '📖 Help & Usage', 'info'));
+  printBox(helpText, '📖 Help & Usage');
 }
 
 async function showVersion() {
@@ -64,7 +80,7 @@ async function showVersion() {
 async function runDiagnostics() {
   try {
     console.clear();
-    console.log(TerminalUI.createTitle('FFmpeg Diagnostics'));
+    printTitle('FFmpeg Diagnostics');
 
     const report = await FFmpegDetector.runFullDiagnostics(true);
 
@@ -73,19 +89,20 @@ async function runDiagnostics() {
       const recommendationText = `
 ${pc.bold('🎯 Personalized Recommendations:')}
 
-${report.recommendations.map(rec => `  ${pc.cyan('•')} ${rec}`).join('\n')}
+${report.recommendations.map((rec) => `  ${pc.cyan('•')} ${rec}`).join('\n')}
 `;
 
-      console.log(TerminalUI.createBox(recommendationText, '💡 Smart Suggestions', 'info'));
+      printBox(recommendationText, '💡 Suggestions');
     }
 
     // Show summary
-    const hasFFmpeg = report.ffmpegStatus.system.available ??
-                     report.ffmpegStatus.static.available ??
-                     report.ffmpegStatus.wasm.available;
+    const hasFFmpeg =
+      report.ffmpegStatus.system.available ||
+      report.ffmpegStatus.static.available ||
+      report.ffmpegStatus.wasm.available;
 
     if (hasFFmpeg) {
-      TerminalUI.showSuccess('Your system is ready for video magic! 🎉');
+      Terminal.showSuccess('Your system is ready for video magic! 🎉');
     }
 
     if (!hasFFmpeg) {
@@ -119,14 +136,16 @@ function buildProjectConfig(cwd) {
 function handleFFmpegError(error) {
   console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
 
-  TerminalUI.showError(error.message, [
+  Terminal.showError(error.message, [
     '🔧 Run diagnostics: ffmpeg-video-composer --diagnose',
     '📦 Quick fix: npm install ffmpeg-static',
     '🍺 macOS: brew install ffmpeg',
     '🐧 Linux: sudo apt install ffmpeg',
   ]);
 
-  console.log(`\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('ffmpeg-video-composer --diagnose')} ${pc.dim('for detailed system analysis')}\n`);
+  console.log(
+    `\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('ffmpeg-video-composer --diagnose')} ${pc.dim('for detailed system analysis')}\n`
+  );
   process.exit(1);
 }
 
@@ -232,7 +251,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

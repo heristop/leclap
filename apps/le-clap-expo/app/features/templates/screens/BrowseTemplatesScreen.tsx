@@ -140,6 +140,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     color: colors.textSecondary,
   },
+  fab: {
+    position: 'absolute',
+    right: spacing.l,
+    bottom: spacing.l,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.primary,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
 });
 
 export default BrowseTemplatesScreen;

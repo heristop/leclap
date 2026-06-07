@@ -6,15 +6,12 @@
     "es2024": true
   },
   "rules": {
-    "eol-last": "error",
     "typescript/dot-notation": "error",
     "typescript/no-explicit-any": "error",
     "typescript/no-unused-vars": "error",
     "typescript/consistent-type-imports": "error",
     "typescript/no-inferrable-types": "error",
     "typescript/prefer-as-const": "error",
-    "react/jsx-uses-react": "error",
-    "react/jsx-uses-vars": "error",
     "react/react-in-jsx-scope": "off",
     "react/exhaustive-deps": "error",
     "react/jsx-no-duplicate-props": "error",

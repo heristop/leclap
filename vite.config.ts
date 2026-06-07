@@ -402,6 +402,14 @@ export default defineConfig({
         },
       },
       {
+        // The WASM<->MEMFS bridge adapter is inherently long and sits a few lines over budget,
+        // largely due to the ffmpeg log/progress listeners the unit tests assert.
+        files: ['packages/core/src/platform/ffmpeg/FFmpegWasmAdapter.ts'],
+        rules: {
+          'max-lines': 'off',
+        },
+      },
+      {
         // Exploratory on-device FFmpeg spike: the deliberate lazy `require('ffmpeg-expo')` keeps
         // the screen renderable before the native module is built into the dev client.
         files: ['apps/le-clap-expo/app/**/ffmpeg-spike.tsx'],

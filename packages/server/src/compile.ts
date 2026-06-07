@@ -71,11 +71,8 @@ function ensureCompileDirs(dirs: CompileDirectories): void {
   ensureDirSync(dirs.videosDir);
 }
 
-function parseTemplatePart(value: unknown, logger: CompileLogger): unknown {
-  const valueString = String(value);
-  logger.info('Received template JSON');
-
-  return JSON.parse(valueString) as unknown;
+function parseTemplatePart(value: unknown): unknown {
+  return JSON.parse(String(value)) as unknown;
 }
 
 async function processFilePart(
@@ -119,9 +116,9 @@ interface PartsAccumulator {
   fieldCount: number;
 }
 
-function handleTemplateField(value: unknown, acc: PartsAccumulator, logger: CompileLogger): void {
+function handleTemplateField(value: unknown, acc: PartsAccumulator): void {
   acc.fieldCount++;
-  acc.templateJson = parseTemplatePart(value, logger);
+  acc.templateJson = parseTemplatePart(value);
 }
 
 function handleVideoEditsField(value: unknown, acc: PartsAccumulator, logger: CompileLogger): void {
@@ -151,7 +148,6 @@ async function processMultiparts(
   requestUid: string,
   logger: CompileLogger
 ): Promise<ProcessedParts> {
-  logger.info('Starting to process multipart data');
   const parts = request.parts();
   const acc: PartsAccumulator = {
     templateJson: null,
@@ -167,7 +163,7 @@ async function processMultiparts(
     acc.partCount++;
 
     if (part.type === 'field' && part.fieldname === 'template') {
-      handleTemplateField(part.value, acc, logger);
+      handleTemplateField(part.value, acc);
       continue;
     }
 
@@ -206,9 +202,7 @@ export function cleanupTempDir(buildDir: string, requestUid: string, logger: Com
     const tempDir = path.join(tmpDir, requestUid);
 
     if (fsSync.existsSync(tempDir)) {
-      logger.info(`Removing temporary directory: ${tempDir}`);
       fsSync.rmSync(tempDir, { recursive: true, force: true });
-      logger.info('Temporary directory removed successfully');
     }
   } catch (cleanupError) {
     const message = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
@@ -230,12 +224,6 @@ async function runCompilation(
     assetsDir: dirs.requestTempDir,
     userVideoPaths: tempVideoPaths,
   };
-
-  logger.info(
-    'Project configuration prepared with videos for sections: ' + Object.keys(tempVideoPaths).join(', ')
-  );
-
-  logger.info('Starting compilation process...');
 
   return coreCompile(projectConfig, templateJson as TemplateDescriptor);
 }

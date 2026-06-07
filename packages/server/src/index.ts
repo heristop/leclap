@@ -21,32 +21,28 @@ const fastify = Fastify({
   logger: true,
 });
 
-// Register CORS plugin to allow cross-origin requests from web demo and mobile
 fastify.register(fastifyCors, {
-  origin: true, // Allow all origins for development and mobile access
+  origin: true,
   credentials: true,
 });
 
-// Register multipart plugin for file uploads
 fastify.register(fastifyMultipart, {
   limits: {
-    fieldNameSize: 100, // Max field name size in bytes
-    fieldSize: 1000000, // Max field value size in bytes
-    fields: 10, // Max number of non-file fields
-    fileSize: 100000000, // Max file size (100MB)
-    files: 10, // Max number of file fields
+    fieldNameSize: 100,
+    fieldSize: 1000000,
+    fields: 10,
+    fileSize: 100000000, // 100MB
+    files: 10,
   },
 });
 
-// Register static plugin to serve the build directory
 const serverBuildDir = path.resolve(__dirname, '../build');
 fastify.register(fastifyStatic, {
   root: serverBuildDir,
-  prefix: '/serve/', // Access files via http://<server>/serve/<filename>
+  prefix: '/serve/',
 });
 fastify.log.info(`Serving static files from ${serverBuildDir} under /serve/`);
 
-// --- GET /health Endpoint ---
 fastify.get('/health', async (request, reply) => {
   try {
     const memoryUsage = process.memoryUsage();
@@ -58,13 +54,12 @@ fastify.get('/health', async (request, reply) => {
       uptime: Math.floor(uptime),
       version: '0.0.1',
       memory: {
-        used: Math.round((memoryUsage.heapUsed / 1024 / 1024) * 100) / 100, // MB
-        total: Math.round((memoryUsage.heapTotal / 1024 / 1024) * 100) / 100, // MB
+        used: Math.round((memoryUsage.heapUsed / 1024 / 1024) * 100) / 100,
+        total: Math.round((memoryUsage.heapTotal / 1024 / 1024) * 100) / 100,
       },
       pid: process.pid,
     };
 
-    fastify.log.info('Health check requested - server is healthy');
     reply.status(200).send(healthResponse);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -77,7 +72,6 @@ fastify.get('/health', async (request, reply) => {
   }
 });
 
-// --- GET /templates Endpoint ---
 fastify.get('/templates', async (request, reply) => {
   try {
     const templatesDir = path.resolve(__dirname, '../templates');
@@ -108,12 +102,8 @@ fastify.get('/templates', async (request, reply) => {
   }
 });
 
-// --- POST /compile Endpoint ---
 fastify.post('/compile', async (request, reply) => {
-  fastify.log.info('Compile endpoint hit - beginning request processing');
-
   const requestUid = Date.now().toString();
-  fastify.log.info(`Generated unique ID for this request: ${requestUid}`);
 
   const dirs = buildCompileDirs(requestUid);
   let compilationSuccessful = false;
@@ -144,12 +134,10 @@ fastify.post('/compile', async (request, reply) => {
   }
 });
 
-// --- Start Server ---
 const start = async () => {
   try {
-    // Listen on 0.0.0.0 to accept connections from network devices/emulators
+    // 0.0.0.0 so network devices / emulators can reach this server
     await fastify.listen({ port: 8082, host: '0.0.0.0' });
-    fastify.log.info(`Server listening on port 8082, accessible on all network interfaces`);
   } catch (error) {
     fastify.log.error(error);
     process.exit(1);

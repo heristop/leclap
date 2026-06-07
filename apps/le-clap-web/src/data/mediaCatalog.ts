@@ -7,6 +7,7 @@ export interface MediaCredit {
   license: string
   sourceUrl: string
   url: string // same-origin path under /public
+  cover?: string // optional cover-art image URL; the music card falls back to a generated cover
 }
 
 export const MUSIC_LIBRARY: MediaCredit[] = [

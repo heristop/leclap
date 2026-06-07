@@ -53,7 +53,9 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
 /** Stable id for a user template. Uses crypto.randomUUID when available (rare on Hermes). */
 export function makeTemplateId(): string {
   try {
-    const uuid = globalThis.crypto?.randomUUID?.();
+    // Typed as optional: the DOM lib guarantees crypto.randomUUID, but Hermes (RN) may not have it.
+    const webCrypto = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+    const uuid = webCrypto?.randomUUID?.();
 
     if (uuid) {
       return `user-${uuid}`;

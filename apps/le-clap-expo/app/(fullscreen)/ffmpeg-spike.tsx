@@ -100,7 +100,7 @@ export default function FFmpegSpikeScreen() {
             <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
             <Text style={styles.btnText}>Check version</Text>
           </TouchableOpacity>
-          <TouchableOpacity testID="spike-render" onPress={() => { renderTestClip().catch(() => undefined); }} style={[styles.btn, styles.btnPrimary]} disabled={busy}>
+          <TouchableOpacity testID="spike-render" onPress={() => { renderTestClip().catch(() => {}); }} style={[styles.btn, styles.btnPrimary]} disabled={busy}>
             {busy ? <ActivityIndicator color="#fff" /> : <Ionicons name="play" size={18} color="#fff" />}
             <Text style={[styles.btnText, styles.btnTextPrimary]}>Render test clip</Text>
           </TouchableOpacity>

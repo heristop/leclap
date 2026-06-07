@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="LeClap">
+  <defs>
+    <linearGradient id="lc" x1="80" y1="64" x2="432" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C83FD"/>
+      <stop offset="1" stop-color="#FF8AAE"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#lc)"/>
+  <g transform="rotate(-9 256 248)">
+    <!-- clapperboard slate -->
+    <rect x="124" y="172" width="264" height="200" rx="22" fill="#fff"/>
+    <!-- hinged clapper bar -->
+    <rect x="112" y="100" width="288" height="58" rx="14" fill="#fff"/>
+    <!-- clapper teeth -->
+    <g fill="url(#lc)">
+      <path d="M150 100h36l-24 58h-36z"/>
+      <path d="M214 100h36l-24 58h-36z"/>
+      <path d="M278 100h36l-24 58h-36z"/>
+      <path d="M342 100h30l-24 58h-30z"/>
+    </g>
+    <!-- play cue on the slate -->
+    <path d="M230 232v96l82-48z" fill="url(#lc)"/>
+  </g>
+</svg>

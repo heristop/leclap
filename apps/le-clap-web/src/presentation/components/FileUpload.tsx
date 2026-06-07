@@ -29,7 +29,7 @@ function UploadErrors({ errors }: UploadErrorsProps) {
   if (errors.length === 0) return null
 
   return (
-    <Card elevation="flat" className="bg-[var(--color-error)]/10 border-[var(--color-error)]/30 rounded-lg p-3 fade-in backdrop-blur-sm">
+    <Card elevation="flat" className="bg-[var(--color-error)]/10 border-[var(--color-error)]/30 rounded-xl p-4 fade-in backdrop-blur-sm" role="alert">
       <div className="flex items-start">
         <AlertCircle className="w-5 h-5 text-[var(--color-error)] mt-0.5 mr-2 flex-shrink-0" />
         <div>
@@ -54,14 +54,14 @@ interface UploadedFileItemProps {
 function UploadedFileItem({ file, index, onRemove }: UploadedFileItemProps) {
   return (
     <div
-      className="flex items-center justify-between p-3 bg-surface/40 rounded-lg border border-foreground/5 hover:bg-surface/60 transition-colors backdrop-blur-sm"
+      className="group flex items-center justify-between gap-3 p-3 bg-surface/40 rounded-xl border border-foreground/5 hover:bg-surface/60 hover:border-foreground/10 transition-colors backdrop-blur-sm"
     >
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-brand-500/15 rounded-lg border border-brand-500/25">
+      <div className="flex items-center space-x-3 min-w-0">
+        <div className="p-2 bg-brand-500/15 rounded-lg border border-brand-500/25 shrink-0">
           <File className="w-4 h-4 text-brand-700 dark:text-brand-300" />
         </div>
-        <div>
-          <p className="text-sm font-medium text-gray-200 truncate max-w-[200px]">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-gray-200 truncate">
             {file.name}
           </p>
           <p className="text-xs text-gray-400">
@@ -136,9 +136,10 @@ function DropZone({
       {...getRootProps()}
       aria-label="Upload video files"
       className={clsx(
-        'relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm',
+        'tap group relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         isDragActive || dragActive
-          ? 'border-brand-500 bg-brand-900/20 scale-[1.02] shadow-lg shadow-brand-500/10'
+          ? 'border-brand-500 bg-brand-500/10 scale-[1.02] shadow-lg shadow-brand-500/10'
           : 'border-foreground/10 hover:border-brand-500/50 hover:bg-surface/40',
         uploadedFiles.length >= maxFiles && 'opacity-50 cursor-not-allowed'
       )}
@@ -149,8 +150,8 @@ function DropZone({
         <div className={clsx(
           'p-4 rounded-full transition-all duration-300 shadow-lg',
           isDragActive || dragActive
-            ? 'bg-brand-600 text-foreground scale-110 shadow-brand-500/30'
-            : 'bg-surface text-gray-400 shadow-black/20'
+            ? 'bg-brand-600 text-white scale-110 shadow-brand-500/30'
+            : 'bg-surface text-gray-400 shadow-black/20 group-hover:scale-105 group-hover:text-brand-700 dark:group-hover:text-brand-300'
         )}>
           <Upload className="w-8 h-8" />
         </div>

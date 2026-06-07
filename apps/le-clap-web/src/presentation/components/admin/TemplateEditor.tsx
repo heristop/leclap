@@ -1,6 +1,6 @@
 import { useState, useId, Fragment, type DragEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { GripVertical, Trash2, Plus, X, Type, Video as VideoIcon, Square, FileText, Save, ArrowDown } from 'lucide-react'
+import { GripVertical, Trash2, Plus, X, Type, Video as VideoIcon, Square, FileText, Save, ArrowDown, AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
 import { templateService, type Template } from '@/services/templateService'
 import { userTemplateService } from '@/services/userTemplateService'
@@ -90,12 +90,12 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
     <div className="fixed inset-0 z-[58] overflow-y-auto bg-black/40 backdrop-blur-md dark:bg-black/70">
       <div className="relative min-h-full flex items-start sm:items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b">
         <div className="relative w-full max-w-2xl bg-surface border border-foreground/10 rounded-2xl p-6 sm:p-8 shadow-2xl rise-in">
-          <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Close editor" className="absolute top-4 right-4 rounded-full text-gray-400">
+          <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Close editor" className="absolute top-4 right-4 rounded-full text-gray-500 active:scale-90 dark:text-gray-400">
             <X className="w-5 h-5" />
           </Button>
 
-          <h2 className="text-2xl font-bold font-display text-foreground mb-1">{initial ? 'Edit template' : 'Create a template'}</h2>
-          <p className="text-gray-300 text-sm mb-6">Compose sections, then save — it appears in the builder as a Custom template.</p>
+          <h2 className="text-2xl font-bold font-display text-foreground mb-1 pr-10">{initial ? 'Edit template' : 'Create a template'}</h2>
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">Compose sections, then save — it appears in the builder as a Custom template.</p>
 
           <MetadataFields state={state} patch={patch} />
 
@@ -114,13 +114,17 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
 
           <AddSectionButtons addSection={addSection} />
 
-          {error && <p className="text-sm text-[var(--color-error)] mb-4">{error}</p>}
+          {error && (
+            <p role="alert" className="fade-in mb-4 flex items-start gap-2 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]">
+              <AlertCircle className="mt-px size-4 shrink-0" /> {error}
+            </p>
+          )}
 
           <div className="flex gap-3">
-            <Button variant="primary" onClick={handleSave} className="flex-1">
+            <Button variant="primary" onClick={handleSave} className="min-h-11 flex-1 active:scale-[0.98]">
               <Save className="w-5 h-5" /> Save template
             </Button>
-            <Button variant="secondary" onClick={onCancel} className="px-6">Cancel</Button>
+            <Button variant="secondary" onClick={onCancel} className="min-h-11 px-6 active:scale-[0.98]">Cancel</Button>
           </div>
         </div>
       </div>
@@ -148,7 +152,7 @@ const MetadataFields = ({ state, patch }: { state: EditorState; patch: (p: Parti
           </SelectContent>
         </Select>
       </div>
-      <label className="flex items-center gap-2 mt-6 text-sm text-gray-200 cursor-pointer select-none">
+      <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
         <Checkbox checked={state.musicEnabled} onCheckedChange={(c) => { patch({ musicEnabled: c === true }); }} />
         Background music
       </label>
@@ -231,10 +235,10 @@ const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection
             )}
           >
             <div className="flex items-center gap-2 mb-2">
-              <button type="button" className="cursor-grab text-gray-500 transition-all hover:text-brand-500 active:cursor-grabbing active:scale-125" aria-label="Drag to reorder"><GripVertical className="w-5 h-5" /></button>
+              <button type="button" className="cursor-grab rounded-md text-gray-500 transition-all hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:cursor-grabbing active:scale-125" aria-label="Drag to reorder"><GripVertical className="w-5 h-5" /></button>
               <SectionIcon kind={section.kind} />
               <span className="font-semibold text-foreground text-sm">{SECTION_LABELS[section.kind]}</span>
-              <button onClick={() => { removeSection(i) }} aria-label="Remove section" className="tap ml-auto p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 transition-colors">
+              <button type="button" onClick={() => { removeSection(i) }} aria-label="Remove section" className="tap ml-auto p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -250,7 +254,7 @@ const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection
 const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
   <div className="flex flex-wrap gap-2 mb-6">
     {(['video', 'form', 'color'] as const).map((kind) => (
-      <button key={kind} onClick={() => { addSection(kind) }} className="tap inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-foreground/10 bg-foreground/5 text-gray-200 hover:bg-foreground/10 hover:-translate-y-0.5 transition-all">
+      <button key={kind} type="button" onClick={() => { addSection(kind) }} className="tap inline-flex min-h-10 items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-foreground/10 bg-foreground/5 text-gray-700 hover:bg-foreground/10 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 transition-all dark:text-gray-200">
         <Plus className="w-4 h-4" /> {SECTION_LABELS[kind]}
       </button>
     ))}
@@ -272,7 +276,7 @@ function SectionFields({ section, onChange, inputCls }: { section: EditorSection
     return (
       <div className="grid sm:grid-cols-2 gap-3 pl-7">
         <NumberField label="Duration (s)" value={section.duration} onChange={(v) =>{  onChange({ duration: v }); }} inputCls={inputCls} />
-        <label className="flex items-center gap-2 mt-6 text-sm text-gray-200 cursor-pointer select-none">
+        <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
           <Checkbox checked={section.mute} onCheckedChange={(c) => { onChange({ mute: c === true }); }} /> Mute audio
         </label>
         <div className="sm:col-span-2 flex items-center gap-2">
@@ -303,10 +307,10 @@ function SectionFields({ section, onChange, inputCls }: { section: EditorSection
           <input aria-label="Field ID" className={inputCls} value={field.name} onChange={(e) =>{  onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, name: e.target.value } : f)) }); }} placeholder="field id" />
           <input aria-label="Field label" className={inputCls} value={field.label} onChange={(e) =>{  onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, label: e.target.value } : f)) }); }} placeholder="Label" />
           <input aria-label="Max length" type="number" className={inputCls} value={field.maxLength} onChange={(e) =>{  onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, maxLength: Number(e.target.value) } : f)) }); }} />
-          <button onClick={() =>{  onChange({ fields: section.fields.filter((_, idx) => idx !== fi) }); }} aria-label="Remove field" className="tap p-1.5 text-gray-500 hover:text-[var(--color-error)]"><Trash2 className="w-4 h-4" /></button>
+          <button type="button" onClick={() =>{  onChange({ fields: section.fields.filter((_, idx) => idx !== fi) }); }} aria-label="Remove field" className="tap rounded-lg p-1.5 text-gray-500 hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"><Trash2 className="w-4 h-4" /></button>
         </div>
       ))}
-      <button onClick={() =>{  onChange({ fields: [...section.fields, { name: `field_${section.fields.length + 1}`, label: 'Label', maxLength: 40 }] }); }} className="tap inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-foreground/5 text-gray-300 hover:bg-foreground/10 transition-colors">
+      <button type="button" onClick={() =>{  onChange({ fields: [...section.fields, { name: `field_${section.fields.length + 1}`, label: 'Label', maxLength: 40 }] }); }} className="tap inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-foreground/5 text-gray-600 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-colors dark:text-gray-300">
         <Plus className="w-3.5 h-3.5" /> Add field
       </button>
     </div>

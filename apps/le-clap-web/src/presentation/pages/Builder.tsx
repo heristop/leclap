@@ -14,7 +14,7 @@ import { useFFmpeg } from '@/hooks/useFFmpeg'
 import { type Template } from '@/services/templateService'
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits'
 import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react'
-import { Button, Card } from '@/presentation/components/ui'
+import { Button, Card, Reveal } from '@/presentation/components/ui'
 import { cn } from '@/lib/utils'
 
 const STEPS = ['Template', 'Configure', 'Upload', 'Edit', 'Process', 'Result']
@@ -101,15 +101,15 @@ const StepProcess = ({ selectedTemplate, uploadedFiles, formData, isFFmpegReady,
                     <Sparkles className="w-5 h-5 mr-2" />Project Summary
                 </h3>
                 <ul className="space-y-4 text-gray-300">
-                    <li className="flex justify-between items-center p-3 bg-foreground/5 rounded-lg border border-foreground/5">
+                    <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
                         <span className="text-gray-400">Template</span>
-                        <span className="font-medium text-foreground">{selectedTemplate?.name}</span>
+                        <span className="font-medium text-foreground truncate">{selectedTemplate?.name}</span>
                     </li>
-                    <li className="flex justify-between items-center p-3 bg-foreground/5 rounded-lg border border-foreground/5">
+                    <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
                         <span className="text-gray-400">Files</span>
                         <span className="font-medium text-foreground">{uploadedFiles.length} video(s)</span>
                     </li>
-                    <li className="flex justify-between items-center p-3 bg-foreground/5 rounded-lg border border-foreground/5">
+                    <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
                         <span className="text-gray-400">Engine Status</span>
                         <span className={cn("font-medium flex items-center", isFFmpegReady ? "text-success" : "text-warning")}>
                             {isFFmpegReady
@@ -138,17 +138,19 @@ const StepResult = ({ processedVideo, onBack, onReset }: { processedVideo: Proce
             <h2 className="text-5xl font-bold font-display brand-gradient-text mb-4">Your Video is Ready!</h2>
             <p className="text-gray-300 text-lg">Download and share your creation</p>
         </div>
+        <Reveal>
         <Card elevation="flat" className="glass-panel-dark p-8 md:p-12 shadow-2xl">
             <ExportPanel processedVideo={processedVideo} />
-            <div className="mt-8 flex justify-between items-center">
-                <Button variant="ghost" onClick={onBack} className="px-6 py-3 rounded-full text-gray-200 bg-foreground/5 hover:bg-foreground/10">
-                    <ArrowLeft /><span>Back</span>
+            <div className="mt-8 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+                <Button variant="ghost" onClick={onBack} className="group w-full sm:w-auto px-6 py-3 rounded-full bg-foreground/5 hover:bg-foreground/10">
+                    <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" /><span>Back</span>
                 </Button>
-                <Button variant="link" onClick={onReset} className="px-6 py-3">
-                    <span>Create Another Video</span><ArrowRight />
+                <Button variant="link" onClick={onReset} className="group w-full sm:w-auto px-6 py-3">
+                    <span>Create Another Video</span><ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
             </div>
         </Card>
+        </Reveal>
     </div>
 )
 
@@ -165,8 +167,8 @@ const NavButtons = ({ currentStep, selectedTemplate, uploadedFiles, isFormComple
 
     return (
         <div className="flex justify-between mt-16 pt-8 border-t border-foreground/10">
-            <Button variant="ghost" onClick={onPrev} disabled={currentStep === 0 || currentStep === 5} className="px-6 py-3">
-                <ArrowLeft />Back
+            <Button variant="ghost" onClick={onPrev} disabled={currentStep === 0 || currentStep === 5} className="group px-6 py-3">
+                <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" />Back
             </Button>
             {currentStep < 4 && (
                 <Button variant="primary" onClick={onNext} disabled={isNextDisabled} className="group px-8 py-3 active:translate-y-0 active:scale-[0.98]">

@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { SwitchCamera, X, Check, RotateCcw, Loader2 } from 'lucide-react'
+import { SwitchCamera, X, Check, RotateCcw, Loader2, CameraOff } from 'lucide-react'
 import clsx from 'clsx'
 import { formatElapsed, useCameraCapture, type Mode } from '@/hooks/useCameraCapture'
 import { Button } from '@/presentation/components/ui'
@@ -33,7 +33,7 @@ const CameraTopBar = ({ mode, elapsed, onCancel, onSwitchCamera }: TopBarProps) 
       </Button>
 
       {mode === 'recording' && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 border border-foreground/10">
+        <div className="fade-in flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 border border-foreground/10 shadow-lg">
           <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-error)] animate-pulse" />
           <span className="text-sm font-semibold text-foreground tabular-nums">{formatElapsed(elapsed)}</span>
         </div>
@@ -62,13 +62,14 @@ interface ErrorViewProps {
 }
 
 const CameraErrorView = ({ error, onRetry }: ErrorViewProps) => (
-  <div className="max-w-sm mx-auto text-center px-6">
-    <div className="inline-flex p-4 rounded-2xl bg-[var(--color-error)]/15 border border-[var(--color-error)]/30 mb-4">
-      <X className="w-8 h-8 text-[var(--color-error)]" />
+  <div className="max-w-sm mx-auto text-center px-6 fade-in">
+    <div className="pop-in inline-flex p-4 rounded-2xl bg-[var(--color-error)]/15 border border-[var(--color-error)]/30 mb-4">
+      <CameraOff className="w-8 h-8 text-[var(--color-error)]" />
     </div>
-    <p className="text-foreground/90 mb-6">{error}</p>
+    <h2 className="text-xl font-bold font-display text-foreground mb-2">Camera unavailable</h2>
+    <p className="text-foreground/80 mb-6 text-balance">{error}</p>
     <Button onClick={onRetry} size="lg">
-      Try Again
+      <RotateCcw /> Try again
     </Button>
   </div>
 )
@@ -146,13 +147,13 @@ const RecordControls = ({ mode, onStartRecording, onStopRecording }: Pick<Contro
         disabled={mode === 'loading'}
         aria-label={isRecording ? 'Stop recording' : 'Start recording'}
         className={clsx(
-          'tap relative grid place-items-center w-[4.5rem] h-[4.5rem] rounded-full border-4 border-foreground/80 transition-all duration-300',
-          mode === 'loading' ? 'opacity-50' : 'hover:border-white active:scale-90'
+          'tap relative grid place-items-center w-[4.5rem] h-[4.5rem] rounded-full border-4 border-foreground/80 transition-all duration-300 ease-[var(--ease-spring)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
+          mode === 'loading' ? 'opacity-50' : 'hover:border-white hover:shadow-[0_0_24px_-4px_oklch(0.643_0.215_28.8/0.6)] active:scale-90'
         )}
       >
         <span
           className={clsx(
-            'bg-[var(--color-error)] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+            'bg-[var(--color-error)] transition-all duration-300 ease-[var(--ease-spring)]',
             isRecording ? 'w-7 h-7 rounded-md' : 'w-14 h-14 rounded-full'
           )}
         />

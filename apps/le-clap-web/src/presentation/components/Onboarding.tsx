@@ -87,35 +87,39 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           {(step === 'welcome' || step === 'create') && (
             <button
               onClick={onDone}
-              className="tap absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors"
+              className="tap absolute top-4 right-4 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30"
               aria-label="Skip onboarding"
             >
               <X className="w-5 h-5" />
             </button>
           )}
 
-          {step === 'welcome' && <WelcomeStep onStart={() => { setStep('create') }} onDone={onDone} />}
+          {/* Keyed wrapper so each step re-triggers the entrance animation,
+              keeping transitions between steps smooth and on-brand. */}
+          <div key={step} className="fade-in">
+            {step === 'welcome' && <WelcomeStep onStart={() => { setStep('create') }} onDone={onDone} />}
 
-          {step === 'create' && (
-            <CreateStep
-              name={name}
-              onNameChange={setName}
-              videoFile={videoFile}
-              canCreate={canCreate}
-              fileInputRef={fileInputRef}
-              onOpenCamera={() => { setShowCamera(true) }}
-              onFilePicked={onFilePicked}
-              onCreate={() => { handleCreate().catch((error: unknown) => { logger.error('Onboarding create handler failed:', error) }) }}
-            />
-          )}
+            {step === 'create' && (
+              <CreateStep
+                name={name}
+                onNameChange={setName}
+                videoFile={videoFile}
+                canCreate={canCreate}
+                fileInputRef={fileInputRef}
+                onOpenCamera={() => { setShowCamera(true) }}
+                onFilePicked={onFilePicked}
+                onCreate={() => { handleCreate().catch((error: unknown) => { logger.error('Onboarding create handler failed:', error) }) }}
+              />
+            )}
 
-          {step === 'compiling' && <CompilingStep progress={progress} />}
+            {step === 'compiling' && <CompilingStep progress={progress} />}
 
-          {step === 'done' && result && <DoneStep result={result} onDone={onDone} />}
+            {step === 'done' && result && <DoneStep result={result} onDone={onDone} />}
 
-          {step === 'error' && (
-            <ErrorStep errorMessage={errorMessage} onRetry={() => { setStep('create') }} onDone={onDone} />
-          )}
+            {step === 'error' && (
+              <ErrorStep errorMessage={errorMessage} onRetry={() => { setStep('create') }} onDone={onDone} />
+            )}
+          </div>
         </div>
       </div>
 

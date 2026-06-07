@@ -3,7 +3,7 @@
   "plugins": ["typescript", "unicorn", "import"],
   "env": {
     "node": true,
-    "es2020": true
+    "es2024": true
   },
   "rules": {
     "eqeqeq": "error",
@@ -40,7 +40,7 @@
       "files": ["src/platform/filesystem/BrowserFilesystemAdapter.ts", "src/browser.ts"],
       "env": {
         "browser": true,
-        "es2020": true
+        "es2024": true
       }
     },
     {

@@ -2,8 +2,8 @@
   "compilerOptions": {
     "rootDirs": ["packages/core/src"],
     "outDir": "dist",
-    "lib": ["es2022"],
-    "target": "es2022",
+    "lib": ["es2024"],
+    "target": "es2024",
     "module": "esnext",
     "moduleResolution": "bundler",
     "esModuleInterop": true,

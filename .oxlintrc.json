@@ -38,7 +38,7 @@
       "files": ["packages/core/src/platform/filesystem/BrowserFilesystemAdapter.ts", "packages/core/src/browser.ts"],
       "env": {
         "browser": true,
-        "es2020": true
+        "es2024": true
       }
     },
     {

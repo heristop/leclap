@@ -9,23 +9,18 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install FFmpeg
+      # Installs the toolchain pinned in mise.toml (Node, pnpm and a full FFmpeg
+      # build with the drawtext filter + ffprobe that the tests require).
+      - name: Set up toolchain (mise)
+        uses: jdx/mise-action@v4
+
+      - name: Verify FFmpeg
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
           ffmpeg -version
           ffprobe -version
-
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 22
-          cache: 'pnpm'
+          ffmpeg -hide_banner -filters | grep drawtext
 
       - name: Install Dependencies
         run: pnpm i
@@ -47,30 +42,18 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Checkout Repository
-  #       uses: actions/checkout@v3
-
-  #     - name: Install FFmpeg
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y ffmpeg
-  #         ffmpeg -version
-
-  #     - uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 9
-
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 18
-  #         registry-url: 'https://registry.npmjs.org'
-
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up toolchain (mise)
+  #       uses: jdx/mise-action@v4
+  #
   #     - name: Install Dependencies
   #       run: pnpm i
-
+  #
   #     - name: Build
   #       run: pnpm build
-
+  #
   #     - name: Publish
   #       run: npm publish
   #       env:
-  #         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -72,7 +72,7 @@ export function VideoEditor({ file, label, edit, onChange }: VideoEditorProps) {
       >
         <video
           ref={videoRef}
-          src={url}
+          src={url || undefined}
           aria-label="Video being edited"
           className="w-full h-full object-contain"
           controls={mode === 'trim'}

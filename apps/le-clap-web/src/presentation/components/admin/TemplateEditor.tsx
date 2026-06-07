@@ -7,7 +7,6 @@ import {
   X,
   Type,
   Video as VideoIcon,
-  Image as ImageIcon,
   Square,
   FileText,
   Save,
@@ -72,6 +71,24 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
     setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
   };
 
+  const toggleMusicId = (id: string) => {
+    setState((s) => {
+      const next = s.allowedMusic.includes(id) ? s.allowedMusic.filter((m) => m !== id) : [...s.allowedMusic, id];
+
+      return { ...s, allowedMusic: next };
+    });
+  };
+
+  const toggleBackgroundId = (id: string) => {
+    setState((s) => {
+      const next = s.allowedBackgrounds.includes(id)
+        ? s.allowedBackgrounds.filter((b) => b !== id)
+        : [...s.allowedBackgrounds, id];
+
+      return { ...s, allowedBackgrounds: next };
+    });
+  };
+
   const reorder = (from: number, to: number) => {
     if (from === to) return;
     setState((s) => {
@@ -98,14 +115,14 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
       return;
     }
 
-    if (state.musicEnabled && !state.music) {
-      setError('Pick a music track, or turn off background music.');
+    if (state.musicEnabled && state.allowedMusic.length === 0 && !state.allowUploadMusic) {
+      setError('Pick at least one music track, allow uploads, or turn off background music.');
 
       return;
     }
 
-    if (state.sections.some((s) => s.kind === 'image' && !s.background)) {
-      setError('Choose a background image for each Background image section.');
+    if (state.backgroundEnabled && state.allowedBackgrounds.length === 0 && !state.allowUploadBackground) {
+      setError('Pick at least one background image, allow uploads, or turn off background image.');
 
       return;
     }
@@ -151,7 +168,12 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
             Compose sections, then save — it appears in the builder as a Custom template.
           </p>
 
-          <MetadataFields state={state} patch={patch} />
+          <MetadataFields
+            state={state}
+            patch={patch}
+            toggleMusicId={toggleMusicId}
+            toggleBackgroundId={toggleBackgroundId}
+          />
 
           {/* Sections (drag to reorder) */}
           <div className="flex items-center justify-between mb-2">
@@ -194,7 +216,14 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
   );
 };
 
-const MetadataFields = ({ state, patch }: { state: EditorState; patch: (p: Partial<EditorState>) => void }) => {
+interface MetadataFieldsProps {
+  state: EditorState;
+  patch: (p: Partial<EditorState>) => void;
+  toggleMusicId: (id: string) => void;
+  toggleBackgroundId: (id: string) => void;
+}
+
+const MetadataFields = ({ state, patch, toggleMusicId, toggleBackgroundId }: MetadataFieldsProps) => {
   const nameId = useId();
 
   return (
@@ -230,6 +259,8 @@ const MetadataFields = ({ state, patch }: { state: EditorState; patch: (p: Parti
           </SelectContent>
         </Select>
       </div>
+
+      {/* Background music panel */}
       <div className="sm:col-span-2">
         <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
           <Checkbox
@@ -241,14 +272,49 @@ const MetadataFields = ({ state, patch }: { state: EditorState; patch: (p: Parti
           Background music
         </label>
         {state.musicEnabled && (
-          <div className="mt-3">
+          <div className="mt-3 space-y-3">
+            <MediaPicker kind="music" multiple selectedIds={state.allowedMusic} onToggleId={toggleMusicId} />
+            <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+              <Checkbox
+                checked={state.allowUploadMusic}
+                onCheckedChange={(c) => {
+                  patch({ allowUploadMusic: c === true });
+                }}
+              />
+              Let viewers upload their own track
+            </label>
+          </div>
+        )}
+      </div>
+
+      {/* Background image panel */}
+      <div className="sm:col-span-2">
+        <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+          <Checkbox
+            checked={state.backgroundEnabled}
+            onCheckedChange={(c) => {
+              patch({ backgroundEnabled: c === true });
+            }}
+          />
+          Background image
+        </label>
+        {state.backgroundEnabled && (
+          <div className="mt-3 space-y-3">
             <MediaPicker
-              kind="music"
-              value={state.music}
-              onChange={(music) => {
-                patch({ music });
-              }}
+              kind="picture"
+              multiple
+              selectedIds={state.allowedBackgrounds}
+              onToggleId={toggleBackgroundId}
             />
+            <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+              <Checkbox
+                checked={state.allowUploadBackground}
+                onCheckedChange={(c) => {
+                  patch({ allowUploadBackground: c === true });
+                }}
+              />
+              Let viewers upload their own image
+            </label>
           </div>
         )}
       </div>
@@ -380,7 +446,7 @@ const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection
 
 const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
   <div className="flex flex-wrap gap-2 mb-6">
-    {(['video', 'form', 'color', 'image'] as const).map((kind) => (
+    {(['video', 'form', 'color'] as const).map((kind) => (
       <button
         key={kind}
         type="button"
@@ -399,8 +465,6 @@ const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
   if (kind === 'form') return <FileText className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 
   if (kind === 'color') return <Square className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
-
-  if (kind === 'image') return <ImageIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 
   return <VideoIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 };
@@ -476,30 +540,6 @@ function SectionFields({
             }}
           />
         </div>
-      </div>
-    );
-  }
-
-  if (section.kind === 'image') {
-    return (
-      <div className="space-y-3 pl-7">
-        <div className="sm:w-40">
-          <NumberField
-            label="Duration (s)"
-            value={section.duration}
-            onChange={(v) => {
-              onChange({ duration: v });
-            }}
-            inputCls={inputCls}
-          />
-        </div>
-        <MediaPicker
-          kind="picture"
-          value={section.background}
-          onChange={(background) => {
-            onChange({ background });
-          }}
-        />
       </div>
     );
   }

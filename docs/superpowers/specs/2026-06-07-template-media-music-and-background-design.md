@@ -65,16 +65,20 @@ The descriptor never stores raw bytes. An uploaded choice is referenced by a `me
 
 ## Compile-time resolution
 
-The descriptor already passes through `coreCompilationService` untouched (only `global.variables` is merged), so curated picks need nothing extra.
+Curated picks store a real same-origin URL in the descriptor and flow through the engine's existing fetch path unchanged (`/musics/...` and `/backgrounds/...` are served from `public/`).
 
-For uploads:
+Uploads carry a `media://<key>` sentinel that the engine cannot read, and the persisted blobs live in a separate store. So `coreCompilationService.compileVideo` gains a **materialize step** that runs after `filesystemAdapter.clear()` and before compile:
 
-- Music: already covered — `loadMusic()` checks `stat('/assets/musics/<key>.mp3')` and uses the cached blob.
-- Background image: the engine's `AssetManager.fetchSingleAsset` accepts a local `/`-path but routes it through `BrowserFilesystemAdapter.fetch()`, which does `window.fetch`. That cannot read an IndexedDB-only path. One change fixes it:
+1. Walk the descriptor. For each `media://<key>` reference (in `global.music.url` or an `image_background` section's `options.pictureUrl`), read the blob from `browserMediaStore` and write it into the engine filesystem:
+   - music → `/assets/musics/<key>.mp3`, then rewrite `global.music` to `{ name: <key> }` (drop the sentinel) so `loadMusic()` cache-hits via `stat()`.
+   - image → `/assets/pictures/<key>.<ext>`, then rewrite `pictureUrl` to that path.
+2. A missing blob throws a clear error ("Uploaded music/background is no longer available — re-select it in the template").
 
-> `BrowserFilesystemAdapter.fetch(url)`: if `url` starts with `/` and `exists(url)` is true, return `url` directly (it is already in the virtual filesystem) instead of calling `window.fetch`.
+The image path still needs one engine change, because `AssetManager.fetchSingleAsset` routes a local `/`-path through `BrowserFilesystemAdapter.fetch()`, which calls `window.fetch` and cannot read a virtual IndexedDB path:
 
-This mirrors how uploaded videos already use `/tmp/...` paths and how music uses the `/assets/musics/...` cache. It is small and unit-testable, and does not affect HTTP fetches.
+> `BrowserFilesystemAdapter.fetch(url)`: if `url` starts with `/` and `exists(url)` is true, copy it to `/tmp/fetch/<name>` and return that path (matching the HTTP branch) instead of calling `window.fetch`.
+
+This mirrors how uploaded videos already use `/tmp/...` paths, is small and unit-testable, and does not affect HTTP fetches. Music needs no such change (its lookup uses `stat()` + adapter reads, never `fetch()`).
 
 ## Music looping (WASM)
 

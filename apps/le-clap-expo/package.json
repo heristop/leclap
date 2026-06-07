@@ -53,6 +53,7 @@
     "expo-system-ui": "~56.0.5",
     "expo-video": "~56.1.2",
     "expo-web-browser": "~56.0.5",
+    "ffmpeg-expo": "^0.0.1",
     "lottie-react-native": "^7.3.4",
     "moti": "^0.30.0",
     "react": "19.2.3",

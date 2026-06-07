@@ -5,6 +5,7 @@ packages:
 allowBuilds:
   '@swc/core': true
   esbuild: true
+  ffmpeg-expo: true
   ffmpeg-static: true
   msgpackr-extract: true
 

@@ -14,7 +14,7 @@ class MusicWasmAdapter implements AbstractMusic {
    */
   process = async (
     logger: AbstractLogger,
-    filesystemAdapter: AbstractFilesystem,
+    _filesystemAdapter: AbstractFilesystem,
     totalLength: number,
     musicPath: string
   ): Promise<ProcessResult> => {

@@ -125,17 +125,17 @@ interface FieldStatusProps {
 const FieldStatus = ({ hasError, errorMessage, errorId, value, remainingChars }: FieldStatusProps) => (
   <div className="flex justify-between items-center">
     {hasError ? (
-      <span id={errorId} className="text-sm text-red-400">{errorMessage}</span>
+      <span id={errorId} className="text-sm text-red-800 dark:text-red-400">{errorMessage}</span>
     ) : (
       <span className="text-sm text-gray-500">
-        {value.trim() === '' ? 'Required field' : <span className="text-green-400">Field completed ✓</span>}
+        {value.trim() === '' ? 'Required field' : <span className="text-green-800 dark:text-green-400">Field completed ✓</span>}
       </span>
     )}
 
     {remainingChars !== null && (
       <span className={clsx(
         'text-xs',
-        remainingChars < 10 ? 'text-red-400' : 'text-gray-500'
+        remainingChars < 10 ? 'text-red-800 dark:text-red-400' : 'text-gray-500'
       )}>
         {remainingChars} remaining
       </span>
@@ -205,7 +205,7 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
   return (
     <div className="space-y-2 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
       <label htmlFor={fieldId} className="flex items-center space-x-2 text-sm font-medium text-gray-300">
-        <IconComponent className="w-4 h-4 text-blue-400" />
+        <IconComponent className="w-4 h-4 text-blue-700 dark:text-blue-400" />
         <span>{label}</span>
         {field.maxLength && (
           <span className="text-xs text-gray-500">

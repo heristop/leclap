@@ -37,24 +37,15 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
 
   private async initializeFFmpeg(): Promise<void> {
     try {
-      // Dynamically import FFmpeg WebAssembly
       const { FFmpeg } = await import('@ffmpeg/ffmpeg');
       const { toBlobURL } = await import('@ffmpeg/util');
 
       this.ffmpeg = new FFmpeg() as unknown as FFmpegWasm;
 
-      // Set up logging
-      this.ffmpeg.on('log', ({ message }) => {
-        console.log('[FFmpegWasm]', message);
-      });
-
-      this.ffmpeg.on('progress', ({ progress, time }) => {
-        const pct = progress === undefined ? 0 : Math.round(progress * 100);
-        console.log('[FFmpegWasm] Progress:', pct, '% | Time:', time);
+      this.ffmpeg.on('progress', ({ progress }) => {
         this.progressListener?.(progress ?? 0);
       });
 
-      // Load FFmpeg WebAssembly files
       const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
       await this.ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
@@ -62,7 +53,6 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       });
 
       this.isLoaded = true;
-      console.log('[FFmpegWasmAdapter] FFmpeg WebAssembly loaded');
     } catch (error) {
       throw new Error(
         `Failed to initialize FFmpeg WebAssembly: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -78,10 +68,6 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     return this.ffmpeg;
   }
 
-  /**
-   * Wait for FFmpeg WebAssembly to be ready
-   * @returns Promise that resolves when FFmpeg is loaded
-   */
   waitForReady = (): Promise<void> => {
     const maxWaitTime = 30000; // 30 seconds
     const startTime = Date.now();
@@ -103,23 +89,14 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     return poll();
   };
 
-  /**
-   * Execute a FFmpeg command using WebAssembly
-   * @param command - FFmpeg command to execute (without 'ffmpeg' prefix)
-   * @returns Promise with process result
-   * @throws Error if FFmpeg command fails
-   */
   execute = async (command: string): Promise<{ rc: number }> => {
     await this.waitForReady();
     const ffmpeg = this.getFFmpeg();
 
-    // Collect error messages from log callbacks
     const errorMessages: string[] = [];
 
-    // Track errors and aborts
     const errorCallback = ({ message }: FFmpegLogData) => {
       if (message) {
-        // Only log actual errors, not informational output
         const isError = message.toLowerCase().includes('error') &&
           !message.includes('ffmpeg version') &&
           !message.includes('configuration:');
@@ -135,9 +112,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     ffmpeg.on('log', errorCallback);
 
     try {
-      // Parse command string into arguments array
       const args = this.parseCommand(command);
-      console.log('[FFmpegWasmAdapter] Executing command with args:', args);
 
       // The filesystem adapter (this.fs) and ffmpeg's MEMFS are separate stores.
       // Copy every input file the command references into MEMFS at the same path
@@ -287,30 +262,21 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     }
   }
 
-  /**
-   * Load source file into MEMFS if it exists in the filesystem adapter
-   */
   private async loadSourceFileToMemfs(ffmpeg: FFmpegWasm, source: string, filename: string): Promise<void> {
     try {
       const fileExists = await this.fs.stat(source);
 
       if (!fileExists) {
-        console.warn(`[FFmpegWasmAdapter] File ${source} not found in filesystem, assuming it's already in MEMFS or will fail`);
-
         return;
       }
 
       const data = await this.fs.readFile(source);
       await ffmpeg.writeFile(filename, data);
-      console.log(`[FFmpegWasmAdapter] Loaded ${filename} from filesystem to MEMFS`);
     } catch (error) {
       console.warn(`[FFmpegWasmAdapter] Failed to load file from filesystem: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
-  /**
-   * Parse FFmpeg log messages to extract media info
-   */
   private parseMediaInfoFromLog(
     state: { duration: number | null; videoCodec: string | null; audioCodec: string | null },
     message: string
@@ -334,7 +300,6 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       }
     }
 
-    // Parse Audio Stream
     if (message.includes('Audio:')) {
       const audioMatch = message.match(/Audio: ([^,]+)/);
 
@@ -344,18 +309,10 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     }
   }
 
-  /**
-   * Get media file information using FFmpeg WebAssembly
-   * @param source - Path or file data to analyze
-   * @returns Promise with media file information
-   * @throws Error if analysis fails
-   */
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     const ffmpeg = this.getFFmpeg();
 
     try {
-      console.log(`[FFmpegWasmAdapter] Getting info for file: ${source}`);
-
       const filename = source.split('/').pop() ?? source;
 
       await this.loadSourceFileToMemfs(ffmpeg, source, filename);
@@ -374,13 +331,9 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
 
       ffmpeg.on('log', logCallback);
 
-      // Run ffmpeg -i to get file info
-      // Use the filename in MEMFS
       await ffmpeg.exec(['-i', filename]);
 
       ffmpeg.off('log', logCallback);
-
-      console.log(`[FFmpegWasmAdapter] File info retrieved: Duration=${state.duration}, Video=${state.videoCodec}, Audio=${state.audioCodec}`);
 
       return {
         duration: state.duration,
@@ -396,11 +349,6 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     }
   };
 
-  /**
-   * Parse command string into arguments array
-   * @param command - Command string
-   * @returns Array of command arguments
-   */
   private parseCommand(command: string): string[] {
     // Split a command string into args, honouring quotes. Tracks the actual
     // quote character so a different quote inside a quoted span (e.g. a single
@@ -433,41 +381,22 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     return args;
   }
 
-  /**
-   * Write a file to FFmpeg WebAssembly filesystem
-   * @param name - File name
-   * @param data - File data
-   */
   writeFile = async (name: string, data: Uint8Array): Promise<void> => {
     const ffmpeg = this.getFFmpeg();
     await ffmpeg.writeFile(name, data);
   };
 
-  /**
-   * Read a file from FFmpeg WebAssembly filesystem
-   * @param name - File name
-   * @returns File data
-   */
   readFile = async (name: string): Promise<Uint8Array> => {
     const ffmpeg = this.getFFmpeg();
 
     return await ffmpeg.readFile(name);
   };
 
-  /**
-   * Delete a file from FFmpeg WebAssembly filesystem
-   * @param name - File name
-   */
   deleteFile = async (name: string): Promise<void> => {
     const ffmpeg = this.getFFmpeg();
     await ffmpeg.deleteFile(name);
   };
 
-  /**
-   * List files in FFmpeg WebAssembly filesystem
-   * @param path - Directory path
-   * @returns Array of file/directory entries
-   */
   listDir = async (path: string): Promise<FSNode[]> => {
     const ffmpeg = this.getFFmpeg();
 

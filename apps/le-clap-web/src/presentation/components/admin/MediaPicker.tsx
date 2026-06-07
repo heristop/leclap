@@ -33,7 +33,7 @@ function coverGradient(seed: string): string {
   let hash = 7
 
   for (const char of seed) {
-    hash = (hash * 31 + char.charCodeAt(0)) % 360
+    hash = (hash * 31 + (char.codePointAt(0) ?? 0)) % 360
   }
 
   const second = (hash + 48) % 360
@@ -114,7 +114,7 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
       return
     }
 
-    audio.play().catch(() => undefined)
+    audio.play().catch(() => {})
     setPlaying(true)
   }
 
@@ -177,16 +177,15 @@ const UploadPane = ({ kind, value, onChange }: MediaPickerProps) => {
   const inputId = useId()
 
   const onDrop = (files: File[]) => {
-    const file = files[0]
-
-    if (!file) {
+    if (files.length === 0) {
       return
     }
 
+    const file = files[0]
     browserMediaService
       .save(file, kind)
       .then(({ key }) => { onChange({ source: 'upload', key, label: file.name }) })
-      .catch(() => undefined)
+      .catch(() => {})
   }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: ACCEPT[kind], maxFiles: 1, multiple: false })

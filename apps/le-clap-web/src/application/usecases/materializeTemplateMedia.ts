@@ -43,19 +43,19 @@ export async function materializeTemplateMedia(
     descriptor.global.music = { name: key }
   }
 
-  for (const section of descriptor.sections ?? []) {
+  const uploads = (descriptor.sections ?? []).filter((section) => {
     const opts = section.options as ImageBackgroundOptions | undefined
-    const url = opts?.pictureUrl
 
-    if (section.type !== 'image_background' || !url?.startsWith(PREFIX)) {
-      continue
-    }
+    return section.type === 'image_background' && (opts?.pictureUrl?.startsWith(PREFIX) ?? false)
+  })
 
-    const key = url.slice(PREFIX.length)
+  await Promise.all(uploads.map(async (section) => {
+    const opts = section.options as ImageBackgroundOptions
+    const key = (opts.pictureUrl ?? '').slice(PREFIX.length)
     const meta = await source.getMeta(key)
     const bytes = await readOrThrow(source, key)
     const path = `/assets/pictures/${key}.${meta?.ext ?? 'bin'}`
     await target.writeFile(path, bytes)
     section.options = { ...section.options, pictureUrl: path } as ImageBackgroundOptions
-  }
+  }))
 }

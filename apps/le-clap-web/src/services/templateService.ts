@@ -1,8 +1,9 @@
 // Re-export from core package for consistency
 export type { TemplateDescriptor } from '@ffmpeg-video-composer/core';
-import { coreTemplateService, type CoreTemplate } from './coreTemplateService';
+import { coreTemplateService, type CoreTemplate } from '@/infrastructure/templates/coreTemplateService';
 import { type TemplateDescriptor } from '@ffmpeg-video-composer/core';
-import { templateLogger } from '../lib/logger';
+import { userTemplateService } from '@/services/userTemplateService';
+import { templateLogger } from '@/lib/logger';
 
 export interface Template {
   id: string;
@@ -11,6 +12,8 @@ export interface Template {
   orientation: 'landscape' | 'portrait';
   hasForm: boolean;
   complexity: 'simple' | 'intermediate' | 'advanced';
+  // 'sample' = built-in template; 'user' = created by the user (localStorage).
+  source: 'sample' | 'user';
   descriptor: TemplateDescriptor;
 }
 
@@ -28,7 +31,7 @@ const getServerUrl = () => {
 };
 
 // Real template definitions - these provide metadata about templates
-const TEMPLATE_METADATA: Partial<Record<string, Omit<Template, 'id' | 'descriptor'>>> = {
+const TEMPLATE_METADATA: Partial<Record<string, Omit<Template, 'id' | 'descriptor' | 'source'>>> = {
   sample: {
     name: 'Interactive Profile Video',
     description:
@@ -162,6 +165,7 @@ class TemplateService {
       orientation: coreTemplate.orientation,
       hasForm: coreTemplate.hasForm,
       complexity: this.mapCoreComplexity(coreTemplate.category),
+      source: 'sample',
       descriptor: coreTemplate.templateDescriptor,
     };
     this.templatesCache.set(coreTemplate.id, coreTemplate.templateDescriptor);
@@ -171,12 +175,12 @@ class TemplateService {
 
   private addLegacyTemplate(
     templateId: string,
-    metadata: Omit<Template, 'id' | 'descriptor'>,
+    metadata: Omit<Template, 'id' | 'descriptor' | 'source'>,
     templates: Template[],
   ): void {
     try {
       const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
-      const template: Template = { id: templateId, ...metadata, descriptor: fallbackDescriptor };
+      const template: Template = { id: templateId, ...metadata, source: 'sample', descriptor: fallbackDescriptor };
       this.templatesCache.set(templateId, fallbackDescriptor);
       templates.push(template);
     } catch (templateError) {
@@ -192,11 +196,16 @@ class TemplateService {
       const templates: Template[] = coreTemplates.map(ct => this.convertCoreTemplate(ct));
 
       for (const [templateId, metadata] of Object.entries(TEMPLATE_METADATA)) {
-        if (metadata === undefined || templates.some(t => t.id === templateId)) {
+        // Skip ones already present by id OR by display name — the legacy `video`
+        // duplicates core `simple-video` ("Simple Video Processing").
+        if (metadata === undefined || templates.some(t => t.id === templateId || t.name === metadata.name)) {
           continue;
         }
         this.addLegacyTemplate(templateId, metadata, templates);
       }
+
+      // Append user-created templates (localStorage) so they sit alongside samples.
+      templates.push(...userTemplateService.list());
 
       templateLogger.success(`Loaded ${templates.length} templates`);
 
@@ -209,6 +218,13 @@ class TemplateService {
   }
 
   async getTemplate(templateId: string): Promise<Template | null> {
+    // User-created templates (localStorage) take precedence and carry their own descriptor.
+    const userTemplate = userTemplateService.get(templateId);
+
+    if (userTemplate) {
+      return userTemplate;
+    }
+
     try {
       const descriptor = await this.loadTemplate(templateId);
 
@@ -223,6 +239,7 @@ class TemplateService {
           orientation: coreTemplate.orientation,
           hasForm: coreTemplate.hasForm,
           complexity: this.mapCoreComplexity(coreTemplate.category),
+          source: 'sample',
           descriptor: coreTemplate.templateDescriptor,
         };
       }
@@ -237,6 +254,7 @@ class TemplateService {
       return {
         id: templateId,
         ...metadata,
+        source: 'sample',
         complexity: this.getTemplateComplexity(descriptor),
         hasForm: this.extractFormFields(descriptor).length > 0,
         descriptor,
@@ -322,7 +340,7 @@ class TemplateService {
     return this.serverUrl;
   }
 
-  private createLegacyDescriptor(id: string, metadata: Omit<Template, 'id' | 'descriptor'>): TemplateDescriptor {
+  private createLegacyDescriptor(id: string, metadata: Omit<Template, 'id' | 'descriptor' | 'source'>): TemplateDescriptor {
     const descriptor: TemplateDescriptor = {
       global: {
         orientation: metadata.orientation,

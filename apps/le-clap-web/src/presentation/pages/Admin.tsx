@@ -1,0 +1,152 @@
+import { useEffect, useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
+import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight } from 'lucide-react'
+import clsx from 'clsx'
+import { templateService, type Template } from '@/services/templateService'
+import { userTemplateService } from '@/services/userTemplateService'
+import { TemplateEditor } from '@/presentation/components/admin/TemplateEditor'
+import { Seo } from '@/presentation/components/Seo'
+import { Button, Card } from '@/presentation/components/ui'
+import { logger } from '@/lib/logger'
+
+const complexityColors: Record<Template['complexity'], string> = {
+  simple: 'bg-brand-600 text-white',
+  intermediate: 'bg-secondary-600 text-white',
+  advanced: 'bg-accent-400 text-gray-900',
+}
+
+interface CardProps {
+  template: Template
+  actions: React.ReactNode
+}
+
+const TemplateCard = ({ template, actions }: CardProps) => (
+  <Card interactive className="rise-in p-5">
+    <div className="flex items-start justify-between mb-2">
+      <h3 className="text-lg font-bold font-display text-foreground pr-2">{template.name}</h3>
+      <span className={clsx('shrink-0 px-2.5 py-0.5 rounded-full text-[0.65rem] font-bold uppercase tracking-wider', complexityColors[template.complexity])}>
+        {template.complexity}
+      </span>
+    </div>
+    <p className="text-sm text-gray-400 mb-4 line-clamp-2 min-h-[2.5rem]">{template.description || 'No description'}</p>
+    <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+      <span className="capitalize">{template.orientation}</span>
+      <span>•</span>
+      <span>{template.descriptor.sections?.length ?? 0} section{(template.descriptor.sections?.length ?? 0) === 1 ? '' : 's'}</span>
+      {template.hasForm && (<><span>•</span><span>form</span></>)}
+    </div>
+    <div className="flex gap-2">{actions}</div>
+  </Card>
+)
+
+export const Admin = () => {
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<{ initial: Template | null } | null>(null)
+
+  const refresh = useCallback(() => {
+    setLoading(true)
+    templateService.getAllTemplates()
+      .then((all) => { setTemplates(all) })
+      .catch((error: unknown) => { logger.error('Failed to load templates', error) })
+      .finally(() => { setLoading(false) })
+  }, [])
+
+  useEffect(() => { refresh() }, [refresh])
+
+  const samples = templates.filter((t) => t.source === 'sample')
+  const mine = templates.filter((t) => t.source === 'user')
+
+  const handleDuplicate = (template: Template) => {
+    try {
+      userTemplateService.duplicate(template)
+      refresh()
+    } catch (error) {
+      logger.error('Duplicate failed', error)
+    }
+  }
+
+  const handleDelete = (template: Template) => {
+    userTemplateService.remove(template.id); refresh()
+  }
+
+  return (
+    <div className="min-h-[calc(100vh-4rem)] bg-background bg-dots text-foreground relative overflow-hidden">
+      <Seo title="Admin" path="/admin" noindex />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-16 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div>
+            <h1 className="text-4xl font-bold font-display text-foreground mb-1">Templates</h1>
+            <p className="text-gray-300">Use a sample or craft your own — saved in this browser.</p>
+          </div>
+          <Button onClick={() => { setEditing({ initial: null }) }}>
+            <Plus /> Create template
+          </Button>
+        </div>
+
+        {/* My templates */}
+        <section className="mb-12">
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-300 mb-4">
+            <FolderOpen className="w-4 h-4" /> My templates {mine.length > 0 && <span className="text-gray-500">({mine.length})</span>}
+          </h2>
+          {mine.length === 0 ? (
+            <div className="mx-auto max-w-md rounded-2xl border border-dashed border-brand-500/30 bg-brand-500/[0.04] p-10 text-center">
+              <p className="text-foreground font-medium mb-1">You haven't created any templates yet.</p>
+              <p className="text-sm text-gray-400 mb-5">Start from scratch, or duplicate a sample below.</p>
+              <Button onClick={() => { setEditing({ initial: null }) }} className="mx-auto">
+                <Plus /> Create your first template
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {mine.map((t) => (
+                <TemplateCard key={t.id} template={t} actions={
+                  <>
+                    <Button variant="secondary" size="sm" onClick={() => { setEditing({ initial: t }) }} className="flex-1"><Pencil /> Edit</Button>
+                    <Button variant="ghost" size="sm" onClick={() => { handleDelete(t) }} aria-label={`Delete ${t.name}`} className="hover:text-[var(--color-error)]"><Trash2 /></Button>
+                  </>
+                } />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Sample templates */}
+        <section>
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">
+            <Sparkles className="w-4 h-4" /> Sample templates
+          </h2>
+          {loading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-xl bg-surface/40 animate-pulse" />)}</div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {samples.map((t) => (
+                <TemplateCard key={t.id} template={t} actions={
+                  <Button variant="secondary" size="sm" onClick={() => { handleDuplicate(t) }} className="flex-1"><Copy /> Duplicate &amp; edit</Button>
+                } />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="mt-12 text-center">
+          <Link to="/builder" viewTransition className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 font-medium transition-colors">
+            Go to the builder <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+
+      {editing && (
+        <TemplateEditor
+          initial={editing.initial}
+          onSaved={() => { setEditing(null); refresh() }}
+          onCancel={() => { setEditing(null) }}
+        />
+      )}
+    </div>
+  )
+}

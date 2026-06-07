@@ -1,7 +1,11 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react, { type Options as ReactPluginOptions } from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+
+const projectDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -45,6 +49,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': path.resolve(projectDir, 'src'),
       // Provide browser-compatible alternatives for Node.js modules
       path: 'path-browserify',
       os: 'os-browserify',

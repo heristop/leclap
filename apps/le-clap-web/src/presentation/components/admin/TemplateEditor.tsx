@@ -1,0 +1,325 @@
+import { useState, useId, Fragment, type DragEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { GripVertical, Trash2, Plus, X, Type, Video as VideoIcon, Square, FileText, Save, ArrowDown } from 'lucide-react'
+import clsx from 'clsx'
+import { templateService, type Template } from '@/services/templateService'
+import { userTemplateService } from '@/services/userTemplateService'
+import { Button, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Checkbox, ColorPicker } from '@/presentation/components/ui'
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import {
+  buildDescriptor,
+  newSection,
+  SECTION_LABELS,
+  toEditorState,
+  type EditorSection,
+  type EditorState,
+} from './templateEditorModel'
+
+export { buildDescriptor } from './templateEditorModel'
+
+interface TemplateEditorProps {
+  initial: Template | null
+  onSaved: () => void
+  onCancel: () => void
+}
+
+const inputCls =
+  'w-full px-3 py-2 rounded-lg bg-surface-2 border border-foreground/10 text-foreground placeholder:text-gray-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 transition-all'
+
+export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorProps) => {
+  const [state, setState] = useState<EditorState>(() => toEditorState(initial))
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [error, setError] = useState('')
+
+  useLockBodyScroll()
+
+  const patch = (p: Partial<EditorState>) => { setState((s) => ({ ...s, ...p })) }
+  const patchSection = (i: number, p: Partial<EditorSection>) => {
+    setState((s) => ({ ...s, sections: s.sections.map((sec, idx) => (idx === i ? ({ ...sec, ...p } as EditorSection) : sec)) }))
+  }
+  const addSection = (kind: EditorSection['kind']) => { setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] })) }
+  const removeSection = (i: number) => { setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) })) }
+
+  const reorder = (from: number, to: number) => {
+    if (from === to) return
+    setState((s) => {
+      const next = [...s.sections]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+
+      return { ...s, sections: next }
+    })
+  }
+
+  const handleSave = () => {
+    setError('')
+
+    if (state.name.trim() === '') {
+      setError('Give your template a name.')
+
+      return
+    }
+
+    if (state.sections.length === 0) {
+      setError('Add at least one section.')
+
+      return
+    }
+
+    const descriptor = buildDescriptor(state)
+    const template: Template = {
+      id: state.id,
+      name: state.name.trim(),
+      description: state.description.trim(),
+      orientation: state.orientation,
+      hasForm: templateService.extractFormFields(descriptor).length > 0,
+      complexity: templateService.getTemplateComplexity(descriptor),
+      source: 'user',
+      descriptor,
+    }
+
+    try {
+      userTemplateService.save(template)
+      onSaved()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not save the template.')
+    }
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[58] overflow-y-auto bg-black/40 backdrop-blur-md dark:bg-black/70">
+      <div className="relative min-h-full flex items-start sm:items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b">
+        <div className="relative w-full max-w-2xl bg-surface border border-foreground/10 rounded-2xl p-6 sm:p-8 shadow-2xl rise-in">
+          <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Close editor" className="absolute top-4 right-4 rounded-full text-gray-400">
+            <X className="w-5 h-5" />
+          </Button>
+
+          <h2 className="text-2xl font-bold font-display text-foreground mb-1">{initial ? 'Edit template' : 'Create a template'}</h2>
+          <p className="text-gray-300 text-sm mb-6">Compose sections, then save — it appears in the builder as a Custom template.</p>
+
+          <MetadataFields state={state} patch={patch} />
+
+          {/* Sections (drag to reorder) */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Sections — drag to reorder</span>
+          </div>
+          <SectionList
+            sections={state.sections}
+            dragIndex={dragIndex}
+            setDragIndex={setDragIndex}
+            reorder={reorder}
+            removeSection={removeSection}
+            patchSection={patchSection}
+          />
+
+          <AddSectionButtons addSection={addSection} />
+
+          {error && <p className="text-sm text-[var(--color-error)] mb-4">{error}</p>}
+
+          <div className="flex gap-3">
+            <Button variant="primary" onClick={handleSave} className="flex-1">
+              <Save className="w-5 h-5" /> Save template
+            </Button>
+            <Button variant="secondary" onClick={onCancel} className="px-6">Cancel</Button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+const MetadataFields = ({ state, patch }: { state: EditorState; patch: (p: Partial<EditorState>) => void }) => {
+  const nameId = useId()
+
+  return (
+    <div className="grid sm:grid-cols-2 gap-3 mb-6">
+      <div className="sm:col-span-2">
+        <label htmlFor={nameId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Name</label>
+        <input id={nameId} className={inputCls} value={state.name} onChange={(e) =>{  patch({ name: e.target.value }); }} placeholder="My template" />
+      </div>
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Orientation</label>
+        <Select value={state.orientation} onValueChange={(v) => { patch({ orientation: v as EditorState['orientation'] }); }}>
+          <SelectTrigger aria-label="Orientation"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="landscape">Landscape (16:9)</SelectItem>
+            <SelectItem value="portrait">Portrait (9:16)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <label className="flex items-center gap-2 mt-6 text-sm text-gray-200 cursor-pointer select-none">
+        <Checkbox checked={state.musicEnabled} onCheckedChange={(c) => { patch({ musicEnabled: c === true }); }} />
+        Background music
+      </label>
+    </div>
+  )
+}
+
+interface SectionListProps {
+  sections: EditorSection[]
+  dragIndex: number | null
+  setDragIndex: (i: number | null) => void
+  reorder: (from: number, to: number) => void
+  removeSection: (i: number) => void
+  patchSection: (i: number, p: Partial<EditorSection>) => void
+}
+
+const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection, patchSection }: SectionListProps) => {
+  // `insertAt` is the gap index (0..n) where the dragged card will land.
+  const [insertAt, setInsertAt] = useState<number | null>(null)
+  const dragging = dragIndex !== null
+
+  const commit = (at: number) => {
+    if (dragIndex !== null) {
+      const target = dragIndex < at ? at - 1 : at
+
+      if (target !== dragIndex) reorder(dragIndex, target)
+    }
+    setDragIndex(null)
+    setInsertAt(null)
+  }
+
+  const onItemDragOver = (i: number, e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const rect = e.currentTarget.getBoundingClientRect()
+    const at = e.clientY < rect.top + rect.height / 2 ? i : i + 1
+
+    if (insertAt !== at) setInsertAt(at)
+  }
+
+  // Animated drop zone that grows open at gap `at` while dragging.
+  const dropZone = (at: number) => (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault()
+
+        if (insertAt !== at) setInsertAt(at)
+      }}
+      onDrop={() => { commit(at) }}
+      className={clsx(
+        'grid transition-all duration-200 ease-[var(--ease-out-expo)]',
+        dragging && insertAt === at ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+      )}
+    >
+      <div className="overflow-hidden">
+        <div className="my-2 grid h-16 place-items-center rounded-xl border-2 border-dashed border-brand-500/60 bg-brand-500/[0.08]">
+          <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-300">
+            <ArrowDown className="w-4 h-4 animate-bounce" /> Drop here
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="mb-4">
+      {sections.map((section, i) => (
+        <Fragment key={i}>
+          {dropZone(i)}
+          <div
+            draggable
+            onDragStart={(e) => { setDragIndex(i); e.dataTransfer.effectAllowed = 'move' }}
+            onDragOver={(e) => { onItemDragOver(i, e) }}
+            onDrop={() => { commit(insertAt ?? i) }}
+            onDragEnd={() => { setDragIndex(null); setInsertAt(null) }}
+            className={clsx(
+              'relative my-2 rounded-xl border bg-surface-2/60 p-3 transition-all duration-200 ease-[var(--ease-out-expo)]',
+              dragIndex === i
+                ? 'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20'
+                : 'border-foreground/10'
+            )}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <button type="button" className="cursor-grab text-gray-500 transition-all hover:text-brand-500 active:cursor-grabbing active:scale-125" aria-label="Drag to reorder"><GripVertical className="w-5 h-5" /></button>
+              <SectionIcon kind={section.kind} />
+              <span className="font-semibold text-foreground text-sm">{SECTION_LABELS[section.kind]}</span>
+              <button onClick={() => { removeSection(i) }} aria-label="Remove section" className="tap ml-auto p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 transition-colors">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <SectionFields section={section} onChange={(p) => { patchSection(i, p) }} inputCls={inputCls} />
+          </div>
+        </Fragment>
+      ))}
+      {dropZone(sections.length)}
+    </div>
+  )
+}
+
+const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
+  <div className="flex flex-wrap gap-2 mb-6">
+    {(['video', 'form', 'color'] as const).map((kind) => (
+      <button key={kind} onClick={() => { addSection(kind) }} className="tap inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-foreground/10 bg-foreground/5 text-gray-200 hover:bg-foreground/10 hover:-translate-y-0.5 transition-all">
+        <Plus className="w-4 h-4" /> {SECTION_LABELS[kind]}
+      </button>
+    ))}
+  </div>
+)
+
+const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
+  if (kind === 'form') return <FileText className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+
+  if (kind === 'color') return <Square className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />
+
+  return <VideoIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+}
+
+function SectionFields({ section, onChange, inputCls }: { section: EditorSection; onChange: (p: Partial<EditorSection>) => void; inputCls: string }) {
+  const colorId = useId()
+
+  if (section.kind === 'video') {
+    return (
+      <div className="grid sm:grid-cols-2 gap-3 pl-7">
+        <NumberField label="Duration (s)" value={section.duration} onChange={(v) =>{  onChange({ duration: v }); }} inputCls={inputCls} />
+        <label className="flex items-center gap-2 mt-6 text-sm text-gray-200 cursor-pointer select-none">
+          <Checkbox checked={section.mute} onCheckedChange={(c) => { onChange({ mute: c === true }); }} /> Mute audio
+        </label>
+        <div className="sm:col-span-2 flex items-center gap-2">
+          <Type className="w-4 h-4 text-gray-400 shrink-0" />
+          <input aria-label="Overlay text" className={inputCls} value={section.text} onChange={(e) =>{  onChange({ text: e.target.value }); }} placeholder="Overlay text (optional) — supports {{firstname}}" />
+        </div>
+      </div>
+    )
+  }
+
+  if (section.kind === 'color') {
+    return (
+      <div className="grid sm:grid-cols-2 gap-3 pl-7">
+        <NumberField label="Duration (s)" value={section.duration} onChange={(v) =>{  onChange({ duration: v }); }} inputCls={inputCls} />
+        <div>
+          <label htmlFor={colorId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Color</label>
+          <ColorPicker id={colorId} aria-label="Background color" value={section.color} onChange={(c) => { onChange({ color: c }); }} />
+        </div>
+      </div>
+    )
+  }
+
+  // form
+  return (
+    <div className="space-y-2 pl-7">
+      {section.fields.map((field, fi) => (
+        <div key={fi} className="grid grid-cols-[1fr_1fr_5rem_auto] gap-2 items-center">
+          <input aria-label="Field ID" className={inputCls} value={field.name} onChange={(e) =>{  onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, name: e.target.value } : f)) }); }} placeholder="field id" />
+          <input aria-label="Field label" className={inputCls} value={field.label} onChange={(e) =>{  onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, label: e.target.value } : f)) }); }} placeholder="Label" />
+          <input aria-label="Max length" type="number" className={inputCls} value={field.maxLength} onChange={(e) =>{  onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, maxLength: Number(e.target.value) } : f)) }); }} />
+          <button onClick={() =>{  onChange({ fields: section.fields.filter((_, idx) => idx !== fi) }); }} aria-label="Remove field" className="tap p-1.5 text-gray-500 hover:text-[var(--color-error)]"><Trash2 className="w-4 h-4" /></button>
+        </div>
+      ))}
+      <button onClick={() =>{  onChange({ fields: [...section.fields, { name: `field_${section.fields.length + 1}`, label: 'Label', maxLength: 40 }] }); }} className="tap inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-foreground/5 text-gray-300 hover:bg-foreground/10 transition-colors">
+        <Plus className="w-3.5 h-3.5" /> Add field
+      </button>
+    </div>
+  )
+}
+
+const NumberField = ({ label, value, onChange, inputCls }: { label: string; value: number; onChange: (v: number) => void; inputCls: string }) => {
+  const numberId = useId()
+
+  return (
+    <div>
+      <label htmlFor={numberId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">{label}</label>
+      <input id={numberId} type="number" min={1} className={inputCls} value={value} onChange={(e) =>{  onChange(Number(e.target.value)); }} />
+    </div>
+  )
+}

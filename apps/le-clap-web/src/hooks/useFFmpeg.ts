@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useOptimistic, startTransition } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
-import { ffmpegLogger } from '../lib/logger';
+import { ffmpegLogger } from '@/lib/logger';
 
 interface FFmpegState {
   isReady: boolean;

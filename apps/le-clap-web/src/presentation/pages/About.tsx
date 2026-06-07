@@ -1,0 +1,64 @@
+import { ArrowRight, Shield } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { AboutStats } from '@/presentation/components/about/AboutStats'
+import { AboutPillars } from '@/presentation/components/about/AboutPillars'
+import { AboutAuthor } from '@/presentation/components/about/AboutAuthor'
+import { AboutBuiltWith } from '@/presentation/components/about/AboutBuiltWith'
+import { Seo } from '@/presentation/components/Seo'
+import { Badge, Button } from '@/presentation/components/ui'
+
+export const About = () => {
+    return (
+        <div className="min-h-screen bg-background text-foreground relative overflow-hidden pt-24 pb-20">
+            <Seo title="About" description="LeClap is an open, browser-based cinematic video composer powered by WebAssembly and FFmpeg. Learn what it is and who built it." path="/about" />
+            {/* Ambient background */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+            </div>
+
+            <div className="container mx-auto px-4 relative z-10">
+                <div className="max-w-4xl mx-auto">
+                    {/* Hero */}
+                    <header className="text-center mb-14 fade-in">
+                        <Badge variant="brand" className="mb-6 px-4 py-1.5 tracking-[0.18em]">
+                            <Shield className="w-3.5 h-3.5" />
+                            Privacy-first · In your browser
+                        </Badge>
+                        <h1 className="text-5xl md:text-7xl font-bold mb-6 brand-gradient-text font-display tracking-tight">
+                            About LeClap
+                        </h1>
+                        <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                            A cinematic video composer that runs entirely in your browser. Compose from real
+                            templates, render with FFmpeg compiled to WebAssembly, and download — no servers,
+                            no uploads, no limits.
+                        </p>
+                    </header>
+
+                    {/* Stats strip */}
+                    <AboutStats />
+
+                    {/* Pillars */}
+                    <AboutPillars />
+
+                    {/* Author */}
+                    <AboutAuthor />
+
+                    {/* Built with */}
+                    <AboutBuiltWith />
+
+                    {/* CTA */}
+                    <div className="mt-16 text-center">
+                        <p className="text-gray-400 mb-6">Ready to compose your first video?</p>
+                        <Button asChild size="lg" className="group rounded-full lift">
+                            <Link to="/builder">
+                                Start creating
+                                <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}

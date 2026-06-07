@@ -3,13 +3,73 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary meta -->
+  <title>LeClap — Cinematic Video Composer in Your Browser</title>
+  <meta name="description"
+    content="Create cinematic videos from templates right in your browser. LeClap runs client-side with WebAssembly and FFmpeg — no uploads, no servers, no limits." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#0b0b0f" />
+  <!-- TODO: replace https://leclap.app with the real production domain (used by canonical, OG, sitemap, robots) -->
+  <link rel="canonical" href="https://leclap.app/" />
+
+  <!-- Icons — TODO: replace /vite.svg with a LeClap brand icon and add a 180x180 apple-touch-icon.png -->
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="LeClap" />
+  <meta property="og:title" content="LeClap — Cinematic Video Composer in Your Browser" />
+  <meta property="og:description"
+    content="Build cinematic videos from templates entirely in your browser. Powered by WebAssembly and FFmpeg — no uploads, no servers, no limits." />
+  <meta property="og:url" content="https://leclap.app/" />
+  <!-- TODO: add a 1200x630 public/og-image.png -->
+  <meta property="og:image" content="https://leclap.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LeClap — Cinematic Video Composer in Your Browser" />
+  <meta name="twitter:description"
+    content="Build cinematic videos from templates entirely in your browser. Powered by WebAssembly and FFmpeg — no uploads, no servers, no limits." />
+  <meta name="twitter:image" content="https://leclap.app/og-image.png" />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LeClap - Video Composer</title>
-  <meta name="description" content="Create videos from templates directly in your browser using LeClap" />
+
+  <!-- Structured data: the web app itself -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LeClap",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Any (modern web browser)",
+      "url": "https://leclap.app/",
+      "description": "A cinematic video composer that runs entirely in the browser, building videos from templates with WebAssembly and FFmpeg — no servers or uploads.",
+      "browserRequirements": "Requires a browser with WebAssembly support",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  </script>
+  <!-- Apply the saved/preferred theme before paint to avoid a flash of the wrong theme -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('leclap-theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.classList.toggle('dark', t === 'dark');
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
 </head>
 
 <body>

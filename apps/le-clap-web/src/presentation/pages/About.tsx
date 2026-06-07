@@ -5,7 +5,7 @@ import { AboutPillars } from '@/presentation/components/about/AboutPillars'
 import { AboutAuthor } from '@/presentation/components/about/AboutAuthor'
 import { AboutBuiltWith } from '@/presentation/components/about/AboutBuiltWith'
 import { Seo } from '@/presentation/components/Seo'
-import { Badge, Button } from '@/presentation/components/ui'
+import { Badge, Button, Reveal } from '@/presentation/components/ui'
 
 export const About = () => {
     return (
@@ -36,19 +36,27 @@ export const About = () => {
                     </header>
 
                     {/* Stats strip */}
-                    <AboutStats />
+                    <Reveal>
+                        <AboutStats />
+                    </Reveal>
 
                     {/* Pillars */}
-                    <AboutPillars />
+                    <Reveal delay={80}>
+                        <AboutPillars />
+                    </Reveal>
 
                     {/* Author */}
-                    <AboutAuthor />
+                    <Reveal delay={160}>
+                        <AboutAuthor />
+                    </Reveal>
 
                     {/* Built with */}
-                    <AboutBuiltWith />
+                    <Reveal delay={240}>
+                        <AboutBuiltWith />
+                    </Reveal>
 
                     {/* CTA */}
-                    <div className="mt-16 text-center">
+                    <Reveal delay={320} className="mt-16 text-center">
                         <p className="text-gray-400 mb-6">Ready to compose your first video?</p>
                         <Button asChild size="lg" className="group rounded-full lift">
                             <Link to="/builder">
@@ -56,7 +64,7 @@ export const About = () => {
                                 <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </Button>
-                    </div>
+                    </Reveal>
                 </div>
             </div>
         </div>

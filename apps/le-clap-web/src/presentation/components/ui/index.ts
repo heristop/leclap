@@ -26,3 +26,4 @@ export {
 export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem } from './select'
 export { Checkbox } from './checkbox'
 export { ColorPicker, type ColorPickerProps } from './color-picker'
+export { Reveal, type RevealProps } from './reveal'

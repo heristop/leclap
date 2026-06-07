@@ -42,14 +42,12 @@ export const useFFmpeg = () => {
       try {
         const ffmpeg = new FFmpeg();
 
-        // Track FFmpeg processing progress
         ffmpeg.on('progress', ({ progress, time }) => {
           ffmpegLogger.log(`Processing: ${Math.round(progress * 100)}% (${time}s)`);
         });
 
         ffmpeg.on('log', ({ message }) => {
           ffmpegLogger.log('FFmpeg log:', message);
-          // Update loading progress based on log messages
           if (message.includes('Loading')) {
             startTransition(() => {
               setOptimisticState({ loadingProgress: 25 });
@@ -57,7 +55,6 @@ export const useFFmpeg = () => {
           }
         });
 
-        // Load FFmpeg WebAssembly and track loading progress
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
 
         startTransition(() => {
@@ -80,7 +77,6 @@ export const useFFmpeg = () => {
 
         ffmpegRef.current = ffmpeg;
 
-        // Complete loading with transition
         startTransition(() => {
           setState((prev) => ({
             ...prev,
@@ -107,7 +103,6 @@ export const useFFmpeg = () => {
       ffmpegLogger.error('Unhandled error in loadFFmpeg:', error);
     });
 
-    // Cleanup on unmount
     return () => {
       if (ffmpegRef.current) {
         ffmpegRef.current = null;

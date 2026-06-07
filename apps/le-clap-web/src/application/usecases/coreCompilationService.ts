@@ -45,14 +45,13 @@ class CoreCompilationService {
       onProgress({
         stage: 'Initializing',
         percentage: 5,
-        currentStep: 'Setting up core compilation environment',
+        currentStep: 'Initializing',
         totalSteps: 7,
         currentStepIndex: 1,
       });
 
       await this.filesystemAdapter.clear();
 
-      // Apply the user's per-clip trim/crop (ffmpeg.wasm) before compilation.
       const editedFiles = await this.applyEdits(files, videoEdits, onProgress);
 
       const userVideoPaths = await this.storeUploadedFiles(editedFiles, onProgress);
@@ -303,11 +302,9 @@ class CoreCompilationService {
   private convertToTemplateDescriptor(template: Template, formData: Record<string, string>): TemplateDescriptor {
     const templateDescriptor = { ...template.descriptor };
 
-    // Merge form data into global variables
     templateDescriptor.global ??= {};
     templateDescriptor.global.variables ??= {};
 
-    // Add form data to template variables
     templateDescriptor.global.variables = {
       // Default colors for templates that use them; overridden by any existing
       // variables or form data that follow in the spread.

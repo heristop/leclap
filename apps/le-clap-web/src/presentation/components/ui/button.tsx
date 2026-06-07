@@ -16,7 +16,7 @@ const buttonVariants = cva(
         ghost: 'text-gray-300 hover:text-foreground hover:bg-foreground/10',
         accent: 'bg-accent-400 text-gray-900 shadow-lg shadow-accent-500/20 hover:-translate-y-0.5',
         danger: 'bg-[var(--color-error)] text-white hover:-translate-y-0.5',
-        link: 'text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline',
+        link: 'text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-200 underline-offset-4 hover:underline',
       },
       size: {
         sm: 'text-sm px-3 py-1.5',

@@ -126,12 +126,14 @@ function ModeButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'tap relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer',
-        active ? 'bg-brand-500/20 text-brand-700 dark:text-brand-200 border border-brand-400/40' : 'text-gray-400 hover:text-foreground hover:bg-foreground/5 border border-transparent'
+        'tap relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer active:scale-95 [&_svg]:transition-transform',
+        active
+          ? 'bg-gradient-to-r from-brand-500/25 to-secondary-500/20 text-brand-700 dark:text-brand-100 border border-brand-400/50 shadow-md shadow-brand-500/25 scale-[1.03] [&_svg]:scale-110'
+          : 'text-gray-400 hover:text-foreground hover:bg-foreground/5 border border-transparent hover:-translate-y-0.5'
       )}
     >
       {children}
-      {dot && <span aria-hidden="true" className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-400" />}
+      {dot && <span aria-hidden="true" className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-400 shadow shadow-brand-500/50 animate-pulse" />}
     </button>
   );
 }

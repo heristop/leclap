@@ -1,4 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { Move } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { VideoCrop } from '@/domain/valueObjects/videoEdits';
 
 /** Displayed-video rect inside the editor container, in CSS pixels. */
@@ -61,11 +63,13 @@ export function CropFrame({
 }) {
   const cropRef = useRef<VideoCrop>(crop);
   cropRef.current = crop;
+  const [dragging, setDragging] = useState<'move' | Corner | null>(null);
 
   const startDrag = (kind: 'move' | Corner) => (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    setDragging(kind);
 
     const startCrop = cropRef.current;
     const startX = e.clientX;
@@ -89,6 +93,7 @@ export function CropFrame({
     };
 
     const onUp = () => {
+      setDragging(null);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -110,25 +115,45 @@ export function CropFrame({
     top: corner === 'tl' || corner === 'tr' ? rect.top : rect.top + rect.height,
   });
 
+  const isDragging = dragging !== null;
+  const guide = cn('absolute bg-white/30 transition-opacity duration-200', isDragging ? 'opacity-90' : 'opacity-40');
+
   return (
     <div className="absolute inset-0 touch-none">
-      {/* Dim mask around the crop region (four bands). */}
-      <div className="absolute bg-black/55" style={{ left: videoRect.left, top: videoRect.top, width: videoRect.width, height: rect.top - videoRect.top }} />
-      <div className="absolute bg-black/55" style={{ left: videoRect.left, top: rect.top + rect.height, width: videoRect.width, height: videoRect.top + videoRect.height - (rect.top + rect.height) }} />
-      <div className="absolute bg-black/55" style={{ left: videoRect.left, top: rect.top, width: rect.left - videoRect.left, height: rect.height }} />
-      <div className="absolute bg-black/55" style={{ left: rect.left + rect.width, top: rect.top, width: videoRect.left + videoRect.width - (rect.left + rect.width), height: rect.height }} />
+      {/* Dim + blurred mask around the crop region (four bands), keeping focus on the selection. */}
+      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: videoRect.left, top: videoRect.top, width: videoRect.width, height: rect.top - videoRect.top }} />
+      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: videoRect.left, top: rect.top + rect.height, width: videoRect.width, height: videoRect.top + videoRect.height - (rect.top + rect.height) }} />
+      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: videoRect.left, top: rect.top, width: rect.left - videoRect.left, height: rect.height }} />
+      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: rect.left + rect.width, top: rect.top, width: videoRect.left + videoRect.width - (rect.left + rect.width), height: rect.height }} />
 
       {/* Draggable crop frame body. */}
       <div
         onPointerDown={startDrag('move')}
-        className="absolute border-2 border-white cursor-move"
+        className={cn(
+          'group absolute border-2 cursor-move',
+          isDragging ? 'border-brand-300 shadow-[0_0_30px_-4px] shadow-brand-500/50' : 'border-white/90',
+          dragging !== 'move' && !isDragging && 'transition-all duration-150'
+        )}
         style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
       >
-        {/* rule-of-thirds guides */}
-        <div className="absolute inset-y-0 w-px bg-foreground/40" style={{ left: '33.33%' }} />
-        <div className="absolute inset-y-0 w-px bg-foreground/40" style={{ left: '66.66%' }} />
-        <div className="absolute inset-x-0 h-px bg-foreground/40" style={{ top: '33.33%' }} />
-        <div className="absolute inset-x-0 h-px bg-foreground/40" style={{ top: '66.66%' }} />
+        {/* rule-of-thirds guides (emphasized while dragging) */}
+        <div className={cn(guide, 'inset-y-0 w-px')} style={{ left: '33.33%' }} />
+        <div className={cn(guide, 'inset-y-0 w-px')} style={{ left: '66.66%' }} />
+        <div className={cn(guide, 'inset-x-0 h-px')} style={{ top: '33.33%' }} />
+        <div className={cn(guide, 'inset-x-0 h-px')} style={{ top: '66.66%' }} />
+
+        {/* move affordance — appears on hover */}
+        <Move className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-white/80 drop-shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+        {/* live dimension badge */}
+        <span
+          className={cn(
+            'pointer-events-none absolute left-1/2 -translate-x-1/2 -top-7 px-2 py-0.5 rounded-md bg-black/75 text-white text-xs font-semibold tabular-nums whitespace-nowrap transition-all duration-150',
+            isDragging ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+          )}
+        >
+          {Math.round(crop.w * 100)}% × {Math.round(crop.h * 100)}%
+        </span>
       </div>
 
       {/* corner handles */}
@@ -140,7 +165,11 @@ export function CropFrame({
           <div
             key={corner}
             onPointerDown={startDrag(corner)}
-            className={`absolute w-5 h-5 -ml-2.5 -mt-2.5 rounded-full bg-white border-2 border-brand-500 shadow ${cursor}`}
+            className={cn(
+              'absolute w-5 h-5 -ml-2.5 -mt-2.5 rounded-full bg-white border-2 border-brand-500 shadow-lg shadow-brand-500/40 touch-none transition-transform duration-150 ease-[var(--ease-spring)] hover:scale-125 active:scale-110',
+              dragging === corner && 'scale-125 ring-2 ring-brand-400/60',
+              cursor
+            )}
             style={{ left: pos.left, top: pos.top }}
           />
         );

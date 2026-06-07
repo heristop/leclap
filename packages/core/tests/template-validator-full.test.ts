@@ -196,17 +196,10 @@ describe('TemplateValidator (gap coverage)', () => {
       }
     });
 
-    it('reads and validates a template file in Node', async () => {
-      const prev = process.env.PLATFORM;
-      delete process.env.PLATFORM;
-      try {
-        const result = await validator.validateTemplateFromFile(
-          'packages/core/src/shared/templates/sample.json'
-        );
-        expect(result.success).toBe(true);
-      } finally {
-        if (prev !== undefined) process.env.PLATFORM = prev;
-      }
+    it('validates a real shipped template (loaded via the @ alias)', async () => {
+      const sample = (await import('@/shared/templates/sample.json')).default;
+      const result = validator.validateTemplate(sample);
+      expect(result.success).toBe(true);
     });
 
     it('reports a file_error when the file cannot be read', async () => {
@@ -283,7 +276,9 @@ describe('TemplateValidator (gap coverage)', () => {
 
   describe('formatZodError (private branch coverage)', () => {
     const fmt = (err: unknown): { code: string; path: string; message: string }[] =>
-      (validator as unknown as { formatZodError: (e: unknown) => { code: string; path: string; message: string }[] }).formatZodError(err);
+      (
+        validator as unknown as { formatZodError: (e: unknown) => { code: string; path: string; message: string }[] }
+      ).formatZodError(err);
 
     it('returns invalid_zod_error when there are no issues and no message', () => {
       const fake = { issues: undefined, message: '' };
@@ -441,8 +436,8 @@ describe('template.schemas', () => {
 
   it('TemplateDescriptorSchema accepts an empty object and nested sections', () => {
     expect(TemplateDescriptorSchema.safeParse({}).success).toBe(true);
-    expect(
-      TemplateDescriptorSchema.safeParse({ global: { orientation: 'portrait' }, sections: [] }).success
-    ).toBe(true);
+    expect(TemplateDescriptorSchema.safeParse({ global: { orientation: 'portrait' }, sections: [] }).success).toBe(
+      true
+    );
   });
 });

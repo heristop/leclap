@@ -10,8 +10,6 @@ export const generateThumbnail = async (videoPath: string): Promise<string | nul
     // Normalize video path: remove 'file://' prefix if present
     const normalizedVideoPath = videoPath.startsWith('file://') ? videoPath.replace('file://', '') : videoPath;
 
-    console.log('Attempting to generate thumbnail for:', normalizedVideoPath);
-
     const thumbnail = await createThumbnail({
       url: normalizedVideoPath,
       timeStamp: 0, // Get thumbnail from the beginning of the video

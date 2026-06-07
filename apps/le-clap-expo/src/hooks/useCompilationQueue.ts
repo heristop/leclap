@@ -106,7 +106,7 @@ export const useCompilationQueue = () => {
   return useQuery({
     queryKey: ['compilation-queue'],
     queryFn: getCompilationQueue,
-    refetchInterval: 5000, // Refetch every 5 seconds to update UI
+    refetchInterval: 5000,
   });
 };
 
@@ -140,7 +140,6 @@ export const useQueueVideoCompilation = () => {
       const isOnline = await hasInternetConnection();
 
       if (isOnline) {
-        // Try immediate compilation if online
         try {
           const result = await compileVideo(templateDescriptor, recordedVideos);
 
@@ -152,7 +151,6 @@ export const useQueueVideoCompilation = () => {
         }
       }
 
-      // Add to queue for later processing
       const queueItemId = await addToCompilationQueue({
         projectId,
         templateDescriptor,
@@ -213,7 +211,6 @@ export const useRetryQueueItem = () => {
         throw new Error('No internet connection for retry');
       }
 
-      // Update status to processing
       await updateCompilationQueueItem(itemId, {
         status: 'processing',
         lastRetryAt: new Date().toISOString(),
@@ -294,14 +291,11 @@ export const useAutoProcessQueue = (enabled = true) => {
     mutationFn: async () => {
       if (!enabled) return;
 
-      // Wait for stable internet connection
-      const hasConnection = await waitForConnection(10000);
- // 10 second timeout
+      const hasConnection = await waitForConnection(10000); // 10 s
       if (!hasConnection) {
         throw new Error('Failed to establish stable internet connection');
       }
 
-      // Process the queue
       await processQueue.mutateAsync(3); // Max 3 retries
     },
   });

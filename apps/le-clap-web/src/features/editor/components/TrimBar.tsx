@@ -23,10 +23,12 @@ const formatTime = (seconds: number) => {
 };
 
 // Deterministic decorative waveform (no real audio analysis) — gives the track a "media timeline" feel.
-const WAVEFORM = Array.from({ length: 60 }, (_, i) => {
-  const v = Math.abs(Math.sin(i * 0.7) * 0.55 + Math.sin(i * 0.29) * 0.3 + Math.sin(i * 1.7) * 0.15);
+const WAVEFORM = Array.from({ length: 72 }, (_, i) => {
+  const v = Math.abs(Math.sin(i * 0.8) * 0.5 + Math.sin(i * 0.31) * 0.32 + Math.sin(i * 1.9) * 0.22);
+  // taper the very ends so the strip reads like a clip with lead-in/out
+  const edge = Math.min(i, 71 - i) / 8;
 
-  return Math.round(22 + Math.min(v, 1) * 66); // 22%..~88% bar height
+  return Math.round((18 + Math.min(v, 1) * 70) * Math.min(1, 0.45 + edge)); // ~8%..~88%
 });
 
 /** A grabber handle with a live time bubble. Presentation only — drag logic stays in TrimBar. */
@@ -52,7 +54,7 @@ function TrimHandle({
       aria-valuenow={valueNow}
       tabIndex={0}
       onPointerDown={onPointerDown}
-      className="group absolute -top-2 -bottom-2 w-7 -ml-3.5 flex items-center justify-center cursor-ew-resize touch-none"
+      className="group absolute -top-2 -bottom-2 w-8 -ml-4 flex items-center justify-center cursor-ew-resize touch-none"
       style={{ left: `${pct}%` }}
     >
       {/* live time bubble while dragging */}
@@ -74,8 +76,8 @@ function TrimHandle({
           dragging && 'scale-110 ring-2 ring-white/70 shadow-brand-500/80'
         )}
       >
-        <span className="w-0.5 h-3 rounded-full bg-white/90" />
-        <span className="w-0.5 h-3 rounded-full bg-white/90" />
+        <span className="w-[3px] h-4 rounded-full bg-white" />
+        <span className="w-[3px] h-4 rounded-full bg-white" />
       </div>
     </div>
   );
@@ -83,15 +85,16 @@ function TrimHandle({
 
 /**
  * A dual-handle trim timeline over a cinematic waveform track. Dragging a handle reports the new
- * range in seconds and seeks the player so the user previews the exact in/out frame; tapping the
- * track scrubs. Works with mouse and touch via pointer events.
+ * range in seconds and seeks the player; hovering previews the seek position; tapping the track
+ * scrubs. Works with mouse and touch via pointer events.
  */
 export function TrimBar({ duration, value, currentTime, onChange, onSeek }: TrimBarProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<'start' | 'end' | null>(null);
+  const [hoverPct, setHoverPct] = useState<number | null>(null);
   const safeDuration = duration > 0 ? duration : 1;
 
-  const timeFromClientX = (clientX: number): number => {
+  const pctFromClientX = (clientX: number): number => {
     const track = trackRef.current;
 
     if (!track) {
@@ -99,9 +102,8 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
     }
 
     const rect = track.getBoundingClientRect();
-    const ratio = clamp((clientX - rect.left) / rect.width, 0, 1);
 
-    return ratio * safeDuration;
+    return clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
   };
 
   const dragHandle = (which: 'start' | 'end') => (e: React.PointerEvent) => {
@@ -111,7 +113,7 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
     setDragging(which);
 
     const onMove = (ev: PointerEvent) => {
-      const t = timeFromClientX(ev.clientX);
+      const t = (pctFromClientX(ev.clientX) / 100) * safeDuration;
 
       if (which === 'start') {
         const next = clamp(t, 0, value.end - MIN_GAP);
@@ -138,12 +140,20 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
 
   // Tap anywhere on the track to scrub the preview (handles stop propagation, so they're unaffected).
   const seekFromTrack = (e: React.PointerEvent) => {
-    onSeek(timeFromClientX(e.clientX));
+    onSeek((pctFromClientX(e.clientX) / 100) * safeDuration);
+  };
+
+  // Mouse-hover preview of the seek position (ignored mid-drag and on touch).
+  const onTrackHover = (e: React.PointerEvent) => {
+    if (dragging || e.pointerType !== 'mouse') return;
+
+    setHoverPct(pctFromClientX(e.clientX));
   };
 
   const startPct = (value.start / safeDuration) * 100;
   const endPct = (value.end / safeDuration) * 100;
   const playPct = clamp((currentTime / safeDuration) * 100, 0, 100);
+  const showHover = hoverPct !== null && !dragging;
 
   return (
     <div className="select-none">
@@ -153,11 +163,13 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
         <span className={cn('transition-colors', dragging === 'end' ? 'text-brand-700 dark:text-brand-300 font-semibold' : 'text-gray-300')}>{formatTime(value.end)}</span>
       </div>
 
-      {/* Unclipped stage: the track clips its waveform/overlays, while handles + time bubbles overflow above it. */}
+      {/* Unclipped stage: the track clips its waveform/overlays, while handles + bubbles overflow above it. */}
       <div className="relative">
         <div
           ref={trackRef}
           onPointerDown={seekFromTrack}
+          onPointerMove={onTrackHover}
+          onPointerLeave={() => { setHoverPct(null); }}
           className="relative h-14 rounded-2xl overflow-hidden cursor-pointer ring-1 ring-white/10 shadow-inner"
           style={{ background: 'linear-gradient(to bottom, oklch(0.28 0.02 280), oklch(0.19 0.02 280))' }}
         >
@@ -175,13 +187,18 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
           {/* selected window */}
           <div
             className={cn(
-              'absolute inset-y-0 rounded-xl border-2 border-brand-400 bg-gradient-to-b from-brand-500/35 to-brand-500/10 shadow-[0_0_28px_-4px] shadow-brand-500/60',
+              'absolute inset-y-0 rounded-lg border-2 border-brand-400 bg-gradient-to-b from-brand-500/35 to-brand-500/10 shadow-[0_0_28px_-4px] shadow-brand-500/60',
               !dragging && 'transition-[left,width] duration-150 ease-out'
             )}
             style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
           >
             <span className="absolute inset-x-0 top-0 h-px bg-white/40" />
           </div>
+
+          {/* hover-scrub ghost line */}
+          {showHover && (
+            <div className="pointer-events-none absolute inset-y-0 -ml-px w-px bg-white/45" style={{ left: `${hoverPct}%` }} />
+          )}
 
           {/* playhead */}
           <div
@@ -191,6 +208,16 @@ export function TrimBar({ duration, value, currentTime, onChange, onSeek }: Trim
             <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 rounded-[2px] bg-white shadow-md shadow-white/70" />
           </div>
         </div>
+
+        {/* hover-scrub time label (outer, unclipped) */}
+        {showHover && (
+          <span
+            className="pointer-events-none absolute -top-7 -translate-x-1/2 px-1.5 py-0.5 rounded bg-white text-gray-900 text-[10px] font-semibold tabular-nums shadow-md"
+            style={{ left: `${hoverPct}%` }}
+          >
+            {formatTime((hoverPct / 100) * safeDuration)}
+          </span>
+        )}
 
         {/* handles (siblings of the clipped track so they can overflow) */}
         <TrimHandle side="start" pct={startPct} label={formatTime(value.start)} valueNow={Math.round(value.start)} dragging={dragging === 'start'} onPointerDown={dragHandle('start')} />

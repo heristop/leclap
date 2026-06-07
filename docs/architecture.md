@@ -254,7 +254,7 @@ The architecture is designed to support multiple platforms:
 
 ## Error Handling & Diagnostics
 
-The architecture includes comprehensive error handling and diagnostics:
+The architecture includes error handling and diagnostics:
 
 - **Interactive Setup** - Guides users through first-time configuration
 - **Smart Detection** - Automatically detects available FFmpeg implementations

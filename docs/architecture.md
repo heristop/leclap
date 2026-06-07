@@ -188,7 +188,7 @@ Provides cross-platform abstractions and implementations:
 - **FFmpegNodeAdapter** - System FFmpeg implementation
 - **FFmpegStaticAdapter** - Static binary FFmpeg implementation
 - **FFmpegWasmAdapter** - WebAssembly FFmpeg implementation
-- **FFmpegDetector** - Intelligent FFmpeg detection and diagnostics
+- **FFmpegDetector** - FFmpeg detection and diagnostics
 - **MusicNodeAdapter** - Node.js music processing
 - **FilesystemNodeAdapter** - Node.js filesystem operations
 - **PinoLogAdapter** - Pino logging implementation
@@ -257,6 +257,6 @@ The architecture is designed to support multiple platforms:
 The architecture includes error handling and diagnostics:
 
 - **Interactive Setup** - Guides users through first-time configuration
-- **Smart Detection** - Automatically detects available FFmpeg implementations
+- **Detection** - Automatically detects available FFmpeg implementations
 - **Fallback Strategy** - Graceful degradation through multiple FFmpeg options
 - **Rich Diagnostics** - Detailed system analysis and recommendations

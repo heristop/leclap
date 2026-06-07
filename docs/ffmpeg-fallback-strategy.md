@@ -1,6 +1,6 @@
 # 🔧 FFmpeg Fallback Strategy
 
-The package uses an intelligent three-tier fallback system to ensure FFmpeg is available across different environments:
+The package uses a three-tier fallback system so FFmpeg is available across different environments:
 
 ```mermaid
 graph TD

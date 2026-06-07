@@ -57,7 +57,17 @@ Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there i
 - **Format** (enforced by `vp`): semicolons, single quotes, `printWidth: 120`, `tabWidth: 2`, `trailingComma: es5`.
 - **Path alias** — `@/*` → `packages/core/src/*`.
 - **Decorators** — DI/decorators require `reflect-metadata` to be imported once at the entry point.
+- **React Compiler is enabled** in both apps (`apps/le-clap-web` via `@vitejs/plugin-react`'s Babel pass; `apps/le-clap-expo` via `app.json` → `experiments.reactCompiler`). Don't add `useMemo`/`useCallback`/`React.memo` — the compiler memoizes automatically.
+- **Tests** — core's unit + integration suite lives in `packages/core/tests/` (run by the root `pnpm test` / vitest); the Expo app keeps its own jest tests under `apps/le-clap-expo`.
 - Prefer reusing existing managers/adapters/factories over adding new abstractions; follow the patterns already in `packages/core`.
+
+### Design system & styling (web — `apps/le-clap-web`)
+
+- **The design system is shadcn/ui + Radix** — utility-first, not BEM. Primitives live in `src/presentation/components/ui/` as shadcn-style components: Radix primitives for behavior/accessibility, styled with Tailwind utility classes, variants via **`class-variance-authority` (cva)**, classes merged with **`cn()`** (`@/lib/utils`, clsx + tailwind-merge). Add components via the shadcn CLI/registry; config in `components.json`.
+- **Brand integration:** shadcn's CSS-variable contract (`--background`, `--foreground`, `--primary`, `--primary-foreground`, `--border`, `--ring`, `--card`, …) is mapped onto the OKLCH brand tokens in `@theme` / `.dark` (`src/index.css`) so every shadcn primitive renders on-brand (lavender `--primary`, etc.). Never hard-code colors — reference tokens.
+- **Tokens & theme:** OKLCH CSS variables in `@theme` (`src/index.css`); light is the default, `.dark` on `<html>` swaps semantic surface/text tokens; brand/secondary/accent ramps are theme-constant.
+- **Dependencies:** Radix is added per primitive (`@radix-ui/react-*`) plus `class-variance-authority`; pin versions old enough to satisfy the `minimumReleaseAge` supply-chain policy (`pnpm-workspace.yaml`).
+- **Path alias** in the web app: `@/*` → `apps/le-clap-web/src/*` (distinct from core's `@/*`).
 
 ## Pre-commit
 

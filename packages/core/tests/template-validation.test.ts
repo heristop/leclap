@@ -1,7 +1,32 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { TemplateValidator } from '../services/TemplateValidator';
+import { TemplateValidator } from '@/services/TemplateValidator';
+import type { TemplateDescriptor, Section } from '@/schemas/template.schemas';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+
+function isTemplateDescriptor(data: TemplateDescriptor | Section): data is TemplateDescriptor {
+  return !('type' in data);
+}
+
+function hasErrorCode(errors: Array<{ code: string }> | undefined, code: string): boolean {
+  return errors?.some((err) => err.code === code) === true;
+}
+
+function assertVariableWarnings(
+  validator: TemplateValidator,
+  data: TemplateDescriptor | Section | undefined,
+): void {
+  if (data === undefined || !isTemplateDescriptor(data)) {
+    return;
+  }
+  const warnings = validator.getVariableWarnings(data);
+  expect(warnings.length).toBeGreaterThan(0);
+  expect(warnings.some((err) => err.code === 'undefined_variable')).toBe(true);
+  expect(warnings.some((err) => err.message.includes('undefinedVar'))).toBe(true);
+}
 
 describe('Template Validation', () => {
   let validator: TemplateValidator;
@@ -11,8 +36,9 @@ describe('Template Validation', () => {
   });
 
   const loadTemplate = (filename: string) => {
-    const templatePath = join(__dirname, '../shared/templates', filename);
+    const templatePath = join(currentDir, '../src/shared/templates', filename);
     const templateContent = readFileSync(templatePath, 'utf-8');
+
     return JSON.parse(templateContent);
   };
 
@@ -133,12 +159,7 @@ describe('Template Validation', () => {
       expect(result.success).toBe(true); // Template validation should pass
 
       // But variable warnings should be available
-      if (result.data) {
-        const warnings = validator.getVariableWarnings(result.data);
-        expect(warnings.length).toBeGreaterThan(0);
-        expect(warnings.some((err) => err.code === 'undefined_variable')).toBe(true);
-        expect(warnings.some((err) => err.message.includes('undefinedVar'))).toBe(true);
-      }
+      assertVariableWarnings(validator, result.data);
     });
 
     test('should pass validation with all variables defined', () => {
@@ -188,7 +209,7 @@ describe('Template Validation', () => {
       const result = validator.validateTemplate(template);
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((err) => err.code === 'undefined_section_reference')).toBe(true);
+      expect(hasErrorCode(result.errors, 'undefined_section_reference')).toBe(true);
     });
 
     test('should pass validation with valid section references', () => {
@@ -272,7 +293,8 @@ describe('Template Validation', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors![0].code).toBe('json_parse_error');
+      const firstError = result.errors?.[0];
+      expect(firstError?.code).toBe('json_parse_error');
     });
 
     test('should handle valid JSON', () => {

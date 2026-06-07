@@ -1,13 +1,17 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import type { ProjectConfig } from '@/core/types';
-import { compile, loadConfig } from '@/index';
-import { main } from '@/main';
+import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { compile } from '@/index';
 
-// Get absolute paths for proper configuration
-const cwd = process.cwd();
-const buildDir = path.resolve(cwd, 'build');
-const assetsDir = path.resolve(cwd, 'packages/core/src/shared/assets');
+// Template fixtures load via the `@` alias (-> packages/core/src). Directory paths the engine
+// reads from disk (assets, build output) resolve relative to this test file so the suite runs
+// the same whether invoked from the repo root or from the core package.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, '../../..');
+const coreRoot = path.resolve(__dirname, '..');
+const buildDir = path.resolve(repoRoot, 'build');
+const assetsDir = path.resolve(coreRoot, 'src/shared/assets');
 
 // Project Configuration
 const projectConfig: ProjectConfig = {
@@ -33,7 +37,9 @@ const projectConfig: ProjectConfig = {
 };
 
 async function runTemplateCompilation(configName: string): Promise<string | null> {
-  return await compile(projectConfig, await loadConfig(`./packages/core/src/shared/templates/${configName}.json`));
+  const template = (await import(`@/shared/templates/${configName}.json`)).default as TemplateDescriptor;
+
+  return await compile(projectConfig, template);
 }
 
 describe('Segments', () => {
@@ -78,6 +84,8 @@ describe('Concat', () => {
 
 describe('Mixed Template', () => {
   it('should compile a mixed template successfully', async () => {
-    expect(await main('packages/core/src/shared/templates/sample.json')).not.toBeNull();
+    // The CLI entry main() is covered directly in main-entry.test.ts; here we just exercise the
+    // mixed sample template through the compile pipeline (cwd-independent).
+    expect(await runTemplateCompilation('sample')).not.toBeNull();
   }, 100000);
 });

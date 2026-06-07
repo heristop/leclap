@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 /**
- * Comprehensive coverage suite for FFmpegDetector.
+ * Tests for FFmpegDetector.
  *
  * Strategy:
  * - All side-effecting dependencies are mocked: `node:child_process` exec (the
@@ -252,9 +252,8 @@ describe('FFmpegDetector (full coverage)', () => {
         throw new Error('wasm module missing');
       });
 
-      const { FFmpegDetector: FreshDetector, FFmpegAvailability: FreshEnum } = await import(
-        '@/platform/ffmpeg/FFmpegDetector'
-      );
+      const { FFmpegDetector: FreshDetector, FFmpegAvailability: FreshEnum } =
+        await import('@/platform/ffmpeg/FFmpegDetector');
 
       const result = await FreshDetector.detectWasmFFmpeg();
 
@@ -547,7 +546,7 @@ describe('FFmpegDetector (full coverage)', () => {
     it('recommends a Node upgrade for versions below 22', () => {
       const recs = FFmpegDetector.generateRecommendations(
         baseInfo({ nodeVersion: 'v18.19.0' }),
-        status({ system: true }),
+        status({ system: true })
       );
       expect(recs.some((r) => r.includes('upgrading to Node.js 22+'))).toBe(true);
     });
@@ -555,7 +554,7 @@ describe('FFmpegDetector (full coverage)', () => {
     it('does not recommend a Node upgrade on Node 22+', () => {
       const recs = FFmpegDetector.generateRecommendations(
         baseInfo({ nodeVersion: 'v22.5.0' }),
-        status({ system: true }),
+        status({ system: true })
       );
       expect(recs.some((r) => r.includes('upgrading to Node.js 22+'))).toBe(false);
     });
@@ -563,7 +562,7 @@ describe('FFmpegDetector (full coverage)', () => {
     it('handles a malformed node version string without throwing', () => {
       const recs = FFmpegDetector.generateRecommendations(
         baseInfo({ nodeVersion: 'not-a-version' }),
-        status({ system: true }),
+        status({ system: true })
       );
       // parseInt('not-a-version') -> NaN; NaN < 22 is false, so no upgrade rec.
       expect(recs.some((r) => r.includes('upgrading to Node.js 22+'))).toBe(false);

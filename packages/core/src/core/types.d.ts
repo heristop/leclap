@@ -67,6 +67,10 @@ interface TemplateDescriptorGlobal {
   audioVolumeLevel?: number;
   transitionDuration?: number;
   music?: MusicConfig;
+  allowedMusic?: string[];
+  allowUploadMusic?: boolean;
+  allowedBackgrounds?: string[];
+  allowUploadBackground?: boolean;
 }
 
 export interface Variables {

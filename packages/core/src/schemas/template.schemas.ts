@@ -17,6 +17,10 @@ export const GlobalConfigSchema = z.object({
   audioVolumeLevel: z.number().min(0).max(1).optional(),
   transitionDuration: z.number().positive().optional(),
   music: MusicConfigSchema.optional(),
+  allowedMusic: z.array(z.string()).optional(),
+  allowUploadMusic: z.boolean().optional(),
+  allowedBackgrounds: z.array(z.string()).optional(),
+  allowUploadBackground: z.boolean().optional(),
 });
 
 export const FilterValuesSchema = z.object({

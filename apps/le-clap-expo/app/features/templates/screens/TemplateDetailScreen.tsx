@@ -1,338 +1,276 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Modal
-} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/app/features/editor/components/FormSection';
 import type { Template, Section, Project } from '@/src/types';
-import { colors, spacing, typography } from '@/src/styles/theme';
+import { colors } from '@/src/styles/theme';
+import { styles } from './TemplateDetailScreen.styles';
 import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
 
-const TemplateDetailScreen = () => {
-  const params = useLocalSearchParams<{ id: string; projectId?: string }>();
-  const router = useRouter();
-  const templateName = params.id;
-  const projectId = params.projectId;
+const EDITABLE_TYPES = ['project_video', 'form', 'music', 'picture'] as const;
+const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = { project_video: 'videocam', form: 'document-text', music: 'musical-notes', picture: 'image' };
 
-  const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
-  const { data: existingProject, isLoading: projectLoading } = useProject(projectId || '');
-  const saveProjectMutation = useSaveProject();
-  const queueVideoCompilation = useQueueVideoCompilation();
-  const { isOffline } = useOffline();
+function getSectionIcon(s: Section): keyof typeof Ionicons.glyphMap { return SECTION_ICONS[s.type] ?? 'document'; }
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
-  const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
+function isSectionCompleted(section: Section, project: Project): boolean {
+  if (section.type === 'project_video' || section.type === 'picture') return Boolean(project.recordedVideos[section.name]);
 
-  useEffect(() => {
-    if (template) {
-      // If we have a projectId, wait for the project to load
-      if (projectId && projectLoading) {
-        return; // Don't create a new project while loading
-      }
+  if (section.type === 'form') return (section.options?.fields ?? []).every(f => Boolean(project.formData[f.name]));
 
-      if (existingProject) {
-        setProject(existingProject);
-      } else if (!projectId) {
-        // Only create a new project if no projectId was provided
-        createNewProject(template);
-      }
-      // If projectId exists but no project found after loading, don't create a new one
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- createNewProject is defined below and uses template
-  }, [template, existingProject, projectLoading, projectId]);
+  if (section.type === 'music') return Boolean(project.formData[`music_${section.name}`]);
 
-  const createNewProject = (templateData: Template) => {
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: `${templateData.name.replace('.json', '')} Project`,
-      templateName: templateData.name,
-      templateContent: templateData.content,
-      status: 'draft',
-      formData: {},
-      recordedVideos: {},
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setProject(newProject);
-    
-    saveProjectMutation.mutate(newProject);
-  };
-  
+  return false;
+}
+
+function getSectionInfo(t: Template | undefined, p: Project | null): { filtered: Section[]; completed: number } {
+  const filtered = (t?.content.sections ?? []).filter(s => (EDITABLE_TYPES as readonly string[]).includes(s.type));
+
+  return { filtered, completed: p ? filtered.filter(s => isSectionCompleted(s, p)).length : 0 };
+}
+
+function compileTemplate(content: Template['content'], formData: Project['formData']): Record<string, unknown> {
+  let str = JSON.stringify(JSON.parse(JSON.stringify(content)) as unknown);
+
+  for (const [key, value] of Object.entries(formData)) {
+    str = str.replace(new RegExp(`{{ ${key} }}`.replace(/[-\\^$*+?.()|[\]{}]/g, String.raw`\$&`), 'g'), String(value));
+  }
+
+  return JSON.parse(str) as Record<string, unknown>;
+}
+
+function getButtonLabel(isPending: boolean, isOffline: boolean): string {
+  if (!isPending) return 'Create My Video';
+
+  return isOffline ? 'Adding to Queue...' : 'Creating Video...';
+}
+
+type FormModalProps = { section: Section | null; formData: Project['formData']; onFormDataChange: (f: string, v: string) => void; onClose: () => void; onSubmit: () => void };
+const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: FormModalProps) => {
+  if (!section) return null;
+
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView style={styles.formModalContainer}>
+        <View style={styles.formHeader}>
+          <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} color={colors.text} /></TouchableOpacity>
+        </View>
+        <ScrollView><FormSection section={section} formData={formData as Record<string, string>} onFormDataChange={onFormDataChange} /></ScrollView>
+        <View style={styles.formFooter}>
+          <TouchableOpacity style={styles.formSubmitButton} onPress={onSubmit}><Text style={styles.formSubmitButtonText}>Done</Text></TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+
+type MusicModalProps = { section: Section | null; onClose: () => void; onUseDefault: () => void };
+const MusicModal = ({ section, onClose, onUseDefault }: MusicModalProps) => {
+  if (!section) return null;
+
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView style={styles.formModalContainer}>
+        <View style={styles.formHeader}>
+          <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} color={colors.text} /></TouchableOpacity>
+        </View>
+        <View style={styles.placeholderContainer}>
+          <Ionicons name="musical-notes" size={48} color={colors.primary} />
+          <Text style={styles.placeholderText}>Music selection coming soon</Text>
+          <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}><Text style={styles.tempCompleteButtonText}>Use Default Music</Text></TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+};
+
+type SectionItemProps = { section: Section; project: Project; onPress: () => void; onPreview: () => void };
+const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps) => {
+  const completed = isSectionCompleted(section, project);
+
+  return (
+    <TouchableOpacity style={styles.sectionItem} onPress={onPress}>
+      <View style={styles.sectionItemContent}>
+        <View style={styles.sectionTypeIcon}><Ionicons name={getSectionIcon(section)} size={24} color={colors.primary} /></View>
+        <View style={styles.sectionItemText}>
+          <Text style={styles.sectionItemTitle}>{section.title?.en ?? section.name}</Text>
+          {section.description?.en ? <Text style={styles.sectionItemDescription} numberOfLines={1}>{section.description.en}</Text> : null}
+        </View>
+        <View style={styles.sectionItemStatus}>
+          {completed ? <Ionicons name="checkmark-circle" size={24} color={colors.success} /> : <Ionicons name="ellipse-outline" size={24} color={colors.divider} />}
+        </View>
+      </View>
+      {completed && (section.type === 'project_video' || section.type === 'picture') && (
+        <View style={styles.sectionItemActions}>
+          <TouchableOpacity style={styles.previewButton} onPress={(e) => { e.stopPropagation(); onPreview(); }}>
+            <Ionicons name="play" size={16} color={colors.primary} /><Text style={styles.previewButtonText}>Preview</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+type HandlerCtx = { project: Project | null; template: Template | undefined; activeFormSection: Section | null; activeMusicSection: Section | null; setProject: (p: Project) => void; setActiveFormSection: (s: Section | null) => void; setActiveMusicSection: (s: Section | null) => void; saveProjectMutation: ReturnType<typeof useSaveProject>; router: ReturnType<typeof useRouter> };
+
+function useSectionHandlers(ctx: HandlerCtx) {
+  const { project, template, activeFormSection, activeMusicSection, setProject, setActiveFormSection, setActiveMusicSection, saveProjectMutation, router } = ctx;
   const handleFormDataChange = (field: string, value: string) => {
     if (!project) return;
-    
-    setProject(prev => {
-      if (!prev) return prev;
-      
-      const updatedProject = {
-        ...prev,
-        formData: {
-          ...prev.formData,
-          [field]: value,
-        },
-        updatedAt: new Date().toISOString(),
-      };
-      
-      setTimeout(() => {
-        saveProjectMutation.mutate(updatedProject);
-      }, 500);
-      
-      return updatedProject;
-    });
+    setProject({ ...project, formData: { ...project.formData, [field]: value }, updatedAt: new Date().toISOString() });
+    saveProjectMutation.mutate({ ...project, formData: { ...project.formData, [field]: value }, updatedAt: new Date().toISOString() });
   };
-
-  const isFormSectionCompleted = (section: Section, formData: Record<string, string>): boolean => {
-    if (section.type !== 'form' || !section.options?.fields) return false;
-    return section.options.fields.every(field => !!formData[field.name]);
-  };
-
   const handleFormSubmit = () => {
-    if (!activeFormSection || !project) return; 
-    
-    if (isFormSectionCompleted(activeFormSection, project.formData)) {
+    if (!activeFormSection || !project) return;
+    const done = (activeFormSection.options?.fields ?? []).every(f => Boolean(project.formData[f.name]));
+
+    if (done) {
       setActiveFormSection(null);
-    } else {
-      Alert.alert("Incomplete Form", "Please fill out all required fields");
-    }
-  };
 
+      return;
+    }
+
+    Alert.alert('Incomplete Form', 'Please fill out all required fields');
+  };
   const handlePreviewVideo = (section: Section) => {
-    if (project?.recordedVideos[section.name] && project?.id && template?.content?.global?.orientation) {
-      router.push({
-        pathname: '/(fullscreen)/preview',
-        params: {
-          projectId: project.id,
-          videoUri: project.recordedVideos[section.name].path,
-          orientation: template.content.global.orientation,
-          sectionName: section.name,
-        },
-      });
-    } else {
-      console.error('Cannot preview video: Missing project, video, or orientation data.');
-      Alert.alert('Error', 'Could not preview video.');
+    if (project?.recordedVideos[section.name] && template?.content.global?.orientation) {
+      router.push({ pathname: '/(fullscreen)/preview', params: { projectId: project.id, videoUri: project.recordedVideos[section.name].path, orientation: template.content.global.orientation, sectionName: section.name } });
+
+      return;
     }
+    console.error('Cannot preview video: Missing project, video, or orientation data.');
+    Alert.alert('Error', 'Could not preview video.');
   };
-
-  const isSectionCompleted = (section: Section): boolean => {
-    if (!project) return false;
-    
-    if (section.type === 'project_video' || section.type === 'picture') {
-      return !!project.recordedVideos[section.name];
-    } else if (section.type === 'form') {
-      const fields = section.options?.fields || [];
-      return fields.every(field => !!project.formData[field.name]);
-    } else if (section.type === 'music') {
-      return !!project.formData[`music_${section.name}`];
-    }
-    return false;
-  };
-  
-  const areAllSectionsCompleted = (): boolean => {
-    if (!template || !filteredSections.length) return false;
-    return filteredSections.every(isSectionCompleted);
-  };
-
-  const handleCompileVideo = async () => {
-    if (!project || !template) return;
-
-    const processedTemplate = JSON.parse(JSON.stringify(template.content));
-
-    let templateString = JSON.stringify(processedTemplate);
-    for (const [key, value] of Object.entries(project.formData)) {
-      const placeholder = `{{ ${key} }}`;
-      templateString = templateString.replace(new RegExp(placeholder.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
-    }
-
-    const finalTemplate = JSON.parse(templateString);
-
-    queueVideoCompilation.mutate(
-      {
-        projectId: project.id,
-        templateDescriptor: finalTemplate,
-        recordedVideos: project.recordedVideos
-      },
-      {
-        onSuccess: (result) => {
-          if (result.immediate && result.result?.success) {
-            // Immediate success
-            const updatedProject = {
-              ...project,
-              outputVideoUri: result.result.outputUri,
-              status: 'completed' as 'draft' | 'processing' | 'completed',
-              updatedAt: new Date().toISOString(),
-            };
-
-            setProject(updatedProject);
-            saveProjectMutation.mutate(updatedProject);
-
-            router.push({
-              pathname: '/(fullscreen)/preview',
-              params: { projectId: project.id, videoUri: result.result.outputUri },
-            });
-          } else if (!result.immediate) {
-            // Added to queue
-            Alert.alert(
-              isOffline ? 'Added to Queue (Offline)' : 'Added to Queue',
-              isOffline
-                ? 'Your video will be processed automatically when you connect to the internet.'
-                : 'Your video has been queued for processing. You\'ll be notified when it\'s ready.',
-              [
-                {
-                  text: 'OK',
-                  onPress: () => router.back(),
-                },
-              ]
-            );
-          } else {
-            // Immediate failure
-            Alert.alert(
-              'Compilation Failed',
-              result.result?.error || 'An error occurred during video compilation.'
-            );
-          }
-        },
-        onError: (error: unknown) => {
-          console.error('Error during compilation:', error);
-          Alert.alert(
-            'Compilation Error',
-            `An unexpected error occurred: ${error.message}`
-          );
-        },
-      }
-    );
-  };
-
-  const getSectionIcon = (section: Section): keyof typeof Ionicons.glyphMap => {
-    switch (section.type) {
-      case 'project_video':
-        return 'videocam';
-      case 'form':
-        return 'document-text';
-      case 'music':
-        return 'musical-notes';
-      case 'picture':
-        return 'image';
-      default:
-        return 'document';
-    }
-  };
-
-  const renderActiveFormSection = () => {
-    if (!activeFormSection) return null;
-    
-    return (
-      <Modal
-        visible={activeFormSection !== null}
-        animationType="slide"
-        onRequestClose={() => setActiveFormSection(null)}
-      >
-        <SafeAreaView style={styles.formModalContainer}>
-          <View style={styles.formHeader}>
-            <Text style={styles.formTitle}>{activeFormSection.title?.en || activeFormSection.name}</Text>
-            <TouchableOpacity onPress={() => setActiveFormSection(null)}>
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView>
-            <FormSection
-              section={activeFormSection}
-              formData={project?.formData || {}}
-              onFormDataChange={handleFormDataChange}
-            />
-          </ScrollView>
-          <View style={styles.formFooter}>
-            <TouchableOpacity
-              style={styles.formSubmitButton}
-              onPress={handleFormSubmit}
-            >
-              <Text style={styles.formSubmitButtonText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
-    );
-  };
-
-  const renderActiveMusicSection = () => {
-    if (!activeMusicSection) return null;
-
-    return (
-      <Modal
-        visible={activeMusicSection !== null}
-        animationType="slide"
-        onRequestClose={() => setActiveMusicSection(null)}
-      >
-        <SafeAreaView style={styles.formModalContainer}>
-           <View style={styles.formHeader}>
-            <Text style={styles.formTitle}>{activeMusicSection.title?.en || activeMusicSection.name}</Text>
-            <TouchableOpacity onPress={() => setActiveMusicSection(null)}>
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.placeholderContainer}>
-              <Ionicons name="musical-notes" size={48} color={colors.primary} />
-              <Text style={styles.placeholderText}>Music selection coming soon</Text>
-              <TouchableOpacity 
-                style={styles.tempCompleteButton}
-                onPress={() => {
-                  if (project) {
-                    const updatedProject = {
-                      ...project,
-                      formData: {
-                        ...project.formData,
-                        [`music_${activeMusicSection.name}`]: 'default',
-                      },
-                      updatedAt: new Date().toISOString(),
-                    };
-                    setProject(updatedProject);
-                    saveProjectMutation.mutate(updatedProject);
-                  }
-                  setActiveMusicSection(null);
-                }}
-              >
-                <Text style={styles.tempCompleteButtonText}>Use Default Music</Text>
-              </TouchableOpacity>
-            </View>
-        </SafeAreaView>
-      </Modal>
-    );
-  };
-
   const handleSectionPress = (section: Section) => {
     if (!project || !template) return;
 
     if (section.type === 'project_video' || section.type === 'picture') {
-      router.push({
-        pathname: '/(fullscreen)/record-section',
-        params: {
-          projectId: project.id,
-          sectionJson: JSON.stringify(section),
-          orientation: template.content.global?.orientation || 'portrait',
-          existingVideoPath: project.recordedVideos[section.name]?.path,
-        },
-      });
-    } else if (section.type === 'form') {
-      setActiveFormSection(section);
-    } else if (section.type === 'music') {
-      setActiveMusicSection(section);
-    } else {
-      Alert.alert('Unsupported', 'This section type is not yet editable.');
+      router.push({ pathname: '/(fullscreen)/record-section', params: { projectId: project.id, sectionJson: JSON.stringify(section), orientation: template.content.global?.orientation ?? 'portrait', existingVideoPath: project.recordedVideos[section.name]?.path } });
+
+      return;
     }
+
+    if (section.type === 'form') {
+      setActiveFormSection(section);
+
+      return;
+    }
+
+    if (section.type === 'music') {
+      setActiveMusicSection(section);
+
+      return;
+    }
+
+    Alert.alert('Unsupported', 'This section type is not yet editable.');
+  };
+  const handleMusicUseDefault = () => {
+    if (project && activeMusicSection) {
+      const updated = { ...project, formData: { ...project.formData, [`music_${activeMusicSection.name}`]: 'default' }, updatedAt: new Date().toISOString() };
+      setProject(updated);
+      saveProjectMutation.mutate(updated);
+    }
+    setActiveMusicSection(null);
   };
 
+  return { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault };
+}
+
+type CompileCtx = { project: Project | null; template: Template | undefined; isOffline: boolean; setProject: (p: Project) => void; saveProjectMutation: ReturnType<typeof useSaveProject>; queueVideoCompilation: ReturnType<typeof useQueueVideoCompilation>; router: ReturnType<typeof useRouter> };
+
+function useCompileHandler(ctx: CompileCtx) {
+  const { project, template, isOffline, setProject, saveProjectMutation, queueVideoCompilation, router } = ctx;
+
+  return () => {
+    if (!project || !template) return;
+    queueVideoCompilation.mutate(
+      { projectId: project.id, templateDescriptor: compileTemplate(template.content, project.formData), recordedVideos: project.recordedVideos },
+      {
+        onSuccess: (result) => {
+          if (result.immediate && result.result?.success) {
+            const updated = { ...project, outputVideoUri: result.result.outputUri, status: 'completed' as const, updatedAt: new Date().toISOString() };
+            setProject(updated);
+            saveProjectMutation.mutate(updated);
+            router.push({ pathname: '/(fullscreen)/preview', params: { projectId: project.id, videoUri: result.result.outputUri } });
+
+            return;
+          }
+
+          if (!result.immediate) {
+            const title = isOffline ? 'Added to Queue (Offline)' : 'Added to Queue';
+            const msg = isOffline ? 'Your video will be processed automatically when you connect to the internet.' : "Your video has been queued for processing. You'll be notified when it's ready.";
+
+            Alert.alert(title, msg, [{ text: 'OK', onPress: () => { router.back(); } }]);
+
+            return;
+          }
+          Alert.alert('Compilation Failed', result.result?.error ?? 'An error occurred during video compilation.');
+        },
+        onError: (error: unknown) => {
+          console.error('Error during compilation:', error);
+          Alert.alert('Compilation Error', `An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        },
+      }
+    );
+  };
+}
+
+function useTemplateDetail(templateName: string, projectId: string | undefined) {
+  const router = useRouter();
+  const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
+  const { data: existingProject, isLoading: projectLoading } = useProject(projectId ?? '');
+  const saveProjectMutation = useSaveProject();
+  const queueVideoCompilation = useQueueVideoCompilation();
+  const { isOffline } = useOffline();
+  const [project, setProject] = useState<Project | null>(null);
+  const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
+  const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
+  // react-query recreates the mutation object every render, so keep it in a ref instead of
+  // a dependency. Initialize the project exactly once: without the guard, the new-project
+  // branch built a fresh object (new Date.now() id) and called setProject every render,
+  // causing an infinite update-depth loop and spamming saveProjectMutation.mutate.
+  const saveProjectMutationRef = useRef(saveProjectMutation);
+  saveProjectMutationRef.current = saveProjectMutation;
+  const projectInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!template || (projectId !== undefined && projectLoading)) return;
+
+    if (projectInitializedRef.current) return;
+
+    if (existingProject) {
+      projectInitializedRef.current = true;
+      setProject(existingProject);
+
+      return;
+    }
+
+    if (!projectId) {
+      projectInitializedRef.current = true;
+      const p: Project = { id: Date.now().toString(), name: `${template.name.replace('.json', '')} Project`, templateName: template.name, templateContent: template.content, status: 'draft', formData: {}, recordedVideos: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      setProject(p);
+      saveProjectMutationRef.current.mutate(p);
+    }
+  }, [template, existingProject, projectLoading, projectId]);
+  const { filtered: filteredSections, completed: completedSectionsCount } = getSectionInfo(template, project);
+  const setProjectSafe = (p: Project) => { setProject(p); };
+  const hCtx: HandlerCtx = { project, template, activeFormSection, activeMusicSection, setProject: setProjectSafe, setActiveFormSection, setActiveMusicSection, saveProjectMutation, router };
+  const { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault } = useSectionHandlers(hCtx);
+  const handleCompile = useCompileHandler({ project, template, isOffline, setProject: setProjectSafe, saveProjectMutation, queueVideoCompilation, router });
+  const allDone = project !== null && filteredSections.length > 0 && filteredSections.every(s => isSectionCompleted(s, project));
+
+  return { template, templateLoading, templateError, project, filteredSections, completedSectionsCount, allDone, orientation: template?.content.global?.orientation ?? 'portrait', description: template?.content.sections?.find(s => s.description?.en)?.description?.en ?? 'Create a video using this template', activeFormSection, setActiveFormSection, activeMusicSection, setActiveMusicSection, isPending: queueVideoCompilation.isPending, isOffline, handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault, handleCompile, router };
+}
+
+const TemplateDetailScreen = () => {
+  const params = useLocalSearchParams<{ id: string; projectId?: string }>();
+  const { template, templateLoading, templateError, project, filteredSections, completedSectionsCount, allDone, orientation, description, activeFormSection, setActiveFormSection, activeMusicSection, setActiveMusicSection, isPending, isOffline, handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault, handleCompile, router } = useTemplateDetail(params.id, params.projectId);
 
   if (templateLoading) {
     return (
@@ -346,376 +284,45 @@ const TemplateDetailScreen = () => {
   if (templateError || !template || !project) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>
-          {templateError instanceof Error ? templateError.message : 'Template or Project not found'}
-        </Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back to Templates</Text>
-        </TouchableOpacity>
+        <Text style={styles.errorText}>{templateError instanceof Error ? templateError.message : 'Template or Project not found'}</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => { router.back(); }}><Text style={styles.backButtonText}>Back to Templates</Text></TouchableOpacity>
       </View>
     );
   }
-
-  const filteredSections = (template.content.sections || []).filter(section => 
-    ['project_video', 'form', 'music', 'picture'].includes(section.type)
-  );
-
-  const displayName = template.name.replace('.json', '');
-  const orientation = template.content.global?.orientation || 'portrait';
-  
-  const description = template.content.sections?.find(section => 
-    section.description?.en)?.description?.en || 'Create a video using this template';
+  const isDisabled = !allDone || isPending;
+  const orientationIcon = orientation === 'portrait' ? 'phone-portrait-outline' : ('phone-landscape-outline' as keyof typeof Ionicons.glyphMap);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>{displayName}</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => { router.back(); }}><Ionicons name="arrow-back" size={24} color={colors.text} /></TouchableOpacity>
+        <Text style={styles.title}>{template.name.replace('.json', '')}</Text>
       </View>
-      
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.orientationRow}>
-          <Ionicons 
-            name={orientation === 'portrait' ? 'phone-portrait-outline' : 'phone-landscape-outline'} 
-            size={24} 
-            color={colors.text} 
-          />
+          <Ionicons name={orientationIcon} size={24} color={colors.text} />
           <Text style={styles.orientationText}>{orientation === 'portrait' ? 'Portrait' : 'Landscape'} orientation</Text>
         </View>
-        
         <Text style={styles.description}>{description}</Text>
-        
         <View style={styles.progressBarContainer}>
-          <View 
-            style={[styles.progressBar, { width: `${(filteredSections.filter(s => isSectionCompleted(s)).length / filteredSections.length) * 100}%` }]} 
-          />
+          <View style={[styles.progressBar, { width: `${(completedSectionsCount / filteredSections.length) * 100}%` }]} />
         </View>
-        <Text style={styles.progressText}>
-          {filteredSections.filter(s => isSectionCompleted(s)).length} of {filteredSections.length} sections completed
-        </Text>
-        
+        <Text style={styles.progressText}>{completedSectionsCount} of {filteredSections.length} sections completed</Text>
         <Text style={styles.sectionTitle}>Sections</Text>
-        
         {filteredSections.map((section) => (
-          <TouchableOpacity 
-            key={section.name}
-            style={styles.sectionItem}
-            onPress={() => handleSectionPress(section)}
-          >
-            <View style={styles.sectionItemContent}>
-              <View style={styles.sectionTypeIcon}>
-                <Ionicons 
-                  name={getSectionIcon(section)} 
-                  size={24} 
-                  color={colors.primary} 
-                />
-              </View>
-              
-              <View style={styles.sectionItemText}>
-                <Text style={styles.sectionItemTitle}>{section.title?.en || section.name}</Text>
-                {section.description?.en && (
-                  <Text style={styles.sectionItemDescription} numberOfLines={1}>
-                    {section.description.en}
-                  </Text>
-                )}
-              </View>
-              
-              <View style={styles.sectionItemStatus}>
-                {isSectionCompleted(section) ? (
-                  <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-                ) : (
-                  <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
-                )}
-              </View>
-            </View>
-
-            {isSectionCompleted(section) && (section.type === 'project_video' || section.type === 'picture') && (
-              <View style={styles.sectionItemActions}>
-                <TouchableOpacity 
-                  style={styles.previewButton}
-                  onPress={(e) => { 
-                    e.stopPropagation();
-                    handlePreviewVideo(section); 
-                  }}
-                >
-                  <Ionicons name="play" size={16} color={colors.primary} />
-                  <Text style={styles.previewButtonText}>Preview</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </TouchableOpacity>
+          <SectionItem key={section.name} section={section} project={project} onPress={() => { handleSectionPress(section); }} onPreview={() => { handlePreviewVideo(section); }} />
         ))}
       </ScrollView>
-      
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.createButton,
-            !areAllSectionsCompleted() && styles.disabledButton,
-            queueVideoCompilation.isPending && styles.disabledButton
-          ]}
-          disabled={!areAllSectionsCompleted() || queueVideoCompilation.isPending}
-          onPress={handleCompileVideo}
-        >
-          <Text style={styles.createButtonText}>
-            {queueVideoCompilation.isPending
-              ? isOffline
-                ? 'Adding to Queue...'
-                : 'Creating Video...'
-              : 'Create My Video'}
-          </Text>
-          {queueVideoCompilation.isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
+        <TouchableOpacity style={[styles.createButton, isDisabled && styles.disabledButton]} disabled={isDisabled} onPress={handleCompile}>
+          <Text style={styles.createButtonText}>{getButtonLabel(isPending, isOffline)}</Text>
+          {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
         </TouchableOpacity>
       </View>
-
-      {renderActiveFormSection()}
-      {renderActiveMusicSection()}
+      <FormModal section={activeFormSection} formData={project.formData} onFormDataChange={handleFormDataChange} onClose={() => { setActiveFormSection(null); }} onSubmit={handleFormSubmit} />
+      <MusicModal section={activeMusicSection} onClose={() => { setActiveMusicSection(null); }} onUseDefault={handleMusicUseDefault} />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.s,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  backButton: {
-    padding: spacing.s,
-    marginRight: spacing.s,
-  },
-  title: {
-    ...typography.title,
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.m,
-  },
-  contentContainer: {
-    paddingTop: spacing.l,
-    paddingBottom: spacing.xxl + 30,
-  },
-  orientationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.s,
-  },
-  orientationText: {
-    ...typography.body,
-    marginLeft: spacing.s,
-  },
-  description: {
-    ...typography.body,
-    marginTop: spacing.m,
-    marginBottom: spacing.m,
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: colors.divider,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginTop: spacing.m,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: colors.success,
-    borderRadius: 4,
-  },
-  progressText: {
-    ...typography.caption,
-    textAlign: 'center',
-    marginTop: spacing.s,
-    color: colors.textSecondary,
-    marginBottom: spacing.m,
-  },
-  sectionTitle: {
-    ...typography.subtitle,
-    marginTop: spacing.m,
-    marginBottom: spacing.m,
-  },
-  sectionItem: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    marginBottom: spacing.m,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 1,
-    elevation: 1,
-  },
-  sectionItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.m,
-  },
-  sectionTypeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary + '10',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.m,
-  },
-  sectionItemText: {
-    flex: 1,
-  },
-  sectionItemTitle: {
-    ...typography.subtitle,
-    marginBottom: spacing.xs,
-  },
-  sectionItemDescription: {
-    ...typography.caption,
-  },
-  sectionItemStatus: {
-    marginLeft: spacing.m,
-  },
-  sectionItemActions: {
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    padding: spacing.s,
-    alignItems: 'center',
-  },
-  previewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.xs,
-    borderRadius: 4,
-    backgroundColor: colors.primary + '10',
-  },
-  previewButtonText: {
-    ...typography.caption,
-    color: colors.primary,
-    marginLeft: spacing.xs,
-    fontWeight: '500',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: spacing.m,
-    paddingBottom: spacing.l,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.background,
-  },
-  createButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.m,
-    paddingHorizontal: spacing.m,
-    borderRadius: 12,
-    minHeight: 56,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  createButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  loader: {
-    marginLeft: spacing.m,
-  },
-  loadingText: {
-    ...typography.body,
-    marginTop: spacing.m,
-  },
-  errorText: {
-    ...typography.body,
-    color: colors.error,
-    marginBottom: spacing.l,
-  },
-  backButtonText: {
-    ...typography.body,
-    color: colors.primary,
-  },
-
-  formModalContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  formHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.m,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  formTitle: {
-    ...typography.title,
-    flex: 1,
-    marginRight: spacing.m,
-  },
-  formContainer: {
-    flex: 1,
-  },
-  formFooter: {
-    padding: spacing.m,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.surface,
-  },
-  formSubmitButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.m,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  formSubmitButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.l,
-  },
-  placeholderText: {
-    ...typography.body,
-    marginVertical: spacing.m,
-    textAlign: 'center',
-  },
-  tempCompleteButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.l,
-    paddingVertical: spacing.m,
-    borderRadius: 8,
-    marginTop: spacing.l,
-  },
-  tempCompleteButtonText: {
-    color: colors.surface,
-    fontWeight: 'bold',
-  },
-});
 
 export default TemplateDetailScreen;

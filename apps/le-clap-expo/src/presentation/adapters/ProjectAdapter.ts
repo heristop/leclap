@@ -5,10 +5,10 @@ import type { UpdateProjectDTO } from '@/src/application/usecases/projects/Updat
 import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 
 export class ProjectAdapter {
-  private createProjectUseCase = container.getCreateProjectUseCase();
-  private getProjectsUseCase = container.getGetProjectsUseCase();
-  private updateProjectUseCase = container.getUpdateProjectUseCase();
-  private deleteProjectUseCase = container.getDeleteProjectUseCase();
+  private readonly createProjectUseCase = container.getCreateProjectUseCase();
+  private readonly getProjectsUseCase = container.getGetProjectsUseCase();
+  private readonly updateProjectUseCase = container.getUpdateProjectUseCase();
+  private readonly deleteProjectUseCase = container.getDeleteProjectUseCase();
 
   async getAllProjects(): Promise<Project[]> {
     return this.getProjectsUseCase.execute();
@@ -26,7 +26,16 @@ export class ProjectAdapter {
     data: CreateProjectDTO & {
       recordedVideos?: Record<
         string,
-        { path: string; orientation?: string; duration?: number; width?: number; height?: number; recordedAt?: string }
+        {
+          path: string;
+          orientation?: string;
+          duration?: number;
+          width?: number;
+          height?: number;
+          recordedAt?: string;
+          trim?: { start: number; end: number };
+          crop?: { x: number; y: number; w: number; h: number };
+        }
       >;
       createdAt?: string | Date;
       updatedAt?: string | Date;
@@ -40,14 +49,16 @@ export class ProjectAdapter {
         ? Object.fromEntries(
             Object.entries(data.recordedVideos).map(([key, value]) => [
               key,
-              new VideoMetadata(
-                value.path,
-                value.orientation,
-                value.duration,
-                value.width,
-                value.height,
-                value.recordedAt ? new Date(value.recordedAt) : new Date()
-              ),
+              new VideoMetadata({
+                path: value.path,
+                orientation: value.orientation,
+                duration: value.duration,
+                width: value.width,
+                height: value.height,
+                recordedAt: value.recordedAt ? new Date(value.recordedAt) : new Date(),
+                trim: value.trim,
+                crop: value.crop,
+              }),
             ])
           )
         : undefined,
@@ -61,7 +72,16 @@ export class ProjectAdapter {
       templateContent?: Record<string, unknown>;
       recordedVideos?: Record<
         string,
-        { path: string; orientation?: string; duration?: number; width?: number; height?: number; recordedAt?: string }
+        {
+          path: string;
+          orientation?: string;
+          duration?: number;
+          width?: number;
+          height?: number;
+          recordedAt?: string;
+          trim?: { start: number; end: number };
+          crop?: { x: number; y: number; w: number; h: number };
+        }
       >;
       thumbnailUri?: string;
     }
@@ -73,14 +93,16 @@ export class ProjectAdapter {
         ? Object.fromEntries(
             Object.entries(data.recordedVideos).map(([key, value]) => [
               key,
-              new VideoMetadata(
-                value.path,
-                value.orientation,
-                value.duration,
-                value.width,
-                value.height,
-                value.recordedAt ? new Date(value.recordedAt) : new Date()
-              ),
+              new VideoMetadata({
+                path: value.path,
+                orientation: value.orientation,
+                duration: value.duration,
+                width: value.width,
+                height: value.height,
+                recordedAt: value.recordedAt ? new Date(value.recordedAt) : new Date(),
+                trim: value.trim,
+                crop: value.crop,
+              }),
             ])
           )
         : undefined,

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/shallow';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Project } from '@/src/types';
 
@@ -66,11 +66,15 @@ export const useProjectStore = create<ProjectStore>()(
       // Computed
       getProjectById: (id) => {
         const { projects } = get();
+
         return projects.find((p) => p.id === id);
       },
 
       getProjectsSortedByDate: () => {
         const { projects } = get();
+
+        // Return a new sorted array without mutating the store's array.
+        // Spread + sort (Hermes lacks Array.prototype.toSorted).
         return [...projects].sort((a, b) => {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
@@ -106,7 +110,7 @@ export const useSetLoading = () => useProjectStore((state) => state.setLoading);
 // For backwards compatibility - using shallow comparison
 export const useProjectActions = () =>
   useProjectStore(
-    (state) => ({
+    useShallow((state) => ({
       setProjects: state.setProjects,
       addProject: state.addProject,
       updateProject: state.updateProject,
@@ -114,6 +118,5 @@ export const useProjectActions = () =>
       deleteAllProjects: state.deleteAllProjects,
       setCurrentProject: state.setCurrentProject,
       setLoading: state.setLoading,
-    }),
-    shallow
+    }))
   );

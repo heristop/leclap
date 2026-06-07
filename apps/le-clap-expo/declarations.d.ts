@@ -1,0 +1,9 @@
+// Ambient declarations for static asset imports (bundled by Metro at runtime).
+// Lets the type-checker resolve `import logo from '@/assets/images/logo.png'`
+// without falling back to relative paths.
+declare module '*.png';
+declare module '*.jpg';
+declare module '*.jpeg';
+declare module '*.gif';
+declare module '*.webp';
+declare module '*.svg';

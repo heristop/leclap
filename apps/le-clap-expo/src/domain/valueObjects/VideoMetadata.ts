@@ -3,15 +3,51 @@
  * Represents metadata about a recorded video
  */
 
+/** Trim selection in seconds. */
+export interface VideoTrim {
+  start: number;
+  end: number;
+}
+
+/** Crop selection normalized to the source frame (0..1), resolution-independent. */
+export interface VideoCrop {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface VideoMetadataParams {
+  path: string;
+  orientation?: 'portrait' | 'landscape';
+  duration?: number;
+  width?: number;
+  height?: number;
+  recordedAt?: Date;
+  trim?: VideoTrim;
+  crop?: VideoCrop;
+}
+
 export class VideoMetadata {
-  constructor(
-    public readonly path: string,
-    public readonly orientation?: 'portrait' | 'landscape',
-    public readonly duration?: number,
-    public readonly width?: number,
-    public readonly height?: number,
-    public readonly recordedAt: Date = new Date()
-  ) {}
+  public readonly path: string;
+  public readonly orientation?: 'portrait' | 'landscape';
+  public readonly duration?: number;
+  public readonly width?: number;
+  public readonly height?: number;
+  public readonly recordedAt: Date;
+  public readonly trim?: VideoTrim;
+  public readonly crop?: VideoCrop;
+
+  constructor(params: VideoMetadataParams) {
+    this.path = params.path;
+    this.orientation = params.orientation;
+    this.duration = params.duration;
+    this.width = params.width;
+    this.height = params.height;
+    this.recordedAt = params.recordedAt ?? new Date();
+    this.trim = params.trim;
+    this.crop = params.crop;
+  }
 
   /**
    * Check if video has valid dimensions
@@ -25,6 +61,7 @@ export class VideoMetadata {
    */
   getAspectRatio(): number | null {
     if (!this.hasValidDimensions()) return null;
+
     return (this.width ?? 0) / (this.height ?? 1);
   }
 
@@ -33,6 +70,7 @@ export class VideoMetadata {
    */
   isPortrait(): boolean {
     const ratio = this.getAspectRatio();
+
     return ratio !== null && ratio < 1;
   }
 
@@ -47,6 +85,8 @@ export class VideoMetadata {
       width: this.width,
       height: this.height,
       recordedAt: this.recordedAt.toISOString(),
+      trim: this.trim,
+      crop: this.crop,
     };
   }
 
@@ -55,13 +95,16 @@ export class VideoMetadata {
    */
   static fromJSON(data: unknown): VideoMetadata {
     const record = data as Record<string, unknown>;
-    return new VideoMetadata(
-      record.path as string,
-      record.orientation as 'portrait' | 'landscape' | undefined,
-      record.duration as number | undefined,
-      record.width as number | undefined,
-      record.height as number | undefined,
-      record.recordedAt ? new Date(record.recordedAt as string) : new Date()
-    );
+
+    return new VideoMetadata({
+      path: record.path as string,
+      orientation: record.orientation as 'portrait' | 'landscape' | undefined,
+      duration: record.duration as number | undefined,
+      width: record.width as number | undefined,
+      height: record.height as number | undefined,
+      recordedAt: record.recordedAt ? new Date(record.recordedAt as string) : new Date(),
+      trim: record.trim as VideoTrim | undefined,
+      crop: record.crop as VideoCrop | undefined,
+    });
   }
 }

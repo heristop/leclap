@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { compileVideo } from '@/src/services/api';
+import { compileVideo, type CompileRecordedVideos } from '@/src/services/api';
 import type { TemplateDescriptor } from '@/src/types';
 
 export const useVideoCompilation = () => {
@@ -9,7 +9,7 @@ export const useVideoCompilation = () => {
       recordedVideos,
     }: {
       templateDescriptor: TemplateDescriptor;
-      recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>;
+      recordedVideos: CompileRecordedVideos;
     }) => compileVideo(templateDescriptor, recordedVideos),
   });
 };

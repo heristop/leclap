@@ -19,15 +19,19 @@ export class ProjectMapper {
         orientation: 'portrait' | 'landscape';
         duration?: number;
         fileSize?: number;
+        trim?: { start: number; end: number };
+        crop?: { x: number; y: number; w: number; h: number };
       }
     > = {};
 
     for (const [key, metadata] of Object.entries(domainProject.recordedVideos)) {
       recordedVideos[key] = {
         path: metadata.path,
-        orientation: metadata.orientation || 'portrait',
+        orientation: metadata.orientation ?? 'portrait',
         duration: metadata.duration,
         fileSize: undefined, // VideoMetadata doesn't have fileSize
+        trim: metadata.trim,
+        crop: metadata.crop,
       };
     }
 
@@ -40,7 +44,7 @@ export class ProjectMapper {
       formData: domainProject.formData,
       recordedVideos,
       outputVideoUri: domainProject.outputVideoUri,
-      thumbnailUri: domainProject.thumbnailUri || null,
+      thumbnailUri: domainProject.thumbnailUri ?? null,
       createdAt: domainProject.createdAt.toISOString(),
       updatedAt: domainProject.updatedAt.toISOString(),
     };
@@ -54,38 +58,37 @@ export class ProjectMapper {
     const recordedVideos: Record<string, InstanceType<typeof VideoMetadata>> = {};
 
     for (const [key, value] of Object.entries(uiProject.recordedVideos)) {
-      recordedVideos[key] = new VideoMetadata(
-        value.path,
-        value.orientation,
-        value.duration,
-        undefined, // width
-        undefined, // height
-        new Date()
-      );
+      recordedVideos[key] = new VideoMetadata({
+        path: value.path,
+        orientation: value.orientation,
+        duration: value.duration,
+        trim: value.trim,
+        crop: value.crop,
+      });
     }
 
     // Convert status string to ProjectStatus enum
-    const statusMap: Record<string, ProjectStatus> = {
+    const statusMap: Partial<Record<string, ProjectStatus>> = {
       draft: ProjectStatus.DRAFT,
       processing: ProjectStatus.PROCESSING,
       completed: ProjectStatus.COMPLETED,
       failed: ProjectStatus.FAILED,
     };
-    const domainStatus = statusMap[uiProject.status] || ProjectStatus.DRAFT;
+    const domainStatus = statusMap[uiProject.status] ?? ProjectStatus.DRAFT;
 
-    return new DomainProject(
-      uiProject.id,
-      uiProject.name,
-      uiProject.templateName,
-      uiProject.templateContent as Record<string, unknown>,
-      domainStatus,
-      uiProject.formData,
+    return new DomainProject({
+      id: uiProject.id,
+      name: uiProject.name,
+      templateName: uiProject.templateName,
+      templateContent: uiProject.templateContent as Record<string, unknown>,
+      status: domainStatus,
+      formData: uiProject.formData,
       recordedVideos,
-      new Date(uiProject.createdAt),
-      new Date(uiProject.updatedAt),
-      uiProject.outputVideoUri,
-      uiProject.thumbnailUri || undefined
-    );
+      createdAt: new Date(uiProject.createdAt),
+      updatedAt: new Date(uiProject.updatedAt),
+      outputVideoUri: uiProject.outputVideoUri,
+      thumbnailUri: uiProject.thumbnailUri ?? undefined,
+    });
   }
 
   /**

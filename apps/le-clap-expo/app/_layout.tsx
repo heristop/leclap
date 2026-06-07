@@ -9,7 +9,7 @@ import AnimatedSplashScreen from './components/SplashScreen';
 import config from '../tamagui.config';
 
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -32,7 +32,7 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    onLayoutRootView();
+    onLayoutRootView().catch(() => {});
   }, [onLayoutRootView]);
 
   const handleAnimationComplete = () => {
@@ -46,7 +46,7 @@ export default function RootLayout() {
   }
 
   return (
-    <TamaguiProvider config={config}>
+    <TamaguiProvider config={config} defaultTheme="light">
       <QueryProvider>
         <OfflineProvider>
           <Stack

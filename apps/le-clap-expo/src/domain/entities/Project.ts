@@ -7,20 +7,46 @@
 import { ProjectStatus } from '../valueObjects/ProjectStatus';
 import { VideoMetadata } from '../valueObjects/VideoMetadata';
 
+interface ProjectProps {
+  id: string;
+  name: string;
+  templateName: string;
+  templateContent: Record<string, unknown>;
+  status: ProjectStatus;
+  formData: Record<string, unknown>;
+  recordedVideos: Record<string, VideoMetadata>;
+  createdAt: Date;
+  updatedAt: Date;
+  outputVideoUri?: string;
+  thumbnailUri?: string;
+}
+
 export class Project {
-  constructor(
-    public readonly id: string,
-    public name: string,
-    public templateName: string,
-    public templateContent: Record<string, unknown>,
-    public status: ProjectStatus,
-    public formData: Record<string, unknown>,
-    public recordedVideos: Record<string, VideoMetadata>,
-    public readonly createdAt: Date,
-    public updatedAt: Date,
-    public outputVideoUri?: string,
-    public thumbnailUri?: string
-  ) {}
+  public readonly id: string;
+  public name: string;
+  public templateName: string;
+  public templateContent: Record<string, unknown>;
+  public status: ProjectStatus;
+  public formData: Record<string, unknown>;
+  public recordedVideos: Record<string, VideoMetadata>;
+  public readonly createdAt: Date;
+  public updatedAt: Date;
+  public outputVideoUri?: string;
+  public thumbnailUri?: string;
+
+  constructor(props: ProjectProps) {
+    this.id = props.id;
+    this.name = props.name;
+    this.templateName = props.templateName;
+    this.templateContent = props.templateContent;
+    this.status = props.status;
+    this.formData = props.formData;
+    this.recordedVideos = props.recordedVideos;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
+    this.outputVideoUri = props.outputVideoUri;
+    this.thumbnailUri = props.thumbnailUri;
+  }
 
   /**
    * Business logic: Check if project is ready for compilation
@@ -33,7 +59,7 @@ export class Project {
    * Business logic: Check if project is completed
    */
   isCompleted(): boolean {
-    return this.status === ProjectStatus.COMPLETED && !!this.outputVideoUri;
+    return this.status === ProjectStatus.COMPLETED && Boolean(this.outputVideoUri);
   }
 
   /**
@@ -92,19 +118,19 @@ export class Project {
     const createdAtValue = createdAt ?? new Date();
     const updatedAtValue = updatedAt ?? createdAtValue;
 
-    return new Project(
-      id ?? Date.now().toString(),
+    return new Project({
+      id: id ?? Date.now().toString(),
       name,
       templateName,
       templateContent,
       status,
       formData,
       recordedVideos,
-      createdAtValue,
-      updatedAtValue,
+      createdAt: createdAtValue,
+      updatedAt: updatedAtValue,
       outputVideoUri,
-      thumbnailUri
-    );
+      thumbnailUri,
+    });
   }
 
   /**
@@ -136,24 +162,24 @@ export class Project {
    * Create from plain object
    */
   static fromJSON(data: Record<string, unknown>): Project {
-    return new Project(
-      data.id as string,
-      data.name as string,
-      data.templateName as string,
-      (data.templateContent as Record<string, unknown>) || {},
-      data.status as ProjectStatus,
-      (data.formData as Record<string, unknown>) || {},
-      Object.entries((data.recordedVideos as Record<string, unknown>) || {}).reduce(
+    return new Project({
+      id: data.id as string,
+      name: data.name as string,
+      templateName: data.templateName as string,
+      templateContent: (data.templateContent as Record<string, unknown> | undefined) ?? {},
+      status: data.status as ProjectStatus,
+      formData: (data.formData as Record<string, unknown> | undefined) ?? {},
+      recordedVideos: Object.entries((data.recordedVideos as Record<string, unknown> | undefined) ?? {}).reduce(
         (acc, [key, value]: [string, unknown]) => ({
           ...acc,
           [key]: VideoMetadata.fromJSON(value),
         }),
         {}
       ),
-      new Date(data.createdAt as string),
-      new Date(data.updatedAt as string),
-      data.outputVideoUri as string | undefined,
-      data.thumbnailUri as string | undefined
-    );
+      createdAt: new Date(data.createdAt as string),
+      updatedAt: new Date(data.updatedAt as string),
+      outputVideoUri: data.outputVideoUri as string | undefined,
+      thumbnailUri: data.thumbnailUri as string | undefined,
+    });
   }
 }

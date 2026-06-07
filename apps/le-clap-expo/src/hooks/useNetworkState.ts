@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { subscribeToNetworkState, getNetworkState, hasInternetConnection, type NetworkState } from '@/src/services/network';
 
@@ -14,7 +14,11 @@ export const useNetworkState = () => {
 
   useEffect(() => {
     // Get initial state
-    getNetworkState().then(setNetworkState);
+    const fetchInitialState = async () => {
+      const state = await getNetworkState();
+      setNetworkState(state);
+    };
+    fetchInitialState().catch(() => null);
 
     // Subscribe to changes
     const unsubscribe = subscribeToNetworkState(setNetworkState);
@@ -59,22 +63,35 @@ export const useNetworkAware = () => {
 export const useOnlineStatusChange = (onOnline?: () => void, onOffline?: () => void) => {
   const networkState = useNetworkState();
   const { data: hasInternet } = useInternetConnectivity();
-  const [previouslyOnline, setPreviouslyOnline] = useState<boolean | null>(null);
 
-  const isOnline = networkState.isConnected && hasInternet;
+  const isOnline = networkState.isConnected && Boolean(hasInternet);
+
+  // Keep the callbacks and the previous status in refs so the effect depends ONLY on the
+  // stable `isOnline` boolean. Listing the (inline) callbacks as deps re-ran this effect on
+  // every render, and the previous setState made it re-render, causing an update-depth loop.
+  const onOnlineRef = useRef(onOnline);
+  onOnlineRef.current = onOnline;
+  const onOfflineRef = useRef(onOffline);
+  onOfflineRef.current = onOffline;
+  const previouslyOnlineRef = useRef<boolean | null>(null);
 
   useEffect(() => {
+    const previouslyOnline = previouslyOnlineRef.current;
+
     if (previouslyOnline !== null) {
       if (!previouslyOnline && isOnline) {
         // Just came online
-        onOnline?.();
-      } else if (previouslyOnline && !isOnline) {
+        onOnlineRef.current?.();
+      }
+
+      if (previouslyOnline && !isOnline) {
         // Just went offline
-        onOffline?.();
+        onOfflineRef.current?.();
       }
     }
-    setPreviouslyOnline(isOnline);
-  }, [isOnline, previouslyOnline, onOnline, onOffline]);
+
+    previouslyOnlineRef.current = isOnline;
+  }, [isOnline]);
 
   return {
     isOnline,

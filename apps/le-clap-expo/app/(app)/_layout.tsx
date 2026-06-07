@@ -8,9 +8,10 @@ export default function AppLayout() {
   const { lockOrientation, unlockOrientation } = useOrientation();
 
   useEffect(() => {
-    lockOrientation('portrait'); // Lock to portrait on mount
+    lockOrientation('portrait').catch(() => null); // Lock to portrait on mount
+
     return () => {
-      unlockOrientation(); // Unlock on unmount
+      unlockOrientation().catch(() => null); // Unlock on unmount
     };
   }, [lockOrientation, unlockOrientation]);
 

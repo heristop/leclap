@@ -17,6 +17,7 @@ export const useTemplates = () => {
         if (cachedTemplates) {
           return cachedTemplates;
         }
+
         throw new Error('No internet connection and no cached templates available');
       }
 
@@ -29,22 +30,22 @@ export const useTemplates = () => {
       try {
         const freshTemplates = await fetchTemplates();
         await cacheTemplates(freshTemplates);
+
         return freshTemplates;
       } catch (error) {
         // If fetch fails but we have cached data, return it
         if (cachedTemplates) {
           console.warn('Failed to fetch fresh templates, using cached data:', error);
+
           return cachedTemplates;
         }
+
         throw error;
       }
     },
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
-    retry: (failureCount, _error) => {
-      // Don't retry if we have cached data
-      return failureCount < 2 && !getCachedTemplates();
-    },
+    retry: false,
   });
 };
 
@@ -54,15 +55,14 @@ export const useTemplate = (templateName: string) => {
     queryFn: async (): Promise<Template> => {
       const isOnline = await hasInternetConnection();
       const cachedTemplates = await getCachedTemplates();
+      // Resolve the cached template once and reuse it across both code paths.
+      const cachedTemplate = cachedTemplates?.find((t) => t.name === templateName);
 
       // Try to find template in cache first
-      if (cachedTemplates) {
-        const cachedTemplate = cachedTemplates.find((t) => t.name === templateName);
-        if (cachedTemplate) {
-          // If offline or cache is fresh, return cached template
-          if (!isOnline || !(await isTemplatesCacheStale())) {
-            return cachedTemplate;
-          }
+      if (cachedTemplate) {
+        // If offline or cache is fresh, return cached template
+        if (!isOnline || !(await isTemplatesCacheStale())) {
+          return cachedTemplate;
         }
       }
 
@@ -72,13 +72,12 @@ export const useTemplate = (templateName: string) => {
           return await fetchTemplateByName(templateName);
         } catch (error) {
           // If fetch fails but we have cached template, return it
-          if (cachedTemplates) {
-            const cachedTemplate = cachedTemplates.find((t) => t.name === templateName);
-            if (cachedTemplate) {
-              console.warn(`Failed to fetch template ${templateName}, using cached data:`, error);
-              return cachedTemplate;
-            }
+          if (cachedTemplate) {
+            console.warn(`Failed to fetch template ${templateName}, using cached data:`, error);
+
+            return cachedTemplate;
           }
+
           throw error;
         }
       }
@@ -86,7 +85,7 @@ export const useTemplate = (templateName: string) => {
       // No cached data and offline
       throw new Error(`Template ${templateName} not available offline`);
     },
-    enabled: !!templateName,
+    enabled: Boolean(templateName),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
@@ -102,12 +101,13 @@ export const useRefreshTemplates = () => {
     mutationFn: async (): Promise<Template[]> => {
       const freshTemplates = await fetchTemplates();
       await cacheTemplates(freshTemplates);
+
       return freshTemplates;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(['templates'], data);
       // Also invalidate individual template queries
-      queryClient.invalidateQueries({ queryKey: ['template'] });
+      await queryClient.invalidateQueries({ queryKey: ['template'] });
     },
   });
 };
@@ -120,7 +120,7 @@ export const useTemplatesSyncStatus = () => {
     queryKey: ['templates-sync-status'],
     queryFn: async () => {
       const [hasCache, isCacheStale, isOnline] = await Promise.all([
-        getCachedTemplates().then((cache) => !!cache),
+        getCachedTemplates().then((cache) => Boolean(cache)),
         isTemplatesCacheStale(),
         hasInternetConnection(),
       ]);

@@ -8,12 +8,15 @@ export class ProjectRepository implements IProjectRepository {
   private async getStoredProjects(): Promise<Project[]> {
     try {
       const stored = await AsyncStorage.getItem(PROJECTS_STORAGE_KEY);
+
       if (!stored) return [];
 
       const projectsData = JSON.parse(stored);
+
       return projectsData.map((data: Record<string, unknown>) => Project.fromJSON(data));
     } catch (error) {
       console.error('Error loading projects from storage:', error);
+
       return [];
     }
   }
@@ -24,6 +27,7 @@ export class ProjectRepository implements IProjectRepository {
       await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
     } catch (error) {
       console.error('Error storing projects:', error);
+
       throw error;
     }
   }
@@ -34,12 +38,20 @@ export class ProjectRepository implements IProjectRepository {
 
   async findById(id: string): Promise<Project | null> {
     const projects = await this.getStoredProjects();
-    return projects.find((project) => project.id === id) || null;
+
+    return projects.find((project) => project.id === id) ?? null;
   }
 
   async findByStatus(status: string): Promise<Project[]> {
     const projects = await this.getStoredProjects();
+
     return projects.filter((project) => project.status === status);
+  }
+
+  async findByTemplate(templateName: string): Promise<Project[]> {
+    const projects = await this.getStoredProjects();
+
+    return projects.filter((project) => project.templateName === templateName);
   }
 
   async save(project: Project): Promise<Project> {
@@ -48,11 +60,14 @@ export class ProjectRepository implements IProjectRepository {
 
     if (existingIndex >= 0) {
       projects[existingIndex] = project;
-    } else {
+    }
+
+    if (existingIndex < 0) {
       projects.push(project);
     }
 
     await this.storeProjects(projects);
+
     return project;
   }
 

@@ -28,11 +28,12 @@ export const requestCameraPermission = async (): Promise<boolean> => {
         {
           text: 'Open Settings',
           onPress: () => {
-            Linking.openSettings();
+            Linking.openSettings().catch(() => {});
           },
         },
       ]
     );
+
     return false;
   }
 
@@ -61,11 +62,12 @@ export const requestAudioPermission = async (): Promise<boolean> => {
         {
           text: 'Open Settings',
           onPress: () => {
-            Linking.openSettings();
+            Linking.openSettings().catch(() => {});
           },
         },
       ]
     );
+
     return false;
   }
 
@@ -94,11 +96,12 @@ export const requestMediaLibraryPermission = async (): Promise<boolean> => {
         {
           text: 'Open Settings',
           onPress: () => {
-            Linking.openSettings();
+            Linking.openSettings().catch(() => {});
           },
         },
       ]
     );
+
     return false;
   }
 

@@ -19,7 +19,7 @@ export default function VideosTab() {
       {/* Camera Modal */}
       <CameraModal
         visible={cameraModalVisible}
-        onClose={() => setCameraModalVisible(false)}
+        onClose={() =>{  setCameraModalVisible(false); }}
         onVideoRecorded={handleVideoRecorded}
       />
     </View>

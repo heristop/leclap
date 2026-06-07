@@ -30,7 +30,7 @@ export const fadeIn = (opacityValue: Animated.Value, duration = 300, callback?: 
     duration,
     easing: Easing.ease,
     useNativeDriver: true,
-  }).start(callback ? callback : undefined);
+  }).start(callback);
 };
 
 /**
@@ -45,7 +45,7 @@ export const fadeOut = (opacityValue: Animated.Value, duration = 300, callback?:
     duration,
     easing: Easing.ease,
     useNativeDriver: true,
-  }).start(callback ? callback : undefined);
+  }).start(callback);
 };
 
 /**
@@ -66,7 +66,7 @@ export const slideInFromBottom = (
     duration,
     easing: Easing.out(Easing.ease),
     useNativeDriver: true,
-  }).start(callback ? callback : undefined);
+  }).start(callback);
 };
 
 /**

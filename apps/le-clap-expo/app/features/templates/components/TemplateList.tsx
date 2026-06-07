@@ -35,9 +35,9 @@ const TemplateList: React.FC<TemplateListProps> = ({
     }
     
     // Search in section titles and descriptions
-    if (template.content.sections?.some(section => 
-      (section.title?.en?.toLowerCase() || '').includes(searchTerms) ||
-      (section.description?.en?.toLowerCase() || '').includes(searchTerms)
+    if (template.content.sections?.some(section =>
+      (section.title?.en.toLowerCase() ?? '').includes(searchTerms) ||
+      (section.description?.en.toLowerCase() ?? '').includes(searchTerms)
     )) {
       return true;
     }
@@ -48,6 +48,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
   const handleRefresh = async () => {
     if (isOffline) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+
       return;
     }
 
@@ -85,7 +86,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
             size={20}
             color={colors.textSecondary}
             style={styles.clearIcon}
-            onPress={() => setSearchQuery('')}
+            onPress={() =>{  setSearchQuery(''); }}
           />
         )}
       </View>
@@ -95,11 +96,10 @@ const TemplateList: React.FC<TemplateListProps> = ({
   return (
     <FlatList
       data={filteredTemplates}
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <TemplateCard
           template={item}
           onPress={onSelectTemplate}
-          index={index}
         />
       )}
       keyExtractor={(item) => item.name}
@@ -111,7 +111,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
         onRefresh ? (
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={handleRefresh}
+            onRefresh={() => { handleRefresh().catch(() => null); }}
             tintColor={colors.primary}
             title={isOffline ? "Pull to sync when online" : "Pull to refresh"}
             titleColor={colors.textSecondary}

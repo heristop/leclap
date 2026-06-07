@@ -18,21 +18,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUri, onClose, onRetake }
 
   return (
     <View style={styles.container}>
-      {player ? (
-        <View style={styles.videoContainer}>
-          <StatusBar hidden translucent backgroundColor="transparent" />
-          <VideoView
-            style={styles.videoPlayer}
-            player={player}
-            nativeControls={true}
-            contentFit="contain"
-          />
-        </View>
-      ) : (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Unable to load video</Text>
-        </View>
-      )}
+      <View style={styles.videoContainer}>
+        <StatusBar hidden translucent backgroundColor="transparent" />
+        <VideoView
+          style={styles.videoPlayer}
+          player={player}
+          nativeControls
+          contentFit="contain"
+        />
+      </View>
 
       <View style={styles.controls}>
         <TouchableOpacity

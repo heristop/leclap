@@ -46,7 +46,7 @@ const SectionItem: React.FC<SectionItemProps> = ({
         <Ionicons 
           name={isCompleted ? 'checkmark' : getIconName()} 
           size={16} 
-          color={isCompleted ? 'white' : isActive ? 'white' : colors.textSecondary} 
+          color={isCompleted || isActive ? 'white' : colors.textSecondary}
         />
       </View>
       <Text
@@ -56,7 +56,7 @@ const SectionItem: React.FC<SectionItemProps> = ({
         ]}
         numberOfLines={1}
       >
-        {section.title?.en || section.name}
+        {section.title?.en ?? section.name}
       </Text>
     </TouchableOpacity>
   );

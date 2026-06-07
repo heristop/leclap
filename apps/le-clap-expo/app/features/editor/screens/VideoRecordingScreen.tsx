@@ -1,99 +1,131 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
+import {
+  View,
   StyleSheet,
   StatusBar,
   Platform,
   BackHandler
 } from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, type CameraPosition, type VideoFile, type CameraCaptureError } from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
-/**
- * This is a completely standalone screen for recording videos
- */
-export const VideoRecordingScreen = ({ 
-  orientation = 'portrait',
-  onComplete,
-  onCancel
-}) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [cameraType, setCameraType] = useState('back');
-  const device = useCameraDevice(cameraType);
-  const cameraRef = useRef(null);
-  // const navigation = useNavigation();
-  
-  const { lockOrientation, unlockOrientation } = useOrientation(orientation);
-  
-  // Handle back button press
+type OrientationType = 'portrait' | 'landscape';
+
+interface VideoRecordingScreenProps {
+  orientation?: OrientationType;
+  onComplete?: (video: VideoFile, orientation: OrientationType) => void;
+  onCancel?: () => void;
+}
+
+function useBackHandler(onCancel?: () => void): void {
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (onCancel) {
-        onCancel();
-      }
+      onCancel?.();
+
       return true;
     });
-    
-    return () => backHandler.remove();
+
+    return () => { backHandler.remove(); };
   }, [onCancel]);
-  
-  // Lock orientation when component mounts
+}
+
+function useOrientationLock(
+  orientation: OrientationType,
+  lockOrientation: (o: OrientationType) => Promise<void>,
+  unlockOrientation: () => Promise<void>
+): void {
   useEffect(() => {
-    // Lock to the required orientation
-    lockOrientation(orientation);
-    
-    // Hide all navigation bars
+    lockOrientation(orientation).catch(() => null);
+
     if (Platform.OS === 'android') {
       StatusBar.setHidden(true);
     }
-    
+
     return () => {
-      // Unlock when component unmounts
-      unlockOrientation();
-      
-      // Show navigation bars again
+      unlockOrientation().catch(() => null);
+
       if (Platform.OS === 'android') {
         StatusBar.setHidden(false);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- lockOrientation and unlockOrientation are stable functions
-  }, [orientation]);
-  
-  // Handle recording start
-  const startRecording = async () => {
-    if (!cameraRef.current || isRecording) return;
-    
-    try {
-      setIsRecording(true);
-      
-      cameraRef.current.startRecording({
-        fileType: 'mp4',
-        videoCodec: 'h264',
-        onRecordingFinished: (video) => {
-          setIsRecording(false);
-          if (onComplete) {
-            onComplete(video, orientation);
-          }
-        },
-        onRecordingError: (error) => {
-          console.error('Recording error:', error);
-          setIsRecording(false);
-        },
-      });
-    } catch (e) {
-      console.error('Failed to start recording:', e);
-      setIsRecording(false);
-    }
+  }, [orientation, lockOrientation, unlockOrientation]);
+}
+
+function useVideoRecorder(
+  cameraRef: React.RefObject<Camera | null>,
+  orientation: OrientationType,
+  onComplete?: (video: VideoFile, orientation: OrientationType) => void
+) {
+  const [isRecording, setIsRecording] = useState(false);
+
+  const startRecording = () => {
+    const camera = cameraRef.current;
+
+    if (camera === null || isRecording) return;
+
+    setIsRecording(true);
+    camera.startRecording({
+      fileType: 'mp4',
+      videoCodec: 'h264',
+      onRecordingFinished: (video: VideoFile) => {
+        setIsRecording(false);
+        onComplete?.(video, orientation);
+      },
+      onRecordingError: (error: CameraCaptureError) => {
+        console.error('Recording error:', error);
+        setIsRecording(false);
+      },
+    });
   };
-  
-  // Handle recording stop
+
   const stopRecording = async () => {
-    if (!cameraRef.current || !isRecording) return;
-    
-    await cameraRef.current.stopRecording();
+    const camera = cameraRef.current;
+
+    if (camera === null) return;
+
+    await camera.stopRecording();
   };
-  
+
+  return { isRecording, startRecording, stopRecording };
+}
+
+/**
+ * This is a completely standalone screen for recording videos
+ */
+export const VideoRecordingScreen = ({
+  orientation = 'portrait',
+  onComplete,
+  onCancel
+}: VideoRecordingScreenProps) => {
+  const [cameraType, setCameraType] = useState<CameraPosition>('back');
+  const device = useCameraDevice(cameraType);
+  const cameraRef = useRef<Camera | null>(null);
+
+  const { lockOrientation, unlockOrientation } = useOrientation(orientation);
+
+  useBackHandler(onCancel);
+  useOrientationLock(orientation, lockOrientation, unlockOrientation);
+
+  const { isRecording, startRecording, stopRecording } = useVideoRecorder(
+    cameraRef,
+    orientation,
+    onComplete
+  );
+
+  const handleRecordButtonPress = () => {
+    if (isRecording) {
+      stopRecording().catch(() => null);
+
+      return;
+    }
+    startRecording();
+  };
+
+  const handleFlipCamera = () => {
+    setCameraType(current => current === 'back' ? 'front' : 'back');
+  };
+
   if (!device) {
     return (
       <View style={styles.container}>
@@ -101,29 +133,29 @@ export const VideoRecordingScreen = ({
       </View>
     );
   }
-  
+
   return (
     <View style={styles.container}>
       <StatusBar hidden translucent backgroundColor="transparent" />
-      
+
       <Camera
         ref={cameraRef}
         style={styles.camera}
         device={device}
-        isActive={true}
-        video={true}
-        audio={true}
-        orientation={orientation === 'portrait' ? 'portrait' : 'landscapeLeft'}
+        isActive
+        video
+        audio
+        outputOrientation="preview"
       />
-      
+
       {/* Record button */}
       <View style={styles.buttonContainer}>
-        <View 
+        <View
           style={[
-            styles.recordButton, 
+            styles.recordButton,
             isRecording ? styles.recordingButton : null
           ]}
-          onTouchEnd={isRecording ? stopRecording : startRecording}
+          onTouchEnd={handleRecordButtonPress}
         >
           {isRecording ? (
             <View style={styles.stopIcon} />
@@ -132,12 +164,12 @@ export const VideoRecordingScreen = ({
           )}
         </View>
       </View>
-      
+
       {/* Camera flip button */}
       <View style={styles.flipButtonContainer}>
         <View
           style={styles.flipButton}
-          onTouchEnd={() => setCameraType(current => current === 'back' ? 'front' : 'back')}
+          onTouchEnd={handleFlipCamera}
         >
           <Ionicons
             name="camera-reverse-outline"
@@ -146,7 +178,7 @@ export const VideoRecordingScreen = ({
           />
         </View>
       </View>
-      
+
       {/* Cancel button */}
       <View style={styles.cancelButtonContainer}>
         <View

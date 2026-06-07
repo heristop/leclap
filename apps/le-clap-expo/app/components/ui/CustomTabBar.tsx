@@ -2,8 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import type { Tabs } from 'expo-router';
 import { colors } from '@/src/styles/theme';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+
+// SDK 56: expo-router no longer ships react-navigation as a direct dependency.
+// Derive the tab bar props from expo-router's own Tabs component instead of
+// importing from '@react-navigation/bottom-tabs'.
+type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
@@ -11,13 +16,16 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
       <View style={styles.tabBar}>
         {state.routes.slice(0, 2).map((route, index) => {
           const { options } = descriptors[route.key];
-          const label = options.title !== undefined ? options.title : route.name;
+          const label = options.title ?? route.name;
           const isFocused = state.index === index;
           
           let iconName: keyof typeof Ionicons.glyphMap | undefined;
+
           if (route.name === 'index') {
             iconName = isFocused ? 'film' : 'film-outline';
-          } else if (route.name === 'videos/index') {
+          }
+
+          if (route.name === 'videos/index') {
             iconName = isFocused ? 'videocam' : 'videocam-outline';
           }
           

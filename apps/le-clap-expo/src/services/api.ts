@@ -3,10 +3,8 @@ import * as FileSystem from 'expo-file-system/legacy';
 import type { Template, Project } from '@/src/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Environment variables
 const API_URL = Constants.expoConfig?.extra?.API_URL ?? 'http://localhost:3000';
 
-// Storage keys
 const PROJECTS_STORAGE_KEY = 'ffmpeg_video_composer_projects';
 
 /**
@@ -43,7 +41,6 @@ const resolveNetworkErrorMessage = (err: Error, defaultMessage: string): string 
  */
 export const fetchTemplates = async (): Promise<Template[]> => {
   try {
-    // First check if server is healthy
     const healthCheck = await checkServerHealth();
 
     if (!healthCheck.isHealthy) {
@@ -51,7 +48,7 @@ export const fetchTemplates = async (): Promise<Template[]> => {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() =>{  controller.abort(); }, 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => { controller.abort(); }, 10000); // 10 s
 
     const response = await fetch(`${API_URL}/templates`, {
       signal: controller.signal,
@@ -89,7 +86,6 @@ export const fetchTemplates = async (): Promise<Template[]> => {
  */
 export const fetchTemplateByName = async (templateName: string): Promise<Template> => {
   try {
-    // First check if server is healthy
     const healthCheck = await checkServerHealth();
 
     if (!healthCheck.isHealthy) {
@@ -116,11 +112,9 @@ export const fetchTemplateByName = async (templateName: string): Promise<Templat
  */
 export const saveProject = async (project: Project): Promise<void> => {
   try {
-    // Get existing projects
     const projectsJson = await AsyncStorage.getItem(PROJECTS_STORAGE_KEY);
     const projects: Project[] = projectsJson ? JSON.parse(projectsJson) : [];
 
-    // Update or add the project
     const existingIndex = projects.findIndex((p) => p.id === project.id);
 
     if (existingIndex !== -1) {
@@ -131,7 +125,6 @@ export const saveProject = async (project: Project): Promise<void> => {
       projects.push(project);
     }
 
-    // Save back to storage
     await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
   } catch (error) {
     console.error('Error saving project:', error);
@@ -204,7 +197,7 @@ export const deleteAllProjects = async (): Promise<void> => {
 export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?: string }> => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() =>{  controller.abort(); }, 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => { controller.abort(); }, 5000); // 5 s
 
     const response = await fetch(`${API_URL}/health`, {
       method: 'GET',
@@ -287,7 +280,7 @@ const retryWithBackoff = async <T>(
  */
 const performCompileFetch = async (formData: FormData): Promise<{ success: boolean; outputPath?: string; message?: string; error?: string }> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() =>{  controller.abort(); }, 30000); // 30 second timeout for compilation
+  const timeoutId = setTimeout(() => { controller.abort(); }, 30000); // 30 s
 
   try {
     const response = await fetch(`${API_URL}/compile`, {
@@ -424,7 +417,6 @@ export const compileVideo = async (
   recordedVideos: CompileRecordedVideos
 ): Promise<CompileResult> => {
   try {
-    // First check if server is healthy
     const healthCheck = await checkServerHealth();
 
     if (!healthCheck.isHealthy) {

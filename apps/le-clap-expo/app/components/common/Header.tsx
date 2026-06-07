@@ -129,9 +129,7 @@ function ActionButtons({
     }
 
     if (action.icon === 'options-outline') {
-      return () => {
-        console.log('Options pressed');
-      };
+      return () => { /* no-op: options not yet implemented */ };
     }
 
     return action.onPress;

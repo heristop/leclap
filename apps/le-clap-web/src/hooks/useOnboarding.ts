@@ -1,24 +1,10 @@
 import { useState, useEffect } from 'react';
+import { isBot } from '@/lib/isBot';
 
 const STORAGE_KEY = 'leclap.onboarded';
 
 /** Custom event other components can dispatch to (re)open the guided intro. */
 export const OPEN_ONBOARDING_EVENT = 'leclap:open-onboarding';
-
-/** Skip the auto-intro for automation, crawlers and AI agents. */
-const isAutomated = (): boolean => {
-  if (typeof navigator === 'undefined') {
-    return false;
-  }
-
-  if (navigator.webdriver) {
-    return true;
-  }
-
-  return /bot|crawl|spider|headless|lighthouse|slurp|bingpreview|prerender|puppeteer|playwright/i.test(
-    navigator.userAgent
-  );
-};
 
 /**
  * First-visit gate for the onboarding flow. Persists a flag in localStorage so
@@ -28,7 +14,7 @@ const isAutomated = (): boolean => {
  */
 export function useOnboarding() {
   const [show, setShow] = useState<boolean>(() => {
-    if (isAutomated()) {
+    if (isBot()) {
       return false;
     }
 

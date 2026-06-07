@@ -84,9 +84,11 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
 
   return createPortal(
     <div className="fixed inset-0 z-[55] overflow-y-auto bg-black/40 backdrop-blur-md dark:bg-black/80">
-      {/* Ambient brand glow */}
+      {/* Ambient brand aurora — drifting multi-color blobs for a first-run "wow" backdrop */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] bg-brand-500/15 rounded-full blur-[120px] animate-float" />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] bg-brand-500/20 rounded-full blur-[120px] animate-float" />
+        <div className="absolute top-1/4 -left-24 w-[26rem] h-[26rem] bg-secondary-500/15 rounded-full blur-[110px] animate-float" style={{ animationDelay: '-4s' }} />
+        <div className="absolute -bottom-24 right-0 w-[28rem] h-[28rem] bg-accent-400/10 rounded-full blur-[120px] animate-float" style={{ animationDelay: '-8s' }} />
       </div>
 
       <div className="relative min-h-full flex items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b">

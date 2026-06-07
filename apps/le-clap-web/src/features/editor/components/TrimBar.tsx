@@ -90,7 +90,7 @@ function TrimHandle({
 }
 
 /**
- * A dual-handle trim timeline over a cinematic waveform track. Dragging a handle reports the new
+ * A dual-handle trim timeline over a dark waveform track. Dragging a handle reports the new
  * range in seconds and seeks the player; hovering previews the seek position; tapping the track
  * scrubs. Works with mouse and touch via pointer events.
  */

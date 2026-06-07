@@ -27,17 +27,23 @@ interface WelcomeStepProps {
 
 export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
   <div className="text-center">
-    <div className="inline-flex p-4 brand-gradient rounded-2xl shadow-lg shadow-brand-900/40 mb-5 animate-glow">
+    <div className="fade-in inline-flex p-4 brand-gradient rounded-2xl shadow-lg shadow-brand-900/40 mb-5 animate-glow">
       <Clapperboard className="w-8 h-8 text-white" />
     </div>
-    <h2 className="text-3xl font-bold font-display text-foreground mb-2">Welcome to LeClap</h2>
-    <p className="text-gray-300 mb-6">
+    <h2 className="fade-in text-3xl font-bold font-display text-foreground mb-2" style={{ animationDelay: '80ms' }}>
+      Welcome to <span className="text-gradient-animated">LeClap</span>
+    </h2>
+    <p className="fade-in text-gray-300 mb-6" style={{ animationDelay: '160ms' }}>
       Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.
     </p>
 
     <div className="space-y-3 text-left mb-8">
-      {WELCOME_FEATURES.map(({ icon: Icon, text }) => (
-        <div key={text} className="flex items-center gap-3 text-sm text-gray-200">
+      {WELCOME_FEATURES.map(({ icon: Icon, text }, i) => (
+        <div
+          key={text}
+          className="fade-in flex items-center gap-3 text-sm text-gray-200"
+          style={{ animationDelay: `${240 + i * 100}ms` }}
+        >
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-brand-500/15 text-brand-700 dark:text-brand-300 shrink-0 ring-1 ring-brand-500/20">
             <Icon className="w-4 h-4" />
           </span>
@@ -46,13 +52,15 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
       ))}
     </div>
 
-    <Button onClick={onStart} variant="primary" size="lg" className="group w-full text-base">
-      Create my intro
-      <ArrowRight className="transition-transform group-hover:translate-x-1" />
-    </Button>
-    <Button onClick={onDone} variant="ghost" size="sm" className="mt-3 w-full text-gray-400">
-      Skip for now
-    </Button>
+    <div className="fade-in" style={{ animationDelay: '560ms' }}>
+      <Button onClick={onStart} variant="primary" size="lg" className="group w-full text-base glow-brand">
+        Create my intro
+        <ArrowRight className="transition-transform group-hover:translate-x-1" />
+      </Button>
+      <Button onClick={onDone} variant="ghost" size="sm" className="mt-3 w-full text-gray-400">
+        Skip for now
+      </Button>
+    </div>
   </div>
 );
 

@@ -1,19 +1,25 @@
+import { MonitorSmartphone, ShieldCheck, Sparkles } from 'lucide-react';
+
 const stats = [
-  { value: '100%', label: 'Runs in your browser' },
-  { value: '0', label: 'Files uploaded' },
-  { value: '∞', label: 'Projects, always free' },
+  { value: '100%', label: 'Runs in your browser', icon: MonitorSmartphone },
+  { value: '0', label: 'Files uploaded', icon: ShieldCheck },
+  { value: '∞', label: 'Projects, always free', icon: Sparkles },
 ];
 
 export const AboutStats = () => {
   return (
-    <div className="glass-panel-dark rounded-2xl px-6 py-7 mb-16 fade-in" style={{ animationDelay: '0.1s' }}>
-      <dl className="flex flex-col sm:flex-row items-stretch justify-around gap-6 sm:gap-4 text-center divide-y sm:divide-y-0 sm:divide-x divide-foreground/10">
-        {stats.map((stat) => (
-          <div key={stat.label} className="flex-1 pt-6 sm:pt-0 first:pt-0 sm:px-4">
-            <dt className="text-4xl md:text-5xl font-bold brand-gradient-text font-display leading-none">
-              {stat.value}
-            </dt>
-            <dd className="mt-2 text-sm text-gray-400 uppercase tracking-wide">{stat.label}</dd>
+    <div className="glass-panel-dark rounded-2xl p-6 sm:p-8 mb-16 fade-in" style={{ animationDelay: '0.1s' }}>
+      <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-4">
+        {stats.map(({ value, label, icon: Icon }) => (
+          <div
+            key={label}
+            className="group flex flex-col items-center gap-2.5 rounded-2xl px-4 py-6 text-center transition-colors hover:bg-foreground/[0.03]"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-500/10 text-brand-700 ring-1 ring-brand-500/20 transition-transform duration-300 ease-[var(--ease-spring)] group-hover:-translate-y-0.5 group-hover:scale-105 dark:text-brand-300">
+              <Icon className="h-5 w-5" />
+            </span>
+            <dt className="font-display text-4xl font-bold leading-none brand-gradient-text md:text-5xl">{value}</dt>
+            <dd className="text-xs font-semibold uppercase tracking-widest text-gray-400">{label}</dd>
           </div>
         ))}
       </dl>

@@ -105,7 +105,7 @@ export const toggleTheme = (origin?: ToggleOrigin): Theme => {
     return next;
   }
 
-  // Fallback: brief juicy color cross-fade via the `.theme-transition` class.
+  // Fallback: brief color cross-fade via the `.theme-transition` class.
   if (!prefersReducedMotion()) {
     root.classList.add('theme-transition');
     window.setTimeout(() => {

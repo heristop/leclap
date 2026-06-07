@@ -85,10 +85,18 @@ function validateCrop(edit: VideoEdit): { x: number; y: number; w: number; h: nu
   const EPS = 0.001;
 
   if (
-    x === null || y === null || w === null || h === null ||
-    w <= 0 || h <= 0 ||
-    x > 1 || y > 1 || w > 1 || h > 1 ||
-    x + w > 1 + EPS || y + h > 1 + EPS
+    x === null ||
+    y === null ||
+    w === null ||
+    h === null ||
+    w <= 0 ||
+    h <= 0 ||
+    x > 1 ||
+    y > 1 ||
+    w > 1 ||
+    h > 1 ||
+    x + w > 1 + EPS ||
+    y + h > 1 + EPS
   ) {
     throw new VideoEditValidationError(
       'Invalid crop: x/y/w/h must be fractions in [0,1] with w,h > 0 and the region inside the frame'
@@ -109,10 +117,7 @@ function buildEditArgs(
   if (crop) {
     // Crop is normalized; resolve against the source size via ffmpeg's iw/ih, flooring
     // width/height to even values (required by yuv420p / libx264).
-    args.push(
-      '-vf',
-      `crop=trunc(iw*${crop.w}/2)*2:trunc(ih*${crop.h}/2)*2:trunc(iw*${crop.x}):trunc(ih*${crop.y})`
-    );
+    args.push('-vf', `crop=trunc(iw*${crop.w}/2)*2:trunc(ih*${crop.h}/2)*2:trunc(iw*${crop.x}):trunc(ih*${crop.y})`);
   }
 
   if (trim.trimStart !== null && trim.trimStart > 0) {
@@ -129,9 +134,7 @@ function buildEditArgs(
 }
 
 // A noop plan keeps the original clip; a run plan records the ffmpeg invocation to perform.
-type EditPlan =
-  | { kind: 'noop'; path: string }
-  | { kind: 'run'; outputPath: string; args: string[] };
+type EditPlan = { kind: 'noop'; path: string } | { kind: 'run'; outputPath: string; args: string[] };
 
 /**
  * Validate the user's trim/crop and compute what needs to happen, without running ffmpeg.

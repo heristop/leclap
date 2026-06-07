@@ -34,9 +34,7 @@ Reuses fields already in the core schema, so stored descriptors stay compile-val
 The editor models each choice as a small union and resolves it to the descriptor on save:
 
 ```ts
-type MediaChoice =
-  | { source: 'library'; id: string }
-  | { source: 'upload'; key: string; ext: string; label: string }
+type MediaChoice = { source: 'library'; id: string } | { source: 'upload'; key: string; ext: string; label: string };
 ```
 
 ## Curated catalogs (self-hosted)
@@ -144,5 +142,5 @@ Changed:
 - Per-section music.
 - Importing/exporting templates with embedded media.
 - A general media library/manager beyond this picker.
-</content>
-</invoke>
+  </content>
+  </invoke>

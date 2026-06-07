@@ -61,9 +61,7 @@ describe('SegmentFactory', () => {
   it('throws for an unsupported segment type (no container access needed)', () => {
     const factory = new SegmentFactory(baseConfig);
 
-    expect(() => factory.create(makeSection('totally_unknown'))).toThrow(
-      'Unsupported segment type: totally_unknown'
-    );
+    expect(() => factory.create(makeSection('totally_unknown'))).toThrow('Unsupported segment type: totally_unknown');
   });
 
   it('resolves a Video segment for a "video" section and hydrates it', () => {

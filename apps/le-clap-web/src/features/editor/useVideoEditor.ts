@@ -13,11 +13,7 @@ export const FULL_CROP: VideoCrop = { x: 0, y: 0, w: 1, h: 1 };
 export type Mode = 'trim' | 'crop';
 
 /** Displayed-video rect inside a container, honoring object-contain. */
-export function computeVideoRect(
-  container: { width: number; height: number },
-  srcW: number,
-  srcH: number
-): VideoRect {
+export function computeVideoRect(container: { width: number; height: number }, srcW: number, srcH: number): VideoRect {
   if (container.width <= 0 || container.height <= 0 || srcW <= 0 || srcH <= 0) {
     return { left: 0, top: 0, width: container.width, height: container.height };
   }
@@ -142,8 +138,12 @@ function useEditReporting(
     setTrim,
     handleTrimChange,
     handleCropChange,
-    resetTrim: () => { handleTrimChange({ start: 0, end: duration }); },
-    resetCrop: () => { handleCropChange(FULL_CROP); },
+    resetTrim: () => {
+      handleTrimChange({ start: 0, end: duration });
+    },
+    resetCrop: () => {
+      handleCropChange(FULL_CROP);
+    },
   };
 }
 
@@ -158,10 +158,18 @@ export function useVideoEditor({ file, edit, onChange }: UseVideoEditorParams): 
   const [srcSize, setSrcSize] = useState<{ w: number; h: number } | null>(null);
   const containerSize = useElementSize(containerRef);
 
-  const { trim, crop, setTrim, handleTrimChange, handleCropChange, resetTrim, resetCrop } =
-    useEditReporting(edit, duration, onChange);
+  const { trim, crop, setTrim, handleTrimChange, handleCropChange, resetTrim, resetCrop } = useEditReporting(
+    edit,
+    duration,
+    onChange
+  );
 
-  useEffect(() => () => { URL.revokeObjectURL(url); }, [url]);
+  useEffect(
+    () => () => {
+      URL.revokeObjectURL(url);
+    },
+    [url]
+  );
 
   const onLoadedMetadata = () => {
     const video = videoRef.current;

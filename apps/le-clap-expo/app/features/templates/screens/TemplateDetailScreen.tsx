@@ -13,14 +13,22 @@ import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
 
 const EDITABLE_TYPES = ['project_video', 'form', 'music', 'picture'] as const;
-const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = { project_video: 'videocam', form: 'document-text', music: 'musical-notes', picture: 'image' };
+const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  project_video: 'videocam',
+  form: 'document-text',
+  music: 'musical-notes',
+  picture: 'image',
+};
 
-function getSectionIcon(s: Section): keyof typeof Ionicons.glyphMap { return SECTION_ICONS[s.type] ?? 'document'; }
+function getSectionIcon(s: Section): keyof typeof Ionicons.glyphMap {
+  return SECTION_ICONS[s.type] ?? 'document';
+}
 
 function isSectionCompleted(section: Section, project: Project): boolean {
-  if (section.type === 'project_video' || section.type === 'picture') return Boolean(project.recordedVideos[section.name]);
+  if (section.type === 'project_video' || section.type === 'picture')
+    {return Boolean(project.recordedVideos[section.name]);}
 
-  if (section.type === 'form') return (section.options?.fields ?? []).every(f => Boolean(project.formData[f.name]));
+  if (section.type === 'form') return (section.options?.fields ?? []).every((f) => Boolean(project.formData[f.name]));
 
   if (section.type === 'music') return Boolean(project.formData[`music_${section.name}`]);
 
@@ -28,9 +36,9 @@ function isSectionCompleted(section: Section, project: Project): boolean {
 }
 
 function getSectionInfo(t: Template | undefined, p: Project | null): { filtered: Section[]; completed: number } {
-  const filtered = (t?.content.sections ?? []).filter(s => (EDITABLE_TYPES as readonly string[]).includes(s.type));
+  const filtered = (t?.content.sections ?? []).filter((s) => (EDITABLE_TYPES as readonly string[]).includes(s.type));
 
-  return { filtered, completed: p ? filtered.filter(s => isSectionCompleted(s, p)).length : 0 };
+  return { filtered, completed: p ? filtered.filter((s) => isSectionCompleted(s, p)).length : 0 };
 }
 
 function compileTemplate(content: Template['content'], formData: Project['formData']): Record<string, unknown> {
@@ -49,7 +57,13 @@ function getButtonLabel(isPending: boolean, isOffline: boolean): string {
   return isOffline ? 'Adding to Queue...' : 'Creating Video...';
 }
 
-type FormModalProps = { section: Section | null; formData: Project['formData']; onFormDataChange: (f: string, v: string) => void; onClose: () => void; onSubmit: () => void };
+type FormModalProps = {
+  section: Section | null;
+  formData: Project['formData'];
+  onFormDataChange: (f: string, v: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+};
 const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: FormModalProps) => {
   if (!section) return null;
 
@@ -58,11 +72,21 @@ const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: F
       <SafeAreaView style={styles.formModalContainer}>
         <View style={styles.formHeader}>
           <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
-          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} color={colors.text} /></TouchableOpacity>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
         </View>
-        <ScrollView><FormSection section={section} formData={formData as Record<string, string>} onFormDataChange={onFormDataChange} /></ScrollView>
+        <ScrollView>
+          <FormSection
+            section={section}
+            formData={formData as Record<string, string>}
+            onFormDataChange={onFormDataChange}
+          />
+        </ScrollView>
         <View style={styles.formFooter}>
-          <TouchableOpacity style={styles.formSubmitButton} onPress={onSubmit}><Text style={styles.formSubmitButtonText}>Done</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.formSubmitButton} onPress={onSubmit}>
+            <Text style={styles.formSubmitButtonText}>Done</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </Modal>
@@ -78,12 +102,16 @@ const MusicModal = ({ section, onClose, onUseDefault }: MusicModalProps) => {
       <SafeAreaView style={styles.formModalContainer}>
         <View style={styles.formHeader}>
           <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
-          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} color={colors.text} /></TouchableOpacity>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
         </View>
         <View style={styles.placeholderContainer}>
           <Ionicons name="musical-notes" size={48} color={colors.primary} />
           <Text style={styles.placeholderText}>Music selection coming soon</Text>
-          <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}><Text style={styles.tempCompleteButtonText}>Use Default Music</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}>
+            <Text style={styles.tempCompleteButtonText}>Use Default Music</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </Modal>
@@ -97,19 +125,36 @@ const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps)
   return (
     <TouchableOpacity style={styles.sectionItem} onPress={onPress}>
       <View style={styles.sectionItemContent}>
-        <View style={styles.sectionTypeIcon}><Ionicons name={getSectionIcon(section)} size={24} color={colors.primary} /></View>
+        <View style={styles.sectionTypeIcon}>
+          <Ionicons name={getSectionIcon(section)} size={24} color={colors.primary} />
+        </View>
         <View style={styles.sectionItemText}>
           <Text style={styles.sectionItemTitle}>{section.title?.en ?? section.name}</Text>
-          {section.description?.en ? <Text style={styles.sectionItemDescription} numberOfLines={1}>{section.description.en}</Text> : null}
+          {section.description?.en ? (
+            <Text style={styles.sectionItemDescription} numberOfLines={1}>
+              {section.description.en}
+            </Text>
+          ) : null}
         </View>
         <View style={styles.sectionItemStatus}>
-          {completed ? <Ionicons name="checkmark-circle" size={24} color={colors.success} /> : <Ionicons name="ellipse-outline" size={24} color={colors.divider} />}
+          {completed ? (
+            <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+          ) : (
+            <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
+          )}
         </View>
       </View>
       {completed && (section.type === 'project_video' || section.type === 'picture') && (
         <View style={styles.sectionItemActions}>
-          <TouchableOpacity style={styles.previewButton} onPress={(e) => { e.stopPropagation(); onPreview(); }}>
-            <Ionicons name="play" size={16} color={colors.primary} /><Text style={styles.previewButtonText}>Preview</Text>
+          <TouchableOpacity
+            style={styles.previewButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              onPreview();
+            }}
+          >
+            <Ionicons name="play" size={16} color={colors.primary} />
+            <Text style={styles.previewButtonText}>Preview</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -117,18 +162,42 @@ const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps)
   );
 };
 
-type HandlerCtx = { project: Project | null; template: Template | undefined; activeFormSection: Section | null; activeMusicSection: Section | null; setProject: (p: Project) => void; setActiveFormSection: (s: Section | null) => void; setActiveMusicSection: (s: Section | null) => void; saveProjectMutation: ReturnType<typeof useSaveProject>; router: ReturnType<typeof useRouter> };
+type HandlerCtx = {
+  project: Project | null;
+  template: Template | undefined;
+  activeFormSection: Section | null;
+  activeMusicSection: Section | null;
+  setProject: (p: Project) => void;
+  setActiveFormSection: (s: Section | null) => void;
+  setActiveMusicSection: (s: Section | null) => void;
+  saveProjectMutation: ReturnType<typeof useSaveProject>;
+  router: ReturnType<typeof useRouter>;
+};
 
 function useSectionHandlers(ctx: HandlerCtx) {
-  const { project, template, activeFormSection, activeMusicSection, setProject, setActiveFormSection, setActiveMusicSection, saveProjectMutation, router } = ctx;
+  const {
+    project,
+    template,
+    activeFormSection,
+    activeMusicSection,
+    setProject,
+    setActiveFormSection,
+    setActiveMusicSection,
+    saveProjectMutation,
+    router,
+  } = ctx;
   const handleFormDataChange = (field: string, value: string) => {
     if (!project) return;
     setProject({ ...project, formData: { ...project.formData, [field]: value }, updatedAt: new Date().toISOString() });
-    saveProjectMutation.mutate({ ...project, formData: { ...project.formData, [field]: value }, updatedAt: new Date().toISOString() });
+    saveProjectMutation.mutate({
+      ...project,
+      formData: { ...project.formData, [field]: value },
+      updatedAt: new Date().toISOString(),
+    });
   };
   const handleFormSubmit = () => {
     if (!activeFormSection || !project) return;
-    const done = (activeFormSection.options?.fields ?? []).every(f => Boolean(project.formData[f.name]));
+    const done = (activeFormSection.options?.fields ?? []).every((f) => Boolean(project.formData[f.name]));
 
     if (done) {
       setActiveFormSection(null);
@@ -140,7 +209,15 @@ function useSectionHandlers(ctx: HandlerCtx) {
   };
   const handlePreviewVideo = (section: Section) => {
     if (project?.recordedVideos[section.name] && template?.content.global?.orientation) {
-      router.push({ pathname: '/(fullscreen)/preview', params: { projectId: project.id, videoUri: project.recordedVideos[section.name].path, orientation: template.content.global.orientation, sectionName: section.name } });
+      router.push({
+        pathname: '/(fullscreen)/preview',
+        params: {
+          projectId: project.id,
+          videoUri: project.recordedVideos[section.name].path,
+          orientation: template.content.global.orientation,
+          sectionName: section.name,
+        },
+      });
 
       return;
     }
@@ -151,7 +228,15 @@ function useSectionHandlers(ctx: HandlerCtx) {
     if (!project || !template) return;
 
     if (section.type === 'project_video' || section.type === 'picture') {
-      router.push({ pathname: '/(fullscreen)/record-section', params: { projectId: project.id, sectionJson: JSON.stringify(section), orientation: template.content.global?.orientation ?? 'portrait', existingVideoPath: project.recordedVideos[section.name]?.path } });
+      router.push({
+        pathname: '/(fullscreen)/record-section',
+        params: {
+          projectId: project.id,
+          sectionJson: JSON.stringify(section),
+          orientation: template.content.global?.orientation ?? 'portrait',
+          existingVideoPath: project.recordedVideos[section.name]?.path,
+        },
+      });
 
       return;
     }
@@ -172,7 +257,11 @@ function useSectionHandlers(ctx: HandlerCtx) {
   };
   const handleMusicUseDefault = () => {
     if (project && activeMusicSection) {
-      const updated = { ...project, formData: { ...project.formData, [`music_${activeMusicSection.name}`]: 'default' }, updatedAt: new Date().toISOString() };
+      const updated = {
+        ...project,
+        formData: { ...project.formData, [`music_${activeMusicSection.name}`]: 'default' },
+        updatedAt: new Date().toISOString(),
+      };
       setProject(updated);
       saveProjectMutation.mutate(updated);
     }
@@ -182,7 +271,15 @@ function useSectionHandlers(ctx: HandlerCtx) {
   return { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault };
 }
 
-type CompileCtx = { project: Project | null; template: Template | undefined; isOffline: boolean; setProject: (p: Project) => void; saveProjectMutation: ReturnType<typeof useSaveProject>; queueVideoCompilation: ReturnType<typeof useQueueVideoCompilation>; router: ReturnType<typeof useRouter> };
+type CompileCtx = {
+  project: Project | null;
+  template: Template | undefined;
+  isOffline: boolean;
+  setProject: (p: Project) => void;
+  saveProjectMutation: ReturnType<typeof useSaveProject>;
+  queueVideoCompilation: ReturnType<typeof useQueueVideoCompilation>;
+  router: ReturnType<typeof useRouter>;
+};
 
 function useCompileHandler(ctx: CompileCtx) {
   const { project, template, isOffline, setProject, saveProjectMutation, queueVideoCompilation, router } = ctx;
@@ -190,23 +287,44 @@ function useCompileHandler(ctx: CompileCtx) {
   return () => {
     if (!project || !template) return;
     queueVideoCompilation.mutate(
-      { projectId: project.id, templateDescriptor: compileTemplate(template.content, project.formData), recordedVideos: project.recordedVideos },
+      {
+        projectId: project.id,
+        templateDescriptor: compileTemplate(template.content, project.formData),
+        recordedVideos: project.recordedVideos,
+      },
       {
         onSuccess: (result) => {
           if (result.immediate && result.result?.success) {
-            const updated = { ...project, outputVideoUri: result.result.outputUri, status: 'completed' as const, updatedAt: new Date().toISOString() };
+            const updated = {
+              ...project,
+              outputVideoUri: result.result.outputUri,
+              status: 'completed' as const,
+              updatedAt: new Date().toISOString(),
+            };
             setProject(updated);
             saveProjectMutation.mutate(updated);
-            router.push({ pathname: '/(fullscreen)/preview', params: { projectId: project.id, videoUri: result.result.outputUri } });
+            router.push({
+              pathname: '/(fullscreen)/preview',
+              params: { projectId: project.id, videoUri: result.result.outputUri },
+            });
 
             return;
           }
 
           if (!result.immediate) {
             const title = isOffline ? 'Added to Queue (Offline)' : 'Added to Queue';
-            const msg = isOffline ? 'Your video will be processed automatically when you connect to the internet.' : "Your video has been queued for processing. You'll be notified when it's ready.";
+            const msg = isOffline
+              ? 'Your video will be processed automatically when you connect to the internet.'
+              : "Your video has been queued for processing. You'll be notified when it's ready.";
 
-            Alert.alert(title, msg, [{ text: 'OK', onPress: () => { router.back(); } }]);
+            Alert.alert(title, msg, [
+              {
+                text: 'OK',
+                onPress: () => {
+                  router.back();
+                },
+              },
+            ]);
 
             return;
           }
@@ -214,7 +332,10 @@ function useCompileHandler(ctx: CompileCtx) {
         },
         onError: (error: unknown) => {
           console.error('Error during compilation:', error);
-          Alert.alert('Compilation Error', `An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          Alert.alert(
+            'Compilation Error',
+            `An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
         },
       }
     );
@@ -253,24 +374,104 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
 
     if (!projectId) {
       projectInitializedRef.current = true;
-      const p: Project = { id: Date.now().toString(), name: `${template.name.replace('.json', '')} Project`, templateName: template.name, templateContent: template.content, status: 'draft', formData: {}, recordedVideos: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const p: Project = {
+        id: Date.now().toString(),
+        name: `${template.name.replace('.json', '')} Project`,
+        templateName: template.name,
+        templateContent: template.content,
+        status: 'draft',
+        formData: {},
+        recordedVideos: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
       setProject(p);
       saveProjectMutationRef.current.mutate(p);
     }
   }, [template, existingProject, projectLoading, projectId]);
   const { filtered: filteredSections, completed: completedSectionsCount } = getSectionInfo(template, project);
-  const setProjectSafe = (p: Project) => { setProject(p); };
-  const hCtx: HandlerCtx = { project, template, activeFormSection, activeMusicSection, setProject: setProjectSafe, setActiveFormSection, setActiveMusicSection, saveProjectMutation, router };
-  const { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault } = useSectionHandlers(hCtx);
-  const handleCompile = useCompileHandler({ project, template, isOffline, setProject: setProjectSafe, saveProjectMutation, queueVideoCompilation, router });
-  const allDone = project !== null && filteredSections.length > 0 && filteredSections.every(s => isSectionCompleted(s, project));
+  const setProjectSafe = (p: Project) => {
+    setProject(p);
+  };
+  const hCtx: HandlerCtx = {
+    project,
+    template,
+    activeFormSection,
+    activeMusicSection,
+    setProject: setProjectSafe,
+    setActiveFormSection,
+    setActiveMusicSection,
+    saveProjectMutation,
+    router,
+  };
+  const { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault } =
+    useSectionHandlers(hCtx);
+  const handleCompile = useCompileHandler({
+    project,
+    template,
+    isOffline,
+    setProject: setProjectSafe,
+    saveProjectMutation,
+    queueVideoCompilation,
+    router,
+  });
+  const allDone =
+    project !== null && filteredSections.length > 0 && filteredSections.every((s) => isSectionCompleted(s, project));
 
-  return { template, templateLoading, templateError, project, filteredSections, completedSectionsCount, allDone, orientation: template?.content.global?.orientation ?? 'portrait', description: template?.content.sections?.find(s => s.description?.en)?.description?.en ?? 'Create a video using this template', activeFormSection, setActiveFormSection, activeMusicSection, setActiveMusicSection, isPending: queueVideoCompilation.isPending, isOffline, handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault, handleCompile, router };
+  return {
+    template,
+    templateLoading,
+    templateError,
+    project,
+    filteredSections,
+    completedSectionsCount,
+    allDone,
+    orientation: template?.content.global?.orientation ?? 'portrait',
+    description:
+      template?.content.sections?.find((s) => s.description?.en)?.description?.en ??
+      'Create a video using this template',
+    activeFormSection,
+    setActiveFormSection,
+    activeMusicSection,
+    setActiveMusicSection,
+    isPending: queueVideoCompilation.isPending,
+    isOffline,
+    handleFormDataChange,
+    handleFormSubmit,
+    handlePreviewVideo,
+    handleSectionPress,
+    handleMusicUseDefault,
+    handleCompile,
+    router,
+  };
 }
 
 const TemplateDetailScreen = () => {
   const params = useLocalSearchParams<{ id: string; projectId?: string }>();
-  const { template, templateLoading, templateError, project, filteredSections, completedSectionsCount, allDone, orientation, description, activeFormSection, setActiveFormSection, activeMusicSection, setActiveMusicSection, isPending, isOffline, handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault, handleCompile, router } = useTemplateDetail(params.id, params.projectId);
+  const {
+    template,
+    templateLoading,
+    templateError,
+    project,
+    filteredSections,
+    completedSectionsCount,
+    allDone,
+    orientation,
+    description,
+    activeFormSection,
+    setActiveFormSection,
+    activeMusicSection,
+    setActiveMusicSection,
+    isPending,
+    isOffline,
+    handleFormDataChange,
+    handleFormSubmit,
+    handlePreviewVideo,
+    handleSectionPress,
+    handleMusicUseDefault,
+    handleCompile,
+    router,
+  } = useTemplateDetail(params.id, params.projectId);
 
   if (templateLoading) {
     return (
@@ -284,43 +485,100 @@ const TemplateDetailScreen = () => {
   if (templateError || !template || !project) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{templateError instanceof Error ? templateError.message : 'Template or Project not found'}</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => { router.back(); }}><Text style={styles.backButtonText}>Back to Templates</Text></TouchableOpacity>
+        <Text style={styles.errorText}>
+          {templateError instanceof Error ? templateError.message : 'Template or Project not found'}
+        </Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <Text style={styles.backButtonText}>Back to Templates</Text>
+        </TouchableOpacity>
       </View>
     );
   }
   const isDisabled = !allDone || isPending;
-  const orientationIcon = orientation === 'portrait' ? 'phone-portrait-outline' : ('phone-landscape-outline' as keyof typeof Ionicons.glyphMap);
+  const orientationIcon =
+    orientation === 'portrait'
+      ? 'phone-portrait-outline'
+      : ('phone-landscape-outline' as keyof typeof Ionicons.glyphMap);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => { router.back(); }}><Ionicons name="arrow-back" size={24} color={colors.text} /></TouchableOpacity>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
         <Text style={styles.title}>{template.name.replace('.json', '')}</Text>
       </View>
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.orientationRow}>
           <Ionicons name={orientationIcon} size={24} color={colors.text} />
-          <Text style={styles.orientationText}>{orientation === 'portrait' ? 'Portrait' : 'Landscape'} orientation</Text>
+          <Text style={styles.orientationText}>
+            {orientation === 'portrait' ? 'Portrait' : 'Landscape'} orientation
+          </Text>
         </View>
         <Text style={styles.description}>{description}</Text>
         <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${(completedSectionsCount / filteredSections.length) * 100}%` }]} />
+          <View
+            style={[styles.progressBar, { width: `${(completedSectionsCount / filteredSections.length) * 100}%` }]}
+          />
         </View>
-        <Text style={styles.progressText}>{completedSectionsCount} of {filteredSections.length} sections completed</Text>
+        <Text style={styles.progressText}>
+          {completedSectionsCount} of {filteredSections.length} sections completed
+        </Text>
         <Text style={styles.sectionTitle}>Sections</Text>
         {filteredSections.map((section) => (
-          <SectionItem key={section.name} section={section} project={project} onPress={() => { handleSectionPress(section); }} onPreview={() => { handlePreviewVideo(section); }} />
+          <SectionItem
+            key={section.name}
+            section={section}
+            project={project}
+            onPress={() => {
+              handleSectionPress(section);
+            }}
+            onPreview={() => {
+              handlePreviewVideo(section);
+            }}
+          />
         ))}
       </ScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity style={[styles.createButton, isDisabled && styles.disabledButton]} disabled={isDisabled} onPress={handleCompile}>
+        <TouchableOpacity
+          style={[styles.createButton, isDisabled && styles.disabledButton]}
+          disabled={isDisabled}
+          onPress={handleCompile}
+        >
           <Text style={styles.createButtonText}>{getButtonLabel(isPending, isOffline)}</Text>
           {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
         </TouchableOpacity>
       </View>
-      <FormModal section={activeFormSection} formData={project.formData} onFormDataChange={handleFormDataChange} onClose={() => { setActiveFormSection(null); }} onSubmit={handleFormSubmit} />
-      <MusicModal section={activeMusicSection} onClose={() => { setActiveMusicSection(null); }} onUseDefault={handleMusicUseDefault} />
+      <FormModal
+        section={activeFormSection}
+        formData={project.formData}
+        onFormDataChange={handleFormDataChange}
+        onClose={() => {
+          setActiveFormSection(null);
+        }}
+        onSubmit={handleFormSubmit}
+      />
+      <MusicModal
+        section={activeMusicSection}
+        onClose={() => {
+          setActiveMusicSection(null);
+        }}
+        onUseDefault={handleMusicUseDefault}
+      />
     </SafeAreaView>
   );
 };

@@ -58,7 +58,13 @@ vi.mock('@/director/TemplateDirector', () => {
 });
 
 // Keep the lazily-imported editor/manager registrations cheap and side-effect free.
-vi.mock('@/platform/EventManager', () => ({ default: class { connect() { return { on: vi.fn() }; } } }));
+vi.mock('@/platform/EventManager', () => ({
+  default: class {
+    connect() {
+      return { on: vi.fn() };
+    }
+  },
+}));
 vi.mock('@/editor/VideoEditor', () => ({ default: class {} }));
 vi.mock('@/editor/MusicComposer', () => ({ default: class {} }));
 vi.mock('@/director/TemplateConcreteBuilder', () => ({ default: class {} }));

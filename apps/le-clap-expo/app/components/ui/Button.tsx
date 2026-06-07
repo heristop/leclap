@@ -194,10 +194,7 @@ export default function Button({
 
     runAsync(async () => {
       if (hapticFeedback) {
-        const style =
-          variant === 'destructive'
-            ? Haptics.ImpactFeedbackStyle.Heavy
-            : Haptics.ImpactFeedbackStyle.Light;
+        const style = variant === 'destructive' ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Light;
         await Haptics.impactAsync(style);
       }
 

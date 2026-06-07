@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react';
 
 interface UseInViewOptions {
   /** Fraction of the element visible before it counts as in-view (0..1). */
-  threshold?: number
+  threshold?: number;
   /** Reveal once then stop observing (default true). */
-  once?: boolean
+  once?: boolean;
   /** Margin around the root; the default reveals slightly before the element is fully on screen. */
-  rootMargin?: string
+  rootMargin?: string;
 }
 
 /**
@@ -20,39 +20,41 @@ export function useInView<T extends HTMLElement = HTMLDivElement>({
   // page-bottom elements (which can't scroll any higher) permanently hidden.
   rootMargin = '0px',
 }: UseInViewOptions = {}): [RefObject<T | null>, boolean] {
-  const ref = useRef<T>(null)
-  const [inView, setInView] = useState(false)
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    const el = ref.current
+    const el = ref.current;
 
-    if (!el) return
+    if (!el) return;
 
     if (typeof IntersectionObserver === 'undefined') {
-      setInView(true)
+      setInView(true);
 
-      return
+      return;
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setInView(true)
+            setInView(true);
 
-            if (once) observer.unobserve(entry.target)
+            if (once) observer.unobserve(entry.target);
           } else if (!once) {
-            setInView(false)
+            setInView(false);
           }
         }
       },
       { threshold, rootMargin }
-    )
+    );
 
-    observer.observe(el)
+    observer.observe(el);
 
-    return () => { observer.disconnect() }
-  }, [threshold, once, rootMargin])
+    return () => {
+      observer.disconnect();
+    };
+  }, [threshold, once, rootMargin]);
 
-  return [ref, inView]
+  return [ref, inView];
 }

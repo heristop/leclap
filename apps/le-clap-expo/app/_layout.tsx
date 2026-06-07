@@ -1,8 +1,15 @@
-import { Stack } from "expo-router";
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { TamaguiProvider } from '@tamagui/core';
-import { useFonts, Oswald_300Light, Oswald_400Regular, Oswald_500Medium, Oswald_600SemiBold, Oswald_700Bold } from '@expo-google-fonts/oswald';
+import {
+  useFonts,
+  Oswald_300Light,
+  Oswald_400Regular,
+  Oswald_500Medium,
+  Oswald_600SemiBold,
+  Oswald_700Bold,
+} from '@expo-google-fonts/oswald';
 import { QueryProvider } from '@/src/providers/QueryProvider';
 import { OfflineProvider } from '@/src/providers/OfflineProvider';
 import AnimatedSplashScreen from './components/SplashScreen';
@@ -40,9 +47,7 @@ export default function RootLayout() {
   };
 
   if (!isReady || !fontsLoaded || showAnimatedSplash) {
-    return showAnimatedSplash ? (
-      <AnimatedSplashScreen onAnimationComplete={handleAnimationComplete} />
-    ) : null;
+    return showAnimatedSplash ? <AnimatedSplashScreen onAnimationComplete={handleAnimationComplete} /> : null;
   }
 
   return (

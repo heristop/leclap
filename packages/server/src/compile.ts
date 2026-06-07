@@ -214,7 +214,7 @@ async function runCompilation(
   requestUid: string,
   templateJson: unknown,
   tempVideoPaths: Record<string, string>,
-  logger: CompileLogger
+  _logger: CompileLogger
 ): Promise<string | null> {
   const dirs = buildCompileDirs(requestUid);
   ensureCompileDirs(dirs);
@@ -230,10 +230,7 @@ async function runCompilation(
 
 // Reject the request unless the template is present and any required uploads were provided.
 // Returns a failure outcome to send, or null when the request passes validation.
-function validateCompileRequest(
-  templateJson: unknown,
-  videoFiles: VideoFile[]
-): CompileOutcome | null {
+function validateCompileRequest(templateJson: unknown, videoFiles: VideoFile[]): CompileOutcome | null {
   if (!templateJson) {
     return { success: false, outputPath: null, errorMessage: 'Template JSON missing in request', statusCode: 400 };
   }
@@ -272,7 +269,12 @@ export async function handleCompileRequest(
   const editsResult = await applyVideoEditsToSections(tempVideoPaths, videoEdits, logger);
 
   if (!editsResult.ok) {
-    return { success: false, outputPath: null, errorMessage: editsResult.errorMessage, statusCode: editsResult.statusCode };
+    return {
+      success: false,
+      outputPath: null,
+      errorMessage: editsResult.errorMessage,
+      statusCode: editsResult.statusCode,
+    };
   }
 
   const compiledPath = await runCompilation(requestUid, templateJson, tempVideoPaths, logger);

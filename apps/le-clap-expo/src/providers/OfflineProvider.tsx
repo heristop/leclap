@@ -16,7 +16,6 @@ interface OfflineProviderProps {
   children: ReactNode;
 }
 
-
 export function OfflineProvider({ children }: OfflineProviderProps) {
   const networkState = useNetworkState();
 
@@ -62,13 +61,18 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
       return () => {};
     }
 
-    const interval = setInterval(() => {
-      cleanupQueueRef.current.mutateAsync().catch((error) => {
-        console.warn('Periodic cleanup failed:', error);
-      });
-    }, 60 * 60 * 1000); // Every hour
+    const interval = setInterval(
+      () => {
+        cleanupQueueRef.current.mutateAsync().catch((error) => {
+          console.warn('Periodic cleanup failed:', error);
+        });
+      },
+      60 * 60 * 1000
+    ); // Every hour
 
-    return () => { clearInterval(interval); };
+    return () => {
+      clearInterval(interval);
+    };
   }, [isOnline]);
 
   const contextValue: OfflineContextType = {
@@ -78,11 +82,7 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
     hasInternet: networkState.isInternetReachable ?? false,
   };
 
-  return (
-    <OfflineContext.Provider value={contextValue}>
-      {children}
-    </OfflineContext.Provider>
-  );
+  return <OfflineContext.Provider value={contextValue}>{children}</OfflineContext.Provider>;
 }
 
 export function useOffline() {

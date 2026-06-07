@@ -10,11 +10,7 @@ interface FooterProps {
 const Footer = ({ onCreatePress }: FooterProps) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.createButton}
-        onPress={onCreatePress}
-        activeOpacity={0.8}
-      >
+      <TouchableOpacity style={styles.createButton} onPress={onCreatePress} activeOpacity={0.8}>
         <Ionicons name="add-circle" size={24} color={colors.surface} />
         <Text style={styles.createButtonText}>Create New Video</Text>
       </TouchableOpacity>

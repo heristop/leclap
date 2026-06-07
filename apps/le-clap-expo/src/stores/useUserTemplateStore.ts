@@ -61,11 +61,18 @@ export const useUserTemplateStore = create<UserTemplateStore>()(
 
       duplicate: (id) => {
         const source = get().templates.find((t) => t.id === id);
+
         if (!source) {
           return null;
         }
         const now = Date.now();
-        const copy: UserTemplate = { ...source, id: randomId(), name: `${source.name} copy`, createdAt: now, updatedAt: now };
+        const copy: UserTemplate = {
+          ...source,
+          id: randomId(),
+          name: `${source.name} copy`,
+          createdAt: now,
+          updatedAt: now,
+        };
         set((state) => ({ templates: [copy, ...state.templates] }));
 
         return copy;
@@ -76,7 +83,9 @@ export const useUserTemplateStore = create<UserTemplateStore>()(
     {
       name: 'leclap.user-templates',
       storage: createJSONStorage(() => AsyncStorage),
-      onRehydrateStorage: () => (state) => { state?.setHasHydrated(true); },
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

@@ -1,7 +1,7 @@
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // shadcn-style Button: Radix Slot for `asChild`, cva for variants, on-brand via
 // the existing OKLCH design tokens (lavender `brand-gradient`, `surface`, etc.).
@@ -10,7 +10,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'brand-gradient text-white shadow-lg shadow-brand-900/30 hover:-translate-y-0.5 hover:shadow-brand-500/40',
+        primary:
+          'brand-gradient text-white shadow-lg shadow-brand-900/30 hover:-translate-y-0.5 hover:shadow-brand-500/40',
         secondary: 'bg-surface-2 text-foreground border border-divider hover:-translate-y-0.5',
         outline: 'border border-divider bg-transparent text-foreground hover:bg-foreground/5',
         ghost: 'text-gray-300 hover:text-foreground hover:bg-foreground/10',
@@ -27,21 +28,20 @@ const buttonVariants = cva(
     },
     defaultVariants: { variant: 'primary', size: 'md' },
   }
-)
+);
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button'
+    const Comp = asChild ? Slot : 'button';
 
-    return <Comp ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />
+    return <Comp ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />;
   }
-)
-Button.displayName = 'Button'
+);
+Button.displayName = 'Button';
 
-export { Button, buttonVariants }
+export { Button, buttonVariants };

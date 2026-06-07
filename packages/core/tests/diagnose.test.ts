@@ -23,7 +23,8 @@ describe('Diagnose Script', () => {
     // Check that the script produces output
     expect(stdout).toBeTruthy();
     // The output contains ASCII art title, check for key text
-    const hasRelevantOutput = stdout.includes('FFmpeg') || stdout.includes('Diagnostics') || stdout.includes('Video Composer');
+    const hasRelevantOutput =
+      stdout.includes('FFmpeg') || stdout.includes('Diagnostics') || stdout.includes('Video Composer');
     expect(hasRelevantOutput).toBe(true);
   }, 30000);
 
@@ -59,10 +60,7 @@ describe('Diagnose Script', () => {
 
   it('should import reflect-metadata at the top of the file', async () => {
     const { readFile } = await import('node:fs/promises');
-    const diagnoseContent = await readFile(
-      path.join(PROJECT_ROOT, 'diagnose.js'),
-      'utf-8'
-    );
+    const diagnoseContent = await readFile(path.join(PROJECT_ROOT, 'diagnose.js'), 'utf-8');
 
     // Check that reflect-metadata is imported
     expect(diagnoseContent).toContain("import 'reflect-metadata'");
@@ -79,11 +77,7 @@ describe('Diagnose Script', () => {
         continue;
       }
 
-      if (
-        line.trim().startsWith('import') &&
-        !line.includes('reflect-metadata') &&
-        line.includes('from')
-      ) {
+      if (line.trim().startsWith('import') && !line.includes('reflect-metadata') && line.includes('from')) {
         if (foundReflectMetadata) {
           // This is fine - reflect-metadata is imported before this
           continue;

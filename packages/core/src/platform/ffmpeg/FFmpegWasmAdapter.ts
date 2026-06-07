@@ -31,7 +31,10 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
   constructor(@inject('filesystemAdapter') private readonly fs: AbstractFilesystem) {
     super();
     this.initializeFFmpeg().catch((error: unknown) => {
-      console.error('[FFmpegWasmAdapter] Initialization failed:', error instanceof Error ? error.message : String(error));
+      console.error(
+        '[FFmpegWasmAdapter] Initialization failed:',
+        error instanceof Error ? error.message : String(error)
+      );
     });
   }
 
@@ -87,7 +90,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
         return Promise.reject(new FFmpegError('Timeout waiting for FFmpeg WebAssembly to load'));
       }
 
-      return new Promise<void>(resolve => {
+      return new Promise<void>((resolve) => {
         setTimeout(resolve, 100);
       }).then(poll);
     };
@@ -103,7 +106,8 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
 
     const errorCallback = ({ message }: FFmpegLogData) => {
       if (message) {
-        const isError = message.toLowerCase().includes('error') &&
+        const isError =
+          message.toLowerCase().includes('error') &&
           !message.includes('ffmpeg version') &&
           !message.includes('configuration:');
         const isAbort = message.includes('Aborted()') || message.includes('abort');
@@ -148,10 +152,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       // segments) are not failures, and ffmpeg-core logs "Aborted()" even on a
       // normal exit - so the log alone is not a reliable failure signal.
       if (outputPath !== undefined && !produced) {
-        throw new FFmpegError(
-          'FFmpeg WASM execution failed',
-          errorMessages[0] ?? 'No output produced'
-        );
+        throw new FFmpegError('FFmpeg WASM execution failed', errorMessages[0] ?? 'No output produced');
       }
 
       return { rc: 0 };
@@ -279,7 +280,9 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       const data = await this.fs.readFile(source);
       await ffmpeg.writeFile(filename, data);
     } catch (error) {
-      console.warn(`[FFmpegWasmAdapter] Failed to load file from filesystem: ${error instanceof Error ? error.message : String(error)}`);
+      console.warn(
+        `[FFmpegWasmAdapter] Failed to load file from filesystem: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -302,7 +305,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       const videoMatch = message.match(/Video: ([^,]+)/);
 
       if (videoMatch) {
-        state.videoCodec = (videoMatch[1]).trim();
+        state.videoCodec = videoMatch[1].trim();
       }
     }
 
@@ -310,7 +313,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       const audioMatch = message.match(/Audio: ([^,]+)/);
 
       if (audioMatch) {
-        state.audioCodec = (audioMatch[1]).trim();
+        state.audioCodec = audioMatch[1].trim();
       }
     }
   }
@@ -364,20 +367,31 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     let current = '';
     let quoteChar: string | null = null;
     const flush = (): void => {
-      if (current.trim()) { args.push(current.trim()); }
+      if (current.trim()) {
+        args.push(current.trim());
+      }
       current = '';
     };
 
     for (const char of command) {
       if (quoteChar !== null) {
-        if (char === quoteChar) { quoteChar = null; continue; }
+        if (char === quoteChar) {
+          quoteChar = null;
+          continue;
+        }
         current += char;
         continue;
       }
 
-      if (char === '"' || char === "'") { quoteChar = char; continue; }
+      if (char === '"' || char === "'") {
+        quoteChar = char;
+        continue;
+      }
 
-      if (char === ' ') { flush(); continue; }
+      if (char === ' ') {
+        flush();
+        continue;
+      }
 
       current += char;
     }

@@ -221,9 +221,7 @@ describe('Abstract base classes', () => {
     }
 
     const instance = new TestMusic() as unknown as AbstractMusic;
-    await expect(
-      instance.process(makeLogger(), makeFs(), 0, '/m.mp3')
-    ).resolves.toEqual({ rc: 0 });
+    await expect(instance.process(makeLogger(), makeFs(), 0, '/m.mp3')).resolves.toEqual({ rc: 0 });
   });
 });
 
@@ -355,9 +353,7 @@ describe('FFmpegStaticAdapter', () => {
       sampleRate: 48000,
     });
     // ffprobe binary quoted, with the JSON-streams flags and quoted source.
-    expect(execCommands[0]).toMatch(
-      /^".*ffprobe" -v quiet -print_format json -show_streams "movie\.webm"$/
-    );
+    expect(execCommands[0]).toMatch(/^".*ffprobe" -v quiet -print_format json -show_streams "movie\.webm"$/);
   });
 
   it('getInfos() returns nulls when ffprobe reports no streams', async () => {
@@ -469,13 +465,7 @@ describe('FFmpegWasmAdapter', () => {
     const result = await adapter.execute('-i "my input.mp4" -c:v libx264 out.mp4');
 
     expect(result).toEqual({ rc: 0 });
-    expect(ffmpeg.exec).toHaveBeenCalledWith([
-      '-i',
-      'my input.mp4',
-      '-c:v',
-      'libx264',
-      'out.mp4',
-    ]);
+    expect(ffmpeg.exec).toHaveBeenCalledWith(['-i', 'my input.mp4', '-c:v', 'libx264', 'out.mp4']);
   });
 
   it('execute() surfaces a failed command (no output produced) as an FFmpegError', async () => {
@@ -721,9 +711,7 @@ describe('MusicNodeAdapter', () => {
     const logger = makeLogger();
     execHandler = () => ({ stdout: 'not-a-number\n', stderr: '' });
 
-    await expect(adapter.process(logger, makeFs(), 60, '/music.mp3')).rejects.toThrow(
-      /Failed to get media duration/
-    );
+    await expect(adapter.process(logger, makeFs(), 60, '/music.mp3')).rejects.toThrow(/Failed to get media duration/);
     expect(logger.error).toHaveBeenCalled();
   });
 

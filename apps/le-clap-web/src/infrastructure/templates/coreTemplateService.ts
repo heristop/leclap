@@ -5,21 +5,41 @@ type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
 type Field = { name: string; maxLength: number; label: Translation };
 type FilterValues = {
-  h?: number | string; w?: number | string; x?: number | string; y?: number | string;
-  c?: string; t?: string | number; text?: Translation; fontcolor?: string;
-  fontsize?: number | string; fontfile?: string; alpha?: string;
-  d?: string; st?: string; color?: string;
-  box?: number; boxcolor?: string; boxborderw?: number;
+  h?: number | string;
+  w?: number | string;
+  x?: number | string;
+  y?: number | string;
+  c?: string;
+  t?: string | number;
+  text?: Translation;
+  fontcolor?: string;
+  fontsize?: number | string;
+  fontfile?: string;
+  alpha?: string;
+  d?: string;
+  st?: string;
+  color?: string;
+  box?: number;
+  boxcolor?: string;
+  boxborderw?: number;
 };
 type SectionFilter = { type: string; value?: string | number; values?: FilterValues; range?: string };
 type SectionOptions = { duration?: number; fields?: Field[]; forceAspectRatio?: boolean; [key: string]: unknown };
 type TemplateSection = {
-  name: string; type: string; options?: SectionOptions; filters?: SectionFilter[];
-  title?: Translation; description?: Translation;
+  name: string;
+  type: string;
+  options?: SectionOptions;
+  filters?: SectionFilter[];
+  title?: Translation;
+  description?: Translation;
 };
 type TemplateDescriptorGlobal = {
-  variables?: Variables; orientation?: string; colorsList?: string[];
-  musicEnabled?: boolean; audioVolumeLevel?: number; transitionDuration?: number;
+  variables?: Variables;
+  orientation?: string;
+  colorsList?: string[];
+  musicEnabled?: boolean;
+  audioVolumeLevel?: number;
+  transitionDuration?: number;
 };
 interface TemplateDescriptor {
   global?: TemplateDescriptorGlobal;
@@ -49,43 +69,43 @@ const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = {
     templateDescriptor: {
       global: {
         variables: {
-          colorTransition: "#000000"
+          colorTransition: '#000000',
         },
-        orientation: "landscape",
+        orientation: 'landscape',
         musicEnabled: false,
-        transitionDuration: 0.5
+        transitionDuration: 0.5,
       },
       sections: [
         {
-          name: "video_1",
-          type: "project_video",
+          name: 'video_1',
+          type: 'project_video',
           options: {
             duration: 2000,
-            forceAspectRatio: true
+            forceAspectRatio: true,
           },
           filters: [
             {
-              type: "fade",
+              type: 'fade',
               values: {
-                t: "in",
-                st: "0",
-                d: "0.5",
-                color: "{{ colorTransition }}"
-              }
+                t: 'in',
+                st: '0',
+                d: '0.5',
+                color: '{{ colorTransition }}',
+              },
             },
             {
-              type: "fade",
+              type: 'fade',
               values: {
-                t: "out",
-                st: "1.5",
-                d: "0.5",
-                color: "{{ colorTransition }}"
-              }
-            }
-          ]
-        }
-      ]
-    }
+                t: 'out',
+                st: '1.5',
+                d: '0.5',
+                color: '{{ colorTransition }}',
+              },
+            },
+          ],
+        },
+      ],
+    },
   },
 
   'sample-advanced': {
@@ -98,98 +118,98 @@ const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = {
     templateDescriptor: {
       global: {
         variables: {
-          colorsList: ["rgb(41 37 36)", "rgb(250 250 249)"]
+          colorsList: ['rgb(41 37 36)', 'rgb(250 250 249)'],
         },
-        orientation: "landscape",
+        orientation: 'landscape',
         musicEnabled: false,
-        transitionDuration: 0.5
+        transitionDuration: 0.5,
       },
       sections: [
         {
-          name: "form_1",
-          type: "form",
+          name: 'form_1',
+          type: 'form',
           title: {
-            en: "Personal Information"
+            en: 'Personal Information',
           },
           description: {
-            en: "Please provide your details"
+            en: 'Please provide your details',
           },
           options: {
             fields: [
               {
-                name: "form_1_firstname",
+                name: 'form_1_firstname',
                 maxLength: 30,
                 label: {
-                  en: "First Name"
-                }
+                  en: 'First Name',
+                },
               },
               {
-                name: "form_1_lastname",
+                name: 'form_1_lastname',
                 maxLength: 30,
                 label: {
-                  en: "Last Name"
-                }
+                  en: 'Last Name',
+                },
               },
               {
-                name: "form_1_job",
+                name: 'form_1_job',
                 maxLength: 40,
                 label: {
-                  en: "Your Job"
-                }
-              }
-            ]
-          }
+                  en: 'Your Job',
+                },
+              },
+            ],
+          },
         },
         {
-          name: "video_1",
-          type: "project_video",
+          name: 'video_1',
+          type: 'project_video',
           title: {
-            en: "Upload your video"
+            en: 'Upload your video',
           },
           description: {
-            en: "Your video with text overlay"
+            en: 'Your video with text overlay',
           },
           options: {
             duration: 20000,
-            forceAspectRatio: true
+            forceAspectRatio: true,
           },
           filters: [
             {
-              type: "drawtext",
+              type: 'drawtext',
               values: {
                 text: {
-                  en: "{{ form_1_firstname }} {{ form_1_lastname }}"
+                  en: '{{ form_1_firstname }} {{ form_1_lastname }}',
                 },
-                fontfile: "Rubik.ttf",
-                fontcolor: "white",
+                fontfile: 'Rubik.ttf',
+                fontcolor: 'white',
                 fontsize: 40,
-                x: "(w-text_w)/2",
-                y: "(h-text_h)/1.2",
+                x: '(w-text_w)/2',
+                y: '(h-text_h)/1.2',
                 box: 1,
-                boxcolor: "black@0.5",
-                boxborderw: 5
-              }
+                boxcolor: 'black@0.5',
+                boxborderw: 5,
+              },
             },
             {
-              type: "drawtext",
+              type: 'drawtext',
               values: {
                 text: {
-                  en: "{{ form_1_job }}"
+                  en: '{{ form_1_job }}',
                 },
-                fontfile: "Rubik.ttf",
-                fontcolor: "white",
+                fontfile: 'Rubik.ttf',
+                fontcolor: 'white',
                 fontsize: 25,
-                x: "(w-text_w)/2",
-                y: "(h-text_h)/1.1",
+                x: '(w-text_w)/2',
+                y: '(h-text_h)/1.1',
                 box: 1,
-                boxcolor: "black@0.5",
-                boxborderw: 5
-              }
-            }
-          ]
-        }
-      ]
-    }
+                boxcolor: 'black@0.5',
+                boxborderw: 5,
+              },
+            },
+          ],
+        },
+      ],
+    },
   },
 
   'concat-with-music': {
@@ -202,44 +222,44 @@ const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = {
     templateDescriptor: {
       global: {
         variables: {},
-        orientation: "landscape",
+        orientation: 'landscape',
         musicEnabled: false,
-        transitionDuration: 1
+        transitionDuration: 1,
       },
       sections: [
         {
-          name: "video_1",
-          type: "project_video",
+          name: 'video_1',
+          type: 'project_video',
           options: {
             duration: 5000,
-            forceAspectRatio: true
+            forceAspectRatio: true,
           },
           filters: [
             {
-              type: "scale",
-              value: "1280:720"
+              type: 'scale',
+              value: '1280:720',
             },
             {
-              type: "fade",
+              type: 'fade',
               values: {
-                t: "in",
-                st: "0",
-                d: "1"
-              }
+                t: 'in',
+                st: '0',
+                d: '1',
+              },
             },
             {
-              type: "fade",
+              type: 'fade',
               values: {
-                t: "out",
-                st: "4",
-                d: "1"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
+                t: 'out',
+                st: '4',
+                d: '1',
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 class CoreTemplateService {
@@ -270,7 +290,9 @@ class CoreTemplateService {
   }
 
   async getTemplatesByCategory(category: CoreTemplate['category']): Promise<CoreTemplate[]> {
-    const templates = Object.values(CORE_TEMPLATES).filter((template): template is CoreTemplate => template?.category === category);
+    const templates = Object.values(CORE_TEMPLATES).filter(
+      (template): template is CoreTemplate => template?.category === category
+    );
     templateLogger.log(`Found ${templates.length} templates in category: ${category}`);
 
     return templates;

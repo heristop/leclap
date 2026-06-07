@@ -17,9 +17,19 @@ const baseState = (sections: EditorState['sections']): EditorState => ({
 
 describe('newSection', () => {
   it('creates sensible defaults per kind', () => {
-    expect(newSection('video')).toEqual({ kind: 'video', duration: 8, mute: false, text: '', fontsize: 48, fontcolor: '#ffffff' });
+    expect(newSection('video')).toEqual({
+      kind: 'video',
+      duration: 8,
+      mute: false,
+      text: '',
+      fontsize: 48,
+      fontcolor: '#ffffff',
+    });
     expect(newSection('color')).toEqual({ kind: 'color', duration: 3, color: '#7C83FD' });
-    expect(newSection('form')).toEqual({ kind: 'form', fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }] });
+    expect(newSection('form')).toEqual({
+      kind: 'form',
+      fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }],
+    });
   });
 });
 
@@ -47,10 +57,15 @@ describe('buildDescriptor', () => {
   });
 
   it('adds a centered drawtext filter only when overlay text is present', () => {
-    const withText = buildDescriptor(baseState([{ kind: 'video', duration: 5, mute: false, text: 'Hello', fontsize: 40, fontcolor: '#fff' }]));
+    const withText = buildDescriptor(
+      baseState([{ kind: 'video', duration: 5, mute: false, text: 'Hello', fontsize: 40, fontcolor: '#fff' }])
+    );
     const withoutText = buildDescriptor(baseState([newSection('video')]));
 
-    const filters = (withText.sections?.[0].filters ?? []) as Array<{ type: string; values?: { text?: { en?: string } } }>;
+    const filters = (withText.sections?.[0].filters ?? []) as Array<{
+      type: string;
+      values?: { text?: { en?: string } };
+    }>;
     expect(filters).toHaveLength(1);
     expect(filters[0].type).toBe('drawtext');
     expect(filters[0].values?.text?.en).toBe('Hello');

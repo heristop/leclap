@@ -143,7 +143,7 @@ export class Terminal {
           new Promise<void>((resolve) => {
             process.stdout.write(c);
             setTimeout(resolve, speed);
-          }),
+          })
       );
     }
     await chain;
@@ -193,7 +193,6 @@ export class Terminal {
     }
 
     return [{ command: 'pnpm add ffmpeg-static', description: 'Universal static binary solution' }];
-    
   }
 
   /**
@@ -204,23 +203,25 @@ export class Terminal {
       this.startSpinner(step);
 
       return new Promise<void>((resolve) => {
-        setTimeout(() => {
-          this.stopSpinner('success', step);
+        setTimeout(
+          () => {
+            this.stopSpinner('success', step);
 
-          if (isLast) {
-            resolve();
+            if (isLast) {
+              resolve();
 
-            return;
-          }
-          setTimeout(resolve, 300);
-        }, 1000 + Math.random() * 2000);
+              return;
+            }
+            setTimeout(resolve, 300);
+          },
+          1000 + Math.random() * 2000
+        );
       });
     };
 
     await steps.reduce(
-      (promise, step, index) =>
-        promise.then(() => runStep(step, index === steps.length - 1)),
-      Promise.resolve(),
+      (promise, step, index) => promise.then(() => runStep(step, index === steps.length - 1)),
+      Promise.resolve()
     );
   }
 }

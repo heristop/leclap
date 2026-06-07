@@ -20,12 +20,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUri, onClose, onRetake }
     <View style={styles.container}>
       <View style={styles.videoContainer}>
         <StatusBar hidden translucent backgroundColor="transparent" />
-        <VideoView
-          style={styles.videoPlayer}
-          player={player}
-          nativeControls
-          contentFit="contain"
-        />
+        <VideoView style={styles.videoPlayer} player={player} nativeControls contentFit="contain" />
       </View>
 
       <View style={styles.controls}>
@@ -39,10 +34,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUri, onClose, onRetake }
         </TouchableOpacity>
 
         {onRetake && (
-          <TouchableOpacity
-            style={styles.retakeButton}
-            onPress={onRetake}
-          >
+          <TouchableOpacity style={styles.retakeButton} onPress={onRetake}>
             <Ionicons name="refresh" size={20} color="white" />
             <Text style={styles.buttonText}>Re-take</Text>
           </TouchableOpacity>

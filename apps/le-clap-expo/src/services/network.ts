@@ -79,24 +79,26 @@ export const waitForConnection = (timeoutMs = 30000): Promise<boolean> => {
     };
 
     // Check current state first
-    hasInternetConnection().then((connected) => {
-      if (connected) {
-        cleanup();
-        resolve(true);
-
-        return;
-      }
-
-      // If not connected, wait for connection
-      unsubscribe = subscribeToNetworkState((state) => {
-        if (state.isConnected && state.isInternetReachable) {
+    hasInternetConnection()
+      .then((connected) => {
+        if (connected) {
           cleanup();
           resolve(true);
+
+          return;
         }
+
+        // If not connected, wait for connection
+        unsubscribe = subscribeToNetworkState((state) => {
+          if (state.isConnected && state.isInternetReachable) {
+            cleanup();
+            resolve(true);
+          }
+        });
+      })
+      .catch(() => {
+        // On error, rely on the timeout to resolve
       });
-    }).catch(() => {
-      // On error, rely on the timeout to resolve
-    });
   });
 };
 
@@ -106,7 +108,9 @@ export const waitForConnection = (timeoutMs = 30000): Promise<boolean> => {
 export const testConnectivity = async (url = 'https://www.google.com'): Promise<boolean> => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() =>{  controller.abort(); }, 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 5000); // 5 second timeout
 
     const response = await fetch(url, {
       method: 'HEAD',

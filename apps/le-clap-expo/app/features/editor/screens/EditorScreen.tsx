@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FormSection from '../components/FormSection';
@@ -11,9 +20,16 @@ import { useRouter } from 'expo-router';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface EditorRoute { params: { templateName: string; projectId?: string } }
-interface EditorNavigation { goBack: () => void }
-interface Props { route: EditorRoute; navigation: EditorNavigation }
+interface EditorRoute {
+  params: { templateName: string; projectId?: string };
+}
+interface EditorNavigation {
+  goBack: () => void;
+}
+interface Props {
+  route: EditorRoute;
+  navigation: EditorNavigation;
+}
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
 
@@ -37,7 +53,7 @@ function checkSectionDone(section: Section, project: Project): boolean {
   }
 
   if (section.type === 'form') {
-    return (section.options?.fields ?? []).every(f => Boolean(project.formData[f.name]));
+    return (section.options?.fields ?? []).every((f) => Boolean(project.formData[f.name]));
   }
 
   if (section.type === 'music') return Boolean(project.formData[`music_${section.name}`]);
@@ -49,7 +65,10 @@ function applyFormData(content: unknown, formData: Record<string, unknown>): unk
   let str = JSON.stringify(JSON.parse(JSON.stringify(content)));
 
   for (const [k, v] of Object.entries(formData)) {
-    str = str.replace(new RegExp(`\\{\\{ ${k} \\}\\}`.replace(/[-\\^$*+?.()|[\]{}]/g, String.raw`\$&`), 'g'), String(v));
+    str = str.replace(
+      new RegExp(`\\{\\{ ${k} \\}\\}`.replace(/[-\\^$*+?.()|[\]{}]/g, String.raw`\$&`), 'g'),
+      String(v)
+    );
   }
 
   return JSON.parse(str) as unknown;
@@ -76,7 +95,11 @@ const LoadingView: React.FC = () => (
   </View>
 );
 
-interface FullscreenWrapProps { section: Section; onBack: () => void; children: React.ReactNode }
+interface FullscreenWrapProps {
+  section: Section;
+  onBack: () => void;
+  children: React.ReactNode;
+}
 const FullscreenWrap: React.FC<FullscreenWrapProps> = ({ section, onBack, children }) => (
   <View style={st.fullscreen}>
     <StatusBar hidden={false} backgroundColor="transparent" translucent />
@@ -90,7 +113,11 @@ const FullscreenWrap: React.FC<FullscreenWrapProps> = ({ section, onBack, childr
   </View>
 );
 
-interface SectionRowProps { section: Section; done: boolean; onPress: () => void }
+interface SectionRowProps {
+  section: Section;
+  done: boolean;
+  onPress: () => void;
+}
 const SectionRow: React.FC<SectionRowProps> = ({ section, done, onPress }) => (
   <TouchableOpacity style={st.row} onPress={onPress}>
     <View style={st.rowContent}>
@@ -100,13 +127,17 @@ const SectionRow: React.FC<SectionRowProps> = ({ section, done, onPress }) => (
       <View style={st.rowText}>
         <Text style={st.rowTitle}>{section.title?.en ?? section.name}</Text>
         {section.description?.en ? (
-          <Text style={st.rowDesc} numberOfLines={1}>{section.description.en}</Text>
+          <Text style={st.rowDesc} numberOfLines={1}>
+            {section.description.en}
+          </Text>
         ) : null}
       </View>
       <View style={st.rowStatus}>
-        {done
-          ? <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-          : <Ionicons name="ellipse-outline" size={24} color={colors.divider} />}
+        {done ? (
+          <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+        ) : (
+          <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
+        )}
       </View>
     </View>
   </TouchableOpacity>
@@ -121,14 +152,31 @@ interface SectionContentProps {
   onDone: () => void;
 }
 
-const SectionContent: React.FC<SectionContentProps> = ({ section, project, template, onFormChange, onProjectUpdate, onDone }) => {
+const SectionContent: React.FC<SectionContentProps> = ({
+  section,
+  project,
+  template,
+  onFormChange,
+  onProjectUpdate,
+  onDone,
+}) => {
   const router = useRouter();
 
   if (section.type === 'project_video' || section.type === 'picture') {
     return (
-      <TouchableOpacity style={st.recordBtn} onPress={() => {
-        router.push({ pathname: '/(fullscreen)/record-section', params: { orientation: template.content.global?.orientation ?? 'portrait', sectionName: section.name, sectionType: section.type } });
-      }}>
+      <TouchableOpacity
+        style={st.recordBtn}
+        onPress={() => {
+          router.push({
+            pathname: '/(fullscreen)/record-section',
+            params: {
+              orientation: template.content.global?.orientation ?? 'portrait',
+              sectionName: section.name,
+              sectionType: section.type,
+            },
+          });
+        }}
+      >
         <Ionicons name="videocam" size={32} color={colors.surface} />
         <Text style={st.recordBtnText}>Start Recording</Text>
       </TouchableOpacity>
@@ -138,7 +186,11 @@ const SectionContent: React.FC<SectionContentProps> = ({ section, project, templ
   if (section.type === 'form') {
     return (
       <View style={st.formBox}>
-        <FormSection section={section} formData={project.formData as Record<string, string>} onFormDataChange={onFormChange} />
+        <FormSection
+          section={section}
+          formData={project.formData as Record<string, string>}
+          onFormDataChange={onFormChange}
+        />
       </View>
     );
   }
@@ -148,10 +200,17 @@ const SectionContent: React.FC<SectionContentProps> = ({ section, project, templ
       <View style={st.placeholder}>
         <Ionicons name="musical-notes" size={48} color={colors.primary} />
         <Text style={st.placeholderText}>Music selection coming soon</Text>
-        <TouchableOpacity style={st.tempBtn} onPress={() => {
-          onProjectUpdate({ ...project, formData: { ...project.formData, [`music_${section.name}`]: 'default' }, updatedAt: new Date().toISOString() });
-          onDone();
-        }}>
+        <TouchableOpacity
+          style={st.tempBtn}
+          onPress={() => {
+            onProjectUpdate({
+              ...project,
+              formData: { ...project.formData, [`music_${section.name}`]: 'default' },
+              updatedAt: new Date().toISOString(),
+            });
+            onDone();
+          }}
+        >
           <Text style={st.tempBtnText}>Use Default Music</Text>
         </TouchableOpacity>
       </View>
@@ -190,7 +249,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
         const templateData = await fetchTemplateByName(templateName);
         setTemplate(templateData);
 
-        const existing = projectId ? projects.find(p => p.id === projectId) : undefined;
+        const existing = projectId ? projects.find((p) => p.id === projectId) : undefined;
 
         if (existing) {
           setCurrentProject(existing);
@@ -213,37 +272,69 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleFormDataChange = (field: string, value: string) => {
     if (!currentProject) return;
-    updateProject({ ...currentProject, formData: { ...currentProject.formData, [field]: value }, updatedAt: new Date().toISOString() });
+    updateProject({
+      ...currentProject,
+      formData: { ...currentProject.formData, [field]: value },
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   const handleCompileVideo = () => {
     if (!currentProject || !template) return;
     setIsCompiling(true);
     const doCompile = async () => {
-      const result = await compileVideo(applyFormData(template.content, currentProject.formData), currentProject.recordedVideos);
+      const result = await compileVideo(
+        applyFormData(template.content, currentProject.formData),
+        currentProject.recordedVideos
+      );
 
       if (result.success) {
-        updateProject({ ...currentProject, outputVideoUri: result.outputUri, status: 'completed' as const, updatedAt: new Date().toISOString() });
+        updateProject({
+          ...currentProject,
+          outputVideoUri: result.outputUri,
+          status: 'completed' as const,
+          updatedAt: new Date().toISOString(),
+        });
 
         return;
       }
       Alert.alert('Compilation Failed', result.error ?? 'An error occurred during video compilation.');
     };
-    doCompile().catch((error: unknown) => {
-      console.error('Error during compilation:', error);
-      Alert.alert('Compilation Error', 'An unexpected error occurred. Please try again.');
-    }).finally(() => { setIsCompiling(false); });
+    doCompile()
+      .catch((error: unknown) => {
+        console.error('Error during compilation:', error);
+        Alert.alert('Compilation Error', 'An unexpected error occurred. Please try again.');
+      })
+      .finally(() => {
+        setIsCompiling(false);
+      });
   };
 
   if (isLoading || !template || !currentProject) return <LoadingView />;
 
-  const sections = (template.content.sections ?? []).filter(sec => ['project_video', 'form', 'music', 'picture'].includes(sec.type));
-  const allDone = sections.length > 0 && sections.every(sec => checkSectionDone(sec, currentProject));
+  const sections = (template.content.sections ?? []).filter((sec) =>
+    ['project_video', 'form', 'music', 'picture'].includes(sec.type)
+  );
+  const allDone = sections.length > 0 && sections.every((sec) => checkSectionDone(sec, currentProject));
 
   if (activeSection) {
     return (
-      <FullscreenWrap section={activeSection} onBack={() => { setActiveSection(null); }}>
-        <SectionContent section={activeSection} project={currentProject} template={template} onFormChange={handleFormDataChange} onProjectUpdate={updateProject} onDone={() => { setActiveSection(null); }} />
+      <FullscreenWrap
+        section={activeSection}
+        onBack={() => {
+          setActiveSection(null);
+        }}
+      >
+        <SectionContent
+          section={activeSection}
+          project={currentProject}
+          template={template}
+          onFormChange={handleFormDataChange}
+          onProjectUpdate={updateProject}
+          onDone={() => {
+            setActiveSection(null);
+          }}
+        />
       </FullscreenWrap>
     );
   }
@@ -251,7 +342,12 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <SafeAreaView style={st.container}>
       <View style={st.header}>
-        <TouchableOpacity style={st.backBtn} onPress={() => { navigation.goBack(); }}>
+        <TouchableOpacity
+          style={st.backBtn}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={st.title}>{template.name.replace('.json', '')}</Text>
@@ -260,13 +356,24 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
         <View style={st.listContainer}>
           <Text style={st.listTitle}>Sections</Text>
           <Text style={st.listDesc}>Tap on a section to edit</Text>
-          {sections.map(section => (
-            <SectionRow key={section.name} section={section} done={checkSectionDone(section, currentProject)} onPress={() => { setActiveSection(section); }} />
+          {sections.map((section) => (
+            <SectionRow
+              key={section.name}
+              section={section}
+              done={checkSectionDone(section, currentProject)}
+              onPress={() => {
+                setActiveSection(section);
+              }}
+            />
           ))}
         </View>
       </ScrollView>
       <View style={st.footer}>
-        <TouchableOpacity style={[st.compileBtn, (!allDone || isCompiling) && st.disabledBtn]} disabled={!allDone || isCompiling} onPress={handleCompileVideo}>
+        <TouchableOpacity
+          style={[st.compileBtn, (!allDone || isCompiling) && st.disabledBtn]}
+          disabled={!allDone || isCompiling}
+          onPress={handleCompileVideo}
+        >
           <Text style={st.compileBtnText}>{isCompiling ? 'Creating Video...' : 'Create My Video'}</Text>
           {isCompiling ? <ActivityIndicator size="small" color="white" style={st.loader} /> : null}
         </TouchableOpacity>
@@ -279,36 +386,113 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   loadingText: { ...typography.body, marginTop: spacing.m },
-  header: { flexDirection: 'row', alignItems: 'center', padding: spacing.m, borderBottomWidth: 1, borderBottomColor: colors.divider },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.m,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
   backBtn: { padding: spacing.s },
   title: { ...typography.title, flex: 1, marginLeft: spacing.m },
   content: { flex: 1 },
   listContainer: { padding: spacing.m },
   listTitle: { ...typography.title, marginBottom: spacing.s },
   listDesc: { ...typography.caption, marginBottom: spacing.m },
-  row: { backgroundColor: colors.surface, borderRadius: 8, marginBottom: spacing.m, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  row: {
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    marginBottom: spacing.m,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   rowContent: { flexDirection: 'row', alignItems: 'center', padding: spacing.m },
-  rowIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '10', justifyContent: 'center', alignItems: 'center', marginRight: spacing.m },
+  rowIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.m,
+  },
   rowText: { flex: 1 },
   rowTitle: { ...typography.subtitle, marginBottom: spacing.xs },
   rowDesc: { ...typography.caption },
   rowStatus: { marginLeft: spacing.m },
   footer: { padding: spacing.m, borderTopWidth: 1, borderTopColor: colors.divider },
-  compileBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary, padding: spacing.m, borderRadius: 8 },
+  compileBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    padding: spacing.m,
+    borderRadius: 8,
+  },
   disabledBtn: { opacity: 0.5 },
   compileBtnText: { color: colors.surface, fontWeight: 'bold', fontSize: 16 },
   loader: { marginLeft: spacing.m },
-  fullscreen: { flex: 1, backgroundColor: '#000', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9000 },
-  fsBack: { position: 'absolute', top: 15, left: 15, zIndex: 100, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: spacing.s },
-  fsTitleBox: { position: 'absolute', top: 15, left: 60, right: 15, zIndex: 100, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: spacing.s, paddingHorizontal: spacing.m },
+  fullscreen: {
+    flex: 1,
+    backgroundColor: '#000',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9000,
+  },
+  fsBack: {
+    position: 'absolute',
+    top: 15,
+    left: 15,
+    zIndex: 100,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: spacing.s,
+  },
+  fsTitleBox: {
+    position: 'absolute',
+    top: 15,
+    left: 60,
+    right: 15,
+    zIndex: 100,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: spacing.s,
+    paddingHorizontal: spacing.m,
+  },
   fsTitle: { color: 'white', fontSize: 18, fontWeight: '600' },
   formBox: { flex: 1, backgroundColor: colors.background },
-  placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.l, backgroundColor: colors.background },
+  placeholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.l,
+    backgroundColor: colors.background,
+  },
   placeholderText: { ...typography.body, marginVertical: spacing.m, textAlign: 'center' },
-  tempBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.l, paddingVertical: spacing.m, borderRadius: 8, marginTop: spacing.l },
+  tempBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.l,
+    paddingVertical: spacing.m,
+    borderRadius: 8,
+    marginTop: spacing.l,
+  },
   tempBtnText: { color: colors.surface, fontWeight: 'bold' },
   backBtnText: { ...typography.body, color: colors.primary, marginTop: spacing.m },
-  recordBtn: { backgroundColor: colors.primary, padding: spacing.l, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: spacing.xl },
+  recordBtn: {
+    backgroundColor: colors.primary,
+    padding: spacing.l,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: spacing.xl,
+  },
   recordBtnText: { ...typography.subtitle, color: colors.surface, marginLeft: spacing.m, fontWeight: 'bold' },
 });
 

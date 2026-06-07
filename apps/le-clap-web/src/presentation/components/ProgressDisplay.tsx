@@ -1,86 +1,88 @@
-import { Clock, Cpu, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
-import clsx from 'clsx'
-import { Card } from '@/presentation/components/ui'
+import { Clock, Cpu, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
+import clsx from 'clsx';
+import { Card } from '@/presentation/components/ui';
 
 interface ProcessingProgress {
-  stage: string
-  percentage: number
-  currentStep: string
-  totalSteps: number
-  currentStepIndex: number
-  estimatedTimeRemaining?: number
+  stage: string;
+  percentage: number;
+  currentStep: string;
+  totalSteps: number;
+  currentStepIndex: number;
+  estimatedTimeRemaining?: number;
 }
 
 interface ProgressDisplayProps {
-  progress: ProcessingProgress
+  progress: ProcessingProgress;
 }
 
 const formatTime = (milliseconds: number): string => {
-  const seconds = Math.floor(milliseconds / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
 
   if (minutes > 0) {
-    return `${minutes}m ${remainingSeconds}s`
+    return `${minutes}m ${remainingSeconds}s`;
   }
 
-  return `${remainingSeconds}s`
-}
+  return `${remainingSeconds}s`;
+};
 
 const getStageIcon = (percentage: number) => {
-  if (percentage >= 100) return CheckCircle2
+  if (percentage >= 100) return CheckCircle2;
 
-  if (percentage === 0) return AlertCircle
+  if (percentage === 0) return AlertCircle;
 
-  return Cpu
-}
+  return Cpu;
+};
 
 const getProgressColor = (percentage: number): string => {
   // One on-brand fill (lavender→pink) that turns success-green on completion —
   // not a rainbow ramp.
-  if (percentage >= 100) return 'bg-success'
+  if (percentage >= 100) return 'bg-success';
 
-  return 'brand-gradient bg-[length:200%_100%] animate-gradient'
-}
+  return 'brand-gradient bg-[length:200%_100%] animate-gradient';
+};
 
 interface StepIndicatorProps {
-  stepNumber: number
-  currentStepIndex: number
+  stepNumber: number;
+  currentStepIndex: number;
 }
 
 const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => {
-  const isCompleted = stepNumber < currentStepIndex
-  const isCurrent = stepNumber === currentStepIndex
-  const isPending = stepNumber > currentStepIndex
+  const isCompleted = stepNumber < currentStepIndex;
+  const isCurrent = stepNumber === currentStepIndex;
+  const isPending = stepNumber > currentStepIndex;
 
   return (
     <div className="flex flex-col items-center space-y-2">
-      <div className={clsx(
-        'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] border',
-        isCompleted && 'bg-success border-success text-foreground scale-110 shadow-[0_0_10px_oklch(0.673_0.162_144.2/0.45)]',
-        isCurrent && 'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
-        isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
-      )}>
-        {isCompleted ? (
-          <CheckCircle2 className="w-4 h-4" />
-        ) : (
-          stepNumber
+      <div
+        className={clsx(
+          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] border',
+          isCompleted &&
+            'bg-success border-success text-foreground scale-110 shadow-[0_0_10px_oklch(0.673_0.162_144.2/0.45)]',
+          isCurrent &&
+            'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
+          isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
         )}
+      >
+        {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : stepNumber}
       </div>
-      <div className={clsx(
-        'w-2 h-1 rounded-full transition-all duration-300',
-        isCompleted && 'bg-success',
-        isCurrent && 'bg-brand-500',
-        isPending && 'bg-foreground/15'
-      )} />
+      <div
+        className={clsx(
+          'w-2 h-1 rounded-full transition-all duration-300',
+          isCompleted && 'bg-success',
+          isCurrent && 'bg-brand-500',
+          isPending && 'bg-foreground/15'
+        )}
+      />
     </div>
-  )
-}
+  );
+};
 
 interface PerformanceMetricsProps {
-  percentage: number
-  currentStepIndex: number
-  totalSteps: number
+  percentage: number;
+  currentStepIndex: number;
+  totalSteps: number;
 }
 
 const PerformanceMetrics = ({ percentage, currentStepIndex, totalSteps }: PerformanceMetricsProps) => (
@@ -90,9 +92,7 @@ const PerformanceMetrics = ({ percentage, currentStepIndex, totalSteps }: Perfor
         <Zap className="w-4 h-4" />
         <span>Speed</span>
       </div>
-      <p className="text-lg font-semibold text-foreground">
-        {percentage > 0 ? 'Active' : 'Idle'}
-      </p>
+      <p className="text-lg font-semibold text-foreground">{percentage > 0 ? 'Active' : 'Idle'}</p>
     </div>
 
     <div className="text-center">
@@ -110,40 +110,41 @@ const PerformanceMetrics = ({ percentage, currentStepIndex, totalSteps }: Perfor
         <Clock className="w-4 h-4" />
         <span>Progress</span>
       </div>
-      <p className="text-lg font-semibold text-foreground">
-        {Math.round(percentage)}%
-      </p>
+      <p className="text-lg font-semibold text-foreground">{Math.round(percentage)}%</p>
     </div>
   </div>
-)
+);
 
 interface ProgressHeaderProps {
-  stage: string
-  percentage: number
-  currentStepIndex: number
-  totalSteps: number
-  estimatedTimeRemaining?: number
+  stage: string;
+  percentage: number;
+  currentStepIndex: number;
+  totalSteps: number;
+  estimatedTimeRemaining?: number;
 }
 
-const ProgressHeader = ({ stage, percentage, currentStepIndex, totalSteps, estimatedTimeRemaining }: ProgressHeaderProps) => {
-  const StageIcon = getStageIcon(percentage)
+const ProgressHeader = ({
+  stage,
+  percentage,
+  currentStepIndex,
+  totalSteps,
+  estimatedTimeRemaining,
+}: ProgressHeaderProps) => {
+  const StageIcon = getStageIcon(percentage);
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className={clsx(
-          'p-2 rounded-lg transition-all duration-300',
-          percentage >= 100 ? 'bg-success/15 text-success' : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
-        )}>
-          <StageIcon className={clsx(
-            'w-5 h-5',
-            percentage < 100 && percentage > 0 && 'animate-pulse'
-          )} />
+        <div
+          className={clsx(
+            'p-2 rounded-lg transition-all duration-300',
+            percentage >= 100 ? 'bg-success/15 text-success' : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
+          )}
+        >
+          <StageIcon className={clsx('w-5 h-5', percentage < 100 && percentage > 0 && 'animate-pulse')} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground">
-            {stage || 'Processing Video'}
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground">{stage || 'Processing Video'}</h3>
           <p className="text-sm text-gray-400">
             Step {currentStepIndex} of {totalSteps}
           </p>
@@ -157,27 +158,24 @@ const ProgressHeader = ({ stage, percentage, currentStepIndex, totalSteps, estim
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 interface ProgressBarProps {
-  percentage: number
-  currentStep: string
+  percentage: number;
+  currentStep: string;
 }
 
 const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
-  const progressColor = getProgressColor(percentage)
+  const progressColor = getProgressColor(percentage);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-300">
-          {currentStep || 'Processing...'}
-        </span>
-        <span className={clsx(
-          'font-semibold',
-          percentage >= 100 ? 'text-success' : 'text-brand-700 dark:text-brand-300'
-        )}>
+        <span className="font-medium text-gray-300">{currentStep || 'Processing...'}</span>
+        <span
+          className={clsx('font-semibold', percentage >= 100 ? 'text-success' : 'text-brand-700 dark:text-brand-300')}
+        >
           {Math.round(percentage)}%
         </span>
       </div>
@@ -203,18 +201,11 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
-  const {
-    stage,
-    percentage,
-    currentStep,
-    totalSteps,
-    currentStepIndex,
-    estimatedTimeRemaining
-  } = progress
+  const { stage, percentage, currentStep, totalSteps, currentStepIndex, estimatedTimeRemaining } = progress;
 
   return (
     <div className="space-y-6 processing fade-in" role="status" aria-live="polite" aria-atomic="false">
@@ -230,19 +221,11 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
 
       <div className="flex items-center justify-between">
         {Array.from({ length: totalSteps }, (_, index) => (
-          <StepIndicator
-            key={index + 1}
-            stepNumber={index + 1}
-            currentStepIndex={currentStepIndex}
-          />
+          <StepIndicator key={index + 1} stepNumber={index + 1} currentStepIndex={currentStepIndex} />
         ))}
       </div>
 
-      <PerformanceMetrics
-        percentage={percentage}
-        currentStepIndex={currentStepIndex}
-        totalSteps={totalSteps}
-      />
+      <PerformanceMetrics percentage={percentage} currentStepIndex={currentStepIndex} totalSteps={totalSteps} />
 
       {percentage >= 100 && (
         <Card elevation="flat" className="bg-success/[0.12] border-success/30 p-4 fade-in backdrop-blur-sm">
@@ -251,16 +234,12 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-success">
-                Processing Complete!
-              </h4>
-              <p className="text-sm text-success/80">
-                Your video has been processed and is ready for download.
-              </p>
+              <h4 className="font-semibold text-success">Processing Complete!</h4>
+              <p className="text-sm text-success/80">Your video has been processed and is ready for download.</p>
             </div>
           </div>
         </Card>
       )}
     </div>
-  )
-}
+  );
+};

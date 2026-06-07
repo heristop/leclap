@@ -331,14 +331,7 @@ class SegmentBuilder {
     const channelLayout = this.project.config.audioConfig?.channelLayout ?? '';
     const sampleRate = this.project.config.audioConfig?.sampleRate ?? '';
 
-    return (
-      ' -f lavfi ' +
-      ' -i anullsrc=channel_layout=' +
-      channelLayout +
-      ':sample_rate=' +
-      sampleRate +
-      ' '
-    );
+    return ' -f lavfi -i anullsrc=channel_layout=' + channelLayout + ':sample_rate=' + sampleRate + ' ';
   };
 }
 

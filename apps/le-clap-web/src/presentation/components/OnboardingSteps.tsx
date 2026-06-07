@@ -1,18 +1,28 @@
-import type { RefObject } from 'react'
-import { Sparkles, Video as VideoIcon, Upload, Check, Download, ArrowRight, RotateCcw, X, Clapperboard } from 'lucide-react'
-import { ProgressDisplay } from '@/presentation/components/ProgressDisplay'
-import { Button, Input } from '@/presentation/components/ui'
-import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService'
+import type { RefObject } from 'react';
+import {
+  Sparkles,
+  Video as VideoIcon,
+  Upload,
+  Check,
+  Download,
+  ArrowRight,
+  RotateCcw,
+  X,
+  Clapperboard,
+} from 'lucide-react';
+import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
+import { Button, Input } from '@/presentation/components/ui';
+import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
 
 const WELCOME_FEATURES = [
   { icon: VideoIcon, text: 'Record a short intro with your camera' },
   { icon: Sparkles, text: 'We apply a cinematic sample template' },
   { icon: Download, text: 'Download your finished video' },
-] as const
+] as const;
 
 interface WelcomeStepProps {
-  onStart: () => void
-  onDone: () => void
+  onStart: () => void;
+  onDone: () => void;
 }
 
 export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
@@ -21,7 +31,9 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
       <Clapperboard className="w-8 h-8 text-white" />
     </div>
     <h2 className="text-3xl font-bold font-display text-foreground mb-2">Welcome to LeClap</h2>
-    <p className="text-gray-300 mb-6">Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.</p>
+    <p className="text-gray-300 mb-6">
+      Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.
+    </p>
 
     <div className="space-y-3 text-left mb-8">
       {WELCOME_FEATURES.map(({ icon: Icon, text }) => (
@@ -42,17 +54,17 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
       Skip for now
     </Button>
   </div>
-)
+);
 
 interface CreateStepProps {
-  name: string
-  onNameChange: (value: string) => void
-  videoFile: File | null
-  canCreate: boolean
-  fileInputRef: RefObject<HTMLInputElement | null>
-  onOpenCamera: () => void
-  onFilePicked: (event: React.ChangeEvent<HTMLInputElement>) => void
-  onCreate: () => void
+  name: string;
+  onNameChange: (value: string) => void;
+  videoFile: File | null;
+  canCreate: boolean;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  onOpenCamera: () => void;
+  onFilePicked: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onCreate: () => void;
 }
 
 export const CreateStep = ({
@@ -69,12 +81,16 @@ export const CreateStep = ({
     <h2 className="text-2xl font-bold font-display text-foreground mb-1">Present yourself</h2>
     <p className="text-gray-300 mb-6 text-sm">Tell us your name and record a short clip — that's all we need.</p>
 
-    <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2" htmlFor="ob-name">Your name</label>
+    <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2" htmlFor="ob-name">
+      Your name
+    </label>
     <Input
       id="ob-name"
       required
       value={name}
-      onChange={(e) => { onNameChange(e.target.value) }}
+      onChange={(e) => {
+        onNameChange(e.target.value);
+      }}
       placeholder="e.g. Alex"
       className="mb-6 px-4 py-3 rounded-xl"
     />
@@ -84,7 +100,12 @@ export const CreateStep = ({
         <span className="flex items-center gap-2 text-sm text-success font-medium">
           <Check className="w-5 h-5" /> Intro recorded
         </span>
-        <Button onClick={onOpenCamera} variant="ghost" size="sm" className="gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-300 [&_svg]:size-3.5">
+        <Button
+          onClick={onOpenCamera}
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-300 [&_svg]:size-3.5"
+        >
           <RotateCcw /> Re-record
         </Button>
       </div>
@@ -106,7 +127,14 @@ export const CreateStep = ({
           <Upload className="w-6 h-6 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/tile:scale-110" />
           <span className="text-sm font-semibold">Upload</span>
         </button>
-        <input ref={fileInputRef} type="file" accept="video/*" aria-label="Upload intro video" className="hidden" onChange={onFilePicked} />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/*"
+          aria-label="Upload intro video"
+          className="hidden"
+          onChange={onFilePicked}
+        />
       </div>
     )}
 
@@ -114,10 +142,10 @@ export const CreateStep = ({
       <Sparkles /> Create my video
     </Button>
   </div>
-)
+);
 
 interface CompilingStepProps {
-  progress: CompilationProgress
+  progress: CompilationProgress;
 }
 
 export const CompilingStep = ({ progress }: CompilingStepProps) => (
@@ -126,11 +154,11 @@ export const CompilingStep = ({ progress }: CompilingStepProps) => (
     <p className="text-gray-300 mb-6 text-sm">This runs entirely in your browser — hang tight.</p>
     <ProgressDisplay progress={progress} />
   </div>
-)
+);
 
 interface DoneStepProps {
-  result: CompilationResult
-  onDone: () => void
+  result: CompilationResult;
+  onDone: () => void;
 }
 
 export const DoneStep = ({ result, onDone }: DoneStepProps) => (
@@ -139,7 +167,13 @@ export const DoneStep = ({ result, onDone }: DoneStepProps) => (
       <Check className="w-6 h-6 text-white" />
     </div>
     <h2 className="text-2xl font-bold font-display brand-gradient-text mb-2">Your first video is ready!</h2>
-    <video src={result.url} aria-label="Your created video" controls playsInline className="w-full rounded-xl border border-foreground/10 bg-black mb-6" />
+    <video
+      src={result.url}
+      aria-label="Your created video"
+      controls
+      playsInline
+      className="w-full rounded-xl border border-foreground/10 bg-black mb-6"
+    />
     <div className="flex flex-col sm:flex-row gap-3">
       <Button asChild variant="primary" className="flex-1">
         <a href={result.url} download="leclap-intro.mp4">
@@ -151,12 +185,12 @@ export const DoneStep = ({ result, onDone }: DoneStepProps) => (
       </Button>
     </div>
   </div>
-)
+);
 
 interface ErrorStepProps {
-  errorMessage: string
-  onRetry: () => void
-  onDone: () => void
+  errorMessage: string;
+  onRetry: () => void;
+  onDone: () => void;
 }
 
 export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => (
@@ -175,4 +209,4 @@ export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => 
       </Button>
     </div>
   </div>
-)
+);

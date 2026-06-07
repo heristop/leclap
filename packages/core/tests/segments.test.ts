@@ -6,11 +6,7 @@ import ImageBackground from '@/editor/segments/ImageBackgroundSegment';
 import ColorBackground from '@/editor/segments/ColorBackgroundSegment';
 import type { SectionOptions } from '@/core/types';
 
-type SegmentClass =
-  | typeof Video
-  | typeof ProjectVideo
-  | typeof ImageBackground
-  | typeof ColorBackground;
+type SegmentClass = typeof Video | typeof ProjectVideo | typeof ImageBackground | typeof ColorBackground;
 
 interface BuildOverrides {
   projectConfig?: Record<string, unknown>;

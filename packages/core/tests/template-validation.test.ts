@@ -15,10 +15,7 @@ function hasErrorCode(errors: Array<{ code: string }> | undefined, code: string)
   return errors?.some((err) => err.code === code) === true;
 }
 
-function assertVariableWarnings(
-  validator: TemplateValidator,
-  data: TemplateDescriptor | Section | undefined,
-): void {
+function assertVariableWarnings(validator: TemplateValidator, data: TemplateDescriptor | Section | undefined): void {
   if (data === undefined || !isTemplateDescriptor(data)) {
     return;
   }

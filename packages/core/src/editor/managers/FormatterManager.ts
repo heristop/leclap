@@ -18,8 +18,6 @@ type ExtendedFilterValues = FilterValues & Record<string, string | number | unde
 
 @injectable()
 class FormatterManager {
-
-
   constructor(
     @inject('project') private readonly project: Project,
     @inject('template') private readonly template: Template,
@@ -27,7 +25,7 @@ class FormatterManager {
     @inject('segment') public segment: Segment,
 
     @inject('logger') private readonly logger: AbstractLogger
-  ) { }
+  ) {}
 
   formatMultipleTypesValue = (filter: Filter): string => {
     let result = '';
@@ -71,11 +69,7 @@ class FormatterManager {
     return null;
   }
 
-  private formatDurationValue(
-    key: string,
-    values: ExtendedFilterValues,
-    duration: number | undefined
-  ): string | null {
+  private formatDurationValue(key: string, values: ExtendedFilterValues, duration: number | undefined): string | null {
     const rawValue = values[key];
 
     if (rawValue === undefined) {
@@ -83,9 +77,7 @@ class FormatterManager {
     }
 
     const transitionDuration = this.template.descriptor.global?.transitionDuration?.toString() ?? '0';
-    let durationStr = rawValue
-      .toString()
-      .replace('{{ transitionDuration }}', transitionDuration);
+    let durationStr = rawValue.toString().replace('{{ transitionDuration }}', transitionDuration);
 
     if (duration !== undefined) {
       durationStr = durationStr.replace('{{ section_duration }}', duration.toString());

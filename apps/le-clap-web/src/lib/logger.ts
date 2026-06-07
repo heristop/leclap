@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { createConsola } from 'consola/browser'
+import { createConsola } from 'consola/browser';
 
 // Create base logger instance
 const baseLogger = createConsola({
@@ -8,12 +8,12 @@ const baseLogger = createConsola({
     date: import.meta.env.DEV,
     colors: true,
   },
-})
+});
 
 // Export tagged loggers for different modules
-export const compilationLogger = baseLogger.withTag('CoreCompilation')
-export const templateLogger = baseLogger.withTag('Template')
-export const ffmpegLogger = baseLogger.withTag('FFmpeg')
+export const compilationLogger = baseLogger.withTag('CoreCompilation');
+export const templateLogger = baseLogger.withTag('Template');
+export const ffmpegLogger = baseLogger.withTag('FFmpeg');
 
 // Export default logger for general use
-export const logger = baseLogger
+export const logger = baseLogger;

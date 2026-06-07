@@ -87,8 +87,7 @@ function handleProcessingError(
 ) {
   logger.error('Video compilation error:', error);
   haptic('error');
-  const errorMessage =
-    error instanceof Error ? error.message : 'An unknown error occurred during video compilation';
+  const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during video compilation';
   setState((prev) => ({
     ...prev,
     error: errorMessage,
@@ -120,13 +119,7 @@ export const useVideoProcessing = () => {
   const startTime = useRef<number>(0);
 
   const updateProgress = (update: Partial<ProcessingProgress>) => {
-    applyProgressUpdate(
-      update,
-      optimisticState.progress,
-      Date.now() - startTime.current,
-      setState,
-      setOptimisticState
-    );
+    applyProgressUpdate(update, optimisticState.progress, Date.now() - startTime.current, setState, setOptimisticState);
   };
 
   const processVideo = async (
@@ -145,7 +138,13 @@ export const useVideoProcessing = () => {
     startTransition(() => {
       setOptimisticState({
         isProcessing: true,
-        progress: { stage: 'Initializing', percentage: 0, currentStep: 'Preparing', totalSteps: 6, currentStepIndex: 0 },
+        progress: {
+          stage: 'Initializing',
+          percentage: 0,
+          currentStep: 'Preparing',
+          totalSteps: 6,
+          currentStepIndex: 0,
+        },
       });
     });
 
@@ -179,7 +178,9 @@ export const useVideoProcessing = () => {
       URL.revokeObjectURL(optimisticState.processedVideo.url);
     }
     const clearedState = { processedVideo: null, error: null, progress: initialProgress };
-    startTransition(() => { setOptimisticState(clearedState); });
+    startTransition(() => {
+      setOptimisticState(clearedState);
+    });
     setState((prev) => ({ ...prev, ...clearedState }));
   };
 

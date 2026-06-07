@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
-import { Home, Compass } from 'lucide-react'
-import { Seo } from '@/presentation/components/Seo'
-import { Button } from '@/presentation/components/ui'
+import { Link } from 'react-router-dom';
+import { Home, Compass } from 'lucide-react';
+import { Seo } from '@/presentation/components/Seo';
+import { Button } from '@/presentation/components/ui';
 
 export const NotFound = () => (
   <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden flex items-center justify-center px-4">
@@ -28,4 +28,4 @@ export const NotFound = () => (
       </div>
     </div>
   </div>
-)
+);

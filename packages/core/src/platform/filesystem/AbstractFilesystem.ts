@@ -7,7 +7,7 @@ abstract class AbstractFilesystem {
 
   abstract getAssetsPath(dir: string): Promise<string>;
   abstract getBuildPath(buildDir: string): Promise<string>;
-  abstract getSource(segmentName?: string  ): string;
+  abstract getSource(segmentName?: string): string;
   abstract getDestination(): string;
   abstract stat(filePath: string): Promise<boolean>;
   abstract fetch(url: string): Promise<string>;

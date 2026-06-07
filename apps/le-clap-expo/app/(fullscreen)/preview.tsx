@@ -16,7 +16,12 @@ import { TrimEditPanel, CropEditPanel } from '@/app/features/editor/preview/Edit
 import { PreviewLoading, PreviewError, PreviewNoVideo } from '@/app/features/editor/preview/PreviewStates';
 
 export default function PreviewPage() {
-  const params = useLocalSearchParams<{ projectId?: string; videoUri?: string; orientation?: 'portrait' | 'landscape'; sectionName?: string }>();
+  const params = useLocalSearchParams<{
+    projectId?: string;
+    videoUri?: string;
+    orientation?: 'portrait' | 'landscape';
+    sectionName?: string;
+  }>();
   const router = useRouter();
   const { projectId, videoUri, orientation: paramOrientation, sectionName } = params;
 
@@ -58,11 +63,24 @@ export default function PreviewPage() {
   const errorMessage = buildErrorMessage(projectError, projectId, videoUri, project);
 
   if (errorMessage ?? (!project && !videoUri)) {
-    return <PreviewError message={errorMessage ?? 'Preview not available'} onBack={() => { router.back(); }} />;
+    return (
+      <PreviewError
+        message={errorMessage ?? 'Preview not available'}
+        onBack={() => {
+          router.back();
+        }}
+      />
+    );
   }
 
   if (!videoUri) {
-    return <PreviewNoVideo onBack={() => { router.back(); }} />;
+    return (
+      <PreviewNoVideo
+        onBack={() => {
+          router.back();
+        }}
+      />
+    );
   }
 
   return (
@@ -77,9 +95,7 @@ export default function PreviewPage() {
           contentFit="contain"
         />
 
-        {mode === 'crop' && containerWidth > 0 && (
-          <CropOverlay videoRect={videoRect} crop={crop} onChange={setCrop} />
-        )}
+        {mode === 'crop' && containerWidth > 0 && <CropOverlay videoRect={videoRect} crop={crop} onChange={setCrop} />}
       </View>
 
       {mode === 'view' && (
@@ -88,9 +104,15 @@ export default function PreviewPage() {
           canEdit={canEdit}
           trimActive={isTrimApplied(trim, duration)}
           cropActive={isCropApplied(crop)}
-          onDone={() => { handleDone().catch(console.error); }}
-          onTrim={() => { enterMode('trim'); }}
-          onCrop={() => { enterMode('crop'); }}
+          onDone={() => {
+            handleDone().catch(console.error);
+          }}
+          onTrim={() => {
+            enterMode('trim');
+          }}
+          onCrop={() => {
+            enterMode('crop');
+          }}
           onRetake={handleRetake}
         />
       )}
@@ -101,15 +123,15 @@ export default function PreviewPage() {
           value={trim}
           currentTime={currentTime}
           onChange={setTrim}
-          onSeek={(s) => { player.currentTime = s; }}
+          onSeek={(s) => {
+            player.currentTime = s;
+          }}
           onCancel={cancelMode}
           onApply={applyMode}
         />
       )}
 
-      {mode === 'crop' && (
-        <CropEditPanel onReset={resetCrop} onCancel={cancelMode} onApply={applyMode} />
-      )}
+      {mode === 'crop' && <CropEditPanel onReset={resetCrop} onCancel={cancelMode} onApply={applyMode} />}
     </View>
   );
 }

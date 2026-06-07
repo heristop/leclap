@@ -144,9 +144,7 @@ class CoreCompilationService {
       return { file, key: `video_${i + 1}`, storagePath };
     });
 
-    await Promise.all(entries.map(({ file, storagePath }) =>
-      this.filesystemAdapter.storeFile(file, storagePath)
-    ));
+    await Promise.all(entries.map(({ file, storagePath }) => this.filesystemAdapter.storeFile(file, storagePath)));
 
     const userVideoPaths: Record<string, string> = {};
 
@@ -283,16 +281,11 @@ class CoreCompilationService {
     return { blob, url, size: blob.size };
   }
 
-  private async cleanupFiles(
-    outputPath: string,
-    userVideoPaths: Record<string, string>
-  ): Promise<void> {
+  private async cleanupFiles(outputPath: string, userVideoPaths: Record<string, string>): Promise<void> {
     try {
       await Promise.all([
         this.filesystemAdapter.remove(outputPath),
-        ...Object.values(userVideoPaths).map((path) =>
-          this.filesystemAdapter.remove(path)
-        ),
+        ...Object.values(userVideoPaths).map((path) => this.filesystemAdapter.remove(path)),
       ]);
     } catch (cleanupError) {
       compilationLogger.warn('Cleanup warning:', cleanupError);

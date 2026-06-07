@@ -28,10 +28,7 @@ describe('DeleteProjectUseCase.execute', () => {
 
 describe('DeleteProjectUseCase.deleteAll', () => {
   it('clears every project', async () => {
-    const repo = new FakeProjectRepository([
-      seed(),
-      Project.create('P2', 'portrait.json', {}, { id: 'p2' }),
-    ]);
+    const repo = new FakeProjectRepository([seed(), Project.create('P2', 'portrait.json', {}, { id: 'p2' })]);
     const useCase = new DeleteProjectUseCase(repo);
 
     await useCase.deleteAll();

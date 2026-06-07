@@ -26,7 +26,7 @@ class MapManager {
     @inject('FormattersManager') protected formattersManager: FormattersManager,
     @inject('FilterManager') protected filterManager: FilterManager,
     @inject('segment') public segment: Segment
-  ) { }
+  ) {}
 
   private get currentSection(): Section {
     if (!this.segment.currentSection) {
@@ -57,10 +57,7 @@ class MapManager {
     map.options ??= {};
     map.filters ??= [];
 
-    if (
-      (map.options.useSectionFilters || Object.keys(map.filters).length === 0) &&
-      this.currentSection.filters
-    ) {
+    if ((map.options.useSectionFilters || Object.keys(map.filters).length === 0) && this.currentSection.filters) {
       map.filters = [
         // Add background filters
         ...map.filters,
@@ -74,9 +71,7 @@ class MapManager {
     this.segment.filtersMapList.push(mappedInputs + filtersMapList.join(',') + mappedOutputs);
   };
 
-  private readonly buildAnimationInputsForFirstFrame = (
-    videoInputIncrement: number
-  ): string[] => {
+  private readonly buildAnimationInputsForFirstFrame = (videoInputIncrement: number): string[] => {
     const lastMap = (this.segment.mapsList as ArrayWithAt<string>).at(-1);
 
     return lastMap
@@ -151,11 +146,7 @@ class MapManager {
         // 0 is used by fake audio when a video section is reused and not muted
         const sectionOptions = this.currentSection.options;
 
-        increment =
-          !sectionOptions?.useVideoSection ||
-          sectionOptions.muteSection === false
-            ? 0
-            : 1;
+        increment = !sectionOptions?.useVideoSection || sectionOptions.muteSection === false ? 0 : 1;
         break;
       }
       default:

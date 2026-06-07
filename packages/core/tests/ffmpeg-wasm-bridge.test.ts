@@ -81,7 +81,7 @@ describe('FFmpegWasmAdapter FS bridge', () => {
     adapter.isLoaded = true;
 
     await adapter.execute(
-      "-y -i /tmp/video_1.mp4 -filter_complex drawtext=text=Hi:fontfile=/tmp/build/fonts/Rubik.ttf -map 0:a /tmp/build/video_1_output.mp4"
+      '-y -i /tmp/video_1.mp4 -filter_complex drawtext=text=Hi:fontfile=/tmp/build/fonts/Rubik.ttf -map 0:a /tmp/build/video_1_output.mp4'
     );
 
     // The uploaded input must be bridged into ffmpeg's MEMFS at the exact path
@@ -120,7 +120,9 @@ describe('FFmpegWasmAdapter FS bridge', () => {
     // double quotes while text/fontfile use single quotes. The single quotes
     // (which ffmpeg's filtergraph needs) must survive, and the space must NOT
     // split the argument.
-    await adapter.execute(`-y -i /tmp/v.mp4 -filter_complex "drawtext=text='Al Mo':fontfile='/tmp/f.ttf'" /tmp/out.mp4`);
+    await adapter.execute(
+      `-y -i /tmp/v.mp4 -filter_complex "drawtext=text='Al Mo':fontfile='/tmp/f.ttf'" /tmp/out.mp4`
+    );
 
     const fc = execArgs[execArgs.indexOf('-filter_complex') + 1];
     expect(fc).toBe("drawtext=text='Al Mo':fontfile='/tmp/f.ttf'");

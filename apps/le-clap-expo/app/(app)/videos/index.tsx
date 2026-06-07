@@ -6,7 +6,7 @@ import CameraModal from '../../components/CameraModal';
 
 export default function VideosTab() {
   const [cameraModalVisible, setCameraModalVisible] = useState(false);
-  
+
   // Handle recorded video
   const handleVideoRecorded = (_video: unknown) => {
     // Handle the recorded video here
@@ -15,11 +15,13 @@ export default function VideosTab() {
   return (
     <View style={styles.container}>
       <ProjectsScreen />
-      
+
       {/* Camera Modal */}
       <CameraModal
         visible={cameraModalVisible}
-        onClose={() =>{  setCameraModalVisible(false); }}
+        onClose={() => {
+          setCameraModalVisible(false);
+        }}
         onVideoRecorded={handleVideoRecorded}
       />
     </View>

@@ -10,7 +10,7 @@ class FilterManager {
     @inject('template') private readonly template: Template,
     @inject('FormattersManager') protected readonly formattersManager: FormatterManager,
     @inject('segment') public segment: Segment
-  ) { }
+  ) {}
 
   addFilter = (filter: Filter): string => {
     let resolvedFilter = filter;

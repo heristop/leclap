@@ -1,0 +1,52 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "typescript", "oxc", "import"],
+  "env": {
+    "node": true,
+    "es2024": true
+  },
+  "globals": {},
+  "rules": {
+    "typescript/dot-notation": "error",
+    "no-proto": "error",
+    "no-redeclare": "error",
+    "no-import-assign": "error",
+    "no-constant-condition": "warn",
+    "no-duplicate-imports": "error",
+    "no-param-reassign": "warn",
+    "guard-for-in": "warn",
+    "eqeqeq": "warn",
+    "import/no-cycle": "error",
+    "import/named": "error",
+    "unicorn/prefer-code-point": "warn",
+    "unicorn/prefer-string-raw": "warn",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/prefer-top-level-await": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.spec.ts"],
+      "env": {
+        "jest": true,
+        "node": true
+      },
+      "rules": {
+        "typescript/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["packages/core/src/platform/filesystem/BrowserFilesystemAdapter.ts", "packages/core/src/browser.ts"],
+      "env": {
+        "browser": true,
+        "es2020": true
+      }
+    },
+    {
+      "files": ["**/metro.config.js"],
+      "env": {
+        "node": true,
+        "commonjs": true
+      }
+    }
+  ]
+}

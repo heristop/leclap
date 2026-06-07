@@ -6,7 +6,9 @@ export default defineConfig([
   {
     entry: ['src/index.ts'],
     format: ['esm'],
-    dts: false, // Temporarily disabled for testing
+    // tsdown >=0.20 emits .mjs by default; keep .js so package entry points resolve.
+    outExtensions: () => ({ js: '.js' }),
+    dts: true,
     sourcemap: true,
     clean: true,
     outDir: 'dist',
@@ -38,7 +40,8 @@ export default defineConfig([
   {
     entry: ['src/browser.ts'],
     format: ['esm'],
-    dts: false, // Temporarily disabled for testing
+    outExtensions: () => ({ js: '.js' }),
+    dts: true,
     sourcemap: true,
     outDir: 'dist',
     target: 'es2022',
@@ -83,7 +86,7 @@ export default defineConfig([
     plugins: [
       replace({
         preventAssignment: true,
-        delimiters: ['\\b', '\\b'],
+        delimiters: [String.raw`\b`, String.raw`\b`],
         values: {
           'process.env.NODE_ENV': JSON.stringify('production'),
           'process.env.PLATFORM': JSON.stringify('browser'),

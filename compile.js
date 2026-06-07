@@ -3,85 +3,106 @@
 // Standalone compile script that uses the built version
 // This avoids TypeScript path resolution issues
 
-import { compile, loadConfig } from './dist/index.js';
-import { TerminalUI } from './dist/index.js';
+import { compile, loadConfig, Terminal } from './dist/index.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import pc from 'picocolors';
 
 const configFilePath = process.argv[2];
 
-async function main(configFilePath) {
-  try {
-    if (!configFilePath) {
-      console.error('Usage: pnpm compile <template.json>');
-      process.exit(1);
-    }
+/**
+ * Build the project configuration object
+ */
+function buildProjectConfig() {
+  const cwd = process.cwd();
+  const buildDir = path.resolve(cwd, 'build');
+  const assetsDir = path.resolve(cwd, 'packages/core/src/shared/assets');
 
-    // Show welcome banner for first-time users
+  return {
+    buildDir,
+    assetsDir,
+    fields: {
+      form_1_firstname: 'Emily',
+      form_1_lastname: 'Parker',
+      form_1_job: 'Frontend Developer',
+      form_2_keyword1: 'php',
+      form_2_keyword2: 'javascript',
+      form_2_keyword3: 'typescript',
+      form_2_keyword4: 'caffeine',
+    },
+  };
+}
+
+/**
+ * Handle FFmpeg-related compilation errors
+ */
+function handleFFmpegError(error) {
+  console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
+
+  Terminal.showError(error.message, [
+    '🔧 Run diagnostics: pnpm diagnose',
+    '📦 Quick fix: pnpm add ffmpeg-static',
+    '🍺 macOS: brew install ffmpeg',
+    '🐧 Linux: sudo apt install ffmpeg',
+  ]);
+
+  console.log(`\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('pnpm diagnose')} ${pc.dim('for detailed system analysis')}\n`);
+  process.exit(1);
+}
+
+/**
+ * Handle compilation errors
+ */
+function handleCompilationError(error) {
+  console.log(`\n${pc.red('❌')} ${pc.bold('Compilation failed')}`);
+
+  if (!(error instanceof Error)) {
+    console.error('Unknown error:', String(error));
+    process.exit(1);
+
+    return;
+  }
+
+  if (error.message.includes('FFmpeg') || error.message.includes('ffmpeg')) {
+    handleFFmpegError(error);
+
+    return;
+  }
+
+  console.error(`${pc.red('Error:')} ${error.message}`);
+
+  if (error.stack) console.error(error.stack);
+  process.exit(1);
+}
+
+async function main(filePath) {
+  if (!filePath) {
+    console.error('Usage: pnpm compile <template.json>');
+    process.exit(1);
+  }
+
+  try {
     if (shouldShowWelcome()) {
       showWelcomeBanner();
     }
 
-    // Load the template descriptor
-    const templateDescriptor = await loadConfig(`${configFilePath}`);
+    const templateDescriptor = await loadConfig(`${filePath}`);
+    const projectConfig = buildProjectConfig();
 
-    // Get absolute paths for proper configuration
-    const cwd = process.cwd();
-    const buildDir = path.resolve(cwd, 'build');
-    const assetsDir = path.resolve(cwd, 'packages/core/src/shared/assets');
+    await fs.mkdir(projectConfig.buildDir, { recursive: true });
 
-    // Ensure build directory exists
-    await fs.mkdir(buildDir, { recursive: true });
-
-    // Set up configuration similar to the server implementation
-    const projectConfig = {
-      buildDir, // Use absolute path
-      assetsDir, // Use absolute path
-      fields: {
-        form_1_firstname: 'Emily',
-        form_1_lastname: 'Parker',
-        form_1_job: 'Frontend Developer',
-        form_2_keyword1: 'php',
-        form_2_keyword2: 'javascript',
-        form_2_keyword3: 'typescript',
-        form_2_keyword4: 'caffeine',
-      },
-    };
-
-    // Call the compilation function with progress indicator
     console.log(`${pc.cyan('🎬')} ${pc.bold('Starting video compilation...')}`);
     console.log(`${pc.dim('🎞️ Processing your video magic...')}\n`);
 
     const result = await compile(projectConfig, templateDescriptor);
 
-    console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`)
+    console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`);
 
     return result;
   } catch (error) {
-    console.log(`\n${pc.red('❌')} ${pc.bold('Compilation failed')}`);
+    handleCompilationError(error);
 
-    if (error instanceof Error) {
-      // Check if it's an FFmpeg-related error
-      if (error.message.includes('FFmpeg') || error.message.includes('ffmpeg')) {
-        console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
-
-        TerminalUI.showError(error.message, [
-          '🔧 Run diagnostics: pnpm diagnose',
-          '📦 Quick fix: pnpm add ffmpeg-static',
-          '🍺 macOS: brew install ffmpeg',
-          '🐧 Linux: sudo apt install ffmpeg',
-        ]);
-
-        console.log(`\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('pnpm diagnose')} ${pc.dim('for detailed system analysis')}\n`);
-      } else {
-        console.error(`${pc.red('Error:')} ${error.message}`);
-        if (error.stack) console.error(error.stack);
-      }
-    } else {
-      console.error('Unknown error:', String(error));
-    }
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -107,24 +128,25 @@ function showWelcomeBanner() {
 }
 
 if (configFilePath) {
-  (async () => {
-    try {
-      const result = await main(configFilePath);
-      if (result) {
-        console.log(`Compilation successful: ${result}`);
-      } else {
-        console.error('Compilation failed to produce output');
-        process.exit(1);
-      }
-    } catch (error) {
-      // Handle errors
-      if (error instanceof Error) {
-        console.error(error.name + ':', error.message);
-        if (error.stack) console.error(error.stack);
-      } else {
-        console.error('Unknown error:', String(error));
-      }
+  try {
+    const result = await main(configFilePath);
+
+    if (!result) {
+      console.error('Compilation failed to produce output');
       process.exit(1);
     }
-  })();
+
+    console.log(`Compilation successful: ${result}`);
+  } catch (error) {
+    // Handle errors
+    if (!(error instanceof Error)) {
+      console.error('Unknown error:', String(error));
+      process.exit(1);
+    }
+
+    console.error(error.name + ':', error.message);
+
+    if (error.stack) console.error(error.stack);
+    process.exit(1);
+  }
 }

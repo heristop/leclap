@@ -1,7 +1,6 @@
 import swc from 'unplugin-swc';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import checker from 'vite-plugin-checker';
 
 export default defineConfig({
   plugins: [
@@ -18,6 +17,11 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     root: './',
+    // Tests are co-located in the core package they cover.
+    include: ['packages/core/tests/**/*.test.ts'],
+    // Playwright specs live under e2e/ and import @playwright/test (not a vitest
+    // dependency); they run via `pnpm test:e2e`, not the unit suite.
+    exclude: [...configDefaults.exclude, '**/e2e/**'],
     pool: 'threads',
     maxWorkers: undefined,
     isolate: true,
@@ -27,7 +31,14 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       reportsDirectory: 'coverage',
       include: ['packages/core/src/**/*.{ts,js}'],
-      exclude: ['**/node_modules/**', '**/tests/**', '**/*.test.ts', '**/*.spec.ts'],
+      exclude: [
+        '**/node_modules/**',
+        '**/tests/**',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        // CLI executable bundle: standalone entry that imports from dist/, not unit-testable
+        '**/cli/**',
+      ],
     },
   },
 });

@@ -1,0 +1,8 @@
+[tools]
+node = "24"
+pnpm = "11"
+
+# conda-forge build (full): includes the drawtext filter + ffprobe required by the
+# director's text/intertitle/background-color segments. Homebrew's split `ffmpeg`
+# formula drops libfreetype, so drawtext is unavailable there.
+ffmpeg = "8.1.1"

@@ -143,7 +143,6 @@ import FFmpegNodeAdapter from '@/platform/ffmpeg/FFmpegNodeAdapter';
 import FFmpegStaticAdapter from '@/platform/ffmpeg/FFmpegStaticAdapter';
 import FFmpegWasmAdapter from '@/platform/ffmpeg/FFmpegWasmAdapter';
 import MusicNodeAdapter from '@/platform/ffmpeg/MusicNodeAdapter';
-import MusicWasmAdapter from '@/platform/ffmpeg/MusicWasmAdapter';
 import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
 import AbstractMusic from '@/platform/ffmpeg/AbstractMusic';
 import type AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
@@ -766,44 +765,5 @@ describe('MusicNodeAdapter', () => {
 
     await expect(adapter.process(logger, fs, 60, '/music.mp3')).rejects.toBe('string-explosion');
     expect(logger.error).toHaveBeenCalledWith('[Music] Unknown error occurred');
-  });
-});
-
-// ===========================================================================
-// MusicWasmAdapter
-// ===========================================================================
-describe('MusicWasmAdapter', () => {
-  it('process() logs progress and returns rc 0 (placeholder implementation)', async () => {
-    const adapter = new MusicWasmAdapter();
-    const logger = makeLogger();
-
-    const result = await adapter.process(logger, makeFs(), 42, '/music.mp3');
-
-    expect(result).toEqual({ rc: 0 });
-    expect(logger.info).toHaveBeenCalledWith('[MusicWasmAdapter] Processing music file: /music.mp3');
-    expect(logger.info).toHaveBeenCalledWith('[MusicWasmAdapter] Target length: 42 seconds');
-    expect(logger.info).toHaveBeenCalledWith('[MusicWasmAdapter] Music processing completed (placeholder)');
-  });
-
-  it('process() rethrows and logs when the logger throws a real Error', async () => {
-    const adapter = new MusicWasmAdapter();
-    const logger = makeLogger();
-    (logger.info as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
-      throw new Error('logger boom');
-    });
-
-    await expect(adapter.process(logger, makeFs(), 1, '/m.mp3')).rejects.toThrow('logger boom');
-    expect(logger.error).toHaveBeenCalledWith('[MusicWasmAdapter] Error: logger boom');
-  });
-
-  it('process() rethrows non-Error throwables and logs unknown error', async () => {
-    const adapter = new MusicWasmAdapter();
-    const logger = makeLogger();
-    (logger.info as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
-      throw 'not-an-error';
-    });
-
-    await expect(adapter.process(logger, makeFs(), 1, '/m.mp3')).rejects.toBe('not-an-error');
-    expect(logger.error).toHaveBeenCalledWith('[MusicWasmAdapter] Unknown error occurred');
   });
 });

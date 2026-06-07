@@ -6,7 +6,8 @@ export type FormField = { name: string; label: string; maxLength: number };
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
   | { kind: 'video'; duration: number; mute: boolean; text: string; fontsize: number; fontcolor: string }
-  | { kind: 'color'; duration: number; color: string };
+  | { kind: 'color'; duration: number; color: string }
+  | { kind: 'image'; duration: number; pictureUrl: string };
 
 export interface EditorState {
   id: string;
@@ -21,12 +22,15 @@ export const SECTION_LABELS: Record<EditorSection['kind'], string> = {
   form: 'Form fields',
   video: 'Your video',
   color: 'Color background',
+  image: 'Image background',
 };
 
 export function newSection(kind: EditorSection['kind']): EditorSection {
   if (kind === 'form') return { kind: 'form', fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }] };
 
   if (kind === 'color') return { kind: 'color', duration: 3, color: '#7C83FD' };
+
+  if (kind === 'image') return { kind: 'image', duration: 3, pictureUrl: '' };
 
   return { kind: 'video', duration: 8, mute: false, text: '', fontsize: 48, fontcolor: '#ffffff' };
 }
@@ -62,6 +66,14 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
         name: `color_${i + 1}`,
         type: 'color_background',
         options: { duration: section.duration, backgroundColor: section.color },
+      };
+    }
+
+    if (section.kind === 'image') {
+      return {
+        name: `image_${i + 1}`,
+        type: 'image_background',
+        options: { duration: section.duration, pictureUrl: section.pictureUrl },
       };
     }
 
@@ -115,6 +127,10 @@ function colorSectionFrom(s: StoredSection): EditorSection {
   return { kind: 'color', duration: s.options?.duration ?? 3, color: s.options?.backgroundColor ?? '#7C83FD' };
 }
 
+function imageSectionFrom(s: StoredSection): EditorSection {
+  return { kind: 'image', duration: s.options?.duration ?? 3, pictureUrl: s.options?.pictureUrl ?? '' };
+}
+
 function videoSectionFrom(s: StoredSection): EditorSection {
   const dt = (s.filters ?? []).find((f) => f.type === 'drawtext');
 
@@ -132,6 +148,8 @@ function storedSectionToEditor(s: StoredSection): EditorSection {
   if (s.type === 'form') return formSectionFrom(s);
 
   if (s.type === 'color_background') return colorSectionFrom(s);
+
+  if (s.type === 'image_background') return imageSectionFrom(s);
 
   return videoSectionFrom(s);
 }

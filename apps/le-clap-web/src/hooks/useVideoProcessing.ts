@@ -1,7 +1,9 @@
 import { useState, useRef, useOptimistic, startTransition } from 'react';
-import { coreCompilationService, type CompilationConfig } from '../services/coreCompilationService';
-import { type Template } from '../services/templateService';
-import { logger } from '../lib/logger';
+import { coreCompilationService, type CompilationConfig } from '@/application/usecases/coreCompilationService';
+import { type Template } from '@/services/templateService';
+import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
+import { logger } from '@/lib/logger';
+import { haptic } from '@/lib/haptics';
 
 interface ProcessingProgress {
   stage: string;
@@ -50,11 +52,12 @@ function computeEstimatedTimeRemaining(elapsed: number, percentage: number): num
 
 function buildCompilationConfig(
   files: File[],
-  templateWithFormData: Template & { formData?: Record<string, string> }
+  templateWithFormData: Template & { formData?: Record<string, string> },
+  videoEdits?: Record<number, VideoEdit | undefined>
 ): CompilationConfig {
   const { formData, ...template } = templateWithFormData;
 
-  return { template, formData: formData ?? {}, files };
+  return { template, formData: formData ?? {}, files, videoEdits };
 }
 
 function applyProgressUpdate(
@@ -83,6 +86,7 @@ function handleProcessingError(
   setOptimisticState: SetOptimistic
 ) {
   logger.error('Video compilation error:', error);
+  haptic('error');
   const errorMessage =
     error instanceof Error ? error.message : 'An unknown error occurred during video compilation';
   setState((prev) => ({
@@ -127,7 +131,8 @@ export const useVideoProcessing = () => {
 
   const processVideo = async (
     files: File[],
-    templateWithFormData: Template & { formData?: Record<string, string> }
+    templateWithFormData: Template & { formData?: Record<string, string> },
+    videoEdits?: Record<number, VideoEdit | undefined>
   ) => {
     if (files.length === 0) {
       setState((prev) => ({ ...prev, error: 'Please select at least one video file.' }));
@@ -135,7 +140,7 @@ export const useVideoProcessing = () => {
       return;
     }
 
-    const compilationConfig = buildCompilationConfig(files, templateWithFormData);
+    const compilationConfig = buildCompilationConfig(files, templateWithFormData, videoEdits);
 
     startTransition(() => {
       setOptimisticState({
@@ -151,6 +156,7 @@ export const useVideoProcessing = () => {
     try {
       const result = await coreCompilationService.compileVideo(compilationConfig, updateProgress);
       setState((prev) => ({ ...prev, processedVideo: result, isProcessing: false }));
+      haptic('success');
     } catch (error) {
       handleProcessingError(error, optimisticState.progress, setState, setOptimisticState);
     } finally {

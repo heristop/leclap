@@ -3,7 +3,7 @@ import { Check, Play, Zap, Video, Users, Image, Sparkles, Layers } from 'lucide-
 import clsx from 'clsx'
 import { templateService, type Template } from '@/services/templateService'
 import { logger } from '@/lib/logger'
-import { Badge, Button, Card, type BadgeProps } from '@/presentation/components/ui'
+import { Badge, Button, Card, Reveal, type BadgeProps } from '@/presentation/components/ui'
 
 interface TemplateSelectorProps {
   onTemplateSelected: (template: Template) => void
@@ -92,7 +92,7 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
       onKeyDown={handleKeyDown}
       aria-pressed={isSelected}
       className={clsx(
-        'group relative w-full text-left p-6 fade-in',
+        'group relative w-full h-full text-left p-6',
         isSelected
           ? 'border-brand-500 bg-brand-500/[0.06] dark:bg-brand-500/10 shadow-lg shadow-brand-500/15'
           : 'bg-surface/40 hover:border-brand-500/40 hover:bg-surface/70'
@@ -205,13 +205,14 @@ export const TemplateSelector = ({
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {templates.map((template) => (
-        <TemplateCard
-          key={template.id}
-          template={template}
-          isSelected={selectedTemplate?.id === template.id}
-          onSelect={handleTemplateSelect}
-        />
+      {templates.map((template, index) => (
+        <Reveal key={template.id} delay={index * 70} className="h-full">
+          <TemplateCard
+            template={template}
+            isSelected={selectedTemplate?.id === template.id}
+            onSelect={handleTemplateSelect}
+          />
+        </Reveal>
       ))}
     </div>
   )

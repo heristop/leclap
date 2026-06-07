@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useId } from 'react'
-import { FileText, User, Type, Hash } from 'lucide-react'
+import { FileText, User, Type, Hash, Check } from 'lucide-react'
 import clsx from 'clsx'
 import { templateService, type Template } from '@/services/templateService'
 import { Input } from '@/presentation/components/ui'
@@ -128,7 +128,7 @@ const FieldStatus = ({ hasError, errorMessage, errorId, value, remainingChars }:
       <span id={errorId} className="text-sm text-red-800 dark:text-red-400">{errorMessage}</span>
     ) : (
       <span className="text-sm text-gray-500">
-        {value.trim() === '' ? 'Required field' : <span className="text-green-800 dark:text-green-400">Field completed ✓</span>}
+        {value.trim() === '' ? 'Required field' : <span className="inline-flex items-center gap-1 text-green-800 dark:text-green-400"><Check className="w-3.5 h-3.5" /> Field completed</span>}
       </span>
     )}
 
@@ -204,8 +204,8 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
 
   return (
     <div className="space-y-2 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-      <label htmlFor={fieldId} className="flex items-center space-x-2 text-sm font-medium text-gray-300">
-        <IconComponent className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+      <label htmlFor={fieldId} className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <IconComponent className="w-4 h-4 text-brand-600 dark:text-brand-300" />
         <span>{label}</span>
         {field.maxLength && (
           <span className="text-xs text-gray-500">
@@ -237,13 +237,13 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
 
 const FormHeader = () => (
   <div className="text-center">
-    <div className="p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl inline-block mb-4 shadow-lg shadow-blue-500/20">
+    <div className="brand-gradient rise-in p-3 rounded-2xl inline-block mb-4 shadow-lg shadow-brand-500/25">
       <FileText className="w-6 h-6 text-white" />
     </div>
     <h3 className="text-xl font-bold text-foreground mb-2 font-display">
       Template Configuration
     </h3>
-    <p className="text-sm text-gray-400">
+    <p className="text-sm text-gray-500 dark:text-gray-400">
       Fill in the required information to personalize your video
     </p>
   </div>
@@ -284,14 +284,14 @@ export const TemplateForm = ({ template, onFormDataChange, formData }: TemplateF
 
   if (fields.length === 0) {
     return (
-      <div className="p-6 bg-blue-500/10 border border-blue-500/40 dark:bg-blue-900/20 dark:border-blue-500/30 rounded-xl">
+      <div className="fade-in p-6 bg-brand-500/[0.06] border border-brand-500/30 dark:bg-brand-500/10 rounded-xl">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
+          <div className="brand-gradient p-2 rounded-lg shadow-lg shadow-brand-500/20">
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h4 className="font-semibold text-blue-800 dark:text-blue-300">No Form Required</h4>
-            <p className="text-sm text-blue-800/90 dark:text-blue-200/70">
+            <h4 className="font-semibold text-brand-700 dark:text-brand-200">No Form Required</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               This template doesn't require any custom input. You can proceed directly to processing.
             </p>
           </div>

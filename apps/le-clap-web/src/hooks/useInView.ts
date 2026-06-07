@@ -14,9 +14,11 @@ interface UseInViewOptions {
  * Falls back to immediately in-view when IntersectionObserver is unavailable.
  */
 export function useInView<T extends HTMLElement = HTMLDivElement>({
-  threshold = 0.15,
+  threshold = 0.1,
   once = true,
-  rootMargin = '0px 0px -10% 0px',
+  // No negative bottom margin: that would exclude the viewport's bottom band and leave
+  // page-bottom elements (which can't scroll any higher) permanently hidden.
+  rootMargin = '0px',
 }: UseInViewOptions = {}): [RefObject<T | null>, boolean] {
   const ref = useRef<T>(null)
   const [inView, setInView] = useState(false)

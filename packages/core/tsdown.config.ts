@@ -12,7 +12,7 @@ export default defineConfig([
     sourcemap: true,
     clean: true,
     outDir: 'dist',
-    target: 'node18',
+    target: 'es2024',
     platform: 'node',
     external: [
       'child_process',
@@ -33,8 +33,8 @@ export default defineConfig([
       'cli-spinners',
       'pino',
       'pino-pretty',
-      'ffmpeg-static'
-    ]
+      'ffmpeg-static',
+    ],
   },
   // Browser build - excludes Node.js-specific modules
   {
@@ -44,7 +44,7 @@ export default defineConfig([
     dts: true,
     sourcemap: true,
     outDir: 'dist',
-    target: 'es2022',
+    target: 'es2024',
     platform: 'browser',
     globalName: 'FFmpegVideoComposer',
     external: [
@@ -74,14 +74,14 @@ export default defineConfig([
       'zlib',
       'yauzl',
       'fd-slicer',
-      'get-stream'
+      'get-stream',
     ],
     noExternal: [
       // Only include browser-compatible dependencies
       'reflect-metadata',
       'tsyringe',
       'picocolors',
-      'zod'
+      'zod',
     ],
     plugins: [
       replace({
@@ -90,9 +90,9 @@ export default defineConfig([
         values: {
           'process.env.NODE_ENV': JSON.stringify('production'),
           'process.env.PLATFORM': JSON.stringify('browser'),
-          'global': 'globalThis'
-        }
-      })
-    ]
-  }
+          global: 'globalThis',
+        },
+      }),
+    ],
+  },
 ]);

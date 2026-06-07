@@ -12,7 +12,7 @@ export default defineConfig([
     dts: true,
     clean: true,
     minify: false,
-    target: 'node22.14',
+    target: 'es2024',
     platform: 'node',
   },
   // Browser build
@@ -23,12 +23,12 @@ export default defineConfig([
     dts: false,
     clean: false, // Don't clean to avoid deleting node build
     minify: false,
-    target: 'es2022',
+    target: 'es2024',
     platform: 'browser',
     define: {
       'process.env.NODE_ENV': '"production"',
-      'global': 'globalThis',
-      'process': JSON.stringify({ env: { NODE_ENV: 'production' }, platform: 'browser', versions: {} })
+      global: 'globalThis',
+      process: JSON.stringify({ env: { NODE_ENV: 'production' }, platform: 'browser', versions: {} }),
     },
-  }
+  },
 ]);

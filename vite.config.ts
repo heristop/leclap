@@ -333,14 +333,22 @@ export default defineConfig({
         files: ['apps/le-clap-web/**'],
         plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
         env: { browser: true, es2024: true },
-        rules: {},
+        rules: {
+          // Screens/components legitimately run long; the file/function size budgets are kept
+          // strict for the library (packages/**) but relaxed for the UI layer.
+          'max-lines': 'off',
+          'max-lines-per-function': 'off',
+        },
       },
       {
         // le-clap-expo (React Native / Expo app)
         files: ['apps/le-clap-expo/**'],
         plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
         env: { browser: true, es2024: true },
-        rules: {},
+        rules: {
+          'max-lines': 'off',
+          'max-lines-per-function': 'off',
+        },
       },
       // -------------------------------------------------------------------------------------
 
@@ -391,6 +399,14 @@ export default defineConfig({
         files: ['*.config.ts', '*.config.js'],
         rules: {
           'max-lines': 'off',
+        },
+      },
+      {
+        // Exploratory on-device FFmpeg spike: the deliberate lazy `require('ffmpeg-expo')` keeps
+        // the screen renderable before the native module is built into the dev client.
+        files: ['apps/le-clap-expo/app/**/ffmpeg-spike.tsx'],
+        rules: {
+          'unicorn/prefer-module': 'off',
         },
       },
     ],

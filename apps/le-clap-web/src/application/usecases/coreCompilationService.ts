@@ -6,6 +6,8 @@ import type { ProjectConfig, TemplateDescriptor } from '@ffmpeg-video-composer/c
 import { type Template } from '@/services/templateService';
 import { compilationLogger } from '@/lib/logger';
 import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdits';
+import { browserMediaService } from '@/services/browserMediaService';
+import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 
 export interface CompilationConfig {
   template: Template;
@@ -65,6 +67,8 @@ class CoreCompilationService {
       await this.preloadBundledFonts();
 
       const templateDescriptor = this.prepareTemplateDescriptor(template, formData, userVideoPaths, onProgress);
+
+      await materializeTemplateMedia(templateDescriptor, browserMediaService, this.filesystemAdapter);
 
       const outputPath = await this.runCompilation(projectConfig, templateDescriptor, onProgress);
 

@@ -17,9 +17,6 @@ export interface Template {
   descriptor: TemplateDescriptor;
 }
 
-// Server response interface - removed as unused
-
-// Environment configuration
 const getServerUrl = () => {
   // In development, use localhost:8082
   // In production, this could be configured via environment variables
@@ -30,7 +27,6 @@ const getServerUrl = () => {
   return 'http://localhost:8082';
 };
 
-// Real template definitions - these provide metadata about templates
 const TEMPLATE_METADATA: Partial<Record<string, Omit<Template, 'id' | 'descriptor' | 'source'>>> = {
   sample: {
     name: 'Interactive Profile Video',
@@ -137,14 +133,12 @@ class TemplateService {
         return descriptor;
       }
 
-      // Fallback to legacy metadata-based templates if core template not found
       const metadata = TEMPLATE_METADATA[templateId];
 
       if (!metadata) {
         throw new Error(`Template ${templateId} not found in core or legacy templates`);
       }
 
-      // Create a simple template descriptor for legacy templates
       const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
 
       this.templatesCache.set(templateId, fallbackDescriptor);
@@ -228,7 +222,6 @@ class TemplateService {
     try {
       const descriptor = await this.loadTemplate(templateId);
 
-      // Try to get from core templates first
       const coreTemplate = await coreTemplateService.getTemplate(templateId);
 
       if (coreTemplate) {
@@ -244,7 +237,6 @@ class TemplateService {
         };
       }
 
-      // Fallback to legacy metadata
       const metadata = TEMPLATE_METADATA[templateId];
 
       if (!metadata) {
@@ -360,7 +352,6 @@ class TemplateService {
       ]
     };
 
-    // Add grayscale filter for debug template
     const firstSection = descriptor.sections?.[0];
 
     if (id === 'debug_grayscale' && firstSection !== undefined) {

@@ -3,15 +3,19 @@ import { Clapperboard, Code2, Menu, X, Sun, Moon } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
 import { Button } from '@/presentation/components/ui'
-import { getTheme, toggleTheme, type Theme } from '../../lib/theme'
+import { getTheme, toggleTheme, type Theme, type ToggleOrigin } from '../../lib/theme'
 
-type ThemeToggleProps = { theme: Theme; onToggle: () => void; className?: string }
+type ThemeToggleProps = {
+  theme: Theme
+  onToggle: (origin: ToggleOrigin) => void
+  className?: string
+}
 
 const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => (
   <Button
     variant="ghost"
     size="icon"
-    onClick={onToggle}
+    onClick={(e) => { onToggle({ x: e.clientX, y: e.clientY }) }}
     className={clsx(
       'rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 hover:border-foreground/10',
       className
@@ -156,7 +160,7 @@ export const Header = () => {
   const [theme, setThemeState] = useState<Theme>(() => getTheme())
   const location = useLocation()
 
-  const onToggleTheme = () => { setThemeState(toggleTheme()) }
+  const onToggleTheme = (origin: ToggleOrigin) => { setThemeState(toggleTheme(origin)) }
 
   useEffect(() => {
     const handleScroll = () => {

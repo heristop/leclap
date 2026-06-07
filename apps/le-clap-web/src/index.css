@@ -419,15 +419,27 @@ body {
 }
 
 /* View Transitions API — juicy cross-fade + slide on SPA route changes
-   (enabled per-link via React Router's `viewTransition` prop). */
+   (enabled per-link via React Router's `viewTransition` prop). Scoped to
+   exclude the theme toggle, which drives its own circular-reveal wipe below. */
 @media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
+  html:not(.theme-vt)::view-transition-old(root) {
     animation: vt-out 0.22s var(--ease-smooth) both;
   }
-  ::view-transition-new(root) {
+  html:not(.theme-vt)::view-transition-new(root) {
     animation: vt-in 0.42s var(--ease-out-expo) both;
   }
 }
+
+/* Theme toggle wipe — the new theme sits on top and is revealed by the JS
+   clip-path animation (see `toggleTheme` in lib/theme.ts); the old theme stays
+   put underneath. We disable the default cross-fade so only the wipe shows. */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.theme-vt::view-transition-old(root) { z-index: 1; }
+html.theme-vt::view-transition-new(root) { z-index: 9999; }
 
 @keyframes vt-out {
   to { opacity: 0; transform: translateY(-8px) scale(0.992); }

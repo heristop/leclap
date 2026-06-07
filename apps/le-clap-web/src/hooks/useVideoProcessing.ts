@@ -145,7 +145,7 @@ export const useVideoProcessing = () => {
     startTransition(() => {
       setOptimisticState({
         isProcessing: true,
-        progress: { stage: 'Initializing', percentage: 0, currentStep: 'Preparing to process video with real template', totalSteps: 6, currentStepIndex: 0 },
+        progress: { stage: 'Initializing', percentage: 0, currentStep: 'Preparing', totalSteps: 6, currentStepIndex: 0 },
       });
     });
 

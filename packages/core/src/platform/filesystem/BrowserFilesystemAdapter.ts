@@ -299,12 +299,10 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   }
 
   async fetch(url: string): Promise<string> {
-    // A local virtual path that is already in the store (e.g. an uploaded asset
-    // materialized into the engine FS) is not reachable over HTTP. Copy it to the
-    // standard /tmp/fetch download location so callers can move() it as usual.
+    // A local virtual path already in the store (an uploaded asset materialized
+    // into the engine FS) is not HTTP-reachable, so copy it to /tmp/fetch instead.
     if (url.startsWith('/') && (await this.exists(url))) {
-      const localName = url.split('/').pop() ?? 'download';
-      const localPath = `/tmp/fetch/${localName}`;
+      const localPath = `/tmp/fetch/${url.split('/').pop() ?? 'download'}`;
       await this.copy(url, localPath);
 
       return localPath;

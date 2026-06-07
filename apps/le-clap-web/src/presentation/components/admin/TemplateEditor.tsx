@@ -451,6 +451,21 @@ function SectionFields({
     );
   }
 
+  if (section.kind === 'image') {
+    return (
+      <div className="grid sm:grid-cols-2 gap-3 pl-7">
+        <NumberField
+          label="Duration (s)"
+          value={section.duration}
+          onChange={(v) => {
+            onChange({ duration: v });
+          }}
+          inputCls={inputCls}
+        />
+      </div>
+    );
+  }
+
   // form
   return (
     <div className="space-y-2 pl-7">

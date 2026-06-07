@@ -77,12 +77,10 @@ class PlatformBridge {
       throw new TypeError(`Wrong adapter: ${adapter}`);
     }
 
-    // Special handling for FFmpeg adapter with fallback logic
     if (adapter === 'ffmpeg') {
       return await this.createFFmpegAdapter();
     }
 
-    // Handle other adapters
     const platform = resolvePlatform();
 
     if (!isAdapterName(adapter)) {
@@ -166,7 +164,6 @@ class PlatformBridge {
    * Create FFmpeg adapter with fallback detection
    */
   private readonly createFFmpegAdapter = async () => {
-    // Return cached adapter if available
     if (this.ffmpegAdapterCache) {
       return this.ffmpegAdapterCache;
     }
@@ -180,7 +177,6 @@ class PlatformBridge {
 
       const adapter = this.buildAdapterFromDetection(detection);
 
-      // Cache the adapter for future use
       this.ffmpegAdapterCache = adapter;
       this.isFirstRun = false;
 

@@ -20,12 +20,6 @@ interface FFProbeData {
 
 @injectable()
 class FFmpegNodeAdapter extends AbstractFFmpeg {
-  /**
-   * Execute a FFmpeg command
-   * @param command - FFmpeg command to execute
-   * @returns Promise with process result
-   * @throws Error if FFmpeg command fails
-   */
   execute = async (command: string): Promise<{ rc: number }> => {
     try {
       await execAsync(`ffmpeg ${command}`);
@@ -38,30 +32,14 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
     }
   };
 
-  /**
-   * Get media file information using FFprobe
-   * @param source - Path to the media file
-   * @returns Promise with media file information
-   * @throws Error if FFprobe analysis fails
-   */
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     try {
-      console.log(`[FFmpegNodeAdapter] Getting info for file: ${source}`);
-
-      // Execute ffprobe with JSON output format
       const { stdout } = await execAsync(`ffprobe -v quiet -print_format json -show_streams "${source}"`);
 
       const info: FFProbeData = JSON.parse(stdout);
 
       const videoStream = info.streams.find((s) => s.codec_type === 'video');
       const audioStream = info.streams.find((s) => s.codec_type === 'audio');
-
-      console.log(`[FFmpegNodeAdapter] File info:`, {
-        videoFound: Boolean(videoStream),
-        audioFound: Boolean(audioStream),
-        duration: videoStream ? parseFloat(videoStream.duration) : null,
-        videoCodec: videoStream?.codec_name ?? null,
-      });
 
       return {
         duration: videoStream ? parseFloat(videoStream.duration) : null,

@@ -22,7 +22,6 @@ function hasInputsAsset(value: unknown): value is { inputsAsset: Record<string, 
 class TemplateConcreteBuilder {
   private section!: Section;
   private segment!: SegmentBuilder;
-  private readonly actualDestination: string = '';
 
   constructor(
     @inject('project') private readonly project: Project,

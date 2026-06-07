@@ -33,16 +33,13 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
 
   private initializePaths(): void {
     try {
-      // Try to load ffmpeg-static
       const ffmpegStatic = requireModule('ffmpeg-static') as string | null;
       this.ffmpegPath = ffmpegStatic;
 
-      // Try to load ffprobe-static (usually comes with ffmpeg-static)
       try {
         const ffprobeStatic = requireModule('ffprobe-static') as { path: string };
         this.ffprobePath = ffprobeStatic.path;
       } catch {
-        // If ffprobe-static is not available, try to use ffprobe from the same directory as ffmpeg
         if (this.ffmpegPath) {
           this.ffprobePath = this.ffmpegPath.replace(/ffmpeg$/, 'ffprobe');
         }
@@ -52,12 +49,6 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
     }
   }
 
-  /**
-   * Execute a FFmpeg command using the static binary
-   * @param command - FFmpeg command to execute
-   * @returns Promise with process result
-   * @throws Error if FFmpeg command fails
-   */
   execute = async (command: string): Promise<{ rc: number }> => {
     if (!this.ffmpegPath) {
       throw new FFmpegError('FFmpeg static binary not available');
@@ -74,34 +65,18 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
     }
   };
 
-  /**
-   * Get media file information using FFprobe static binary
-   * @param source - Path to the media file
-   * @returns Promise with media file information
-   * @throws Error if FFprobe analysis fails
-   */
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     if (!this.ffprobePath) {
       throw new FFmpegError('FFprobe static binary not available');
     }
 
     try {
-      console.log(`[FFmpegStaticAdapter] Getting info for file: ${source}`);
-
-      // Execute ffprobe with JSON output format
       const { stdout } = await execAsync(`"${this.ffprobePath}" -v quiet -print_format json -show_streams "${source}"`);
 
       const info: FFProbeData = JSON.parse(stdout);
 
       const videoStream = info.streams.find((s) => s.codec_type === 'video');
       const audioStream = info.streams.find((s) => s.codec_type === 'audio');
-
-      console.log(`[FFmpegStaticAdapter] File info:`, {
-        videoFound: Boolean(videoStream),
-        audioFound: Boolean(audioStream),
-        duration: videoStream ? parseFloat(videoStream.duration) : null,
-        videoCodec: videoStream?.codec_name ?? null,
-      });
 
       return {
         duration: videoStream ? parseFloat(videoStream.duration) : null,

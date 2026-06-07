@@ -108,7 +108,6 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // Create object store for files
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'name' });
           store.createIndex('type', 'metadata.type', { unique: false });
@@ -188,9 +187,8 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     return count > 0;
   }
 
-  async ensureDir(path: string): Promise<void> {
-    // In browser environment, directories are virtual - no need to create them
-    console.log(`[BrowserFilesystemAdapter] Virtual directory ensured: ${path}`);
+  async ensureDir(_path: string): Promise<void> {
+    // directories are virtual in IndexedDB — no physical creation needed
   }
 
   async copy(src: string, dest: string): Promise<void> {
@@ -209,7 +207,6 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     );
   }
 
-  // Browser-specific methods for handling File objects
   async storeFile(file: File, path: string): Promise<void> {
     const data = new Uint8Array(await file.arrayBuffer());
     const db = await this.ensureInitialized();
@@ -232,8 +229,6 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
       (store) => store.put(fileData),
       `Failed to store file ${path}`
     );
-
-    console.log(`[BrowserFilesystemAdapter] Stored file: ${file.name} at ${path}`);
   }
 
   async getFileMetadata(path: string): Promise<FileData['metadata'] | null> {
@@ -271,10 +266,8 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
       'Failed to clear files'
     );
 
-    console.log('[BrowserFilesystemAdapter] All files cleared');
   }
 
-  // Abstract method implementations
   async getAssetsPath(dir: string): Promise<string> {
     return `/assets/${dir}`;
   }
@@ -363,12 +356,10 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     return await this.read(downloadPath);
   }
 
-  // Static method to check IndexedDB support
   static isSupported(): boolean {
     return typeof indexedDB !== 'undefined';
   }
 
-  // Get storage usage information
   async getStorageUsage(): Promise<{ used: number; available?: number }> {
     return estimateStorageUsage();
   }

@@ -1,9 +1,12 @@
 import { exec, type ExecException } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
 import type { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
-import { FFmpegError } from '@/core/errors/FFmpegError';
+import { FFmpegError } from '../../core/errors/FFmpegError';
+
+const requireModule = createRequire(import.meta.url);
 
 const execAsync = promisify(exec);
 
@@ -31,14 +34,12 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
   private initializePaths(): void {
     try {
       // Try to load ffmpeg-static
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const ffmpegStatic = require('ffmpeg-static');
+      const ffmpegStatic = requireModule('ffmpeg-static') as string | null;
       this.ffmpegPath = ffmpegStatic;
 
       // Try to load ffprobe-static (usually comes with ffmpeg-static)
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const ffprobeStatic = require('ffprobe-static');
+        const ffprobeStatic = requireModule('ffprobe-static') as { path: string };
         this.ffprobePath = ffprobeStatic.path;
       } catch {
         // If ffprobe-static is not available, try to use ffprobe from the same directory as ffmpeg
@@ -64,9 +65,11 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
 
     try {
       await execAsync(`"${this.ffmpegPath}" ${command}`);
+
       return { rc: 0 };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
+
       throw new FFmpegError('FFmpeg command failed (static)', execError.stderr);
     }
   };
@@ -94,20 +97,21 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
       const audioStream = info.streams.find((s) => s.codec_type === 'audio');
 
       console.log(`[FFmpegStaticAdapter] File info:`, {
-        videoFound: !!videoStream,
-        audioFound: !!audioStream,
+        videoFound: Boolean(videoStream),
+        audioFound: Boolean(audioStream),
         duration: videoStream ? parseFloat(videoStream.duration) : null,
-        videoCodec: videoStream?.codec_name || null,
+        videoCodec: videoStream?.codec_name ?? null,
       });
 
       return {
         duration: videoStream ? parseFloat(videoStream.duration) : null,
-        videoCodec: videoStream?.codec_name || null,
-        audioCodec: audioStream?.codec_name || null,
-        sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate) : null,
+        videoCodec: videoStream?.codec_name ?? null,
+        audioCodec: audioStream?.codec_name ?? null,
+        sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate, 10) : null,
       };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
+
       throw new FFmpegError(`FFprobe analysis failed for ${source} (static)`, execError.stderr);
     }
   };

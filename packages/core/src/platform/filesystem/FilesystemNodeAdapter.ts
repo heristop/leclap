@@ -9,8 +9,8 @@ import type AbstractLogger from '../../platform/logging/AbstractLogger';
 
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {
-  protected root: string = globalThis.process.cwd();
-  protected tempDir: string = os.tmpdir();
+  protected override root: string = globalThis.process.cwd();
+  protected override tempDir: string = os.tmpdir();
 
   constructor(@inject('logger') private readonly logger: AbstractLogger) {
     super();
@@ -23,21 +23,19 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   override getBuildPath = async (dir: string): Promise<string> => {
-    const fullPath = path.join(this.buildDir || '', dir);
+    const fullPath = path.join(this.buildDir ?? '', dir);
     await fs.mkdir(fullPath, { recursive: true });
 
     return fullPath;
   };
 
   override getSource = (segmentName: string | undefined): string => {
-    if (!segmentName) {
-      segmentName = this.segmentName;
-    }
+    const resolvedName = segmentName ?? this.segmentName;
 
-    return segmentName ? path.join(this.assetsDir || '', 'videos', `${segmentName}.mp4`) : '';
+    return resolvedName ? path.join(this.assetsDir ?? '', 'videos', `${resolvedName}.mp4`) : '';
   };
 
-  override getDestination = (): string => path.join(this.buildDir || '', `${this.segmentName}_output.mp4`);
+  override getDestination = (): string => path.join(this.buildDir ?? '', `${this.segmentName}_output.mp4`);
 
   override fetch = async (url: string): Promise<string> => {
     const dest = path.join(this.tempDir, path.basename(url));
@@ -49,12 +47,24 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     });
 
     const writer = createWriteStream(dest);
-    response.data.pipe(writer);
 
-    await new Promise<void>((resolve, reject) => {
-      writer.on('finish', () => resolve());
-      writer.on('error', reject);
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        // Without listening on the source stream a mid-download failure (e.g. a
+        // throttled connection) would leave a truncated file on disk that still
+        // looks like a successful fetch.
+        response.data.on('error', reject);
+        writer.on('error', reject);
+        writer.on('finish', () => { resolve(); });
+        response.data.pipe(writer);
+      });
+    } catch (error) {
+      writer.destroy();
+      // Drop the partial file so a later read can't pick up corrupt content.
+      await fs.unlink(dest).catch(() => {});
+
+      throw error;
+    }
 
     return dest;
   };
@@ -62,6 +72,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   override stat = async (filePath: string): Promise<boolean> => {
     try {
       await fs.stat(filePath);
+
       return true;
     } catch {
       return false;
@@ -77,7 +88,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   override copy = async (sourcePath: string, targetPath: string): Promise<void> => {
-    return await fs.copyFile(sourcePath, targetPath);
+     await fs.copyFile(sourcePath, targetPath);
   };
 
   override move = async (sourcePath: string, targetPath: string): Promise<void> => {
@@ -94,7 +105,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   override unlink = (filePath: string): Promise<void> => {
-    this.write(filePath);
+    this.write(filePath).catch(() => {});
 
     return fs.unlink(filePath);
   };
@@ -128,10 +139,13 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   fetchAndRead = async (url: string): Promise<string> => {
     try {
       const response = await axios.get(url);
+
       return response.data;
-    } catch (err) {
-      this.logger.error(`Error downloading from ${url}:`, err);
-      throw err;
+    } catch (error) {
+      const params = error instanceof Error ? { message: error.message } : undefined;
+      this.logger.error(`Error downloading from ${url}:`, params);
+
+      throw error;
     }
   };
 }

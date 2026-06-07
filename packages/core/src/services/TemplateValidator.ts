@@ -1,6 +1,5 @@
 import type { z } from 'zod';
-import { TemplateDescriptorSchema, SectionSchema } from '../schemas/template.schemas';
-import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
+import { TemplateDescriptorSchema, SectionSchema, type TemplateDescriptor, type Section } from '../schemas/template.schemas';
 
 export interface ValidationResult {
   success: boolean;
@@ -18,11 +17,25 @@ export class TemplateValidator {
   private formatZodError(error: z.ZodError): ValidationError[] {
     try {
       // Handle different ZodError structures
-      let errorArray = [];
+      let errorArray: Array<{ path?: unknown; message?: unknown; code?: unknown }> = [];
 
-      if (error.errors && Array.isArray(error.errors)) {
-        errorArray = error.errors;
-      } else if (error.message) {
+      const hasIssues = Array.isArray(error.issues);
+
+      if (!hasIssues && !error.message) {
+        return [
+          {
+            path: 'zod_error_structure',
+            message: 'Invalid ZodError structure',
+            code: 'invalid_zod_error',
+          },
+        ];
+      }
+
+      if (hasIssues) {
+        errorArray = error.issues;
+      }
+
+      if (!hasIssues && error.message) {
         // Try to parse the message as JSON (some versions of Zod store errors this way)
         try {
           errorArray = JSON.parse(error.message);
@@ -36,21 +49,12 @@ export class TemplateValidator {
             },
           ];
         }
-      } else {
-        return [
-          {
-            path: 'zod_error_structure',
-            message: 'Invalid ZodError structure',
-            code: 'invalid_zod_error',
-          },
-        ];
       }
 
       return errorArray.map((err) => ({
-        path: err && typeof err === 'object' && Array.isArray(err.path) ? err.path.join('.') : 'unknown',
-        message:
-          err && typeof err === 'object' && typeof err.message === 'string' ? err.message : 'Unknown validation error',
-        code: err && typeof err === 'object' && typeof err.code === 'string' ? err.code : 'unknown',
+        path: Array.isArray(err.path) ? err.path.join('.') : 'unknown',
+        message: typeof err.message === 'string' ? err.message : 'Unknown validation error',
+        code: typeof err.code === 'string' ? err.code : 'unknown',
       }));
     } catch (mapError) {
       return [
@@ -77,8 +81,10 @@ export class TemplateValidator {
     const checkVariableReferences = (obj: unknown, path = ''): void => {
       if (typeof obj === 'string') {
         let match;
+
         while ((match = variablePattern.exec(obj)) !== null) {
           const variable = match[1];
+
           if (!definedVariables.has(variable)) {
             errors.push({
               path,
@@ -87,11 +93,19 @@ export class TemplateValidator {
             });
           }
         }
-      } else if (Array.isArray(obj)) {
+
+        return;
+      }
+
+      if (Array.isArray(obj)) {
         for (let index = 0; index < obj.length; index++) {
           checkVariableReferences(obj[index], `${path}[${index}]`);
         }
-      } else if (obj && typeof obj === 'object') {
+
+        return;
+      }
+
+      if (obj && typeof obj === 'object') {
         for (const [key, value] of Object.entries(obj)) {
           const newPath = path ? `${path}.${key}` : key;
           checkVariableReferences(value, newPath);
@@ -100,6 +114,7 @@ export class TemplateValidator {
     };
 
     checkVariableReferences(template, 'template');
+
     return errors;
   }
 
@@ -114,8 +129,10 @@ export class TemplateValidator {
 
     for (let index = 0; index < template.sections.length; index++) {
       const section = template.sections[index];
+
       if (section.options?.useVideoSection) {
         const referencedSection = section.options.useVideoSection;
+
         if (!sectionNames.has(referencedSection)) {
           errors.push({
             path: `sections[${index}].options.useVideoSection`,
@@ -132,6 +149,7 @@ export class TemplateValidator {
   validateTemplate(templateData: unknown): ValidationResult {
     try {
       let result;
+
       try {
         result = TemplateDescriptorSchema.safeParse(templateData);
       } catch (zodError) {
@@ -246,6 +264,7 @@ export class TemplateValidator {
       const fs = await import('node:fs');
       const templateContent = fs.readFileSync(filePath, 'utf-8');
       const templateData = JSON.parse(templateContent);
+
       return this.validateTemplate(templateData);
     } catch (error) {
       return {
@@ -264,6 +283,7 @@ export class TemplateValidator {
   validateTemplateFromJSON(jsonString: string): ValidationResult {
     try {
       const templateData = JSON.parse(jsonString);
+
       return this.validateTemplate(templateData);
     } catch {
       return {
@@ -288,7 +308,7 @@ export class TemplateValidator {
       return 'Template validation passed';
     }
 
-    const errorCount = result.errors?.length || 0;
+    const errorCount = result.errors?.length ?? 0;
     const errorSummary = result.errors
       ?.slice(0, 3)
       .map((err) => `${err.path}: ${err.message}`)

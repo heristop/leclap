@@ -42,25 +42,24 @@ export class FFmpegDetector {
    * @returns Detection result with best available option
    */
   static async detect(): Promise<FFmpegDetectionResult> {
-    // Try system FFmpeg first (best performance)
     const systemResult = await this.detectSystemFFmpeg();
+
     if (systemResult.availability === FFmpegAvailability.SYSTEM) {
       return systemResult;
     }
 
-    // Try static FFmpeg next (good fallback)
     const staticResult = await this.detectStaticFFmpeg();
+
     if (staticResult.availability === FFmpegAvailability.STATIC) {
       return staticResult;
     }
 
-    // Try WebAssembly FFmpeg (browser/universal fallback)
     const wasmResult = await this.detectWasmFFmpeg();
+
     if (wasmResult.availability === FFmpegAvailability.WASM) {
       return wasmResult;
     }
 
-    // No FFmpeg available
     return {
       availability: FFmpegAvailability.NONE,
       error:
@@ -77,11 +76,7 @@ export class FFmpegDetector {
       const versionMatch = stdout.match(/ffmpeg version ([^\s]+)/);
       const version = versionMatch ? versionMatch[1] : 'unknown';
 
-      return {
-        availability: FFmpegAvailability.SYSTEM,
-        version,
-        path: 'system',
-      };
+      return { availability: FFmpegAvailability.SYSTEM, version, path: 'system' };
     } catch (error) {
       return {
         availability: FFmpegAvailability.NONE,
@@ -95,24 +90,17 @@ export class FFmpegDetector {
    */
   static async detectStaticFFmpeg(): Promise<FFmpegDetectionResult> {
     try {
-      // Try to require ffmpeg-static
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const ffmpegStatic = require('ffmpeg-static');
+      const { default: ffmpegStatic } = await import('ffmpeg-static');
 
       if (!ffmpegStatic) {
         throw new Error('ffmpeg-static path is null');
       }
 
-      // Test the static binary
       const { stdout } = await execAsync(`"${ffmpegStatic}" -version`);
       const versionMatch = stdout.match(/ffmpeg version ([^\s]+)/);
       const version = versionMatch ? versionMatch[1] : 'unknown';
 
-      return {
-        availability: FFmpegAvailability.STATIC,
-        version,
-        path: ffmpegStatic,
-      };
+      return { availability: FFmpegAvailability.STATIC, version, path: ffmpegStatic };
     } catch (error) {
       return {
         availability: FFmpegAvailability.NONE,
@@ -126,7 +114,6 @@ export class FFmpegDetector {
    */
   static async detectWasmFFmpeg(): Promise<FFmpegDetectionResult> {
     try {
-      // Check if we're in a browser environment
       if (typeof window === 'undefined') {
         return {
           availability: FFmpegAvailability.NONE,
@@ -134,14 +121,9 @@ export class FFmpegDetector {
         };
       }
 
-      // Try to import @ffmpeg/ffmpeg
       await import('@ffmpeg/ffmpeg');
 
-      return {
-        availability: FFmpegAvailability.WASM,
-        version: '0.12.x (WebAssembly)',
-        path: 'wasm',
-      };
+      return { availability: FFmpegAvailability.WASM, version: '0.12.x (WebAssembly)', path: 'wasm' };
     } catch (error) {
       return {
         availability: FFmpegAvailability.NONE,
@@ -158,43 +140,13 @@ export class FFmpegDetector {
 
     switch (platform) {
       case 'darwin':
-        return `
-To install FFmpeg on macOS:
-1. Using Homebrew: brew install ffmpeg
-2. Or download from: https://ffmpeg.org/download.html
-
-Alternatively, install ffmpeg-static as a fallback:
-npm install ffmpeg-static
-`;
-
+        return 'To install FFmpeg on macOS:\n1. Using Homebrew: brew install ffmpeg\n2. Or download from: https://ffmpeg.org/download.html\n\nAlternatively, install ffmpeg-static as a fallback:\nnpm install ffmpeg-static\n';
       case 'linux':
-        return `
-To install FFmpeg on Linux:
-1. Ubuntu/Debian: sudo apt install ffmpeg
-2. CentOS/RHEL: sudo yum install ffmpeg
-3. Or download from: https://ffmpeg.org/download.html
-
-Alternatively, install ffmpeg-static as a fallback:
-npm install ffmpeg-static
-`;
-
+        return 'To install FFmpeg on Linux:\n1. Ubuntu/Debian: sudo apt install ffmpeg\n2. CentOS/RHEL: sudo yum install ffmpeg\n3. Or download from: https://ffmpeg.org/download.html\n\nAlternatively, install ffmpeg-static as a fallback:\nnpm install ffmpeg-static\n';
       case 'win32':
-        return `
-To install FFmpeg on Windows:
-1. Download from: https://ffmpeg.org/download.html
-2. Add to your system PATH
-3. Or use package managers like Chocolatey: choco install ffmpeg
-
-Alternatively, install ffmpeg-static as a fallback:
-npm install ffmpeg-static
-`;
-
+        return 'To install FFmpeg on Windows:\n1. Download from: https://ffmpeg.org/download.html\n2. Add to your system PATH\n3. Or use package managers like Chocolatey: choco install ffmpeg\n\nAlternatively, install ffmpeg-static as a fallback:\nnpm install ffmpeg-static\n';
       default:
-        return `
-To install FFmpeg:
-1. Visit: https://ffmpeg.org/download.html
-2. Or install ffmpeg-static as a fallback: npm install ffmpeg-static
-`;
+        return 'To install FFmpeg:\n1. Visit: https://ffmpeg.org/download.html\n2. Or install ffmpeg-static as a fallback: npm install ffmpeg-static\n';
     }
   }
 
@@ -202,11 +154,7 @@ To install FFmpeg:
    * Check if current environment is Node.js
    */
   static isNodeEnvironment(): boolean {
-    return (
-      typeof globalThis.process !== 'undefined' &&
-      globalThis.process.versions !== null &&
-      globalThis.process.versions.node !== null
-    );
+    return typeof globalThis.process !== 'undefined';
   }
 
   /**
@@ -220,31 +168,54 @@ To install FFmpeg:
    * Check if current environment is React Native
    */
   static isReactNativeEnvironment(): boolean {
-    return typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+    return navigator.product === 'ReactNative';
+  }
+
+  /**
+   * Detect package manager from npm_config_user_agent
+   */
+  private static detectPackageManager(): string {
+    const userAgent = process.env.npm_config_user_agent;
+
+    if (!userAgent) {
+      return 'npm';
+    }
+
+    if (userAgent.includes('pnpm')) {
+      return 'pnpm';
+    }
+
+    if (userAgent.includes('yarn')) {
+      return 'yarn';
+    }
+
+    return 'npm';
   }
 
   /**
    * Get detailed system information
    */
   static getSystemInfo(): SystemInfo {
-    const os = `${process.platform} ${process.arch}`;
-    const nodeVersion = process.version;
-    const memoryGB = Math.round((process.memoryUsage().rss / 1024 / 1024 / 1024) * 100) / 100;
-
-    // Detect package manager
-    let packageManager = 'npm';
-    if (process.env.npm_config_user_agent) {
-      if (process.env.npm_config_user_agent.includes('pnpm')) packageManager = 'pnpm';
-      else if (process.env.npm_config_user_agent.includes('yarn')) packageManager = 'yarn';
-    }
-
     return {
-      os,
+      os: `${process.platform} ${process.arch}`,
       arch: process.arch,
-      nodeVersion,
-      packageManager,
-      memoryGB,
+      nodeVersion: process.version,
+      packageManager: this.detectPackageManager(),
+      memoryGB: Math.round((process.memoryUsage().rss / 1024 / 1024 / 1024) * 100) / 100,
     };
+  }
+
+  /**
+   * Try to import a module; returns true if successful
+   */
+  private static async canImport(specifier: string): Promise<boolean> {
+    try {
+      await import(specifier);
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -255,34 +226,13 @@ To install FFmpeg:
     ffmpegWasm: boolean;
     ffmpegUtil: boolean;
   }> {
-    const checks = {
-      ffmpegStatic: false,
-      ffmpegWasm: false,
-      ffmpegUtil: false,
-    };
+    const [ffmpegStatic, ffmpegWasm, ffmpegUtil] = await Promise.all([
+      this.canImport('ffmpeg-static'),
+      this.canImport('@ffmpeg/ffmpeg'),
+      this.canImport('@ffmpeg/util'),
+    ]);
 
-    try {
-      require.resolve('ffmpeg-static');
-      checks.ffmpegStatic = true;
-    } catch {
-      // Not installed
-    }
-
-    try {
-      require.resolve('@ffmpeg/ffmpeg');
-      checks.ffmpegWasm = true;
-    } catch {
-      // Not installed
-    }
-
-    try {
-      require.resolve('@ffmpeg/util');
-      checks.ffmpegUtil = true;
-    } catch {
-      // Not installed
-    }
-
-    return checks;
+    return { ffmpegStatic, ffmpegWasm, ffmpegUtil };
   }
 
   /**
@@ -294,16 +244,11 @@ To install FFmpeg:
       Terminal.startSpinner('🔍 Analyzing your system...');
     }
 
-    // Get system info
     const systemInfo = this.getSystemInfo();
 
     if (showUI) {
       Terminal.stopSpinner('success', 'System analysis complete!');
       Terminal.showSystemInfo(systemInfo);
-    }
-
-    // Check all FFmpeg implementations
-    if (showUI) {
       Terminal.startSpinner('🕵️ Detecting FFmpeg implementations...');
     }
 
@@ -336,16 +281,43 @@ To install FFmpeg:
       Terminal.showFFmpegStatus(ffmpegStatus);
     }
 
-    // Generate recommendations
     const recommendations = this.generateRecommendations(systemInfo, ffmpegStatus);
 
-    const report: DiagnosticReport = {
-      systemInfo,
-      ffmpegStatus,
-      recommendations,
-    };
+    return { systemInfo, ffmpegStatus, recommendations };
+  }
 
-    return report;
+  /**
+   * Build OS-specific FFmpeg installation recommendation
+   */
+  private static getOsInstallRecommendation(os: string): string | null {
+    if (os.includes('darwin')) {
+      return '🍺 For macOS: Run "brew install ffmpeg" for best performance';
+    }
+
+    if (os.includes('linux')) {
+      return '🐧 For Linux: Run "sudo apt install ffmpeg" (Ubuntu/Debian)';
+    }
+
+    if (os.includes('win32')) {
+      return '🪟 For Windows: Install FFmpeg from https://ffmpeg.org/download.html';
+    }
+
+    return null;
+  }
+
+  /**
+   * Add recommendations when no FFmpeg implementation is found
+   */
+  private static addNoFFmpegRecommendations(recommendations: string[], systemInfo: SystemInfo): void {
+    recommendations.push('🚨 No FFmpeg found! You need at least one implementation to use this package.');
+
+    const osRecommendation = this.getOsInstallRecommendation(systemInfo.os);
+
+    if (osRecommendation !== null) {
+      recommendations.push(osRecommendation);
+    }
+
+    recommendations.push('📦 Quick alternative: Run "pnpm add ffmpeg-static" for zero-config setup');
   }
 
   /**
@@ -353,39 +325,31 @@ To install FFmpeg:
    */
   static generateRecommendations(systemInfo: SystemInfo, ffmpegStatus: DiagnosticReport['ffmpegStatus']): string[] {
     const recommendations: string[] = [];
-
-    // Check if any FFmpeg is available
     const hasAnyFFmpeg = ffmpegStatus.system.available || ffmpegStatus.static.available || ffmpegStatus.wasm.available;
 
     if (!hasAnyFFmpeg) {
-      recommendations.push('🚨 No FFmpeg found! You need at least one implementation to use this package.');
+      this.addNoFFmpegRecommendations(recommendations, systemInfo);
+    }
 
-      // Platform-specific recommendations
-      if (systemInfo.os.includes('darwin')) {
-        recommendations.push('🍺 For macOS: Run "brew install ffmpeg" for best performance');
-      } else if (systemInfo.os.includes('linux')) {
-        recommendations.push('🐧 For Linux: Run "sudo apt install ffmpeg" (Ubuntu/Debian)');
-      } else if (systemInfo.os.includes('win32')) {
-        recommendations.push('🪟 For Windows: Install FFmpeg from https://ffmpeg.org/download.html');
-      }
-
-      recommendations.push('📦 Quick alternative: Run "pnpm add ffmpeg-static" for zero-config setup');
-    } else if (!ffmpegStatus.system.available && ffmpegStatus.static.available) {
+    if (hasAnyFFmpeg && !ffmpegStatus.system.available && ffmpegStatus.static.available) {
       recommendations.push('⚡ Consider installing system FFmpeg for faster processing');
       recommendations.push('📦 Current static FFmpeg works great but is slower');
-    } else if (ffmpegStatus.system.available) {
+    }
+
+    if (hasAnyFFmpeg && ffmpegStatus.system.available) {
       recommendations.push('🚀 Perfect! System FFmpeg detected - optimal performance expected');
     }
 
-    // Memory recommendations
     if (systemInfo.memoryGB < 4) {
       recommendations.push('⚠️ Low memory detected - consider smaller video files or upgrade RAM');
-    } else if (systemInfo.memoryGB >= 16) {
+    }
+
+    if (systemInfo.memoryGB >= 16) {
       recommendations.push('💪 Excellent! Plenty of memory for large video processing');
     }
 
-    // Node.js version check
-    const nodeVersionNumber = parseInt(systemInfo.nodeVersion.replace('v', '').split('.')[0]);
+    const nodeVersionNumber = parseInt(systemInfo.nodeVersion.replace('v', '').split('.')[0] ?? '0', 10);
+
     if (nodeVersionNumber < 22) {
       recommendations.push('🔄 Consider upgrading to Node.js 22+ for optimal performance');
     }
@@ -398,8 +362,6 @@ To install FFmpeg:
    */
   static async runInteractiveSetup(): Promise<boolean> {
     const report = await this.runFullDiagnostics(true);
-
-    // If FFmpeg is available, we're good to go
     const hasFFmpeg =
       report.ffmpegStatus.system.available ||
       report.ffmpegStatus.static.available ||
@@ -407,14 +369,11 @@ To install FFmpeg:
 
     if (hasFFmpeg) {
       Terminal.showSuccess('Your system is ready for video magic! 🎉');
+
       return true;
     }
 
-    // Show installation options
     Terminal.showInstallationOptions();
-
-    // In a real implementation, you'd handle user input here
-    // For now, we'll show the platform-specific commands
     Terminal.showInstallationCommands(report.systemInfo.os);
 
     return false;

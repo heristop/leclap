@@ -10,14 +10,14 @@ import { container } from 'tsyringe';
 type SegmentClass = typeof Video | typeof ProjectVideo | typeof ImageBackground | typeof ColorBackground;
 
 class SegmentFactory {
-  private projectConfig: ProjectConfig;
+  private readonly projectConfig: ProjectConfig;
 
   constructor(projectConfig: ProjectConfig) {
     this.projectConfig = projectConfig;
   }
 
   create(section: Section) {
-    const classesMapping: Record<string, SegmentClass> = {
+    const classesMapping: Partial<Record<string, SegmentClass>> = {
       video: Video as SegmentClass,
       project_video: ProjectVideo as SegmentClass,
       image_background: ImageBackground as SegmentClass,
@@ -33,8 +33,8 @@ class SegmentFactory {
     const segment = container.resolve<SegmentBuilder>(SegmentClass);
 
     // Attach projectConfig to segment before hydration (will be available in Project model)
-    if (segment.project && section.type === 'project_video') {
-      segment.project.config = this.projectConfig;
+    if (section.type === 'project_video') {
+      segment.getProject().config = this.projectConfig;
     }
 
     return segment.hydrate(section);

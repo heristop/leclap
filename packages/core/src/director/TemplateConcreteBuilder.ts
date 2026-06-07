@@ -8,11 +8,21 @@ import type Project from '../core/models/Project';
 import SegmentFactory from '../editor/factories/SegmentFactory';
 import type SegmentBuilder from '../editor/SegmentBuilder';
 
+function hasInputsAsset(value: unknown): value is { inputsAsset: Record<string, string> } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'inputsAsset' in value &&
+    typeof (value as Record<string, unknown>).inputsAsset === 'object' &&
+    (value as Record<string, unknown>).inputsAsset !== null
+  );
+}
+
 @injectable()
 class TemplateConcreteBuilder {
   private section!: Section;
   private segment!: SegmentBuilder;
-  private actualDestination: string = '';
+  private readonly actualDestination: string = '';
 
   constructor(
     @inject('project') private readonly project: Project,
@@ -26,12 +36,7 @@ class TemplateConcreteBuilder {
     this.section = section;
     this.segment = new SegmentFactory(projectConfig).create(section);
 
-    if (!this.segment) {
-      this.logger.error(`[${section.name}][BuildPart] create section`);
-      return false;
-    }
-
-    if (section.type === 'project_video' && this.segment.getProject()) {
+    if (section.type === 'project_video') {
       this.segment.getProject().config = projectConfig;
     }
 
@@ -62,124 +67,190 @@ class TemplateConcreteBuilder {
 
     if (result.rc === 1) {
       this.project.errors.push(this.section.name);
-    } else if (result.rc === 0) {
-      if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
-        try {
-          await this.filesystemAdapter.stat(this.segment.destination);
-          this.logger.info(`[${this.section.name}][RenderPart] output file exists at ${this.segment.destination}`);
-        } catch {
-          this.logger.error(`[${this.section.name}][RenderPart] output file not found`);
-          this.project.errors.push(this.section.name);
-        }
-        this.logger.info(`[${this.section.name}][RenderPart] finalized`);
-        return;
-      }
+    }
 
-      if (this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
-        try {
-          // BrowserFilesystemAdapter.getDestination() now returns simple filename
-          const outputFile = this.segment.destination;
-          this.logger.info(`[${this.section.name}][RenderPart] Looking for WASM output: ${outputFile}`);
-
-          let data: Uint8Array | null = null;
-          let fileLocation: string | null = null;
-
-          try {
-            // Try reading directly
-            data = await this.ffmpegAdapter.readFile(outputFile);
-            fileLocation = outputFile;
-            this.logger.info(`[${this.section.name}][RenderPart] Found output at: ${outputFile}`);
-          } catch {
-            // File not found - list directories to help debug
-            this.logger.info(`[${this.section.name}][RenderPart] Output not found at root, checking directories...`);
-
-            const files = await this.ffmpegAdapter.listDir('/');
-            this.logger.info(`[${this.section.name}][RenderPart] Files in WASM root: ${files.map(f => f.name).join(', ')}`);
-
-            // Try /tmp directory
-            try {
-              const tmpFiles = await this.ffmpegAdapter.listDir('/tmp');
-              this.logger.info(`[${this.section.name}][RenderPart] Files in /tmp: ${tmpFiles.map(f => f.name).join(', ')}`);
-
-              const tmpFile = tmpFiles.find(f => f.name === outputFile);
-              if (tmpFile) {
-                data = await this.ffmpegAdapter.readFile(`/tmp/${outputFile}`);
-                fileLocation = `/tmp/${outputFile}`;
-                this.logger.info(`[${this.section.name}][RenderPart] Found output in /tmp`);
-              }
-            } catch (e) {
-              this.logger.info(`[${this.section.name}][RenderPart] Could not check /tmp: ${e}`);
-            }
-
-            // If still not found and file was meant to be in subdirectory
-            if (!data) {
-              const foundInRoot = files.find(f => f.name === outputFile);
-              if (foundInRoot) {
-                data = await this.ffmpegAdapter.readFile(outputFile);
-                fileLocation = outputFile;
-              }
-            }
-          }
-
-          if (data && fileLocation) {
-            await this.filesystemAdapter.writeFile(this.segment.destination, data);
-            this.logger.info(`[${this.section.name}][RenderPart] Transferred from WASM to IndexedDB: ${fileLocation}`);
-            await this.ffmpegAdapter.deleteFile(fileLocation);
-          } else {
-            const error = `Output file not found in WASM. Expected: ${outputFile}`;
-            this.logger.error(`[${this.section.name}][RenderPart] ${error}`);
-            this.project.errors.push(this.section.name);
-            throw new Error(error);
-          }
-        } catch (err) {
-          const errorMsg = `Failed to read output file from FFmpeg: ${err}`;
-          this.logger.error(`[${this.section.name}][RenderPart] ${errorMsg}`);
-          this.project.errors.push(this.section.name);
-          throw new Error(errorMsg);
-        }
-      }
+    if (result.rc === 0) {
+      await this.handleSuccessResult();
     }
 
     this.logger.info(`[${this.section.name}][RenderPart] finalized`);
   };
+
+  private async handleSuccessResult(): Promise<void> {
+    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+      await this.handleNativeSuccessResult();
+
+      return;
+    }
+
+    await this.handleWasmSuccessResult();
+  }
+
+  private async handleNativeSuccessResult(): Promise<void> {
+    try {
+      await this.filesystemAdapter.stat(this.segment.destination);
+      this.logger.info(`[${this.section.name}][RenderPart] output file exists at ${this.segment.destination}`);
+    } catch {
+      this.logger.error(`[${this.section.name}][RenderPart] output file not found`);
+      this.project.errors.push(this.section.name);
+    }
+    this.logger.info(`[${this.section.name}][RenderPart] finalized`);
+  }
+
+  private async handleWasmSuccessResult(): Promise<void> {
+    try {
+      const outputFile = this.segment.destination;
+      this.logger.info(`[${this.section.name}][RenderPart] Looking for WASM output: ${outputFile}`);
+
+      const { data, fileLocation } = await this.findWasmOutputFile(outputFile);
+
+      if (!(data && fileLocation)) {
+        const error = `Output file not found in WASM. Expected: ${outputFile}`;
+        this.logger.error(`[${this.section.name}][RenderPart] ${error}`);
+        this.project.errors.push(this.section.name);
+
+        throw new Error(error);
+      }
+
+      await this.filesystemAdapter.writeFile(this.segment.destination, data);
+      this.logger.info(`[${this.section.name}][RenderPart] Transferred from WASM to IndexedDB: ${fileLocation}`);
+
+      if (this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
+        await this.ffmpegAdapter.deleteFile(fileLocation);
+      }
+    } catch (error) {
+      const errorMsg = `Failed to read output file from FFmpeg: ${String(error)}`;
+      this.logger.error(`[${this.section.name}][RenderPart] ${errorMsg}`);
+      this.project.errors.push(this.section.name);
+
+      throw new Error(errorMsg);
+    }
+  }
+
+  private async findWasmOutputFile(
+    outputFile: string
+  ): Promise<{ data: Uint8Array | null; fileLocation: string | null }> {
+    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+      return { data: null, fileLocation: null };
+    }
+
+    try {
+      // Try reading directly
+      const data = await this.ffmpegAdapter.readFile(outputFile);
+      this.logger.info(`[${this.section.name}][RenderPart] Found output at: ${outputFile}`);
+
+      return { data, fileLocation: outputFile };
+    } catch {
+      return this.searchWasmDirectories(outputFile);
+    }
+  }
+
+  private async searchWasmDirectories(
+    outputFile: string
+  ): Promise<{ data: Uint8Array | null; fileLocation: string | null }> {
+    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+      return { data: null, fileLocation: null };
+    }
+
+    this.logger.info(`[${this.section.name}][RenderPart] Output not found at root, checking directories...`);
+
+    const files = await this.ffmpegAdapter.listDir('/');
+    this.logger.info(`[${this.section.name}][RenderPart] Files in WASM root: ${files.map(f => f.name).join(', ')}`);
+
+    const fromTmp = await this.searchWasmTmpDir(outputFile);
+
+    if (fromTmp.data) {
+      return fromTmp;
+    }
+
+    const foundInRoot = files.find(f => f.name === outputFile);
+
+    if (foundInRoot && this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
+      const data = await this.ffmpegAdapter.readFile(outputFile);
+
+      return { data, fileLocation: outputFile };
+    }
+
+    return { data: null, fileLocation: null };
+  }
+
+  private async searchWasmTmpDir(
+    outputFile: string
+  ): Promise<{ data: Uint8Array | null; fileLocation: string | null }> {
+    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+      return { data: null, fileLocation: null };
+    }
+
+    try {
+      const tmpFiles = await this.ffmpegAdapter.listDir('/tmp');
+      this.logger.info(`[${this.section.name}][RenderPart] Files in /tmp: ${tmpFiles.map(f => f.name).join(', ')}`);
+
+      const tmpFile = tmpFiles.find(f => f.name === outputFile);
+
+      if (tmpFile) {
+        const data = await this.ffmpegAdapter.readFile(`/tmp/${outputFile}`);
+        const fileLocation = `/tmp/${outputFile}`;
+        this.logger.info(`[${this.section.name}][RenderPart] Found output in /tmp`);
+
+        return { data, fileLocation };
+      }
+    } catch (error) {
+      this.logger.info(`[${this.section.name}][RenderPart] Could not check /tmp: ${String(error)}`);
+    }
+
+    return { data: null, fileLocation: null };
+  }
 
   private async writeInputFilesToWasm(): Promise<void> {
     if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
       return;
     }
 
-    // Access inputsAsset from segment model (not SegmentBuilder)
-    const inputAssets = (this.segment as any).inputsAsset || {};
+    const inputAssets = hasInputsAsset(this.segment) ? this.segment.inputsAsset : {};
 
-    if (!inputAssets || Object.keys(inputAssets).length === 0) {
+    if (Object.keys(inputAssets).length === 0) {
       this.logger.info(`[${this.section.name}][WASM] No input assets to load`);
+
       return;
     }
 
     this.logger.info(`[${this.section.name}][WASM] Writing ${Object.keys(inputAssets).length} input files to WASM memory...`);
 
-    for (const [key, path] of Object.entries(inputAssets)) {
-      try {
-        const data = await this.filesystemAdapter.readFile(path as string);
-        const fileName = (path as string).split('/').pop() || key;
-        const fileSizeMB = (data.byteLength / (1024 * 1024)).toFixed(2);
+    const entries = Object.entries(inputAssets);
 
-        this.logger.info(`[${this.section.name}][WASM] Loading ${fileName} (${fileSizeMB} MB)...`);
-
-        if (data.byteLength > 50 * 1024 * 1024) {
-          this.logger.warn(`[${this.section.name}][WASM] Warning: Large file (${fileSizeMB} MB). May cause memory issues.`);
-        }
-
-        await this.ffmpegAdapter.writeFile(fileName, data);
-        this.logger.info(`[${this.section.name}][WASM] Successfully wrote: ${fileName}`);
-      } catch (err) {
-        const errorMsg = `Failed to write input file ${key}: ${err}`;
-        this.logger.error(`[${this.section.name}][WASM] ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
-    }
+    await Promise.all(
+      entries.map(async ([key, path]) => {
+        await this.writeAssetToWasm(key, path);
+      })
+    );
 
     this.logger.info(`[${this.section.name}][WASM] All input files loaded successfully`);
+  }
+
+  private async writeAssetToWasm(key: string, path: string): Promise<void> {
+    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+      return;
+    }
+
+    try {
+      const data = await this.filesystemAdapter.readFile(path);
+      const fileName = path.split('/').pop() ?? key;
+      const fileSizeMB = (data.byteLength / (1024 * 1024)).toFixed(2);
+
+      this.logger.info(`[${this.section.name}][WASM] Loading ${fileName} (${fileSizeMB} MB)...`);
+
+      if (data.byteLength > 50 * 1024 * 1024) {
+        this.logger.warn(`[${this.section.name}][WASM] Warning: Large file (${fileSizeMB} MB). May cause memory issues.`);
+      }
+
+      await this.ffmpegAdapter.writeFile(fileName, data);
+      this.logger.info(`[${this.section.name}][WASM] Successfully wrote: ${fileName}`);
+    } catch (error) {
+      const errorMsg = `Failed to write input file ${key}: ${String(error)}`;
+      this.logger.error(`[${this.section.name}][WASM] ${errorMsg}`);
+
+      throw new Error(errorMsg);
+    }
   }
 }
 

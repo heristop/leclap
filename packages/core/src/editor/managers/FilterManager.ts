@@ -1,4 +1,4 @@
-import { inject, injectable, singleton } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type { Filter } from '@/core/types';
@@ -13,29 +13,29 @@ class FilterManager {
   ) { }
 
   addFilter = (filter: Filter): string => {
-    let output = '';
+    let resolvedFilter = filter;
 
     // Manage suffixes on filter
-    if (filter.range) {
-      filter = this.remapEnableBetweenSuffix(filter);
+    if (resolvedFilter.range) {
+      resolvedFilter = this.remapEnableBetweenSuffix(resolvedFilter);
     }
 
     // Remap custom types
-    if (['fadein', 'fadeout'].includes(filter.type)) {
-      filter = this.remapFadeTypeShortcuts(filter);
+    if (['fadein', 'fadeout'].includes(resolvedFilter.type)) {
+      resolvedFilter = this.remapFadeTypeShortcuts(resolvedFilter);
     }
 
-    if (filter.value) {
+    if (resolvedFilter.value) {
       // Process single value filter
-      output = this.formattersManager.formatMultipleTypesValue(filter);
-    } else if (filter.values) {
-      // Process multiples values filter
-      output = this.formattersManager.formatMultipleTypesValues(filter);
-    } else {
-      output = `${filter.type}`;
+      return this.formattersManager.formatMultipleTypesValue(resolvedFilter);
     }
 
-    return output;
+    if (resolvedFilter.values) {
+      // Process multiples values filter
+      return this.formattersManager.formatMultipleTypesValues(resolvedFilter);
+    }
+
+    return resolvedFilter.type;
   };
 
   remapEnableBetweenSuffix = (filter: Filter): Filter => {
@@ -49,11 +49,12 @@ class FilterManager {
       return filter;
     }
 
-    let end = this.template.descriptor.global?.transitionDuration || 0;
+    let end = this.template.descriptor.global?.transitionDuration ?? 0;
     let start = 0;
 
     const extractTimeValue = (pattern: RegExp, duration: string): number | undefined => {
       const matches = pattern.exec(duration);
+
       return matches ? parseFloat(matches[1]) : undefined;
     };
 
@@ -63,9 +64,10 @@ class FilterManager {
       start = startTime;
 
       const endTime = extractTimeValue(/end=(.*)/, durations[1]);
+
       if (undefined !== endTime) {
-        const time = this.segment.currentSection.options.duration;
-        end = parseFloat(endTime.toString().replace('{{ section_duration }}', time.toString()));
+        const time = this.segment.currentSection?.options?.duration;
+        end = parseFloat(endTime.toString().replace('{{ section_duration }}', (time ?? 0).toString()));
       }
     }
 
@@ -79,9 +81,7 @@ class FilterManager {
       case 'fadein':
         filter.type = 'fade';
 
-        if (!filter.values) {
-          filter.values = {};
-        }
+        filter.values ??= {};
 
         filter.values = {
           t: 'in',
@@ -92,9 +92,7 @@ class FilterManager {
       case 'fadeout':
         filter.type = 'fade';
 
-        if (!filter.values) {
-          filter.values = {};
-        }
+        filter.values ??= {};
 
         filter.values = {
           t: 'out',
@@ -102,6 +100,8 @@ class FilterManager {
           st: '{{ transitionStartTime }}',
           ...filter.values,
         };
+        break;
+      default:
         break;
     }
 

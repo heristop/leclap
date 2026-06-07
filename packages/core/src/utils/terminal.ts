@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 
 export class Terminal {
-  private static spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  private static readonly spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   private static currentSpinner: ReturnType<typeof setInterval> | null = null;
 
   /**
@@ -37,7 +37,7 @@ export class Terminal {
   }): void {
     const formatShort = (info: { available: boolean; version?: string }) =>
       info.available ? pc.green('✓') : pc.dim('✗');
-    const row = `${pc.dim('FFmpeg')} ${formatShort(detection.system)} sys ${detection.system.version || ''}  ${formatShort(detection.static)} static  ${formatShort(detection.wasm)} wasm`;
+    const row = `${pc.dim('FFmpeg')} ${formatShort(detection.system)} sys ${detection.system.version ?? ''}  ${formatShort(detection.static)} static  ${formatShort(detection.wasm)} wasm`;
     console.log(row);
   }
 
@@ -80,7 +80,11 @@ export class Terminal {
     if (result && message) {
       const icon = result === 'success' ? pc.green('✅') : pc.red('❌');
       console.log(`\r${icon} ${message}`);
-    } else if (message) {
+
+      return;
+    }
+
+    if (message) {
       console.log(`\r${message}`);
     }
   }
@@ -90,9 +94,13 @@ export class Terminal {
    */
   static showError(error: string, suggestions: string[]): void {
     console.log(pc.red(`\n✗ Error: ${error}\n`));
+
     if (suggestions.length > 0) {
       console.log(pc.bold('Suggestions:'));
-      suggestions.forEach(s => console.log(`  • ${s}`));
+
+      for (const s of suggestions) {
+        console.log(`  • ${s}`);
+      }
       console.log();
     }
   }
@@ -126,10 +134,19 @@ export class Terminal {
    * Show typing animation effect
    */
   static async typeText(text: string, speed = 50): Promise<void> {
+    let chain: Promise<void> = Promise.resolve();
+
     for (const char of text) {
-      process.stdout.write(char);
-      await new Promise((resolve) => setTimeout(resolve, speed));
+      const c = char;
+      chain = chain.then(
+        () =>
+          new Promise<void>((resolve) => {
+            process.stdout.write(c);
+            setTimeout(resolve, speed);
+          }),
+      );
     }
+    await chain;
     console.log(); // New line at end
   }
 
@@ -139,10 +156,11 @@ export class Terminal {
   static showInstallationCommands(platform: string): void {
     const commands = this.getInstallationCommands(platform);
     console.log(pc.bold(`\n${platform} Installation:\n`));
-    commands.forEach(cmd => {
+
+    for (const cmd of commands) {
       console.log(`  ${pc.cyan('$')} ${pc.green(cmd.command)}`);
       console.log(`    ${pc.dim(cmd.description)}\n`);
-    });
+    }
   }
 
   /**
@@ -156,38 +174,53 @@ export class Terminal {
         { command: 'brew install ffmpeg', description: 'Install via Homebrew (recommended)' },
         { command: 'pnpm add ffmpeg-static', description: 'Or use static binary fallback' },
       ];
-    } else if (os.includes('linux')) {
+    }
+
+    if (os.includes('linux')) {
       return [
         { command: 'sudo apt install ffmpeg', description: 'Ubuntu/Debian systems' },
         { command: 'sudo dnf install ffmpeg', description: 'Fedora/RHEL systems' },
         { command: 'pnpm add ffmpeg-static', description: 'Or use static binary fallback' },
       ];
-    } else if (os.includes('windows')) {
+    }
+
+    if (os.includes('windows')) {
       return [
         { command: 'choco install ffmpeg', description: 'Install via Chocolatey' },
         { command: 'winget install ffmpeg', description: 'Install via Windows Package Manager' },
         { command: 'pnpm add ffmpeg-static', description: 'Or use static binary fallback' },
       ];
-    } else {
-      return [{ command: 'pnpm add ffmpeg-static', description: 'Universal static binary solution' }];
     }
+
+    return [{ command: 'pnpm add ffmpeg-static', description: 'Universal static binary solution' }];
+    
   }
 
   /**
    * Create a fun loading sequence with messages
    */
   static async showLoadingSequence(steps: string[]): Promise<void> {
-    for (let i = 0; i < steps.length; i++) {
-      this.startSpinner(steps[i]);
+    const runStep = (step: string, isLast: boolean): Promise<void> => {
+      this.startSpinner(step);
 
-      // Simulate work with random delay
-      await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 2000));
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          this.stopSpinner('success', step);
 
-      this.stopSpinner('success', steps[i]);
+          if (isLast) {
+            resolve();
 
-      if (i < steps.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-      }
-    }
+            return;
+          }
+          setTimeout(resolve, 300);
+        }, 1000 + Math.random() * 2000);
+      });
+    };
+
+    await steps.reduce(
+      (promise, step, index) =>
+        promise.then(() => runStep(step, index === steps.length - 1)),
+      Promise.resolve(),
+    );
   }
 }

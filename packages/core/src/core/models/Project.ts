@@ -4,8 +4,20 @@ import defaultConfig from '../default.config';
 
 @singleton()
 class Project {
-  public config: ProjectConfig;
-  public buildInfos: ProjectBuildInfos;
+  public config: ProjectConfig = {};
+  public buildInfos: ProjectBuildInfos = {
+    totalSegments: 0,
+    totalLength: 0,
+    currentLength: 0,
+    currentProgress: 0,
+    currentIncrement: 0,
+    durations: [],
+    videoInputs: [],
+    musicInputs: [],
+    musicFilters: [],
+    fileConcatPath: '',
+    musicPath: '',
+  };
   public finalVideo = '';
   public progress = 0;
   public errors: string[] = [];
@@ -58,7 +70,7 @@ class Project {
     };
   };
 
-  clean = (): void => this.init();
+  clean = (): void =>{  this.init(); };
 }
 
 export default Project;

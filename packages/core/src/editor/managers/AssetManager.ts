@@ -1,10 +1,21 @@
-import { inject, injectable, singleton } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
-import type { Media, MapAnimationInput } from '@/core/types';
+import type { Media, MapAnimationInput, SectionOptions } from '@/core/types';
 import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type VariableManager from './VariableManager';
+
+// The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
+// but it is used at runtime as a string-keyed cache of string or string[] values.
+type InputsCache = Record<string, string | string[]>;
+
+// A resolved Media with guaranteed name, url, and extension strings.
+type ResolvedMedia = {
+  name: string;
+  url: string;
+  extension: string;
+};
 
 @injectable()
 class AssetManager {
@@ -18,6 +29,10 @@ class AssetManager {
     @inject('filesystemAdapter') private readonly filesystemAdapter: AbstractFilesystem
   ) { }
 
+  private get inputsCache(): InputsCache {
+    return this.template.assets.inputs as unknown as InputsCache;
+  }
+
   async setUpPaths(): Promise<void> {
     this.segment.assetsDir = await this.filesystemAdapter.getBuildPath('assets');
     this.segment.fontsDir = await this.filesystemAdapter.getBuildPath('fonts');
@@ -25,12 +40,23 @@ class AssetManager {
   }
 
   prepareAssets = (): void => {
-    for (const key in this.segment.currentSection.options) {
-      if (Object.hasOwnProperty.call(this.segment.currentSection.options, key) && key.endsWith('Url')) {
-        this.segment.currentSection.inputs = this.segment.currentSection.inputs.concat({
-          name: this.segment.currentSection.name,
-          url: this.segment.currentSection.options[key],
-        });
+    const currentSection = this.segment.currentSection;
+
+    if (!currentSection) {
+      return;
+    }
+
+    const options = currentSection.options as SectionOptions & Record<string, string | undefined>;
+
+    for (const key in options) {
+      if (Object.hasOwnProperty.call(options, key) && key.endsWith('Url')) {
+        currentSection.inputs = [
+          ...(currentSection.inputs ?? []),
+          {
+            name: currentSection.name,
+            url: options[key] ?? '',
+          },
+        ];
       }
     }
   };
@@ -38,71 +64,119 @@ class AssetManager {
   fetchAssets = async (): Promise<void> => {
     this.prepareAssets();
 
+    const currentSection = this.segment.currentSection;
+
+    if (!currentSection) {
+      return;
+    }
+
     try {
       await Promise.all(
-        this.segment.currentSection.inputs.map(async (item: MapAnimationInput) => {
-          if (!this.template.assets.inputs[item.name]) {
-            if (!item.url) {
-              // If no url filled, use variables
-              item.url = `{{ ${item.name} }}`;
-            }
-
-            // Map variables
-            item.url = this.variableManager.mapVariables(item.url);
-
-            // Check url format
-            // Allow HTTP URLs and local paths starting with /
-            if (!/^http/.exec(item.url) && !item.url.startsWith('/')) {
-              throw new Error(
-                `[${this.segment.currentSection.name}][Assets] Url for ${item.name} is not valid: ${item.url}`
-              );
-            }
-
-            if (item.type === 'frame' && new RegExp('(.*?).(zip)$').test(item.url)) {
-              // Process zip animation
-              await this.fetchAndUnzipAnimation(item);
-            } else if (item.type === 'frame' && item.options && item.options.frames) {
-              // Process png animation
-              for (let i = 1; i <= item.options.frames; i++) {
-                await this.fetchMedia(item, i);
-              }
-            } else {
-              // Process single media
-              await this.fetchMedia(item);
-            }
-          }
-
-          this.logger.info(`[${this.segment.currentSection.name}][Assets] ${item.name}`);
+        (currentSection.inputs ?? []).map(async (item) => {
+          const animationItem = item as MapAnimationInput;
+          await this.fetchSingleAsset(animationItem);
+          this.logger.info(`[${currentSection.name}][Assets] ${animationItem.name}`);
         })
       );
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error instanceof Error ? error.message : String(error));
 
       throw error;
     }
   };
 
-  fetchFonts = async (): Promise<void> => {
-    for (let i = 0; i < this.segment.tempFonts.length; i++) {
-      const fontFile = this.segment.tempFonts[i];
-      const fontFamily = fontFile.split('-')[0].split('.')[0];
-      const targetPath = `${this.segment.fontsDir}/${fontFile}`;
-
-      const url = `https://fonts.googleapis.com/css?family=${fontFamily}`;
-      this.logger.info(`[${this.segment.currentSection.name}][Font] fetching ${url}`);
-
-      const cssContent = await this.filesystemAdapter.fetchAndRead(url);
-      const fontUrl = this.extractFontUrlFromCSS(cssContent as string);
-
-      this.logger.info(`[${this.segment.currentSection.name}][Font] fetching ${fontUrl}`);
-
-      const path = await this.filesystemAdapter.fetch(fontUrl);
-
-      await this.filesystemAdapter.move(path as string, targetPath);
+  private readonly resolveItemUrl = (item: MapAnimationInput): void => {
+    if (!item.url) {
+      // If no url filled, use variables
+      item.url = `{{ ${item.name} }}`;
     }
+
+    // Map variables
+    item.url = this.variableManager.mapVariables(item.url);
   };
 
-  private extractFontUrlFromCSS = (cssContent: string): string | null => {
+  private readonly fetchSingleAsset = async (item: MapAnimationInput): Promise<void> => {
+    if (this.inputsCache[item.name]) {
+      return;
+    }
+
+    this.resolveItemUrl(item);
+
+    // Check url format
+    // Allow HTTP URLs and local paths starting with /
+    if (!/^http/.exec(item.url) && !item.url.startsWith('/')) {
+      throw new Error(
+        `[${this.segment.currentSection?.name}][Assets] Url for ${item.name} is not valid: ${item.url}`
+      );
+    }
+
+    const isZipAnimation = item.type === 'frame' && new RegExp('(.*?).(zip)$').test(item.url);
+
+    if (isZipAnimation) {
+      // Process zip animation
+      await this.fetchAndUnzipAnimation(item);
+
+      return;
+    }
+
+    await this.fetchMediaByType(item);
+  };
+
+  private readonly fetchMediaByType = async (item: MapAnimationInput): Promise<void> => {
+    const isPngAnimation = item.type === 'frame' && item.options.frames > 0;
+
+    if (isPngAnimation) {
+      // Process png animation
+      await Promise.all(
+        Array.from({ length: item.options.frames }, (_, idx) => idx + 1).map((i) =>
+          this.fetchMedia(item, i)
+        )
+      );
+
+      return;
+    }
+
+    // Process single media
+    await this.fetchMedia(item);
+  };
+
+  fetchFonts = async (): Promise<void> => {
+    await Promise.all(
+      this.segment.tempFonts.map(async (fontFile) => {
+        const fontFamily = fontFile.split('-')[0].split('.')[0];
+        const targetPath = `${this.segment.fontsDir}/${fontFile}`;
+
+        // Reuse an already-downloaded font instead of re-fetching it. This keeps the
+        // same font family from being requested once per section, which is what gets
+        // Google Fonts to rate-limit (and intermittently break the drawtext filter).
+        if (await this.filesystemAdapter.stat(targetPath)) {
+          this.logger.info(`[${this.segment.currentSection?.name}][Font] cached ${fontFile}`);
+
+          return;
+        }
+
+        const url = `https://fonts.googleapis.com/css?family=${fontFamily}`;
+        this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${url}`);
+
+        const cssContent = await this.filesystemAdapter.fetchAndRead(url);
+        const fontUrl = this.extractFontUrlFromCSS(cssContent);
+
+        if (!fontUrl) {
+          this.logger.info(`[${this.segment.currentSection?.name}][Font] no font url found in CSS for ${fontFamily}`);
+
+          return;
+        }
+
+        this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${fontUrl}`);
+
+        const path = await this.filesystemAdapter.fetch(fontUrl);
+
+        await this.filesystemAdapter.move(path, targetPath);
+      })
+    );
+  };
+
+  private readonly extractFontUrlFromCSS = (cssContent: string): string | null => {
     const regex = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/;
     const match = cssContent.match(regex);
 
@@ -114,55 +188,69 @@ class AssetManager {
     await this.fetchMedia(media);
 
     const targetPath = `${this.segment.animationsDir}/${media.name}`;
+    const cache = this.inputsCache;
 
-    if (!this.template.assets.inputs[media.name]) {
-      const url = this.template.assets.inputs[media.url];
+    if (cache[media.name]) {
+      return;
+    }
 
-      const framesList = await this.filesystemAdapter.unzip(url, targetPath);
+    const mediaUrl = media.url ?? '';
+    const cachedUrl = mediaUrl === '' ? undefined : cache[mediaUrl];
+    const url = typeof cachedUrl === 'string' ? cachedUrl : mediaUrl;
 
-      if (!this.template.assets.inputs[media.name]) {
-        this.template.assets.inputs[media.name] = [];
-      }
+    const framesList = await this.filesystemAdapter.unzip(url, targetPath);
 
-      for (let i = 0; i < framesList.length; i++) {
-        this.template.assets.inputs[media.name].push(framesList[i]);
+    cache[media.name] ??= [];
+
+    const frames = cache[media.name];
+
+    if (Array.isArray(frames)) {
+      for (const frame of framesList) {
+        frames.push(frame);
       }
     }
   };
 
   fetchMedia = async (media: Media, frame = 0): Promise<void> => {
     const { name, url, extension } = this.extractFromMedia(media, frame);
+    const cache = this.inputsCache;
 
-    if (!this.template.assets.inputs[url]) {
-      this.logger.info(`[${this.segment.currentSection.name}][Media] fetching asset ${name}`);
+    if (!cache[url]) {
+      this.logger.info(`[${this.segment.currentSection?.name}][Media] fetching asset ${name}`);
 
       const path = await this.filesystemAdapter.fetch(url);
       const targetPath = `${this.segment.assetsDir}/${name}.${extension}`;
 
-      await this.filesystemAdapter.move(path as string, targetPath);
+      await this.filesystemAdapter.move(path, targetPath);
 
-      this.template.assets.inputs[url] = targetPath;
-      this.logger.info(`[${this.segment.currentSection.name}][Media] fetched asset ${name}`);
+      cache[url] = targetPath;
+      this.logger.info(`[${this.segment.currentSection?.name}][Media] fetched asset ${name}`);
     }
   };
 
   fetchCachedMedia = (media: Media, frame = 0): string => {
     const { name, url } = this.extractFromMedia(media, frame);
+    const cache = this.inputsCache;
 
-    if (this.template.assets.inputs[url]) {
-      return this.template.assets.inputs[url];
+    if (url in cache) {
+      const byUrl = cache[url];
+
+      return typeof byUrl === 'string' ? byUrl : (byUrl[0] ?? '');
     }
 
-    if (this.template.assets.inputs[name]) {
-      return this.template.assets.inputs[name];
+    if (name in cache) {
+      const byName = cache[name];
+
+      return typeof byName === 'string' ? byName : (byName[0] ?? '');
     }
 
     throw new Error(`No cache found for keys ${url}, ${name}`);
   };
 
-  extractFromMedia = (media: Media, frame = 0): Media => {
-    const extension = this.getExtensionFromUrl(media.url);
-    let url = this.variableManager.mapVariables(media.url);
+  extractFromMedia = (media: Media, frame = 0): ResolvedMedia => {
+    const mediaUrl = media.url ?? '';
+    const extension = this.getExtensionFromUrl(mediaUrl);
+    let url = this.variableManager.mapVariables(mediaUrl);
     let name = this.generateName(media, url, frame);
 
     url = this.replaceFrameInUrl(url, frame);
@@ -171,11 +259,11 @@ class AssetManager {
     return { name, url, extension };
   };
 
-  private getExtensionFromUrl = (url: string): string => {
-    return url.split('.').pop() || '';
+  private readonly getExtensionFromUrl = (url: string): string => {
+    return url.split('.').pop() ?? '';
   };
 
-  private generateName = (media: Media, url: string, frame: number): string => {
+  private readonly generateName = (media: Media, url: string, frame: number): string => {
     if (frame || !media.name) {
       return url
         .substring(url.lastIndexOf('/') + 1)
@@ -187,8 +275,8 @@ class AssetManager {
     return media.name;
   };
 
-  private replaceFrameInUrl = (url: string, frame: number): string => {
-    if (frame && /%d/.test(url)) {
+  private readonly replaceFrameInUrl = (url: string, frame: number): string => {
+    if (frame && url.includes('%d')) {
       const framePattern = /-([0-9]{3}).([a-z]{3})$/;
       const frameString = `00${frame}`.slice(-3);
 
@@ -198,7 +286,7 @@ class AssetManager {
     return url;
   };
 
-  private replaceFrameInName = (name: string, frame: number): string => {
+  private readonly replaceFrameInName = (name: string, frame: number): string => {
     return frame ? name.replace('%d', `00${frame}`.slice(-3)) : name;
   };
 }

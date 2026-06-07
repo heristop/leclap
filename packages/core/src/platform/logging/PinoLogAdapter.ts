@@ -5,7 +5,7 @@ import type { LogParams } from '@/core/types';
 
 @injectable()
 class PinoLogAdapter implements AbstractLogger {
-  private logger = pino();
+  private readonly logger = pino();
 
   debug(message: string, params?: LogParams): void {
     this.logger.debug({ ...params }, message);

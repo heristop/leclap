@@ -13,13 +13,79 @@ interface FileData {
   };
 }
 
+function getFileType(path: string): string {
+  const extension = path.split('.').pop()?.toLowerCase();
+
+  switch (extension) {
+    case 'mp4':
+    case 'avi':
+    case 'mov':
+    case 'mkv':
+      return 'video';
+    case 'mp3':
+    case 'wav':
+    case 'aac':
+      return 'audio';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+      return 'image';
+    case 'json':
+      return 'application/json';
+    case 'txt':
+      return 'text/plain';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+function dbRequest<T>(
+  db: IDBDatabase,
+  storeName: string,
+  mode: IDBTransactionMode,
+  operation: (store: IDBObjectStore) => IDBRequest<T>,
+  errorMessage: string
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], mode);
+    const store = transaction.objectStore(storeName);
+    const request = operation(store);
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onerror = () => {
+      reject(new Error(`${errorMessage}: ${request.error?.message}`));
+    };
+  });
+}
+
+async function estimateStorageUsage(): Promise<{ used: number; available?: number }> {
+  if ('storage' in navigator && 'estimate' in navigator.storage) {
+    try {
+      const estimate = await navigator.storage.estimate();
+
+      return {
+        used: estimate.usage ?? 0,
+        available: estimate.quota ? estimate.quota - (estimate.usage ?? 0) : undefined,
+      };
+    } catch (error) {
+      console.warn('Failed to get storage estimate:', error);
+    }
+  }
+
+  return { used: 0 };
+}
+
 @injectable()
 class BrowserFilesystemAdapter extends AbstractFilesystem {
-  private dbName = 'ffmpeg-video-composer-fs';
-  private dbVersion = 1;
-  private storeName = 'files';
+  private readonly dbName = 'ffmpeg-video-composer-fs';
+  private readonly dbVersion = 1;
+  private readonly storeName = 'files';
   private db: IDBDatabase | null = null;
-  private initPromise: Promise<void> | null = null;
+  private readonly initPromise: Promise<void> | null = null;
 
   constructor() {
     super();
@@ -52,106 +118,78 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     });
   }
 
-  private async ensureInitialized(): Promise<void> {
+  private async ensureInitialized(): Promise<IDBDatabase> {
     if (this.initPromise) {
       await this.initPromise;
     }
+
     if (!this.db) {
       throw new Error('IndexedDB not initialized');
     }
+
+    return this.db;
   }
 
   async read(path: string): Promise<string> {
-    const data = await this.readFile(path);
-    return new TextDecoder().decode(data);
+    return new TextDecoder().decode(await this.readFile(path));
   }
 
   async write(targetPath: string, content?: string): Promise<void> {
-    if (content !== undefined) {
-      // Write string content to file
-      const data = new TextEncoder().encode(content);
-      await this.writeFile(targetPath, data);
-    } else {
-      // This method seems to be used for writing content to target path
-      // For browser implementation, we'll create an empty file if it doesn't exist
+    if (content === undefined) {
       if (!(await this.exists(targetPath))) {
         await this.writeFile(targetPath, new Uint8Array(0));
       }
+
+      return;
     }
+
+    await this.writeFile(targetPath, new TextEncoder().encode(content));
   }
 
   async readFile(path: string): Promise<Uint8Array> {
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
+    const result = await dbRequest<FileData | undefined>(
+      db, this.storeName, 'readonly',
+      (store) => store.get(path) as IDBRequest<FileData | undefined>,
+      `Failed to read file ${path}`
+    );
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.get(path);
+    if (!result) { throw new Error(`File not found: ${path}`); }
 
-      request.onsuccess = () => {
-        const result = request.result as FileData | undefined;
-        if (result) {
-          resolve(result.data);
-        } else {
-          reject(new Error(`File not found: ${path}`));
-        }
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to read file ${path}: ${request.error?.message}`));
-      };
-    });
+    return result.data;
   }
 
   async writeFile(path: string, data: Uint8Array): Promise<void> {
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
 
     const fileData: FileData = {
       name: path,
       data,
       metadata: {
         size: data.length,
-        type: this.getFileType(path),
+        type: getFileType(path),
         lastModified: Date.now(),
       },
     };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.put(fileData);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to write file ${path}: ${request.error?.message}`));
-      };
-    });
+    await dbRequest<IDBValidKey>(db, this.storeName, 'readwrite', (store) => store.put(fileData), `Failed to write file ${path}`);
   }
 
   async exists(path: string): Promise<boolean> {
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
+    const count = await dbRequest<number>(
+      db,
+      this.storeName,
+      'readonly',
+      (store) => store.count(path),
+      `Failed to check existence of ${path}`
+    ).catch(() => 0);
 
-    return new Promise((resolve) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.count(path);
-
-      request.onsuccess = () => {
-        resolve(request.result > 0);
-      };
-
-      request.onerror = () => {
-        resolve(false);
-      };
-    });
+    return count > 0;
   }
 
   async ensureDir(path: string): Promise<void> {
     // In browser environment, directories are virtual - no need to create them
-    // Just ensure the base structure is ready
     console.log(`[BrowserFilesystemAdapter] Virtual directory ensured: ${path}`);
   }
 
@@ -161,27 +199,20 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   }
 
   async remove(path: string): Promise<void> {
-    await this.ensureInitialized();
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.delete(path);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to remove file ${path}: ${request.error?.message}`));
-      };
-    });
+    const db = await this.ensureInitialized();
+    await dbRequest(
+      db,
+      this.storeName,
+      'readwrite',
+      (store) => store.delete(path),
+      `Failed to remove file ${path}`
+    );
   }
 
   // Browser-specific methods for handling File objects
   async storeFile(file: File, path: string): Promise<void> {
     const data = new Uint8Array(await file.arrayBuffer());
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
 
     const fileData: FileData = {
       name: path,
@@ -194,76 +225,53 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
       },
     };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.put(fileData);
+    await dbRequest<IDBValidKey>(
+      db,
+      this.storeName,
+      'readwrite',
+      (store) => store.put(fileData),
+      `Failed to store file ${path}`
+    );
 
-      request.onsuccess = () => {
-        console.log(`[BrowserFilesystemAdapter] Stored file: ${file.name} at ${path}`);
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to store file ${path}: ${request.error?.message}`));
-      };
-    });
+    console.log(`[BrowserFilesystemAdapter] Stored file: ${file.name} at ${path}`);
   }
 
   async getFileMetadata(path: string): Promise<FileData['metadata'] | null> {
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
+    const result = await dbRequest<FileData | undefined>(
+      db,
+      this.storeName,
+      'readonly',
+      (store) => store.get(path) as IDBRequest<FileData | undefined>,
+      `Failed to get metadata for ${path}`
+    );
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.get(path);
-
-      request.onsuccess = () => {
-        const result = request.result as FileData | undefined;
-        resolve(result ? result.metadata : null);
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to get metadata for ${path}: ${request.error?.message}`));
-      };
-    });
+    return result ? result.metadata : null;
   }
 
   async listFiles(): Promise<string[]> {
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.getAllKeys();
-
-      request.onsuccess = () => {
-        resolve(request.result as string[]);
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to list files: ${request.error?.message}`));
-      };
-    });
+    return dbRequest<IDBValidKey[]>(
+      db,
+      this.storeName,
+      'readonly',
+      (store) => store.getAllKeys(),
+      'Failed to list files'
+    ) as Promise<string[]>;
   }
 
   async clear(): Promise<void> {
-    await this.ensureInitialized();
+    const db = await this.ensureInitialized();
+    await dbRequest(
+      db,
+      this.storeName,
+      'readwrite',
+      (store) => store.clear(),
+      'Failed to clear files'
+    );
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.clear();
-
-      request.onsuccess = () => {
-        console.log('[BrowserFilesystemAdapter] All files cleared');
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(new Error(`Failed to clear files: ${request.error?.message}`));
-      };
-    });
+    console.log('[BrowserFilesystemAdapter] All files cleared');
   }
 
   // Abstract method implementations
@@ -272,8 +280,6 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   }
 
   async getBuildPath(buildDir: string): Promise<string> {
-    // Don't overwrite the main build directory, just return the requested path
-    // The main build directory should be set during initialization
     return this.buildDir ? `${this.buildDir}/${buildDir}` : `/tmp/build/${buildDir}`;
   }
 
@@ -281,13 +287,18 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     if (segmentName) {
       return `/tmp/${segmentName}`;
     }
+
     return this.segmentName ? `/tmp/${this.segmentName}` : '/tmp/default';
   }
 
   getDestination(): string {
-    // For browser/WASM, use simple filenames to avoid MEMFS directory issues
-    // IndexedDB can store these with any key we want later
-    return this.segmentName ? `${this.segmentName}_output.mp4` : 'output.mp4';
+    // Use the full build-dir path so it matches the concat list entries
+    // (TemplateDirector.append builds `${buildDir}/${name}_output.mp4`) and the
+    // final concat output. The WASM adapter creates the MEMFS parent directory
+    // on demand before each command, so a nested path is safe.
+    const dir = this.buildDir ?? '/tmp/build';
+
+    return this.segmentName ? `${dir}/${this.segmentName}_output.mp4` : `${dir}/output.mp4`;
   }
 
   async stat(filePath: string): Promise<boolean> {
@@ -297,10 +308,20 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   async fetch(url: string): Promise<string> {
     try {
       const response = await window.fetch(url);
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return await response.text();
+
+      // Download as bytes (binary-safe; `.text()` corrupts fonts/woff2) and store
+      // at a path, matching the Node adapter contract where fetch() returns the
+      // PATH to the downloaded file (callers then move() it to a final location).
+      const data = new Uint8Array(await response.arrayBuffer());
+      const name = url.split('/').pop()?.split('?')[0] ?? 'download';
+      const downloadPath = `/tmp/fetch/${name}`;
+      await this.writeFile(downloadPath, data);
+
+      return downloadPath;
     } catch (error) {
       throw new Error(`Failed to fetch ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -308,30 +329,18 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
 
   async append(targetPath: string, content: string): Promise<void> {
     try {
-      // Check if target file exists (similar to Node.js implementation)
       if (!(await this.exists(targetPath))) {
         throw new Error(`${targetPath} doesn't exist`);
       }
 
-      // Read existing content if file exists
-      let existingData = new Uint8Array(0);
-      existingData = await this.readFile(targetPath);
-
-      // Convert content string to Uint8Array
-      const encoder = new TextEncoder();
-      const contentData = encoder.encode(content);
-
-      // Concatenate the data
+      const existingData = await this.readFile(targetPath);
+      const contentData = new TextEncoder().encode(content);
       const combinedData = new Uint8Array(existingData.length + contentData.length);
       combinedData.set(existingData);
       combinedData.set(contentData, existingData.length);
-
-      // Write combined data
       await this.writeFile(targetPath, combinedData);
     } catch (error) {
-      throw new Error(
-        `Failed to append content to ${targetPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      throw new Error(`Failed to append content to ${targetPath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -344,41 +353,14 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     await this.remove(sourcePath);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async unzip(_url: string, _targetPath: string): Promise<string[]> {
-    // For browser implementation, we'll throw an error as unzip requires special handling
-    // This would typically require a browser-compatible zip library
     throw new Error('ZIP extraction not supported in browser environment. Use a specialized zip library.');
   }
 
   async fetchAndRead(url: string): Promise<string> {
-    return await this.fetch(url);
-  }
+    const downloadPath = await this.fetch(url);
 
-  private getFileType(path: string): string {
-    const extension = path.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-      case 'mkv':
-        return 'video';
-      case 'mp3':
-      case 'wav':
-      case 'aac':
-        return 'audio';
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-        return 'image';
-      case 'json':
-        return 'application/json';
-      case 'txt':
-        return 'text/plain';
-      default:
-        return 'application/octet-stream';
-    }
+    return await this.read(downloadPath);
   }
 
   // Static method to check IndexedDB support
@@ -388,19 +370,7 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
 
   // Get storage usage information
   async getStorageUsage(): Promise<{ used: number; available?: number }> {
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
-      try {
-        const estimate = await navigator.storage.estimate();
-        return {
-          used: estimate.usage || 0,
-          available: estimate.quota ? estimate.quota - (estimate.usage || 0) : undefined,
-        };
-      } catch (error) {
-        console.warn('Failed to get storage estimate:', error);
-      }
-    }
-
-    return { used: 0 };
+    return estimateStorageUsage();
   }
 }
 

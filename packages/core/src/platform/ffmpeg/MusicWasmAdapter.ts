@@ -28,20 +28,24 @@ class MusicWasmAdapter implements AbstractMusic {
       logger.info(`[MusicWasmAdapter] Processing music file: ${musicPath}`);
       logger.info(`[MusicWasmAdapter] Target length: ${totalLength} seconds`);
 
-      // TODO: Implement full music processing for browser
+      // Full music processing for browser is not yet implemented:
       // 1. Load the music file from IndexedDB
       // 2. Use FFmpeg WASM to get duration
       // 3. Use FFmpeg WASM to loop if necessary
       // 4. Store the processed file back to IndexedDB
 
       logger.info(`[MusicWasmAdapter] Music processing completed (placeholder)`);
+
       return { rc: 0 };
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        logger.error(`[MusicWasmAdapter] Error: ${error.message}`);
-      } else {
+      if (!(error instanceof Error)) {
         logger.error('[MusicWasmAdapter] Unknown error occurred');
+
+        throw error;
       }
+
+      logger.error(`[MusicWasmAdapter] Error: ${error.message}`);
+
       throw error;
     }
   };

@@ -40,7 +40,50 @@ class MusicNodeAdapter implements AbstractMusic {
       return duration;
     } catch (error: unknown) {
       const execError = error as ExecException;
+
       throw new Error(`Failed to get media duration: ${execError.message}`);
+    }
+  }
+
+  /**
+   * Loop the music file to match the required total length
+   * @param logger - Logger instance
+   * @param musicPath - Path to the music file
+   * @param musicLength - Duration of the music file in seconds
+   * @param totalLength - Required total length in seconds
+   * @param buildDir - Directory to store the looped file
+   */
+  private async loopMusic(
+    logger: AbstractLogger,
+    musicPath: string,
+    musicLength: number,
+    totalLength: number,
+    buildDir: string
+  ): Promise<void> {
+    const loop = path.join(buildDir, 'loop_music.mp4');
+
+    let input = `concat:${musicPath}`;
+    let repetitions = 1;
+
+    while (repetitions * musicLength < totalLength) {
+      input += `|${musicPath}`;
+      repetitions++;
+    }
+
+    const command = `ffmpeg -y -i "${input}" -acodec copy "${loop}"`;
+    logger.debug(`[Music][Command] ${command}`);
+
+    try {
+      await execAsync(command);
+
+      await fs.unlink(musicPath);
+      await fs.rename(loop, musicPath);
+
+      logger.info(`[Music][Loop] ffmpeg process completed`);
+    } catch (error: unknown) {
+      const execError = error as ExecException;
+
+      throw new Error(`Failed command: ${command}\nError: ${execError.message}`);
     }
   }
 
@@ -64,42 +107,25 @@ class MusicNodeAdapter implements AbstractMusic {
       logger.info(`[Music] Duration: ${musicLength} / ${totalLength}`);
 
       if (musicLength < totalLength) {
-        const loop = path.join(filesystemAdapter.getBuildDir(), 'loop_music.mp4');
+        const buildDir = filesystemAdapter.getBuildDir();
 
-        // Create concatenation string for ffmpeg input
-        let input = `concat:${musicPath}`;
-        let repetitions = 1;
-
-        while (repetitions * musicLength < totalLength) {
-          input += `|${musicPath}`;
-          repetitions++;
+        if (buildDir === undefined) {
+          throw new Error('Build directory is not set');
         }
 
-        const command = `ffmpeg -y -i "${input}" -acodec copy "${loop}"`;
-        logger.debug(`[Music][Command] ${command}`);
-
-        try {
-          await execAsync(command);
-
-          // Replace original file with looped version
-          await fs.unlink(musicPath);
-          await fs.rename(loop, musicPath);
-
-          logger.info(`[Music][Loop] ffmpeg process completed`);
-          return { rc: 0 };
-        } catch (error: unknown) {
-          const execError = error as ExecException;
-          throw new Error(`Failed command: ${command}\nError: ${execError.message}`);
-        }
+        await this.loopMusic(logger, musicPath, musicLength, totalLength, buildDir);
       }
 
       return { rc: 0 };
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        logger.error(`[Music] Error: ${error.message}`);
-      } else {
+      if (!(error instanceof Error)) {
         logger.error('[Music] Unknown error occurred');
+
+        throw error;
       }
+
+      logger.error(`[Music] Error: ${error.message}`);
+
       throw error;
     }
   };

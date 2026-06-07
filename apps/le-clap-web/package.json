@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node ../../scripts/copy-core-assets.mjs && vite",
+    "build": "node ../../scripts/copy-core-assets.mjs && vite build",
     "preview": "vite preview",
     "lint": "oxlint . -c .oxlintrc.json",
     "typecheck": "tsc --noEmit",

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Template } from '@/src/types';
+import type { CompileRecordedVideos } from '@/src/services/api';
 
 // Storage keys
 const TEMPLATES_CACHE_KEY = 'ffmpeg_video_composer_templates_cache';
@@ -15,7 +16,7 @@ export interface CompilationQueueItem {
   id: string;
   projectId: string;
   templateDescriptor: unknown;
-  recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>;
+  recordedVideos: CompileRecordedVideos;
   status: 'pending' | 'processing' | 'failed' | 'completed';
   createdAt: string;
   retryCount: number;
@@ -39,6 +40,7 @@ export const cacheTemplates = async (templates: Template[]): Promise<void> => {
     ]);
   } catch (error) {
     console.error('Error caching templates:', error);
+
     throw error;
   }
 };
@@ -49,9 +51,11 @@ export const cacheTemplates = async (templates: Template[]): Promise<void> => {
 export const getCachedTemplates = async (): Promise<Template[] | null> => {
   try {
     const cachedData = await AsyncStorage.getItem(TEMPLATES_CACHE_KEY);
+
     return cachedData ? JSON.parse(cachedData) : null;
   } catch (error) {
     console.error('Error getting cached templates:', error);
+
     return null;
   }
 };
@@ -62,9 +66,11 @@ export const getCachedTemplates = async (): Promise<Template[] | null> => {
 export const getTemplatesCacheMetadata = async (): Promise<TemplatesCacheMetadata | null> => {
   try {
     const metadata = await AsyncStorage.getItem(TEMPLATES_METADATA_KEY);
+
     return metadata ? JSON.parse(metadata) : null;
   } catch (error) {
     console.error('Error getting templates cache metadata:', error);
+
     return null;
   }
 };
@@ -75,6 +81,7 @@ export const getTemplatesCacheMetadata = async (): Promise<TemplatesCacheMetadat
 export const isTemplatesCacheStale = async (): Promise<boolean> => {
   try {
     const metadata = await getTemplatesCacheMetadata();
+
     if (!metadata) return true;
 
     const lastUpdated = new Date(metadata.lastUpdated);
@@ -84,6 +91,7 @@ export const isTemplatesCacheStale = async (): Promise<boolean> => {
     return hoursDiff > 24; // Stale if older than 24 hours
   } catch (error) {
     console.error('Error checking cache staleness:', error);
+
     return true;
   }
 };
@@ -97,7 +105,7 @@ export const addToCompilationQueue = async (
   try {
     const queueItem: CompilationQueueItem = {
       ...item,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
       createdAt: new Date().toISOString(),
       retryCount: 0,
     };
@@ -106,9 +114,11 @@ export const addToCompilationQueue = async (
     const updatedQueue = [...existingQueue, queueItem];
 
     await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
+
     return queueItem.id;
   } catch (error) {
     console.error('Error adding to compilation queue:', error);
+
     throw error;
   }
 };
@@ -119,9 +129,11 @@ export const addToCompilationQueue = async (
 export const getCompilationQueue = async (): Promise<CompilationQueueItem[]> => {
   try {
     const queueData = await AsyncStorage.getItem(COMPILATION_QUEUE_KEY);
+
     return queueData ? JSON.parse(queueData) : [];
   } catch (error) {
     console.error('Error getting compilation queue:', error);
+
     return [];
   }
 };
@@ -145,6 +157,7 @@ export const updateCompilationQueueItem = async (
     await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(queue));
   } catch (error) {
     console.error('Error updating compilation queue item:', error);
+
     throw error;
   }
 };
@@ -159,6 +172,7 @@ export const removeFromCompilationQueue = async (itemId: string): Promise<void> 
     await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
   } catch (error) {
     console.error('Error removing from compilation queue:', error);
+
     throw error;
   }
 };
@@ -169,9 +183,11 @@ export const removeFromCompilationQueue = async (itemId: string): Promise<void> 
 export const getPendingCompilations = async (): Promise<CompilationQueueItem[]> => {
   try {
     const queue = await getCompilationQueue();
+
     return queue.filter((item) => item.status === 'pending' || item.status === 'failed');
   } catch (error) {
     console.error('Error getting pending compilations:', error);
+
     return [];
   }
 };
@@ -188,8 +204,10 @@ export const cleanupCompilationQueue = async (): Promise<void> => {
     const filteredQueue = queue.filter((item) => {
       if (item.status === 'completed') {
         const createdAt = new Date(item.createdAt);
+
         return createdAt > sevenDaysAgo;
       }
+
       return true; // Keep non-completed items
     });
 

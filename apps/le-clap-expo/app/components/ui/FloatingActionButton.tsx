@@ -25,6 +25,130 @@ interface FloatingActionButtonProps {
   }[];
 }
 
+interface MenuItemAnimValues {
+  scale: Animated.Value;
+  opacity: Animated.Value;
+}
+
+interface MenuItemProps {
+  item: {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    onPress: () => void;
+  };
+  index: number;
+  anim: MenuItemAnimValues;
+  onToggleMenu: () => void;
+}
+
+function triggerHaptic(style: Haptics.ImpactFeedbackStyle): void {
+  Haptics.impactAsync(style).catch(() => null);
+}
+
+function MenuItem({ item, index, anim, onToggleMenu }: MenuItemProps) {
+  const translateY = anim.scale.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -(75 * (index + 1))],
+  });
+
+  const handleMenuItemPress = () => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+    item.onPress();
+    onToggleMenu();
+  };
+
+  return (
+    <Animated.View
+      key={index}
+      style={[
+        styles.menuItem,
+        {
+          opacity: anim.opacity,
+          transform: [{ scale: anim.scale }, { translateY }],
+        },
+      ]}
+    >
+      <TouchableOpacity style={styles.menuItemButton} onPress={handleMenuItemPress}>
+        <Ionicons name={item.icon} size={24} color={colors.primary} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
+function startEntranceAndPulse(
+  scaleAnim: Animated.Value,
+  pulseAnim: Animated.Value
+): () => void {
+  Animated.spring(scaleAnim, {
+    toValue: 1,
+    friction: 5,
+    tension: 40,
+    useNativeDriver: true,
+  }).start();
+
+  const pulseAnimation = Animated.loop(
+    Animated.sequence([
+      Animated.timing(pulseAnim, {
+        toValue: 1.1,
+        duration: 1000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ])
+  );
+
+  pulseAnimation.start();
+
+  return () => {
+    pulseAnimation.stop();
+  };
+}
+
+function buildToggleMenuAnimations(
+  menuItemAnims: MenuItemAnimValues[],
+  toValue: number
+): Animated.CompositeAnimation[] {
+  return menuItemAnims.map((anim, index) =>
+    Animated.parallel([
+      Animated.spring(anim.scale, {
+        toValue,
+        friction: 5,
+        tension: 40,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(anim.opacity, {
+        toValue,
+        duration: 200,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+    ])
+  );
+}
+
+function animatePressScale(scaleAnim: Animated.Value): void {
+  Animated.sequence([
+    Animated.timing(scaleAnim, {
+      toValue: 0.9,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }),
+  ]).start();
+}
+
 export default function FloatingActionButton({
   onPress,
   icon = 'add',
@@ -33,7 +157,6 @@ export default function FloatingActionButton({
 }: FloatingActionButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Animation values
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -44,45 +167,12 @@ export default function FloatingActionButton({
     }))
   ).current;
 
-  useEffect(() => {
-    // Initial entrance animation
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 5,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-
-    // Continuous pulse animation
-    const pulseAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    pulseAnimation.start();
-
-    return () => {
-      pulseAnimation.stop();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- scaleAnim and pulseAnim are stable ref values
-  }, []);
+  // scaleAnim/pulseAnim are stable useRef().current instances, so this still runs once on mount.
+  useEffect(() => startEntranceAndPulse(scaleAnim, pulseAnim), [scaleAnim, pulseAnim]);
 
   const toggleMenu = () => {
     const toValue = isMenuOpen ? 0 : 1;
 
-    // Rotate the plus icon
     Animated.timing(rotateAnim, {
       toValue,
       duration: 300,
@@ -90,54 +180,23 @@ export default function FloatingActionButton({
       useNativeDriver: true,
     }).start();
 
-    // Animate menu items
     if (showMenu && menuItems.length > 0) {
-      const animations = menuItemAnims.map((anim, index) =>
-        Animated.parallel([
-          Animated.spring(anim.scale, {
-            toValue,
-            friction: 5,
-            tension: 40,
-            delay: index * 50,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim.opacity, {
-            toValue,
-            duration: 200,
-            delay: index * 50,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-
-      Animated.stagger(50, animations).start();
+      Animated.stagger(50, buildToggleMenuAnimations(menuItemAnims, toValue)).start();
       setIsMenuOpen(!isMenuOpen);
     }
   };
 
-  const handlePress = async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    // Quick press animation
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.9,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 3,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  const handlePress = () => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+    animatePressScale(scaleAnim);
 
     if (showMenu) {
       toggleMenu();
-    } else {
-      onPress();
+
+      return;
     }
+
+    onPress();
   };
 
   const rotateInterpolate = rotateAnim.interpolate({
@@ -147,42 +206,17 @@ export default function FloatingActionButton({
 
   return (
     <View style={styles.container}>
-      {/* Menu items */}
-      {showMenu && menuItems.map((item, index) => {
-        const translateY = menuItemAnims[index].scale.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, -(75 * (index + 1))],
-        });
-
-        return (
-          <Animated.View
+      {showMenu &&
+        menuItems.map((item, index) => (
+          <MenuItem
             key={index}
-            style={[
-              styles.menuItem,
-              {
-                opacity: menuItemAnims[index].opacity,
-                transform: [
-                  { scale: menuItemAnims[index].scale },
-                  { translateY },
-                ],
-              },
-            ]}
-          >
-            <TouchableOpacity
-              style={styles.menuItemButton}
-              onPress={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                item.onPress();
-                toggleMenu();
-              }}
-            >
-              <Ionicons name={item.icon} size={24} color={colors.primary} />
-            </TouchableOpacity>
-          </Animated.View>
-        );
-      })}
+            item={item}
+            index={index}
+            anim={menuItemAnims[index]}
+            onToggleMenu={toggleMenu}
+          />
+        ))}
 
-      {/* Main FAB */}
       <Animated.View
         style={[
           styles.fabContainer,
@@ -194,11 +228,7 @@ export default function FloatingActionButton({
           },
         ]}
       >
-        <TouchableOpacity
-          style={styles.touchable}
-          onPress={handlePress}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.touchable} onPress={handlePress} activeOpacity={0.8}>
           <LinearGradient
             colors={[colors.primary, colors.primaryDark]}
             start={{ x: 0, y: 0 }}
@@ -212,7 +242,6 @@ export default function FloatingActionButton({
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Ripple effect */}
       {!isMenuOpen && (
         <Animated.View
           style={[

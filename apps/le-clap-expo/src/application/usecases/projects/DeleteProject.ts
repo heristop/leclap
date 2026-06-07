@@ -18,6 +18,7 @@ export class DeleteProjectUseCase {
 
     // Check if project exists
     const project = await this.projectRepository.findById(projectId);
+
     if (!project) {
       throw new Error('Project not found');
     }

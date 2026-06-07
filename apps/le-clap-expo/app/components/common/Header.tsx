@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { colors, typography, spacing } from '@/src/styles/theme';
+import logoImage from '@/assets/images/logo.png';
 
 interface HeaderProps {
   title?: string;
@@ -29,34 +30,62 @@ interface HeaderProps {
   }[];
 }
 
-export default function Header({ 
-  title = 'LeClap', 
-  showBackButton = false, 
-  showLogo = true,
-  rightContent,
-  onBackPress,
-  showSlogan = true,
-  variant = 'primary',
-  actions = [],
-}: HeaderProps) {
-  const navigation = useNavigation();
-  const logoScaleAnim = useRef(new Animated.Value(1)).current;
-  
-  // Get proper navigation actions
-  const getActionHandler = (action: {icon: string; onPress: () => void}) => {
-    // Special case for common actions
-    if (action.icon === 'add-circle' && title === 'My Videos') {
-      return () => navigation.navigate('BrowseTemplates');
-    }
-    if (action.icon === 'options-outline') {
-      return () => console.log('Options pressed');
-    }
-    
-    // Default to the provided handler
-    return action.onPress;
-  };
+type ContainerStyle = {
+  backgroundColor: string;
+  borderBottomWidth: number;
+  borderBottomColor?: string;
+};
 
-  // Logo pulse animation for first render
+function getContainerStyles(variant: HeaderProps['variant']): ContainerStyle {
+  switch (variant) {
+    case 'transparent':
+      return {
+        backgroundColor: 'transparent',
+        borderBottomWidth: 0,
+      };
+    case 'light':
+      return {
+        backgroundColor: colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.divider,
+      };
+    default:
+      return {
+        backgroundColor: colors.primary,
+        borderBottomWidth: 0,
+      };
+  }
+}
+
+function getTextColor(variant: HeaderProps['variant']): string {
+  if (variant === 'light') {
+    return colors.text;
+  }
+
+  if (variant === 'transparent') {
+    return colors.surface;
+  }
+
+  return colors.accent;
+}
+
+function getSubtitleColor(variant: HeaderProps['variant']): string {
+  return variant === 'light' ? colors.textSecondary : colors.surface;
+}
+
+function getStatusBarStyle(variant: HeaderProps['variant']): 'dark-content' | 'light-content' {
+  return variant === 'light' ? 'dark-content' : 'light-content';
+}
+
+type ActionItem = {
+  icon: string;
+  onPress: () => void;
+  color?: string;
+};
+
+function useLogoAnimation(): Animated.Value {
+  const logoScaleAnim = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     const pulseAnimation = Animated.sequence([
       Animated.timing(logoScaleAnim, {
@@ -70,110 +99,127 @@ export default function Header({
         duration: 700,
         useNativeDriver: true,
         easing: Easing.ease,
-      })
+      }),
     ]);
 
-    // Create a loop
-    Animated.loop(
-      pulseAnimation, 
-      { iterations: 3 }
-    ).start();
+    Animated.loop(pulseAnimation, { iterations: 3 }).start();
 
     return () => {
       logoScaleAnim.stopAnimation();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- logoScaleAnim is a stable ref value
-  }, []);
+  }, [logoScaleAnim]);
 
-  const handleBackPress = () => {
-    if (onBackPress) {
-      onBackPress();
-        } else {
-      return () => {}; // Replace with empty function
+  return logoScaleAnim;
+}
+
+function ActionButtons({
+  actions,
+  title,
+  onNavigateToBrowseTemplates,
+  textColor,
+}: {
+  actions: ActionItem[];
+  title: string;
+  onNavigateToBrowseTemplates: () => void;
+  textColor: string;
+}): React.ReactElement {
+  const getActionHandler = (action: ActionItem): (() => void) => {
+    if (action.icon === 'add-circle' && title === 'My Videos') {
+      return onNavigateToBrowseTemplates;
     }
-  };
 
-  const getContainerStyles = () => {
-    switch (variant) {
-      case 'transparent':
-        return {
-          backgroundColor: 'transparent',
-          borderBottomWidth: 0,
-        };
-      case 'light':
-        return {
-          backgroundColor: colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.divider,
-        };
-      case 'primary':
-      default:
-        return {
-          backgroundColor: colors.primary,
-          borderBottomWidth: 0,
-        };
+    if (action.icon === 'options-outline') {
+      return () => {
+        console.log('Options pressed');
+      };
     }
-  };
 
-  const getTextColor = () => {
-    return variant === 'light' ? colors.text : variant === 'transparent' ? colors.surface : colors.accent;
-  };
-
-  const getSubtitleColor = () => {
-    return variant === 'light' ? colors.textSecondary : colors.surface;
-  };
-
-  const getStatusBarStyle = () => {
-    return variant === 'light' ? 'dark-content' : 'light-content';
+    return action.onPress;
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: variant === 'transparent' ? 'transparent' : getContainerStyles().backgroundColor }]}>
-      <StatusBar 
-        barStyle={getStatusBarStyle()} 
-        backgroundColor="transparent" 
-        translucent={true} 
-      />
-      <View style={[styles.container, getContainerStyles()]}>
+    <>
+      {actions.map((action, index) => (
+        <TouchableOpacity
+          key={`action-${index}`}
+          style={styles.actionButton}
+          onPress={getActionHandler(action)}
+        >
+          <Ionicons
+            name={action.icon as keyof typeof Ionicons.glyphMap}
+            size={24}
+            color={action.color ?? textColor}
+          />
+        </TouchableOpacity>
+      ))}
+    </>
+  );
+}
+
+export default function Header({
+  title = 'LeClap',
+  showBackButton = false,
+  showLogo = true,
+  rightContent,
+  onBackPress,
+  showSlogan = true,
+  variant = 'primary',
+  actions = [],
+}: HeaderProps) {
+  const router = useRouter();
+  useLogoAnimation();
+
+  const handleBackPress = (): void => {
+    if (!onBackPress) {
+      return;
+    }
+
+    onBackPress();
+  };
+
+  const handleNavigateToBrowseTemplates = (): void => {
+    router.navigate('/features/templates/screens/BrowseTemplatesScreen');
+  };
+
+  const containerStyles = getContainerStyles(variant);
+  const textColor = getTextColor(variant);
+
+  return (
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: variant === 'transparent' ? 'transparent' : containerStyles.backgroundColor }]}
+    >
+      <StatusBar barStyle={getStatusBarStyle(variant)} backgroundColor="transparent" translucent />
+      <View style={[styles.container, containerStyles]}>
         <View style={styles.leftSection}>
           {showBackButton && (
             <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-              <Ionicons name="chevron-back" size={28} color={getTextColor()} />
+              <Ionicons name="chevron-back" size={28} color={textColor} />
             </TouchableOpacity>
           )}
-          
+
           {showLogo && (
             <View style={[styles.logoContainer, { borderColor: variant === 'light' ? colors.primary : colors.accent }]}>
-              <Image 
-                source={require('@/assets/images/logo.png')} 
-                style={styles.logo}
-                resizeMode="contain"
-              />
+              <Image source={logoImage} style={styles.logo} resizeMode="contain" />
             </View>
           )}
-          
+
           <View style={styles.titleContainer}>
-            <Text style={[styles.title, { color: getTextColor() }]}>{title}</Text>
+            <Text style={[styles.title, { color: textColor }]}>{title}</Text>
             {showSlogan && (
-              <Text style={[styles.subtitle, { color: getSubtitleColor() }]}>Your story. Your scenes. Your clap.</Text>
+              <Text style={[styles.subtitle, { color: getSubtitleColor(variant) }]}>
+                Your story. Your scenes. Your clap.
+              </Text>
             )}
           </View>
         </View>
-        
+
         <View style={styles.rightSection}>
-          {actions.map((action, index) => (
-            <TouchableOpacity 
-              key={`action-${index}`} 
-              style={styles.actionButton}
-              onPress={getActionHandler(action)}
-            >
-              <Ionicons
-                name={action.icon as keyof typeof Ionicons.glyphMap}
-                size={24}
-                color={action.color || getTextColor()}
-              />
-            </TouchableOpacity>
-          ))}
+          <ActionButtons
+            actions={actions}
+            title={title}
+            onNavigateToBrowseTemplates={handleNavigateToBrowseTemplates}
+            textColor={textColor}
+          />
           {rightContent}
         </View>
       </View>

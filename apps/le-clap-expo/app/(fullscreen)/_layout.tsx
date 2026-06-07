@@ -5,7 +5,6 @@ import React from 'react';
 // Orientation is controlled by the individual fullscreen screens based on template requirements.
 export default function FullscreenLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-    </Stack>
+    <Stack screenOptions={{ headerShown: false }} />
   );
 }

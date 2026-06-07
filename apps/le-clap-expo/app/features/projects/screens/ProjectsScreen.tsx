@@ -1,80 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import type { Project } from '@/src/domain/entities/Project';
+import type { Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import SwipeableProjectItem from '@/app/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/app/components/ui/dialog/ConfirmDialog';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useProjectService } from '@/src/presentation/hooks/useProjectService';
 
-export default function ProjectsScreen() {
-  const router = useRouter();
-  const rawProjects = useProjectStore((state) => state.projects);
-  const { loadProjects, deleteProject, deleteAllProjects } = useProjectService();
-  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
-
-  // Sort projects in a stable way
-  const projects = React.useMemo(() => {
-    if (!rawProjects) return [];
-    return [...rawProjects].sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [rawProjects]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadProjects();
-    }, [loadProjects])
-  );
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Handle pull to refresh
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadProjects();
-    setRefreshing(false);
-  };
-
-  const handleDeleteProject = useCallback(async (projectId: string) => {
-    await deleteProject(projectId);
-  }, [deleteProject]);
-
-  const handleProjectPress = (project: Project) => {
-    if (project.status === 'completed' && project.outputVideoUri) {
-      router.push({
-        pathname: '/(app)/preview',
-        params: {
-          projectId: project.id,
-          videoUri: project.outputVideoUri
-        }
-      });
-    } else {
-      router.push({
-        pathname: '/(app)/template/[id]',
-        params: {
-          id: project.templateName,
-          projectId: project.id
-        }
-      });
-    }
-  };
-
-  const handleDeleteAllProjects = async () => {
-    try {
-      await deleteAllProjects();
-      setShowDeleteAllDialog(false);
-    } catch {
-      console.error('Error deleting all projects:', error);
-      Alert.alert('Error', 'Failed to delete all projects. Please try again.');
-      setShowDeleteAllDialog(false);
-    }
-  };
-
-  const renderEmptyState = () => (
+function EmptyState() {
+  return (
     <View style={styles.emptyContainer}>
       <Ionicons name="videocam-outline" size={64} color={colors.divider} />
       <Text style={styles.emptyTitle}>No videos yet</Text>
@@ -83,31 +20,119 @@ export default function ProjectsScreen() {
       </Text>
     </View>
   );
+}
+
+function useProjectsScreenState() {
+  const router = useRouter();
+  const rawProjects = useProjectStore((state) => state.projects);
+  const { loadProjects, deleteProject, deleteAllProjects } = useProjectService();
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const projects = (() => {
+    // Return a new sorted array (newest first) without mutating the store's array.
+    // Spread + sort (Hermes lacks Array.prototype.toSorted).
+    return [...rawProjects].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  })();
+
+  useFocusEffect(
+    () => {
+      loadProjects().catch(console.error);
+    }
+  );
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadProjects().then(() => { setRefreshing(false); }).catch(console.error);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    await deleteProject(projectId);
+  };
+
+  const handleProjectPress = (project: Project) => {
+    if (project.status === 'completed' && project.outputVideoUri) {
+      router.push({
+        pathname: '/(fullscreen)/preview',
+        params: {
+          projectId: project.id,
+          videoUri: project.outputVideoUri
+        }
+      });
+
+      return;
+    }
+
+    router.push({
+      pathname: '/(app)/template/[id]',
+      params: {
+        id: project.templateName,
+        projectId: project.id
+      }
+    });
+  };
+
+  const handleDeleteAllProjects = () => {
+    deleteAllProjects()
+      .then(() => { setShowDeleteAllDialog(false); })
+      .catch((error: unknown) => {
+        console.error('Error deleting all projects:', error);
+        Alert.alert('Error', 'Failed to delete all projects. Please try again.');
+        setShowDeleteAllDialog(false);
+      });
+  };
+
+  return {
+    projects,
+    refreshing,
+    showDeleteAllDialog,
+    setShowDeleteAllDialog,
+    handleRefresh,
+    handleDeleteProject,
+    handleProjectPress,
+    handleDeleteAllProjects,
+  };
+}
+
+export default function ProjectsScreen() {
+  const router = useRouter();
+  const {
+    projects,
+    refreshing,
+    showDeleteAllDialog,
+    setShowDeleteAllDialog,
+    handleRefresh,
+    handleDeleteProject,
+    handleProjectPress,
+    handleDeleteAllProjects,
+  } = useProjectsScreenState();
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
       <Text style={styles.screenTitle}>My Videos</Text>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.createNewButton}
-        onPress={() => router.push('/(app)')}
+        onPress={() =>{ router.push('/(app)'); }}
       >
         <Ionicons name="add-circle" size={22} color="white" />
         <Text style={styles.createNewButtonText}>Create New Video</Text>
       </TouchableOpacity>
-      
+
       <FlatList
         data={projects}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <SwipeableProjectItem
             project={item}
-            onPress={() => handleProjectPress(item)}
+            onPress={() =>{ handleProjectPress(item); }}
             onDelete={() => handleDeleteProject(item.id)}
           />
         )}
-        ListEmptyComponent={renderEmptyState()}
+        ListEmptyComponent={<EmptyState />}
         contentContainerStyle={projects.length === 0 ? styles.emptyList : styles.list}
         refreshControl={
           <RefreshControl
@@ -133,7 +158,7 @@ export default function ProjectsScreen() {
         confirmIconName="trash"
         confirmType="danger"
         onConfirm={handleDeleteAllProjects}
-        onCancel={() => setShowDeleteAllDialog(false)}
+        onCancel={() =>{ setShowDeleteAllDialog(false); }}
       />
       </View>
     </SafeAreaView>

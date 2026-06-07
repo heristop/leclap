@@ -1,14 +1,17 @@
 // LeClap theme and styling constants
 
-// Define font families
-// Using system fonts for now until we can properly load custom fonts
+// Font families. Oswald (a condensed, cinematic display face — fitting for a video tool)
+// is loaded in app/_layout.tsx and used for display/headings/buttons; body text stays on
+// the system UI font for legibility at small sizes. `poppins` = display, `inter` = body.
 export const fonts = {
+  // Display family — Oswald (condensed, cinematic) for titles, headings and buttons.
   poppins: {
-    regular: 'System',
-    medium: 'System',
-    semiBold: 'System',
-    bold: 'System',
+    regular: 'Oswald_400Regular',
+    medium: 'Oswald_500Medium',
+    semiBold: 'Oswald_600SemiBold',
+    bold: 'Oswald_700Bold',
   },
+  // Body family — system UI font, most legible at body sizes.
   inter: {
     regular: 'System',
     medium: 'System',
@@ -17,18 +20,20 @@ export const fonts = {
   },
 };
 
+// Neutrals are tinted toward the lavender brand hue for subconscious cohesion — no flat
+// pure-white/pure-gray (which read as untinted "AI default").
 export const colors = {
-  primary: '#7C83FD', // Bleu lavande - doux et créatif
-  primaryDark: '#6A70E3', // Darker version of primary for depth
-  accent: '#FFF685', // Jaune pastel - pour l'énergie et le fun
-  background: '#F2F2F2', // Gris clair - pour les fonds
-  surface: '#FFFFFF',
-  text: '#212121',
-  textSecondary: '#757575',
-  divider: '#E0E0E0',
-  secondary: '#FF8AAE', // Rose clair - chaleureux, friendly
-  success: '#4CAF50',
-  error: '#F44336',
+  primary: '#7C83FD', // Lavender — soft and creative
+  primaryDark: '#5B61D6', // Deeper lavender for depth / pressed states
+  accent: '#FFE45E', // Warm yellow — energy and fun
+  background: '#F4F3FA', // Lavender-tinted light background
+  surface: '#FCFBFF', // Off-white surface, subtly tinted
+  text: '#1B1830', // Near-black with a brand-hue tint
+  textSecondary: '#6E6A82', // Tinted secondary text (replaces flat #757575 gray)
+  divider: '#E7E4F2', // Tinted divider
+  secondary: '#FF8AAE', // Warm pink — friendly accent
+  success: '#3FB27F',
+  error: '#F4505A',
   warning: '#FF9800',
   info: '#2196F3',
 };

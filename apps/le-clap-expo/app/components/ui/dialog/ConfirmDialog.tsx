@@ -11,16 +11,31 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
 interface ConfirmDialogProps {
   visible: boolean;
   title: string;
   message: string;
   confirmText?: string;
   cancelText?: string;
-  confirmIconName?: string;
+  confirmIconName?: IoniconName;
   confirmType?: 'danger' | 'success' | 'warning' | 'primary';
   onConfirm: () => void;
   onCancel: () => void;
+}
+
+function getButtonColor(confirmType: ConfirmDialogProps['confirmType']): string {
+  switch (confirmType) {
+    case 'danger':
+      return colors.error;
+    case 'success':
+      return colors.success;
+    case 'warning':
+      return colors.warning;
+    default:
+      return colors.primary;
+  }
 }
 
 export default function ConfirmDialog({
@@ -54,39 +69,26 @@ export default function ConfirmDialog({
           useNativeDriver: true,
         }),
       ]).start();
-    } else {
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 0.9,
-          friction: 8,
-          tension: 60,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setShowModal(false);
-      });
-    }
-  }, [visible, scaleAnim, opacityAnim]);
 
-  // Get button color based on type
-  const getButtonColor = () => {
-    switch (confirmType) {
-      case 'danger':
-        return colors.error;
-      case 'success':
-        return colors.success;
-      case 'warning':
-        return colors.warning;
-      case 'primary':
-      default:
-        return colors.primary;
+      return;
     }
-  };
+
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.9,
+        friction: 8,
+        tension: 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowModal(false);
+    });
+  }, [visible, scaleAnim, opacityAnim]);
 
   if (!showModal) return null;
 
@@ -120,7 +122,7 @@ export default function ConfirmDialog({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, styles.confirmButton, { backgroundColor: getButtonColor() }]}
+              style={[styles.button, styles.confirmButton, { backgroundColor: getButtonColor(confirmType) }]}
               onPress={onConfirm}
               activeOpacity={0.7}
             >

@@ -1,253 +1,115 @@
-import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  StatusBar
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { VideoView, useVideoPlayer } from 'expo-video';
-import { useProject } from '@/src/hooks/useProjects';
-import { colors, spacing, typography } from '@/src/styles/theme';
-import { useOrientation } from '@/src/hooks/useOrientation';
+import React from 'react';
+import { View, StyleSheet, StatusBar } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { VideoView } from 'expo-video';
+import { useProject, useSaveProject } from '@/src/hooks/useProjects';
+import CropOverlay from '@/app/features/editor/components/CropOverlay';
+import { buildErrorMessage, isCropApplied, isTrimApplied } from '@/app/features/editor/preview/previewHelpers';
+import { styles } from '@/app/features/editor/preview/previewStyles';
+import { usePreviewPlayer } from '@/app/features/editor/preview/usePreviewPlayer';
+import { usePreviewState } from '@/app/features/editor/preview/usePreviewState';
+import { usePreviewActions } from '@/app/features/editor/preview/usePreviewActions';
+import { useVideoRect } from '@/app/features/editor/preview/useVideoRect';
+import { useLockedOrientation } from '@/app/features/editor/preview/useLockedOrientation';
+import { PreviewToolbar } from '@/app/features/editor/preview/PreviewToolbar';
+import { TrimEditPanel, CropEditPanel } from '@/app/features/editor/preview/EditPanels';
+import { PreviewLoading, PreviewError, PreviewNoVideo } from '@/app/features/editor/preview/PreviewStates';
 
 export default function PreviewPage() {
   const params = useLocalSearchParams<{ projectId?: string; videoUri?: string; orientation?: 'portrait' | 'landscape'; sectionName?: string }>();
   const router = useRouter();
   const { projectId, videoUri, orientation: paramOrientation, sectionName } = params;
 
-  // Use Clean Architecture hook for project data
-  const { data: project, isLoading: projectLoading, error: projectError } = useProject(projectId || '');
+  const { data: project, isLoading: projectLoading, error: projectError } = useProject(projectId ?? '');
+  const saveProjectMutation = useSaveProject();
 
-  const { lockOrientation, unlockOrientation } = useOrientation(paramOrientation);
+  const requiredOrientation = useLockedOrientation(paramOrientation);
 
-  const requiredOrientation = paramOrientation || 'portrait';
+  const { player, currentTime, duration, srcSize, status } = usePreviewPlayer(videoUri);
 
-  useEffect(() => {
-    if (paramOrientation) {
-      lockOrientation(paramOrientation);
-    }
-
-    return () => {
-      unlockOrientation();
-    };
-  }, [paramOrientation, lockOrientation, unlockOrientation]);
-
-  const handleRetake = () => {
-    if (projectId && sectionName && project?.templateContent?.sections) {
-      const sectionToRetake = project.templateContent.sections.find(s => s.name === sectionName);
-
-      if (sectionToRetake) {
-        router.replace({
-          pathname: '/(fullscreen)/record-section',
-          params: {
-            projectId: projectId,
-            sectionJson: JSON.stringify(sectionToRetake),
-            orientation: requiredOrientation,
-            retake: 'true',
-          },
-        });
-      } else {
-        console.error('Section not found for retake:', sectionName);
-        if (router.canGoBack()) {
-          router.back();
-        } else {
-          router.replace('/(app)/videos/index');
-        }
-      }
-    } else if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(app)/videos/index');
-    }
-  };
-
-  const handleDone = () => {
-    if (project?.templateName && project?.id) {
-      router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
-    } else if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(app)/videos/index');
-    }
-  };
-
-  const player = useVideoPlayer(videoUri ?? null, (playerInstance) => {
-    playerInstance.loop = true;
+  const { mode, crop, trim, setCrop, setTrim, enterMode, cancelMode, applyMode, resetCrop } = usePreviewState({
+    player,
+    project,
+    sectionName,
+    duration,
+    currentTime,
+    status,
   });
 
-  // Determine loading state - only show loading if we're fetching a project
+  const { canEdit, saving, handleRetake, handleDone } = usePreviewActions({
+    project,
+    projectId,
+    sectionName,
+    requiredOrientation,
+    saveProjectMutation,
+    trim,
+    crop,
+    duration,
+  });
+
+  const { videoRect, containerWidth, onContainerLayout } = useVideoRect(srcSize, requiredOrientation);
+
   const isLoading = projectId ? projectLoading : false;
 
   if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading preview...</Text>
-      </View>
-    );
+    return <PreviewLoading />;
   }
 
-  // Build error message
-  const errorMessage = projectError
-    ? (projectError instanceof Error ? projectError.message : 'Failed to load project')
-    : (!projectId && !videoUri)
-      ? 'No project ID or video URI provided'
-      : (!project && projectId)
-        ? 'Project not found'
-        : null;
+  const errorMessage = buildErrorMessage(projectError, projectId, videoUri, project);
 
-  if (errorMessage || (!project && !videoUri)) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{errorMessage || 'Preview not available'}</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
+  if (errorMessage ?? (!project && !videoUri)) {
+    return <PreviewError message={errorMessage ?? 'Preview not available'} onBack={() => { router.back(); }} />;
   }
 
-  const isPortrait = requiredOrientation === 'portrait';
+  if (!videoUri) {
+    return <PreviewNoVideo onBack={() => { router.back(); }} />;
+  }
 
   return (
     <View style={styles.fullscreenContainer}>
-      <StatusBar hidden={true} translucent={true} backgroundColor="transparent" />
+      <StatusBar hidden translucent backgroundColor="transparent" />
 
-      {videoUri && player ? (
-        <View style={[styles.videoContainer, isPortrait ? styles.portraitVideoContainer : styles.landscapeVideoContainer]}>
-          <VideoView
-            style={styles.videoPlayer}
-            player={player}
-            nativeControls={true}
-            contentFit="contain"
-          />
-          <View style={[styles.overlayButtonsContainer, isPortrait ? styles.portraitOverlayButtonsContainer : styles.landscapeOverlayButtonsContainer]}>
-            {projectId && project?.templateName && (
-              <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
-                <Ionicons name="refresh" size={20} color={colors.surface} />
-                <Text style={styles.retakeButtonText}>Retake</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity 
-            style={styles.fullscreenCloseButton} 
-            onPress={handleDone}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="close" size={36} color="#000000" />
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>Video not available for preview.</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.videoArea} onLayout={onContainerLayout}>
+        <VideoView
+          style={StyleSheet.absoluteFill}
+          player={player}
+          nativeControls={mode === 'view'}
+          contentFit="contain"
+        />
+
+        {mode === 'crop' && containerWidth > 0 && (
+          <CropOverlay videoRect={videoRect} crop={crop} onChange={setCrop} />
+        )}
+      </View>
+
+      {mode === 'view' && (
+        <PreviewToolbar
+          saving={saving}
+          canEdit={canEdit}
+          trimActive={isTrimApplied(trim, duration)}
+          cropActive={isCropApplied(crop)}
+          onDone={() => { handleDone().catch(console.error); }}
+          onTrim={() => { enterMode('trim'); }}
+          onCrop={() => { enterMode('crop'); }}
+          onRetake={handleRetake}
+        />
+      )}
+
+      {mode === 'trim' && (
+        <TrimEditPanel
+          duration={duration}
+          value={trim}
+          currentTime={currentTime}
+          onChange={setTrim}
+          onSeek={(s) => { player.currentTime = s; }}
+          onCancel={cancelMode}
+          onApply={applyMode}
+        />
+      )}
+
+      {mode === 'crop' && (
+        <CropEditPanel onReset={resetCrop} onCancel={cancelMode} onApply={applyMode} />
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  fullscreenContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  loadingText: {
-    ...typography.body,
-    marginTop: spacing.m,
-  },
-  errorText: {
-    ...typography.body,
-    color: colors.error,
-    marginBottom: spacing.l,
-    textAlign: 'center',
-  },
-  backButton: {
-    padding: spacing.s,
-  },
-  backButtonText: {
-    ...typography.body,
-    color: colors.primary,
-  },
-  videoContainer: {
-    flex: 1,
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  portraitVideoContainer: {
-    width: '100%',
-    height: '100%',
-  },
-  landscapeVideoContainer: {
-    width: '100%',
-    height: '100%',
-  },
-  videoPlayer: {
-    width: '100%',
-    height: '100%',
-  },
-  fullscreenCloseButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 2000,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 30,
-    width: 60,
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  overlayButtonsContainer: {
-    position: 'absolute',
-    zIndex: 2000,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  portraitOverlayButtonsContainer: {
-    bottom: 50,
-    left: 0,
-    right: 0,
-  },
-  landscapeOverlayButtonsContainer: {
-    right: 50,
-    bottom: 0,
-    top: 0,
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  retakeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.error,
-    paddingVertical: spacing.m + 2,
-    paddingHorizontal: spacing.m,
-    borderRadius: 8,
-    minHeight: 48,
-  },
-  retakeButtonText: {
-    ...typography.body,
-    color: colors.surface,
-    marginLeft: spacing.s,
-  },
-});

@@ -35,7 +35,7 @@ export function SkeletonLoader({
 
     animation.start();
 
-    return () => animation.stop();
+    return () =>{  animation.stop(); };
   }, [animatedValue]);
 
   const opacity = animatedValue.interpolate({
@@ -91,11 +91,7 @@ export function TemplateListSkeleton({ count = 6 }: TemplateListSkeletonProps) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface TemplateDetailSkeletonProps {}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function TemplateDetailSkeleton(_props: TemplateDetailSkeletonProps) {
+export function TemplateDetailSkeleton() {
   return (
     <View style={styles.templateDetail}>
       {/* Header */}

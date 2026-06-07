@@ -12,6 +12,7 @@ export const useOrientation = (requiredOrientation?: OrientationType) => {
 
   function getOrientation(): OrientationType {
     const { width, height } = Dimensions.get('window');
+
     return height > width ? 'portrait' : 'landscape';
   }
 
@@ -31,16 +32,18 @@ export const useOrientation = (requiredOrientation?: OrientationType) => {
     });
 
     return () => {
-      ScreenOrientation.removeOrientationChangeListener(subscription);
+      subscription.remove();
     };
   }, [requiredOrientation]);
 
   const lockOrientation = async (orientation: OrientationType) => {
     if (orientation === 'portrait') {
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-    } else {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+
+      return;
     }
+
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
   };
 
   const unlockOrientation = async () => {

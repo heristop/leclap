@@ -7,8 +7,97 @@ import {
   getPendingCompilations,
   cleanupCompilationQueue,
 } from '@/src/services/storage';
-import { compileVideo } from '@/src/services/api';
+import { compileVideo, type CompileRecordedVideos } from '@/src/services/api';
 import { hasInternetConnection, waitForConnection } from '@/src/services/network';
+
+type QueueItemResult = { id: string; success: boolean; error?: string };
+
+type PendingItem = Awaited<ReturnType<typeof getPendingCompilations>>[number];
+
+function noop(): undefined {
+  return undefined;
+}
+
+async function processQueueItem(
+  item: PendingItem,
+  maxRetries: number,
+): Promise<QueueItemResult | null> {
+  if (item.retryCount >= maxRetries) {
+    return null;
+  }
+
+  try {
+    await updateCompilationQueueItem(item.id, {
+      status: 'processing',
+      lastRetryAt: new Date().toISOString(),
+    });
+
+    const result = await compileVideo(item.templateDescriptor, item.recordedVideos);
+
+    if (result.success) {
+      await updateCompilationQueueItem(item.id, {
+        status: 'completed',
+        lastRetryAt: new Date().toISOString(),
+      });
+
+      return { id: item.id, success: true };
+    }
+
+    await updateCompilationQueueItem(item.id, {
+      status: 'failed',
+      retryCount: item.retryCount + 1,
+      lastRetryAt: new Date().toISOString(),
+      error: result.error,
+    });
+
+    return { id: item.id, success: false, error: result.error };
+  } catch (error) {
+    await updateCompilationQueueItem(item.id, {
+      status: 'failed',
+      retryCount: item.retryCount + 1,
+      lastRetryAt: new Date().toISOString(),
+      error: (error as Error).message,
+    });
+
+    return {
+      id: item.id,
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+}
+
+function delayMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function processAllQueueItems(
+  pendingItems: PendingItem[],
+  maxRetries: number,
+): Promise<QueueItemResult[]> {
+  return pendingItems.reduce<Promise<QueueItemResult[]>>(
+    (acc, item, index) =>
+      acc.then(async (results) => {
+        const result = await processQueueItem(item, maxRetries);
+
+        if (result !== null) {
+          results.push(result);
+        }
+
+        if (index < pendingItems.length - 1) {
+          await delayMs(1000);
+        }
+
+        return results;
+      }),
+    Promise.resolve([]),
+  );
+}
+
+function invalidateQueueKeys(queryClient: ReturnType<typeof useQueryClient>): void {
+  queryClient.invalidateQueries({ queryKey: ['compilation-queue'] }).catch(noop);
+  queryClient.invalidateQueries({ queryKey: ['pending-compilations'] }).catch(noop);
+}
 
 /**
  * Hook for managing the compilation queue
@@ -46,7 +135,7 @@ export const useQueueVideoCompilation = () => {
     }: {
       projectId: string;
       templateDescriptor: unknown;
-      recordedVideos: Record<string, { path: string; orientation: 'portrait' | 'landscape' }>;
+      recordedVideos: CompileRecordedVideos;
     }) => {
       const isOnline = await hasInternetConnection();
 
@@ -54,6 +143,7 @@ export const useQueueVideoCompilation = () => {
         // Try immediate compilation if online
         try {
           const result = await compileVideo(templateDescriptor, recordedVideos);
+
           if (result.success) {
             return { immediate: true, result };
           }
@@ -73,8 +163,7 @@ export const useQueueVideoCompilation = () => {
       return { immediate: false, queueItemId };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['compilation-queue'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-compilations'] });
+      invalidateQueueKeys(queryClient);
     },
   });
 };
@@ -85,75 +174,20 @@ export const useQueueVideoCompilation = () => {
 export const useProcessQueuedCompilations = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (maxRetries = 3) => {
+  return useMutation<QueueItemResult[], Error, number>({
+    mutationFn: async (maxRetries: number) => {
       const isOnline = await hasInternetConnection();
+
       if (!isOnline) {
         throw new Error('No internet connection for processing queue');
       }
 
       const pendingItems = await getPendingCompilations();
-      const results: { id: string; success: boolean; error?: string }[] = [];
 
-      for (const item of pendingItems) {
-        // Skip if too many retries
-        if (item.retryCount >= maxRetries) {
-          continue;
-        }
-
-        try {
-          // Update status to processing
-          await updateCompilationQueueItem(item.id, {
-            status: 'processing',
-            lastRetryAt: new Date().toISOString(),
-          });
-
-          const result = await compileVideo(item.templateDescriptor, item.recordedVideos);
-
-          if (result.success) {
-            // Mark as completed
-            await updateCompilationQueueItem(item.id, {
-              status: 'completed',
-              lastRetryAt: new Date().toISOString(),
-            });
-
-            results.push({ id: item.id, success: true });
-          } else {
-            // Mark as failed and increment retry count
-            await updateCompilationQueueItem(item.id, {
-              status: 'failed',
-              retryCount: item.retryCount + 1,
-              lastRetryAt: new Date().toISOString(),
-              error: result.error,
-            });
-
-            results.push({ id: item.id, success: false, error: result.error });
-          }
-        } catch (error) {
-          // Mark as failed and increment retry count
-          await updateCompilationQueueItem(item.id, {
-            status: 'failed',
-            retryCount: item.retryCount + 1,
-            lastRetryAt: new Date().toISOString(),
-            error: (error as Error).message,
-          });
-
-          results.push({
-            id: item.id,
-            success: false,
-            error: (error as Error).message,
-          });
-        }
-
-        // Small delay between processing items
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      return results;
+      return processAllQueueItems(pendingItems, maxRetries);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['compilation-queue'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-compilations'] });
+      invalidateQueueKeys(queryClient);
     },
   });
 };
@@ -174,6 +208,7 @@ export const useRetryQueueItem = () => {
       }
 
       const isOnline = await hasInternetConnection();
+
       if (!isOnline) {
         throw new Error('No internet connection for retry');
       }
@@ -192,16 +227,18 @@ export const useRetryQueueItem = () => {
             status: 'completed',
             lastRetryAt: new Date().toISOString(),
           });
+
           return { success: true, result };
-        } else {
+        }
           await updateCompilationQueueItem(itemId, {
             status: 'failed',
             retryCount: item.retryCount + 1,
             lastRetryAt: new Date().toISOString(),
             error: result.error,
           });
+
           return { success: false, error: result.error };
-        }
+
       } catch (error) {
         await updateCompilationQueueItem(itemId, {
           status: 'failed',
@@ -209,12 +246,12 @@ export const useRetryQueueItem = () => {
           lastRetryAt: new Date().toISOString(),
           error: (error as Error).message,
         });
+
         throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['compilation-queue'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-compilations'] });
+      invalidateQueueKeys(queryClient);
     },
   });
 };
@@ -228,8 +265,7 @@ export const useRemoveQueueItem = () => {
   return useMutation({
     mutationFn: removeFromCompilationQueue,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['compilation-queue'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-compilations'] });
+      invalidateQueueKeys(queryClient);
     },
   });
 };
@@ -243,8 +279,7 @@ export const useCleanupQueue = () => {
   return useMutation({
     mutationFn: cleanupCompilationQueue,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['compilation-queue'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-compilations'] });
+      invalidateQueueKeys(queryClient);
     },
   });
 };
@@ -260,13 +295,14 @@ export const useAutoProcessQueue = (enabled = true) => {
       if (!enabled) return;
 
       // Wait for stable internet connection
-      const hasConnection = await waitForConnection(10000); // 10 second timeout
+      const hasConnection = await waitForConnection(10000);
+ // 10 second timeout
       if (!hasConnection) {
         throw new Error('Failed to establish stable internet connection');
       }
 
       // Process the queue
-      return processQueue.mutateAsync(3); // Max 3 retries
+      await processQueue.mutateAsync(3); // Max 3 retries
     },
   });
 };

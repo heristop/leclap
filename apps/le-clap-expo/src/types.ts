@@ -68,6 +68,10 @@ export interface Project {
       orientation: 'portrait' | 'landscape';
       duration?: number;
       fileSize?: number;
+      // User edits chosen on the preview screen. `trim` is in seconds; `crop` is
+      // normalized to the source frame (0..1) so it is resolution-independent.
+      trim?: { start: number; end: number };
+      crop?: { x: number; y: number; w: number; h: number };
     }
   >;
   outputVideoUri?: string;

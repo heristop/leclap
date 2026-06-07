@@ -14,7 +14,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   formData,
   onFormDataChange,
 }) => {
-  const fields = section.options?.fields || [];
+  const fields = section.options?.fields ?? [];
   
   // Track screen orientation
   const [isLandscape, setIsLandscape] = useState(
@@ -44,7 +44,7 @@ const FormSection: React.FC<FormSectionProps> = ({
       <View style={isLandscape ? styles.landscapeFieldsContainer : styles.fieldsContainer}>
         {fields.map((field) => (
           <View key={field.name} style={[styles.fieldContainer, isLandscape && styles.landscapeFieldContainer]}>
-            <Text style={styles.label}>{field.label?.en || field.name}</Text>
+            <Text style={styles.label}>{field.label.en}</Text>
             
             {/* Field description */}
             {field.description?.en && (
@@ -54,9 +54,9 @@ const FormSection: React.FC<FormSectionProps> = ({
             <TextInput
               style={[styles.input, isLandscape && field.maxLength > 100 && styles.landscapeTextarea]}
               value={formData[field.name] || ''}
-              onChangeText={(text) => onFormDataChange(field.name, text)}
+              onChangeText={(text) =>{  onFormDataChange(field.name, text); }}
               maxLength={field.maxLength || 100}
-              placeholder={`Enter ${field.label?.en || field.name}`}
+              placeholder={`Enter ${field.label.en}`}
               multiline={field.maxLength > 100}
             />
             {field.maxLength && (

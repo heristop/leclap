@@ -21,12 +21,14 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
   const { isOffline } = useOffline();
 
-  const handleSelectTemplate = async (template: Template) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push({
-      pathname: '/(app)/template/[id]',
-      params: { id: template.name },
-    });
+  const handleSelectTemplate = (template: Template) => {
+    const navigate = () => {
+      router.push({
+        pathname: '/(app)/template/[id]',
+        params: { id: template.name },
+      });
+    };
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(navigate).catch(navigate);
   };
 
 
@@ -56,10 +58,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         <View style={{ marginTop: spacing.m, alignItems: 'center', height: 160 }}>
           <Button
             variant="primary"
-            onPress={async () => {
-              await refetch();
-              return;
-            }}
+            onPress={() => { refetch().catch(console.error); }}
             icon="refresh"
             size="large"
             fullWidth={false}
@@ -74,8 +73,8 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   return (
     <View style={styles.container}>
       <NetworkStatusIndicator
-        showSyncStatus={true}
-        expandable={true}
+        showSyncStatus
+        expandable
       />
       <CompilationQueueStatus />
 
@@ -83,10 +82,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         templates={templates}
         onSelectTemplate={handleSelectTemplate}
         isOffline={isOffline}
-        onRefresh={async () => {
-          await refetch();
-          return;
-        }}
+        onRefresh={() => { refetch().catch(console.error); }}
         screenTitle="Scenarios"
         subtitle={isOffline
           ? "📴 Browsing cached templates (offline)"

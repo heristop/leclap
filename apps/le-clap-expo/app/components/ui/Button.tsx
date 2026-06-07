@@ -1,5 +1,4 @@
-import React from 'react';
-import { Button as TamaguiButton, Text, XStack } from 'tamagui';
+import { type ColorTokens, type FontSizeTokens, Button as TamaguiButton, Text, XStack } from 'tamagui';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
@@ -19,6 +18,165 @@ interface ButtonProps {
   hapticFeedback?: boolean;
 }
 
+const getVariantProps = (variant: ButtonVariant) => {
+  switch (variant) {
+    case 'primary':
+      return {
+        backgroundColor: '$primary',
+        borderColor: '$primary',
+        hoverStyle: { backgroundColor: '$primaryHover' },
+        pressStyle: { backgroundColor: '$primaryPress' },
+        focusStyle: { backgroundColor: '$primaryFocus' },
+      } as const;
+    case 'secondary':
+      return {
+        backgroundColor: '$secondary',
+        borderColor: '$secondary',
+        hoverStyle: { backgroundColor: '$secondaryHover' },
+        pressStyle: { backgroundColor: '$secondaryPress' },
+      } as const;
+    case 'ghost':
+      return {
+        backgroundColor: 'transparent',
+        borderColor: '$borderColor',
+        borderWidth: 1,
+        hoverStyle: { backgroundColor: '$backgroundHover' },
+        pressStyle: { backgroundColor: '$backgroundPress' },
+      } as const;
+    case 'destructive':
+      return {
+        backgroundColor: '$error',
+        borderColor: '$error',
+        hoverStyle: { backgroundColor: '#E53E3E' },
+        pressStyle: { backgroundColor: '#C53030' },
+      } as const;
+    case 'success':
+      return {
+        backgroundColor: '$success',
+        borderColor: '$success',
+        hoverStyle: { backgroundColor: '#48BB78' },
+        pressStyle: { backgroundColor: '#38A169' },
+      } as const;
+    default:
+      return {};
+  }
+};
+
+const getSizeProps = (size: ButtonSize) => {
+  switch (size) {
+    case 'small':
+      return {
+        paddingHorizontal: '$m',
+        paddingVertical: '$s',
+        fontSize: '$3',
+        height: 36,
+      } as const;
+    case 'medium':
+      return {
+        paddingHorizontal: '$l',
+        paddingVertical: '$s',
+        fontSize: '$4',
+        height: 52,
+      } as const;
+    case 'large':
+      return {
+        paddingHorizontal: '$xl',
+        paddingVertical: '$s',
+        fontSize: '$5',
+        height: 62,
+      } as const;
+    default:
+      return {};
+  }
+};
+
+const getTextColor = (variant: ButtonVariant, disabled: boolean): ColorTokens => {
+  if (disabled) return '$colorTransparent';
+
+  switch (variant) {
+    case 'primary':
+    case 'secondary':
+    case 'destructive':
+    case 'success':
+      return 'white';
+    case 'ghost':
+      return '$color';
+    default:
+      return 'white';
+  }
+};
+
+const getIconSize = (size: ButtonSize): number => {
+  switch (size) {
+    case 'small':
+      return 16;
+    case 'medium':
+      return 18;
+    case 'large':
+      return 20;
+    default:
+      return 18;
+  }
+};
+
+const resolveIconColor = (textColor: ColorTokens): string => {
+  if (textColor === 'white') return 'white';
+
+  if (textColor === '$color') return '#212121';
+
+  return '#757575';
+};
+
+interface ButtonContentProps {
+  loading: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconPosition: 'left' | 'right';
+  iconSize: number;
+  iconColor: string;
+  textColor: ColorTokens;
+  fontSize?: FontSizeTokens;
+  children?: React.ReactNode;
+}
+
+function ButtonContent({
+  loading,
+  icon,
+  iconPosition,
+  iconSize,
+  iconColor,
+  textColor,
+  fontSize,
+  children,
+}: ButtonContentProps) {
+  const leftIcon = loading ? (
+    <XStack>
+      <Ionicons name="reload" size={iconSize} color={iconColor} />
+    </XStack>
+  ) : (
+    icon && iconPosition === 'left' && <Ionicons name={icon} size={iconSize} color={iconColor} />
+  );
+
+  const rightIcon = !loading && icon && iconPosition === 'right' && (
+    <Ionicons name={icon} size={iconSize} color={iconColor} />
+  );
+
+  return (
+    <XStack alignItems="center" justifyContent="center" gap="$s">
+      {leftIcon}
+      {children && (
+        <Text color={textColor} fontSize={fontSize} fontWeight="600" textAlign="center">
+          {children}
+        </Text>
+      )}
+      {rightIcon}
+    </XStack>
+  );
+}
+
+const runAsync = (fn: () => Promise<void>) => {
+  fn().catch(() => {});
+};
+
 export default function Button({
   children,
   variant = 'primary',
@@ -31,122 +189,31 @@ export default function Button({
   fullWidth = false,
   hapticFeedback = true,
 }: ButtonProps) {
-
-  const handlePress = async () => {
+  const handlePress = () => {
     if (disabled || loading) return;
 
-    if (hapticFeedback) {
-      await Haptics.impactAsync(
-        variant === 'destructive'
-          ? Haptics.ImpactFeedbackStyle.Heavy
-          : Haptics.ImpactFeedbackStyle.Light
-      );
-    }
+    runAsync(async () => {
+      if (hapticFeedback) {
+        const style =
+          variant === 'destructive'
+            ? Haptics.ImpactFeedbackStyle.Heavy
+            : Haptics.ImpactFeedbackStyle.Light;
+        await Haptics.impactAsync(style);
+      }
 
-    onPress?.();
+      await onPress?.();
+    });
   };
 
-  const getVariantProps = () => {
-    switch (variant) {
-      case 'primary':
-        return {
-          backgroundColor: '$primary',
-          borderColor: '$primary',
-          hoverStyle: { backgroundColor: '$primaryHover' },
-          pressStyle: { backgroundColor: '$primaryPress' },
-          focusStyle: { backgroundColor: '$primaryFocus' },
-        };
-      case 'secondary':
-        return {
-          backgroundColor: '$secondary',
-          borderColor: '$secondary',
-          hoverStyle: { backgroundColor: '$secondaryHover' },
-          pressStyle: { backgroundColor: '$secondaryPress' },
-        };
-      case 'ghost':
-        return {
-          backgroundColor: 'transparent',
-          borderColor: '$borderColor',
-          borderWidth: 1,
-          hoverStyle: { backgroundColor: '$backgroundHover' },
-          pressStyle: { backgroundColor: '$backgroundPress' },
-        };
-      case 'destructive':
-        return {
-          backgroundColor: '$error',
-          borderColor: '$error',
-          hoverStyle: { backgroundColor: '#E53E3E' },
-          pressStyle: { backgroundColor: '#C53030' },
-        };
-      case 'success':
-        return {
-          backgroundColor: '$success',
-          borderColor: '$success',
-          hoverStyle: { backgroundColor: '#48BB78' },
-          pressStyle: { backgroundColor: '#38A169' },
-        };
-      default:
-        return {};
-    }
-  };
-
-  const getSizeProps = () => {
-    switch (size) {
-      case 'small':
-        return {
-          paddingHorizontal: '$m',
-          paddingVertical: '$s',
-          fontSize: '$3',
-          height: 36,
-        };
-      case 'medium':
-        return {
-          paddingHorizontal: '$l',
-          paddingVertical: '$s',
-          fontSize: '$4',
-          height: 52,
-        };
-      case 'large':
-        return {
-          paddingHorizontal: '$xl',
-          paddingVertical: '$s',
-          fontSize: '$5',
-          height: 62,
-        };
-      default:
-        return {};
-    }
-  };
-
-  const getTextColor = () => {
-    if (disabled) return '$colorTransparent';
-
-    switch (variant) {
-      case 'primary':
-      case 'secondary':
-      case 'destructive':
-      case 'success':
-        return 'white';
-      case 'ghost':
-        return '$color';
-      default:
-        return 'white';
-    }
-  };
-
-  const getIconSize = () => {
-    switch (size) {
-      case 'small': return 16;
-      case 'medium': return 18;
-      case 'large': return 20;
-      default: return 18;
-    }
-  };
-
-  const variantProps = getVariantProps();
-  const sizeProps = getSizeProps();
-  const textColor = getTextColor();
-  const iconSize = getIconSize();
+  const variantProps = getVariantProps(variant);
+  const sizeProps = getSizeProps(size);
+  const textColor = getTextColor(variant, disabled);
+  const iconSize = getIconSize(size);
+  const iconColor = resolveIconColor(textColor);
+  const isGhost = variant === 'ghost';
+  const scaleDefault = disabled ? 1 : 0.98;
+  const scaleHover = disabled ? 1 : 1.02;
+  const scalePress = disabled ? 1 : 0.95;
 
   return (
     <TamaguiButton
@@ -159,61 +226,30 @@ export default function Button({
       borderRadius="$3"
       shadowColor="$shadowColor"
       shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={variant === 'ghost' ? 0 : 0.1}
+      shadowOpacity={isGhost ? 0 : 0.1}
       shadowRadius={4}
-      elevate={variant !== 'ghost'}
-      animation="bouncy"
-      scale={disabled ? 1 : 0.98}
+      transition="bouncy"
+      scale={scaleDefault}
       hoverStyle={{
         ...variantProps.hoverStyle,
-        scale: disabled ? 1 : 1.02,
+        scale: scaleHover,
       }}
       pressStyle={{
         ...variantProps.pressStyle,
-        scale: disabled ? 1 : 0.95,
+        scale: scalePress,
       }}
     >
-      <XStack alignItems="center" justifyContent="center" space="$s">
-        {/* Loading spinner or left icon */}
-        {loading ? (
-          <XStack>
-            <Ionicons
-              name="reload"
-              size={iconSize}
-              color={textColor === 'white' ? 'white' : textColor === '$color' ? '#212121' : '#757575'}
-            />
-          </XStack>
-        ) : (
-          icon && iconPosition === 'left' && (
-            <Ionicons
-              name={icon}
-              size={iconSize}
-              color={textColor === 'white' ? 'white' : textColor === '$color' ? '#212121' : '#757575'}
-            />
-          )
-        )}
-
-        {/* Button text */}
-        {children && (
-          <Text
-            color={textColor}
-            fontSize={sizeProps.fontSize}
-            fontWeight="600"
-            textAlign="center"
-          >
-            {typeof children === 'string' ? children : children}
-          </Text>
-        )}
-
-        {/* Right icon */}
-        {!loading && icon && iconPosition === 'right' && (
-          <Ionicons
-            name={icon}
-            size={iconSize}
-            color={textColor === 'white' ? 'white' : textColor === '$color' ? '#212121' : '#757575'}
-          />
-        )}
-      </XStack>
+      <ButtonContent
+        loading={loading}
+        icon={icon}
+        iconPosition={iconPosition}
+        iconSize={iconSize}
+        iconColor={iconColor}
+        textColor={textColor}
+        fontSize={sizeProps.fontSize}
+      >
+        {children}
+      </ButtonContent>
     </TamaguiButton>
   );
 }

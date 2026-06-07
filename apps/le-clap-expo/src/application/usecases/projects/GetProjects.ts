@@ -16,7 +16,7 @@ export class GetProjectsUseCase {
     const projects = await this.projectRepository.findAll();
 
     // Business logic: Sort projects by creation date (newest first)
-    return projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return [...projects].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   /**
@@ -36,6 +36,6 @@ export class GetProjectsUseCase {
   async getByStatus(status: string): Promise<Project[]> {
     const projects = await this.projectRepository.findByStatus(status);
 
-    return projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return [...projects].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 }

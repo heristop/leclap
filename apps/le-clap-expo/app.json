@@ -7,7 +7,6 @@
     "icon": "./assets/images/logo.png",
     "scheme": "leclap",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -22,7 +21,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#7C83FD"
       },
-      "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
@@ -48,10 +46,12 @@
         }
       ],
       "expo-video",
-      "expo-font"
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "extra": {
       "API_URL": "http://localhost:8082"

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { useNetworkState, useOnlineStatusChange } from '@/src/hooks/useNetworkState';
 import { useAutoProcessQueue, useCleanupQueue } from '@/src/hooks/useCompilationQueue';
 import { useRefreshTemplates } from '@/src/hooks/useTemplates';
@@ -51,18 +51,25 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
     }
   );
 
+  // Keep the mutation in a ref: react-query recreates the mutation object every render, so
+  // depending on it here re-ran this effect (and reset the interval) on every render.
+  const cleanupQueueRef = useRef(cleanupQueue);
+  cleanupQueueRef.current = cleanupQueue;
+
   // Periodic cleanup when online
   useEffect(() => {
-    if (isOnline) {
-      const interval = setInterval(() => {
-        cleanupQueue.mutateAsync().catch((error) => {
-          console.warn('Periodic cleanup failed:', error);
-        });
-      }, 60 * 60 * 1000); // Every hour
-
-      return () => clearInterval(interval);
+    if (!isOnline) {
+      return () => {};
     }
-  }, [isOnline, cleanupQueue]);
+
+    const interval = setInterval(() => {
+      cleanupQueueRef.current.mutateAsync().catch((error) => {
+        console.warn('Periodic cleanup failed:', error);
+      });
+    }, 60 * 60 * 1000); // Every hour
+
+    return () => { clearInterval(interval); };
+  }, [isOnline]);
 
   const contextValue: OfflineContextType = {
     isOnline,
@@ -80,8 +87,10 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
 
 export function useOffline() {
   const context = useContext(OfflineContext);
+
   if (context === undefined) {
     throw new Error('useOffline must be used within an OfflineProvider');
   }
+
   return context;
 }

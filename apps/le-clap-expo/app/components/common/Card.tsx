@@ -31,11 +31,15 @@ const Card = ({
     statusIcon = 'checkmark-circle';
     statusColor = colors.success;
     statusText = 'Completed';
-  } else if (status === 'in-progress') {
+  }
+
+  if (status === 'in-progress') {
     statusIcon = 'time';
     statusColor = colors.warning;
     statusText = 'In Progress';
-  } else if (status === 'new') {
+  }
+
+  if (status === 'new') {
     statusIcon = 'star';
     statusColor = colors.accent;
     statusText = 'New';
@@ -118,7 +122,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   cardImage: {
     width: 70,

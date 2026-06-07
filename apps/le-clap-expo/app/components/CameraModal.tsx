@@ -1,101 +1,186 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  StyleSheet, 
+import {
+  View,
+  StyleSheet,
   StatusBar,
   TouchableOpacity,
   Text,
   Modal,
   BackHandler
 } from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, type CameraPosition, type VideoFile, type CameraCaptureError } from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
 
-// A standalone camera component that doesn't use navigation at all
-const CameraModal = ({ visible, onClose, onVideoRecorded }) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [cameraType, setCameraType] = useState('back');
-  const device = useCameraDevice(cameraType);
-  const cameraRef = useRef(null);
-  
-  // Force hide status bar
+interface CameraModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onVideoRecorded: (video: VideoFile) => void;
+}
+
+// Extracted helper: no-device fallback
+function NoCameraView({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  return (
+    <Modal
+      animationType="fade"
+      transparent={false}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.errorContainer}>
+        <StatusBar hidden />
+        <Text style={styles.errorText}>No camera device available</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
+}
+
+// Extracted helper: record button
+function RecordButton({
+  isRecording,
+  onStart,
+  onStop,
+}: {
+  isRecording: boolean;
+  onStart: () => void;
+  onStop: () => void;
+}) {
+  const handlePress = () => {
+    if (isRecording) {
+      onStop();
+
+      return;
+    }
+    onStart();
+  };
+
+  return (
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity
+        style={[styles.recordButton, isRecording && styles.recordingButton]}
+        onPress={handlePress}
+      >
+        {isRecording ? (
+          <View style={styles.stopIcon} />
+        ) : (
+          <View style={styles.recordIcon} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// Extracted helper: camera overlay controls
+function CameraControls({
+  isRecording,
+  onStart,
+  onStop,
+  onFlip,
+  onClose,
+}: {
+  isRecording: boolean;
+  onStart: () => void;
+  onStop: () => void;
+  onFlip: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <RecordButton isRecording={isRecording} onStart={onStart} onStop={onStop} />
+      <TouchableOpacity style={styles.flipButton} onPress={onFlip}>
+        <Ionicons name="camera-reverse-outline" size={24} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <Ionicons name="close-outline" size={28} color="white" />
+      </TouchableOpacity>
+      <View style={styles.instructionContainer}>
+        <Text style={styles.instructionText}>
+          Hold your device vertically for best results
+        </Text>
+      </View>
+    </>
+  );
+}
+
+// Hook: status bar and back button side effects
+function useCameraModalEffects(visible: boolean, onClose: () => void) {
   useEffect(() => {
     if (visible) {
       StatusBar.setHidden(true, 'none');
     }
-    return () => StatusBar.setHidden(false);
+
+    return () => { StatusBar.setHidden(false); };
   }, [visible]);
-  
-  // Handle back button
+
   useEffect(() => {
     const backAction = () => {
       if (visible) {
         onClose();
+
         return true;
       }
+
       return false;
     };
-    
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
+
+    return () => { backHandler.remove(); };
   }, [visible, onClose]);
-  
-  // Handle recording
-  const startRecording = async () => {
-    if (!cameraRef.current || isRecording) return;
-    
+}
+
+// A standalone camera component that doesn't use navigation at all
+const CameraModal = ({ visible, onClose, onVideoRecorded }: CameraModalProps) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [cameraType, setCameraType] = useState<CameraPosition>('back');
+  const device = useCameraDevice(cameraType);
+  const cameraRef = useRef<Camera>(null);
+
+  useCameraModalEffects(visible, onClose);
+
+  const startRecording = () => {
+    if (cameraRef.current === null || isRecording) return;
+
     try {
       setIsRecording(true);
-      
       cameraRef.current.startRecording({
         fileType: 'mp4',
         videoCodec: 'h264',
-        onRecordingFinished: (video) => {
+        onRecordingFinished: (video: VideoFile) => {
           setIsRecording(false);
-          if (onVideoRecorded) {
-            onVideoRecorded(video);
-          }
+          onVideoRecorded(video);
           onClose();
         },
-        onRecordingError: (error) => {
+        onRecordingError: (error: CameraCaptureError) => {
           console.error('Recording error:', error);
           setIsRecording(false);
         },
       });
-    } catch (e) {
-      console.error('Failed to start recording:', e);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
       setIsRecording(false);
     }
   };
-  
-  const stopRecording = async () => {
-    if (!cameraRef.current || !isRecording) return;
-    
-    await cameraRef.current.stopRecording();
+
+  const stopRecording = () => {
+    if (cameraRef.current === null || !isRecording) return;
+    cameraRef.current.stopRecording().catch((error: unknown) => {
+      console.error('Failed to stop recording:', error);
+    });
   };
-  
+
+  const flipCamera = () => {
+    setCameraType(current => current === 'back' ? 'front' : 'back');
+  };
+
   if (!device) {
-    return (
-      <Modal
-        animationType="fade"
-        transparent={false}
-        visible={visible}
-        onRequestClose={onClose}
-      >
-        <View style={styles.errorContainer}>
-          <StatusBar hidden={true} />
-          <Text style={styles.errorText}>No camera device available</Text>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={onClose}
-          >
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    );
+    return <NoCameraView visible={visible} onClose={onClose} />;
   }
-  
+
   return (
     <Modal
       animationType="fade"
@@ -105,61 +190,22 @@ const CameraModal = ({ visible, onClose, onVideoRecorded }) => {
       statusBarTranslucent
     >
       <View style={styles.container}>
-        <StatusBar hidden={true} />
-        
+        <StatusBar hidden />
         <Camera
           ref={cameraRef}
           style={StyleSheet.absoluteFill}
           device={device}
           isActive={visible}
-          video={true}
-          audio={true}
+          video
+          audio
         />
-        
-        {/* Record button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.recordButton, isRecording && styles.recordingButton]}
-            onPress={isRecording ? stopRecording : startRecording}
-          >
-            {isRecording ? (
-              <View style={styles.stopIcon} />
-            ) : (
-              <View style={styles.recordIcon} />
-            )}
-          </TouchableOpacity>
-        </View>
-        
-        {/* Camera flip button */}
-        <TouchableOpacity
-          style={styles.flipButton}
-          onPress={() => setCameraType(current => current === 'back' ? 'front' : 'back')}
-        >
-          <Ionicons
-            name="camera-reverse-outline"
-            size={24}
-            color="white"
-          />
-        </TouchableOpacity>
-        
-        {/* Close button */}
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={onClose}
-        >
-          <Ionicons
-            name="close-outline"
-            size={28}
-            color="white"
-          />
-        </TouchableOpacity>
-        
-        {/* Instruction text */}
-        <View style={styles.instructionContainer}>
-          <Text style={styles.instructionText}>
-            Hold your device vertically for best results
-          </Text>
-        </View>
+        <CameraControls
+          isRecording={isRecording}
+          onStart={startRecording}
+          onStop={stopRecording}
+          onFlip={flipCamera}
+          onClose={onClose}
+        />
       </View>
     </Modal>
   );

@@ -1,19 +1,116 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-  Image,
-  Dimensions,
-  Easing,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated, Image, Dimensions, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing } from '@/src/styles/theme';
+import logoImage from '@/assets/images/logo.png';
 
 const { width, height } = Dimensions.get('window');
+// The tagline is animated letter-by-letter. Hermes (React Native's JS engine) does not
+// implement Intl.Segmenter, and converting a string with spread/split conflicts with lint
+// rules, so the ASCII characters are listed directly here.
+const TAGLINE_LETTERS = [
+  'Y', 'o', 'u', 'r', ' ', 's', 't', 'o', 'r', 'y', '.', ' ',
+  'Y', 'o', 'u', 'r', ' ', 's', 'c', 'e', 'n', 'e', 's', '.', ' ',
+  'Y', 'o', 'u', 'r', ' ', 'c', 'l', 'a', 'p', '.',
+];
 
 interface SplashScreenProps {
   onAnimationComplete: () => void;
+}
+
+interface AnimationRefs {
+  fadeAnim: Animated.Value;
+  scaleAnim: Animated.Value;
+  pulseAnim: Animated.Value;
+  rotateAnim: Animated.Value;
+  taglineOpacity: Animated.Value;
+  letterAnimations: Animated.Value[];
+}
+
+function buildAnimationSequence(refs: AnimationRefs): Animated.CompositeAnimation {
+  const { fadeAnim, scaleAnim, pulseAnim, rotateAnim, taglineOpacity, letterAnimations } = refs;
+
+  return Animated.sequence([
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true, easing: Easing.out(Easing.cubic) }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 4, tension: 10, useNativeDriver: true }),
+    ]),
+    Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1.1, duration: 400, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+      Animated.timing(pulseAnim, { toValue: 1, duration: 400, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+    ]),
+    Animated.timing(rotateAnim, { toValue: 1, duration: 600, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+    Animated.timing(taglineOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+    Animated.stagger(30, letterAnimations.map((anim) =>
+      Animated.timing(anim, { toValue: 1, duration: 50, useNativeDriver: true })
+    )),
+    Animated.delay(500),
+  ]);
+}
+
+function DecorativeBackground({ fadeAnim }: { fadeAnim: Animated.Value }) {
+  const makeOpacity = (output: number) =>
+    fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0, output] });
+
+  return (
+    <View style={styles.decorativeContainer}>
+      <Animated.View style={[styles.circle1, { opacity: makeOpacity(0.1) }]} />
+      <Animated.View style={[styles.circle2, { opacity: makeOpacity(0.08) }]} />
+    </View>
+  );
+}
+
+interface LogoContainerProps {
+  fadeAnim: Animated.Value;
+  scaleAnim: Animated.Value;
+  pulseAnim: Animated.Value;
+  rotateInterpolate: Animated.AnimatedInterpolation<string>;
+}
+
+function LogoContainer({ fadeAnim, scaleAnim, pulseAnim, rotateInterpolate }: LogoContainerProps) {
+  return (
+    <Animated.View
+      style={[styles.logoContainer, {
+        opacity: fadeAnim,
+        transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }, { rotate: rotateInterpolate }],
+      }]}
+    >
+      <View style={styles.logoBackground}>
+        <Image source={logoImage} style={styles.logo} resizeMode="contain" />
+      </View>
+      <Animated.Text style={[styles.appName, { opacity: fadeAnim }]}>LeClap</Animated.Text>
+    </Animated.View>
+  );
+}
+
+function TaglineView({ taglineOpacity, letterAnimations }: { taglineOpacity: Animated.Value; letterAnimations: Animated.Value[] }) {
+  return (
+    <Animated.View style={[styles.taglineContainer, { opacity: taglineOpacity }]}>
+      <View style={styles.taglineRow}>
+        {TAGLINE_LETTERS.map((letter, index) => (
+          <Animated.Text
+            key={index}
+            style={[styles.taglineLetter, {
+              opacity: letterAnimations[index],
+              transform: [{ translateY: letterAnimations[index]?.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+            }]}
+          >
+            {letter}
+          </Animated.Text>
+        ))}
+      </View>
+    </Animated.View>
+  );
+}
+
+function FilmStrip({ fadeAnim }: { fadeAnim: Animated.Value }) {
+  return (
+    <Animated.View style={[styles.filmStrip, {
+      opacity: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 0.15] }),
+    }]}>
+      {Array.from({ length: 5 }).map((_, i) => <View key={i} style={styles.filmFrame} />)}
+    </Animated.View>
+  );
 }
 
 export default function AnimatedSplashScreen({ onAnimationComplete }: SplashScreenProps) {
@@ -22,89 +119,22 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: SplashScre
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
-  const letterAnimations = useRef(
-    'Your story. Your scenes. Your clap.'.split('').map(() => new Animated.Value(0))
-  ).current;
+  const letterAnimations = useRef(TAGLINE_LETTERS.map(() => new Animated.Value(0))).current;
 
-  useEffect(() => {
-    // Start animation sequence
-    const animationSequence = Animated.sequence([
-      // Phase 1: Logo fade in and scale up
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.cubic),
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 4,
-          tension: 10,
-          useNativeDriver: true,
-        }),
-      ]),
+  // Keep the latest onAnimationComplete without making it a dependency, so the
+  // intro animation runs exactly once on mount instead of restarting from frame 0
+  // on every parent re-render (fonts loading, isReady flipping).
+  const onAnimationCompleteRef = useRef(onAnimationComplete);
+  onAnimationCompleteRef.current = onAnimationComplete;
 
-      // Phase 2: Logo pulse
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 400,
-          useNativeDriver: true,
-          easing: Easing.inOut(Easing.ease),
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-          easing: Easing.inOut(Easing.ease),
-        }),
-      ]),
+  const runAnimation = useCallback(() => {
+    const sequence = buildAnimationSequence({ fadeAnim, scaleAnim, pulseAnim, rotateAnim, taglineOpacity, letterAnimations });
+    sequence.start(() => { setTimeout(() => { onAnimationCompleteRef.current(); }, 300); });
+  }, [fadeAnim, scaleAnim, pulseAnim, rotateAnim, taglineOpacity, letterAnimations]);
 
-      // Phase 3: Subtle rotation
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-        easing: Easing.inOut(Easing.ease),
-      }),
+  useEffect(() => { runAnimation(); }, [runAnimation]);
 
-      // Phase 4: Tagline typewriter effect
-      Animated.timing(taglineOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-
-      // Typewriter effect for tagline
-      Animated.stagger(
-        30,
-        letterAnimations.map((anim) =>
-          Animated.timing(anim, {
-            toValue: 1,
-            duration: 50,
-            useNativeDriver: true,
-          })
-        )
-      ),
-
-      // Hold for a moment
-      Animated.delay(500),
-    ]);
-
-    animationSequence.start(() => {
-      // Animation complete, trigger the callback after a short delay
-      setTimeout(onAnimationComplete, 300);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- All animations are stable ref values and onAnimationComplete is a prop callback
-  }, []);
-
-  const rotateInterpolate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '5deg'],
-  });
-
-  const tagline = 'Your story. Your scenes. Your clap.';
+  const rotateInterpolate = rotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '5deg'] });
 
   return (
     <LinearGradient
@@ -113,117 +143,17 @@ export default function AnimatedSplashScreen({ onAnimationComplete }: SplashScre
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
-      {/* Background decorative elements */}
-      <View style={styles.decorativeContainer}>
-        <Animated.View
-          style={[
-            styles.circle1,
-            {
-              opacity: fadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 0.1],
-              }),
-            },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.circle2,
-            {
-              opacity: fadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 0.08],
-              }),
-            },
-          ]}
-        />
-      </View>
-
-      {/* Logo Container */}
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { scale: Animated.multiply(scaleAnim, pulseAnim) },
-              { rotate: rotateInterpolate },
-            ],
-          },
-        ]}
-      >
-        <View style={styles.logoBackground}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-        <Animated.Text style={[styles.appName, { opacity: fadeAnim }]}>
-          LeClap
-        </Animated.Text>
-      </Animated.View>
-
-      {/* Tagline with typewriter effect */}
-      <Animated.View style={[styles.taglineContainer, { opacity: taglineOpacity }]}>
-        <View style={styles.taglineRow}>
-          {tagline.split('').map((letter, index) => (
-            <Animated.Text
-              key={index}
-              style={[
-                styles.taglineLetter,
-                {
-                  opacity: letterAnimations[index],
-                  transform: [
-                    {
-                      translateY: letterAnimations[index].interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [10, 0],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
-              {letter}
-            </Animated.Text>
-          ))}
-        </View>
-      </Animated.View>
-
-      {/* Film strip decoration */}
-      <Animated.View
-        style={[
-          styles.filmStrip,
-          {
-            opacity: fadeAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 0.15],
-            }),
-          },
-        ]}
-      >
-        {[...Array(5)].map((_, i) => (
-          <View key={i} style={styles.filmFrame} />
-        ))}
-      </Animated.View>
+      <DecorativeBackground fadeAnim={fadeAnim} />
+      <LogoContainer fadeAnim={fadeAnim} scaleAnim={scaleAnim} pulseAnim={pulseAnim} rotateInterpolate={rotateInterpolate} />
+      <TaglineView taglineOpacity={taglineOpacity} letterAnimations={letterAnimations} />
+      <FilmStrip fadeAnim={fadeAnim} />
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  decorativeContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  decorativeContainer: { ...StyleSheet.absoluteFill, justifyContent: 'center', alignItems: 'center' },
   circle1: {
     position: 'absolute',
     width: width * 1.5,
@@ -242,11 +172,7 @@ const styles = StyleSheet.create({
     bottom: -width * 0.4,
     left: -width * 0.4,
   },
-  logoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
+  logoContainer: { alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   logoBackground: {
     width: 150,
     height: 150,
@@ -262,10 +188,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.accent,
   },
-  logo: {
-    width: 100,
-    height: 100,
-  },
+  logo: { width: 100, height: 100 },
   appName: {
     fontSize: 48,
     fontWeight: 'bold',
@@ -276,17 +199,8 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
-  taglineContainer: {
-    position: 'absolute',
-    bottom: height * 0.15,
-    alignItems: 'center',
-  },
-  taglineRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
+  taglineContainer: { position: 'absolute', bottom: height * 0.15, alignItems: 'center' },
+  taglineRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', paddingHorizontal: spacing.xl },
   taglineLetter: {
     fontSize: 18,
     color: colors.surface,
@@ -296,18 +210,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  filmStrip: {
-    position: 'absolute',
-    bottom: 50,
-    flexDirection: 'row',
-    gap: spacing.s,
-  },
-  filmFrame: {
-    width: 40,
-    height: 30,
-    backgroundColor: colors.surface,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
+  filmStrip: { position: 'absolute', bottom: 50, flexDirection: 'row', gap: spacing.s },
+  filmFrame: { width: 40, height: 30, backgroundColor: colors.surface, borderRadius: 4, borderWidth: 2, borderColor: colors.primary },
 });

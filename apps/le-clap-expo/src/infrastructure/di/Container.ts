@@ -5,11 +5,11 @@ import { UpdateProjectUseCase } from '@/src/application/usecases/projects/Update
 import { DeleteProjectUseCase } from '@/src/application/usecases/projects/DeleteProject';
 
 class Container {
-  private projectRepository: ProjectRepository;
-  private createProjectUseCase: CreateProjectUseCase;
-  private getProjectsUseCase: GetProjectsUseCase;
-  private updateProjectUseCase: UpdateProjectUseCase;
-  private deleteProjectUseCase: DeleteProjectUseCase;
+  private readonly projectRepository: ProjectRepository;
+  private readonly createProjectUseCase: CreateProjectUseCase;
+  private readonly getProjectsUseCase: GetProjectsUseCase;
+  private readonly updateProjectUseCase: UpdateProjectUseCase;
+  private readonly deleteProjectUseCase: DeleteProjectUseCase;
 
   constructor() {
     this.projectRepository = new ProjectRepository();

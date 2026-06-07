@@ -1,5 +1,6 @@
 import { createTamagui, createFont } from '@tamagui/core';
-import { config } from '@tamagui/config';
+import { defaultConfig } from '@tamagui/config/v5';
+import { animations } from '@tamagui/config/v5-rn';
 
 // Custom font configuration
 const oswaldFont = createFont({
@@ -61,16 +62,29 @@ const media = {
 
 // LeClap custom tokens extending the base config
 const leClapConfig = createTamagui({
-  ...config,
+  ...defaultConfig,
+  animations,
+  // Preserve Tamagui v1 (config v4) layout/style behavior during the v2 migration.
+  // See https://tamagui.dev/docs/guides/how-to-upgrade
+  settings: {
+    ...defaultConfig.settings,
+    styleCompat: 'legacy',
+    defaultPosition: 'relative',
+    onlyAllowShorthands: false,
+    // RN app (not web) and v1-compatible: allow raw numeric style values
+    // (e.g. space={1}) in addition to tokens.
+    allowedStyleValues: 'somewhat-strict',
+  },
   fonts: {
+    ...defaultConfig.fonts,
     body: oswaldFont,
     heading: oswaldFont,
   },
   media,
   themes: {
-    ...config.themes,
+    ...defaultConfig.themes,
     light: {
-      ...config.themes.light,
+      ...defaultConfig.themes.light,
       // LeClap brand colors
       color1: '#7C83FD', // primary - Bleu lavande
       color2: '#6A70E3', // primaryDark
@@ -121,7 +135,7 @@ const leClapConfig = createTamagui({
       info: '#2196F3',
     },
     dark: {
-      ...config.themes.dark,
+      ...defaultConfig.themes.dark,
       // Dark theme variations
       color1: '#7C83FD',
       color2: '#6A70E3',
@@ -162,20 +176,40 @@ const leClapConfig = createTamagui({
     },
   },
   tokens: {
-    ...config.tokens,
-    // Custom spacing tokens matching LeClap theme
+    ...defaultConfig.tokens,
+    // Brand colors as global tokens so `$primary`, `$primaryHover`, ... are
+    // type-valid anywhere. The light/dark themes still override these per-theme
+    // at runtime; the token value is the fallback / default-theme value.
+    color: {
+      primary: '#7C83FD',
+      primaryHover: '#6A70E3',
+      primaryPress: '#5A60D3',
+      primaryFocus: '#7C83FD',
+      secondary: '#FF8AAE',
+      secondaryHover: '#FF7A9E',
+      secondaryPress: '#FF6A8E',
+      accent: '#FFF685',
+      accentHover: '#FFF575',
+      accentPress: '#FFF465',
+      success: '#4CAF50',
+      error: '#F44336',
+      warning: '#FF9800',
+      info: '#2196F3',
+    },
+    // Custom spacing tokens matching LeClap theme.
+    // Keys are bare names (xs/s/m/...) and referenced in components as $xs/$s/$m.
     space: {
-      ...config.tokens.space,
-      $xs: 4,
-      $s: 8,
-      $m: 16,
-      $l: 24,
-      $xl: 32,
-      $xxl: 48,
+      ...defaultConfig.tokens.space,
+      xs: 4,
+      s: 8,
+      m: 16,
+      l: 24,
+      xl: 32,
+      xxl: 48,
     },
     // Custom radius tokens
     radius: {
-      ...config.tokens.radius,
+      ...defaultConfig.tokens.radius,
       0: 0,
       1: 4,
       2: 6,
@@ -187,7 +221,7 @@ const leClapConfig = createTamagui({
     },
     // Custom z-index tokens
     zIndex: {
-      ...config.tokens.zIndex,
+      ...defaultConfig.tokens.zIndex,
       0: 0,
       1: 100,
       2: 200,
@@ -203,6 +237,7 @@ export default leClapConfig;
 export type Conf = typeof leClapConfig;
 
 declare module '@tamagui/core' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface TamaguiCustomConfig extends Conf { }
+  interface TamaguiCustomConfig extends Conf {
+    _brand?: never;
+  }
 }

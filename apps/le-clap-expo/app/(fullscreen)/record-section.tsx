@@ -16,22 +16,175 @@ import { colors, spacing, typography } from '@/src/styles/theme';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
-// Helper function to parse JSON safely
-const safeJsonParse = (jsonString: string | undefined | null): unknown | null => {
+const safeJsonParse = (jsonString: string | undefined | null): unknown => {
   if (!jsonString) return null;
+
   try {
     return JSON.parse(jsonString);
-  } catch (e) {
-    console.error("Failed to parse JSON string:", e);
+  } catch (error) {
+    console.error("Failed to parse JSON string:", error);
+
     return null;
   }
 };
 
-// Helper function to format time
 const formatTime = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
+
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+interface RecordSectionHeaderProps {
+  section: Section;
+  isRecording: boolean;
+  recordingDuration: number;
+  onBack: () => void;
+}
+
+const RecordSectionHeader = ({
+  section,
+  isRecording,
+  recordingDuration,
+  onBack,
+}: RecordSectionHeaderProps) => (
+  <View style={styles.headerBar}>
+    <TouchableOpacity
+      style={styles.headerButton}
+      onPress={onBack}
+      disabled={isRecording}
+    >
+      <Ionicons name="arrow-back" size={24} color={isRecording ? "rgba(255,255,255,0.5)" : "white"} />
+      <Text style={[styles.headerButtonText, isRecording && { color: "rgba(255,255,255,0.5)" }]}>Back</Text>
+    </TouchableOpacity>
+
+    <View style={styles.headerTitleContainer}>
+      <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+        {section.title?.en ?? section.name}
+      </Text>
+    </View>
+
+    {isRecording && (
+      <View style={styles.timerContainer}>
+        <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
+        <View style={styles.recordingIndicator} />
+      </View>
+    )}
+  </View>
+);
+
+const buildUpdatedProject = (
+  project: NonNullable<ReturnType<typeof useProject>['data']>,
+  section: Section,
+  video: VideoFile,
+  orientation: 'portrait' | 'landscape',
+) => {
+  const isFirstSectionRecorded = Object.keys(project.recordedVideos).length === 0;
+
+  const updatedProject = {
+    ...project,
+    recordedVideos: {
+      ...project.recordedVideos,
+      [section.name]: {
+        path: video.path,
+        orientation: orientation,
+        duration: (video as unknown as { duration?: number }).duration,
+        width: (video as unknown as { width?: number }).width,
+        height: (video as unknown as { height?: number }).height,
+        recordedAt: new Date().toISOString(),
+      },
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (isFirstSectionRecorded) {
+    updatedProject.thumbnailUri = video.path;
+  }
+
+  return updatedProject;
+};
+
+const useOrientationLock = (orientation: 'portrait' | 'landscape') => {
+  const { lockOrientation, unlockOrientation } = useOrientation();
+
+  useEffect(() => {
+    lockOrientation(orientation).catch(console.error);
+
+    return () => {
+      unlockOrientation().catch(console.error);
+    };
+  }, [orientation, lockOrientation, unlockOrientation]);
+};
+
+const useRecordingTimer = (isRecording: boolean) => {
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isRecording) {
+      timerRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    }
+
+    if (!isRecording) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      setRecordingDuration(0);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isRecording]);
+
+  return recordingDuration;
+};
+
+interface NavigateAfterRecordingParams {
+  router: ReturnType<typeof useRouter>;
+  project: NonNullable<ReturnType<typeof useProject>['data']>;
+  section: Section;
+  video: VideoFile;
+  projectId: string;
+  orientation: 'portrait' | 'landscape';
+}
+
+const navigateAfterRecording = ({
+  router,
+  project,
+  section,
+  video,
+  projectId,
+  orientation,
+}: NavigateAfterRecordingParams) => {
+  const backToEditor = () => {
+    router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
+  };
+
+  const sections = project.templateContent.sections ?? [];
+  const currentSectionIndex = sections.findIndex((s: Section) => s.name === section.name);
+
+  // Only return to the editor when we can POSITIVELY confirm this was the last section
+  // (so the user can hit "Create video"). In every other case — including when the section
+  // isn't found because the project's stored template diverged from the live one — send the
+  // user to the preview screen so they can review / trim / crop the clip they just recorded.
+  const isLastSection = currentSectionIndex !== -1 && currentSectionIndex === sections.length - 1;
+
+  if (isLastSection) {
+    backToEditor();
+
+    return;
+  }
+
+  router.push({
+    pathname: '/(fullscreen)/preview',
+    params: { projectId, videoUri: video.path, orientation, sectionName: section.name },
+  });
 };
 
 const RecordSectionScreen = () => {
@@ -39,58 +192,30 @@ const RecordSectionScreen = () => {
   const params = useLocalSearchParams<{
     projectId: string;
     sectionJson: string;
-    orientation: 'portrait' | 'landscape';
+    orientation?: string;
     existingVideoPath?: string;
   }>();
 
   const projectId = params.projectId;
   const section = safeJsonParse(params.sectionJson) as Section | null;
-  const orientation = params.orientation || 'portrait';
+  const orientation: 'portrait' | 'landscape' =
+    params.orientation === 'landscape' ? 'landscape' : 'portrait';
   const existingVideoPath = params.existingVideoPath;
 
-  // Use Clean Architecture hooks
-  const { data: project } = useProject(projectId || '');
+  const { data: project } = useProject(projectId);
   const saveProjectMutation = useSaveProject();
 
   const [isRecording] = useState(false);
-  const [recordingDuration, setRecordingDuration] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingDuration = useRecordingTimer(isRecording);
 
-  const { lockOrientation, unlockOrientation } = useOrientation();
-
-  useEffect(() => {
-    lockOrientation(orientation); // Lock to the required orientation on mount
-    return () => {
-      unlockOrientation(); // Unlock on unmount
-    };
-  }, [orientation, lockOrientation, unlockOrientation]); // Depend on orientation and lock/unlock functions
-
-  // Timer logic
-  useEffect(() => {
-    if (isRecording) {
-      timerRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 1);
-      }, 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      setRecordingDuration(0); // Reset timer when not recording
-    }
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [isRecording]); // Depend on isRecording state
+  useOrientationLock(orientation);
 
   if (!projectId || !section) {
-    // Handle error: Missing required parameters
     console.error('RecordSectionScreen: Missing projectId or section data');
     Alert.alert('Error', 'Could not load recording screen. Missing data.', [
-      { text: 'OK', onPress: () => router.back() },
+      { text: 'OK', onPress: () => { router.back(); } },
     ]);
+
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Error loading recording screen.</Text>
@@ -99,69 +224,14 @@ const RecordSectionScreen = () => {
   }
 
   const handleVideoRecorded = async (video: VideoFile) => {
-    if (!projectId || !section || !project) return;
+    if (!project) return;
 
     try {
-      // Check if this is the first recorded section for this project
-      const isFirstSectionRecorded = Object.keys(project.recordedVideos).length === 0;
+      const updatedProject = buildUpdatedProject(project, section, video, orientation);
 
-      const updatedProject = {
-        ...project,
-        recordedVideos: {
-          ...project.recordedVideos,
-          [section.name]: {
-            path: video.path,
-            orientation: orientation,
-            // Add optional metadata if available
-            duration: (video as unknown as { duration?: number }).duration,
-            width: (video as unknown as { width?: number }).width,
-            height: (video as unknown as { height?: number }).height,
-            recordedAt: new Date().toISOString(),
-          },
-        },
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Use the video path as the thumbnail URI
-      if (isFirstSectionRecorded) {
-        updatedProject.thumbnailUri = video.path;
-      }
-
-      // Save the updated project using Clean Architecture
       await saveProjectMutation.mutateAsync(updatedProject);
-
-      const sections = project.templateContent?.sections;
-      if (!sections || sections.length === 0) {
-        console.error("Could not determine sections for navigation logic.");
-        router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
-        return;
-      }
-
-      const currentSectionIndex = sections.findIndex((s: Section) => s.name === section.name);
-
-      if (currentSectionIndex === -1) {
-        console.error("Could not find current section index in project sections.");
-        router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
-        return;
-      }
-
-      const isLastSection = currentSectionIndex === sections.length - 1;
-
-      if (isLastSection) {
-        router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
-      } else {
-        router.push({
-          pathname: '/(fullscreen)/preview',
-          params: {
-            projectId: projectId,
-            videoUri: video.path,
-            orientation: orientation,
-            sectionName: section.name,
-          },
-        });
-      }
-
-    } catch {
+      navigateAfterRecording({ router, project, section, video, projectId, orientation });
+    } catch (error) {
       console.error('Error saving recorded video:', error);
       Alert.alert('Error', 'Failed to save recorded video. Please try again.');
     }
@@ -169,42 +239,21 @@ const RecordSectionScreen = () => {
 
   return (
     <View style={styles.fullscreenContainer}>
-      <StatusBar hidden={true} />
+      <StatusBar hidden />
 
-      {/* Header Bar */}
-      <View style={styles.headerBar}>
-        {/* Back Button */}
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => router.back()}
-          disabled={isRecording} // Disable back button while recording
-        >
-          <Ionicons name="arrow-back" size={24} color={isRecording ? "rgba(255,255,255,0.5)" : "white"} />
-          <Text style={[styles.headerButtonText, isRecording && { color: "rgba(255,255,255,0.5)" }]}>Back</Text>
-        </TouchableOpacity>
-
-        {/* Title */}
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
-            {section.title?.en || section.name}
-          </Text>
-        </View>
-
-        {/* Timer */}
-        {isRecording && (
-          <View style={styles.timerContainer}>
-            <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
-            <View style={styles.recordingIndicator} />
-          </View>
-        )}
-      </View>
+      <RecordSectionHeader
+        section={section}
+        isRecording={isRecording}
+        recordingDuration={recordingDuration}
+        onBack={() => { router.back(); }}
+      />
 
       <VideoRecorder
         orientation={orientation}
-        onVideoRecorded={handleVideoRecorded}
+        onVideoRecorded={(video) => { handleVideoRecorded(video).catch(console.error); }}
         existingVideoUri={existingVideoPath}
         sectionDescription={section.description?.en}
-        fullscreen={true}
+        fullscreen
       />
     </View>
   );
@@ -221,8 +270,8 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 60 + (StatusBar.currentHeight || 0),
-    paddingTop: StatusBar.currentHeight || 0,
+    height: 60 + (StatusBar.currentHeight ?? 0),
+    paddingTop: StatusBar.currentHeight ?? 0,
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 5,
     flexDirection: 'row',
@@ -252,7 +301,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  // Timer styles
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -19,7 +19,7 @@ export class ProjectStatusHelper {
       [ProjectStatus.FAILED]: [ProjectStatus.DRAFT, ProjectStatus.PROCESSING], // Allow retry
     };
 
-    return transitions[currentStatus]?.includes(newStatus) ?? false;
+    return transitions[currentStatus].includes(newStatus);
   }
 
   static isTerminal(status: ProjectStatus): boolean {

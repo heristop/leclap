@@ -26,12 +26,12 @@ export function useInView<T extends HTMLElement = HTMLDivElement>({
   useEffect(() => {
     const el = ref.current;
 
-    if (!el) return;
+    if (!el) return () => {};
 
     if (typeof IntersectionObserver === 'undefined') {
       setInView(true);
 
-      return;
+      return () => {};
     }
 
     const observer = new IntersectionObserver(
@@ -41,7 +41,10 @@ export function useInView<T extends HTMLElement = HTMLDivElement>({
             setInView(true);
 
             if (once) observer.unobserve(entry.target);
-          } else if (!once) {
+            continue;
+          }
+
+          if (!once) {
             setInView(false);
           }
         }

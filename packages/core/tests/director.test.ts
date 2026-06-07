@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { ProjectConfig } from '@/core/types';
+import type { ProjectConfig } from '@/core/types';
 import { compile, loadConfig } from '@/index';
 import { main } from '@/main';
 

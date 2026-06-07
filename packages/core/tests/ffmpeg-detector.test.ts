@@ -11,12 +11,14 @@ describe('FFmpegDetector', () => {
       expect(Object.values(FFmpegAvailability)).toContain(result.availability);
 
       // If FFmpeg is available, should have version info
-      if (result.availability !== FFmpegAvailability.NONE) {
-        expect(result.version).toBeDefined();
-        expect(result.path).toBeDefined();
-      } else {
+      if (result.availability === FFmpegAvailability.NONE) {
         expect(result.error).toBeDefined();
+
+        return;
       }
+
+      expect(result.version).toBeDefined();
+      expect(result.path).toBeDefined();
     });
   });
 

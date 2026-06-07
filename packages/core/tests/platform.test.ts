@@ -11,6 +11,19 @@ import { FFmpegDetector, FFmpegAvailability } from '@/platform/ffmpeg/FFmpegDete
 // Mock the FFmpegDetector to avoid depending on actual FFmpeg installation
 vi.mock('@/platform/ffmpeg/FFmpegDetector');
 
+// Mock FFmpegWasmAdapter to avoid WASM initialization in Node.js
+vi.mock('@/platform/ffmpeg/FFmpegWasmAdapter', () => {
+  class MockFFmpegWasmAdapter {
+    execute = vi.fn();
+    getInfos = vi.fn();
+    waitForReady = vi.fn();
+  }
+
+  return {
+    default: MockFFmpegWasmAdapter,
+  };
+});
+
 describe('PlatformBridge', () => {
   let platformBridge: PlatformBridge;
 
@@ -23,7 +36,7 @@ describe('PlatformBridge', () => {
   describe('create', () => {
     it('should create an FFmpegNodeAdapter when system ffmpeg is available', async () => {
       // Mock system FFmpeg detection
-      vi.mocked(FFmpegDetector.detect).mockResolvedValue({
+      vi.mocked(FFmpegDetector).detect.mockResolvedValue({
         availability: FFmpegAvailability.SYSTEM,
         version: '8.0',
         path: 'system',
@@ -35,7 +48,7 @@ describe('PlatformBridge', () => {
 
     it('should create an FFmpegStaticAdapter when only static ffmpeg is available', async () => {
       // Mock static FFmpeg detection
-      vi.mocked(FFmpegDetector.detect).mockResolvedValue({
+      vi.mocked(FFmpegDetector).detect.mockResolvedValue({
         availability: FFmpegAvailability.STATIC,
         version: '6.0',
         path: '/path/to/static/ffmpeg',
@@ -47,7 +60,7 @@ describe('PlatformBridge', () => {
 
     it('should create an FFmpegWasmAdapter when only WebAssembly ffmpeg is available', async () => {
       // Mock WebAssembly FFmpeg detection
-      vi.mocked(FFmpegDetector.detect).mockResolvedValue({
+      vi.mocked(FFmpegDetector).detect.mockResolvedValue({
         availability: FFmpegAvailability.WASM,
         version: '0.12.x (WebAssembly)',
         path: 'wasm',
@@ -59,7 +72,7 @@ describe('PlatformBridge', () => {
 
     it('should throw an error when no ffmpeg implementation is available', async () => {
       // Mock no FFmpeg available
-      vi.mocked(FFmpegDetector.detect).mockResolvedValue({
+      vi.mocked(FFmpegDetector).detect.mockResolvedValue({
         availability: FFmpegAvailability.NONE,
         error: 'No FFmpeg found',
       });

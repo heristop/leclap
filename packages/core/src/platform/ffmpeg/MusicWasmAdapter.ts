@@ -1,6 +1,7 @@
-import { injectable } from 'tsyringe';
+import { container, injectable } from 'tsyringe';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
+import type AbstractFFmpeg from './AbstractFFmpeg';
 import type AbstractMusic from './AbstractMusic';
 
 interface ProcessResult {
@@ -10,25 +11,26 @@ interface ProcessResult {
 @injectable()
 class MusicWasmAdapter implements AbstractMusic {
   /**
-   * Note: Looping functionality not yet implemented in browser
+   * Loop the background track to cover the full video length, in the browser.
+   * Probes duration via the WASM FFmpeg adapter; if the track is shorter than the
+   * video, `-stream_loop`s it and writes the result back over `musicPath`.
    */
   process = async (
     logger: AbstractLogger,
-    _filesystemAdapter: AbstractFilesystem,
+    filesystemAdapter: AbstractFilesystem,
     totalLength: number,
     musicPath: string
   ): Promise<ProcessResult> => {
     try {
-      logger.info(`[MusicWasmAdapter] Processing music file: ${musicPath}`);
-      logger.info(`[MusicWasmAdapter] Target length: ${totalLength} seconds`);
+      const ffmpeg = container.resolve<AbstractFFmpeg>('ffmpegAdapter');
+      const musicLength = (await ffmpeg.getInfos(musicPath)).duration ?? 0;
+      logger.info(`[MusicWasmAdapter] Duration: ${musicLength} / ${totalLength}`);
 
-      // Full music processing for browser is not yet implemented:
-      // 1. Load the music file from IndexedDB
-      // 2. Use FFmpeg WASM to get duration
-      // 3. Use FFmpeg WASM to loop if necessary
-      // 4. Store the processed file back to IndexedDB
+      if (musicLength <= 0 || musicLength >= totalLength) {
+        return { rc: 0 };
+      }
 
-      logger.info(`[MusicWasmAdapter] Music processing completed (placeholder)`);
+      await this.loopToLength(ffmpeg, logger, filesystemAdapter, totalLength, musicPath);
 
       return { rc: 0 };
     } catch (error: unknown) {
@@ -43,6 +45,28 @@ class MusicWasmAdapter implements AbstractMusic {
       throw error;
     }
   };
+
+  private async loopToLength(
+    ffmpeg: AbstractFFmpeg,
+    logger: AbstractLogger,
+    filesystemAdapter: AbstractFilesystem,
+    totalLength: number,
+    musicPath: string
+  ): Promise<void> {
+    const buildDir = filesystemAdapter.getBuildDir() ?? '/tmp/build';
+    const loopPath = `${buildDir}/loop_music.mp3`;
+    const command = ` -y -stream_loop -1 -i ${musicPath} -t ${totalLength} -c copy ${loopPath} `;
+    logger.debug(`[MusicWasmAdapter][Command] ffmpeg ${command}`);
+
+    const result = await ffmpeg.execute(command);
+
+    if (result.rc !== 0) {
+      throw new Error('Failed to loop music in browser');
+    }
+
+    await filesystemAdapter.move(loopPath, musicPath);
+    logger.info('[MusicWasmAdapter][Loop] ffmpeg process completed');
+  }
 }
 
 export default MusicWasmAdapter;

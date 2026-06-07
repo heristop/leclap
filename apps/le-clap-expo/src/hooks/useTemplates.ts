@@ -1,7 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTemplates } from '@/src/services/api';
 import type { Template } from '@/src/types';
-import { getCachedTemplates, cacheTemplates, isTemplatesCacheStale } from '@/src/services/storage';
 import { hasInternetConnection } from '@/src/services/network';
 import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
 import { buildCatalog, findInCatalog } from '@/src/templates/catalog';
@@ -46,46 +44,34 @@ export const useTemplate = (templateName: string) => {
 };
 
 /**
- * Force refresh templates from server
+ * "Refresh" is a no-op against a local catalog (nothing to fetch). Kept so callers like
+ * OfflineProvider keep working; it just re-derives the catalog and invalidates the queries.
  */
 export const useRefreshTemplates = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (): Promise<Template[]> => {
-      const freshTemplates = await fetchTemplates();
-      await cacheTemplates(freshTemplates);
-
-      return freshTemplates;
-    },
-    onSuccess: async (data) => {
-      queryClient.setQueryData(['templates'], data);
-      // Also invalidate individual template queries
+    mutationFn: async (): Promise<Template[]> => buildCatalog(useUserTemplateStore.getState().templates),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['templates'] });
       await queryClient.invalidateQueries({ queryKey: ['template'] });
     },
   });
 };
 
 /**
- * Get templates sync status
+ * Sync status for a serverless catalog: there is nothing to sync, so `needsSync` is always
+ * false. `isOnline` is still surfaced for the offline indicator.
  */
 export const useTemplatesSyncStatus = () => {
   return useQuery({
     queryKey: ['templates-sync-status'],
-    queryFn: async () => {
-      const [hasCache, isCacheStale, isOnline] = await Promise.all([
-        getCachedTemplates().then((cache) => Boolean(cache)),
-        isTemplatesCacheStale(),
-        hasInternetConnection(),
-      ]);
-
-      return {
-        hasCache,
-        isCacheStale,
-        isOnline,
-        needsSync: isCacheStale && isOnline,
-      };
-    },
-    refetchInterval: 30000, // Check every 30 seconds
+    queryFn: async () => ({
+      hasCache: true,
+      isCacheStale: false,
+      isOnline: await hasInternetConnection(),
+      needsSync: false,
+    }),
+    refetchInterval: 30000, // Refresh the online indicator periodically
   });
 };

@@ -2,7 +2,7 @@
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.x-brightgreen.svg)](https://nodejs.org/en/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`ffmpeg-video-composer` is a tool designed to streamline the process of video compilation and audio mixing using FFmpeg. It enables dynamic template generation, video rendering, and audio composition for creating personalized multimedia content programmatically.
+`ffmpeg-video-composer` is a tool for video compilation and audio mixing using FFmpeg. It supports dynamic template generation, video rendering, and audio composition for creating personalized multimedia content programmatically.
 
 ## 🎥 Demo
 
@@ -15,7 +15,7 @@ https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 ## 🚀 Features
 
 - ✅ **Cross-platform FFmpeg support** (Node.js, Browser, React Native ready)
-- ✅ **Automatic FFmpeg detection** with intelligent fallbacks
+- ✅ **Automatic FFmpeg detection** with ordered fallbacks
 - ✅ **Optional static FFmpeg bundling** for zero-configuration setup
 - ✅ **Browser support via WebAssembly** (no server required)
 - ✅ Dynamic video and audio template generation
@@ -29,7 +29,7 @@ https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 
 ## 🌍 Platform Support
 
-This package provides **intelligent FFmpeg support** across multiple platforms with automatic fallback mechanisms:
+This package provides **FFmpeg support** across multiple platforms with automatic fallbacks:
 
 ### **Automatic FFmpeg Detection**
 
@@ -206,7 +206,7 @@ mise exec -- pnpm test
 
 ## 📱 LeClap Expo App
 
-The repository includes a modern Expo client (`apps/le-clap-expo`) that provides an intuitive mobile interface for the video composer workflow on device or simulator.
+The repository includes an Expo client (`apps/le-clap-expo`) that provides a mobile interface for the video composer workflow on device or simulator.
 
 <img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap App" width="300" />
 
@@ -237,6 +237,16 @@ pnpm playground:android
 # Run on iOS
 pnpm playground:ios
 ```
+
+## 🌐 LeClap Web App
+
+The repository also includes a web client (`apps/le-clap-web`) — React 19 + Vite + Tailwind — that runs FFmpeg **entirely in the browser** via WebAssembly, with no server required (2 GB input limit).
+
+```bash
+pnpm playground:web
+```
+
+This starts the Vite dev server; open the printed URL to compose videos client-side.
 
 ## 📚 Documentation
 

@@ -1,0 +1,41 @@
+Media credits — le-clap web app
+================================
+
+These curated assets are bundled under public/ for the template editor's
+"Background music" and "Background image" pickers. In-app, each item also shows
+its author and license next to the preview.
+
+MUSIC (public/musics/)
+----------------------
+- Go by Ocean — Ryan McCaffrey
+  Bundled sample.
+  Source: https://github.com/heristop/ffmpeg-video-composer
+
+- Americana — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100254
+
+- Arcadia — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100291
+
+- Anxiety — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100288
+
+Tracks are trimmed to ~75s to keep the bundle small; the composer loops them to
+cover the full video length.
+
+BACKGROUNDS (public/backgrounds/)
+---------------------------------
+Photos from Unsplash (sourced via Lorem Picsum), free to use under the Unsplash
+License — https://unsplash.com/license
+
+- Forest & Sea — Paul Jarvis — https://unsplash.com/photos/6J--NXulQCs
+- Desk Flatlay — Aleks Dorohovich — https://unsplash.com/photos/nJdwUHmaY8A
+- Green Forest — Jerry Adney — https://unsplash.com/photos/_WiFMBRT7Aw
+- Rocky Coast — Austin Neill — https://unsplash.com/photos/erTjj730fMk
+- Laptop Desk — Luke Chesser — https://unsplash.com/photos/1uxV8fAfhVM
+- Golden Hour — Alexander Shustov — https://unsplash.com/photos/2FrX56QL7P8
+
+Keep this file in sync with apps/le-clap-web/src/data/mediaCatalog.ts.

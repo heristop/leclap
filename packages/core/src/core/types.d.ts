@@ -96,6 +96,7 @@ interface SectionOptions {
   videoUrl?: string;
   logoUrl?: string;
   backgroundUrl?: string;
+  pictureUrl?: string;
   backgroundColor?: string;
   forceAspectRatio?: boolean;
   forceOriginalAspectRatio?: boolean;

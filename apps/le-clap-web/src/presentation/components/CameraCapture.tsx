@@ -33,9 +33,9 @@ const CameraTopBar = ({ mode, elapsed, onCancel, onSwitchCamera }: TopBarProps) 
       </Button>
 
       {mode === 'recording' && (
-        <div className="fade-in flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 border border-foreground/10 shadow-lg">
-          <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-error)] animate-pulse" />
-          <span className="text-sm font-semibold text-foreground tabular-nums">{formatElapsed(elapsed)}</span>
+        <div className="fade-in flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/70 ring-1 ring-white/20 shadow-lg shadow-black/40">
+          <span className="w-3 h-3 rounded-full bg-[var(--color-error)] animate-pulse shadow-[0_0_10px_2px_oklch(0.643_0.215_28.8/0.6)]" />
+          <span className="text-lg font-bold text-white tabular-nums tracking-tight">{formatElapsed(elapsed)}</span>
         </div>
       )}
 
@@ -194,7 +194,7 @@ export const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
   const camera = useCameraCapture(onCapture, onClose);
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col fade-in safe-b">
+    <div className="dark fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col fade-in safe-b">
       <CameraTopBar
         mode={camera.mode}
         elapsed={camera.elapsed}

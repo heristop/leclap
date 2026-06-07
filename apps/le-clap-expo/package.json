@@ -9,7 +9,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "oxlint . -c .oxlintrc.json",
-    "test": "jest --watchAll"
+    "test": "jest -c jest.unit.config.cjs",
+    "test:watch": "jest -c jest.unit.config.cjs --watch",
+    "test:unit": "jest -c jest.unit.config.cjs",
+    "test:unit:watch": "jest -c jest.unit.config.cjs --watch"
   },
   "dependencies": {
     "@expo-google-fonts/oswald": "^0.4.2",

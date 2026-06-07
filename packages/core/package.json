@@ -23,7 +23,9 @@
     "build": "tsdown",
     "build:watch": "tsdown --watch",
     "lint": "oxlint src -c .oxlintrc.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",

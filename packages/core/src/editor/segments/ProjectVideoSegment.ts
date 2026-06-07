@@ -11,6 +11,14 @@ class ProjectVideo extends SegmentBuilder {
       this.command = ` -y ${this.addBlankAudio()} `;
     }
 
+    this.logger.info(`[ProjectVideo] Configuring project_video section: ${this.section.name}`);
+
+    if (this.project.config.userVideoPaths) {
+      this.logger.info('[ProjectVideo] Available userVideoPaths:', {
+        paths: Object.keys(this.project.config.userVideoPaths),
+      });
+    }
+
     if (this.project.config.userVideoPaths?.[this.section.name]) {
       this.source = this.project.config.userVideoPaths[this.section.name];
     }

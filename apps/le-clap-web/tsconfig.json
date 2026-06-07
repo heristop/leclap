@@ -4,7 +4,11 @@
     "useDefineForClassFields": true,
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "paths": { "@/*": ["./src/*"] },
+    "paths": {
+      "@/core/*": ["../../packages/core/src/core/*"],
+      "@/*": ["./src/*"]
+    },
+    "types": ["node", "vite/client"],
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

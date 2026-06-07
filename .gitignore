@@ -9,3 +9,7 @@ dist
 .playwright-mcp
 test-results
 playwright-report
+
+# local smoke-test / preview screenshots
+*-smoke.png
+form-banner-*.png

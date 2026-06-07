@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '@/src/hooks/useTemplates';
@@ -29,6 +30,11 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
       });
     };
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(navigate).catch(navigate);
+  };
+
+  const goCreateTemplate = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    router.push('/(fullscreen)/create-template');
   };
 
   if (isLoading && templates.length === 0) {
@@ -82,6 +88,16 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         screenTitle="Scenarios"
         subtitle={isOffline ? '📴 Browsing cached templates (offline)' : 'Select a scenario to create your video'}
       />
+
+      <TouchableOpacity
+        testID="create-template-fab"
+        onPress={goCreateTemplate}
+        style={styles.fab}
+        activeOpacity={0.85}
+        accessibilityLabel="Create a template"
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };

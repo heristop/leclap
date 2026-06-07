@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.3",
+    "fake-indexeddb": "^6.2.5",
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3"
   },

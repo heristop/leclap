@@ -15,9 +15,7 @@ function EmptyState() {
     <View style={styles.emptyContainer}>
       <Ionicons name="videocam-outline" size={64} color={colors.divider} />
       <Text style={styles.emptyTitle}>No videos yet</Text>
-      <Text style={styles.emptyText}>
-        Start by creating a new video from the Scenarios tab
-      </Text>
+      <Text style={styles.emptyText}>Start by creating a new video from the Scenarios tab</Text>
     </View>
   );
 }
@@ -37,15 +35,17 @@ function useProjectsScreenState() {
     });
   })();
 
-  useFocusEffect(
-    () => {
-      loadProjects().catch(console.error);
-    }
-  );
+  useFocusEffect(() => {
+    loadProjects().catch(console.error);
+  });
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadProjects().then(() => { setRefreshing(false); }).catch(console.error);
+    loadProjects()
+      .then(() => {
+        setRefreshing(false);
+      })
+      .catch(console.error);
   };
 
   const handleDeleteProject = async (projectId: string) => {
@@ -58,8 +58,8 @@ function useProjectsScreenState() {
         pathname: '/(fullscreen)/preview',
         params: {
           projectId: project.id,
-          videoUri: project.outputVideoUri
-        }
+          videoUri: project.outputVideoUri,
+        },
       });
 
       return;
@@ -69,14 +69,16 @@ function useProjectsScreenState() {
       pathname: '/(app)/template/[id]',
       params: {
         id: project.templateName,
-        projectId: project.id
-      }
+        projectId: project.id,
+      },
     });
   };
 
   const handleDeleteAllProjects = () => {
     deleteAllProjects()
-      .then(() => { setShowDeleteAllDialog(false); })
+      .then(() => {
+        setShowDeleteAllDialog(false);
+      })
       .catch((error: unknown) => {
         console.error('Error deleting all projects:', error);
         Alert.alert('Error', 'Failed to delete all projects. Please try again.');
@@ -112,54 +114,60 @@ export default function ProjectsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
-      <Text style={styles.screenTitle}>My Videos</Text>
+        <Text style={styles.screenTitle}>My Videos</Text>
 
-      <TouchableOpacity
-        style={styles.createNewButton}
-        onPress={() =>{ router.push('/(app)'); }}
-      >
-        <Ionicons name="add-circle" size={22} color="white" />
-        <Text style={styles.createNewButtonText}>Create New Video</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.createNewButton}
+          onPress={() => {
+            router.push('/(app)');
+          }}
+        >
+          <Ionicons name="add-circle" size={22} color="white" />
+          <Text style={styles.createNewButtonText}>Create New Video</Text>
+        </TouchableOpacity>
 
-      <FlatList
-        data={projects}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <SwipeableProjectItem
-            project={item}
-            onPress={() =>{ handleProjectPress(item); }}
-            onDelete={() => handleDeleteProject(item.id)}
-          />
-        )}
-        ListEmptyComponent={<EmptyState />}
-        contentContainerStyle={projects.length === 0 ? styles.emptyList : styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary, colors.secondary]}
-            tintColor={colors.primary}
-          />
-        }
-        windowSize={21}
-        maxToRenderPerBatch={5}
-        updateCellsBatchingPeriod={50}
-        initialNumToRender={10}
-      />
+        <FlatList
+          data={projects}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <SwipeableProjectItem
+              project={item}
+              onPress={() => {
+                handleProjectPress(item);
+              }}
+              onDelete={() => handleDeleteProject(item.id)}
+            />
+          )}
+          ListEmptyComponent={<EmptyState />}
+          contentContainerStyle={projects.length === 0 ? styles.emptyList : styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary, colors.secondary]}
+              tintColor={colors.primary}
+            />
+          }
+          windowSize={21}
+          maxToRenderPerBatch={5}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+        />
 
-      {/* Delete All Confirmation Dialog */}
-      <ConfirmDialog
-        visible={showDeleteAllDialog}
-        title="Delete All Projects"
-        message="Are you sure you want to delete all your videos? This action cannot be undone."
-        confirmText="Delete All"
-        cancelText="Cancel"
-        confirmIconName="trash"
-        confirmType="danger"
-        onConfirm={handleDeleteAllProjects}
-        onCancel={() =>{ setShowDeleteAllDialog(false); }}
-      />
+        {/* Delete All Confirmation Dialog */}
+        <ConfirmDialog
+          visible={showDeleteAllDialog}
+          title="Delete All Projects"
+          message="Are you sure you want to delete all your videos? This action cannot be undone."
+          confirmText="Delete All"
+          cancelText="Cancel"
+          confirmIconName="trash"
+          confirmType="danger"
+          onConfirm={handleDeleteAllProjects}
+          onCancel={() => {
+            setShowDeleteAllDialog(false);
+          }}
+        />
       </View>
     </SafeAreaView>
   );

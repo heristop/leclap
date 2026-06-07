@@ -27,7 +27,7 @@ class AssetManager {
 
     @inject('logger') private readonly logger: AbstractLogger,
     @inject('filesystemAdapter') private readonly filesystemAdapter: AbstractFilesystem
-  ) { }
+  ) {}
 
   private get inputsCache(): InputsCache {
     return this.template.assets.inputs as unknown as InputsCache;
@@ -105,9 +105,7 @@ class AssetManager {
     // Check url format
     // Allow HTTP URLs and local paths starting with /
     if (!/^http/.exec(item.url) && !item.url.startsWith('/')) {
-      throw new Error(
-        `[${this.segment.currentSection?.name}][Assets] Url for ${item.name} is not valid: ${item.url}`
-      );
+      throw new Error(`[${this.segment.currentSection?.name}][Assets] Url for ${item.name} is not valid: ${item.url}`);
     }
 
     const isZipAnimation = item.type === 'frame' && new RegExp('(.*?).(zip)$').test(item.url);
@@ -128,9 +126,7 @@ class AssetManager {
     if (isPngAnimation) {
       // Process png animation
       await Promise.all(
-        Array.from({ length: item.options.frames }, (_, idx) => idx + 1).map((i) =>
-          this.fetchMedia(item, i)
-        )
+        Array.from({ length: item.options.frames }, (_, idx) => idx + 1).map((i) => this.fetchMedia(item, i))
       );
 
       return;

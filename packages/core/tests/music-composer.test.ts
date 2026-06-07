@@ -47,12 +47,14 @@ function makeFilesystem() {
 
 let musicAdapter: { process: ReturnType<typeof vi.fn> };
 
-function makeComposer(opts: {
-  project?: ReturnType<typeof makeProject>;
-  template?: ReturnType<typeof makeTemplate>;
-  filesystem?: ReturnType<typeof makeFilesystem>;
-  ffmpeg?: { execute: ReturnType<typeof vi.fn>; getInfos?: ReturnType<typeof vi.fn> };
-} = {}) {
+function makeComposer(
+  opts: {
+    project?: ReturnType<typeof makeProject>;
+    template?: ReturnType<typeof makeTemplate>;
+    filesystem?: ReturnType<typeof makeFilesystem>;
+    ffmpeg?: { execute: ReturnType<typeof vi.fn>; getInfos?: ReturnType<typeof vi.fn> };
+  } = {}
+) {
   const project = opts.project ?? makeProject();
   const template = opts.template ?? makeTemplate();
   const filesystem = opts.filesystem ?? makeFilesystem();

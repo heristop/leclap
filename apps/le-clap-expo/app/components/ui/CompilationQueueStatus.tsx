@@ -16,9 +16,7 @@ function getStatusColor(status: string): string {
   return colors.textSecondary;
 }
 
-function getStatusIcon(
-  status: string,
-): 'time-outline' | 'sync' | 'alert-circle-outline' | 'help-circle-outline' {
+function getStatusIcon(status: string): 'time-outline' | 'sync' | 'alert-circle-outline' | 'help-circle-outline' {
   if (status === 'pending') return 'time-outline';
 
   if (status === 'processing') return 'sync';
@@ -40,7 +38,13 @@ function fireAndForget(promise: Promise<unknown>): void {
   promise.catch((_err) => {});
 }
 
-type QueueItem = { id: string; projectId: string; status: string; retryCount: number; createdAt: string | number | Date };
+type QueueItem = {
+  id: string;
+  projectId: string;
+  status: string;
+  retryCount: number;
+  createdAt: string | number | Date;
+};
 type RetryMutation = ReturnType<typeof useRetryQueueItem>;
 type RemoveMutation = ReturnType<typeof useRemoveQueueItem>;
 
@@ -115,7 +119,9 @@ function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, is
           )}
         </View>
         <View style={styles.queueItemInfo}>
-          <Text style={styles.queueItemTitle} numberOfLines={1}>Project: {item.projectId.substring(0, 8)}...</Text>
+          <Text style={styles.queueItemTitle} numberOfLines={1}>
+            Project: {item.projectId.substring(0, 8)}...
+          </Text>
           <Text style={styles.queueItemStatus}>{getStatusLabel(item.status, item.retryCount)}</Text>
           <Text style={styles.queueItemTime}>
             Added {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -124,12 +130,24 @@ function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, is
       </View>
       <View style={styles.queueItemActions}>
         {item.status === 'failed' && (
-          <TouchableOpacity style={[styles.actionButton, styles.retryButton]} onPress={() => { onRetry(item.id); }} disabled={isRetryPending}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.retryButton]}
+            onPress={() => {
+              onRetry(item.id);
+            }}
+            disabled={isRetryPending}
+          >
             <Ionicons name="refresh" size={16} color={colors.primary} />
             <Text style={styles.actionButtonText}>Retry</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={[styles.actionButton, styles.removeButton]} onPress={() => { onRemove(item.id); }} disabled={isRemovePending}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.removeButton]}
+          onPress={() => {
+            onRemove(item.id);
+          }}
+          disabled={isRemovePending}
+        >
           <Ionicons name="trash-outline" size={16} color={colors.error} />
           <Text style={[styles.actionButtonText, { color: colors.error }]}>Remove</Text>
         </TouchableOpacity>
@@ -141,15 +159,18 @@ function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, is
 type QueueHeaderProps = { pendingCount: number; isOffline: boolean; isExpanded: boolean; onToggle: () => void };
 
 function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle }: QueueHeaderProps) {
-  const label = pendingCount === 0
-    ? 'No videos in queue'
-    : `${pendingCount} video${pendingCount === 1 ? '' : 's'} queued`;
+  const label =
+    pendingCount === 0 ? 'No videos in queue' : `${pendingCount} video${pendingCount === 1 ? '' : 's'} queued`;
 
   return (
     <TouchableOpacity style={styles.header} onPress={onToggle} activeOpacity={0.7}>
       <View style={styles.headerIcon}>
         <Ionicons name="cloud-upload-outline" size={20} color={colors.primary} />
-        {pendingCount > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{pendingCount}</Text></View>}
+        {pendingCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{pendingCount}</Text>
+          </View>
+        )}
       </View>
       <View style={styles.headerTextContainer}>
         <Text style={styles.headerText}>{label}</Text>
@@ -157,8 +178,17 @@ function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle }: QueueHea
           {isOffline ? '📴 Will process when online' : '🌐 Processing when possible'}
         </Text>
       </View>
-      {isOffline && <View style={styles.offlineBadge}><Text style={styles.offlineBadgeText}>Offline</Text></View>}
-      <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} style={styles.expandIcon} />
+      {isOffline && (
+        <View style={styles.offlineBadge}>
+          <Text style={styles.offlineBadgeText}>Offline</Text>
+        </View>
+      )}
+      <Ionicons
+        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+        size={16}
+        color={colors.textSecondary}
+        style={styles.expandIcon}
+      />
     </TouchableOpacity>
   );
 }
@@ -166,10 +196,11 @@ function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle }: QueueHea
 function QueueFooter({ isOffline }: { isOffline: boolean }) {
   return (
     <View style={styles.queueSummary}>
-      {isOffline
-        ? <Text style={styles.offlineMessage}>📱 Offline: Videos will process automatically when connected</Text>
-        : <Text style={styles.onlineMessage}>🌐 Online: Processing queue in background</Text>
-      }
+      {isOffline ? (
+        <Text style={styles.offlineMessage}>📱 Offline: Videos will process automatically when connected</Text>
+      ) : (
+        <Text style={styles.onlineMessage}>🌐 Online: Processing queue in background</Text>
+      )}
     </View>
   );
 }
@@ -203,15 +234,24 @@ function CompilationQueueStatus() {
 
   return (
     <View style={styles.container}>
-      <QueueHeader pendingCount={pendingCompilations.length} isOffline={isOffline} isExpanded={isExpanded} onToggle={toggleExpanded} />
+      <QueueHeader
+        pendingCount={pendingCompilations.length}
+        isOffline={isOffline}
+        isExpanded={isExpanded}
+        onToggle={toggleExpanded}
+      />
       <Animated.View style={animContainerStyle}>
         {visibleItems.map((item) => (
           <QueueItemView
             key={item.id}
             item={item}
             expandAnim={expandAnim}
-            onRetry={(id) => { handleRetry(id, isOffline, retryQueueItem); }}
-            onRemove={(id) => { handleRemove(id, removeQueueItem); }}
+            onRetry={(id) => {
+              handleRetry(id, isOffline, retryQueueItem);
+            }}
+            onRemove={(id) => {
+              handleRemove(id, removeQueueItem);
+            }}
             isRetryPending={retryQueueItem.isPending}
             isRemovePending={removeQueueItem.isPending}
           />
@@ -219,7 +259,9 @@ function CompilationQueueStatus() {
       </Animated.View>
       {!isExpanded && hiddenCount > 0 && (
         <TouchableOpacity style={styles.showMoreButton} onPress={toggleExpanded}>
-          <Text style={styles.showMoreText}>👆 Tap to show {hiddenCount} more item{hiddenCount === 1 ? '' : 's'}</Text>
+          <Text style={styles.showMoreText}>
+            👆 Tap to show {hiddenCount} more item{hiddenCount === 1 ? '' : 's'}
+          </Text>
         </TouchableOpacity>
       )}
       {pendingCompilations.length > 0 && <QueueFooter isOffline={isOffline} />}
@@ -261,7 +303,13 @@ const styles = StyleSheet.create({
   headerTextContainer: { flex: 1 },
   headerText: { ...typography.subtitle, marginBottom: 2 },
   headerSubtext: { ...typography.caption, fontSize: 12, color: colors.textSecondary },
-  offlineBadge: { backgroundColor: colors.error, paddingHorizontal: spacing.s, paddingVertical: spacing.xs / 2, borderRadius: 12, marginRight: spacing.s },
+  offlineBadge: {
+    backgroundColor: colors.error,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: 12,
+    marginRight: spacing.s,
+  },
   offlineBadgeText: { color: 'white', fontSize: 10, fontWeight: '600' },
   expandIcon: { marginLeft: spacing.xs },
   itemsContainer: { overflow: 'hidden' },
@@ -283,13 +331,32 @@ const styles = StyleSheet.create({
   queueItemStatus: { ...typography.caption, color: colors.textSecondary, marginBottom: 2 },
   queueItemTime: { ...typography.caption, fontSize: 11, color: colors.textSecondary, fontStyle: 'italic' },
   queueItemActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.s },
-  actionButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.m, paddingVertical: spacing.s, borderRadius: 8, gap: spacing.xs },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderRadius: 8,
+    gap: spacing.xs,
+  },
   retryButton: { backgroundColor: `${colors.primary}15`, borderWidth: 1, borderColor: `${colors.primary}30` },
   removeButton: { backgroundColor: `${colors.error}10`, borderWidth: 1, borderColor: `${colors.error}20` },
   actionButtonText: { ...typography.caption, fontWeight: '500', fontSize: 12 },
-  showMoreButton: { alignItems: 'center', paddingVertical: spacing.m, borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: `${colors.background}20` },
+  showMoreButton: {
+    alignItems: 'center',
+    paddingVertical: spacing.m,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    backgroundColor: `${colors.background}20`,
+  },
   showMoreText: { ...typography.caption, color: colors.primary, fontWeight: '500' },
-  queueSummary: { paddingHorizontal: spacing.m, paddingVertical: spacing.s, borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: `${colors.background}30` },
+  queueSummary: {
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    backgroundColor: `${colors.background}30`,
+  },
   offlineMessage: { ...typography.caption, color: colors.warning, textAlign: 'center', fontStyle: 'italic' },
   onlineMessage: { ...typography.caption, color: colors.success, textAlign: 'center', fontStyle: 'italic' },
 });

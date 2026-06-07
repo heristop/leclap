@@ -25,23 +25,26 @@ const TemplateList: React.FC<TemplateListProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  
-  const filteredTemplates = templates.filter(template => {
+
+  const filteredTemplates = templates.filter((template) => {
     const searchTerms = searchQuery.toLowerCase();
-    
+
     // Search in template name
     if (template.name.toLowerCase().includes(searchTerms)) {
       return true;
     }
-    
+
     // Search in section titles and descriptions
-    if (template.content.sections?.some(section =>
-      (section.title?.en.toLowerCase() ?? '').includes(searchTerms) ||
-      (section.description?.en.toLowerCase() ?? '').includes(searchTerms)
-    )) {
+    if (
+      template.content.sections?.some(
+        (section) =>
+          (section.title?.en.toLowerCase() ?? '').includes(searchTerms) ||
+          (section.description?.en.toLowerCase() ?? '').includes(searchTerms)
+      )
+    ) {
       return true;
     }
-    
+
     return false;
   });
 
@@ -86,7 +89,9 @@ const TemplateList: React.FC<TemplateListProps> = ({
             size={20}
             color={colors.textSecondary}
             style={styles.clearIcon}
-            onPress={() =>{  setSearchQuery(''); }}
+            onPress={() => {
+              setSearchQuery('');
+            }}
           />
         )}
       </View>
@@ -96,12 +101,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
   return (
     <FlatList
       data={filteredTemplates}
-      renderItem={({ item }) => (
-        <TemplateCard
-          template={item}
-          onPress={onSelectTemplate}
-        />
-      )}
+      renderItem={({ item }) => <TemplateCard template={item} onPress={onSelectTemplate} />}
       keyExtractor={(item) => item.name}
       numColumns={2}
       contentContainerStyle={styles.list}
@@ -111,9 +111,11 @@ const TemplateList: React.FC<TemplateListProps> = ({
         onRefresh ? (
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { handleRefresh().catch(() => null); }}
+            onRefresh={() => {
+              handleRefresh().catch(() => null);
+            }}
             tintColor={colors.primary}
-            title={isOffline ? "Pull to sync when online" : "Pull to refresh"}
+            title={isOffline ? 'Pull to sync when online' : 'Pull to refresh'}
             titleColor={colors.textSecondary}
             colors={[colors.primary]}
           />

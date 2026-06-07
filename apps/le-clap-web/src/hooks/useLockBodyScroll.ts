@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 
 /**
  * Locks `<body>` scroll while the calling component is mounted, restoring the
@@ -7,11 +7,11 @@ import { useEffect } from 'react'
  */
 export function useLockBodyScroll(): void {
   useEffect(() => {
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.body.style.overflow = previous
-    }
-  }, [])
+      document.body.style.overflow = previous;
+    };
+  }, []);
 }

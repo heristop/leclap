@@ -122,10 +122,7 @@ describe('browser.ts compileBrowser', () => {
     try {
       const result = await mod.compile({ buildDir: '/build' }, validDescriptor);
       expect(result).toBe('/browser/out.mp4');
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('DI container failed'),
-        expect.anything()
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('DI container failed'), expect.anything());
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('manual instantiation'));
     } finally {
       spy.mockRestore();
@@ -136,17 +133,13 @@ describe('browser.ts compileBrowser', () => {
     const { compile } = await loadBrowser();
     // A bad section type fails the real TemplateValidator used by Template.
     const badDescriptor = { sections: [{ name: 's', type: 'not_a_type' }] } as never;
-    await expect(compile({ buildDir: '/build' }, badDescriptor)).rejects.toThrow(
-      /Browser video compilation failed/
-    );
+    await expect(compile({ buildDir: '/build' }, badDescriptor)).rejects.toThrow(/Browser video compilation failed/);
   });
 
   it('throws when compilation produces no output', async () => {
     const { compile } = await loadBrowser();
     construct.mockResolvedValue(null as never);
-    await expect(compile({ buildDir: '/build' }, validDescriptor)).rejects.toThrow(
-      /Browser video compilation failed/
-    );
+    await expect(compile({ buildDir: '/build' }, validDescriptor)).rejects.toThrow(/Browser video compilation failed/);
   });
 
   it('propagates a task-stopped error captured during compilation', async () => {
@@ -225,10 +218,7 @@ describe('browser.ts compileBrowser', () => {
     await expect(compile({ buildDir: '/build' }, validDescriptor)).rejects.toThrow(
       /Browser video compilation failed: Unknown error/
     );
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to initialize browser platform:',
-      'non-error-init-boom'
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to initialize browser platform:', 'non-error-init-boom');
   });
 
   it('exposes the browser export surface', async () => {

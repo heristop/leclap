@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, StatusBar, Platform, BackHandler } from 'react-native';
 import {
-  View,
-  StyleSheet,
-  StatusBar,
-  Platform,
-  BackHandler
-} from 'react-native';
-import { Camera, useCameraDevice, type CameraPosition, type VideoFile, type CameraCaptureError } from 'react-native-vision-camera';
+  Camera,
+  useCameraDevice,
+  type CameraPosition,
+  type VideoFile,
+  type CameraCaptureError,
+} from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
@@ -26,7 +26,9 @@ function useBackHandler(onCancel?: () => void): void {
       return true;
     });
 
-    return () => { backHandler.remove(); };
+    return () => {
+      backHandler.remove();
+    };
   }, [onCancel]);
 }
 
@@ -93,11 +95,7 @@ function useVideoRecorder(
 /**
  * This is a completely standalone screen for recording videos
  */
-export const VideoRecordingScreen = ({
-  orientation = 'portrait',
-  onComplete,
-  onCancel
-}: VideoRecordingScreenProps) => {
+export const VideoRecordingScreen = ({ orientation = 'portrait', onComplete, onCancel }: VideoRecordingScreenProps) => {
   const [cameraType, setCameraType] = useState<CameraPosition>('back');
   const device = useCameraDevice(cameraType);
   const cameraRef = useRef<Camera | null>(null);
@@ -107,11 +105,7 @@ export const VideoRecordingScreen = ({
   useBackHandler(onCancel);
   useOrientationLock(orientation, lockOrientation, unlockOrientation);
 
-  const { isRecording, startRecording, stopRecording } = useVideoRecorder(
-    cameraRef,
-    orientation,
-    onComplete
-  );
+  const { isRecording, startRecording, stopRecording } = useVideoRecorder(cameraRef, orientation, onComplete);
 
   const handleRecordButtonPress = () => {
     if (isRecording) {
@@ -123,7 +117,7 @@ export const VideoRecordingScreen = ({
   };
 
   const handleFlipCamera = () => {
-    setCameraType(current => current === 'back' ? 'front' : 'back');
+    setCameraType((current) => (current === 'back' ? 'front' : 'back'));
   };
 
   if (!device) {
@@ -138,58 +132,29 @@ export const VideoRecordingScreen = ({
     <View style={styles.container}>
       <StatusBar hidden translucent backgroundColor="transparent" />
 
-      <Camera
-        ref={cameraRef}
-        style={styles.camera}
-        device={device}
-        isActive
-        video
-        audio
-        outputOrientation="preview"
-      />
+      <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio outputOrientation="preview" />
 
       {/* Record button */}
       <View style={styles.buttonContainer}>
         <View
-          style={[
-            styles.recordButton,
-            isRecording ? styles.recordingButton : null
-          ]}
+          style={[styles.recordButton, isRecording ? styles.recordingButton : null]}
           onTouchEnd={handleRecordButtonPress}
         >
-          {isRecording ? (
-            <View style={styles.stopIcon} />
-          ) : (
-            <View style={styles.recordIcon} />
-          )}
+          {isRecording ? <View style={styles.stopIcon} /> : <View style={styles.recordIcon} />}
         </View>
       </View>
 
       {/* Camera flip button */}
       <View style={styles.flipButtonContainer}>
-        <View
-          style={styles.flipButton}
-          onTouchEnd={handleFlipCamera}
-        >
-          <Ionicons
-            name="camera-reverse-outline"
-            size={24}
-            color="white"
-          />
+        <View style={styles.flipButton} onTouchEnd={handleFlipCamera}>
+          <Ionicons name="camera-reverse-outline" size={24} color="white" />
         </View>
       </View>
 
       {/* Cancel button */}
       <View style={styles.cancelButtonContainer}>
-        <View
-          style={styles.cancelButton}
-          onTouchEnd={onCancel}
-        >
-          <Ionicons
-            name="close-outline"
-            size={24}
-            color="white"
-          />
+        <View style={styles.cancelButton} onTouchEnd={onCancel}>
+          <Ionicons name="close-outline" size={24} color="white" />
         </View>
       </View>
     </View>

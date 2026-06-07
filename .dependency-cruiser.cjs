@@ -9,8 +9,8 @@ module.exports = {
         'your solution (i.e. use dependency inversion, make sure the modules have a single responsibility) ',
       from: {},
       to: {
-        circular: true
-      }
+        circular: true,
+      },
     },
     {
       name: 'no-orphans',
@@ -23,14 +23,14 @@ module.exports = {
         orphan: true,
         pathNot: [
           String.raw`(^|/)\.[^/]+\.(c?js|ts|mjs|cjs)$`, // dot files
-          String.raw`\.d\.ts$`,                         // TypeScript declaration files
-          String.raw`(^|/)tsconfig\..*\.json$`,         // tsconfig files
+          String.raw`\.d\.ts$`, // TypeScript declaration files
+          String.raw`(^|/)tsconfig\..*\.json$`, // tsconfig files
           String.raw`(^|/)(babel|jest|webpack)\..*\.(c?js|ts|mjs|cjs|json)$`, // tool configurations
           String.raw`(^|/)packages/core/src/index\.(c?js|ts|mjs|cjs)$`, // index files
-          String.raw`(^|/)packages/core/src/main\.ts$`                 // main entry point
-        ]
+          String.raw`(^|/)packages/core/src/main\.ts$`, // main entry point
+        ],
       },
-      to: {}
+      to: {},
     },
     {
       name: 'not-to-deprecated',
@@ -41,32 +41,23 @@ module.exports = {
       severity: 'warn',
       from: {},
       to: {
-        dependencyTypes: [
-          'deprecated'
-        ]
-      }
-    }
+        dependencyTypes: ['deprecated'],
+      },
+    },
   ],
   options: {
     doNotFollow: {
       path: 'node_modules',
-      dependencyTypes: [
-        'npm',
-        'npm-dev',
-        'npm-optional',
-        'npm-peer',
-        'npm-bundled',
-        'npm-no-pkg'
-      ]
+      dependencyTypes: ['npm', 'npm-dev', 'npm-optional', 'npm-peer', 'npm-bundled', 'npm-no-pkg'],
     },
     tsPreCompilationDeps: true,
     tsConfig: {
-      fileName: 'tsconfig.json'
+      fileName: 'tsconfig.json',
     },
     enhancedResolveOptions: {
       exportsFields: ['exports'],
       conditionNames: ['import', 'require', 'node', 'default', 'types'],
-      mainFields: ['module', 'main', 'types', 'typings']
+      mainFields: ['module', 'main', 'types', 'typings'],
     },
     reporterOptions: {
       dot: {
@@ -77,54 +68,54 @@ module.exports = {
             color: 'black',
             fontcolor: 'black',
             fillcolor: 'transparent',
-            splines: 'ortho'
+            splines: 'ortho',
           },
           modules: [
             {
               criteria: { source: '^packages/core/src/core' },
-              attributes: { fillcolor: '#ccccff' }
+              attributes: { fillcolor: '#ccccff' },
             },
             {
               criteria: { source: '^packages/core/src/director' },
-              attributes: { fillcolor: '#ccffcc' }
+              attributes: { fillcolor: '#ccffcc' },
             },
             {
               criteria: { source: '^packages/core/src/editor' },
-              attributes: { fillcolor: '#ffcccc' }
+              attributes: { fillcolor: '#ffcccc' },
             },
             {
               criteria: { source: '^packages/core/src/platform' },
-              attributes: { fillcolor: '#ffffcc' }
+              attributes: { fillcolor: '#ffffcc' },
             },
             {
               criteria: { source: '^packages/core/src/shared' },
-              attributes: { fillcolor: '#ffccff' }
-            }
+              attributes: { fillcolor: '#ffccff' },
+            },
           ],
           dependencies: [
             {
               criteria: { resolved: '^packages/core/src/core' },
-              attributes: { color: '#0000ff77' }
+              attributes: { color: '#0000ff77' },
             },
             {
               criteria: { resolved: '^packages/core/src/director' },
-              attributes: { color: '#00770077' }
+              attributes: { color: '#00770077' },
             },
             {
               criteria: { resolved: '^packages/core/src/editor' },
-              attributes: { color: '#ff000077' }
+              attributes: { color: '#ff000077' },
             },
             {
               criteria: { resolved: '^packages/core/src/platform' },
-              attributes: { color: '#ffff0077' }
+              attributes: { color: '#ffff0077' },
             },
             {
               criteria: { resolved: '^packages/core/src/shared' },
-              attributes: { color: '#ff00ff77' }
-            }
-          ]
-        }
-      }
-    }
-  }
+              attributes: { color: '#ff00ff77' },
+            },
+          ],
+        },
+      },
+    },
+  },
 };

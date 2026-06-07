@@ -3,8 +3,7 @@ import { Project } from '@/src/domain/entities/Project';
 import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 import { FakeProjectRepository } from '@/src/test-utils/FakeProjectRepository';
 
-const seedProject = () =>
-  Project.create('Original', 'portrait.json', { v: 1 }, { id: 'p1', formData: { a: '1' } });
+const seedProject = () => Project.create('Original', 'portrait.json', { v: 1 }, { id: 'p1', formData: { a: '1' } });
 
 describe('UpdateProjectUseCase', () => {
   it('updates provided fields and persists', async () => {

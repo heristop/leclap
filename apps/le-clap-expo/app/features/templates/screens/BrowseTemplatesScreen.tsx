@@ -31,7 +31,6 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(navigate).catch(navigate);
   };
 
-
   if (isLoading && templates.length === 0) {
     return (
       <View style={styles.container}>
@@ -49,16 +48,14 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>
-          {error instanceof Error ? error.message : 'Failed to load templates'}
-        </Text>
-        <Text style={styles.errorSubtext}>
-          Make sure the server is running.
-        </Text>
+        <Text style={styles.errorText}>{error instanceof Error ? error.message : 'Failed to load templates'}</Text>
+        <Text style={styles.errorSubtext}>Make sure the server is running.</Text>
         <View style={{ marginTop: spacing.m, alignItems: 'center', height: 160 }}>
           <Button
             variant="primary"
-            onPress={() => { refetch().catch(console.error); }}
+            onPress={() => {
+              refetch().catch(console.error);
+            }}
             icon="refresh"
             size="large"
             fullWidth={false}
@@ -72,24 +69,19 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
 
   return (
     <View style={styles.container}>
-      <NetworkStatusIndicator
-        showSyncStatus
-        expandable
-      />
+      <NetworkStatusIndicator showSyncStatus expandable />
       <CompilationQueueStatus />
 
       <TemplateList
         templates={templates}
         onSelectTemplate={handleSelectTemplate}
         isOffline={isOffline}
-        onRefresh={() => { refetch().catch(console.error); }}
+        onRefresh={() => {
+          refetch().catch(console.error);
+        }}
         screenTitle="Scenarios"
-        subtitle={isOffline
-          ? "📴 Browsing cached templates (offline)"
-          : "Select a scenario to create your video"
-        }
+        subtitle={isOffline ? '📴 Browsing cached templates (offline)' : 'Select a scenario to create your video'}
       />
-
     </View>
   );
 };

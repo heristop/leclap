@@ -1,57 +1,45 @@
-import { useState, useEffect, startTransition, type ComponentType, type ReactNode } from 'react'
-import { Check, Play, Zap, Video, Users, Image, Sparkles, Layers } from 'lucide-react'
-import clsx from 'clsx'
-import { templateService, type Template } from '@/services/templateService'
-import { logger } from '@/lib/logger'
-import { Badge, Button, Card, Reveal, type BadgeProps } from '@/presentation/components/ui'
+import { useState, useEffect, startTransition, type ComponentType, type ReactNode } from 'react';
+import { Check, Play, Zap, Video, Users, Image, Sparkles, Layers } from 'lucide-react';
+import clsx from 'clsx';
+import { templateService, type Template } from '@/services/templateService';
+import { logger } from '@/lib/logger';
+import { Badge, Button, Card, Reveal, type BadgeProps } from '@/presentation/components/ui';
 
 interface TemplateSelectorProps {
-  onTemplateSelected: (template: Template) => void
-  selectedTemplate: Template | null
+  onTemplateSelected: (template: Template) => void;
+  selectedTemplate: Template | null;
 }
 
 interface TemplateCardProps {
-  template: Template
-  isSelected: boolean
-  onSelect: (template: Template) => void
+  template: Template;
+  isSelected: boolean;
+  onSelect: (template: Template) => void;
 }
 
 const getTemplateIcon = (template: Template): ComponentType<{ className?: string }> => {
-  if (template.hasForm) return Users
+  if (template.hasForm) return Users;
 
-  if (template.orientation === 'portrait') return Image
+  if (template.orientation === 'portrait') return Image;
 
-  if (template.complexity === 'advanced') return Zap
+  if (template.complexity === 'advanced') return Zap;
 
-  return Play
-}
+  return Play;
+};
 
 const complexityBadgeVariant: Record<string, BadgeProps['variant']> = {
   simple: 'brand',
   intermediate: 'secondary',
   advanced: 'accent',
-}
+};
 
-const MetaChip = ({
-  icon: Icon,
-  children,
-}: {
-  icon: ComponentType<{ className?: string }>
-  children: ReactNode
-}) => (
+const MetaChip = ({ icon: Icon, children }: { icon: ComponentType<{ className?: string }>; children: ReactNode }) => (
   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-foreground/[0.04] text-gray-400 border border-foreground/10">
     <Icon className="w-3.5 h-3.5 text-brand-600 dark:text-brand-300" />
     {children}
   </span>
-)
+);
 
-const CardIcon = ({
-  isSelected,
-  Icon,
-}: {
-  isSelected: boolean
-  Icon: ComponentType<{ className?: string }>
-}) => (
+const CardIcon = ({ isSelected, Icon }: { isSelected: boolean; Icon: ComponentType<{ className?: string }> }) => (
   <div className="relative shrink-0">
     <span
       className={clsx(
@@ -69,26 +57,28 @@ const CardIcon = ({
       </span>
     )}
   </div>
-)
+);
 
 const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => {
-  const IconComponent = getTemplateIcon(template)
-  const fieldCount = templateService.extractFormFields(template.descriptor).length
-  const sectionCount = template.descriptor.sections?.length ?? 0
+  const IconComponent = getTemplateIcon(template);
+  const fieldCount = templateService.extractFormFields(template.descriptor).length;
+  const sectionCount = template.descriptor.sections?.length ?? 0;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      onSelect(template)
+      event.preventDefault();
+      onSelect(template);
     }
-  }
+  };
 
   return (
     <Card
       interactive
       role="button"
       tabIndex={0}
-      onClick={() => { onSelect(template) }}
+      onClick={() => {
+        onSelect(template);
+      }}
       onKeyDown={handleKeyDown}
       aria-pressed={isSelected}
       className={clsx(
@@ -103,12 +93,8 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
         <CardIcon isSelected={isSelected} Icon={IconComponent} />
 
         <div className="flex flex-col items-end gap-2">
-          {template.source === 'user' && (
-            <Badge variant="brand">Custom</Badge>
-          )}
-          <Badge variant={complexityBadgeVariant[template.complexity] ?? 'neutral'}>
-            {template.complexity}
-          </Badge>
+          {template.source === 'user' && <Badge variant="brand">Custom</Badge>}
+          <Badge variant={complexityBadgeVariant[template.complexity] ?? 'neutral'}>{template.complexity}</Badge>
         </div>
       </div>
 
@@ -116,9 +102,7 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
       <h3 className="text-xl font-bold font-display text-foreground mb-1.5 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">
         {template.name}
       </h3>
-      <p className="text-sm text-gray-400 leading-relaxed mb-5">
-        {template.description}
-      </p>
+      <p className="text-sm text-gray-400 leading-relaxed mb-5">{template.description}</p>
 
       {/* Meta chips — flat, branded, no nested boxes */}
       <div className="flex flex-wrap gap-2">
@@ -138,8 +122,8 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
         )}
       </div>
     </Card>
-  )
-}
+  );
+};
 
 const LoadingSkeleton = () => (
   <div className="grid gap-6 md:grid-cols-2">
@@ -147,60 +131,61 @@ const LoadingSkeleton = () => (
       <div key={i} className="h-56 rounded-2xl border border-foreground/5 bg-surface/50 shimmer" />
     ))}
   </div>
-)
+);
 
 const ErrorDisplay = ({ error }: { error: string }) => (
   <div className="text-center py-12">
     <div className="inline-block p-6 rounded-2xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10">
       <div className="text-[var(--color-error)] mb-2 font-medium font-display text-lg">Failed to load templates</div>
       <p className="text-sm text-gray-400 mb-4">{error}</p>
-      <Button onClick={() => { window.location.reload() }}>
+      <Button
+        onClick={() => {
+          window.location.reload();
+        }}
+      >
         Retry
       </Button>
     </div>
   </div>
-)
+);
 
-export const TemplateSelector = ({
-  onTemplateSelected,
-  selectedTemplate,
-}: TemplateSelectorProps) => {
-  const [templates, setTemplates] = useState<Template[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export const TemplateSelector = ({ onTemplateSelected, selectedTemplate }: TemplateSelectorProps) => {
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadTemplates = async () => {
       try {
-        setLoading(true)
-        const loadedTemplates = await templateService.getAllTemplates()
-        setTemplates(loadedTemplates)
-        setError(null)
+        setLoading(true);
+        const loadedTemplates = await templateService.getAllTemplates();
+        setTemplates(loadedTemplates);
+        setError(null);
       } catch (error) {
-        logger.error('Failed to load templates:', error)
-        setError('Failed to load templates. Please try again.')
+        logger.error('Failed to load templates:', error);
+        setError('Failed to load templates. Please try again.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     loadTemplates().catch(() => {
-      setError('Failed to load templates. Please try again.')
-    })
-  }, [])
+      setError('Failed to load templates. Please try again.');
+    });
+  }, []);
 
   const handleTemplateSelect = (template: Template) => {
     startTransition(() => {
-      onTemplateSelected(template)
-    })
-  }
+      onTemplateSelected(template);
+    });
+  };
 
   if (loading) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton />;
   }
 
   if (error) {
-    return <ErrorDisplay error={error} />
+    return <ErrorDisplay error={error} />;
   }
 
   return (
@@ -215,5 +200,5 @@ export const TemplateSelector = ({
         </Reveal>
       ))}
     </div>
-  )
-}
+  );
+};

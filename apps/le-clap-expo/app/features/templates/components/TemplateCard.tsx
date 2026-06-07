@@ -49,7 +49,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
       size="$4"
       {...animationProps}
       pressStyle={{ scale: 0.97 }}
-      onPress={() => { onPress(template); }}
+      onPress={() => {
+        onPress(template);
+      }}
       width="45%"
       margin="$s"
       overflow="hidden"
@@ -92,7 +94,12 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
         </View>
 
         <YStack paddingHorizontal="$m" paddingVertical="$s" gap={2}>
-          <Text fontFamily={fonts.poppins.semiBold as FontTokens} fontSize={18} color={theme.text as ColorTokens} numberOfLines={1}>
+          <Text
+            fontFamily={fonts.poppins.semiBold as FontTokens}
+            fontSize={18}
+            color={theme.text as ColorTokens}
+            numberOfLines={1}
+          >
             {templateName}
           </Text>
           <Text fontSize={13} lineHeight={18} color={theme.textSecondary as ColorTokens} numberOfLines={2}>

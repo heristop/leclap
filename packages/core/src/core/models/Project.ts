@@ -70,7 +70,9 @@ class Project {
     };
   };
 
-  clean = (): void =>{  this.init(); };
+  clean = (): void => {
+    this.init();
+  };
 }
 
 export default Project;

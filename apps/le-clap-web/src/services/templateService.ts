@@ -170,7 +170,7 @@ class TemplateService {
   private addLegacyTemplate(
     templateId: string,
     metadata: Omit<Template, 'id' | 'descriptor' | 'source'>,
-    templates: Template[],
+    templates: Template[]
   ): void {
     try {
       const fallbackDescriptor = this.createLegacyDescriptor(templateId, metadata);
@@ -187,12 +187,12 @@ class TemplateService {
       templateLogger.log('Loading core templates');
 
       const coreTemplates = await coreTemplateService.getTemplates();
-      const templates: Template[] = coreTemplates.map(ct => this.convertCoreTemplate(ct));
+      const templates: Template[] = coreTemplates.map((ct) => this.convertCoreTemplate(ct));
 
       for (const [templateId, metadata] of Object.entries(TEMPLATE_METADATA)) {
         // Skip ones already present by id OR by display name — the legacy `video`
         // duplicates core `simple-video` ("Simple Video Processing").
-        if (metadata === undefined || templates.some(t => t.id === templateId || t.name === metadata.name)) {
+        if (metadata === undefined || templates.some((t) => t.id === templateId || t.name === metadata.name)) {
           continue;
         }
         this.addLegacyTemplate(templateId, metadata, templates);
@@ -332,33 +332,38 @@ class TemplateService {
     return this.serverUrl;
   }
 
-  private createLegacyDescriptor(id: string, metadata: Omit<Template, 'id' | 'descriptor' | 'source'>): TemplateDescriptor {
+  private createLegacyDescriptor(
+    id: string,
+    metadata: Omit<Template, 'id' | 'descriptor' | 'source'>
+  ): TemplateDescriptor {
     const descriptor: TemplateDescriptor = {
       global: {
         orientation: metadata.orientation,
         musicEnabled: false,
-        transitionDuration: 0.5
+        transitionDuration: 0.5,
       },
       sections: [
         {
           // Name matches the uploaded-file key (video_1) and the project_video
           // type consumes userVideoPaths[name], so the upload reaches the segment.
-          name: "video_1",
-          type: "project_video",
+          name: 'video_1',
+          type: 'project_video',
           options: {
-            duration: 5
-          }
-        }
-      ]
+            duration: 5,
+          },
+        },
+      ],
     };
 
     const firstSection = descriptor.sections?.[0];
 
     if (id === 'debug_grayscale' && firstSection !== undefined) {
-      firstSection.filters = [{
-        type: 'hue',
-        value: 's=0'
-      }];
+      firstSection.filters = [
+        {
+          type: 'hue',
+          value: 's=0',
+        },
+      ];
     }
 
     return descriptor;

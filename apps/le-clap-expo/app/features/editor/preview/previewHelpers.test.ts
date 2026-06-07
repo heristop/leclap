@@ -1,10 +1,4 @@
-import {
-  FULL_CROP,
-  buildErrorMessage,
-  computeVideoRect,
-  isCropApplied,
-  isTrimApplied,
-} from './previewHelpers';
+import { FULL_CROP, buildErrorMessage, computeVideoRect, isCropApplied, isTrimApplied } from './previewHelpers';
 
 describe('buildErrorMessage', () => {
   it('surfaces an Error message from projectError', () => {

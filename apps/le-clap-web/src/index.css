@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Class-based dark mode: `dark:` utilities apply under a `.dark` ancestor. */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -7,7 +7,7 @@
    every interactive element so clickable affordances feel right. */
 @layer base {
   button:not(:disabled),
-  [role="button"]:not(:disabled),
+  [role='button']:not(:disabled),
   label[for],
   summary,
   a[href],
@@ -16,7 +16,7 @@
   }
 
   button:disabled,
-  [role="button"][aria-disabled="true"] {
+  [role='button'][aria-disabled='true'] {
     cursor: not-allowed;
   }
 }
@@ -105,8 +105,8 @@ body {
   --color-gray-500: oklch(0.5 0.014 280);
   --color-gray-600: oklch(0.58 0.014 280);
 
-  --font-sans: "Oswald", "sans-serif";
-  --font-display: "Oswald", "sans-serif";
+  --font-sans: 'Oswald', 'sans-serif';
+  --font-display: 'Oswald', 'sans-serif';
 
   /* Radii (Expo radius scale) */
   --radius-sm: 0.375rem;
@@ -148,7 +148,12 @@ body {
   color-scheme: light;
   --glass-bg: oklch(1 0 0 / 0.62);
   --glass-border: oklch(0.3 0.02 280 / 0.1);
-  --grad-text: linear-gradient(120deg, var(--color-brand-600), var(--color-secondary-600) 55%, var(--color-secondary-700));
+  --grad-text: linear-gradient(
+    120deg,
+    var(--color-brand-600),
+    var(--color-secondary-600) 55%,
+    var(--color-secondary-700)
+  );
 }
 
 .dark {
@@ -223,7 +228,13 @@ body {
 
 /* Animated brand→pink→accent text for hero headings. */
 @utility text-gradient-animated {
-  background-image: linear-gradient(120deg, var(--color-brand-400), var(--color-secondary-400) 45%, var(--color-accent-400), var(--color-brand-400));
+  background-image: linear-gradient(
+    120deg,
+    var(--color-brand-400),
+    var(--color-secondary-400) 45%,
+    var(--color-accent-400),
+    var(--color-brand-400)
+  );
   background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -237,7 +248,9 @@ body {
 
 /* Springy lift + brand glow on hover — the signature "pop". */
 @utility hover-pop {
-  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-smooth);
+  transition:
+    transform 0.3s var(--ease-spring),
+    box-shadow 0.3s var(--ease-smooth);
 
   &:hover {
     transform: translateY(-2px) scale(1.02);
@@ -250,13 +263,15 @@ body {
   position: relative;
 
   &::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(135deg, var(--color-brand-500), var(--color-secondary-400));
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
@@ -281,60 +296,132 @@ body {
     transition-timing-function: var(--ease-spring);
     touch-action: manipulation;
   }
-  .btn:focus-visible { @apply outline-none ring-4 ring-brand-500/30; }
-  .btn:disabled { @apply opacity-50 pointer-events-none; }
-  .btn__icon { @apply w-5 h-5; }
-  .btn--sm { @apply text-sm px-3 py-1.5; }
-  .btn--md { @apply px-5 py-2.5; }
-  .btn--lg { @apply text-lg px-7 py-3.5; }
+  .btn:focus-visible {
+    @apply outline-none ring-4 ring-brand-500/30;
+  }
+  .btn:disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+  .btn__icon {
+    @apply w-5 h-5;
+  }
+  .btn--sm {
+    @apply text-sm px-3 py-1.5;
+  }
+  .btn--md {
+    @apply px-5 py-2.5;
+  }
+  .btn--lg {
+    @apply text-lg px-7 py-3.5;
+  }
   .btn--primary {
     @apply text-white shadow-lg;
     background-image: linear-gradient(135deg, var(--color-brand-500), var(--color-secondary-400));
   }
-  .btn--primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
-  .btn--secondary { @apply bg-surface-2 text-foreground border border-divider; }
-  .btn--secondary:hover { transform: translateY(-2px); }
-  .btn--ghost { @apply text-gray-300; }
-  .btn--ghost:hover { @apply text-foreground; background-color: oklch(0.5 0 0 / 0.12); }
-  .btn--accent { @apply bg-accent-400 text-gray-900 shadow-lg; }
-  .btn--accent:hover { transform: translateY(-2px); }
-  .btn--danger { @apply text-white; background-color: var(--color-error); }
+  .btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+  .btn--secondary {
+    @apply bg-surface-2 text-foreground border border-divider;
+  }
+  .btn--secondary:hover {
+    transform: translateY(-2px);
+  }
+  .btn--ghost {
+    @apply text-gray-300;
+  }
+  .btn--ghost:hover {
+    @apply text-foreground;
+    background-color: oklch(0.5 0 0 / 0.12);
+  }
+  .btn--accent {
+    @apply bg-accent-400 text-gray-900 shadow-lg;
+  }
+  .btn--accent:hover {
+    transform: translateY(-2px);
+  }
+  .btn--danger {
+    @apply text-white;
+    background-color: var(--color-error);
+  }
 
   /* Card */
-  .card { @apply bg-surface border border-divider rounded-2xl; }
-  .card--raised { box-shadow: var(--shadow-md); }
-  .card--floating { box-shadow: var(--shadow-lg); }
+  .card {
+    @apply bg-surface border border-divider rounded-2xl;
+  }
+  .card--raised {
+    box-shadow: var(--shadow-md);
+  }
+  .card--floating {
+    box-shadow: var(--shadow-lg);
+  }
   .card--interactive {
     @apply cursor-pointer transition-all duration-300;
     transition-timing-function: var(--ease-spring);
   }
-  .card--interactive:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+  .card--interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
 
   /* Badge */
-  .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider; }
-  .badge--brand { @apply bg-brand-500/20 text-brand-200 border border-brand-500/30; }
-  .badge--secondary { @apply bg-secondary-500/15 text-secondary-300 border border-secondary-500/25; }
-  .badge--accent { @apply bg-accent-400 text-gray-900; }
-  .badge--neutral { @apply text-gray-300 border border-divider; background-color: oklch(0.5 0 0 / 0.1); }
-  .badge--success { @apply text-success; background-color: oklch(0.673 0.162 144.2 / 0.15); border: 1px solid oklch(0.673 0.162 144.2 / 0.3); }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider;
+  }
+  .badge--brand {
+    @apply bg-brand-500/20 text-brand-200 border border-brand-500/30;
+  }
+  .badge--secondary {
+    @apply bg-secondary-500/15 text-secondary-300 border border-secondary-500/25;
+  }
+  .badge--accent {
+    @apply bg-accent-400 text-gray-900;
+  }
+  .badge--neutral {
+    @apply text-gray-300 border border-divider;
+    background-color: oklch(0.5 0 0 / 0.1);
+  }
+  .badge--success {
+    @apply text-success;
+    background-color: oklch(0.673 0.162 144.2 / 0.15);
+    border: 1px solid oklch(0.673 0.162 144.2 / 0.3);
+  }
 
   /* Heading */
-  .heading { @apply font-display font-bold tracking-tight text-foreground; }
-  .heading--display { font-size: var(--text-display); line-height: 1.05; }
-  .heading--display-sm { font-size: var(--text-display-sm); @apply leading-tight; }
-  .heading--lg { @apply text-2xl sm:text-3xl; }
+  .heading {
+    @apply font-display font-bold tracking-tight text-foreground;
+  }
+  .heading--display {
+    font-size: var(--text-display);
+    line-height: 1.05;
+  }
+  .heading--display-sm {
+    font-size: var(--text-display-sm);
+    @apply leading-tight;
+  }
+  .heading--lg {
+    @apply text-2xl sm:text-3xl;
+  }
 
   /* Field (form controls) */
   .field {
     @apply w-full px-3 py-2 rounded-lg bg-surface-2 border border-divider text-foreground transition-all;
   }
-  .field::placeholder { @apply text-gray-500; }
-  .field:focus { @apply outline-none border-brand-500 ring-2 ring-brand-500/30; }
+  .field::placeholder {
+    @apply text-gray-500;
+  }
+  .field:focus {
+    @apply outline-none border-brand-500 ring-2 ring-brand-500/30;
+  }
 }
 
 /* Juicy, reusable hover-lift for cards/CTAs. */
 @utility lift {
-  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
+  transition:
+    transform 0.3s var(--ease-spring),
+    box-shadow 0.3s var(--ease-smooth),
+    border-color 0.3s var(--ease-smooth);
 
   &:hover {
     transform: translateY(-0.3rem) scale(1.01);
@@ -358,40 +445,80 @@ body {
 
 /* Animations */
 @keyframes shimmer {
-  0% { background-position: -468px 0; }
-  100% { background-position: 468px 0; }
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
 }
 
 @keyframes processing {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(0.98); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes rise-in {
-  from { opacity: 0; transform: translateY(24px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 @keyframes glow {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 0.9; }
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
 }
 
 @keyframes gradient-pan {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @utility shimmer {
@@ -400,9 +527,15 @@ body {
   background-size: 800px 104px;
 }
 
-@utility processing { animation: var(--animate-processing); }
-@utility fade-in { animation: var(--animate-fade-in); }
-@utility rise-in { animation: var(--animate-rise-in); }
+@utility processing {
+  animation: var(--animate-processing);
+}
+@utility fade-in {
+  animation: var(--animate-fade-in);
+}
+@utility rise-in {
+  animation: var(--animate-rise-in);
+}
 /* `animate-float` / `animate-glow` are auto-generated from the `--animate-*`
    theme tokens, so no manual class is needed. */
 
@@ -438,15 +571,25 @@ html.theme-vt::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
-html.theme-vt::view-transition-old(root) { z-index: 1; }
-html.theme-vt::view-transition-new(root) { z-index: 9999; }
+html.theme-vt::view-transition-old(root) {
+  z-index: 1;
+}
+html.theme-vt::view-transition-new(root) {
+  z-index: 9999;
+}
 
 @keyframes vt-out {
-  to { opacity: 0; transform: translateY(-8px) scale(0.992); }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.992);
+  }
 }
 
 @keyframes vt-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.992); }
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.992);
+  }
 }
 
 /* Juicy theme switch — briefly cross-fade themeable properties on toggle */
@@ -471,22 +614,48 @@ html.theme-vt::view-transition-new(root) { z-index: 9999; }
 
 /* Juicy: breathing halo on the active stepper node */
 @keyframes step-pulse {
-  0% { box-shadow: 0 0 0 0 oklch(0.663 0.178 277.9 / 0.3); }
-  70%, 100% { box-shadow: 0 0 0 9px oklch(0.663 0.178 277.9 / 0); }
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.663 0.178 277.9 / 0.3);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px oklch(0.663 0.178 277.9 / 0);
+  }
 }
-.step-pulse { animation: step-pulse 2.2s var(--ease-out-expo) infinite; }
+.step-pulse {
+  animation: step-pulse 2.2s var(--ease-out-expo) infinite;
+}
 
 /* Juicy: spring-pop for elements that appear (checks, badges, success) */
 @keyframes pop-in {
-  0% { opacity: 0; transform: scale(0.4); }
-  60% { opacity: 1; transform: scale(1.14); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.14);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
-.pop-in { animation: pop-in 0.42s var(--ease-spring) both; }
+.pop-in {
+  animation: pop-in 0.42s var(--ease-spring) both;
+}
 
 /* Juicy: floating action bar slides up from below the viewport */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(140%); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(140%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.slide-up { animation: slide-up 0.45s var(--ease-out-expo) both; }
+.slide-up {
+  animation: slide-up 0.45s var(--ease-out-expo) both;
+}

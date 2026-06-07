@@ -48,7 +48,9 @@ export const fetchTemplates = async (): Promise<Template[]> => {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => { controller.abort(); }, 10000); // 10 s
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 10000); // 10 s
 
     const response = await fetch(`${API_URL}/templates`, {
       signal: controller.signal,
@@ -197,7 +199,9 @@ export const deleteAllProjects = async (): Promise<void> => {
 export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?: string }> => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => { controller.abort(); }, 5000); // 5 s
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 5000); // 5 s
 
     const response = await fetch(`${API_URL}/health`, {
       method: 'GET',
@@ -251,12 +255,7 @@ const executeRetryAttempt = async <T>(
 /**
  * Retries a function with exponential backoff (recursive to avoid await-in-loop)
  */
-const retryWithBackoff = async <T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  baseDelay = 1000,
-  attempt = 0
-): Promise<T> => {
+const retryWithBackoff = async <T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 1000, attempt = 0): Promise<T> => {
   try {
     return await fn();
   } catch (error) {
@@ -278,9 +277,13 @@ const retryWithBackoff = async <T>(
 /**
  * Performs the actual compile fetch request
  */
-const performCompileFetch = async (formData: FormData): Promise<{ success: boolean; outputPath?: string; message?: string; error?: string }> => {
+const performCompileFetch = async (
+  formData: FormData
+): Promise<{ success: boolean; outputPath?: string; message?: string; error?: string }> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => { controller.abort(); }, 30000); // 30 s
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 30000); // 30 s
 
   try {
     const response = await fetch(`${API_URL}/compile`, {

@@ -188,9 +188,7 @@ describe('BrowserFilesystemAdapter', () => {
     it('rejects writes when IndexedDB fails to open', async () => {
       failOpen = true;
       const adapter = new BrowserFilesystemAdapter();
-      await expect(adapter.writeFile('/a', new Uint8Array([1]))).rejects.toThrow(
-        /Failed to open IndexedDB/
-      );
+      await expect(adapter.writeFile('/a', new Uint8Array([1]))).rejects.toThrow(/Failed to open IndexedDB/);
     });
   });
 
@@ -231,9 +229,7 @@ describe('BrowserFilesystemAdapter', () => {
       const adapter = new BrowserFilesystemAdapter();
       await adapter.exists('warmup'); // ensure DB initialized before flipping the flag
       failOps = true;
-      await expect(adapter.writeFile('/x', new Uint8Array([1]))).rejects.toThrow(
-        /Failed to write file \/x/
-      );
+      await expect(adapter.writeFile('/x', new Uint8Array([1]))).rejects.toThrow(/Failed to write file \/x/);
     });
 
     it('derives metadata type from the file extension (getFileType branches)', async () => {
@@ -322,9 +318,7 @@ describe('BrowserFilesystemAdapter', () => {
 
     it('throws when appending to a missing file', async () => {
       const adapter = new BrowserFilesystemAdapter();
-      await expect(adapter.append('/missing.txt', 'x')).rejects.toThrow(
-        /Failed to append content to \/missing.txt/
-      );
+      await expect(adapter.append('/missing.txt', 'x')).rejects.toThrow(/Failed to append content to \/missing.txt/);
     });
   });
 
@@ -423,7 +417,9 @@ describe('BrowserFilesystemAdapter', () => {
   describe('fetch / fetchAndRead', () => {
     it('downloads to a file path on a successful fetch', async () => {
       vi.stubGlobal('window', {
-        fetch: vi.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new TextEncoder().encode('body-text').buffer }),
+        fetch: vi
+          .fn()
+          .mockResolvedValue({ ok: true, arrayBuffer: async () => new TextEncoder().encode('body-text').buffer }),
       });
       const adapter = new BrowserFilesystemAdapter();
       const downloadPath = await adapter.fetch('http://x/y');
@@ -434,7 +430,9 @@ describe('BrowserFilesystemAdapter', () => {
 
     it('fetchAndRead returns the downloaded content as text', async () => {
       vi.stubGlobal('window', {
-        fetch: vi.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new TextEncoder().encode('read-body').buffer }),
+        fetch: vi
+          .fn()
+          .mockResolvedValue({ ok: true, arrayBuffer: async () => new TextEncoder().encode('read-body').buffer }),
       });
       const adapter = new BrowserFilesystemAdapter();
       expect(await adapter.fetchAndRead('http://x/y')).toBe('read-body');
@@ -455,9 +453,7 @@ describe('BrowserFilesystemAdapter', () => {
         fetch: vi.fn().mockRejectedValue(new Error('connection refused')),
       });
       const adapter = new BrowserFilesystemAdapter();
-      await expect(adapter.fetch('http://x/y')).rejects.toThrow(
-        /Failed to fetch http:\/\/x\/y: connection refused/
-      );
+      await expect(adapter.fetch('http://x/y')).rejects.toThrow(/Failed to fetch http:\/\/x\/y: connection refused/);
     });
 
     it('handles a non-Error rejection with the Unknown error fallback', async () => {
@@ -470,9 +466,7 @@ describe('BrowserFilesystemAdapter', () => {
   describe('unzip', () => {
     it('is unsupported in the browser', async () => {
       const adapter = new BrowserFilesystemAdapter();
-      await expect(adapter.unzip('/a.zip', '/out')).rejects.toThrow(
-        /ZIP extraction not supported in browser/
-      );
+      await expect(adapter.unzip('/a.zip', '/out')).rejects.toThrow(/ZIP extraction not supported in browser/);
     });
   });
 

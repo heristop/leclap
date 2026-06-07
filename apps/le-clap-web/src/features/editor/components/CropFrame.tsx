@@ -45,7 +45,12 @@ function resizeByCorner(start: VideoCrop, corner: Corner, dnx: number, dny: numb
     return { x, y: start.y, w: right - x, h: clamp(start.h + dny, MIN_SIZE, 1 - start.y) };
   }
 
-  return { x: start.x, y: start.y, w: clamp(start.w + dnx, MIN_SIZE, 1 - start.x), h: clamp(start.h + dny, MIN_SIZE, 1 - start.y) };
+  return {
+    x: start.x,
+    y: start.y,
+    w: clamp(start.w + dnx, MIN_SIZE, 1 - start.x),
+    h: clamp(start.h + dny, MIN_SIZE, 1 - start.y),
+  };
 }
 
 /**
@@ -121,10 +126,32 @@ export function CropFrame({
   return (
     <div className="absolute inset-0 touch-none">
       {/* Dim + blurred mask around the crop region (four bands), keeping focus on the selection. */}
-      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: videoRect.left, top: videoRect.top, width: videoRect.width, height: rect.top - videoRect.top }} />
-      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: videoRect.left, top: rect.top + rect.height, width: videoRect.width, height: videoRect.top + videoRect.height - (rect.top + rect.height) }} />
-      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: videoRect.left, top: rect.top, width: rect.left - videoRect.left, height: rect.height }} />
-      <div className="absolute bg-black/55 backdrop-blur-[2px]" style={{ left: rect.left + rect.width, top: rect.top, width: videoRect.left + videoRect.width - (rect.left + rect.width), height: rect.height }} />
+      <div
+        className="absolute bg-black/55 backdrop-blur-[2px]"
+        style={{ left: videoRect.left, top: videoRect.top, width: videoRect.width, height: rect.top - videoRect.top }}
+      />
+      <div
+        className="absolute bg-black/55 backdrop-blur-[2px]"
+        style={{
+          left: videoRect.left,
+          top: rect.top + rect.height,
+          width: videoRect.width,
+          height: videoRect.top + videoRect.height - (rect.top + rect.height),
+        }}
+      />
+      <div
+        className="absolute bg-black/55 backdrop-blur-[2px]"
+        style={{ left: videoRect.left, top: rect.top, width: rect.left - videoRect.left, height: rect.height }}
+      />
+      <div
+        className="absolute bg-black/55 backdrop-blur-[2px]"
+        style={{
+          left: rect.left + rect.width,
+          top: rect.top,
+          width: videoRect.left + videoRect.width - (rect.left + rect.width),
+          height: rect.height,
+        }}
+      />
 
       {/* Draggable crop frame body. */}
       <div

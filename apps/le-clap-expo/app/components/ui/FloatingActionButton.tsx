@@ -1,12 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Animated,
-  Easing,
-  Dimensions,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated, Easing, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -75,10 +68,7 @@ function MenuItem({ item, index, anim, onToggleMenu }: MenuItemProps) {
   );
 }
 
-function startEntranceAndPulse(
-  scaleAnim: Animated.Value,
-  pulseAnim: Animated.Value
-): () => void {
+function startEntranceAndPulse(scaleAnim: Animated.Value, pulseAnim: Animated.Value): () => void {
   Animated.spring(scaleAnim, {
     toValue: 1,
     friction: 5,
@@ -208,13 +198,7 @@ export default function FloatingActionButton({
     <View style={styles.container}>
       {showMenu &&
         menuItems.map((item, index) => (
-          <MenuItem
-            key={index}
-            item={item}
-            index={index}
-            anim={menuItemAnims[index]}
-            onToggleMenu={toggleMenu}
-          />
+          <MenuItem key={index} item={item} index={index} anim={menuItemAnims[index]} onToggleMenu={toggleMenu} />
         ))}
 
       <Animated.View

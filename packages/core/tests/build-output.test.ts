@@ -31,27 +31,19 @@ function instantiateProject(Project: new () => unknown): void {
 describe('Build Output', () => {
   describe('File Existence', () => {
     it('should have index.js in dist', async () => {
-      await expect(
-        access(path.join(DIST_DIR, 'index.js'), constants.F_OK)
-      ).resolves.toBeUndefined();
+      await expect(access(path.join(DIST_DIR, 'index.js'), constants.F_OK)).resolves.toBeUndefined();
     });
 
     it('should have browser.js in dist', async () => {
-      await expect(
-        access(path.join(DIST_DIR, 'browser.js'), constants.F_OK)
-      ).resolves.toBeUndefined();
+      await expect(access(path.join(DIST_DIR, 'browser.js'), constants.F_OK)).resolves.toBeUndefined();
     });
 
     it('should have index.js.map sourcemap', async () => {
-      await expect(
-        access(path.join(DIST_DIR, 'index.js.map'), constants.F_OK)
-      ).resolves.toBeUndefined();
+      await expect(access(path.join(DIST_DIR, 'index.js.map'), constants.F_OK)).resolves.toBeUndefined();
     });
 
     it('should have browser.js.map sourcemap', async () => {
-      await expect(
-        access(path.join(DIST_DIR, 'browser.js.map'), constants.F_OK)
-      ).resolves.toBeUndefined();
+      await expect(access(path.join(DIST_DIR, 'browser.js.map'), constants.F_OK)).resolves.toBeUndefined();
     });
   });
 
@@ -280,7 +272,9 @@ describe('Build Output', () => {
       const indexKB = indexStats.size / 1024;
       const browserKB = browserStats.size / 1024;
       const ratio = ((browserStats.size / indexStats.size) * 100).toFixed(1);
-      console.log(`  Browser build is ${ratio}% the size of Node build (${browserKB.toFixed(0)}KB vs ${indexKB.toFixed(0)}KB)`);
+      console.log(
+        `  Browser build is ${ratio}% the size of Node build (${browserKB.toFixed(0)}KB vs ${indexKB.toFixed(0)}KB)`
+      );
     });
 
     it('sourcemaps should exist and be reasonable size', async () => {

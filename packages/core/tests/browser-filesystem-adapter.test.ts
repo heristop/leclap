@@ -22,7 +22,7 @@ describe('BrowserFilesystemAdapter.fetch', () => {
 
     expect(path).toBe('/tmp/fetch/bg.png');
     expect(await fs.readFile(path)).toEqual(bytes);
-    expect((window.fetch as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    expect(window.fetch as ReturnType<typeof vi.fn>).not.toHaveBeenCalled();
   });
 
   it('falls through to window.fetch for a local path that does not exist', async () => {

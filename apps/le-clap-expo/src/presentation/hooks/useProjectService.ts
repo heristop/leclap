@@ -39,7 +39,11 @@ export const useProjectService = () => {
     }
   };
 
-  const createProject = async (data: { name: string; templateName: string; templateContent: Record<string, unknown> }) => {
+  const createProject = async (data: {
+    name: string;
+    templateName: string;
+    templateContent: Record<string, unknown>;
+  }) => {
     try {
       const domainProject = await projectAdapter.createProject(data);
       await loadProjects();

@@ -74,10 +74,7 @@ function createVariableManagerStub() {
 // ---------------------------------------------------------------------------
 
 describe('VariableManager', () => {
-  function build(
-    variables?: Record<string, string | string[]>,
-    fields?: Record<string, string>
-  ): VariableManager {
+  function build(variables?: Record<string, string | string[]>, fields?: Record<string, string>): VariableManager {
     const template = createTemplate({
       descriptor: { global: variables ? { variables } : undefined },
     });
@@ -137,15 +134,17 @@ describe('VariableManager', () => {
 // ---------------------------------------------------------------------------
 
 describe('FormatterManager', () => {
-  function build(opts: {
-    section?: Section;
-    variables?: Record<string, string | string[]>;
-    colorsList?: string[];
-    transitionDuration?: number;
-    fonts?: Record<string, string>;
-    currentLocale?: string;
-    vmStub?: ReturnType<typeof createVariableManagerStub>;
-  } = {}) {
+  function build(
+    opts: {
+      section?: Section;
+      variables?: Record<string, string | string[]>;
+      colorsList?: string[];
+      transitionDuration?: number;
+      fonts?: Record<string, string>;
+      currentLocale?: string;
+      vmStub?: ReturnType<typeof createVariableManagerStub>;
+    } = {}
+  ) {
     const template = createTemplate({
       descriptor: {
         global: {
@@ -160,13 +159,7 @@ describe('FormatterManager', () => {
     const logger = createLogger();
     const vm = opts.vmStub ?? createVariableManagerStub();
 
-    const manager = new FormatterManager(
-      project as any,
-      template as any,
-      vm as any,
-      segment as any,
-      logger as any
-    );
+    const manager = new FormatterManager(project as any, template as any, vm as any, segment as any, logger as any);
 
     return { manager, segment, logger, vm, template };
   }
@@ -362,13 +355,7 @@ describe('FormatterManager', () => {
       const segment = createSegment({ name: 's', type: 'video' });
       const logger = createLogger();
       const vm = createVariableManagerStub();
-      const manager = new FormatterManager(
-        project as any,
-        template as any,
-        vm as any,
-        segment as any,
-        logger as any
-      );
+      const manager = new FormatterManager(project as any, template as any, vm as any, segment as any, logger as any);
       expect(manager.formatText('plain')).toBe('plain');
     });
 
@@ -477,10 +464,12 @@ describe('FormatterManager', () => {
 // ---------------------------------------------------------------------------
 
 describe('FilterManager', () => {
-  function build(opts: {
-    section?: Section;
-    transitionDuration?: number;
-  } = {}) {
+  function build(
+    opts: {
+      section?: Section;
+      transitionDuration?: number;
+    } = {}
+  ) {
     const template = createTemplate({
       descriptor: { global: { transitionDuration: opts.transitionDuration } },
     });
@@ -489,11 +478,7 @@ describe('FilterManager', () => {
       formatMultipleTypesValue: vi.fn((f: Filter) => `single:${f.type}=${String(f.value)}`),
       formatMultipleTypesValues: vi.fn((f: Filter) => `multi:${f.type}`),
     };
-    const manager = new FilterManager(
-      template as any,
-      formatters as any,
-      segment as any
-    );
+    const manager = new FilterManager(template as any, formatters as any, segment as any);
 
     return { manager, formatters, segment };
   }
@@ -549,7 +534,7 @@ describe('FilterManager', () => {
       const { manager } = build({ transitionDuration: 3 });
       const filter = { type: 'overlay', value: 'v', range: 'start=2:nope=5' } as Filter;
       const out = manager.remapEnableBetweenSuffix(filter);
-      expect(out.value).toContain("between(t,2,3)");
+      expect(out.value).toContain('between(t,2,3)');
     });
 
     it('keeps default start=0/end=transition when start does not match', () => {
@@ -558,7 +543,7 @@ describe('FilterManager', () => {
       // the end-override block is skipped, leaving start=0 / end=transitionDuration.
       const filter = { type: 'overlay', value: 'v', range: 'from=1:end=9' } as Filter;
       const out = manager.remapEnableBetweenSuffix(filter);
-      expect(out.value).toContain("between(t,0,4)");
+      expect(out.value).toContain('between(t,0,4)');
     });
 
     it('substitutes section_duration token in a numeric end value', () => {
@@ -619,11 +604,13 @@ describe('FilterManager', () => {
 // ---------------------------------------------------------------------------
 
 describe('MapManager', () => {
-  function build(opts: {
-    section?: Section;
-    transitionDuration?: number;
-    inputsCache?: Record<string, string | string[]>;
-  } = {}) {
+  function build(
+    opts: {
+      section?: Section;
+      transitionDuration?: number;
+      inputsCache?: Record<string, string | string[]>;
+    } = {}
+  ) {
     const template = createTemplate({
       descriptor: { global: { transitionDuration: opts.transitionDuration } },
       assets: { fonts: {}, musics: {}, inputs: opts.inputsCache ?? {} },
@@ -633,12 +620,7 @@ describe('MapManager', () => {
     const filterManager = {
       addFilter: vi.fn((f: Filter) => `F(${f.type})`),
     };
-    const manager = new MapManager(
-      template as any,
-      formatters as any,
-      filterManager as any,
-      segment as any
-    );
+    const manager = new MapManager(template as any, formatters as any, filterManager as any, segment as any);
 
     return { manager, segment, filterManager, template };
   }
@@ -647,9 +629,9 @@ describe('MapManager', () => {
     it('throws when currentSection is unset and section filters are needed', () => {
       const { manager } = build({ section: undefined });
       // No section filters branch requires currentSection getter -> throws
-      expect(() =>
-        manager.addMap({ inputs: ['0:v'], outputs: ['out'], filters: [] } as FilterMap)
-      ).toThrow('[MapManager] currentSection is not set');
+      expect(() => manager.addMap({ inputs: ['0:v'], outputs: ['out'], filters: [] } as FilterMap)).toThrow(
+        '[MapManager] currentSection is not set'
+      );
     });
 
     it('builds a filter graph with mapped inputs and outputs', () => {

@@ -24,13 +24,15 @@ function createLogger() {
   return { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
 }
 
-function build(opts: {
-  section?: Section;
-  inputsCache?: Record<string, string | string[]>;
-  fonts?: Record<string, string>;
-  fs?: ReturnType<typeof createFilesystem>;
-  mapVariables?: (v: string) => string;
-} = {}) {
+function build(
+  opts: {
+    section?: Section;
+    inputsCache?: Record<string, string | string[]>;
+    fonts?: Record<string, string>;
+    fs?: ReturnType<typeof createFilesystem>;
+    mapVariables?: (v: string) => string;
+  } = {}
+) {
   const template = {
     descriptor: {},
     assets: {
@@ -55,13 +57,7 @@ function build(opts: {
   const logger = createLogger();
   const fs = opts.fs ?? createFilesystem();
 
-  const manager = new AssetManager(
-    template as any,
-    variableManager as any,
-    segment as any,
-    logger as any,
-    fs as any
-  );
+  const manager = new AssetManager(template as any, variableManager as any, segment as any, logger as any, fs as any);
 
   return { manager, template, variableManager, segment, logger, fs };
 }
@@ -250,9 +246,7 @@ describe('AssetManager.fetchFonts', () => {
 
   it('downloads a font referenced in the Google Fonts CSS', async () => {
     const fs = createFilesystem();
-    fs.fetchAndRead.mockResolvedValue(
-      'src: url(https://fonts.gstatic.com/s/roboto/v1/font.ttf) format("truetype");'
-    );
+    fs.fetchAndRead.mockResolvedValue('src: url(https://fonts.gstatic.com/s/roboto/v1/font.ttf) format("truetype");');
     fs.fetch.mockResolvedValue('/tmp/font.ttf');
     const { manager } = build({ section: { name: 's', type: 'video' }, fs });
     manager.segment.tempFonts = ['Roboto-Bold.ttf'];

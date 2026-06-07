@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, StatusBar, TouchableOpacity, Text, Modal, BackHandler } from 'react-native';
 import {
-  View,
-  StyleSheet,
-  StatusBar,
-  TouchableOpacity,
-  Text,
-  Modal,
-  BackHandler
-} from 'react-native';
-import { Camera, useCameraDevice, type CameraPosition, type VideoFile, type CameraCaptureError } from 'react-native-vision-camera';
+  Camera,
+  useCameraDevice,
+  type CameraPosition,
+  type VideoFile,
+  type CameraCaptureError,
+} from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
 
 interface CameraModalProps {
@@ -20,19 +18,11 @@ interface CameraModalProps {
 // Extracted helper: no-device fallback
 function NoCameraView({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   return (
-    <Modal
-      animationType="fade"
-      transparent={false}
-      visible={visible}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="fade" transparent={false} visible={visible} onRequestClose={onClose}>
       <View style={styles.errorContainer}>
         <StatusBar hidden />
         <Text style={styles.errorText}>No camera device available</Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={onClose}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -61,15 +51,8 @@ function RecordButton({
 
   return (
     <View style={styles.buttonContainer}>
-      <TouchableOpacity
-        style={[styles.recordButton, isRecording && styles.recordingButton]}
-        onPress={handlePress}
-      >
-        {isRecording ? (
-          <View style={styles.stopIcon} />
-        ) : (
-          <View style={styles.recordIcon} />
-        )}
+      <TouchableOpacity style={[styles.recordButton, isRecording && styles.recordingButton]} onPress={handlePress}>
+        {isRecording ? <View style={styles.stopIcon} /> : <View style={styles.recordIcon} />}
       </TouchableOpacity>
     </View>
   );
@@ -99,9 +82,7 @@ function CameraControls({
         <Ionicons name="close-outline" size={28} color="white" />
       </TouchableOpacity>
       <View style={styles.instructionContainer}>
-        <Text style={styles.instructionText}>
-          Hold your device vertically for best results
-        </Text>
+        <Text style={styles.instructionText}>Hold your device vertically for best results</Text>
       </View>
     </>
   );
@@ -114,7 +95,9 @@ function useCameraModalEffects(visible: boolean, onClose: () => void) {
       StatusBar.setHidden(true, 'none');
     }
 
-    return () => { StatusBar.setHidden(false); };
+    return () => {
+      StatusBar.setHidden(false);
+    };
   }, [visible]);
 
   useEffect(() => {
@@ -129,7 +112,9 @@ function useCameraModalEffects(visible: boolean, onClose: () => void) {
     };
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
-    return () => { backHandler.remove(); };
+    return () => {
+      backHandler.remove();
+    };
   }, [visible, onClose]);
 }
 
@@ -174,7 +159,7 @@ const CameraModal = ({ visible, onClose, onVideoRecorded }: CameraModalProps) =>
   };
 
   const flipCamera = () => {
-    setCameraType(current => current === 'back' ? 'front' : 'back');
+    setCameraType((current) => (current === 'back' ? 'front' : 'back'));
   };
 
   if (!device) {
@@ -182,23 +167,10 @@ const CameraModal = ({ visible, onClose, onVideoRecorded }: CameraModalProps) =>
   }
 
   return (
-    <Modal
-      animationType="fade"
-      transparent={false}
-      visible={visible}
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
+    <Modal animationType="fade" transparent={false} visible={visible} onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.container}>
         <StatusBar hidden />
-        <Camera
-          ref={cameraRef}
-          style={StyleSheet.absoluteFill}
-          device={device}
-          isActive={visible}
-          video
-          audio
-        />
+        <Camera ref={cameraRef} style={StyleSheet.absoluteFill} device={device} isActive={visible} video audio />
         <CameraControls
           isRecording={isRecording}
           onStart={startRecording}

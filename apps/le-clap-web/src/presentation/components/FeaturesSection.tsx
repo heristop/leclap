@@ -1,17 +1,19 @@
-import { FileCode, Users, Cog, Shield, Zap, Globe } from 'lucide-react'
-import { Badge, Card, Reveal } from '@/presentation/components/ui'
+import { FileCode, Users, Cog, Shield, Zap, Globe } from 'lucide-react';
+import { Badge, Card, Reveal } from '@/presentation/components/ui';
 
 const features = [
   {
     icon: FileCode,
     title: 'Real JSON Templates',
-    description: 'Use actual template files from the core package with complex FFmpeg configurations, filters, and effects.',
+    description:
+      'Use actual template files from the core package with complex FFmpeg configurations, filters, and effects.',
     highlight: 'Production-ready',
   },
   {
     icon: Users,
     title: 'Interactive Forms',
-    description: 'Dynamic form generation from template definitions with real-time validation and user input processing.',
+    description:
+      'Dynamic form generation from template definitions with real-time validation and user input processing.',
     highlight: 'Dynamic',
   },
   {
@@ -23,7 +25,8 @@ const features = [
   {
     icon: Shield,
     title: 'Complete Privacy',
-    description: 'All processing happens locally in your browser. Your files never leave your device or touch any server.',
+    description:
+      'All processing happens locally in your browser. Your files never leave your device or touch any server.',
     highlight: 'Private',
   },
   {
@@ -38,7 +41,7 @@ const features = [
     description: 'Works in any modern browser on desktop, mobile, and tablet. No installation required.',
     highlight: 'Universal',
   },
-]
+];
 
 export const FeaturesSection = () => {
   return (
@@ -64,7 +67,7 @@ export const FeaturesSection = () => {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => {
-            const Icon = feature.icon
+            const Icon = feature.icon;
 
             return (
               <Reveal key={feature.title} delay={index * 80} className="h-full">
@@ -81,20 +84,16 @@ export const FeaturesSection = () => {
                       <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-brand-600/80 dark:text-brand-300/70">
                         {feature.highlight}
                       </span>
-                      <h3 className="text-lg font-bold font-display text-foreground leading-tight">
-                        {feature.title}
-                      </h3>
+                      <h3 className="text-lg font-bold font-display text-foreground leading-tight">{feature.title}</h3>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-400 leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{feature.description}</p>
                 </Card>
               </Reveal>
-            )
+            );
           })}
         </div>
       </div>
     </section>
-  )
-}
+  );
+};

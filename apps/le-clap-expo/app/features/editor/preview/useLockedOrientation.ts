@@ -8,9 +8,7 @@ type RequiredOrientation = 'portrait' | 'landscape';
  * is mounted and restores it on unmount. Returns the effective orientation,
  * defaulting to portrait.
  */
-export function useLockedOrientation(
-  paramOrientation: RequiredOrientation | undefined
-): RequiredOrientation {
+export function useLockedOrientation(paramOrientation: RequiredOrientation | undefined): RequiredOrientation {
   const { lockOrientation, unlockOrientation } = useOrientation(paramOrientation);
 
   useEffect(() => {

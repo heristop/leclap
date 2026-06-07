@@ -120,9 +120,7 @@ class PlatformBridge {
     switch (detection.availability) {
       case FFmpegAvailability.SYSTEM: {
         if (showUI) {
-          console.log(
-            `${pc.green('✅')} ${pc.bold('Found:')} Using system FFmpeg ${pc.dim(`(${detection.version})`)}`
-          );
+          console.log(`${pc.green('✅')} ${pc.bold('Found:')} Using system FFmpeg ${pc.dim(`(${detection.version})`)}`);
           console.log(`${pc.cyan('🚀')} ${pc.dim('Fastest processing speed')}\n`);
         }
 
@@ -241,8 +239,7 @@ class PlatformBridge {
   }
 
   isNodeEnvironment = () =>
-    typeof globalThis.process !== 'undefined' &&
-    typeof globalThis.process.versions.node === 'string';
+    typeof globalThis.process !== 'undefined' && typeof globalThis.process.versions.node === 'string';
 
   isBrowserEnvironment = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 

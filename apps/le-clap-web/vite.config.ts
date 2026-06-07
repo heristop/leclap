@@ -86,7 +86,7 @@ export default defineConfig({
         'zlib',
         'yauzl',
         'fd-slicer',
-        'get-stream'
+        'get-stream',
       ],
     },
   },

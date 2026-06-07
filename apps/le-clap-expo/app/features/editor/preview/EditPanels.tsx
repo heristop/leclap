@@ -26,13 +26,7 @@ export function TrimEditPanel({
   return (
     <View style={styles.editPanel}>
       <Text style={styles.editTitle}>Trim clip</Text>
-      <TrimPanel
-        duration={duration}
-        value={value}
-        currentTime={currentTime}
-        onChange={onChange}
-        onSeek={onSeek}
-      />
+      <TrimPanel duration={duration} value={value} currentTime={currentTime} onChange={onChange} onSeek={onSeek} />
       <View style={styles.editActions}>
         <TouchableOpacity style={styles.ghostButton} onPress={onCancel} activeOpacity={0.8}>
           <Text style={styles.ghostButtonText}>Cancel</Text>

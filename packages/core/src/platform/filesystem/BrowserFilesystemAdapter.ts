@@ -148,12 +148,16 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   async readFile(path: string): Promise<Uint8Array> {
     const db = await this.ensureInitialized();
     const result = await dbRequest<FileData | undefined>(
-      db, this.storeName, 'readonly',
+      db,
+      this.storeName,
+      'readonly',
       (store) => store.get(path) as IDBRequest<FileData | undefined>,
       `Failed to read file ${path}`
     );
 
-    if (!result) { throw new Error(`File not found: ${path}`); }
+    if (!result) {
+      throw new Error(`File not found: ${path}`);
+    }
 
     return result.data;
   }
@@ -171,7 +175,13 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
       },
     };
 
-    await dbRequest<IDBValidKey>(db, this.storeName, 'readwrite', (store) => store.put(fileData), `Failed to write file ${path}`);
+    await dbRequest<IDBValidKey>(
+      db,
+      this.storeName,
+      'readwrite',
+      (store) => store.put(fileData),
+      `Failed to write file ${path}`
+    );
   }
 
   async exists(path: string): Promise<boolean> {
@@ -198,13 +208,7 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
 
   async remove(path: string): Promise<void> {
     const db = await this.ensureInitialized();
-    await dbRequest(
-      db,
-      this.storeName,
-      'readwrite',
-      (store) => store.delete(path),
-      `Failed to remove file ${path}`
-    );
+    await dbRequest(db, this.storeName, 'readwrite', (store) => store.delete(path), `Failed to remove file ${path}`);
   }
 
   async storeFile(file: File, path: string): Promise<void> {
@@ -258,14 +262,7 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
 
   async clear(): Promise<void> {
     const db = await this.ensureInitialized();
-    await dbRequest(
-      db,
-      this.storeName,
-      'readwrite',
-      (store) => store.clear(),
-      'Failed to clear files'
-    );
-
+    await dbRequest(db, this.storeName, 'readwrite', (store) => store.clear(), 'Failed to clear files');
   }
 
   async getAssetsPath(dir: string): Promise<string> {
@@ -342,7 +339,9 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
       combinedData.set(contentData, existingData.length);
       await this.writeFile(targetPath, combinedData);
     } catch (error) {
-      throw new Error(`Failed to append content to ${targetPath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to append content to ${targetPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 

@@ -27,11 +27,7 @@ export function buildErrorMessage(
 }
 
 /** Displayed-video rect inside a container, honoring contentFit="contain". */
-export function computeVideoRect(
-  container: { width: number; height: number },
-  srcW: number,
-  srcH: number
-): VideoRect {
+export function computeVideoRect(container: { width: number; height: number }, srcW: number, srcH: number): VideoRect {
   if (container.width <= 0 || container.height <= 0 || srcW <= 0 || srcH <= 0) {
     return { left: 0, top: 0, width: container.width, height: container.height };
   }
@@ -52,8 +48,7 @@ export function computeVideoRect(
   return { left: (container.width - width) / 2, top: 0, width, height };
 }
 
-export const isCropApplied = (c: NormalizedCrop) =>
-  c.x > 0.001 || c.y > 0.001 || c.w < 0.999 || c.h < 0.999;
+export const isCropApplied = (c: NormalizedCrop) => c.x > 0.001 || c.y > 0.001 || c.w < 0.999 || c.h < 0.999;
 
 export const isTrimApplied = (t: TrimRange, duration: number) =>
   t.start > 0.05 || (duration > 0 && t.end < duration - 0.05);

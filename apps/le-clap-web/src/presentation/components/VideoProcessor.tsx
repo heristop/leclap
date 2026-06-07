@@ -1,5 +1,5 @@
 import { useState, startTransition } from 'react'
-import { Play, Square, AlertCircle, CheckCircle2, Loader2, FileText, Users } from 'lucide-react'
+import { Play, Square, AlertCircle, CheckCircle2, Loader2, FileText, Users, Lightbulb } from 'lucide-react'
 import clsx from 'clsx'
 import { type Template } from '@/services/templateService'
 import { Button, Card } from '@/presentation/components/ui'
@@ -245,8 +245,9 @@ function RequirementsChecklist({
 function ProcessingTips() {
   return (
     <Card elevation="flat" className="p-4 bg-success/10 border-success/30 rounded-xl fade-in backdrop-blur-sm">
-      <h4 className="text-sm font-medium text-success mb-2">
-        💡 Processing Tips
+      <h4 className="text-sm font-semibold text-success mb-2 flex items-center gap-2">
+        <Lightbulb className="w-4 h-4" />
+        Processing Tips
       </h4>
       <ul className="text-sm text-success/80 space-y-1">
         <li>• Keep this tab active during processing</li>

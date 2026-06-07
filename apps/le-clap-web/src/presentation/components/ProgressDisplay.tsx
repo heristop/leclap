@@ -59,7 +59,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
         'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] border',
         isCompleted && 'bg-success border-success text-foreground scale-110 shadow-[0_0_10px_oklch(0.673_0.162_144.2/0.45)]',
         isCurrent && 'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
-        isPending && 'bg-surface-2 border-gray-700 text-gray-500'
+        isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
       )}>
         {isCompleted ? (
           <CheckCircle2 className="w-4 h-4" />
@@ -71,7 +71,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
         'w-2 h-1 rounded-full transition-all duration-300',
         isCompleted && 'bg-success',
         isCurrent && 'bg-brand-500',
-        isPending && 'bg-gray-700'
+        isPending && 'bg-foreground/15'
       )} />
     </div>
   )
@@ -188,7 +188,7 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="Video processing progress"
-        className="relative w-full h-3 bg-gray-700/50 rounded-full overflow-hidden border border-foreground/5"
+        className="relative w-full h-3 bg-foreground/10 rounded-full overflow-hidden border border-foreground/5"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
 
@@ -252,7 +252,7 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
             </div>
             <div>
               <h4 className="font-semibold text-success">
-                Processing Complete! 🎉
+                Processing Complete!
               </h4>
               <p className="text-sm text-success/80">
                 Your video has been processed and is ready for download.

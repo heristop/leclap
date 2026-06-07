@@ -1,5 +1,5 @@
 import { useState, useRef, startTransition } from 'react'
-import { Download, Play, Pause, Share2, Copy, Check, FileVideo, HardDrive } from 'lucide-react'
+import { Download, Play, Pause, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from 'lucide-react'
 import clsx from 'clsx'
 import { logger } from '@/lib/logger'
 import { Button, Card } from '@/presentation/components/ui'
@@ -112,7 +112,7 @@ interface VideoInfoProps {
 }
 
 const VideoInfo = ({ processedVideo }: VideoInfoProps) => (
-  <Card elevation="flat" className="grid grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm">
+  <Card elevation="flat" className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm">
     <div className="flex items-center space-x-3">
       <div className="p-2 bg-info/20 rounded-lg border border-info/20">
         <HardDrive className="w-5 h-5 text-info" />
@@ -171,7 +171,7 @@ const ActionButtons = ({ processedVideo: _processedVideo, downloadProgress, show
 
     {/* Progress Bar for Download */}
     {downloadProgress > 0 && downloadProgress < 100 && (
-      <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
         <div
           className="h-full bg-success transition-all duration-300"
           style={{ width: `${downloadProgress}%` }}
@@ -218,8 +218,8 @@ const ActionButtons = ({ processedVideo: _processedVideo, downloadProgress, show
 
 const SuccessMessage = () => (
   <Card elevation="flat" className="p-4 bg-success/[0.12] border-success/30 rounded-xl backdrop-blur-sm">
-    <h4 className="font-semibold text-success mb-2 flex items-center">
-      <span className="mr-2">🎉</span> Video Processing Complete!
+    <h4 className="font-semibold text-success mb-2 flex items-center gap-2">
+      <CheckCircle2 className="w-4 h-4" /> Video Processing Complete!
     </h4>
     <ul className="text-sm text-success/80 space-y-1">
       <li>• Your video has been processed</li>

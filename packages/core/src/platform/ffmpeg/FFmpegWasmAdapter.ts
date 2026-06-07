@@ -42,7 +42,13 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
 
       this.ffmpeg = new FFmpeg() as unknown as FFmpegWasm;
 
-      this.ffmpeg.on('progress', ({ progress }) => {
+      this.ffmpeg.on('log', ({ message }) => {
+        console.log('[FFmpegWasm]', message);
+      });
+
+      this.ffmpeg.on('progress', ({ progress, time }) => {
+        const pct = progress === undefined ? 0 : Math.round(progress * 100);
+        console.log('[FFmpegWasm] Progress:', pct, '% | Time:', time);
         this.progressListener?.(progress ?? 0);
       });
 

@@ -99,6 +99,11 @@ export async function compile(
       throw new Error('buildDir is required in projectConfig');
     }
 
+    console.log('Starting compilation with config:', {
+      hasUserVideoPaths: Boolean(projectConfig.userVideoPaths),
+      videoPaths: projectConfig.userVideoPaths ? Object.keys(projectConfig.userVideoPaths) : 'none',
+    });
+
     const director = container.resolve(TemplateDirector).config(projectConfig, templateDescriptor);
 
     return await director.construct();

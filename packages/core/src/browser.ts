@@ -92,6 +92,8 @@ async function initializeBrowserPlatform(): Promise<void> {
       logger.info('Browser platform initialized');
       isInitialized = true;
     } catch (error) {
+      console.error('Failed to initialize browser platform:', error);
+
       throw error;
     }
   })();
@@ -125,8 +127,11 @@ interface CompilationContext extends ResolvedAdapters {
 function resolveDirectorViaDI(): TemplateDirector {
   container.resolve(MusicComposer);
   container.resolve(TemplateConcreteBuilder);
+  const director = container.resolve(TemplateDirector);
 
-  return container.resolve(TemplateDirector);
+  console.log('[Browser Compile] Used DI container for instantiation');
+
+  return director;
 }
 
 function resolveDirectorManually(ctx: CompilationContext): TemplateDirector {
@@ -136,7 +141,7 @@ function resolveDirectorManually(ctx: CompilationContext): TemplateDirector {
   const videoEditor = new VideoEditor(project, template, musicComposer, logger, ffmpegAdapter, filesystemAdapter);
   const concreteBuilder = new TemplateConcreteBuilder(project, logger, ffmpegAdapter, filesystemAdapter);
 
-  return new TemplateDirector(eventManager, videoEditor, {
+  const director = new TemplateDirector(eventManager, videoEditor, {
     concreteBuilder,
     musicComposer,
     project,
@@ -145,12 +150,18 @@ function resolveDirectorManually(ctx: CompilationContext): TemplateDirector {
     ffmpegAdapter,
     filesystemAdapter,
   });
+
+  console.log('[Browser Compile] Created instances with manual instantiation');
+
+  return director;
 }
 
 function resolveDirector(ctx: CompilationContext): TemplateDirector {
   try {
     return resolveDirectorViaDI();
-  } catch {
+  } catch (diError) {
+    console.warn('[Browser Compile] DI container failed, falling back to manual instantiation:', diError);
+
     return resolveDirectorManually(ctx);
   }
 }

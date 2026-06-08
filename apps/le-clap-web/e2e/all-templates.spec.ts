@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 // End-to-end WASM compilation check for every template, against BOTH a
 // fixture WITH an audio track and a video-only fixture WITHOUT one.
@@ -25,7 +25,7 @@ const FORM_DATA: Record<string, Record<string, string>> = {
   sample: { form_1_firstname: 'Alexandre', form_1_lastname: 'Mogere', form_1_job: 'Engineer' },
 };
 
-async function listTemplateIds(page: import('@playwright/test').Page): Promise<string[]> {
+async function listTemplateIds(page: Page): Promise<string[]> {
   return page.evaluate(async () => {
     const { templateService } = await import('/src/services/templateService.ts');
     const templates = await templateService.getAllTemplates();
@@ -35,7 +35,7 @@ async function listTemplateIds(page: import('@playwright/test').Page): Promise<s
 }
 
 async function compileTemplate(
-  page: import('@playwright/test').Page,
+  page: Page,
   id: string,
   formData: Record<string, string>,
   sampleVideo: string

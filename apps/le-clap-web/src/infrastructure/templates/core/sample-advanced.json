@@ -1,0 +1,68 @@
+{
+  "id": "sample-advanced",
+  "name": "Professional Video with Text",
+  "description": "Advanced template with forms and text overlay effects - uses your uploaded video",
+  "category": "advanced",
+  "orientation": "landscape",
+  "hasForm": true,
+  "templateDescriptor": {
+    "global": {
+      "variables": { "colorsList": ["rgb(41 37 36)", "rgb(250 250 249)"] },
+      "orientation": "landscape",
+      "musicEnabled": false,
+      "transitionDuration": 0.5
+    },
+    "sections": [
+      {
+        "name": "form_1",
+        "type": "form",
+        "title": { "en": "Personal Information" },
+        "description": { "en": "Please provide your details" },
+        "options": {
+          "fields": [
+            { "name": "form_1_firstname", "maxLength": 30, "label": { "en": "First Name" } },
+            { "name": "form_1_lastname", "maxLength": 30, "label": { "en": "Last Name" } },
+            { "name": "form_1_job", "maxLength": 40, "label": { "en": "Your Job" } }
+          ]
+        }
+      },
+      {
+        "name": "video_1",
+        "type": "project_video",
+        "title": { "en": "Upload your video" },
+        "description": { "en": "Your video with text overlay" },
+        "options": { "duration": 20000, "forceAspectRatio": true },
+        "filters": [
+          {
+            "type": "drawtext",
+            "values": {
+              "text": { "en": "{{ form_1_firstname }} {{ form_1_lastname }}" },
+              "fontfile": "Rubik.ttf",
+              "fontcolor": "white",
+              "fontsize": 40,
+              "x": "(w-text_w)/2",
+              "y": "(h-text_h)/1.2",
+              "box": 1,
+              "boxcolor": "black@0.5",
+              "boxborderw": 5
+            }
+          },
+          {
+            "type": "drawtext",
+            "values": {
+              "text": { "en": "{{ form_1_job }}" },
+              "fontfile": "Rubik.ttf",
+              "fontcolor": "white",
+              "fontsize": 25,
+              "x": "(w-text_w)/2",
+              "y": "(h-text_h)/1.1",
+              "box": 1,
+              "boxcolor": "black@0.5",
+              "boxborderw": 5
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

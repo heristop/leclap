@@ -5,7 +5,6 @@ import {
   Trash2,
   Plus,
   X,
-  Type,
   Video as VideoIcon,
   Square,
   FileText,
@@ -33,16 +32,15 @@ import {
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import {
   buildDescriptor,
-  newOverlay,
+  collectVariables,
   newSection,
   SECTION_LABELS,
   toEditorState,
   type EditorSection,
   type EditorState,
-  type TextOverlay,
 } from './templateEditorModel';
 import { MediaPicker } from './MediaPicker';
-import { TextPositioner } from './TextPositioner';
+import { OverlayCanvas } from './OverlayCanvas';
 
 export { buildDescriptor } from './templateEditorModel';
 
@@ -63,6 +61,7 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
   const [state, setState] = useState<EditorState>(() => toEditorState(initial));
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const variables = collectVariables(state);
 
   useLockBodyScroll();
 
@@ -171,6 +170,7 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
           <SectionList
             sections={state.sections}
             orientation={state.orientation}
+            variables={variables}
             dragIndex={dragIndex}
             setDragIndex={setDragIndex}
             reorder={reorder}
@@ -213,37 +213,105 @@ const MetadataFields = ({ state, patch }: MetadataFieldsProps) => {
   const nameId = useId();
 
   return (
-    <div className="grid sm:grid-cols-2 gap-3 mb-6">
-      <div className="sm:col-span-2">
-        <label htmlFor={nameId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-          Name
-        </label>
-        <input
-          id={nameId}
-          className={inputCls}
-          value={state.name}
-          onChange={(e) => {
-            patch({ name: e.target.value });
-          }}
-          placeholder="My template"
-        />
+    <div className="mb-6 space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor={nameId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+            Name
+          </label>
+          <input
+            id={nameId}
+            className={inputCls}
+            value={state.name}
+            onChange={(e) => {
+              patch({ name: e.target.value });
+            }}
+            placeholder="My template"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+            Orientation
+          </label>
+          <Select
+            value={state.orientation}
+            onValueChange={(v) => {
+              patch({ orientation: v as EditorState['orientation'] });
+            }}
+          >
+            <SelectTrigger aria-label="Orientation">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="landscape">Landscape (16:9)</SelectItem>
+              <SelectItem value="portrait">Portrait (9:16)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Orientation</label>
-        <Select
-          value={state.orientation}
-          onValueChange={(v) => {
-            patch({ orientation: v as EditorState['orientation'] });
+      <GlobalVariablesEditor state={state} patch={patch} />
+    </div>
+  );
+};
+
+// Author-defined template constants. Each row is a {name, value} pair that
+// buildDescriptor merges into global.variables; insertable as {{ name }} in any
+// overlay text.
+const GlobalVariablesEditor = ({ state, patch }: MetadataFieldsProps) => {
+  const { globalVariables } = state;
+
+  const update = (i: number, p: Partial<EditorState['globalVariables'][number]>) => {
+    patch({ globalVariables: globalVariables.map((v, idx) => (idx === i ? { ...v, ...p } : v)) });
+  };
+
+  return (
+    <div>
+      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Global variables</span>
+      <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+        Reusable values you can insert as {'{{ name }}'} in any text.
+      </p>
+      <div className="space-y-2">
+        {globalVariables.map((variable, i) => (
+          <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
+            <input
+              aria-label={`Variable ${i + 1} name`}
+              className={inputCls}
+              value={variable.name}
+              onChange={(e) => {
+                update(i, { name: e.target.value });
+              }}
+              placeholder="name"
+            />
+            <input
+              aria-label={`Variable ${i + 1} value`}
+              className={inputCls}
+              value={variable.value}
+              onChange={(e) => {
+                update(i, { value: e.target.value });
+              }}
+              placeholder="value"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                patch({ globalVariables: globalVariables.filter((_, idx) => idx !== i) });
+              }}
+              aria-label={`Remove variable ${i + 1}`}
+              className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => {
+            patch({ globalVariables: [...globalVariables, { name: '', value: '' }] });
           }}
+          className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
         >
-          <SelectTrigger aria-label="Orientation">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="landscape">Landscape (16:9)</SelectItem>
-            <SelectItem value="portrait">Portrait (9:16)</SelectItem>
-          </SelectContent>
-        </Select>
+          <Plus className="h-3.5 w-3.5" /> Add variable
+        </button>
       </div>
     </div>
   );
@@ -252,6 +320,7 @@ const MetadataFields = ({ state, patch }: MetadataFieldsProps) => {
 interface SectionListProps {
   sections: EditorSection[];
   orientation: EditorState['orientation'];
+  variables: string[];
   dragIndex: number | null;
   setDragIndex: (i: number | null) => void;
   reorder: (from: number, to: number) => void;
@@ -292,6 +361,7 @@ const remapCollapsed = (collapsed: Set<number>, from: number, to: number): Set<n
 const SectionList = ({
   sections,
   orientation,
+  variables,
   dragIndex,
   setDragIndex,
   reorder,
@@ -418,6 +488,7 @@ const SectionList = ({
           <SectionCard
             section={section}
             orientation={orientation}
+            variables={variables}
             index={i}
             armed={armedIndex === i}
             dragging={dragIndex === i}
@@ -442,6 +513,7 @@ const SectionList = ({
 interface SectionCardProps {
   section: EditorSection;
   orientation: EditorState['orientation'];
+  variables: string[];
   index: number;
   armed: boolean;
   dragging: boolean;
@@ -460,6 +532,7 @@ interface SectionCardProps {
 const SectionCard = ({
   section,
   orientation,
+  variables,
   index,
   armed,
   dragging,
@@ -540,6 +613,7 @@ const SectionCard = ({
       <SectionFields
         section={section}
         orientation={orientation}
+        variables={variables}
         onChange={(p) => {
           patchSection(index, p);
         }}
@@ -581,18 +655,28 @@ const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
 function SectionFields({
   section,
   orientation,
+  variables,
   onChange,
   inputCls,
 }: {
   section: EditorSection;
   orientation: EditorState['orientation'];
+  variables: string[];
   onChange: (p: Partial<EditorSection>) => void;
   inputCls: string;
 }) {
   const colorId = useId();
 
   if (section.kind === 'video') {
-    return <VideoFields section={section} orientation={orientation} onChange={onChange} inputCls={inputCls} />;
+    return (
+      <VideoFields
+        section={section}
+        orientation={orientation}
+        variables={variables}
+        onChange={onChange}
+        inputCls={inputCls}
+      />
+    );
   }
 
   if (section.kind === 'color') {
@@ -699,34 +783,18 @@ type ImageSection = Extract<EditorSection, { kind: 'image' }>;
 const VideoFields = ({
   section,
   orientation,
+  variables,
   onChange,
   inputCls,
 }: {
   section: VideoSection;
   orientation: EditorState['orientation'];
+  variables: string[];
   onChange: (p: Partial<EditorSection>) => void;
   inputCls: string;
-}) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { overlays } = section;
-
-  const updateOverlay = (i: number, p: Partial<TextOverlay>) => {
-    onChange({ overlays: overlays.map((o, idx) => (idx === i ? { ...o, ...p } : o)) });
-  };
-  const moveOverlay = (i: number, x: number, y: number) => {
-    updateOverlay(i, { x, y });
-  };
-  const addOverlay = () => {
-    setActiveIndex(overlays.length);
-    onChange({ overlays: [...overlays, newOverlay()] });
-  };
-  const removeOverlay = (i: number) => {
-    setActiveIndex((curr) => Math.max(0, curr >= i ? curr - 1 : curr));
-    onChange({ overlays: overlays.filter((_, idx) => idx !== i) });
-  };
-
-  return (
-    <div className="grid sm:grid-cols-2 gap-3 pl-7">
+}) => (
+  <div className="space-y-3 pl-7">
+    <div className="grid gap-3 sm:grid-cols-2">
       <NumberField
         label="Duration (s)"
         value={section.duration}
@@ -735,7 +803,7 @@ const VideoFields = ({
         }}
         inputCls={inputCls}
       />
-      <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+      <label className="mt-6 flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
         <Checkbox
           checked={section.mute}
           onCheckedChange={(c) => {
@@ -744,160 +812,17 @@ const VideoFields = ({
         />{' '}
         Mute audio
       </label>
-      <TextPositioner
-        overlays={overlays}
-        orientation={orientation}
-        activeIndex={activeIndex}
-        onSelect={setActiveIndex}
-        onMove={moveOverlay}
-      />
-      <div className="sm:col-span-2 space-y-2">
-        {overlays.map((overlay, i) => (
-          <OverlayEditor
-            key={i}
-            overlay={overlay}
-            index={i}
-            active={i === activeIndex}
-            inputCls={inputCls}
-            onActivate={setActiveIndex}
-            onChange={(p) => {
-              updateOverlay(i, p);
-            }}
-            onRemove={() => {
-              removeOverlay(i);
-            }}
-          />
-        ))}
-        <button
-          type="button"
-          onClick={addOverlay}
-          className="tap inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-foreground/5 text-gray-600 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-colors dark:text-gray-300"
-        >
-          <Plus className="w-3.5 h-3.5" /> Add text
-        </button>
-      </div>
     </div>
-  );
-};
-
-const OverlayEditor = ({
-  overlay,
-  index,
-  active,
-  inputCls,
-  onActivate,
-  onChange,
-  onRemove,
-}: {
-  overlay: TextOverlay;
-  index: number;
-  active: boolean;
-  inputCls: string;
-  onActivate: (i: number) => void;
-  onChange: (p: Partial<TextOverlay>) => void;
-  onRemove: () => void;
-}) => {
-  const activate = () => {
-    onActivate(index);
-  };
-
-  return (
-    <div
-      onFocusCapture={activate}
-      onPointerDownCapture={activate}
-      className={clsx(
-        'rounded-xl border p-3 transition-colors',
-        active ? 'border-brand-500/50 bg-brand-500/[0.06]' : 'border-foreground/10 bg-surface-2/40'
-      )}
-    >
-      <div className="flex items-start gap-2">
-        <Type className="mt-2.5 w-4 h-4 text-gray-400 shrink-0" />
-        <input
-          aria-label={`Overlay ${index + 1} text`}
-          className={inputCls}
-          value={overlay.text}
-          onChange={(e) => {
-            onChange({ text: e.target.value });
-          }}
-          placeholder="Overlay text — supports {{firstname}}"
-        />
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Remove overlay ${index + 1}`}
-          className="tap mt-1 p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-      <OverlayStyleFields overlay={overlay} index={index} inputCls={inputCls} onChange={onChange} />
-    </div>
-  );
-};
-
-const OverlayStyleFields = ({
-  overlay,
-  index,
-  inputCls,
-  onChange,
-}: {
-  overlay: TextOverlay;
-  index: number;
-  inputCls: string;
-  onChange: (p: Partial<TextOverlay>) => void;
-}) => {
-  const boxColorId = useId();
-
-  return (
-    <div className="mt-3 grid sm:grid-cols-2 gap-3 pl-6">
-      <NumberField
-        label="Font size"
-        value={overlay.fontsize}
-        onChange={(v) => {
-          onChange({ fontsize: v });
-        }}
-        inputCls={inputCls}
-      />
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Color</label>
-        <ColorPicker
-          aria-label={`Overlay ${index + 1} text color`}
-          value={overlay.fontcolor}
-          onChange={(c) => {
-            onChange({ fontcolor: c });
-          }}
-        />
-      </div>
-      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-        <Checkbox
-          checked={overlay.box}
-          onCheckedChange={(c) => {
-            onChange({ box: c === true });
-          }}
-        />{' '}
-        Box
-      </label>
-      {overlay.box && (
-        <div>
-          <label
-            htmlFor={boxColorId}
-            className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1"
-          >
-            Box color
-          </label>
-          <ColorPicker
-            id={boxColorId}
-            aria-label={`Overlay ${index + 1} box color`}
-            value={overlay.boxcolor}
-            onChange={(c) => {
-              onChange({ boxcolor: c });
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
+    <OverlayCanvas
+      overlays={section.overlays}
+      orientation={orientation}
+      variables={variables}
+      onChange={(overlays) => {
+        onChange({ overlays });
+      }}
+    />
+  </div>
+);
 
 const MusicFields = ({
   section,

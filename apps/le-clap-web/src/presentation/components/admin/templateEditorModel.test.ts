@@ -262,6 +262,7 @@ describe('templateEditorModel — newSection/newOverlay defaults', () => {
       font: 'rubik',
       box: false,
       boxcolor: '#000000',
+      boxOpacity: 0.5,
     });
   });
 });
@@ -424,6 +425,65 @@ describe('templateEditorModel — parseFraction', () => {
   });
 });
 
+describe('templateEditorModel — box opacity', () => {
+  it('emits the box opacity into boxcolor', () => {
+    const d = buildDescriptor(
+      baseState({
+        sections: [
+          {
+            kind: 'video',
+            duration: 5,
+            mute: false,
+            overlays: [
+              {
+                text: 'Hi',
+                x: 0.5,
+                y: 0.5,
+                fontsize: 48,
+                fontcolor: '#fff',
+                box: true,
+                boxcolor: '#000000',
+                boxOpacity: 0.3,
+                font: 'rubik',
+              },
+            ],
+          },
+        ],
+      })
+    );
+
+    expect((d.sections?.[0].filters ?? [])[0].values?.boxcolor).toBe('#000000@0.3');
+  });
+
+  it('round-trips box opacity', () => {
+    const start = baseState({
+      sections: [
+        {
+          kind: 'video',
+          duration: 5,
+          mute: false,
+          overlays: [
+            {
+              text: 'Hi',
+              x: 0.5,
+              y: 0.5,
+              fontsize: 48,
+              fontcolor: '#fff',
+              box: true,
+              boxcolor: '#000000',
+              boxOpacity: 0.3,
+              font: 'rubik',
+            },
+          ],
+        },
+      ],
+    });
+    const back = toEditorState(asTemplate(start)).sections.find((s) => s.kind === 'video');
+
+    expect((back as { overlays: { boxOpacity: number }[] }).overlays[0].boxOpacity).toBeCloseTo(0.3);
+  });
+});
+
 describe('templateEditorModel — per-overlay font + global variables', () => {
   it('emits the chosen fontfile per overlay', () => {
     const d = buildDescriptor(
@@ -442,6 +502,7 @@ describe('templateEditorModel — per-overlay font + global variables', () => {
                 fontcolor: '#fff',
                 box: false,
                 boxcolor: '#000',
+                boxOpacity: 0.5,
                 font: 'oswald',
               },
             ],
@@ -469,6 +530,7 @@ describe('templateEditorModel — per-overlay font + global variables', () => {
               fontcolor: '#fff',
               box: false,
               boxcolor: '#000',
+              boxOpacity: 0.5,
               font: 'pacifico',
             },
           ],

@@ -31,9 +31,13 @@ export default function FFmpegSpikeScreen() {
   const [busy, setBusy] = useState(false);
   const [outputUri, setOutputUri] = useState<string | null>(null);
 
-  const player = useVideoPlayer(outputUri, (p) => { p.loop = true; });
+  const player = useVideoPlayer(outputUri, (p) => {
+    p.loop = true;
+  });
 
-  const append = (line: string) => { setLog((prev) => `${prev}\n${line}`); };
+  const append = (line: string) => {
+    setLog((prev) => `${prev}\n${line}`);
+  };
 
   const checkVersion = () => {
     try {
@@ -57,13 +61,21 @@ export default function FFmpegSpikeScreen() {
       const result = await execute(
         [
           '-y',
-          '-f', 'lavfi',
-          '-i', 'testsrc=duration=2:size=480x270:rate=24',
-          '-pix_fmt', 'yuv420p',
-          '-c:v', 'mpeg4',
+          '-f',
+          'lavfi',
+          '-i',
+          'testsrc=duration=2:size=480x270:rate=24',
+          '-pix_fmt',
+          'yuv420p',
+          '-c:v',
+          'mpeg4',
           out,
         ],
-        { onProgress: (p) => { append(`… ${p.speed.toFixed(2)}x, frame ${p.frame ?? 0}`); } }
+        {
+          onProgress: (p) => {
+            append(`… ${p.speed.toFixed(2)}x, frame ${p.frame ?? 0}`);
+          },
+        }
       );
 
       const info = await FileSystem.getInfoAsync(outUri);
@@ -87,7 +99,13 @@ export default function FFmpegSpikeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => { router.back(); }} style={styles.iconBtn} accessibilityLabel="Close">
+        <TouchableOpacity
+          onPress={() => {
+            router.back();
+          }}
+          style={styles.iconBtn}
+          accessibilityLabel="Close"
+        >
           <Ionicons name="close" size={26} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>FFmpeg on-device spike</Text>
@@ -100,7 +118,14 @@ export default function FFmpegSpikeScreen() {
             <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
             <Text style={styles.btnText}>Check version</Text>
           </TouchableOpacity>
-          <TouchableOpacity testID="spike-render" onPress={() => { renderTestClip().catch(() => {}); }} style={[styles.btn, styles.btnPrimary]} disabled={busy}>
+          <TouchableOpacity
+            testID="spike-render"
+            onPress={() => {
+              renderTestClip().catch(() => {});
+            }}
+            style={[styles.btn, styles.btnPrimary]}
+            disabled={busy}
+          >
             {busy ? <ActivityIndicator color="#fff" /> : <Ionicons name="play" size={18} color="#fff" />}
             <Text style={[styles.btnText, styles.btnTextPrimary]}>Render test clip</Text>
           </TouchableOpacity>
@@ -151,7 +176,20 @@ const styles = StyleSheet.create({
   btnText: { ...typography.button, color: colors.primary },
   btnTextPrimary: { color: '#fff' },
   video: { width: '100%', height: 200, marginTop: spacing.m, borderRadius: 12, backgroundColor: '#000' },
-  logLabel: { ...typography.smallText, color: colors.textSecondary, textTransform: 'uppercase', marginTop: spacing.l, marginBottom: spacing.xs },
-  logBox: { backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.divider, padding: spacing.m, minHeight: 160 },
+  logLabel: {
+    ...typography.smallText,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    marginTop: spacing.l,
+    marginBottom: spacing.xs,
+  },
+  logBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    padding: spacing.m,
+    minHeight: 160,
+  },
   logText: { ...typography.caption, color: colors.text, fontFamily: 'System' },
 });

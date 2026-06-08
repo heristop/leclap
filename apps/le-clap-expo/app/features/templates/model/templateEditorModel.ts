@@ -1,14 +1,18 @@
 import type { TemplateDescriptor, Section } from '@/src/types';
 
 // --- Editor-friendly section model (flattened; compiled to a descriptor on save) ---
-// Ported from le-clap-web's templateEditorModel, targeting the Expo type shapes.
+// Mirrors le-clap-web's templateEditorModel exactly: background music + background
+// image are SECTIONS (peers of video/form/color), each carrying a curated multi-select
+// shortlist + an "allow upload" flag (image also a duration).
 
 export type FormField = { name: string; label: string; maxLength: number };
 
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
   | { kind: 'video'; duration: number; mute: boolean; text: string; fontsize: number; fontcolor: string }
-  | { kind: 'color'; duration: number; color: string };
+  | { kind: 'color'; duration: number; color: string }
+  | { kind: 'music'; allowed: string[]; allowUpload: boolean }
+  | { kind: 'image'; allowed: string[]; allowUpload: boolean; duration: number };
 
 export type Orientation = 'landscape' | 'portrait';
 
@@ -17,7 +21,6 @@ export interface EditorState {
   name: string;
   description: string;
   orientation: Orientation;
-  musicEnabled: boolean;
   sections: EditorSection[];
 }
 
@@ -31,12 +34,14 @@ export interface EditableTemplate {
 }
 
 export const SECTION_LABELS: Record<EditorSection['kind'], string> = {
-  video: 'Your video',
   form: 'Form fields',
+  video: 'Your video',
   color: 'Color background',
+  music: 'Background music',
+  image: 'Background image',
 };
 
-export const SECTION_KINDS: EditorSection['kind'][] = ['video', 'form', 'color'];
+export const SECTION_KINDS: Array<EditorSection['kind']> = ['video', 'form', 'color', 'music', 'image'];
 
 export function newSection(kind: EditorSection['kind']): EditorSection {
   if (kind === 'form') {
@@ -45,6 +50,14 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
 
   if (kind === 'color') {
     return { kind: 'color', duration: 3, color: '#7C83FD' };
+  }
+
+  if (kind === 'music') {
+    return { kind: 'music', allowed: [], allowUpload: false };
+  }
+
+  if (kind === 'image') {
+    return { kind: 'image', allowed: [], allowUpload: false, duration: 4 };
   }
 
   return { kind: 'video', duration: 8, mute: false, text: '', fontsize: 48, fontcolor: '#ffffff' };
@@ -67,61 +80,146 @@ export function makeTemplateId(): string {
   return `user-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 }
 
-/**
- * Pure: editor state -> a core TemplateDescriptor. `project_video` sections are
- * numbered video_1, video_2… so recorded clips (userVideoPaths keys) map to them.
- */
-export function buildDescriptor(state: EditorState): TemplateDescriptor {
-  let videoIndex = 0;
+// --- descriptor section builders (one per editor section kind that has a positional descriptor) ---
 
-  const sections: Section[] = state.sections.map((section, i): Section => {
-    if (section.kind === 'form') {
-      return {
-        name: `form_${i + 1}`,
-        type: 'form',
-        options: {
-          fields: section.fields.map((f) => ({ name: f.name, maxLength: f.maxLength, label: { en: f.label } })),
-        },
-      };
-    }
+function formDescriptorFrom(section: { kind: 'form'; fields: FormField[] }, index: number): Section {
+  return {
+    name: `form_${index}`,
+    type: 'form',
+    options: {
+      fields: section.fields.map((f) => ({ name: f.name, maxLength: f.maxLength, label: { en: f.label } })),
+    },
+  };
+}
 
-    if (section.kind === 'color') {
-      return {
-        name: `color_${i + 1}`,
-        type: 'color_background',
-        options: { duration: section.duration, backgroundColor: section.color },
-      };
-    }
+function colorDescriptorFrom(section: { kind: 'color'; duration: number; color: string }, index: number): Section {
+  return {
+    name: `color_${index}`,
+    type: 'color_background',
+    options: { duration: section.duration, backgroundColor: section.color },
+  };
+}
 
-    videoIndex += 1;
-    const filters = section.text.trim()
-      ? [
-          {
-            type: 'drawtext',
-            values: {
-              text: { en: section.text },
-              fontsize: section.fontsize,
-              fontcolor: section.fontcolor,
-              fontfile: 'Rubik.ttf',
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/2',
-            },
+function videoDescriptorFrom(
+  section: { kind: 'video'; duration: number; mute: boolean; text: string; fontsize: number; fontcolor: string },
+  index: number
+): Section {
+  const filters = section.text.trim()
+    ? [
+        {
+          type: 'drawtext',
+          values: {
+            text: { en: section.text },
+            fontsize: section.fontsize,
+            fontcolor: section.fontcolor,
+            fontfile: 'Rubik.ttf',
+            x: '(w-text_w)/2',
+            y: '(h-text_h)/2',
           },
-        ]
-      : undefined;
-
-    return {
-      name: `video_${videoIndex}`,
-      type: 'project_video',
-      options: { duration: section.duration, muteSection: section.mute },
-      ...(filters ? { filters } : {}),
-    };
-  });
+        },
+      ]
+    : undefined;
 
   return {
-    global: { orientation: state.orientation, musicEnabled: state.musicEnabled, transitionDuration: 0.5 },
-    sections,
+    name: `video_${index}`,
+    type: 'project_video',
+    options: { duration: section.duration, muteSection: section.mute },
+    ...(filters ? { filters } : {}),
   };
+}
+
+type IndexedSection = { section: EditorSection; index: number };
+
+// One descriptor section for the given editor section. video/image sections are
+// numbered with their own running counter (video_1…, image_1…) so uploaded files
+// map to them; form/color use the overall descriptor position. music yields null.
+function descriptorFor({ section, index }: IndexedSection): Section | null {
+  if (section.kind === 'form') {
+    return formDescriptorFrom(section, index);
+  }
+
+  if (section.kind === 'color') {
+    return colorDescriptorFrom(section, index);
+  }
+
+  if (section.kind === 'video') {
+    return videoDescriptorFrom(section, index);
+  }
+
+  if (section.kind === 'image') {
+    return { name: `image_${index}`, type: 'image_background', options: { duration: section.duration } };
+  }
+
+  return null;
+}
+
+// Descriptor sections, in editor order. music sections produce nothing here —
+// they are folded into the global media fields.
+function mapEditorSections(sections: EditorSection[]): Section[] {
+  let videoIndex = 0;
+  let imageIndex = 0;
+  let descIndex = 0;
+
+  const counted = sections.map((section): IndexedSection => {
+    if (section.kind === 'video') {
+      videoIndex += 1;
+
+      return { section, index: videoIndex };
+    }
+
+    if (section.kind === 'image') {
+      imageIndex += 1;
+
+      return { section, index: imageIndex };
+    }
+
+    descIndex += 1;
+
+    return { section, index: descIndex };
+  });
+
+  return counted.map(descriptorFor).filter((s): s is Section => s !== null);
+}
+
+// music section -> global.allowed*/allowUpload*; image sections -> de-duplicated
+// global.allowedBackgrounds union + allowUploadBackground (true if any allows it).
+function mediaGlobals(sections: EditorSection[]): Partial<NonNullable<TemplateDescriptor['global']>> {
+  const out: Partial<NonNullable<TemplateDescriptor['global']>> = {};
+
+  const musicSection = sections.find((s): s is Extract<EditorSection, { kind: 'music' }> => s.kind === 'music');
+
+  if (musicSection) {
+    out.musicEnabled = true;
+    out.allowedMusic = musicSection.allowed;
+    out.allowUploadMusic = musicSection.allowUpload;
+  }
+
+  const imageSections = sections.filter((s): s is Extract<EditorSection, { kind: 'image' }> => s.kind === 'image');
+
+  if (imageSections.length > 0) {
+    out.allowedBackgrounds = [...new Set(imageSections.flatMap((s) => s.allowed))];
+    out.allowUploadBackground = imageSections.some((s) => s.allowUpload);
+  }
+
+  return out;
+}
+
+/**
+ * Pure: editor state -> a core TemplateDescriptor. project_video sections are
+ * numbered video_1, video_2… so recorded clips (userVideoPaths keys) map to them.
+ * Mirrors the web model exactly: a music section folds into global media fields
+ * (no own descriptor section); each image section becomes one image_background
+ * descriptor section + contributes to global.allowedBackgrounds/allowUploadBackground.
+ */
+export function buildDescriptor(state: EditorState): TemplateDescriptor {
+  const global: NonNullable<TemplateDescriptor['global']> = {
+    orientation: state.orientation,
+    musicEnabled: false,
+    transitionDuration: 0.5,
+    ...mediaGlobals(state.sections),
+  };
+
+  return { global, sections: mapEditorSections(state.sections) };
 }
 
 // --- re-hydration (best-effort for the bounded set of section kinds) ---
@@ -161,13 +259,26 @@ function videoSectionFrom(s: Section): EditorSection {
   };
 }
 
-function storedSectionToEditor(s: Section): EditorSection {
+function storedSectionToEditor(
+  s: Section,
+  allowedBackgrounds: string[],
+  allowUploadBackground: boolean
+): EditorSection | null {
   if (s.type === 'form') {
     return formSectionFrom(s);
   }
 
   if (s.type === 'color_background') {
     return colorSectionFrom(s);
+  }
+
+  if (s.type === 'image_background') {
+    return {
+      kind: 'image',
+      allowed: allowedBackgrounds,
+      allowUpload: allowUploadBackground,
+      duration: s.options?.duration ?? 4,
+    };
   }
 
   return videoSectionFrom(s);
@@ -180,19 +291,35 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
       name: '',
       description: '',
       orientation: 'landscape',
-      musicEnabled: false,
       sections: [newSection('video')],
     };
   }
 
-  const sections = (template.descriptor.sections ?? []).map(storedSectionToEditor);
+  const { global: g, sections: storedSections = [] } = template.descriptor;
+
+  const allowedMusic = g?.allowedMusic ?? [];
+  const allowUploadMusic = Boolean(g?.allowUploadMusic);
+  const hasMusic = allowedMusic.length > 0 || allowUploadMusic;
+
+  const allowedBackgrounds = g?.allowedBackgrounds ?? [];
+  const allowUploadBackground = Boolean(g?.allowUploadBackground);
+
+  const positional = storedSections
+    .map((s) => storedSectionToEditor(s, allowedBackgrounds, allowUploadBackground))
+    .filter((s): s is EditorSection => s !== null);
+
+  // Music has no positional descriptor section — surface it at the top of the list.
+  const musicSections: EditorSection[] = hasMusic
+    ? [{ kind: 'music', allowed: allowedMusic, allowUpload: allowUploadMusic }]
+    : [];
+
+  const sections = [...musicSections, ...positional];
 
   return {
     id: template.id,
     name: template.name,
     description: template.description,
     orientation: template.orientation,
-    musicEnabled: Boolean(template.descriptor.global?.musicEnabled),
     sections: sections.length > 0 ? sections : [newSection('video')],
   };
 }

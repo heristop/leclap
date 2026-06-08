@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import Button from '@/app/components/ui/Button';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
+import { MediaPicker } from '@/app/features/templates/components/MediaPicker';
 import {
   buildDescriptor,
   newSection,
@@ -20,7 +21,13 @@ const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> =
   video: 'videocam',
   form: 'text',
   color: 'color-palette',
+  music: 'musical-notes',
+  image: 'image-outline',
 };
+
+// Add `id` if absent, drop it if present — pure shortlist toggle.
+const toggleId = (list: string[], id: string): string[] =>
+  list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 
 export default function CreateTemplateScreen() {
   const router = useRouter();
@@ -37,19 +44,23 @@ export default function CreateTemplateScreen() {
   const patch = (p: Partial<EditorState>) => {
     setState((s) => ({ ...s, ...p }));
   };
+
   const patchSection = (i: number, p: Partial<EditorSection>) => {
     setState((s) => ({
       ...s,
       sections: s.sections.map((sec, idx) => (idx === i ? ({ ...sec, ...p } as EditorSection) : sec)),
     }));
   };
+
   const addSection = (kind: EditorSection['kind']) => {
     Haptics.selectionAsync().catch(() => {});
     setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] }));
   };
+
   const removeSection = (i: number) => {
     setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
   };
+
   const move = (i: number, dir: -1 | 1) => {
     const to = i + dir;
     setState((s) => {
@@ -77,6 +88,7 @@ export default function CreateTemplateScreen() {
 
       return;
     }
+
     save({
       id: state.id,
       name: state.name.trim(),
@@ -139,19 +151,6 @@ export default function CreateTemplateScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
-
-        <View style={styles.rowBetween}>
-          <Text style={styles.label}>Background music</Text>
-          <Switch
-            testID="music-toggle"
-            value={state.musicEnabled}
-            onValueChange={(musicEnabled) => {
-              patch({ musicEnabled });
-            }}
-            trackColor={{ true: colors.primary, false: colors.divider }}
-            thumbColor="#fff"
-          />
         </View>
 
         <Text style={[styles.label, { marginTop: spacing.l }]}>Sections — order top to bottom</Text>
@@ -346,6 +345,64 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
           <Ionicons name="add" size={14} color={colors.primary} />
           <Text style={styles.addBtnText}>Add field</Text>
         </TouchableOpacity>
+      </View>
+    )}
+
+    {section.kind === 'music' && (
+      <View>
+        <Text style={styles.fieldLabel}>Pick the tracks viewers can choose from.</Text>
+        <MediaPicker
+          kind="music"
+          selectedIds={section.allowed}
+          onToggleId={(id) => {
+            onChange({ allowed: toggleId(section.allowed, id) });
+          }}
+        />
+        <View style={styles.rowBetween}>
+          <Text style={styles.fieldLabel}>Allow viewers to upload their own track</Text>
+          <Switch
+            testID={`section-${index}-allow-upload`}
+            value={section.allowUpload}
+            onValueChange={(allowUpload) => {
+              onChange({ allowUpload });
+            }}
+            trackColor={{ true: colors.primary, false: colors.divider }}
+            thumbColor="#fff"
+          />
+        </View>
+      </View>
+    )}
+
+    {section.kind === 'image' && (
+      <View>
+        <FieldRow label="Duration (s)">
+          <NumberInput
+            value={section.duration}
+            onChange={(duration) => {
+              onChange({ duration });
+            }}
+          />
+        </FieldRow>
+        <Text style={styles.fieldLabel}>Pick the images viewers can choose from.</Text>
+        <MediaPicker
+          kind="picture"
+          selectedIds={section.allowed}
+          onToggleId={(id) => {
+            onChange({ allowed: toggleId(section.allowed, id) });
+          }}
+        />
+        <View style={styles.rowBetween}>
+          <Text style={styles.fieldLabel}>Allow viewers to upload their own image</Text>
+          <Switch
+            testID={`section-${index}-allow-upload`}
+            value={section.allowUpload}
+            onValueChange={(allowUpload) => {
+              onChange({ allowUpload });
+            }}
+            trackColor={{ true: colors.primary, false: colors.divider }}
+            thumbColor="#fff"
+          />
+        </View>
       </View>
     )}
   </View>

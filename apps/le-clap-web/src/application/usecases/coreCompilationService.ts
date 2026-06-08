@@ -1,6 +1,7 @@
 // Browser/WASM compilation service backed by the core package.
 import 'reflect-metadata';
 import { compileBrowser as compile } from '@ffmpeg-video-composer/core/src/browser.ts';
+import { FONTS } from '@ffmpeg-video-composer/core/src/shared/library/fonts.ts';
 import BrowserFilesystemAdapter from '@ffmpeg-video-composer/core/src/platform/filesystem/BrowserFilesystemAdapter.ts';
 import type { ProjectConfig, TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
 import { type Template } from '@/services/templateService';
@@ -96,7 +97,7 @@ class CoreCompilationService {
   // Bundled TTF fonts (served from /public/fonts) loaded into the build dir so
   // WASM drawtext can use them instead of the unsupported Google-Fonts woff2.
   private async preloadBundledFonts(): Promise<void> {
-    const fonts = ['Rubik.ttf'];
+    const fonts = FONTS.map((f) => f.file);
     const fontsDir = '/tmp/build/fonts';
 
     await this.filesystemAdapter.ensureDir(fontsDir);

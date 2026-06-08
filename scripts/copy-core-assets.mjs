@@ -24,6 +24,14 @@ const destinations = [
     src: resolve(libDir, 'backgrounds'),
     dest: resolve(root, 'apps/le-clap-expo/assets/backgrounds'),
   },
+  {
+    src: resolve(libDir, 'fonts'),
+    dest: resolve(root, 'apps/le-clap-web/public/fonts'),
+  },
+  {
+    src: resolve(libDir, 'fonts'),
+    dest: resolve(root, 'apps/le-clap-expo/assets/fonts'),
+  },
 ];
 
 for (const { src, dest } of destinations) {

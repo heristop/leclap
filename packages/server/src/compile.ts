@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import type { FastifyRequest } from 'fastify';
 import { compile as coreCompile, type TemplateDescriptor } from 'ffmpeg-video-composer';
 import { applyVideoEditsToSections, type VideoEdit } from './videoEdit.js';
+import { applyServerMedia } from './applyServerMedia.js';
 
 // __dirname for this ES module. Mirrors index.js: dist/compile.js lives beside dist/index.js,
 // so `../build` resolves to packages/server/build exactly as before.
@@ -38,6 +39,8 @@ interface ProcessedParts {
   videoFiles: VideoFile[];
   tempVideoPaths: Record<string, string>;
   videoEdits: Record<string, VideoEdit>;
+  musicPath: string | null;
+  backgroundPath: string | null;
   partCount: number;
   fieldCount: number;
   fileCount: number;
@@ -111,6 +114,8 @@ interface PartsAccumulator {
   videoFiles: VideoFile[];
   tempVideoPaths: Record<string, string>;
   videoEdits: Record<string, VideoEdit>;
+  musicPath: string | null;
+  backgroundPath: string | null;
   partCount: number;
   fileCount: number;
   fieldCount: number;
@@ -143,6 +148,54 @@ async function handleFilePart(
   acc.videoFiles.push(result.videoFile);
 }
 
+async function handleMusicFilePart(
+  part: { filename: string; toBuffer: () => Promise<Buffer> },
+  requestUid: string,
+  acc: PartsAccumulator,
+  logger: CompileLogger
+): Promise<void> {
+  const dirs = buildCompileDirs(requestUid);
+  ensureCompileDirs(dirs);
+
+  const musicsDir = path.join(dirs.requestTempDir, 'musics');
+  ensureDirSync(musicsDir);
+
+  const ext = path.extname(part.filename) || '.mp3';
+  const baseName = path.basename(part.filename, ext);
+  const musicName = baseName || 'uploaded_music';
+  const destPath = path.join(musicsDir, `${musicName}.mp3`);
+
+  const fileBuffer = await part.toBuffer();
+  fsSync.writeFileSync(destPath, fileBuffer);
+
+  acc.musicPath = destPath;
+  logger.info(`[Music] Saved uploaded music to ${destPath}`);
+}
+
+async function handleBackgroundFilePart(
+  part: { filename: string; toBuffer: () => Promise<Buffer> },
+  requestUid: string,
+  acc: PartsAccumulator,
+  logger: CompileLogger
+): Promise<void> {
+  const dirs = buildCompileDirs(requestUid);
+  ensureCompileDirs(dirs);
+
+  const bgDir = path.join(dirs.requestTempDir, 'backgrounds');
+  ensureDirSync(bgDir);
+
+  const ext = path.extname(part.filename) || '.jpg';
+  const baseName = path.basename(part.filename, ext);
+  const bgName = baseName || 'uploaded_background';
+  const destPath = path.join(bgDir, `${bgName}${ext}`);
+
+  const fileBuffer = await part.toBuffer();
+  fsSync.writeFileSync(destPath, fileBuffer);
+
+  acc.backgroundPath = destPath;
+  logger.info(`[Background] Saved uploaded background to ${destPath}`);
+}
+
 async function processMultiparts(
   request: FastifyRequest,
   requestUid: string,
@@ -154,6 +207,8 @@ async function processMultiparts(
     videoFiles: [],
     tempVideoPaths: {},
     videoEdits: {},
+    musicPath: null,
+    backgroundPath: null,
     partCount: 0,
     fileCount: 0,
     fieldCount: 0,
@@ -170,6 +225,16 @@ async function processMultiparts(
     // Per-section trim/crop chosen on the device: { "<section>": { trimStart, trimEnd, crop } }
     if (part.type === 'field' && part.fieldname === 'videoEdits') {
       handleVideoEditsField(part.value, acc, logger);
+      continue;
+    }
+
+    if (part.type === 'file' && part.fieldname === 'music') {
+      await handleMusicFilePart(part, requestUid, acc, logger);
+      continue;
+    }
+
+    if (part.type === 'file' && part.fieldname === 'background') {
+      await handleBackgroundFilePart(part, requestUid, acc, logger);
       continue;
     }
 
@@ -254,8 +319,17 @@ export async function handleCompileRequest(
   logger: CompileLogger
 ): Promise<CompileOutcome> {
   const requestUid = dirs.requestTempDir.split('/').pop() ?? 'unknown';
-  const { templateJson, videoFiles, tempVideoPaths, videoEdits, partCount, fieldCount, fileCount } =
-    await processMultiparts(request, requestUid, logger);
+  const {
+    templateJson,
+    videoFiles,
+    tempVideoPaths,
+    videoEdits,
+    musicPath,
+    backgroundPath,
+    partCount,
+    fieldCount,
+    fileCount,
+  } = await processMultiparts(request, requestUid, logger);
 
   logger.info(`Multipart processing complete: ${partCount} total parts, ${fieldCount} fields, ${fileCount} files`);
 
@@ -275,6 +349,13 @@ export async function handleCompileRequest(
       errorMessage: editsResult.errorMessage,
       statusCode: editsResult.statusCode,
     };
+  }
+
+  // Inject user-chosen music and/or background into the descriptor before compilation.
+  if (musicPath !== null || backgroundPath !== null) {
+    const descriptor = templateJson as TemplateDescriptor;
+    const musicName = musicPath === null ? undefined : path.basename(musicPath, '.mp3');
+    applyServerMedia(descriptor, { musicName, backgroundPath: backgroundPath ?? undefined });
   }
 
   const compiledPath = await runCompilation(requestUid, templateJson, tempVideoPaths, logger);

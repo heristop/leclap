@@ -26,8 +26,8 @@ module.exports = {
           String.raw`\.d\.ts$`, // TypeScript declaration files
           String.raw`(^|/)tsconfig\..*\.json$`, // tsconfig files
           String.raw`(^|/)(babel|jest|webpack)\..*\.(c?js|ts|mjs|cjs|json)$`, // tool configurations
-          String.raw`(^|/)packages/core/src/index\.(c?js|ts|mjs|cjs)$`, // index files
-          String.raw`(^|/)packages/core/src/main\.ts$`, // main entry point
+          String.raw`(^|/)packages/ffmpeg-video-composer/src/index\.(c?js|ts|mjs|cjs)$`, // index files
+          String.raw`(^|/)packages/ffmpeg-video-composer/src/main\.ts$`, // main entry point
         ],
       },
       to: {},
@@ -72,45 +72,45 @@ module.exports = {
           },
           modules: [
             {
-              criteria: { source: '^packages/core/src/core' },
+              criteria: { source: '^packages/ffmpeg-video-composer/src/core' },
               attributes: { fillcolor: '#ccccff' },
             },
             {
-              criteria: { source: '^packages/core/src/director' },
+              criteria: { source: '^packages/ffmpeg-video-composer/src/director' },
               attributes: { fillcolor: '#ccffcc' },
             },
             {
-              criteria: { source: '^packages/core/src/editor' },
+              criteria: { source: '^packages/ffmpeg-video-composer/src/editor' },
               attributes: { fillcolor: '#ffcccc' },
             },
             {
-              criteria: { source: '^packages/core/src/platform' },
+              criteria: { source: '^packages/ffmpeg-video-composer/src/platform' },
               attributes: { fillcolor: '#ffffcc' },
             },
             {
-              criteria: { source: '^packages/core/src/shared' },
+              criteria: { source: '^packages/ffmpeg-video-composer/src/shared' },
               attributes: { fillcolor: '#ffccff' },
             },
           ],
           dependencies: [
             {
-              criteria: { resolved: '^packages/core/src/core' },
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/core' },
               attributes: { color: '#0000ff77' },
             },
             {
-              criteria: { resolved: '^packages/core/src/director' },
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/director' },
               attributes: { color: '#00770077' },
             },
             {
-              criteria: { resolved: '^packages/core/src/editor' },
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/editor' },
               attributes: { color: '#ff000077' },
             },
             {
-              criteria: { resolved: '^packages/core/src/platform' },
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/platform' },
               attributes: { color: '#ffff0077' },
             },
             {
-              criteria: { resolved: '^packages/core/src/shared' },
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/shared' },
               attributes: { color: '#ff00ff77' },
             },
           ],

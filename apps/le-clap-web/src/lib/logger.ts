@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { createConsola } from 'consola/browser';
+import { createConsola } from 'consola';
 
 // Create base logger instance
 const baseLogger = createConsola({

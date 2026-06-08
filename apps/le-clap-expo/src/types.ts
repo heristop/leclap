@@ -17,6 +17,10 @@ export interface TemplateDescriptor {
       name: string;
       url?: string;
     };
+    allowedMusic?: string[];
+    allowUploadMusic?: boolean;
+    allowedBackgrounds?: string[];
+    allowUploadBackground?: boolean;
   };
   sections?: Section[];
 }
@@ -78,6 +82,22 @@ export interface Project {
   thumbnailUri?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** A single media pick made by the end-user on the builder's Media step. */
+export type MediaChoice = { kind: 'library'; id: string } | { kind: 'upload'; uri: string; name: string };
+
+/** The combined music + background choices a user may make before compiling. */
+export interface MediaChoices {
+  music?: MediaChoice;
+  background?: MediaChoice;
+}
+
+/** A resolved media file ready to attach to a multipart POST. */
+export interface ResolvedMediaFile {
+  uri: string;
+  name: string;
+  mimeType: string;
 }
 
 const TypesExport = {

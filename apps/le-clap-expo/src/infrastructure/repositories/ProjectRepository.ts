@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Project } from '@/src/domain/entities/Project';
 import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
 
-const PROJECTS_STORAGE_KEY = 'ffmpeg_video_composer_projects';
+const PROJECTS_STORAGE_KEY = 'le_clap_projects';
 
 export class ProjectRepository implements IProjectRepository {
   private async getStoredProjects(): Promise<Project[]> {

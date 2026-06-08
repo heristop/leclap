@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = Constants.expoConfig?.extra?.API_URL ?? 'http://localhost:3000';
 
-const PROJECTS_STORAGE_KEY = 'ffmpeg_video_composer_projects';
+const PROJECTS_STORAGE_KEY = 'le_clap_projects';
 
 /**
  * Resolves an error message from a caught error value
@@ -229,7 +229,7 @@ export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?:
     return {
       isHealthy: false,
       error: err.message.includes('Network request failed')
-        ? 'Server is unreachable. Please check if the ffmpeg-video-composer server is running.'
+        ? 'Server is unreachable. Please check if the le-clap server is running.'
         : `Server health check failed: ${err.message}`,
     };
   }

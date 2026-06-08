@@ -13,14 +13,17 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 
 ## Repository layout
 
-pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx.
+pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **private orchestrator** (`le-clap`) holding only shared dev tooling and scripts — not a publishable package. The single published artifact is `ffmpeg-video-composer`; everything else is scoped `@le-clap/*`.
 
-| Path                             | What it is                                                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` — cross-platform composition library (CLI + programmatic API). The heart of the repo. |
-| `packages/server`                | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes core.                              |
-| `apps/le-clap-expo`              | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.             |
-| `apps/le-clap-web`               | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                                   |
+| Path                             | Package                 | What it is                                                                                          |
+| -------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `.`                              | `le-clap` _(private)_   | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                      |
+| `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.       |
+| `packages/server`                | `@le-clap/server`       | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes `ffmpeg-video-composer`. |
+| `apps/le-clap-expo`              | `@le-clap/expo`         | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.   |
+| `apps/le-clap-web`               | `@le-clap/web`          | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                         |
+
+The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (root `pnpm compile` / `pnpm diagnose` delegate to them).
 
 ## Setup
 

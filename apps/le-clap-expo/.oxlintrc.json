@@ -9,7 +9,6 @@
     "__DEV__": "readonly"
   },
   "rules": {
-    "eol-last": "error",
     "eqeqeq": "error",
     "typescript/no-unused-vars": "error",
     "typescript/no-explicit-any": "error",
@@ -17,8 +16,6 @@
     "typescript/no-empty-object-type": "error",
     "typescript/prefer-as-const": "error",
     "typescript/no-inferrable-types": "error",
-    "react/jsx-uses-react": "error",
-    "react/jsx-uses-vars": "error",
     "react/react-in-jsx-scope": "off",
     "react/exhaustive-deps": "error",
     "react/jsx-no-duplicate-props": "error",

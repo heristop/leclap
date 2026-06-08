@@ -48,7 +48,14 @@
       "expo-video",
       "expo-font",
       "expo-web-browser",
-      "ffmpeg-expo"
+      "ffmpeg-expo",
+      "expo-document-picker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "LeClap needs access to your photo library to use an image as a video background."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

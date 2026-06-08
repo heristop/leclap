@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
 import { compile } from '@/index';
 
-// Template fixtures load via the `@` alias (-> packages/core/src). Directory paths the engine
+// Template fixtures load via the `@` alias (-> packages/ffmpeg-video-composer/src). Directory paths the engine
 // reads from disk (assets, build output) resolve relative to this test file so the suite runs
 // the same whether invoked from the repo root or from the core package.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

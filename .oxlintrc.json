@@ -35,7 +35,10 @@
       }
     },
     {
-      "files": ["packages/core/src/platform/filesystem/BrowserFilesystemAdapter.ts", "packages/core/src/browser.ts"],
+      "files": [
+        "packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts",
+        "packages/ffmpeg-video-composer/src/browser.ts"
+      ],
       "env": {
         "browser": true,
         "es2024": true

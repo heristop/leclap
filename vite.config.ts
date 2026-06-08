@@ -317,13 +317,13 @@ export default defineConfig({
       // rule entries inside the matching block (more specific file overrides further below still
       // win, since oxlint applies later overrides last).
       {
-        // @ffmpeg-video-composer/core (Node library)
-        files: ['packages/core/**'],
+        // ffmpeg-video-composer (Node library)
+        files: ['packages/ffmpeg-video-composer/**'],
         env: { node: true, es2024: true },
         rules: {},
       },
       {
-        // @ffmpeg-video-composer/server (Node/Fastify service)
+        // @le-clap/server (Node/Fastify service)
         files: ['packages/server/**'],
         env: { node: true, es2024: true },
         rules: {},
@@ -348,12 +348,19 @@ export default defineConfig({
         rules: {
           'max-lines': 'off',
           'max-lines-per-function': 'off',
+          // React Native / Metro require static `require()` for asset modules and lazy native
+          // modules — you cannot ES-import a Metro-bundled asset. `prefer-module` does not apply
+          // to the RN runtime, so it is disabled app-wide for the Expo package.
+          'unicorn/prefer-module': 'off',
         },
       },
       // -------------------------------------------------------------------------------------
 
       {
-        files: ['packages/core/src/platform/filesystem/BrowserFilesystemAdapter.ts', 'packages/core/src/browser.ts'],
+        files: [
+          'packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts',
+          'packages/ffmpeg-video-composer/src/browser.ts',
+        ],
         env: {
           browser: true,
           es2024: true,
@@ -380,7 +387,7 @@ export default defineConfig({
       },
       {
         // tsyringe DI constructor legitimately injects 6 dependencies.
-        files: ['packages/core/src/editor/VideoEditor.ts'],
+        files: ['packages/ffmpeg-video-composer/src/editor/VideoEditor.ts'],
         rules: {
           'max-params': 'off',
         },
@@ -404,7 +411,7 @@ export default defineConfig({
       {
         // The WASM<->MEMFS bridge adapter is inherently long and sits a few lines over budget,
         // largely due to the ffmpeg log/progress listeners the unit tests assert.
-        files: ['packages/core/src/platform/ffmpeg/FFmpegWasmAdapter.ts'],
+        files: ['packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts'],
         rules: {
           'max-lines': 'off',
         },

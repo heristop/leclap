@@ -1,30 +1,20 @@
 {
-  "name": "ffmpeg-video-composer",
+  "name": "le-clap",
   "version": "2.0.0-beta.0",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "ffmpeg-video-composer": "./packages/core/src/cli/executable.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
+  "private": true,
+  "type": "module",
   "author": "heristop",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/heristop/ffmpeg-video-composer.git"
   },
-  "license": "MIT",
   "scripts": {
-    "compile": "node compile.js",
-    "diagnose": "node diagnose.js",
-    "build:exe": "pkg packages/core/src/cli/executable.js --targets node24-win-x64,node24-macos-x64,node24-linux-x64 --out-path dist/bin",
-    "build:exe:all": "pnpm build && pnpm build:exe",
+    "compile": "node packages/ffmpeg-video-composer/compile.js",
+    "diagnose": "node packages/ffmpeg-video-composer/diagnose.js",
+    "build": "pnpm -r build",
+    "build:exe": "pnpm --filter ffmpeg-video-composer run build:exe",
+    "build:exe:all": "pnpm --filter ffmpeg-video-composer run build:exe:all",
     "lint": "vp lint",
     "fmt": "vp fmt",
     "fmt:check": "vp fmt --check",
@@ -34,47 +24,17 @@
     "test:ui": "vitest --ui",
     "test:ci": "vitest run --coverage.enabled --coverage.reporter=text-summary",
     "test:coverage": "vitest run --coverage",
-    "test:build": "pnpm --filter @ffmpeg-video-composer/core build && vitest run packages/core/tests/build-output.test.ts",
-    "build": "pnpm -r build && pnpm build:lib",
-    "build:lib": "tsdown",
-    "graph": "madge --dot --extensions ts packages/core/src/ > graph.dot",
-    "deps:check": "depcruise packages/core/src",
-    "deps:graph": "depcruise packages/core/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
-    "deps:html": "depcruise packages/core/src --output-type html > docs/dependency-report.html",
+    "test:build": "pnpm --filter ffmpeg-video-composer build && vitest run packages/ffmpeg-video-composer/tests/build-output.test.ts",
+    "graph": "madge --dot --extensions ts packages/ffmpeg-video-composer/src/ > graph.dot",
+    "deps:check": "depcruise packages/ffmpeg-video-composer/src",
+    "deps:graph": "depcruise packages/ffmpeg-video-composer/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
+    "deps:html": "depcruise packages/ffmpeg-video-composer/src --output-type html > docs/dependency-report.html",
     "prepare": "vp config",
-    "playground:start": "pnpm --filter le-clap-expo run start",
-    "playground:android": "pnpm --filter le-clap-expo run android",
-    "playground:ios": "pnpm --filter le-clap-expo run ios",
-    "playground:web": "pnpm --filter le-clap run dev",
-    "server:dev": "pnpm --filter @ffmpeg-video-composer/server run build && pnpm --filter @ffmpeg-video-composer/server run start"
-  },
-  "type": "module",
-  "files": [
-    "dist",
-    "compile.js",
-    "diagnose.js",
-    "packages/core/src/cli/executable.js",
-    "packages/core/src/shared/templates/**/*.json",
-    "README.md"
-  ],
-  "keywords": [
-    "ffmpeg",
-    "video-processing",
-    "video-editing",
-    "ffmpeg-script"
-  ],
-  "dependencies": {
-    "axios": "^1.17.0",
-    "boxen": "^8.0.1",
-    "cli-spinners": "^3.4.0",
-    "extract-zip": "^2.0.1",
-    "figlet": "^1.11.0",
-    "gradient-string": "^3.0.0",
-    "picocolors": "^1.1.1",
-    "pino": "^10.3.1",
-    "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.10.0",
-    "zod": "^4.4.3"
+    "playground:start": "pnpm --filter @le-clap/expo run start",
+    "playground:android": "pnpm --filter @le-clap/expo run android",
+    "playground:ios": "pnpm --filter @le-clap/expo run ios",
+    "playground:web": "pnpm --filter @le-clap/web run dev",
+    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @le-clap/server run build && pnpm --filter @le-clap/server run start"
   },
   "devDependencies": {
     "@swc/core": "^1.15.40",
@@ -82,14 +42,12 @@
     "@types/node": "^25.9.2",
     "@vitest/coverage-v8": "^4.1.8",
     "@vitest/ui": "^4.1.8",
-    "@yao-pkg/pkg": "^6.20.0",
     "dependency-cruiser": "^17.4.3",
     "oxfmt": "^0.53.0",
     "oxlint": "^1.68.0",
     "oxlint-tsgolint": "^0.23.0",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
-    "tsdown": "^0.22.2",
     "typescript": "^6.0.3",
     "unplugin-swc": "^1.5.9",
     "vite-plugin-checker": "^0.14.1",
@@ -100,18 +58,5 @@
   "engines": {
     "node": ">=22.14.0"
   },
-  "optionalDependencies": {
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2",
-    "ffmpeg-static": "^5.3.0"
-  },
-  "packageManager": "pnpm@11.5.2",
-  "pkg": {
-    "scripts": "dist/**/*.js",
-    "assets": [
-      "dist/**/*",
-      "packages/core/src/shared/templates/**/*.json"
-    ],
-    "outputPath": "dist/bin"
-  }
+  "packageManager": "pnpm@11.5.2"
 }

@@ -9,11 +9,13 @@ import {
   Video as VideoIcon,
   Square,
   FileText,
+  Music,
+  Image as ImageIcon,
   Save,
   ArrowDown,
   AlertCircle,
-  Music,
-  Image as ImageIcon,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
@@ -31,13 +33,16 @@ import {
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import {
   buildDescriptor,
+  newOverlay,
   newSection,
   SECTION_LABELS,
   toEditorState,
   type EditorSection,
   type EditorState,
+  type TextOverlay,
 } from './templateEditorModel';
 import { MediaPicker } from './MediaPicker';
+import { TextPositioner } from './TextPositioner';
 
 export { buildDescriptor } from './templateEditorModel';
 
@@ -49,6 +54,10 @@ interface TemplateEditorProps {
 
 const inputCls =
   'w-full px-3 py-2 rounded-lg bg-surface-2 border border-foreground/10 text-foreground placeholder:text-gray-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 transition-all';
+
+// Add `id` if absent, drop it if present — pure shortlist toggle.
+const toggleId = (list: string[], id: string): string[] =>
+  list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 
 export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorProps) => {
   const [state, setState] = useState<EditorState>(() => toEditorState(initial));
@@ -71,24 +80,6 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
   };
   const removeSection = (i: number) => {
     setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
-  };
-
-  const toggleMusicId = (id: string) => {
-    setState((s) => {
-      const next = s.allowedMusic.includes(id) ? s.allowedMusic.filter((m) => m !== id) : [...s.allowedMusic, id];
-
-      return { ...s, allowedMusic: next };
-    });
-  };
-
-  const toggleBackgroundId = (id: string) => {
-    setState((s) => {
-      const next = s.allowedBackgrounds.includes(id)
-        ? s.allowedBackgrounds.filter((b) => b !== id)
-        : [...s.allowedBackgrounds, id];
-
-      return { ...s, allowedBackgrounds: next };
-    });
   };
 
   const reorder = (from: number, to: number) => {
@@ -117,14 +108,13 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
       return;
     }
 
-    if (state.musicEnabled && state.allowedMusic.length === 0) {
-      setError('Pick at least one music track or turn off background music.');
+    const emptyMedia = state.sections.find(
+      (s) => (s.kind === 'music' || s.kind === 'image') && s.allowed.length === 0 && !s.allowUpload
+    );
 
-      return;
-    }
-
-    if (state.backgroundEnabled && state.allowedBackgrounds.length === 0) {
-      setError('Pick at least one background image or turn off background image.');
+    if (emptyMedia) {
+      const label = emptyMedia.kind === 'music' ? 'Background music' : 'Background image';
+      setError(`Pick at least one option for the ${label} section, or allow uploads.`);
 
       return;
     }
@@ -170,12 +160,7 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
             Compose sections, then save — it appears in the builder as a Custom template.
           </p>
 
-          <MetadataFields
-            state={state}
-            patch={patch}
-            toggleMusicId={toggleMusicId}
-            toggleBackgroundId={toggleBackgroundId}
-          />
+          <MetadataFields state={state} patch={patch} />
 
           {/* Sections (drag to reorder) */}
           <div className="flex items-center justify-between mb-2">
@@ -185,6 +170,7 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
           </div>
           <SectionList
             sections={state.sections}
+            orientation={state.orientation}
             dragIndex={dragIndex}
             setDragIndex={setDragIndex}
             reorder={reorder}
@@ -221,11 +207,9 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
 interface MetadataFieldsProps {
   state: EditorState;
   patch: (p: Partial<EditorState>) => void;
-  toggleMusicId: (id: string) => void;
-  toggleBackgroundId: (id: string) => void;
 }
 
-const MetadataFields = ({ state, patch, toggleMusicId, toggleBackgroundId }: MetadataFieldsProps) => {
+const MetadataFields = ({ state, patch }: MetadataFieldsProps) => {
   const nameId = useId();
 
   return (
@@ -261,53 +245,13 @@ const MetadataFields = ({ state, patch, toggleMusicId, toggleBackgroundId }: Met
           </SelectContent>
         </Select>
       </div>
-
-      {/* Background music panel */}
-      <div className="sm:col-span-2">
-        <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-          <Checkbox
-            checked={state.musicEnabled}
-            onCheckedChange={(c) => {
-              patch({ musicEnabled: c === true });
-            }}
-          />
-          Background music
-        </label>
-        {state.musicEnabled && (
-          <div className="mt-3">
-            <MediaPicker kind="music" multiple selectedIds={state.allowedMusic} onToggleId={toggleMusicId} />
-          </div>
-        )}
-      </div>
-
-      {/* Background image panel */}
-      <div className="sm:col-span-2">
-        <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-          <Checkbox
-            checked={state.backgroundEnabled}
-            onCheckedChange={(c) => {
-              patch({ backgroundEnabled: c === true });
-            }}
-          />
-          Background image
-        </label>
-        {state.backgroundEnabled && (
-          <div className="mt-3">
-            <MediaPicker
-              kind="picture"
-              multiple
-              selectedIds={state.allowedBackgrounds}
-              onToggleId={toggleBackgroundId}
-            />
-          </div>
-        )}
-      </div>
     </div>
   );
 };
 
 interface SectionListProps {
   sections: EditorSection[];
+  orientation: EditorState['orientation'];
   dragIndex: number | null;
   setDragIndex: (i: number | null) => void;
   reorder: (from: number, to: number) => void;
@@ -315,16 +259,105 @@ interface SectionListProps {
   patchSection: (i: number, p: Partial<EditorSection>) => void;
 }
 
-const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection, patchSection }: SectionListProps) => {
+// Move a collapsed index `from` → `to` within the set, shifting the indices in
+// between, so per-card collapsed state follows the card across a reorder.
+const remapCollapsed = (collapsed: Set<number>, from: number, to: number): Set<number> => {
+  const next = new Set<number>();
+
+  for (const idx of collapsed) {
+    if (idx === from) {
+      next.add(to);
+
+      continue;
+    }
+
+    if (from < idx && idx <= to) {
+      next.add(idx - 1);
+
+      continue;
+    }
+
+    if (to <= idx && idx < from) {
+      next.add(idx + 1);
+
+      continue;
+    }
+
+    next.add(idx);
+  }
+
+  return next;
+};
+
+const SectionList = ({
+  sections,
+  orientation,
+  dragIndex,
+  setDragIndex,
+  reorder,
+  removeSection,
+  patchSection,
+}: SectionListProps) => {
   // `insertAt` is the gap index (0..n) where the dragged card will land.
   const [insertAt, setInsertAt] = useState<number | null>(null);
+  // Only arm `draggable` once the grip handle is pressed, so clicks/inputs inside
+  // the card body (e.g. the MediaPicker) stay fully interactive.
+  const [armedIndex, setArmedIndex] = useState<number | null>(null);
+  // Collapsed cards, keyed by index. UI-only — never persisted to the descriptor.
+  // Remapped on reorder so a card's collapsed state follows it.
+  const [collapsed, setCollapsed] = useState<Set<number>>(() => new Set());
   const dragging = dragIndex !== null;
+  const allCollapsed = sections.length > 0 && collapsed.size === sections.length;
+
+  const toggleCollapsed = (i: number) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+
+      if (next.has(i)) {
+        next.delete(i);
+
+        return next;
+      }
+      next.add(i);
+
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allCollapsed) {
+      setCollapsed(new Set());
+
+      return;
+    }
+    setCollapsed(new Set(sections.map((_, idx) => idx)));
+  };
+
+  // Removing a card shifts every higher index down by one — keep collapsed state aligned.
+  const handleRemove = (i: number) => {
+    setCollapsed((prev) => {
+      const next = new Set<number>();
+
+      for (const idx of prev) {
+        if (idx === i) {
+          continue;
+        }
+        next.add(idx > i ? idx - 1 : idx);
+      }
+
+      return next;
+    });
+    removeSection(i);
+  };
 
   const commit = (at: number) => {
     if (dragIndex !== null) {
       const target = dragIndex < at ? at - 1 : at;
 
-      if (target !== dragIndex) reorder(dragIndex, target);
+      if (target !== dragIndex) {
+        setCollapsed((prev) => remapCollapsed(prev, dragIndex, target));
+        reorder(dragIndex, target);
+      }
     }
     setDragIndex(null);
     setInsertAt(null);
@@ -366,61 +399,39 @@ const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection
 
   return (
     <div className="mb-4">
+      {sections.length > 1 && (
+        <div className="mb-2 flex justify-end">
+          <button
+            type="button"
+            onClick={toggleAll}
+            aria-pressed={allCollapsed}
+            className="tap inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-gray-500 hover:bg-foreground/5 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-colors"
+          >
+            {allCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            {allCollapsed ? 'Expand all' : 'Collapse all'}
+          </button>
+        </div>
+      )}
       {sections.map((section, i) => (
         <Fragment key={i}>
           {dropZone(i)}
-          <div
-            draggable
-            onDragStart={(e) => {
-              setDragIndex(i);
-              e.dataTransfer.effectAllowed = 'move';
-            }}
-            onDragOver={(e) => {
-              onItemDragOver(i, e);
-            }}
-            onDrop={() => {
-              commit(insertAt ?? i);
-            }}
-            onDragEnd={() => {
-              setDragIndex(null);
-              setInsertAt(null);
-            }}
-            className={clsx(
-              'relative my-2 rounded-xl border bg-surface-2/60 p-3 transition-all duration-200 ease-[var(--ease-out-expo)]',
-              dragIndex === i
-                ? 'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20'
-                : 'border-foreground/10'
-            )}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                type="button"
-                className="cursor-grab rounded-md text-gray-500 transition-all hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:cursor-grabbing active:scale-125"
-                aria-label="Drag to reorder"
-              >
-                <GripVertical className="w-5 h-5" />
-              </button>
-              <SectionIcon kind={section.kind} />
-              <span className="font-semibold text-foreground text-sm">{SECTION_LABELS[section.kind]}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  removeSection(i);
-                }}
-                aria-label="Remove section"
-                className="tap ml-auto p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-            <SectionFields
-              section={section}
-              onChange={(p) => {
-                patchSection(i, p);
-              }}
-              inputCls={inputCls}
-            />
-          </div>
+          <SectionCard
+            section={section}
+            orientation={orientation}
+            index={i}
+            armed={armedIndex === i}
+            dragging={dragIndex === i}
+            collapsed={collapsed.has(i)}
+            insertAt={insertAt}
+            setArmedIndex={setArmedIndex}
+            setDragIndex={setDragIndex}
+            setInsertAt={setInsertAt}
+            onItemDragOver={onItemDragOver}
+            commit={commit}
+            toggleCollapsed={toggleCollapsed}
+            removeSection={handleRemove}
+            patchSection={patchSection}
+          />
         </Fragment>
       ))}
       {dropZone(sections.length)}
@@ -428,9 +439,119 @@ const SectionList = ({ sections, dragIndex, setDragIndex, reorder, removeSection
   );
 };
 
+interface SectionCardProps {
+  section: EditorSection;
+  orientation: EditorState['orientation'];
+  index: number;
+  armed: boolean;
+  dragging: boolean;
+  collapsed: boolean;
+  insertAt: number | null;
+  setArmedIndex: (i: number | null) => void;
+  setDragIndex: (i: number | null) => void;
+  setInsertAt: (i: number | null) => void;
+  onItemDragOver: (i: number, e: DragEvent<HTMLDivElement>) => void;
+  commit: (at: number) => void;
+  toggleCollapsed: (i: number) => void;
+  removeSection: (i: number) => void;
+  patchSection: (i: number, p: Partial<EditorSection>) => void;
+}
+
+const SectionCard = ({
+  section,
+  orientation,
+  index,
+  armed,
+  dragging,
+  collapsed,
+  insertAt,
+  setArmedIndex,
+  setDragIndex,
+  setInsertAt,
+  onItemDragOver,
+  commit,
+  toggleCollapsed,
+  removeSection,
+  patchSection,
+}: SectionCardProps) => (
+  <div
+    draggable={armed}
+    onDragStart={(e) => {
+      setDragIndex(index);
+      e.dataTransfer.effectAllowed = 'move';
+    }}
+    onDragOver={(e) => {
+      onItemDragOver(index, e);
+    }}
+    onDrop={() => {
+      commit(insertAt ?? index);
+    }}
+    onDragEnd={() => {
+      setDragIndex(null);
+      setInsertAt(null);
+      setArmedIndex(null);
+    }}
+    className={clsx(
+      'relative my-2 rounded-xl border bg-surface-2/60 p-3 transition-all duration-200 ease-[var(--ease-out-expo)]',
+      dragging
+        ? 'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20'
+        : 'border-foreground/10'
+    )}
+  >
+    <div className={clsx('flex items-center gap-2', collapsed ? 'mb-0' : 'mb-2')}>
+      <button
+        type="button"
+        className="cursor-grab rounded-md text-gray-500 transition-all hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:cursor-grabbing active:scale-125"
+        aria-label="Drag to reorder"
+        onPointerDown={() => {
+          setArmedIndex(index);
+        }}
+        onPointerUp={() => {
+          setArmedIndex(null);
+        }}
+      >
+        <GripVertical className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          toggleCollapsed(index);
+        }}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? 'Expand section' : 'Collapse section'}
+        className="rounded-md text-gray-500 transition-colors hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90"
+      >
+        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      </button>
+      <SectionIcon kind={section.kind} />
+      <span className="font-semibold text-foreground text-sm">{SECTION_LABELS[section.kind]}</span>
+      <button
+        type="button"
+        onClick={() => {
+          removeSection(index);
+        }}
+        aria-label="Remove section"
+        className="tap ml-auto p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+    {!collapsed && (
+      <SectionFields
+        section={section}
+        orientation={orientation}
+        onChange={(p) => {
+          patchSection(index, p);
+        }}
+        inputCls={inputCls}
+      />
+    )}
+  </div>
+);
+
 const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
   <div className="flex flex-wrap gap-2 mb-6">
-    {(['video', 'form', 'color', 'usermusic', 'userphoto'] as const).map((kind) => (
+    {(['video', 'form', 'color', 'music', 'image'] as const).map((kind) => (
       <button
         key={kind}
         type="button"
@@ -450,58 +571,28 @@ const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
 
   if (kind === 'color') return <Square className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
 
-  if (kind === 'usermusic') return <Music className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
+  if (kind === 'music') return <Music className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 
-  if (kind === 'userphoto') return <ImageIcon className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
+  if (kind === 'image') return <ImageIcon className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
 
   return <VideoIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 };
 
 function SectionFields({
   section,
+  orientation,
   onChange,
   inputCls,
 }: {
   section: EditorSection;
+  orientation: EditorState['orientation'];
   onChange: (p: Partial<EditorSection>) => void;
   inputCls: string;
 }) {
   const colorId = useId();
 
   if (section.kind === 'video') {
-    return (
-      <div className="grid sm:grid-cols-2 gap-3 pl-7">
-        <NumberField
-          label="Duration (s)"
-          value={section.duration}
-          onChange={(v) => {
-            onChange({ duration: v });
-          }}
-          inputCls={inputCls}
-        />
-        <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-          <Checkbox
-            checked={section.mute}
-            onCheckedChange={(c) => {
-              onChange({ mute: c === true });
-            }}
-          />{' '}
-          Mute audio
-        </label>
-        <div className="sm:col-span-2 flex items-center gap-2">
-          <Type className="w-4 h-4 text-gray-400 shrink-0" />
-          <input
-            aria-label="Overlay text"
-            className={inputCls}
-            value={section.text}
-            onChange={(e) => {
-              onChange({ text: e.target.value });
-            }}
-            placeholder="Overlay text (optional) — supports {{firstname}}"
-          />
-        </div>
-      </div>
-    );
+    return <VideoFields section={section} orientation={orientation} onChange={onChange} inputCls={inputCls} />;
   }
 
   if (section.kind === 'color') {
@@ -532,24 +623,12 @@ function SectionFields({
     );
   }
 
-  if (section.kind === 'usermusic') {
-    return <p className="pl-7 text-sm text-gray-500 dark:text-gray-400">Viewers upload their own music track.</p>;
+  if (section.kind === 'music') {
+    return <MusicFields section={section} onChange={onChange} />;
   }
 
-  if (section.kind === 'userphoto') {
-    return (
-      <div className="grid sm:grid-cols-2 gap-3 pl-7">
-        <NumberField
-          label="Duration (s)"
-          value={section.duration}
-          onChange={(v) => {
-            onChange({ duration: v });
-          }}
-          inputCls={inputCls}
-        />
-        <p className="sm:col-span-2 text-sm text-gray-500 dark:text-gray-400">Viewers upload their own photo.</p>
-      </div>
-    );
+  if (section.kind === 'image') {
+    return <ImageFields section={section} onChange={onChange} inputCls={inputCls} />;
   }
 
   // form
@@ -612,6 +691,283 @@ function SectionFields({
     </div>
   );
 }
+
+type VideoSection = Extract<EditorSection, { kind: 'video' }>;
+type MusicSection = Extract<EditorSection, { kind: 'music' }>;
+type ImageSection = Extract<EditorSection, { kind: 'image' }>;
+
+const VideoFields = ({
+  section,
+  orientation,
+  onChange,
+  inputCls,
+}: {
+  section: VideoSection;
+  orientation: EditorState['orientation'];
+  onChange: (p: Partial<EditorSection>) => void;
+  inputCls: string;
+}) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { overlays } = section;
+
+  const updateOverlay = (i: number, p: Partial<TextOverlay>) => {
+    onChange({ overlays: overlays.map((o, idx) => (idx === i ? { ...o, ...p } : o)) });
+  };
+  const moveOverlay = (i: number, x: number, y: number) => {
+    updateOverlay(i, { x, y });
+  };
+  const addOverlay = () => {
+    setActiveIndex(overlays.length);
+    onChange({ overlays: [...overlays, newOverlay()] });
+  };
+  const removeOverlay = (i: number) => {
+    setActiveIndex((curr) => Math.max(0, curr >= i ? curr - 1 : curr));
+    onChange({ overlays: overlays.filter((_, idx) => idx !== i) });
+  };
+
+  return (
+    <div className="grid sm:grid-cols-2 gap-3 pl-7">
+      <NumberField
+        label="Duration (s)"
+        value={section.duration}
+        onChange={(v) => {
+          onChange({ duration: v });
+        }}
+        inputCls={inputCls}
+      />
+      <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+        <Checkbox
+          checked={section.mute}
+          onCheckedChange={(c) => {
+            onChange({ mute: c === true });
+          }}
+        />{' '}
+        Mute audio
+      </label>
+      <TextPositioner
+        overlays={overlays}
+        orientation={orientation}
+        activeIndex={activeIndex}
+        onSelect={setActiveIndex}
+        onMove={moveOverlay}
+      />
+      <div className="sm:col-span-2 space-y-2">
+        {overlays.map((overlay, i) => (
+          <OverlayEditor
+            key={i}
+            overlay={overlay}
+            index={i}
+            active={i === activeIndex}
+            inputCls={inputCls}
+            onActivate={setActiveIndex}
+            onChange={(p) => {
+              updateOverlay(i, p);
+            }}
+            onRemove={() => {
+              removeOverlay(i);
+            }}
+          />
+        ))}
+        <button
+          type="button"
+          onClick={addOverlay}
+          className="tap inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-foreground/5 text-gray-600 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-colors dark:text-gray-300"
+        >
+          <Plus className="w-3.5 h-3.5" /> Add text
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const OverlayEditor = ({
+  overlay,
+  index,
+  active,
+  inputCls,
+  onActivate,
+  onChange,
+  onRemove,
+}: {
+  overlay: TextOverlay;
+  index: number;
+  active: boolean;
+  inputCls: string;
+  onActivate: (i: number) => void;
+  onChange: (p: Partial<TextOverlay>) => void;
+  onRemove: () => void;
+}) => {
+  const activate = () => {
+    onActivate(index);
+  };
+
+  return (
+    <div
+      onFocusCapture={activate}
+      onPointerDownCapture={activate}
+      className={clsx(
+        'rounded-xl border p-3 transition-colors',
+        active ? 'border-brand-500/50 bg-brand-500/[0.06]' : 'border-foreground/10 bg-surface-2/40'
+      )}
+    >
+      <div className="flex items-start gap-2">
+        <Type className="mt-2.5 w-4 h-4 text-gray-400 shrink-0" />
+        <input
+          aria-label={`Overlay ${index + 1} text`}
+          className={inputCls}
+          value={overlay.text}
+          onChange={(e) => {
+            onChange({ text: e.target.value });
+          }}
+          placeholder="Overlay text — supports {{firstname}}"
+        />
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove overlay ${index + 1}`}
+          className="tap mt-1 p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+      <OverlayStyleFields overlay={overlay} index={index} inputCls={inputCls} onChange={onChange} />
+    </div>
+  );
+};
+
+const OverlayStyleFields = ({
+  overlay,
+  index,
+  inputCls,
+  onChange,
+}: {
+  overlay: TextOverlay;
+  index: number;
+  inputCls: string;
+  onChange: (p: Partial<TextOverlay>) => void;
+}) => {
+  const boxColorId = useId();
+
+  return (
+    <div className="mt-3 grid sm:grid-cols-2 gap-3 pl-6">
+      <NumberField
+        label="Font size"
+        value={overlay.fontsize}
+        onChange={(v) => {
+          onChange({ fontsize: v });
+        }}
+        inputCls={inputCls}
+      />
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Color</label>
+        <ColorPicker
+          aria-label={`Overlay ${index + 1} text color`}
+          value={overlay.fontcolor}
+          onChange={(c) => {
+            onChange({ fontcolor: c });
+          }}
+        />
+      </div>
+      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+        <Checkbox
+          checked={overlay.box}
+          onCheckedChange={(c) => {
+            onChange({ box: c === true });
+          }}
+        />{' '}
+        Box
+      </label>
+      {overlay.box && (
+        <div>
+          <label
+            htmlFor={boxColorId}
+            className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1"
+          >
+            Box color
+          </label>
+          <ColorPicker
+            id={boxColorId}
+            aria-label={`Overlay ${index + 1} box color`}
+            value={overlay.boxcolor}
+            onChange={(c) => {
+              onChange({ boxcolor: c });
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MusicFields = ({
+  section,
+  onChange,
+}: {
+  section: MusicSection;
+  onChange: (p: Partial<EditorSection>) => void;
+}) => (
+  <div className="space-y-3 pl-7">
+    <p className="text-xs text-gray-500 dark:text-gray-400">Pick the tracks viewers can choose from.</p>
+    <MediaPicker
+      kind="music"
+      multiple
+      selectedIds={section.allowed}
+      onToggleId={(id) => {
+        onChange({ allowed: toggleId(section.allowed, id) });
+      }}
+    />
+    <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+      <Checkbox
+        checked={section.allowUpload}
+        onCheckedChange={(c) => {
+          onChange({ allowUpload: c === true });
+        }}
+      />
+      Allow viewers to upload their own track
+    </label>
+  </div>
+);
+
+const ImageFields = ({
+  section,
+  onChange,
+  inputCls,
+}: {
+  section: ImageSection;
+  onChange: (p: Partial<EditorSection>) => void;
+  inputCls: string;
+}) => (
+  <div className="space-y-3 pl-7">
+    <div className="sm:w-40">
+      <NumberField
+        label="Duration (s)"
+        value={section.duration}
+        onChange={(v) => {
+          onChange({ duration: v });
+        }}
+        inputCls={inputCls}
+      />
+    </div>
+    <p className="text-xs text-gray-500 dark:text-gray-400">Pick the images viewers can choose from.</p>
+    <MediaPicker
+      kind="picture"
+      multiple
+      selectedIds={section.allowed}
+      onToggleId={(id) => {
+        onChange({ allowed: toggleId(section.allowed, id) });
+      }}
+    />
+    <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
+      <Checkbox
+        checked={section.allowUpload}
+        onCheckedChange={(c) => {
+          onChange({ allowUpload: c === true });
+        }}
+      />
+      Allow viewers to upload their own image
+    </label>
+  </div>
+);
 
 const NumberField = ({
   label,

@@ -42,11 +42,31 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
   override getDestination = (): string => path.join(this.buildDir ?? '', `${this.segmentName}_output.mp4`);
 
+  // Allow copying a local file only when it resolves under a known staging dir (assetsDir/tempDir/
+  // buildDir). Symlinks are resolved first so a template descriptor can't traverse out of tree
+  // (e.g. point pictureUrl/music at /etc/passwd or an ssh key).
+  private readonly resolveStagedPath = async (url: string): Promise<string> => {
+    const roots = [this.assetsDir, this.tempDir, this.buildDir].filter((r): r is string => Boolean(r));
+    // Resolve the source and every staging root in parallel; roots that don't exist yet resolve to ''.
+    const [real, ...realRoots] = await Promise.all([
+      fs.realpath(url),
+      ...roots.map((root) => fs.realpath(root).catch(() => '')),
+    ]);
+
+    if (realRoots.some((root) => root !== '' && (real === root || real.startsWith(root + path.sep)))) {
+      return real;
+    }
+
+    throw new Error(`Refusing to read a file outside the staged media directories: ${url}`);
+  };
+
   override fetch = async (url: string): Promise<string> => {
     const dest = path.join(this.tempDir, path.basename(url));
 
     if (url.startsWith('/')) {
-      await fs.copyFile(url, dest);
+      // Local staged media only — reject out-of-tree absolute paths (path traversal).
+      const real = await this.resolveStagedPath(url);
+      await fs.copyFile(real, dest);
 
       return dest;
     }

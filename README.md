@@ -1,6 +1,8 @@
-# FFmpeg Video Composer
+# le-clap
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.x-brightgreen.svg)](https://nodejs.org/en/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**le-clap** is the monorepo for this project: it contains the published [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library plus the le-clap web and mobile apps that build on it.
 
 `ffmpeg-video-composer` is a tool for video compilation and audio mixing using FFmpeg. It supports dynamic template generation, video rendering, and audio composition for creating personalized multimedia content programmatically.
 
@@ -10,7 +12,7 @@ Check out the video sample to see `ffmpeg-video-composer` in action (unmute for 
 
 https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 
-[View the template descriptor](https://github.com/heristop/ffmpeg-video-composer/blob/main/packages/core/src/shared/templates/sample.json)
+[View the template descriptor](https://github.com/heristop/ffmpeg-video-composer/blob/main/packages/ffmpeg-video-composer/src/shared/templates/sample.json)
 
 ## 🚀 Features
 
@@ -121,7 +123,7 @@ pnpm i
 ### **Command Line Interface**
 
 ```bash
-   pnpm compile packages/core/src/shared/templates/sample.json
+   pnpm compile packages/ffmpeg-video-composer/src/shared/templates/sample.json
 ```
 
 This generates `sample_output.mp4` in the `build` directory.
@@ -152,7 +154,7 @@ const result = await compile(projectConfig, {
 });
 
 // Or using a JSON file
-const template = await loadConfig('./packages/core/src/shared/templates/sample.json');
+const template = await loadConfig('./packages/ffmpeg-video-composer/src/shared/templates/sample.json');
 const result = await compile(projectConfig, template);
 ```
 

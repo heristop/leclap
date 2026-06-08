@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyMediaChoices } from './applyMediaChoices';
-import type { TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
+import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 // Helper to get pictureUrl from an image_background section
 function pictureUrlOf(descriptor: TemplateDescriptor, index = 0): string | undefined {

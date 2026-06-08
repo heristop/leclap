@@ -310,6 +310,18 @@ describe('FormatterManager', () => {
       expect(manager.formatMultipleTypesValues(filter)).toContain("fontcolor='black'");
     });
 
+    it('renders a background box (box, boxcolor, boxborderw) into the drawtext arg', () => {
+      const { manager } = build({ section: { name: 's', type: 'video' } });
+      const filter = {
+        type: 'drawtext',
+        values: { text: { en: 'Hi' }, box: 1, boxcolor: '#000000@0.5', boxborderw: 12 },
+      } as unknown as Filter;
+      const result = manager.formatMultipleTypesValues(filter);
+      expect(result).toContain('box=1');
+      expect(result).toContain("boxcolor='#000000@0.5'");
+      expect(result).toContain('boxborderw=12');
+    });
+
     it('formats fontfile value and queues the font', () => {
       const { manager, segment } = build({ section: { name: 's', type: 'video' } });
       const filter = { type: 'drawtext', values: { fontfile: 'Roboto-Bold.ttf' } } as unknown as Filter;

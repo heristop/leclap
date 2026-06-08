@@ -144,6 +144,9 @@ interface FilterValues {
   d?: string;
   st?: string;
   color?: string;
+  box?: number | string;
+  boxcolor?: string;
+  boxborderw?: number | string;
 }
 
 interface Translation {

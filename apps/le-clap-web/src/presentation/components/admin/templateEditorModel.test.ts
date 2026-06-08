@@ -11,10 +11,8 @@ function baseState(over: Partial<EditorState> = {}): EditorState {
     orientation: 'landscape',
     musicEnabled: false,
     allowedMusic: [],
-    allowUploadMusic: false,
     backgroundEnabled: false,
     allowedBackgrounds: [],
-    allowUploadBackground: false,
     sections: [newSection('video')],
     ...over,
   };
@@ -39,24 +37,23 @@ const bg1 = BACKGROUND_LIBRARY[0];
 const bg2 = BACKGROUND_LIBRARY[1];
 
 describe('templateEditorModel — music shortlist', () => {
-  it('emits global.allowedMusic + allowUploadMusic when music is enabled', () => {
-    const d = buildDescriptor(
-      baseState({ musicEnabled: true, allowedMusic: [music1.id, music2.id], allowUploadMusic: false })
-    );
+  it('emits global.allowedMusic when musicEnabled with a shortlist', () => {
+    const d = buildDescriptor(baseState({ musicEnabled: true, allowedMusic: [music1.id, music2.id] }));
 
     expect(d.global?.musicEnabled).toBe(true);
     expect(d.global?.allowedMusic).toEqual([music1.id, music2.id]);
-    expect(d.global?.allowUploadMusic).toBe(false);
+    expect(d.global?.allowUploadMusic).toBeUndefined();
   });
 
-  it('emits allowUploadMusic:true when flagged', () => {
-    const d = buildDescriptor(baseState({ musicEnabled: true, allowedMusic: [], allowUploadMusic: true }));
+  it('emits allowUploadMusic:true when a usermusic section is present', () => {
+    const d = buildDescriptor(baseState({ sections: [newSection('video'), newSection('usermusic')] }));
 
     expect(d.global?.allowUploadMusic).toBe(true);
+    expect(d.global?.musicEnabled).toBe(true);
   });
 
-  it('omits allowedMusic and allowUploadMusic when music is disabled', () => {
-    const d = buildDescriptor(baseState({ musicEnabled: false, allowedMusic: [music1.id], allowUploadMusic: true }));
+  it('omits allowedMusic and allowUploadMusic when musicEnabled:false and no usermusic section', () => {
+    const d = buildDescriptor(baseState({ musicEnabled: false, allowedMusic: [music1.id] }));
 
     expect(d.global?.allowedMusic).toBeUndefined();
     expect(d.global?.allowUploadMusic).toBeUndefined();
@@ -64,19 +61,15 @@ describe('templateEditorModel — music shortlist', () => {
 });
 
 describe('templateEditorModel — background shortlist', () => {
-  it('emits global.allowedBackgrounds + allowUploadBackground when background is enabled', () => {
-    const d = buildDescriptor(
-      baseState({ backgroundEnabled: true, allowedBackgrounds: [bg1.id, bg2.id], allowUploadBackground: false })
-    );
+  it('emits global.allowedBackgrounds when backgroundEnabled with a shortlist', () => {
+    const d = buildDescriptor(baseState({ backgroundEnabled: true, allowedBackgrounds: [bg1.id, bg2.id] }));
 
     expect(d.global?.allowedBackgrounds).toEqual([bg1.id, bg2.id]);
-    expect(d.global?.allowUploadBackground).toBe(false);
+    expect(d.global?.allowUploadBackground).toBeUndefined();
   });
 
-  it('appends a background_1 image_background placeholder section when background is enabled', () => {
-    const d = buildDescriptor(
-      baseState({ backgroundEnabled: true, allowedBackgrounds: [bg1.id], allowUploadBackground: false })
-    );
+  it('appends a background_1 placeholder when backgroundEnabled', () => {
+    const d = buildDescriptor(baseState({ backgroundEnabled: true, allowedBackgrounds: [bg1.id] }));
 
     const bgSection = d.sections?.find((s) => s.name === 'background_1');
 
@@ -85,10 +78,26 @@ describe('templateEditorModel — background shortlist', () => {
     expect((bgSection?.options as { pictureUrl?: string } | undefined)?.pictureUrl).toBeUndefined();
   });
 
-  it('omits allowedBackgrounds and the background_1 section when background is disabled', () => {
-    const d = buildDescriptor(
-      baseState({ backgroundEnabled: false, allowedBackgrounds: [bg1.id], allowUploadBackground: true })
-    );
+  it('emits allowUploadBackground:true when a userphoto section is present', () => {
+    const d = buildDescriptor(baseState({ sections: [newSection('video'), newSection('userphoto')] }));
+
+    expect(d.global?.allowUploadBackground).toBe(true);
+    // also emits the background_1 placeholder with the section's duration
+    const bgSection = d.sections?.find((s) => s.name === 'background_1');
+
+    expect(bgSection).toMatchObject({ name: 'background_1', type: 'image_background', options: { duration: 4 } });
+  });
+
+  it('userphoto section duration is used in background_1 placeholder', () => {
+    const d = buildDescriptor(baseState({ sections: [{ kind: 'userphoto', duration: 7 }] }));
+
+    const bgSection = d.sections?.find((s) => s.name === 'background_1');
+
+    expect(bgSection?.options?.duration).toBe(7);
+  });
+
+  it('omits allowedBackgrounds and background_1 when backgroundEnabled:false and no userphoto section', () => {
+    const d = buildDescriptor(baseState({ backgroundEnabled: false, allowedBackgrounds: [bg1.id] }));
 
     expect(d.global?.allowedBackgrounds).toBeUndefined();
     expect(d.global?.allowUploadBackground).toBeUndefined();
@@ -98,23 +107,42 @@ describe('templateEditorModel — background shortlist', () => {
 
 describe('templateEditorModel — round-trips', () => {
   it('round-trips musicEnabled + allowedMusic through a stored template', () => {
-    const start = baseState({ musicEnabled: true, allowedMusic: [music1.id, music2.id], allowUploadMusic: true });
+    const start = baseState({ musicEnabled: true, allowedMusic: [music1.id, music2.id] });
     const back = toEditorState(asTemplate(start));
 
     expect(back.musicEnabled).toBe(true);
     expect(back.allowedMusic).toEqual([music1.id, music2.id]);
-    expect(back.allowUploadMusic).toBe(true);
+    expect(back.sections.some((s) => s.kind === 'usermusic')).toBe(false);
+  });
+
+  it('round-trips a usermusic section: allowUploadMusic → usermusic section reappears', () => {
+    const start = baseState({ sections: [newSection('video'), newSection('usermusic')] });
+    const back = toEditorState(asTemplate(start));
+
+    expect(back.sections.some((s) => s.kind === 'usermusic')).toBe(true);
+    expect(back.sections.every((s) => s.kind !== 'userphoto')).toBe(true);
   });
 
   it('round-trips backgroundEnabled + allowedBackgrounds through a stored template', () => {
-    const start = baseState({ backgroundEnabled: true, allowedBackgrounds: [bg1.id], allowUploadBackground: false });
+    const start = baseState({ backgroundEnabled: true, allowedBackgrounds: [bg1.id] });
     const back = toEditorState(asTemplate(start));
 
     expect(back.backgroundEnabled).toBe(true);
     expect(back.allowedBackgrounds).toEqual([bg1.id]);
-    expect(back.allowUploadBackground).toBe(false);
+    expect(back.sections.some((s) => s.kind === 'userphoto')).toBe(false);
     // the background_1 placeholder is skipped when mapping sections back to editor
     expect(back.sections.some((s) => s.kind === ('image' as string))).toBe(false);
+  });
+
+  it('round-trips a userphoto section: allowUploadBackground → userphoto section reappears', () => {
+    const start = baseState({ sections: [newSection('video'), { kind: 'userphoto', duration: 6 }] });
+    const back = toEditorState(asTemplate(start));
+
+    const userphoto = back.sections.find((s) => s.kind === 'userphoto');
+
+    expect(userphoto).toBeDefined();
+    expect((userphoto as { kind: 'userphoto'; duration: number } | undefined)?.duration).toBe(6);
+    expect(back.sections.every((s) => s.kind !== ('image' as string))).toBe(true);
   });
 
   it('detects backgroundEnabled from a legacy stored template with an image_background section', () => {
@@ -153,10 +181,8 @@ describe('templateEditorModel — round-trips', () => {
 
     expect(state.musicEnabled).toBe(false);
     expect(state.allowedMusic).toEqual([]);
-    expect(state.allowUploadMusic).toBe(false);
     expect(state.backgroundEnabled).toBe(false);
     expect(state.allowedBackgrounds).toEqual([]);
-    expect(state.allowUploadBackground).toBe(false);
     expect(state.sections).toHaveLength(1);
     expect(state.sections[0].kind).toBe('video');
   });

@@ -8,7 +8,9 @@ export type FormField = { name: string; label: string; maxLength: number };
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
   | { kind: 'video'; duration: number; mute: boolean; text: string; fontsize: number; fontcolor: string }
-  | { kind: 'color'; duration: number; color: string };
+  | { kind: 'color'; duration: number; color: string }
+  | { kind: 'usermusic' }
+  | { kind: 'userphoto'; duration: number };
 
 export interface EditorState {
   id: string;
@@ -17,10 +19,8 @@ export interface EditorState {
   orientation: 'landscape' | 'portrait';
   musicEnabled: boolean;
   allowedMusic: string[];
-  allowUploadMusic: boolean;
   backgroundEnabled: boolean;
   allowedBackgrounds: string[];
-  allowUploadBackground: boolean;
   sections: EditorSection[];
 }
 
@@ -28,12 +28,18 @@ export const SECTION_LABELS: Record<EditorSection['kind'], string> = {
   form: 'Form fields',
   video: 'Your video',
   color: 'Color background',
+  usermusic: 'Your music',
+  userphoto: 'Your photo',
 };
 
 export function newSection(kind: EditorSection['kind']): EditorSection {
   if (kind === 'form') return { kind: 'form', fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }] };
 
   if (kind === 'color') return { kind: 'color', duration: 3, color: '#7C83FD' };
+
+  if (kind === 'usermusic') return { kind: 'usermusic' };
+
+  if (kind === 'userphoto') return { kind: 'userphoto', duration: 4 };
 
   return { kind: 'video', duration: 8, mute: false, text: '', fontsize: 48, fontcolor: '#ffffff' };
 }
@@ -53,70 +59,82 @@ function makeTemplateId(): string {
 export function buildDescriptor(state: EditorState): TemplateDescriptor {
   let videoIndex = 0;
 
-  const editorSections = state.sections.map((section, i): NonNullable<TemplateDescriptor['sections']>[number] => {
-    if (section.kind === 'form') {
-      return {
-        name: `form_${i + 1}`,
-        type: 'form',
-        options: {
-          fields: section.fields.map((f) => ({ name: f.name, maxLength: f.maxLength, label: { en: f.label } })),
-        },
-      };
-    }
+  const hasUserMusic = state.sections.some((s) => s.kind === 'usermusic');
+  const userPhoto = state.sections.find((s): s is { kind: 'userphoto'; duration: number } => s.kind === 'userphoto');
 
-    if (section.kind === 'color') {
-      return {
-        name: `color_${i + 1}`,
-        type: 'color_background',
-        options: { duration: section.duration, backgroundColor: section.color },
-      };
-    }
-
-    videoIndex += 1;
-    const filters = section.text.trim()
-      ? [
-          {
-            type: 'drawtext',
-            values: {
-              text: { en: section.text },
-              fontsize: section.fontsize,
-              fontcolor: section.fontcolor,
-              fontfile: 'Rubik.ttf',
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/2',
-            },
+  const editorSections = state.sections
+    .filter((s) => s.kind !== 'usermusic' && s.kind !== 'userphoto')
+    .map((section, i): NonNullable<TemplateDescriptor['sections']>[number] => {
+      if (section.kind === 'form') {
+        return {
+          name: `form_${i + 1}`,
+          type: 'form',
+          options: {
+            fields: section.fields.map((f) => ({ name: f.name, maxLength: f.maxLength, label: { en: f.label } })),
           },
-        ]
-      : undefined;
+        };
+      }
 
-    return {
-      name: `video_${videoIndex}`,
-      type: 'project_video',
-      options: { duration: section.duration, muteSection: section.mute },
-      ...(filters ? { filters } : {}),
-    };
-  });
+      if (section.kind === 'color') {
+        return {
+          name: `color_${i + 1}`,
+          type: 'color_background',
+          options: { duration: section.duration, backgroundColor: section.color },
+        };
+      }
 
-  const backgroundSections: NonNullable<TemplateDescriptor['sections']>[number][] = state.backgroundEnabled
-    ? [{ name: 'background_1', type: 'image_background', options: { duration: 4 } }]
+      videoIndex += 1;
+      const filters = section.text.trim()
+        ? [
+            {
+              type: 'drawtext',
+              values: {
+                text: { en: section.text },
+                fontsize: section.fontsize,
+                fontcolor: section.fontcolor,
+                fontfile: 'Rubik.ttf',
+                x: '(w-text_w)/2',
+                y: '(h-text_h)/2',
+              },
+            },
+          ]
+        : undefined;
+
+      return {
+        name: `video_${videoIndex}`,
+        type: 'project_video',
+        options: { duration: section.duration, muteSection: section.mute },
+        ...(filters ? { filters } : {}),
+      };
+    });
+
+  const needsBackground = state.backgroundEnabled || userPhoto !== undefined;
+  const backgroundDuration = userPhoto?.duration ?? 4;
+
+  const backgroundSections: NonNullable<TemplateDescriptor['sections']>[number][] = needsBackground
+    ? [{ name: 'background_1', type: 'image_background', options: { duration: backgroundDuration } }]
     : [];
 
   const sections = [...editorSections, ...backgroundSections];
 
+  const musicOn = state.musicEnabled || hasUserMusic;
+
   const global: NonNullable<TemplateDescriptor['global']> = {
     orientation: state.orientation,
-    musicEnabled: state.musicEnabled,
+    musicEnabled: musicOn,
     transitionDuration: 0.5,
   };
 
-  if (state.musicEnabled) {
+  if (musicOn) {
     global.allowedMusic = state.allowedMusic;
-    global.allowUploadMusic = state.allowUploadMusic;
+
+    if (hasUserMusic) global.allowUploadMusic = true;
   }
 
-  if (state.backgroundEnabled) {
+  if (needsBackground) {
     global.allowedBackgrounds = state.allowedBackgrounds;
-    global.allowUploadBackground = state.allowUploadBackground;
+
+    if (userPhoto !== undefined) global.allowUploadBackground = true;
   }
 
   return { global, sections };
@@ -165,6 +183,20 @@ function storedSectionToEditor(s: StoredSection): EditorSection | null {
   return videoSectionFrom(s);
 }
 
+function buildUploadSections(
+  allowUploadMusic: unknown,
+  allowUploadBackground: unknown,
+  bgDuration: number
+): EditorSection[] {
+  const result: EditorSection[] = [];
+
+  if (allowUploadMusic) result.push({ kind: 'usermusic' });
+
+  if (allowUploadBackground) result.push({ kind: 'userphoto', duration: bgDuration });
+
+  return result;
+}
+
 export function toEditorState(template: Template | null): EditorState {
   if (!template) {
     return {
@@ -174,26 +206,26 @@ export function toEditorState(template: Template | null): EditorState {
       orientation: 'landscape',
       musicEnabled: false,
       allowedMusic: [],
-      allowUploadMusic: false,
       backgroundEnabled: false,
       allowedBackgrounds: [],
-      allowUploadBackground: false,
       sections: [newSection('video')],
     };
   }
 
   const { global: g, sections: storedSections = [] } = template.descriptor;
 
-  const musicEnabled = Boolean(g?.musicEnabled);
   const allowedMusic = g?.allowedMusic ?? [];
-  const allowUploadMusic = Boolean(g?.allowUploadMusic);
+  const musicEnabled = allowedMusic.length > 0;
 
   const allowedBackgrounds = g?.allowedBackgrounds ?? [];
-  const allowUploadBackground = Boolean(g?.allowUploadBackground);
-  const backgroundEnabled =
-    allowedBackgrounds.length > 0 || allowUploadBackground || storedSections.some((s) => s.type === 'image_background');
+  const backgroundEnabled = allowedBackgrounds.length > 0 || storedSections.some((s) => s.type === 'image_background');
 
-  const editorSections = storedSections.map(storedSectionToEditor).filter((s): s is EditorSection => s !== null);
+  const bgSection = storedSections.find((s) => s.type === 'image_background');
+  const bgDuration = bgSection?.options?.duration ?? 4;
+
+  const mapped = storedSections.map(storedSectionToEditor).filter((s): s is EditorSection => s !== null);
+
+  const uploadSections = buildUploadSections(g?.allowUploadMusic, g?.allowUploadBackground, bgDuration);
 
   return {
     id: template.id,
@@ -202,10 +234,8 @@ export function toEditorState(template: Template | null): EditorState {
     orientation: template.orientation,
     musicEnabled,
     allowedMusic,
-    allowUploadMusic,
     backgroundEnabled,
     allowedBackgrounds,
-    allowUploadBackground,
-    sections: editorSections.length > 0 ? editorSections : [newSection('video')],
+    sections: mapped.length + uploadSections.length > 0 ? [...mapped, ...uploadSections] : [newSection('video')],
   };
 }

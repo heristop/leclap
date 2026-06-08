@@ -39,3 +39,18 @@ License — https://unsplash.com/license
 - Golden Hour — Alexander Shustov — https://unsplash.com/photos/2FrX56QL7P8
 
 Keep this file in sync with apps/le-clap-web/src/data/mediaCatalog.ts.
+
+FONTS (public/fonts/)
+---------------------
+Curated TrueType fonts bundled for the overlay-text editor, all licensed under
+the SIL Open Font License 1.1 — https://openfontlicense.org
+via Google Fonts (github.com/google/fonts).
+
+- Rubik
+- Oswald
+- Bebas Neue
+- Playfair Display
+- Pacifico
+- Roboto Mono
+
+Keep this file in sync with packages/core/src/shared/library/fonts.ts.

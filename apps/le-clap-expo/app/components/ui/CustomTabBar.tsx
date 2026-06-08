@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import type { Tabs } from 'expo-router';
+import { useRouter, type Tabs } from 'expo-router';
 import { colors } from '@/src/styles/theme';
 
 // SDK 56: expo-router no longer ships react-navigation as a direct dependency.
@@ -11,6 +11,8 @@ import { colors } from '@/src/styles/theme';
 type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.tabBar}>
@@ -54,6 +56,21 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             </TouchableOpacity>
           );
         })}
+        <TouchableOpacity
+          key="create-template"
+          onPress={() => {
+            router.push('/(fullscreen)/create-template');
+          }}
+          style={styles.tabItem}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Create a template"
+        >
+          <View style={styles.inactiveIconContainer}>
+            <Ionicons name="add-circle-outline" size={24} color="#888888" />
+          </View>
+          <Text style={[styles.tabLabel, { color: '#888888' }]}>Create</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

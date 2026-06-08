@@ -1,5 +1,8 @@
 // Core package template loading service
 import { templateLogger } from '@/lib/logger';
+import simpleVideo from './core/simple-video.json';
+import sampleAdvanced from './core/sample-advanced.json';
+import concatWithMusic from './core/concat-with-music.json';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
@@ -57,210 +60,13 @@ export interface CoreTemplate {
   previewImage?: string;
 }
 
-// Core package templates with metadata
-const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = {
-  'simple-video': {
-    id: 'simple-video',
-    name: 'Simple Video Processing',
-    description: 'Basic video with fade effects and color transitions - uses your uploaded video',
-    category: 'video',
-    orientation: 'landscape',
-    hasForm: false,
-    templateDescriptor: {
-      global: {
-        variables: {
-          colorTransition: '#000000',
-        },
-        orientation: 'landscape',
-        musicEnabled: false,
-        transitionDuration: 0.5,
-      },
-      sections: [
-        {
-          name: 'video_1',
-          type: 'project_video',
-          options: {
-            duration: 2000,
-            forceAspectRatio: true,
-          },
-          filters: [
-            {
-              type: 'fade',
-              values: {
-                t: 'in',
-                st: '0',
-                d: '0.5',
-                color: '{{ colorTransition }}',
-              },
-            },
-            {
-              type: 'fade',
-              values: {
-                t: 'out',
-                st: '1.5',
-                d: '0.5',
-                color: '{{ colorTransition }}',
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
+// Each core template lives in its own JSON file under ./core/. Add a template by dropping a
+// new file there and listing it here.
+const TEMPLATE_SOURCES = [simpleVideo, sampleAdvanced, concatWithMusic] as unknown as CoreTemplate[];
 
-  'sample-advanced': {
-    id: 'sample-advanced',
-    name: 'Professional Video with Text',
-    description: 'Advanced template with forms and text overlay effects - uses your uploaded video',
-    category: 'advanced',
-    orientation: 'landscape',
-    hasForm: true,
-    templateDescriptor: {
-      global: {
-        variables: {
-          colorsList: ['rgb(41 37 36)', 'rgb(250 250 249)'],
-        },
-        orientation: 'landscape',
-        musicEnabled: false,
-        transitionDuration: 0.5,
-      },
-      sections: [
-        {
-          name: 'form_1',
-          type: 'form',
-          title: {
-            en: 'Personal Information',
-          },
-          description: {
-            en: 'Please provide your details',
-          },
-          options: {
-            fields: [
-              {
-                name: 'form_1_firstname',
-                maxLength: 30,
-                label: {
-                  en: 'First Name',
-                },
-              },
-              {
-                name: 'form_1_lastname',
-                maxLength: 30,
-                label: {
-                  en: 'Last Name',
-                },
-              },
-              {
-                name: 'form_1_job',
-                maxLength: 40,
-                label: {
-                  en: 'Your Job',
-                },
-              },
-            ],
-          },
-        },
-        {
-          name: 'video_1',
-          type: 'project_video',
-          title: {
-            en: 'Upload your video',
-          },
-          description: {
-            en: 'Your video with text overlay',
-          },
-          options: {
-            duration: 20000,
-            forceAspectRatio: true,
-          },
-          filters: [
-            {
-              type: 'drawtext',
-              values: {
-                text: {
-                  en: '{{ form_1_firstname }} {{ form_1_lastname }}',
-                },
-                fontfile: 'Rubik.ttf',
-                fontcolor: 'white',
-                fontsize: 40,
-                x: '(w-text_w)/2',
-                y: '(h-text_h)/1.2',
-                box: 1,
-                boxcolor: 'black@0.5',
-                boxborderw: 5,
-              },
-            },
-            {
-              type: 'drawtext',
-              values: {
-                text: {
-                  en: '{{ form_1_job }}',
-                },
-                fontfile: 'Rubik.ttf',
-                fontcolor: 'white',
-                fontsize: 25,
-                x: '(w-text_w)/2',
-                y: '(h-text_h)/1.1',
-                box: 1,
-                boxcolor: 'black@0.5',
-                boxborderw: 5,
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
-
-  'concat-with-music': {
-    id: 'concat-with-music',
-    name: 'Simple Video with Effects',
-    description: 'Basic video processing with scaling and fade effects - uses your uploaded video',
-    category: 'video',
-    orientation: 'landscape',
-    hasForm: false,
-    templateDescriptor: {
-      global: {
-        variables: {},
-        orientation: 'landscape',
-        musicEnabled: false,
-        transitionDuration: 1,
-      },
-      sections: [
-        {
-          name: 'video_1',
-          type: 'project_video',
-          options: {
-            duration: 5000,
-            forceAspectRatio: true,
-          },
-          filters: [
-            {
-              type: 'scale',
-              value: '1280:720',
-            },
-            {
-              type: 'fade',
-              values: {
-                t: 'in',
-                st: '0',
-                d: '1',
-              },
-            },
-            {
-              type: 'fade',
-              values: {
-                t: 'out',
-                st: '4',
-                d: '1',
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
-};
+const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = Object.fromEntries(
+  TEMPLATE_SOURCES.map((template) => [template.id, template])
+);
 
 class CoreTemplateService {
   async getTemplates(): Promise<CoreTemplate[]> {

@@ -9,7 +9,7 @@
     "moduleResolution": "NodeNext",
     "paths": {
       // Ensure workspace dependency can be resolved if needed, though pnpm should handle this
-      "ffmpeg-video-composer": ["../../dist"] // Point to the built output of the core package
+      "ffmpeg-video-composer": ["../ffmpeg-video-composer/dist"] // Point to the built output of the library package
     }
   },
   "include": ["src/**/*"], // Only include the server's source files

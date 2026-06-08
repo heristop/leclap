@@ -36,6 +36,9 @@ export default defineConfig({
     // running test files concurrently makes them clobber each other intermittently. Serialize
     // files for deterministic runs.
     fileParallelism: false,
+    // Some core integration tests fetch assets from live GitHub URLs; retry to ride out transient
+    // 504s / rate-limits without losing the real end-to-end fetch coverage.
+    retry: 2,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

@@ -45,6 +45,12 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   override fetch = async (url: string): Promise<string> => {
     const dest = path.join(this.tempDir, path.basename(url));
 
+    if (url.startsWith('/')) {
+      await fs.copyFile(url, dest);
+
+      return dest;
+    }
+
     const response = await axios({
       method: 'get',
       url,

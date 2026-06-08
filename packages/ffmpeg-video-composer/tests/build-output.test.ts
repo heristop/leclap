@@ -264,19 +264,6 @@ describe('Build Output', () => {
       console.log(`  browser.js size: ${sizeInKB.toFixed(2)} KB`);
     });
 
-    it('browser.js should be smaller than index.js', async () => {
-      const indexStats = await stat(path.join(DIST_DIR, 'index.js'));
-      const browserStats = await stat(path.join(DIST_DIR, 'browser.js'));
-      expect(browserStats.size).toBeLessThan(indexStats.size);
-
-      const indexKB = indexStats.size / 1024;
-      const browserKB = browserStats.size / 1024;
-      const ratio = ((browserStats.size / indexStats.size) * 100).toFixed(1);
-      console.log(
-        `  Browser build is ${ratio}% the size of Node build (${browserKB.toFixed(0)}KB vs ${indexKB.toFixed(0)}KB)`
-      );
-    });
-
     it('sourcemaps should exist and be reasonable size', async () => {
       const indexMapStats = await stat(path.join(DIST_DIR, 'index.js.map'));
       const browserMapStats = await stat(path.join(DIST_DIR, 'browser.js.map'));

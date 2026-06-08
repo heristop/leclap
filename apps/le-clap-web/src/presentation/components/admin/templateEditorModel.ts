@@ -1,5 +1,5 @@
 import type { Template } from '@/services/templateService';
-import type { TemplateDescriptor } from 'ffmpeg-video-composer';
+import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { FONTS, findFont, DEFAULT_FONT_ID } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
 
 export type MediaChoice = { source: 'library'; id: string } | { source: 'upload'; key: string; label: string };
@@ -8,7 +8,8 @@ export type MediaChoice = { source: 'library'; id: string } | { source: 'upload'
 export type FormField = { name: string; label: string; maxLength: number };
 
 // A single positionable text overlay on a video section. x/y are [0,1] fractions
-// of the frame; fontcolor/boxcolor are hex strings like '#ffffff'.
+// of the frame; fontcolor/boxcolor are hex strings like '#ffffff'. boxOpacity is
+// the background box alpha in [0,1].
 export interface TextOverlay {
   text: string;
   x: number;
@@ -18,6 +19,7 @@ export interface TextOverlay {
   font: string;
   box: boolean;
   boxcolor: string;
+  boxOpacity: number;
 }
 
 export type EditorSection =
@@ -55,6 +57,7 @@ export function newOverlay(): TextOverlay {
     font: DEFAULT_FONT_ID,
     box: false,
     boxcolor: '#000000',
+    boxOpacity: 0.5,
   };
 }
 
@@ -120,7 +123,7 @@ type VideoSection = Extract<EditorSection, { kind: 'video' }>;
 type StoredFilter = NonNullable<StoredSection['filters']>[number];
 
 // A drawtext filter for one overlay. Box keys are only added when the overlay
-// opts into a background box; boxcolor carries a 50% opacity suffix.
+// opts into a background box; boxcolor carries the author-set opacity suffix.
 function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
   return {
     type: 'drawtext',
@@ -131,7 +134,7 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
       fontfile: findFont(overlay.font)?.file ?? 'Rubik.ttf',
       x: `(w-text_w)*${roundFraction(overlay.x)}`,
       y: `(h-text_h)*${roundFraction(overlay.y)}`,
-      ...(overlay.box ? { box: 1, boxcolor: `${overlay.boxcolor}@0.5`, boxborderw: 12 } : {}),
+      ...(overlay.box ? { box: 1, boxcolor: `${overlay.boxcolor}@${overlay.boxOpacity}`, boxborderw: 12 } : {}),
     },
   };
 }
@@ -280,6 +283,20 @@ function stripOpacity(color: string | undefined): string {
   return (color ?? '#000000').split('@')[0];
 }
 
+// Recover the [0,1] box opacity from a stored `<hex>@<opacity>` boxcolor,
+// defaulting to 0.5 when the suffix is absent or unparseable.
+function parseOpacity(boxcolor: string | undefined): number {
+  const match = /@(\d*\.?\d+)/.exec(boxcolor ?? '');
+
+  if (!match) return 0.5;
+
+  const value = Number(match[1]);
+
+  if (!Number.isFinite(value)) return 0.5;
+
+  return Math.min(1, Math.max(0, value));
+}
+
 function overlayFrom(dt: { values?: DrawtextValues }): TextOverlay {
   const v = dt.values;
 
@@ -292,6 +309,7 @@ function overlayFrom(dt: { values?: DrawtextValues }): TextOverlay {
     font: fontIdFromFile(v?.fontfile),
     box: v?.box !== undefined,
     boxcolor: stripOpacity(v?.boxcolor),
+    boxOpacity: parseOpacity(v?.boxcolor),
   };
 }
 

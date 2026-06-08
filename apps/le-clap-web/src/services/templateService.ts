@@ -1,7 +1,7 @@
 // Re-export from core package for consistency
-export type { TemplateDescriptor } from 'ffmpeg-video-composer';
+export type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { coreTemplateService, type CoreTemplate } from '@/infrastructure/templates/coreTemplateService';
-import { type TemplateDescriptor } from 'ffmpeg-video-composer';
+import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { userTemplateService } from '@/services/userTemplateService';
 import { templateLogger } from '@/lib/logger';
 

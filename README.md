@@ -151,6 +151,26 @@ const template = await loadConfig('./my-template.json');
 const result = await compile(projectConfig, template);
 ```
 
+## 🧩 Templates
+
+A **template** is a JSON document that drives the whole composition: a `global` block (defaults, theme colors, music, and the choices a builder exposes to end users) plus an ordered list of `sections`. Each section is a clip — video, image, color background, a form that collects user input, or a music picker — and describes its FFmpeg `inputs` → `maps` → `filters` pipeline. Strings support `{{ variables }}`, `{{ colorN }}`, and `{{ form_field }}` placeholders resolved at compile time.
+
+```jsonc
+{
+  "global": { "orientation": "landscape", "musicEnabled": true, "transitionDuration": 0.1 },
+  "sections": [
+    {
+      "name": "clip_1",
+      "type": "video",
+      "options": { "videoUrl": "https://.../earth.mp4", "duration": 4 },
+      "filters": [{ "type": "fadein", "values": { "color": "#000000" } }],
+    },
+  ],
+}
+```
+
+📖 **Full reference:** [Template Configuration (JSON)](docs/template-configuration.md). Browse ready-made examples in [`packages/ffmpeg-video-composer/src/shared/templates/`](packages/ffmpeg-video-composer/src/shared/templates/).
+
 ## 🛠️ Developing in the Monorepo
 
 Clone the repo and install once at the root — pnpm wires every workspace package together:
@@ -270,8 +290,8 @@ This starts the Vite dev server; open the printed URL to compose videos client-s
 
 ## 📚 Documentation
 
+- **[🧩 Template Configuration](docs/template-configuration.md)** - The template JSON reference: global config, sections, the FFmpeg pipeline, and placeholders
 - **[🏗 Architecture](docs/architecture.md)** - Detailed system architecture and design patterns
-- **[📋 Template Schema](docs/template-schema.md)** - Complete JSON schema documentation for video templates
 - **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** - How automatic FFmpeg detection works
 - **[🤖 AGENTS.md](AGENTS.md)** - Repo layout, commands, and conventions for contributors and AI agents
 

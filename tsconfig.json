@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDirs": ["packages/core/src"],
+    "rootDirs": ["packages/ffmpeg-video-composer/src"],
     "outDir": "dist",
     "lib": ["es2024"],
     "target": "es2024",
@@ -11,10 +11,10 @@
     "emitDecoratorMetadata": true,
     "types": ["node", "jest"],
     "paths": {
-      "@/*": ["./packages/core/src/*"]
+      "@/*": ["./packages/ffmpeg-video-composer/src/*"]
     }
   },
-  "exclude": ["dist", "./packages/core/src/shared/assets/**/*"],
+  "exclude": ["dist", "./packages/ffmpeg-video-composer/src/shared/assets/**/*"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",

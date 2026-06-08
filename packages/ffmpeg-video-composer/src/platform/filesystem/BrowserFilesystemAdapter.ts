@@ -81,7 +81,7 @@ async function estimateStorageUsage(): Promise<{ used: number; available?: numbe
 
 @injectable()
 class BrowserFilesystemAdapter extends AbstractFilesystem {
-  private readonly dbName = 'ffmpeg-video-composer-fs';
+  private readonly dbName = 'le-clap-fs';
   private readonly dbVersion = 1;
   private readonly storeName = 'files';
   private db: IDBDatabase | null = null;

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
-const libDir = resolve(root, 'packages/core/src/shared/library');
+const libDir = resolve(root, 'packages/ffmpeg-video-composer/src/shared/library');
 
 const destinations = [
   {

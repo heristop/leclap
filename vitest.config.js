@@ -10,7 +10,7 @@ export default defineConfig({
   // Vite 8 transforms with Oxc by default; disable it so the swc plugin above is the only
   // transformer (this also silences the legacy `esbuild: false` deprecation warning).
   oxc: false,
-  // Resolve TS path aliases (e.g. `@/*` -> packages/core/src/*) natively, replacing the
+  // Resolve TS path aliases (e.g. `@/*` -> packages/ffmpeg-video-composer/src/*) natively, replacing the
   // vite-tsconfig-paths plugin.
   resolve: {
     tsconfigPaths: true,
@@ -22,7 +22,7 @@ export default defineConfig({
     // Core tests live in the core package; web-app unit tests live under its tests/ dir.
     // Server tests live in packages/server/tests/ and cover pure helpers with no Fastify deps.
     include: [
-      'packages/core/tests/**/*.test.ts',
+      'packages/ffmpeg-video-composer/tests/**/*.test.ts',
       'apps/le-clap-web/tests/**/*.test.ts',
       'packages/server/tests/**/*.test.ts',
     ],
@@ -40,7 +40,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       reportsDirectory: 'coverage',
-      include: ['packages/core/src/**/*.{ts,js}'],
+      include: ['packages/ffmpeg-video-composer/src/**/*.{ts,js}'],
       exclude: [
         '**/node_modules/**',
         '**/tests/**',

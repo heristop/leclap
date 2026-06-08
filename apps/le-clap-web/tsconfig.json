@@ -5,7 +5,7 @@
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "paths": {
-      "@/core/*": ["../../packages/core/src/core/*"],
+      "@/core/*": ["../../packages/ffmpeg-video-composer/src/core/*"],
       "@/*": ["./src/*"]
     },
     "types": ["node", "vite/client"],
@@ -28,6 +28,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["../../packages/core/src"],
+  "exclude": ["../../packages/ffmpeg-video-composer/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

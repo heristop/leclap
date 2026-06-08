@@ -1,9 +1,9 @@
 // Browser/WASM compilation service backed by the core package.
 import 'reflect-metadata';
-import { compileBrowser as compile } from '@ffmpeg-video-composer/core/src/browser.ts';
-import { FONTS } from '@ffmpeg-video-composer/core/src/shared/library/fonts.ts';
-import BrowserFilesystemAdapter from '@ffmpeg-video-composer/core/src/platform/filesystem/BrowserFilesystemAdapter.ts';
-import type { ProjectConfig, TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
+import { compileBrowser as compile } from 'ffmpeg-video-composer/src/browser.ts';
+import { FONTS } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
+import BrowserFilesystemAdapter from 'ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts';
+import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { type Template } from '@/services/templateService';
 import { compilationLogger } from '@/lib/logger';
 import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdits';

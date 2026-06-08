@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { materializeTemplateMedia, type MediaSource, type MediaTarget } from './materializeTemplateMedia';
-import type { TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
+import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 function sourceWith(records: Record<string, { bytes: Uint8Array; ext: string }>): MediaSource {
   return {

@@ -1,6 +1,6 @@
 import type { Template } from '@/services/templateService';
-import type { TemplateDescriptor } from '@ffmpeg-video-composer/core';
-import { FONTS, findFont, DEFAULT_FONT_ID } from '@ffmpeg-video-composer/core/src/shared/library/fonts.ts';
+import type { TemplateDescriptor } from 'ffmpeg-video-composer';
+import { FONTS, findFont, DEFAULT_FONT_ID } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
 
 export type MediaChoice = { source: 'library'; id: string } | { source: 'upload'; key: string; label: string };
 

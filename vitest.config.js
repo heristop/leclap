@@ -20,14 +20,22 @@ export default defineConfig({
     environment: 'node',
     root: './',
     // Core tests live in the core package; web-app unit tests live under its tests/ dir.
-    include: ['packages/core/tests/**/*.test.ts', 'apps/le-clap-web/tests/**/*.test.ts'],
+    // Server tests live in packages/server/tests/ and cover pure helpers with no Fastify deps.
+    include: [
+      'packages/core/tests/**/*.test.ts',
+      'apps/le-clap-web/tests/**/*.test.ts',
+      'packages/server/tests/**/*.test.ts',
+    ],
     // Playwright specs live under e2e/ and import @playwright/test (not a vitest
     // dependency); they run via `pnpm test:e2e`, not the unit suite.
     exclude: [...configDefaults.exclude, '**/e2e/**'],
     pool: 'threads',
     maxWorkers: undefined,
     isolate: true,
-    fileParallelism: true,
+    // Core ffmpeg tests share the repo-level build/ dir (segments.list, segment outputs), so
+    // running test files concurrently makes them clobber each other intermittently. Serialize
+    // files for deterministic runs.
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

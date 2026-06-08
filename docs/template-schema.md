@@ -1,5 +1,7 @@
 # 📋 Template Schema Documentation
 
+> ⚠️ **Outdated.** This document predates the current schema and describes an aspirational model (elements/animations/transitions) that does not match the code. See **[Template Configuration (JSON)](./template-configuration.md)** for the accurate, schema-backed reference.
+
 This document describes the JSON schema used for video template descriptors in FFmpeg Video Composer.
 
 ## Overview

@@ -41,12 +41,12 @@ https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 
 ## 🚀 Quick start
 
-**Requirements:** [pnpm](https://pnpm.io/) 11, Node ≥ 24, and FFmpeg (with the `drawtext` filter). [mise](https://mise.jdx.dev) handles the toolchain for you.
+> 💡 **Recommended: [mise](https://mise.jdx.dev).** A single `mise install` provisions the exact pinned toolchain this repo expects — **Node 24, pnpm 11, FFmpeg 8.1.1** (a full build _with_ the `drawtext` filter), and the **Rust** toolchain — so every contributor and CI run identical versions. It's the simplest, most reliable way to get set up.
 
 ```bash
 git clone https://github.com/heristop/ffmpeg-video-composer.git
 cd ffmpeg-video-composer
-mise install     # pinned Node 24 + a drawtext-capable FFmpeg
+mise install     # provisions Node 24, pnpm 11, FFmpeg 8.1.1 (with drawtext) + Rust
 pnpm install     # wires up every workspace package
 ```
 
@@ -60,7 +60,7 @@ pnpm compile packages/ffmpeg-video-composer/src/shared/templates/sample.json   #
 
 <br clear="right" />
 
-> Don't have mise? See [mise install](https://mise.jdx.dev/getting-started.html). Once activated, FFmpeg lands on your `PATH` automatically when you `cd` in; otherwise prefix commands with `mise exec --` (e.g. `mise exec -- pnpm test`). `engine-strict` rejects unsupported Node versions.
+> New to mise? See the [mise install guide](https://mise.jdx.dev/getting-started.html). Once activated in your shell, the pinned tools (Node, pnpm, FFmpeg) are placed on your `PATH` automatically when you `cd` into the repo; otherwise prefix commands with `mise exec --` (e.g. `mise exec -- pnpm test`). Prefer to manage versions yourself? Bring **Node ≥ 24, pnpm 11, and a `drawtext`-capable FFmpeg** — but mise keeps everyone aligned, and `engine-strict` rejects unsupported Node versions.
 
 ## 📦 Monorepo structure
 

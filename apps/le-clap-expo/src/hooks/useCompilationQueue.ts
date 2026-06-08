@@ -7,8 +7,11 @@ import {
   getPendingCompilations,
   cleanupCompilationQueue,
 } from '@/src/services/storage';
-import { compileVideo, type CompileRecordedVideos } from '@/src/services/api';
+import { type CompileRecordedVideos } from '@/src/services/api';
+import { compileHybrid } from '@/src/services/compile/compileHybrid';
+import { isFFmpegAvailable } from '@/src/services/compile/ffmpegAvailability';
 import { hasInternetConnection, waitForConnection } from '@/src/services/network';
+import type { MediaChoices } from '@/src/types';
 
 type QueueItemResult = { id: string; success: boolean; error?: string };
 
@@ -29,7 +32,7 @@ async function processQueueItem(item: PendingItem, maxRetries: number): Promise<
       lastRetryAt: new Date().toISOString(),
     });
 
-    const result = await compileVideo(item.templateDescriptor, item.recordedVideos);
+    const result = await compileHybrid(item.templateDescriptor, item.recordedVideos);
 
     if (result.success) {
       await updateCompilationQueueItem(item.id, {
@@ -126,16 +129,20 @@ export const useQueueVideoCompilation = () => {
       projectId,
       templateDescriptor,
       recordedVideos,
+      mediaChoices,
     }: {
       projectId: string;
       templateDescriptor: unknown;
       recordedVideos: CompileRecordedVideos;
+      mediaChoices?: MediaChoices;
     }) => {
+      // On-device compiles work offline, so attempt immediately when either the network is up
+      // or the native FFmpeg engine is present; compileHybrid routes server-vs-device internally.
       const isOnline = await hasInternetConnection();
 
-      if (isOnline) {
+      if (isOnline || isFFmpegAvailable()) {
         try {
-          const result = await compileVideo(templateDescriptor, recordedVideos);
+          const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
 
           if (result.success) {
             return { immediate: true, result };
@@ -168,9 +175,11 @@ export const useProcessQueuedCompilations = () => {
 
   return useMutation<QueueItemResult[], Error, number>({
     mutationFn: async (maxRetries: number) => {
+      // Offline is only a hard stop when there's no on-device engine to fall back on;
+      // with the native engine present, on-device-capable items can still process offline.
       const isOnline = await hasInternetConnection();
 
-      if (!isOnline) {
+      if (!isOnline && !isFFmpegAvailable()) {
         throw new Error('No internet connection for processing queue');
       }
 
@@ -211,7 +220,7 @@ export const useRetryQueueItem = () => {
       });
 
       try {
-        const result = await compileVideo(item.templateDescriptor, item.recordedVideos);
+        const result = await compileHybrid(item.templateDescriptor, item.recordedVideos);
 
         if (result.success) {
           await updateCompilationQueueItem(itemId, {
@@ -285,7 +294,7 @@ export const useAutoProcessQueue = (enabled = true) => {
       if (!enabled) return;
 
       const hasConnection = await waitForConnection(10000);
- // 10 s
+      // 10 s
       if (!hasConnection) {
         throw new Error('Failed to establish stable internet connection');
       }

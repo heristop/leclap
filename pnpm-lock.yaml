@@ -10,40 +10,6 @@ patchedDependencies:
 importers:
 
   .:
-    dependencies:
-      axios:
-        specifier: ^1.17.0
-        version: 1.17.0
-      boxen:
-        specifier: ^8.0.1
-        version: 8.0.1
-      cli-spinners:
-        specifier: ^3.4.0
-        version: 3.4.0
-      extract-zip:
-        specifier: ^2.0.1
-        version: 2.0.1
-      figlet:
-        specifier: ^1.11.0
-        version: 1.11.0
-      gradient-string:
-        specifier: ^3.0.0
-        version: 3.0.0
-      picocolors:
-        specifier: ^1.1.1
-        version: 1.1.1
-      pino:
-        specifier: ^10.3.1
-        version: 10.3.1
-      reflect-metadata:
-        specifier: ^0.2.2
-        version: 0.2.2
-      tsyringe:
-        specifier: ^4.10.0
-        version: 4.10.0
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
     devDependencies:
       '@swc/core':
         specifier: ^1.15.40
@@ -60,9 +26,6 @@ importers:
       '@vitest/ui':
         specifier: ^4.1.8
         version: 4.1.8(vitest@4.1.8)
-      '@yao-pkg/pkg':
-        specifier: ^6.20.0
-        version: 6.20.0
       dependency-cruiser:
         specifier: ^17.4.3
         version: 17.4.3
@@ -81,9 +44,6 @@ importers:
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.15.40)(@types/node@25.9.2)(typescript@6.0.3)
-      tsdown:
-        specifier: ^0.22.2
-        version: 0.22.2(typescript@6.0.3)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -102,16 +62,6 @@ importers:
       vitest:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(@vitest/ui@4.1.8)(jsdom@20.0.3)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
-    optionalDependencies:
-      '@ffmpeg/ffmpeg':
-        specifier: ^0.12.15
-        version: 0.12.15
-      '@ffmpeg/util':
-        specifier: ^0.12.2
-        version: 0.12.2
-      ffmpeg-static:
-        specifier: ^5.3.0
-        version: 5.3.0
 
   apps/le-clap-expo:
     dependencies:
@@ -178,6 +128,9 @@ importers:
       expo:
         specifier: ~56.0.9
         version: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.14)(expo-router@56.2.9)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      expo-asset:
+        specifier: ^56.0.16
+        version: 56.0.16(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
       expo-blur:
         specifier: ~56.0.3
         version: 56.0.3(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
@@ -187,6 +140,9 @@ importers:
       expo-constants:
         specifier: ~56.0.17
         version: 56.0.17(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))
+      expo-document-picker:
+        specifier: ^56.0.4
+        version: 56.0.4(expo@56.0.9)
       expo-file-system:
         specifier: ~56.0.7
         version: 56.0.7(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))
@@ -196,6 +152,9 @@ importers:
       expo-haptics:
         specifier: ~56.0.3
         version: 56.0.3(expo@56.0.9)
+      expo-image-picker:
+        specifier: ^56.0.16
+        version: 56.0.16(expo@56.0.9)
       expo-linear-gradient:
         specifier: ~56.0.4
         version: 56.0.4(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
@@ -317,9 +276,6 @@ importers:
 
   apps/le-clap-web:
     dependencies:
-      '@ffmpeg-video-composer/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@ffmpeg/ffmpeg':
         specifier: ^0.12.15
         version: 0.12.15
@@ -347,6 +303,9 @@ importers:
       consola:
         specifier: ^3.4.2
         version: 3.4.2
+      ffmpeg-video-composer:
+        specifier: workspace:*
+        version: link:../../packages/ffmpeg-video-composer
       lucide-react:
         specifier: ^1.17.0
         version: 1.17.0(react@19.2.7)
@@ -436,17 +395,26 @@ importers:
         specifier: ^0.28.0
         version: 0.28.0(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
 
-  packages/core:
+  packages/ffmpeg-video-composer:
     dependencies:
-      '@ffmpeg/ffmpeg':
-        specifier: ^0.12.15
-        version: 0.12.15
-      '@ffmpeg/util':
-        specifier: ^0.12.2
-        version: 0.12.2
-      ffmpeg-static:
-        specifier: ^5.2.0
-        version: 5.3.0
+      axios:
+        specifier: ^1.17.0
+        version: 1.17.0
+      boxen:
+        specifier: ^8.0.1
+        version: 8.0.1
+      cli-spinners:
+        specifier: ^3.4.0
+        version: 3.4.0
+      extract-zip:
+        specifier: ^2.0.1
+        version: 2.0.1
+      figlet:
+        specifier: ^1.11.0
+        version: 1.11.0
+      gradient-string:
+        specifier: ^3.0.0
+        version: 3.0.0
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -469,6 +437,9 @@ importers:
       '@rollup/plugin-replace':
         specifier: ^6.0.3
         version: 6.0.3
+      '@yao-pkg/pkg':
+        specifier: ^6.20.0
+        version: 6.20.0
       fake-indexeddb:
         specifier: ^6.2.5
         version: 6.2.5
@@ -478,6 +449,16 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+    optionalDependencies:
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.12.15
+        version: 0.12.15
+      '@ffmpeg/util':
+        specifier: ^0.12.2
+        version: 0.12.2
+      ffmpeg-static:
+        specifier: ^5.3.0
+        version: 5.3.0
 
   packages/server:
     dependencies:
@@ -495,7 +476,7 @@ importers:
         version: 5.8.5
       ffmpeg-video-composer:
         specifier: workspace:*
-        version: link:../..
+        version: link:../ffmpeg-video-composer
       pino-pretty:
         specifier: ^13.1.3
         version: 13.1.3
@@ -5373,6 +5354,11 @@ packages:
       expo: '*'
       react-native: '*'
 
+  expo-document-picker@56.0.4:
+    resolution: {integrity: sha512-75Apf74XNkYYohObIH19VZw42xpe0gmEnPccuzGXKVAzlvTYCfibSgW17F+6vt4paOfZEnAoZ1QFZM6dmaujRA==}
+    peerDependencies:
+      expo: '*'
+
   expo-file-system@56.0.7:
     resolution: {integrity: sha512-dcKzo8ShPloM7jgfnMcJStgQebhP8owVjCkNI/aX6NMFV1CYB8bxKGMdnzJ3mXk5nfaiW+F/lSKr2UIJ02WAUA==}
     peerDependencies:
@@ -5395,6 +5381,16 @@ packages:
 
   expo-haptics@56.0.3:
     resolution: {integrity: sha512-ycoahZJnR9tWAVh/0mJYxbETtHRYaWjiWS8cHlP6aDGU6Q6Y8rZ5NKsuBwWw6HR2Pe30mfVFgbF2HrBR6gtYmw==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-loader@56.0.3:
+    resolution: {integrity: sha512-JgUo4fUeU1ZC+z8iBFj8v7yoGQnZrLbOVPyNE+DWVrld55F2F6R1ck+rmdm/8TNWLz1LhNQfD7c3XYP1ZikxXA==}
+    peerDependencies:
+      expo: '*'
+
+  expo-image-picker@56.0.16:
+    resolution: {integrity: sha512-t7tNtkPsbK4D7kKgd0dNylUVTD2IPNmZIa/MXSzMb+uSm7VyHrHfXt+GVZENFRMi99amBGWBuen5OYESwOp5rw==}
     peerDependencies:
       expo: '*'
 
@@ -9323,6 +9319,7 @@ snapshots:
       concat-stream: 2.0.0
       http-response-object: 3.0.2
       parse-cache-control: 1.0.1
+    optional: true
 
   '@egjs/hammerjs@2.0.17':
     dependencies:
@@ -10059,7 +10056,7 @@ snapshots:
 
   '@jest/pattern@30.4.0':
     dependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       jest-regex-util: 30.4.0
 
   '@jest/reporters@29.7.0':
@@ -10154,7 +10151,7 @@ snapshots:
       '@jest/schemas': 30.4.1
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -12769,13 +12766,14 @@ snapshots:
 
   '@types/jsdom@20.0.1':
     dependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       '@types/tough-cookie': 4.0.5
       parse5: 7.3.0
 
   '@types/jsesc@2.5.1': {}
 
-  '@types/node@10.17.60': {}
+  '@types/node@10.17.60':
+    optional: true
 
   '@types/node@25.9.1':
     dependencies:
@@ -12815,7 +12813,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
     optional: true
 
   '@ungap/structured-clone@1.3.1': {}
@@ -13558,7 +13556,8 @@ snapshots:
 
   caniuse-lite@1.0.30001793: {}
 
-  caseless@0.12.0: {}
+  caseless@0.12.0:
+    optional: true
 
   chai@6.2.2: {}
 
@@ -13594,7 +13593,7 @@ snapshots:
 
   chrome-launcher@0.15.2:
     dependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -13603,7 +13602,7 @@ snapshots:
 
   chromium-edge-launcher@0.3.0:
     dependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -13725,6 +13724,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
       typedarray: 0.0.6
+    optional: true
 
   connect@3.7.0:
     dependencies:
@@ -14053,7 +14053,8 @@ snapshots:
 
   entities@6.0.1: {}
 
-  env-paths@2.2.1: {}
+  env-paths@2.2.1:
+    optional: true
 
   error-ex@1.3.4:
     dependencies:
@@ -14237,6 +14238,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  expo-document-picker@56.0.4(expo@56.0.9):
+    dependencies:
+      expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.14)(expo-router@56.2.9)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+
   expo-file-system@56.0.7(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)):
     dependencies:
       expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.14)(expo-router@56.2.9)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
@@ -14258,6 +14263,15 @@ snapshots:
   expo-haptics@56.0.3(expo@56.0.9):
     dependencies:
       expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.14)(expo-router@56.2.9)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+
+  expo-image-loader@56.0.3(expo@56.0.9):
+    dependencies:
+      expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.14)(expo-router@56.2.9)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+
+  expo-image-picker@56.0.16(expo@56.0.9):
+    dependencies:
+      expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(@expo/metro-runtime@56.0.14)(expo-router@56.2.9)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.7)(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      expo-image-loader: 56.0.3(expo@56.0.9)
 
   expo-keep-awake@56.0.3(expo@56.0.9)(react@19.2.3):
     dependencies:
@@ -14567,6 +14581,7 @@ snapshots:
       progress: 2.0.3
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   figlet@1.11.0:
     dependencies:
@@ -14858,6 +14873,7 @@ snapshots:
   http-response-object@3.0.2:
     dependencies:
       '@types/node': 10.17.60
+    optional: true
 
   https-browserify@1.0.0: {}
 
@@ -15355,7 +15371,7 @@ snapshots:
   jest-mock@30.4.1:
     dependencies:
       '@jest/types': 30.4.1
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       jest-util: 30.4.1
 
   jest-pnp-resolver@1.2.3(jest-resolve@29.7.0):
@@ -15475,7 +15491,7 @@ snapshots:
   jest-util@30.4.1:
     dependencies:
       '@jest/types': 30.4.1
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
@@ -16369,7 +16385,8 @@ snapshots:
       pbkdf2: 3.1.6
       safe-buffer: 5.2.1
 
-  parse-cache-control@1.0.1: {}
+  parse-cache-control@1.0.1:
+    optional: true
 
   parse-json@5.2.0:
     dependencies:
@@ -17804,7 +17821,8 @@ snapshots:
       es-errors: 1.3.0
       is-typed-array: 1.1.15
 
-  typedarray@0.0.6: {}
+  typedarray@0.0.6:
+    optional: true
 
   typescript@6.0.3: {}
 

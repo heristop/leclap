@@ -3,9 +3,9 @@ import type { Template } from '@/src/types';
 import type { CompileRecordedVideos } from '@/src/services/api';
 
 // Storage keys
-const TEMPLATES_CACHE_KEY = 'ffmpeg_video_composer_templates_cache';
-const TEMPLATES_METADATA_KEY = 'ffmpeg_video_composer_templates_metadata';
-const COMPILATION_QUEUE_KEY = 'ffmpeg_video_composer_compilation_queue';
+const TEMPLATES_CACHE_KEY = 'le_clap_templates_cache';
+const TEMPLATES_METADATA_KEY = 'le_clap_templates_metadata';
+const COMPILATION_QUEUE_KEY = 'le_clap_compilation_queue';
 
 export interface TemplatesCacheMetadata {
   lastUpdated: string;

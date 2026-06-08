@@ -80,7 +80,7 @@ vi.mock('@ffmpeg/util', () => ({ fetchFile: vi.fn() }));
 
 // --- Mock Terminal so the interactive paths stay silent --------------------
 // The source imports Terminal via a relative path that resolves to the same
-// module as '@/utils/terminal' (packages/core/src/utils/terminal); register
+// module as '@/utils/terminal' (packages/ffmpeg-video-composer/src/utils/terminal); register
 // both specifiers to be safe.
 vi.mock('@/utils/terminal', () => ({ Terminal: h.terminal }));
 vi.mock('../src/utils/terminal', () => ({ Terminal: h.terminal }));

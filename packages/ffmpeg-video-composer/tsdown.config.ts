@@ -5,9 +5,10 @@ export default defineConfig([
   // Node.js build
   {
     entry: ['src/index.ts'],
-    format: ['esm'],
-    // tsdown >=0.20 emits .mjs by default; keep .js so package entry points resolve.
-    outExtensions: () => ({ js: '.js' }),
+    format: ['esm', 'cjs'],
+    // tsdown >=0.20 emits .mjs/.cjs by default when both formats are present; keep the
+    // ESM entry as index.js so the package's module/exports fields resolve.
+    outExtensions: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.js' }),
     dts: true,
     sourcemap: true,
     clean: true,

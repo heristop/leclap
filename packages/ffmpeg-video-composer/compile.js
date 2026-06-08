@@ -8,7 +8,12 @@ import { compile, loadConfig, Terminal } from './dist/index.js';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
+
+// Resolve bundled assets relative to this script so it works whether invoked from the
+// repo root (`pnpm compile`) or from within the package.
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 
 const configFilePath = process.argv[2];
 
@@ -42,7 +47,7 @@ function ensureMiseFFmpeg() {
 function buildProjectConfig() {
   const cwd = process.cwd();
   const buildDir = path.resolve(cwd, 'build');
-  const assetsDir = path.resolve(cwd, 'packages/core/src/shared/assets');
+  const assetsDir = path.resolve(scriptDir, 'src/shared/assets');
 
   return {
     buildDir,

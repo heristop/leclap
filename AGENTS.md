@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in the **ffmpeg-video-composer** monorepo. This is the canonical, tool-agnostic agent guide. Read it first.
+Guidance for AI agents working in the **le-clap** monorepo. This is the canonical, tool-agnostic agent guide. Read it first.
 
 ## Project overview
 
@@ -15,12 +15,12 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 
 pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx.
 
-| Path                | What it is                                                                                                          |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `packages/core`     | `@ffmpeg-video-composer/core` — cross-platform composition library (CLI + programmatic API). The heart of the repo. |
-| `packages/server`   | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes core.                                    |
-| `apps/le-clap-expo` | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.                   |
-| `apps/le-clap-web`  | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                                         |
+| Path                             | What it is                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` — cross-platform composition library (CLI + programmatic API). The heart of the repo. |
+| `packages/server`                | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes core.                              |
+| `apps/le-clap-expo`              | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.             |
+| `apps/le-clap-web`               | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                                   |
 
 ## Setup
 
@@ -46,20 +46,20 @@ Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there i
 
 ## Architecture & patterns
 
-- **Platform abstraction** — `PlatformBridge` (`packages/core/src/platform/PlatformBridge.ts`) detects the runtime and wires the right adapters. Each capability has an `Abstract*` base and per-platform `*Adapter`s: FFmpeg, filesystem, logging, music, events.
+- **Platform abstraction** — `PlatformBridge` (`packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts`) detects the runtime and wires the right adapters. Each capability has an `Abstract*` base and per-platform `*Adapter`s: FFmpeg, filesystem, logging, music, events.
 - **Compilation flow** — `TemplateDirector` orchestrates: init → build sections → concat → apply music. Sections are created by `SegmentFactory` and rendered by `*Segment` classes; FFmpeg commands are assembled by the editor **managers** (asset/variable/map/filter/formatter).
-- **Dependency injection** — tsyringe. Classes use `@injectable()` / `@singleton()`; dependencies are resolved from `container`. Wiring happens in the entry points `packages/core/src/index.ts` (Node) and `packages/core/src/browser.ts` (browser/WASM).
-- **Validation** — templates are validated with zod schemas in `packages/core/src/schemas/template.schemas.ts` via `services/TemplateValidator.ts`.
+- **Dependency injection** — tsyringe. Classes use `@injectable()` / `@singleton()`; dependencies are resolved from `container`. Wiring happens in the entry points `packages/ffmpeg-video-composer/src/index.ts` (Node) and `packages/ffmpeg-video-composer/src/browser.ts` (browser/WASM).
+- **Validation** — templates are validated with zod schemas in `packages/ffmpeg-video-composer/src/schemas/template.schemas.ts` via `services/TemplateValidator.ts`.
 
 ## Conventions
 
 - **Naming** — PascalCase for classes and their files (`VideoEditor.ts`); `Abstract*` for base classes; `*Adapter` for platform implementations. camelCase for non-class files (`default.config.ts`).
 - **Format** (enforced by `vp`): semicolons, single quotes, `printWidth: 120`, `tabWidth: 2`, `trailingComma: es5`.
-- **Path alias** — `@/*` → `packages/core/src/*`.
+- **Path alias** — `@/*` → `packages/ffmpeg-video-composer/src/*`.
 - **Decorators** — DI/decorators require `reflect-metadata` to be imported once at the entry point.
 - **React Compiler is enabled** in both apps (`apps/le-clap-web` via `@vitejs/plugin-react`'s Babel pass; `apps/le-clap-expo` via `app.json` → `experiments.reactCompiler`). Don't add `useMemo`/`useCallback`/`React.memo` — the compiler memoizes automatically.
-- **Tests** — core's unit + integration suite lives in `packages/core/tests/` (run by the root `pnpm test` / vitest); the Expo app keeps its own jest tests under `apps/le-clap-expo`.
-- Prefer reusing existing managers/adapters/factories over adding new abstractions; follow the patterns already in `packages/core`.
+- **Tests** — core's unit + integration suite lives in `packages/ffmpeg-video-composer/tests/` (run by the root `pnpm test` / vitest); the Expo app keeps its own jest tests under `apps/le-clap-expo`.
+- Prefer reusing existing managers/adapters/factories over adding new abstractions; follow the patterns already in `packages/ffmpeg-video-composer`.
 
 ### Design system & styling (web — `apps/le-clap-web`)
 
@@ -78,7 +78,7 @@ Git hooks run via vite-plus staged checks (`vp fmt` on `*.{ts,tsx,js,cjs,mjs,jso
 Repo-specific skills live in [`.agents/skills/`](./.agents/skills/). Load the matching one when its trigger applies:
 
 - **authoring-video-templates** — creating/editing template JSON, sections, filters, maps, variables, or fixing validation errors.
-- **core-architecture-patterns** — adding a segment type, platform adapter, or core service in `packages/core`.
+- **core-architecture-patterns** — adding a segment type, platform adapter, or core service in `packages/ffmpeg-video-composer`.
 - **monorepo-dev-workflow** — building, testing, linting, formatting, or running any app/package.
 - **cross-platform-ffmpeg** — working across Node/Static/WASM FFmpeg, the PlatformBridge, or browser/RN constraints.
 

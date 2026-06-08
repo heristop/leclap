@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import { compileVideo, type CompileRecordedVideos } from '@/src/services/api';
+import { type CompileRecordedVideos } from '@/src/services/api';
+import { compileHybrid } from '@/src/services/compile/compileHybrid';
 import type { TemplateDescriptor } from '@/src/types';
 
 export const useVideoCompilation = () => {
@@ -10,6 +11,6 @@ export const useVideoCompilation = () => {
     }: {
       templateDescriptor: TemplateDescriptor;
       recordedVideos: CompileRecordedVideos;
-    }) => compileVideo(templateDescriptor, recordedVideos),
+    }) => compileHybrid(templateDescriptor, recordedVideos),
   });
 };

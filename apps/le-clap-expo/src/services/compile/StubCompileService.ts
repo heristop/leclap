@@ -33,7 +33,7 @@ const toFileUri = (path: string): string => (path.startsWith('file://') ? path :
 
 export class StubCompileService implements CompileService {
   /** Per-stage delay; tests pass 0 to run instantly. */
-  constructor(private readonly delayMs: number = 250) {}
+  constructor(private readonly delayMs = 250) {}
 
   async compile(input: CompileInput, options: CompileOptions = {}): Promise<CompileResult> {
     const { onProgress, signal } = options;

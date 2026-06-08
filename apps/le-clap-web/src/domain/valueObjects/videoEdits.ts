@@ -24,7 +24,7 @@ export interface VideoEdit {
 }
 
 /** A crop is meaningful only when it actually shrinks the frame. */
-export const isCropApplied = (crop: VideoCrop | undefined): boolean =>
+export const isCropApplied = (crop?: VideoCrop): boolean =>
   Boolean(crop && (crop.x > 0.001 || crop.y > 0.001 || crop.w < 0.999 || crop.h < 0.999));
 
 /** A trim is meaningful only when it removes something from the start or end. */
@@ -32,7 +32,7 @@ export const isTrimApplied = (trim: VideoTrim | undefined, duration: number): bo
   Boolean(trim && (trim.start > 0.05 || (duration > 0 && trim.end < duration - 0.05)));
 
 /** Whether an edit will change the clip at all (so we can skip the ffmpeg pass otherwise). */
-export const isEditApplied = (edit: VideoEdit | undefined, duration = 0): boolean =>
+export const isEditApplied = (edit?: VideoEdit, duration = 0): boolean =>
   Boolean(edit && (isCropApplied(edit.crop) || isTrimApplied(edit.trim, duration)));
 
 // A single ffmpeg.wasm instance for the edit pass, loaded lazily and reused.

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // --- Mock ffmpeg.wasm so applyVideoEdits runs without loading a real core ---
-const loadMock = vi.fn(async () => undefined);
-const writeFileMock = vi.fn(async () => undefined);
-const execMock = vi.fn(async (_args: string[]) => undefined);
+const loadMock = vi.fn(async () => {});
+const writeFileMock = vi.fn(async () => {});
+const execMock = vi.fn(async (_args: string[]) => {});
 const readFileMock = vi.fn(async () => new Uint8Array([0, 1, 2, 3]));
-const deleteFileMock = vi.fn(async () => undefined);
+const deleteFileMock = vi.fn(async () => {});
 
 vi.mock('@ffmpeg/ffmpeg', () => ({
   FFmpeg: class {
@@ -38,7 +38,7 @@ beforeEach(() => {
 
 describe('isCropApplied', () => {
   it('is false for undefined and the full frame', () => {
-    expect(isCropApplied(undefined)).toBe(false);
+    expect(isCropApplied()).toBe(false);
     expect(isCropApplied({ x: 0, y: 0, w: 1, h: 1 })).toBe(false);
   });
 
@@ -68,7 +68,7 @@ describe('isTrimApplied', () => {
 
 describe('isEditApplied', () => {
   it('is false for undefined / no-op edits', () => {
-    expect(isEditApplied(undefined)).toBe(false);
+    expect(isEditApplied()).toBe(false);
     expect(isEditApplied({ crop: { x: 0, y: 0, w: 1, h: 1 } })).toBe(false);
     expect(isEditApplied({ trim: { start: 0, end: 10 } }, 10)).toBe(false);
   });

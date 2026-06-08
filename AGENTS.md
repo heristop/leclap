@@ -27,7 +27,7 @@ The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (r
 
 ## Setup
 
-- **pnpm 11.5.2** (pinned via `packageManager`) and **Node ≥ 22.14.0** (`engine-strict=true` — wrong versions are rejected).
+- **pnpm 11.5.2** (pinned via `packageManager`) and **Node ≥ 24** (pinned to 24 via `mise.toml`; `engine-strict=true` rejects wrong versions).
 - Install: `pnpm install` at the repo root.
 - FFmpeg is resolved at runtime — system → `ffmpeg-static` → `@ffmpeg/ffmpeg` (WASM). Installing system FFmpeg (e.g. via `mise`) is recommended for Node work. See `docs/ffmpeg-fallback-strategy.md`.
 

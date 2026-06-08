@@ -1,5 +1,5 @@
 {
-  "name": "@ffmpeg-video-composer/server",
+  "name": "@le-clap/server",
   "version": "0.0.1",
   "description": "HTTP server for video compilation",
   "author": "heristop",

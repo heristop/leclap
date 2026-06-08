@@ -1,159 +1,84 @@
-# LeClap
+<div align="center">
 
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.x-brightgreen.svg)](https://nodejs.org/en/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# 🎬 LeClap
 
-**LeClap** is a monorepo for template-driven video composition. A JSON template describes a video — sections, filters, music, overlays — and the engine compiles it into a finished video with FFmpeg. The same engine runs on **Node.js**, in the **browser** (WebAssembly), and in **React Native**.
+**Template-driven video composition, powered by FFmpeg.**
 
-At its heart is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm and usable on its own), wrapped by an HTTP server and demonstrated by web and mobile apps.
+Describe a video in JSON — sections, filters, music, overlays — and compile it on **Node.js**, in the **browser** (WebAssembly), or in **React Native**.
+
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
+[![pnpm](https://img.shields.io/badge/pnpm-11-f69220.svg)](https://pnpm.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[Demo](#-demo) · [Quick start](#-quick-start) · [Templates](docs/template-configuration.md) · [Library](#-using-the-library) · [Docs](#-documentation)
+
+</div>
+
+---
+
+## ✨ What is LeClap?
+
+LeClap is a **monorepo** for programmatic video creation. A JSON _template_ describes a video's structure — sections, filters, music, text overlays — and the engine renders it into a finished video with FFmpeg. The same engine runs server-side, fully client-side via WebAssembly, and on mobile.
+
+At its core is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm, usable standalone). Around it sit an HTTP server and web + mobile apps that demonstrate it end to end.
+
+|                            |                                                                                     |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| 🧩 **Template-driven**     | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.             |
+| 🌍 **Runs everywhere**     | Node.js, browser (WASM), React Native, Electron — one codebase.                     |
+| 🔍 **Zero-config FFmpeg**  | Auto-detects system → static → WASM, with clear guidance when missing.              |
+| 🎚️ **Composable pipeline** | Per-section `inputs → maps → filters` for real compositing, text, and audio mixing. |
+| 🧱 **Typed & validated**   | Zod-validated templates, strict TypeScript, dependency-injected architecture.       |
 
 ## 🎥 Demo
 
-Check out the video sample to see `ffmpeg-video-composer` in action (unmute for sound):
+See `ffmpeg-video-composer` in action (unmute for sound):
 
 https://github.com/heristop/assets/6bcd0578-7dee-4630-aa6b-c730cf5cec17
 
-[View the template descriptor](https://github.com/heristop/ffmpeg-video-composer/blob/main/packages/ffmpeg-video-composer/src/shared/templates/sample.json)
+<img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap mobile app" width="280" align="right" />
 
-## 📦 Monorepo Structure
+## 🚀 Quick start
 
-pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a private orchestrator (`le-clap`); only `ffmpeg-video-composer` is published.
-
-| Package                 | Path                             | Description                                                                         |
-| ----------------------- | -------------------------------- | ----------------------------------------------------------------------------------- |
-| `le-clap` _(private)_   | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only.  |
-| `ffmpeg-video-composer` | `packages/ffmpeg-video-composer` | **The library** — cross-platform composition engine + CLI. Node, browser, and WASM. |
-| `@le-clap/server`       | `packages/server`                | Fastify HTTP server exposing `/compile`, `/templates`, `/health`.                   |
-| `@le-clap/web`          | `apps/le-clap-web`               | React 19 + Vite + Tailwind web app — runs FFmpeg entirely in-browser via WASM.      |
-| `@le-clap/expo`         | `apps/le-clap-expo`              | Expo / React Native app — Tamagui UI, offline-first (Zustand + AsyncStorage).       |
-
-The server and web app depend on `ffmpeg-video-composer` as a workspace package; the mobile app talks to the server.
-
-## 🚀 Features
-
-- ✅ **Cross-platform FFmpeg support** (Node.js, Browser, React Native ready)
-- ✅ **Automatic FFmpeg detection** with ordered fallbacks
-- ✅ **Optional static FFmpeg bundling** for zero-configuration setup
-- ✅ **Browser support via WebAssembly** (no server required)
-- ✅ Dynamic video and audio template generation
-- ✅ Easy video compilation and audio mixing using FFmpeg
-- ✅ Flexible JSON-based template descriptor system
-- ✅ CLI for quick video creation
-- ✅ JSON configuration for complex project setups
-- ✅ Custom project configurations support
-- ✅ Audio overlay and mixing capabilities
-- ✅ Automated video editing and composition
-
-## 🌍 Platform Support
-
-The `ffmpeg-video-composer` library provides **FFmpeg support** across multiple platforms with automatic fallbacks.
-
-### **Automatic FFmpeg Detection**
-
-The library automatically detects and uses the best available FFmpeg implementation:
-
-1. **🖥️ System FFmpeg** (best performance) - Uses your installed FFmpeg binary
-2. **📦 Static FFmpeg** (fallback) - Uses bundled FFmpeg binary via `ffmpeg-static`
-3. **🌐 WebAssembly FFmpeg** (browser) - Uses FFmpeg compiled to WebAssembly
-4. **❌ No FFmpeg** - Provides clear installation instructions
-
-### **Supported Environments**
-
-- ✅ **Node.js** - Full FFmpeg support with system or static binaries
-- ✅ **Browsers** - WebAssembly-based video processing (2GB file limit)
-- ✅ **React Native** - Architecture ready (requires `ffmpeg-kit-react-native`)
-- ✅ **Electron** - Works with both Node.js and browser implementations
-
-## 📥 Using the Library
-
-Install `ffmpeg-video-composer` in your own project:
-
-### **Basic Installation (Recommended)**
+**Requirements:** [pnpm](https://pnpm.io/) 11, Node ≥ 24, and FFmpeg (with the `drawtext` filter). [mise](https://mise.jdx.dev) handles the toolchain for you.
 
 ```bash
-pnpm install ffmpeg-video-composer
+git clone https://github.com/heristop/ffmpeg-video-composer.git
+cd ffmpeg-video-composer
+mise install     # pinned Node 24 + a drawtext-capable FFmpeg
+pnpm install     # wires up every workspace package
 ```
 
-The package will automatically detect and use available FFmpeg implementations.
-
-### **With Static FFmpeg (Zero Configuration)**
-
-For environments without system FFmpeg or as a reliable fallback:
+Then pick your playground:
 
 ```bash
-pnpm install ffmpeg-video-composer ffmpeg-static
+pnpm playground:web      # web app — compiles videos in-browser (no server)
+pnpm playground:start    # Expo mobile app (start the server too: pnpm server:dev)
+pnpm compile packages/ffmpeg-video-composer/src/shared/templates/sample.json   # CLI → build/sample_output.mp4
 ```
 
-### **For Browser Use**
+<br clear="right" />
 
-To enable client-side video processing in browsers:
+> Don't have mise? See [mise install](https://mise.jdx.dev/getting-started.html). Once activated, FFmpeg lands on your `PATH` automatically when you `cd` in; otherwise prefix commands with `mise exec --` (e.g. `mise exec -- pnpm test`). `engine-strict` rejects unsupported Node versions.
 
-```bash
-pnpm install ffmpeg-video-composer @ffmpeg/ffmpeg @ffmpeg/util
-```
+## 📦 Monorepo structure
 
-### **System FFmpeg via mise (Recommended)**
+pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a private orchestrator (`le-clap`); only `ffmpeg-video-composer` is published to npm.
 
-The recommended way to install FFmpeg for this project is [mise](https://mise.jdx.dev), which installs a pinned, full-featured build (with the `drawtext` filter and `ffprobe`) defined in [`mise.toml`](mise.toml):
+| Package                 | Path                             | Description                                                                        |
+| ----------------------- | -------------------------------- | ---------------------------------------------------------------------------------- |
+| `le-clap` _(private)_   | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only. |
+| `ffmpeg-video-composer` | `packages/ffmpeg-video-composer` | **The library** — cross-platform composition engine + CLI (Node, browser, WASM).   |
+| `@le-clap/server`       | `packages/server`                | Fastify HTTP server exposing `/compile`, `/templates`, `/health`.                  |
+| `@le-clap/web`          | `apps/le-clap-web`               | React 19 + Vite + Tailwind web app — runs FFmpeg entirely in-browser via WASM.     |
+| `@le-clap/expo`         | `apps/le-clap-expo`              | Expo / React Native app — Tamagui UI, offline-first (Zustand + AsyncStorage).      |
 
-```bash
-mise install
-```
-
-This works cross-platform (macOS, Linux, Windows) and keeps every contributor and CI on the same FFmpeg version.
-
-> ⚠️ **Homebrew note:** Homebrew split its formula — the regular `brew install ffmpeg` no longer bundles `libfreetype`, so the `drawtext` filter is **missing** and text/intertitle segments fail. Use mise (above), or `brew install ffmpeg-full` if you prefer Homebrew.
-
-#### Other package managers
-
-```bash
-# Linux (Debian/Ubuntu)
-sudo apt update && sudo apt install ffmpeg
-
-# Linux (Fedora)
-sudo dnf install ffmpeg
-```
-
-#### Verify Installation
-
-```bash
-ffmpeg -version
-ffprobe -version
-ffmpeg -hide_banner -filters | grep drawtext   # must list the drawtext filter
-```
-
-### **Node.js Usage**
-
-```javascript
-import { compile, loadConfig } from 'ffmpeg-video-composer';
-
-const projectConfig = {
-  buildDir: './build', // Build directory for output files
-  assetsDir: './assets', // Assets directory for video segments
-  currentLocale: 'en',
-  fields: {
-    form_1_firstname: 'Firstname',
-    form_1_lastname: 'Lastname',
-  },
-};
-
-// Using a template descriptor object
-const result = await compile(projectConfig, {
-  global: {
-    // ... (template global configuration)
-  },
-  sections: [
-    // ... (template sections configurations)
-  ],
-});
-
-// Or using a JSON file
-const template = await loadConfig('./my-template.json');
-const result = await compile(projectConfig, template);
-```
+The server and web app depend on `ffmpeg-video-composer`; the mobile app talks to the server.
 
 ## 🧩 Templates
 
-A **template** is a JSON document that drives the whole composition: a `global` block (defaults, theme colors, music, and the choices a builder exposes to end users) plus an ordered list of `sections`. Each section is a clip — video, image, color background, a form that collects user input, or a music picker — and describes its FFmpeg `inputs` → `maps` → `filters` pipeline. Strings support `{{ variables }}`, `{{ colorN }}`, and `{{ form_field }}` placeholders resolved at compile time.
+A **template** drives the whole composition: a `global` block (defaults, theme colors, music, and the choices a builder exposes to end users) plus an ordered list of `sections`. Each section is a clip — video, image, color background, a form that collects user input, or a music picker — with its own FFmpeg `inputs → maps → filters` pipeline. Strings support `{{ variables }}`, `{{ colorN }}`, and `{{ form_field }}` placeholders resolved at compile time.
 
 ```jsonc
 {
@@ -169,146 +94,76 @@ A **template** is a JSON document that drives the whole composition: a `global` 
 }
 ```
 
-📖 **Full reference:** [Template Configuration (JSON)](docs/template-configuration.md). Browse ready-made examples in [`packages/ffmpeg-video-composer/src/shared/templates/`](packages/ffmpeg-video-composer/src/shared/templates/).
+📖 **Full reference:** [Template Configuration (JSON)](docs/template-configuration.md) · ready-made examples in [`src/shared/templates/`](packages/ffmpeg-video-composer/src/shared/templates/).
 
-## 🛠️ Developing in the Monorepo
+## 📥 Using the library
 
-Clone the repo and install once at the root — pnpm wires every workspace package together:
-
-```bash
-git clone https://github.com/heristop/ffmpeg-video-composer.git
-cd ffmpeg-video-composer
-mise install   # installs the pinned FFmpeg (drawtext + ffprobe enabled)
-pnpm install
-```
-
-> Requires **pnpm 11.5.2** (pinned via `packageManager`) and **Node ≥ 22.14.0** (`engine-strict` rejects wrong versions). If you don't have mise yet, see [mise installation](https://mise.jdx.dev/getting-started.html). Once activated in your shell, the project FFmpeg is automatically placed on your `PATH` when you `cd` into the repo; otherwise prefix commands with `mise exec --`, e.g. `mise exec -- pnpm test`.
-
-Tooling is **vite-plus (`vp`)** — there is no eslint, prettier, or root jest (jest lives only inside the Expo app).
-
-| Task          | Command                                                           |
-| ------------- | ----------------------------------------------------------------- |
-| Build all     | `pnpm build`                                                      |
-| Test          | `pnpm test` · UI: `pnpm test:ui` · coverage: `pnpm test:coverage` |
-| Lint / format | `pnpm lint` · `pnpm fmt` (check: `pnpm fmt:check`)                |
-| All checks    | `pnpm check`                                                      |
-| Web app       | `pnpm playground:web`                                             |
-| Mobile app    | `pnpm playground:start` (also `:ios` / `:android`)                |
-| Server        | `pnpm server:dev`                                                 |
-
-### Command Line Interface
-
-Compile a template from the repo root (output lands in `build/`):
+Install `ffmpeg-video-composer` in your own project — it auto-detects the best FFmpeg implementation available:
 
 ```bash
-pnpm compile packages/ffmpeg-video-composer/src/shared/templates/sample.json
+pnpm install ffmpeg-video-composer                       # system FFmpeg
+pnpm install ffmpeg-video-composer ffmpeg-static         # bundled binary fallback
+pnpm install ffmpeg-video-composer @ffmpeg/ffmpeg @ffmpeg/util   # browser (WASM)
 ```
 
-This generates `sample_output.mp4` in the `build` directory.
+```javascript
+import { compile, loadConfig } from 'ffmpeg-video-composer';
 
-## 🚨 Troubleshooting
+const projectConfig = {
+  buildDir: './build',
+  assetsDir: './assets',
+  currentLocale: 'en',
+  fields: { form_1_firstname: 'Firstname', form_1_lastname: 'Lastname' },
+};
 
-### **"No FFmpeg implementation found"**
-
-1. **Install FFmpeg via mise** (recommended):
-
-   ```bash
-   mise install
-   ```
-
-2. **Or install static FFmpeg**:
-
-   ```bash
-   pnpm install ffmpeg-static
-   ```
-
-3. **For browsers, install WebAssembly FFmpeg**:
-
-   ```bash
-   pnpm install @ffmpeg/ffmpeg @ffmpeg/util
-   ```
-
-### **"No such filter: 'drawtext'"**
-
-Your FFmpeg was built without `libfreetype`, so the text/intertitle/background-color segments fail. This is common with Homebrew's split `ffmpeg` formula.
-
-```bash
-mise install                 # recommended: installs a full build with drawtext
-# or, if you use Homebrew directly:
-brew install ffmpeg-full
+const template = await loadConfig('./my-template.json');
+const result = await compile(projectConfig, template);
 ```
 
-### **Performance Issues**
+### FFmpeg detection order
 
-- **System FFmpeg** → Fastest (recommended for production)
-- **Static FFmpeg** → Good performance, larger bundle size
-- **WebAssembly** → Slower, suitable for demos and client-side apps
+The library picks the best available implementation automatically:
 
-## 🧪 Running Tests
+1. 🖥️ **System FFmpeg** — your installed binary (fastest, recommended for production).
+2. 📦 **Static FFmpeg** — bundled binary via `ffmpeg-static` (zero-config fallback).
+3. 🌐 **WebAssembly** — `@ffmpeg/ffmpeg` in the browser (2 GB input limit).
+4. ❌ **None** — a clear message with installation guidance.
 
-The tests render real video segments, so a `drawtext`-capable FFmpeg must be on your `PATH` — run `mise install` first (see [Developing in the Monorepo](#️-developing-in-the-monorepo)):
+Supported environments: **Node.js**, **browsers** (WASM), **React Native** (needs `ffmpeg-kit-react-native`), and **Electron** (both implementations). See [FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md) for details.
 
-```bash
-pnpm test
-# or, if mise is not activated in your shell:
-mise exec -- pnpm test
-```
+> ⚠️ **`drawtext` filter required.** Text/intertitle/background-color segments need an FFmpeg built with `libfreetype`. `mise install` provides one; Homebrew's split `ffmpeg` does not (use `brew install ffmpeg-full`). Verify with `ffmpeg -hide_banner -filters | grep drawtext`.
 
-## 📱 LeClap Expo App
+## 🛠️ Development
 
-The `@le-clap/expo` client (`apps/le-clap-expo`) provides a mobile interface for the video composer workflow on device or simulator.
+Tooling is **vite-plus (`vp`)** — no eslint, prettier, or root jest (jest lives only inside the Expo app).
 
-<img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap App" width="300" />
+| Task           | Command                                                           |
+| -------------- | ----------------------------------------------------------------- |
+| Build all      | `pnpm build`                                                      |
+| Test           | `pnpm test` · UI: `pnpm test:ui` · coverage: `pnpm test:coverage` |
+| Lint / format  | `pnpm lint` · `pnpm fmt` (check: `pnpm fmt:check`)                |
+| All checks     | `pnpm check`                                                      |
+| Web app        | `pnpm playground:web`                                             |
+| Mobile app     | `pnpm playground:start` (also `:ios` / `:android`)                |
+| Server         | `pnpm server:dev`                                                 |
+| Diagnose setup | `pnpm diagnose`                                                   |
 
-### Starting the Server
+> Tests render real video segments, so a `drawtext`-capable FFmpeg must be on your `PATH` (`mise install` first). Run `mise exec -- pnpm test` if mise isn't activated in your shell.
 
-Before using the mobile app, start the server it talks to:
+## 📱 Apps
 
-```bash
-pnpm server:dev
-```
-
-This builds and starts `@le-clap/server`, which the mobile client communicates with.
-
-### Running the App
-
-```bash
-pnpm playground:start          # start the Expo dev server
-pnpm playground:android        # run on Android
-pnpm playground:ios            # run on iOS
-```
-
-## 🌐 LeClap Web App
-
-The `@le-clap/web` client (`apps/le-clap-web`) — React 19 + Vite + Tailwind — runs FFmpeg **entirely in the browser** via WebAssembly, with no server required (2 GB input limit).
-
-```bash
-pnpm playground:web
-```
-
-This starts the Vite dev server; open the printed URL to compose videos client-side.
+- **Web** ([`@le-clap/web`](apps/le-clap-web)) — React 19 + Vite + Tailwind; runs FFmpeg **entirely in the browser** via WebAssembly, no server required (2 GB input limit). Start with `pnpm playground:web`.
+- **Mobile** ([`@le-clap/expo`](apps/le-clap-expo)) — Expo / React Native client. Start the server first (`pnpm server:dev`), then `pnpm playground:start` (or `:ios` / `:android`).
 
 ## 📚 Documentation
 
-- **[🧩 Template Configuration](docs/template-configuration.md)** - The template JSON reference: global config, sections, the FFmpeg pipeline, and placeholders
-- **[🏗 Architecture](docs/architecture.md)** - Detailed system architecture and design patterns
-- **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** - How automatic FFmpeg detection works
-- **[🤖 AGENTS.md](AGENTS.md)** - Repo layout, commands, and conventions for contributors and AI agents
+- **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference: global config, sections, the FFmpeg pipeline, and placeholders.
+- **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
+- **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** — how automatic FFmpeg detection works.
+- **[🤖 AGENTS.md](AGENTS.md)** — repo layout, commands, and conventions for contributors and AI agents.
 
-## 🔍 Diagnostics & Troubleshooting
+## 🤝 Contributing & License
 
-Run system diagnostics to check your setup:
+Issues and PRs welcome — open an issue on GitHub for questions or feedback. Keep changes formatted (`pnpm fmt`) and lint-clean (`pnpm lint`) before committing.
 
-```bash
-pnpm diagnose
-```
-
-This analyzes your system and provides personalized recommendations for optimal performance. The library automatically detects and uses the best available FFmpeg implementation, so manual configuration is rarely needed.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📬 Contact
-
-If you have any questions or feedback, please open an issue on GitHub.
+Licensed under the [MIT License](LICENSE).

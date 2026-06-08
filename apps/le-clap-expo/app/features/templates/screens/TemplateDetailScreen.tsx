@@ -4,13 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/app/features/editor/components/FormSection';
-import type { Template, Section, Project } from '@/src/types';
+import type { Template, Section, Project, MediaChoice, MediaChoices } from '@/src/types';
 import { colors } from '@/src/styles/theme';
 import { styles } from './TemplateDetailScreen.styles';
 import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
+import { UserMediaPicker } from '@/app/features/templates/components/UserMediaPicker';
+import { needsMediaStep } from '@/src/services/media/mediaStepHelpers';
 
 const EDITABLE_TYPES = ['project_video', 'form', 'music', 'picture'] as const;
 const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -25,8 +27,9 @@ function getSectionIcon(s: Section): keyof typeof Ionicons.glyphMap {
 }
 
 function isSectionCompleted(section: Section, project: Project): boolean {
-  if (section.type === 'project_video' || section.type === 'picture')
-    {return Boolean(project.recordedVideos[section.name]);}
+  if (section.type === 'project_video' || section.type === 'picture') {
+    return Boolean(project.recordedVideos[section.name]);
+  }
 
   if (section.type === 'form') return (section.options?.fields ?? []).every((f) => Boolean(project.formData[f.name]));
 
@@ -275,6 +278,7 @@ type CompileCtx = {
   project: Project | null;
   template: Template | undefined;
   isOffline: boolean;
+  mediaChoices: MediaChoices;
   setProject: (p: Project) => void;
   saveProjectMutation: ReturnType<typeof useSaveProject>;
   queueVideoCompilation: ReturnType<typeof useQueueVideoCompilation>;
@@ -282,7 +286,8 @@ type CompileCtx = {
 };
 
 function useCompileHandler(ctx: CompileCtx) {
-  const { project, template, isOffline, setProject, saveProjectMutation, queueVideoCompilation, router } = ctx;
+  const { project, template, isOffline, mediaChoices, setProject, saveProjectMutation, queueVideoCompilation, router } =
+    ctx;
 
   return () => {
     if (!project || !template) return;
@@ -291,6 +296,7 @@ function useCompileHandler(ctx: CompileCtx) {
         projectId: project.id,
         templateDescriptor: compileTemplate(template.content, project.formData),
         recordedVideos: project.recordedVideos,
+        mediaChoices,
       },
       {
         onSuccess: (result) => {
@@ -342,6 +348,116 @@ function useCompileHandler(ctx: CompileCtx) {
   };
 }
 
+type ProjectInitArgs = {
+  template: Template | undefined;
+  existingProject: Project | null | undefined;
+  projectLoading: boolean;
+  projectId: string | undefined;
+  saveProjectMutation: ReturnType<typeof useSaveProject>;
+  setProject: (p: Project) => void;
+};
+
+function buildDraftProject(template: Template): Project {
+  return {
+    id: Date.now().toString(),
+    name: `${template.name.replace('.json', '')} Project`,
+    templateName: template.name,
+    templateContent: template.content,
+    status: 'draft',
+    formData: {},
+    recordedVideos: {},
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function useProjectInitialization(args: ProjectInitArgs) {
+  const { template, existingProject, projectLoading, projectId, saveProjectMutation, setProject } = args;
+  // react-query recreates the mutation object every render and the setProject wrapper is a fresh
+  // closure each render, so keep both in refs instead of effect dependencies. Initialize the
+  // project exactly once: without the guard, the new-project branch built a fresh object (new
+  // Date.now() id) and called setProject every render, causing an infinite update-depth loop and
+  // spamming saveProjectMutation.mutate.
+  const saveProjectMutationRef = useRef(saveProjectMutation);
+  saveProjectMutationRef.current = saveProjectMutation;
+  const setProjectRef = useRef(setProject);
+  setProjectRef.current = setProject;
+  const projectInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!template || (projectId !== undefined && projectLoading)) return;
+
+    if (projectInitializedRef.current) return;
+
+    if (existingProject) {
+      projectInitializedRef.current = true;
+      setProjectRef.current(existingProject);
+
+      return;
+    }
+
+    if (!projectId) {
+      projectInitializedRef.current = true;
+      const p = buildDraftProject(template);
+      setProjectRef.current(p);
+      saveProjectMutationRef.current.mutate(p);
+    }
+  }, [template, existingProject, projectLoading, projectId]);
+}
+
+function computeAllDone(
+  project: Project | null,
+  filteredSections: Section[],
+  hasMediaStep: boolean,
+  mediaStepDone: boolean
+): boolean {
+  if (project === null || filteredSections.length === 0) return false;
+
+  if (!filteredSections.every((s) => isSectionCompleted(s, project))) return false;
+
+  return !hasMediaStep || mediaStepDone;
+}
+
+/** Owns the user's media-step state (music/background choices + picker visibility). */
+function useMediaState() {
+  const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
+  const [musicChoice, setMusicChoice] = useState<MediaChoice | null>(null);
+  const [backgroundChoice, setBackgroundChoice] = useState<MediaChoice | null>(null);
+  const mediaChoices: MediaChoices = {
+    music: musicChoice ?? undefined,
+    background: backgroundChoice ?? undefined,
+  };
+  // Media step is "done" once any choice is made (music or background). If neither is
+  // required the row never appears, so we don't gate compile on it.
+  const mediaStepDone = Boolean(musicChoice ?? backgroundChoice);
+
+  return {
+    mediaPickerVisible,
+    setMediaPickerVisible,
+    musicChoice,
+    setMusicChoice,
+    backgroundChoice,
+    setBackgroundChoice,
+    mediaChoices,
+    mediaStepDone,
+  };
+}
+
+function computeProgress(
+  filteredSections: Section[],
+  completedSectionsCount: number,
+  hasMediaStep: boolean,
+  mediaStepDone: boolean
+): { totalItems: number; totalDone: number } {
+  const mediaItem = hasMediaStep ? 1 : 0;
+  const mediaDone = hasMediaStep && mediaStepDone ? 1 : 0;
+
+  return {
+    totalItems: filteredSections.length + mediaItem,
+    totalDone: completedSectionsCount + mediaDone,
+  };
+}
+
 function useTemplateDetail(templateName: string, projectId: string | undefined) {
   const router = useRouter();
   const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
@@ -352,47 +468,30 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
   const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
-  // react-query recreates the mutation object every render, so keep it in a ref instead of
-  // a dependency. Initialize the project exactly once: without the guard, the new-project
-  // branch built a fresh object (new Date.now() id) and called setProject every render,
-  // causing an infinite update-depth loop and spamming saveProjectMutation.mutate.
-  const saveProjectMutationRef = useRef(saveProjectMutation);
-  saveProjectMutationRef.current = saveProjectMutation;
-  const projectInitializedRef = useRef(false);
-
-  useEffect(() => {
-    if (!template || (projectId !== undefined && projectLoading)) return;
-
-    if (projectInitializedRef.current) return;
-
-    if (existingProject) {
-      projectInitializedRef.current = true;
-      setProject(existingProject);
-
-      return;
-    }
-
-    if (!projectId) {
-      projectInitializedRef.current = true;
-      const p: Project = {
-        id: Date.now().toString(),
-        name: `${template.name.replace('.json', '')} Project`,
-        templateName: template.name,
-        templateContent: template.content,
-        status: 'draft',
-        formData: {},
-        recordedVideos: {},
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setProject(p);
-      saveProjectMutationRef.current.mutate(p);
-    }
-  }, [template, existingProject, projectLoading, projectId]);
-  const { filtered: filteredSections, completed: completedSectionsCount } = getSectionInfo(template, project);
+  const {
+    mediaPickerVisible,
+    setMediaPickerVisible,
+    musicChoice,
+    setMusicChoice,
+    backgroundChoice,
+    setBackgroundChoice,
+    mediaChoices,
+    mediaStepDone,
+  } = useMediaState();
   const setProjectSafe = (p: Project) => {
     setProject(p);
   };
+
+  useProjectInitialization({
+    template,
+    existingProject,
+    projectLoading,
+    projectId,
+    saveProjectMutation,
+    setProject: setProjectSafe,
+  });
+  const { filtered: filteredSections, completed: completedSectionsCount } = getSectionInfo(template, project);
+  const hasMediaStep = needsMediaStep(template?.content.global);
   const hCtx: HandlerCtx = {
     project,
     template,
@@ -410,13 +509,13 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     project,
     template,
     isOffline,
+    mediaChoices,
     setProject: setProjectSafe,
     saveProjectMutation,
     queueVideoCompilation,
     router,
   });
-  const allDone =
-    project !== null && filteredSections.length > 0 && filteredSections.every((s) => isSectionCompleted(s, project));
+  const allDone = computeAllDone(project, filteredSections, hasMediaStep, mediaStepDone);
 
   return {
     template,
@@ -434,6 +533,14 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     setActiveFormSection,
     activeMusicSection,
     setActiveMusicSection,
+    hasMediaStep,
+    mediaPickerVisible,
+    setMediaPickerVisible,
+    musicChoice,
+    backgroundChoice,
+    setMusicChoice,
+    setBackgroundChoice,
+    mediaStepDone,
     isPending: queueVideoCompilation.isPending,
     isOffline,
     handleFormDataChange,
@@ -445,6 +552,65 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     router,
   };
 }
+
+const LoadingState = () => (
+  <View style={styles.centerContainer}>
+    <ActivityIndicator size="large" color={colors.primary} />
+    <Text style={styles.loadingText}>Loading template...</Text>
+  </View>
+);
+
+type ErrorStateProps = { error: unknown; onBack: () => void };
+const ErrorState = ({ error, onBack }: ErrorStateProps) => (
+  <View style={styles.centerContainer}>
+    <Text style={styles.errorText}>{error instanceof Error ? error.message : 'Template or Project not found'}</Text>
+    <TouchableOpacity style={styles.backButton} onPress={onBack}>
+      <Text style={styles.backButtonText}>Back to Templates</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+type OrientationRowProps = { orientation: string };
+const OrientationRow = ({ orientation }: OrientationRowProps) => {
+  const isPortrait = orientation === 'portrait';
+  const icon: keyof typeof Ionicons.glyphMap = isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline';
+
+  return (
+    <View style={styles.orientationRow}>
+      <Ionicons name={icon} size={24} color={colors.text} />
+      <Text style={styles.orientationText}>{isPortrait ? 'Portrait' : 'Landscape'} orientation</Text>
+    </View>
+  );
+};
+
+type MediaStepRowProps = { done: boolean; onPress: () => void };
+const MediaStepRow = ({ done, onPress }: MediaStepRowProps) => (
+  <TouchableOpacity
+    style={styles.sectionItem}
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel="Music and background selection"
+  >
+    <View style={styles.sectionItemContent}>
+      <View style={styles.sectionTypeIcon}>
+        <Ionicons name="musical-notes" size={24} color={colors.primary} />
+      </View>
+      <View style={styles.sectionItemText}>
+        <Text style={styles.sectionItemTitle}>Music &amp; Background</Text>
+        <Text style={styles.sectionItemDescription} numberOfLines={1}>
+          {done ? 'Selection saved' : 'Choose soundtrack and backdrop'}
+        </Text>
+      </View>
+      <View style={styles.sectionItemStatus}>
+        {done ? (
+          <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+        ) : (
+          <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
+        )}
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
 const TemplateDetailScreen = () => {
   const params = useLocalSearchParams<{ id: string; projectId?: string }>();
@@ -462,6 +628,14 @@ const TemplateDetailScreen = () => {
     setActiveFormSection,
     activeMusicSection,
     setActiveMusicSection,
+    hasMediaStep,
+    mediaPickerVisible,
+    setMediaPickerVisible,
+    musicChoice,
+    backgroundChoice,
+    setMusicChoice,
+    setBackgroundChoice,
+    mediaStepDone,
     isPending,
     isOffline,
     handleFormDataChange,
@@ -474,36 +648,26 @@ const TemplateDetailScreen = () => {
   } = useTemplateDetail(params.id, params.projectId);
 
   if (templateLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading template...</Text>
-      </View>
-    );
+    return <LoadingState />;
   }
 
   if (templateError || !template || !project) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>
-          {templateError instanceof Error ? templateError.message : 'Template or Project not found'}
-        </Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            router.back();
-          }}
-        >
-          <Text style={styles.backButtonText}>Back to Templates</Text>
-        </TouchableOpacity>
-      </View>
+      <ErrorState
+        error={templateError}
+        onBack={() => {
+          router.back();
+        }}
+      />
     );
   }
   const isDisabled = !allDone || isPending;
-  const orientationIcon =
-    orientation === 'portrait'
-      ? 'phone-portrait-outline'
-      : ('phone-landscape-outline' as keyof typeof Ionicons.glyphMap);
+  const { totalItems, totalDone } = computeProgress(
+    filteredSections,
+    completedSectionsCount,
+    hasMediaStep,
+    mediaStepDone
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -523,20 +687,13 @@ const TemplateDetailScreen = () => {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.orientationRow}>
-          <Ionicons name={orientationIcon} size={24} color={colors.text} />
-          <Text style={styles.orientationText}>
-            {orientation === 'portrait' ? 'Portrait' : 'Landscape'} orientation
-          </Text>
-        </View>
+        <OrientationRow orientation={orientation} />
         <Text style={styles.description}>{description}</Text>
         <View style={styles.progressBarContainer}>
-          <View
-            style={[styles.progressBar, { width: `${(completedSectionsCount / filteredSections.length) * 100}%` }]}
-          />
+          <View style={[styles.progressBar, { width: `${(totalDone / totalItems) * 100}%` }]} />
         </View>
         <Text style={styles.progressText}>
-          {completedSectionsCount} of {filteredSections.length} sections completed
+          {totalDone} of {totalItems} sections completed
         </Text>
         <Text style={styles.sectionTitle}>Sections</Text>
         {filteredSections.map((section) => (
@@ -552,6 +709,14 @@ const TemplateDetailScreen = () => {
             }}
           />
         ))}
+        {hasMediaStep && (
+          <MediaStepRow
+            done={mediaStepDone}
+            onPress={() => {
+              setMediaPickerVisible(true);
+            }}
+          />
+        )}
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity
@@ -579,6 +744,22 @@ const TemplateDetailScreen = () => {
         }}
         onUseDefault={handleMusicUseDefault}
       />
+      {hasMediaStep && (
+        <UserMediaPicker
+          visible={mediaPickerVisible}
+          allowedMusic={template.content.global?.allowedMusic}
+          allowUploadMusic={template.content.global?.allowUploadMusic}
+          allowedBackgrounds={template.content.global?.allowedBackgrounds}
+          allowUploadBackground={template.content.global?.allowUploadBackground}
+          musicChoice={musicChoice}
+          backgroundChoice={backgroundChoice}
+          onMusicChange={setMusicChoice}
+          onBackgroundChange={setBackgroundChoice}
+          onClose={() => {
+            setMediaPickerVisible(false);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 };

@@ -14,7 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import FormSection from '../components/FormSection';
 import type { Template, Section, Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { fetchTemplateByName, compileVideo } from '@/src/services/api';
+import { fetchTemplateByName } from '@/src/services/api';
+import { compileHybrid } from '@/src/services/compile/compileHybrid';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useRouter } from 'expo-router';
 
@@ -283,7 +284,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
     if (!currentProject || !template) return;
     setIsCompiling(true);
     const doCompile = async () => {
-      const result = await compileVideo(
+      const result = await compileHybrid(
         applyFormData(template.content, currentProject.formData),
         currentProject.recordedVideos
       );

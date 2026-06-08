@@ -87,8 +87,14 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
       {/* Ambient brand aurora — drifting multi-color blobs for a first-run "wow" backdrop */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] bg-brand-500/20 rounded-full blur-[120px] animate-float" />
-        <div className="absolute top-1/4 -left-24 w-[26rem] h-[26rem] bg-secondary-500/15 rounded-full blur-[110px] animate-float" style={{ animationDelay: '-4s' }} />
-        <div className="absolute -bottom-24 right-0 w-[28rem] h-[28rem] bg-accent-400/10 rounded-full blur-[120px] animate-float" style={{ animationDelay: '-8s' }} />
+        <div
+          className="absolute top-1/4 -left-24 w-[26rem] h-[26rem] bg-secondary-500/15 rounded-full blur-[110px] animate-float"
+          style={{ animationDelay: '-4s' }}
+        />
+        <div
+          className="absolute -bottom-24 right-0 w-[28rem] h-[28rem] bg-accent-400/10 rounded-full blur-[120px] animate-float"
+          style={{ animationDelay: '-8s' }}
+        />
       </div>
 
       <div className="relative min-h-full flex items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b">
@@ -96,7 +102,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           {(step === 'welcome' || step === 'create') && (
             <button
               onClick={onDone}
-              className="tap absolute top-4 right-4 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30"
+              className="tap absolute top-4 right-4 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-1.5 before:content-['']"
               aria-label="Skip onboarding"
             >
               <X className="w-5 h-5" />

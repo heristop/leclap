@@ -1,17 +1,17 @@
 ---
 name: core-architecture-patterns
-description: Use when adding a segment type, platform adapter, editor manager, or core service in packages/core, or when wiring new dependencies into the tsyringe container.
+description: Use when adding a segment type, platform adapter, editor manager, or core service in packages/ffmpeg-video-composer, or when wiring new dependencies into the tsyringe container.
 ---
 
 # Core Architecture Patterns
 
 ## Overview
 
-`packages/core` is built from a few repeating patterns: **adapters** abstract the platform, the **PlatformBridge** selects them at runtime, **tsyringe DI** wires everything, and a **director → builder → segments → managers** pipeline compiles a template. Follow these patterns; reuse existing pieces before adding new ones. Full design: `docs/architecture.md`.
+`packages/ffmpeg-video-composer` is built from a few repeating patterns: **adapters** abstract the platform, the **PlatformBridge** selects them at runtime, **tsyringe DI** wires everything, and a **director → builder → segments → managers** pipeline compiles a template. Follow these patterns; reuse existing pieces before adding new ones. Full design: `docs/architecture.md`.
 
 ## The pipeline
 
-`TemplateDirector` (`packages/core/src/director/TemplateDirector.ts`) orchestrates:
+`TemplateDirector` (`packages/ffmpeg-video-composer/src/director/TemplateDirector.ts`) orchestrates:
 init → build each section → concat → apply music.
 
 - Sections created by `SegmentFactory` (`editor/factories/SegmentFactory.ts`) → rendered by `*Segment` classes (`editor/segments/`).
@@ -20,14 +20,14 @@ init → build each section → concat → apply music.
 
 ## Adding a segment type
 
-1. Add the section schema variant in `packages/core/src/schemas/template.schemas.ts` (extend `BaseSectionSchema`, add to the `SectionSchema` discriminated union).
+1. Add the section schema variant in `packages/ffmpeg-video-composer/src/schemas/template.schemas.ts` (extend `BaseSectionSchema`, add to the `SectionSchema` discriminated union).
 2. Create `editor/segments/<Name>Segment.ts` following an existing segment (e.g. `VideoSegment.ts`); use `@injectable()`.
 3. Register it in `editor/factories/SegmentFactory.ts` (map the new `type` literal → class).
-4. Add a test under `packages/core/tests/`.
+4. Add a test under `packages/ffmpeg-video-composer/tests/`.
 
 ## Adding a platform adapter
 
-1. Implement the matching `Abstract*` base in `packages/core/src/platform/<capability>/` (e.g. `AbstractFFmpeg`, `AbstractFilesystem`, `AbstractLogger`). Name it `<Thing><Platform>Adapter`.
+1. Implement the matching `Abstract*` base in `packages/ffmpeg-video-composer/src/platform/<capability>/` (e.g. `AbstractFFmpeg`, `AbstractFilesystem`, `AbstractLogger`). Name it `<Thing><Platform>Adapter`.
 2. Register/select it in `PlatformBridge.ts` for the right runtime (Node / browser / React Native).
 3. Wire it into the container at the entry point: `index.ts` (Node) or `browser.ts` (browser/WASM).
 
@@ -51,7 +51,7 @@ container.registerInstance('ffmpegAdapter', await bridge.create('ffmpeg'));
 
 - PascalCase class + file name; `Abstract*` bases; `*Adapter` implementations; `*Manager` for the editor layer.
 - Keep platform-specific code behind an adapter — never branch on the runtime outside `PlatformBridge`.
-- Validate with `pnpm --filter @ffmpeg-video-composer/core exec tsc --noEmit`, then `pnpm test` and `pnpm lint`.
+- Validate with `pnpm --filter ffmpeg-video-composer exec tsc --noEmit`, then `pnpm test` and `pnpm lint`.
 
 ## Common mistakes
 

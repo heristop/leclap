@@ -9,10 +9,10 @@ description: Use when creating or editing a video template JSON, adding or chang
 
 A template is a JSON descriptor that the engine compiles into a video. It has two top-level keys: `global` (defaults) and `sections` (the ordered list of clips). The schema is the source of truth — validate against it, don't guess fields.
 
-- Schema (zod): `packages/core/src/schemas/template.schemas.ts`
-- Validator: `packages/core/src/services/TemplateValidator.ts`
+- Schema (zod): `packages/ffmpeg-video-composer/src/schemas/template.schemas.ts`
+- Validator: `packages/ffmpeg-video-composer/src/services/TemplateValidator.ts`
 - Human reference: `docs/template-schema.md`
-- Built-in examples: `packages/core/src/shared/templates/*.json` (start from `concat_videos_with_music.json`)
+- Built-in examples: `packages/ffmpeg-video-composer/src/shared/templates/*.json` (start from `concat_videos_with_music.json`)
 
 ## Structure
 
@@ -50,7 +50,7 @@ A template is a JSON descriptor that the engine compiles into a video. It has tw
 | `form`             | User input fields (`options.fields`).                             |
 | `music`            | Audio-only section.                                               |
 
-Renderable visual segments are implemented in `packages/core/src/editor/segments/` (`VideoSegment`, `ProjectVideoSegment`, `ImageBackgroundSegment`, `ColorBackgroundSegment`); `SegmentFactory` maps `type` → class.
+Renderable visual segments are implemented in `packages/ffmpeg-video-composer/src/editor/segments/` (`VideoSegment`, `ProjectVideoSegment`, `ImageBackgroundSegment`, `ColorBackgroundSegment`); `SegmentFactory` maps `type` → class.
 
 ## Variables, filters, maps
 

@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system/legacy';
-import type { Template, Project } from '@/src/types';
+import type { Template, Project, MediaChoices } from '@/src/types';
+import { resolveMusicChoice, resolveBackgroundChoice } from '@/src/services/media/resolveMediaChoice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = Constants.expoConfig?.extra?.API_URL ?? 'http://localhost:3000';
@@ -344,6 +345,17 @@ export type CompileRecordedVideos = Record<
 type CompileResult = { success: boolean; outputUri?: string; error?: string };
 
 /**
+ * Fetches a local file:// URI and returns a Blob suitable for multipart FormData.
+ * Works under React Native's new-arch networking (avoids the rejected `{uri,name,type}` format).
+ */
+const fetchLocalBlob = async (fileUri: string): Promise<Blob> => {
+  const uri = fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`;
+  const response = await fetch(uri);
+
+  return response.blob();
+};
+
+/**
  * Builds the per-section trim/crop edits the user selected on the preview screen.
  * The server applies these with ffmpeg before compiling.
  */
@@ -361,24 +373,75 @@ const buildVideoEdits = (
 };
 
 /**
- * Uploads a single recorded clip via expo-file-system's native `uploadAsync`.
- *
- * React Native 0.85's new-architecture networking rejects `{ uri, name, type }`
- * FormData file parts ("Unsupported FormDataPart implementation"), so recorded videos
- * are uploaded with `uploadAsync` instead. The server maps each upload to a section by
- * its filename (`<section>-<timestamp>.<ext>`), so the recording is copied to that name
- * before being sent.
+ * Resolved media files (music + background) to attach to a compile request.
+ * Both are optional; the server applies whichever fields are present.
  */
-const uploadRecordedVideo = async (
+export interface CompileMediaFiles {
+  music?: { uri: string; name: string };
+  background?: { uri: string; name: string };
+}
+
+/**
+ * Appends resolved media blobs to a FormData object.
+ * Uses Blob-based file parts (not the `{uri,name,type}` shorthand rejected by RN new-arch).
+ */
+const appendMediaBlobs = async (formData: FormData, mediaFiles: CompileMediaFiles): Promise<void> => {
+  if (mediaFiles.music) {
+    const blob = await fetchLocalBlob(mediaFiles.music.uri);
+    formData.append('music', blob, mediaFiles.music.name);
+  }
+
+  if (mediaFiles.background) {
+    const blob = await fetchLocalBlob(mediaFiles.background.uri);
+    formData.append('background', blob, mediaFiles.background.name);
+  }
+};
+
+type VideoEdits = ReturnType<typeof buildVideoEdits>;
+
+/**
+ * Uploads a recorded clip together with resolved media (music + background) in a single
+ * multipart `fetch` POST. All parts are loaded as Blobs so the server receives them in one
+ * request (it requires them together). Trades memory for correctness.
+ */
+const uploadVideoWithMedia = async (
   templateDescriptor: unknown,
   sectionName: string,
-  videoData: CompileRecordedVideos[string]
+  srcUri: string,
+  videoEdits: VideoEdits,
+  mediaFiles: CompileMediaFiles
 ): Promise<CompileResult> => {
-  const srcUri = videoData.path.startsWith('file://') ? videoData.path : `file://${videoData.path}`;
+  const namedVideoName = `${sectionName}-${Date.now()}.mp4`;
+  const videoBlob = await fetchLocalBlob(srcUri);
+  const formData = new FormData();
+  formData.append('template', JSON.stringify(templateDescriptor));
+  formData.append('videoEdits', JSON.stringify(videoEdits));
+  formData.append('file', videoBlob, namedVideoName);
+  await appendMediaBlobs(formData, mediaFiles);
+
+  const result = await retryWithBackoff(() => performCompileFetch(formData), 2);
+
+  if (result.success && result.outputPath) {
+    return { success: true, outputUri: buildOutputUri(result.outputPath) };
+  }
+
+  throw new Error(result.message ?? 'Compilation failed on server.');
+};
+
+/**
+ * Uploads a recorded clip on its own via expo-file-system's native `uploadAsync`.
+ * The recording is copied to a `<section>-<timestamp>.<ext>` name first so the server can
+ * map the upload back to its section by filename.
+ */
+const uploadVideoOnly = async (
+  templateDescriptor: unknown,
+  sectionName: string,
+  srcUri: string,
+  videoEdits: VideoEdits
+): Promise<CompileResult> => {
   const namedUri = `${FileSystem.cacheDirectory ?? ''}${sectionName}-${Date.now()}.mp4`;
   await FileSystem.copyAsync({ from: srcUri, to: namedUri });
 
-  const videoEdits = buildVideoEdits(sectionName, videoData);
   const upload = await FileSystem.uploadAsync(`${API_URL}/compile`, namedUri, {
     httpMethod: 'POST',
     uploadType: FileSystem.FileSystemUploadType.MULTIPART,
@@ -396,12 +459,44 @@ const uploadRecordedVideo = async (
 };
 
 /**
- * Compiles a template that has no recorded videos: a string-only multipart works fine
- * over the standard fetch path.
+ * Uploads a single recorded clip to the compile endpoint.
+ *
+ * React Native 0.85's new-architecture networking rejects `{ uri, name, type }` FormData file
+ * parts ("Unsupported FormDataPart implementation"), so the video-only path uses `uploadAsync`.
+ * When media files are also present, everything travels as Blobs in one `fetch` request instead.
  */
-const compileWithoutVideos = async (templateDescriptor: unknown): Promise<CompileResult> => {
+const uploadRecordedVideo = async (
+  templateDescriptor: unknown,
+  sectionName: string,
+  videoData: CompileRecordedVideos[string],
+  mediaFiles?: CompileMediaFiles
+): Promise<CompileResult> => {
+  const srcUri = videoData.path.startsWith('file://') ? videoData.path : `file://${videoData.path}`;
+  const videoEdits = buildVideoEdits(sectionName, videoData);
+  const hasMedia = Boolean(mediaFiles?.music ?? mediaFiles?.background);
+
+  if (hasMedia && mediaFiles) {
+    return uploadVideoWithMedia(templateDescriptor, sectionName, srcUri, videoEdits, mediaFiles);
+  }
+
+  return uploadVideoOnly(templateDescriptor, sectionName, srcUri, videoEdits);
+};
+
+/**
+ * Compiles a template that has no recorded videos.
+ * When media files are present they are attached as Blobs; otherwise a plain JSON-only
+ * FormData is enough and the standard fetch path handles it cleanly.
+ */
+const compileWithoutVideos = async (
+  templateDescriptor: unknown,
+  mediaFiles?: CompileMediaFiles
+): Promise<CompileResult> => {
   const formData = new FormData();
   formData.append('template', JSON.stringify(templateDescriptor));
+
+  if (mediaFiles) {
+    await appendMediaBlobs(formData, mediaFiles);
+  }
 
   const result = await retryWithBackoff(() => performCompileFetch(formData), 2);
 
@@ -413,11 +508,38 @@ const compileWithoutVideos = async (templateDescriptor: unknown): Promise<Compil
 };
 
 /**
- * Sends videos and template to server for compilation
+ * Resolves MediaChoices to CompileMediaFiles (local file URIs + names).
+ * Skips choices that fail to resolve (unknown library ID) rather than throwing.
+ */
+const resolveMediaChoices = async (mediaChoices: MediaChoices): Promise<CompileMediaFiles> => {
+  const files: CompileMediaFiles = {};
+
+  if (mediaChoices.music) {
+    const resolved = await resolveMusicChoice(mediaChoices.music);
+
+    if (resolved) {
+      files.music = { uri: resolved.uri, name: resolved.name };
+    }
+  }
+
+  if (mediaChoices.background) {
+    const resolved = await resolveBackgroundChoice(mediaChoices.background);
+
+    if (resolved) {
+      files.background = { uri: resolved.uri, name: resolved.name };
+    }
+  }
+
+  return files;
+};
+
+/**
+ * Sends videos, optional media (music + background), and template to server for compilation.
  */
 export const compileVideo = async (
   templateDescriptor: unknown,
-  recordedVideos: CompileRecordedVideos
+  recordedVideos: CompileRecordedVideos,
+  mediaChoices?: MediaChoices
 ): Promise<CompileResult> => {
   try {
     const healthCheck = await checkServerHealth();
@@ -426,6 +548,7 @@ export const compileVideo = async (
       return { success: false, error: healthCheck.error ?? 'Server is not available' };
     }
 
+    const mediaFiles = mediaChoices ? await resolveMediaChoices(mediaChoices) : undefined;
     const videoEntries = Object.entries(recordedVideos);
 
     if (videoEntries.length > 1) {
@@ -436,10 +559,10 @@ export const compileVideo = async (
     if (videoEntries.length === 1) {
       const [sectionName, videoData] = videoEntries[0];
 
-      return await uploadRecordedVideo(templateDescriptor, sectionName, videoData);
+      return await uploadRecordedVideo(templateDescriptor, sectionName, videoData, mediaFiles);
     }
 
-    return await compileWithoutVideos(templateDescriptor);
+    return await compileWithoutVideos(templateDescriptor, mediaFiles);
   } catch (error) {
     console.error('Error compiling video:', error);
 

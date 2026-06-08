@@ -1,5 +1,5 @@
 {
-  "name": "le-clap",
+  "name": "@le-clap/web",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@ffmpeg-video-composer/core": "workspace:*",
+    "ffmpeg-video-composer": "workspace:*",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@radix-ui/react-checkbox": "1.1.3",

@@ -1,4 +1,4 @@
-import { TemplateValidator } from '@ffmpeg-video-composer/core/src/services/TemplateValidator.ts';
+import { TemplateValidator } from 'ffmpeg-video-composer/src/services/TemplateValidator.ts';
 import { UserTemplateService } from '@/stores/userTemplateStore';
 
 export type { StoredTemplate } from '@/stores/userTemplateStore';

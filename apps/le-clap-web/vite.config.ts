@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [
     // React Compiler runs through the React plugin's own Babel pass, which only
     // transforms this app's JSX/TSX. A standalone Babel preset would also try to
-    // compile packages/core (which uses TS decorators) and fail to parse them.
+    // compile packages/ffmpeg-video-composer (which uses TS decorators) and fail to parse them.
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler', {}]],

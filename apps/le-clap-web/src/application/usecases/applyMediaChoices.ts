@@ -1,4 +1,4 @@
-import type { TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
+import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { findMusic, findBackground } from '@/data/mediaCatalog';
 

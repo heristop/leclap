@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, RefreshControl, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
@@ -50,6 +59,49 @@ function getStatusIcon(status: string): StatusIconName {
   }
 }
 
+// Friendly, human-readable status label (the raw status reads like a database field).
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'pending':
+      return 'Waiting';
+    case 'processing':
+      return 'Rendering';
+    case 'failed':
+      return 'Failed';
+    case 'completed':
+      return 'Ready';
+    default:
+      return status;
+  }
+}
+
+// "just now" / "5 min ago" / "3 h ago" / "Apr 12" — friendlier than a full timestamp.
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+
+  if (Number.isNaN(then)) {
+    return '';
+  }
+
+  const mins = Math.max(0, Math.round((Date.now() - then) / 60000));
+
+  if (mins < 1) {
+    return 'just now';
+  }
+
+  if (mins < 60) {
+    return `${mins} min ago`;
+  }
+
+  const hours = Math.round(mins / 60);
+
+  if (hours < 24) {
+    return `${hours} h ago`;
+  }
+
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 function runBatchMutations(ids: string[], mutateAsync: MutateAsync<string>): void {
   Promise.allSettled(
     ids.map((id) =>
@@ -86,36 +138,58 @@ function QueueItemCard({
     onPress(item.id);
   };
 
+  const accent = getStatusColor(item.status);
+  const isProcessing = item.status === 'processing';
+
   return (
     <TouchableOpacity
       style={[styles.queueItem, isSelected && styles.queueItemSelected]}
       onPress={handlePress}
       onLongPress={handlePress}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={`Video, ${getStatusLabel(item.status)}, added ${relativeTime(item.createdAt)}`}
     >
-      <View style={styles.queueItemHeader}>
-        <View style={styles.selectionIndicator}>
-          {isSelected ? (
-            <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-          ) : (
-            <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
-          )}
-        </View>
-        <View style={styles.statusIndicator}>
-          <Ionicons name={getStatusIcon(item.status)} size={20} color={getStatusColor(item.status)} />
-        </View>
-        <View style={styles.queueItemInfo}>
-          <Text style={styles.queueItemTitle}>Project: {item.projectId.substring(0, 12)}...</Text>
-          <Text style={styles.queueItemStatus}>
-            Status: {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+      {/* Status-coloured left accent — reads the card's state before any text. */}
+      <View style={[styles.accentBar, { backgroundColor: accent }]} />
+
+      <View style={styles.thumb}>
+        <Ionicons name="film-outline" size={22} color={colors.primary} />
+      </View>
+
+      <View style={styles.queueItemInfo}>
+        <View style={styles.queueItemTopRow}>
+          <Text style={styles.queueItemTitle} numberOfLines={1}>
+            Your video
           </Text>
-          <Text style={styles.queueItemTime}>Created: {new Date(item.createdAt).toLocaleString()}</Text>
-          {item.retryCount > 0 && <Text style={styles.retryCount}>Retries: {item.retryCount}</Text>}
-          {item.error !== undefined && (
-            <Text style={styles.errorText} numberOfLines={2}>
-              Error: {item.error}
-            </Text>
-          )}
+          <Text style={styles.queueItemTime}>{relativeTime(item.createdAt)}</Text>
         </View>
+
+        <View style={styles.statusRow}>
+          <View style={[styles.statusPill, { backgroundColor: `${accent}1A` }]}>
+            {isProcessing ? (
+              <ActivityIndicator size="small" color={accent} />
+            ) : (
+              <Ionicons name={getStatusIcon(item.status)} size={13} color={accent} />
+            )}
+            <Text style={[styles.statusPillText, { color: accent }]}>{getStatusLabel(item.status)}</Text>
+          </View>
+          {item.retryCount > 0 && <Text style={styles.retryCount}>Retried {item.retryCount}×</Text>}
+        </View>
+
+        {item.error !== undefined && (
+          <Text style={styles.errorText} numberOfLines={2}>
+            {item.error}
+          </Text>
+        )}
+      </View>
+
+      <View style={styles.selectionIndicator}>
+        <Ionicons
+          name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+          size={22}
+          color={isSelected ? colors.primary : colors.divider}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -166,7 +240,7 @@ function useQueueManagerHandlers(params: {
   setSelectedItems: (fn: (prev: string[]) => string[]) => void;
   setShowBatchActions: (v: boolean) => void;
   setFilterStatus: (s: FilterStatus) => void;
-  router: { back: () => void };
+  router: { back: () => void; canGoBack: () => boolean; replace: (href: '/') => void };
 }) {
   const {
     isOffline,
@@ -220,13 +294,13 @@ function useQueueManagerHandlers(params: {
 
   const handleBatchRetry = () => {
     if (isOffline) {
-      Alert.alert('🌐 Offline', 'Cannot retry items while offline.');
+      Alert.alert("You're offline", 'Connect to the internet to retry these videos.');
 
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
     const ids = [...selectedItems];
-    Alert.alert('🔄 Batch Retry', `Retry ${ids.length} selected items?`, [
+    Alert.alert('Retry videos', `Try compiling ${ids.length} selected video${ids.length === 1 ? '' : 's'} again?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Retry All',
@@ -242,7 +316,7 @@ function useQueueManagerHandlers(params: {
   const handleBatchRemove = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
     const ids = [...selectedItems];
-    Alert.alert('🗑️ Batch Remove', `Remove ${ids.length} selected items from queue?`, [
+    Alert.alert('Remove videos', `Remove ${ids.length} video${ids.length === 1 ? '' : 's'} from the queue?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove All',
@@ -258,7 +332,7 @@ function useQueueManagerHandlers(params: {
 
   const handleProcessAll = () => {
     if (isOffline) {
-      Alert.alert('🌐 Offline', 'Cannot process queue while offline.');
+      Alert.alert("You're offline", 'Connect to the internet to start compiling.');
 
       return;
     }
@@ -269,13 +343,16 @@ function useQueueManagerHandlers(params: {
       })
       .catch((error: unknown) => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => null);
-        Alert.alert('❌ Process Failed', error instanceof Error ? error.message : 'Unknown error');
+        Alert.alert(
+          "Couldn't compile",
+          error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        );
       });
   };
 
   const handleCleanup = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
-    Alert.alert('🧹 Cleanup Queue', 'Remove completed items older than 7 days?', [
+    Alert.alert('Clear finished', 'Remove videos that finished more than 7 days ago?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Cleanup',
@@ -298,7 +375,13 @@ function useQueueManagerHandlers(params: {
   };
   const handleBackPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-    router.back();
+    // Deep-linked entry has no back stack → router.back() would throw "GO_BACK not handled".
+    if (router.canGoBack()) {
+      router.back();
+
+      return;
+    }
+    router.replace('/');
   };
 
   return {
@@ -315,6 +398,96 @@ function useQueueManagerHandlers(params: {
   };
 }
 
+interface QueueSummary<T> {
+  filteredItems: T[];
+  pendingCount: number;
+  processingCount: number;
+  failedCount: number;
+  completedCount: number;
+}
+
+// Tally queue items by status and apply the active filter in a single pass — kept out of the component
+// so its cyclomatic complexity stays manageable.
+function summarizeQueue<T extends { status: string }>(
+  items: readonly T[],
+  filterStatus: FilterStatus
+): QueueSummary<T> {
+  let pending = 0;
+  let processing = 0;
+  let failed = 0;
+  let completed = 0;
+  const filtered: T[] = [];
+
+  for (const item of items) {
+    switch (item.status) {
+      case 'pending':
+        pending++;
+        break;
+      case 'processing':
+        processing++;
+        break;
+      case 'failed':
+        failed++;
+        break;
+      case 'completed':
+        completed++;
+        break;
+      default:
+        break;
+    }
+
+    if (filterStatus === 'all' || item.status === filterStatus) {
+      filtered.push(item);
+    }
+  }
+
+  return {
+    filteredItems: filtered,
+    pendingCount: pending,
+    processingCount: processing,
+    failedCount: failed,
+    completedCount: completed,
+  };
+}
+
+// Empty-state body for the queue list — varies by whether a status filter is active. Kept as its own
+// component so the screen's render stays under the complexity cap.
+function QueueEmptyState({
+  filterStatus,
+  onCreate,
+  onShowAll,
+}: {
+  filterStatus: FilterStatus;
+  onCreate: () => void;
+  onShowAll: () => void;
+}) {
+  return (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIcon}>
+        <Ionicons name={filterStatus === 'all' ? 'film-outline' : 'funnel-outline'} size={32} color={colors.primary} />
+      </View>
+      {filterStatus === 'all' ? (
+        <>
+          <Text style={styles.emptyTitle}>No videos yet</Text>
+          <Text style={styles.emptyText}>Record a few clips and they’ll show up here as they’re put together.</Text>
+          <TouchableOpacity style={styles.emptyCta} onPress={onCreate}>
+            <Ionicons name="add" size={18} color={colors.surface} />
+            <Text style={styles.emptyCtaText}>Create a video</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <Text style={styles.emptyTitle}>Nothing {getStatusLabel(filterStatus).toLowerCase()}</Text>
+          <Text style={styles.emptyText}>No videos match this filter right now.</Text>
+          <TouchableOpacity style={styles.emptyCtaGhost} onPress={onShowAll}>
+            <Text style={styles.emptyCtaGhostText}>Show all</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
+  );
+}
+
 export default function QueueManagerScreen() {
   const router = useRouter();
   const { data: queueItems = [], refetch } = useCompilationQueue();
@@ -328,44 +501,10 @@ export default function QueueManagerScreen() {
   const [showBatchActions, setShowBatchActions] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
 
-  const { filteredItems, pendingCount, processingCount, failedCount, completedCount } = (() => {
-    let pending = 0;
-    let processing = 0;
-    let failed = 0;
-    let completed = 0;
-    const filtered: typeof queueItems = [];
-
-    for (const item of queueItems) {
-      switch (item.status) {
-        case 'pending':
-          pending++;
-          break;
-        case 'processing':
-          processing++;
-          break;
-        case 'failed':
-          failed++;
-          break;
-        case 'completed':
-          completed++;
-          break;
-        default:
-          break;
-      }
-
-      if (filterStatus === 'all' || item.status === filterStatus) {
-        filtered.push(item);
-      }
-    }
-
-    return {
-      filteredItems: filtered,
-      pendingCount: pending,
-      processingCount: processing,
-      failedCount: failed,
-      completedCount: completed,
-    };
-  })();
+  const { filteredItems, pendingCount, processingCount, failedCount, completedCount } = summarizeQueue(
+    queueItems,
+    filterStatus
+  );
 
   const handlers = useQueueManagerHandlers({
     isOffline,
@@ -389,7 +528,7 @@ export default function QueueManagerScreen() {
         <TouchableOpacity style={styles.backButton} onPress={handlers.handleBackPress}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Queue Manager</Text>
+        <Text style={styles.headerTitle}>Compilations</Text>
         <TouchableOpacity style={styles.selectAllButton} onPress={handlers.handleSelectAll}>
           <Text style={styles.selectAllText}>
             {selectedItems.length === filteredItems.length ? 'Deselect All' : 'Select All'}
@@ -397,28 +536,15 @@ export default function QueueManagerScreen() {
         </TouchableOpacity>
       </View>
       <NetworkStatusIndicator compact />
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{queueItems.length}</Text>
-          <Text style={styles.statLabel}>Total</Text>
+      {processingCount > 0 && (
+        <View style={styles.summaryBanner}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.summaryText}>
+            {processingCount === 1 ? '1 video rendering' : `${processingCount} videos rendering`}
+            {pendingCount > 0 && ` · ${pendingCount} waiting`}
+          </Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.warning }]}>{pendingCount}</Text>
-          <Text style={styles.statLabel}>Pending</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.primary }]}>{processingCount}</Text>
-          <Text style={styles.statLabel}>Processing</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.error }]}>{failedCount}</Text>
-          <Text style={styles.statLabel}>Failed</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, { color: colors.success }]}>{completedCount}</Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </View>
-      </View>
+      )}
       <View style={styles.actionBar}>
         <TouchableOpacity
           style={[styles.actionButton, isOffline && styles.actionButtonDisabled]}
@@ -493,12 +619,13 @@ export default function QueueManagerScreen() {
         }
       >
         {filteredItems.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="folder-open-outline" size={48} color={colors.textSecondary} />
-            <Text style={styles.emptyText}>
-              {filterStatus === 'all' ? 'No items in queue' : `No ${filterStatus} items`}
-            </Text>
-          </View>
+          <QueueEmptyState
+            filterStatus={filterStatus}
+            onCreate={handlers.handleBackPress}
+            onShowAll={() => {
+              handlers.handleFilterChange('all');
+            }}
+          />
         ) : (
           filteredItems.map((item) => (
             <QueueItemCard

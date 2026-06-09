@@ -54,6 +54,23 @@ class MusicComposer {
     this.musicAdapter = container.resolve<AbstractMusic>('musicAdapter');
   }
 
+  // Resolve the active music config — from project config, else the template's global.music. null = none.
+  private ensureMusicConfig(): MusicConfig | null {
+    if (this.project.config.music) {
+      return this.project.config.music;
+    }
+
+    const fromTemplate = this.template.descriptor.global?.music;
+
+    if (fromTemplate) {
+      this.project.config.music = fromTemplate;
+
+      return fromTemplate;
+    }
+
+    return null;
+  }
+
   /**
    * Load background music track from cache or download
    */
@@ -61,30 +78,27 @@ class MusicComposer {
     this.buildAssetsDir = await this.filesystemAdapter.getBuildPath('assets');
     this.musicAssetsDir = await this.filesystemAdapter.getAssetsPath('musics');
 
-    if (!this.project.config.music) {
-      if (this.template.descriptor.global?.music) {
-        this.project.config.music = this.template.descriptor.global.music;
-      }
+    const music = this.ensureMusicConfig();
 
-      if (!this.project.config.music) {
-        return;
-      }
+    if (!music) {
+      return;
     }
 
-    const musicFormattedName = this.formatMusicName(this.project.config.music);
-    const destination = `${this.buildAssetsDir}/${musicFormattedName}.mp3`;
-    const musicPathInCache = `${this.musicAssetsDir}/${musicFormattedName}.mp3`;
+    const musicFormattedName = this.formatMusicName(music);
 
-    if (await this.checkMusicExists(musicPathInCache)) {
-      this.logger.info(`[Music] Loaded from cache ${musicPathInCache}`);
-      this.project.buildInfos.musicPath = musicPathInCache;
+    const cachedPath = await this.resolveCachedMusic(music, musicFormattedName);
+
+    if (cachedPath) {
+      this.logger.info(`[Music] Loaded from cache ${cachedPath}`);
+      this.project.buildInfos.musicPath = cachedPath;
 
       return;
     }
 
-    if (this.project.config.music.url) {
-      this.logger.info(`[Music] Fetching ${this.project.config.music.url}`);
-      await this.downloadAndSaveMusic(this.project.config.music.url, destination);
+    if (music.url) {
+      this.logger.info(`[Music] Fetching ${music.url}`);
+      const destination = `${this.buildAssetsDir}/${musicFormattedName}.mp3`;
+      await this.downloadAndSaveMusic(music.url, destination);
       this.project.buildInfos.musicPath = destination;
 
       return;
@@ -92,6 +106,30 @@ class MusicComposer {
 
     throw new Error('Music URL is not provided.');
   };
+
+  // Resolve a bundled music file from the local assets dir. Tries the configured (display) name first,
+  // then the URL's own basename — the bundled library names files after the URL, not the display name,
+  // so a template like { name: 'popopop', url: '.../pop.mp3' } still resolves to the local pop.mp3
+  // instead of forcing a network download.
+  private async resolveCachedMusic(music: MusicConfig, formattedName: string): Promise<string | null> {
+    const byName = `${this.musicAssetsDir}/${formattedName}.mp3`;
+
+    if (await this.checkMusicExists(byName)) {
+      return byName;
+    }
+
+    const urlName = music.url ? this.removeExtension(music.url.split('/').at(-1) ?? '') : '';
+
+    if (urlName && urlName !== formattedName) {
+      const byUrl = `${this.musicAssetsDir}/${urlName}.mp3`;
+
+      if (await this.checkMusicExists(byUrl)) {
+        return byUrl;
+      }
+    }
+
+    return null;
+  }
 
   private async downloadAndSaveMusic(url: string, destination: string): Promise<void> {
     const musicPath = await this.downloadMusic(url);
@@ -291,6 +329,14 @@ class MusicComposer {
    */
   loopMusic = async (): Promise<void> => {
     const { totalLength, musicPath } = this.project.buildInfos;
+    // `loadMusic` returns early (leaving musicPath empty) when the template enables music but no track
+    // is actually selected/resolved. Probing an empty path makes ffprobe fail — skip looping instead.
+    if (!musicPath) {
+      this.logger.info('[Music] No music track resolved — skipping loop.');
+
+      return;
+    }
+
     await this.musicAdapter.process(this.logger, this.filesystemAdapter, totalLength, musicPath);
   };
 }

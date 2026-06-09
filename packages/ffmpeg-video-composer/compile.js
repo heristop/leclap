@@ -60,6 +60,7 @@ function buildProjectConfig() {
       form_2_keyword2: 'javascript',
       form_2_keyword3: 'typescript',
       form_2_keyword4: 'caffeine',
+      form_3_keyword1: 'remote',
     },
   };
 }

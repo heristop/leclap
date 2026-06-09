@@ -27,12 +27,14 @@ const projectConfig: ProjectConfig = {
     scale: '1280:720',
   },
   fields: {
-    form_1_firstname: 'Firsname',
-    form_1_lastname: 'Lastname',
-    form_1_job: 'Tech Lead',
-    form_2_keyword1: 'One',
-    form_2_keyword2: 'Two',
-    form_2_keyword3: 'Three',
+    form_1_firstname: 'Emily',
+    form_1_lastname: 'Parker',
+    form_1_job: 'Frontend Developer',
+    form_2_keyword1: 'php',
+    form_2_keyword2: 'javascript',
+    form_2_keyword3: 'typescript',
+    form_2_keyword4: 'caffeine',
+    form_3_keyword1: 'remote',
   },
 };
 

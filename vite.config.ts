@@ -33,6 +33,7 @@ export default defineConfig({
       '**/.expo/**',
       '**/e2e/**',
       '**/playwright.config.ts',
+      'scripts/ffmpeg/.work/**',
     ],
     env: {
       node: true,
@@ -417,8 +418,8 @@ export default defineConfig({
         },
       },
       {
-        // Exploratory on-device FFmpeg spike: the deliberate lazy `require('ffmpeg-expo')` keeps
-        // the screen renderable before the native module is built into the dev client.
+        // On-device engine spike: uses Metro's static `require('../../assets/sample.mp4')` for the
+        // bundled clip — a Metro asset import that `unicorn/prefer-module` would otherwise flag.
         files: ['apps/le-clap-expo/app/**/ffmpeg-spike.tsx'],
         rules: {
           'unicorn/prefer-module': 'off',

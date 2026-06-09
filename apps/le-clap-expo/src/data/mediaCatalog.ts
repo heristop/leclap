@@ -42,10 +42,12 @@ export const BACKGROUND_ASSETS: Record<string, number> = {
 
 export const musicAsset = (id: string): number | undefined => {
   const f = findMusic(id)?.file;
+
   return f ? MUSIC_ASSETS[f] : undefined;
 };
 
 export const backgroundAsset = (id: string): number | undefined => {
   const f = findBackground(id)?.file;
+
   return f ? BACKGROUND_ASSETS[f] : undefined;
 };

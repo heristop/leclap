@@ -13,6 +13,7 @@ interface StepperProps {
 /** Screen-reader suffix describing a step's state. */
 function stepStateSuffix(active: boolean, done: boolean): string {
   if (active) return ' (current)';
+
   if (done) return ' (done)';
 
   return '';

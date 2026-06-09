@@ -1,33 +1,116 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import type * as FFmpegExpo from 'ffmpeg-expo';
+import * as Leclap from '@/modules/leclap-ffmpeg';
 
 /**
- * Phase 0 spike: proves on-device FFmpeg (ffmpeg-expo) works WITHOUT a server.
- *
- * This screen is intentionally self-contained — the "render" uses FFmpeg's `lavfi`
- * test source, so it needs no input file. It only works after the native dev client
- * has been rebuilt with the ffmpeg-expo config plugin (`expo prebuild && expo run:android`);
- * before that, the native module is absent and the screen reports it cleanly.
- *
- * Reachable via deep link: `leclap://ffmpeg-spike`.
+ * On-device engine smoke test. Proves the real `leclap-ffmpeg` native engine (Rust + FFmpeg):
+ *  1. `getVersion()` loads the native module (JNA → libleclap_ffmpeg_core.so → dlopen FFmpeg .so).
+ *  2. `compile()` runs a real decode → avfilter (scale/pad) → encode → mux on a bundled clip.
+ * Reachable via deep link `leclap://ffmpeg-spike`.
  */
 
-// Lazy require so this screen renders even when the native module isn't in the build yet.
-type FFmpegModule = typeof FFmpegExpo;
-const loadFFmpeg = (): FFmpegModule => require('ffmpeg-expo') as FFmpegModule;
-
-// FFmpeg needs a raw filesystem path, not a file:// URI.
 const toPath = (uri: string): string => uri.replace('file://', '');
+
+async function resolveSampleClip(): Promise<{ inputPath: string; outUri: string; outPath: string }> {
+  const asset = Asset.fromModule(require('../../assets/sample.mp4'));
+  await asset.downloadAsync();
+  const inputPath = toPath(asset.localUri ?? asset.uri);
+  const outUri = `${FileSystem.cacheDirectory}spike-out.mp4`;
+
+  return { inputPath, outUri, outPath: toPath(outUri) };
+}
+
+// Run the on-device pipeline (scale/pad + drawtext, a re-entrant 2nd encode, then a music amix) and probe
+// the output's video codec ('h264' on success). `append` streams each step's result to the on-screen log.
+async function runSpikeSegments(inputPath: string, outPath: string, append: (line: string) => void): Promise<string> {
+  const font = `${toPath(FileSystem.cacheDirectory ?? '')}leclap-build/fonts/Rubik.ttf`;
+  const draw = `drawtext=text='le-clap':fontfile='${font}':fontsize=48:fontcolor=white:x=40:y=40`;
+  const enc = [
+    '-c:v',
+    'libopenh264',
+    '-b:v',
+    '4M',
+    '-profile:v',
+    'main',
+    '-pix_fmt',
+    'yuv420p',
+    '-c:a',
+    'aac',
+    '-ac',
+    '2',
+    '-movflags',
+    '+faststart',
+    '-shortest',
+  ];
+
+  // seg1: scale/pad + drawtext → real H.264 video.
+  const r1 = await Leclap.run([
+    '-y',
+    '-i',
+    inputPath,
+    '-vf',
+    `setsar=1/1,scale=1280:720,${draw}`,
+    ...enc,
+    `${outPath}.s1.mp4`,
+  ]);
+  append(`… seg1 (libopenh264 + drawtext) rc=${r1.code}`);
+  // seg2: re-entrant second encode in the same process, different resolution.
+  const r2 = await Leclap.run(['-y', '-i', inputPath, '-vf', `scale=640:360,${draw}`, ...enc, `${outPath}.s2.mp4`]);
+  append(`… seg2 (re-entrant) rc=${r2.code}`);
+  // Music-style amix via filter_complex, muxed with the seg1 H.264 video.
+  const r3 = await Leclap.run([
+    '-y',
+    '-i',
+    `${outPath}.s1.mp4`,
+    '-f',
+    'lavfi',
+    '-i',
+    'anullsrc=channel_layout=stereo:sample_rate=44100',
+    '-filter_complex',
+    '[0:a][1:a]amix=inputs=2:duration=first[a]',
+    '-map',
+    '0:v',
+    '-map',
+    '[a]',
+    '-c:v',
+    'copy',
+    '-c:a',
+    'aac',
+    '-shortest',
+    outPath,
+  ]);
+  append(`… music amix (filter_complex) rc=${r3.code}`);
+
+  // Probe the output: assert it really is an H.264 video stream (proves libopenh264 worked).
+  const probe = await Leclap.probe([
+    '-v',
+    'error',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'stream=codec_name,width,height',
+    '-of',
+    'default=nk=1:nw=1',
+    outPath,
+  ]);
+  const codec = probe.output.split('\n').filter(Boolean)[0] ?? '?';
+  append(`… probe → video codec=${codec}`);
+  console.log(
+    `LECLAP_WF s1=${r1.code} s2=${r2.code} amix=${r3.code} codec=${codec}\nseg1 log:\n${r1.log.split('\n').filter(Boolean).slice(-6).join('\n')}`
+  );
+
+  return codec;
+}
 
 export default function FFmpegSpikeScreen() {
   const router = useRouter();
-  const [log, setLog] = useState<string>('Tap “Check version” to begin.');
+  const [log, setLog] = useState('Tap “Check version” to begin.');
   const [busy, setBusy] = useState(false);
   const [outputUri, setOutputUri] = useState<string | null>(null);
 
@@ -35,80 +118,75 @@ export default function FFmpegSpikeScreen() {
     p.loop = true;
   });
 
-  const append = (line: string) => {
+  const append = useCallback((line: string) => {
     setLog((prev) => `${prev}\n${line}`);
-  };
+  }, []);
 
-  const checkVersion = () => {
-    try {
-      const v = loadFFmpeg().getVersion();
-      setLog(`✅ FFmpeg ${v.version} (native module loaded)`);
-    } catch (error) {
-      setLog(`❌ Native module unavailable — rebuild the dev client.\n${String(error)}`);
+  // When deep-linked directly (leclap://ffmpeg-spike) the stack is empty, so router.back()
+  // throws "GO_BACK was not handled". Fall back to the app home in that case.
+  const handleClose = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+
+      return;
     }
-  };
+    router.replace('/');
+  }, [router]);
 
-  const renderTestClip = async () => {
+  const checkVersion = useCallback(() => {
+    try {
+      setLog(`✅ FFmpeg ${Leclap.version()} (native engine loaded)`);
+    } catch (error) {
+      setLog(`❌ Native engine unavailable.\n${String(error)}`);
+    }
+  }, []);
+
+  const render = useCallback(async () => {
     setBusy(true);
     setOutputUri(null);
-    setLog('Rendering a 2s test clip on-device…');
+    setLog('Resolving bundled clip…');
 
     try {
-      const { execute } = loadFFmpeg();
-      const outUri = `${FileSystem.cacheDirectory}ffmpeg-spike.mp4`;
-      const out = toPath(outUri);
+      const { inputPath, outUri, outPath } = await resolveSampleClip();
+      append('Compiling on-device (scale → pad → drawtext, libopenh264)…');
 
-      const result = await execute(
-        [
-          '-y',
-          '-f',
-          'lavfi',
-          '-i',
-          'testsrc=duration=2:size=480x270:rate=24',
-          '-pix_fmt',
-          'yuv420p',
-          '-c:v',
-          'mpeg4',
-          out,
-        ],
-        {
-          onProgress: (p) => {
-            append(`… ${p.speed.toFixed(2)}x, frame ${p.frame ?? 0}`);
-          },
-        }
-      );
+      const codec = await runSpikeSegments(inputPath, outPath, append);
 
       const info = await FileSystem.getInfoAsync(outUri);
-      const size = info.exists ? info.size : 0;
-      append(`exit=${result.returnCode} in ${result.duration}ms · output ${(size / 1024).toFixed(0)} KB`);
-
-      const ok = result.returnCode === 0 && size > 0;
+      const ok = info.exists && info.size > 0 && codec === 'h264';
+      append(
+        ok ? `✅ H.264 output ${(info.size / 1024).toFixed(0)} KB — playing below.` : `❌ Bad output (codec=${codec}).`
+      );
 
       if (ok) {
         setOutputUri(outUri);
       }
-
-      append(ok ? '✅ On-device render succeeded — playing below.' : '❌ Render produced no output. See log above.');
     } catch (error) {
       append(`❌ ${String(error)}`);
     } finally {
       setBusy(false);
     }
-  };
+  }, [append]);
+
+  // Auto-run on mount so the on-device smoke test is deterministic.
+  useEffect(() => {
+    checkVersion();
+    const timer = setTimeout(() => {
+      render().catch(() => null);
+    }, 600);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [checkVersion, render]);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            router.back();
-          }}
-          style={styles.iconBtn}
-          accessibilityLabel="Close"
-        >
+        <TouchableOpacity onPress={handleClose} style={styles.iconBtn} accessibilityLabel="Close">
           <Ionicons name="close" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>FFmpeg on-device spike</Text>
+        <Text style={styles.headerTitle}>On-device engine spike</Text>
         <View style={styles.iconBtn} />
       </View>
 
@@ -121,13 +199,13 @@ export default function FFmpegSpikeScreen() {
           <TouchableOpacity
             testID="spike-render"
             onPress={() => {
-              renderTestClip().catch(() => {});
+              render().catch(() => {});
             }}
             style={[styles.btn, styles.btnPrimary]}
             disabled={busy}
           >
             {busy ? <ActivityIndicator color="#fff" /> : <Ionicons name="play" size={18} color="#fff" />}
-            <Text style={[styles.btnText, styles.btnTextPrimary]}>Render test clip</Text>
+            <Text style={[styles.btnText, styles.btnTextPrimary]}>Compile clip</Text>
           </TouchableOpacity>
         </View>
 

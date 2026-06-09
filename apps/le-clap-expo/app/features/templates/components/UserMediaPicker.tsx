@@ -63,6 +63,7 @@ function resolveAllowedMusic(allowedIds: string[] | undefined): MediaCredit[] {
 
   return allowedIds.flatMap((id) => {
     const entry = MUSIC_LIBRARY.find((m) => m.id === id);
+
     return entry ? [entry] : [];
   });
 }
@@ -72,6 +73,7 @@ function resolveAllowedBackgrounds(allowedIds: string[] | undefined): MediaCredi
 
   return allowedIds.flatMap((id) => {
     const entry = BACKGROUND_LIBRARY.find((m) => m.id === id);
+
     return entry ? [entry] : [];
   });
 }
@@ -201,6 +203,7 @@ function MusicSection({ allowedIds, allowUpload, choice, onChange }: MusicSectio
 
     try {
       const picked = await pickMusicFile();
+
       if (picked) onChange(picked);
     } finally {
       setUploading(false);
@@ -264,6 +267,7 @@ function BackgroundSection({ allowedIds, allowUpload, choice, onChange }: Backgr
 
     try {
       const picked = await pickBackgroundImage();
+
       if (picked) onChange(picked);
     } finally {
       setUploading(false);

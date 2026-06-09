@@ -160,6 +160,7 @@ Tooling is **vite-plus (`vp`)** — no eslint, prettier, or root jest (jest live
 - **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference: global config, sections, the FFmpeg pipeline, and placeholders.
 - **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
 - **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** — how automatic FFmpeg detection works.
+- **[📱 On-Device Compilation](docs/on-device-compilation.md)** — the serverless Expo compile pipeline: hybrid router → shared core → native FFmpeg engine.
 - **[🤖 AGENTS.md](AGENTS.md)** — repo layout, commands, and conventions for contributors and AI agents.
 
 ## 🤝 Contributing & License

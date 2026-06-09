@@ -11,7 +11,7 @@ function makeProject() {
   return {
     finalVideo: '',
     errors: [] as string[],
-    buildInfos: { fileConcatPath: '/build/segments.list' },
+    buildInfos: { fileConcatPath: '/build/segments.list', musicPath: '' },
     clean: vi.fn(),
   };
 }
@@ -160,6 +160,7 @@ describe('VideoEditor.finalize', () => {
     const template = makeTemplate({ global: { musicEnabled: true } });
     const project = makeProject();
     project.finalVideo = '/build/output.mp4';
+    project.buildInfos.musicPath = '/build/music.mp3'; // a resolved track → music block runs
     const { editor, musicComposer, emitter, filesystem } = makeEditor({ template, project });
 
     await editor.finalize(segments);
@@ -234,6 +235,7 @@ describe('VideoEditor.finalize', () => {
     const template = makeTemplate({ global: { musicEnabled: true } });
     const project = makeProject();
     project.finalVideo = '/build/output.mp4';
+    project.buildInfos.musicPath = '/build/music.mp3'; // a resolved track → music block runs
     const musicComposer = {
       loopMusic: vi.fn(async () => {
         throw new Error('loop boom');
@@ -251,6 +253,7 @@ describe('VideoEditor.finalize', () => {
     const template = makeTemplate({ global: { musicEnabled: true } });
     const project = makeProject();
     project.finalVideo = '/build/output.mp4';
+    project.buildInfos.musicPath = '/build/music.mp3'; // a resolved track → music block runs
     const musicComposer = {
       loopMusic: vi.fn(async () => {
         // throw a NON-Error -> finalize catch ternary false side (line 125)

@@ -51,6 +51,7 @@ Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there i
 
 - **Platform abstraction** — `PlatformBridge` (`packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts`) detects the runtime and wires the right adapters. Each capability has an `Abstract*` base and per-platform `*Adapter`s: FFmpeg, filesystem, logging, music, events.
 - **Compilation flow** — `TemplateDirector` orchestrates: init → build sections → concat → apply music. Sections are created by `SegmentFactory` and rendered by `*Segment` classes; FFmpeg commands are assembled by the editor **managers** (asset/variable/map/filter/formatter).
+- **On-device compilation (Expo)** — the app drives the same core through a native FFmpeg CLI engine (`packages/ffmpeg-engine` + `FFmpegLeclapAdapter`) instead of WASM/system FFmpeg; `compileHybrid` falls back to the server when the engine is absent or can't render a job. See [`docs/on-device-compilation.md`](./docs/on-device-compilation.md).
 - **Dependency injection** — tsyringe. Classes use `@injectable()` / `@singleton()`; dependencies are resolved from `container`. Wiring happens in the entry points `packages/ffmpeg-video-composer/src/index.ts` (Node) and `packages/ffmpeg-video-composer/src/browser.ts` (browser/WASM).
 - **Validation** — templates are validated with zod schemas in `packages/ffmpeg-video-composer/src/schemas/template.schemas.ts` via `services/TemplateValidator.ts`.
 

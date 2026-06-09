@@ -56,6 +56,56 @@ class SegmentBuilder {
 
   protected section!: Section;
 
+  /** The video encoder name for this platform — `codecConfig.videoCodec` (h264_mediacodec on device) or `h264`. */
+  protected videoCodec(): string {
+    // The default ProjectConfig sets videoCodec to '' (empty), so any falsy value must fall back to h264.
+    const configured = this.project.config.codecConfig?.videoCodec;
+
+    if (configured) {
+      return configured;
+    }
+
+    return 'h264';
+  }
+
+  /** True when the selected encoder is a hardware one (h264_mediacodec / h264_videotoolbox). */
+  protected isHardwareCodec(): boolean {
+    const codec = this.videoCodec();
+
+    return codec.includes('mediacodec') || codec.includes('videotoolbox');
+  }
+
+  /** `-pix_fmt yuv420p` for software encoders; empty for hardware (the filtergraph sets the format). */
+  protected pixFmtArg(): string {
+    return this.isHardwareCodec() ? '' : '-pix_fmt yuv420p';
+  }
+
+  /**
+   * Full `-c:v …` args for re-encoded clips. Defaults to the software (libx264-style) settings used
+   * by the server/web. When a hardware encoder (h264_mediacodec / h264_videotoolbox on device) is
+   * selected, the libx264-only flags (crf/tune/profile/preset) are dropped — those encoders reject
+   * them — in favour of a bitrate target. (Color/image segments use the bare `-c:v ${videoCodec()}`.)
+   */
+  protected videoEncoderArgs(): string {
+    const codec = this.videoCodec();
+
+    if (this.isHardwareCodec()) {
+      return `-c:v ${codec} -b:v 8M`;
+    }
+
+    // mpeg4 (the on-device LGPL software encoder) takes quality/bitrate, not the libx264-only flags.
+    if (codec === 'mpeg4') {
+      return '-c:v mpeg4 -q:v 4';
+    }
+
+    // libopenh264 (Cisco's LGPL-OK software H.264, used on-device) — bitrate-based; no libx264 flags.
+    if (codec === 'libopenh264') {
+      return '-c:v libopenh264 -b:v 4M -profile:v main';
+    }
+
+    return `-c:v ${codec} -crf 23 -tune film -b:v 12M -profile:v high -preset ${this.project.config.hardwareConfig?.preset ?? 'medium'}`;
+  }
+
   // Unwrapped references kept as protected fields so subclasses can access them.
   protected readonly assetManager: AssetManager;
   protected readonly variableManager: VariableManager;
@@ -85,7 +135,10 @@ class SegmentBuilder {
       const height = parts?.[1];
 
       if (width !== undefined && height !== undefined && this.project.config.videoConfig) {
-        this.project.config.videoConfig.scale = `${height}:${width}`;
+        // Clone rather than mutate in place: `project.config.videoConfig` is the caller's shared
+        // ProjectConfig object, so an in-place swap leaks the portrait scale into later compiles that
+        // reuse the same config (e.g. a portrait job then a landscape one → landscape comes out vertical).
+        this.project.config.videoConfig = { ...this.project.config.videoConfig, scale: `${height}:${width}` };
       }
     }
   }
@@ -304,20 +357,38 @@ class SegmentBuilder {
     ];
   };
 
-  private readonly formatFilters = (): void => {
-    // Format filters
-    if (this.segment.filtersList.length > 0) {
-      // Complex filter with maps when available, otherwise without maps
-      const filtersFormatted =
-        this.segment.filtersMapList.length > 0
-          ? this.segment.filtersMapList.join(';')
-          : this.segment.filtersList.join(',');
+  /**
+   * Index of the input that carries the video stream this segment encodes. The `-vf` path (below) must
+   * map it explicitly — otherwise the segment's trailing `-map 0:a?` disables ffmpeg's automatic stream
+   * selection and the filtered video is dropped (audio-only output). Default input 0; segments that
+   * prepend a blank-audio input (color/image backgrounds, muted clips) override to shift it.
+   */
+  protected videoInputIndex(): number {
+    return 0;
+  }
 
-      this.filters = ` -filter_complex "${filtersFormatted}" `;
-      this.logger.debug(`[${this.section.name}][Filters] ${filtersFormatted}`);
+  private readonly formatFilters = (): void => {
+    if (this.segment.filtersList.length === 0) {
+      return;
     }
 
-    // Add final map if present
+    if (this.segment.filtersMapList.length > 0) {
+      // Multi-pad graph (overlays/animations) → complex filtergraph; its video output is mapped via the
+      // final `[pad]` below, so no `-map N:v` is needed here.
+      this.filters = ` -filter_complex "${this.segment.filtersMapList.join(';')}" `;
+      this.logger.debug(`[${this.section.name}][Filters] ${this.segment.filtersMapList.join(';')}`);
+    }
+
+    if (this.segment.filtersMapList.length === 0) {
+      // Single linear chain (scale/pad/drawtext/…) → use `-vf`, not `-filter_complex`. They are
+      // equivalent here, but the on-device embedded engine can't resolve `drawtext` inside a
+      // `-filter_complex` graph ("No such filter: drawtext"), while `-vf` works. The explicit
+      // `-map N:v` keeps the filtered video in the output despite the trailing `-map 0:a?`.
+      this.filters = ` -vf "${this.segment.filtersList.join(',')}" -map ${this.videoInputIndex()}:v `;
+      this.logger.debug(`[${this.section.name}][Filters] ${this.segment.filtersList.join(',')}`);
+    }
+
+    // Add final map if present (complex-graph video output pad).
     if (this.segment.mapsList.length > 0) {
       this.filters = `${this.filters} -map [${this.segment.mapsList.at(-1)}] `;
       this.logger.debug(`[${this.section.name}][Maps] ${this.segment.mapsList.join(' ')}`);

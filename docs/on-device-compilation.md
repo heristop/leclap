@@ -115,12 +115,28 @@ graph LR
     dist["dist/[target]/lib<br/>libfftools.a + FFmpeg n8.0 static libs"]:::artifact
     crate["packages/ffmpeg-engine<br/>build.rs links via pkg-config"]:::native
     so["libleclap_ffmpeg_core (.so / .a)<br/>+ uniffi Kotlin/Swift bindings"]:::artifact
-    jni["modules/leclap-ffmpeg<br/>android jniLibs/[abi] · iOS xcframeworks"]:::native
+    jni["modules/leclap-ffmpeg<br/>android jniLibs/[abi] · iOS LeclapFfmpegCore.xcframework"]:::native
 
     deps --> scripts --> dist --> crate --> so --> jni
 ```
 
 `patch-fftools.sh` renames FFmpeg's `main` → `ffmpeg_main` / `ffprobe_main` and zeroes its global state at entry, making the CLI **re-entrant** so it can be called repeatedly in-process. `build.rs` then statically links `libfftools.a` ahead of the FFmpeg/freetype/harfbuzz/openh264 libs into one self-contained `.so` (no runtime FFmpeg dependency). Versions are pinned in `scripts/ffmpeg/versions.env`.
+
+### Building the engine locally
+
+The staged engine binaries (`modules/leclap-ffmpeg/android/src/main/jniLibs/*.so`,
+`modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework`) are **not committed** — build them from
+source (versions pinned in `scripts/ffmpeg/versions.env`):
+
+```bash
+# one-time prerequisites
+rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android \
+  aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+cargo install cargo-ndk   # android; also needs NDK 27.1 (see versions.env)
+
+bash scripts/ffmpeg/build-engine.sh          # everything (~1 h cold)
+bash scripts/ffmpeg/build-engine.sh android  # or one platform
+```
 
 ---
 
@@ -149,14 +165,14 @@ Notes:
 
 ## Key files
 
-| Concern                                    | Path                                                                                                                       |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| Hybrid router + capability gate            | `apps/le-clap-expo/src/services/compile/{compileHybrid,capability,ffmpegAvailability}.ts`                                  |
-| On-device service (builds config + engine) | `apps/le-clap-expo/src/services/compile/CoreCompilationService.ts`                                                         |
-| Expo native module (JS surface)            | `apps/le-clap-expo/modules/leclap-ffmpeg/index.ts` (+ Android Kotlin, iOS Swift, `jniLibs/`)                               |
-| Core RN entrypoint                         | `packages/ffmpeg-video-composer/src/reactnative.ts`                                                                        |
-| FFmpeg adapter (core ⇄ engine)             | `packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts`                                                |
-| Device filesystem adapter                  | `packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts`                                          |
-| Rust engine crate                          | `packages/ffmpeg-engine/{Cargo.toml, src/lib.rs, csrc/ffmpeg_shim.c, build.rs}`                                            |
-| FFmpeg build toolchain                     | `scripts/ffmpeg/{versions.env, common.sh, build-deps.sh, build-host.sh, build-android.sh, build-ios.sh, patch-fftools.sh}` |
-| In-app smoke test                          | `apps/le-clap-expo/app/(fullscreen)/ffmpeg-spike.tsx`                                                                      |
+| Concern                                    | Path                                                                                                                                        |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hybrid router + capability gate            | `apps/le-clap-expo/src/services/compile/{compileHybrid,capability,ffmpegAvailability}.ts`                                                   |
+| On-device service (builds config + engine) | `apps/le-clap-expo/src/services/compile/CoreCompilationService.ts`                                                                          |
+| Expo native module (JS surface)            | `apps/le-clap-expo/modules/leclap-ffmpeg/index.ts` (+ Android Kotlin, iOS Swift, `jniLibs/`)                                                |
+| Core RN entrypoint                         | `packages/ffmpeg-video-composer/src/reactnative.ts`                                                                                         |
+| FFmpeg adapter (core ⇄ engine)             | `packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts`                                                                 |
+| Device filesystem adapter                  | `packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts`                                                           |
+| Rust engine crate                          | `packages/ffmpeg-engine/{Cargo.toml, src/lib.rs, csrc/ffmpeg_shim.c, build.rs}`                                                             |
+| FFmpeg build toolchain                     | `scripts/ffmpeg/{versions.env, common.sh, build-engine.sh, build-deps.sh, build-host.sh, build-android.sh, build-ios.sh, patch-fftools.sh}` |
+| In-app smoke test                          | `apps/le-clap-expo/app/(fullscreen)/ffmpeg-spike.tsx`                                                                                       |

@@ -88,6 +88,10 @@ export default defineConfig([
       replace({
         preventAssignment: true,
         delimiters: [String.raw`\b`, String.raw`\b`],
+        // Only rewrite `global` in the JS bundle. Without this exclude the same
+        // substitution mangles reflect-metadata's inlined `declare global {` into the
+        // invalid `declare globalThis {` in the generated .d.ts, breaking tsc consumers.
+        exclude: ['**/*.d.ts'],
         values: {
           'process.env.NODE_ENV': JSON.stringify('production'),
           'process.env.PLATFORM': JSON.stringify('browser'),
@@ -95,5 +99,44 @@ export default defineConfig([
         },
       }),
     ],
+  },
+  // React-Native build — ships PRE-COMPILED JS so Hermes never sees the core's tsyringe decorators
+  // (Metro/Babel won't transform a symlinked workspace package's decorators; pre-building avoids the
+  // problem entirely). Decorators are compiled by tsdown (experimentalDecorators + emitDecoratorMetadata);
+  // reflect-metadata stays external (the app imports it once at its entry).
+  {
+    entry: ['src/reactnative.ts'],
+    format: ['esm'],
+    outExtensions: () => ({ js: '.js' }),
+    dts: true,
+    sourcemap: true,
+    outDir: 'dist',
+    target: 'es2024',
+    platform: 'neutral',
+    external: [
+      'expo-file-system',
+      'expo-file-system/legacy',
+      'reflect-metadata',
+      'child_process',
+      'fs',
+      'fs/promises',
+      'path',
+      'os',
+      'util',
+      'events',
+      'stream',
+      'crypto',
+      'extract-zip',
+      'boxen',
+      'figlet',
+      'gradient-string',
+      'cli-spinners',
+      'pino',
+      'pino-pretty',
+      'ffmpeg-static',
+      '@ffmpeg/ffmpeg',
+      '@ffmpeg/util',
+    ],
+    noExternal: ['tsyringe', 'zod'],
   },
 ]);

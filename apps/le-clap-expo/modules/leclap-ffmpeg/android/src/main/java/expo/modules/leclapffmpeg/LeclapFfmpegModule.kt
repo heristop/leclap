@@ -3,6 +3,7 @@ package expo.modules.leclapffmpeg
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import uniffi.leclap_ffmpeg_core.cancel as nativeCancel
 import uniffi.leclap_ffmpeg_core.probe as nativeProbe
 import uniffi.leclap_ffmpeg_core.run as nativeRun
 import uniffi.leclap_ffmpeg_core.version as nativeVersion
@@ -16,6 +17,9 @@ class LeclapFfmpegModule : Module() {
     Name("LeclapFfmpeg")
 
     Function("version") { nativeVersion() }
+
+    // Cooperative cancel of the in-flight run (ffmpeg exits as on SIGTERM); cheap and synchronous.
+    Function("cancel") { nativeCancel() }
 
     AsyncFunction("run") { args: List<String>, promise: Promise ->
       try {

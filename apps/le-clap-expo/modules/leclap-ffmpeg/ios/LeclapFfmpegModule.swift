@@ -12,6 +12,11 @@ public class LeclapFfmpegModule: Module {
       return version()
     }
 
+    // Cooperative cancel of the in-flight run (ffmpeg exits as on SIGTERM); cheap and synchronous.
+    Function("cancel") {
+      cancel()
+    }
+
     AsyncFunction("run") { (args: [String]) -> [String: Any] in
       let result = run(args: args)
       return ["code": result.code, "log": result.log]

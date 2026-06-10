@@ -17,10 +17,12 @@ Pod::Spec.new do |s|
   s.source_files   = 'LeclapFfmpegModule.swift', 'Generated/leclap_ffmpeg_core.swift'
   # The FFI header + its modulemap are imported by the uniffi binding via `import leclap_ffmpeg_coreFFI`
   # (resolved through SWIFT_INCLUDE_PATHS below), not compiled directly.
-  s.preserve_paths = 'Generated/leclap_ffmpeg_coreFFI.h', 'Generated/module.modulemap', 'libleclap_ffmpeg_core.a'
+  s.preserve_paths = 'Generated/leclap_ffmpeg_coreFFI.h', 'Generated/module.modulemap'
 
-  # Self-contained static engine (Rust + fftools + FFmpeg + freetype + harfbuzz). Simulator arm64 slice.
-  s.vendored_libraries = 'libleclap_ffmpeg_core.a'
+  # Self-contained static engine (Rust + fftools + FFmpeg + freetype + harfbuzz) as an xcframework:
+  # device (ios-arm64) + simulator (ios-arm64_x86_64-simulator), so it links on real iPhones and the sim.
+  # Built by packages/ffmpeg-engine/build-ios-lib.sh — NOT committed to git.
+  s.vendored_frameworks = 'LeclapFfmpegCore.xcframework'
 
   # System frameworks/libs the engine pulls in (videotoolbox encoders, media muxing, libc++/z/bz2/iconv).
   s.frameworks = 'VideoToolbox', 'CoreMedia', 'CoreVideo', 'AudioToolbox', 'CoreFoundation',

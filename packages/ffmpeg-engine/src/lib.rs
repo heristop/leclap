@@ -21,6 +21,7 @@ extern "C" {
     fn leclap_ffmpeg_run(argc: c_int, argv: *const *mut c_char) -> c_int;
     fn leclap_ffprobe_run(argc: c_int, argv: *const *mut c_char) -> c_int;
     fn av_version_info() -> *const c_char;
+    fn leclap_ffmpeg_cancel();
 }
 
 /// Result of an ffmpeg run: the exit code plus the captured stderr (ffmpeg's log — the reason on
@@ -116,6 +117,19 @@ pub fn probe(args: Vec<String>) -> ProbeResult {
     ProbeResult { code, output }
 }
 
+/// Request cooperative cancellation of whichever `run` currently holds the engine — with the
+/// core's single sequential caller, that is always the intended one. Equivalent to sending ffmpeg
+/// one SIGTERM: the transcode loop exits cleanly and `run` returns code 255. A cancel with no run
+/// in flight is a no-op (the flags are reset at the start of every run); no effect on `probe`.
+/// Deliberately does NOT take ENGINE_LOCK — the running `run` holds it. The cross-thread write to
+/// the volatile ints is formally a data race, but mirrors fftools' own signal-handler pattern
+/// (aligned int, idempotent write). The hook itself lives in patched ffmpeg.c (patch-fftools.sh
+/// step 5) because the flags are static to that translation unit.
+#[uniffi::export]
+pub fn cancel() {
+    unsafe { leclap_ffmpeg_cancel() };
+}
+
 /// The FFmpeg build version string the engine links against (e.g. "8.0").
 #[uniffi::export]
 pub fn version() -> String {
@@ -134,10 +148,12 @@ mod tests {
 
     #[test]
     fn with_captured_fd_restores_after_a_panicking_body() {
+        let _guard = ENGINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let tmp = std::env::temp_dir().join("leclap-panic.log");
         let result =
             std::panic::catch_unwind(|| with_captured_fd(2, "leclap-panic.log", || panic!("boom")));
         assert!(result.is_err());
+        assert!(std::fs::metadata(&tmp).is_ok(), "capture file should survive the panic");
 
         // If fd 2 is still redirected, this write lands in the capture file and grows it.
         let before = std::fs::metadata(&tmp).map(|m| m.len()).unwrap_or(0);

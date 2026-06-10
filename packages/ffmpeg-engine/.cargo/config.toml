@@ -1,0 +1,12 @@
+# Android link tuning for the engine .so:
+#  - max-page-size: Google Play requires 16 KB page-size support for 64-bit native libs (apps
+#    targeting Android 15+), so arm64-v8a/x86_64 align LOAD segments to 16384 — 16 KB-aligned ELFs
+#    also load on 4 KB-page devices. armeabi-v7a is 32-bit (no 16 KB requirement) and stays at 4096
+#    (Rust/NDK 27 defaults to a 16 KB p_align that older bionic linkers — Android 14 / API 34 —
+#    rejected at dlopen for that ABI: "did_read_ failed").
+[target.aarch64-linux-android]
+rustflags = ["-Clink-arg=-Wl,-z,max-page-size=16384"]
+[target.armv7-linux-androideabi]
+rustflags = ["-Clink-arg=-Wl,-z,max-page-size=4096"]
+[target.x86_64-linux-android]
+rustflags = ["-Clink-arg=-Wl,-z,max-page-size=16384"]

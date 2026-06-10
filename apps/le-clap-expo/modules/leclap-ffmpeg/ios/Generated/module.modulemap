@@ -1,0 +1,4 @@
+module leclap_ffmpeg_coreFFI {
+    header "leclap_ffmpeg_coreFFI.h"
+    export *
+}

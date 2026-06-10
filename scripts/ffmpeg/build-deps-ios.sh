@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Cross-build the FFmpeg drawtext deps (libfreetype + libharfbuzz, static) for iOS slices, mirroring
+# build-deps.sh's Android recipe but with the Xcode toolchain. Output:
+#   scripts/ffmpeg/deps/ios/<slice>/{lib,include} + pkg-config files build-ios.sh points configure at.
+# Slices: device (arm64/iphoneos), sim-arm64, sim-x86_64. openh264 is intentionally omitted — drawtext
+# parity needs only freetype+harfbuzz; H.264 (libopenh264) is added later for production encoding.
+# Usage: build-deps-ios.sh [slice ...]   (default: all three)
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/common.sh"
+
+DEPS_DIR="$SCRIPT_DIR/deps"
+FT_DOTTED="$(echo "$FREETYPE_VERSION" | sed 's/^VER-//; s/-/./g')"
+FT_SRC="$WORK_DIR/freetype-$FT_DOTTED"
+HB_SRC="$WORK_DIR/harfbuzz-$HARFBUZZ_VERSION"
+
+# slice → (sdk, arch, autotools host triple, min-version flag)
+slice_sdk()  { case "$1" in device) echo iphoneos;; sim-arm64|sim-x86_64) echo iphonesimulator;; esac; }
+slice_arch() { case "$1" in device|sim-arm64) echo arm64;; sim-x86_64) echo x86_64;; esac; }
+slice_host() { case "$1" in sim-x86_64) echo x86_64-apple-darwin;; *) echo aarch64-apple-darwin;; esac; }
+slice_min()  { case "$1" in device) echo "-mios-version-min=$IOS_MIN";; *) echo "-mios-simulator-version-min=$IOS_MIN";; esac; }
+
+fetch_freetype() {
+  mkdir -p "$WORK_DIR"
+  [ -f "$FT_SRC/configure" ] || curl -fsSL \
+    "https://download.savannah.gnu.org/releases/freetype/freetype-$FT_DOTTED.tar.gz" | tar -xz -C "$WORK_DIR"
+}
+fetch_harfbuzz() {
+  [ -f "$HB_SRC/CMakeLists.txt" ] || curl -fsSL \
+    "https://github.com/harfbuzz/harfbuzz/releases/download/$HARFBUZZ_VERSION/harfbuzz-$HARFBUZZ_VERSION.tar.xz" | tar -xJ -C "$WORK_DIR"
+}
+
+build_freetype() {
+  local SLICE="$1" SDK ARCH HOST MIN SYSROOT CC PREFIX
+  SDK="$(slice_sdk "$SLICE")"; ARCH="$(slice_arch "$SLICE")"; HOST="$(slice_host "$SLICE")"; MIN="$(slice_min "$SLICE")"
+  SYSROOT="$(xcrun --sdk "$SDK" --show-sdk-path)"; CC="$(xcrun --sdk "$SDK" --find clang)"
+  PREFIX="$DEPS_DIR/ios/$SLICE"
+  echo "[freetype][ios:$SLICE] configure ($ARCH/$SDK) ..."
+  ( cd "$FT_SRC" && make distclean >/dev/null 2>&1 || true
+    ./configure \
+      --host="$HOST" --prefix="$PREFIX" \
+      --enable-static --disable-shared --with-pic \
+      --without-harfbuzz --without-png --without-zlib --without-brotli --without-bzip2 \
+      CC="$CC" \
+      CFLAGS="-arch $ARCH $MIN -isysroot $SYSROOT -fPIC -O2"
+    make -j"$(sysctl -n hw.ncpu)"
+    make install )
+  echo "[freetype][ios:$SLICE] installed → $PREFIX"
+}
+
+build_harfbuzz() {
+  local SLICE="$1" SDK ARCH MIN SYSROOT PREFIX BUILD SYSNAME
+  SDK="$(slice_sdk "$SLICE")"; ARCH="$(slice_arch "$SLICE")"; MIN="$(slice_min "$SLICE")"
+  SYSROOT="$(xcrun --sdk "$SDK" --show-sdk-path)"
+  PREFIX="$DEPS_DIR/ios/$SLICE"; BUILD="$HB_SRC/build-ios-$SLICE"
+  echo "[harfbuzz][ios:$SLICE] cmake configure ..."
+  rm -rf "$BUILD"
+  cmake -G Ninja -S "$HB_SRC" -B "$BUILD" \
+    -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT="$SYSROOT" -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="$IOS_MIN" \
+    -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+    -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    -DHB_HAVE_FREETYPE=ON -DHB_HAVE_GLIB=OFF -DHB_HAVE_ICU=OFF \
+    -DHB_HAVE_GRAPHITE2=OFF -DHB_HAVE_CORETEXT=OFF -DHB_BUILD_TESTS=OFF -DHB_BUILD_UTILS=OFF \
+    -DCMAKE_PREFIX_PATH="$PREFIX" \
+    -DFREETYPE_LIBRARY="$PREFIX/lib/libfreetype.a" \
+    -DFREETYPE_INCLUDE_DIR_ft2build="$PREFIX/include/freetype2" \
+    -DFREETYPE_INCLUDE_DIR_freetype2="$PREFIX/include/freetype2" \
+    >/dev/null || { echo "[harfbuzz][ios:$SLICE] CONFIGURE FAILED"; exit 1; }
+  cmake --build "$BUILD" || { echo "[harfbuzz][ios:$SLICE] BUILD FAILED"; exit 1; }
+  cmake --install "$BUILD" >/dev/null || { echo "[harfbuzz][ios:$SLICE] INSTALL FAILED"; exit 1; }
+  [ -f "$PREFIX/lib/libharfbuzz.a" ] || { echo "[harfbuzz][ios:$SLICE] libharfbuzz.a missing"; exit 1; }
+  # CMake emits no .pc — write the one FFmpeg's configure needs. iOS links the system libc++ (-lc++).
+  mkdir -p "$PREFIX/lib/pkgconfig"
+  cat > "$PREFIX/lib/pkgconfig/harfbuzz.pc" <<EOF
+prefix=$PREFIX
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+Name: harfbuzz
+Description: HarfBuzz text shaping library
+Version: $HARFBUZZ_VERSION
+Requires.private: freetype2
+Libs: -L\${libdir} -lharfbuzz -lc++ -lm
+Cflags: -I\${includedir}/harfbuzz
+EOF
+  echo "[harfbuzz][ios:$SLICE] installed → $PREFIX"
+}
+
+fetch_freetype
+fetch_harfbuzz
+SLICES=("$@")
+[ ${#SLICES[@]} -eq 0 ] && SLICES=(device sim-arm64 sim-x86_64)
+for slice in "${SLICES[@]}"; do build_freetype "$slice"; build_harfbuzz "$slice"; done
+echo "[deps] ios deps complete (freetype + harfbuzz): ${SLICES[*]}"

@@ -1,0 +1,27 @@
+[package]
+name = "leclap-ffmpeg-core"
+version = "0.1.0"
+edition = "2021"
+description = "On-device FFmpeg CLI engine (embedded fftools) for le-clap-expo"
+license = "LGPL-3.0-or-later"
+
+[lib]
+name = "leclap_ffmpeg_core"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+# uniffi surfaces run/probe/version to Kotlin/Swift. libc is used for the stdout fd-redirect that
+# captures ffprobe's JSON output in-process.
+uniffi = { version = "0.28", features = ["cli"] }
+libc = "0.2"
+
+[build-dependencies]
+# cc compiles the C shim (csrc/ffmpeg_shim.c → ffmpeg_main/ffprobe_main wrappers); pkg-config links
+# the static FFmpeg libs + freetype + their transitive system deps from the per-target dist.
+cc = "1"
+pkg-config = "0.3"
+
+# Binary that generates the Kotlin/Swift bindings from the built library.
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"

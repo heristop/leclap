@@ -3,6 +3,12 @@ import SegmentBuilder from '../SegmentBuilder';
 
 @injectable()
 class ProjectVideo extends SegmentBuilder {
+  // A blank-audio input is prepended only when the section is muted, which shifts the user video to
+  // input 1; otherwise the user video is input 0.
+  protected override videoInputIndex(): number {
+    return this.section.options?.muteSection === true ? 1 : 0;
+  }
+
   override configure = (): void => {
     this.command = ' -y ';
 
@@ -34,7 +40,7 @@ class ProjectVideo extends SegmentBuilder {
     this.command +=
       ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
       ` -r 30 ${duration} ` +
-      ` -c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -tune film -b:v 12M -profile:v high -movflags +faststart -shortest -preset ${this.project.config.hardwareConfig?.preset} ` +
+      ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} -movflags +faststart -shortest ` +
       ` ${this.filters} -map 0:a? ${this.destination} `;
   };
 }

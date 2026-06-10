@@ -1,6 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import type { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
+import { parseCommand } from './parseCommand';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import type AbstractFilesystem from '../filesystem/AbstractFilesystem';
 
@@ -122,7 +123,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
     ffmpeg.on('log', errorCallback);
 
     try {
-      const args = this.parseCommand(command);
+      const args = parseCommand(command);
 
       // The filesystem adapter (this.fs) and ffmpeg's MEMFS are separate stores.
       // Copy every input file the command references into MEMFS at the same path
@@ -357,49 +358,6 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
       );
     }
   };
-
-  private parseCommand(command: string): string[] {
-    // Split a command string into args, honouring quotes. Tracks the actual
-    // quote character so a different quote inside a quoted span (e.g. a single
-    // quote inside a double-quoted -filter_complex) is kept literal - which the
-    // FFmpeg filtergraph needs for values like text='Hello World'.
-    const args: string[] = [];
-    let current = '';
-    let quoteChar: string | null = null;
-    const flush = (): void => {
-      if (current.trim()) {
-        args.push(current.trim());
-      }
-      current = '';
-    };
-
-    for (const char of command) {
-      if (quoteChar !== null) {
-        if (char === quoteChar) {
-          quoteChar = null;
-          continue;
-        }
-        current += char;
-        continue;
-      }
-
-      if (char === '"' || char === "'") {
-        quoteChar = char;
-        continue;
-      }
-
-      if (char === ' ') {
-        flush();
-        continue;
-      }
-
-      current += char;
-    }
-
-    flush();
-
-    return args;
-  }
 
   writeFile = async (name: string, data: Uint8Array): Promise<void> => {
     const ffmpeg = this.getFFmpeg();

@@ -14,6 +14,7 @@ export interface ProbeResult {
 
 interface LeclapFfmpegNativeModule {
   version(): string;
+  cancel(): void;
   run(args: string[]): Promise<RunResult>;
   probe(args: string[]): Promise<ProbeResult>;
 }
@@ -33,4 +34,9 @@ export function run(args: string[]): Promise<RunResult> {
 /** Run an ffprobe command (args WITHOUT the program name); resolves with code + captured stdout. */
 export function probe(args: string[]): Promise<ProbeResult> {
   return Native.probe(args);
+}
+
+/** Cooperatively cancel the in-flight `run` — ffmpeg exits as on SIGTERM and `run` resolves with code 255. */
+export function cancel(): void {
+  Native.cancel();
 }

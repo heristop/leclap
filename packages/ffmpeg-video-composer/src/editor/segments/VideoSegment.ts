@@ -3,6 +3,12 @@ import SegmentBuilder from '../SegmentBuilder';
 
 @injectable()
 class Video extends SegmentBuilder {
+  // A blank-audio input is prepended (shifting the video to input 1) unless the section is explicitly
+  // unmuted (`muteSection === false`), which drops the blank audio and leaves the video at input 0.
+  protected override videoInputIndex(): number {
+    return this.section.options?.muteSection === false ? 0 : 1;
+  }
+
   override configure = (): void => {
     this.command = ` -y ${this.addBlankAudio()} `;
 

@@ -102,7 +102,14 @@ class VideoEditor {
 
   finalize = async (segments: Section[]): Promise<void> => {
     try {
-      if (this.template.descriptor.global?.musicEnabled && this.project.finalVideo) {
+      // Music is mixed only when the template enables it AND a track actually resolved (buildInfos.
+      // musicPath is empty when none is selected). Without a track there's nothing to loop or append —
+      // the concat output is already the final video. Probing an empty path would otherwise fail.
+      if (
+        this.template.descriptor.global?.musicEnabled &&
+        this.project.buildInfos.musicPath &&
+        this.project.finalVideo
+      ) {
         await this.musicComposer.loopMusic();
         await this.musicComposer.appendMusic(segments, this.project.finalVideo);
       }

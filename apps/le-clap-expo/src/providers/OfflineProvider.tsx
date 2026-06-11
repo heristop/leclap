@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { useNetworkState, useOnlineStatusChange } from '@/src/hooks/useNetworkState';
-import { useAutoProcessQueue, useCleanupQueue } from '@/src/hooks/useCompilationQueue';
+import {
+  useAutoProcessQueue,
+  useCleanupQueue,
+  useCompilationQueue,
+  useProcessQueuedCompilations,
+} from '@/src/hooks/useCompilationQueue';
+import { isFFmpegAvailable } from '@/src/services/compile/ffmpegAvailability';
 import { useRefreshTemplates } from '@/src/hooks/useTemplates';
 
 interface OfflineContextType {
@@ -49,6 +55,34 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
       // Device went offline - no action needed
     }
   );
+
+  // Drain the queue in steady state — not only on an offline→online transition. Without this, items
+  // queued while already online (the common case) sit at "pending" forever even though the banner
+  // says "processing in background". Fires whenever the pending count rises and we can process
+  // (online, or the native engine is present so on-device-capable jobs run offline).
+  const queue = useCompilationQueue();
+  const processQueue = useProcessQueuedCompilations();
+  const pendingCount = (queue.data ?? []).filter((item) => item.status === 'pending').length;
+  const canProcess = isOnline || isFFmpegAvailable();
+
+  const processQueueRef = useRef(processQueue);
+  processQueueRef.current = processQueue;
+
+  useEffect(() => {
+    if (pendingCount === 0) {
+      return;
+    }
+
+    if (!canProcess) {
+      return;
+    }
+
+    if (processQueueRef.current.isPending) {
+      return;
+    }
+
+    processQueueRef.current.mutate(3);
+  }, [pendingCount, canProcess]);
 
   // Keep the mutation in a ref: react-query recreates the mutation object every render, so
   // depending on it here re-ran this effect (and reset the interval) on every render.

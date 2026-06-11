@@ -52,12 +52,6 @@ async function buildProjectConfig(input: CompileInput) {
   };
 }
 
-/**
- * Serverless on-device compilation by REUSING the core (`ffmpeg-video-composer`) on-device: it turns
- * the template descriptor into ffmpeg commands and runs them through the native CLI engine. Replaces
- * the bespoke single-clip OnDeviceCompileService — the same engine that runs on server + web now runs
- * here, so every template feature the core supports works on-device.
- */
 export class CoreCompilationService implements CompileService {
   async compile(input: CompileInput, options: CompileOptions = {}): Promise<CompileResult> {
     if (options.signal?.aborted) {

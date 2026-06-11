@@ -1,6 +1,7 @@
 import { compileVideo, type CompileRecordedVideos } from '@/src/services/api';
 import type { TemplateDescriptor, MediaChoices } from '@/src/types';
-import { OnDeviceCompileService } from './OnDeviceCompileService';
+import { resolveCompileMode } from '@/src/stores/useSettingsStore';
+import { CoreCompilationService } from './CoreCompilationService';
 import { describeOnDeviceCapability } from './capability';
 import { isFFmpegAvailable } from './ffmpegAvailability';
 
@@ -22,39 +23,52 @@ export interface HybridOptions {
 }
 
 /**
- * Hybrid compile router. Runs on-device only when (a) the native module is present in this build
- * and (b) the job is something the on-device engine can produce correctly (see capability.ts) —
- * otherwise it falls back to the server. On-device failures also fall back to the server, so a
- * job never gets stuck because the device path errored. Returns the same `{ success, outputUri,
- * error }` shape as `compileVideo`, plus which `engine` was used.
- *
- * `mediaChoices` (music + background) are forwarded to the server path; the on-device engine
- * does not yet consume them.
+ * Compile router driven by the user's Local/Server choice (Settings → `compileMode`, default Local).
+ * This is an explicit switch, NOT an automatic fallback: in Local mode the job runs on-device only —
+ * if the engine is missing or the template needs something on-device can't do (animation `maps`), it
+ * returns a clear error telling the user to switch to Server, rather than silently using the network.
+ * In Server mode it always uses the compile server. (`EXPO_PUBLIC_ENABLE_SERVER=false` forces Local
+ * and hides the option entirely.) Returns the same `{ success, outputUri, error }` shape as
+ * `compileVideo`, plus which `engine` ran.
  */
 export async function compileHybrid(
   templateDescriptor: unknown,
   recordedVideos: CompileRecordedVideos,
   options: HybridOptions = {}
 ): Promise<HybridResult> {
-  const descriptor = (templateDescriptor ?? {}) as TemplateDescriptor;
-  const capability = describeOnDeviceCapability(descriptor, recordedVideos);
+  const mode = resolveCompileMode();
 
-  if (isFFmpegAvailable() && capability.capable) {
-    try {
-      const service = new OnDeviceCompileService({ fontPath: options.fontPath });
-      const result = await service.compile({ descriptor, clips: recordedVideos });
+  if (mode === 'server') {
+    console.log('[compileHybrid] → server (selected in Settings)');
+    const server = await compileVideo(templateDescriptor, recordedVideos, options.mediaChoices);
 
-      if (result.success) {
-        return { ...result, engine: 'on-device' };
-      }
-
-      console.warn(`[compileHybrid] on-device compile failed, falling back to server: ${result.error}`);
-    } catch (error) {
-      console.warn('[compileHybrid] on-device compile threw, falling back to server:', error);
-    }
+    return { ...server, engine: 'server' };
   }
 
-  const server = await compileVideo(templateDescriptor, recordedVideos, options.mediaChoices);
+  // Local mode (default): on-device only, no network fallback.
+  const descriptor = (templateDescriptor ?? {}) as TemplateDescriptor;
 
-  return { ...server, engine: 'server' };
+  if (!isFFmpegAvailable()) {
+    return {
+      success: false,
+      engine: 'on-device',
+      error: 'The on-device engine is not available in this build. Switch to Server in Settings.',
+    };
+  }
+
+  const capability = describeOnDeviceCapability(descriptor, recordedVideos);
+
+  if (!capability.capable) {
+    return {
+      success: false,
+      engine: 'on-device',
+      error: `This scenario can't be made on-device (${capability.reason}). Switch to Server in Settings.`,
+    };
+  }
+
+  console.log('[compileHybrid] → on-device (Local mode)');
+  const service = new CoreCompilationService();
+  const result = await service.compile({ descriptor, clips: recordedVideos });
+
+  return { ...result, engine: 'on-device' };
 }

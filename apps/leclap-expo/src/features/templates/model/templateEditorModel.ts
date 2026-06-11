@@ -1,7 +1,7 @@
 import type { TemplateDescriptor, Section } from '@/src/types';
 
 // --- Editor-friendly section model (flattened; compiled to a descriptor on save) ---
-// Mirrors le-clap-web's templateEditorModel exactly: background music + background
+// Mirrors leclap-web's templateEditorModel exactly: background music + background
 // image are SECTIONS (peers of video/form/color), each carrying a curated multi-select
 // shortlist + an "allow upload" flag (image also a duration).
 

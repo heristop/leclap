@@ -229,7 +229,7 @@ export const checkServerHealth = async (): Promise<{ isHealthy: boolean; error?:
     return {
       isHealthy: false,
       error: err.message.includes('Network request failed')
-        ? 'Server is unreachable. Please check if the le-clap server is running.'
+        ? 'Server is unreachable. Please check if the leclap server is running.'
         : `Server health check failed: ${err.message}`,
     };
   }

@@ -60,7 +60,7 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(@vitest/ui@4.1.8)(jsdom@20.0.3)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
 
-  apps/le-clap-expo:
+  apps/leclap-expo:
     dependencies:
       '@expo-google-fonts/oswald':
         specifier: ^0.4.2
@@ -280,7 +280,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
 
-  apps/le-clap-web:
+  apps/leclap-web:
     dependencies:
       '@ffmpeg/ffmpeg':
         specifier: ^0.12.15

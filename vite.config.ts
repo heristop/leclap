@@ -324,14 +324,14 @@ export default defineConfig({
         rules: {},
       },
       {
-        // @le-clap/server-app (Node/Fastify service)
+        // @leclap/server-app (Node/Fastify service)
         files: ['packages/server-app/**'],
         env: { node: true, es2024: true },
         rules: {},
       },
       {
-        // le-clap-web (React + Vite browser app)
-        files: ['apps/le-clap-web/**'],
+        // leclap-web (React + Vite browser app)
+        files: ['apps/leclap-web/**'],
         plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
         env: { browser: true, es2024: true },
         rules: {
@@ -342,8 +342,8 @@ export default defineConfig({
         },
       },
       {
-        // le-clap-expo (React Native / Expo app)
-        files: ['apps/le-clap-expo/**'],
+        // leclap-expo (React Native / Expo app)
+        files: ['apps/leclap-expo/**'],
         plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
         env: { browser: true, es2024: true },
         rules: {
@@ -397,7 +397,7 @@ export default defineConfig({
         // A single ffmpeg.wasm instance can only run one exec at a time and the clips share one
         // mutable wasm FS, so the per-clip write -> exec -> read -> delete passes are strictly
         // sequential and cannot be parallelized. Promise.all would corrupt the shared FS.
-        files: ['apps/le-clap-web/src/**/videoEdits.ts'],
+        files: ['apps/leclap-web/src/**/videoEdits.ts'],
         rules: {
           'no-await-in-loop': 'off',
         },
@@ -420,7 +420,7 @@ export default defineConfig({
       {
         // On-device engine spike: uses Metro's static `require('../../assets/sample.mp4')` for the
         // bundled clip — a Metro asset import that `unicorn/prefer-module` would otherwise flag.
-        files: ['apps/le-clap-expo/app/**/ffmpeg-spike.tsx'],
+        files: ['apps/leclap-expo/app/**/ffmpeg-spike.tsx'],
         rules: {
           'unicorn/prefer-module': 'off',
         },

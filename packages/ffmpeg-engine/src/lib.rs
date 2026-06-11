@@ -1,4 +1,4 @@
-//! le-clap on-device FFmpeg engine: an embedded FFmpeg command-line executor.
+//! leclap on-device FFmpeg engine: an embedded FFmpeg command-line executor.
 //!
 //! FFmpeg's `fftools` (ffmpeg.c / ffprobe.c, patched so `main` → `ffmpeg_main` / `ffprobe_main` and
 //! `ffmpeg_main` resets its globals each call) are statically linked into this library alongside the

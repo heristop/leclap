@@ -1,4 +1,4 @@
-Media credits — le-clap web app
+Media credits — leclap web app
 ================================
 
 These curated assets are bundled under public/ for the template editor's
@@ -38,7 +38,7 @@ License — https://unsplash.com/license
 - Laptop Desk — Luke Chesser — https://unsplash.com/photos/1uxV8fAfhVM
 - Golden Hour — Alexander Shustov — https://unsplash.com/photos/2FrX56QL7P8
 
-Keep this file in sync with apps/le-clap-web/src/data/mediaCatalog.ts.
+Keep this file in sync with apps/leclap-web/src/data/mediaCatalog.ts.
 
 FONTS (public/fonts/)
 ---------------------

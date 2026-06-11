@@ -1,5 +1,5 @@
 {
-  "name": "@le-clap/server-app",
+  "name": "@leclap/server-app",
   "version": "0.0.1",
   "description": "HTTP server for video compilation",
   "author": "heristop",

@@ -7,7 +7,7 @@ description: Use when building, testing, linting, formatting, typechecking, or r
 
 ## Overview
 
-pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`vp`)** — it provides lint (oxlint), format, test (vitest), and staged checks. There is **no eslint, no prettier, and no jest at the root** (jest lives only inside `apps/le-clap-expo`).
+pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`vp`)** — it provides lint (oxlint), format, test (vitest), and staged checks. There is **no eslint, no prettier, and no jest at the root** (jest lives only inside `apps/leclap-expo`).
 
 - **pnpm 11.5.2**, **Node ≥ 22.14.0** (`engine-strict` — wrong versions are rejected). Install: `pnpm install`.
 
@@ -27,7 +27,7 @@ pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`
 | Build executables   | `pnpm build:exe:all`                                                                |
 | Dep graph / check   | `pnpm graph` · `pnpm deps:check`                                                    |
 
-`<pkg>` names: `ffmpeg-video-composer`, `@le-clap/server-app`, `@le-clap/expo`, `@le-clap/web`.
+`<pkg>` names: `ffmpeg-video-composer`, `@leclap/server-app`, `@leclap/expo`, `@leclap/web`.
 
 ## Before committing
 

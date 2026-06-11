@@ -23,7 +23,7 @@ export default defineConfig({
     // Server tests live in packages/server/tests/ and cover pure helpers with no Fastify deps.
     include: [
       'packages/ffmpeg-video-composer/tests/**/*.test.ts',
-      'apps/le-clap-web/tests/**/*.test.ts',
+      'apps/leclap-web/tests/**/*.test.ts',
       'packages/server/tests/**/*.test.ts',
     ],
     // Playwright specs live under e2e/ and import @playwright/test (not a vitest

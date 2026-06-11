@@ -73,5 +73,11 @@ fn main() {
         // glib, freetype, ApplicationServices/CoreText) is linked. Host-test-only (the Android/iOS
         // harfbuzz from build-deps.sh has no such backends).
         pkg_config::Config::new().statik(true).cargo_metadata(true).probe("harfbuzz").ok();
+
+        // brew openh264 ships only a dylib (no static .a), so the static libavcodec probe above leaves
+        // the Wels* encoder/decoder symbols unresolved. Link it dynamically for the host test; Android
+        // statically embeds its own libopenh264 (build-deps.sh) and iOS drops it for videotoolbox.
+        println!("cargo:rustc-link-search=native=/opt/homebrew/opt/openh264/lib");
+        println!("cargo:rustc-link-lib=dylib=openh264");
     }
 }

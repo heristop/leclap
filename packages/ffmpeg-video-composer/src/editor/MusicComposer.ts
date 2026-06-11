@@ -29,8 +29,8 @@ type AppendMusicOptions = {
 
 @injectable()
 class MusicComposer {
-  private buildAssetsDir: string = '';
-  private musicAssetsDir: string = '';
+  private buildAssetsDir = '';
+  private musicAssetsDir = '';
 
   private readonly project: Project;
   private readonly template: Template;

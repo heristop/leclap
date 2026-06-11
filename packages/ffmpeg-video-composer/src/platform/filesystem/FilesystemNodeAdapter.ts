@@ -23,7 +23,7 @@ const requestWithGuardedRedirects = async (
   url: string,
   responseType: ResponseType,
   origin: string = url,
-  hop: number = 0
+  hop = 0
 ): Promise<AxiosResponse> => {
   if (hop > MAX_REDIRECT_HOPS) {
     throw new Error(`Too many redirects (more than ${MAX_REDIRECT_HOPS}) while fetching ${origin}`);

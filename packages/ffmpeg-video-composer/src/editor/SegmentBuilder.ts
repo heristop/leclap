@@ -268,6 +268,7 @@ class SegmentBuilder {
     for (const input of this.section.inputs ?? []) {
       if (
         (input as MapAnimationInput).type === 'frame' &&
+        input.url !== undefined &&
         new RegExp('(.*?).(zip)$').test(input.url) &&
         inputsCache[input.name]
       ) {

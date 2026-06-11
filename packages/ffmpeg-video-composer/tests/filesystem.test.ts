@@ -142,7 +142,7 @@ describe('FilesystemNodeAdapter', () => {
   describe('fetch', () => {
     it('streams a download to disk and resolves with the destination path', async () => {
       const dataStream = { on: vi.fn(), pipe: vi.fn() };
-      axiosMock.mockResolvedValue({ data: dataStream });
+      axiosMock.mockResolvedValue({ status: 200, headers: {}, data: dataStream });
 
       const writer = {
         on: vi.fn((event: string, cb: () => void) => {
@@ -162,6 +162,7 @@ describe('FilesystemNodeAdapter', () => {
         url: 'http://example.com/video.mp4',
         responseType: 'stream',
         maxRedirects: 0,
+        validateStatus: expect.any(Function),
       });
       expect(dataStream.pipe).toHaveBeenCalledWith(writer);
     });
@@ -174,7 +175,7 @@ describe('FilesystemNodeAdapter', () => {
         }),
         pipe: vi.fn(),
       };
-      axiosMock.mockResolvedValue({ data: dataStream });
+      axiosMock.mockResolvedValue({ status: 200, headers: {}, data: dataStream });
 
       const writer = {
         on: vi.fn((event: string, cb: (err: unknown) => void) => {
@@ -202,7 +203,7 @@ describe('FilesystemNodeAdapter', () => {
         }),
         pipe: vi.fn(),
       };
-      axiosMock.mockResolvedValue({ data: dataStream });
+      axiosMock.mockResolvedValue({ status: 200, headers: {}, data: dataStream });
 
       const writer = {
         on: vi.fn((event: string, cb: (err: unknown) => void) => {
@@ -324,12 +325,12 @@ describe('FilesystemNodeAdapter', () => {
 
   describe('fetchAndRead', () => {
     it('returns the response body on success', async () => {
-      axiosGetMock.mockResolvedValue({ data: 'remote-content' });
+      axiosMock.mockResolvedValue({ status: 200, headers: {}, data: 'remote-content' });
       expect(await adapter.fetchAndRead('http://x/y')).toBe('remote-content');
     });
 
     it('logs and rethrows an Error on failure', async () => {
-      axiosGetMock.mockRejectedValue(new Error('network down'));
+      axiosMock.mockRejectedValue(new Error('network down'));
       await expect(adapter.fetchAndRead('http://x/y')).rejects.toThrow('network down');
       expect(logger.error).toHaveBeenCalledWith('Error downloading from http://x/y:', {
         message: 'network down',
@@ -337,7 +338,7 @@ describe('FilesystemNodeAdapter', () => {
     });
 
     it('logs with undefined params for non-Error rejections', async () => {
-      axiosGetMock.mockRejectedValue('plain string');
+      axiosMock.mockRejectedValue('plain string');
       await expect(adapter.fetchAndRead('http://x/y')).rejects.toBe('plain string');
       expect(logger.error).toHaveBeenCalledWith('Error downloading from http://x/y:', undefined);
     });

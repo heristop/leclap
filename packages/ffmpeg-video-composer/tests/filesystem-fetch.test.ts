@@ -110,6 +110,13 @@ describe('FilesystemNodeAdapter.fetch SSRF guard', () => {
 
     await fs.unlink(dest).catch(() => undefined);
   });
+
+  it('disables redirect-following so the SSRF guard cannot be bypassed via a 302 to a private IP', async () => {
+    await makeAdapter().fetch('https://cdn.example.com/clip.mp4');
+
+    expect(mockedAxios).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({ maxRedirects: 0 });
+  });
 });
 
 describe('FilesystemNodeAdapter.fetch local staged path', () => {
@@ -166,6 +173,13 @@ describe('FilesystemNodeAdapter.fetchAndRead SSRF guard', () => {
     expect(mockedLookup).toHaveBeenCalledWith('fonts.googleapis.com', { all: true });
     expect(mockedAxiosGet).toHaveBeenCalledTimes(1);
     expect(body).toBe('body { font-family: x; }');
+  });
+
+  it('disables redirect-following so the SSRF guard cannot be bypassed via a redirect', async () => {
+    await makeAdapter().fetchAndRead('https://fonts.googleapis.com/css?family=Roboto');
+
+    expect(mockedAxiosGet).toHaveBeenCalledTimes(1);
+    expect(mockedAxiosGet.mock.calls[0]?.[1]).toMatchObject({ maxRedirects: 0 });
   });
 });
 

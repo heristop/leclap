@@ -52,9 +52,7 @@ const remapGplFilters = (section: Section): Section => {
 
 const adaptForOnDevice = (descriptor: TemplateDescriptor): TemplateDescriptor => ({
   ...descriptor,
-  sections: descriptor.sections?.map((section: Section) =>
-    remapGplFilters(stripUseVideoSection(section))
-  ),
+  sections: descriptor.sections?.map((section: Section) => remapGplFilters(stripUseVideoSection(section))),
 });
 
 const orientationOf = (descriptor: TemplateDescriptor): 'landscape' | 'portrait' =>
@@ -67,16 +65,6 @@ const bundled = (id: string, name: string, description: string, raw: unknown): C
 };
 
 export const SAMPLE_TEMPLATES: CatalogTemplate[] = [
-  bundled(
-    'server-quick',
-    'Quick Card',
-    'Type a short message onto a brand-colored card.',
-    quickDescriptor
-  ),
-  bundled(
-    'server-portrait',
-    'Portrait',
-    'Record a clip, blur the backdrop and overlay a keyword.',
-    portraitDescriptor
-  ),
+  bundled('server-quick', 'Quick Card', 'Type a short message onto a brand-colored card.', quickDescriptor),
+  bundled('server-portrait', 'Portrait', 'Record a clip, blur the backdrop and overlay a keyword.', portraitDescriptor),
 ];

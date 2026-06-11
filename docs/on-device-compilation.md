@@ -10,9 +10,9 @@ How the Expo app compiles a template **fully on-device** — no upload, no serve
 
 ## Two halves
 
-| Half                | Lives in                                                                                           | Role                                                                  |
-| ------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| **Build toolchain** | `scripts/ffmpeg/`                                                                                  | Compiles FFmpeg + deps into static libs (`libfftools.a` …) per target |
+| Half                | Lives in                                                                                          | Role                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Build toolchain** | `scripts/ffmpeg/`                                                                                 | Compiles FFmpeg + deps into static libs (`libfftools.a` …) per target |
 | **Runtime engine**  | `packages/ffmpeg-engine/` (Rust) + `apps/leclap-expo/modules/leclap-ffmpeg/` (Expo native module) | Wraps those libs and exposes `run`/`probe`/`version` to JS            |
 
 ---
@@ -167,12 +167,12 @@ Notes:
 
 | Concern                                    | Path                                                                                                                                        |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hybrid router + capability gate            | `apps/leclap-expo/src/services/compile/{compileHybrid,capability,ffmpegAvailability}.ts`                                                   |
-| On-device service (builds config + engine) | `apps/leclap-expo/src/services/compile/CoreCompilationService.ts`                                                                          |
-| Expo native module (JS surface)            | `apps/leclap-expo/modules/leclap-ffmpeg/index.ts` (+ Android Kotlin, iOS Swift, `jniLibs/`)                                                |
+| Hybrid router + capability gate            | `apps/leclap-expo/src/services/compile/{compileHybrid,capability,ffmpegAvailability}.ts`                                                    |
+| On-device service (builds config + engine) | `apps/leclap-expo/src/services/compile/CoreCompilationService.ts`                                                                           |
+| Expo native module (JS surface)            | `apps/leclap-expo/modules/leclap-ffmpeg/index.ts` (+ Android Kotlin, iOS Swift, `jniLibs/`)                                                 |
 | Core RN entrypoint                         | `packages/ffmpeg-video-composer/src/reactnative.ts`                                                                                         |
 | FFmpeg adapter (core ⇄ engine)             | `packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts`                                                                 |
 | Device filesystem adapter                  | `packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts`                                                           |
 | Rust engine crate                          | `packages/ffmpeg-engine/{Cargo.toml, src/lib.rs, csrc/ffmpeg_shim.c, build.rs}`                                                             |
 | FFmpeg build toolchain                     | `scripts/ffmpeg/{versions.env, common.sh, build-engine.sh, build-deps.sh, build-host.sh, build-android.sh, build-ios.sh, patch-fftools.sh}` |
-| In-app smoke test                          | `apps/leclap-expo/app/(fullscreen)/ffmpeg-spike.tsx`                                                                                       |
+| In-app smoke test                          | `apps/leclap-expo/app/(fullscreen)/ffmpeg-spike.tsx`                                                                                        |

@@ -51,6 +51,11 @@ jobs:
       - name: Run Expo App Tests
         run: pnpm --filter @leclap/expo test
 
+      # Cucumber BDD integration: real renders through the core and the MCP server over stdio.
+      # Needs the drawtext-capable FFmpeg set up above; each suite builds its own package first.
+      - name: Run Integration Tests
+        run: pnpm test:integration
+
   rust-engine:
     name: Rust engine (host FFmpeg + cargo test)
     # macOS runner: the engine build scripts target macOS (sysctl/DYLD, system pkg-config), and

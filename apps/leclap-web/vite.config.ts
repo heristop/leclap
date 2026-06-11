@@ -49,6 +49,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // Mirror tsconfig's `@/core/*` → core-src mapping (must precede the general `@`): the core
+      // package uses `@/core/...` internally, so a runtime import like `@/core/argGuard` pulled into
+      // this build must resolve to the core src, not this app's src. (Type-only `@/core/types` was
+      // erased and never needed this; value imports do.)
+      '@/core': path.resolve(projectDir, '../../packages/ffmpeg-video-composer/src/core'),
       '@': path.resolve(projectDir, 'src'),
       // Provide browser-compatible alternatives for Node.js modules
       path: 'path-browserify',

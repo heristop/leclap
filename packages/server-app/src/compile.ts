@@ -5,6 +5,7 @@ import type { FastifyRequest } from 'fastify';
 import { compile as coreCompile, type TemplateDescriptor } from 'ffmpeg-video-composer';
 import { applyVideoEditsToSections, type VideoEdit } from './videoEdit.js';
 import { applyServerMedia } from './applyServerMedia.js';
+import { validateCompileRequest } from './templateValidation.js';
 
 // __dirname for this ES module. Mirrors index.js: dist/compile.js lives beside dist/index.js,
 // so `../build` resolves to packages/server-app/build exactly as before.
@@ -277,7 +278,7 @@ export function cleanupTempDir(buildDir: string, requestUid: string, logger: Com
 
 async function runCompilation(
   requestUid: string,
-  templateJson: unknown,
+  descriptor: TemplateDescriptor,
   tempVideoPaths: Record<string, string>,
   _logger: CompileLogger
 ): Promise<string | null> {
@@ -290,27 +291,7 @@ async function runCompilation(
     userVideoPaths: tempVideoPaths,
   };
 
-  return coreCompile(projectConfig, templateJson as TemplateDescriptor);
-}
-
-// Reject the request unless the template is present and any required uploads were provided.
-// Returns a failure outcome to send, or null when the request passes validation.
-function validateCompileRequest(templateJson: unknown, videoFiles: VideoFile[]): CompileOutcome | null {
-  if (!templateJson) {
-    return { success: false, outputPath: null, errorMessage: 'Template JSON missing in request', statusCode: 400 };
-  }
-
-  // Only templates with `project_video` sections need user-recorded clips. Templates built
-  // solely from color backgrounds / text / pictures compile without any upload, so don't
-  // reject those for having no files.
-  const sections = (templateJson as { sections?: { type?: string }[] }).sections ?? [];
-  const requiresVideoUpload = sections.some((s) => s.type === 'project_video');
-
-  if (requiresVideoUpload && videoFiles.length === 0) {
-    return { success: false, outputPath: null, errorMessage: 'No video files uploaded', statusCode: 400 };
-  }
-
-  return null;
+  return coreCompile(projectConfig, descriptor);
 }
 
 export async function handleCompileRequest(
@@ -333,11 +314,13 @@ export async function handleCompileRequest(
 
   logger.info(`Multipart processing complete: ${partCount} total parts, ${fieldCount} fields, ${fileCount} files`);
 
-  const validationFailure = validateCompileRequest(templateJson, videoFiles);
+  const validation = validateCompileRequest(templateJson, videoFiles);
 
-  if (validationFailure) {
-    return validationFailure;
+  if (!validation.ok) {
+    return validation.outcome;
   }
+
+  const descriptor = validation.descriptor;
 
   // Apply the user's trim/crop (selected on the device) to each clip before compilation.
   const editsResult = await applyVideoEditsToSections(tempVideoPaths, videoEdits, logger);
@@ -353,12 +336,11 @@ export async function handleCompileRequest(
 
   // Inject user-chosen music and/or background into the descriptor before compilation.
   if (musicPath !== null || backgroundPath !== null) {
-    const descriptor = templateJson as TemplateDescriptor;
     const musicName = musicPath === null ? undefined : path.basename(musicPath, '.mp3');
     applyServerMedia(descriptor, { musicName, backgroundPath: backgroundPath ?? undefined });
   }
 
-  const compiledPath = await runCompilation(requestUid, templateJson, tempVideoPaths, logger);
+  const compiledPath = await runCompilation(requestUid, descriptor, tempVideoPaths, logger);
 
   if (!compiledPath) {
     logger.error('Compilation failed.');

@@ -12,7 +12,7 @@ public class LeclapFfmpegModule: Module {
       return version()
     }
 
-    // Cooperative cancel of the in-flight run (ffmpeg exits as on SIGTERM); cheap and synchronous.
+    // Cooperative cancel: sets the static shutdown flags (same effect as SIGTERM); returns before ffmpeg exits.
     Function("cancel") {
       cancel()
     }

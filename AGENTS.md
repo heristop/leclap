@@ -21,8 +21,8 @@ pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **priv
 | `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.                |
 | `packages/server-app`            | `@leclap/server-app`    | Fastify HTTP server exposing `/compile`, `/templates`, `/health` _(demo)_. Consumes `ffmpeg-video-composer`. |
 | `packages/ffmpeg-engine`         | _(cargo crate)_         | Embedded FFmpeg engine (Rust + uniffi) for on-device compiles; built via `scripts/ffmpeg/`.                  |
-| `apps/leclap-expo`               | `@leclap/expo`          | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.            |
-| `apps/leclap-web`                | `@leclap/web`           | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                                  |
+| `apps/leclap-expo`               | `@leclap/expo`          | Expo / React Native app — on-device native-engine compiles, Tamagui UI _(reference)_.                        |
+| `apps/leclap-web`                | `@leclap/web`           | React 19 + Vite + Tailwind web app — in-browser FFmpeg via WASM _(reference)_.                               |
 
 The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (root `pnpm compile` / `pnpm diagnose` delegate to them).
 

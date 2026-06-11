@@ -19,7 +19,8 @@ pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **priv
 | -------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
 | `.`                              | `le-clap` _(private)_   | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                      |
 | `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.       |
-| `packages/server`                | `@le-clap/server`       | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes `ffmpeg-video-composer`. |
+| `packages/server-app`            | `@le-clap/server-app`   | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes `ffmpeg-video-composer`. |
+| `packages/ffmpeg-engine`         | _(cargo crate)_         | Embedded FFmpeg engine (Rust + uniffi) for on-device compiles; built via `scripts/ffmpeg/`.         |
 | `apps/le-clap-expo`              | `@le-clap/expo`         | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.   |
 | `apps/le-clap-web`               | `@le-clap/web`          | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                         |
 

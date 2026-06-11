@@ -7,7 +7,7 @@ import { applyVideoEditsToSections, type VideoEdit } from './videoEdit.js';
 import { applyServerMedia } from './applyServerMedia.js';
 
 // __dirname for this ES module. Mirrors index.js: dist/compile.js lives beside dist/index.js,
-// so `../build` resolves to packages/server/build exactly as before.
+// so `../build` resolves to packages/server-app/build exactly as before.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

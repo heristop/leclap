@@ -191,12 +191,27 @@ function useRecordingActions({
   orientation,
   device,
 }: RecordingActionsParams) {
+  // Synchronous re-entrancy guard. `isRecording` state updates asynchronously and the start path
+  // awaits a 500 ms settle delay, so a double-tap in that window would call the native
+  // startRecording() twice ("already an active video recording in progress"). This ref flips the
+  // instant a start begins and clears on finish/error/stop — blocking the second call right away.
+  const isBusyRef = useRef(false);
+  // Mirror guard for the stop path: `isRecording` also flips asynchronously, so a double-tap on the
+  // stop button calls the native stopRecording() twice ("no active video recording in progress").
+  // This ref blocks the second call until the recording actually finishes/errors and clears it.
+  const isStoppingRef = useRef(false);
+
   const startRecording = async () => {
     if (!cameraRef.current || !device) {
       console.warn('Attempted to start recording when camera not ready.');
 
       return;
     }
+
+    if (isBusyRef.current) {
+      return;
+    }
+    isBusyRef.current = true;
 
     try {
       await new Promise<void>((resolve) => setTimeout(resolve, 500));
@@ -206,15 +221,20 @@ function useRecordingActions({
         videoCodec: 'h264',
         ...(Platform.OS === 'android' ? { outputFormat: 'mp4' } : { codec: 'avc1' }),
         onRecordingFinished: (video) => {
+          isBusyRef.current = false;
+          isStoppingRef.current = false;
           onVideoRecorded(video, orientation);
           setIsRecording(false);
         },
         onRecordingError: (error) => {
+          isBusyRef.current = false;
+          isStoppingRef.current = false;
           console.error('Recording error:', error);
           setIsRecording(false);
         },
       });
     } catch (error) {
+      isBusyRef.current = false;
       console.error('Failed to start recording:', error);
       setIsRecording(false);
     }
@@ -223,9 +243,16 @@ function useRecordingActions({
   const stopRecording = async () => {
     if (!cameraRef.current) return;
 
+    if (isStoppingRef.current) {
+      return;
+    }
+    isStoppingRef.current = true;
+
     try {
       await cameraRef.current.stopRecording();
     } catch (error) {
+      isBusyRef.current = false;
+      isStoppingRef.current = false;
       console.error('Failed to stop recording:', error);
       setIsRecording(false);
     }

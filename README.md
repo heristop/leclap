@@ -19,9 +19,9 @@ Describe a video in JSON — sections, filters, music, overlays — and compile 
 
 ## ✨ What is LeClap?
 
-LeClap is a **monorepo** for programmatic video creation. A JSON _template_ describes a video's structure — sections, filters, music, text overlays — and the engine renders it into a finished video with FFmpeg. The same engine runs server-side, fully client-side via WebAssembly, and on mobile.
+LeClap renders video from a single JSON _template_: the same spec — sections, filters, music, text overlays — runs on a server, in the browser via WebAssembly, and fully **on-device** on React Native, with no upload and no server required. The on-device mobile engine (a Rust core statically linking a patched FFmpeg) is the standout capability — it keeps the whole compile on the phone, where the old `ffmpeg-kit-react-native` go-to was archived in 2025.
 
-At its core is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm, usable standalone). Around it sit an HTTP server and web + mobile apps that demonstrate it end to end.
+It ships as a **monorepo**: at its core is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm, usable standalone). Around it sit an HTTP server and web + mobile apps that demonstrate it end to end.
 
 |                            |                                                                                     |
 | -------------------------- | ----------------------------------------------------------------------------------- |
@@ -71,8 +71,8 @@ pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a pri
 | `leclap` _(private)_    | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only. |
 | `ffmpeg-video-composer` | `packages/ffmpeg-video-composer` | **The library** — cross-platform composition engine + CLI (Node, browser, WASM).   |
 | `@leclap/server-app`    | `packages/server-app`            | Fastify HTTP server exposing `/compile`, `/templates`, `/health` _(demo)_.         |
-| `@leclap/web`           | `apps/leclap-web`                | React 19 + Vite + Tailwind web app — runs FFmpeg entirely in-browser via WASM.     |
-| `@leclap/expo`          | `apps/leclap-expo`               | Expo / React Native app — Tamagui UI, offline-first (Zustand + AsyncStorage).      |
+| `@leclap/web`           | `apps/leclap-web`                | React 19 + Vite + Tailwind web app — in-browser FFmpeg via WASM _(reference)_.     |
+| `@leclap/expo`          | `apps/leclap-expo`               | Expo / React Native app — on-device compiles via the native engine _(reference)_.  |
 | `ffmpeg-engine`         | `packages/ffmpeg-engine`         | Rust engine embedding FFmpeg fftools for on-device compiles (Expo app).            |
 
 The server, web, and mobile apps all run the same `ffmpeg-video-composer` core — the mobile app drives it on-device through the embedded native engine and falls back to the server.

@@ -161,7 +161,7 @@ export default function Header({
   };
 
   const handleNavigateToBrowseTemplates = (): void => {
-    router.navigate('/features/templates/screens/BrowseTemplatesScreen');
+    router.navigate('/(app)');
   };
 
   const containerStyles = getContainerStyles(variant);

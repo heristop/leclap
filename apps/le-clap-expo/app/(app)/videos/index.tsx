@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { colors } from '@/src/styles/theme';
-import ProjectsScreen from '../../features/projects/screens/ProjectsScreen';
-import CameraModal from '../../components/CameraModal';
+import ProjectsScreen from '@/src/features/projects/screens/ProjectsScreen';
+import CameraModal from '@/src/components/CameraModal';
 
 export default function VideosTab() {
   const [cameraModalVisible, setCameraModalVisible] = useState(false);

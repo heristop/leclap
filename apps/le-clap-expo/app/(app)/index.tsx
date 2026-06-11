@@ -2,12 +2,12 @@ import React, { Suspense, lazy, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { VideoFile } from 'react-native-vision-camera';
 import { colors } from '@/src/styles/theme';
-import BrowseTemplatesScreen from '../features/templates/screens/BrowseTemplatesScreen';
+import BrowseTemplatesScreen from '@/src/features/templates/screens/BrowseTemplatesScreen';
 
 // Lazy-load the camera modal so react-native-vision-camera (and its native CameraX
 // bindings) initialize only when the user opens the camera, not at home-screen module
 // load. This keeps the home screen renderable even if the camera native module has issues.
-const CameraModal = lazy(() => import('../components/CameraModal'));
+const CameraModal = lazy(() => import('@/src/components/CameraModal'));
 
 export default function ScenariosTab() {
   const [cameraModalVisible, setCameraModalVisible] = useState(false);

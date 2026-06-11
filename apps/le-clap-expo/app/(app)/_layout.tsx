@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Tabs } from 'expo-router';
-import CustomTabBar from '../components/ui/CustomTabBar';
-import Header from '../components/common/Header';
+import CustomTabBar from '@/src/components/ui/CustomTabBar';
+import Header from '@/src/components/common/Header';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
 export default function AppLayout() {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import TrimPanel, { type TrimRange } from '@/app/features/editor/components/TrimPanel';
+import TrimPanel, { type TrimRange } from '@/src/features/editor/components/TrimPanel';
 import { styles } from './previewStyles';
 
 interface TrimEditPanelProps {

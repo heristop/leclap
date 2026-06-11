@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Mod
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import FormSection from '@/app/features/editor/components/FormSection';
+import FormSection from '@/src/features/editor/components/FormSection';
 import type { Template, Section, Project, MediaChoice, MediaChoices } from '@/src/types';
 import { colors } from '@/src/styles/theme';
 import { styles } from './TemplateDetailScreen.styles';
@@ -11,7 +11,8 @@ import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
-import { UserMediaPicker } from '@/app/features/templates/components/UserMediaPicker';
+import { useCompileMode } from '@/src/stores/useSettingsStore';
+import { UserMediaPicker } from '@/src/features/templates/components/UserMediaPicker';
 import { needsMediaStep } from '@/src/services/media/mediaStepHelpers';
 
 const EDITABLE_TYPES = ['project_video', 'form', 'music', 'picture'] as const;
@@ -54,10 +55,10 @@ function compileTemplate(content: Template['content'], formData: Project['formDa
   return JSON.parse(str) as Record<string, unknown>;
 }
 
-function getButtonLabel(isPending: boolean, isOffline: boolean): string {
+function getButtonLabel(isPending: boolean, willQueue: boolean): string {
   if (!isPending) return 'Create My Video';
 
-  return isOffline ? 'Adding to Queue...' : 'Creating Video...';
+  return willQueue ? 'Adding to Queue...' : 'Creating Video...';
 }
 
 type FormModalProps = {
@@ -277,7 +278,6 @@ function useSectionHandlers(ctx: HandlerCtx) {
 type CompileCtx = {
   project: Project | null;
   template: Template | undefined;
-  isOffline: boolean;
   mediaChoices: MediaChoices;
   setProject: (p: Project) => void;
   saveProjectMutation: ReturnType<typeof useSaveProject>;
@@ -286,8 +286,7 @@ type CompileCtx = {
 };
 
 function useCompileHandler(ctx: CompileCtx) {
-  const { project, template, isOffline, mediaChoices, setProject, saveProjectMutation, queueVideoCompilation, router } =
-    ctx;
+  const { project, template, mediaChoices, setProject, saveProjectMutation, queueVideoCompilation, router } = ctx;
 
   return () => {
     if (!project || !template) return;
@@ -318,10 +317,8 @@ function useCompileHandler(ctx: CompileCtx) {
           }
 
           if (!result.immediate) {
-            const title = isOffline ? 'Added to Queue (Offline)' : 'Added to Queue';
-            const msg = isOffline
-              ? 'Your video will be processed automatically when you connect to the internet.'
-              : "Your video has been queued for processing. You'll be notified when it's ready.";
+            const title = 'Added to Queue';
+            const msg = 'The server is unreachable right now — your video will render automatically once it’s back.';
 
             Alert.alert(title, msg, [
               {
@@ -465,6 +462,10 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
   const saveProjectMutation = useSaveProject();
   const queueVideoCompilation = useQueueVideoCompilation();
   const { isOffline } = useOffline();
+  const mode = useCompileMode();
+  // A job is only queued in Cloud mode when the server can't be reached. Local always renders now,
+  // so the button must never say "Adding to Queue…" on-device.
+  const willQueue = mode === 'server' && isOffline;
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
   const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
@@ -508,7 +509,6 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
   const handleCompile = useCompileHandler({
     project,
     template,
-    isOffline,
     mediaChoices,
     setProject: setProjectSafe,
     saveProjectMutation,
@@ -542,7 +542,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     setBackgroundChoice,
     mediaStepDone,
     isPending: queueVideoCompilation.isPending,
-    isOffline,
+    willQueue,
     handleFormDataChange,
     handleFormSubmit,
     handlePreviewVideo,
@@ -637,7 +637,7 @@ const TemplateDetailScreen = () => {
     setBackgroundChoice,
     mediaStepDone,
     isPending,
-    isOffline,
+    willQueue,
     handleFormDataChange,
     handleFormSubmit,
     handlePreviewVideo,
@@ -651,15 +651,21 @@ const TemplateDetailScreen = () => {
     return <LoadingState />;
   }
 
+  // Template detail is a root-stack screen reached by push (from the lists) or replace (after
+  // recording the last section / finishing the preview). A replace-entry can have an empty back
+  // stack, so fall back to the tabs rather than letting router.back() throw "GO_BACK not handled".
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+
+      return;
+    }
+
+    router.replace('/(app)');
+  };
+
   if (templateError || !template || !project) {
-    return (
-      <ErrorState
-        error={templateError}
-        onBack={() => {
-          router.back();
-        }}
-      />
-    );
+    return <ErrorState error={templateError} onBack={goBack} />;
   }
   const isDisabled = !allDone || isPending;
   const { totalItems, totalDone } = computeProgress(
@@ -672,12 +678,7 @@ const TemplateDetailScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            router.back();
-          }}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>{template.name.replace('.json', '')}</Text>
@@ -724,7 +725,7 @@ const TemplateDetailScreen = () => {
           disabled={isDisabled}
           onPress={handleCompile}
         >
-          <Text style={styles.createButtonText}>{getButtonLabel(isPending, isOffline)}</Text>
+          <Text style={styles.createButtonText}>{getButtonLabel(isPending, willQueue)}</Text>
           {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
         </TouchableOpacity>
       </View>

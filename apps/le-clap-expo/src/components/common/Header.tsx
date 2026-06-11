@@ -13,6 +13,8 @@ interface HeaderProps {
   rightContent?: React.ReactNode;
   onBackPress?: () => void;
   showSlogan?: boolean;
+  /** Show a settings gear in the right section that opens the Settings screen. */
+  showSettings?: boolean;
   variant?: 'primary' | 'transparent' | 'light';
   actions?: {
     icon: string;
@@ -146,6 +148,7 @@ export default function Header({
   rightContent,
   onBackPress,
   showSlogan = true,
+  showSettings = false,
   variant = 'primary',
   actions = [],
 }: HeaderProps) {
@@ -206,6 +209,15 @@ export default function Header({
             onNavigateToBrowseTemplates={handleNavigateToBrowseTemplates}
             textColor={textColor}
           />
+          {showSettings && (
+            <TouchableOpacity
+              onPress={() => router.push('/(fullscreen)/settings')}
+              style={styles.actionButton}
+              accessibilityLabel="Settings"
+            >
+              <Ionicons name="settings-outline" size={24} color={textColor} />
+            </TouchableOpacity>
+          )}
           {rightContent}
         </View>
       </View>

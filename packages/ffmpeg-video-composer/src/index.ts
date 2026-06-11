@@ -136,3 +136,4 @@ export { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 export { Terminal } from './utils/terminal';
 export { container };
 export type { ProjectConfig, TemplateDescriptor } from './core/types';
+export { TemplateDescriptorSchema } from './schemas/template.schemas';

@@ -6,19 +6,19 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the
 An AI agent (Claude Desktop, Cursor, …) discovers the template schema and the built-in
 catalog, **authors a JSON template itself**, and calls a tool to render it **deterministically**
 to an mp4. The server embeds no LLM — the calling agent is the LLM; this server validates and
-renders. The result is *agent-composable, deterministic, reproducible* video — the opposite of
+renders. The result is _agent-composable, deterministic, reproducible_ video — the opposite of
 generative (Sora/Runway). Design spec:
 [`docs/superpowers/specs/2026-06-11-leclap-mcp-design.md`](../../docs/superpowers/specs/2026-06-11-leclap-mcp-design.md).
 
 ## Tools
 
-| Tool                  | Description                                                                                          |
-| --------------------- | --------------------------------------------------------------------------------------------------- |
-| `list_templates`      | The built-in catalog (id, description, orientation, required clips, fields, `requiresNetwork`)       |
-| `get_template`        | The full JSON descriptor of one built-in (start here, then modify)                                  |
-| `get_template_schema` | The JSON Schema for a template descriptor + a short authoring guide                                 |
+| Tool                  | Description                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `list_templates`      | The built-in catalog (id, description, orientation, required clips, fields, `requiresNetwork`)                    |
+| `get_template`        | The full JSON descriptor of one built-in (start here, then modify)                                                |
+| `get_template_schema` | The JSON Schema for a template descriptor + a short authoring guide                                               |
 | `compose_video`       | Validate a descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
-| `probe_media`         | Inspect a local media file → codecs, duration, sample rate, size                                    |
+| `probe_media`         | Inspect a local media file → codecs, duration, sample rate, size                                                  |
 
 Typical agent flow: `get_template_schema` (or `get_template`) → author/modify a descriptor →
 `compose_video` → read the returned `outputPath`.
@@ -65,7 +65,7 @@ Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoP
 }
 ```
 
-Then ask the agent to *"list the video templates, then render the sample template"* and open the returned path.
+Then ask the agent to _"list the video templates, then render the sample template"_ and open the returned path.
 
 ### Inspector
 

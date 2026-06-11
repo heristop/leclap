@@ -15,14 +15,15 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 
 pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **private orchestrator** (`leclap`) holding only shared dev tooling and scripts — not a publishable package. The single published artifact is `ffmpeg-video-composer`; everything else is scoped `@leclap/*`.
 
-| Path                             | Package                 | What it is                                                                                                   |
-| -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `.`                              | `leclap` _(private)_    | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                               |
-| `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.                |
-| `packages/server-app`            | `@leclap/server-app`    | Fastify HTTP server exposing `/compile`, `/templates`, `/health` _(demo)_. Consumes `ffmpeg-video-composer`. |
-| `packages/ffmpeg-engine`         | _(cargo crate)_         | Embedded FFmpeg engine (Rust + uniffi) for on-device compiles; built via `scripts/ffmpeg/`.                  |
-| `apps/leclap-expo`               | `@leclap/expo`          | Expo / React Native app — on-device native-engine compiles, Tamagui UI _(reference)_.                        |
-| `apps/leclap-web`                | `@leclap/web`           | React 19 + Vite + Tailwind web app — in-browser FFmpeg via WASM _(reference)_.                               |
+| Path                             | Package                 | What it is                                                                                                                |
+| -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `.`                              | `leclap` _(private)_    | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                                            |
+| `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.                             |
+| `packages/server-app`            | `@leclap/server-app`    | Fastify HTTP server exposing `/compile`, `/templates`, `/health` _(demo)_. Consumes `ffmpeg-video-composer`.              |
+| `packages/mcp`                   | `@leclap/mcp`           | MCP server exposing the engine as agent-callable tools (compose/list/probe) over stdio. Consumes `ffmpeg-video-composer`. |
+| `packages/ffmpeg-engine`         | _(cargo crate)_         | Embedded FFmpeg engine (Rust + uniffi) for on-device compiles; built via `scripts/ffmpeg/`.                               |
+| `apps/leclap-expo`               | `@leclap/expo`          | Expo / React Native app — on-device native-engine compiles, Tamagui UI _(reference)_.                                     |
+| `apps/leclap-web`                | `@leclap/web`           | React 19 + Vite + Tailwind web app — in-browser FFmpeg via WASM _(reference)_.                                            |
 
 The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (root `pnpm compile` / `pnpm diagnose` delegate to them).
 

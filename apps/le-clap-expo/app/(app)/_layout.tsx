@@ -17,7 +17,7 @@ export default function AppLayout() {
 
   return (
     <>
-      <Header />
+      <Header showSettings />
 
       <Tabs
         tabBar={(props) => <CustomTabBar {...props} />}

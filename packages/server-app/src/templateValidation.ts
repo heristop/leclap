@@ -61,9 +61,10 @@ export function validateCompileRequest(
     return fail('No video files uploaded');
   }
 
-  // parsed.data has passed schema validation. The core's hand-written TemplateDescriptor is
-  // a slightly stricter view of the same shape (e.g. it marks Input.url required), so a single
-  // narrowing here keeps the rest of the pipeline typed without re-asserting raw, unvalidated
-  // JSON the way the previous `templateJson as TemplateDescriptor` cast did.
-  return { ok: true, descriptor: parsed.data as TemplateDescriptor };
+  // parsed.data has passed schema validation and now matches the core's hand-written
+  // TemplateDescriptor structurally (Input.url is optional in both), so it flows through
+  // without a cast.
+  const descriptor: TemplateDescriptor = parsed.data;
+
+  return { ok: true, descriptor };
 }

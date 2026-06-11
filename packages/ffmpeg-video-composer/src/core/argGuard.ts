@@ -1,0 +1,24 @@
+// Guard for template-derived values that are interpolated UNQUOTED into the FFmpeg command string.
+// The command is built as a string and then space-split by `parseCommand` into an argv array for
+// `execFile`. Positional values such as a `color=c=<color>` source, a `-i <path/url>` input, or a
+// section name are single argv tokens *by construction*: the only way an attacker can inject extra
+// ffmpeg arguments (e.g. a second `-i`, a `-map`, or an alternate output file) is to smuggle ASCII
+// whitespace into the resolved value so `parseCommand` starts a new token.
+//
+// Rejecting raw whitespace (and NUL) is therefore safe and high-confidence: a legitimate color
+// (`red`, `#000000`, `red@0.5`), file path, section name, or URL in this pipeline never contains raw
+// whitespace — real URLs percent-encode spaces. Shell injection is already prevented by execFile;
+// this closes the remaining argv-level hole. Quoted filter values (`-vf "..."` / `-filter_complex
+// "..."`) are single tokens already and are intentionally NOT guarded here.
+// `\s` matches ASCII space/tab/CR/LF/FF/VT (and Unicode whitespace). NUL is not whitespace, so it is
+// checked separately rather than embedding a control character in the regex.
+const WHITESPACE = /\s/;
+const NUL = String.fromCodePoint(0);
+
+export function assertSafeArgToken(value: string, field: string): string {
+  if (WHITESPACE.test(value) || value.includes(NUL)) {
+    throw new Error(`Unsafe ${field}: value contains whitespace or a NUL byte and would inject extra ffmpeg arguments`);
+  }
+
+  return value;
+}

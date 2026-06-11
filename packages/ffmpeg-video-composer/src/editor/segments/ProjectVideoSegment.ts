@@ -1,5 +1,6 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
+import { assertSafeArgToken } from '@/core/argGuard';
 
 @injectable()
 class ProjectVideo extends SegmentBuilder {
@@ -29,7 +30,8 @@ class ProjectVideo extends SegmentBuilder {
       this.source = this.project.config.userVideoPaths[this.section.name];
     }
 
-    const sourceVideo = `-i ${this.source}`;
+    // Resolved source path (userVideoPaths/staged) interpolated unquoted as a `-i` source token.
+    const sourceVideo = `-i ${assertSafeArgToken(this.source, 'source')}`;
 
     let duration = '';
 

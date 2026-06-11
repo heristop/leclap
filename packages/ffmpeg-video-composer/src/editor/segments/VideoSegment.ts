@@ -1,5 +1,6 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
+import { assertSafeArgToken } from '@/core/argGuard';
 
 @injectable()
 class Video extends SegmentBuilder {
@@ -39,7 +40,8 @@ class Video extends SegmentBuilder {
     if (this.section.options?.useVideoSection) {
       // Use a project video as second input
       const videoSegment = this.section.options.useVideoSection;
-      const sourceVideo = `-i ${this.filesystemAdapter.getSource(videoSegment)}`;
+      // Resolved source path/url (useVideoSection -> getSource) interpolated unquoted as a `-i` token.
+      const sourceVideo = `-i ${assertSafeArgToken(this.filesystemAdapter.getSource(videoSegment), 'useVideoSection source')}`;
 
       this.command +=
         ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
@@ -55,7 +57,7 @@ class Video extends SegmentBuilder {
     // useVideoSection produced an input-only command (no output), which FFmpeg
     // rejects with "At least one output file must be specified".
     this.command +=
-      ` ${this.hwaccelArg} -i ${this.source} ${this.sources.join(' ')} ` +
+      ` ${this.hwaccelArg} -i ${assertSafeArgToken(this.source, 'source')} ${this.sources.join(' ')} ` +
       ` -r 30 -t ${this.section.options?.duration} ` +
       ` ${encodingParams} ` +
       ` ${this.filters} ${this.destination} `;

@@ -14,7 +14,7 @@
         "NSMicrophoneUsageDescription": "LeClap needs access to your microphone to record audio for your videos",
         "NSPhotoLibraryUsageDescription": "LeClap needs access to your photo library to save and import your videos"
       },
-      "bundleIdentifier": "com.anonymous.leclap"
+      "bundleIdentifier": "com.heristop.leclap"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +27,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "package": "com.anonymous.leclap"
+      "package": "com.heristop.leclap"
     },
     "web": {
       "bundler": "metro",

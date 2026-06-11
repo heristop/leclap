@@ -18,13 +18,8 @@ export interface Template {
 }
 
 const getServerUrl = () => {
-  // In development, use localhost:8082
-  // In production, this could be configured via environment variables
-  if (window.location.hostname === 'localhost') {
-    return 'http://localhost:8082';
-  }
-  // For production, you would set this to your actual server URL
-  return 'http://localhost:8082';
+  // Configured at build time via VITE_API_URL; falls back to the local dev server.
+  return import.meta.env.VITE_API_URL ?? 'http://localhost:8082';
 };
 
 const TEMPLATE_METADATA: Partial<Record<string, Omit<Template, 'id' | 'descriptor' | 'source'>>> = {

@@ -158,7 +158,7 @@ class TemplateDirector {
     };
 
     const durations = await Promise.all(segments.map(resolveDuration));
-    const durMap = this.project.buildInfos.durations as unknown as Record<string, number>;
+    const durMap = this.project.buildInfos.durations;
 
     for (const [index, segment] of segments.entries()) {
       const duration = durations[index] ?? 0;
@@ -179,7 +179,7 @@ class TemplateDirector {
 
   processVideoSegments = async (segments: Section[]): Promise<void> => {
     const { totalLength } = this.project.buildInfos;
-    const durMap = this.project.buildInfos.durations as unknown as Record<string, number>;
+    const durMap = this.project.buildInfos.durations;
     let accumulated = 0;
 
     await segments.reduce(async (chain, segment) => {
@@ -230,7 +230,7 @@ class TemplateDirector {
 
   updateProgress = (segment: Section): void => {
     const { totalLength } = this.project.buildInfos;
-    const durMap = this.project.buildInfos.durations as unknown as Record<string, number>;
+    const durMap = this.project.buildInfos.durations;
     const segmentLength = durMap[segment.name] ?? 0;
 
     this.project.progress = Math.min(1, this.project.progress + segmentLength / totalLength);

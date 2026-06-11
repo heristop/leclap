@@ -45,7 +45,7 @@ export type ProjectBuildInfos = {
   currentLength: number;
   currentProgress: number;
   currentIncrement: number;
-  durations: number[];
+  durations: Record<string, number>;
   videoInputs: string[];
   musicInputs: string[];
   musicFilters: string[];

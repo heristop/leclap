@@ -76,10 +76,15 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     // (cloud metadata, loopback, RFC1918, ...) before issuing the request.
     await assertSafeRemoteUrl(url);
 
+    // maxRedirects: 0 — assertSafeRemoteUrl validated only this URL. axios would otherwise follow up to
+    // 5 redirects with no re-check, so a public bait URL could 302 to a private/metadata host (SSRF).
+    // The guard is async (DNS), so a beforeRedirect hook can't cleanly await it; refusing redirects is
+    // the simplest safe choice (media URLs here are direct).
     const response = await axios({
       method: 'get',
       url,
       responseType: 'stream',
+      maxRedirects: 0,
     });
 
     const writer = createWriteStream(dest);
@@ -180,7 +185,9 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       // able to reach cloud metadata, loopback, or RFC1918 hosts before the request.
       await assertSafeRemoteUrl(url);
 
-      const response = await axios.get(url);
+      // maxRedirects: 0 — see fetch(): re-validating across redirects isn't possible with the async
+      // SSRF guard, and the gstatic font CSS URL is fetched directly, so redirects are refused.
+      const response = await axios.get(url, { maxRedirects: 0 });
 
       return response.data;
     } catch (error) {

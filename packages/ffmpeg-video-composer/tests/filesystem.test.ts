@@ -161,6 +161,7 @@ describe('FilesystemNodeAdapter', () => {
         method: 'get',
         url: 'http://example.com/video.mp4',
         responseType: 'stream',
+        maxRedirects: 0,
       });
       expect(dataStream.pipe).toHaveBeenCalledWith(writer);
     });

@@ -70,11 +70,12 @@ pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a pri
 | ----------------------- | -------------------------------- | ---------------------------------------------------------------------------------- |
 | `le-clap` _(private)_   | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only. |
 | `ffmpeg-video-composer` | `packages/ffmpeg-video-composer` | **The library** — cross-platform composition engine + CLI (Node, browser, WASM).   |
-| `@le-clap/server`       | `packages/server`                | Fastify HTTP server exposing `/compile`, `/templates`, `/health`.                  |
+| `@le-clap/server-app`   | `packages/server-app`            | Fastify HTTP server exposing `/compile`, `/templates`, `/health`.                  |
 | `@le-clap/web`          | `apps/le-clap-web`               | React 19 + Vite + Tailwind web app — runs FFmpeg entirely in-browser via WASM.     |
 | `@le-clap/expo`         | `apps/le-clap-expo`              | Expo / React Native app — Tamagui UI, offline-first (Zustand + AsyncStorage).      |
+| `ffmpeg-engine`         | `packages/ffmpeg-engine`         | Rust engine embedding FFmpeg fftools for on-device compiles (Expo app).            |
 
-The server and web app depend on `ffmpeg-video-composer`; the mobile app talks to the server.
+The server, web, and mobile apps all run the same `ffmpeg-video-composer` core — the mobile app drives it on-device through the embedded native engine and falls back to the server.
 
 ## 🧩 Templates
 

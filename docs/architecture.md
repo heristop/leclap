@@ -249,7 +249,7 @@ The architecture is designed to support multiple platforms:
 
 - **Node.js** - Full featured implementation with system FFmpeg support
 - **Browser** - WebAssembly-based implementation for client-side processing
-- **React Native** - Mobile-ready architecture (adapter implementations needed)
+- **React Native** - On-device compilation through the embedded FFmpeg CLI engine (`packages/ffmpeg-engine` + `FFmpegLeclapAdapter`); see [on-device-compilation.md](./on-device-compilation.md)
 - **Electron** - Works with both Node.js and browser implementations
 
 ## Error Handling & Diagnostics

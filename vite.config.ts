@@ -425,6 +425,15 @@ export default defineConfig({
           'unicorn/prefer-module': 'off',
         },
       },
+      {
+        // Generated data modules (e.g. catalog/templates.generated.ts from scripts/embedTemplates.ts)
+        // are machine-emitted, not hand-maintained, so the file/function size budgets don't apply.
+        files: ['**/*.generated.ts'],
+        rules: {
+          'max-lines': 'off',
+          'max-lines-per-function': 'off',
+        },
+      },
     ],
   },
 });

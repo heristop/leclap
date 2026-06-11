@@ -54,7 +54,7 @@ Build-environment notes live in [`docs/on-device-compilation.md`](./docs/on-devi
 
 Commits follow **Conventional Commits** with a **lowercase**, single-line subject:
 
-```
+```text
 fix(expo): real bundle id and env-driven api url
 feat(core): add intertitle segment
 docs: add contributing guide

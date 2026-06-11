@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   addToCompilationQueue,
@@ -6,6 +7,7 @@ import {
   removeFromCompilationQueue,
   getPendingCompilations,
   cleanupCompilationQueue,
+  reconcileStuckCompilations,
 } from '@/src/services/storage';
 import { type CompileRecordedVideos } from '@/src/services/api';
 import { compileHybrid } from '@/src/services/compile/compileHybrid';
@@ -288,6 +290,32 @@ export const useCleanupQueue = () => {
       invalidateQueueKeys(queryClient);
     },
   });
+};
+
+/**
+ * Hook for cold-boot reconciliation of stuck compilations.
+ *
+ * If the app was killed mid-compile, items are left stuck in `processing` forever (the processor
+ * never persisted a terminal state). Reset them once, on mount — items flipped back to `pending`
+ * are then picked up by the drain effect. The query client is a stable reference, so this runs once
+ * per cold boot, never on a render or a network flip.
+ */
+export const useColdBootReconciliation = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    reconcileStuckCompilations()
+      .then((resetIds) => {
+        if (resetIds.length === 0) {
+          return;
+        }
+
+        invalidateQueueKeys(queryClient);
+      })
+      .catch((error) => {
+        console.warn('Failed to reconcile stuck compilations:', error);
+      });
+  }, [queryClient]);
 };
 
 /**

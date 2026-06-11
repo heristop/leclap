@@ -7,7 +7,15 @@ const root = resolve(__dirname, '..');
 
 const libDir = resolve(root, 'packages/ffmpeg-video-composer/src/shared/library');
 
+// Bundle the server's template JSONs into the Expo app so the local catalog == the server catalog
+// (the app compiles them on-device by default, or via the server when the user toggles it).
+const serverTemplatesDir = resolve(root, 'packages/server-app/templates');
+
 const destinations = [
+  {
+    src: serverTemplatesDir,
+    dest: resolve(root, 'apps/le-clap-expo/src/templates/server'),
+  },
   {
     src: resolve(libDir, 'musics'),
     dest: resolve(root, 'apps/le-clap-web/public/musics'),

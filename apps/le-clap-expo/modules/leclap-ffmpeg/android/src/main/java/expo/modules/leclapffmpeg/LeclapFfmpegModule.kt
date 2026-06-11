@@ -18,7 +18,7 @@ class LeclapFfmpegModule : Module() {
 
     Function("version") { nativeVersion() }
 
-    // Cooperative cancel of the in-flight run (ffmpeg exits as on SIGTERM); cheap and synchronous.
+    // Cooperative cancel of the in-flight run: sets the static shutdown flags (same effect as SIGTERM); returns before ffmpeg exits.
     Function("cancel") { nativeCancel() }
 
     AsyncFunction("run") { args: List<String>, promise: Promise ->

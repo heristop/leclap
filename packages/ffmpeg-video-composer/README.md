@@ -4,6 +4,8 @@
 
 Template-driven video composition over FFmpeg. A single JSON _template_ describes a video's structure — sections, filters, music, text overlays — and the library renders it into a finished video. The same engine runs in Node.js, in the browser (WebAssembly), and in React Native.
 
+> Upgrading from v1? The package name is unchanged — see the [migration guide](https://github.com/heristop/ffmpeg-video-composer/blob/main/MIGRATION.md).
+
 ## Install
 
 ```bash

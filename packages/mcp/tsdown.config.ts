@@ -37,7 +37,7 @@ export default defineConfig([
     target: 'es2024',
     platform: 'node',
     banner: { js: '#!/usr/bin/env node' },
-    external,
+    deps: { neverBundle: external },
   },
   // Forked render worker — emitted as dist/render-worker.js (owns fd1/fd2; runs compile()).
   {
@@ -49,6 +49,6 @@ export default defineConfig([
     outDir: 'dist',
     target: 'es2024',
     platform: 'node',
-    external,
+    deps: { neverBundle: external },
   },
 ]);

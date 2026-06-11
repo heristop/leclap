@@ -17,7 +17,7 @@
     "build": "tsdown",
     "prepack": "tsdown",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vp test run",
     "test:integration": "pnpm --filter ffmpeg-video-composer build && pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
   },
   "dependencies": {

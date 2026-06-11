@@ -137,7 +137,7 @@ Supported environments: **Node.js**, **browsers** (WASM), **React Native** (need
 
 ## 🛠️ Development
 
-Tooling is **vite-plus (`vp`)** — no eslint, prettier, or root jest (jest lives only inside the Expo app).
+Tooling is **vite-plus (`vp`)**.
 
 | Task           | Command                                                           |
 | -------------- | ----------------------------------------------------------------- |

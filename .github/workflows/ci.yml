@@ -45,6 +45,12 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: pnpm test:ci
 
+      # The Expo app's unit suite runs on jest (not vitest), so the root vitest run above doesn't
+      # include it. Run it explicitly so CI covers the whole monorepo (Build precedes this, so its
+      # core-dist + copied-template imports resolve).
+      - name: Run Expo App Tests
+        run: pnpm --filter @leclap/expo test
+
   rust-engine:
     name: Rust engine (host FFmpeg + cargo test)
     # macOS runner: the engine build scripts target macOS (sysctl/DYLD, system pkg-config), and

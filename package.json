@@ -33,7 +33,8 @@
     "playground:android": "pnpm --filter @leclap/expo run android",
     "playground:ios": "pnpm --filter @leclap/expo run ios",
     "playground:web": "pnpm --filter @leclap/web run dev",
-    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/server-app run build && pnpm --filter @leclap/server-app run start"
+    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/server-app run build && pnpm --filter @leclap/server-app run start",
+    "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/mcp/dist/index.js"
   },
   "devDependencies": {
     "@swc/core": "^1.15.40",

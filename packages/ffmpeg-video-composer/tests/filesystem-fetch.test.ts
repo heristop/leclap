@@ -5,8 +5,9 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-// Mock axios so fetch() (callable) and fetchAndRead() (axios.get) can be driven
-// through their success and error paths without touching the network.
+// Mock axios so both fetch() (stream) and fetchAndRead() (text) — which now route
+// through the same callable axios(config) helper — can be driven through their
+// success, redirect, and error paths without touching the network.
 vi.mock('axios', () => {
   const mock = vi.fn() as ReturnType<typeof vi.fn> & { get: ReturnType<typeof vi.fn> };
   mock.get = vi.fn();
@@ -23,11 +24,20 @@ vi.mock('node:dns/promises', () => ({ lookup: (...args: unknown[]) => mockedLook
 import FilesystemNodeAdapter from '@/platform/filesystem/FilesystemNodeAdapter';
 
 const mockedAxios = axios as unknown as ReturnType<typeof vi.fn>;
-const mockedAxiosGet = (axios as unknown as { get: ReturnType<typeof vi.fn> }).get;
 const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
 function makeAdapter(): FilesystemNodeAdapter {
   return new FilesystemNodeAdapter(logger as never);
+}
+
+// Build a 3xx redirect response carrying a Location header (as axios exposes it).
+function redirectTo(location: string, status = 302) {
+  return { status, headers: { location }, data: null };
+}
+
+// Build a terminal 200 response with the given body.
+function ok(data: unknown) {
+  return { status: 200, headers: {}, data };
 }
 
 describe('FilesystemNodeAdapter.fetch', () => {
@@ -38,7 +48,7 @@ describe('FilesystemNodeAdapter.fetch', () => {
   });
 
   it('streams the response body to a temp file and returns its path', async () => {
-    mockedAxios.mockResolvedValue({ data: Readable.from(['hello world']) });
+    mockedAxios.mockResolvedValue(ok(Readable.from(['hello world'])));
 
     const dest = await makeAdapter().fetch('https://example.com/file.bin');
 
@@ -54,7 +64,7 @@ describe('FilesystemNodeAdapter.fetch', () => {
         this.destroy(new Error('stream boom'));
       },
     });
-    mockedAxios.mockResolvedValue({ data: errStream });
+    mockedAxios.mockResolvedValue(ok(errStream));
 
     const dest = path.join(os.tmpdir(), 'err.bin');
 
@@ -67,7 +77,7 @@ describe('FilesystemNodeAdapter.fetch', () => {
 describe('FilesystemNodeAdapter.fetch SSRF guard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedAxios.mockResolvedValue({ data: Readable.from(['public body']) });
+    mockedAxios.mockResolvedValue(ok(Readable.from(['public body'])));
     mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
   });
 
@@ -111,11 +121,63 @@ describe('FilesystemNodeAdapter.fetch SSRF guard', () => {
     await fs.unlink(dest).catch(() => undefined);
   });
 
-  it('disables redirect-following so the SSRF guard cannot be bypassed via a 302 to a private IP', async () => {
+  it('issues the request with maxRedirects: 0 so axios never follows redirects unchecked', async () => {
     await makeAdapter().fetch('https://cdn.example.com/clip.mp4');
 
     expect(mockedAxios).toHaveBeenCalledTimes(1);
-    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({ maxRedirects: 0 });
+    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({ maxRedirects: 0, responseType: 'stream' });
+  });
+});
+
+describe('FilesystemNodeAdapter.fetch guarded redirects', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+  });
+
+  it('follows a 302 from a public host to a second public host and downloads the final body', async () => {
+    mockedAxios
+      .mockResolvedValueOnce(redirectTo('https://cdn2.example.com/clip.mp4'))
+      .mockResolvedValueOnce(ok(Readable.from(['final body'])));
+
+    const dest = await makeAdapter().fetch('https://cdn.example.com/clip.mp4');
+
+    expect(mockedAxios).toHaveBeenCalledTimes(2);
+    // Both hops were guarded (DNS-checked) before their request.
+    expect(mockedLookup).toHaveBeenCalledWith('cdn.example.com', { all: true });
+    expect(mockedLookup).toHaveBeenCalledWith('cdn2.example.com', { all: true });
+    expect(mockedAxios.mock.calls[1]?.[0]).toMatchObject({ url: 'https://cdn2.example.com/clip.mp4' });
+    expect(await fs.readFile(dest, 'utf-8')).toBe('final body');
+
+    await fs.unlink(dest).catch(() => undefined);
+  });
+
+  it('rejects a 302 from a public host to a private/metadata IP (SSRF still closed on the redirect hop)', async () => {
+    mockedAxios.mockResolvedValueOnce(redirectTo('http://169.254.169.254/latest/meta-data/'));
+
+    await expect(makeAdapter().fetch('https://cdn.example.com/clip.mp4')).rejects.toThrow(/private|reserved/i);
+    // Only the first (public) request fired; the redirect target was rejected before its request.
+    expect(mockedAxios).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves a relative Location against the current URL and re-guards it', async () => {
+    mockedAxios
+      .mockResolvedValueOnce(redirectTo('/elsewhere/clip.mp4'))
+      .mockResolvedValueOnce(ok(Readable.from(['rel body'])));
+
+    const dest = await makeAdapter().fetch('https://cdn.example.com/dir/clip.mp4');
+
+    expect(mockedAxios.mock.calls[1]?.[0]).toMatchObject({ url: 'https://cdn.example.com/elsewhere/clip.mp4' });
+    expect(await fs.readFile(dest, 'utf-8')).toBe('rel body');
+
+    await fs.unlink(dest).catch(() => undefined);
+  });
+
+  it('throws when the redirect chain exceeds the hop limit (loop protection)', async () => {
+    // Always redirect back to a public host so the guard passes but the loop never terminates.
+    mockedAxios.mockResolvedValue(redirectTo('https://cdn.example.com/loop'));
+
+    await expect(makeAdapter().fetch('https://cdn.example.com/loop')).rejects.toThrow(/too many redirects/i);
   });
 });
 
@@ -146,40 +208,53 @@ describe('FilesystemNodeAdapter.fetch local staged path', () => {
 describe('FilesystemNodeAdapter.fetchAndRead SSRF guard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedAxiosGet.mockResolvedValue({ data: 'body { font-family: x; }' });
+    mockedAxios.mockResolvedValue(ok('body { font-family: x; }'));
     mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
   });
 
   it('rejects the cloud-metadata link-local address before fetching', async () => {
     await expect(makeAdapter().fetchAndRead('http://169.254.169.254/latest/meta-data/')).rejects.toThrow();
-    expect(mockedAxiosGet).not.toHaveBeenCalled();
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 
   it('rejects localhost before fetching', async () => {
     await expect(makeAdapter().fetchAndRead('http://localhost:9200/')).rejects.toThrow();
-    expect(mockedAxiosGet).not.toHaveBeenCalled();
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 
   it('rejects a public hostname that resolves (rebinds) to a private IP', async () => {
     mockedLookup.mockResolvedValue([{ address: '127.0.0.1', family: 4 }]);
 
     await expect(makeAdapter().fetchAndRead('https://evil.example.com/css')).rejects.toThrow();
-    expect(mockedAxiosGet).not.toHaveBeenCalled();
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 
   it('allows a normal public host and returns the response body', async () => {
     const body = await makeAdapter().fetchAndRead('https://fonts.googleapis.com/css?family=Roboto');
 
     expect(mockedLookup).toHaveBeenCalledWith('fonts.googleapis.com', { all: true });
-    expect(mockedAxiosGet).toHaveBeenCalledTimes(1);
+    expect(mockedAxios).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({ maxRedirects: 0, responseType: 'text' });
     expect(body).toBe('body { font-family: x; }');
   });
 
-  it('disables redirect-following so the SSRF guard cannot be bypassed via a redirect', async () => {
-    await makeAdapter().fetchAndRead('https://fonts.googleapis.com/css?family=Roboto');
+  it('follows a 302 (Google Fonts CSS) to a second public host and returns the final body', async () => {
+    mockedAxios
+      .mockResolvedValueOnce(redirectTo('https://fonts.gstatic.com/real.css'))
+      .mockResolvedValueOnce(ok('@font-face { src: url(x); }'));
 
-    expect(mockedAxiosGet).toHaveBeenCalledTimes(1);
-    expect(mockedAxiosGet.mock.calls[0]?.[1]).toMatchObject({ maxRedirects: 0 });
+    const body = await makeAdapter().fetchAndRead('https://fonts.googleapis.com/css?family=Roboto');
+
+    expect(mockedAxios).toHaveBeenCalledTimes(2);
+    expect(mockedLookup).toHaveBeenCalledWith('fonts.gstatic.com', { all: true });
+    expect(body).toBe('@font-face { src: url(x); }');
+  });
+
+  it('rejects a 302 to a private IP on the redirect hop (SSRF still closed)', async () => {
+    mockedAxios.mockResolvedValueOnce(redirectTo('http://127.0.0.1/secret'));
+
+    await expect(makeAdapter().fetchAndRead('https://fonts.googleapis.com/css')).rejects.toThrow(/private|reserved/i);
+    expect(mockedAxios).toHaveBeenCalledTimes(1);
   });
 });
 

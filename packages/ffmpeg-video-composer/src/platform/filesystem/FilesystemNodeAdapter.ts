@@ -2,11 +2,62 @@ import { inject, injectable } from 'tsyringe';
 import { promises as fs, createWriteStream } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import axios from 'axios';
+import axios, { type AxiosResponse, type ResponseType } from 'axios';
 import extract from 'extract-zip';
 import AbstractFilesystem from './AbstractFilesystem';
 import { assertSafeRemoteUrl } from './urlGuard';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
+
+// Cap on redirect hops the guarded follower will chase before giving up. Bounds
+// redirect loops and long chains; legitimate media/font URLs resolve in 0-1 hops.
+const MAX_REDIRECT_HOPS = 5;
+
+// Follow HTTP redirects manually so the async SSRF guard runs on *every* hop, not
+// just the first URL. axios' built-in redirect handling (maxRedirects > 0) would
+// chase a 302 with no re-check, letting a public bait URL bounce to a private/
+// metadata host. Here we keep maxRedirects: 0 and, on each 3xx Location, resolve the
+// target against the current URL, re-run assertSafeRemoteUrl, then re-request — so a
+// redirect to 169.254.169.254 (or any RFC1918/loopback host) is rejected, while a
+// legitimate redirect to another public host is followed.
+const requestWithGuardedRedirects = async (
+  url: string,
+  responseType: ResponseType,
+  origin: string = url,
+  hop: number = 0
+): Promise<AxiosResponse> => {
+  if (hop > MAX_REDIRECT_HOPS) {
+    throw new Error(`Too many redirects (more than ${MAX_REDIRECT_HOPS}) while fetching ${origin}`);
+  }
+
+  // Guard this URL (including the very first one) before issuing the request.
+  await assertSafeRemoteUrl(url);
+
+  const response = await axios({
+    method: 'get',
+    url,
+    responseType,
+    maxRedirects: 0,
+    // Accept 3xx as a non-error response so we can read Location and re-validate the
+    // next hop ourselves; without this axios rejects 3xx when maxRedirects is 0.
+    validateStatus: (status) => (status >= 200 && status < 300) || (status >= 300 && status < 400),
+  });
+
+  if (response.status < 300 || response.status >= 400) {
+    return response;
+  }
+
+  const location = response.headers.location as string | undefined;
+
+  if (!location) {
+    return response;
+  }
+
+  // Resolve relative Locations against the current URL (absolute ones pass through),
+  // then recurse so the destination is guarded before the next request.
+  const next = new URL(location, url).toString();
+
+  return requestWithGuardedRedirects(next, responseType, origin, hop + 1);
+};
 
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {
@@ -73,19 +124,8 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     }
 
     // SSRF guard: reject non-http(s) schemes and private/reserved destinations
-    // (cloud metadata, loopback, RFC1918, ...) before issuing the request.
-    await assertSafeRemoteUrl(url);
-
-    // maxRedirects: 0 — assertSafeRemoteUrl validated only this URL. axios would otherwise follow up to
-    // 5 redirects with no re-check, so a public bait URL could 302 to a private/metadata host (SSRF).
-    // The guard is async (DNS), so a beforeRedirect hook can't cleanly await it; refusing redirects is
-    // the simplest safe choice (media URLs here are direct).
-    const response = await axios({
-      method: 'get',
-      url,
-      responseType: 'stream',
-      maxRedirects: 0,
-    });
+    // (cloud metadata, loopback, RFC1918, ...) — re-checked on every redirect hop.
+    const response = await requestWithGuardedRedirects(url, 'stream');
 
     const writer = createWriteStream(dest);
 
@@ -181,13 +221,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
   fetchAndRead = async (url: string): Promise<string> => {
     try {
-      // SSRF guard: same class as fetch() — a template-supplied font URL must not be
-      // able to reach cloud metadata, loopback, or RFC1918 hosts before the request.
-      await assertSafeRemoteUrl(url);
-
-      // maxRedirects: 0 — see fetch(): re-validating across redirects isn't possible with the async
-      // SSRF guard, and the gstatic font CSS URL is fetched directly, so redirects are refused.
-      const response = await axios.get(url, { maxRedirects: 0 });
+      // SSRF guard: same class as fetch() — a template-supplied font URL must not be able to
+      // reach cloud metadata, loopback, or RFC1918 hosts, on the first request or any redirect.
+      // Google Fonts CSS can answer 302, so redirects are followed but re-validated per hop.
+      const response = await requestWithGuardedRedirects(url, 'text');
 
       return response.data;
     } catch (error) {

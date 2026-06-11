@@ -5,6 +5,7 @@ import path from 'node:path';
 import axios from 'axios';
 import extract from 'extract-zip';
 import AbstractFilesystem from './AbstractFilesystem';
+import { assertSafeRemoteUrl } from './urlGuard';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 
 @injectable()
@@ -70,6 +71,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
       return dest;
     }
+
+    // SSRF guard: reject non-http(s) schemes and private/reserved destinations
+    // (cloud metadata, loopback, RFC1918, ...) before issuing the request.
+    await assertSafeRemoteUrl(url);
 
     const response = await axios({
       method: 'get',

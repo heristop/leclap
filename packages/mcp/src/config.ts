@@ -17,11 +17,13 @@ const DEFAULT_RENDER_TIMEOUT_MS = 600_000;
 function readFlag(argv: readonly string[], flag: string): string | undefined {
   const prefix = `${flag}=`;
   const inline = argv.find((arg) => arg.startsWith(prefix));
+
   if (inline !== undefined) {
     return inline.slice(prefix.length);
   }
 
   const index = argv.indexOf(flag);
+
   if (index === -1) {
     return undefined;
   }
@@ -35,6 +37,7 @@ function resolveTimeout(raw: string | undefined): number {
   }
 
   const parsed = Number.parseInt(raw, 10);
+
   if (Number.isNaN(parsed) || parsed <= 0) {
     return DEFAULT_RENDER_TIMEOUT_MS;
   }

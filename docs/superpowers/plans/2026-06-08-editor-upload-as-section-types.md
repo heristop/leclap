@@ -12,8 +12,8 @@
 
 ## Files modified (no new files)
 
-| File                                                                             | Change                                                                                                                                                                                          |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File                                                                            | Change                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts`      | Remove `allowUploadMusic`/`allowUploadBackground` from `EditorState`; add `usermusic`/`userphoto` to `EditorSection`; update `SECTION_LABELS`, `newSection`, `buildDescriptor`, `toEditorState` |
 | `apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx`          | Remove upload checkboxes; add `usermusic`/`userphoto` to `AddSectionButtons`; add icon cases to `SectionIcon`; add field branches to `SectionFields`; fix `handleSave` guard                    |
 | `apps/leclap-web/src/presentation/components/admin/templateEditorModel.test.ts` | Update `baseState` helper; replace `allowUploadMusic`/`allowUploadBackground` tests with section-driven tests; add round-trip tests for new kinds                                               |

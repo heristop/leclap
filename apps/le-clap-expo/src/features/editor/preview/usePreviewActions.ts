@@ -93,7 +93,7 @@ export function usePreviewActions({
 
   const navigateAway = () => {
     if (project?.templateName && project.id) {
-      router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
+      router.replace({ pathname: '/template/[id]', params: { id: project.templateName, projectId: project.id } });
 
       return;
     }

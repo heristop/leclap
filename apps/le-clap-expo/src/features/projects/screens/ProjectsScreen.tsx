@@ -66,7 +66,7 @@ function useProjectsScreenState() {
     }
 
     router.push({
-      pathname: '/(app)/template/[id]',
+      pathname: '/template/[id]',
       params: {
         id: project.templateName,
         projectId: project.id,

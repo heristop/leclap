@@ -324,8 +324,8 @@ export default defineConfig({
         rules: {},
       },
       {
-        // @le-clap/server (Node/Fastify service)
-        files: ['packages/server/**'],
+        // @le-clap/server-app (Node/Fastify service)
+        files: ['packages/server-app/**'],
         env: { node: true, es2024: true },
         rules: {},
       },

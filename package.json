@@ -33,7 +33,7 @@
     "playground:android": "pnpm --filter @le-clap/expo run android",
     "playground:ios": "pnpm --filter @le-clap/expo run ios",
     "playground:web": "pnpm --filter @le-clap/web run dev",
-    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @le-clap/server run build && pnpm --filter @le-clap/server run start"
+    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @le-clap/server-app run build && pnpm --filter @le-clap/server-app run start"
   },
   "devDependencies": {
     "@swc/core": "^1.15.40",

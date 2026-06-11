@@ -37,8 +37,8 @@
     "compile": "node compile.js",
     "diagnose": "node diagnose.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "vp test run",
+    "test:coverage": "vp test run --coverage",
     "test:integration": "pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
   },
   "dependencies": {

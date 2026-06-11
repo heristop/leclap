@@ -34,7 +34,7 @@ The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (r
 
 ## Commands
 
-Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there is **no eslint, no prettier, and no jest at the root** (jest lives only inside `apps/leclap-expo`).
+Run from the repo root unless noted. Tooling is **vite-plus (`vp`)**.
 
 | Task                | Command                                                                |
 | ------------------- | ---------------------------------------------------------------------- |
@@ -91,6 +91,3 @@ Repo-specific skills live in [`.agents/skills/`](./.agents/skills/). Load the ma
 ## Gotchas
 
 - Browser/WASM compilation is limited to ~**2 GB** input (IndexedDB-backed filesystem).
-- `engine-strict` will refuse installs on the wrong Node version.
-- Forgetting `reflect-metadata` breaks all tsyringe DI at runtime.
-- Don't reach for eslint/prettier/jest configs at the root — they don't exist; use `vp`.

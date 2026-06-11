@@ -14,7 +14,7 @@ export default defineConfig({
     trailingComma: 'es5',
     bracketSpacing: true,
     sortPackageJson: false,
-    ignorePatterns: [],
+    ignorePatterns: ['pnpm-lock.yaml', 'dist/**', '**/dist/**', 'coverage/**'],
   },
   // Staged-file checks for the pre-commit hook (replaces lint-staged).
   // Run via `vp staged`.

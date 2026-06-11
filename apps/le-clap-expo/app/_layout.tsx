@@ -12,7 +12,7 @@ import {
 } from '@expo-google-fonts/oswald';
 import { QueryProvider } from '@/src/providers/QueryProvider';
 import { OfflineProvider } from '@/src/providers/OfflineProvider';
-import AnimatedSplashScreen from './components/SplashScreen';
+import AnimatedSplashScreen from '@/src/components/SplashScreen';
 import config from '../tamagui.config';
 
 // Keep the splash screen visible while we fetch resources

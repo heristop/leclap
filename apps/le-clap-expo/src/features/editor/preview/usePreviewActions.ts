@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import type { useSaveProject } from '@/src/hooks/useProjects';
 import type { Project } from '@/src/types';
-import type { NormalizedCrop } from '@/app/features/editor/components/CropOverlay';
-import type { TrimRange } from '@/app/features/editor/components/TrimPanel';
+import type { NormalizedCrop } from '@/src/features/editor/components/CropOverlay';
+import type { TrimRange } from '@/src/features/editor/components/TrimPanel';
 import { isCropApplied, isTrimApplied } from './previewHelpers';
 
 interface UsePreviewActionsArgs {

@@ -1,5 +1,5 @@
-import type { NormalizedCrop, VideoRect } from '@/app/features/editor/components/CropOverlay';
-import type { TrimRange } from '@/app/features/editor/components/TrimPanel';
+import type { NormalizedCrop, VideoRect } from '@/src/features/editor/components/CropOverlay';
+import type { TrimRange } from '@/src/features/editor/components/TrimPanel';
 
 export type EditMode = 'view' | 'trim' | 'crop';
 

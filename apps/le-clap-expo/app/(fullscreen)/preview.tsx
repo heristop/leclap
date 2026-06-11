@@ -3,17 +3,17 @@ import { View, StyleSheet, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VideoView } from 'expo-video';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
-import CropOverlay from '@/app/features/editor/components/CropOverlay';
-import { buildErrorMessage, isCropApplied, isTrimApplied } from '@/app/features/editor/preview/previewHelpers';
-import { styles } from '@/app/features/editor/preview/previewStyles';
-import { usePreviewPlayer } from '@/app/features/editor/preview/usePreviewPlayer';
-import { usePreviewState } from '@/app/features/editor/preview/usePreviewState';
-import { usePreviewActions } from '@/app/features/editor/preview/usePreviewActions';
-import { useVideoRect } from '@/app/features/editor/preview/useVideoRect';
-import { useLockedOrientation } from '@/app/features/editor/preview/useLockedOrientation';
-import { PreviewToolbar } from '@/app/features/editor/preview/PreviewToolbar';
-import { TrimEditPanel, CropEditPanel } from '@/app/features/editor/preview/EditPanels';
-import { PreviewLoading, PreviewError, PreviewNoVideo } from '@/app/features/editor/preview/PreviewStates';
+import CropOverlay from '@/src/features/editor/components/CropOverlay';
+import { buildErrorMessage, isCropApplied, isTrimApplied } from '@/src/features/editor/preview/previewHelpers';
+import { styles } from '@/src/features/editor/preview/previewStyles';
+import { usePreviewPlayer } from '@/src/features/editor/preview/usePreviewPlayer';
+import { usePreviewState } from '@/src/features/editor/preview/usePreviewState';
+import { usePreviewActions } from '@/src/features/editor/preview/usePreviewActions';
+import { useVideoRect } from '@/src/features/editor/preview/useVideoRect';
+import { useLockedOrientation } from '@/src/features/editor/preview/useLockedOrientation';
+import { PreviewToolbar } from '@/src/features/editor/preview/PreviewToolbar';
+import { TrimEditPanel, CropEditPanel } from '@/src/features/editor/preview/EditPanels';
+import { PreviewLoading, PreviewError, PreviewNoVideo } from '@/src/features/editor/preview/PreviewStates';
 
 export default function PreviewPage() {
   const params = useLocalSearchParams<{

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Project } from '@/src/types';
-import type { NormalizedCrop } from '@/app/features/editor/components/CropOverlay';
-import type { TrimRange } from '@/app/features/editor/components/TrimPanel';
+import type { NormalizedCrop } from '@/src/features/editor/components/CropOverlay';
+import type { TrimRange } from '@/src/features/editor/components/TrimPanel';
 import { type EditMode, FULL_CROP } from './previewHelpers';
 import type { PreviewPlayer } from './usePreviewPlayer';
 

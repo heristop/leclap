@@ -45,6 +45,13 @@ vi.mock('extract-zip', () => ({
   default: (...args: unknown[]) => extractMock(...args),
 }));
 
+// --- Mock node:dns/promises (used by the SSRF guard in fetch / fetchAndRead) ---
+// Resolve every hostname to a public address so the guard lets remote fetches through
+// without touching a real resolver.
+vi.mock('node:dns/promises', () => ({
+  lookup: () => Promise.resolve([{ address: '93.184.216.34', family: 4 }]),
+}));
+
 import FilesystemNodeAdapter from '@/platform/filesystem/FilesystemNodeAdapter';
 import AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
 

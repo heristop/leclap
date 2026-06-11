@@ -5,9 +5,14 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-// Mock axios so fetch() can be driven through its success and stream-error paths
-// without touching the network.
-vi.mock('axios', () => ({ default: vi.fn() }));
+// Mock axios so fetch() (callable) and fetchAndRead() (axios.get) can be driven
+// through their success and error paths without touching the network.
+vi.mock('axios', () => {
+  const mock = vi.fn() as ReturnType<typeof vi.fn> & { get: ReturnType<typeof vi.fn> };
+  mock.get = vi.fn();
+
+  return { default: mock };
+});
 import axios from 'axios';
 
 // Mock DNS resolution so the SSRF guard can be exercised deterministically without
@@ -18,6 +23,7 @@ vi.mock('node:dns/promises', () => ({ lookup: (...args: unknown[]) => mockedLook
 import FilesystemNodeAdapter from '@/platform/filesystem/FilesystemNodeAdapter';
 
 const mockedAxios = axios as unknown as ReturnType<typeof vi.fn>;
+const mockedAxiosGet = (axios as unknown as { get: ReturnType<typeof vi.fn> }).get;
 const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
 function makeAdapter(): FilesystemNodeAdapter {
@@ -127,6 +133,39 @@ describe('FilesystemNodeAdapter.fetch local staged path', () => {
 
     await fs.rm(stageDir, { recursive: true, force: true });
     await fs.unlink(dest).catch(() => undefined);
+  });
+});
+
+describe('FilesystemNodeAdapter.fetchAndRead SSRF guard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedAxiosGet.mockResolvedValue({ data: 'body { font-family: x; }' });
+    mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+  });
+
+  it('rejects the cloud-metadata link-local address before fetching', async () => {
+    await expect(makeAdapter().fetchAndRead('http://169.254.169.254/latest/meta-data/')).rejects.toThrow();
+    expect(mockedAxiosGet).not.toHaveBeenCalled();
+  });
+
+  it('rejects localhost before fetching', async () => {
+    await expect(makeAdapter().fetchAndRead('http://localhost:9200/')).rejects.toThrow();
+    expect(mockedAxiosGet).not.toHaveBeenCalled();
+  });
+
+  it('rejects a public hostname that resolves (rebinds) to a private IP', async () => {
+    mockedLookup.mockResolvedValue([{ address: '127.0.0.1', family: 4 }]);
+
+    await expect(makeAdapter().fetchAndRead('https://evil.example.com/css')).rejects.toThrow();
+    expect(mockedAxiosGet).not.toHaveBeenCalled();
+  });
+
+  it('allows a normal public host and returns the response body', async () => {
+    const body = await makeAdapter().fetchAndRead('https://fonts.googleapis.com/css?family=Roboto');
+
+    expect(mockedLookup).toHaveBeenCalledWith('fonts.googleapis.com', { all: true });
+    expect(mockedAxiosGet).toHaveBeenCalledTimes(1);
+    expect(body).toBe('body { font-family: x; }');
   });
 });
 

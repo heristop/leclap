@@ -1,6 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import type { McpConfig } from './config.js';
+import { registerListTemplates } from './tools/listTemplates.js';
+import { registerGetTemplate } from './tools/getTemplate.js';
+import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
 
 // Extension seam: each tool group is registered by a small `registerXxx(server, config)`
 // function. Later tasks add the real registrars (catalog, compose, probe) and call them from
@@ -24,6 +27,9 @@ export function createServer(config: McpConfig): McpServer {
   const server = new McpServer({ name: 'leclap', version: '0.1.0' }, { capabilities: { tools: {} } });
 
   registerPing(server, config);
+  registerListTemplates(server);
+  registerGetTemplate(server);
+  registerGetTemplateSchema(server);
 
   return server;
 }

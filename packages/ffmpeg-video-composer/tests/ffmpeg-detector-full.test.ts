@@ -27,6 +27,9 @@ const h = vi.hoisted(() => {
     execImpl: (async () => {
       throw new Error('default exec rejection');
     }) as (cmd: string) => Promise<{ stdout: string; stderr: string }>,
+    // The source calls promisify(execFile)(file, args). The shim below joins
+    // file + args into a single command string so the per-test execImpl keeps
+    // its simple (cmd: string) contract.
     // Default export of `ffmpeg-static` (binary path, or null when absent).
     ffmpegStaticPath: '/mocked/path/to/ffmpeg' as string | null,
     // Terminal UI spy surface used by runFullDiagnostics / runInteractiveSetup.
@@ -44,14 +47,16 @@ const h = vi.hoisted(() => {
     execMock: undefined as unknown as ReturnType<typeof vi.fn>,
   };
 
-  // The source does `import { exec } from 'node:child_process'` then
-  // `promisify(exec)`. Exposing the well-known promisify.custom symbol makes
+  // The source does `import { execFile } from 'node:child_process'` then
+  // `promisify(execFile)`. Exposing the well-known promisify.custom symbol makes
   // the promisified function delegate straight to the live state.execImpl.
   // (Symbol.for('nodejs.util.promisify.custom') === util.promisify.custom and
   // avoids needing the node:util import to be initialised inside vi.hoisted.)
   const execMock = vi.fn();
-  (execMock as unknown as Record<symbol, unknown>)[Symbol.for('nodejs.util.promisify.custom')] = (cmd: string) =>
-    state.execImpl(cmd);
+  (execMock as unknown as Record<symbol, unknown>)[Symbol.for('nodejs.util.promisify.custom')] = (
+    file: string,
+    args: string[]
+  ) => state.execImpl([file, ...args].join(' '));
   state.execMock = execMock;
 
   return state;
@@ -59,7 +64,7 @@ const h = vi.hoisted(() => {
 
 // --- Mock node:child_process ----------------------------------------------
 vi.mock('node:child_process', () => ({
-  exec: h.execMock,
+  execFile: h.execMock,
 }));
 
 // --- Mock the optional native/wasm packages -------------------------------
@@ -166,7 +171,7 @@ describe('FFmpegDetector (full coverage)', () => {
     it('returns STATIC with version and the static path when the binary works', async () => {
       h.ffmpegStaticPath = '/opt/ffmpeg-static/ffmpeg';
       h.execImpl = async (cmd) => {
-        expect(cmd).toBe('"/opt/ffmpeg-static/ffmpeg" -version');
+        expect(cmd).toBe('/opt/ffmpeg-static/ffmpeg -version');
 
         return VERSION_OUTPUT('5.0');
       };

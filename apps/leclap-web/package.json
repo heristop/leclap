@@ -7,11 +7,10 @@
     "dev": "node ../../scripts/copy-core-assets.mjs && vite",
     "build": "node ../../scripts/copy-core-assets.mjs && vite build",
     "preview": "vite preview",
-    "lint": "oxlint . -c .oxlintrc.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "vp test run",
+    "test:watch": "vp test watch",
+    "test:coverage": "vp test run --coverage",
     "test:e2e": "playwright test"
   },
   "dependencies": {

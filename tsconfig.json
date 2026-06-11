@@ -9,7 +9,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
     "paths": {
       "@/*": ["./packages/ffmpeg-video-composer/src/*"]
     }

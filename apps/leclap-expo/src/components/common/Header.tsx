@@ -211,7 +211,9 @@ export default function Header({
           />
           {showSettings && (
             <TouchableOpacity
-              onPress={() => router.push('/(fullscreen)/settings')}
+              onPress={() => {
+                router.push('/(fullscreen)/settings');
+              }}
               style={styles.actionButton}
               accessibilityLabel="Settings"
             >

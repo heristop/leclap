@@ -4,8 +4,8 @@ import type { CompileRecordedVideos } from '@/src/services/api';
 /**
  * The single seam through which the app turns a template + recorded clips into a finished
  * video. A `StubCompileService` lets the Builder wizard be built and tested end-to-end in a
- * simulator; the real `OnDeviceCompileService` (ffmpeg-expo) drops in behind the same
- * interface once the Phase 0 on-device spike validates native FFmpeg. No server involved.
+ * simulator; `CoreCompilationService` drives the real on-device engine (the native
+ * `leclap-ffmpeg` module) behind the same interface. No server involved.
  */
 
 /** Clips (recorded or picked) keyed by section name, e.g. `video_1`. Same shape the server path used. */

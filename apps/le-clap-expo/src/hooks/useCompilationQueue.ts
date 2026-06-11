@@ -11,6 +11,7 @@ import { type CompileRecordedVideos } from '@/src/services/api';
 import { compileHybrid } from '@/src/services/compile/compileHybrid';
 import { isFFmpegAvailable } from '@/src/services/compile/ffmpegAvailability';
 import { hasInternetConnection, waitForConnection } from '@/src/services/network';
+import { resolveCompileMode } from '@/src/stores/useSettingsStore';
 import type { MediaChoices } from '@/src/types';
 
 type QueueItemResult = { id: string; success: boolean; error?: string };
@@ -136,11 +137,17 @@ export const useQueueVideoCompilation = () => {
       recordedVideos: CompileRecordedVideos;
       mediaChoices?: MediaChoices;
     }) => {
-      // On-device compiles work offline, so attempt immediately when either the network is up
-      // or the native FFmpeg engine is present; compileHybrid routes server-vs-device internally.
-      const isOnline = await hasInternetConnection();
+      // Local mode: the video is rendered on the phone, right now — never queued. Surface success
+      // or failure inline (the caller shows the result or the error).
+      if (resolveCompileMode() === 'local') {
+        const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
 
-      if (isOnline || isFFmpegAvailable()) {
+        return { immediate: true, result };
+      }
+
+      // Cloud mode: render on the server. Do it now if the server is reachable; otherwise queue it
+      // and let the queue drain when the connection comes back.
+      if (await hasInternetConnection()) {
         try {
           const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
 
@@ -148,7 +155,7 @@ export const useQueueVideoCompilation = () => {
             return { immediate: true, result };
           }
         } catch (error) {
-          console.warn('Immediate compilation failed, adding to queue:', error);
+          console.warn('Server compilation failed, adding to queue:', error);
         }
       }
 

@@ -10,6 +10,7 @@ import type VariableManager from '../editor/managers/VariableManager';
 import type MapManager from '../editor/managers/MapManager';
 import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
+import { assertSafeArgToken } from '@/core/argGuard';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -246,7 +247,9 @@ class SegmentBuilder {
     const hasAssets = Object.keys(inputsAsset).length > 0;
 
     if (opts?.backgroundColor) {
-      const bgColor = hasAssets ? opts.backgroundColor : 'white@0.0';
+      // Guard the RESOLVED color (variables/colorN already substituted by normalizeBackgroundColor):
+      // it is interpolated unquoted into the `color=` lavfi source, so whitespace would inject argv.
+      const bgColor = assertSafeArgToken(hasAssets ? opts.backgroundColor : 'white@0.0', 'backgroundColor');
       const scale = this.project.config.videoConfig?.scale?.replace(':', 'x') ?? '';
       const duration = opts.duration ?? '';
 
@@ -255,7 +258,8 @@ class SegmentBuilder {
     }
 
     for (const value of Object.values(inputsAsset)) {
-      this.sources.push(`-i ${value}`);
+      // Staged asset path interpolated unquoted as a `-i` source token.
+      this.sources.push(`-i ${assertSafeArgToken(value, 'asset source')}`);
     }
   };
 

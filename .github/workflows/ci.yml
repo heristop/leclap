@@ -1,6 +1,17 @@
 name: Continuous Integration
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  # Only run on direct pushes to main — feature branches run via the pull_request event,
+  # so pushing to a branch with an open PR no longer triggers the workflow twice.
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel an in-progress run when a newer commit lands on the same ref (PR or branch).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:

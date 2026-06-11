@@ -36,10 +36,10 @@
     "build:exe:all": "pnpm build && pnpm build:exe",
     "compile": "node compile.js",
     "diagnose": "node diagnose.js",
-    "lint": "oxlint src -c .oxlintrc.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
   },
   "dependencies": {
     "axios": "^1.17.0",
@@ -67,10 +67,12 @@
     }
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^13.0.0",
     "@rollup/plugin-replace": "^6.0.3",
     "@yao-pkg/pkg": "^6.20.0",
     "fake-indexeddb": "^6.2.5",
     "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },
   "engines": {

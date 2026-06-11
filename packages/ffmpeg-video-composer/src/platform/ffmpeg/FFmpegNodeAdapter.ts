@@ -1,11 +1,12 @@
-import { exec, type ExecException } from 'node:child_process';
+import { execFile, type ExecException } from 'node:child_process';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
 import type { FFMpegInfos } from '../../core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
+import { parseCommand } from './parseCommand';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 interface FFProbeStream {
   codec_type: string;
@@ -22,7 +23,7 @@ interface FFProbeData {
 class FFmpegNodeAdapter extends AbstractFFmpeg {
   execute = async (command: string): Promise<{ rc: number }> => {
     try {
-      await execAsync(`ffmpeg ${command}`);
+      await execFileAsync('ffmpeg', parseCommand(command));
 
       return { rc: 0 };
     } catch (error) {
@@ -34,7 +35,14 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
 
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     try {
-      const { stdout } = await execAsync(`ffprobe -v quiet -print_format json -show_streams "${source}"`);
+      const { stdout } = await execFileAsync('ffprobe', [
+        '-v',
+        'quiet',
+        '-print_format',
+        'json',
+        '-show_streams',
+        source,
+      ]);
 
       const info: FFProbeData = JSON.parse(stdout);
 

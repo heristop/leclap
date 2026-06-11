@@ -6,6 +6,7 @@
 
 Describe a video in JSON — sections, filters, music, overlays — and compile it on **Node.js**, in the **browser** (WebAssembly), or in **React Native**.
 
+[![CI](https://github.com/heristop/ffmpeg-video-composer/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/ffmpeg-video-composer/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
 [![pnpm](https://img.shields.io/badge/pnpm-11-f69220.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org/)

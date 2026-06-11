@@ -20,6 +20,9 @@ echo "[ffmpeg][host] configure ..."
   make -j"$(sysctl -n hw.ncpu)" -k || true
   [ -f fftools/ffmpeg.o ] && [ -f fftools/ffprobe.o ] || { echo "[ffmpeg][host] fftools objects missing"; exit 1; }
   make install-libs install-headers
-  ar rcs "$PREFIX/lib/libfftools.a" fftools/*.o
+  # FFmpeg 8.0 split fftools into subdirs (graph/, textformat/, resources/), so a flat fftools/*.o
+  # glob drops graph/graphprint.o (print_filtergraphs) and the textformat/resources objects it pulls.
+  # Archive every object, matching build-android.sh / build-ios.sh.
+  ar rcs "$PREFIX/lib/libfftools.a" $(find fftools -name '*.o')
 )
 echo "[ffmpeg][host] installed → $PREFIX (+ libfftools.a)"

@@ -215,7 +215,7 @@ describe('TemplateDirector.calculateTotalLength', () => {
 
     await director.calculateTotalLength(segments);
 
-    const durMap = project.buildInfos.durations as unknown as Record<string, number>;
+    const durMap = project.buildInfos.durations;
     expect(durMap.vid).toBe(10);
     expect(durMap.bg).toBe(3);
     expect(durMap.noopts).toBe(0);
@@ -282,7 +282,7 @@ describe('TemplateDirector.processSingleVideoSegment', () => {
   it('returns true on success and updates progress', async () => {
     const { director, project, emitter } = makeDirector();
     project.buildInfos.totalLength = 10;
-    (project.buildInfos.durations as unknown as Record<string, number>).clip = 5;
+    project.buildInfos.durations.clip = 5;
 
     const result = await director.processSingleVideoSegment({ name: 'clip', type: 'video' });
 

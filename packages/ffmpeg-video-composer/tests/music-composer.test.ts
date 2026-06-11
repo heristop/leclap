@@ -19,7 +19,7 @@ function makeProject(config: ProjectConfig = {}) {
       currentLength: 0,
       currentProgress: 0,
       currentIncrement: 0,
-      durations: [] as number[],
+      durations: {} as Record<string, number>,
       videoInputs: [] as string[],
       musicInputs: [] as string[],
       musicFilters: [] as string[],

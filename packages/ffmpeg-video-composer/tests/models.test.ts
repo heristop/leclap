@@ -128,7 +128,7 @@ describe('Project', () => {
       currentLength: 0,
       currentProgress: 0,
       currentIncrement: 0,
-      durations: [],
+      durations: {},
       videoInputs: [],
       musicInputs: [],
       musicFilters: [],
@@ -140,12 +140,12 @@ describe('Project', () => {
   describe('init / clean', () => {
     it('resets buildInfos to its initial shape', () => {
       project.buildInfos.totalSegments = 9;
-      project.buildInfos.durations = [1, 2, 3];
+      project.buildInfos.durations = { intro: 1, body: 2, outro: 3 };
 
       project.init();
 
       expect(project.buildInfos.totalSegments).toBe(0);
-      expect(project.buildInfos.durations).toEqual([]);
+      expect(project.buildInfos.durations).toEqual({});
     });
 
     it('clean() delegates to init()', () => {

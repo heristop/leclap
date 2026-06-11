@@ -1,0 +1,30 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "color_card",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#3366cc",
+        "duration": 2
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "LeClap"
+            },
+            "fontcolor": "#FFFFFF",
+            "fontsize": 96,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2"
+          }
+        }
+      ]
+    }
+  ]
+}

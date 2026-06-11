@@ -3,6 +3,7 @@ import { useNetworkState, useOnlineStatusChange } from '@/src/hooks/useNetworkSt
 import {
   useAutoProcessQueue,
   useCleanupQueue,
+  useColdBootReconciliation,
   useCompilationQueue,
   useProcessQueuedCompilations,
 } from '@/src/hooks/useCompilationQueue';
@@ -64,6 +65,10 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
   const processQueue = useProcessQueuedCompilations();
   const pendingCount = (queue.data ?? []).filter((item) => item.status === 'pending').length;
   const canProcess = isOnline || isFFmpegAvailable();
+
+  // Reconcile items left stuck in "processing" after an app kill mid-compile. Runs once per cold
+  // boot (queryClient is a stable ref), before the drain effect below picks up the reset items.
+  useColdBootReconciliation();
 
   const processQueueRef = useRef(processQueue);
   processQueueRef.current = processQueue;

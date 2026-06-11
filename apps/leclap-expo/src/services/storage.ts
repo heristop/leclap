@@ -7,6 +7,9 @@ const TEMPLATES_CACHE_KEY = 'le_clap_templates_cache';
 const TEMPLATES_METADATA_KEY = 'le_clap_templates_metadata';
 const COMPILATION_QUEUE_KEY = 'le_clap_compilation_queue';
 
+// Mirrors the retry ceiling the queue processor enforces (useCompilationQueue).
+const DEFAULT_MAX_RETRIES = 3;
+
 export interface TemplatesCacheMetadata {
   lastUpdated: string;
   version: string;
@@ -187,6 +190,58 @@ export const getPendingCompilations = async (): Promise<CompilationQueueItem[]> 
     return queue.filter((item) => item.status === 'pending' || item.status === 'failed');
   } catch (error) {
     console.error('Error getting pending compilations:', error);
+
+    return [];
+  }
+};
+
+/**
+ * Reconcile items left stuck in `processing` after a crash or app kill mid-compile.
+ *
+ * The processor flips an item to `processing` before handing it to the compiler but never persists
+ * a "finished" state if the app dies first, so it would sit in `processing` forever (no
+ * cold-boot reconciliation). Call this once at startup, before draining the queue:
+ *  - retries left  → back to `pending` so it re-processes;
+ *  - retries spent → `failed` so we stop instead of looping forever.
+ * Returns the ids of the items it reset.
+ */
+export const reconcileStuckCompilations = async (maxRetries: number = DEFAULT_MAX_RETRIES): Promise<string[]> => {
+  try {
+    const queue = await getCompilationQueue();
+    const resetIds: string[] = [];
+
+    const reconciledQueue = queue.map((item) => {
+      if (item.status !== 'processing') {
+        return item;
+      }
+
+      resetIds.push(item.id);
+
+      if (item.retryCount >= maxRetries) {
+        return {
+          ...item,
+          status: 'failed' as const,
+          lastRetryAt: new Date().toISOString(),
+          error: 'Compilation interrupted before completion and retries are exhausted.',
+        };
+      }
+
+      return {
+        ...item,
+        status: 'pending' as const,
+        lastRetryAt: new Date().toISOString(),
+      };
+    });
+
+    if (resetIds.length === 0) {
+      return resetIds;
+    }
+
+    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(reconciledQueue));
+
+    return resetIds;
+  } catch (error) {
+    console.error('Error reconciling stuck compilations:', error);
 
     return [];
   }

@@ -108,7 +108,7 @@ interface SectionOptions {
 
 interface Input {
   name: string;
-  url: string;
+  url?: string;
 }
 
 export interface Map {

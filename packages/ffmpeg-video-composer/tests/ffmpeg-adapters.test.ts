@@ -2,36 +2,42 @@ import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 /**
- * Controllable handler for the mocked `node:child_process` exec.
+ * Controllable handler for the mocked `node:child_process` execFile.
  *
- * The adapters build their async helper with `promisify(exec)` at module load
- * time. `promisify` wraps a function that follows the Node callback protocol
- * `(...args, callback)` and resolves with `{ stdout, stderr }` (the custom
- * promisified shape that the real `child_process.exec` declares). We therefore
- * implement a mock `exec` that honours that protocol and delegates to a
- * swappable handler so each test can drive success / failure per call.
+ * The Node adapters build their async helper with `promisify(execFile)` at module
+ * load time. `execFile` runs the program directly (NO shell), following the Node
+ * callback protocol `(file, args, options?, callback)` and resolving with
+ * `{ stdout, stderr }`. We implement a mock `execFile` that honours that protocol,
+ * records each `{ file, args }` invocation, and delegates to a swappable handler
+ * so each test can drive success / failure per call. To keep the existing
+ * string-oriented assertions readable, every recorded call is also flattened to a
+ * display string (`file arg1 arg2 ...`) in `execCommands`.
  */
 type ExecResolution = { stdout: string; stderr: string };
-type ExecHandler = (command: string) => ExecResolution | Promise<ExecResolution>;
+type ExecHandler = (command: string, file: string, args: string[]) => ExecResolution | Promise<ExecResolution>;
 
 let execHandler: ExecHandler;
 const execCommands: string[] = [];
+const execFileCalls: Array<{ file: string; args: string[] }> = [];
 
 vi.mock('node:child_process', () => {
-  const exec = (
-    command: string,
-    _optionsOrCallback?: unknown,
+  const execFile = (
+    file: string,
+    argsOrCallback?: unknown,
+    optionsOrCallback?: unknown,
     maybeCallback?: (error: unknown, result?: ExecResolution) => void
   ) => {
+    const args = Array.isArray(argsOrCallback) ? (argsOrCallback as string[]) : [];
+    const command = [file, ...args].join(' ');
+    execFileCalls.push({ file, args });
     execCommands.push(command);
 
-    const callback =
-      typeof _optionsOrCallback === 'function'
-        ? (_optionsOrCallback as (error: unknown, result?: ExecResolution) => void)
-        : maybeCallback;
+    const callback = [argsOrCallback, optionsOrCallback, maybeCallback].find((c) => typeof c === 'function') as
+      | ((error: unknown, result?: ExecResolution) => void)
+      | undefined;
 
     Promise.resolve()
-      .then(() => execHandler(command))
+      .then(() => execHandler(command, file, args))
       .then(
         (result) => callback?.(null, result),
         (error) => callback?.(error)
@@ -41,7 +47,7 @@ vi.mock('node:child_process', () => {
     return { pid: 1234 };
   };
 
-  return { exec, default: { exec } };
+  return { execFile, default: { execFile } };
 });
 
 // fs/promises is used by MusicNodeAdapter (unlink / rename of looped file).
@@ -188,6 +194,7 @@ function makeFs(overrides: Partial<AbstractFilesystem> = {}): AbstractFilesystem
 
 beforeEach(() => {
   execCommands.length = 0;
+  execFileCalls.length = 0;
   execHandler = () => ({ stdout: '', stderr: '' });
   fsMocks.unlink.mockReset();
   fsMocks.unlink.mockResolvedValue(undefined);
@@ -265,8 +272,8 @@ describe('FFmpegNodeAdapter', () => {
       audioCodec: 'aac',
       sampleRate: 44100,
     });
-    expect(execCommands.some((c) => c.startsWith('ffprobe '))).toBe(true);
-    expect(execCommands.some((c) => c.includes('"clip.mp4"'))).toBe(true);
+    expect(execFileCalls.some((c) => c.file === 'ffprobe')).toBe(true);
+    expect(execFileCalls.some((c) => c.args.includes('clip.mp4'))).toBe(true);
   });
 
   it('getInfos() returns nulls when no streams are present', async () => {
@@ -318,9 +325,11 @@ describe('FFmpegStaticAdapter', () => {
     const result = await adapter.execute('-i a.mp4 b.mp4');
 
     expect(result).toEqual({ rc: 0 });
-    // A single command was spawned of shape: "<...>ffmpeg" -i a.mp4 b.mp4
-    expect(execCommands).toHaveLength(1);
-    expect(execCommands[0]).toMatch(/^".*ffmpeg" -i a\.mp4 b\.mp4$/);
+    // A single command was spawned via execFile: <...>ffmpeg with the args as an
+    // argv array (no shell, so the binary path is NOT quoted).
+    expect(execFileCalls).toHaveLength(1);
+    expect(execFileCalls[0].file).toMatch(/ffmpeg$/);
+    expect(execFileCalls[0].args).toEqual(['-i', 'a.mp4', 'b.mp4']);
   });
 
   it('execute() throws an FFmpegError (static) on failure', async () => {
@@ -351,8 +360,9 @@ describe('FFmpegStaticAdapter', () => {
       audioCodec: 'opus',
       sampleRate: 48000,
     });
-    // ffprobe binary quoted, with the JSON-streams flags and quoted source.
-    expect(execCommands[0]).toMatch(/^".*ffprobe" -v quiet -print_format json -show_streams "movie\.webm"$/);
+    // ffprobe binary run via execFile, with the JSON-streams flags and raw source.
+    expect(execFileCalls[0].file).toMatch(/ffprobe$/);
+    expect(execFileCalls[0].args).toEqual(['-v', 'quiet', '-print_format', 'json', '-show_streams', 'movie.webm']);
   });
 
   it('getInfos() returns nulls when ffprobe reports no streams', async () => {
@@ -390,9 +400,9 @@ describe('FFmpegStaticAdapter', () => {
 
     await adapter.getInfos('clip.mp4');
 
-    expect(execCommands[0]).toMatch(/^".*ffprobe" /);
+    expect(execFileCalls[0].file).toMatch(/ffprobe$/);
     // The probe path is the ffmpeg path with a trailing 'ffmpeg' swapped for 'ffprobe'.
-    expect(execCommands[0]).not.toMatch(/ffmpeg" -v quiet/);
+    expect(execFileCalls[0].file).not.toMatch(/ffmpeg$/);
   });
 
   it('execute() throws when the ffmpeg binary path is unavailable', async () => {

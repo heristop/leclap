@@ -44,7 +44,7 @@ async function compileTemplate(
   return page.evaluate(
     async ({ id, formData, sampleVideo }) => {
       const { templateService } = await import('/src/services/templateService.ts');
-      const { coreCompilationService } = await import('/src/services/coreCompilationService.ts');
+      const { coreCompilationService } = await import('/src/application/usecases/coreCompilationService.ts');
       const resp = await fetch(sampleVideo);
       const file = new File([await resp.arrayBuffer()], 'earth.mp4', { type: 'video/mp4' });
       const withTimeout = <T>(p: Promise<T>, ms: number) =>

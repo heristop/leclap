@@ -37,13 +37,6 @@ export default function AppLayout() {
             title: 'Videos',
           }}
         />
-        <Tabs.Screen
-          name="template/[id]"
-          options={{
-            title: 'Template',
-            tabBarButton: () => null,
-          }}
-        />
       </Tabs>
     </>
   );

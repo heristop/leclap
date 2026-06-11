@@ -1,3 +1,5 @@
+// Must load before any tsyringe-decorated class in the reused ffmpeg-video-composer core.
+import 'reflect-metadata';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
@@ -63,6 +65,7 @@ export default function RootLayout() {
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="(app)" />
+            <Stack.Screen name="template/[id]" />
             <Stack.Screen name="(fullscreen)" />
             <Stack.Screen name="+not-found" />
           </Stack>

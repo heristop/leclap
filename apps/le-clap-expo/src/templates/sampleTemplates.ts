@@ -1,6 +1,8 @@
-import type { TemplateDescriptor } from '@/src/types';
+import type { TemplateDescriptor, Section } from '@/src/types';
+import portraitDescriptor from './server/portrait.json';
+import quickDescriptor from './server/quick.json';
 
-/** A template in the local catalog — bundled sample, or a user-created one. */
+/** A template in the local catalog — bundled (on-device ready), or a user-created one. */
 export interface CatalogTemplate {
   id: string;
   name: string;
@@ -11,68 +13,70 @@ export interface CatalogTemplate {
 }
 
 /**
- * Bundled sample templates so the catalog works fully offline (no server).
- * Shapes mirror the editor's `buildDescriptor` output so they round-trip in the editor.
+ * The local catalog is the set that compiles ON THE PHONE. It mirrors the server's scenarios
+ * (`packages/server-app/templates`, copied by `scripts/copy-core-assets.mjs`) but rewrites the server-only
+ * bits the on-device LGPL engine can't honour:
+ *   - `useVideoSection` on a `project_video` section is a server-asset reference; on-device the user's
+ *     recorded clip (keyed by section name) is used, and the validator rejects the dangling reference.
+ *   - `boxblur` is a GPL filter (absent from our LGPL build) → remapped to `gblur` (Gaussian, LGPL).
+ * Scenarios that need animated overlays (e.g. the Showcase) are server-only and come from the Cloud
+ * fetch instead — they are not in this local set.
  */
+const stripUseVideoSection = (section: Section): Section => {
+  if (section.type !== 'project_video' || !section.options?.useVideoSection) {
+    return section;
+  }
+
+  const { useVideoSection: _dropped, ...options } = section.options as Record<string, unknown>;
+
+  return { ...section, options };
+};
+
+// GPL filters → LGPL equivalents (the on-device build is LGPL-only). boxblur → gblur (radius ≈ sigma).
+const GPL_FILTER_REMAP: Record<string, string> = { boxblur: 'gblur' };
+
+const remapGplFilters = (section: Section): Section => {
+  if (!Array.isArray(section.filters)) {
+    return section;
+  }
+
+  const filters = section.filters.map((entry) => {
+    const filter = entry as { type?: string };
+    const replacement = filter.type ? GPL_FILTER_REMAP[filter.type] : undefined;
+
+    return replacement ? { ...filter, type: replacement } : entry;
+  });
+
+  return { ...section, filters };
+};
+
+const adaptForOnDevice = (descriptor: TemplateDescriptor): TemplateDescriptor => ({
+  ...descriptor,
+  sections: descriptor.sections?.map((section: Section) =>
+    remapGplFilters(stripUseVideoSection(section))
+  ),
+});
+
+const orientationOf = (descriptor: TemplateDescriptor): 'landscape' | 'portrait' =>
+  descriptor.global?.orientation === 'portrait' ? 'portrait' : 'landscape';
+
+const bundled = (id: string, name: string, description: string, raw: unknown): CatalogTemplate => {
+  const descriptor = adaptForOnDevice(raw as TemplateDescriptor);
+
+  return { id, name, description, orientation: orientationOf(descriptor), source: 'sample', descriptor };
+};
+
 export const SAMPLE_TEMPLATES: CatalogTemplate[] = [
-  {
-    id: 'sample-simple-intro',
-    name: 'Simple Intro',
-    description: 'A single clip with a clean fade — the quickest way to start.',
-    orientation: 'landscape',
-    source: 'sample',
-    descriptor: {
-      global: { orientation: 'landscape', musicEnabled: false, transitionDuration: 0.5 },
-      sections: [{ name: 'video_1', type: 'project_video', options: { duration: 8, muteSection: false } }],
-    },
-  },
-  {
-    id: 'sample-profile',
-    name: 'Profile Video',
-    description: 'Ask for a name, then overlay it on your clip — great for personal branding.',
-    orientation: 'portrait',
-    source: 'sample',
-    descriptor: {
-      global: { orientation: 'portrait', musicEnabled: true, transitionDuration: 0.5 },
-      sections: [
-        {
-          name: 'form_1',
-          type: 'form',
-          options: { fields: [{ name: 'firstname', maxLength: 40, label: { en: 'Your name' } }] },
-        },
-        {
-          name: 'video_1',
-          type: 'project_video',
-          options: { duration: 8, muteSection: false },
-          filters: [
-            {
-              type: 'drawtext',
-              values: {
-                text: { en: '{{ firstname }}' },
-                fontsize: 56,
-                fontcolor: '#ffffff',
-                fontfile: 'Rubik.ttf',
-                x: '(w-text_w)/2',
-                y: '(h-text_h)/2',
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    id: 'sample-color-card',
-    name: 'Title Card + Clip',
-    description: 'Open on a brand-colored title card, then cut to your video.',
-    orientation: 'landscape',
-    source: 'sample',
-    descriptor: {
-      global: { orientation: 'landscape', musicEnabled: false, transitionDuration: 0.5 },
-      sections: [
-        { name: 'color_1', type: 'color_background', options: { duration: 3, backgroundColor: '#7C83FD' } },
-        { name: 'video_1', type: 'project_video', options: { duration: 8, muteSection: false } },
-      ],
-    },
-  },
+  bundled(
+    'server-quick',
+    'Quick Card',
+    'Type a short message onto a brand-colored card.',
+    quickDescriptor
+  ),
+  bundled(
+    'server-portrait',
+    'Portrait',
+    'Record a clip, blur the backdrop and overlay a keyword.',
+    portraitDescriptor
+  ),
 ];

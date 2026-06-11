@@ -30,6 +30,8 @@ form-banner-*.png
 /apps/le-clap-expo/assets/fonts/
 # keep the Expo app's own (non-library) font tracked
 !/apps/le-clap-expo/assets/fonts/SpaceMono-Regular.ttf
+# server template JSONs copied from packages/server-app/templates by the same script
+/apps/le-clap-expo/src/templates/server/
 
 # On-device FFmpeg engine — generated build artifacts (regenerable from source;
 # see scripts/ffmpeg/*.sh and packages/ffmpeg-engine/). dist/ + target/ already match above.

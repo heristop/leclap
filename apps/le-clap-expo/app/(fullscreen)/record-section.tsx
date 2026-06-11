@@ -147,7 +147,7 @@ const navigateAfterRecording = ({
   orientation,
 }: NavigateAfterRecordingParams) => {
   const backToEditor = () => {
-    router.replace({ pathname: '/(app)/template/[id]', params: { id: project.templateName, projectId: project.id } });
+    router.replace({ pathname: '/template/[id]', params: { id: project.templateName, projectId: project.id } });
   };
 
   const sections = project.templateContent.sections ?? [];

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import TemplateDetailScreen from '../../features/templates/screens/TemplateDetailScreen';
+import TemplateDetailScreen from '@/src/features/templates/screens/TemplateDetailScreen';
 import { colors } from '@/src/styles/theme';
 
 export default function TemplateDetailPage() {

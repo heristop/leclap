@@ -153,6 +153,14 @@ export default defineConfig([
     outDir: 'dist',
     target: 'es2024',
     platform: 'neutral',
+    inputOptions: {
+      resolve: {
+        // `neutral` ignores the `main` field, but tsyringe ships CJS (main only) and is in
+        // `alwaysBundle` below — without this rolldown can't resolve it, so it externalizes
+        // tsyringe (the RN output must inline it so Hermes never transforms its decorators).
+        mainFields: ['module', 'browser', 'main'],
+      },
+    },
     deps: {
       neverBundle: [
         'expo-file-system',

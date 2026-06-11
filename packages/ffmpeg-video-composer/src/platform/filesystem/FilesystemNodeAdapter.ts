@@ -176,6 +176,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
   fetchAndRead = async (url: string): Promise<string> => {
     try {
+      // SSRF guard: same class as fetch() — a template-supplied font URL must not be
+      // able to reach cloud metadata, loopback, or RFC1918 hosts before the request.
+      await assertSafeRemoteUrl(url);
+
       const response = await axios.get(url);
 
       return response.data;

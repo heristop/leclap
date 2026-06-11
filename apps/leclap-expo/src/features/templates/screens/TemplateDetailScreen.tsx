@@ -440,6 +440,21 @@ function useMediaState() {
   };
 }
 
+function useTemplateHandlers(ctx: HandlerCtx & Pick<CompileCtx, 'mediaChoices' | 'queueVideoCompilation'>) {
+  const sectionHandlers = useSectionHandlers(ctx);
+  const handleCompile = useCompileHandler({
+    project: ctx.project,
+    template: ctx.template,
+    mediaChoices: ctx.mediaChoices,
+    setProject: ctx.setProject,
+    saveProjectMutation: ctx.saveProjectMutation,
+    queueVideoCompilation: ctx.queueVideoCompilation,
+    router: ctx.router,
+  });
+
+  return { ...sectionHandlers, handleCompile };
+}
+
 function computeProgress(
   filteredSections: Section[],
   completedSectionsCount: number,
@@ -504,17 +519,14 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     saveProjectMutation,
     router,
   };
-  const { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault } =
-    useSectionHandlers(hCtx);
-  const handleCompile = useCompileHandler({
-    project,
-    template,
-    mediaChoices,
-    setProject: setProjectSafe,
-    saveProjectMutation,
-    queueVideoCompilation,
-    router,
-  });
+  const {
+    handleFormDataChange,
+    handleFormSubmit,
+    handlePreviewVideo,
+    handleSectionPress,
+    handleMusicUseDefault,
+    handleCompile,
+  } = useTemplateHandlers({ ...hCtx, mediaChoices, queueVideoCompilation });
   const allDone = computeAllDone(project, filteredSections, hasMediaStep, mediaStepDone);
 
   return {

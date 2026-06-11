@@ -7,8 +7,18 @@ import { isServerOptionEnabled } from '@/src/config/runtime';
 import { useCompileMode, useSetCompileMode, type CompileMode } from '@/src/stores/useSettingsStore';
 
 const MODES: { value: CompileMode; label: string; hint: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { value: 'local', label: 'Local', hint: 'Scenarios and rendering run on your device — private and instant.', icon: 'phone-portrait-outline' },
-  { value: 'server', label: 'Cloud', hint: 'Scenarios and rendering are handled by the server.', icon: 'cloud-outline' },
+  {
+    value: 'local',
+    label: 'Local',
+    hint: 'Scenarios and rendering run on your device — private and instant.',
+    icon: 'phone-portrait-outline',
+  },
+  {
+    value: 'server',
+    label: 'Cloud',
+    hint: 'Scenarios and rendering are handled by the server.',
+    icon: 'cloud-outline',
+  },
 ];
 
 export default function SettingsScreen() {
@@ -55,7 +65,9 @@ export default function SettingsScreen() {
               return (
                 <Pressable
                   key={m.value}
-                  onPress={() => setMode(m.value)}
+                  onPress={() => {
+                    setMode(m.value);
+                  }}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: active }}
                   style={[styles.option, active && styles.optionActive]}

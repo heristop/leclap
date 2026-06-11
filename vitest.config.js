@@ -20,11 +20,11 @@ export default defineConfig({
     environment: 'node',
     root: './',
     // Core tests live in the core package; web-app unit tests live under its tests/ dir.
-    // Server tests live in packages/server/tests/ and cover pure helpers with no Fastify deps.
+    // Server tests live in packages/server-app/tests/ and cover pure helpers with no Fastify deps.
     include: [
       'packages/ffmpeg-video-composer/tests/**/*.test.ts',
       'apps/leclap-web/tests/**/*.test.ts',
-      'packages/server/tests/**/*.test.ts',
+      'packages/server-app/tests/**/*.test.ts',
     ],
     // Playwright specs live under e2e/ and import @playwright/test (not a vitest
     // dependency); they run via `pnpm test:e2e`, not the unit suite.

@@ -1,9 +1,9 @@
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { totalmem } from 'node:os';
 import { Terminal } from '../../utils/terminal';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export enum FFmpegAvailability {
   SYSTEM = 'system',
@@ -73,7 +73,7 @@ export class FFmpegDetector {
    */
   static async detectSystemFFmpeg(): Promise<FFmpegDetectionResult> {
     try {
-      const { stdout } = await execAsync('ffmpeg -version');
+      const { stdout } = await execFileAsync('ffmpeg', ['-version']);
       const versionMatch = stdout.match(/ffmpeg version ([^\s]+)/);
       const version = versionMatch ? versionMatch[1] : 'unknown';
 
@@ -97,7 +97,7 @@ export class FFmpegDetector {
         throw new Error('ffmpeg-static path is null');
       }
 
-      const { stdout } = await execAsync(`"${ffmpegStatic}" -version`);
+      const { stdout } = await execFileAsync(ffmpegStatic, ['-version']);
       const versionMatch = stdout.match(/ffmpeg version ([^\s]+)/);
       const version = versionMatch ? versionMatch[1] : 'unknown';
 

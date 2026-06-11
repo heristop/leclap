@@ -6,10 +6,10 @@ import TemplateList from '../components/TemplateList';
 import { useTemplates } from '@/src/hooks/useTemplates';
 import type { Template } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { NetworkStatusIndicator } from '../../../components/ui/NetworkStatusIndicator';
 import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
 import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
 import { useOffline } from '@/src/providers/OfflineProvider';
+import { useCompileMode } from '@/src/stores/useSettingsStore';
 import Button from '../../../components/ui/Button';
 import * as Haptics from 'expo-haptics';
 
@@ -21,11 +21,15 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   const router = useRouter();
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
   const { isOffline } = useOffline();
+  const mode = useCompileMode();
+  // Offline only matters in Cloud mode (server fetch). Local scenarios are bundled, so being offline
+  // changes nothing — don't let it frame the on-device experience as a degraded/offline one.
+  const offlineForUi = mode === 'server' && isOffline;
 
   const handleSelectTemplate = (template: Template) => {
     const navigate = () => {
       router.push({
-        pathname: '/(app)/template/[id]',
+        pathname: '/template/[id]',
         params: { id: template.name },
       });
     };
@@ -40,7 +44,6 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   if (isLoading && templates.length === 0) {
     return (
       <View style={styles.container}>
-        <NetworkStatusIndicator showSyncStatus={false} />
         <CompilationQueueStatus />
 
         <Text style={styles.screenTitle}>Scenarios</Text>
@@ -75,18 +78,17 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
 
   return (
     <View style={styles.container}>
-      <NetworkStatusIndicator showSyncStatus expandable />
       <CompilationQueueStatus />
 
       <TemplateList
         templates={templates}
         onSelectTemplate={handleSelectTemplate}
-        isOffline={isOffline}
+        isOffline={offlineForUi}
         onRefresh={() => {
           refetch().catch(console.error);
         }}
         screenTitle="Scenarios"
-        subtitle={isOffline ? '📴 Browsing cached templates (offline)' : 'Select a scenario to create your video'}
+        subtitle="Select a scenario to create your video"
       />
 
       <TouchableOpacity

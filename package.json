@@ -23,6 +23,7 @@
     "test:ui": "vitest --ui",
     "test:ci": "vitest run --coverage.enabled --coverage.reporter=text-summary",
     "test:coverage": "vitest run --coverage",
+    "test:integration": "pnpm --filter ffmpeg-video-composer test:integration && pnpm --filter @leclap/mcp test:integration",
     "test:build": "pnpm --filter ffmpeg-video-composer build && vitest run packages/ffmpeg-video-composer/tests/build-output.test.ts",
     "graph": "madge --dot --extensions ts packages/ffmpeg-video-composer/src/ > graph.dot",
     "deps:check": "depcruise packages/ffmpeg-video-composer/src",

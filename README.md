@@ -72,6 +72,7 @@ pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a pri
 | `leclap` _(private)_    | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only. |
 | `ffmpeg-video-composer` | `packages/ffmpeg-video-composer` | **The library** — cross-platform composition engine + CLI (Node, browser, WASM).   |
 | `@leclap/server-app`    | `packages/server-app`            | Fastify HTTP server exposing `/compile`, `/templates`, `/health` _(demo)_.         |
+| `@leclap/mcp`           | `packages/mcp`                   | MCP server — the engine as agent-callable tools (compose/list/probe) over stdio.   |
 | `@leclap/web`           | `apps/leclap-web`                | React 19 + Vite + Tailwind web app — in-browser FFmpeg via WASM _(reference)_.     |
 | `@leclap/expo`          | `apps/leclap-expo`               | Expo / React Native app — on-device compiles via the native engine _(reference)_.  |
 | `ffmpeg-engine`         | `packages/ffmpeg-engine`         | Rust engine embedding FFmpeg fftools for on-device compiles (Expo app).            |

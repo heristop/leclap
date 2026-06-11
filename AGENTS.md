@@ -86,6 +86,7 @@ Repo-specific skills live in [`.agents/skills/`](./.agents/skills/). Load the ma
 - **core-architecture-patterns** — adding a segment type, platform adapter, or core service in `packages/ffmpeg-video-composer`.
 - **monorepo-dev-workflow** — building, testing, linting, formatting, or running any app/package.
 - **cross-platform-ffmpeg** — working across Node/Static/WASM FFmpeg, the PlatformBridge, or browser/RN constraints.
+- **ondevice-ffmpeg-engine** — building/modifying/consuming the on-device engine (`packages/ffmpeg-engine` + the `leclap-ffmpeg` native module), the `run`/`probe`/`cancel` API, uniffi bindings, or `scripts/ffmpeg`.
 
 ## Gotchas
 

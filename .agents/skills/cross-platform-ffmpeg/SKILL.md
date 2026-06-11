@@ -14,11 +14,11 @@ The core never calls FFmpeg directly — it goes through an `AbstractFFmpeg` ada
 
 ## Adapter selection by runtime
 
-| Runtime      | FFmpeg                                      | Filesystem                             | Logger           |
-| ------------ | ------------------------------------------- | -------------------------------------- | ---------------- |
-| Node.js      | `FFmpegNodeAdapter` → `FFmpegStaticAdapter` | `FilesystemNodeAdapter`                | `PinoLogAdapter` |
-| Browser      | `FFmpegWasmAdapter` (`@ffmpeg/ffmpeg`)      | `BrowserFilesystemAdapter` (IndexedDB) | console logger   |
-| React Native | `FFmpegWasmAdapter`                         | `FilesystemNodeAdapter`                | `PinoLogAdapter` |
+| Runtime      | FFmpeg                                      | Filesystem                             | Logger              |
+| ------------ | ------------------------------------------- | -------------------------------------- | ------------------- |
+| Node.js      | `FFmpegNodeAdapter` → `FFmpegStaticAdapter` | `FilesystemNodeAdapter`                | `PinoLogAdapter`    |
+| Browser      | `FFmpegWasmAdapter` (`@ffmpeg/ffmpeg`)      | `BrowserFilesystemAdapter` (IndexedDB) | console logger      |
+| React Native | `FFmpegLeclapAdapter` (on-device engine)    | `FilesystemExpoAdapter`                | `ReactNativeLogger` |
 
 ## Node detection / fallback chain
 

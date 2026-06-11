@@ -20,11 +20,8 @@ export function parseCommand(command: string): string[] {
 
   for (const char of command) {
     if (quoteChar !== null) {
-      if (char === quoteChar) {
-        quoteChar = null;
-        continue;
-      }
-      current += char;
+      current += char === quoteChar ? '' : char;
+      quoteChar = char === quoteChar ? null : quoteChar;
       continue;
     }
 
@@ -39,6 +36,10 @@ export function parseCommand(command: string): string[] {
     }
 
     current += char;
+  }
+
+  if (quoteChar !== null) {
+    throw new Error(`Unterminated quote in command: ${command}`);
   }
 
   flush();

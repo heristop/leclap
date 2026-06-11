@@ -14,6 +14,10 @@ describe('parseCommand', () => {
       'out.mp4',
     ]);
   });
+
+  it('throws on an unterminated quote instead of dropping the final token', () => {
+    expect(() => parseCommand('-i in.mp4 "out.mp4')).toThrow(/Unterminated quote/);
+  });
 });
 
 function engineWith(overrides: Partial<NativeEngine>): NativeEngine {

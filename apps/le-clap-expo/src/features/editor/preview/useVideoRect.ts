@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import type { VideoRect } from '@/app/features/editor/components/CropOverlay';
+import type { VideoRect } from '@/src/features/editor/components/CropOverlay';
 import { computeVideoRect } from './previewHelpers';
 
 interface UseVideoRectResult {

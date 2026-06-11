@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { VideoFile } from 'react-native-vision-camera';
-import VideoRecorder from '@/app/features/editor/components/VideoRecorder';
+import VideoRecorder from '@/src/features/editor/components/VideoRecorder';
 import type { Section } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';

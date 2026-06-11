@@ -5,8 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import type { Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import SwipeableProjectItem from '@/app/components/ui/SwipeableProjectItem';
-import ConfirmDialog from '@/app/components/ui/dialog/ConfirmDialog';
+import SwipeableProjectItem from '@/src/components/ui/SwipeableProjectItem';
+import ConfirmDialog from '@/src/components/ui/dialog/ConfirmDialog';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useProjectService } from '@/src/presentation/hooks/useProjectService';
 

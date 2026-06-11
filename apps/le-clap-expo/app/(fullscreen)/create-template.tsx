@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import Button from '@/app/components/ui/Button';
+import Button from '@/src/components/ui/Button';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
-import { MediaPicker } from '@/app/features/templates/components/MediaPicker';
+import { MediaPicker } from '@/src/features/templates/components/MediaPicker';
 import {
   buildDescriptor,
   newSection,
@@ -15,7 +15,7 @@ import {
   SECTION_KINDS,
   type EditorSection,
   type EditorState,
-} from '@/app/features/templates/model/templateEditorModel';
+} from '@/src/features/templates/model/templateEditorModel';
 
 const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> = {
   video: 'videocam',

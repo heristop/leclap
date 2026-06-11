@@ -25,6 +25,14 @@ jobs:
       - name: Install Dependencies
         run: pnpm i
 
+      # Type-aware lint resolves `ffmpeg-video-composer/*` through its built dist and imports the
+      # server template JSONs copied into the Expo app — both are generated, so produce them before
+      # linting (otherwise the modules resolve to `any` and cascade into ~20 false errors).
+      - name: Prepare workspace
+        run: |
+          pnpm --filter ffmpeg-video-composer build
+          node scripts/copy-core-assets.mjs
+
       - name: Lint
         run: pnpm lint
 
@@ -36,6 +44,64 @@ jobs:
 
       - name: Run Tests and Collect Coverage
         run: pnpm test:ci
+
+  rust-engine:
+    name: Rust engine (host FFmpeg + cargo test)
+    # macOS runner: the engine build scripts target macOS (sysctl/DYLD, system pkg-config), and
+    # macOS minutes are free on this public repo.
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # build-host.sh statically links FFmpeg + freetype/harfbuzz/openh264 via pkg-config (full build
+      # with drawtext). On the macOS runner those libraries come from Homebrew.
+      - name: Install FFmpeg build deps (Homebrew)
+        run: brew install pkg-config freetype harfbuzz openh264
+
+      # Cache the FFmpeg source checkout + the built host libs so FFmpeg isn't recompiled from source
+      # on every run. Keyed on the version pins + build scripts; the generated .pc prefixes are
+      # absolute, so the cache only restores correctly to the same (stable per-repo) workspace path.
+      - name: Cache host FFmpeg build
+        uses: actions/cache@v4
+        with:
+          path: |
+            scripts/ffmpeg/.work
+            scripts/ffmpeg/dist/host
+          key: ffmpeg-host-${{ runner.os }}-${{ hashFiles('scripts/ffmpeg/versions.env', 'scripts/ffmpeg/common.sh', 'scripts/ffmpeg/build-host.sh', 'scripts/ffmpeg/patch-fftools.sh') }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/ffmpeg-engine/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('packages/ffmpeg-engine/Cargo.lock') }}
+
+      # Build the static host FFmpeg + libfftools.a only on a cache miss.
+      - name: Build host FFmpeg
+        run: |
+          if [ ! -f scripts/ffmpeg/dist/host/lib/libfftools.a ]; then
+            bash scripts/ffmpeg/build-host.sh
+          else
+            echo "host FFmpeg present (cached) — skipping rebuild"
+          fi
+
+      # Runs the cli.rs execution tests (real in-process ffmpeg/ffprobe via the embedded fftools).
+      - name: Cargo test
+        working-directory: packages/ffmpeg-engine
+        env:
+          FFMPEG_PKG_CONFIG_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib/pkgconfig
+          # build.rs reads FFMPEG_PKG_CONFIG_PATH, but the pkg-config crate reads PKG_CONFIG_PATH —
+          # pin both to the dist so Homebrew's own ffmpeg .pc can't leak in and break the static link
+          # (undefined Wels*/avcodec symbols).
+          PKG_CONFIG_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib/pkgconfig
+          DYLD_FALLBACK_LIBRARY_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib
+        run: cargo test --release
 
   # publish:
   #   needs: build-and-test

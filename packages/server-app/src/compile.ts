@@ -79,6 +79,20 @@ function parseTemplatePart(value: unknown): unknown {
   return JSON.parse(String(value)) as unknown;
 }
 
+// Reduce a client-controlled multipart filename's parsed section name to a single, separator-free
+// path component so it cannot escape `videosDir`. `[^-]+` in the filename regex matches `/` and `..`,
+// so a filename like `../../../../tmp/pwn-1.sh` would otherwise drive an arbitrary file write.
+export function safeSectionName(rawName: string): string {
+  const base = path.basename(rawName);
+
+  // Reject any residual path separator (basename leaves `\` intact on POSIX) or traversal token.
+  if (base !== rawName || /[/\\]/.test(base) || base === '..' || base === '.' || base === '') {
+    throw new Error(`Unsafe section name derived from upload: ${rawName}`);
+  }
+
+  return base;
+}
+
 async function processFilePart(
   part: { filename: string; toBuffer: () => Promise<Buffer> },
   fileCount: number,
@@ -86,7 +100,7 @@ async function processFilePart(
   logger: CompileLogger
 ): Promise<{ videoFile: VideoFile; sectionName: string; videoPath: string }> {
   const filenameMatch = part.filename.match(/^([^-]+)-\d+\.(\w+)$/);
-  const sectionName = filenameMatch ? filenameMatch[1] : 'unknown_section';
+  const sectionName = filenameMatch ? safeSectionName(filenameMatch[1]) : 'unknown_section';
 
   logger.info(`Received video file #${fileCount} for section ${sectionName}: ${part.filename}`);
 
@@ -95,6 +109,14 @@ async function processFilePart(
 
   const fileExtension = filenameMatch ? filenameMatch[2] : 'mov';
   const videoPath = path.join(dirs.videosDir, `${sectionName}.${fileExtension}`);
+
+  // Defense in depth: even after sanitizing, assert the resolved write target stays under videosDir
+  // before any attacker-controlled bytes hit disk.
+  const resolvedVideosDir = path.resolve(dirs.videosDir);
+
+  if (!path.resolve(videoPath).startsWith(resolvedVideosDir + path.sep)) {
+    throw new Error(`Refusing to write outside the videos directory: ${videoPath}`);
+  }
 
   const fileBuffer = await part.toBuffer();
   fsSync.writeFileSync(videoPath, fileBuffer);

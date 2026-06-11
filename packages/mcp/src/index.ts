@@ -1,3 +1,7 @@
+// Must precede any import that reaches the core (`ffmpeg-video-composer`): the core uses tsyringe,
+// which requires a reflect-metadata polyfill at load time. `get_template_schema` imports the core's
+// TemplateDescriptorSchema value, so the polyfill has to be installed before the server module loads.
+import 'reflect-metadata';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { loadConfig } from './config.js';

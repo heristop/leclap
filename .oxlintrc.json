@@ -50,6 +50,12 @@
         "node": true,
         "commonjs": true
       }
+    },
+    {
+      "files": ["**/*.generated.ts"],
+      "rules": {
+        "max-lines": "off"
+      }
     }
   ]
 }

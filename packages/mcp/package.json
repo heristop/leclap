@@ -13,6 +13,7 @@
     "README.md"
   ],
   "scripts": {
+    "embed-templates": "node --experimental-strip-types scripts/embedTemplates.ts",
     "build": "tsdown",
     "prepack": "tsdown",
     "typecheck": "tsc --noEmit",

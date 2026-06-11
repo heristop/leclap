@@ -463,7 +463,7 @@ importers:
         specifier: ^0.12.2
         version: 0.12.2
       expo-file-system:
-        specifier: '*'
+        specifier: ~56.0.7
         version: 56.0.7(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.7))(@react-native/metro-config@0.85.3(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.7))
       ffmpeg-static:
         specifier: ^5.3.0

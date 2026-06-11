@@ -45,7 +45,7 @@ This app requires the **FFmpeg Video Composer** backend server to be running for
 1. **Navigate to the app directory:**
 
    ```bash
-   cd apps/le-clap-expo
+   cd apps/leclap-expo
    ```
 
 2. **Install dependencies:**

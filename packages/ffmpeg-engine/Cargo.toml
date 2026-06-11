@@ -2,7 +2,7 @@
 name = "leclap-ffmpeg-core"
 version = "0.1.0"
 edition = "2021"
-description = "On-device FFmpeg CLI engine (embedded fftools) for le-clap-expo"
+description = "On-device FFmpeg CLI engine (embedded fftools) for leclap-expo"
 license = "LGPL-3.0-or-later"
 
 [lib]

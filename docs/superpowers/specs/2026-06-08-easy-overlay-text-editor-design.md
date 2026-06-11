@@ -2,7 +2,7 @@
 
 - Date: 2026-06-08
 - Status: approved (design); plan pending
-- Area: `apps/le-clap-web` (video section editor), `packages/core` (bundled fonts + preload), shared copy-script. Expo mirror is a follow-up.
+- Area: `apps/leclap-web` (video section editor), `packages/core` (bundled fonts + preload), shared copy-script. Expo mirror is a follow-up.
 
 ## Goal
 
@@ -51,7 +51,7 @@ Overlay text may contain `{{ name }}` tokens that the engine substitutes at comp
 ## Fonts
 
 - Bundle 6 TTFs at `packages/core/src/shared/library/fonts/<Font>.ttf` (download the OFL TTFs from Google Fonts during implementation; record license in `CREDITS`).
-- The existing `scripts/copy-core-assets.mjs` copies `library/fonts/*` into `apps/le-clap-web/public/fonts/` and `apps/le-clap-expo/assets/fonts/`.
+- The existing `scripts/copy-core-assets.mjs` copies `library/fonts/*` into `apps/leclap-web/public/fonts/` and `apps/leclap-expo/assets/fonts/`.
 - Web preview fidelity: `@font-face` declarations (in `src/index.css` or a dedicated css) load the same TTFs from `/fonts/<Font>.ttf` so the canvas shows the real face.
 - A shared catalog `packages/core/src/shared/library/fonts.ts`: `FONTS: { id, label, file, cssFamily }[]` (e.g. `{ id:'rubik', label:'Rubik', file:'Rubik.ttf', cssFamily:'Rubik' }`).
 - Compile: each overlay's `drawtext` filter sets `fontfile: '<file>'` (e.g. `'Oswald.ttf'`). `coreCompilationService.preloadBundledFonts` is extended to preload all six TTFs into the build dir (so WASM drawtext finds them); today it preloads only `Rubik.ttf`.
@@ -76,7 +76,7 @@ Removed/retired: the per-overlay `OverlayEditor` form rows and the standalone `T
 - `templateEditorModel.test.ts`: overlays incl. `font` → drawtext `fontfile` mapping (and back); multiple overlays → multiple filters; box/x/y as before; round-trip.
 - `fonts.ts` catalog integrity test: every font's TTF exists under `public/fonts` after the copy script (mirror the `mediaCatalog` integrity test).
 - OverlayCanvas: build + typecheck + manual (repo doesn't DOM-test React components). Extract any pure geometry (px↔fraction, px↔fontsize) into a tiny tested helper.
-- Gates: web suite green, `vp lint` 0/0 on touched files, `pnpm --filter le-clap build`, fonts preload verified in a compile smoke.
+- Gates: web suite green, `vp lint` 0/0 on touched files, `pnpm --filter leclap build`, fonts preload verified in a compile smoke.
 
 ## Out of scope (follow-ups)
 

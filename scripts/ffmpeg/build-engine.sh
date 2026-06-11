@@ -6,7 +6,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-MODULE="$REPO_ROOT/apps/le-clap-expo/modules/leclap-ffmpeg"
+MODULE="$REPO_ROOT/apps/leclap-expo/modules/leclap-ffmpeg"
 TARGET="${1:-all}"
 
 build_android() {

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in the **le-clap** monorepo. This is the canonical, tool-agnostic agent guide. Read it first.
+Guidance for AI agents working in the **leclap** monorepo. This is the canonical, tool-agnostic agent guide. Read it first.
 
 ## Project overview
 
@@ -13,16 +13,16 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 
 ## Repository layout
 
-pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **private orchestrator** (`le-clap`) holding only shared dev tooling and scripts — not a publishable package. The single published artifact is `ffmpeg-video-composer`; everything else is scoped `@le-clap/*`.
+pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **private orchestrator** (`leclap`) holding only shared dev tooling and scripts — not a publishable package. The single published artifact is `ffmpeg-video-composer`; everything else is scoped `@leclap/*`.
 
 | Path                             | Package                 | What it is                                                                                          |
 | -------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `.`                              | `le-clap` _(private)_   | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                      |
+| `.`                              | `leclap` _(private)_    | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                      |
 | `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.       |
-| `packages/server-app`            | `@le-clap/server-app`   | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes `ffmpeg-video-composer`. |
+| `packages/server-app`            | `@leclap/server-app`    | Fastify HTTP server exposing `/compile`, `/templates`, `/health`. Consumes `ffmpeg-video-composer`. |
 | `packages/ffmpeg-engine`         | _(cargo crate)_         | Embedded FFmpeg engine (Rust + uniffi) for on-device compiles; built via `scripts/ffmpeg/`.         |
-| `apps/le-clap-expo`              | `@le-clap/expo`         | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.   |
-| `apps/le-clap-web`               | `@le-clap/web`          | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                         |
+| `apps/leclap-expo`               | `@leclap/expo`          | Expo / React Native app — Tamagui UI, Zustand + AsyncStorage (offline-first), clean architecture.   |
+| `apps/leclap-web`                | `@leclap/web`           | React 19 + Vite + Tailwind web app — runs FFmpeg fully in-browser via WASM.                         |
 
 The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (root `pnpm compile` / `pnpm diagnose` delegate to them).
 
@@ -34,7 +34,7 @@ The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (r
 
 ## Commands
 
-Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there is **no eslint, no prettier, and no jest at the root** (jest lives only inside `apps/le-clap-expo`).
+Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there is **no eslint, no prettier, and no jest at the root** (jest lives only inside `apps/leclap-expo`).
 
 | Task                | Command                                                                |
 | ------------------- | ---------------------------------------------------------------------- |
@@ -62,17 +62,17 @@ Run from the repo root unless noted. Tooling is **vite-plus (`vp`)** — there i
 - **Format** (enforced by `vp`): semicolons, single quotes, `printWidth: 120`, `tabWidth: 2`, `trailingComma: es5`.
 - **Path alias** — `@/*` → `packages/ffmpeg-video-composer/src/*`.
 - **Decorators** — DI/decorators require `reflect-metadata` to be imported once at the entry point.
-- **React Compiler is enabled** in both apps (`apps/le-clap-web` via `@vitejs/plugin-react`'s Babel pass; `apps/le-clap-expo` via `app.json` → `experiments.reactCompiler`). Don't add `useMemo`/`useCallback`/`React.memo` — the compiler memoizes automatically.
-- **Tests** — core's unit + integration suite lives in `packages/ffmpeg-video-composer/tests/` (run by the root `pnpm test` / vitest); the Expo app keeps its own jest tests under `apps/le-clap-expo`.
+- **React Compiler is enabled** in both apps (`apps/leclap-web` via `@vitejs/plugin-react`'s Babel pass; `apps/leclap-expo` via `app.json` → `experiments.reactCompiler`). Don't add `useMemo`/`useCallback`/`React.memo` — the compiler memoizes automatically.
+- **Tests** — core's unit + integration suite lives in `packages/ffmpeg-video-composer/tests/` (run by the root `pnpm test` / vitest); the Expo app keeps its own jest tests under `apps/leclap-expo`.
 - Prefer reusing existing managers/adapters/factories over adding new abstractions; follow the patterns already in `packages/ffmpeg-video-composer`.
 
-### Design system & styling (web — `apps/le-clap-web`)
+### Design system & styling (web — `apps/leclap-web`)
 
 - **The design system is shadcn/ui + Radix** — utility-first, not BEM. Primitives live in `src/presentation/components/ui/` as shadcn-style components: Radix primitives for behavior/accessibility, styled with Tailwind utility classes, variants via **`class-variance-authority` (cva)**, classes merged with **`cn()`** (`@/lib/utils`, clsx + tailwind-merge). Add components via the shadcn CLI/registry; config in `components.json`.
 - **Brand integration:** shadcn's CSS-variable contract (`--background`, `--foreground`, `--primary`, `--primary-foreground`, `--border`, `--ring`, `--card`, …) is mapped onto the OKLCH brand tokens in `@theme` / `.dark` (`src/index.css`) so every shadcn primitive renders on-brand (lavender `--primary`, etc.). Never hard-code colors — reference tokens.
 - **Tokens & theme:** OKLCH CSS variables in `@theme` (`src/index.css`); light is the default, `.dark` on `<html>` swaps semantic surface/text tokens; brand/secondary/accent ramps are theme-constant.
 - **Dependencies:** Radix is added per primitive (`@radix-ui/react-*`) plus `class-variance-authority`; pin versions old enough to satisfy the `minimumReleaseAge` supply-chain policy (`pnpm-workspace.yaml`).
-- **Path alias** in the web app: `@/*` → `apps/le-clap-web/src/*` (distinct from core's `@/*`).
+- **Path alias** in the web app: `@/*` → `apps/leclap-web/src/*` (distinct from core's `@/*`).
 
 ## Pre-commit
 

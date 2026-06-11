@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "LeClap",
-    "slug": "le-clap",
+    "slug": "leclap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",

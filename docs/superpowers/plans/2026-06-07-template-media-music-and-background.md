@@ -14,7 +14,7 @@
 
 **Lint rules to honor in every file:** no `else`/`else if` (early returns), `eqeqeq` (`===`), no `useMemo`/`useCallback`/`React.memo`, `useId()` for generated ids, blank line before control-flow statements (`padding-line-before-statements`), `curly` for multi-line, no `// TODO/FIXME`, `max-lines-per-function: 100`, `max-statements: 20`. Test files relax most of these.
 
-**Verification gates (run after each task):** `pnpm test` (vitest), `pnpm lint` (`vp lint`, target 0/0), `pnpm --filter le-clap build`.
+**Verification gates (run after each task):** `pnpm test` (vitest), `pnpm lint` (`vp lint`, target 0/0), `pnpm --filter leclap build`.
 
 ---
 
@@ -302,14 +302,14 @@ Define typed catalogs of credited tracks and images, served from `public/`. Seed
 
 **Files:**
 
-- Create: `apps/le-clap-web/src/data/mediaCatalog.ts`
-- Create: `apps/le-clap-web/public/musics/` and `apps/le-clap-web/public/backgrounds/` (asset files)
-- Test: `apps/le-clap-web/src/data/mediaCatalog.test.ts`
+- Create: `apps/leclap-web/src/data/mediaCatalog.ts`
+- Create: `apps/leclap-web/public/musics/` and `apps/leclap-web/public/backgrounds/` (asset files)
+- Test: `apps/leclap-web/src/data/mediaCatalog.test.ts`
 
 - [ ] **Step 1: Seed the first music asset from the repo**
 
-Run: `mkdir -p apps/le-clap-web/public/musics apps/le-clap-web/public/backgrounds && cp "packages/core/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3" apps/le-clap-web/public/musics/go-by-ocean.mp3`
-Expected: `apps/le-clap-web/public/musics/go-by-ocean.mp3` exists.
+Run: `mkdir -p apps/leclap-web/public/musics apps/leclap-web/public/backgrounds && cp "packages/core/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3" apps/leclap-web/public/musics/go-by-ocean.mp3`
+Expected: `apps/leclap-web/public/musics/go-by-ocean.mp3` exists.
 
 - [ ] **Step 2: Source the rest of the curated assets**
 
@@ -317,7 +317,7 @@ Using `WebSearch`/`WebFetch`, download about 4 more royalty-free tracks (CC0 / P
 
 - [ ] **Step 3: Write the catalog module**
 
-Create `apps/le-clap-web/src/data/mediaCatalog.ts` (fill `MUSIC_LIBRARY` / `BACKGROUND_LIBRARY` with the real assets from Steps 1–2; the `go-by-ocean` seed entry is shown):
+Create `apps/leclap-web/src/data/mediaCatalog.ts` (fill `MUSIC_LIBRARY` / `BACKGROUND_LIBRARY` with the real assets from Steps 1–2; the `go-by-ocean` seed entry is shown):
 
 ```ts
 // Curated, credited media served from /public. Picks are referenced by URL in
@@ -359,7 +359,7 @@ export const findBackgroundByUrl = (url: string): MediaCredit | undefined =>
 
 - [ ] **Step 4: Write the integrity test**
 
-Create `apps/le-clap-web/src/data/mediaCatalog.test.ts`:
+Create `apps/leclap-web/src/data/mediaCatalog.test.ts`:
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -396,13 +396,13 @@ checkCatalog('BACKGROUND_LIBRARY', BACKGROUND_LIBRARY);
 
 - [ ] **Step 5: Run the test**
 
-Run: `pnpm --filter le-clap exec vitest run src/data/mediaCatalog.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/data/mediaCatalog.test.ts`
 Expected: PASS — every catalog entry resolves to a real file in `public/`.
 
 - [ ] **Step 6: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/src/data/mediaCatalog.ts apps/le-clap-web/src/data/mediaCatalog.test.ts apps/le-clap-web/public/musics apps/le-clap-web/public/backgrounds
+git add apps/leclap-web/src/data/mediaCatalog.ts apps/leclap-web/src/data/mediaCatalog.test.ts apps/leclap-web/public/musics apps/leclap-web/public/backgrounds
 git commit -m "feat(web): add curated music and background media catalogs"
 ```
 
@@ -414,13 +414,13 @@ A pure store over an injected backend persists uploaded files in their own Index
 
 **Files:**
 
-- Create: `apps/le-clap-web/src/stores/browserMediaStore.ts`
-- Create: `apps/le-clap-web/src/services/browserMediaService.ts` (real IndexedDB backend wiring)
-- Test: `apps/le-clap-web/src/stores/browserMediaStore.test.ts`
+- Create: `apps/leclap-web/src/stores/browserMediaStore.ts`
+- Create: `apps/leclap-web/src/services/browserMediaService.ts` (real IndexedDB backend wiring)
+- Test: `apps/leclap-web/src/stores/browserMediaStore.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `apps/le-clap-web/src/stores/browserMediaStore.test.ts`:
+Create `apps/leclap-web/src/stores/browserMediaStore.test.ts`:
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -484,12 +484,12 @@ describe('BrowserMediaStore', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `pnpm --filter le-clap exec vitest run src/stores/browserMediaStore.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/stores/browserMediaStore.test.ts`
 Expected: FAIL — module does not exist.
 
 - [ ] **Step 3: Implement the store**
 
-Create `apps/le-clap-web/src/stores/browserMediaStore.ts`:
+Create `apps/leclap-web/src/stores/browserMediaStore.ts`:
 
 ```ts
 export type MediaKind = 'music' | 'picture';
@@ -588,12 +588,12 @@ export class BrowserMediaStore {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `pnpm --filter le-clap exec vitest run src/stores/browserMediaStore.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/stores/browserMediaStore.test.ts`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Wire the real IndexedDB backend**
 
-Create `apps/le-clap-web/src/services/browserMediaService.ts`:
+Create `apps/leclap-web/src/services/browserMediaService.ts`:
 
 ```ts
 import { BrowserMediaStore, type MediaBackend, type MediaRecord } from '@/stores/browserMediaStore';
@@ -651,13 +651,13 @@ export const browserMediaService = new BrowserMediaStore(indexedDbBackend);
 
 - [ ] **Step 6: Verify lint/build**
 
-Run: `pnpm lint` and `pnpm --filter le-clap build`
+Run: `pnpm lint` and `pnpm --filter leclap build`
 Expected: 0/0 lint; build succeeds.
 
 - [ ] **Step 7: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/src/stores/browserMediaStore.ts apps/le-clap-web/src/stores/browserMediaStore.test.ts apps/le-clap-web/src/services/browserMediaService.ts
+git add apps/leclap-web/src/stores/browserMediaStore.ts apps/leclap-web/src/stores/browserMediaStore.test.ts apps/leclap-web/src/services/browserMediaService.ts
 git commit -m "feat(web): add BrowserMediaStore for persistent uploaded media"
 ```
 
@@ -669,12 +669,12 @@ Add an `image` section kind and a `music` selection to `EditorState`, and compil
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts`
-- Test: `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.test.ts` (create)
+- Modify: `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts`
+- Test: `apps/leclap-web/src/presentation/components/admin/templateEditorModel.test.ts` (create)
 
 - [ ] **Step 1: Write the failing round-trip test**
 
-Create `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.test.ts`:
+Create `apps/leclap-web/src/presentation/components/admin/templateEditorModel.test.ts`:
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -768,7 +768,7 @@ describe('templateEditorModel media', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `pnpm --filter le-clap exec vitest run src/presentation/components/admin/templateEditorModel.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/presentation/components/admin/templateEditorModel.test.ts`
 Expected: FAIL — `music`/`image` not in the model yet.
 
 - [ ] **Step 3: Add the media types and section kind**
@@ -931,13 +931,13 @@ In the empty-template branch of `toEditorState`, add `music: null,`. In the hydr
 
 - [ ] **Step 7: Run the test to verify it passes**
 
-Run: `pnpm --filter le-clap exec vitest run src/presentation/components/admin/templateEditorModel.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/presentation/components/admin/templateEditorModel.test.ts`
 Expected: PASS (5 tests).
 
 - [ ] **Step 8: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts apps/le-clap-web/src/presentation/components/admin/templateEditorModel.test.ts
+git add apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts apps/leclap-web/src/presentation/components/admin/templateEditorModel.test.ts
 git commit -m "feat(web): model music and image-background in the template editor"
 ```
 
@@ -949,13 +949,13 @@ After the engine store is cleared and before compilation, copy uploaded blobs fr
 
 **Files:**
 
-- Create: `apps/le-clap-web/src/application/usecases/materializeTemplateMedia.ts`
-- Modify: `apps/le-clap-web/src/application/usecases/coreCompilationService.ts`
-- Test: `apps/le-clap-web/src/application/usecases/materializeTemplateMedia.test.ts`
+- Create: `apps/leclap-web/src/application/usecases/materializeTemplateMedia.ts`
+- Modify: `apps/leclap-web/src/application/usecases/coreCompilationService.ts`
+- Test: `apps/leclap-web/src/application/usecases/materializeTemplateMedia.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `apps/le-clap-web/src/application/usecases/materializeTemplateMedia.test.ts`:
+Create `apps/leclap-web/src/application/usecases/materializeTemplateMedia.test.ts`:
 
 ```ts
 import { describe, it, expect, vi } from 'vitest';
@@ -1026,12 +1026,12 @@ describe('materializeTemplateMedia', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `pnpm --filter le-clap exec vitest run src/application/usecases/materializeTemplateMedia.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/application/usecases/materializeTemplateMedia.test.ts`
 Expected: FAIL — module does not exist.
 
 - [ ] **Step 3: Implement materialization**
 
-Create `apps/le-clap-web/src/application/usecases/materializeTemplateMedia.ts`:
+Create `apps/leclap-web/src/application/usecases/materializeTemplateMedia.ts`:
 
 ```ts
 import type { TemplateDescriptor } from '@ffmpeg-video-composer/core/src/core/types.d.ts';
@@ -1095,7 +1095,7 @@ export async function materializeTemplateMedia(
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `pnpm --filter le-clap exec vitest run src/application/usecases/materializeTemplateMedia.test.ts`
+Run: `pnpm --filter leclap exec vitest run src/application/usecases/materializeTemplateMedia.test.ts`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Call materialize from the compile flow**
@@ -1117,13 +1117,13 @@ await materializeTemplateMedia(templateDescriptor, browserMediaService, this.fil
 
 - [ ] **Step 6: Verify lint/build/tests**
 
-Run: `pnpm test`, `pnpm lint`, `pnpm --filter le-clap build`
+Run: `pnpm test`, `pnpm lint`, `pnpm --filter leclap build`
 Expected: tests pass; lint 0/0; build succeeds.
 
 - [ ] **Step 7: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/src/application/usecases/materializeTemplateMedia.ts apps/le-clap-web/src/application/usecases/materializeTemplateMedia.test.ts apps/le-clap-web/src/application/usecases/coreCompilationService.ts
+git add apps/leclap-web/src/application/usecases/materializeTemplateMedia.ts apps/leclap-web/src/application/usecases/materializeTemplateMedia.test.ts apps/leclap-web/src/application/usecases/coreCompilationService.ts
 git commit -m "feat(web): materialize uploaded template media before compilation"
 ```
 
@@ -1135,11 +1135,11 @@ A reusable control with an Upload / Library switch. Built with the design-system
 
 **Files:**
 
-- Create: `apps/le-clap-web/src/presentation/components/admin/MediaPicker.tsx`
+- Create: `apps/leclap-web/src/presentation/components/admin/MediaPicker.tsx`
 
 - [ ] **Step 1: Implement the picker**
 
-Create `apps/le-clap-web/src/presentation/components/admin/MediaPicker.tsx`:
+Create `apps/leclap-web/src/presentation/components/admin/MediaPicker.tsx`:
 
 ```tsx
 import { useState, useId, useEffect } from 'react';
@@ -1356,7 +1356,7 @@ const SelectedUpload = ({ kind, label, onClear }: { kind: MediaKind; label: stri
 
 - [ ] **Step 2: Verify lint/build**
 
-Run: `pnpm lint` and `pnpm --filter le-clap build`
+Run: `pnpm lint` and `pnpm --filter leclap build`
 Expected: 0/0 lint (no `else`, blank lines before returns, no manual memo); build succeeds.
 
 - [ ] **Step 3: Polish with the design skills**
@@ -1366,7 +1366,7 @@ Invoke the `impeccable` audit (a11y/theming/responsive) and the `ui-ux-pro-max` 
 - [ ] **Step 4: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/src/presentation/components/admin/MediaPicker.tsx
+git add apps/leclap-web/src/presentation/components/admin/MediaPicker.tsx
 git commit -m "feat(web): add MediaPicker (upload or curated list) for template media"
 ```
 
@@ -1378,7 +1378,7 @@ Add the music picker under the "Background music" toggle, a "Background image" b
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/TemplateEditor.tsx`
+- Modify: `apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx`
 
 - [ ] **Step 1: Import the picker, types, and an icon**
 
@@ -1503,12 +1503,12 @@ if (missingImage) {
 
 - [ ] **Step 6: Verify lint/build manually**
 
-Run: `pnpm lint` and `pnpm --filter le-clap build`
+Run: `pnpm lint` and `pnpm --filter leclap build`
 Expected: 0/0 lint; build succeeds.
 
 - [ ] **Step 7: Manual smoke test**
 
-Run: `pnpm --filter le-clap dev`, open the template editor:
+Run: `pnpm --filter leclap dev`, open the template editor:
 
 - Enable "Background music" → pick a library track (preview plays) and Save; reopen → the track stays selected.
 - Add "Background image" → upload an image; Save; reopen → shows "Uploaded file".
@@ -1517,7 +1517,7 @@ Run: `pnpm --filter le-clap dev`, open the template editor:
 - [ ] **Step 8: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/src/presentation/components/admin/TemplateEditor.tsx
+git add apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx
 git commit -m "feat(web): wire music and background-image pickers into the template editor"
 ```
 
@@ -1527,12 +1527,12 @@ git commit -m "feat(web): wire music and background-image pickers into the templ
 
 **Files:**
 
-- Create: `apps/le-clap-web/public/CREDITS.txt`
+- Create: `apps/leclap-web/public/CREDITS.txt`
 - Modify: `README.md` and/or `AGENTS.md` (Web App section)
 
 - [ ] **Step 1: Write CREDITS.txt**
 
-Create `apps/le-clap-web/public/CREDITS.txt` listing every curated asset with title, author, license, and source URL (one block per `MUSIC_LIBRARY` / `BACKGROUND_LIBRARY` entry). Keep it in sync with `mediaCatalog.ts`.
+Create `apps/leclap-web/public/CREDITS.txt` listing every curated asset with title, author, license, and source URL (one block per `MUSIC_LIBRARY` / `BACKGROUND_LIBRARY` entry). Keep it in sync with `mediaCatalog.ts`.
 
 - [ ] **Step 2: Document the feature**
 
@@ -1544,13 +1544,13 @@ Run, in order:
 
 - `pnpm test` — all suites pass (core: fetch + wasm-loop; web: catalog, media store, editor model, materialize).
 - `pnpm lint` — 0 errors / 0 warnings.
-- `pnpm --filter le-clap build` — succeeds.
+- `pnpm --filter leclap build` — succeeds.
 - `pnpm --filter @ffmpeg-video-composer/core build` (if a core build script exists) — succeeds.
 
 - [ ] **Step 4: Commit** (request consent first)
 
 ```bash
-git add apps/le-clap-web/public/CREDITS.txt README.md AGENTS.md
+git add apps/leclap-web/public/CREDITS.txt README.md AGENTS.md
 git commit -m "docs(web): credit curated media and document template media feature"
 ```
 

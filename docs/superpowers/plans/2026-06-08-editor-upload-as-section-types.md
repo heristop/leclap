@@ -6,7 +6,7 @@
 
 **Architecture:** The `EditorSection` union grows two new members (`usermusic`, `userphoto`). `buildDescriptor` derives `global.allowUploadMusic`/`global.allowUploadBackground` from the presence of those sections rather than from removed `EditorState` boolean fields. `toEditorState` rehydrates those sections from the stored globals on round-trip. The Builder and compile pipeline are untouched — they continue consuming the same `global.*` flags.
 
-**Tech Stack:** TypeScript, React 19 (React Compiler active — no useMemo/useCallback/memo), Vitest, oxlint, pnpm workspaces (filter name `le-clap`), lucide-react icons.
+**Tech Stack:** TypeScript, React 19 (React Compiler active — no useMemo/useCallback/memo), Vitest, oxlint, pnpm workspaces (filter name `leclap`), lucide-react icons.
 
 ---
 
@@ -14,9 +14,9 @@
 
 | File                                                                             | Change                                                                                                                                                                                          |
 | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts`      | Remove `allowUploadMusic`/`allowUploadBackground` from `EditorState`; add `usermusic`/`userphoto` to `EditorSection`; update `SECTION_LABELS`, `newSection`, `buildDescriptor`, `toEditorState` |
-| `apps/le-clap-web/src/presentation/components/admin/TemplateEditor.tsx`          | Remove upload checkboxes; add `usermusic`/`userphoto` to `AddSectionButtons`; add icon cases to `SectionIcon`; add field branches to `SectionFields`; fix `handleSave` guard                    |
-| `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.test.ts` | Update `baseState` helper; replace `allowUploadMusic`/`allowUploadBackground` tests with section-driven tests; add round-trip tests for new kinds                                               |
+| `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts`      | Remove `allowUploadMusic`/`allowUploadBackground` from `EditorState`; add `usermusic`/`userphoto` to `EditorSection`; update `SECTION_LABELS`, `newSection`, `buildDescriptor`, `toEditorState` |
+| `apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx`          | Remove upload checkboxes; add `usermusic`/`userphoto` to `AddSectionButtons`; add icon cases to `SectionIcon`; add field branches to `SectionFields`; fix `handleSave` guard                    |
+| `apps/leclap-web/src/presentation/components/admin/templateEditorModel.test.ts` | Update `baseState` helper; replace `allowUploadMusic`/`allowUploadBackground` tests with section-driven tests; add round-trip tests for new kinds                                               |
 
 ---
 
@@ -24,7 +24,7 @@
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts:1-39`
+- Modify: `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts:1-39`
 
 - [ ] **Step 1: Extend `EditorSection` union and remove upload booleans from `EditorState`**
 
@@ -83,7 +83,7 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts:51-123`
+- Modify: `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts:51-123`
 
 - [ ] **Step 1: Rewrite `buildDescriptor`**
 
@@ -182,7 +182,7 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts:168-211`
+- Modify: `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts:168-211`
 
 - [ ] **Step 1: Rewrite `toEditorState`**
 
@@ -248,7 +248,7 @@ export function toEditorState(template: Template | null): EditorState {
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.test.ts`
+- Modify: `apps/leclap-web/src/presentation/components/admin/templateEditorModel.test.ts`
 
 - [ ] **Step 1: Rewrite `baseState` to remove deleted fields**
 
@@ -435,7 +435,7 @@ describe('templateEditorModel — round-trips', () => {
 - [ ] **Step 5: Run vitest to confirm tests fail as expected (model not yet updated)**
 
 ```bash
-pnpm --filter le-clap exec vitest run
+pnpm --filter leclap exec vitest run
 ```
 
 Expected: TypeScript errors or test failures because `EditorState` still has old shape in the test helpers.
@@ -459,7 +459,7 @@ The final file must compile cleanly. Key invariants to check:
 - [ ] **Step 2: Run vitest**
 
 ```bash
-pnpm --filter le-clap exec vitest run
+pnpm --filter leclap exec vitest run
 ```
 
 Expected: All tests in `templateEditorModel.test.ts` pass. (The UI file still imports `allowUploadMusic`/`allowUploadBackground` from state — TypeScript won't run until we fix it, but vitest type-checks on the fly.)
@@ -470,7 +470,7 @@ Expected: All tests in `templateEditorModel.test.ts` pass. (The UI file still im
 
 **Files:**
 
-- Modify: `apps/le-clap-web/src/presentation/components/admin/TemplateEditor.tsx`
+- Modify: `apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx`
 
 - [ ] **Step 1: Update imports — add `Music` and `ImageIcon` from lucide-react**
 
@@ -616,7 +616,7 @@ if (section.kind === 'userphoto') {
 - [ ] **Step 1: Run vitest**
 
 ```bash
-pnpm --filter le-clap exec vitest run
+pnpm --filter leclap exec vitest run
 ```
 
 Expected: All tests pass, no failures.
@@ -640,7 +640,7 @@ If there are findings, the most likely oxlint rules to fix:
 - [ ] **Step 3: Run the web build**
 
 ```bash
-pnpm --filter le-clap build
+pnpm --filter leclap build
 ```
 
 Expected: Build succeeds with no TypeScript errors.

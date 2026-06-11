@@ -1,7 +1,7 @@
 import type { TemplateDescriptor, Field } from '@/src/types';
 
 /**
- * Pure state logic for the Builder wizard — ported from le-clap-web's Builder page.
+ * Pure state logic for the Builder wizard — ported from leclap-web's Builder page.
  * Keeping it framework-free means the step machine (which steps apply, when Next unlocks,
  * how the Configure step is skipped) is unit-tested without rendering anything. The screen
  * is a thin shell over these functions.

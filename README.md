@@ -64,15 +64,15 @@ pnpm compile packages/ffmpeg-video-composer/src/shared/templates/sample.json   #
 
 ## 📦 Monorepo structure
 
-pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a private orchestrator (`le-clap`); only `ffmpeg-video-composer` is published to npm.
+pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The repo root is a private orchestrator (`leclap`); only `ffmpeg-video-composer` is published to npm.
 
 | Package                 | Path                             | Description                                                                        |
 | ----------------------- | -------------------------------- | ---------------------------------------------------------------------------------- |
-| `le-clap` _(private)_   | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only. |
+| `leclap` _(private)_    | `.`                              | Workspace root — shared dev tooling (`vp`, vitest) and orchestration scripts only. |
 | `ffmpeg-video-composer` | `packages/ffmpeg-video-composer` | **The library** — cross-platform composition engine + CLI (Node, browser, WASM).   |
-| `@le-clap/server-app`   | `packages/server-app`            | Fastify HTTP server exposing `/compile`, `/templates`, `/health`.                  |
-| `@le-clap/web`          | `apps/le-clap-web`               | React 19 + Vite + Tailwind web app — runs FFmpeg entirely in-browser via WASM.     |
-| `@le-clap/expo`         | `apps/le-clap-expo`              | Expo / React Native app — Tamagui UI, offline-first (Zustand + AsyncStorage).      |
+| `@leclap/server-app`    | `packages/server-app`            | Fastify HTTP server exposing `/compile`, `/templates`, `/health`.                  |
+| `@leclap/web`           | `apps/leclap-web`                | React 19 + Vite + Tailwind web app — runs FFmpeg entirely in-browser via WASM.     |
+| `@leclap/expo`          | `apps/leclap-expo`               | Expo / React Native app — Tamagui UI, offline-first (Zustand + AsyncStorage).      |
 | `ffmpeg-engine`         | `packages/ffmpeg-engine`         | Rust engine embedding FFmpeg fftools for on-device compiles (Expo app).            |
 
 The server, web, and mobile apps all run the same `ffmpeg-video-composer` core — the mobile app drives it on-device through the embedded native engine and falls back to the server.
@@ -153,8 +153,8 @@ Tooling is **vite-plus (`vp`)** — no eslint, prettier, or root jest (jest live
 
 ## 📱 Apps
 
-- **Web** ([`@le-clap/web`](apps/le-clap-web)) — React 19 + Vite + Tailwind; runs FFmpeg **entirely in the browser** via WebAssembly, no server required (2 GB input limit). Start with `pnpm playground:web`.
-- **Mobile** ([`@le-clap/expo`](apps/le-clap-expo)) — Expo / React Native client. Start the server first (`pnpm server:dev`), then `pnpm playground:start` (or `:ios` / `:android`).
+- **Web** ([`@leclap/web`](apps/leclap-web)) — React 19 + Vite + Tailwind; runs FFmpeg **entirely in the browser** via WebAssembly, no server required (2 GB input limit). Start with `pnpm playground:web`.
+- **Mobile** ([`@leclap/expo`](apps/leclap-expo)) — Expo / React Native client. Start the server first (`pnpm server:dev`), then `pnpm playground:start` (or `:ios` / `:android`).
 
 ## 📚 Documentation
 

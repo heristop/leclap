@@ -22,16 +22,16 @@ form-banner-*.png
 # packages/ffmpeg-video-composer/src/shared/library/ (the single source of truth).
 # scripts/copy-core-assets.mjs copies them into each app's static dir on dev/build,
 # so the generated copies are not tracked.
-/apps/le-clap-web/public/musics/
-/apps/le-clap-web/public/backgrounds/
-/apps/le-clap-web/public/fonts/
-/apps/le-clap-expo/assets/musics/
-/apps/le-clap-expo/assets/backgrounds/
-/apps/le-clap-expo/assets/fonts/
+/apps/leclap-web/public/musics/
+/apps/leclap-web/public/backgrounds/
+/apps/leclap-web/public/fonts/
+/apps/leclap-expo/assets/musics/
+/apps/leclap-expo/assets/backgrounds/
+/apps/leclap-expo/assets/fonts/
 # keep the Expo app's own (non-library) font tracked
-!/apps/le-clap-expo/assets/fonts/SpaceMono-Regular.ttf
+!/apps/leclap-expo/assets/fonts/SpaceMono-Regular.ttf
 # server template JSONs copied from packages/server-app/templates by the same script
-/apps/le-clap-expo/src/templates/server/
+/apps/leclap-expo/src/templates/server/
 
 # On-device FFmpeg engine — generated build artifacts (regenerable from source;
 # see scripts/ffmpeg/*.sh and packages/ffmpeg-engine/). dist/ + target/ already match above.
@@ -41,6 +41,6 @@ form-banner-*.png
 
 # Engine binaries staged into the Expo module — never committed; rebuild with
 # scripts/ffmpeg/build-engine.sh (see docs/on-device-compilation.md).
-apps/le-clap-expo/modules/leclap-ffmpeg/android/src/main/jniLibs/
-apps/le-clap-expo/modules/leclap-ffmpeg/ios/libleclap_ffmpeg_core.a
-apps/le-clap-expo/modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework/
+apps/leclap-expo/modules/leclap-ffmpeg/android/src/main/jniLibs/
+apps/leclap-expo/modules/leclap-ffmpeg/ios/libleclap_ffmpeg_core.a
+apps/leclap-expo/modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework/

@@ -30,7 +30,7 @@ async function resolveSampleClip(): Promise<{ inputPath: string; outUri: string;
 // the output's video codec ('h264' on success). `append` streams each step's result to the on-screen log.
 async function runSpikeSegments(inputPath: string, outPath: string, append: (line: string) => void): Promise<string> {
   const font = `${toPath(FileSystem.cacheDirectory ?? '')}leclap-build/fonts/Rubik.ttf`;
-  const draw = `drawtext=text='le-clap':fontfile='${font}':fontsize=48:fontcolor=white:x=40:y=40`;
+  const draw = `drawtext=text='leclap':fontfile='${font}':fontsize=48:fontcolor=white:x=40:y=40`;
   const enc = [
     '-c:v',
     'libopenh264',

@@ -14,31 +14,31 @@ const serverTemplatesDir = resolve(root, 'packages/server-app/templates');
 const destinations = [
   {
     src: serverTemplatesDir,
-    dest: resolve(root, 'apps/le-clap-expo/src/templates/server'),
+    dest: resolve(root, 'apps/leclap-expo/src/templates/server'),
   },
   {
     src: resolve(libDir, 'musics'),
-    dest: resolve(root, 'apps/le-clap-web/public/musics'),
+    dest: resolve(root, 'apps/leclap-web/public/musics'),
   },
   {
     src: resolve(libDir, 'musics'),
-    dest: resolve(root, 'apps/le-clap-expo/assets/musics'),
+    dest: resolve(root, 'apps/leclap-expo/assets/musics'),
   },
   {
     src: resolve(libDir, 'backgrounds'),
-    dest: resolve(root, 'apps/le-clap-web/public/backgrounds'),
+    dest: resolve(root, 'apps/leclap-web/public/backgrounds'),
   },
   {
     src: resolve(libDir, 'backgrounds'),
-    dest: resolve(root, 'apps/le-clap-expo/assets/backgrounds'),
+    dest: resolve(root, 'apps/leclap-expo/assets/backgrounds'),
   },
   {
     src: resolve(libDir, 'fonts'),
-    dest: resolve(root, 'apps/le-clap-web/public/fonts'),
+    dest: resolve(root, 'apps/leclap-web/public/fonts'),
   },
   {
     src: resolve(libDir, 'fonts'),
-    dest: resolve(root, 'apps/le-clap-expo/assets/fonts'),
+    dest: resolve(root, 'apps/leclap-expo/assets/fonts'),
   },
 ];
 

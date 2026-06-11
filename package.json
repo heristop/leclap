@@ -1,5 +1,5 @@
 {
-  "name": "le-clap",
+  "name": "leclap",
   "private": true,
   "type": "module",
   "author": "heristop",
@@ -29,11 +29,11 @@
     "deps:graph": "depcruise packages/ffmpeg-video-composer/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
     "deps:html": "depcruise packages/ffmpeg-video-composer/src --output-type html > docs/dependency-report.html",
     "prepare": "vp config",
-    "playground:start": "pnpm --filter @le-clap/expo run start",
-    "playground:android": "pnpm --filter @le-clap/expo run android",
-    "playground:ios": "pnpm --filter @le-clap/expo run ios",
-    "playground:web": "pnpm --filter @le-clap/web run dev",
-    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @le-clap/server-app run build && pnpm --filter @le-clap/server-app run start"
+    "playground:start": "pnpm --filter @leclap/expo run start",
+    "playground:android": "pnpm --filter @leclap/expo run android",
+    "playground:ios": "pnpm --filter @leclap/expo run ios",
+    "playground:web": "pnpm --filter @leclap/web run dev",
+    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/server-app run build && pnpm --filter @leclap/server-app run start"
   },
   "devDependencies": {
     "@swc/core": "^1.15.40",

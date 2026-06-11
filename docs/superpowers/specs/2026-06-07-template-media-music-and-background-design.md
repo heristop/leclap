@@ -2,7 +2,7 @@
 
 - Date: 2026-06-07
 - Status: approved (design); plan pending
-- Area: `apps/le-clap-web` (template editor + compile path), `packages/core` (browser FS adapter, WASM music looping)
+- Area: `apps/leclap-web` (template editor + compile path), `packages/core` (browser FS adapter, WASM music looping)
 
 ## Goal
 
@@ -109,16 +109,16 @@ This runs in `VideoEditor.finalize()` before `appendMusic` mixes the (now long-e
 
 New:
 
-- `apps/le-clap-web/src/data/musicLibrary.ts`, `src/data/backgroundLibrary.ts`
-- `apps/le-clap-web/src/stores/browserMediaStore.ts` (+ service wiring under `src/services/`)
-- `apps/le-clap-web/src/presentation/components/admin/MediaPicker.tsx`
-- `apps/le-clap-web/public/musics/*.mp3`, `public/backgrounds/*.jpg`, `public/CREDITS.txt`
+- `apps/leclap-web/src/data/musicLibrary.ts`, `src/data/backgroundLibrary.ts`
+- `apps/leclap-web/src/stores/browserMediaStore.ts` (+ service wiring under `src/services/`)
+- `apps/leclap-web/src/presentation/components/admin/MediaPicker.tsx`
+- `apps/leclap-web/public/musics/*.mp3`, `public/backgrounds/*.jpg`, `public/CREDITS.txt`
 
 Changed:
 
-- `apps/le-clap-web/src/presentation/components/admin/TemplateEditor.tsx` (music picker in `MetadataFields`, image button in `AddSectionButtons`, image branch in `SectionFields`)
-- `apps/le-clap-web/src/presentation/components/admin/templateEditorModel.ts` (model + build/rehydrate)
-- `apps/le-clap-web/src/application/usecases/coreCompilationService.ts` (only if a touch-up is needed once verified)
+- `apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx` (music picker in `MetadataFields`, image button in `AddSectionButtons`, image branch in `SectionFields`)
+- `apps/leclap-web/src/presentation/components/admin/templateEditorModel.ts` (model + build/rehydrate)
+- `apps/leclap-web/src/application/usecases/coreCompilationService.ts` (only if a touch-up is needed once verified)
 - `packages/core/src/platform/filesystem/BrowserFilesystemAdapter.ts` (`fetch` local-path short-circuit)
 - `packages/core/src/platform/ffmpeg/MusicWasmAdapter.ts` (loop implementation)
 
@@ -129,7 +129,7 @@ Changed:
 - `browserMediaStore`: save then previewUrl then remove (fake IndexedDB).
 - `BrowserFilesystemAdapter.fetch`: returns a local path directly when it exists; still fetches HTTP URLs.
 - `MusicWasmAdapter.process`: loops when `musicLength < totalLength`, no-ops when long enough (mock the FFmpeg adapter).
-- Gates: `pnpm lint` 0/0, `pnpm --filter le-clap-web build` green, React Compiler stays on (no manual memo), a11y on the picker tabs, cards, audio control, and dropzone.
+- Gates: `pnpm lint` 0/0, `pnpm --filter leclap-web build` green, React Compiler stays on (no manual memo), a11y on the picker tabs, cards, audio control, and dropzone.
 
 ## Risks and caveats
 

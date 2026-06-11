@@ -13,4 +13,10 @@ const existing = config.resolver.blockList;
 const blockList = Array.isArray(existing) ? existing : [];
 config.resolver.blockList = [...blockList, /.*\.(test|spec)\.[jt]sx?$/];
 
+// NOTE: no Node-module shims are needed. The reused core is cleanly split behind its platform
+// abstractions, so the React-Native entry (`ffmpeg-video-composer/src/reactnative.ts`) pulls only
+// Hermes-safe deps (tsyringe, zod, expo-file-system) — verified by tracing its import graph. If a
+// future core change leaks a Node import into the RN graph, fix it at the source (move it behind the
+// adapter seam) rather than shimming it here.
+
 module.exports = config;

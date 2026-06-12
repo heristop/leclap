@@ -22,6 +22,14 @@ abstract class AbstractFilesystem {
   abstract unzip(url: string, targetPath: string): Promise<string[]>;
   abstract fetchAndRead(url: string): Promise<string>;
 
+  // Resolve a font that ships with the package to an absolute local path, or null when the platform
+  // doesn't bundle fonts locally. The browser/expo adapters seed fonts through their own asset
+  // pipeline (public/ dir, expo assets), so they keep the null default; the Node adapter overrides
+  // this to find the .ttf shipped in the package instead of downloading it from Google Fonts.
+  resolveBundledFont(_fontFile: string): Promise<string | null> {
+    return Promise.resolve(null);
+  }
+
   setBuildDir = (buildDir: string) => {
     this.buildDir = buildDir;
   };

@@ -15,8 +15,11 @@ function createFilesystem() {
     stat: vi.fn(async () => false),
     fetch: vi.fn(async (_url: string) => '/tmp/downloaded'),
     move: vi.fn(async () => undefined),
+    copy: vi.fn(async () => undefined),
     unzip: vi.fn(async () => ['frame-001.png', 'frame-002.png']),
     fetchAndRead: vi.fn(async () => ''),
+    // Default to "not bundled" so these tests still exercise the Google Fonts download path.
+    resolveBundledFont: vi.fn(async (): Promise<string | null> => null),
   };
 }
 
@@ -242,6 +245,18 @@ describe('AssetManager.fetchFonts', () => {
     await manager.fetchFonts();
     expect(fs.fetchAndRead).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('cached'));
+  });
+
+  it('copies a bundled font instead of downloading when one ships with the package', async () => {
+    const fs = createFilesystem();
+    fs.resolveBundledFont.mockResolvedValue('/pkg/dist/fonts/BebasNeue.ttf');
+    const { manager, logger } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = ['BebasNeue.ttf'];
+    await manager.fetchFonts();
+    expect(fs.copy).toHaveBeenCalledWith('/pkg/dist/fonts/BebasNeue.ttf', '/fonts/BebasNeue.ttf');
+    expect(fs.fetchAndRead).not.toHaveBeenCalled();
+    expect(fs.fetch).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('bundled'));
   });
 
   it('downloads a font referenced in the Google Fonts CSS', async () => {

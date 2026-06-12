@@ -124,7 +124,9 @@ body {
   --color-accent-500: oklch(0.918 0.159 103.3);
 
   /* Semantic (Expo) */
-  --color-success: oklch(0.673 0.162 144.2);
+  /* Light pastel emerald-green fill; emerald-teal foreground for checks/labels/text on or of success. */
+  --color-success: oklch(0.84 0.065 160);
+  --color-success-foreground: oklch(0.53 0.11 172);
   --color-error: oklch(0.643 0.215 28.8);
   --color-warning: oklch(0.77 0.174 64.1);
   --color-info: oklch(0.658 0.169 248.8);
@@ -417,9 +419,9 @@ body {
     background-color: oklch(0.5 0 0 / 0.1);
   }
   .badge--success {
-    @apply text-success;
-    background-color: oklch(0.673 0.162 144.2 / 0.15);
-    border: 1px solid oklch(0.673 0.162 144.2 / 0.3);
+    @apply text-success-foreground;
+    background-color: oklch(0.84 0.065 160 / 0.15);
+    border: 1px solid oklch(0.84 0.065 160 / 0.3);
   }
 
   /* Heading */

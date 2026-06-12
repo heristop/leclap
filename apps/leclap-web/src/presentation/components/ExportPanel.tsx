@@ -1,5 +1,19 @@
-import { useState, useRef, startTransition } from 'react';
-import { Download, Play, Pause, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from 'lucide-react';
+import { useState, useRef, useEffect, startTransition } from 'react';
+import {
+  Download,
+  Play,
+  Pause,
+  Share2,
+  Copy,
+  Check,
+  FileVideo,
+  HardDrive,
+  CheckCircle2,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 import clsx from 'clsx';
 import { logger } from '@/lib/logger';
 import { Button, Card } from '@/presentation/components/ui';
@@ -41,6 +55,20 @@ interface VideoPreviewProps {
 
 const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause }: VideoPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const handlePlayPause = () => {
     if (!videoRef.current) return;
@@ -58,13 +86,42 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
     onPlayPause();
   };
 
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+
+    const next = !videoRef.current.muted;
+    videoRef.current.muted = next;
+    setIsMuted(next);
+  };
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((error: unknown) => {
+        logger.error('Error exiting fullscreen:', error);
+      });
+
+      return;
+    }
+
+    const el = containerRef.current;
+    if (!el) return;
+
+    el.requestFullscreen().catch((error: unknown) => {
+      logger.error('Error entering fullscreen:', error);
+    });
+  };
+
   return (
-    <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl border border-foreground/10">
+    <div
+      ref={containerRef}
+      className="group relative bg-black rounded-xl overflow-hidden shadow-2xl border border-foreground/10"
+    >
       <video
         ref={videoRef}
         src={processedVideo.url}
         aria-label="Processed video preview"
         className="w-full h-auto max-h-96 object-contain"
+        onClick={handlePlayPause}
         onPlay={() => {
           onPlay();
         }}
@@ -76,31 +133,52 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
       />
 
       {/* Custom Play/Pause Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <Button
-          variant="ghost"
-          size="icon"
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <button
+          type="button"
           onClick={handlePlayPause}
-          className={clsx(
-            'p-4 bg-black/50 rounded-full text-foreground pointer-events-auto backdrop-blur-sm border border-foreground/10 hover:bg-black/70 [&_svg]:size-8',
-            isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100 hover:scale-110'
-          )}
           aria-label={isPlaying ? 'Pause video' : 'Play video'}
+          className={clsx(
+            'pointer-events-auto grid h-16 w-16 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-sm',
+            'transition-all duration-200 ease-out hover:scale-105 hover:bg-black/60',
+            'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 [&_svg]:size-7',
+            isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+          )}
         >
-          {isPlaying ? <Pause /> : <Play className="ml-1" />}
-        </Button>
+          {isPlaying ? <Pause /> : <Play className="ml-0.5" />}
+        </button>
       </div>
 
       {/* Video Controls Bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 pt-12">
-        <div className="flex items-center justify-between text-foreground text-sm">
-          <div className="flex items-center space-x-2">
-            <FileVideo className="w-4 h-4 text-brand-400" />
-            <span className="font-medium">Processed Video</span>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-4 pt-12">
+        <div className="flex items-center justify-between gap-3 text-sm text-white">
+          <div className="flex min-w-0 items-center gap-2">
+            <FileVideo className="h-4 w-4 shrink-0 text-brand-300" />
+            <span className="truncate font-medium">Processed Video</span>
           </div>
-          {processedVideo.duration && (
-            <span className="font-mono text-gray-300">{formatDuration(processedVideo.duration)}</span>
-          )}
+          <div className="pointer-events-auto flex items-center gap-1">
+            {processedVideo.duration && (
+              <span className="mr-1 font-mono text-xs tabular-nums text-white/70">
+                {formatDuration(processedVideo.duration)}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={toggleMute}
+              aria-label={isMuted ? 'Unmute' : 'Mute'}
+              className="grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
+            >
+              {isMuted ? <VolumeX /> : <Volume2 />}
+            </button>
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              className="grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
+            >
+              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -128,7 +206,7 @@ const VideoInfo = ({ processedVideo }: VideoInfoProps) => (
 
     <div className="flex items-center space-x-3">
       <div className="p-2 bg-success/20 rounded-lg border border-success/20">
-        <FileVideo className="w-5 h-5 text-success" />
+        <FileVideo className="w-5 h-5 text-success-foreground" />
       </div>
       <div>
         <p className="text-sm font-medium text-gray-400">Format</p>
@@ -162,7 +240,7 @@ const ActionButtons = ({
       disabled={downloadProgress > 0 && downloadProgress < 100}
       size="lg"
       className={clsx(
-        'w-full bg-success text-white hover:shadow-success/20 hover:scale-[1.02] focus-visible:ring-success/30',
+        'w-full text-white hover:shadow-success/20 hover:scale-[1.02] focus-visible:ring-success/30',
         downloadProgress > 0 && downloadProgress < 100 && 'cursor-wait opacity-75'
       )}
     >
@@ -188,7 +266,7 @@ const ActionButtons = ({
         onClick={onCopyLink}
         className={clsx(
           'px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20',
-          showCopied && 'border-success/50 text-success bg-success/10'
+          showCopied && 'border-success/50 text-success-foreground bg-success/10'
         )}
       >
         {showCopied ? (
@@ -220,10 +298,10 @@ const ActionButtons = ({
 
 const SuccessMessage = () => (
   <Card elevation="flat" className="p-4 bg-success/[0.12] border-success/30 rounded-xl backdrop-blur-sm">
-    <h4 className="font-semibold text-success mb-2 flex items-center gap-2">
+    <h4 className="font-semibold text-success-foreground mb-2 flex items-center gap-2">
       <CheckCircle2 className="w-4 h-4" /> Video Processing Complete!
     </h4>
-    <ul className="text-sm text-success/80 space-y-1">
+    <ul className="text-sm text-success-foreground/80 space-y-1">
       <li>• Your video has been processed</li>
       <li>• All processing was done locally in your browser</li>
       <li>• No data was sent to external servers</li>

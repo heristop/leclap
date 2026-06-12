@@ -8,6 +8,7 @@ import premiumQuote from './core/premium-quote.json';
 import premiumTitles from './core/premium-titles.json';
 import premiumReelPortrait from './core/premium-reel-portrait.json';
 import premiumQuotePortrait from './core/premium-quote-portrait.json';
+import premiumSpotlight from './core/premium-spotlight.json';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
@@ -68,6 +69,7 @@ export interface CoreTemplate {
 // Each core template lives in its own JSON file under ./core/. Add a template by dropping a
 // new file there and listing it here.
 const TEMPLATE_SOURCES = [
+  premiumSpotlight,
   premiumIntro,
   premiumReelPortrait,
   premiumQuote,

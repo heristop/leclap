@@ -62,19 +62,27 @@ describe('isFormComplete', () => {
 describe('step navigation', () => {
   it('skips the Configure step when the template has no form fields', () => {
     // Template (0) -> Upload (2), skipping Configure (1)
-    expect(nextStepIndex(STEP_INDEX.template, { hasForm: false })).toBe(STEP_INDEX.upload);
+    expect(nextStepIndex(STEP_INDEX.template, { hasForm: false, hasClips: true })).toBe(STEP_INDEX.upload);
     // Upload (2) -> Configure-skip back to Template (0)
-    expect(prevStepIndex(STEP_INDEX.upload, { hasForm: false })).toBe(STEP_INDEX.template);
+    expect(prevStepIndex(STEP_INDEX.upload, { hasForm: false, hasClips: true })).toBe(STEP_INDEX.template);
   });
 
   it('visits the Configure step when the template has form fields', () => {
-    expect(nextStepIndex(STEP_INDEX.template, { hasForm: true })).toBe(STEP_INDEX.configure);
-    expect(prevStepIndex(STEP_INDEX.upload, { hasForm: true })).toBe(STEP_INDEX.configure);
+    expect(nextStepIndex(STEP_INDEX.template, { hasForm: true, hasClips: true })).toBe(STEP_INDEX.configure);
+    expect(prevStepIndex(STEP_INDEX.upload, { hasForm: true, hasClips: true })).toBe(STEP_INDEX.configure);
+  });
+
+  it('skips Upload + Edit when the template needs no clips (e.g. the premium cards)', () => {
+    // No form, no clips: Template (0) -> Process (4), hopping Configure/Upload/Edit.
+    expect(nextStepIndex(STEP_INDEX.template, { hasForm: false, hasClips: false })).toBe(STEP_INDEX.process);
+    expect(prevStepIndex(STEP_INDEX.process, { hasForm: false, hasClips: false })).toBe(STEP_INDEX.template);
+    // A form but no clips: Template -> Configure -> Process.
+    expect(nextStepIndex(STEP_INDEX.configure, { hasForm: true, hasClips: false })).toBe(STEP_INDEX.process);
   });
 
   it('clamps at the first and last steps', () => {
-    expect(prevStepIndex(STEP_INDEX.template, { hasForm: true })).toBe(STEP_INDEX.template);
-    expect(nextStepIndex(STEP_INDEX.result, { hasForm: true })).toBe(STEP_INDEX.result);
+    expect(prevStepIndex(STEP_INDEX.template, { hasForm: true, hasClips: true })).toBe(STEP_INDEX.template);
+    expect(nextStepIndex(STEP_INDEX.result, { hasForm: true, hasClips: true })).toBe(STEP_INDEX.result);
     expect(BUILDER_STEPS[STEP_INDEX.result]).toBe('Result');
   });
 });
@@ -104,8 +112,10 @@ describe('canAdvance gating', () => {
 });
 
 describe('resultBackStep', () => {
-  it('returns to Configure when there is a form, otherwise Upload', () => {
-    expect(resultBackStep({ hasForm: true })).toBe(STEP_INDEX.configure);
-    expect(resultBackStep({ hasForm: false })).toBe(STEP_INDEX.upload);
+  it('returns to the first input step the template uses, else Process', () => {
+    expect(resultBackStep({ hasForm: true, hasClips: true })).toBe(STEP_INDEX.configure);
+    expect(resultBackStep({ hasForm: false, hasClips: true })).toBe(STEP_INDEX.upload);
+    // Premium cards collect no input — Back from Result lands on Process.
+    expect(resultBackStep({ hasForm: false, hasClips: false })).toBe(STEP_INDEX.process);
   });
 });

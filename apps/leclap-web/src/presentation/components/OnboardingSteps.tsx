@@ -27,6 +27,14 @@ interface WelcomeStepProps {
   onDone: () => void;
 }
 
+const startLabel = (checking: boolean, ready: boolean): string => {
+  if (checking) return 'Checking your browser…';
+
+  if (ready) return 'Create my intro';
+
+  return "Browser can't record here";
+};
+
 export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
   const { checks, checking, ready } = useBrowserSupport();
 
@@ -87,7 +95,7 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
           disabled={checking || !ready}
           className="group w-full text-base glow-brand"
         >
-          {checking ? 'Checking your browser…' : ready ? 'Create my intro' : "Browser can't record here"}
+          {startLabel(checking, ready)}
           {ready && <ArrowRight className="transition-transform group-hover:translate-x-1" />}
         </Button>
         {!checking && !ready && (

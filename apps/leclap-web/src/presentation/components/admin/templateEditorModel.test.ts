@@ -46,6 +46,7 @@ function baseState(input: EditorSection[] | Partial<EditorState> = {}): EditorSt
     orientation: 'landscape',
     sections: [],
     globalVariables: [],
+    audioMix: { video: 1, music: 0.5 },
     ...over,
   };
 }

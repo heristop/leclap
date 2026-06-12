@@ -37,6 +37,8 @@ export interface Section {
     fields?: Field[];
     speed?: number;
     muteSection?: boolean;
+    countdown?: boolean;
+    countdownDuration?: number;
     videoUrl?: string;
     logoUrl?: string;
     backgroundUrl?: string;

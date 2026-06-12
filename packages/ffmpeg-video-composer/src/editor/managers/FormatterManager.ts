@@ -157,6 +157,12 @@ class FormatterManager {
     return `${filter.type}=${parts.join(':')}`;
   };
 
+  private pushIfPresent(parts: string[], formatted: string | null): void {
+    if (formatted !== null) {
+      parts.push(formatted);
+    }
+  }
+
   private appendFormattedValue(
     key: string,
     filterValues: ExtendedFilterValues,
@@ -165,36 +171,19 @@ class FormatterManager {
     parts: string[]
   ): void {
     switch (key) {
-      case 'text': {
-        const formatted = this.formatTextValue(key, filterValues);
-
-        if (formatted !== null) {
-          parts.push(formatted);
-        }
-
+      case 'text':
+        this.pushIfPresent(parts, this.formatTextValue(key, filterValues));
         break;
-      }
+
       case 'duration':
-      case 'd': {
-        const formatted = this.formatDurationValue(key, filterValues, duration);
-
-        if (formatted !== null) {
-          parts.push(formatted);
-        }
-
+      case 'd':
+        this.pushIfPresent(parts, this.formatDurationValue(key, filterValues, duration));
         break;
-      }
 
       case 'start_time':
-      case 'st': {
-        const formatted = this.formatStartTimeValue(key, filterValues, duration, speed);
-
-        if (formatted !== null) {
-          parts.push(formatted);
-        }
-
+      case 'st':
+        this.pushIfPresent(parts, this.formatStartTimeValue(key, filterValues, duration, speed));
         break;
-      }
 
       case 'boxcolor':
       case 'fontcolor':

@@ -23,39 +23,22 @@ const BLOCKED_HOSTNAMES = new Set(['localhost']);
 
 const ipToOctets = (ip: string): number[] => ip.split('.').map((part) => Number.parseInt(part, 10));
 
+// Private/reserved IPv4 ranges. `b` is an inclusive [min, max] range on the second
+// octet, or undefined when the first octet alone defines the range.
+const PRIVATE_IPV4_RANGES: { a: number; b?: [number, number] }[] = [
+  { a: 127 }, //                127.0.0.0/8 loopback
+  { a: 10 }, //                 10.0.0.0/8
+  { a: 172, b: [16, 31] }, //   172.16.0.0/12
+  { a: 192, b: [168, 168] }, // 192.168.0.0/16
+  { a: 169, b: [254, 254] }, // 169.254.0.0/16 link-local (includes 169.254.169.254 cloud metadata)
+  { a: 0 }, //                  0.0.0.0/8 "this network"
+  { a: 100, b: [64, 127] }, //  100.64.0.0/10 CGNAT
+];
+
 const isPrivateIpv4 = (ip: string): boolean => {
   const [a, b] = ipToOctets(ip);
 
-  // 127.0.0.0/8 loopback
-  if (a === 127) {
-    return true;
-  }
-  // 10.0.0.0/8
-  if (a === 10) {
-    return true;
-  }
-  // 172.16.0.0/12
-  if (a === 172 && b >= 16 && b <= 31) {
-    return true;
-  }
-  // 192.168.0.0/16
-  if (a === 192 && b === 168) {
-    return true;
-  }
-  // 169.254.0.0/16 link-local (includes 169.254.169.254 cloud metadata)
-  if (a === 169 && b === 254) {
-    return true;
-  }
-  // 0.0.0.0/8 "this network"
-  if (a === 0) {
-    return true;
-  }
-  // 100.64.0.0/10 CGNAT
-  if (a === 100 && b >= 64 && b <= 127) {
-    return true;
-  }
-
-  return false;
+  return PRIVATE_IPV4_RANGES.some((range) => range.a === a && (!range.b || (b >= range.b[0] && b <= range.b[1])));
 };
 
 const isPrivateIpv6 = (ip: string): boolean => {

@@ -156,7 +156,8 @@ describe('TemplateConcreteBuilder.renderPart (native adapter)', () => {
 
   it('records an error when the output file is missing on rc 0', async () => {
     const filesystem = makeFilesystem();
-    filesystem.stat.mockRejectedValue(new Error('ENOENT'));
+    // stat resolves false for a missing file (the adapter contract returns a boolean, never throws).
+    filesystem.stat.mockResolvedValue(false);
     const { builder, project, logger } = makeBuilder({
       ffmpeg: { execute: vi.fn(async () => ({ rc: 0 })) },
       filesystem,
@@ -165,7 +166,7 @@ describe('TemplateConcreteBuilder.renderPart (native adapter)', () => {
     await builder.buildPart(baseSection, { buildDir: '/build' });
     await builder.renderPart();
 
-    expect(logger.error).toHaveBeenCalledWith('[intro][RenderPart] output file not found');
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('[intro][RenderPart] output file not found'));
     expect(project.errors).toContain('intro');
   });
 

@@ -86,14 +86,19 @@ class TemplateConcreteBuilder {
   }
 
   private async handleNativeSuccessResult(): Promise<void> {
-    try {
-      await this.filesystemAdapter.stat(this.segment.destination);
-      this.logger.info(`[${this.section.name}][RenderPart] output file exists at ${this.segment.destination}`);
-    } catch {
-      this.logger.error(`[${this.section.name}][RenderPart] output file not found`);
+    // `stat` resolves to a boolean (it never throws), so the result must be checked: a missing
+    // output despite a zero exit code (e.g. the segment command never got configured and defaulted
+    // to `-version`) has to surface as an error rather than be silently logged as "exists".
+    const exists = await this.filesystemAdapter.stat(this.segment.destination);
+
+    if (!exists) {
+      this.logger.error(`[${this.section.name}][RenderPart] output file not found at ${this.segment.destination}`);
       this.project.errors.push(this.section.name);
+
+      return;
     }
-    this.logger.info(`[${this.section.name}][RenderPart] finalized`);
+
+    this.logger.info(`[${this.section.name}][RenderPart] output file exists at ${this.segment.destination}`);
   }
 
   private async handleWasmSuccessResult(): Promise<void> {

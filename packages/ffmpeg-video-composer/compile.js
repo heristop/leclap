@@ -53,6 +53,7 @@ function buildProjectConfig() {
     buildDir,
     assetsDir,
     fields: {
+      form_1_name: 'Emily Parker',
       form_1_firstname: 'Emily',
       form_1_lastname: 'Parker',
       form_1_job: 'Frontend Developer',

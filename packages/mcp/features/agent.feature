@@ -9,7 +9,7 @@ Feature: Agent drives the leclap MCP server over stdio
 
   Scenario: Discover templates
     When the agent lists templates
-    Then it receives 15 templates
+    Then it receives 16 templates
     When the agent requests the template schema
     Then the schema includes sections
 

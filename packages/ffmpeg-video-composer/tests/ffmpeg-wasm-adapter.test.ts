@@ -14,4 +14,30 @@ describe('FFmpegWasmAdapter', () => {
       await import('@/platform/ffmpeg/FFmpegWasmAdapter');
     }).not.toThrow();
   });
+
+  // The concat demuxer only names the list file in its args; the segment files the list points at
+  // must be bridged into MEMFS too, or multi-section templates (intro + clip + outro) abort in the
+  // browser. parseConcatList extracts those segment paths.
+  it('parses segment paths from a concat list (quoted and unquoted)', async () => {
+    const { default: FFmpegWasmAdapter } = await import('@/platform/ffmpeg/FFmpegWasmAdapter');
+    const list = [
+      "file '/tmp/build/intro_output.mp4'",
+      'file /tmp/build/video_1_output.mp4',
+      '# a comment',
+      '',
+      "file '/tmp/build/outro_output.mp4'",
+    ].join('\n');
+
+    expect(FFmpegWasmAdapter.parseConcatList(list)).toEqual([
+      '/tmp/build/intro_output.mp4',
+      '/tmp/build/video_1_output.mp4',
+      '/tmp/build/outro_output.mp4',
+    ]);
+  });
+
+  it('returns no paths for an empty concat list', async () => {
+    const { default: FFmpegWasmAdapter } = await import('@/platform/ffmpeg/FFmpegWasmAdapter');
+
+    expect(FFmpegWasmAdapter.parseConcatList('')).toEqual([]);
+  });
 });

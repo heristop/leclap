@@ -15,11 +15,18 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 type Step = 'welcome' | 'create' | 'compiling' | 'done' | 'error';
 
-// The onboarding makes a first video from a built-in template so newcomers see
-// the whole flow (record → compile → download) in one guided pass. Premium Spotlight wraps the
-// recorded clip in a cinematic intro + outro and grades it, so the result looks polished — and the
-// name typed at the record step lands in its first form field (the title card + lower-third).
-const SAMPLE_TEMPLATE_ID = 'premium-spotlight';
+// The onboarding makes a first video from a built-in template so newcomers see the whole flow
+// (record → compile → download) in one guided pass. We match the template to the device: a portrait
+// reel on phones held upright, the landscape Premium Spotlight otherwise — so the recorded clip
+// fills the frame instead of being letter-boxed. Both wrap the clip in a cinematic intro + outro
+// and grade it; the name typed at the record step lands in the first form field (the title card).
+const LANDSCAPE_TEMPLATE_ID = 'premium-spotlight';
+const PORTRAIT_TEMPLATE_ID = 'premium-reel-portrait';
+
+const pickSampleTemplateId = (): string =>
+  typeof window !== 'undefined' && window.matchMedia('(orientation: portrait)').matches
+    ? PORTRAIT_TEMPLATE_ID
+    : LANDSCAPE_TEMPLATE_ID;
 
 const initialProgress: CompilationProgress = {
   stage: 'Starting',
@@ -38,6 +45,8 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   const [name, setName] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  // Chosen once when the modal opens so a mid-flow rotation can't swap the template underfoot.
+  const [sampleTemplateId] = useState(pickSampleTemplateId);
   const [template, setTemplate] = useState<Template | null>(null);
   const [progress, setProgress] = useState<CompilationProgress>(initialProgress);
   const [result, setResult] = useState<CompilationResult | null>(null);
@@ -49,12 +58,12 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   // Load the sample template up front so the camera can read its countdown/duration config.
   useEffect(() => {
     templateService
-      .getTemplate(SAMPLE_TEMPLATE_ID)
+      .getTemplate(sampleTemplateId)
       .then(setTemplate)
       .catch((error: unknown) => {
         logger.error('Onboarding template preload failed:', error);
       });
-  }, []);
+  }, [sampleTemplateId]);
 
   const canCreate = name.trim().length > 0 && videoFile !== null;
   const recordingConfig = recordingConfigFromDescriptor(template?.descriptor);
@@ -66,9 +75,9 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
     setProgress(initialProgress);
 
     try {
-      const sampleTemplate = template ?? (await templateService.getTemplate(SAMPLE_TEMPLATE_ID));
+      const sampleTemplate = template ?? (await templateService.getTemplate(sampleTemplateId));
 
-      if (!sampleTemplate) throw new Error(`Sample template "${SAMPLE_TEMPLATE_ID}" could not be loaded.`);
+      if (!sampleTemplate) throw new Error(`Sample template "${sampleTemplateId}" could not be loaded.`);
 
       // Put the entered name in the first text field; leave the rest blank.
       const fields = templateService.extractFormFields(sampleTemplate.descriptor);

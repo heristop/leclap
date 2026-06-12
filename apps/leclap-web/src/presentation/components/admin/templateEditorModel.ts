@@ -24,7 +24,14 @@ export interface TextOverlay {
 
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
-  | { kind: 'video'; duration: number; mute: boolean; overlays: TextOverlay[]; countdown: boolean; countdownSeconds: number }
+  | {
+      kind: 'video';
+      duration: number;
+      mute: boolean;
+      overlays: TextOverlay[];
+      countdown: boolean;
+      countdownSeconds: number;
+    }
   | { kind: 'color'; duration: number; color: string }
   | { kind: 'music'; allowed: string[]; allowUpload: boolean }
   | { kind: 'image'; allowed: string[]; allowUpload: boolean; duration: number };
@@ -379,6 +386,33 @@ function audioMixFrom(global: TemplateDescriptor['global']): AudioMix {
   };
 }
 
+// Music has no positional descriptor section — surface it at the top of the list.
+function musicSectionsFrom(global: TemplateDescriptor['global']): EditorSection[] {
+  const allowed = global?.allowedMusic ?? [];
+  const allowUpload = Boolean(global?.allowUploadMusic);
+
+  if (allowed.length === 0 && !allowUpload) {
+    return [];
+  }
+
+  return [{ kind: 'music', allowed, allowUpload }];
+}
+
+function editorSectionsFrom(descriptor: Template['descriptor']): EditorSection[] {
+  const { global: g, sections: storedSections = [] } = descriptor;
+
+  const allowedBackgrounds = g?.allowedBackgrounds ?? [];
+  const allowUploadBackground = Boolean(g?.allowUploadBackground);
+
+  const positional = storedSections
+    .map((s) => storedSectionToEditor(s, allowedBackgrounds, allowUploadBackground))
+    .filter((s): s is EditorSection => s !== null);
+
+  const sections = [...musicSectionsFrom(g), ...positional];
+
+  return sections.length > 0 ? sections : [newSection('video')];
+}
+
 export function toEditorState(template: Template | null): EditorState {
   if (!template) {
     return {
@@ -392,33 +426,13 @@ export function toEditorState(template: Template | null): EditorState {
     };
   }
 
-  const { global: g, sections: storedSections = [] } = template.descriptor;
-
-  const allowedMusic = g?.allowedMusic ?? [];
-  const allowUploadMusic = Boolean(g?.allowUploadMusic);
-  const hasMusic = allowedMusic.length > 0 || allowUploadMusic;
-
-  const allowedBackgrounds = g?.allowedBackgrounds ?? [];
-  const allowUploadBackground = Boolean(g?.allowUploadBackground);
-
-  const positional = storedSections
-    .map((s) => storedSectionToEditor(s, allowedBackgrounds, allowUploadBackground))
-    .filter((s): s is EditorSection => s !== null);
-
-  // Music has no positional descriptor section — surface it at the top of the list.
-  const musicSections: EditorSection[] = hasMusic
-    ? [{ kind: 'music', allowed: allowedMusic, allowUpload: allowUploadMusic }]
-    : [];
-
-  const sections = [...musicSections, ...positional];
-
   return {
     id: template.id,
     name: template.name,
     description: template.description,
     orientation: template.orientation,
-    sections: sections.length > 0 ? sections : [newSection('video')],
+    sections: editorSectionsFrom(template.descriptor),
     globalVariables: globalVariablesFrom(template.descriptor.global),
-    audioMix: audioMixFrom(g),
+    audioMix: audioMixFrom(template.descriptor.global),
   };
 }

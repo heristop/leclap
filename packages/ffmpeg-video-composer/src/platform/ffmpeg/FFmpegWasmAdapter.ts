@@ -195,6 +195,52 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
   }
 
   /**
+   * For a concat-demuxer command (`-f concat -i <list>`), read the list from the filesystem adapter
+   * and return the segment file paths it references (`file '<path>'` lines). These are not present
+   * in the command args, so without this they never reach MEMFS and the concat aborts.
+   */
+  private async collectConcatSegmentPaths(args: string[]): Promise<string[]> {
+    const formatIndex = args.indexOf('-f');
+
+    if (formatIndex === -1 || args[formatIndex + 1] !== 'concat') {
+      return [];
+    }
+
+    const inputIndex = args.indexOf('-i', formatIndex);
+    const listPath = inputIndex === -1 ? undefined : args[inputIndex + 1];
+
+    if (listPath === undefined) {
+      return [];
+    }
+
+    try {
+      if (!(await this.fs.stat(listPath))) {
+        return [];
+      }
+
+      return FFmpegWasmAdapter.parseConcatList(await this.fs.read(listPath));
+    } catch (error) {
+      console.warn(
+        `[FFmpegWasmAdapter] Could not read concat list ${listPath}: ${error instanceof Error ? error.message : String(error)}`
+      );
+
+      return [];
+    }
+  }
+
+  /**
+   * Parse a concat-demuxer list into the segment file paths it references. Lines look like
+   * `file '/tmp/build/intro_output.mp4'` (quoted) or `file /tmp/build/intro_output.mp4`; other
+   * directives (comments, `duration`, blanks) are ignored.
+   */
+  static parseConcatList(content: string): string[] {
+    return content
+      .split('\n')
+      .map((line) => line.match(/^\s*file\s+'?(.+?)'?\s*$/)?.[1]?.trim())
+      .filter((path): path is string => Boolean(path));
+  }
+
+  /**
    * The output file is the final positional argument of an FFmpeg command.
    */
   private static resolveOutputPath(args: string[]): string | undefined {
@@ -230,8 +276,16 @@ class FFmpegWasmAdapter extends AbstractFFmpeg {
    * adapter into ffmpeg's MEMFS at the same path.
    */
   private async bridgeInputsToMemfs(ffmpeg: FFmpegWasm, args: string[]): Promise<void> {
+    const direct = FFmpegWasmAdapter.collectReferencedPaths(args);
+    // A `-f concat -i list.txt` command only names the list in its args; the segment files the
+    // list points at must also be mirrored into MEMFS or the concat demuxer aborts. This is what
+    // makes multi-section templates (intro + clip + outro) render in the browser, not just
+    // single-section ones.
+    const concatSegments = await this.collectConcatSegmentPaths(args);
+    const inputs = [...new Set([...direct, ...concatSegments])];
+
     await Promise.all(
-      FFmpegWasmAdapter.collectReferencedPaths(args).map(async (input) => {
+      inputs.map(async (input) => {
         try {
           if (!(await this.fs.stat(input))) {
             return;

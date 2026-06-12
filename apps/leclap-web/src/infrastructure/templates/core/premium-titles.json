@@ -1,0 +1,243 @@
+{
+  "id": "premium-titles",
+  "name": "Premium Titles",
+  "description": "Three-card branded title sequence with transitions.",
+  "category": "advanced",
+  "orientation": "landscape",
+  "hasForm": false,
+  "templateDescriptor": {
+    "global": {
+      "orientation": "landscape",
+      "musicEnabled": false,
+      "transitionDuration": 0.6
+    },
+    "sections": [
+      {
+        "name": "title_card_1",
+        "type": "color_background",
+        "options": {
+          "backgroundColor": "#0b0f14",
+          "duration": 3
+        },
+        "filters": [
+          {
+            "type": "drawbox",
+            "values": {
+              "x": 0,
+              "y": 0,
+              "w": 1280,
+              "h": 720,
+              "c": "#0b0f14@1",
+              "t": "fill"
+            }
+          },
+          {
+            "type": "drawtext",
+            "values": {
+              "text": {
+                "en": "A NEW WAY"
+              },
+              "fontcolor": "#ffffff",
+              "fontsize": 140,
+              "x": "(w-text_w)/2",
+              "y": 230,
+              "fontfile": "BebasNeue.ttf",
+              "alpha": "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'"
+            }
+          },
+          {
+            "type": "drawtext",
+            "values": {
+              "text": {
+                "en": "TO MAKE VIDEO"
+              },
+              "fontcolor": "#00d4a0",
+              "fontsize": 140,
+              "x": "(w-text_w)/2",
+              "y": 370,
+              "fontfile": "BebasNeue.ttf",
+              "alpha": "'if(lt(t,0.7),0,if(lt(t,1.5),(t-0.7)/0.8,1))'"
+            }
+          },
+          {
+            "type": "vignette"
+          },
+          {
+            "type": "fade",
+            "values": {
+              "t": "in",
+              "d": "0.6",
+              "color": "#0b0f14"
+            }
+          },
+          {
+            "type": "fade",
+            "values": {
+              "t": "out",
+              "d": "{{ transitionDuration }}",
+              "st": "{{ transitionStartTime }}",
+              "color": "#0b0f14"
+            }
+          }
+        ]
+      },
+      {
+        "name": "title_card_2",
+        "type": "color_background",
+        "options": {
+          "backgroundColor": "#00d4a0",
+          "duration": 3
+        },
+        "filters": [
+          {
+            "type": "drawbox",
+            "values": {
+              "x": 0,
+              "y": 0,
+              "w": 1280,
+              "h": 720,
+              "c": "#00d4a0@1",
+              "t": "fill"
+            }
+          },
+          {
+            "type": "drawbox",
+            "values": {
+              "x": 0,
+              "y": 0,
+              "w": 1280,
+              "h": 220,
+              "c": "#0b0f14@1",
+              "t": "fill"
+            }
+          },
+          {
+            "type": "drawbox",
+            "values": {
+              "x": 0,
+              "y": 500,
+              "w": 1280,
+              "h": 220,
+              "c": "#0b0f14@1",
+              "t": "fill"
+            }
+          },
+          {
+            "type": "drawtext",
+            "values": {
+              "text": {
+                "en": "DETERMINISTIC"
+              },
+              "fontcolor": "#0b0f14",
+              "fontsize": 110,
+              "x": "(w-text_w)/2",
+              "y": 290,
+              "fontfile": "BebasNeue.ttf",
+              "alpha": "'if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))'"
+            }
+          },
+          {
+            "type": "drawtext",
+            "values": {
+              "text": {
+                "en": "on-device   .   agent-callable"
+              },
+              "fontcolor": "#0b0f14",
+              "fontsize": 34,
+              "x": "(w-text_w)/2",
+              "y": 410,
+              "fontfile": "Oswald.ttf",
+              "alpha": "'if(lt(t,0.8),0,if(lt(t,1.5),(t-0.8)/0.7,1))'"
+            }
+          },
+          {
+            "type": "vignette"
+          },
+          {
+            "type": "fade",
+            "values": {
+              "t": "in",
+              "d": "{{ transitionDuration }}",
+              "color": "#0b0f14"
+            }
+          },
+          {
+            "type": "fade",
+            "values": {
+              "t": "out",
+              "d": "{{ transitionDuration }}",
+              "st": "{{ transitionStartTime }}",
+              "color": "#0b0f14"
+            }
+          }
+        ]
+      },
+      {
+        "name": "title_card_3",
+        "type": "color_background",
+        "options": {
+          "backgroundColor": "#0b0f14",
+          "duration": 3
+        },
+        "filters": [
+          {
+            "type": "drawbox",
+            "values": {
+              "x": 0,
+              "y": 0,
+              "w": 1280,
+              "h": 720,
+              "c": "#0b0f14@1",
+              "t": "fill"
+            }
+          },
+          {
+            "type": "drawbox",
+            "values": {
+              "x": 540,
+              "y": 300,
+              "w": 200,
+              "h": 6,
+              "c": "#00d4a0@1",
+              "t": "fill"
+            }
+          },
+          {
+            "type": "drawtext",
+            "values": {
+              "text": {
+                "en": "LECLAP"
+              },
+              "fontcolor": "#ffffff",
+              "fontsize": 150,
+              "x": "(w-text_w)/2",
+              "y": 340,
+              "fontfile": "BebasNeue.ttf",
+              "alpha": "'if(lt(t,0.5),0,if(lt(t,1.3),(t-0.5)/0.8,1))'"
+            }
+          },
+          {
+            "type": "vignette"
+          },
+          {
+            "type": "fade",
+            "values": {
+              "t": "in",
+              "d": "{{ transitionDuration }}",
+              "color": "#0b0f14"
+            }
+          },
+          {
+            "type": "fade",
+            "values": {
+              "t": "out",
+              "d": "0.8",
+              "st": "{{ transitionStartTime }}",
+              "color": "#0b0f14"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

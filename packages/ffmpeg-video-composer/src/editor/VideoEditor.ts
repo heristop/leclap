@@ -33,25 +33,39 @@ class VideoEditor {
 
   private async copySingleFile(sourceRaw: string, finalOutputPath: string): Promise<string> {
     const sourceFile = sourceRaw.replace(/^file\s+'?|'?$/g, '').trim();
-    // Remux (stream-copy, no re-encode) instead of a raw byte copy so the moov atom is moved to
-    // the front. Segment encoders leave it at the end, which keeps single-section outputs from
-    // playing in a browser <video> until fully buffered (black preview). The multi-section concat
-    // path already applies +faststart; this gives single-section templates the same treatment.
-    const command = ` -y -i ${sourceFile} -c copy -movflags +faststart ${finalOutputPath} `;
-    const result = await this.ffmpegAdapter.execute(command);
 
-    if (result.rc === 1) {
-      // Faststart remux failed (e.g. an unexpected container) — fall back to a byte copy so the
-      // render still produces a playable file rather than erroring out.
-      this.logger.warn('[Concat][Command] faststart remux failed, falling back to file copy');
-      await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
+    // Remux (stream-copy, no re-encode) rather than a raw byte copy so the moov atom moves to the
+    // front: segment encoders leave it at the end, which keeps single-section outputs from playing
+    // in a browser <video> until fully buffered (black preview). The multi-section concat path
+    // already applies +faststart; this gives single-section templates the same treatment.
+    const remuxed = await this.tryFaststartRemux(sourceFile, finalOutputPath);
+
+    if (remuxed) {
+      this.logger.info(`[Concat][Command] Remuxed single file (+faststart) to ${finalOutputPath}`);
 
       return finalOutputPath;
     }
 
-    this.logger.info(`[Concat][Command] Remuxed single file (+faststart) to ${finalOutputPath}`);
+    // Remux unavailable/failed (e.g. an unexpected container) — fall back to a byte copy so the
+    // render still produces a playable file rather than erroring out.
+    await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
+    this.logger.info(`[Concat][Command] Copied single file to ${finalOutputPath}`);
 
     return finalOutputPath;
+  }
+
+  // Returns true on a successful faststart remux, false on any failure. Adapters differ: the Node
+  // adapter throws on a non-zero exit, the WASM/native adapters return `{ rc: 1 }` — handle both.
+  private async tryFaststartRemux(sourceFile: string, finalOutputPath: string): Promise<boolean> {
+    try {
+      const result = await this.ffmpegAdapter.execute(
+        ` -y -i ${sourceFile} -c copy -movflags +faststart ${finalOutputPath} `
+      );
+
+      return result.rc !== 1;
+    } catch {
+      return false;
+    }
   }
 
   private async runConcatCommand(concatFilePath: string, finalOutputPath: string): Promise<string> {

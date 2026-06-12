@@ -151,6 +151,18 @@ class AssetManager {
           return;
         }
 
+        // Prefer the font shipped with the package over a network fetch — premium templates use
+        // bundled fonts whose single-token family names Google Fonts can't resolve, and this keeps
+        // Node/server/MCP renders working offline. Falls through to the download when not bundled.
+        const bundled = await this.filesystemAdapter.resolveBundledFont(fontFile);
+
+        if (bundled) {
+          await this.filesystemAdapter.copy(bundled, targetPath);
+          this.logger.info(`[${this.segment.currentSection?.name}][Font] bundled ${fontFile}`);
+
+          return;
+        }
+
         const url = `https://fonts.googleapis.com/css?family=${fontFamily}`;
         this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${url}`);
 

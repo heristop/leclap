@@ -65,6 +65,8 @@ interface TemplateDescriptorGlobal {
   colorsList?: string[];
   musicEnabled?: boolean;
   audioVolumeLevel?: number;
+  /** Default background-music volume (0..1) for sections that don't set their own `musicVolumeLevel`. */
+  musicVolumeLevel?: number;
   transitionDuration?: number;
   music?: MusicConfig;
   allowedMusic?: string[];
@@ -97,6 +99,8 @@ interface SectionOptions {
   fields?: Field[];
   speed?: number;
   muteSection?: boolean;
+  countdown?: boolean;
+  countdownDuration?: number;
   videoUrl?: string;
   logoUrl?: string;
   backgroundUrl?: string;

@@ -10,8 +10,10 @@ import {
   X,
   Clapperboard,
 } from 'lucide-react';
+import clsx from 'clsx';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { Button, Input } from '@/presentation/components/ui';
+import { useBrowserSupport } from '@/hooks/useBrowserSupport';
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
 
 const WELCOME_FEATURES = [
@@ -25,44 +27,79 @@ interface WelcomeStepProps {
   onDone: () => void;
 }
 
-export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => (
-  <div className="text-center">
-    <div className="fade-in inline-flex p-4 brand-gradient rounded-2xl shadow-lg shadow-brand-900/40 mb-5 animate-glow">
-      <Clapperboard className="w-8 h-8 text-white" />
-    </div>
-    <h2 className="fade-in text-3xl font-bold font-display text-foreground mb-2" style={{ animationDelay: '80ms' }}>
-      Welcome to <span className="text-gradient-animated">LeClap</span>
-    </h2>
-    <p className="fade-in text-gray-300 mb-6" style={{ animationDelay: '160ms' }}>
-      Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.
-    </p>
+export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
+  const { checks, checking, ready } = useBrowserSupport();
 
-    <div className="space-y-3 text-left mb-8">
-      {WELCOME_FEATURES.map(({ icon: Icon, text }, i) => (
-        <div
-          key={text}
-          className="fade-in flex items-center gap-3 text-sm text-gray-200"
-          style={{ animationDelay: `${240 + i * 100}ms` }}
+  return (
+    <div className="text-center">
+      <div className="fade-in inline-flex p-4 brand-gradient rounded-2xl shadow-lg shadow-brand-900/40 mb-5 animate-glow">
+        <Clapperboard className="w-8 h-8 text-white" />
+      </div>
+      <h2 className="fade-in text-3xl font-bold font-display text-foreground mb-2" style={{ animationDelay: '80ms' }}>
+        Welcome to <span className="text-gradient-animated">LeClap</span>
+      </h2>
+      <p className="fade-in text-gray-300 mb-6" style={{ animationDelay: '160ms' }}>
+        Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.
+      </p>
+
+      <div className="space-y-3 text-left mb-6">
+        {WELCOME_FEATURES.map(({ icon: Icon, text }, i) => (
+          <div
+            key={text}
+            className="fade-in flex items-center gap-3 text-sm text-gray-200"
+            style={{ animationDelay: `${240 + i * 100}ms` }}
+          >
+            <span className="grid place-items-center w-8 h-8 rounded-lg bg-brand-500/15 text-brand-700 dark:text-brand-300 shrink-0 ring-1 ring-brand-500/20">
+              <Icon className="w-4 h-4" />
+            </span>
+            {text}
+          </div>
+        ))}
+      </div>
+
+      {/* Discreet browser readiness check — gates "Create my intro" so newcomers on an
+          unsupported browser don't hit a mid-flow failure when recording or compiling. */}
+      {checks && (
+        <ul
+          className="fade-in mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5"
+          style={{ animationDelay: '520ms' }}
         >
-          <span className="grid place-items-center w-8 h-8 rounded-lg bg-brand-500/15 text-brand-700 dark:text-brand-300 shrink-0 ring-1 ring-brand-500/20">
-            <Icon className="w-4 h-4" />
-          </span>
-          {text}
-        </div>
-      ))}
-    </div>
+          {checks.map((check) => (
+            <li
+              key={check.name}
+              className={clsx(
+                'flex items-center gap-1.5 text-xs',
+                check.ok ? 'text-gray-400' : 'font-medium text-[var(--color-error)]'
+              )}
+            >
+              {check.ok ? <Check className="w-3.5 h-3.5 text-success-foreground" /> : <X className="w-3.5 h-3.5" />}
+              {check.name}
+            </li>
+          ))}
+        </ul>
+      )}
 
-    <div className="fade-in" style={{ animationDelay: '560ms' }}>
-      <Button onClick={onStart} variant="primary" size="lg" className="group w-full text-base glow-brand">
-        Create my intro
-        <ArrowRight className="transition-transform group-hover:translate-x-1" />
-      </Button>
-      <Button onClick={onDone} variant="ghost" size="sm" className="mt-3 w-full text-gray-400">
-        Skip for now
-      </Button>
+      <div className="fade-in" style={{ animationDelay: '560ms' }}>
+        <Button
+          onClick={onStart}
+          variant="primary"
+          size="lg"
+          disabled={checking || !ready}
+          className="group w-full text-base glow-brand"
+        >
+          {checking ? 'Checking your browser…' : ready ? 'Create my intro' : "Browser can't record here"}
+          {ready && <ArrowRight className="transition-transform group-hover:translate-x-1" />}
+        </Button>
+        {!checking && !ready && (
+          <p className="mt-2 text-xs text-gray-500">Use Chrome, Edge, or Firefox on desktop to record your intro.</p>
+        )}
+        <Button onClick={onDone} variant="ghost" size="sm" className="mt-3 w-full text-gray-400">
+          Skip for now
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface CreateStepProps {
   name: string;

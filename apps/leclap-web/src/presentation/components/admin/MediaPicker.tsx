@@ -56,6 +56,9 @@ function filterByAllowed(items: MediaCredit[], allowedIds: string[] | undefined)
   return items.filter((i) => allowedIds.includes(i.id));
 }
 
+const noop = () => {};
+const pickerShellClass = 'rounded-xl border border-foreground/10 bg-surface-2/40 p-3';
+
 export const MediaPicker = ({
   kind,
   value,
@@ -71,29 +74,22 @@ export const MediaPicker = ({
 
   if (multiple) {
     return (
-      <div className="rounded-xl border border-foreground/10 bg-surface-2/40 p-3">
-        <MultiLibraryGrid
-          kind={kind}
-          selectedIds={selectedIds ?? []}
-          onToggleId={onToggleId ?? (() => {})}
-          allowedIds={allowedIds}
-        />
+      <div className={pickerShellClass}>
+        <MultiLibraryGrid kind={kind} selectedIds={selectedIds ?? []} onToggleId={onToggleId ?? noop} allowedIds={allowedIds} />
       </div>
     );
   }
 
+  const choice = value ?? null;
+  const handleChange = onChange ?? noop;
+
   return (
-    <div className="rounded-xl border border-foreground/10 bg-surface-2/40 p-3">
+    <div className={pickerShellClass}>
       <TabSwitch tab={tab} setTab={setTab} allowUpload={allowUpload} />
       {tab === 'library' ? (
-        <SingleLibraryGrid
-          kind={kind}
-          value={value ?? null}
-          onChange={onChange ?? (() => {})}
-          allowedIds={allowedIds}
-        />
+        <SingleLibraryGrid kind={kind} value={choice} onChange={handleChange} allowedIds={allowedIds} />
       ) : null}
-      {tab === 'upload' ? <UploadPane kind={kind} value={value ?? null} onChange={onChange ?? (() => {})} /> : null}
+      {tab === 'upload' ? <UploadPane kind={kind} value={choice} onChange={handleChange} /> : null}
     </div>
   );
 };

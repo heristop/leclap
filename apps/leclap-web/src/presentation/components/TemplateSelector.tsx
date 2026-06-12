@@ -59,6 +59,33 @@ const CardIcon = ({ isSelected, Icon }: { isSelected: boolean; Icon: ComponentTy
   </div>
 );
 
+const cardClass = (isSelected: boolean) =>
+  clsx(
+    'group relative w-full h-full text-left p-6',
+    isSelected
+      ? 'border-brand-500 bg-brand-500/[0.06] dark:bg-brand-500/10 shadow-lg shadow-brand-500/15'
+      : 'bg-surface/40 hover:border-brand-500/40 hover:bg-surface/70'
+  );
+
+const CardMetaChips = ({ template, fieldCount, sectionCount }: { template: Template; fieldCount: number; sectionCount: number }) => (
+  <div className="flex flex-wrap gap-2">
+    <MetaChip icon={template.orientation === 'portrait' ? Image : Video}>
+      {template.orientation === 'portrait' ? 'Portrait 9:16' : 'Landscape 16:9'}
+    </MetaChip>
+    <MetaChip icon={template.hasForm ? Users : Zap}>
+      {template.hasForm ? `${fieldCount} field${fieldCount === 1 ? '' : 's'}` : 'Auto-process'}
+    </MetaChip>
+    <MetaChip icon={Layers}>
+      {sectionCount} section{sectionCount === 1 ? '' : 's'}
+    </MetaChip>
+    {template.descriptor.global?.musicEnabled && (
+      <Badge variant="secondary" className="normal-case tracking-normal">
+        <Sparkles className="w-3.5 h-3.5" /> Music
+      </Badge>
+    )}
+  </div>
+);
+
 const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => {
   const IconComponent = getTemplateIcon(template);
   const fieldCount = templateService.extractFormFields(template.descriptor).length;
@@ -81,12 +108,7 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
       }}
       onKeyDown={handleKeyDown}
       aria-pressed={isSelected}
-      className={clsx(
-        'group relative w-full h-full text-left p-6',
-        isSelected
-          ? 'border-brand-500 bg-brand-500/[0.06] dark:bg-brand-500/10 shadow-lg shadow-brand-500/15'
-          : 'bg-surface/40 hover:border-brand-500/40 hover:bg-surface/70'
-      )}
+      className={cardClass(isSelected)}
     >
       {/* Header: branded icon + complexity */}
       <div className="flex items-start justify-between mb-5">
@@ -105,22 +127,7 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
       <p className="text-sm text-gray-400 leading-relaxed mb-5">{template.description}</p>
 
       {/* Meta chips — flat, branded, no nested boxes */}
-      <div className="flex flex-wrap gap-2">
-        <MetaChip icon={template.orientation === 'portrait' ? Image : Video}>
-          {template.orientation === 'portrait' ? 'Portrait 9:16' : 'Landscape 16:9'}
-        </MetaChip>
-        <MetaChip icon={template.hasForm ? Users : Zap}>
-          {template.hasForm ? `${fieldCount} field${fieldCount === 1 ? '' : 's'}` : 'Auto-process'}
-        </MetaChip>
-        <MetaChip icon={Layers}>
-          {sectionCount} section{sectionCount === 1 ? '' : 's'}
-        </MetaChip>
-        {template.descriptor.global?.musicEnabled && (
-          <Badge variant="secondary" className="normal-case tracking-normal">
-            <Sparkles className="w-3.5 h-3.5" /> Music
-          </Badge>
-        )}
-      </div>
+      <CardMetaChips template={template} fieldCount={fieldCount} sectionCount={sectionCount} />
     </Card>
   );
 };

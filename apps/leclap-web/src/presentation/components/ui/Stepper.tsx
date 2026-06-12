@@ -8,6 +8,25 @@ interface StepperProps {
   onStepClick?: (stepIndex: number) => void;
 }
 
+function stepCircleClasses(isCompleted: boolean, isCurrent: boolean, isClickable: boolean): string {
+  return cn(
+    'relative z-10 grid h-10 w-10 place-items-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+    isCompleted && 'brand-gradient text-white shadow-sm shadow-brand-500/20',
+    isCurrent && 'step-pulse bg-background text-brand-600 dark:text-brand-300 ring-2 ring-brand-500 scale-105',
+    !isCompleted && !isCurrent && 'bg-surface text-gray-500 ring-1 ring-foreground/15',
+    isClickable && 'group-hover:scale-110'
+  );
+}
+
+function stepLabelClasses(isCompleted: boolean, isCurrent: boolean): string {
+  return cn(
+    'hidden sm:block max-w-[7rem] truncate text-center text-[0.7rem] font-semibold uppercase tracking-wider transition-colors duration-300',
+    isCurrent && 'text-brand-600 dark:text-brand-300',
+    isCompleted && 'text-gray-400 group-hover:text-foreground',
+    !isCompleted && !isCurrent && 'text-gray-500'
+  );
+}
+
 export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperProps) => {
   const progress = steps.length > 1 ? (currentStep / (steps.length - 1)) * 100 : 0;
 
@@ -37,16 +56,7 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
               }}
               aria-current={isCurrent ? 'step' : undefined}
             >
-              <div
-                className={cn(
-                  'relative z-10 grid h-10 w-10 place-items-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-                  isCompleted && 'brand-gradient text-white shadow-sm shadow-brand-500/20',
-                  isCurrent &&
-                    'step-pulse bg-background text-brand-600 dark:text-brand-300 ring-2 ring-brand-500 scale-105',
-                  !isCompleted && !isCurrent && 'bg-surface text-gray-500 ring-1 ring-foreground/15',
-                  isClickable && 'group-hover:scale-110'
-                )}
-              >
+              <div className={stepCircleClasses(isCompleted, isCurrent, isClickable)}>
                 {isCompleted ? (
                   <Check className="h-5 w-5 pop-in" />
                 ) : (
@@ -54,14 +64,7 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
                 )}
               </div>
 
-              <span
-                className={cn(
-                  'hidden sm:block max-w-[7rem] truncate text-center text-[0.7rem] font-semibold uppercase tracking-wider transition-colors duration-300',
-                  isCurrent && 'text-brand-600 dark:text-brand-300',
-                  isCompleted && 'text-gray-400 group-hover:text-foreground',
-                  !isCompleted && !isCurrent && 'text-gray-500'
-                )}
-              >
+              <span className={stepLabelClasses(isCompleted, isCurrent)}>
                 {step}
               </span>
             </li>

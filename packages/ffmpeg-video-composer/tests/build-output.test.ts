@@ -303,7 +303,7 @@ describe('Build Output', () => {
       expect(typeof FFmpegNodeAdapter).toBe('function');
 
       // Test loadConfig can read a template file
-      const templatePath = path.join(__dirname, '../src/shared/templates/picture.json');
+      const templatePath = path.join(__dirname, 'fixtures/picture.json');
       const templateDescriptor = await mod.loadConfig(templatePath);
       expect(templateDescriptor).toBeDefined();
       expect(templateDescriptor.global).toBeDefined();

@@ -1,14 +1,11 @@
 // Core package template loading service
 import { templateLogger } from '@/lib/logger';
+// Premium templates are authored once in the core package's shared app-template list; web + expo +
+// the MCP catalog all consume the same source. The remaining demos below are web-only.
+import { APP_TEMPLATES } from 'ffmpeg-video-composer/src/shared/templates';
 import simpleVideo from './core/simple-video.json';
 import sampleAdvanced from './core/sample-advanced.json';
 import concatWithMusic from './core/concat-with-music.json';
-import premiumIntro from './core/premium-intro.json';
-import premiumQuote from './core/premium-quote.json';
-import premiumTitles from './core/premium-titles.json';
-import premiumReelPortrait from './core/premium-reel-portrait.json';
-import premiumQuotePortrait from './core/premium-quote-portrait.json';
-import premiumSpotlight from './core/premium-spotlight.json';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
@@ -66,15 +63,20 @@ export interface CoreTemplate {
   previewImage?: string;
 }
 
-// Each core template lives in its own JSON file under ./core/. Add a template by dropping a
-// new file there and listing it here.
+// Premium templates come from the shared app-template list; map each into the web CoreTemplate shape.
+const PREMIUM_TEMPLATES: CoreTemplate[] = APP_TEMPLATES.map((t) => ({
+  id: t.id,
+  name: t.name,
+  description: t.description,
+  category: t.category,
+  orientation: t.orientation,
+  hasForm: t.hasForm,
+  templateDescriptor: t.descriptor as unknown as TemplateDescriptor,
+}));
+
+// The premium set (shared) plus the web-only demos that still live as local JSON under ./core/.
 const TEMPLATE_SOURCES = [
-  premiumSpotlight,
-  premiumIntro,
-  premiumReelPortrait,
-  premiumQuote,
-  premiumQuotePortrait,
-  premiumTitles,
+  ...PREMIUM_TEMPLATES,
   simpleVideo,
   sampleAdvanced,
   concatWithMusic,

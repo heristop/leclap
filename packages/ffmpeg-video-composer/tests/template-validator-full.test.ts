@@ -197,7 +197,7 @@ describe('TemplateValidator (gap coverage)', () => {
     });
 
     it('validates a real shipped template (loaded via the @ alias)', async () => {
-      const sample = (await import('@/shared/templates/sample.json')).default;
+      const sample = (await import('./fixtures/sample.json')).default;
       const result = validator.validateTemplate(sample);
       expect(result.success).toBe(true);
     });

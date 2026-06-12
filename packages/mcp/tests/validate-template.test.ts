@@ -32,12 +32,14 @@ describe('validate_template handler', () => {
     const result = setup()({ templateName: 'premium_intro' });
 
     expect(result.isError).toBeUndefined();
-    expect(result.structuredContent).toMatchObject({ valid: true, requiredClips: [] });
+    // premium_intro collects the title-card fields, then records one clip (video_1).
+    expect(result.structuredContent).toMatchObject({ valid: true, requiredClips: ['video_1'] });
     expect(result.structuredContent?.formFields).toEqual(['form_1_firstname', 'form_1_lastname', 'form_1_job']);
   });
 
   it('validates an inline descriptor and reports no clips/fields for a color card', () => {
-    const template = getTemplate('premium_quote') as unknown as Record<string, unknown>;
+    // fast_and_curious is pure animated color cards — no project_video clips, no form fields.
+    const template = getTemplate('fast_and_curious') as unknown as Record<string, unknown>;
     const result = setup()({ template });
 
     expect(result.isError).toBeUndefined();

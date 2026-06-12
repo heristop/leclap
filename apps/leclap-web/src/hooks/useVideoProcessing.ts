@@ -135,7 +135,11 @@ export const useVideoProcessing = () => {
     videoEdits?: Record<number, VideoEdit | undefined>,
     mediaChoices?: MediaChoices
   ) => {
-    if (files.length === 0) {
+    // Only `project_video` sections consume an uploaded clip — color/text-only templates
+    // (e.g. the premium title/quote cards) render with no upload at all.
+    const requiresUpload = (templateWithFormData.descriptor.sections ?? []).some((s) => s.type === 'project_video');
+
+    if (files.length === 0 && requiresUpload) {
       setState((prev) => ({ ...prev, error: 'Please select at least one video file.' }));
 
       return;

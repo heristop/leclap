@@ -79,6 +79,7 @@ class CoreCompilationService {
       }
 
       await materializeTemplateMedia(templateDescriptor, browserMediaService, this.filesystemAdapter);
+      await this.preloadBundledMusic(templateDescriptor);
 
       const outputPath = await this.runCompilation(projectConfig, templateDescriptor, onProgress);
 
@@ -117,6 +118,33 @@ class CoreCompilationService {
         }
       })
     );
+  }
+
+  // Bundled background track (served from /public/musics) loaded into the assets dir so WASM music
+  // mixing finds it locally — mirrors preloadBundledFonts. Without this, a name-only `global.music`
+  // has no file to mix and the compile fails (there is no Google-Fonts-style remote fallback).
+  private async preloadBundledMusic(descriptor: TemplateDescriptor): Promise<void> {
+    const name = descriptor.global?.music?.name;
+
+    if (descriptor.global?.musicEnabled !== true || !name) {
+      return;
+    }
+
+    const file = name.endsWith('.mp3') ? name : `${name}.mp3`;
+    const musicsDir = '/assets/musics';
+
+    try {
+      const response = await fetch(`/musics/${file}`);
+
+      if (!response.ok) {
+        return;
+      }
+
+      await this.filesystemAdapter.ensureDir(musicsDir);
+      await this.filesystemAdapter.writeFile(`${musicsDir}/${file}`, new Uint8Array(await response.arrayBuffer()));
+    } catch {
+      // Best-effort: a missing bundled track just means no music, not a failed render.
+    }
   }
 
   private async applyEdits(

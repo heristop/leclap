@@ -38,8 +38,32 @@ const projectConfig: ProjectConfig = {
   },
 };
 
+// The sample templates point their assets at this repo's GitHub raw URLs (so a user copying a
+// template gets working media). For the integration suite we rewrite those to the identical files
+// shipped under the local assets dir: the run stays fully hermetic — no network, no flakiness, and
+// it still exercises the whole compile pipeline (segments, filters, maps, concat, music). The
+// local-file fetch path enforces a staging-dir guard, and these paths sit under `assetsDir`.
+const RAW_ASSET_PREFIX = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';
+
+const localizeAsset = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    return value.startsWith(RAW_ASSET_PREFIX) ? path.join(coreRoot, value.slice(RAW_ASSET_PREFIX.length)) : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(localizeAsset);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, localizeAsset(val)]));
+  }
+
+  return value;
+};
+
 async function runTemplateCompilation(configName: string): Promise<string | null> {
-  const template = (await import(`@/shared/templates/${configName}.json`)).default as TemplateDescriptor;
+  const raw = (await import(`@/shared/templates/${configName}.json`)).default;
+  const template = localizeAsset(raw) as TemplateDescriptor;
 
   return await compile(projectConfig, template);
 }

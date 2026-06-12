@@ -275,6 +275,28 @@ const SectionCard = ({ index, count, section, onChange, onRemove, onMove }: Sect
             placeholderTextColor={colors.textSecondary}
           />
         </FieldRow>
+        <View style={styles.rowBetween}>
+          <Text style={styles.fieldLabel}>Countdown before recording</Text>
+          <Switch
+            testID={`section-${index}-countdown`}
+            value={section.countdown}
+            onValueChange={(countdown) => {
+              onChange({ countdown });
+            }}
+            trackColor={{ true: colors.primary, false: colors.divider }}
+            thumbColor="#fff"
+          />
+        </View>
+        {section.countdown && (
+          <FieldRow label="Countdown (s)">
+            <NumberInput
+              value={section.countdownSeconds}
+              onChange={(countdownSeconds) => {
+                onChange({ countdownSeconds });
+              }}
+            />
+          </FieldRow>
+        )}
       </View>
     )}
 

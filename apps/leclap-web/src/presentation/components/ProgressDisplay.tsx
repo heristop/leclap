@@ -138,7 +138,9 @@ const ProgressHeader = ({
         <div
           className={clsx(
             'p-2 rounded-lg transition-all duration-300',
-            percentage >= 100 ? 'bg-success/15 text-success-foreground' : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
+            percentage >= 100
+              ? 'bg-success/15 text-success-foreground'
+              : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
           )}
         >
           <StageIcon className={clsx('w-5 h-5', percentage < 100 && percentage > 0 && 'animate-pulse')} />
@@ -174,7 +176,10 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-gray-300">{currentStep || 'Processing...'}</span>
         <span
-          className={clsx('font-semibold', percentage >= 100 ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300')}
+          className={clsx(
+            'font-semibold',
+            percentage >= 100 ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300'
+          )}
         >
           {Math.round(percentage)}%
         </span>
@@ -235,7 +240,9 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
             </div>
             <div>
               <h4 className="font-semibold text-success-foreground">Processing Complete!</h4>
-              <p className="text-sm text-success-foreground/80">Your video has been processed and is ready for download.</p>
+              <p className="text-sm text-success-foreground/80">
+                Your video has been processed and is ready for download.
+              </p>
             </div>
           </div>
         </Card>

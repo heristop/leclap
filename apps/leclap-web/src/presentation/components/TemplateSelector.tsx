@@ -67,7 +67,15 @@ const cardClass = (isSelected: boolean) =>
       : 'bg-surface/40 hover:border-brand-500/40 hover:bg-surface/70'
   );
 
-const CardMetaChips = ({ template, fieldCount, sectionCount }: { template: Template; fieldCount: number; sectionCount: number }) => (
+const CardMetaChips = ({
+  template,
+  fieldCount,
+  sectionCount,
+}: {
+  template: Template;
+  fieldCount: number;
+  sectionCount: number;
+}) => (
   <div className="flex flex-wrap gap-2">
     <MetaChip icon={template.orientation === 'portrait' ? Image : Video}>
       {template.orientation === 'portrait' ? 'Portrait 9:16' : 'Landscape 16:9'}

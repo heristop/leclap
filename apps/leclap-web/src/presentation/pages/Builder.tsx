@@ -217,7 +217,12 @@ const StepProcess = ({
           )}
           <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
             <span className="text-gray-400">Engine Status</span>
-            <span className={cn('font-medium flex items-center', isFFmpegReady ? 'text-success-foreground' : 'text-warning')}>
+            <span
+              className={cn(
+                'font-medium flex items-center',
+                isFFmpegReady ? 'text-success-foreground' : 'text-warning'
+              )}
+            >
               {isFFmpegReady ? (
                 <>
                   Ready <span className="ml-2 w-2 h-2 bg-success rounded-full animate-pulse" />
@@ -495,11 +500,7 @@ const StepContent = ({
 
   if (currentStep === 2) {
     return (
-      <StepUpload
-        selectedTemplate={selectedTemplate}
-        uploadedFiles={uploadedFiles}
-        onFilesUploaded={onFilesUploaded}
-      />
+      <StepUpload selectedTemplate={selectedTemplate} uploadedFiles={uploadedFiles} onFilesUploaded={onFilesUploaded} />
     );
   }
 

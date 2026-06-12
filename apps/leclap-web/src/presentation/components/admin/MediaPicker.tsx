@@ -75,7 +75,12 @@ export const MediaPicker = ({
   if (multiple) {
     return (
       <div className={pickerShellClass}>
-        <MultiLibraryGrid kind={kind} selectedIds={selectedIds ?? []} onToggleId={onToggleId ?? noop} allowedIds={allowedIds} />
+        <MultiLibraryGrid
+          kind={kind}
+          selectedIds={selectedIds ?? []}
+          onToggleId={onToggleId ?? noop}
+          allowedIds={allowedIds}
+        />
       </div>
     );
   }

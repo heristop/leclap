@@ -17,11 +17,19 @@ generative (Sora/Runway). Design spec:
 | `list_templates`      | The built-in catalog (id, description, orientation, required clips, fields, `requiresNetwork`)                    |
 | `get_template`        | The full JSON descriptor of one built-in (start here, then modify)                                                |
 | `get_template_schema` | The JSON Schema for a template descriptor + a short authoring guide                                               |
+| `validate_template`   | Dry-run a descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`              |
 | `compose_video`       | Validate a descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
 | `probe_media`         | Inspect a local media file → codecs, duration, sample rate, size                                                  |
 
 Typical agent flow: `get_template_schema` (or `get_template`) → author/modify a descriptor →
-`compose_video` → read the returned `outputPath`.
+`validate_template` (instant, iterate until valid) → `compose_video` → read the returned `outputPath`.
+
+### Prompt
+
+`compose-video` — a guided authoring prompt (surfaces as `/compose-video` in clients like Claude
+Desktop). Takes optional `goal` and `orientation` arguments and primes the agent with the schema,
+the premium building-block recipes (which filters give which look, the bundled font list, the
+on-device filter allowlist), and the `validate_template` → `compose_video` loop.
 
 ## Run
 

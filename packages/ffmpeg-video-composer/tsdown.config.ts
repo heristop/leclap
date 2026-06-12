@@ -18,7 +18,10 @@ export default defineConfig([
     // Ship the bundled .ttf fonts inside the package so Node/server/MCP renders resolve drawtext
     // fonts locally (FilesystemNodeAdapter.resolveBundledFont looks in dist/fonts) instead of
     // downloading them from Google Fonts. dist is already in package.json "files".
-    copy: [{ from: 'src/shared/library/fonts/*.ttf', to: 'dist/fonts' }],
+    copy: [
+      { from: 'src/shared/library/fonts/*.ttf', to: 'dist/fonts' },
+      { from: 'src/shared/library/musics/*.mp3', to: 'dist/musics' },
+    ],
     deps: {
       neverBundle: [
         'child_process',

@@ -95,17 +95,30 @@ class MusicComposer {
       return;
     }
 
+    this.project.buildInfos.musicPath = await this.resolveBundledOrDownloadedMusic(music, musicFormattedName);
+  };
+
+  // Prefer a track shipped with the package (resolved locally on Node) over a network download —
+  // mirrors bundled-font resolution, so `global.music: { name }` works offline on Node/server/MCP.
+  private async resolveBundledOrDownloadedMusic(music: MusicConfig, formattedName: string): Promise<string> {
+    const bundled = await this.filesystemAdapter.resolveBundledMusic(`${formattedName}.mp3`);
+
+    if (bundled) {
+      this.logger.info(`[Music] bundled ${bundled}`);
+
+      return bundled;
+    }
+
     if (music.url) {
       this.logger.info(`[Music] Fetching ${music.url}`);
-      const destination = `${this.buildAssetsDir}/${musicFormattedName}.mp3`;
+      const destination = `${this.buildAssetsDir}/${formattedName}.mp3`;
       await this.downloadAndSaveMusic(music.url, destination);
-      this.project.buildInfos.musicPath = destination;
 
-      return;
+      return destination;
     }
 
     throw new Error('Music URL is not provided.');
-  };
+  }
 
   // Resolve a bundled music file from the local assets dir. Tries the configured (display) name first,
   // then the URL's own basename — the bundled library names files after the URL, not the display name,
@@ -281,7 +294,9 @@ class MusicComposer {
 
     let command = ` -y -i ${temp} -i ${this.project.buildInfos.musicPath} `;
     command += ` -filter_complex "${filterComplex}" `;
-    command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 ${finalVideo} `;
+    // +faststart so the music-mixed final output previews in a browser <video> (moov to the front),
+    // matching the concat/single-file paths.
+    command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 -movflags +faststart ${finalVideo} `;
 
     return command;
   }

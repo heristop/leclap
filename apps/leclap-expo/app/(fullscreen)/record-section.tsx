@@ -245,6 +245,8 @@ const RecordSectionScreen = () => {
         }}
         existingVideoUri={existingVideoPath}
         sectionDescription={section.description?.en}
+        countdownSeconds={section.options?.countdown ? (section.options.countdownDuration ?? 4) : undefined}
+        maxDurationSeconds={section.options?.duration}
         fullscreen
       />
     </View>

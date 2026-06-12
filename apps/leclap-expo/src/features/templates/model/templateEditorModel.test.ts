@@ -20,6 +20,7 @@ const baseState = (sections: EditorSection[], over: Partial<EditorState> = {}): 
   description: 'desc',
   orientation: 'landscape',
   sections,
+  audioMix: { video: 1, music: 0.5 },
   ...over,
 });
 
@@ -40,6 +41,8 @@ describe('newSection', () => {
       text: '',
       fontsize: 48,
       fontcolor: '#ffffff',
+      countdown: false,
+      countdownSeconds: 4,
     });
     expect(newSection('color')).toEqual({ kind: 'color', duration: 3, color: '#7C83FD' });
     expect(newSection('form')).toEqual({
@@ -56,9 +59,27 @@ describe('buildDescriptor — form/video/color', () => {
     const descriptor = buildDescriptor(
       baseState([
         newSection('form'),
-        { kind: 'video', duration: 6, mute: true, text: 'Hi {{ firstname }}', fontsize: 50, fontcolor: '#000000' },
+        {
+          kind: 'video',
+          duration: 6,
+          mute: true,
+          text: 'Hi {{ firstname }}',
+          fontsize: 50,
+          fontcolor: '#000000',
+          countdown: false,
+          countdownSeconds: 4,
+        },
         newSection('color'),
-        { kind: 'video', duration: 4, mute: false, text: '', fontsize: 48, fontcolor: '#ffffff' },
+        {
+          kind: 'video',
+          duration: 4,
+          mute: false,
+          text: '',
+          fontsize: 48,
+          fontcolor: '#ffffff',
+          countdown: false,
+          countdownSeconds: 4,
+        },
       ])
     );
 
@@ -75,7 +96,18 @@ describe('buildDescriptor — form/video/color', () => {
 
   it('adds a centered drawtext filter only when overlay text is present', () => {
     const withText = buildDescriptor(
-      baseState([{ kind: 'video', duration: 5, mute: false, text: 'Hello', fontsize: 40, fontcolor: '#fff' }])
+      baseState([
+        {
+          kind: 'video',
+          duration: 5,
+          mute: false,
+          text: 'Hello',
+          fontsize: 40,
+          fontcolor: '#fff',
+          countdown: false,
+          countdownSeconds: 4,
+        },
+      ])
     );
     const withoutText = buildDescriptor(baseState([newSection('video')]));
 
@@ -187,7 +219,16 @@ describe('toEditorState — round-trips', () => {
   it('rehydrates form/video/color sections preserving their values', () => {
     const start = baseState([
       newSection('form'),
-      { kind: 'video', duration: 6, mute: true, text: 'Overlay', fontsize: 50, fontcolor: '#101010' },
+      {
+        kind: 'video',
+        duration: 6,
+        mute: true,
+        text: 'Overlay',
+        fontsize: 50,
+        fontcolor: '#101010',
+        countdown: false,
+        countdownSeconds: 4,
+      },
       { kind: 'color', duration: 2, color: '#FF8AAE' },
     ]);
     const back = toEditorState(asTemplate(start));

@@ -9,12 +9,29 @@ export type FormField = { name: string; label: string; maxLength: number };
 
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
-  | { kind: 'video'; duration: number; mute: boolean; text: string; fontsize: number; fontcolor: string }
+  | {
+      kind: 'video';
+      duration: number;
+      mute: boolean;
+      text: string;
+      fontsize: number;
+      fontcolor: string;
+      countdown: boolean;
+      countdownSeconds: number;
+    }
   | { kind: 'color'; duration: number; color: string }
   | { kind: 'music'; allowed: string[]; allowUpload: boolean }
   | { kind: 'image'; allowed: string[]; allowUpload: boolean; duration: number };
 
 export type Orientation = 'landscape' | 'portrait';
+
+// Global audio mix: the recorded clips' own audio vs the background music, each 0..1. 0 = muted.
+export interface AudioMix {
+  video: number;
+  music: number;
+}
+
+export const DEFAULT_AUDIO_MIX: AudioMix = { video: 1, music: 0.5 };
 
 export interface EditorState {
   id: string;
@@ -22,6 +39,7 @@ export interface EditorState {
   description: string;
   orientation: Orientation;
   sections: EditorSection[];
+  audioMix: AudioMix;
 }
 
 /** Minimal shape needed to re-hydrate the editor from a saved custom template. */
@@ -60,7 +78,16 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
     return { kind: 'image', allowed: [], allowUpload: false, duration: 4 };
   }
 
-  return { kind: 'video', duration: 8, mute: false, text: '', fontsize: 48, fontcolor: '#ffffff' };
+  return {
+    kind: 'video',
+    duration: 8,
+    mute: false,
+    text: '',
+    fontsize: 48,
+    fontcolor: '#ffffff',
+    countdown: false,
+    countdownSeconds: 4,
+  };
 }
 
 /** Stable id for a user template. Uses crypto.randomUUID when available (rare on Hermes). */
@@ -100,10 +127,7 @@ function colorDescriptorFrom(section: { kind: 'color'; duration: number; color: 
   };
 }
 
-function videoDescriptorFrom(
-  section: { kind: 'video'; duration: number; mute: boolean; text: string; fontsize: number; fontcolor: string },
-  index: number
-): Section {
+function videoDescriptorFrom(section: Extract<EditorSection, { kind: 'video' }>, index: number): Section {
   const filters = section.text.trim()
     ? [
         {
@@ -123,7 +147,11 @@ function videoDescriptorFrom(
   return {
     name: `video_${index}`,
     type: 'project_video',
-    options: { duration: section.duration, muteSection: section.mute },
+    options: {
+      duration: section.duration,
+      muteSection: section.mute,
+      ...(section.countdown ? { countdown: true, countdownDuration: section.countdownSeconds } : {}),
+    },
     ...(filters ? { filters } : {}),
   };
 }
@@ -216,6 +244,9 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     orientation: state.orientation,
     musicEnabled: false,
     transitionDuration: 0.5,
+    // Audio mix: video (recorded clip) volume and background-music volume, each 0..1 (0 = muted).
+    audioVolumeLevel: state.audioMix.video,
+    musicVolumeLevel: state.audioMix.music,
     ...mediaGlobals(state.sections),
   };
 
@@ -246,16 +277,25 @@ function colorSectionFrom(s: Section): EditorSection {
   return { kind: 'color', duration: s.options?.duration ?? 3, color: s.options?.backgroundColor ?? '#7C83FD' };
 }
 
-function videoSectionFrom(s: Section): EditorSection {
+function drawtextValuesFrom(s: Section): DrawtextFilter['values'] {
   const dt = ((s.filters ?? []) as DrawtextFilter[]).find((f) => f.type === 'drawtext');
+
+  return dt?.values;
+}
+
+function videoSectionFrom(s: Section): EditorSection {
+  const v = drawtextValuesFrom(s) ?? {};
+  const o = s.options ?? {};
 
   return {
     kind: 'video',
-    duration: s.options?.duration ?? 8,
-    mute: Boolean(s.options?.muteSection),
-    text: dt?.values?.text?.en ?? '',
-    fontsize: Number(dt?.values?.fontsize ?? 48),
-    fontcolor: dt?.values?.fontcolor ?? '#ffffff',
+    duration: o.duration ?? 8,
+    mute: Boolean(o.muteSection),
+    text: v.text?.en ?? '',
+    fontsize: Number(v.fontsize ?? 48),
+    fontcolor: v.fontcolor ?? '#ffffff',
+    countdown: Boolean(o.countdown),
+    countdownSeconds: o.countdownDuration ?? 4,
   };
 }
 
@@ -292,6 +332,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
       description: '',
       orientation: 'landscape',
       sections: [newSection('video')],
+      audioMix: { ...DEFAULT_AUDIO_MIX },
     };
   }
 
@@ -321,5 +362,9 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     description: template.description,
     orientation: template.orientation,
     sections: sections.length > 0 ? sections : [newSection('video')],
+    audioMix: {
+      video: g?.audioVolumeLevel ?? DEFAULT_AUDIO_MIX.video,
+      music: g?.musicVolumeLevel ?? DEFAULT_AUDIO_MIX.music,
+    },
   };
 }

@@ -21,13 +21,26 @@ interface VideoRecorderProps {
   existingVideoUri?: string;
   sectionDescription?: string;
   fullscreen?: boolean;
+  // When > 0, a 3·2·1 countdown plays before recording actually starts.
+  countdownSeconds?: number;
+  // The section's target duration; drives the "wrap up" warning shown in its last seconds.
+  maxDurationSeconds?: number;
 }
+
+// How many seconds before the target duration the end-of-recording warning kicks in.
+const END_WARNING_THRESHOLD = 3;
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function getInstructionText(orientation: 'portrait' | 'landscape'): string {
+  return orientation === 'portrait'
+    ? 'Hold your device vertically for best results'
+    : 'Hold your device horizontally for best results';
 }
 
 function getPreviewDimensions(orientation: 'portrait' | 'landscape', fullscreen: boolean) {
@@ -55,6 +68,78 @@ function TimerOverlay({ isPortrait, recordingDuration }: TimerOverlayProps) {
       <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
       <View style={styles.recordingIndicator} />
     </View>
+  );
+}
+
+// Big centered "3 · 2 · 1" shown over the camera before recording starts. Each
+// number springs in (scale 1.4 → 1, fade) so the tick reads as a distinct beat.
+function CountdownOverlay({ value }: { value: number }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    scale.setValue(1.4);
+    opacity.setValue(0.4);
+    Animated.parallel([
+      Animated.spring(scale, { toValue: 1, friction: 5, tension: 80, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 1, duration: 180, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+    ]).start();
+  }, [value, scale, opacity]);
+
+  return (
+    <View style={styles.countdownOverlay} pointerEvents="none" accessibilityLabel={`Recording in ${value}`}>
+      <Animated.Text style={[styles.countdownText, { opacity, transform: [{ scale }] }]}>{value}</Animated.Text>
+      <Text style={styles.countdownHint}>Get ready…</Text>
+    </View>
+  );
+}
+
+// Pulsing red border + "wrap up" badge shown during the last seconds of the target duration.
+function EndWarningOverlay({ remaining, pulse }: { remaining: number; pulse: Animated.Value }) {
+  return (
+    <Animated.View style={[styles.endWarningBorder, { opacity: pulse }]} pointerEvents="none">
+      <View style={styles.endWarningBadge}>
+        <Ionicons name="timer-outline" size={16} color="white" />
+        <Text style={styles.endWarningText}>{remaining > 0 ? `Wrap up — ${remaining}s left` : 'Time’s up'}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+interface CountdownState {
+  value: number | null;
+  isCounting: boolean;
+  start: (seconds: number) => void;
+  cancel: () => void;
+}
+
+interface CaptureOverlaysProps {
+  isPortrait: boolean;
+  isRecording: boolean;
+  recordingDuration: number;
+  showEndWarning: boolean;
+  remaining: number;
+  warningPulse: Animated.Value;
+  countdown: CountdownState;
+}
+
+// All camera overlays in one place: the elapsed timer, the end-of-duration warning,
+// and the pre-record countdown. Grouped so the main component stays simple.
+function CaptureOverlays({
+  isPortrait,
+  isRecording,
+  recordingDuration,
+  showEndWarning,
+  remaining,
+  warningPulse,
+  countdown,
+}: CaptureOverlaysProps) {
+  return (
+    <>
+      {isRecording && <TimerOverlay isPortrait={isPortrait} recordingDuration={recordingDuration} />}
+      {showEndWarning && <EndWarningOverlay remaining={remaining} pulse={warningPulse} />}
+      {countdown.isCounting && countdown.value !== null && <CountdownOverlay value={countdown.value} />}
+    </>
   );
 }
 
@@ -176,6 +261,74 @@ function usePulseAnimation(isRecording: boolean): Animated.Value {
   return pulseAnim;
 }
 
+// Drives the pre-record 3·2·1 countdown. `start(n)` shows n, n-1 … 1 (one per
+// second) then fires `onComplete`; `cancel()` aborts it.
+function useCountdown(onComplete: () => void) {
+  const [value, setValue] = useState<number | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
+  useEffect(() => {
+    if (value === null) {
+      return () => {};
+    }
+
+    if (value <= 0) {
+      setValue(null);
+      onCompleteRef.current();
+
+      return () => {};
+    }
+
+    const id = setTimeout(() => {
+      setValue((v) => (v === null ? null : v - 1));
+    }, 1000);
+
+    return () => {
+      clearTimeout(id);
+    };
+  }, [value]);
+
+  return {
+    value,
+    isCounting: value !== null,
+    start: (seconds: number) => {
+      setValue(seconds);
+    },
+    cancel: () => {
+      setValue(null);
+    },
+  };
+}
+
+// Loops a 1 ⇄ 0.25 opacity pulse while `active`, used for the end-of-duration warning border.
+function useWarningPulse(active: boolean): Animated.Value {
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (active) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 0.25, duration: 450, easing: Easing.linear, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1, duration: 450, easing: Easing.linear, useNativeDriver: true }),
+        ])
+      );
+      loop.start();
+
+      return () => {
+        loop.stop();
+      };
+    }
+
+    pulse.stopAnimation();
+    pulse.setValue(1);
+
+    return () => {};
+  }, [active, pulse]);
+
+  return pulse;
+}
+
 interface RecordingActionsParams {
   cameraRef: React.RefObject<Camera | null>;
   setIsRecording: (v: boolean) => void;
@@ -274,11 +427,79 @@ function useRecordingActions({
   return { handleRecordPress };
 }
 
+interface CaptureControlsParams {
+  isRecording: boolean;
+  recordingDuration: number;
+  handleRecordPress: (isRecording: boolean) => void;
+  countdownSeconds?: number;
+  maxDurationSeconds?: number;
+}
+
+// Owns the pre-record countdown + end-of-duration warning state and the single
+// record-button handler (start / cancel-countdown / stop), keeping the component lean.
+// End-of-duration warning state: active only while recording and within the last
+// few seconds of the target duration. `remaining` counts down to 0.
+function computeEndWarning(
+  isRecording: boolean,
+  recordingDuration: number,
+  maxDurationSeconds: number | undefined
+): { showEndWarning: boolean; remaining: number } {
+  if (isRecording && maxDurationSeconds !== undefined && maxDurationSeconds > 0) {
+    return {
+      showEndWarning: recordingDuration >= maxDurationSeconds - END_WARNING_THRESHOLD,
+      remaining: Math.max(0, maxDurationSeconds - recordingDuration),
+    };
+  }
+
+  return { showEndWarning: false, remaining: 0 };
+}
+
+function useCaptureControls({
+  isRecording,
+  recordingDuration,
+  handleRecordPress,
+  countdownSeconds,
+  maxDurationSeconds,
+}: CaptureControlsParams) {
+  const countdown = useCountdown(() => {
+    handleRecordPress(false);
+  });
+  const hasCountdown = countdownSeconds !== undefined && countdownSeconds > 0;
+  const { showEndWarning, remaining } = computeEndWarning(isRecording, recordingDuration, maxDurationSeconds);
+  const warningPulse = useWarningPulse(showEndWarning);
+
+  const onRecordButtonPress = () => {
+    if (isRecording) {
+      handleRecordPress(true);
+
+      return;
+    }
+
+    if (countdown.isCounting) {
+      countdown.cancel();
+
+      return;
+    }
+
+    if (hasCountdown) {
+      countdown.start(countdownSeconds);
+
+      return;
+    }
+
+    handleRecordPress(false);
+  };
+
+  return { countdown, warningPulse, showEndWarning, remaining, onRecordButtonPress };
+}
+
 const VideoRecorder: React.FC<VideoRecorderProps> = ({
   orientation,
   onVideoRecorded,
   sectionDescription,
   fullscreen = false,
+  countdownSeconds,
+  maxDurationSeconds,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [showDescription, setShowDescription] = useState(true);
@@ -296,6 +517,13 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     onVideoRecorded,
     orientation,
     device,
+  });
+  const { countdown, warningPulse, showEndWarning, remaining, onRecordButtonPress } = useCaptureControls({
+    isRecording,
+    recordingDuration,
+    handleRecordPress,
+    countdownSeconds,
+    maxDurationSeconds,
   });
   const toggleCameraType = () => {
     setCameraType((current) => (current === 'back' ? 'front' : 'back'));
@@ -332,13 +560,19 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     <View style={fullscreen ? styles.fullscreenContainer : styles.container}>
       <StatusBar hidden backgroundColor="transparent" translucent />
       <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio />
-      {isRecording && <TimerOverlay isPortrait={isPortrait} recordingDuration={recordingDuration} />}
+      <CaptureOverlays
+        isPortrait={isPortrait}
+        isRecording={isRecording}
+        recordingDuration={recordingDuration}
+        showEndWarning={showEndWarning}
+        remaining={remaining}
+        warningPulse={warningPulse}
+        countdown={countdown}
+      />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
         <TouchableOpacity
           style={[styles.recordButton, isRecording && styles.stopButton]}
-          onPress={() => {
-            handleRecordPress(isRecording);
-          }}
+          onPress={onRecordButtonPress}
         >
           <Animated.View style={[styles.recordIcon, { transform: [{ scale: pulseAnim }] }]} />
         </TouchableOpacity>
@@ -354,9 +588,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         />
       )}
       <Text style={[styles.instructionText, isPortrait ? styles.portraitInstructions : styles.landscapeInstructions]}>
-        {orientation === 'portrait'
-          ? 'Hold your device vertically for best results'
-          : 'Hold your device horizontally for best results'}
+        {getInstructionText(orientation)}
       </Text>
     </View>
   );
@@ -378,7 +610,59 @@ const styles = StyleSheet.create({
   },
   portraitTimer: { top: 100, alignSelf: 'center' },
   landscapeTimer: { top: 50, right: 30 },
-  timerText: { color: 'white', fontSize: 16, marginRight: spacing.s },
+  countdownOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    zIndex: 60,
+  },
+  countdownText: {
+    color: 'white',
+    fontSize: 140,
+    fontWeight: '800',
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
+    textShadowColor: 'rgba(0,0,0,0.55)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 16,
+  },
+  countdownHint: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: spacing.s,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  endWarningBorder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 6,
+    borderColor: colors.error,
+    alignItems: 'center',
+    zIndex: 55,
+  },
+  endWarningBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xxl,
+    backgroundColor: colors.error,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.xs,
+    borderRadius: 16,
+  },
+  endWarningText: { color: 'white', fontSize: 15, fontWeight: '700' },
+  timerText: { color: 'white', fontSize: 16, marginRight: spacing.s, fontVariant: ['tabular-nums'] },
   recordingIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error },
   controls: { position: 'absolute', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', zIndex: 5 },
   portraitControls: { bottom: 50, left: 0, right: 0 },

@@ -156,11 +156,12 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
 
         <MetadataFields state={state} patch={patch} />
 
-        {/* Sections (drag to reorder) */}
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Sections — drag to reorder
-          </span>
+        {/* Sections — a top-to-bottom timeline the author composes and reorders. */}
+        <div className="mb-2">
+          <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Sections</span>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Played in order, top to bottom — drag the handle to rearrange.
+          </p>
         </div>
         <SectionList
           sections={state.sections}
@@ -547,6 +548,11 @@ const SectionList = ({
           </button>
         </div>
       )}
+      {sections.length === 0 && (
+        <div className="grid place-items-center rounded-xl border-2 border-dashed border-foreground/15 bg-foreground/[0.02] px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          No sections yet — add your first one below.
+        </div>
+      )}
       {sections.map((section, i) => (
         <Fragment key={i}>
           {dropZone(i)}
@@ -661,8 +667,17 @@ const SectionCard = ({
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </button>
+      <span
+        className="grid size-5 shrink-0 place-items-center rounded-full bg-brand-500/15 text-[11px] font-bold tabular-nums text-brand-700 dark:text-brand-300"
+        aria-hidden
+      >
+        {index + 1}
+      </span>
       <SectionIcon kind={section.kind} />
-      <span className="font-semibold text-foreground text-sm">{SECTION_LABELS[section.kind]}</span>
+      <span className="shrink-0 text-sm font-semibold text-foreground">{SECTION_LABELS[section.kind]}</span>
+      {collapsed && (
+        <span className="min-w-0 truncate text-xs text-gray-500 dark:text-gray-400">{sectionSummary(section)}</span>
+      )}
       <button
         type="button"
         onClick={() => {
@@ -689,21 +704,54 @@ const SectionCard = ({
 );
 
 const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
-  <div className="flex flex-wrap gap-2 mb-6">
-    {(['video', 'form', 'color', 'music', 'image'] as const).map((kind) => (
-      <button
-        key={kind}
-        type="button"
-        onClick={() => {
-          addSection(kind);
-        }}
-        className="tap inline-flex min-h-10 items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-foreground/10 bg-foreground/5 text-gray-700 hover:bg-foreground/10 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 transition-all dark:text-gray-200"
-      >
-        <Plus className="w-4 h-4" /> {SECTION_LABELS[kind]}
-      </button>
-    ))}
+  <div className="mb-6">
+    <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-gray-400">Add a section</span>
+    <div className="flex flex-wrap gap-2">
+      {(['video', 'form', 'color', 'music', 'image'] as const).map((kind) => (
+        <button
+          key={kind}
+          type="button"
+          onClick={() => {
+            addSection(kind);
+          }}
+          className="tap inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2 text-sm text-gray-700 transition-all hover:-translate-y-0.5 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-200"
+        >
+          <SectionIcon kind={kind} /> {SECTION_LABELS[kind]}
+        </button>
+      ))}
+    </div>
   </div>
 );
+
+const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+// One-line at-a-glance summary shown on a collapsed card, so authors can scan the
+// whole template without expanding every section.
+function videoSummary(section: Extract<EditorSection, { kind: 'video' }>): string {
+  const parts = [`${section.duration}s`];
+
+  if (section.mute) parts.push('muted');
+
+  if (section.overlays.length > 0) parts.push(plural(section.overlays.length, 'overlay'));
+
+  if (section.countdown) parts.push(`countdown ${section.countdownSeconds}s`);
+
+  return parts.join(' · ');
+}
+
+function sectionSummary(section: EditorSection): string {
+  if (section.kind === 'color') return `${section.duration}s · ${section.color}`;
+
+  if (section.kind === 'form') return plural(section.fields.length, 'field');
+
+  if (section.kind === 'music') return plural(section.allowed.length, 'track') + (section.allowUpload ? ' · upload' : '');
+
+  if (section.kind === 'image') {
+    return `${section.duration}s · ${plural(section.allowed.length, 'image')}${section.allowUpload ? ' · upload' : ''}`;
+  }
+
+  return videoSummary(section);
+}
 
 const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
   if (kind === 'form') return <FileText className="w-4 h-4 text-brand-700 dark:text-brand-300" />;

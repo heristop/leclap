@@ -175,12 +175,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     await fs.copyFile(sourcePath, targetPath);
   };
 
-  // Find a font shipped with the package so drawtext segments work offline and out-of-the-box on
-  // Node (server/MCP/library) — the previous behaviour downloaded from Google Fonts, which fails for
-  // the bundled single-token family names (BebasNeue, PlayfairDisplay, …). Candidates cover both the
-  // bundled build (dist/fonts, next to the entry) and running from source/tests (src/shared/library/
-  // fonts). Returns null when the file isn't bundled, so callers fall back to the network fetch.
-  override resolveBundledFont = async (fontFile: string): Promise<string | null> => {
+  // Resolve a file shipped with the package (under `library/<kind>`) to an absolute local path.
+  // Candidates cover both the bundled build (dist/<kind>, next to the entry) and running from
+  // source/tests (src/shared/library/<kind>). Returns null when it isn't bundled.
+  private async resolveBundledAsset(kind: string, file: string): Promise<string | null> {
     let moduleDir: string;
 
     try {
@@ -190,14 +188,25 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     }
 
     const candidates = [
-      path.join(moduleDir, 'fonts', fontFile),
-      path.join(moduleDir, '..', '..', 'shared', 'library', 'fonts', fontFile),
+      path.join(moduleDir, kind, file),
+      path.join(moduleDir, '..', '..', 'shared', 'library', kind, file),
     ];
     const present = await Promise.all(candidates.map((candidate) => this.stat(candidate)));
     const index = present.findIndex(Boolean);
 
     return index === -1 ? null : candidates[index];
-  };
+  }
+
+  // Find a bundled font so drawtext works offline and out-of-the-box on Node (server/MCP/library) —
+  // the previous behaviour downloaded from Google Fonts, which fails for the bundled single-token
+  // family names (BebasNeue, PlayfairDisplay, …).
+  override resolveBundledFont = (fontFile: string): Promise<string | null> =>
+    this.resolveBundledAsset('fonts', fontFile);
+
+  // Find a bundled music track so `global.music` resolves offline on Node (server/MCP/library)
+  // instead of requiring a network download.
+  override resolveBundledMusic = (musicFile: string): Promise<string | null> =>
+    this.resolveBundledAsset('musics', musicFile);
 
   override move = async (sourcePath: string, targetPath: string): Promise<void> => {
     if (

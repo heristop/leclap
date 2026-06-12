@@ -42,6 +42,8 @@ function makeFilesystem() {
     fetch: vi.fn(async () => '/downloads/track.mp3'),
     move: vi.fn(async () => undefined),
     unlink: vi.fn(async () => undefined),
+    // Default to "not bundled" so the URL-download path is still exercised by existing tests.
+    resolveBundledMusic: vi.fn(async (): Promise<string | null> => null),
   };
 }
 
@@ -149,6 +151,20 @@ describe('MusicComposer.loadMusic', () => {
     const { composer } = makeComposer({ project, filesystem });
 
     await expect(composer.loadMusic()).rejects.toThrow('Music URL is not provided.');
+  });
+
+  it('uses a bundled track by name (no URL, no download) when one ships with the package', async () => {
+    const project = makeProject({ music: { name: 'air-prelude.mp3' } });
+    const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
+    filesystem.resolveBundledMusic.mockResolvedValue('/pkg/dist/musics/air-prelude.mp3');
+    const { composer } = makeComposer({ project, filesystem });
+
+    await composer.loadMusic();
+
+    expect(filesystem.resolveBundledMusic).toHaveBeenCalledWith('air-prelude.mp3');
+    expect(project.buildInfos.musicPath).toBe('/pkg/dist/musics/air-prelude.mp3');
+    expect(filesystem.fetch).not.toHaveBeenCalled();
   });
 });
 

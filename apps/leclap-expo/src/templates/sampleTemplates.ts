@@ -6,6 +6,7 @@ import premiumQuoteDescriptor from './premium/premium_quote.json';
 import premiumTitlesDescriptor from './premium/premium_titles.json';
 import premiumReelPortraitDescriptor from './premium/premium_reel_portrait.json';
 import premiumQuotePortraitDescriptor from './premium/premium_quote_portrait.json';
+import premiumSpotlightDescriptor from './premium/premium_spotlight.json';
 
 /** A template in the local catalog — bundled (on-device ready), or a user-created one. */
 export interface CatalogTemplate {
@@ -70,6 +71,12 @@ const bundled = (id: string, name: string, description: string, raw: unknown): C
 };
 
 export const SAMPLE_TEMPLATES: CatalogTemplate[] = [
+  bundled(
+    'premium-spotlight',
+    'Premium Spotlight',
+    'Record a clip — graded intro + outro wrap it into a polished video.',
+    premiumSpotlightDescriptor
+  ),
   bundled(
     'premium-intro',
     'Premium Intro',

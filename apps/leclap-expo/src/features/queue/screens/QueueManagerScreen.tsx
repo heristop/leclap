@@ -488,6 +488,58 @@ function QueueEmptyState({
   );
 }
 
+// Processing summary banner — only shown while something is rendering. Extracted to keep the screen
+// render under the complexity cap.
+function ProcessingBanner({ processingCount, pendingCount }: { processingCount: number; pendingCount: number }) {
+  if (processingCount === 0) {
+    return null;
+  }
+
+  return (
+    <View style={styles.summaryBanner}>
+      <ActivityIndicator size="small" color={colors.primary} />
+      <Text style={styles.summaryText}>
+        {processingCount === 1 ? '1 video rendering' : `${processingCount} videos rendering`}
+        {pendingCount > 0 && ` · ${pendingCount} waiting`}
+      </Text>
+    </View>
+  );
+}
+
+// Top action bar (Process All / Cleanup). Extracted so its branching stays out of the screen render.
+function QueueActionBar({
+  isOffline,
+  processPending,
+  cleanupPending,
+  onProcessAll,
+  onCleanup,
+}: {
+  isOffline: boolean;
+  processPending: boolean;
+  cleanupPending: boolean;
+  onProcessAll: () => void;
+  onCleanup: () => void;
+}) {
+  return (
+    <View style={styles.actionBar}>
+      <TouchableOpacity
+        style={[styles.actionButton, isOffline && styles.actionButtonDisabled]}
+        onPress={onProcessAll}
+        disabled={isOffline || processPending}
+      >
+        <Ionicons name="play" size={16} color={isOffline ? colors.textSecondary : colors.primary} />
+        <Text style={[styles.actionButtonText, isOffline && { color: colors.textSecondary }]}>
+          {processPending ? 'Processing...' : 'Process All'}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.actionButton} onPress={onCleanup} disabled={cleanupPending}>
+        <Ionicons name="trash-outline" size={16} color={colors.textSecondary} />
+        <Text style={styles.actionButtonText}>{cleanupPending ? 'Cleaning...' : 'Cleanup'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function QueueManagerScreen() {
   const router = useRouter();
   const { data: queueItems = [], refetch } = useCompilationQueue();
@@ -536,35 +588,14 @@ export default function QueueManagerScreen() {
         </TouchableOpacity>
       </View>
       <NetworkStatusIndicator compact />
-      {processingCount > 0 && (
-        <View style={styles.summaryBanner}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.summaryText}>
-            {processingCount === 1 ? '1 video rendering' : `${processingCount} videos rendering`}
-            {pendingCount > 0 && ` · ${pendingCount} waiting`}
-          </Text>
-        </View>
-      )}
-      <View style={styles.actionBar}>
-        <TouchableOpacity
-          style={[styles.actionButton, isOffline && styles.actionButtonDisabled]}
-          onPress={handlers.handleProcessAll}
-          disabled={isOffline || processQueue.isPending}
-        >
-          <Ionicons name="play" size={16} color={isOffline ? colors.textSecondary : colors.primary} />
-          <Text style={[styles.actionButtonText, isOffline && { color: colors.textSecondary }]}>
-            {processQueue.isPending ? 'Processing...' : 'Process All'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handlers.handleCleanup}
-          disabled={cleanupQueue.isPending}
-        >
-          <Ionicons name="trash-outline" size={16} color={colors.textSecondary} />
-          <Text style={styles.actionButtonText}>{cleanupQueue.isPending ? 'Cleaning...' : 'Cleanup'}</Text>
-        </TouchableOpacity>
-      </View>
+      <ProcessingBanner processingCount={processingCount} pendingCount={pendingCount} />
+      <QueueActionBar
+        isOffline={isOffline}
+        processPending={processQueue.isPending}
+        cleanupPending={cleanupQueue.isPending}
+        onProcessAll={handlers.handleProcessAll}
+        onCleanup={handlers.handleCleanup}
+      />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

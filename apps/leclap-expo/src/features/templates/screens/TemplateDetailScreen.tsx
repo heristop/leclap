@@ -61,6 +61,25 @@ function getButtonLabel(isPending: boolean, willQueue: boolean): string {
   return willQueue ? 'Adding to Queue...' : 'Creating Video...';
 }
 
+function isCompileDisabled(allDone: boolean, isPending: boolean): boolean {
+  return !allDone || isPending;
+}
+
+// Template detail is a root-stack screen reached by push (from the lists) or replace (after
+// recording the last section / finishing the preview). A replace-entry can have an empty back
+// stack, so fall back to the tabs rather than letting router.back() throw "GO_BACK not handled".
+function makeGoBack(router: ReturnType<typeof useRouter>): () => void {
+  return () => {
+    if (router.canGoBack()) {
+      router.back();
+
+      return;
+    }
+
+    router.replace('/(app)');
+  };
+}
+
 type FormModalProps = {
   section: Section | null;
   formData: Project['formData'];
@@ -599,6 +618,25 @@ const OrientationRow = ({ orientation }: OrientationRowProps) => {
   );
 };
 
+type CompileFooterProps = {
+  isDisabled: boolean;
+  isPending: boolean;
+  willQueue: boolean;
+  onCompile: () => void;
+};
+const CompileFooter = ({ isDisabled, isPending, willQueue, onCompile }: CompileFooterProps) => (
+  <View style={styles.footer}>
+    <TouchableOpacity
+      style={[styles.createButton, isDisabled && styles.disabledButton]}
+      disabled={isDisabled}
+      onPress={onCompile}
+    >
+      <Text style={styles.createButtonText}>{getButtonLabel(isPending, willQueue)}</Text>
+      {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
+    </TouchableOpacity>
+  </View>
+);
+
 type MediaStepRowProps = { done: boolean; onPress: () => void };
 const MediaStepRow = ({ done, onPress }: MediaStepRowProps) => (
   <TouchableOpacity
@@ -667,23 +705,12 @@ const TemplateDetailScreen = () => {
     return <LoadingState />;
   }
 
-  // Template detail is a root-stack screen reached by push (from the lists) or replace (after
-  // recording the last section / finishing the preview). A replace-entry can have an empty back
-  // stack, so fall back to the tabs rather than letting router.back() throw "GO_BACK not handled".
-  const goBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-
-      return;
-    }
-
-    router.replace('/(app)');
-  };
+  const goBack = makeGoBack(router);
 
   if (templateError || !template || !project) {
     return <ErrorState error={templateError} onBack={goBack} />;
   }
-  const isDisabled = !allDone || isPending;
+  const isDisabled = isCompileDisabled(allDone, isPending);
   const { totalItems, totalDone } = computeProgress(
     filteredSections,
     completedSectionsCount,
@@ -735,16 +762,12 @@ const TemplateDetailScreen = () => {
           />
         )}
       </ScrollView>
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.createButton, isDisabled && styles.disabledButton]}
-          disabled={isDisabled}
-          onPress={handleCompile}
-        >
-          <Text style={styles.createButtonText}>{getButtonLabel(isPending, willQueue)}</Text>
-          {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
-        </TouchableOpacity>
-      </View>
+      <CompileFooter
+        isDisabled={isDisabled}
+        isPending={isPending}
+        willQueue={willQueue}
+        onCompile={handleCompile}
+      />
       <FormModal
         section={activeFormSection}
         formData={project.formData}

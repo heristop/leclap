@@ -15,6 +15,32 @@ import { PreviewToolbar } from '@/src/features/editor/preview/PreviewToolbar';
 import { TrimEditPanel, CropEditPanel } from '@/src/features/editor/preview/EditPanels';
 import { PreviewLoading, PreviewError, PreviewNoVideo } from '@/src/features/editor/preview/PreviewStates';
 
+// Resolve the guard/early-return screen (loading / error / no-video) before the main editor renders.
+// Returns null when the editor itself should render. Kept out of the component to cap its complexity.
+function renderPreviewGuard(args: {
+  isLoading: boolean;
+  errorMessage: string | null;
+  project: ReturnType<typeof useProject>['data'];
+  videoUri: string | undefined;
+  onBack: () => void;
+}): React.ReactElement | null {
+  const { isLoading, errorMessage, project, videoUri, onBack } = args;
+
+  if (isLoading) {
+    return <PreviewLoading />;
+  }
+
+  if (errorMessage ?? (!project && !videoUri)) {
+    return <PreviewError message={errorMessage ?? 'Preview not available'} onBack={onBack} />;
+  }
+
+  if (!videoUri) {
+    return <PreviewNoVideo onBack={onBack} />;
+  }
+
+  return null;
+}
+
 export default function PreviewPage() {
   const params = useLocalSearchParams<{
     projectId?: string;
@@ -55,32 +81,20 @@ export default function PreviewPage() {
   const { videoRect, containerWidth, onContainerLayout } = useVideoRect(srcSize, requiredOrientation);
 
   const isLoading = projectId ? projectLoading : false;
-
-  if (isLoading) {
-    return <PreviewLoading />;
-  }
-
   const errorMessage = buildErrorMessage(projectError, projectId, videoUri, project);
 
-  if (errorMessage ?? (!project && !videoUri)) {
-    return (
-      <PreviewError
-        message={errorMessage ?? 'Preview not available'}
-        onBack={() => {
-          router.back();
-        }}
-      />
-    );
-  }
+  const guard = renderPreviewGuard({
+    isLoading,
+    errorMessage,
+    project,
+    videoUri,
+    onBack: () => {
+      router.back();
+    },
+  });
 
-  if (!videoUri) {
-    return (
-      <PreviewNoVideo
-        onBack={() => {
-          router.back();
-        }}
-      />
-    );
+  if (guard) {
+    return guard;
   }
 
   return (

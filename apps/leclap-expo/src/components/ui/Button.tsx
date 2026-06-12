@@ -127,6 +127,9 @@ const resolveIconColor = (textColor: ColorTokens): string => {
   return '#757575';
 };
 
+const getScales = (disabled: boolean) =>
+  disabled ? { default: 1, hover: 1, press: 1 } : { default: 0.98, hover: 1.02, press: 0.95 };
+
 interface ButtonContentProps {
   loading: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
@@ -208,9 +211,7 @@ export default function Button({
   const iconSize = getIconSize(size);
   const iconColor = resolveIconColor(textColor);
   const isGhost = variant === 'ghost';
-  const scaleDefault = disabled ? 1 : 0.98;
-  const scaleHover = disabled ? 1 : 1.02;
-  const scalePress = disabled ? 1 : 0.95;
+  const scales = getScales(disabled);
 
   return (
     <TamaguiButton
@@ -226,14 +227,14 @@ export default function Button({
       shadowOpacity={isGhost ? 0 : 0.1}
       shadowRadius={4}
       transition="bouncy"
-      scale={scaleDefault}
+      scale={scales.default}
       hoverStyle={{
         ...variantProps.hoverStyle,
-        scale: scaleHover,
+        scale: scales.hover,
       }}
       pressStyle={{
         ...variantProps.pressStyle,
-        scale: scalePress,
+        scale: scales.press,
       }}
     >
       <ButtonContent

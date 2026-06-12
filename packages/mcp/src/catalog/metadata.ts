@@ -14,6 +14,8 @@ export const templateMetadata: Record<string, string> = {
   premium_quote_portrait: 'Vertical story quote card: gold script headline over a layered purple grade with serif body',
   premium_reel_portrait:
     'Vertical social reel cover: bold headline, red accent shapes, subtitle and handle on a dark grade',
+  premium_spotlight:
+    'Wraps a user clip (project_video) in a cinematic intro + outro: graded with a vignette and a gold lower-third caption from the name field',
   premium_titles:
     'Three-card landscape title sequence with fade transitions in a cohesive teal-and-charcoal brand grade',
   sample: 'Full-featured showcase: intro, form fields, project clips, intertitles, outro and music',

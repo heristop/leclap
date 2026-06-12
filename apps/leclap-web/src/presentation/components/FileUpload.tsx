@@ -10,6 +10,9 @@ interface FileUploadProps {
   uploadedFiles: File[];
   maxFiles?: number;
   maxSizeInMB?: number;
+  // Recording-UX config forwarded to the in-browser camera (countdown + end warning).
+  countdownSeconds?: number;
+  maxDurationSeconds?: number;
 }
 
 function formatFileSize(bytes: number): string {
@@ -176,7 +179,14 @@ function DropZone({
   );
 }
 
-export const FileUpload = ({ onFilesUploaded, uploadedFiles, maxFiles = 5, maxSizeInMB = 100 }: FileUploadProps) => {
+export const FileUpload = ({
+  onFilesUploaded,
+  uploadedFiles,
+  maxFiles = 5,
+  maxSizeInMB = 100,
+  countdownSeconds,
+  maxDurationSeconds,
+}: FileUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
@@ -274,6 +284,8 @@ export const FileUpload = ({ onFilesUploaded, uploadedFiles, maxFiles = 5, maxSi
           onClose={() => {
             setShowCamera(false);
           }}
+          countdownSeconds={countdownSeconds}
+          maxDurationSeconds={maxDurationSeconds}
         />
       )}
 

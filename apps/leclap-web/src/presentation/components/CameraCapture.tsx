@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { SwitchCamera, X, Check, RotateCcw, Loader2, CameraOff } from 'lucide-react';
+import { SwitchCamera, X, Check, RotateCcw, Loader2, CameraOff, TimerReset } from 'lucide-react';
 import clsx from 'clsx';
 import { formatElapsed, useCameraCapture, type Mode } from '@/hooks/useCameraCapture';
 import { Button } from '@/presentation/components/ui';
@@ -7,6 +7,10 @@ import { Button } from '@/presentation/components/ui';
 interface CameraCaptureProps {
   onCapture: (file: File) => void;
   onClose: () => void;
+  // When > 0, a 3·2·1 countdown plays before recording starts.
+  countdownSeconds?: number;
+  // The target clip duration; drives the "wrap up" warning in its last seconds.
+  maxDurationSeconds?: number;
 }
 
 interface TopBarProps {
@@ -74,16 +78,65 @@ const CameraErrorView = ({ error, onRetry }: ErrorViewProps) => (
   </div>
 );
 
+// Big centered "3·2·1" over the live preview before recording starts. The number
+// is keyed so each tick re-triggers the pop-in, reading as a distinct beat.
+const CountdownOverlay = ({ value }: { value: number | null }) => {
+  if (value === null) return null;
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-black/45 backdrop-blur-[2px]"
+      aria-label={`Recording in ${value}`}
+    >
+      <div className="text-center">
+        <span
+          key={value}
+          className="pop-in block font-display font-extrabold leading-none text-white tabular-nums text-[7rem] sm:text-[9rem] [text-shadow:0_4px_28px_oklch(0_0_0/0.6)]"
+        >
+          {value}
+        </span>
+        <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/85">Get ready…</p>
+      </div>
+    </div>
+  );
+};
+
+// Pulsing inset ring + "wrap up" badge shown during the last seconds of the target duration.
+const EndWarningOverlay = ({ remaining }: { remaining: number }) => (
+  <div className="pointer-events-none absolute inset-0 z-20 fade-in" role="status" aria-live="polite">
+    <div className="absolute inset-0 animate-pulse ring-4 ring-inset ring-[var(--color-error)]" />
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-error)] text-white shadow-lg shadow-black/40">
+      <TimerReset className="w-4 h-4" />
+      <span className="text-sm font-bold tabular-nums">
+        {remaining > 0 ? `Wrap up — ${remaining}s left` : 'Time’s up'}
+      </span>
+    </div>
+  </div>
+);
+
 interface StageProps {
   mode: Mode;
   error: string;
   facingMode: 'user' | 'environment';
   previewUrl: string | null;
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  countdownValue: number | null;
+  endingSoon: boolean;
+  remaining: number;
   onRetry: () => void;
 }
 
-const CameraStage = ({ mode, error, facingMode, previewUrl, videoRef, onRetry }: StageProps) => (
+const CameraStage = ({
+  mode,
+  error,
+  facingMode,
+  previewUrl,
+  videoRef,
+  countdownValue,
+  endingSoon,
+  remaining,
+  onRetry,
+}: StageProps) => (
   <div className="relative flex-1 flex items-center justify-center overflow-hidden">
     {mode === 'error' ? (
       <CameraErrorView error={error} onRetry={onRetry} />
@@ -121,6 +174,9 @@ const CameraStage = ({ mode, error, facingMode, previewUrl, videoRef, onRetry }:
             <p className="text-sm">Starting camera…</p>
           </div>
         )}
+
+        {endingSoon && <EndWarningOverlay remaining={remaining} />}
+        {mode === 'countdown' && <CountdownOverlay value={countdownValue} />}
       </>
     )}
   </div>
@@ -145,19 +201,27 @@ const PreviewControls = ({ onConfirm, onRetake }: Pick<ControlsProps, 'onConfirm
   </div>
 );
 
+function recordButtonLabel(mode: Mode): string {
+  if (mode === 'countdown') return 'Cancel countdown';
+
+  if (mode === 'recording') return 'Stop recording';
+
+  return 'Start recording';
+}
+
 const RecordControls = ({
   mode,
   onStartRecording,
   onStopRecording,
 }: Pick<ControlsProps, 'mode' | 'onStartRecording' | 'onStopRecording'>) => {
-  const isRecording = mode === 'recording';
+  const active = mode === 'recording' || mode === 'countdown';
 
   return (
     <div className="flex items-center justify-center">
       <button
-        onClick={isRecording ? onStopRecording : onStartRecording}
+        onClick={active ? onStopRecording : onStartRecording}
         disabled={mode === 'loading'}
-        aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+        aria-label={recordButtonLabel(mode)}
         className={clsx(
           'tap relative grid place-items-center w-[4.5rem] h-[4.5rem] rounded-full border-4 border-foreground/80 transition-all duration-300 ease-[var(--ease-spring)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
           mode === 'loading'
@@ -168,7 +232,7 @@ const RecordControls = ({
         <span
           className={clsx(
             'bg-[var(--color-error)] transition-all duration-300 ease-[var(--ease-spring)]',
-            isRecording ? 'w-7 h-7 rounded-md' : 'w-14 h-14 rounded-full'
+            active ? 'w-7 h-7 rounded-md' : 'w-14 h-14 rounded-full'
           )}
         />
       </button>
@@ -190,8 +254,8 @@ const CameraControls = ({ mode, onStartRecording, onStopRecording, onConfirm, on
   );
 };
 
-export const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
-  const camera = useCameraCapture(onCapture, onClose);
+export const CameraCapture = ({ onCapture, onClose, countdownSeconds, maxDurationSeconds }: CameraCaptureProps) => {
+  const camera = useCameraCapture(onCapture, onClose, { countdownSeconds, maxDurationSeconds });
 
   return createPortal(
     <div className="dark fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col fade-in safe-b">
@@ -208,6 +272,9 @@ export const CameraCapture = ({ onCapture, onClose }: CameraCaptureProps) => {
         facingMode={camera.facingMode}
         previewUrl={camera.previewUrl}
         videoRef={camera.videoRef}
+        countdownValue={camera.countdownValue}
+        endingSoon={camera.endingSoon}
+        remaining={camera.remaining}
         onRetry={camera.startCamera}
       />
 

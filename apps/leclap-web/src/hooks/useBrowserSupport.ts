@@ -9,8 +9,19 @@ export interface BrowserSupportCheck {
 // WASM + cross-origin-isolated threading stack ffmpeg.wasm runs on, and the File API for the clip.
 // Evaluated once on mount (client-only globals) so the onboarding can gate "Create my intro" on a
 // browser that can actually finish the flow, instead of failing mid-way.
+// `navigator.mediaDevices` is typed non-nullish but is undefined in insecure contexts.
+const supportsCamera = (): boolean => {
+  const devices = navigator.mediaDevices as MediaDevices | undefined;
+
+  if (!devices) {
+    return false;
+  }
+
+  return 'getUserMedia' in devices;
+};
+
 const evaluateSupport = (): BrowserSupportCheck[] => [
-  { name: 'Camera access', ok: Boolean(navigator.mediaDevices?.getUserMedia) },
+  { name: 'Camera access', ok: supportsCamera() },
   {
     name: 'In-browser video engine',
     ok: typeof WebAssembly === 'object' && typeof SharedArrayBuffer !== 'undefined' && crossOriginIsolated,
@@ -28,6 +39,6 @@ export const useBrowserSupport = () => {
   return {
     checks,
     checking: checks === null,
-    ready: checks !== null && checks.every((check) => check.ok),
+    ready: checks?.every((check) => check.ok) ?? false,
   };
 };

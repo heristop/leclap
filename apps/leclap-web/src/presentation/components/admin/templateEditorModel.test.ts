@@ -39,7 +39,7 @@ function videoSection(overlays: TextOverlay[]): EditorSection {
 function baseState(input: EditorSection[] | Partial<EditorState> = {}): EditorState {
   const over: Partial<EditorState> = Array.isArray(input) ? { sections: input } : input;
 
-  return {
+  const defaults: EditorState = {
     id: 'user-1',
     name: 'T',
     description: '',
@@ -47,8 +47,9 @@ function baseState(input: EditorSection[] | Partial<EditorState> = {}): EditorSt
     sections: [],
     globalVariables: [],
     audioMix: { video: 1, music: 0.5 },
-    ...over,
   };
+
+  return Object.assign(defaults, over);
 }
 
 function asTemplate(state: EditorState): Template {

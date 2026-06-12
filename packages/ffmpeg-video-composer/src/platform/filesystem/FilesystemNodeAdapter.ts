@@ -200,7 +200,8 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   // Find a bundled font so drawtext works offline and out-of-the-box on Node (server/MCP/library) —
   // the previous behaviour downloaded from Google Fonts, which fails for the bundled single-token
   // family names (BebasNeue, PlayfairDisplay, …).
-  override resolveBundledFont = (fontFile: string): Promise<string | null> => this.resolveBundledAsset('fonts', fontFile);
+  override resolveBundledFont = (fontFile: string): Promise<string | null> =>
+    this.resolveBundledAsset('fonts', fontFile);
 
   // Find a bundled music track so `global.music` resolves offline on Node (server/MCP/library)
   // instead of requiring a network download.

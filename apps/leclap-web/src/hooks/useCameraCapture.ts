@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 
-export type Mode = 'loading' | 'ready' | 'recording' | 'preview' | 'error';
+export type Mode = 'loading' | 'ready' | 'countdown' | 'recording' | 'preview' | 'error';
+
+// How many seconds before the target duration the "wrap up" warning kicks in.
+const END_WARNING_THRESHOLD = 3;
+
+export interface CameraCaptureOptions {
+  // When > 0, a 3·2·1 countdown plays before recording actually starts.
+  countdownSeconds?: number;
+  // The section's target duration; drives the "wrap up" warning in its last seconds.
+  maxDurationSeconds?: number;
+}
 
 export type FacingMode = 'user' | 'environment';
 
@@ -119,6 +129,81 @@ function useRecorder(streamRef: React.RefObject<MediaStream | null>, handlers: R
   return { fileRef, startRecording, stopRecording, clear };
 }
 
+// Pre-record 3·2·1 countdown gate around the recorder. `start` plays the configured
+// countdown (or records immediately when off); `stop` cancels a pending countdown,
+// otherwise stops the recording.
+function usePreRecordCountdown(
+  recorderStart: () => void,
+  recorderStop: () => void,
+  countdownSeconds: number | undefined
+) {
+  const [countdownValue, setCountdownValue] = useState<number | null>(null);
+  const startRef = useRef(recorderStart);
+  startRef.current = recorderStart;
+
+  useEffect(() => {
+    if (countdownValue === null) return () => {};
+
+    if (countdownValue <= 0) {
+      setCountdownValue(null);
+      startRef.current();
+
+      return () => {};
+    }
+
+    const id = window.setTimeout(() => {
+      setCountdownValue((v) => (v === null ? null : v - 1));
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [countdownValue]);
+
+  const start = () => {
+    if (countdownSeconds && countdownSeconds > 0) {
+      setCountdownValue(countdownSeconds);
+
+      return;
+    }
+
+    startRef.current();
+  };
+
+  const stop = () => {
+    if (countdownValue === null) {
+      recorderStop();
+
+      return;
+    }
+
+    setCountdownValue(null);
+  };
+
+  const cancel = () => {
+    setCountdownValue(null);
+  };
+
+  return { countdownValue, start, stop, cancel };
+}
+
+// End-of-duration warning state: only active while recording and within the last
+// few seconds of the target duration. `remaining` counts down to 0.
+function endWarning(
+  mode: Mode,
+  elapsed: number,
+  maxDurationSeconds: number | undefined
+): { endingSoon: boolean; remaining: number } {
+  if (maxDurationSeconds === undefined || maxDurationSeconds <= 0 || mode !== 'recording') {
+    return { endingSoon: false, remaining: 0 };
+  }
+
+  return {
+    endingSoon: elapsed >= maxDurationSeconds - END_WARNING_THRESHOLD,
+    remaining: Math.max(0, maxDurationSeconds - elapsed),
+  };
+}
+
 interface CameraCaptureController {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   facingMode: FacingMode;
@@ -126,6 +211,9 @@ interface CameraCaptureController {
   error: string;
   elapsed: number;
   previewUrl: string | null;
+  countdownValue: number | null;
+  endingSoon: boolean;
+  remaining: number;
   startCamera: () => void;
   switchCamera: () => void;
   startRecording: () => void;
@@ -135,7 +223,11 @@ interface CameraCaptureController {
   cancel: () => void;
 }
 
-export function useCameraCapture(onCapture: (file: File) => void, onClose: () => void): CameraCaptureController {
+export function useCameraCapture(
+  onCapture: (file: File) => void,
+  onClose: () => void,
+  options: CameraCaptureOptions = {}
+): CameraCaptureController {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -201,13 +293,19 @@ export function useCameraCapture(onCapture: (file: File) => void, onClose: () =>
   });
   useRevokeObjectUrl(previewUrl);
 
+  const countdown = usePreRecordCountdown(recorder.startRecording, recorder.stopRecording, options.countdownSeconds);
+
   const startCamera = () => {
+    countdown.cancel();
     setRestartToken((token) => token + 1);
   };
 
   const switchCamera = () => {
+    countdown.cancel();
     setFacingMode((m) => (m === 'user' ? 'environment' : 'user'));
   };
+
+  const { endingSoon, remaining } = endWarning(mode, elapsed, options.maxDurationSeconds);
 
   const confirmCapture = () => {
     if (recorder.fileRef.current) onCapture(recorder.fileRef.current);
@@ -226,6 +324,7 @@ export function useCameraCapture(onCapture: (file: File) => void, onClose: () =>
   };
 
   const cancel = () => {
+    countdown.cancel();
     stopTracks(streamRef.current);
     streamRef.current = null;
     onClose();
@@ -234,14 +333,17 @@ export function useCameraCapture(onCapture: (file: File) => void, onClose: () =>
   return {
     videoRef,
     facingMode,
-    mode,
+    mode: countdown.countdownValue === null ? mode : 'countdown',
     error,
     elapsed,
     previewUrl,
+    countdownValue: countdown.countdownValue,
+    endingSoon,
+    remaining,
     startCamera,
     switchCamera,
-    startRecording: recorder.startRecording,
-    stopRecording: recorder.stopRecording,
+    startRecording: countdown.start,
+    stopRecording: countdown.stop,
     confirmCapture,
     retake,
     cancel,

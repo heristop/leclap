@@ -15,6 +15,7 @@ import { type Template } from '@/services/templateService';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import { MediaPicker } from '@/presentation/components/admin/MediaPicker';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
+import { recordingConfigFromDescriptor } from '@/lib/recordingConfig';
 import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
@@ -58,22 +59,33 @@ const StepConfigure = ({
 );
 
 const StepUpload = ({
+  selectedTemplate,
   uploadedFiles,
   onFilesUploaded,
 }: {
+  selectedTemplate: Template | null;
   uploadedFiles: File[];
   onFilesUploaded: (files: File[]) => void;
-}) => (
-  <div className="fade-in max-w-3xl mx-auto">
-    <div className="text-center mb-8">
-      <h2 className="text-4xl font-bold font-display text-foreground mb-2">Add Media</h2>
-      <p className="text-gray-400 text-lg">Upload the videos you want to process</p>
+}) => {
+  const recordingConfig = recordingConfigFromDescriptor(selectedTemplate?.descriptor);
+
+  return (
+    <div className="fade-in max-w-3xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-4xl font-bold font-display text-foreground mb-2">Add Media</h2>
+        <p className="text-gray-400 text-lg">Upload the videos you want to process</p>
+      </div>
+      <Card elevation="flat" className="glass-panel-dark p-8 md:p-10 shadow-2xl">
+        <FileUpload
+          onFilesUploaded={onFilesUploaded}
+          uploadedFiles={uploadedFiles}
+          countdownSeconds={recordingConfig.countdownSeconds}
+          maxDurationSeconds={recordingConfig.maxDurationSeconds}
+        />
+      </Card>
     </div>
-    <Card elevation="flat" className="glass-panel-dark p-8 md:p-10 shadow-2xl">
-      <FileUpload onFilesUploaded={onFilesUploaded} uploadedFiles={uploadedFiles} />
-    </Card>
-  </div>
-);
+  );
+};
 
 const StepMedia = ({
   selectedTemplate,
@@ -482,7 +494,13 @@ const StepContent = ({
   }
 
   if (currentStep === 2) {
-    return <StepUpload uploadedFiles={uploadedFiles} onFilesUploaded={onFilesUploaded} />;
+    return (
+      <StepUpload
+        selectedTemplate={selectedTemplate}
+        uploadedFiles={uploadedFiles}
+        onFilesUploaded={onFilesUploaded}
+      />
+    );
   }
 
   if (currentStep === 3 && selectedTemplate) {

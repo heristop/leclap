@@ -12,6 +12,7 @@ export interface TemplateDescriptor {
     colorsList?: string[];
     musicEnabled?: boolean;
     audioVolumeLevel?: number;
+    musicVolumeLevel?: number;
     transitionDuration?: number;
     music?: {
       name: string;

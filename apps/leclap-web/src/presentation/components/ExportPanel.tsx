@@ -104,6 +104,7 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
     }
 
     const el = containerRef.current;
+
     if (!el) return;
 
     el.requestFullscreen().catch((error: unknown) => {

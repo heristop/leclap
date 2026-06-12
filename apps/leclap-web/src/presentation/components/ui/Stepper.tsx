@@ -64,9 +64,7 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
                 )}
               </div>
 
-              <span className={stepLabelClasses(isCompleted, isCurrent)}>
-                {step}
-              </span>
+              <span className={stepLabelClasses(isCompleted, isCurrent)}>{step}</span>
             </li>
           );
         })}

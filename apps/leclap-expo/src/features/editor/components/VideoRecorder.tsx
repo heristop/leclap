@@ -570,10 +570,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         countdown={countdown}
       />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
-        <TouchableOpacity
-          style={[styles.recordButton, isRecording && styles.stopButton]}
-          onPress={onRecordButtonPress}
-        >
+        <TouchableOpacity style={[styles.recordButton, isRecording && styles.stopButton]} onPress={onRecordButtonPress}>
           <Animated.View style={[styles.recordIcon, { transform: [{ scale: pulseAnim }] }]} />
         </TouchableOpacity>
       </View>

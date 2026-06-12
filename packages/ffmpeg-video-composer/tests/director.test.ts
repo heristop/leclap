@@ -62,7 +62,7 @@ const localizeAsset = (value: unknown): unknown => {
 };
 
 async function runTemplateCompilation(configName: string): Promise<string | null> {
-  const raw = (await import(`@/shared/templates/${configName}.json`)).default;
+  const raw = (await import(`./fixtures/${configName}.json`)).default;
   const template = localizeAsset(raw) as TemplateDescriptor;
 
   return await compile(projectConfig, template);

@@ -1,7 +1,9 @@
 {
   "global": {
     "orientation": "landscape",
-    "musicEnabled": false,
+    "musicEnabled": true,
+    "music": { "name": "arcadia.mp3" },
+    "audioVolumeLevel": 1,
     "transitionDuration": 0.5
   },
   "sections": [
@@ -82,6 +84,31 @@
             "color": "#0d1b2a"
           }
         }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "title": { "en": "Record your clip" },
+      "description": { "en": "Your moment — graded in the title-card palette" },
+      "options": { "duration": 30000, "forceAspectRatio": true },
+      "filters": [
+        { "type": "vignette" },
+        { "type": "drawbox", "values": { "x": 0, "y": 600, "w": 1280, "h": 120, "c": "#0d1b2a@0.55", "t": "fill" } },
+        { "type": "drawbox", "values": { "x": 80, "y": 628, "w": 90, "h": 5, "c": "#f5c518@1", "t": "fill" } },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_firstname }}" },
+            "fontcolor": "#f5c518",
+            "fontsize": 52,
+            "x": 80,
+            "y": 644,
+            "fontfile": "BebasNeue.ttf"
+          }
+        },
+        { "type": "fadein", "values": { "color": "#0d1b2a" } },
+        { "type": "fadeout", "values": { "color": "#0d1b2a" } }
       ]
     }
   ]

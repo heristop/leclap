@@ -115,6 +115,23 @@ describe('VideoEditor.concat', () => {
     expect(filesystem.copy).toHaveBeenCalledWith('/build/clip_output.mp4', '/build/output.mp4');
   });
 
+  it('falls back to a byte copy when the remux adapter throws (Node exits non-zero)', async () => {
+    const filesystem = makeFilesystem();
+    filesystem.read.mockResolvedValue("file '/build/clip_output.mp4'\n");
+    const ffmpeg = {
+      execute: vi.fn(async () => {
+        throw new Error('FFmpeg command failed');
+      }),
+    };
+    const { editor, project } = makeEditor({ filesystem, ffmpeg });
+
+    const result = await editor.concat();
+
+    expect(result).toBe('/build/output.mp4');
+    expect(project.finalVideo).toBe('/build/output.mp4');
+    expect(filesystem.copy).toHaveBeenCalledWith('/build/clip_output.mp4', '/build/output.mp4');
+  });
+
   it('runs the ffmpeg concat command for multiple files (success)', async () => {
     const filesystem = makeFilesystem();
     filesystem.read.mockResolvedValue('file /build/a.mp4\nfile /build/b.mp4\n');

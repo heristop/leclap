@@ -3,6 +3,11 @@ import { templateLogger } from '@/lib/logger';
 import simpleVideo from './core/simple-video.json';
 import sampleAdvanced from './core/sample-advanced.json';
 import concatWithMusic from './core/concat-with-music.json';
+import premiumIntro from './core/premium-intro.json';
+import premiumQuote from './core/premium-quote.json';
+import premiumTitles from './core/premium-titles.json';
+import premiumReelPortrait from './core/premium-reel-portrait.json';
+import premiumQuotePortrait from './core/premium-quote-portrait.json';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
@@ -62,7 +67,16 @@ export interface CoreTemplate {
 
 // Each core template lives in its own JSON file under ./core/. Add a template by dropping a
 // new file there and listing it here.
-const TEMPLATE_SOURCES = [simpleVideo, sampleAdvanced, concatWithMusic] as unknown as CoreTemplate[];
+const TEMPLATE_SOURCES = [
+  premiumIntro,
+  premiumReelPortrait,
+  premiumQuote,
+  premiumQuotePortrait,
+  premiumTitles,
+  simpleVideo,
+  sampleAdvanced,
+  concatWithMusic,
+] as unknown as CoreTemplate[];
 
 const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = Object.fromEntries(
   TEMPLATE_SOURCES.map((template) => [template.id, template])

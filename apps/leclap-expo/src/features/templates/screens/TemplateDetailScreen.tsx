@@ -404,11 +404,15 @@ function useProjectInitialization(args: ProjectInitArgs) {
 
 function computeAllDone(
   project: Project | null,
+  template: Template | null | undefined,
   filteredSections: Section[],
   hasMediaStep: boolean,
   mediaStepDone: boolean
 ): boolean {
-  if (project === null || filteredSections.length === 0) return false;
+  // Guard the not-loaded state. A loaded template with no editable sections (e.g. a premium
+  // color/text card — nothing to record or fill in) is self-contained and ready to compile;
+  // `every` is vacuously true for the empty list, so it falls through to the media-step check.
+  if (project === null || !template) return false;
 
   if (!filteredSections.every((s) => isSectionCompleted(s, project))) return false;
 
@@ -527,7 +531,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     handleMusicUseDefault,
     handleCompile,
   } = useTemplateHandlers({ ...hCtx, mediaChoices, queueVideoCompilation });
-  const allDone = computeAllDone(project, filteredSections, hasMediaStep, mediaStepDone);
+  const allDone = computeAllDone(project, template, filteredSections, hasMediaStep, mediaStepDone);
 
   return {
     template,

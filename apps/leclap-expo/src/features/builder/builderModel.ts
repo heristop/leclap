@@ -54,18 +54,49 @@ export function isFormComplete(descriptor: TemplateDescriptor | null, formData: 
   return fields.every((field) => (formData[field.name] ?? '').trim() !== '');
 }
 
-/** Next step, skipping Configure (index 1) when the template has no form fields. Clamped to last. */
-export function nextStepIndex(current: number, opts: { hasForm: boolean }): number {
-  const next = current + 1;
-  const target = next === STEP_INDEX.configure && !opts.hasForm ? next + 1 : next;
+/** Which step machine choices a template makes: it skips Configure with no form, and skips
+ * Upload + Edit with no clips (e.g. the premium color/text cards, which need no recording). */
+export interface StepFlow {
+  hasForm: boolean;
+  hasClips: boolean;
+}
+
+/** Step indices that don't apply to this template, so navigation hops over them in both directions. */
+function skippedSteps({ hasForm, hasClips }: StepFlow): Set<number> {
+  const skipped = new Set<number>();
+
+  if (!hasForm) {
+    skipped.add(STEP_INDEX.configure);
+  }
+
+  if (!hasClips) {
+    skipped.add(STEP_INDEX.upload);
+    skipped.add(STEP_INDEX.edit);
+  }
+
+  return skipped;
+}
+
+/** Next applicable step, hopping over Configure/Upload/Edit the template doesn't use. Clamped to last. */
+export function nextStepIndex(current: number, opts: StepFlow): number {
+  const skipped = skippedSteps(opts);
+  let target = current + 1;
+
+  while (target < LAST_STEP && skipped.has(target)) {
+    target += 1;
+  }
 
   return Math.min(target, LAST_STEP);
 }
 
-/** Previous step, skipping Configure (index 1) when the template has no form fields. Clamped to 0. */
-export function prevStepIndex(current: number, opts: { hasForm: boolean }): number {
-  const back = current - 1;
-  const target = back === STEP_INDEX.configure && !opts.hasForm ? back - 1 : back;
+/** Previous applicable step, hopping over Configure/Upload/Edit the template doesn't use. Clamped to 0. */
+export function prevStepIndex(current: number, opts: StepFlow): number {
+  const skipped = skippedSteps(opts);
+  let target = current - 1;
+
+  while (target > 0 && skipped.has(target)) {
+    target -= 1;
+  }
 
   return Math.max(target, 0);
 }
@@ -94,7 +125,16 @@ export function canAdvance(current: number, state: BuilderGateState): boolean {
   return true;
 }
 
-/** Where "Back" from the Result step lands: Configure if the template has a form, else Upload. */
-export function resultBackStep(opts: { hasForm: boolean }): number {
-  return opts.hasForm ? STEP_INDEX.configure : STEP_INDEX.upload;
+/** Where "Back" from the Result step lands — the first input step the template actually uses,
+ * falling back to Process when it collects neither form input nor clips (e.g. the premium cards). */
+export function resultBackStep(opts: StepFlow): number {
+  if (opts.hasForm) {
+    return STEP_INDEX.configure;
+  }
+
+  if (opts.hasClips) {
+    return STEP_INDEX.upload;
+  }
+
+  return STEP_INDEX.process;
 }

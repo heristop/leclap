@@ -2,9 +2,9 @@
 
 # 🎬 LeClap
 
-**Template-driven video composition, powered by FFmpeg.**
+**Deterministic, on-device, agent-callable video — composed by prompt or by hand.**
 
-Describe a video in JSON — sections, filters, music, overlays — and compile it on **Node.js**, in the **browser** (WebAssembly), or in **React Native**.
+Describe a video in one JSON _template_ — sections, filters, music, overlays — then render the **same template identically** on a phone (React Native, **on-device**), in the **browser** (WebAssembly), or on a server. No upload, no server, no generative model: the output is deterministic and reproducible. Author it two ways — an **AI agent** composes one from a prompt (MCP), or a person customizes one in the **visual builder**.
 
 [![CI](https://github.com/heristop/ffmpeg-video-composer/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/ffmpeg-video-composer/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
@@ -22,15 +22,18 @@ Describe a video in JSON — sections, filters, music, overlays — and compile 
 
 LeClap renders video from a single JSON _template_: the same spec — sections, filters, music, text overlays — runs on a server, in the browser via WebAssembly, and fully **on-device** on React Native, with no upload and no server required. The on-device mobile engine (a Rust core statically linking a patched FFmpeg) is the standout capability — it keeps the whole compile on the phone, where the old `ffmpeg-kit-react-native` go-to was archived in 2025.
 
-It ships as a **monorepo**: at its core is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm, usable standalone). Around it sit an HTTP server and web + mobile apps that demonstrate it end to end.
+Its uncontested corner is **deterministic + on-device + agent-callable** video — where Sora/Runway (generative, server-bound) and Remotion/Shotstack (need a backend) can't reach. A bundled pack of **premium templates** (cinematic title cards, typographic quote cards, social reels) makes that corner look professional out of the box, using only the filters and fonts that ship in the engine, so a phone, a browser tab, and a server all produce the same look.
 
-|                            |                                                                                     |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| 🧩 **Template-driven**     | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.             |
-| 🌍 **Runs everywhere**     | Node.js, browser (WASM), React Native, Electron — one codebase.                     |
-| 🔍 **Zero-config FFmpeg**  | Auto-detects system → static → WASM, with clear guidance when missing.              |
-| 🎚️ **Composable pipeline** | Per-section `inputs → maps → filters` for real compositing, text, and audio mixing. |
-| 🧱 **Typed & validated**   | Zod-validated templates, strict TypeScript, dependency-injected architecture.       |
+It ships as a **monorepo**: at its core is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm, usable standalone). Around it sit an [MCP server](packages/mcp) (the engine as agent-callable tools), an HTTP server, and web + mobile apps that demonstrate it end to end.
+
+|                               |                                                                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 🧩 **Template-driven**        | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                    |
+| 🌍 **Runs everywhere**        | Node.js, browser (WASM), React Native, Electron — one codebase, identical output.                                          |
+| 🤖 **Agent-callable**         | An [MCP server](packages/mcp) lets an AI agent author & render a template — no LLM in the loop, just deterministic output. |
+| 🎨 **Premium out of the box** | A bundled pack of polished, on-device-safe templates — author by prompt or in the visual builder.                          |
+| 🎚️ **Composable pipeline**    | Per-section `inputs → maps → filters` for real compositing, text, and audio mixing.                                        |
+| 🧱 **Typed & validated**      | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                              |
 
 ## 🎥 Demo
 
@@ -54,9 +57,16 @@ pnpm install     # wires up every workspace package
 Then pick your playground:
 
 ```bash
-pnpm playground:web      # web app — compiles videos in-browser (no server)
+pnpm playground:web      # web app — compiles videos in-browser (no server), premium pack included
 pnpm playground:start    # Expo mobile app (start the server too: pnpm server:dev)
-pnpm compile packages/ffmpeg-video-composer/src/shared/templates/sample.json   # CLI → build/sample_output.mp4
+pnpm compile packages/ffmpeg-video-composer/src/shared/templates/premium_quote.json   # CLI → a premium card
+```
+
+Or drive it like an AI agent would — discover, validate, and render a premium template headless, with no API key (see [`examples/agent-demo`](examples/agent-demo)):
+
+```bash
+pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build
+node examples/agent-demo/run.mjs    # MCP loop → a deterministic premium mp4
 ```
 
 <br clear="right" />
@@ -98,6 +108,8 @@ A **template** drives the whole composition: a `global` block (defaults, theme c
 ```
 
 📖 **Full reference:** [Template Configuration (JSON)](docs/template-configuration.md) · ready-made examples in [`src/shared/templates/`](packages/ffmpeg-video-composer/src/shared/templates/).
+
+✨ **Premium pack:** the `premium_*` templates (intro, quote, titles, portrait reel) look professional out of the box — they use only the filters and bundled fonts the engine ships, so they render identically on Node, in the browser (WASM), and on-device. Start from one, then tweak text, colors, and media — by prompt (MCP) or in the visual builder.
 
 ## 📥 Using the library
 

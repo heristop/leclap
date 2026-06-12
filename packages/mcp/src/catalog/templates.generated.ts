@@ -1218,7 +1218,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
   premium_spotlight: {
     global: {
       orientation: 'landscape',
-      musicEnabled: false,
+      musicEnabled: true,
+      music: {
+        name: 'air-prelude.mp3',
+      },
+      audioVolumeLevel: 1,
       transitionDuration: 0.5,
     },
     sections: [

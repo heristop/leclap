@@ -30,6 +30,14 @@ abstract class AbstractFilesystem {
     return Promise.resolve(null);
   }
 
+  // Resolve a music track that ships with the package to an absolute local path, or null when the
+  // platform doesn't bundle tracks locally. Same role as resolveBundledFont: the Node adapter finds
+  // the .mp3 shipped in the package so `global.music` works without a network download; browser/expo
+  // keep the null default (they seed tracks through their own asset pipeline).
+  resolveBundledMusic(_musicFile: string): Promise<string | null> {
+    return Promise.resolve(null);
+  }
+
   setBuildDir = (buildDir: string) => {
     this.buildDir = buildDir;
   };

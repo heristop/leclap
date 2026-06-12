@@ -650,6 +650,771 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
+  premium_intro: {
+    global: {
+      orientation: 'landscape',
+      musicEnabled: false,
+      transitionDuration: 0.5,
+    },
+    sections: [
+      {
+        name: 'premium_intro',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#0d1b2a',
+          duration: 4,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#0d1b2a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 160,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 560,
+              w: 1280,
+              h: 160,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_firstname }} {{ form_1_lastname }}',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 132,
+              x: '(w-text_w)/2',
+              y: 248,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.5),0,if(lt(t,1.4),(t-0.5)/0.9,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 490,
+              y: 412,
+              w: 300,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_job }}',
+              },
+              fontcolor: '#e8eef7',
+              fontsize: 34,
+              x: '(w-text_w)/2',
+              y: 446,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,1.0),0,if(lt(t,1.8),(t-1.0)/0.8,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#0d1b2a',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  premium_quote: {
+    global: {
+      orientation: 'landscape',
+      musicEnabled: false,
+      transitionDuration: 0.5,
+    },
+    sections: [
+      {
+        name: 'premium_quote',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#f4f1ea',
+          duration: 5,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#f4f1ea@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 14,
+              h: 720,
+              c: '#1b2a4a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '“',
+              },
+              fontcolor: '#c2a14d',
+              fontsize: 220,
+              x: 150,
+              y: 90,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'Design is not just what it',
+              },
+              fontcolor: '#1b2a4a',
+              fontsize: 60,
+              x: 200,
+              y: 250,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,0.8),0,if(lt(t,1.6),(t-0.8)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'looks like. It is how it works.',
+              },
+              fontcolor: '#1b2a4a',
+              fontsize: 60,
+              x: 200,
+              y: 330,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,1.2),0,if(lt(t,2.0),(t-1.2)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 200,
+              y: 448,
+              w: 70,
+              h: 4,
+              c: '#c2a14d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'STEVE JOBS',
+              },
+              fontcolor: '#7a6a3a',
+              fontsize: 30,
+              x: 200,
+              y: 478,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,1.8),0,if(lt(t,2.6),(t-1.8)/0.8,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#f4f1ea',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#f4f1ea',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  premium_quote_portrait: {
+    global: {
+      orientation: 'portrait',
+      musicEnabled: false,
+      transitionDuration: 0.5,
+    },
+    sections: [
+      {
+        name: 'premium_quote_portrait',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#2a1a3e',
+          duration: 5,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 1280,
+              c: '#1a1030@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 426,
+              c: '#2a1a3e@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 854,
+              w: 720,
+              h: 426,
+              c: '#120a24@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'stay curious',
+              },
+              fontcolor: '#f2c14e',
+              fontsize: 96,
+              x: '(w-text_w)/2',
+              y: 470,
+              fontfile: 'Pacifico.ttf',
+              alpha: "'if(lt(t,0.4),0,if(lt(t,1.3),(t-0.4)/0.9,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 310,
+              y: 620,
+              w: 100,
+              h: 3,
+              c: '#f2c14e@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'Every great build starts',
+              },
+              fontcolor: '#efe9f7',
+              fontsize: 40,
+              x: '(w-text_w)/2',
+              y: 680,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,1.0),0,if(lt(t,1.8),(t-1.0)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'with a single question.',
+              },
+              fontcolor: '#efe9f7',
+              fontsize: 40,
+              x: '(w-text_w)/2',
+              y: 740,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,1.4),0,if(lt(t,2.2),(t-1.4)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'L E C L A P   S T O R I E S',
+              },
+              fontcolor: '#a98fd6',
+              fontsize: 26,
+              x: '(w-text_w)/2',
+              y: 980,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,2.0),0,if(lt(t,2.8),(t-2.0)/0.8,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#1a1030',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#1a1030',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  premium_reel_portrait: {
+    global: {
+      orientation: 'portrait',
+      musicEnabled: false,
+      transitionDuration: 0.5,
+    },
+    sections: [
+      {
+        name: 'premium_reel_portrait',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#101418',
+          duration: 4,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 1280,
+              c: '#101418@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 380,
+              c: '#16202a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 60,
+              y: 470,
+              w: 90,
+              h: 10,
+              c: '#ff4d4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'EP. 01',
+              },
+              fontcolor: '#ff4d4d',
+              fontsize: 34,
+              x: 60,
+              y: 520,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'BUILD IN',
+              },
+              fontcolor: '#ffffff',
+              fontsize: 120,
+              x: 56,
+              y: 580,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.6),0,if(lt(t,1.4),(t-0.6)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'PUBLIC',
+              },
+              fontcolor: '#ff4d4d',
+              fontsize: 120,
+              x: 56,
+              y: 700,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.9),0,if(lt(t,1.7),(t-0.9)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'Ship on device. No server. No wait.',
+              },
+              fontcolor: '#9aa7b4',
+              fontsize: 30,
+              x: 60,
+              y: 870,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,1.4),0,if(lt(t,2.2),(t-1.4)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 60,
+              y: 1150,
+              w: 600,
+              h: 2,
+              c: '#2a3744@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '@leclap',
+              },
+              fontcolor: '#ffffff',
+              fontsize: 30,
+              x: 60,
+              y: 1180,
+              fontfile: 'Oswald.ttf',
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#101418',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#101418',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  premium_titles: {
+    global: {
+      orientation: 'landscape',
+      musicEnabled: false,
+      transitionDuration: 0.6,
+    },
+    sections: [
+      {
+        name: 'title_card_1',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#0b0f14',
+          duration: 3,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#0b0f14@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'A NEW WAY',
+              },
+              fontcolor: '#ffffff',
+              fontsize: 140,
+              x: '(w-text_w)/2',
+              y: 230,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'TO MAKE VIDEO',
+              },
+              fontcolor: '#00d4a0',
+              fontsize: 140,
+              x: '(w-text_w)/2',
+              y: 370,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.7),0,if(lt(t,1.5),(t-0.7)/0.8,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#0b0f14',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#0b0f14',
+            },
+          },
+        ],
+      },
+      {
+        name: 'title_card_2',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#00d4a0',
+          duration: 3,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#00d4a0@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 220,
+              c: '#0b0f14@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 500,
+              w: 1280,
+              h: 220,
+              c: '#0b0f14@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'DETERMINISTIC',
+              },
+              fontcolor: '#0b0f14',
+              fontsize: 110,
+              x: '(w-text_w)/2',
+              y: 290,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'on-device   .   agent-callable',
+              },
+              fontcolor: '#0b0f14',
+              fontsize: 34,
+              x: '(w-text_w)/2',
+              y: 410,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,0.8),0,if(lt(t,1.5),(t-0.8)/0.7,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '{{ transitionDuration }}',
+              color: '#0b0f14',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#0b0f14',
+            },
+          },
+        ],
+      },
+      {
+        name: 'title_card_3',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#0b0f14',
+          duration: 3,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#0b0f14@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 540,
+              y: 300,
+              w: 200,
+              h: 6,
+              c: '#00d4a0@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'LECLAP',
+              },
+              fontcolor: '#ffffff',
+              fontsize: 150,
+              x: '(w-text_w)/2',
+              y: 340,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.5),0,if(lt(t,1.3),(t-0.5)/0.8,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '{{ transitionDuration }}',
+              color: '#0b0f14',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '0.8',
+              st: '{{ transitionStartTime }}',
+              color: '#0b0f14',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
   sample: {
     global: {
       variables: {

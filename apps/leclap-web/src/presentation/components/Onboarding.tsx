@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { WelcomeStep, CreateStep, CompilingStep, DoneStep, ErrorStep } from '@/presentation/components/OnboardingSteps';
-import { templateService } from '@/services/templateService';
+import { templateService, type Template } from '@/services/templateService';
+import { recordingConfigFromDescriptor } from '@/lib/recordingConfig';
 import {
   coreCompilationService,
   type CompilationProgress,
@@ -37,6 +38,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   const [name, setName] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [template, setTemplate] = useState<Template | null>(null);
   const [progress, setProgress] = useState<CompilationProgress>(initialProgress);
   const [result, setResult] = useState<CompilationResult | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -44,7 +46,18 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
 
   useLockBodyScroll();
 
+  // Load the sample template up front so the camera can read its countdown/duration config.
+  useEffect(() => {
+    templateService
+      .getTemplate(SAMPLE_TEMPLATE_ID)
+      .then(setTemplate)
+      .catch((error: unknown) => {
+        logger.error('Onboarding template preload failed:', error);
+      });
+  }, []);
+
   const canCreate = name.trim().length > 0 && videoFile !== null;
+  const recordingConfig = recordingConfigFromDescriptor(template?.descriptor);
 
   const handleCreate = async () => {
     if (!videoFile) return;
@@ -53,12 +66,12 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
     setProgress(initialProgress);
 
     try {
-      const template = await templateService.getTemplate(SAMPLE_TEMPLATE_ID);
+      const sampleTemplate = template ?? (await templateService.getTemplate(SAMPLE_TEMPLATE_ID));
 
-      if (!template) throw new Error(`Sample template "${SAMPLE_TEMPLATE_ID}" could not be loaded.`);
+      if (!sampleTemplate) throw new Error(`Sample template "${SAMPLE_TEMPLATE_ID}" could not be loaded.`);
 
       // Put the entered name in the first text field; leave the rest blank.
-      const fields = templateService.extractFormFields(template.descriptor);
+      const fields = templateService.extractFormFields(sampleTemplate.descriptor);
       const formData: Record<string, string> = {};
 
       for (const [index, field] of fields.entries()) {
@@ -66,7 +79,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
       }
 
       const compiled = await coreCompilationService.compileVideo(
-        { template, formData, files: [videoFile] },
+        { template: sampleTemplate, formData, files: [videoFile] },
         setProgress
       );
       setResult(compiled);
@@ -168,6 +181,8 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           onClose={() => {
             setShowCamera(false);
           }}
+          countdownSeconds={recordingConfig.countdownSeconds}
+          maxDurationSeconds={recordingConfig.maxDurationSeconds}
         />
       )}
     </div>,

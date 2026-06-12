@@ -32,7 +32,7 @@ const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => (
 const navigationItems = [
   { name: 'Home', href: '/' },
   { name: 'Builder', href: '/builder' },
-  { name: 'Templates', href: '/admin' },
+  { name: 'Templates', href: '/templates' },
   { name: 'About', href: '/about' },
 ];
 

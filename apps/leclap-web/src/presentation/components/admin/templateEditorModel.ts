@@ -24,10 +24,18 @@ export interface TextOverlay {
 
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
-  | { kind: 'video'; duration: number; mute: boolean; overlays: TextOverlay[] }
+  | { kind: 'video'; duration: number; mute: boolean; overlays: TextOverlay[]; countdown: boolean; countdownSeconds: number }
   | { kind: 'color'; duration: number; color: string }
   | { kind: 'music'; allowed: string[]; allowUpload: boolean }
   | { kind: 'image'; allowed: string[]; allowUpload: boolean; duration: number };
+
+// Global audio mix: the recorded clips' own audio vs the background music, each 0..1. 0 = muted.
+export interface AudioMix {
+  video: number;
+  music: number;
+}
+
+export const DEFAULT_AUDIO_MIX: AudioMix = { video: 1, music: 0.5 };
 
 export interface EditorState {
   id: string;
@@ -36,6 +44,7 @@ export interface EditorState {
   orientation: 'landscape' | 'portrait';
   sections: EditorSection[];
   globalVariables: { name: string; value: string }[];
+  audioMix: AudioMix;
 }
 
 export const SECTION_LABELS: Record<EditorSection['kind'], string> = {
@@ -76,7 +85,7 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
 
   if (kind === 'image') return { kind: 'image', allowed: [], allowUpload: false, duration: 4 };
 
-  return { kind: 'video', duration: 8, mute: false, overlays: [] };
+  return { kind: 'video', duration: 8, mute: false, overlays: [], countdown: false, countdownSeconds: 4 };
 }
 
 function makeTemplateId(): string {
@@ -145,7 +154,11 @@ function videoDescriptorFrom(section: VideoSection, index: number): StoredSectio
   return {
     name: `video_${index}`,
     type: 'project_video',
-    options: { duration: section.duration, muteSection: section.mute },
+    options: {
+      duration: section.duration,
+      muteSection: section.mute,
+      ...(section.countdown ? { countdown: true, countdownDuration: section.countdownSeconds } : {}),
+    },
     ...(filters.length > 0 ? { filters } : {}),
   };
 }
@@ -222,6 +235,9 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     orientation: state.orientation,
     musicEnabled: false,
     transitionDuration: 0.5,
+    // Audio mix: video (recorded clip) volume and background-music volume, each 0..1 (0 = muted).
+    audioVolumeLevel: state.audioMix.video,
+    musicVolumeLevel: state.audioMix.music,
     ...mediaGlobals(state.sections),
   };
 
@@ -298,18 +314,19 @@ function parseOpacity(boxcolor: string | undefined): number {
 }
 
 function overlayFrom(dt: { values?: DrawtextValues }): TextOverlay {
-  const v = dt.values;
+  const v = dt.values ?? {};
+  const boxcolor = v.boxcolor;
 
   return {
-    text: v?.text?.en ?? '',
-    x: parseFraction(v?.x),
-    y: parseFraction(v?.y),
-    fontsize: Number(v?.fontsize ?? 48),
-    fontcolor: v?.fontcolor ?? '#ffffff',
-    font: fontIdFromFile(v?.fontfile),
-    box: v?.box !== undefined,
-    boxcolor: stripOpacity(v?.boxcolor),
-    boxOpacity: parseOpacity(v?.boxcolor),
+    text: v.text?.en ?? '',
+    x: parseFraction(v.x),
+    y: parseFraction(v.y),
+    fontsize: Number(v.fontsize ?? 48),
+    fontcolor: v.fontcolor ?? '#ffffff',
+    font: fontIdFromFile(v.fontfile),
+    box: v.box !== undefined,
+    boxcolor: stripOpacity(boxcolor),
+    boxOpacity: parseOpacity(boxcolor),
   };
 }
 
@@ -321,6 +338,8 @@ function videoSectionFrom(s: StoredSection): EditorSection {
     duration: s.options?.duration ?? 8,
     mute: Boolean(s.options?.muteSection),
     overlays,
+    countdown: Boolean(s.options?.countdown),
+    countdownSeconds: s.options?.countdownDuration ?? 4,
   };
 }
 
@@ -362,6 +381,7 @@ export function toEditorState(template: Template | null): EditorState {
       orientation: 'landscape',
       sections: [newSection('video')],
       globalVariables: [],
+      audioMix: { ...DEFAULT_AUDIO_MIX },
     };
   }
 
@@ -392,5 +412,9 @@ export function toEditorState(template: Template | null): EditorState {
     orientation: template.orientation,
     sections: sections.length > 0 ? sections : [newSection('video')],
     globalVariables: globalVariablesFrom(template.descriptor.global),
+    audioMix: {
+      video: g?.audioVolumeLevel ?? DEFAULT_AUDIO_MIX.video,
+      music: g?.musicVolumeLevel ?? DEFAULT_AUDIO_MIX.music,
+    },
   };
 }

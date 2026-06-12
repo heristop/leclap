@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight } from 'lucide-react';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
-import { TemplateEditor } from '@/presentation/components/admin/TemplateEditor';
 import { Seo } from '@/presentation/components/Seo';
 import { Badge, Button, Card, Reveal, type BadgeProps } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
@@ -49,9 +48,9 @@ const TemplateCard = ({ template, actions }: CardProps) => (
 );
 
 export const Admin = () => {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<{ initial: Template | null } | null>(null);
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -77,8 +76,8 @@ export const Admin = () => {
 
   const handleDuplicate = (template: Template) => {
     try {
-      userTemplateService.duplicate(template);
-      refresh();
+      const copy = userTemplateService.duplicate(template);
+      Promise.resolve(navigate(`/templates/${copy.id}/edit`)).catch(() => {});
     } catch (error) {
       logger.error('Duplicate failed', error);
     }
@@ -91,7 +90,7 @@ export const Admin = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background bg-dots text-foreground relative overflow-hidden">
-      <Seo title="Admin" path="/admin" noindex />
+      <Seo title="Templates" path="/templates" noindex />
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px]" />
       </div>
@@ -102,13 +101,10 @@ export const Admin = () => {
             <h1 className="text-4xl font-bold font-display text-foreground mb-1">Templates</h1>
             <p className="text-gray-600 dark:text-gray-300">Use a sample or craft your own — saved in this browser.</p>
           </div>
-          <Button
-            onClick={() => {
-              setEditing({ initial: null });
-            }}
-            className="active:scale-[0.98] shrink-0"
-          >
-            <Plus /> Create template
+          <Button asChild className="active:scale-[0.98] shrink-0">
+            <Link to="/templates/new">
+              <Plus /> Create template
+            </Link>
           </Button>
         </div>
 
@@ -127,13 +123,10 @@ export const Admin = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
                 Start from scratch, or duplicate a sample below.
               </p>
-              <Button
-                onClick={() => {
-                  setEditing({ initial: null });
-                }}
-                className="mx-auto active:scale-[0.98]"
-              >
-                <Plus /> Create your first template
+              <Button asChild className="mx-auto active:scale-[0.98]">
+                <Link to="/templates/new">
+                  <Plus /> Create your first template
+                </Link>
               </Button>
             </div>
           ) : (
@@ -144,15 +137,10 @@ export const Admin = () => {
                     template={t}
                     actions={
                       <>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setEditing({ initial: t });
-                          }}
-                          className="min-h-10 flex-1 active:scale-[0.98]"
-                        >
-                          <Pencil /> Edit
+                        <Button asChild variant="secondary" size="sm" className="min-h-10 flex-1 active:scale-[0.98]">
+                          <Link to={`/templates/${t.id}/edit`}>
+                            <Pencil /> Edit
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
@@ -220,19 +208,6 @@ export const Admin = () => {
           </Link>
         </div>
       </div>
-
-      {editing && (
-        <TemplateEditor
-          initial={editing.initial}
-          onSaved={() => {
-            setEditing(null);
-            refresh();
-          }}
-          onCancel={() => {
-            setEditing(null);
-          }}
-        />
-      )}
     </div>
   );
 };

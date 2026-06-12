@@ -1,10 +1,9 @@
 import { useState, useId, Fragment, type DragEvent } from 'react';
-import { createPortal } from 'react-dom';
 import {
   GripVertical,
   Trash2,
   Plus,
-  X,
+  ArrowLeft,
   Video as VideoIcon,
   Square,
   FileText,
@@ -15,6 +14,8 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronRight,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
@@ -29,7 +30,6 @@ import {
   Checkbox,
   ColorPicker,
 } from '@/presentation/components/ui';
-import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import {
   buildDescriptor,
   collectVariables,
@@ -62,8 +62,6 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
   const variables = collectVariables(state);
-
-  useLockBodyScroll();
 
   const patch = (p: Partial<EditorState>) => {
     setState((s) => ({ ...s, ...p }));
@@ -138,69 +136,65 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
     }
   };
 
-  return createPortal(
-    <div className="fixed inset-0 z-[58] overflow-y-auto bg-black/40 backdrop-blur-md dark:bg-black/70">
-      <div className="relative min-h-full flex items-start sm:items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b">
-        <div className="relative w-full max-w-2xl bg-surface border border-foreground/10 rounded-2xl p-6 sm:p-8 shadow-2xl rise-in">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onCancel}
-            aria-label="Close editor"
-            className="absolute top-4 right-4 rounded-full text-gray-500 active:scale-90 dark:text-gray-400 before:absolute before:-inset-1.5 before:content-['']"
+  return (
+    <div className="min-h-[calc(100vh-4rem)] bg-background">
+      <div className="mx-auto w-full max-w-2xl px-4 pt-24 pb-28">
+        <Button
+          variant="ghost"
+          onClick={onCancel}
+          className="group mb-4 -ml-2 rounded-full px-3 text-gray-500 hover:text-foreground dark:text-gray-400"
+        >
+          <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" /> Templates
+        </Button>
+
+        <h2 className="text-3xl font-bold font-display text-foreground mb-1">
+          {initial ? 'Edit template' : 'Create a template'}
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
+          Compose sections, then save — it appears in the builder as a Custom template.
+        </p>
+
+        <MetadataFields state={state} patch={patch} />
+
+        {/* Sections (drag to reorder) */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+            Sections — drag to reorder
+          </span>
+        </div>
+        <SectionList
+          sections={state.sections}
+          orientation={state.orientation}
+          variables={variables}
+          dragIndex={dragIndex}
+          setDragIndex={setDragIndex}
+          reorder={reorder}
+          removeSection={removeSection}
+          patchSection={patchSection}
+        />
+
+        <AddSectionButtons addSection={addSection} />
+
+        {error && (
+          <p
+            role="alert"
+            className="fade-in mb-4 flex items-start gap-2 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]"
           >
-            <X className="w-5 h-5" />
-          </Button>
-
-          <h2 className="text-2xl font-bold font-display text-foreground mb-1 pr-10">
-            {initial ? 'Edit template' : 'Create a template'}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
-            Compose sections, then save — it appears in the builder as a Custom template.
+            <AlertCircle className="mt-px size-4 shrink-0" /> {error}
           </p>
+        )}
 
-          <MetadataFields state={state} patch={patch} />
-
-          {/* Sections (drag to reorder) */}
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Sections — drag to reorder
-            </span>
-          </div>
-          <SectionList
-            sections={state.sections}
-            orientation={state.orientation}
-            variables={variables}
-            dragIndex={dragIndex}
-            setDragIndex={setDragIndex}
-            reorder={reorder}
-            removeSection={removeSection}
-            patchSection={patchSection}
-          />
-
-          <AddSectionButtons addSection={addSection} />
-
-          {error && (
-            <p
-              role="alert"
-              className="fade-in mb-4 flex items-start gap-2 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]"
-            >
-              <AlertCircle className="mt-px size-4 shrink-0" /> {error}
-            </p>
-          )}
-
-          <div className="flex gap-3">
-            <Button variant="primary" onClick={handleSave} className="min-h-11 flex-1 active:scale-[0.98]">
-              <Save className="w-5 h-5" /> Save template
-            </Button>
-            <Button variant="secondary" onClick={onCancel} className="min-h-11 px-6 active:scale-[0.98]">
-              Cancel
-            </Button>
-          </div>
+        {/* Sticky action bar so Save stays reachable on long templates. */}
+        <div className="sticky bottom-0 -mx-4 mt-6 flex gap-3 border-t border-foreground/10 bg-background/85 px-4 py-4 backdrop-blur-md pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <Button variant="primary" onClick={handleSave} className="min-h-11 flex-1 active:scale-[0.98]">
+            <Save className="w-5 h-5" /> Save template
+          </Button>
+          <Button variant="secondary" onClick={onCancel} className="min-h-11 px-6 active:scale-[0.98]">
+            Cancel
+          </Button>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 
@@ -249,8 +243,79 @@ const MetadataFields = ({ state, patch }: MetadataFieldsProps) => {
           </Select>
         </div>
       </div>
+      <AudioMixEditor state={state} patch={patch} />
       <GlobalVariablesEditor state={state} patch={patch} />
     </div>
+  );
+};
+
+// Global audio mix: balances the recorded clips' own audio against the background music.
+// Each slider is 0..1; dragging to 0 mutes that source (buildDescriptor writes
+// global.audioVolumeLevel / global.musicVolumeLevel).
+const AudioMixEditor = ({ state, patch }: MetadataFieldsProps) => {
+  const { audioMix } = state;
+
+  const setMix = (p: Partial<EditorState['audioMix']>) => {
+    patch({ audioMix: { ...audioMix, ...p } });
+  };
+
+  return (
+    <div>
+      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Audio mix</span>
+      <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+        Balance your recorded clip against the music. Slide to 0 to mute.
+      </p>
+      <div className="space-y-3 rounded-xl border border-foreground/10 bg-surface/40 p-3">
+        <VolumeSlider
+          label="Your video"
+          value={audioMix.video}
+          onChange={(video) => {
+            setMix({ video });
+          }}
+        />
+        <VolumeSlider
+          label="Music"
+          value={audioMix.music}
+          onChange={(music) => {
+            setMix({ music });
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+interface VolumeSliderProps {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}
+
+const VolumeSlider = ({ label, value, onChange }: VolumeSliderProps) => {
+  const muted = value === 0;
+
+  return (
+    <label className="block">
+      <div className="mb-1 flex items-center justify-between text-xs font-medium">
+        <span className="flex items-center gap-1.5 text-foreground/80">
+          {muted ? <VolumeX className="size-3.5 text-[var(--color-error)]" /> : <Volume2 className="size-3.5" />}
+          {label}
+        </span>
+        <span className="tabular-nums text-gray-500">{muted ? 'Muted' : `${Math.round(value * 100)}%`}</span>
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={1}
+        step={0.05}
+        value={value}
+        onChange={(e) => {
+          onChange(Number(e.target.value));
+        }}
+        className="h-2 w-full cursor-pointer accent-brand-500"
+        aria-label={`${label} volume`}
+      />
+    </label>
   );
 };
 
@@ -812,6 +877,27 @@ const VideoFields = ({
         />{' '}
         Mute audio
       </label>
+    </div>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+        <Checkbox
+          checked={section.countdown}
+          onCheckedChange={(c) => {
+            onChange({ countdown: c === true });
+          }}
+        />{' '}
+        Countdown before recording
+      </label>
+      {section.countdown && (
+        <NumberField
+          label="Countdown (s)"
+          value={section.countdownSeconds}
+          onChange={(v) => {
+            onChange({ countdownSeconds: v });
+          }}
+          inputCls={inputCls}
+        />
+      )}
     </div>
     <OverlayCanvas
       overlays={section.overlays}

@@ -24,9 +24,7 @@ const LANDSCAPE_TEMPLATE_ID = 'premium-spotlight';
 const PORTRAIT_TEMPLATE_ID = 'premium-reel-portrait';
 
 const pickSampleTemplateId = (): string =>
-  typeof window !== 'undefined' && window.matchMedia('(orientation: portrait)').matches
-    ? PORTRAIT_TEMPLATE_ID
-    : LANDSCAPE_TEMPLATE_ID;
+  window.matchMedia('(orientation: portrait)').matches ? PORTRAIT_TEMPLATE_ID : LANDSCAPE_TEMPLATE_ID;
 
 const initialProgress: CompilationProgress = {
   stage: 'Starting',

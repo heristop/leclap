@@ -199,7 +199,10 @@ class MusicComposer {
    * Configure audio filters for video segment
    */
   prepareMusicTrack = (section: Section): void => {
-    const musicVolumeLevel = section.options?.musicVolumeLevel ?? 0.5;
+    // Per-section override wins; otherwise fall back to the template-wide music level (the builder's
+    // music slider), then the engine default. 0 = silent music.
+    const musicVolumeLevel =
+      section.options?.musicVolumeLevel ?? this.template.descriptor.global?.musicVolumeLevel ?? 0.5;
     const transitionDuration = this.template.descriptor.global?.transitionDuration ?? 0.3;
 
     const duration = this.getSectionDuration(section);

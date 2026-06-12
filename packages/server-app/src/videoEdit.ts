@@ -71,20 +71,12 @@ function validateTrim(edit: VideoEdit): ValidatedTrim {
   return { trimStart, trimEnd };
 }
 
-// Validate crop. Values are normalized fractions of the source frame (0..1); all four
-// fields are required, w/h must be positive, and the region must stay inside the frame.
-function validateCrop(edit: VideoEdit): { x: number; y: number; w: number; h: number } | null {
-  if (edit.crop === undefined) {
-    return null;
-  }
-
-  const x = finiteNonNegative(edit.crop.x);
-  const y = finiteNonNegative(edit.crop.y);
-  const w = finiteNonNegative(edit.crop.w);
-  const h = finiteNonNegative(edit.crop.h);
+// True when a normalized crop region is invalid: missing/non-positive size, any field
+// outside [0,1], or the region extending past the frame (with a small epsilon).
+function cropOutOfBounds(x: number | null, y: number | null, w: number | null, h: number | null): boolean {
   const EPS = 0.001;
 
-  if (
+  return (
     x === null ||
     y === null ||
     w === null ||
@@ -97,13 +89,28 @@ function validateCrop(edit: VideoEdit): { x: number; y: number; w: number; h: nu
     h > 1 ||
     x + w > 1 + EPS ||
     y + h > 1 + EPS
-  ) {
+  );
+}
+
+// Validate crop. Values are normalized fractions of the source frame (0..1); all four
+// fields are required, w/h must be positive, and the region must stay inside the frame.
+function validateCrop(edit: VideoEdit): { x: number; y: number; w: number; h: number } | null {
+  if (edit.crop === undefined) {
+    return null;
+  }
+
+  const x = finiteNonNegative(edit.crop.x);
+  const y = finiteNonNegative(edit.crop.y);
+  const w = finiteNonNegative(edit.crop.w);
+  const h = finiteNonNegative(edit.crop.h);
+
+  if (cropOutOfBounds(x, y, w, h)) {
     throw new VideoEditValidationError(
       'Invalid crop: x/y/w/h must be fractions in [0,1] with w,h > 0 and the region inside the frame'
     );
   }
 
-  return { x, y, w, h };
+  return { x: x as number, y: y as number, w: w as number, h: h as number };
 }
 
 function buildEditArgs(

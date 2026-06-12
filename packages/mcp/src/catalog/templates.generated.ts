@@ -658,6 +658,41 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
     },
     sections: [
       {
+        name: 'form_1',
+        type: 'form',
+        title: {
+          en: 'Title card details',
+        },
+        description: {
+          en: '',
+        },
+        options: {
+          fields: [
+            {
+              name: 'form_1_firstname',
+              maxLength: 20,
+              label: {
+                en: 'First name',
+              },
+            },
+            {
+              name: 'form_1_lastname',
+              maxLength: 20,
+              label: {
+                en: 'Last name',
+              },
+            },
+            {
+              name: 'form_1_job',
+              maxLength: 40,
+              label: {
+                en: 'Role / subtitle',
+              },
+            },
+          ],
+        },
+      },
+      {
         name: 'premium_intro',
         type: 'color_background',
         options: {

@@ -249,7 +249,14 @@ describe('templateEditorModel — round-trips', () => {
 
 describe('templateEditorModel — newSection/newOverlay defaults', () => {
   it('newSection(video) starts with no overlays', () => {
-    expect(newSection('video')).toEqual({ kind: 'video', duration: 8, mute: false, overlays: [] });
+    expect(newSection('video')).toEqual({
+      kind: 'video',
+      duration: 8,
+      mute: false,
+      overlays: [],
+      countdown: false,
+      countdownSeconds: 4,
+    });
   });
 
   it('newOverlay() is a centered, white, box-less overlay on the default font', () => {
@@ -434,6 +441,8 @@ describe('templateEditorModel — box opacity', () => {
             kind: 'video',
             duration: 5,
             mute: false,
+            countdown: false,
+            countdownSeconds: 4,
             overlays: [
               {
                 text: 'Hi',
@@ -462,6 +471,8 @@ describe('templateEditorModel — box opacity', () => {
           kind: 'video',
           duration: 5,
           mute: false,
+          countdown: false,
+          countdownSeconds: 4,
           overlays: [
             {
               text: 'Hi',
@@ -493,6 +504,8 @@ describe('templateEditorModel — per-overlay font + global variables', () => {
             kind: 'video',
             duration: 5,
             mute: false,
+            countdown: false,
+            countdownSeconds: 4,
             overlays: [
               {
                 text: 'Hi',
@@ -521,6 +534,8 @@ describe('templateEditorModel — per-overlay font + global variables', () => {
           kind: 'video',
           duration: 5,
           mute: false,
+          countdown: false,
+          countdownSeconds: 4,
           overlays: [
             {
               text: 'Hi',

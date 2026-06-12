@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Home } from '@/presentation/pages/Home';
 import { Builder } from '@/presentation/pages/Builder';
 import { About } from '@/presentation/pages/About';
 import { Admin } from '@/presentation/pages/Admin';
+import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
 import { Design } from '@/presentation/pages/Design';
 import { NotFound } from '@/presentation/pages/NotFound';
 import { Onboarding } from '@/presentation/components/Onboarding';
@@ -46,7 +47,11 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/builder" element={<Builder />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/templates" element={<Admin />} />
+            <Route path="/templates/new" element={<TemplateEditorPage />} />
+            <Route path="/templates/:id/edit" element={<TemplateEditorPage />} />
+            {/* Legacy path kept so existing bookmarks/links keep working. */}
+            <Route path="/admin" element={<Navigate to="/templates" replace />} />
             <Route path="/design" element={<Design />} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />

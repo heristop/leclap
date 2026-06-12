@@ -1,5 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import { promises as fs, createWriteStream } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import axios, { type AxiosResponse, type ResponseType } from 'axios';
@@ -172,6 +173,30 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
   override copy = async (sourcePath: string, targetPath: string): Promise<void> => {
     await fs.copyFile(sourcePath, targetPath);
+  };
+
+  // Find a font shipped with the package so drawtext segments work offline and out-of-the-box on
+  // Node (server/MCP/library) — the previous behaviour downloaded from Google Fonts, which fails for
+  // the bundled single-token family names (BebasNeue, PlayfairDisplay, …). Candidates cover both the
+  // bundled build (dist/fonts, next to the entry) and running from source/tests (src/shared/library/
+  // fonts). Returns null when the file isn't bundled, so callers fall back to the network fetch.
+  override resolveBundledFont = async (fontFile: string): Promise<string | null> => {
+    let moduleDir: string;
+
+    try {
+      moduleDir = path.dirname(fileURLToPath(import.meta.url));
+    } catch {
+      return null;
+    }
+
+    const candidates = [
+      path.join(moduleDir, 'fonts', fontFile),
+      path.join(moduleDir, '..', '..', 'shared', 'library', 'fonts', fontFile),
+    ];
+    const present = await Promise.all(candidates.map((candidate) => this.stat(candidate)));
+    const index = present.findIndex(Boolean);
+
+    return index === -1 ? null : candidates[index];
   };
 
   override move = async (sourcePath: string, targetPath: string): Promise<void> => {

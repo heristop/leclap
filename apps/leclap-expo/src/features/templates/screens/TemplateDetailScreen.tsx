@@ -762,12 +762,7 @@ const TemplateDetailScreen = () => {
           />
         )}
       </ScrollView>
-      <CompileFooter
-        isDisabled={isDisabled}
-        isPending={isPending}
-        willQueue={willQueue}
-        onCompile={handleCompile}
-      />
+      <CompileFooter isDisabled={isDisabled} isPending={isPending} willQueue={willQueue} onCompile={handleCompile} />
       <FormModal
         section={activeFormSection}
         formData={project.formData}

@@ -180,10 +180,7 @@ export default function Header({
 
   return (
     <SafeAreaView
-      style={[
-        styles.safeArea,
-        { backgroundColor: getSafeAreaBackground(variant, containerStyles.backgroundColor) },
-      ]}
+      style={[styles.safeArea, { backgroundColor: getSafeAreaBackground(variant, containerStyles.backgroundColor) }]}
     >
       <StatusBar barStyle={getStatusBarStyle(variant)} backgroundColor="transparent" translucent />
       <View style={[styles.container, containerStyles]}>

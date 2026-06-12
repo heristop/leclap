@@ -16,7 +16,11 @@ export const TemplateEditorPage = () => {
 
   return (
     <>
-      <Seo title={initial ? 'Edit template' : 'Create a template'} path={id ? `/templates/${id}/edit` : '/templates/new'} noindex />
+      <Seo
+        title={initial ? 'Edit template' : 'Create a template'}
+        path={id ? `/templates/${id}/edit` : '/templates/new'}
+        noindex
+      />
       <TemplateEditor initial={initial} onSaved={backToList} onCancel={backToList} />
     </>
   );

@@ -59,7 +59,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
         className={clsx(
           'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] border',
           isCompleted &&
-            'bg-success border-success text-foreground scale-110 shadow-[0_0_10px_oklch(0.673_0.162_144.2/0.45)]',
+            'bg-success border-success text-success-foreground scale-110 shadow-[0_0_10px_oklch(0.84_0.065_160/0.45)]',
           isCurrent &&
             'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
           isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
@@ -138,7 +138,7 @@ const ProgressHeader = ({
         <div
           className={clsx(
             'p-2 rounded-lg transition-all duration-300',
-            percentage >= 100 ? 'bg-success/15 text-success' : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
+            percentage >= 100 ? 'bg-success/15 text-success-foreground' : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
           )}
         >
           <StageIcon className={clsx('w-5 h-5', percentage < 100 && percentage > 0 && 'animate-pulse')} />
@@ -174,7 +174,7 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-gray-300">{currentStep || 'Processing...'}</span>
         <span
-          className={clsx('font-semibold', percentage >= 100 ? 'text-success' : 'text-brand-700 dark:text-brand-300')}
+          className={clsx('font-semibold', percentage >= 100 ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300')}
         >
           {Math.round(percentage)}%
         </span>
@@ -231,11 +231,11 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
         <Card elevation="flat" className="bg-success/[0.12] border-success/30 p-4 fade-in backdrop-blur-sm">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-success rounded-lg shadow-lg shadow-success/20">
-              <CheckCircle2 className="w-5 h-5 text-white" />
+              <CheckCircle2 className="w-5 h-5 text-success-foreground" />
             </div>
             <div>
-              <h4 className="font-semibold text-success">Processing Complete!</h4>
-              <p className="text-sm text-success/80">Your video has been processed and is ready for download.</p>
+              <h4 className="font-semibold text-success-foreground">Processing Complete!</h4>
+              <p className="text-sm text-success-foreground/80">Your video has been processed and is ready for download.</p>
             </div>
           </div>
         </Card>

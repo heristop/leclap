@@ -105,7 +105,7 @@ export const CreateStep = ({
 
     {videoFile ? (
       <div className="pop-in flex items-center justify-between gap-3 mb-6 p-3 rounded-xl bg-success/10 border border-success/30">
-        <span className="flex items-center gap-2 text-sm text-success font-medium">
+        <span className="flex items-center gap-2 text-sm text-success-foreground font-medium">
           <Check className="w-5 h-5" /> Intro recorded
         </span>
         <Button

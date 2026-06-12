@@ -63,7 +63,7 @@ function StatusBar({ actuallyProcessing, canProcess }: { actuallyProcessing: boo
       <div
         className={clsx(
           'p-2 rounded-lg transition-all duration-200',
-          canProcess ? 'bg-success/20 text-success' : 'bg-[var(--color-error)]/20 text-[var(--color-error)]'
+          canProcess ? 'bg-success/20 text-success-foreground' : 'bg-[var(--color-error)]/20 text-[var(--color-error)]'
         )}
       >
         <StatusIcon actuallyProcessing={actuallyProcessing} canProcess={canProcess} />
@@ -209,12 +209,12 @@ function RequirementsChecklist({
       <h4 className="text-sm font-medium text-info mb-3">Before you can start processing:</h4>
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-sm">
-          <CheckCircle2 className="w-4 h-4 text-success" />
+          <CheckCircle2 className="w-4 h-4 text-success-foreground" />
           <span className="text-gray-300">Video processing engine ready</span>
         </div>
         <div className="flex items-center space-x-2 text-sm">
           {template ? (
-            <CheckCircle2 className="w-4 h-4 text-success" />
+            <CheckCircle2 className="w-4 h-4 text-success-foreground" />
           ) : (
             <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
           )}
@@ -223,7 +223,7 @@ function RequirementsChecklist({
         {template?.hasForm && (
           <div className="flex items-center space-x-2 text-sm">
             {hasFormData ? (
-              <CheckCircle2 className="w-4 h-4 text-success" />
+              <CheckCircle2 className="w-4 h-4 text-success-foreground" />
             ) : (
               <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
             )}
@@ -232,7 +232,7 @@ function RequirementsChecklist({
         )}
         <div className="flex items-center space-x-2 text-sm">
           {hasFiles ? (
-            <CheckCircle2 className="w-4 h-4 text-success" />
+            <CheckCircle2 className="w-4 h-4 text-success-foreground" />
           ) : (
             <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
           )}
@@ -246,11 +246,11 @@ function RequirementsChecklist({
 function ProcessingTips() {
   return (
     <Card elevation="flat" className="p-4 bg-success/10 border-success/30 rounded-xl fade-in backdrop-blur-sm">
-      <h4 className="text-sm font-semibold text-success mb-2 flex items-center gap-2">
+      <h4 className="text-sm font-semibold text-success-foreground mb-2 flex items-center gap-2">
         <Lightbulb className="w-4 h-4" />
         Processing Tips
       </h4>
-      <ul className="text-sm text-success/80 space-y-1">
+      <ul className="text-sm text-success-foreground/80 space-y-1">
         <li>• Keep this tab active during processing</li>
         <li>• Larger files will take longer to process</li>
         <li>• You can monitor progress in real-time</li>

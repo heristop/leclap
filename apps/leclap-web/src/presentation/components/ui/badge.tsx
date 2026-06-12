@@ -11,7 +11,7 @@ const badgeVariants = cva(
         secondary: 'bg-secondary-500/15 text-secondary-700 border border-secondary-500/25 dark:text-secondary-300',
         accent: 'bg-accent-400 text-gray-900',
         neutral: 'bg-foreground/10 text-gray-300 border border-divider',
-        success: 'bg-success/15 text-success border border-success/30',
+        success: 'bg-success/15 text-success-foreground border border-success/30',
       },
     },
     defaultVariants: { variant: 'neutral' },

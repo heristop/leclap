@@ -1,7 +1,9 @@
 {
   "global": {
     "orientation": "portrait",
-    "musicEnabled": false,
+    "musicEnabled": true,
+    "music": { "name": "beachfront-celebration.mp3" },
+    "audioVolumeLevel": 1,
     "transitionDuration": 0.5
   },
   "sections": [
@@ -104,6 +106,20 @@
             "color": "#101418"
           }
         }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "title": { "en": "Record your clip" },
+      "description": { "en": "Your reel — graded in the bold red palette" },
+      "options": { "duration": 30000, "forceAspectRatio": true },
+      "filters": [
+        { "type": "vignette" },
+        { "type": "drawbox", "values": { "x": 0, "y": 1110, "w": 720, "h": 130, "c": "#101418@0.6", "t": "fill" } },
+        { "type": "drawbox", "values": { "x": 48, "y": 1140, "w": 80, "h": 8, "c": "#ff4d4d@1", "t": "fill" } },
+        { "type": "fadein", "values": { "color": "#101418" } },
+        { "type": "fadeout", "values": { "color": "#101418" } }
       ]
     }
   ]

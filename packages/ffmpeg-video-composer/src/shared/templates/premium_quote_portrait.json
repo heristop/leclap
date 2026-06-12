@@ -1,7 +1,9 @@
 {
   "global": {
     "orientation": "portrait",
-    "musicEnabled": false,
+    "musicEnabled": true,
+    "music": { "name": "anxiety.mp3" },
+    "audioVolumeLevel": 1,
     "transitionDuration": 0.5
   },
   "sections": [
@@ -93,6 +95,20 @@
             "color": "#1a1030"
           }
         }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "title": { "en": "Record your clip" },
+      "description": { "en": "Your story — graded in the layered-purple palette" },
+      "options": { "duration": 30000, "forceAspectRatio": true },
+      "filters": [
+        { "type": "vignette" },
+        { "type": "drawbox", "values": { "x": 0, "y": 1110, "w": 720, "h": 130, "c": "#1a1030@0.55", "t": "fill" } },
+        { "type": "drawbox", "values": { "x": 48, "y": 1140, "w": 80, "h": 6, "c": "#f2c14e@1", "t": "fill" } },
+        { "type": "fadein", "values": { "color": "#1a1030" } },
+        { "type": "fadeout", "values": { "color": "#1a1030" } }
       ]
     }
   ]

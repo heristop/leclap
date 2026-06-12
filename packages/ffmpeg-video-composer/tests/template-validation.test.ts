@@ -33,7 +33,7 @@ describe('Template Validation', () => {
   });
 
   const loadTemplate = (filename: string) => {
-    const templatePath = join(currentDir, '../src/shared/templates', filename);
+    const templatePath = join(currentDir, 'fixtures', filename);
     const templateContent = readFileSync(templatePath, 'utf-8');
 
     return JSON.parse(templateContent);

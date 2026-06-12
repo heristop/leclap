@@ -10,7 +10,9 @@ import { templateMetadata } from '../src/catalog/metadata.js';
 import { listTemplateSummaries, getTemplate } from '../src/catalog/index.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const templatesDir = path.resolve(here, '../../ffmpeg-video-composer/src/shared/templates');
+const coreRoot = path.resolve(here, '../../ffmpeg-video-composer');
+// App templates ship from src/shared/templates; test/scenario templates live in tests/fixtures.
+const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates'), path.join(coreRoot, 'tests/fixtures')];
 
 const EXPECTED_IDS = [
   'concat_videos_with_music',
@@ -41,11 +43,17 @@ const KNOWN_VOLUME_OVERFLOW = new Map<string, ReadonlyArray<string>>([
 ]);
 
 function readSourceJson(id: string): unknown {
-  return JSON.parse(fs.readFileSync(path.join(templatesDir, `${id}.json`), 'utf8'));
+  const file = TEMPLATE_DIRS.map((dir) => path.join(dir, `${id}.json`)).find((candidate) => fs.existsSync(candidate));
+
+  if (!file) {
+    throw new Error(`template ${id}.json not found in src/shared/templates or tests/fixtures`);
+  }
+
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
 describe('builtinTemplates (generated)', () => {
-  it('has all 15 expected ids', () => {
+  it('has all expected ids', () => {
     expect(Object.keys(builtinTemplates).sort()).toEqual([...EXPECTED_IDS].sort());
   });
 

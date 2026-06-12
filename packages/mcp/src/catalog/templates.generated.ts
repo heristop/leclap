@@ -653,7 +653,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
   premium_intro: {
     global: {
       orientation: 'landscape',
-      musicEnabled: false,
+      musicEnabled: true,
+      music: {
+        name: 'arcadia.mp3',
+      },
+      audioVolumeLevel: 1,
       transitionDuration: 0.5,
     },
     sections: [
@@ -794,130 +798,68 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           },
         ],
       },
-    ],
-  } as TemplateDescriptor,
-  premium_quote: {
-    global: {
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
       {
-        name: 'premium_quote',
-        type: 'color_background',
+        name: 'video_1',
+        type: 'project_video',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your moment — graded in the title-card palette',
+        },
         options: {
-          backgroundColor: '#f4f1ea',
-          duration: 5,
+          duration: 30000,
+          forceAspectRatio: true,
         },
         filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#f4f1ea@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 14,
-              h: 720,
-              c: '#1b2a4a@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '“',
-              },
-              fontcolor: '#c2a14d',
-              fontsize: 220,
-              x: 150,
-              y: 90,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Design is not just what it',
-              },
-              fontcolor: '#1b2a4a',
-              fontsize: 60,
-              x: 200,
-              y: 250,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,0.8),0,if(lt(t,1.6),(t-0.8)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'looks like. It is how it works.',
-              },
-              fontcolor: '#1b2a4a',
-              fontsize: 60,
-              x: 200,
-              y: 330,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,1.2),0,if(lt(t,2.0),(t-1.2)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 200,
-              y: 448,
-              w: 70,
-              h: 4,
-              c: '#c2a14d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'STEVE JOBS',
-              },
-              fontcolor: '#7a6a3a',
-              fontsize: 30,
-              x: 200,
-              y: 478,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,1.8),0,if(lt(t,2.6),(t-1.8)/0.8,1))'",
-            },
-          },
           {
             type: 'vignette',
           },
           {
-            type: 'fade',
+            type: 'drawbox',
             values: {
-              t: 'in',
-              d: '0.6',
-              color: '#f4f1ea',
+              x: 0,
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#0d1b2a@0.55',
+              t: 'fill',
             },
           },
           {
-            type: 'fade',
+            type: 'drawbox',
             values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#f4f1ea',
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_firstname }}',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 52,
+              x: 80,
+              y: 644,
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#0d1b2a',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#0d1b2a',
             },
           },
         ],
@@ -927,7 +869,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
   premium_quote_portrait: {
     global: {
       orientation: 'portrait',
-      musicEnabled: false,
+      musicEnabled: true,
+      music: {
+        name: 'anxiety.mp3',
+      },
+      audioVolumeLevel: 1,
       transitionDuration: 0.5,
     },
     sections: [
@@ -1061,12 +1007,254 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           },
         ],
       },
+      {
+        name: 'video_1',
+        type: 'project_video',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your story — graded in the layered-purple palette',
+        },
+        options: {
+          duration: 30000,
+          forceAspectRatio: true,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 1110,
+              w: 720,
+              h: 130,
+              c: '#1a1030@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 48,
+              y: 1140,
+              w: 80,
+              h: 6,
+              c: '#f2c14e@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#1a1030',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#1a1030',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  premium_quote: {
+    global: {
+      orientation: 'landscape',
+      musicEnabled: true,
+      music: {
+        name: 'autumn-day.mp3',
+      },
+      audioVolumeLevel: 1,
+      transitionDuration: 0.5,
+    },
+    sections: [
+      {
+        name: 'premium_quote',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#f4f1ea',
+          duration: 5,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#f4f1ea@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 14,
+              h: 720,
+              c: '#1b2a4a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '“',
+              },
+              fontcolor: '#c2a14d',
+              fontsize: 220,
+              x: 150,
+              y: 90,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'Design is not just what it',
+              },
+              fontcolor: '#1b2a4a',
+              fontsize: 60,
+              x: 200,
+              y: 250,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,0.8),0,if(lt(t,1.6),(t-0.8)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'looks like. It is how it works.',
+              },
+              fontcolor: '#1b2a4a',
+              fontsize: 60,
+              x: 200,
+              y: 330,
+              fontfile: 'PlayfairDisplay.ttf',
+              alpha: "'if(lt(t,1.2),0,if(lt(t,2.0),(t-1.2)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 200,
+              y: 448,
+              w: 70,
+              h: 4,
+              c: '#c2a14d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'STEVE JOBS',
+              },
+              fontcolor: '#7a6a3a',
+              fontsize: 30,
+              x: 200,
+              y: 478,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,1.8),0,if(lt(t,2.6),(t-1.8)/0.8,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#f4f1ea',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#f4f1ea',
+            },
+          },
+        ],
+      },
+      {
+        name: 'video_1',
+        type: 'project_video',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your moment — graded in the editorial palette',
+        },
+        options: {
+          duration: 30000,
+          forceAspectRatio: true,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#1b2a4a@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#c2a14d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#f4f1ea',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#f4f1ea',
+            },
+          },
+        ],
+      },
     ],
   } as TemplateDescriptor,
   premium_reel_portrait: {
     global: {
       orientation: 'portrait',
-      musicEnabled: false,
+      musicEnabled: true,
+      music: {
+        name: 'beachfront-celebration.mp3',
+      },
+      audioVolumeLevel: 1,
       transitionDuration: 0.5,
     },
     sections: [
@@ -1208,6 +1396,59 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               t: 'out',
               d: '{{ transitionDuration }}',
               st: '{{ transitionStartTime }}',
+              color: '#101418',
+            },
+          },
+        ],
+      },
+      {
+        name: 'video_1',
+        type: 'project_video',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your reel — graded in the bold red palette',
+        },
+        options: {
+          duration: 30000,
+          forceAspectRatio: true,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 1110,
+              w: 720,
+              h: 130,
+              c: '#101418@0.6',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 48,
+              y: 1140,
+              w: 80,
+              h: 8,
+              c: '#ff4d4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#101418',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
               color: '#101418',
             },
           },
@@ -1513,7 +1754,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
   premium_titles: {
     global: {
       orientation: 'landscape',
-      musicEnabled: false,
+      musicEnabled: true,
+      music: {
+        name: 'americana.mp3',
+      },
+      audioVolumeLevel: 1,
       transitionDuration: 0.6,
     },
     sections: [
@@ -1738,6 +1983,59 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               t: 'out',
               d: '0.8',
               st: '{{ transitionStartTime }}',
+              color: '#0b0f14',
+            },
+          },
+        ],
+      },
+      {
+        name: 'video_1',
+        type: 'project_video',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your moment — graded in the teal-and-charcoal brand',
+        },
+        options: {
+          duration: 30000,
+          forceAspectRatio: true,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#0b0f14@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#00d4a0@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#0b0f14',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
               color: '#0b0f14',
             },
           },
@@ -2464,35 +2762,6 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  video: {
-    global: {
-      variables: {
-        videoSample: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/earth.mp4',
-        colorTransition: '#FFFFFF',
-      },
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'test_video',
-        type: 'video',
-        options: {
-          videoUrl: '{{ videoSample }}',
-          duration: 2,
-        },
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
   video_speed: {
     global: {
       orientation: 'landscape',
@@ -2535,6 +2804,35 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'fadeout',
             values: {
               color: '#000000',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  video: {
+    global: {
+      variables: {
+        videoSample: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/earth.mp4',
+        colorTransition: '#FFFFFF',
+      },
+      orientation: 'landscape',
+      musicEnabled: false,
+      transitionDuration: 0.5,
+    },
+    sections: [
+      {
+        name: 'test_video',
+        type: 'video',
+        options: {
+          videoUrl: '{{ videoSample }}',
+          duration: 2,
+        },
+        filters: [
+          {
+            type: 'fadein',
+            values: {
+              color: '{{ colorTransition }}',
             },
           },
         ],

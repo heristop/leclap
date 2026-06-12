@@ -26,6 +26,10 @@
       "types": "./dist/reactnative.d.ts",
       "default": "./dist/reactnative.js"
     },
+    "./src/shared/templates": {
+      "types": "./src/shared/templates/index.ts",
+      "default": "./src/shared/templates/index.ts"
+    },
     "./src/*": "./src/*"
   },
   "scripts": {

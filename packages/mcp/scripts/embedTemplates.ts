@@ -8,19 +8,25 @@ import path from 'node:path';
 // be reachable at runtime — embedding them at build time keeps the catalog self-contained.
 // Run via `pnpm embed-templates`; commit the generated file (it must be tracked, not ignored).
 const here = path.dirname(fileURLToPath(import.meta.url));
-const templatesDir = path.resolve(here, '../../ffmpeg-video-composer/src/shared/templates');
+const coreRoot = path.resolve(here, '../../ffmpeg-video-composer');
 const outFile = path.resolve(here, '../src/catalog/templates.generated.ts');
 
+// Two source locations: the app templates shipped in web + expo (src/shared/templates) and the
+// test/scenario templates (tests/fixtures). The catalog embeds both; ids stay the filename.
+const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates'), path.join(coreRoot, 'tests/fixtures')];
+
 function buildEntries(): string {
-  const files = fs
-    .readdirSync(templatesDir)
-    .filter((name) => name.endsWith('.json'))
-    .sort();
+  const files = TEMPLATE_DIRS.flatMap((dir) =>
+    fs
+      .readdirSync(dir)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => path.join(dir, name))
+  ).sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
 
   return files
     .map((file) => {
       const id = path.basename(file, '.json');
-      const raw = fs.readFileSync(path.join(templatesDir, file), 'utf8');
+      const raw = fs.readFileSync(file, 'utf8');
       const pretty = JSON.stringify(JSON.parse(raw), null, 2);
 
       return `  ${JSON.stringify(id)}: ${pretty} as TemplateDescriptor,`;

@@ -1,12 +1,9 @@
 import type { TemplateDescriptor, Section } from '@/src/types';
 import portraitDescriptor from './server/portrait.json';
 import quickDescriptor from './server/quick.json';
-import premiumIntroDescriptor from './premium/premium_intro.json';
-import premiumQuoteDescriptor from './premium/premium_quote.json';
-import premiumTitlesDescriptor from './premium/premium_titles.json';
-import premiumReelPortraitDescriptor from './premium/premium_reel_portrait.json';
-import premiumQuotePortraitDescriptor from './premium/premium_quote_portrait.json';
-import premiumSpotlightDescriptor from './premium/premium_spotlight.json';
+// The in-app catalog (web + expo) is authored once as the core package's shared app-template list.
+// Test/scenario templates live in ../fixtures and are NOT part of this set.
+import { APP_TEMPLATES } from 'ffmpeg-video-composer/src/shared/templates';
 
 /** A template in the local catalog — bundled (on-device ready), or a user-created one. */
 export interface CatalogTemplate {
@@ -70,33 +67,19 @@ const bundled = (id: string, name: string, description: string, raw: unknown): C
   return { id, name, description, orientation: orientationOf(descriptor), source: 'sample', descriptor };
 };
 
+// On-device catalog: the shared app templates (adapted for the LGPL on-device engine) plus the two
+// server scenarios copied locally by scripts/copy-core-assets.mjs.
 export const SAMPLE_TEMPLATES: CatalogTemplate[] = [
-  bundled(
-    'premium-spotlight',
-    'Premium Spotlight',
-    'Record a clip — graded intro + outro wrap it into a polished video.',
-    premiumSpotlightDescriptor
+  ...APP_TEMPLATES.map(
+    (t): CatalogTemplate => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      orientation: t.orientation,
+      source: 'sample',
+      descriptor: adaptForOnDevice(t.descriptor as unknown as TemplateDescriptor),
+    })
   ),
-  bundled(
-    'premium-intro',
-    'Premium Intro',
-    'Cinematic title card — bold name, accent rule, graded backdrop.',
-    premiumIntroDescriptor
-  ),
-  bundled(
-    'premium-reel-portrait',
-    'Premium Reel',
-    'Vertical social reel — graded backdrop, bold caption.',
-    premiumReelPortraitDescriptor
-  ),
-  bundled('premium-quote', 'Premium Quote', 'Typographic quote card with staged text reveal.', premiumQuoteDescriptor),
-  bundled(
-    'premium-quote-portrait',
-    'Premium Quote (Portrait)',
-    'Vertical typographic quote card.',
-    premiumQuotePortraitDescriptor
-  ),
-  bundled('premium-titles', 'Premium Titles', 'Layered title sequence with eased typography.', premiumTitlesDescriptor),
   bundled('server-quick', 'Quick Card', 'Type a short message onto a brand-colored card.', quickDescriptor),
   bundled('server-portrait', 'Portrait', 'Record a clip, blur the backdrop and overlay a keyword.', portraitDescriptor),
 ];

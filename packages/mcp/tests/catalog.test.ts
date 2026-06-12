@@ -20,6 +20,11 @@ const EXPECTED_IDS = [
   'loop_music',
   'picture',
   'portrait',
+  'premium_intro',
+  'premium_quote',
+  'premium_quote_portrait',
+  'premium_reel_portrait',
+  'premium_titles',
   'sample',
   'video',
   'video_speed',
@@ -39,7 +44,7 @@ function readSourceJson(id: string): unknown {
 }
 
 describe('builtinTemplates (generated)', () => {
-  it('has all 10 expected ids', () => {
+  it('has all 15 expected ids', () => {
     expect(Object.keys(builtinTemplates).sort()).toEqual([...EXPECTED_IDS].sort());
   });
 

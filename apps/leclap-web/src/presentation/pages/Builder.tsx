@@ -346,6 +346,7 @@ const UPLOAD_STEP = 2;
 const MEDIA_STEP = 3;
 const EDIT_STEP = 4;
 const PROCESS_STEP = 5;
+const RESULT_STEP = 6;
 
 // Whether the template defines any form fields — drives skipping the Configure step.
 const templateHasFormFields = (selectedTemplate: Template | null): boolean => {
@@ -369,6 +370,33 @@ const templateNeedsUploadStep = (selectedTemplate: Template | null): boolean => 
     : [];
 
   return sections.some((s) => s.type === 'project_video');
+};
+
+// The absolute step indices a template actually walks through, in order. Steps the template
+// doesn't need (form/upload/media/edit) are dropped so the stepper shows only the real journey —
+// a premium color card is just Template → Process → Result. Before a template is picked we show
+// the full sequence so the first-load stepper isn't misleadingly sparse.
+const visibleStepIndices = (
+  hasTemplate: boolean,
+  hasForm: boolean,
+  hasUpload: boolean,
+  hasMediaStep: boolean
+): number[] => {
+  if (!hasTemplate) return STEPS.map((_step, index) => index);
+
+  const indices = [0];
+
+  if (hasForm) indices.push(FORM_STEP);
+
+  if (hasUpload) indices.push(UPLOAD_STEP);
+
+  if (hasMediaStep) indices.push(MEDIA_STEP);
+
+  if (hasUpload) indices.push(EDIT_STEP);
+
+  indices.push(PROCESS_STEP, RESULT_STEP);
+
+  return indices;
 };
 
 // The step to return to from the Result screen — the first input step the template actually uses,
@@ -581,6 +609,7 @@ export const Builder = () => {
   const canProcess =
     Boolean(selectedTemplate) && (!hasUpload || uploadedFiles.length > 0) && isFFmpegReady && isFormComplete;
   const { nextStep, prevStep } = makeStepNav(setCurrentStep, hasForm, hasUpload, hasMediaStep);
+  const visibleSteps = visibleStepIndices(Boolean(selectedTemplate), hasForm, hasUpload, hasMediaStep);
 
   const handleReset = () => {
     setCurrentStep(0);
@@ -610,7 +639,13 @@ export const Builder = () => {
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 relative z-10">
         <BrowserCompatibility />
         <div className="max-w-4xl mx-auto mb-12">
-          <Stepper steps={STEPS} currentStep={currentStep} />
+          <Stepper
+            steps={visibleSteps.map((index) => STEPS[index])}
+            currentStep={Math.max(0, visibleSteps.indexOf(currentStep))}
+            onStepClick={(visibleIndex) => {
+              setCurrentStep(visibleSteps[visibleIndex]);
+            }}
+          />
         </div>
         <div className="max-w-6xl mx-auto">
           <StepContent

@@ -24,6 +24,7 @@ const EXPECTED_IDS = [
   'premium_quote',
   'premium_quote_portrait',
   'premium_reel_portrait',
+  'premium_spotlight',
   'premium_titles',
   'sample',
   'video',

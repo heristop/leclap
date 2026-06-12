@@ -15,8 +15,10 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 type Step = 'welcome' | 'create' | 'compiling' | 'done' | 'error';
 
 // The onboarding makes a first video from a built-in template so newcomers see
-// the whole flow (record → compile → download) in one guided pass.
-const SAMPLE_TEMPLATE_ID = 'sample-advanced';
+// the whole flow (record → compile → download) in one guided pass. Premium Spotlight wraps the
+// recorded clip in a cinematic intro + outro and grades it, so the result looks polished — and the
+// name typed at the record step lands in its first form field (the title card + lower-third).
+const SAMPLE_TEMPLATE_ID = 'premium-spotlight';
 
 const initialProgress: CompilationProgress = {
   stage: 'Starting',

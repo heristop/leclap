@@ -70,6 +70,14 @@ function getStatusBarStyle(variant: HeaderProps['variant']): 'dark-content' | 'l
   return variant === 'light' ? 'dark-content' : 'light-content';
 }
 
+function getSafeAreaBackground(variant: HeaderProps['variant'], containerBackground: string): string {
+  return variant === 'transparent' ? 'transparent' : containerBackground;
+}
+
+function getLogoBorderColor(variant: HeaderProps['variant']): string {
+  return variant === 'light' ? colors.primary : colors.accent;
+}
+
 type ActionItem = {
   icon: string;
   onPress: () => void;
@@ -174,7 +182,7 @@ export default function Header({
     <SafeAreaView
       style={[
         styles.safeArea,
-        { backgroundColor: variant === 'transparent' ? 'transparent' : containerStyles.backgroundColor },
+        { backgroundColor: getSafeAreaBackground(variant, containerStyles.backgroundColor) },
       ]}
     >
       <StatusBar barStyle={getStatusBarStyle(variant)} backgroundColor="transparent" translucent />
@@ -187,7 +195,7 @@ export default function Header({
           )}
 
           {showLogo && (
-            <View style={[styles.logoContainer, { borderColor: variant === 'light' ? colors.primary : colors.accent }]}>
+            <View style={[styles.logoContainer, { borderColor: getLogoBorderColor(variant) }]}>
               <Image source={logoImage} style={styles.logo} resizeMode="contain" />
             </View>
           )}

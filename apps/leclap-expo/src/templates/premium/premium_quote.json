@@ -1,0 +1,95 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "transitionDuration": 0.5
+  },
+  "sections": [
+    {
+      "name": "premium_quote",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#f4f1ea",
+        "duration": 5
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1280, "h": 720, "c": "#f4f1ea@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 14, "h": 720, "c": "#1b2a4a@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "“" },
+            "fontcolor": "#c2a14d",
+            "fontsize": 220,
+            "x": 150,
+            "y": 90,
+            "fontfile": "PlayfairDisplay.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "Design is not just what it" },
+            "fontcolor": "#1b2a4a",
+            "fontsize": 60,
+            "x": 200,
+            "y": 250,
+            "fontfile": "PlayfairDisplay.ttf",
+            "alpha": "'if(lt(t,0.8),0,if(lt(t,1.6),(t-0.8)/0.8,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "looks like. It is how it works." },
+            "fontcolor": "#1b2a4a",
+            "fontsize": 60,
+            "x": 200,
+            "y": 330,
+            "fontfile": "PlayfairDisplay.ttf",
+            "alpha": "'if(lt(t,1.2),0,if(lt(t,2.0),(t-1.2)/0.8,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 200, "y": 448, "w": 70, "h": 4, "c": "#c2a14d@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "STEVE JOBS" },
+            "fontcolor": "#7a6a3a",
+            "fontsize": 30,
+            "x": 200,
+            "y": 478,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,1.8),0,if(lt(t,2.6),(t-1.8)/0.8,1))'"
+          }
+        },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.6", "color": "#f4f1ea" }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#f4f1ea"
+          }
+        }
+      ]
+    }
+  ]
+}

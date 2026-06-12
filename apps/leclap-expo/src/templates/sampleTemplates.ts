@@ -1,6 +1,11 @@
 import type { TemplateDescriptor, Section } from '@/src/types';
 import portraitDescriptor from './server/portrait.json';
 import quickDescriptor from './server/quick.json';
+import premiumIntroDescriptor from './premium/premium_intro.json';
+import premiumQuoteDescriptor from './premium/premium_quote.json';
+import premiumTitlesDescriptor from './premium/premium_titles.json';
+import premiumReelPortraitDescriptor from './premium/premium_reel_portrait.json';
+import premiumQuotePortraitDescriptor from './premium/premium_quote_portrait.json';
 
 /** A template in the local catalog — bundled (on-device ready), or a user-created one. */
 export interface CatalogTemplate {
@@ -65,6 +70,26 @@ const bundled = (id: string, name: string, description: string, raw: unknown): C
 };
 
 export const SAMPLE_TEMPLATES: CatalogTemplate[] = [
+  bundled(
+    'premium-intro',
+    'Premium Intro',
+    'Cinematic title card — bold name, accent rule, graded backdrop.',
+    premiumIntroDescriptor
+  ),
+  bundled(
+    'premium-reel-portrait',
+    'Premium Reel',
+    'Vertical social reel — graded backdrop, bold caption.',
+    premiumReelPortraitDescriptor
+  ),
+  bundled('premium-quote', 'Premium Quote', 'Typographic quote card with staged text reveal.', premiumQuoteDescriptor),
+  bundled(
+    'premium-quote-portrait',
+    'Premium Quote (Portrait)',
+    'Vertical typographic quote card.',
+    premiumQuotePortraitDescriptor
+  ),
+  bundled('premium-titles', 'Premium Titles', 'Layered title sequence with eased typography.', premiumTitlesDescriptor),
   bundled('server-quick', 'Quick Card', 'Type a short message onto a brand-colored card.', quickDescriptor),
   bundled('server-portrait', 'Portrait', 'Record a clip, blur the backdrop and overlay a keyword.', portraitDescriptor),
 ];

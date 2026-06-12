@@ -146,7 +146,7 @@ export default defineConfig({
       'unicorn/prefer-string-starts-ends-with': 'error',
 
       // --- complexity / size budgets ---
-      complexity: ['error', 15],
+      complexity: ['error', 12],
       'max-lines-per-function': [
         'error',
         {

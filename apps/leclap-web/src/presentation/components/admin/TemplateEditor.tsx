@@ -744,7 +744,9 @@ function sectionSummary(section: EditorSection): string {
 
   if (section.kind === 'form') return plural(section.fields.length, 'field');
 
-  if (section.kind === 'music') return plural(section.allowed.length, 'track') + (section.allowUpload ? ' · upload' : '');
+  if (section.kind === 'music') {
+    return plural(section.allowed.length, 'track') + (section.allowUpload ? ' · upload' : '');
+  }
 
   if (section.kind === 'image') {
     return `${section.duration}s · ${plural(section.allowed.length, 'image')}${section.allowUpload ? ' · upload' : ''}`;

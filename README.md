@@ -22,18 +22,19 @@ Describe a video in one JSON _template_ — sections, filters, music, overlays �
 
 LeClap renders video from a single JSON _template_: the same spec — sections, filters, music, text overlays — runs on a server, in the browser via WebAssembly, and fully **on-device** on React Native, with no upload and no server required. The on-device mobile engine (a Rust core statically linking a patched FFmpeg) is the standout capability — it keeps the whole compile on the phone, where the old `ffmpeg-kit-react-native` go-to was archived in 2025.
 
-Its uncontested corner is **deterministic + on-device + agent-callable** video — where Sora/Runway (generative, server-bound) and Remotion/Shotstack (need a backend) can't reach. A bundled pack of **premium templates** (cinematic title cards, typographic quote cards, social reels) makes that corner look professional out of the box, using only the filters and fonts that ship in the engine, so a phone, a browser tab, and a server all produce the same look.
+Its uncontested corner is **deterministic + on-device + agent-callable** video — where Sora/Runway (generative, server-bound) and Remotion/Shotstack (need a backend) can't reach. The full loop runs on the device: **record a clip straight from the camera, apply effects, mix in music, add transitions, and render a finished video** — captured, edited, and composed on the phone (or in a browser tab), no upload. A bundled pack of **premium templates** (cinematic title cards, typographic quote cards, social reels) makes that look professional out of the box, using only the filters and fonts that ship in the engine, so a phone, a browser tab, and a server all produce the same result.
 
 It ships as a **monorepo**: at its core is the [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) library (published to npm, usable standalone). Around it sit an [MCP server](packages/mcp) (the engine as agent-callable tools), an HTTP server, and web + mobile apps that demonstrate it end to end.
 
-|                               |                                                                                                                            |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 🧩 **Template-driven**        | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                    |
-| 🌍 **Runs everywhere**        | Node.js, browser (WASM), React Native, Electron — one codebase, identical output.                                          |
-| 🤖 **Agent-callable**         | An [MCP server](packages/mcp) lets an AI agent author & render a template — no LLM in the loop, just deterministic output. |
-| 🎨 **Premium out of the box** | A bundled pack of polished, on-device-safe templates — author by prompt or in the visual builder.                          |
-| 🎚️ **Composable pipeline**    | Per-section `inputs → maps → filters` for real compositing, text, and audio mixing.                                        |
-| 🧱 **Typed & validated**      | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                              |
+|                                   |                                                                                                                            |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                    |
+| 🌍 **Runs everywhere**            | Node.js, browser (WASM), React Native, Electron — one codebase, identical output.                                          |
+| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.      |
+| 🤖 **Agent-callable**             | An [MCP server](packages/mcp) lets an AI agent author & render a template — no LLM in the loop, just deterministic output. |
+| 🎨 **Premium out of the box**     | A bundled pack of polished, on-device-safe templates — author by prompt or in the visual builder.                          |
+| 🎚️ **Composable pipeline**        | Per-section `inputs → maps → filters` for real compositing, text, and audio mixing.                                        |
+| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                              |
 
 ## 🎥 Demo
 

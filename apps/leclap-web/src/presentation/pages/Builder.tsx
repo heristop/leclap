@@ -197,10 +197,12 @@ const StepProcess = ({
             <span className="text-gray-400">Template</span>
             <span className="font-medium text-foreground truncate">{selectedTemplate?.name}</span>
           </li>
-          <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
-            <span className="text-gray-400">Files</span>
-            <span className="font-medium text-foreground">{uploadedFiles.length} video(s)</span>
-          </li>
+          {uploadedFiles.length > 0 && (
+            <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
+              <span className="text-gray-400">Files</span>
+              <span className="font-medium text-foreground">{uploadedFiles.length} video(s)</span>
+            </li>
+          )}
           <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
             <span className="text-gray-400">Engine Status</span>
             <span className={cn('font-medium flex items-center', isFFmpegReady ? 'text-success' : 'text-warning')}>
@@ -340,7 +342,10 @@ const checkFormComplete = (selectedTemplate: Template | null, formData: Record<s
 };
 
 const FORM_STEP = 1;
+const UPLOAD_STEP = 2;
 const MEDIA_STEP = 3;
+const EDIT_STEP = 4;
+const PROCESS_STEP = 5;
 
 // Whether the template defines any form fields — drives skipping the Configure step.
 const templateHasFormFields = (selectedTemplate: Template | null): boolean => {
@@ -352,6 +357,28 @@ const templateHasFormFields = (selectedTemplate: Template | null): boolean => {
     : [];
 
   return sections.filter((s) => s.type === 'form').flatMap((s) => s.options?.fields ?? []).length > 0;
+};
+
+// Whether the template needs the user to supply a clip — drives skipping the Upload step.
+// Only `project_video` sections consume an uploaded/recorded clip; color/text/image-only
+// templates (the premium pack) render with no upload at all.
+const templateNeedsUploadStep = (selectedTemplate: Template | null): boolean => {
+  if (!selectedTemplate) return false;
+  const sections: Array<{ type: string }> = Array.isArray(selectedTemplate.descriptor.sections)
+    ? selectedTemplate.descriptor.sections
+    : [];
+
+  return sections.some((s) => s.type === 'project_video');
+};
+
+// The step to return to from the Result screen — the first input step the template actually uses,
+// falling back to Process when it collects no input at all (e.g. the premium color cards).
+const resumeStepFromResult = (hasForm: boolean, hasUpload: boolean): number => {
+  if (hasForm) return FORM_STEP;
+
+  if (hasUpload) return UPLOAD_STEP;
+
+  return PROCESS_STEP;
 };
 
 // Whether the template requires a Media selection step.
@@ -469,14 +496,23 @@ const StepContent = ({
   return null;
 };
 
-const makeStepNav = (setCurrentStep: Dispatch<SetStateAction<number>>, hasForm: boolean, hasMediaStep: boolean) => ({
+const makeStepNav = (
+  setCurrentStep: Dispatch<SetStateAction<number>>,
+  hasForm: boolean,
+  hasUpload: boolean,
+  hasMediaStep: boolean
+) => ({
   nextStep: () => {
     setCurrentStep((prev) => {
       let next = prev + 1;
 
       if (next === FORM_STEP && !hasForm) next += 1;
 
+      if (next === UPLOAD_STEP && !hasUpload) next += 1;
+
       if (next === MEDIA_STEP && !hasMediaStep) next += 1;
+
+      if (next === EDIT_STEP && !hasUpload) next += 1;
 
       return Math.min(next, STEPS.length - 1);
     });
@@ -485,7 +521,11 @@ const makeStepNav = (setCurrentStep: Dispatch<SetStateAction<number>>, hasForm: 
     setCurrentStep((prev) => {
       let back = prev - 1;
 
+      if (back === EDIT_STEP && !hasUpload) back -= 1;
+
       if (back === MEDIA_STEP && !hasMediaStep) back -= 1;
+
+      if (back === UPLOAD_STEP && !hasUpload) back -= 1;
 
       if (back === FORM_STEP && !hasForm) back -= 1;
 
@@ -520,7 +560,7 @@ export const Builder = () => {
     setVideoEdits((prev) => ({ ...prev, [index]: edit }));
   };
   const handleStartProcessingSync = () => {
-    if (!selectedTemplate || uploadedFiles.length === 0) return;
+    if (!selectedTemplate || (templateNeedsUploadStep(selectedTemplate) && uploadedFiles.length === 0)) return;
     const mediaChoices: MediaChoices = { music: musicChoice, background: backgroundChoice };
     processVideo(uploadedFiles, { ...selectedTemplate, formData }, videoEdits, mediaChoices).then(
       () => {
@@ -533,10 +573,14 @@ export const Builder = () => {
   };
 
   const isFormComplete = checkFormComplete(selectedTemplate, formData);
-  const hasForm = templateHasFormFields(selectedTemplate);
-  const hasMediaStep = templateNeedsMediaStep(selectedTemplate);
-  const canProcess = Boolean(selectedTemplate) && uploadedFiles.length > 0 && isFFmpegReady && isFormComplete;
-  const { nextStep, prevStep } = makeStepNav(setCurrentStep, hasForm, hasMediaStep);
+  const [hasForm, hasUpload, hasMediaStep] = [
+    templateHasFormFields(selectedTemplate),
+    templateNeedsUploadStep(selectedTemplate),
+    templateNeedsMediaStep(selectedTemplate),
+  ];
+  const canProcess =
+    Boolean(selectedTemplate) && (!hasUpload || uploadedFiles.length > 0) && isFFmpegReady && isFormComplete;
+  const { nextStep, prevStep } = makeStepNav(setCurrentStep, hasForm, hasUpload, hasMediaStep);
 
   const handleReset = () => {
     setCurrentStep(0);
@@ -591,7 +635,7 @@ export const Builder = () => {
             onEditChange={handleEditChange}
             onStartProcessing={handleStartProcessingSync}
             onBack={() => {
-              setCurrentStep(hasForm ? 1 : 2);
+              setCurrentStep(resumeStepFromResult(hasForm, hasUpload));
             }}
             onReset={handleReset}
           />

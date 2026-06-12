@@ -324,6 +324,40 @@ function storedSectionToEditor(
   return videoSectionFrom(s);
 }
 
+function audioMixFrom(global: TemplateDescriptor['global']): AudioMix {
+  return {
+    video: global?.audioVolumeLevel ?? DEFAULT_AUDIO_MIX.video,
+    music: global?.musicVolumeLevel ?? DEFAULT_AUDIO_MIX.music,
+  };
+}
+
+// Music has no positional descriptor section — surface it at the top of the list.
+function musicSectionsFrom(global: TemplateDescriptor['global']): EditorSection[] {
+  const allowed = global?.allowedMusic ?? [];
+  const allowUpload = Boolean(global?.allowUploadMusic);
+
+  if (allowed.length === 0 && !allowUpload) {
+    return [];
+  }
+
+  return [{ kind: 'music', allowed, allowUpload }];
+}
+
+function editorSectionsFrom(descriptor: TemplateDescriptor): EditorSection[] {
+  const { global: g, sections: storedSections = [] } = descriptor;
+
+  const allowedBackgrounds = g?.allowedBackgrounds ?? [];
+  const allowUploadBackground = Boolean(g?.allowUploadBackground);
+
+  const positional = storedSections
+    .map((s) => storedSectionToEditor(s, allowedBackgrounds, allowUploadBackground))
+    .filter((s): s is EditorSection => s !== null);
+
+  const sections = [...musicSectionsFrom(g), ...positional];
+
+  return sections.length > 0 ? sections : [newSection('video')];
+}
+
 export function toEditorState(template: EditableTemplate | null): EditorState {
   if (!template) {
     return {
@@ -336,35 +370,12 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     };
   }
 
-  const { global: g, sections: storedSections = [] } = template.descriptor;
-
-  const allowedMusic = g?.allowedMusic ?? [];
-  const allowUploadMusic = Boolean(g?.allowUploadMusic);
-  const hasMusic = allowedMusic.length > 0 || allowUploadMusic;
-
-  const allowedBackgrounds = g?.allowedBackgrounds ?? [];
-  const allowUploadBackground = Boolean(g?.allowUploadBackground);
-
-  const positional = storedSections
-    .map((s) => storedSectionToEditor(s, allowedBackgrounds, allowUploadBackground))
-    .filter((s): s is EditorSection => s !== null);
-
-  // Music has no positional descriptor section — surface it at the top of the list.
-  const musicSections: EditorSection[] = hasMusic
-    ? [{ kind: 'music', allowed: allowedMusic, allowUpload: allowUploadMusic }]
-    : [];
-
-  const sections = [...musicSections, ...positional];
-
   return {
     id: template.id,
     name: template.name,
     description: template.description,
     orientation: template.orientation,
-    sections: sections.length > 0 ? sections : [newSection('video')],
-    audioMix: {
-      video: g?.audioVolumeLevel ?? DEFAULT_AUDIO_MIX.video,
-      music: g?.musicVolumeLevel ?? DEFAULT_AUDIO_MIX.music,
-    },
+    sections: editorSectionsFrom(template.descriptor),
+    audioMix: audioMixFrom(template.descriptor.global),
   };
 }

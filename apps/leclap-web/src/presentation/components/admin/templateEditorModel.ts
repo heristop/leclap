@@ -372,6 +372,13 @@ function globalVariablesFrom(global: TemplateDescriptor['global']): EditorState[
     .map(([name, value]) => ({ name, value: value as string }));
 }
 
+function audioMixFrom(global: TemplateDescriptor['global']): AudioMix {
+  return {
+    video: global?.audioVolumeLevel ?? DEFAULT_AUDIO_MIX.video,
+    music: global?.musicVolumeLevel ?? DEFAULT_AUDIO_MIX.music,
+  };
+}
+
 export function toEditorState(template: Template | null): EditorState {
   if (!template) {
     return {
@@ -412,9 +419,6 @@ export function toEditorState(template: Template | null): EditorState {
     orientation: template.orientation,
     sections: sections.length > 0 ? sections : [newSection('video')],
     globalVariables: globalVariablesFrom(template.descriptor.global),
-    audioMix: {
-      video: g?.audioVolumeLevel ?? DEFAULT_AUDIO_MIX.video,
-      music: g?.musicVolumeLevel ?? DEFAULT_AUDIO_MIX.music,
-    },
+    audioMix: audioMixFrom(g),
   };
 }

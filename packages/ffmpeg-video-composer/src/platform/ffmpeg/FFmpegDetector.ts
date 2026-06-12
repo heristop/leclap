@@ -322,24 +322,38 @@ export class FFmpegDetector {
   }
 
   /**
-   * Generate personalized recommendations based on system state
+   * Add recommendations based on which FFmpeg implementations are available
    */
-  static generateRecommendations(systemInfo: SystemInfo, ffmpegStatus: DiagnosticReport['ffmpegStatus']): string[] {
-    const recommendations: string[] = [];
+  private static addFFmpegStatusRecommendations(
+    recommendations: string[],
+    systemInfo: SystemInfo,
+    ffmpegStatus: DiagnosticReport['ffmpegStatus']
+  ): void {
     const hasAnyFFmpeg = ffmpegStatus.system.available || ffmpegStatus.static.available || ffmpegStatus.wasm.available;
 
     if (!hasAnyFFmpeg) {
       this.addNoFFmpegRecommendations(recommendations, systemInfo);
+
+      return;
     }
 
-    if (hasAnyFFmpeg && !ffmpegStatus.system.available && ffmpegStatus.static.available) {
+    if (!ffmpegStatus.system.available && ffmpegStatus.static.available) {
       recommendations.push('⚡ Consider installing system FFmpeg for faster processing');
       recommendations.push('📦 Current static FFmpeg works great but is slower');
     }
 
-    if (hasAnyFFmpeg && ffmpegStatus.system.available) {
+    if (ffmpegStatus.system.available) {
       recommendations.push('🚀 Perfect! System FFmpeg detected - optimal performance expected');
     }
+  }
+
+  /**
+   * Generate personalized recommendations based on system state
+   */
+  static generateRecommendations(systemInfo: SystemInfo, ffmpegStatus: DiagnosticReport['ffmpegStatus']): string[] {
+    const recommendations: string[] = [];
+
+    this.addFFmpegStatusRecommendations(recommendations, systemInfo, ffmpegStatus);
 
     if (systemInfo.memoryGB < 4) {
       recommendations.push('⚠️ Low memory detected - consider smaller video files or upgrade RAM');

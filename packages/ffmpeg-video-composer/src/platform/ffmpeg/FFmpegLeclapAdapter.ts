@@ -43,6 +43,14 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
     return { rc: code };
   };
 
+  private readonly parseProbeStreams = (output: string, source: string): ProbeStream[] => {
+    try {
+      return (JSON.parse(output) as { streams?: ProbeStream[] }).streams ?? [];
+    } catch (error) {
+      throw new FFmpegError(`FFprobe output not parseable for ${source}`, String(error));
+    }
+  };
+
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     const { code, output } = await this.engine.probe(['-v', 'quiet', '-print_format', 'json', '-show_streams', source]);
 
@@ -50,13 +58,7 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
       throw new FFmpegError(`FFprobe analysis failed for ${source}`, `rc=${code}`);
     }
 
-    let streams: ProbeStream[] = [];
-
-    try {
-      streams = (JSON.parse(output) as { streams?: ProbeStream[] }).streams ?? [];
-    } catch (error) {
-      throw new FFmpegError(`FFprobe output not parseable for ${source}`, String(error));
-    }
+    const streams = this.parseProbeStreams(output, source);
 
     const video = streams.find((s) => s.codec_type === 'video');
     const audio = streams.find((s) => s.codec_type === 'audio');

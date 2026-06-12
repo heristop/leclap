@@ -13,31 +13,26 @@ interface FileData {
   };
 }
 
-function getFileType(path: string): string {
-  const extension = path.split('.').pop()?.toLowerCase();
+const FILE_TYPE_BY_EXTENSION: Record<string, string> = {
+  mp4: 'video',
+  avi: 'video',
+  mov: 'video',
+  mkv: 'video',
+  mp3: 'audio',
+  wav: 'audio',
+  aac: 'audio',
+  jpg: 'image',
+  jpeg: 'image',
+  png: 'image',
+  gif: 'image',
+  json: 'application/json',
+  txt: 'text/plain',
+};
 
-  switch (extension) {
-    case 'mp4':
-    case 'avi':
-    case 'mov':
-    case 'mkv':
-      return 'video';
-    case 'mp3':
-    case 'wav':
-    case 'aac':
-      return 'audio';
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-      return 'image';
-    case 'json':
-      return 'application/json';
-    case 'txt':
-      return 'text/plain';
-    default:
-      return 'application/octet-stream';
-  }
+function getFileType(path: string): string {
+  const extension = path.split('.').pop()?.toLowerCase() ?? '';
+
+  return FILE_TYPE_BY_EXTENSION[extension] ?? 'application/octet-stream';
 }
 
 function dbRequest<T>(

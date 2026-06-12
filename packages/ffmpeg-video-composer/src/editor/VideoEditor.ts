@@ -33,8 +33,23 @@ class VideoEditor {
 
   private async copySingleFile(sourceRaw: string, finalOutputPath: string): Promise<string> {
     const sourceFile = sourceRaw.replace(/^file\s+'?|'?$/g, '').trim();
-    await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
-    this.logger.info(`[Concat][Command] Copied single file to ${finalOutputPath}`);
+    // Remux (stream-copy, no re-encode) instead of a raw byte copy so the moov atom is moved to
+    // the front. Segment encoders leave it at the end, which keeps single-section outputs from
+    // playing in a browser <video> until fully buffered (black preview). The multi-section concat
+    // path already applies +faststart; this gives single-section templates the same treatment.
+    const command = ` -y -i ${sourceFile} -c copy -movflags +faststart ${finalOutputPath} `;
+    const result = await this.ffmpegAdapter.execute(command);
+
+    if (result.rc === 1) {
+      // Faststart remux failed (e.g. an unexpected container) — fall back to a byte copy so the
+      // render still produces a playable file rather than erroring out.
+      this.logger.warn('[Concat][Command] faststart remux failed, falling back to file copy');
+      await this.filesystemAdapter.copy(sourceFile, finalOutputPath);
+
+      return finalOutputPath;
+    }
+
+    this.logger.info(`[Concat][Command] Remuxed single file (+faststart) to ${finalOutputPath}`);
 
     return finalOutputPath;
   }

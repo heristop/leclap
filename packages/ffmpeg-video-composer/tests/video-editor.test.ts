@@ -84,7 +84,7 @@ describe('VideoEditor.concat', () => {
     await expect(editor.concat()).rejects.toThrow('No files to concat in the segments list');
   });
 
-  it('copies the single file directly when only one segment exists', async () => {
+  it('remuxes the single file with +faststart when only one segment exists', async () => {
     const filesystem = makeFilesystem();
     filesystem.read.mockResolvedValue("file '/build/clip_output.mp4'\n");
     const { editor, ffmpeg, project } = makeEditor({ filesystem });
@@ -93,9 +93,26 @@ describe('VideoEditor.concat', () => {
 
     expect(result).toBe('/build/output.mp4');
     expect(project.finalVideo).toBe('/build/output.mp4');
+    // Stream-copy remux moves the moov atom to the front so the output previews in a browser.
+    expect(ffmpeg.execute).toHaveBeenCalledWith(
+      expect.stringContaining('-i /build/clip_output.mp4 -c copy -movflags +faststart /build/output.mp4')
+    );
+    // No re-encode concat, and no raw byte copy on the happy path.
+    expect(ffmpeg.execute).not.toHaveBeenCalledWith(expect.stringContaining('-f concat'));
+    expect(filesystem.copy).not.toHaveBeenCalled();
+  });
+
+  it('falls back to a byte copy when the single-file faststart remux fails (rc 1)', async () => {
+    const filesystem = makeFilesystem();
+    filesystem.read.mockResolvedValue("file '/build/clip_output.mp4'\n");
+    const ffmpeg = { execute: vi.fn(async () => ({ rc: 1 })) };
+    const { editor, project } = makeEditor({ filesystem, ffmpeg });
+
+    const result = await editor.concat();
+
+    expect(result).toBe('/build/output.mp4');
+    expect(project.finalVideo).toBe('/build/output.mp4');
     expect(filesystem.copy).toHaveBeenCalledWith('/build/clip_output.mp4', '/build/output.mp4');
-    // No ffmpeg concat needed for a single file
-    expect(ffmpeg.execute).not.toHaveBeenCalled();
   });
 
   it('runs the ffmpeg concat command for multiple files (success)', async () => {

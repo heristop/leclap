@@ -2,7 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
-import { compile } from '@/index';
+import { compile, FFmpegNodeAdapter } from '@/index';
 
 // Template fixtures load via the `@` alias (-> packages/ffmpeg-video-composer/src). Directory paths the engine
 // reads from disk (assets, build output) resolve relative to this test file so the suite runs
@@ -81,8 +81,12 @@ describe('Segments', () => {
     expect(await runTemplateCompilation('intertitle')).not.toBeNull();
   }, 40000);
 
+  it('should compile a color_background section with a gradient layer successfully', async () => {
+    expect(await runTemplateCompilation('gradient')).not.toBeNull();
+  }, 40000);
+
   it('should compile a video section with a looped sound successfully', async () => {
-    expect(await runTemplateCompilation('loop_music')).not.toBeNull();
+    expect(await runTemplateCompilation('loop-music')).not.toBeNull();
   }, 40000);
 
   it('should compile a portrait video section', async () => {
@@ -90,21 +94,21 @@ describe('Segments', () => {
   }, 40000);
 
   it('should compile an accelerated video section', async () => {
-    expect(await runTemplateCompilation('video_speed')).not.toBeNull();
+    expect(await runTemplateCompilation('video-speed')).not.toBeNull();
   }, 40000);
 
   it('should compile a video with a local music', async () => {
-    expect(await runTemplateCompilation('local_music')).not.toBeNull();
+    expect(await runTemplateCompilation('local-music')).not.toBeNull();
   }, 40000);
 
   it('should compile and concat background color sections', async () => {
-    expect(await runTemplateCompilation('fast_and_curious')).not.toBeNull();
+    expect(await runTemplateCompilation('fast-and-curious')).not.toBeNull();
   }, 40000);
 });
 
 describe('Concat', () => {
   it('should concat several video sections with music mix', async () => {
-    expect(await runTemplateCompilation('concat_videos_with_music')).not.toBeNull();
+    expect(await runTemplateCompilation('concat-videos-with-music')).not.toBeNull();
   }, 80000);
 });
 
@@ -114,4 +118,30 @@ describe('Mixed Template', () => {
     // mixed sample template through the compile pipeline (cwd-independent).
     expect(await runTemplateCompilation('sample')).not.toBeNull();
   }, 100000);
+});
+
+describe('Transitions (end-to-end)', () => {
+  // End-to-end proof for the transition pipeline: one render exercises section transition
+  // (wipeleft xfade), a global.transition default (fade), kenburns motion + cinematic look on an
+  // image_background, color_background layers (solid + gradient), global.audio loudnorm, and a
+  // bundled music track. A non-cut boundary forces the assembleWithTransitions (xfade) path rather
+  // than plain concat, so a non-null result confirms xfade assembly + normalize + music windows
+  // compose together.
+  it('should compile a transitions template through the xfade assembly path', async () => {
+    const output = await runTemplateCompilation('transitions');
+    expect(output).not.toBeNull();
+
+    // Timeline math: Σ(section durations) − Σ(non-cut boundary durations).
+    // 3 sections × 4s = 12s; boundaries: wipeleft 0.3s + global fade 0.5s = 0.8s → 11.2s expected.
+    const sectionTotal = 4 + 4 + 4;
+    const transitionTotal = 0.3 + 0.5;
+    const expectedDuration = sectionTotal - transitionTotal;
+
+    const ffmpeg = new FFmpegNodeAdapter();
+    const info = await ffmpeg.getInfos(output as string);
+    expect(info.duration).not.toBeNull();
+
+    const probed = info.duration as number;
+    expect(Math.abs(probed - expectedDuration)).toBeLessThanOrEqual(0.3);
+  }, 120000);
 });

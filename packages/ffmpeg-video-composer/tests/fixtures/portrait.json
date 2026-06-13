@@ -5,7 +5,10 @@
     },
     "orientation": "portrait",
     "musicEnabled": false,
-    "transitionDuration": 0.5
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    }
   },
   "sections": [
     {
@@ -14,8 +17,8 @@
       "options": {
         "useVideoSection": "video_portrait",
         "duration": 6,
-        "musicVolumeLevel": 0.4,
-        "forceOriginalAspectRatio": true
+        "forceOriginalAspectRatio": true,
+        "musicVolume": 0.4
       },
       "inputs": [],
       "maps": [],

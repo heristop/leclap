@@ -76,7 +76,7 @@ class FormatterManager {
       return null;
     }
 
-    const transitionDuration = this.template.descriptor.global?.transitionDuration?.toString() ?? '0';
+    const transitionDuration = this.template.descriptor.global?.transition?.duration?.toString() ?? '0';
     let durationStr = rawValue.toString().replace('{{ transitionDuration }}', transitionDuration);
 
     if (duration !== undefined) {
@@ -108,7 +108,7 @@ class FormatterManager {
       stTime *= speed;
     }
 
-    stTime = parseFloat(stTime.toString()) - (this.template.descriptor.global?.transitionDuration ?? 0);
+    stTime = parseFloat(stTime.toString()) - (this.template.descriptor.global?.transition?.duration ?? 0);
     const startTimeStr = rawValue.replace('{{ transitionStartTime }}', stTime.toString());
 
     if (!isNaN(Number(startTimeStr))) {

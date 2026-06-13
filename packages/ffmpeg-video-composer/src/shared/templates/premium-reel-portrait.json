@@ -160,6 +160,7 @@
     {
       "name": "video_1",
       "type": "project_video",
+      "look": "vivid",
       "title": {
         "en": "Record your clip"
       },

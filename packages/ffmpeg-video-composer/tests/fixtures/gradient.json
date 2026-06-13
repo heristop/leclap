@@ -1,0 +1,44 @@
+{
+  "global": {
+    "variables": {
+      "colorsList": ["#101010", "#fafafa"]
+    },
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "gradient_bg",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "{{ color1 }}",
+        "duration": 1,
+        "layers": [
+          {
+            "gradient": {
+              "from": "#101010",
+              "to": "#fafafa",
+              "direction": "vertical"
+            },
+            "opacity": 0.6
+          }
+        ]
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "gradient"
+            },
+            "fontcolor": "{{ color2 }}",
+            "fontsize": 96,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Rubik.ttf"
+          }
+        }
+      ]
+    }
+  ]
+}

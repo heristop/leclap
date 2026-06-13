@@ -43,7 +43,7 @@ class ProjectVideo extends SegmentBuilder {
       ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
       ` -r 30 ${duration} ` +
       ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} -movflags +faststart -shortest ` +
-      ` ${this.filters} -map 0:a? ${this.destination} `;
+      ` ${this.filters} -map 0:a? ${this.buildAudioFadeArg()}${this.destination} `;
   };
 }
 

@@ -243,6 +243,7 @@
     {
       "name": "video_1",
       "type": "project_video",
+      "look": "cool",
       "title": {
         "en": "Record your clip"
       },

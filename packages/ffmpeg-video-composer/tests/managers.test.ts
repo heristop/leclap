@@ -16,7 +16,7 @@ interface StubTemplate {
   descriptor: {
     global?: {
       variables?: Record<string, string | string[]>;
-      transitionDuration?: number;
+      transition?: { type: string; duration?: number };
     };
   };
   assets: {
@@ -149,7 +149,8 @@ describe('FormatterManager', () => {
       descriptor: {
         global: {
           variables: { ...opts.variables, ...(opts.colorsList ? { colorsList: opts.colorsList } : undefined) },
-          transitionDuration: opts.transitionDuration,
+          transition:
+            opts.transitionDuration === undefined ? undefined : { type: 'fade', duration: opts.transitionDuration },
         },
       },
       assets: { fonts: opts.fonts ?? {}, musics: {}, inputs: {} },
@@ -483,7 +484,12 @@ describe('FilterManager', () => {
     } = {}
   ) {
     const template = createTemplate({
-      descriptor: { global: { transitionDuration: opts.transitionDuration } },
+      descriptor: {
+        global: {
+          transition:
+            opts.transitionDuration === undefined ? undefined : { type: 'fade', duration: opts.transitionDuration },
+        },
+      },
     });
     const segment = createSegment(opts.section);
     const formatters = {
@@ -560,7 +566,7 @@ describe('FilterManager', () => {
 
     it('substitutes section_duration token in a numeric end value', () => {
       const { manager } = build({ section: { name: 's', type: 'video', options: { duration: 6 } } });
-      // addMapAnimation always emits numeric ranges; assert the start path and a
+      // Authored filters can carry numeric ranges; assert the start path and a
       // resolved numeric end derived from the section duration.
       const filter = { type: 'overlay', value: 'v', range: 'start=1:end=6' } as Filter;
       const out = manager.remapEnableBetweenSuffix(filter);
@@ -624,7 +630,12 @@ describe('MapManager', () => {
     } = {}
   ) {
     const template = createTemplate({
-      descriptor: { global: { transitionDuration: opts.transitionDuration } },
+      descriptor: {
+        global: {
+          transition:
+            opts.transitionDuration === undefined ? undefined : { type: 'fade', duration: opts.transitionDuration },
+        },
+      },
       assets: { fonts: {}, musics: {}, inputs: opts.inputsCache ?? {} },
     });
     const segment = createSegment(opts.section);
@@ -632,7 +643,7 @@ describe('MapManager', () => {
     const filterManager = {
       addFilter: vi.fn((f: Filter) => `F(${f.type})`),
     };
-    const manager = new MapManager(template as any, formatters as any, filterManager as any, segment as any);
+    const manager = new MapManager(formatters as any, filterManager as any, segment as any);
 
     return { manager, segment, filterManager, template };
   }
@@ -718,55 +729,6 @@ describe('MapManager', () => {
     });
   });
 
-  describe('hasLastFrameAnimationPersisted', () => {
-    function makeInput(options: Partial<MapAnimationInput['options']>, name = 'anim'): MapAnimationInput {
-      return {
-        url: '',
-        name,
-        type: 'frame',
-        extension: 'png',
-        options: { frames: 0, frequency: 1, duration: 0, overlay: '', scale: '', persistent: false, ...options },
-        filters: [],
-      };
-    }
-
-    it('returns false when not persistent', () => {
-      const { manager } = build({ section: { name: 's', type: 'video' } });
-      expect(manager.hasLastFrameAnimationPersisted(makeInput({ persistent: false, frames: 3 }), 3)).toBe(false);
-    });
-
-    it('returns true on the last frame when persistent', () => {
-      const { manager } = build({ section: { name: 's', type: 'video' } });
-      expect(manager.hasLastFrameAnimationPersisted(makeInput({ persistent: true, frames: 3 }), 3)).toBe(true);
-    });
-
-    it('returns false on a non-last frame when persistent', () => {
-      const { manager } = build({ section: { name: 's', type: 'video' } });
-      expect(manager.hasLastFrameAnimationPersisted(makeInput({ persistent: true, frames: 3 }), 2)).toBe(false);
-    });
-
-    it('derives frames from the zip cache when frames is 0', () => {
-      const { manager } = build({
-        section: { name: 's', type: 'video' },
-        inputsCache: { anim: ['a.png', 'b.png'] },
-      });
-      const input = makeInput({ persistent: true, frames: 0 });
-      // cache length is 2 -> frames becomes 2 -> frame 2 is last
-      expect(manager.hasLastFrameAnimationPersisted(input, 2)).toBe(true);
-      expect(input.options.frames).toBe(2);
-    });
-
-    it('treats a non-array cache entry as 0 frames', () => {
-      const { manager } = build({
-        section: { name: 's', type: 'video' },
-        inputsCache: { anim: '/single/path' },
-      });
-      const input = makeInput({ persistent: true, frames: 0 });
-      expect(manager.hasLastFrameAnimationPersisted(input, 1)).toBe(false);
-      expect(input.options.frames).toBe(0);
-    });
-  });
-
   describe('mapInputsVariables', () => {
     it('returns the value unchanged when there are no section inputs', () => {
       const { manager } = build({ section: { name: 's', type: 'video' } });
@@ -784,44 +746,46 @@ describe('MapManager', () => {
       expect(manager.mapInputsVariables('@video')).toBe('0:v');
     });
 
-    it('replaces a frame-type input reference with its last frame label', () => {
+    it('replaces an animation input reference with its overlay pad label', () => {
       const section = {
         name: 's',
         type: 'video',
-        inputs: { 0: { name: 'spark', type: 'frame', options: { frames: 5 } } },
+        inputs: { 0: { name: 'spark', type: 'animation', options: {} } },
       } as unknown as Section;
       const { manager } = build({ section });
-      expect(manager.mapInputsVariables('@spark')).toBe('spark_5');
+      // single-input animation: @spark resolves to the overlay output pad named after the input
+      expect(manager.mapInputsVariables('@spark')).toBe('spark');
     });
 
-    it('replaces a non-frame input reference with an incremented stream index', () => {
+    it('replaces a non-animation input reference with its stream index', () => {
       const section = {
         name: 's',
         type: 'color_background', // increment = 1
         inputs: { 0: { name: 'logo', type: 'image', options: {} } },
       } as unknown as Section;
       const { manager } = build({ section });
-      // increment(1) + parseInt('0') + 1 = 2 -> 2:v
+      // increment(1) + 1 + position(0) = 2 -> 2:v
       expect(manager.mapInputsVariables('@logo')).toBe('2:v');
     });
 
-    it('uses animation-aware increment when a frame input precedes a non-frame input', () => {
+    it('indexes a non-animation input after a preceding animation input by position', () => {
       const section = {
         name: 's',
         type: 'color_background', // increment = 1
         inputs: {
-          0: { name: 'spark', type: 'frame', options: { frames: 2 } },
+          0: { name: 'spark', type: 'animation', options: {} },
           1: { name: 'logo', type: 'image', options: {} },
         },
       } as unknown as Section;
-      const { manager, segment } = build({ section });
-      segment.inputsMapCount = 3;
-      // hasAnimation true after spark -> increment(1) + inputsMapCount(3) + 1 = 5 -> 5:v
-      expect(manager.mapInputsVariables('@logo')).toBe('5:v');
+      const { manager } = build({ section });
+      // each input is one `-i`; logo at position 1 -> increment(1) + 1 + 1 = 3 -> 3:v
+      expect(manager.mapInputsVariables('@logo')).toBe('3:v');
+      // the animation still resolves to its overlay pad
+      expect(manager.mapInputsVariables('@spark')).toBe('spark');
     });
   });
 
-  describe('addMapAnimation', () => {
+  describe('addAnimationOverlay', () => {
     function animationSection(): Section {
       return { name: 's', type: 'video', filters: [], options: { duration: 10 } } as Section;
     }
@@ -829,54 +793,91 @@ describe('MapManager', () => {
       return {
         url: '',
         name: 'anim',
-        type: 'frame',
+        type: 'animation',
         extension: 'png',
-        options: {
-          frames: 3,
-          frequency: 2,
-          duration: 0,
-          overlay: '0:0',
-          scale: '100:100',
-          persistent: false,
-          ...overrides,
-        },
+        options: { fps: 25, position: '0:0', scale: '100:100', persistent: false, loop: false, ...overrides },
         filters: [],
       };
     }
 
-    it('builds the first-frame map concatenating the main video and increments count', () => {
-      const { manager, segment, filterManager } = build({ section: animationSection() });
-      manager.addMapAnimation(makeAnimInput(), 1);
+    it('emits a single overlay map onto the main video and names the pad after the input', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput(), 2);
       expect(segment.inputsMapCount).toBe(1);
-      // overlay + scale filters produced
-      expect(filterManager.addFilter).toHaveBeenCalled();
-      // first frame uses [increment:v, increment+1:v]
+      expect(segment.filtersMapList).toHaveLength(1);
+      // main video leg [0:v] (fresh video increment) and the animation input [2:v]
+      expect(segment.filtersMapList[0]).toContain('[0:v]');
+      expect(segment.filtersMapList[0]).toContain('[2:v]');
+      expect(segment.mapsList).toContain('anim');
+    });
+
+    it('uses eof_action=repeat when persistent and eof_action=pass otherwise', () => {
+      const persistent = build({ section: animationSection() });
+      persistent.manager.addAnimationOverlay(makeAnimInput({ persistent: true }), 2);
+      expect(persistent.filterManager.addFilter).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'overlay', value: '0:0:eof_action=repeat' })
+      );
+
+      const transient = build({ section: animationSection() });
+      transient.manager.addAnimationOverlay(makeAnimInput({ persistent: false }), 2);
+      expect(transient.filterManager.addFilter).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'overlay', value: '0:0:eof_action=pass' })
+      );
+    });
+
+    it('chains a later animation off the previous overlay output', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({}), 2);
+      manager.addAnimationOverlay({ ...makeAnimInput({}), name: 'anim2' }, 3);
+      // second overlay bases off the first overlay's output pad, not the main video
+      expect(segment.filtersMapList[1]).toContain('[anim]');
+      expect(segment.mapsList).toContain('anim2');
+    });
+
+    it('applies the input scale on the overlay output when set', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ scale: '640:360' }), 2);
+      expect(filterManager.addFilter).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'scale', value: '640:360' })
+      );
+    });
+  });
+
+  describe('addGradientOverlay', () => {
+    function bgSection(): Section {
+      return { name: 's', type: 'color_background', filters: [], options: { duration: 3 } } as Section;
+    }
+
+    it('emits a single overlay map compositing the gradient over the main stream', () => {
+      const { manager, segment } = build({ section: bgSection() });
+      manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' } }, 2, 'gradient_layer_0');
+      expect(segment.inputsMapCount).toBe(1);
+      // color_background increment is 1 -> main stream [1:v], gradient input [2:v]
       expect(segment.filtersMapList[0]).toContain('[1:v]');
-      expect(segment.mapsList).toContain('anim_1');
+      expect(segment.filtersMapList[0]).toContain('[2:v]');
+      expect(segment.mapsList).toContain('gradient_layer_0');
     });
 
-    it('uses the previous map output as the first input on a later frame', () => {
-      const { manager, segment } = build({ section: animationSection() });
-      segment.mapsList.push('prev_out');
-      manager.addMapAnimation(makeAnimInput(), 1);
-      // buildAnimationInputsForFirstFrame returns [lastMap, increment+1:v]
-      expect(segment.filtersMapList[0]).toContain('[prev_out]');
+    it('overlays at the layer x/y position', () => {
+      const { manager, filterManager } = build({ section: bgSection() });
+      manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' }, x: 10, y: 20 }, 2, 'gradient_layer_0');
+      expect(filterManager.addFilter).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'overlay', value: '10:20' })
+      );
     });
 
-    it('chains subsequent frames from the prior frame label', () => {
-      const { manager, segment } = build({ section: animationSection() });
-      manager.addMapAnimation(makeAnimInput(), 2);
-      // frame 2 inputs: anim_1 + increment:v
-      expect(segment.filtersMapList[0]).toContain('[anim_1]');
-      expect(segment.mapsList).toContain('anim_2');
+    it('fades the gradient leg via colorchannelmixer when opacity < 1', () => {
+      const { manager, segment } = build({ section: bgSection() });
+      manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' }, opacity: 0.5 }, 2, 'gradient_layer_0');
+      // opacity chain prepended to the graph, overlay references the faded pad
+      expect(segment.filtersMapList[0]).toContain('colorchannelmixer=aa=0.5');
+      expect(segment.filtersMapList.some((g) => g.includes('[gradient_layer_0_op]'))).toBe(true);
     });
 
-    it('extends the last frame to section duration when persistent', () => {
-      const { manager, segment } = build({ section: animationSection() });
-      manager.addMapAnimation(makeAnimInput({ persistent: true, frames: 1 }), 1);
-      // overlay range end should reflect duration (10) for persisted last frame
-      const graph = segment.filtersMapList[0];
-      expect(graph).toContain('anim_1');
+    it('does not add an opacity chain when opacity is 1 (default)', () => {
+      const { manager, segment } = build({ section: bgSection() });
+      manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' } }, 2, 'gradient_layer_0');
+      expect(segment.filtersMapList.some((g) => g.includes('colorchannelmixer'))).toBe(false);
     });
   });
 });

@@ -9,8 +9,13 @@
     },
     "orientation": "portrait",
     "musicEnabled": true,
-    "audioVolumeLevel": 1,
-    "transitionDuration": 0.5
+    "transition": {
+      "type": "cut",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1
+    }
   },
   "sections": [
     {
@@ -43,7 +48,7 @@
       "options": {
         "useVideoSection": "video_portrait",
         "duration": 6,
-        "musicVolumeLevel": 0.4
+        "musicVolume": 0.4
       },
       "inputs": [],
       "maps": [],

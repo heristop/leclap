@@ -134,6 +134,7 @@ describe('Project', () => {
       musicFilters: [],
       fileConcatPath: '',
       musicPath: '',
+      transitions: [],
     });
   });
 

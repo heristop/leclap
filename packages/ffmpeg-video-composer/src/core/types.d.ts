@@ -51,6 +51,7 @@ export type ProjectBuildInfos = {
   musicFilters: string[];
   fileConcatPath: string;
   musicPath: string;
+  transitions: Array<{ type: string; duration: number }>;
 };
 
 // Descriptor
@@ -64,15 +65,32 @@ interface TemplateDescriptorGlobal {
   orientation?: string;
   colorsList?: string[];
   musicEnabled?: boolean;
-  audioVolumeLevel?: number;
-  /** Default background-music volume (0..1) for sections that don't set their own `musicVolumeLevel`. */
-  musicVolumeLevel?: number;
-  transitionDuration?: number;
+  transition?: SectionTransition;
+  audio?: GlobalAudio;
   music?: MusicConfig;
   allowedMusic?: string[];
   allowUploadMusic?: boolean;
   allowedBackgrounds?: string[];
   allowUploadBackground?: boolean;
+}
+
+interface SectionTransition {
+  type: string;
+  duration?: number;
+}
+
+interface DuckingConfig {
+  threshold?: number;
+  ratio?: number;
+  attack?: number;
+  release?: number;
+}
+
+interface GlobalAudio {
+  sourceVolume?: number;
+  musicVolume?: number;
+  normalize?: 'loudnorm' | 'dynaudnorm';
+  ducking?: boolean | DuckingConfig;
 }
 
 export interface Variables {
@@ -88,6 +106,15 @@ export interface Section {
   filters?: Filter[];
   title?: Translation;
   description?: Translation;
+  transition?: SectionTransition;
+  look?: string;
+  grade?: GradeConfig;
+  motion?: MotionEffect[];
+}
+
+interface AudioFade {
+  duration: number;
+  curve?: string;
 }
 
 interface SectionOptions {
@@ -95,7 +122,8 @@ interface SectionOptions {
   lowerCase?: boolean;
   useVideoSection?: string;
   duration?: number;
-  musicVolumeLevel?: number;
+  musicVolume?: number;
+  audioFade?: { in?: AudioFade; out?: AudioFade };
   fields?: Field[];
   speed?: number;
   muteSection?: boolean;
@@ -108,11 +136,69 @@ interface SectionOptions {
   backgroundColor?: string;
   forceAspectRatio?: boolean;
   forceOriginalAspectRatio?: boolean;
+  // color_background extension
+  layers?: BackgroundLayer[];
+  // project_video extension
+  framingGuide?: FramingGuideConfig;
+}
+
+interface ChannelAdjust {
+  r?: number;
+  g?: number;
+  b?: number;
+}
+
+interface GradeConfig {
+  brightness?: number;
+  contrast?: number;
+  saturation?: number;
+  gamma?: number;
+  hue?: number;
+  colorBalance?: {
+    shadows?: ChannelAdjust;
+    midtones?: ChannelAdjust;
+    highlights?: ChannelAdjust;
+  };
+  blur?: number;
+  curvesPreset?: string;
+}
+
+type MotionEffect =
+  | { type: 'kenburns'; direction?: 'in' | 'out' | 'left' | 'right' | 'up' | 'down'; intensity?: number }
+  | { type: 'rotate'; angle: number }
+  | { type: 'crop'; w: number | string; h: number | string; x?: number | string; y?: number | string }
+  | { type: 'flip'; axis: 'horizontal' | 'vertical' };
+
+interface BackgroundLayer {
+  color?: string;
+  opacity?: number;
+  x?: number | string;
+  y?: number | string;
+  w?: number | string;
+  h?: number | string;
+  gradient?: { from: string; to: string; direction?: 'horizontal' | 'vertical' | 'diagonal' };
+}
+
+interface FramingGuideConfig {
+  type: 'silhouette';
+  position: 'left' | 'center' | 'right';
+  opacity?: number;
 }
 
 interface Input {
   name: string;
   url?: string;
+  type?: 'animation';
+  options?: InputOptions;
+  filters?: Filter[];
+}
+
+interface InputOptions {
+  fps?: number;
+  position?: string;
+  scale?: string;
+  persistent?: boolean;
+  loop?: boolean;
 }
 
 export interface Map {
@@ -168,9 +254,6 @@ export type Media = {
   url?: string;
   path?: string;
   extension?: string;
-  options?: {
-    frames: number;
-  };
 };
 
 export type TemplateAssets = {
@@ -180,12 +263,11 @@ export type TemplateAssets = {
 };
 
 type MapAnimationOptions = {
-  frames: number;
-  frequency: number;
-  duration: number;
-  overlay: string;
+  fps: number;
+  position: string;
   scale: string;
   persistent: boolean;
+  loop: boolean;
 };
 
 export type MapAnimationInput = {

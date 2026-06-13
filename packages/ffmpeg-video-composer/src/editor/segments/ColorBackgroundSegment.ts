@@ -14,7 +14,7 @@ class ColorBackground extends SegmentBuilder {
       ` ${this.hwaccelArg} ${this.sources.join(' ')} -t ${this.section.options?.duration} ` +
       ' -r 30 ' +
       ` -shortest ${this.pixFmtArg()} -c:v ${this.videoCodec()} -c:a aac -ac 2 ` +
-      ` ${this.filters} -map 0:a? ${this.destination} `;
+      ` ${this.filters} -map 0:a? ${this.buildAudioFadeArg()}${this.destination} `;
   };
 }
 

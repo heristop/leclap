@@ -47,6 +47,7 @@ function makeProject() {
       musicFilters: [] as string[],
       fileConcatPath: '',
       musicPath: '',
+      transitions: [] as Array<{ type: string; duration: number }>,
     },
   };
 }
@@ -79,6 +80,7 @@ function makeDeps() {
     prepareMusicTrack: vi.fn(),
     loopMusic: vi.fn(async () => undefined),
     appendMusic: vi.fn(async () => undefined),
+    normalizeAudio: vi.fn(async () => undefined),
   };
   const ffmpeg = {
     execute: vi.fn(async () => ({ rc: 0 })),
@@ -113,7 +115,16 @@ function makeDirector() {
   const eventManager = { connect: vi.fn(() => emitter) };
   const videoEditor = {
     emitter: undefined as unknown,
-    concat: vi.fn(async () => '/build/output.mp4'),
+    concat: vi.fn(async () => {
+      deps.project.finalVideo = '/build/output.mp4';
+
+      return '/build/output.mp4';
+    }),
+    assembleWithTransitions: vi.fn(async () => {
+      deps.project.finalVideo = '/build/output.mp4';
+
+      return '/build/output.mp4';
+    }),
     finalize: vi.fn(async () => undefined),
   };
 
@@ -363,6 +374,132 @@ describe('TemplateDirector.construct', () => {
     expect(result).toBeNull();
     // finalize/concat must be skipped once the build is stopped
     expect(videoEditor.concat).not.toHaveBeenCalled();
+  });
+});
+
+describe('TemplateDirector.buildTransitions + totalLength', () => {
+  it('builds per-boundary transitions from section + global and shortens totalLength by non-cut durations', async () => {
+    const { director, template, project } = makeDirector();
+    const sections: Section[] = [
+      { name: 's1', type: 'video', options: { duration: 4 }, transition: { type: 'wipeleft', duration: 0.5 } },
+      { name: 's2', type: 'video', options: { duration: 3 } },
+      { name: 's3', type: 'video', options: { duration: 5 } },
+    ];
+    template.descriptor = { global: { transition: { type: 'dissolve', duration: 0.4 } }, sections };
+
+    await director.compileVideoSegments();
+
+    expect(project.buildInfos.transitions).toEqual([
+      { type: 'wipeleft', duration: 0.5 },
+      { type: 'dissolve', duration: 0.4 },
+    ]);
+    // Σd (12) − non-cut durations (0.9)
+    expect(project.buildInfos.totalLength).toBeCloseTo(11.1);
+  });
+
+  it('produces all-cut boundaries and unchanged totalLength when no transitions are declared', async () => {
+    const { director, template, project, videoEditor } = makeDirector();
+    const sections: Section[] = [
+      { name: 's1', type: 'video', options: { duration: 4 } },
+      { name: 's2', type: 'video', options: { duration: 2 } },
+    ];
+    template.descriptor = { sections };
+
+    await director.compileVideoSegments();
+
+    expect(project.buildInfos.transitions).toEqual([{ type: 'cut', duration: 0 }]);
+    expect(project.buildInfos.totalLength).toBe(6);
+    expect(videoEditor.concat).toHaveBeenCalled();
+    expect(videoEditor.assembleWithTransitions).not.toHaveBeenCalled();
+  });
+
+  it('computes boundaries over rendering sections only, skipping interleaved form/music sections', async () => {
+    const { director, template, project } = makeDirector();
+    const sections: Section[] = [
+      { name: 's1', type: 'video', options: { duration: 4 }, transition: { type: 'fade', duration: 0.5 } },
+      { name: 'intro', type: 'form' },
+      { name: 's2', type: 'color_background', options: { duration: 2 } },
+      { name: 'bg-music', type: 'music' },
+      { name: 's3', type: 'image_background', options: { duration: 3 } },
+    ];
+    template.descriptor = { sections };
+
+    await director.compileVideoSegments();
+
+    // 3 rendering sections → 2 boundaries; only s1 declares a transition.
+    expect(project.buildInfos.transitions).toEqual([
+      { type: 'fade', duration: 0.5 },
+      { type: 'cut', duration: 0 },
+    ]);
+  });
+});
+
+describe('TemplateDirector.finalizeCompilation path selection', () => {
+  it('uses assembleWithTransitions with the ordered segment files when a boundary is non-cut', async () => {
+    const { director, template, videoEditor, project } = makeDirector();
+    const sections: Section[] = [
+      { name: 's1', type: 'video', options: { duration: 4 }, transition: { type: 'wipeleft', duration: 0.5 } },
+      { name: 's2', type: 'video', options: { duration: 3 } },
+    ];
+    template.descriptor = { sections };
+
+    await director.compileVideoSegments();
+
+    expect(videoEditor.concat).not.toHaveBeenCalled();
+    expect(videoEditor.assembleWithTransitions).toHaveBeenCalledWith(
+      ['/build/s1_output.mp4', '/build/s2_output.mp4'],
+      [{ type: 'wipeleft', duration: 0.5 }]
+    );
+    expect(project.buildInfos.videoInputs).toEqual(['/build/s1_output.mp4', '/build/s2_output.mp4']);
+  });
+
+  it('calls normalizeAudio with the final path when music is disabled', async () => {
+    const { director, template, musicComposer } = makeDirector();
+    const sections: Section[] = [
+      { name: 's1', type: 'video', options: { duration: 4 } },
+      { name: 's2', type: 'video', options: { duration: 2 } },
+    ];
+    template.descriptor = { global: { musicEnabled: false, audio: { normalize: 'loudnorm' } }, sections };
+
+    await director.compileVideoSegments();
+
+    expect(musicComposer.normalizeAudio).toHaveBeenCalledWith('/build/output.mp4');
+  });
+
+  it('does not call normalizeAudio when music is enabled', async () => {
+    const { director, template, musicComposer } = makeDirector();
+    const sections: Section[] = [
+      { name: 's1', type: 'video', options: { duration: 4 } },
+      { name: 's2', type: 'video', options: { duration: 2 } },
+    ];
+    template.descriptor = { global: { musicEnabled: true }, sections };
+
+    await director.compileVideoSegments();
+
+    expect(musicComposer.normalizeAudio).not.toHaveBeenCalled();
+  });
+});
+
+describe('TemplateDirector.config descriptor cloning', () => {
+  it('deep-clones the descriptor so a second compile does not double-apply section filters', () => {
+    const { director, template } = makeDirector();
+    const descriptor: TemplateDescriptor = {
+      sections: [{ name: 's1', type: 'video', options: { duration: 4 }, filters: [{ type: 'eq' }] }],
+    };
+
+    director.config({}, descriptor);
+    const firstCount = template.descriptor.sections?.[0]?.filters?.length;
+
+    // Simulate an in-place build mutation (sugar injection prepends preset filters).
+    template.descriptor.sections?.[0]?.filters?.unshift({ type: 'scale' });
+
+    director.config({}, descriptor);
+    const secondCount = template.descriptor.sections?.[0]?.filters?.length;
+
+    expect(firstCount).toBe(1);
+    expect(secondCount).toBe(1);
+    // Original descriptor object must be untouched by the build mutation.
+    expect(descriptor.sections?.[0]?.filters?.length).toBe(1);
   });
 });
 

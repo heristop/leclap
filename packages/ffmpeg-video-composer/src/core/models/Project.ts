@@ -17,6 +17,7 @@ class Project {
     musicFilters: [],
     fileConcatPath: '',
     musicPath: '',
+    transitions: [],
   };
   public finalVideo = '';
   public progress = 0;
@@ -39,6 +40,7 @@ class Project {
       musicFilters: [],
       fileConcatPath: '',
       musicPath: '',
+      transitions: [],
     };
   };
 

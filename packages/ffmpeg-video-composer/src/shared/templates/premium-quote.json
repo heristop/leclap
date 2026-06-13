@@ -137,6 +137,7 @@
     {
       "name": "video_1",
       "type": "project_video",
+      "look": "warm",
       "title": {
         "en": "Record your clip"
       },

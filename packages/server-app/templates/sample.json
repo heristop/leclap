@@ -12,8 +12,13 @@
     },
     "orientation": "landscape",
     "musicEnabled": true,
-    "audioVolumeLevel": 1,
-    "transitionDuration": 0.5
+    "transition": {
+      "type": "cut",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1
+    }
   },
   "sections": [
     {
@@ -22,16 +27,16 @@
       "options": {
         "useVideoSection": "video_1",
         "duration": 6,
-        "musicVolumeLevel": 0.4
+        "musicVolume": 0.4
       },
       "inputs": [
         {
           "name": "intertitles_border",
           "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip",
-          "type": "frame",
+          "type": "animation",
           "options": {
-            "frequency": 0.04,
-            "overlay": "0:0",
+            "fps": 25,
+            "position": "0:0",
             "scale": "1280:720",
             "persistent": true
           },
@@ -187,16 +192,16 @@
         "en": "Tell us your first and last name, the job that you do and the name of your company."
       },
       "options": {
-        "duration": 20000,
-        "musicVolumeLevel": 0.1
+        "duration": 20.0,
+        "musicVolume": 0.1
       },
       "inputs": [
         {
           "name": "animatedIcon",
-          "type": "frame",
+          "type": "animation",
           "options": {
-            "frequency": 0.3,
-            "overlay": "600:200",
+            "fps": 3.333,
+            "position": "600:200",
             "scale": "1280:720",
             "persistent": false
           },
@@ -258,8 +263,8 @@
       "options": {
         "backgroundColor": "{{ color1 }}",
         "duration": 0.5,
-        "musicVolumeLevel": 0.4,
-        "lowerCase": true
+        "lowerCase": true,
+        "musicVolume": 0.4
       },
       "filters": [
         {
@@ -305,8 +310,8 @@
       "options": {
         "backgroundColor": "{{ color2 }}",
         "duration": 0.5,
-        "musicVolumeLevel": 0.4,
-        "lowerCase": true
+        "lowerCase": true,
+        "musicVolume": 0.4
       },
       "filters": [
         {
@@ -368,8 +373,8 @@
       "options": {
         "backgroundColor": "{{ color2 }}",
         "duration": 1.1,
-        "musicVolumeLevel": 0.4,
-        "lowerCase": true
+        "lowerCase": true,
+        "musicVolume": 0.4
       },
       "filters": [
         {
@@ -488,8 +493,8 @@
         "en": "What are you going to make us discover?"
       },
       "options": {
-        "duration": 45000,
-        "musicVolumeLevel": 0.1
+        "duration": 45.0,
+        "musicVolume": 0.1
       },
       "filters": [
         {
@@ -618,10 +623,10 @@
       },
       "description": {},
       "options": {
-        "duration": 180000,
-        "musicVolumeLevel": 0.4,
+        "duration": 180.0,
         "speed": 0.25,
-        "muteSection": true
+        "muteSection": true,
+        "musicVolume": 0.4
       },
       "maps": [
         {
@@ -672,7 +677,7 @@
       "options": {
         "videoUrl": "{{ videoOutro }}",
         "duration": 3,
-        "musicVolumeLevel": 0.2
+        "musicVolume": 0.2
       },
       "filters": [
         {

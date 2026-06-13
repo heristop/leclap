@@ -6,7 +6,10 @@
     },
     "orientation": "landscape",
     "musicEnabled": false,
-    "transitionDuration": 0.5
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    }
   },
   "sections": [
     {

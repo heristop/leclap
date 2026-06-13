@@ -1,0 +1,121 @@
+{
+  "global": {
+    "variables": {
+      "colorsList": ["#101010", "#fafafa"]
+    },
+    "music": {
+      "name": "point_being_-_go_by_ocean___ryan_mccaffrey.mp3"
+    },
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "audio": {
+      "normalize": "loudnorm",
+      "sourceVolume": 1,
+      "musicVolume": 0.5
+    }
+  },
+  "sections": [
+    {
+      "name": "intro_layers",
+      "type": "color_background",
+      "transition": {
+        "type": "wipeleft",
+        "duration": 0.3
+      },
+      "options": {
+        "backgroundColor": "{{ color1 }}",
+        "duration": 4,
+        "musicVolume": 0.5,
+        "layers": [
+          {
+            "color": "{{ color2 }}",
+            "opacity": 0.15
+          },
+          {
+            "gradient": {
+              "from": "#101010",
+              "to": "#fafafa",
+              "direction": "vertical"
+            },
+            "opacity": 0.5
+          }
+        ]
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "transitions"
+            },
+            "fontcolor": "{{ color2 }}",
+            "fontsize": 96,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Rubik.ttf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "kenburns_photo",
+      "type": "image_background",
+      "look": "cinematic",
+      "motion": [
+        {
+          "type": "kenburns",
+          "direction": "in",
+          "intensity": 1.15
+        }
+      ],
+      "options": {
+        "duration": 4,
+        "musicVolume": 0.5,
+        "pictureUrl": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/SamplePNGImage_3mbmb.png"
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
+            },
+            "fontcolor": "#FFFFFF",
+            "fontsize": 48,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/1.4",
+            "fontfile": "Inconsolata.ttf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "outro_card",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "{{ color2 }}",
+        "duration": 4,
+        "musicVolume": 0.5
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "the end"
+            },
+            "fontcolor": "{{ color1 }}",
+            "fontsize": 96,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Rubik.ttf"
+          }
+        }
+      ]
+    }
+  ]
+}

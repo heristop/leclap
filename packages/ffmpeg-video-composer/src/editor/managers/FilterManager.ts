@@ -49,7 +49,7 @@ class FilterManager {
       return filter;
     }
 
-    let end = this.template.descriptor.global?.transitionDuration ?? 0;
+    let end = this.template.descriptor.global?.transition?.duration ?? 0;
     let start = 0;
 
     const extractTimeValue = (pattern: RegExp, duration: string): number | undefined => {

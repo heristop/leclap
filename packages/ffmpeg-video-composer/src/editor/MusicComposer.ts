@@ -1,5 +1,6 @@
 import { container, inject, injectable } from 'tsyringe';
 import type { MusicConfig, Section } from '@/core/types';
+import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
@@ -195,15 +196,21 @@ class MusicComposer {
     return section.options?.duration ?? 0;
   }
 
+  // Duration of the xfade boundary after section at `boundaryIndex` (0-based). 0 for cut or missing.
+  private getBoundaryTransitionDuration(boundaryIndex: number): number {
+    const b = this.project.buildInfos.transitions.at(boundaryIndex);
+
+    return b === undefined || b.type === 'cut' ? 0 : b.duration;
+  }
+
   /**
    * Configure audio filters for video segment
    */
   prepareMusicTrack = (section: Section): void => {
     // Per-section override wins; otherwise fall back to the template-wide music level (the builder's
     // music slider), then the engine default. 0 = silent music.
-    const musicVolumeLevel =
-      section.options?.musicVolumeLevel ?? this.template.descriptor.global?.musicVolumeLevel ?? 0.5;
-    const transitionDuration = this.template.descriptor.global?.transitionDuration ?? 0.3;
+    const musicVolumeLevel = section.options?.musicVolume ?? this.template.descriptor.global?.audio?.musicVolume ?? 0.5;
+    const transitionDuration = this.template.descriptor.global?.transition?.duration ?? DEFAULT_TRANSITION_DURATION;
 
     const duration = this.getSectionDuration(section);
 
@@ -216,7 +223,13 @@ class MusicComposer {
 
     const ss = this.project.buildInfos.currentLength;
     const t = duration + transitionDuration;
-    this.project.buildInfos.currentLength += duration;
+
+    // When using xfade transitions, each boundary shortens the rendered timeline by the transition
+    // duration, so the music window start for the next section must be shifted accordingly.
+    // Boundary (sectionIncrement - 1) sits after the current section (1-indexed → 0-indexed).
+    // Last section has no following boundary — no adjustment needed.
+    const boundaryDuration = isLastSection ? 0 : this.getBoundaryTransitionDuration(sectionIncrement - 1);
+    this.project.buildInfos.currentLength += duration - boundaryDuration;
 
     const baseFilter = `[1:a]atrim=start=${ss}:duration=${t},asetpts=PTS-STARTPTS`;
     const filter = this.buildMusicFilter({
@@ -250,6 +263,37 @@ class MusicComposer {
     this.project.buildInfos.musicFilters.push(crossfade);
   }
 
+  // Comma-prefixed normalize filter string inserted at the end of the chain that produces
+  // [final] (a labeled output ends an ffmpeg chain, so the filter must come BEFORE the label).
+  private buildNormalizeSuffix(): string {
+    const filters: Record<string, string> = {
+      loudnorm: ',loudnorm=I=-16:TP=-1.5:LRA=11',
+      dynaudnorm: ',dynaudnorm=f=150:g=15',
+    };
+    const n = this.template.descriptor.global?.audio?.normalize ?? '';
+
+    return filters[n] ?? '';
+  }
+
+  // Ducking mix: sidechain-compresses music under voice when ducking is enabled, then amix.
+  private buildDuckingMix(musicLabel: string, voiceLabel: string, normalizeSuffix: string): string {
+    const duckingConfig = this.template.descriptor.global?.audio?.ducking;
+    const isDucking = duckingConfig === true || typeof duckingConfig === 'object';
+
+    if (!isDucking) {
+      return `[${voiceLabel}][${musicLabel}]amix=inputs=2:duration=first${normalizeSuffix}[final]`;
+    }
+
+    const cfg = typeof duckingConfig === 'object' ? duckingConfig : {};
+    const sc = `sidechaincompress=threshold=${cfg.threshold ?? 0.05}:ratio=${cfg.ratio ?? 8}:attack=${cfg.attack ?? 20}:release=${cfg.release ?? 400}`;
+
+    return (
+      `[${voiceLabel}]asplit=2[vout][vkey]; ` +
+      `[${musicLabel}][vkey]${sc}[ducked]; ` +
+      `[vout][ducked]amix=inputs=2:duration=first:normalize=0${normalizeSuffix}[final]`
+    );
+  }
+
   private buildFilterComplex(
     segments: Section[],
     audioVolumeLevel: number,
@@ -258,16 +302,17 @@ class MusicComposer {
     hasSegmentAudio: boolean
   ): string {
     const hasMultipleSegments = segments.length > 1;
+    const normalizeSuffix = this.buildNormalizeSuffix();
 
     // Video-only upload: the concat output has no audio stream, so referencing
     // `[0:a]` would abort ("Stream specifier matches no streams"). Route the
     // music straight to [final] instead of amix-ing it with absent segment audio.
     if (!hasSegmentAudio) {
       if (hasMultipleSegments) {
-        return `${this.project.buildInfos.musicFilters.join(' ')} [lastcrossed]${channelConfig}[final]`;
+        return `${this.project.buildInfos.musicFilters.join(' ')} [lastcrossed]${channelConfig}${normalizeSuffix}[final]`;
       }
 
-      return `[1:a]${channelConfig}[final]`;
+      return `[1:a]${channelConfig}${normalizeSuffix}[final]`;
     }
 
     let filterComplex = `[0:a]${channelConfig},volume=${audioVolumeLevel},${reduceNoiseConfig}[audio_formatted]; `;
@@ -276,12 +321,12 @@ class MusicComposer {
       filterComplex += `${this.project.buildInfos.musicFilters.join(' ')} `;
       filterComplex += `[lastcrossed]${channelConfig}[music_formatted]; `;
 
-      return `${filterComplex}[audio_formatted][music_formatted]amix=inputs=2:duration=first[final]`;
+      return `${filterComplex}${this.buildDuckingMix('music_formatted', 'audio_formatted', normalizeSuffix)}`;
     }
 
     filterComplex += `[1:a]${channelConfig}[music_formatted]; `;
 
-    return `${filterComplex}[audio_formatted][music_formatted]amix=inputs=2:duration=first[final]`;
+    return `${filterComplex}${this.buildDuckingMix('music_formatted', 'audio_formatted', normalizeSuffix)}`;
   }
 
   private buildAppendMusicCommand(opts: AppendMusicOptions): string {
@@ -312,7 +357,7 @@ class MusicComposer {
     const temp = `${this.filesystemAdapter.getTempDir()}/tmp_video_${time}.mp4`;
     const reduceNoiseConfig = 'afftdn=nr=20:nf=-20';
 
-    const audioVolumeLevel = this.template.descriptor.global?.audioVolumeLevel ?? 1;
+    const audioVolumeLevel = this.template.descriptor.global?.audio?.sourceVolume ?? 1;
     const sampleRate = this.project.config.audioConfig?.sampleRate;
 
     await this.filesystemAdapter.move(finalVideo, temp);
@@ -337,6 +382,41 @@ class MusicComposer {
 
     if (result.rc === 1) {
       throw new Error('Error on music add');
+    }
+
+    await this.filesystemAdapter.unlink(temp);
+  };
+
+  /**
+   * Apply audio normalization to a final video when music is disabled.
+   * Task 9 (TemplateDirector) should call this after the concat step when
+   * global.audio.normalize is set and music is not enabled.
+   *
+   * Runs a single-pass normalize filter (loudnorm or dynaudnorm) via `-af`,
+   * copies the video stream, and replaces the output file in place.
+   */
+  normalizeAudio = async (finalVideo: string): Promise<void> => {
+    const normalizeSuffix = this.buildNormalizeSuffix();
+
+    if (!normalizeSuffix) {
+      return;
+    }
+
+    // Strip the leading comma so it can be used as a standalone -af value.
+    const afFilter = normalizeSuffix.slice(1);
+    const time = Date.now();
+    const temp = `${this.filesystemAdapter.getTempDir()}/tmp_normalize_${time}.mp4`;
+
+    await this.filesystemAdapter.move(finalVideo, temp);
+
+    const command = ` -y -i ${temp} -af "${afFilter}" -c:v copy -movflags +faststart ${finalVideo} `;
+
+    this.logger.debug(`[Music][Normalize] ffmpeg ${command}`);
+    const result = await this.ffmpegAdapter.execute(command);
+    this.logger.info(`[Music][Normalize] ffmpeg process exited with rc ${result.rc}`);
+
+    if (result.rc === 1) {
+      throw new Error('Error on audio normalization');
     }
 
     await this.filesystemAdapter.unlink(temp);

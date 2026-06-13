@@ -136,4 +136,26 @@ export { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 export { Terminal } from './utils/terminal';
 export { container };
 export type { ProjectConfig, TemplateDescriptor } from './core/types';
-export { TemplateDescriptorSchema } from './schemas/template.schemas';
+export {
+  TemplateDescriptorSchema,
+  templateDescriptorJsonSchema,
+  XFADE_TRANSITIONS,
+  AFADE_CURVES,
+  LOOK_PRESETS,
+  TransitionSchema,
+  GlobalAudioSchema,
+  GradeSchema,
+  MotionEffectSchema,
+  BackgroundLayerSchema,
+  FramingGuideSchema,
+  AudioFadeSchema,
+  DuckingSchema,
+} from './schemas/template.schemas';
+export type {
+  Transition,
+  GlobalAudio,
+  Grade,
+  MotionEffect,
+  BackgroundLayer,
+  FramingGuide,
+} from './schemas/template.schemas';

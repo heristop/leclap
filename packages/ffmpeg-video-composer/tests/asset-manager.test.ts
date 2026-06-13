@@ -205,34 +205,34 @@ describe('AssetManager.fetchAssets', () => {
     expect(fs.fetch).not.toHaveBeenCalled();
   });
 
-  it('routes a zip frame animation through unzip', async () => {
+  it('routes a zip animation through unzip', async () => {
     const section = {
       name: 'intro',
       type: 'video',
-      inputs: [{ name: 'spark', url: 'http://a/frames.zip', type: 'frame', options: { frames: 0 } }],
+      inputs: [{ name: 'spark', url: 'http://a/frames.zip', type: 'animation', options: {} }],
     } as unknown as Section;
     const { manager, fs } = build({ section });
     await manager.fetchAssets();
     expect(fs.unzip).toHaveBeenCalled();
   });
 
-  it('fetches every frame for a png animation', async () => {
+  it('fetches a non-zip animation input as a single media', async () => {
     const section = {
       name: 'intro',
       type: 'video',
       inputs: [
         {
           name: 'spark',
-          url: 'http://a/frame-%d.png',
-          type: 'frame',
-          options: { frames: 3 },
+          url: 'http://a/spark.png',
+          type: 'animation',
+          options: {},
         },
       ],
     } as unknown as Section;
     const { manager, fs } = build({ section });
     await manager.fetchAssets();
-    // one fetch per frame
-    expect(fs.fetch).toHaveBeenCalledTimes(3);
+    expect(fs.fetch).toHaveBeenCalledTimes(1);
+    expect(fs.unzip).not.toHaveBeenCalled();
   });
 });
 

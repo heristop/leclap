@@ -8,10 +8,8 @@ import type { IEventEmitter } from '../platform/AbstractEventManager';
 import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, LogParams, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
-import {
-  DEFAULT_TRANSITION_DURATION,
-  type TemplateDescriptor as SchemaTemplateDescriptor,
-} from '../schemas/template.schemas';
+import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
+import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import type Project from '../core/models/Project';
 import type Template from '../core/models/Template';
 import type TemplateConcreteBuilder from './TemplateConcreteBuilder';

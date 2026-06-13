@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Home } from '@/presentation/pages/Home';
@@ -8,11 +9,13 @@ import { About } from '@/presentation/pages/About';
 import { Admin } from '@/presentation/pages/Admin';
 import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
 import { Design } from '@/presentation/pages/Design';
+import { Doc } from '@/presentation/pages/Doc';
 import { NotFound } from '@/presentation/pages/NotFound';
 import { Onboarding } from '@/presentation/components/Onboarding';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 function App() {
+  const { t } = useTranslation();
   const { show, dismiss } = useOnboarding();
 
   // App-wide tactile feedback: a subtle haptic on every press of an interactive
@@ -39,7 +42,7 @@ function App() {
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-brand-600 focus:text-white"
         >
-          Skip to main content
+          {t('skipToContent')}
         </a>
         <Header />
 
@@ -53,6 +56,7 @@ function App() {
             {/* Legacy path kept so existing bookmarks/links keep working. */}
             <Route path="/admin" element={<Navigate to="/templates" replace />} />
             <Route path="/design" element={<Design />} />
+            <Route path="/doc" element={<Doc />} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -61,9 +65,7 @@ function App() {
         {/* Footer */}
         <footer className="bg-surface text-foreground py-8 mt-auto border-t border-foreground/5">
           <div className="container mx-auto px-4 text-center">
-            <p className="text-sm text-gray-400">
-              All processing happens locally in your browser - your files never leave your device
-            </p>
+            <p className="text-sm text-gray-400">{t('footer')}</p>
           </div>
         </footer>
       </div>

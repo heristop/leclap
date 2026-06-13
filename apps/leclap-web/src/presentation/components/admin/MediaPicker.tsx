@@ -1,5 +1,6 @@
 import { useState, useId, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/presentation/components/ui';
@@ -100,25 +101,30 @@ export const MediaPicker = ({
 };
 
 const TabSwitch = ({ tab, setTab, allowUpload }: { tab: Tab; setTab: (t: Tab) => void; allowUpload: boolean }) => {
+  const { t } = useTranslation('admin');
   const tabs = allowUpload ? (['library', 'upload'] as const) : (['library'] as const);
 
   return (
-    <div role="tablist" aria-label="Media source" className="mb-3 inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm">
-      {tabs.map((t) => (
+    <div
+      role="tablist"
+      aria-label={t('media.source')}
+      className="mb-3 inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm"
+    >
+      {tabs.map((tabId) => (
         <button
-          key={t}
+          key={tabId}
           type="button"
           role="tab"
-          aria-selected={tab === t}
+          aria-selected={tab === tabId}
           onClick={() => {
-            setTab(t);
+            setTab(tabId);
           }}
           className={cn(
             'rounded-md px-3 py-1.5 font-medium capitalize transition-colors',
-            tab === t ? 'bg-surface text-foreground shadow-sm' : 'text-gray-400 hover:text-foreground'
+            tab === tabId ? 'bg-surface text-foreground shadow-sm' : 'text-gray-400 hover:text-foreground'
           )}
         >
-          {t}
+          {t(`media.tab.${tabId}`)}
         </button>
       ))}
     </div>
@@ -133,11 +139,12 @@ interface SingleLibraryGridProps {
 }
 
 const SingleLibraryGrid = ({ kind, value, onChange, allowedIds }: SingleLibraryGridProps) => {
+  const { t } = useTranslation('admin');
   const rawItems = kind === 'music' ? MUSIC_LIBRARY : BACKGROUND_LIBRARY;
   const items = filterByAllowed(rawItems, allowedIds);
 
   if (items.length === 0) {
-    return <p className="px-1 py-6 text-center text-sm text-gray-400">Nothing here yet — upload your own instead.</p>;
+    return <p className="px-1 py-6 text-center text-sm text-gray-400">{t('media.emptyLibrary')}</p>;
   }
 
   return (
@@ -166,11 +173,12 @@ interface MultiLibraryGridProps {
 }
 
 const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLibraryGridProps) => {
+  const { t } = useTranslation('admin');
   const rawItems = kind === 'music' ? MUSIC_LIBRARY : BACKGROUND_LIBRARY;
   const items = filterByAllowed(rawItems, allowedIds);
 
   if (items.length === 0) {
-    return <p className="px-1 py-6 text-center text-sm text-gray-400">Nothing in the library yet.</p>;
+    return <p className="px-1 py-6 text-center text-sm text-gray-400">{t('media.emptyMultiLibrary')}</p>;
   }
 
   return (
@@ -192,6 +200,7 @@ const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLi
 };
 
 const MusicCard = ({ item, selected, onPick }: CardProps) => {
+  const { t } = useTranslation('admin');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -244,7 +253,7 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
       <button
         type="button"
         onClick={toggle}
-        aria-label={playing ? `Pause ${item.title}` : `Play ${item.title}`}
+        aria-label={playing ? t('media.pause', { title: item.title }) : t('media.play', { title: item.title })}
         className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur transition hover:scale-105 hover:bg-brand-600"
       >
         {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-px" />}
@@ -297,6 +306,7 @@ interface UploadPaneProps {
 }
 
 const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
+  const { t } = useTranslation('admin');
   const inputId = useId();
 
   const onDrop = (files: File[]) => {
@@ -335,7 +345,7 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
   return (
     <div
       {...getRootProps()}
-      aria-label={kind === 'music' ? 'Upload a music file' : 'Upload a background image'}
+      aria-label={kind === 'music' ? t('media.uploadMusic') : t('media.uploadImage')}
       className={cn(
         'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
         isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
@@ -344,28 +354,38 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
       <input
         {...getInputProps()}
         id={inputId}
-        aria-label={kind === 'music' ? 'Upload a music file' : 'Upload a background image'}
+        aria-label={kind === 'music' ? t('media.uploadMusic') : t('media.uploadImage')}
       />
       <Upload className="h-6 w-6 text-gray-400" />
-      <span className="text-sm text-gray-300">Drop a {kind === 'music' ? 'track' : 'image'} or click to browse</span>
+      <span className="text-sm text-gray-300">{kind === 'music' ? t('media.dropTrack') : t('media.dropImage')}</span>
       <span className="text-xs text-gray-500">
-        {kind === 'music' ? 'MP3, WAV, M4A' : 'JPG, PNG, WebP'} · stored on this device
+        {kind === 'music' ? t('media.musicFormats') : t('media.imageFormats')}
       </span>
     </div>
   );
 };
 
-const SelectedUpload = ({ kind, label, onClear }: { kind: MediaKind; label: string; onClear: () => void }) => (
-  <div className="flex items-center gap-3 rounded-lg border border-brand-500/30 bg-brand-500/10 p-3">
-    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-500/20 text-brand-300">
-      {kind === 'music' ? <Music className="h-5 w-5" /> : <ImageIcon className="h-5 w-5" />}
-    </span>
-    <span className="min-w-0 flex-1">
-      <span className="block truncate text-sm font-medium text-foreground">{label}</span>
-      <span className="block text-xs text-gray-400">Uploaded · stored on this device</span>
-    </span>
-    <Button variant="ghost" size="icon" onClick={onClear} aria-label="Remove uploaded file" className="text-gray-400">
-      <X className="h-4 w-4" />
-    </Button>
-  </div>
-);
+const SelectedUpload = ({ kind, label, onClear }: { kind: MediaKind; label: string; onClear: () => void }) => {
+  const { t } = useTranslation('admin');
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-brand-500/30 bg-brand-500/10 p-3">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-500/20 text-brand-300">
+        {kind === 'music' ? <Music className="h-5 w-5" /> : <ImageIcon className="h-5 w-5" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-foreground">{label}</span>
+        <span className="block text-xs text-gray-400">{t('media.uploaded')}</span>
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onClear}
+        aria-label={t('media.removeUpload')}
+        className="text-gray-400"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};

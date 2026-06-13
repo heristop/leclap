@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Clapperboard, Code2, Menu, X, Sun, Moon } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
 import { getTheme, toggleTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
@@ -11,33 +12,41 @@ type ThemeToggleProps = {
   className?: string;
 };
 
-const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => (
-  <Button
-    variant="ghost"
-    size="icon"
-    onClick={(e) => {
-      onToggle({ x: e.clientX, y: e.clientY });
-    }}
-    className={clsx(
-      'rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 hover:border-foreground/10',
-      className
-    )}
-    aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-    title="Toggle light / dark"
-  >
-    {theme === 'dark' ? <Sun /> : <Moon />}
-  </Button>
-);
+const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
+  const { t } = useTranslation();
 
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={(e) => {
+        onToggle({ x: e.clientX, y: e.clientY });
+      }}
+      className={clsx(
+        'rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 hover:border-foreground/10',
+        className
+      )}
+      aria-label={theme === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
+      title={t('header.toggleTheme')}
+    >
+      {theme === 'dark' ? <Sun /> : <Moon />}
+    </Button>
+  );
+};
+
+// href carries the route; labelKey resolves to a common.nav.* translation.
 const navigationItems = [
-  { name: 'Home', href: '/' },
-  { name: 'Builder', href: '/builder' },
-  { name: 'Templates', href: '/templates' },
-  { name: 'About', href: '/about' },
-];
+  { labelKey: 'nav.home', href: '/' },
+  { labelKey: 'nav.builder', href: '/builder' },
+  { labelKey: 'nav.templates', href: '/templates' },
+  { labelKey: 'nav.docs', href: '/doc' },
+  { labelKey: 'nav.about', href: '/about' },
+] as const;
+
+type NavItem = (typeof navigationItems)[number];
 
 type NavLinkProps = {
-  item: { name: string; href: string };
+  item: NavItem;
   isActive: boolean;
   mobile?: boolean;
   onClick?: () => void;
@@ -61,16 +70,21 @@ const getNavLinkClass = (mobile: boolean | undefined, isActive: boolean): string
   return clsx(base, state);
 };
 
-const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => (
-  <Link key={item.name} to={item.href} viewTransition className={getNavLinkClass(mobile, isActive)} onClick={onClick}>
-    {item.name}
-  </Link>
-);
+const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <Link to={item.href} viewTransition className={getNavLinkClass(mobile, isActive)} onClick={onClick}>
+      {t(item.labelKey)}
+    </Link>
+  );
+};
 
 type Indicator = { left: number; width: number; opacity: number };
 
 /** Desktop nav with a magnetic pill that glides between items and follows hover. */
 const DesktopNav = ({ pathname }: { pathname: string }) => {
+  const { t } = useTranslation();
   const navRef = useRef<HTMLElement>(null);
   const [pill, setPill] = useState<Indicator>({ left: 0, width: 0, opacity: 0 });
 
@@ -104,7 +118,7 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
   return (
     <nav
       ref={navRef}
-      aria-label="Primary"
+      aria-label={t('nav.primaryLabel')}
       className="relative hidden md:flex items-center gap-1"
       onMouseLeave={snapToActive}
     >
@@ -118,7 +132,7 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
 
         return (
           <Link
-            key={item.name}
+            key={item.href}
             to={item.href}
             viewTransition
             data-active={isActive}
@@ -130,7 +144,7 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
               isActive ? 'text-foreground' : 'text-gray-400 hover:text-foreground'
             )}
           >
-            {item.name}
+            {t(item.labelKey)}
           </Link>
         );
       })}
@@ -156,13 +170,14 @@ const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => (
       className="p-4 space-y-2 bg-surface/90 backdrop-blur-xl rounded-2xl border border-foreground/10"
     >
       {navigationItems.map((item) => (
-        <NavLink key={item.name} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
+        <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
       ))}
     </nav>
   </div>
 );
 
 export const Header = () => {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
@@ -204,7 +219,7 @@ export const Header = () => {
               <Clapperboard className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">LeClap</h1>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">{t('brand')}</h1>
             </div>
           </Link>
 
@@ -227,10 +242,10 @@ export const Header = () => {
                 href="https://github.com/heristop/ffmpeg-video-composer"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="View source code on GitHub"
+                aria-label={t('header.viewSource')}
               >
                 <Code2 className="w-4 h-4" />
-                <span>GitHub</span>
+                <span>{t('header.github')}</span>
               </a>
             </Button>
 
@@ -242,7 +257,7 @@ export const Header = () => {
                 setIsMenuOpen(!isMenuOpen);
               }}
               className="md:hidden"
-              aria-label="Toggle menu"
+              aria-label={t('header.toggleMenu')}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
             >

@@ -1,0 +1,48 @@
+{
+  "srHeading": "Video Builder — create videos from templates",
+  "loadingEngine": "Loading Engine",
+  "chip": {
+    "template": "Template"
+  },
+  "steps": {
+    "template": "Template",
+    "details": "Details",
+    "clip": "Clip {{number}}",
+    "yourClip": "Your clip",
+    "music": "Music",
+    "create": "Create",
+    "done": "Done"
+  },
+  "modeToggle": {
+    "ariaLabel": "Builder layout",
+    "linear": "Step-by-step",
+    "hub": "All at once"
+  },
+  "stepTemplate": {
+    "title": "Choose Your Style",
+    "subtitle": "Select a cinematic template to start creating"
+  },
+  "stepMedia": {
+    "title": "Music & Background",
+    "subtitle": "Choose the soundtrack and backdrop for your video",
+    "music": "Music",
+    "background": "Background Image"
+  },
+  "stepProcess": {
+    "title": "Create Video",
+    "subtitle": "We're ready to build your masterpiece",
+    "summary": "Project Summary",
+    "template": "Template",
+    "clips": "Clips",
+    "videoCount": "{{count}} video(s)",
+    "engineStatus": "Engine Status",
+    "ready": "Ready",
+    "initializing": "Initializing...",
+    "progress": "Processing Progress"
+  },
+  "stepResult": {
+    "title": "Your Video is Ready!",
+    "subtitle": "Download and share your creation",
+    "createAnother": "Create Another Video"
+  }
+}

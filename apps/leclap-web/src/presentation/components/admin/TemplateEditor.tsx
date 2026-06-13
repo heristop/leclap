@@ -1,7 +1,8 @@
-import { useState, useId, Fragment, type DragEvent } from 'react';
+import { useState, useId, useRef, useEffect, Fragment, type DragEvent, type ReactNode } from 'react';
 import {
   GripVertical,
   Trash2,
+  Copy,
   Plus,
   ArrowLeft,
   Video as VideoIcon,
@@ -14,8 +15,11 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronRight,
-  Volume2,
-  VolumeX,
+  Undo2,
+  Redo2,
+  Download,
+  Upload,
+  Settings2,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
@@ -27,22 +31,98 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-  Checkbox,
-  ColorPicker,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from '@/presentation/components/ui';
+import { useEditorHistory } from '@/hooks/useEditorHistory';
 import {
   buildDescriptor,
   collectVariables,
-  newSection,
-  SECTION_LABELS,
+  patch as patchOp,
+  patchSection as patchSectionOp,
+  addSection as addSectionOp,
+  removeSection as removeSectionOp,
+  reorderSection as reorderSectionOp,
+  duplicateSection as duplicateSectionOp,
+  patchLayers,
+  setTransitionAfter,
   toEditorState,
+  SECTION_LABELS,
+  type BackgroundLayer,
   type EditorSection,
   type EditorState,
+  type SectionTransition,
 } from './templateEditorModel';
-import { MediaPicker } from './MediaPicker';
-import { OverlayCanvas } from './OverlayCanvas';
+import { AudioPanel } from './editor/AudioPanel';
+import { TransitionPicker } from './editor/TransitionPicker';
+import { SectionFields } from './editor/SectionFields';
+import { TimelineStrip } from './editor/TimelineStrip';
+import { TestRenderButton } from './editor/TestRenderButton';
+import { SectionDisclosure } from './editor/SectionDisclosure';
+import { FadeIn } from './editor/FadeIn';
+import { SegmentedControl } from './editor/controls';
+import { BuilderModeProvider, useBuilderMode } from './editor/useBuilderMode';
+import { SECTION_HINTS } from './editor/sectionHints';
+import {
+  runValidation,
+  groupValidationErrors,
+  errorsForEditorSection,
+  type SectionValidation,
+  type ValidationError,
+} from './editor/validationMapping';
+import { exportDescriptorJson, exportFilename, importDescriptorJson } from './editor/templateIO';
 
 export { buildDescriptor } from './templateEditorModel';
+
+// DOM id for a section card, so the timeline strip can scroll it into view.
+const sectionDomId = (index: number): string => `template-section-${index}`;
+
+// Save-time guards (name, at least one section, media-or-upload, no hard validation errors).
+// Returns the first human message to show, or null when the template is safe to save.
+function saveGuardError(state: EditorState, hasHardErrors: boolean): string | null {
+  if (state.name.trim() === '') return 'Give your template a name.';
+
+  if (state.sections.length === 0) return 'Add at least one section.';
+
+  const emptyMedia = state.sections.find(
+    (s) => (s.kind === 'music' || s.kind === 'image') && s.allowed.length === 0 && !s.allowUpload
+  );
+
+  if (emptyMedia) {
+    const label = emptyMedia.kind === 'music' ? 'Background music' : 'Background image';
+
+    return `Pick at least one option for the ${label} section, or allow uploads.`;
+  }
+
+  if (hasHardErrors) return 'Fix the highlighted section errors before saving.';
+
+  return null;
+}
+
+// Editor state -> the persisted user Template (descriptor + derived metadata).
+function toUserTemplate(state: EditorState): Template {
+  const descriptor = buildDescriptor(state);
+
+  return {
+    id: state.id,
+    name: state.name.trim(),
+    description: state.description.trim(),
+    orientation: state.orientation,
+    hasForm: templateService.extractFormFields(descriptor).length > 0,
+    complexity: templateService.getTemplateComplexity(descriptor),
+    source: 'user',
+    descriptor,
+  };
+}
+
+// A visual section emits a transition into the next one; music/form do not. The chip
+// is only rendered after a visual section that has a visual section still ahead of it.
+const VISUAL_KINDS: ReadonlySet<EditorSection['kind']> = new Set(['video', 'color', 'image']);
+
+const isVisual = (section: EditorSection): boolean => VISUAL_KINDS.has(section.kind);
 
 interface TemplateEditorProps {
   initial: Template | null;
@@ -53,83 +133,68 @@ interface TemplateEditorProps {
 const inputCls =
   'w-full px-3 py-2 rounded-lg bg-surface-2 border border-foreground/10 text-foreground placeholder:text-gray-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 transition-all';
 
-// Add `id` if absent, drop it if present — pure shortlist toggle.
-const toggleId = (list: string[], id: string): string[] =>
-  list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
-
 export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorProps) => {
-  const [state, setState] = useState<EditorState>(() => toEditorState(initial));
+  const history = useEditorHistory(toEditorState(initial));
+  const { state, set, undo, redo, canUndo, canRedo, reset } = history;
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [importErrors, setImportErrors] = useState<string[] | null>(null);
+  const [mode, setMode] = useBuilderMode();
+  const advanced = mode === 'advanced';
   const variables = collectVariables(state);
 
-  const patch = (p: Partial<EditorState>) => {
-    setState((s) => ({ ...s, ...p }));
-  };
-  const patchSection = (i: number, p: Partial<EditorSection>) => {
-    setState((s) => ({
-      ...s,
-      sections: s.sections.map((sec, idx) => (idx === i ? ({ ...sec, ...p } as EditorSection) : sec)),
-    }));
-  };
-  const addSection = (kind: EditorSection['kind']) => {
-    setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] }));
-  };
-  const removeSection = (i: number) => {
-    setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
+  // Inline validation, recomputed on a 300ms debounce so typing stays smooth.
+  const validation = useDebouncedValidation(state);
+  // Hard errors gate Save + Preview (mirrors the original save-time guards).
+  const hasHardErrors = validation.hasErrors;
+  // The first unmet save guard, surfaced inline so a disabled Save explains itself.
+  const saveBlockedReason = saveGuardError(state, hasHardErrors);
+
+  // Every mutation routes through history.set(op(state,...)) so each is a single undoable step.
+  const ops = useSectionOps(set);
+  const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition, setLayers } = ops;
+
+  // Scroll a section card into view + focus it (timeline-strip click target).
+  const scrollToSection = (index: number) => {
+    const el = document.getElementById(sectionDomId(index));
+
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus({ preventScroll: true });
   };
 
-  const reorder = (from: number, to: number) => {
-    if (from === to) return;
-    setState((s) => {
-      const next = [...s.sections];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
+  // ⌘Z / ⇧⌘Z (Ctrl on non-mac) within the editor, ignoring keystrokes inside text inputs.
+  useEditorShortcuts({ undo, redo });
 
-      return { ...s, sections: next };
-    });
+  const exportJson = () => {
+    downloadText(exportDescriptorJson(state), exportFilename(state));
+  };
+
+  const importJson = (text: string) => {
+    const result = importDescriptorJson(text, state);
+
+    if (!result.ok) {
+      setImportErrors(result.errors);
+
+      return;
+    }
+    reset(result.state);
   };
 
   const handleSave = () => {
+    const guard = saveGuardError(state, hasHardErrors);
+
+    if (guard !== null) {
+      setError(guard);
+
+      return;
+    }
+
     setError('');
 
-    if (state.name.trim() === '') {
-      setError('Give your template a name.');
-
-      return;
-    }
-
-    if (state.sections.length === 0) {
-      setError('Add at least one section.');
-
-      return;
-    }
-
-    const emptyMedia = state.sections.find(
-      (s) => (s.kind === 'music' || s.kind === 'image') && s.allowed.length === 0 && !s.allowUpload
-    );
-
-    if (emptyMedia) {
-      const label = emptyMedia.kind === 'music' ? 'Background music' : 'Background image';
-      setError(`Pick at least one option for the ${label} section, or allow uploads.`);
-
-      return;
-    }
-
-    const descriptor = buildDescriptor(state);
-    const template: Template = {
-      id: state.id,
-      name: state.name.trim(),
-      description: state.description.trim(),
-      orientation: state.orientation,
-      hasForm: templateService.extractFormFields(descriptor).length > 0,
-      complexity: templateService.getTemplateComplexity(descriptor),
-      source: 'user',
-      descriptor,
-    };
-
     try {
-      userTemplateService.save(template);
+      userTemplateService.save(toUserTemplate(state));
       onSaved();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not save the template.');
@@ -137,188 +202,405 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-background">
-      <div className="mx-auto w-full max-w-2xl px-4 pt-24 pb-28">
-        <Button
-          variant="ghost"
-          onClick={onCancel}
-          className="group mb-4 -ml-2 rounded-full px-3 text-gray-500 hover:text-foreground dark:text-gray-400"
-        >
-          <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" /> Templates
-        </Button>
-
-        <h2 className="text-3xl font-bold font-display text-foreground mb-1">
-          {initial ? 'Edit template' : 'Create a template'}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
-          Compose sections, then save — it appears in the builder as a Custom template.
-        </p>
-
-        <MetadataFields state={state} patch={patch} />
-
-        {/* Sections — a top-to-bottom timeline the author composes and reorders. */}
-        <div className="mb-2">
-          <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Sections</span>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Played in order, top to bottom — drag the handle to rearrange.
-          </p>
-        </div>
-        <SectionList
-          sections={state.sections}
-          orientation={state.orientation}
-          variables={variables}
-          dragIndex={dragIndex}
-          setDragIndex={setDragIndex}
-          reorder={reorder}
-          removeSection={removeSection}
-          patchSection={patchSection}
-        />
-
-        <AddSectionButtons addSection={addSection} />
-
-        {error && (
-          <p
-            role="alert"
-            className="fade-in mb-4 flex items-start gap-2 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]"
+    <BuilderModeProvider mode={mode}>
+      <div className="min-h-[calc(100vh-4rem)] bg-background">
+        <div className="mx-auto w-full max-w-2xl px-4 pt-24 pb-28">
+          <Button
+            variant="ghost"
+            onClick={onCancel}
+            className="group mb-4 -ml-2 rounded-full px-3 text-gray-500 hover:text-foreground dark:text-gray-400"
           >
-            <AlertCircle className="mt-px size-4 shrink-0" /> {error}
-          </p>
-        )}
+            <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" /> Templates
+          </Button>
 
-        {/* Sticky action bar so Save stays reachable on long templates. */}
-        <div className="sticky bottom-0 -mx-4 mt-6 flex gap-3 border-t border-foreground/10 bg-background/85 px-4 py-4 backdrop-blur-md pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <Button variant="primary" onClick={handleSave} className="min-h-11 flex-1 active:scale-[0.98]">
-            <Save className="w-5 h-5" /> Save template
-          </Button>
-          <Button variant="secondary" onClick={onCancel} className="min-h-11 px-6 active:scale-[0.98]">
-            Cancel
-          </Button>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-3xl font-bold font-display text-foreground mb-1">
+                {initial ? 'Edit template' : 'Create a template'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                Build your scenes top to bottom, then save — it appears in the builder as a Custom template.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <SegmentedControl
+                value={mode}
+                onChange={setMode}
+                className="shrink-0"
+                options={[
+                  { value: 'simple', label: 'Simple' },
+                  { value: 'advanced', label: 'Advanced' },
+                ]}
+              />
+              <EditorToolbar
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onUndo={undo}
+                onRedo={redo}
+                onExport={exportJson}
+                onImport={importJson}
+              />
+            </div>
+          </div>
+
+          <BasicsFields state={state} patch={patch} />
+
+          <TimelineStrip state={state} onScrollToSection={scrollToSection} onReorder={reorder} />
+
+          {validation.global.length > 0 && <GlobalValidationBanner errors={validation.global} />}
+
+          {/* Sections — a top-to-bottom timeline the author composes and reorders. */}
+          <div className="mb-2">
+            <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+              Scenes
+            </span>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Each scene plays in order, top to bottom — drag the handle to rearrange.
+            </p>
+          </div>
+          <SectionList
+            sections={state.sections}
+            orientation={state.orientation}
+            variables={variables}
+            dragIndex={dragIndex}
+            validation={validation}
+            editorState={state}
+            setDragIndex={setDragIndex}
+            reorder={reorder}
+            removeSection={removeSection}
+            duplicateSection={duplicateSection}
+            patchSection={patchSection}
+            setTransition={setTransition}
+            setLayers={setLayers}
+          />
+
+          <AddSectionButtons addSection={addSection} />
+
+          {advanced && (
+            <FadeIn className="mb-6">
+              <AdvancedSettings state={state} patch={patch} />
+            </FadeIn>
+          )}
+
+          {error && (
+            <p
+              role="alert"
+              className="fade-in mb-4 flex items-start gap-2 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]"
+            >
+              <AlertCircle className="mt-px size-4 shrink-0" /> {error}
+            </p>
+          )}
+
+          {/* Sticky action bar so Save stays reachable on long templates. */}
+          <div className="sticky bottom-0 -mx-4 mt-6 border-t border-foreground/10 bg-background/85 px-4 py-4 backdrop-blur-md pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {saveBlockedReason && <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{saveBlockedReason}</p>}
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="primary"
+                onClick={handleSave}
+                disabled={saveBlockedReason !== null}
+                className="min-h-11 flex-1 active:scale-[0.98]"
+              >
+                <Save className="w-5 h-5" /> Save template
+              </Button>
+              <TestRenderButton state={state} disabled={hasHardErrors} />
+              <Button variant="secondary" onClick={onCancel} className="min-h-11 px-6 active:scale-[0.98]">
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
+
+        <ImportErrorDialog
+          errors={importErrors}
+          onClose={() => {
+            setImportErrors(null);
+          }}
+        />
       </div>
+    </BuilderModeProvider>
+  );
+};
+
+type SetState = (next: EditorState | ((current: EditorState) => EditorState)) => void;
+
+// The section/state mutation handlers, each wrapping a shared pure op in history.set so it becomes
+// a single undoable step. Extracted from the component so the body stays under the statement budget.
+function useSectionOps(set: SetState) {
+  return {
+    patch: (p: Partial<EditorState>) => {
+      set((s) => patchOp(s, p));
+    },
+    patchSection: (i: number, p: Partial<EditorSection>) => {
+      set((s) => patchSectionOp(s, i, p));
+    },
+    addSection: (kind: EditorSection['kind']) => {
+      set((s) => addSectionOp(s, kind));
+    },
+    removeSection: (i: number) => {
+      set((s) => removeSectionOp(s, i));
+    },
+    duplicateSection: (i: number) => {
+      set((s) => duplicateSectionOp(s, i));
+    },
+    reorder: (from: number, to: number) => {
+      if (from === to) return;
+      set((s) => reorderSectionOp(s, from, to));
+    },
+    setTransition: (i: number, transition: SectionTransition | undefined) => {
+      set((s) => setTransitionAfter(s, i, transition));
+    },
+    setLayers: (i: number, layers: BackgroundLayer[]) => {
+      set((s) => patchLayers(s, i, layers));
+    },
+  };
+}
+
+// Debounced (300ms) inline validation: build the descriptor, run the core validator, and group the
+// errors by section. Returns immediately-empty on the first render, then updates after the debounce.
+function useDebouncedValidation(state: EditorState): SectionValidation {
+  const [validation, setValidation] = useState<SectionValidation>(() => groupValidationErrors([]));
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setValidation(groupValidationErrors(runValidation(buildDescriptor(state))));
+    }, 300);
+
+    return () => {
+      clearTimeout(handle);
+    };
+  }, [state]);
+
+  return validation;
+}
+
+// ⌘Z / ⇧⌘Z (Ctrl+Z / Ctrl+Shift+Z off mac) for undo/redo — but never while the user is typing in a
+// text field, so it doesn't fight the browser's native input undo.
+function useEditorShortcuts({ undo, redo }: { undo: () => void; redo: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent): void => {
+      const mod = e.metaKey || e.ctrlKey;
+
+      if (!mod || e.key.toLowerCase() !== 'z') return;
+
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+
+      e.preventDefault();
+
+      if (e.shiftKey) {
+        redo();
+
+        return;
+      }
+      undo();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [undo, redo]);
+}
+
+// Trigger a client-side download of `text` as a JSON file named `filename`.
+function downloadText(text: string, filename: string): void {
+  const blob = new Blob([text], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+interface EditorToolbarProps {
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
+  onExport: () => void;
+  onImport: (text: string) => void;
+}
+
+const EditorToolbar = ({ canUndo, canRedo, onUndo, onRedo, onExport, onImport }: EditorToolbarProps) => {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onFile = async (file: File | undefined): Promise<void> => {
+    if (!file) return;
+
+    onImport(await file.text());
+
+    // Reset so re-selecting the same file fires change again.
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <IconBtn label="Undo" disabled={!canUndo} onClick={onUndo}>
+        <Undo2 className="h-4 w-4" />
+      </IconBtn>
+      <IconBtn label="Redo" disabled={!canRedo} onClick={onRedo}>
+        <Redo2 className="h-4 w-4" />
+      </IconBtn>
+      <span aria-hidden className="mx-1 h-5 w-px bg-foreground/10" />
+      <IconBtn label="Export template JSON" onClick={onExport}>
+        <Download className="h-4 w-4" />
+      </IconBtn>
+      <IconBtn
+        label="Import template JSON"
+        onClick={() => {
+          fileRef.current?.click();
+        }}
+      >
+        <Upload className="h-4 w-4" />
+      </IconBtn>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="sr-only"
+        onChange={(e) => {
+          onFile(e.target.files?.[0]).catch(() => {});
+        }}
+      />
     </div>
   );
 };
+
+const IconBtn = ({
+  label,
+  disabled = false,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) => (
+  <button
+    type="button"
+    aria-label={label}
+    title={label}
+    disabled={disabled}
+    onClick={onClick}
+    className="tap grid h-9 w-9 place-items-center rounded-lg border border-foreground/10 bg-foreground/5 text-gray-600 transition-colors hover:bg-foreground/10 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-40 dark:text-gray-300"
+  >
+    {children}
+  </button>
+);
+
+const GlobalValidationBanner = ({ errors }: { errors: ValidationError[] }) => (
+  <div
+    role="alert"
+    className="fade-in mb-4 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]"
+  >
+    <p className="flex items-center gap-2">
+      <AlertCircle className="size-4 shrink-0" /> This template has problems:
+    </p>
+    <ul className="mt-1 list-disc space-y-0.5 pl-7">
+      {errors.map((e, i) => (
+        <li key={i}>{e.message}</li>
+      ))}
+    </ul>
+  </div>
+);
+
+const ImportErrorDialog = ({ errors, onClose }: { errors: string[] | null; onClose: () => void }) => (
+  <Dialog
+    open={errors !== null}
+    onOpenChange={(next) => {
+      if (!next) onClose();
+    }}
+  >
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Could not import</DialogTitle>
+        <DialogDescription>The file is not a valid template descriptor.</DialogDescription>
+      </DialogHeader>
+      <ul className="max-h-[50vh] space-y-1 overflow-y-auto rounded-lg bg-foreground/5 p-3 text-sm text-[var(--color-error)]">
+        {(errors ?? []).map((e, i) => (
+          <li key={i} className="font-mono text-xs">
+            {e}
+          </li>
+        ))}
+      </ul>
+    </DialogContent>
+  </Dialog>
+);
 
 interface MetadataFieldsProps {
   state: EditorState;
   patch: (p: Partial<EditorState>) => void;
 }
 
-const MetadataFields = ({ state, patch }: MetadataFieldsProps) => {
+// Always-visible basics: name + orientation. Compact, sits right under the header.
+const BasicsFields = ({ state, patch }: MetadataFieldsProps) => {
   const nameId = useId();
 
   return (
-    <div className="mb-6 space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <label htmlFor={nameId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Name
-          </label>
-          <input
-            id={nameId}
-            className={inputCls}
-            value={state.name}
-            onChange={(e) => {
-              patch({ name: e.target.value });
-            }}
-            placeholder="My template"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Orientation
-          </label>
-          <Select
-            value={state.orientation}
-            onValueChange={(v) => {
-              patch({ orientation: v as EditorState['orientation'] });
-            }}
-          >
-            <SelectTrigger aria-label="Orientation">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="landscape">Landscape (16:9)</SelectItem>
-              <SelectItem value="portrait">Portrait (9:16)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="mb-6 grid gap-3 sm:grid-cols-[1fr_12rem]">
+      <div>
+        <label
+          htmlFor={nameId}
+          className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400"
+        >
+          Name
+        </label>
+        <input
+          id={nameId}
+          className={inputCls}
+          value={state.name}
+          onChange={(e) => {
+            patch({ name: e.target.value });
+          }}
+          placeholder="My template"
+        />
       </div>
-      <AudioMixEditor state={state} patch={patch} />
-      <GlobalVariablesEditor state={state} patch={patch} />
-    </div>
-  );
-};
-
-// Global audio mix: balances the recorded clips' own audio against the background music.
-// Each slider is 0..1; dragging to 0 mutes that source (buildDescriptor writes
-// global.audioVolumeLevel / global.musicVolumeLevel).
-const AudioMixEditor = ({ state, patch }: MetadataFieldsProps) => {
-  const { audioMix } = state;
-
-  const setMix = (p: Partial<EditorState['audioMix']>) => {
-    patch({ audioMix: { ...audioMix, ...p } });
-  };
-
-  return (
-    <div>
-      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Audio mix</span>
-      <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-        Balance your recorded clip against the music. Slide to 0 to mute.
-      </p>
-      <div className="space-y-3 rounded-xl border border-foreground/10 bg-surface/40 p-3">
-        <VolumeSlider
-          label="Your video"
-          value={audioMix.video}
-          onChange={(video) => {
-            setMix({ video });
+      <div>
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+          Orientation
+        </label>
+        <Select
+          value={state.orientation}
+          onValueChange={(v) => {
+            patch({ orientation: v as EditorState['orientation'] });
           }}
-        />
-        <VolumeSlider
-          label="Music"
-          value={audioMix.music}
-          onChange={(music) => {
-            setMix({ music });
-          }}
-        />
+        >
+          <SelectTrigger aria-label="Orientation">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="landscape">Landscape (16:9)</SelectItem>
+            <SelectItem value="portrait">Portrait (9:16)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
 };
 
-interface VolumeSliderProps {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-}
-
-const VolumeSlider = ({ label, value, onChange }: VolumeSliderProps) => {
-  const muted = value === 0;
-
-  return (
-    <label className="block">
-      <div className="mb-1 flex items-center justify-between text-xs font-medium">
-        <span className="flex items-center gap-1.5 text-foreground/80">
-          {muted ? <VolumeX className="size-3.5 text-[var(--color-error)]" /> : <Volume2 className="size-3.5" />}
-          {label}
-        </span>
-        <span className="tabular-nums text-gray-500">{muted ? 'Muted' : `${Math.round(value * 100)}%`}</span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.05}
-        value={value}
-        onChange={(e) => {
-          onChange(Number(e.target.value));
-        }}
-        className="h-2 w-full cursor-pointer accent-brand-500"
-        aria-label={`${label} volume`}
-      />
-    </label>
-  );
-};
+// Power-user finishing concerns (global audio mix + template variables), tucked into one collapsed
+// disclosure below the scenes so they never sit between the basics and the creative work.
+const AdvancedSettings = ({ state, patch }: MetadataFieldsProps) => (
+  <SectionDisclosure
+    label="Advanced settings"
+    icon={<Settings2 className="size-4 shrink-0 text-brand-500" aria-hidden />}
+    summary="Audio mix · Variables"
+  >
+    <AudioPanel
+      audio={state.audio}
+      onChange={(audio) => {
+        patch({ audio });
+      }}
+    />
+    <GlobalVariablesEditor state={state} patch={patch} />
+  </SectionDisclosure>
+);
 
 // Author-defined template constants. Each row is a {name, value} pair that
 // buildDescriptor merges into global.variables; insertable as {{ name }} in any
@@ -332,7 +614,9 @@ const GlobalVariablesEditor = ({ state, patch }: MetadataFieldsProps) => {
 
   return (
     <div>
-      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Global variables</span>
+      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+        Global variables
+      </span>
       <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
         Reusable values you can insert as {'{{ name }}'} in any text.
       </p>
@@ -388,11 +672,22 @@ interface SectionListProps {
   orientation: EditorState['orientation'];
   variables: string[];
   dragIndex: number | null;
+  validation: SectionValidation;
+  editorState: EditorState;
   setDragIndex: (i: number | null) => void;
   reorder: (from: number, to: number) => void;
   removeSection: (i: number) => void;
+  duplicateSection: (i: number) => void;
   patchSection: (i: number, p: Partial<EditorSection>) => void;
+  setTransition: (i: number, transition: SectionTransition | undefined) => void;
+  setLayers: (i: number, layers: BackgroundLayer[]) => void;
 }
+
+// True when section `i` is visual AND some later section is also visual — i.e. a
+// transition chip belongs after it (the last visual section never gets one; the
+// validator rejects a dangling transition).
+const hasVisualAfter = (sections: EditorSection[], i: number): boolean =>
+  isVisual(sections[i]) && sections.slice(i + 1).some(isVisual);
 
 // Move a collapsed index `from` → `to` within the set, shifting the indices in
 // between, so per-card collapsed state follows the card across a reorder.
@@ -429,10 +724,15 @@ const SectionList = ({
   orientation,
   variables,
   dragIndex,
+  validation,
+  editorState,
   setDragIndex,
   reorder,
   removeSection,
+  duplicateSection,
   patchSection,
+  setTransition,
+  setLayers,
 }: SectionListProps) => {
   // `insertAt` is the gap index (0..n) where the dragged card will land.
   const [insertAt, setInsertAt] = useState<number | null>(null);
@@ -550,7 +850,7 @@ const SectionList = ({
       )}
       {sections.length === 0 && (
         <div className="grid place-items-center rounded-xl border-2 border-dashed border-foreground/15 bg-foreground/[0.02] px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          No sections yet — add your first one below.
+          No scenes yet — add your first one below.
         </div>
       )}
       {sections.map((section, i) => (
@@ -565,6 +865,7 @@ const SectionList = ({
             dragging={dragIndex === i}
             collapsed={collapsed.has(i)}
             insertAt={insertAt}
+            errors={errorsForEditorSection(validation, editorState, i)}
             setArmedIndex={setArmedIndex}
             setDragIndex={setDragIndex}
             setInsertAt={setInsertAt}
@@ -572,8 +873,19 @@ const SectionList = ({
             commit={commit}
             toggleCollapsed={toggleCollapsed}
             removeSection={handleRemove}
+            duplicateSection={duplicateSection}
             patchSection={patchSection}
+            setLayers={setLayers}
           />
+          {/* Boundary transition chip — hidden mid-drag so it never fights the drop animation. */}
+          {!dragging && hasVisualAfter(sections, i) && (
+            <TransitionPicker
+              transition={'transitionAfter' in section ? section.transitionAfter : undefined}
+              onChange={(transition) => {
+                setTransition(i, transition);
+              }}
+            />
+          )}
         </Fragment>
       ))}
       {dropZone(sections.length)}
@@ -590,6 +902,7 @@ interface SectionCardProps {
   dragging: boolean;
   collapsed: boolean;
   insertAt: number | null;
+  errors: ValidationError[];
   setArmedIndex: (i: number | null) => void;
   setDragIndex: (i: number | null) => void;
   setInsertAt: (i: number | null) => void;
@@ -597,7 +910,9 @@ interface SectionCardProps {
   commit: (at: number) => void;
   toggleCollapsed: (i: number) => void;
   removeSection: (i: number) => void;
+  duplicateSection: (i: number) => void;
   patchSection: (i: number, p: Partial<EditorSection>) => void;
+  setLayers: (i: number, layers: BackgroundLayer[]) => void;
 }
 
 const SectionCard = ({
@@ -609,6 +924,7 @@ const SectionCard = ({
   dragging,
   collapsed,
   insertAt,
+  errors,
   setArmedIndex,
   setDragIndex,
   setInsertAt,
@@ -616,9 +932,13 @@ const SectionCard = ({
   commit,
   toggleCollapsed,
   removeSection,
+  duplicateSection,
   patchSection,
+  setLayers,
 }: SectionCardProps) => (
   <div
+    id={sectionDomId(index)}
+    tabIndex={-1}
     draggable={armed}
     onDragStart={(e) => {
       setDragIndex(index);
@@ -636,10 +956,11 @@ const SectionCard = ({
       setArmedIndex(null);
     }}
     className={clsx(
-      'relative my-2 rounded-xl border bg-surface-2/60 p-3 transition-all duration-200 ease-[var(--ease-out-expo)]',
-      dragging
-        ? 'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20'
-        : 'border-foreground/10'
+      'relative my-2 rounded-xl border bg-surface-2/60 p-3 transition-all duration-200 ease-[var(--ease-out-expo)] scroll-mt-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+      dragging &&
+        'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20',
+      !dragging && errors.length > 0 && 'border-[var(--color-error)]/60 ring-1 ring-[var(--color-error)]/30',
+      !dragging && errors.length === 0 && 'border-foreground/10'
     )}
   >
     <div className={clsx('flex items-center gap-2', collapsed ? 'mb-0' : 'mb-2')}>
@@ -678,16 +999,28 @@ const SectionCard = ({
       {collapsed && (
         <span className="min-w-0 truncate text-xs text-gray-500 dark:text-gray-400">{sectionSummary(section)}</span>
       )}
-      <button
-        type="button"
-        onClick={() => {
-          removeSection(index);
-        }}
-        aria-label="Remove section"
-        className="tap ml-auto p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+      <div className="ml-auto flex items-center gap-0.5">
+        <button
+          type="button"
+          onClick={() => {
+            duplicateSection(index);
+          }}
+          aria-label="Duplicate section"
+          className="tap p-1.5 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90 transition-colors dark:hover:text-brand-300"
+        >
+          <Copy className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            removeSection(index);
+          }}
+          aria-label="Remove section"
+          className="tap p-1.5 rounded-lg text-gray-500 hover:text-[var(--color-error)] hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
     </div>
     {!collapsed && (
       <SectionFields
@@ -697,16 +1030,30 @@ const SectionCard = ({
         onChange={(p) => {
           patchSection(index, p);
         }}
+        onLayers={(layers) => {
+          setLayers(index, layers);
+        }}
         inputCls={inputCls}
       />
+    )}
+    {errors.length > 0 && (
+      <ul className="mt-2 space-y-1 rounded-lg bg-[var(--color-error)]/10 px-3 py-2 text-xs font-medium text-[var(--color-error)]">
+        {errors.map((e, i) => (
+          <li key={i} className="flex items-start gap-1.5">
+            <AlertCircle className="mt-px size-3.5 shrink-0" /> {e.message}
+          </li>
+        ))}
+      </ul>
     )}
   </div>
 );
 
 const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['kind']) => void }) => (
   <div className="mb-6">
-    <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-gray-400">Add a section</span>
-    <div className="flex flex-wrap gap-2">
+    <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+      Add a scene
+    </span>
+    <div className="grid gap-2 sm:grid-cols-2">
       {(['video', 'form', 'color', 'music', 'image'] as const).map((kind) => (
         <button
           key={kind}
@@ -714,9 +1061,15 @@ const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['k
           onClick={() => {
             addSection(kind);
           }}
-          className="tap inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2 text-sm text-gray-700 transition-all hover:-translate-y-0.5 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-200"
+          className="tap group flex min-h-10 items-start gap-2.5 rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2.5 text-left transition-all hover:-translate-y-0.5 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]"
         >
-          <SectionIcon kind={kind} /> {SECTION_LABELS[kind]}
+          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-brand-500/10 transition-colors group-hover:bg-brand-500/15">
+            <SectionIcon kind={kind} />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-foreground">{SECTION_LABELS[kind]}</span>
+            <span className="block text-xs text-gray-500 dark:text-gray-400">{SECTION_HINTS[kind]}</span>
+          </span>
         </button>
       ))}
     </div>
@@ -765,299 +1118,4 @@ const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
   if (kind === 'image') return <ImageIcon className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
 
   return <VideoIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
-};
-
-function SectionFields({
-  section,
-  orientation,
-  variables,
-  onChange,
-  inputCls,
-}: {
-  section: EditorSection;
-  orientation: EditorState['orientation'];
-  variables: string[];
-  onChange: (p: Partial<EditorSection>) => void;
-  inputCls: string;
-}) {
-  const colorId = useId();
-
-  if (section.kind === 'video') {
-    return (
-      <VideoFields
-        section={section}
-        orientation={orientation}
-        variables={variables}
-        onChange={onChange}
-        inputCls={inputCls}
-      />
-    );
-  }
-
-  if (section.kind === 'color') {
-    return (
-      <div className="grid sm:grid-cols-2 gap-3 pl-7">
-        <NumberField
-          label="Duration (s)"
-          value={section.duration}
-          onChange={(v) => {
-            onChange({ duration: v });
-          }}
-          inputCls={inputCls}
-        />
-        <div>
-          <label htmlFor={colorId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-            Color
-          </label>
-          <ColorPicker
-            id={colorId}
-            aria-label="Background color"
-            value={section.color}
-            onChange={(c) => {
-              onChange({ color: c });
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (section.kind === 'music') {
-    return <MusicFields section={section} onChange={onChange} />;
-  }
-
-  if (section.kind === 'image') {
-    return <ImageFields section={section} onChange={onChange} inputCls={inputCls} />;
-  }
-
-  // form
-  return (
-    <div className="space-y-2 pl-7">
-      {section.fields.map((field, fi) => (
-        <div key={fi} className="grid grid-cols-[1fr_1fr_5rem_auto] gap-2 items-center">
-          <input
-            aria-label="Field ID"
-            className={inputCls}
-            value={field.name}
-            onChange={(e) => {
-              onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, name: e.target.value } : f)) });
-            }}
-            placeholder="field id"
-          />
-          <input
-            aria-label="Field label"
-            className={inputCls}
-            value={field.label}
-            onChange={(e) => {
-              onChange({ fields: section.fields.map((f, idx) => (idx === fi ? { ...f, label: e.target.value } : f)) });
-            }}
-            placeholder="Label"
-          />
-          <input
-            aria-label="Max length"
-            type="number"
-            className={inputCls}
-            value={field.maxLength}
-            onChange={(e) => {
-              onChange({
-                fields: section.fields.map((f, idx) => (idx === fi ? { ...f, maxLength: Number(e.target.value) } : f)),
-              });
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              onChange({ fields: section.fields.filter((_, idx) => idx !== fi) });
-            }}
-            aria-label="Remove field"
-            className="tap rounded-lg p-1.5 text-gray-500 hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={() => {
-          onChange({
-            fields: [...section.fields, { name: `field_${section.fields.length + 1}`, label: 'Label', maxLength: 40 }],
-          });
-        }}
-        className="tap inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-foreground/5 text-gray-600 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-colors dark:text-gray-300"
-      >
-        <Plus className="w-3.5 h-3.5" /> Add field
-      </button>
-    </div>
-  );
-}
-
-type VideoSection = Extract<EditorSection, { kind: 'video' }>;
-type MusicSection = Extract<EditorSection, { kind: 'music' }>;
-type ImageSection = Extract<EditorSection, { kind: 'image' }>;
-
-const VideoFields = ({
-  section,
-  orientation,
-  variables,
-  onChange,
-  inputCls,
-}: {
-  section: VideoSection;
-  orientation: EditorState['orientation'];
-  variables: string[];
-  onChange: (p: Partial<EditorSection>) => void;
-  inputCls: string;
-}) => (
-  <div className="space-y-3 pl-7">
-    <div className="grid gap-3 sm:grid-cols-2">
-      <NumberField
-        label="Duration (s)"
-        value={section.duration}
-        onChange={(v) => {
-          onChange({ duration: v });
-        }}
-        inputCls={inputCls}
-      />
-      <label className="mt-6 flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-        <Checkbox
-          checked={section.mute}
-          onCheckedChange={(c) => {
-            onChange({ mute: c === true });
-          }}
-        />{' '}
-        Mute audio
-      </label>
-    </div>
-    <div className="grid gap-3 sm:grid-cols-2">
-      <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-        <Checkbox
-          checked={section.countdown}
-          onCheckedChange={(c) => {
-            onChange({ countdown: c === true });
-          }}
-        />{' '}
-        Countdown before recording
-      </label>
-      {section.countdown && (
-        <NumberField
-          label="Countdown (s)"
-          value={section.countdownSeconds}
-          onChange={(v) => {
-            onChange({ countdownSeconds: v });
-          }}
-          inputCls={inputCls}
-        />
-      )}
-    </div>
-    <OverlayCanvas
-      overlays={section.overlays}
-      orientation={orientation}
-      variables={variables}
-      onChange={(overlays) => {
-        onChange({ overlays });
-      }}
-    />
-  </div>
-);
-
-const MusicFields = ({
-  section,
-  onChange,
-}: {
-  section: MusicSection;
-  onChange: (p: Partial<EditorSection>) => void;
-}) => (
-  <div className="space-y-3 pl-7">
-    <p className="text-xs text-gray-500 dark:text-gray-400">Pick the tracks viewers can choose from.</p>
-    <MediaPicker
-      kind="music"
-      multiple
-      selectedIds={section.allowed}
-      onToggleId={(id) => {
-        onChange({ allowed: toggleId(section.allowed, id) });
-      }}
-    />
-    <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-      <Checkbox
-        checked={section.allowUpload}
-        onCheckedChange={(c) => {
-          onChange({ allowUpload: c === true });
-        }}
-      />
-      Allow viewers to upload their own track
-    </label>
-  </div>
-);
-
-const ImageFields = ({
-  section,
-  onChange,
-  inputCls,
-}: {
-  section: ImageSection;
-  onChange: (p: Partial<EditorSection>) => void;
-  inputCls: string;
-}) => (
-  <div className="space-y-3 pl-7">
-    <div className="sm:w-40">
-      <NumberField
-        label="Duration (s)"
-        value={section.duration}
-        onChange={(v) => {
-          onChange({ duration: v });
-        }}
-        inputCls={inputCls}
-      />
-    </div>
-    <p className="text-xs text-gray-500 dark:text-gray-400">Pick the images viewers can choose from.</p>
-    <MediaPicker
-      kind="picture"
-      multiple
-      selectedIds={section.allowed}
-      onToggleId={(id) => {
-        onChange({ allowed: toggleId(section.allowed, id) });
-      }}
-    />
-    <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">
-      <Checkbox
-        checked={section.allowUpload}
-        onCheckedChange={(c) => {
-          onChange({ allowUpload: c === true });
-        }}
-      />
-      Allow viewers to upload their own image
-    </label>
-  </div>
-);
-
-const NumberField = ({
-  label,
-  value,
-  onChange,
-  inputCls,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  inputCls: string;
-}) => {
-  const numberId = useId();
-
-  return (
-    <div>
-      <label htmlFor={numberId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-        {label}
-      </label>
-      <input
-        id={numberId}
-        type="number"
-        min={1}
-        className={inputCls}
-        value={value}
-        onChange={(e) => {
-          onChange(Number(e.target.value));
-        }}
-      />
-    </div>
-  );
 };

@@ -681,6 +681,27 @@ html.theme-vt::view-transition-new(root) {
   animation: pop-in 0.42s var(--ease-spring) both;
 }
 
+/* Juicy: a one-shot ring of dots that pops outward when a step completes.
+   Each dot's parent is rotated to its angle; this only animates the outward
+   travel + fade, so the burst reads as radial. Plays once (no infinite). */
+@keyframes dot-burst {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.3);
+  }
+  35% {
+    opacity: 0.85;
+    transform: translateY(-13px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.5);
+  }
+}
+.dot-burst {
+  animation: dot-burst 0.6s var(--ease-out-expo) both;
+}
+
 /* Juicy: floating action bar slides up from below the viewport */
 @keyframes slide-up {
   from {

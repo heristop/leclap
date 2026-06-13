@@ -1,4 +1,6 @@
 import { useState, startTransition } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Play, Square, AlertCircle, CheckCircle2, Loader2, FileText, Users, Lightbulb } from 'lucide-react';
 import clsx from 'clsx';
 import { type Template } from '@/services/templateService';
@@ -14,20 +16,20 @@ interface VideoProcessorProps {
   uploadedFiles?: File[];
 }
 
-function getStatusLabel(actuallyProcessing: boolean, canProcess: boolean): string {
-  if (actuallyProcessing) return 'Processing Video...';
+function getStatusLabel(actuallyProcessing: boolean, canProcess: boolean, t: TFunction<'process'>): string {
+  if (actuallyProcessing) return t('processor.status.processingTitle');
 
-  if (canProcess) return 'Ready to Process';
+  if (canProcess) return t('processor.status.readyTitle');
 
-  return 'Setup Required';
+  return t('processor.status.setupTitle');
 }
 
-function getStatusDescription(actuallyProcessing: boolean, canProcess: boolean): string {
-  if (actuallyProcessing) return 'Please wait while we process your video';
+function getStatusDescription(actuallyProcessing: boolean, canProcess: boolean, t: TFunction<'process'>): string {
+  if (actuallyProcessing) return t('processor.status.processingDescription');
 
-  if (canProcess) return 'All requirements met. You can start processing.';
+  if (canProcess) return t('processor.status.readyDescription');
 
-  return 'Please select a template and upload video files';
+  return t('processor.status.setupDescription');
 }
 
 function StatusIcon({ actuallyProcessing, canProcess }: { actuallyProcessing: boolean; canProcess: boolean }) {
@@ -41,6 +43,8 @@ function StatusIcon({ actuallyProcessing, canProcess }: { actuallyProcessing: bo
 }
 
 function StatusBar({ actuallyProcessing, canProcess }: { actuallyProcessing: boolean; canProcess: boolean }) {
+  const { t } = useTranslation('process');
+
   return (
     <Card elevation="flat" className="flex items-center justify-between p-4 bg-surface/40 rounded-xl backdrop-blur-sm">
       <div className="flex items-center space-x-3">
@@ -54,8 +58,8 @@ function StatusBar({ actuallyProcessing, canProcess }: { actuallyProcessing: boo
           )}
         />
         <div>
-          <p className="text-sm font-medium text-foreground">{getStatusLabel(actuallyProcessing, canProcess)}</p>
-          <p className="text-xs text-gray-400">{getStatusDescription(actuallyProcessing, canProcess)}</p>
+          <p className="text-sm font-medium text-foreground">{getStatusLabel(actuallyProcessing, canProcess, t)}</p>
+          <p className="text-xs text-gray-400">{getStatusDescription(actuallyProcessing, canProcess, t)}</p>
         </div>
       </div>
 
@@ -73,6 +77,8 @@ function StatusBar({ actuallyProcessing, canProcess }: { actuallyProcessing: boo
 }
 
 function ErrorDisplay({ error }: { error: string }) {
+  const { t } = useTranslation('process');
+
   return (
     <Card
       elevation="flat"
@@ -81,7 +87,7 @@ function ErrorDisplay({ error }: { error: string }) {
       <div className="flex items-start space-x-3">
         <AlertCircle className="w-5 h-5 text-[var(--color-error)] mt-0.5 flex-shrink-0" />
         <div>
-          <h4 className="text-sm font-medium text-[var(--color-error)] mb-1">Processing Error</h4>
+          <h4 className="text-sm font-medium text-[var(--color-error)] mb-1">{t('processor.error.title')}</h4>
           <p className="text-sm text-[var(--color-error)]/80">{error}</p>
         </div>
       </div>
@@ -100,6 +106,8 @@ function ActionButton({
   isOptimisticProcessing: boolean;
   onStartProcessing: () => void;
 }) {
+  const { t } = useTranslation('process');
+
   return (
     <div className="flex justify-center">
       <Button
@@ -123,13 +131,15 @@ function ActionButton({
         >
           {actuallyProcessing ? <Square /> : <Play />}
         </span>
-        <span>{actuallyProcessing ? 'Processing...' : 'Start Processing'}</span>
+        <span>{actuallyProcessing ? t('processor.action.processing') : t('processor.action.start')}</span>
       </Button>
     </div>
   );
 }
 
 function TemplateInfo({ template, formData }: { template: Template; formData: Record<string, string> }) {
+  const { t } = useTranslation('process');
+
   return (
     <Card elevation="flat" className="p-4 bg-brand-500/10 border-brand-500/30 rounded-xl fade-in backdrop-blur-sm">
       <div className="flex items-start space-x-3">
@@ -142,38 +152,42 @@ function TemplateInfo({ template, formData }: { template: Template; formData: Re
         </div>
         <div className="flex-1">
           <h4 className="text-sm font-medium text-brand-700 dark:text-brand-300 mb-1">
-            Selected Template: {template.name}
+            {t('processor.template.selected', { name: template.name })}
           </h4>
           <p className="text-xs text-brand-800/70 dark:text-brand-200/70 mb-2">{template.description}</p>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">Complexity:</span>
+              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.complexity')}</span>
               <span className="ml-1 font-medium text-brand-700 dark:text-brand-300 capitalize">
                 {template.complexity}
               </span>
             </div>
             <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">Orientation:</span>
+              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.orientation')}</span>
               <span className="ml-1 font-medium text-brand-700 dark:text-brand-300 capitalize">
                 {template.orientation}
               </span>
             </div>
             <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">Sections:</span>
+              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.sections')}</span>
               <span className="ml-1 font-medium text-brand-700 dark:text-brand-300">
                 {template.descriptor.sections?.length ?? 0}
               </span>
             </div>
             <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">Music:</span>
+              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.music')}</span>
               <span className="ml-1 font-medium text-brand-700 dark:text-brand-300">
-                {template.descriptor.global?.musicEnabled ? 'Enabled' : 'Disabled'}
+                {template.descriptor.global?.musicEnabled
+                  ? t('processor.template.musicEnabled')
+                  : t('processor.template.musicDisabled')}
               </span>
             </div>
           </div>
           {template.hasForm && Object.keys(formData).length > 0 && (
             <div className="mt-2 pt-2 border-t border-brand-500/20">
-              <p className="text-xs text-brand-800/70 dark:text-brand-400/70 mb-1">Form Data:</p>
+              <p className="text-xs text-brand-800/70 dark:text-brand-400/70 mb-1">
+                {t('processor.template.formData')}
+              </p>
               <div className="text-xs text-brand-700 dark:text-brand-300 space-y-1">
                 {Object.entries(formData).map(([key, value]) => (
                   <div key={key} className="flex justify-between">
@@ -201,16 +215,17 @@ function RequirementsChecklist({
   formData: Record<string, string>;
   uploadedFiles?: File[];
 }) {
+  const { t } = useTranslation('process');
   const hasFiles = (uploadedFiles?.length ?? 0) > 0;
   const hasFormData = Object.keys(formData).length > 0;
 
   return (
     <Card elevation="flat" className="p-4 bg-info/10 border-info/30 rounded-xl fade-in backdrop-blur-sm">
-      <h4 className="text-sm font-medium text-info mb-3">Before you can start processing:</h4>
+      <h4 className="text-sm font-medium text-info mb-3">{t('processor.requirements.title')}</h4>
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-sm">
           <CheckCircle2 className="w-4 h-4 text-success-foreground" />
-          <span className="text-gray-300">Video processing engine ready</span>
+          <span className="text-gray-300">{t('processor.requirements.engineReady')}</span>
         </div>
         <div className="flex items-center space-x-2 text-sm">
           {template ? (
@@ -218,7 +233,9 @@ function RequirementsChecklist({
           ) : (
             <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
           )}
-          <span className={template ? 'text-gray-300' : 'text-gray-500'}>Select a template</span>
+          <span className={template ? 'text-gray-300' : 'text-gray-500'}>
+            {t('processor.requirements.selectTemplate')}
+          </span>
         </div>
         {template?.hasForm && (
           <div className="flex items-center space-x-2 text-sm">
@@ -227,7 +244,9 @@ function RequirementsChecklist({
             ) : (
               <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
             )}
-            <span className={hasFormData ? 'text-gray-300' : 'text-gray-500'}>Fill template form</span>
+            <span className={hasFormData ? 'text-gray-300' : 'text-gray-500'}>
+              {t('processor.requirements.fillForm')}
+            </span>
           </div>
         )}
         <div className="flex items-center space-x-2 text-sm">
@@ -236,7 +255,7 @@ function RequirementsChecklist({
           ) : (
             <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
           )}
-          <span className={hasFiles ? 'text-gray-300' : 'text-gray-500'}>Upload at least one video file</span>
+          <span className={hasFiles ? 'text-gray-300' : 'text-gray-500'}>{t('processor.requirements.uploadFile')}</span>
         </div>
       </div>
     </Card>
@@ -244,17 +263,19 @@ function RequirementsChecklist({
 }
 
 function ProcessingTips() {
+  const { t } = useTranslation('process');
+
   return (
     <Card elevation="flat" className="p-4 bg-success/10 border-success/30 rounded-xl fade-in backdrop-blur-sm">
       <h4 className="text-sm font-semibold text-success-foreground mb-2 flex items-center gap-2">
         <Lightbulb className="w-4 h-4" />
-        Processing Tips
+        {t('processor.tips.title')}
       </h4>
       <ul className="text-sm text-success-foreground/80 space-y-1">
-        <li>• Keep this tab active during processing</li>
-        <li>• Larger files will take longer to process</li>
-        <li>• You can monitor progress in real-time</li>
-        <li>• Processing happens entirely in your browser</li>
+        <li>• {t('processor.tips.keepTabActive')}</li>
+        <li>• {t('processor.tips.largerFiles')}</li>
+        <li>• {t('processor.tips.monitorProgress')}</li>
+        <li>• {t('processor.tips.inBrowser')}</li>
       </ul>
     </Card>
   );

@@ -7,6 +7,8 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { Trash2, Plus, Type, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { FONTS, findFont } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
 import {
   Button,
@@ -52,6 +54,7 @@ const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<Text
 // direct-manipulation state (selection + inline edit); each mutation builds a new
 // overlays array and calls onChange.
 export const OverlayCanvas = ({ overlays, orientation, variables, onChange }: OverlayCanvasProps) => {
+  const { t } = useTranslation('admin');
   const frameRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
   // Last caret range in the editing textarea, kept across blur so the variable
@@ -128,13 +131,16 @@ export const OverlayCanvas = ({ overlays, orientation, variables, onChange }: Ov
 
   return (
     <div className="sm:col-span-2">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">Text overlays</span>
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+        {t('overlay.textOverlays')}
+      </span>
       <CanvasFrame ref={frameRef} orientation={orientation} onDeselect={deselect}>
         {overlays.map((overlay, index) => (
           <OverlayBox
             key={index}
             overlay={overlay}
             index={index}
+            t={t}
             orientation={orientation}
             active={index === activeIndex}
             editing={index === editingIndex}
@@ -160,6 +166,7 @@ export const OverlayCanvas = ({ overlays, orientation, variables, onChange }: Ov
       </CanvasFrame>
       <OverlayToolbar
         overlay={activeIndex === null ? null : overlays[activeIndex]}
+        t={t}
         variables={variables}
         onPatch={patchActive}
         onInsertVariable={insertVariable}
@@ -214,6 +221,7 @@ const CanvasFrame = ({ orientation, onDeselect, children, ref }: CanvasFrameProp
 interface OverlayBoxProps {
   overlay: TextOverlay;
   index: number;
+  t: TFunction<'admin'>;
   orientation: Orientation;
   active: boolean;
   editing: boolean;
@@ -234,7 +242,7 @@ interface OverlayBoxProps {
 // scaled size and color. Owns its move/resize pointer capture and (when editing)
 // renders an inline textarea on top.
 const OverlayBox = (props: OverlayBoxProps) => {
-  const { overlay, index, orientation, active, editing, frameRect } = props;
+  const { overlay, index, t, orientation, active, editing, frameRect } = props;
   const modeRef = useRef<'move' | 'resize' | null>(null);
 
   const onBodyPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -280,7 +288,7 @@ const OverlayBox = (props: OverlayBoxProps) => {
     <div
       role="button"
       tabIndex={0}
-      aria-label={overlayLabel(overlay, index)}
+      aria-label={overlayLabel(overlay, index, t)}
       aria-pressed={active}
       onPointerDown={onBodyPointerDown}
       onPointerMove={onPointerMove}
@@ -300,6 +308,7 @@ const OverlayBox = (props: OverlayBoxProps) => {
       <BoxContent
         overlay={overlay}
         editing={editing}
+        t={t}
         editRef={props.editRef}
         onCommitText={props.onCommitText}
         onCaret={props.onCaret}
@@ -313,6 +322,7 @@ const OverlayBox = (props: OverlayBoxProps) => {
 interface BoxContentProps {
   overlay: TextOverlay;
   editing: boolean;
+  t: TFunction<'admin'>;
   editRef: React.Ref<HTMLTextAreaElement>;
   onCommitText: (text: string) => void;
   onCaret: (start: number, end: number) => void;
@@ -321,13 +331,13 @@ interface BoxContentProps {
 
 // The text body: either an editing textarea, the raw overlay text, or a muted
 // placeholder when empty.
-const BoxContent = ({ overlay, editing, editRef, onCommitText, onCaret, onEndEdit }: BoxContentProps) => {
+const BoxContent = ({ overlay, editing, t, editRef, onCommitText, onCaret, onEndEdit }: BoxContentProps) => {
   if (editing) {
     return (
       <textarea
         ref={editRef}
         autoFocus
-        aria-label="Edit overlay text"
+        aria-label={t('overlay.editText')}
         value={overlay.text}
         onChange={(e) => {
           onCommitText(e.target.value);
@@ -355,7 +365,7 @@ const BoxContent = ({ overlay, editing, editRef, onCommitText, onCaret, onEndEdi
   }
 
   if (overlay.text.trim() === '') {
-    return <span className="opacity-50">Double-click to edit</span>;
+    return <span className="opacity-50">{t('overlay.doubleClickToEdit')}</span>;
   }
 
   return <span>{overlay.text}</span>;
@@ -384,6 +394,7 @@ const ResizeHandles = ({
 
 interface OverlayToolbarProps {
   overlay: TextOverlay | null;
+  t: TFunction<'admin'>;
   variables: string[];
   onPatch: (patch: Partial<TextOverlay>) => void;
   onInsertVariable: (name: string) => void;
@@ -393,31 +404,33 @@ interface OverlayToolbarProps {
 
 // Docked toolbar acting on the selected overlay. Shows a hint when nothing is
 // selected; always offers "+ Add text".
-const OverlayToolbar = ({ overlay, variables, onPatch, onInsertVariable, onDelete, onAdd }: OverlayToolbarProps) => (
+const OverlayToolbar = ({ overlay, t, variables, onPatch, onInsertVariable, onDelete, onAdd }: OverlayToolbarProps) => (
   <div className="mt-3 rounded-xl border border-foreground/10 bg-surface-2/50 p-3">
     {overlay ? (
       <SelectedControls
         overlay={overlay}
+        t={t}
         variables={variables}
         onPatch={onPatch}
         onInsertVariable={onInsertVariable}
         onDelete={onDelete}
       />
     ) : (
-      <p className="text-xs text-gray-500 dark:text-gray-400">Select a text — or add one below.</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">{t('overlay.selectOrAdd')}</p>
     )}
     <button
       type="button"
       onClick={onAdd}
       className="tap mt-3 inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
     >
-      <Plus className="h-3.5 w-3.5" /> Add text
+      <Plus className="h-3.5 w-3.5" /> {t('overlay.addText')}
     </button>
   </div>
 );
 
 interface SelectedControlsProps {
   overlay: TextOverlay;
+  t: TFunction<'admin'>;
   variables: string[];
   onPatch: (patch: Partial<TextOverlay>) => void;
   onInsertVariable: (name: string) => void;
@@ -426,7 +439,7 @@ interface SelectedControlsProps {
 
 // The styling controls for the selected overlay (font, size, color, box, variable
 // insert, delete).
-const SelectedControls = ({ overlay, variables, onPatch, onInsertVariable, onDelete }: SelectedControlsProps) => {
+const SelectedControls = ({ overlay, t, variables, onPatch, onInsertVariable, onDelete }: SelectedControlsProps) => {
   const sizeId = useId();
 
   return (
@@ -434,13 +447,14 @@ const SelectedControls = ({ overlay, variables, onPatch, onInsertVariable, onDel
       <div className="flex flex-wrap items-end gap-3">
         <FontSelect
           value={overlay.font}
+          t={t}
           onChange={(font) => {
             onPatch({ font });
           }}
         />
         <div className="min-w-[10rem] flex-1">
           <label htmlFor={sizeId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-            Size — {overlay.fontsize}px
+            {t('overlay.size', { size: overlay.fontsize })}
           </label>
           <input
             id={sizeId}
@@ -454,11 +468,11 @@ const SelectedControls = ({ overlay, variables, onPatch, onInsertVariable, onDel
             className="h-2 w-full cursor-pointer accent-brand-500"
           />
         </div>
-        <VariableMenu variables={variables} onInsert={onInsertVariable} />
+        <VariableMenu variables={variables} t={t} onInsert={onInsertVariable} />
         <button
           type="button"
           onClick={onDelete}
-          aria-label="Delete text"
+          aria-label={t('overlay.deleteText')}
           className="tap rounded-lg p-2 text-gray-500 transition-colors hover:bg-foreground/5 hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
         >
           <Trash2 className="h-4 w-4" />
@@ -466,16 +480,18 @@ const SelectedControls = ({ overlay, variables, onPatch, onInsertVariable, onDel
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">Color</label>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+            {t('overlay.color')}
+          </label>
           <ColorPicker
-            aria-label="Text color"
+            aria-label={t('overlay.textColor')}
             value={overlay.fontcolor}
             onChange={(fontcolor) => {
               onPatch({ fontcolor });
             }}
           />
         </div>
-        <BoxControls overlay={overlay} onPatch={onPatch} />
+        <BoxControls overlay={overlay} t={t} onPatch={onPatch} />
       </div>
     </div>
   );
@@ -485,9 +501,11 @@ const SelectedControls = ({ overlay, variables, onPatch, onInsertVariable, onDel
 // the box is on).
 const BoxControls = ({
   overlay,
+  t,
   onPatch,
 }: {
   overlay: TextOverlay;
+  t: TFunction<'admin'>;
   onPatch: (patch: Partial<TextOverlay>) => void;
 }) => {
   const opacityId = useId();
@@ -501,16 +519,16 @@ const BoxControls = ({
             onPatch({ box: c === true });
           }}
         />{' '}
-        Box
+        {t('overlay.box')}
       </label>
       {overlay.box && (
         <div className="space-y-2">
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-              Box color
+              {t('overlay.boxColor')}
             </label>
             <ColorPicker
-              aria-label="Box color"
+              aria-label={t('overlay.boxColor')}
               value={overlay.boxcolor}
               onChange={(boxcolor) => {
                 onPatch({ boxcolor });
@@ -522,7 +540,7 @@ const BoxControls = ({
               htmlFor={opacityId}
               className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400"
             >
-              Box opacity — {Math.round(overlay.boxOpacity * 100)}%
+              {t('overlay.boxOpacity', { percent: Math.round(overlay.boxOpacity * 100) })}
             </label>
             <input
               id={opacityId}
@@ -545,11 +563,21 @@ const BoxControls = ({
 
 // Design-system font picker over the curated FONTS catalog. Each option previews
 // in its own face.
-const FontSelect = ({ value, onChange }: { value: string; onChange: (id: string) => void }) => (
+const FontSelect = ({
+  value,
+  t,
+  onChange,
+}: {
+  value: string;
+  t: TFunction<'admin'>;
+  onChange: (id: string) => void;
+}) => (
   <div className="min-w-[9rem]">
-    <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">Font</span>
+    <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+      {t('overlay.font')}
+    </span>
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger aria-label="Font" className="w-full">
+      <SelectTrigger aria-label={t('overlay.font')} className="w-full">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -565,14 +593,22 @@ const FontSelect = ({ value, onChange }: { value: string; onChange: (id: string)
 
 // "Insert variable ▾" dropdown. Lists the available variable names; choosing one
 // inserts `{{ name }}`. Disabled when there are no variables.
-const VariableMenu = ({ variables, onInsert }: { variables: string[]; onInsert: (name: string) => void }) => {
+const VariableMenu = ({
+  variables,
+  t,
+  onInsert,
+}: {
+  variables: string[];
+  t: TFunction<'admin'>;
+  onInsert: (name: string) => void;
+}) => {
   const [open, setOpen] = useState(false);
   const disabled = variables.length === 0;
 
   if (disabled) {
     return (
-      <Button type="button" variant="secondary" size="sm" disabled title="Add a form field or global variable first">
-        Insert variable <ChevronDown className="h-3.5 w-3.5" />
+      <Button type="button" variant="secondary" size="sm" disabled title={t('overlay.insertVariableHint')}>
+        {t('overlay.insertVariable')} <ChevronDown className="h-3.5 w-3.5" />
       </Button>
     );
   }
@@ -592,7 +628,7 @@ const VariableMenu = ({ variables, onInsert }: { variables: string[]; onInsert: 
           setOpen(false);
         }}
       >
-        Insert variable <ChevronDown className="h-3.5 w-3.5" />
+        {t('overlay.insertVariable')} <ChevronDown className="h-3.5 w-3.5" />
       </Button>
       {open && (
         <div
@@ -663,10 +699,10 @@ function boxStyle(overlay: TextOverlay, previewH: number, orientation: Orientati
 }
 
 // Accessible label for an overlay box, using its text when present.
-function overlayLabel(overlay: TextOverlay, index: number): string {
+function overlayLabel(overlay: TextOverlay, index: number, t: TFunction<'admin'>): string {
   const text = overlay.text.trim();
 
-  return text === '' ? `Text ${index + 1}` : `Text: ${text}`;
+  return text === '' ? t('overlay.label', { index: index + 1 }) : t('overlay.labelWithText', { text });
 }
 
 // Arrow keys nudge the selected box; Delete/Backspace removes it.

@@ -30,6 +30,14 @@
       "types": "./src/shared/templates/index.ts",
       "default": "./src/shared/templates/index.ts"
     },
+    "./src/shared/editor": {
+      "types": "./src/shared/editor/index.ts",
+      "default": "./src/shared/editor/index.ts"
+    },
+    "./src/shared/renderQuips": {
+      "types": "./src/shared/renderQuips.ts",
+      "default": "./src/shared/renderQuips.ts"
+    },
     "./src/*": "./src/*"
   },
   "scripts": {
@@ -40,6 +48,7 @@
     "build:exe:all": "pnpm build && pnpm build:exe",
     "compile": "node compile.js",
     "diagnose": "node diagnose.js",
+    "generate:schema": "tsx scripts/generate-schema-json.ts",
     "typecheck": "tsc --noEmit",
     "test": "vp test run",
     "test:coverage": "vp test run --coverage",

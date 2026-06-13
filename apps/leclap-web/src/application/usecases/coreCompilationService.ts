@@ -4,12 +4,17 @@ import { compileBrowser as compile } from 'ffmpeg-video-composer/src/browser.ts'
 import { FONTS } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
 import BrowserFilesystemAdapter from 'ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts';
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+
+// VideoConfig isn't exported from core types; derive it from the ProjectConfig field so the
+// preview-render path can pass a reduced scale without a core change.
+type VideoConfigOverride = NonNullable<ProjectConfig['videoConfig']>;
 import { type Template } from '@/services/templateService';
 import { compilationLogger } from '@/lib/logger';
 import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
+import { renderQuip } from 'ffmpeg-video-composer/src/shared/renderQuips';
 
 export type { MediaChoices };
 
@@ -22,6 +27,10 @@ export interface CompilationConfig {
   videoEdits?: Record<number, VideoEdit | undefined>;
   // Music and background selections from the Builder Media step.
   mediaChoices?: MediaChoices;
+  // Optional render-config override. The builder's "Preview render" passes a reduced scale
+  // (480p-equivalent) so authors see a fast draft; production compiles leave it undefined and
+  // fall back to the engine defaults.
+  videoConfig?: VideoConfigOverride;
 }
 
 export interface CompilationProgress {
@@ -47,7 +56,7 @@ class CoreCompilationService {
     config: CompilationConfig,
     onProgress: (progress: CompilationProgress) => void
   ): Promise<CompilationResult> {
-    const { template, formData, files, videoEdits, mediaChoices } = config;
+    const { template, formData, files, videoEdits, mediaChoices, videoConfig } = config;
 
     try {
       onProgress({
@@ -64,7 +73,7 @@ class CoreCompilationService {
 
       const userVideoPaths = await this.storeUploadedFiles(editedFiles, onProgress);
 
-      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress);
+      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, videoConfig);
 
       // Pre-load bundled TTF fonts so drawtext works in WASM: the WASM
       // ffmpeg-core's freetype cannot decode the woff2 that Google Fonts serves
@@ -207,7 +216,8 @@ class CoreCompilationService {
   private async setupProjectConfig(
     userVideoPaths: Record<string, string>,
     formData: Record<string, string>,
-    onProgress: (progress: CompilationProgress) => void
+    onProgress: (progress: CompilationProgress) => void,
+    videoConfig?: VideoConfigOverride
   ): Promise<ProjectConfig> {
     onProgress({
       stage: 'Configuring',
@@ -220,7 +230,9 @@ class CoreCompilationService {
     const buildDir = '/tmp/build';
     await this.filesystemAdapter.ensureDir(buildDir);
 
-    return { buildDir, userVideoPaths, fields: formData };
+    // Project merges this over the engine defaults, so a partial { scale } override just lowers the
+    // render resolution while orientation/setsar keep their defaults.
+    return { buildDir, userVideoPaths, fields: formData, ...(videoConfig ? { videoConfig } : {}) };
   }
 
   private prepareTemplateDescriptor(
@@ -270,7 +282,7 @@ class CoreCompilationService {
       onProgress({
         stage: 'Compiling',
         percentage: 60 + Math.round(clamped * 25),
-        currentStep: `Rendering video segments… ${Math.round(clamped * 100)}%`,
+        currentStep: `${renderQuip(clamped)} ${Math.round(clamped * 100)}%`,
         totalSteps: 7,
         currentStepIndex: 5,
       });

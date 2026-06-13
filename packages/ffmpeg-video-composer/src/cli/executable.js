@@ -28,23 +28,23 @@ function printBox(content, label) {
 }
 
 async function showHelp() {
-  printTitle('FFmpeg Video Composer');
+  printTitle('LeClap');
 
   const helpText = `
-${pc.cyan('🎬')} ${pc.bold('FFmpeg Video Composer')} - Create videos from templates
+${pc.cyan('🎬')} ${pc.bold('LeClap')} - Create videos from templates
 
 ${pc.bold('Usage:')}
-  ${pc.green('ffmpeg-video-composer')} ${pc.yellow('<template.json>')}    Compile video from template
-  ${pc.green('ffmpeg-video-composer')} ${pc.yellow('--diagnose')}         Run system diagnostics
-  ${pc.green('ffmpeg-video-composer')} ${pc.yellow('--help')}             Show this help message
-  ${pc.green('ffmpeg-video-composer')} ${pc.yellow('--version')}          Show version information
+  ${pc.green('leclap')} ${pc.yellow('<template.json>')}    Compile video from template
+  ${pc.green('leclap')} ${pc.yellow('--diagnose')}         Run system diagnostics
+  ${pc.green('leclap')} ${pc.yellow('--help')}             Show this help message
+  ${pc.green('leclap')} ${pc.yellow('--version')}          Show version information
 
 ${pc.bold('Examples:')}
   ${pc.dim('# Compile a video from template')}
-  ${pc.green('ffmpeg-video-composer')} ${pc.yellow('my-template.json')}
+  ${pc.green('leclap')} ${pc.yellow('my-template.json')}
 
   ${pc.dim('# Check system setup')}
-  ${pc.green('ffmpeg-video-composer')} ${pc.yellow('--diagnose')}
+  ${pc.green('leclap')} ${pc.yellow('--diagnose')}
 
 ${pc.bold('Template Format:')}
   Templates are JSON files describing video composition.
@@ -138,14 +138,14 @@ function handleFFmpegError(error) {
   console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
 
   Terminal.showError(error.message, [
-    '🔧 Run diagnostics: ffmpeg-video-composer --diagnose',
+    '🔧 Run diagnostics: leclap --diagnose',
     '📦 Quick fix: npm install ffmpeg-static',
     '🍺 macOS: brew install ffmpeg',
     '🐧 Linux: sudo apt install ffmpeg',
   ]);
 
   console.log(
-    `\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('ffmpeg-video-composer --diagnose')} ${pc.dim('for detailed system analysis')}\n`
+    `\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('leclap --diagnose')} ${pc.dim('for detailed system analysis')}\n`
   );
   process.exit(1);
 }
@@ -153,8 +153,8 @@ function handleFFmpegError(error) {
 async function validateAndLoadTemplate(templatePath) {
   if (!templatePath) {
     console.error(`${pc.red('Error:')} Template file path is required`);
-    console.log(`${pc.dim('Usage:')} ffmpeg-video-composer ${pc.yellow('<template.json>')}`);
-    console.log(`${pc.dim('Help:')} ffmpeg-video-composer ${pc.yellow('--help')}`);
+    console.log(`${pc.dim('Usage:')} leclap ${pc.yellow('<template.json>')}`);
+    console.log(`${pc.dim('Help:')} leclap ${pc.yellow('--help')}`);
     process.exit(1);
   }
 

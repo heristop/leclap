@@ -38,8 +38,8 @@
     "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/mcp/dist/index.js"
   },
   "devDependencies": {
-    "@swc/core": "^1.15.40",
-    "@types/node": "^25.9.2",
+    "@swc/core": "^1.15.41",
+    "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.1.8",
     "@vitest/ui": "^4.1.8",
     "dependency-cruiser": "^17.4.3",

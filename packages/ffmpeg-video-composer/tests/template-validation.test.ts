@@ -1,6 +1,13 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, it, expect, beforeEach } from 'vitest';
 import { TemplateValidator } from '@/services/TemplateValidator';
-import type { TemplateDescriptor, Section } from '@/schemas/template.schemas';
+import {
+  SectionSchema,
+  TemplateDescriptorSchema,
+  InputOptionsSchema,
+  templateDescriptorJsonSchema,
+  type TemplateDescriptor,
+  type Section,
+} from '@/schemas/template.schemas';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,8 +56,8 @@ describe('Template Validation', () => {
       expect(result.errors).toBeUndefined();
     });
 
-    test('should validate fast_and_curious.json template', () => {
-      const template = loadTemplate('fast_and_curious.json');
+    test('should validate fast-and-curious.json template', () => {
+      const template = loadTemplate('fast-and-curious.json');
       const result = validator.validateTemplate(template);
 
       expect(result.success).toBe(true);
@@ -321,6 +328,303 @@ describe('Template Validation', () => {
 
       expect(summary).toContain('Template validation failed');
       expect(summary).toContain('error');
+    });
+  });
+
+  describe('Schema — transitions', () => {
+    it('accepts a section transition with a valid xfade type', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'wipeleft', duration: 0.5 } });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts cut as a valid transition type', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'cut' } });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects unknown transition types', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'starwipe' } });
+      expect(r.success).toBe(false);
+    });
+
+    it('rejects transition duration above 5', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'fade', duration: 10 } });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — strict options (removed fields)', () => {
+    it('rejects the removed musicVolumeLevel field', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', options: { musicVolumeLevel: 0.4 } });
+      expect(r.success).toBe(false);
+    });
+
+    it('accepts the renamed musicVolume field', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', options: { musicVolume: 0.4 } });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts audioFade on section options', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        options: { audioFade: { in: { duration: 0.5 }, out: { duration: 0.3, curve: 'tri' } } },
+      });
+      expect(r.success).toBe(true);
+    });
+  });
+
+  describe('Schema — look / grade / motion on sections', () => {
+    it('accepts a valid look preset', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', look: 'cinematic' });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects an unknown look preset', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', look: 'ultraviolet' });
+      expect(r.success).toBe(false);
+    });
+
+    it('accepts a grade object', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        grade: { brightness: 0.1, contrast: 1.2, saturation: 1.5 },
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts a motion array with kenburns', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        motion: [{ type: 'kenburns', direction: 'in', intensity: 1.2 }],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects kenburns intensity below 1.01', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        motion: [{ type: 'kenburns', intensity: 0.5 }],
+      });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — input type animation', () => {
+    it('accepts input with type animation', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        inputs: [{ name: 'anim', url: 'anim.zip', type: 'animation' }],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects input with unknown type', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        inputs: [{ name: 'anim', url: 'anim.zip', type: 'frame' }],
+      });
+      expect(r.success).toBe(false);
+    });
+
+    it('accepts animation input options with fps and position', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        inputs: [
+          { name: 'anim', url: 'anim.zip', type: 'animation', options: { fps: 25, position: '0:0', loop: true } },
+        ],
+      });
+      expect(r.success).toBe(true);
+    });
+  });
+
+  describe('Schema — global audio / transition', () => {
+    it('accepts global.audio with sourceVolume and ducking', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { audio: { sourceVolume: 0.8, musicVolume: 0.4, ducking: true } },
+        sections: [],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts global.transition object', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { transition: { type: 'fade', duration: 0.3 } },
+        sections: [],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects removed global.transitionDuration field', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { transitionDuration: 0.5 },
+        sections: [],
+      });
+      expect(r.success).toBe(false);
+    });
+
+    it('rejects removed global.audioVolumeLevel field', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { audioVolumeLevel: 1 },
+        sections: [],
+      });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — color_background layers / project_video framingGuide', () => {
+    it('accepts color_background section with layers', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'color_background',
+        options: { layers: [{ color: '#000000', opacity: 0.5 }] },
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts project_video section with framingGuide', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'project_video',
+        options: { framingGuide: { type: 'silhouette', position: 'center', opacity: 0.35 } },
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects framingGuide with invalid position', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'project_video',
+        options: { framingGuide: { type: 'silhouette', position: 'top' } },
+      });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — InputOptionsSchema strictness', () => {
+    it('rejects removed field frames in input options', () => {
+      const r = InputOptionsSchema.safeParse({ frames: 30 });
+      expect(r.success).toBe(false);
+    });
+
+    it('rejects removed field frequency in input options', () => {
+      const r = InputOptionsSchema.safeParse({ frequency: 10 });
+      expect(r.success).toBe(false);
+    });
+
+    it('rejects removed field overlay in input options', () => {
+      const r = InputOptionsSchema.safeParse({ overlay: true });
+      expect(r.success).toBe(false);
+    });
+
+    it('accepts valid input options', () => {
+      const r = InputOptionsSchema.safeParse({ fps: 25, position: '0:0', loop: true });
+      expect(r.success).toBe(true);
+    });
+  });
+
+  describe('Schema — boundary acceptance', () => {
+    it('accepts transition duration exactly 5', () => {
+      const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'fade', duration: 5 } });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts kenburns intensity exactly 2', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        motion: [{ type: 'kenburns', intensity: 2 }],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts musicVolume 0', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { audio: { musicVolume: 0 } },
+        sections: [],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts musicVolume 1', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { audio: { musicVolume: 1 } },
+        sections: [],
+      });
+      expect(r.success).toBe(true);
+    });
+  });
+
+  describe('Schema — DuckingSchema object form', () => {
+    it('accepts ducking as an object with threshold and ratio', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { audio: { ducking: { threshold: 0.05, ratio: 8 } } },
+        sections: [],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects ducking ratio above 20', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { audio: { ducking: { threshold: 0.05, ratio: 25 } } },
+        sections: [],
+      });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — cross-variant strictness', () => {
+    it('rejects framingGuide inside a plain video section options', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        options: { framingGuide: { type: 'silhouette', position: 'center' } },
+      });
+      expect(r.success).toBe(false);
+    });
+
+    it('rejects layers inside a form section options', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'form',
+        options: { layers: [{ color: '#000000' }] },
+      });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — audioFade curve validation', () => {
+    it('rejects invalid audioFade curve', () => {
+      const r = SectionSchema.safeParse({
+        name: 's1',
+        type: 'video',
+        options: { audioFade: { in: { duration: 0.5, curve: 'notacurve' } } },
+      });
+      expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — JSON Schema export (templateDescriptorJsonSchema)', () => {
+    it('is an object with properties.global and properties.sections', () => {
+      expect(typeof templateDescriptorJsonSchema).toBe('object');
+      expect(templateDescriptorJsonSchema).not.toBeNull();
+      const props = (templateDescriptorJsonSchema as Record<string, unknown>).properties as
+        | Record<string, unknown>
+        | undefined;
+      expect(props).toBeDefined();
+      expect(props?.global).toBeDefined();
+      expect(props?.sections).toBeDefined();
+    });
+
+    it('preserves description strings in the JSON Schema output', () => {
+      const json = JSON.stringify(templateDescriptorJsonSchema);
+      expect(json).toContain('xfade transition name between this section and the next');
     });
   });
 });

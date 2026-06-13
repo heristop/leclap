@@ -11,6 +11,11 @@ import type MapManager from '../editor/managers/MapManager';
 import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/argGuard';
+import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters } from './presets/looks';
+import { buildZipAnimationSource, buildSingleFileAnimationSource, buildGradientSource } from './inputSources';
+import { buildAudioFadeArg } from './audioFade';
+import { resolveVideoCodec, isHardwareCodec, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
+import type { Grade, MotionEffect, BackgroundLayer } from '../schemas/template.schemas';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -59,52 +64,22 @@ class SegmentBuilder {
 
   /** The video encoder name for this platform — `codecConfig.videoCodec` (h264_mediacodec on device) or `h264`. */
   protected videoCodec(): string {
-    // The default ProjectConfig sets videoCodec to '' (empty), so any falsy value must fall back to h264.
-    const configured = this.project.config.codecConfig?.videoCodec;
-
-    if (configured) {
-      return configured;
-    }
-
-    return 'h264';
+    return resolveVideoCodec(this.project.config);
   }
 
   /** True when the selected encoder is a hardware one (h264_mediacodec / h264_videotoolbox). */
   protected isHardwareCodec(): boolean {
-    const codec = this.videoCodec();
-
-    return codec.includes('mediacodec') || codec.includes('videotoolbox');
+    return isHardwareCodec(this.project.config);
   }
 
   /** `-pix_fmt yuv420p` for software encoders; empty for hardware (the filtergraph sets the format). */
   protected pixFmtArg(): string {
-    return this.isHardwareCodec() ? '' : '-pix_fmt yuv420p';
+    return buildPixFmtArg(this.project.config);
   }
 
-  /**
-   * Full `-c:v …` args for re-encoded clips. Defaults to the software (libx264-style) settings used
-   * by the server/web. When a hardware encoder (h264_mediacodec / h264_videotoolbox on device) is
-   * selected, the libx264-only flags (crf/tune/profile/preset) are dropped — those encoders reject
-   * them — in favour of a bitrate target. (Color/image segments use the bare `-c:v ${videoCodec()}`.)
-   */
+  /** Full `-c:v …` args for re-encoded clips — see `buildVideoEncoderArgs` for the per-encoder rules. */
   protected videoEncoderArgs(): string {
-    const codec = this.videoCodec();
-
-    if (this.isHardwareCodec()) {
-      return `-c:v ${codec} -b:v 8M`;
-    }
-
-    // mpeg4 (the on-device LGPL software encoder) takes quality/bitrate, not the libx264-only flags.
-    if (codec === 'mpeg4') {
-      return '-c:v mpeg4 -q:v 4';
-    }
-
-    // libopenh264 (Cisco's LGPL-OK software H.264, used on-device) — bitrate-based; no libx264 flags.
-    if (codec === 'libopenh264') {
-      return '-c:v libopenh264 -b:v 4M -profile:v main';
-    }
-
-    return `-c:v ${codec} -crf 23 -tune film -b:v 12M -profile:v high -preset ${this.project.config.hardwareConfig?.preset ?? 'medium'}`;
+    return buildVideoEncoderArgs(this.project.config);
   }
 
   // Unwrapped references kept as protected fields so subclasses can access them.
@@ -258,7 +233,13 @@ class SegmentBuilder {
     }
 
     for (const value of Object.values(inputsAsset)) {
-      // Staged asset path interpolated unquoted as a `-i` source token.
+      // Animation inputs carry their own `-i` (with `-framerate`/`-stream_loop`/`-c:v` flags) and are
+      // pushed verbatim; plain media values are bare staged paths wrapped here as a `-i` source token.
+      if (value.startsWith('-')) {
+        this.sources.push(value);
+        continue;
+      }
+
       this.sources.push(`-i ${assertSafeArgToken(value, 'asset source')}`);
     }
   };
@@ -268,56 +249,92 @@ class SegmentBuilder {
 
     const inputsAsset = this.segment.inputsAsset as unknown as InputsAssetMap;
     const inputsCache = this.template.assets.inputs as unknown as InputsCache;
+    const inputs = this.section.inputs ?? [];
 
-    for (const input of this.section.inputs ?? []) {
-      if (
-        (input as MapAnimationInput).type === 'frame' &&
-        input.url !== undefined &&
-        new RegExp('(.*?).(zip)$').test(input.url) &&
-        inputsCache[input.name]
-      ) {
-        this.processZipFrames(input as MapAnimationInput, inputsCache, inputsAsset);
+    // Stream index of the input at section-position `i`: the main video sits at
+    // `getVideoInputIncrement()`, asset inputs follow it in section order.
+    const baseIndex = this.mapManager.getVideoInputIncrement() + 1;
+
+    for (let i = 0; i < inputs.length; i++) {
+      const input = inputs[i];
+      const source = this.resolveAnimationSource(input, inputsCache);
+
+      if (source !== undefined) {
+        // Single image2-sequence or single-file animation input + one overlay map.
+        inputsAsset[`asset_${input.name}`] = source;
+        this.mapManager.addAnimationOverlay(input as MapAnimationInput, baseIndex + i);
         continue;
       }
 
-      const mapInput = input as MapAnimationInput;
-
-      if (mapInput.type === 'frame' && mapInput.options.frames) {
-        this.processCachedFrames(mapInput, input.name, inputsAsset);
-        continue;
-      }
-
-      // Process single media
+      // Process single media (plain staged path).
       inputsAsset[`asset_${input.name}`] = this.assetManager.fetchCachedMedia(input);
     }
+
+    this.buildGradientLayers(baseIndex + inputs.length, inputsAsset);
   };
 
-  private readonly processZipFrames = (
-    mapInput: MapAnimationInput,
-    inputsCache: InputsCache,
-    inputsAsset: InputsAssetMap
-  ): void => {
-    const frames = inputsCache[mapInput.name];
-    const framesArray = Array.isArray(frames) ? frames : [frames];
-
-    if (!mapInput.options.frames) {
-      mapInput.options.frames = framesArray.length;
+  /**
+   * Resolves the `-i` source fragment for an animation input, or undefined when the input is plain
+   * media. ZIP animations become one `-framerate <fps> -i <dir>/<pattern>` image2 sequence (falling
+   * back to plain media when no frames extracted); `.apng`/`.webp`/`.gif`/`.webm` become one `-i`.
+   */
+  private readonly resolveAnimationSource = (
+    input: { type?: string; url?: string; name: string },
+    inputsCache: InputsCache
+  ): string | undefined => {
+    if (input.type !== 'animation') {
+      return undefined;
     }
 
-    for (let i = 1; i <= framesArray.length; i++) {
-      inputsAsset[`asset_${mapInput.name}_${i}`] = framesArray[i - 1] ?? '';
-      this.mapManager.addMapAnimation(mapInput, i);
+    const animation = input as MapAnimationInput;
+
+    if (input.url?.endsWith('.zip') && Boolean(inputsCache[input.name])) {
+      const pattern = this.assetManager.resolveAnimationSequencePattern(input.name);
+
+      if (pattern === undefined) {
+        // Surface the cause before an authored map referencing @<name> hits an undefined pad.
+        this.logger.warn(`animation "${input.name}": ZIP frames have no trailing counter, treating as plain media`);
+
+        return undefined;
+      }
+
+      return buildZipAnimationSource(animation, pattern);
     }
+
+    if (/\.(apng|webp|gif|webm)$/i.test(input.url ?? '')) {
+      return buildSingleFileAnimationSource(animation, this.assetManager.fetchCachedMedia(animation));
+    }
+
+    return undefined;
   };
 
-  private readonly processCachedFrames = (
-    mapInput: MapAnimationInput,
-    inputName: string,
-    inputsAsset: InputsAssetMap
-  ): void => {
-    for (let i = 1; i <= mapInput.options.frames; i++) {
-      inputsAsset[`asset_${inputName}_${i}`] = this.assetManager.fetchCachedMedia(mapInput, i);
-      this.mapManager.addMapAnimation(mapInput, i);
+  /**
+   * Compiles each `gradient` background layer (color_background sections) into one lavfi `gradients`
+   * input + one overlay map compositing it over the main stream at the layer's x/y, honoring opacity.
+   *
+   * ORDERING: the first gradient map carries `useSectionFilters`, so the section's authored chain
+   * (drawbox/drawtext/etc.) is applied to the main stream BEFORE the gradient is overlaid — i.e. the
+   * gradient composites AFTER those filters. The current maps pipeline (one linear chain per map,
+   * section filters folded into the first map) forces this overlay-after-filters order; the visual
+   * difference is acceptable for v1.
+   */
+  private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): void => {
+    const layers = (this.section.options?.layers as BackgroundLayer[] | undefined) ?? [];
+    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const duration = this.section.options?.duration ?? 0;
+
+    let gradientIndex = firstGradientIndex;
+
+    for (let i = 0; i < layers.length; i++) {
+      const layer = layers[i];
+
+      if (!layer.gradient) {
+        continue;
+      }
+
+      inputsAsset[`gradient_${i}`] = buildGradientSource(layer, scale, duration);
+      this.mapManager.addGradientOverlay(layer, gradientIndex, `gradient_layer_${i}`);
+      gradientIndex++;
     }
   };
 
@@ -328,7 +345,10 @@ class SegmentBuilder {
 
     const opts = this.section.options;
 
-    // Force ratio
+    this.injectSugarFilters(opts);
+
+    // Force ratio (opts?.forceAspectRatio !== false is true when opts is undefined,
+    // so the RHS opts.forceOriginalAspectRatio is only reached when opts is defined).
     if (opts?.forceAspectRatio !== false || opts.forceOriginalAspectRatio) {
       this.prependScaleFilters(opts);
     }
@@ -346,6 +366,32 @@ class SegmentBuilder {
 
     this.formatFilters();
   };
+
+  /**
+   * Prepends structured-sugar filters to the section's authored filter list in the
+   * deterministic order: layers → motion → grade → look → authored filters.
+   * Called before prependScaleFilters so scale/sar remain first in the chain.
+   */
+  private readonly injectSugarFilters = (opts: SectionOptions | undefined): void => {
+    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const duration = opts?.duration ?? 0;
+    const ctx = { duration, scale, fps: 30 };
+
+    this.section.filters = [
+      ...layersToFilters(opts?.layers as BackgroundLayer[] | undefined),
+      ...motionToFilters(this.section.motion as MotionEffect[] | undefined, ctx),
+      ...gradeToFilters(this.section.grade as Grade | undefined),
+      ...lookToFilters(this.section.look),
+      ...(this.section.filters ?? []),
+    ];
+  };
+
+  /**
+   * Builds the `-af` argument string for audio fades on this section, or returns '' if
+   * no fades are configured or the section is muted (fades on a muted track are pointless).
+   * Delegates to the pure module-level buildAudioFadeArg to keep this class within line limits.
+   */
+  protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options);
 
   private readonly prependScaleFilters = (opts: SectionOptions | undefined): void => {
     const baseScale = this.project.config.videoConfig?.scale ?? '';

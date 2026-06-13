@@ -147,6 +147,7 @@
     {
       "name": "video_1",
       "type": "project_video",
+      "look": "cinematic",
       "title": {
         "en": "Record your clip"
       },

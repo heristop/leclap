@@ -27,12 +27,15 @@ function makeManagers(logger = makeLogger(), filesystem = makeFilesystem()) {
       fetchAssets: vi.fn(async () => undefined),
       fetchFonts: vi.fn(async () => undefined),
       fetchCachedMedia: vi.fn((media: { name: string }, frame = 0) => `/cache/${media.name}_${frame}.png`),
+      resolveAnimationSequencePattern: vi.fn((name: string) => `/animations/${name}/frame-%03d.png`),
     },
     variableManager: {},
     mapManager: {
       segment: undefined,
       addMap: vi.fn(),
-      addMapAnimation: vi.fn(),
+      addAnimationOverlay: vi.fn(),
+      addGradientOverlay: vi.fn(),
+      getVideoInputIncrement: vi.fn(() => 1),
     },
     filterManager: {
       segment: undefined,
@@ -197,9 +200,10 @@ describe('SegmentBuilder.buildMaps', () => {
     expect(managers.assetManager.fetchCachedMedia).toHaveBeenCalled();
   });
 
-  it('expands zip frame inputs from the inputs cache and adds map animations', async () => {
+  it('registers a zip animation as ONE image2-sequence input with -framerate and one overlay map', async () => {
     const segment = makeSegment();
-    const inputs = { confettis: ['/cache/f1.png', '/cache/f2.png', '/cache/f3.png'] };
+    // The cache merely needs a truthy entry for the input name to take the zip-animation branch.
+    const inputs = { confettis: ['/cache/f1.png', '/cache/f2.png'] };
     const template = makeTemplate({}, inputs);
     const { builder, managers } = makeBuilder({ segment, template });
     builder.hydrate({ name: 'clip', type: 'video' });
@@ -210,8 +214,8 @@ describe('SegmentBuilder.buildMaps', () => {
         {
           name: 'confettis',
           url: 'http://x/confettis.zip',
-          type: 'frame',
-          options: {},
+          type: 'animation',
+          options: { fps: 25, persistent: true },
         },
       ],
     } as never;
@@ -219,96 +223,107 @@ describe('SegmentBuilder.buildMaps', () => {
     await builder.buildMaps();
 
     const assets = segment.inputsAsset as unknown as Record<string, string>;
-    expect(assets.asset_confettis_1).toBe('/cache/f1.png');
-    expect(assets.asset_confettis_3).toBe('/cache/f3.png');
-    expect(managers.mapManager.addMapAnimation).toHaveBeenCalledTimes(3);
+    // exactly one asset entry, carrying the framerate + image2 pattern source fragment
+    expect(Object.keys(assets)).toEqual(['asset_confettis']);
+    expect(assets.asset_confettis).toContain('-framerate 25 -i ');
+    expect(assets.asset_confettis).toContain('/animations/confettis/frame-%03d.png');
+    // overlay map wired once at the animation's stream index (video increment 1 + 1 + position 0 = 2)
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'confettis' }),
+      2
+    );
   });
 
-  it('wraps a single cached string into a one-element frames array and keeps a preset frame count', async () => {
+  it('prepends -stream_loop -1 for a looping zip animation', async () => {
     const segment = makeSegment();
-    // inputsCache value is a SINGLE STRING (not an array) -> line 243 false side -> [frames]
-    const inputs = { logo: '/cache/single.png' };
-    const template = makeTemplate({}, inputs);
-    const { builder, managers } = makeBuilder({ segment, template });
-    builder.hydrate({ name: 'clip', type: 'video' });
-    (builder as unknown as { section: Section }).section = {
-      name: 'clip',
-      type: 'video',
-      inputs: [
-        {
-          name: 'logo',
-          url: 'http://x/logo.zip',
-          type: 'frame',
-          // frames already set -> line 245 `if (!frames)` is false -> NOT overwritten
-          options: { frames: 5 },
-        },
-      ],
-    } as never;
-
-    await builder.buildMaps();
-
-    const assets = segment.inputsAsset as unknown as Record<string, string>;
-    // single-string framesArray has length 1 -> exactly one asset entry from element [0]
-    expect(assets.asset_logo_1).toBe('/cache/single.png');
-    expect(assets.asset_logo_2).toBeUndefined();
-    // preset frame count must be preserved (not overwritten with framesArray.length === 1)
-    const section = (builder as unknown as { section: Section }).section;
-    const sectionInputs = section.inputs as unknown as Array<{ options: { frames: number } }>;
-    expect(sectionInputs[0].options.frames).toBe(5);
-    expect(managers.mapManager.addMapAnimation).toHaveBeenCalledTimes(1);
-  });
-
-  it('substitutes an empty string for an undefined frame in the cache array (line 250 nullish side)', async () => {
-    const segment = makeSegment();
-    // middle element is undefined -> framesArray[i - 1] ?? '' takes the nullish side
-    const inputs = { gap: ['/cache/a.png', undefined, '/cache/c.png'] };
+    const inputs = { conf: ['/cache/f1.png'] };
     const template = makeTemplate({}, inputs);
     const { builder } = makeBuilder({ segment, template });
     builder.hydrate({ name: 'clip', type: 'video' });
     (builder as unknown as { section: Section }).section = {
       name: 'clip',
       type: 'video',
-      inputs: [
-        {
-          name: 'gap',
-          url: 'http://x/gap.zip',
-          type: 'frame',
-          options: {},
-        },
-      ],
+      inputs: [{ name: 'conf', url: 'http://x/conf.zip', type: 'animation', options: { loop: true } }],
     } as never;
 
     await builder.buildMaps();
 
     const assets = segment.inputsAsset as unknown as Record<string, string>;
-    expect(assets.asset_gap_1).toBe('/cache/a.png');
-    expect(assets.asset_gap_2).toBe(''); // undefined element -> ''
-    expect(assets.asset_gap_3).toBe('/cache/c.png');
+    expect(assets.asset_conf.startsWith('-stream_loop -1 -framerate')).toBe(true);
   });
 
-  it('processes cached (already-extracted) frame inputs by frame count', async () => {
+  it('registers a .webm single-file animation with -c:v libvpx-vp9 before its -i', async () => {
     const segment = makeSegment();
     const { builder, managers } = makeBuilder({ segment });
     builder.hydrate({ name: 'clip', type: 'video' });
     (builder as unknown as { section: Section }).section = {
       name: 'clip',
       type: 'video',
-      inputs: [
-        {
-          name: 'anim',
-          url: 'http://x/anim.png',
-          type: 'frame',
-          options: { frames: 2 },
-        },
-      ],
+      inputs: [{ name: 'anim', url: 'http://x/anim.webm', type: 'animation', options: {} }],
     } as never;
 
     await builder.buildMaps();
 
     const assets = segment.inputsAsset as unknown as Record<string, string>;
-    expect(assets.asset_anim_1).toBe('/cache/anim_1.png');
-    expect(assets.asset_anim_2).toBe('/cache/anim_2.png');
-    expect(managers.mapManager.addMapAnimation).toHaveBeenCalledTimes(2);
+    expect(assets.asset_anim).toContain('-c:v libvpx-vp9');
+    expect(assets.asset_anim).toContain('-i /cache/anim_0.png');
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats a non-animation .png input as plain cached media (no overlay map)', async () => {
+    const segment = makeSegment();
+    const { builder, managers } = makeBuilder({ segment });
+    builder.hydrate({ name: 'clip', type: 'video' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'video',
+      inputs: [{ name: 'logo', url: 'http://x/logo.png' }],
+    } as never;
+
+    await builder.buildMaps();
+
+    const assets = segment.inputsAsset as unknown as Record<string, string>;
+    expect(assets.asset_logo).toBe('/cache/logo_0.png');
+    expect(managers.mapManager.addAnimationOverlay).not.toHaveBeenCalled();
+  });
+
+  it('registers a gradient layer as a gradients lavfi input + overlay map', async () => {
+    const segment = makeSegment();
+    const project = makeProject({ videoConfig: { scale: '1280:720' } });
+    const { builder, managers } = makeBuilder({ segment, project });
+    builder.hydrate({ name: 'bg', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'bg',
+      type: 'color_background',
+      options: {
+        duration: 4,
+        layers: [{ gradient: { from: '#000000', to: '#ffffff', direction: 'vertical' }, opacity: 0.5 }],
+      },
+    } as never;
+
+    await builder.buildMaps();
+
+    const assets = segment.inputsAsset as unknown as Record<string, string>;
+    expect(assets.gradient_0).toContain('gradients=s=1280x720:c0=#000000:c1=#ffffff:d=4');
+    expect(managers.mapManager.addGradientOverlay).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips solid (non-gradient) layers in the inputs/maps pipeline', async () => {
+    const segment = makeSegment();
+    const { builder, managers } = makeBuilder({ segment });
+    builder.hydrate({ name: 'bg', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'bg',
+      type: 'color_background',
+      options: { duration: 2, layers: [{ color: '#112233', opacity: 0.5 }] },
+    } as never;
+
+    await builder.buildMaps();
+
+    const assets = segment.inputsAsset as unknown as Record<string, string>;
+    expect(Object.keys(assets)).toHaveLength(0);
+    expect(managers.mapManager.addGradientOverlay).not.toHaveBeenCalled();
   });
 });
 
@@ -509,5 +524,199 @@ describe('SegmentBuilder.getCommand / getProject', () => {
 
     expect(builder.getCommand()).toBe('-version');
     expect(builder.getProject()).toBe(project);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sugar injection: layers → motion → grade → look → authored filters
+// ---------------------------------------------------------------------------
+
+describe('SegmentBuilder structured-sugar injection', () => {
+  it('injects layers → motion → grade → look → authored filters in order (no scale/sar when forceAspectRatio is false)', async () => {
+    const segment = makeSegment();
+    const managers = makeManagers();
+    // The mock returns `${type}=${value ?? ''}` for every filter, which is enough to
+    // distinguish each preset contribution by type prefix.
+    const { builder } = makeBuilder({ segment, managers });
+    builder.hydrate({ name: 'clip', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'color_background',
+      options: {
+        forceAspectRatio: false,
+        duration: 5,
+        layers: [{ color: '#112233', opacity: 0.5 }],
+      },
+      look: 'cinematic',
+      grade: { saturation: 1.2 },
+      motion: [{ type: 'kenburns' }],
+      filters: [{ type: 'hflip' }],
+      maps: [],
+    } as never;
+
+    await builder.buildFilters();
+
+    const types = (segment.filtersList as string[]).map((s) => s.split('=')[0]);
+
+    // drawbox from layersToFilters (color layer)
+    const drawboxIdx = types.indexOf('drawbox');
+    // scale + zoompan from motionToFilters(kenburns)
+    const scaleIdx = types.indexOf('scale');
+    const zoompanIdx = types.indexOf('zoompan');
+    // eq from gradeToFilters (saturation)
+    const eqGradeIdx = types.indexOf('eq');
+    // eq + colorbalance from lookToFilters (cinematic)
+    const colorbalanceIdx = types.indexOf('colorbalance');
+    // hflip from authored filters
+    const hflipIdx = types.indexOf('hflip');
+
+    // Ordering assertions: layers first, then motion, then grade eq, then look (eq + colorbalance), then authored
+    expect(drawboxIdx).toBeGreaterThanOrEqual(0);
+    expect(drawboxIdx).toBeLessThan(scaleIdx);
+    expect(scaleIdx).toBeLessThan(zoompanIdx);
+    expect(zoompanIdx).toBeLessThan(eqGradeIdx);
+    // the first eq is from grade; look's eq comes after; colorbalance is from look
+    expect(eqGradeIdx).toBeLessThan(colorbalanceIdx);
+    expect(colorbalanceIdx).toBeLessThan(hflipIdx);
+  });
+
+  it('does not inject sugar filters when look/grade/motion/layers are all absent', async () => {
+    const segment = makeSegment();
+    const managers = makeManagers();
+    const { builder } = makeBuilder({ segment, managers });
+    builder.hydrate({ name: 'clip', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'color_background',
+      options: { forceAspectRatio: false, duration: 3 },
+      filters: [{ type: 'hflip' }],
+      maps: [],
+    } as never;
+
+    await builder.buildFilters();
+
+    const types = (segment.filtersList as string[]).map((s) => s.split('=')[0]);
+    // Only the authored filter should be present (no drawbox, no zoompan, etc.)
+    expect(types).toEqual(['hflip']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildAudioFadeArg
+// ---------------------------------------------------------------------------
+
+describe('SegmentBuilder.buildAudioFadeArg', () => {
+  function buildWithSection(section: Section) {
+    const { builder } = makeBuilder();
+    builder.hydrate(section);
+    (builder as unknown as { section: Section }).section = section;
+
+    return (builder as unknown as { buildAudioFadeArg: () => string }).buildAudioFadeArg();
+  }
+
+  it('returns empty string when no audioFade options are set', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5 },
+    } as Section);
+
+    expect(result).toBe('');
+  });
+
+  it('returns empty string when section is muted (muteSection: true)', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: {
+        duration: 5,
+        muteSection: true,
+        audioFade: { in: { duration: 0.5 } },
+      },
+    } as never);
+
+    expect(result).toBe('');
+  });
+
+  it('builds a fade-in -af arg', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5, audioFade: { in: { duration: 0.5 } } },
+    } as never);
+
+    expect(result.trim()).toBe('-af "afade=t=in:st=0:d=0.5"');
+  });
+
+  it('builds a fade-out -af arg', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5, audioFade: { out: { duration: 0.5 } } },
+    } as never);
+
+    expect(result.trim()).toBe('-af "afade=t=out:st=4.5:d=0.5"');
+  });
+
+  it('clamps the fade-out start to 0 when the section duration is unknown or shorter than the fade', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { audioFade: { out: { duration: 0.5 } } },
+    } as never);
+
+    expect(result.trim()).toBe('-af "afade=t=out:st=0:d=0.5"');
+  });
+
+  it('builds combined fade-in + fade-out as a single comma-joined -af arg', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: {
+        duration: 5,
+        audioFade: { in: { duration: 0.5 }, out: { duration: 0.5 } },
+      },
+    } as never);
+
+    expect(result.trim()).toBe('-af "afade=t=in:st=0:d=0.5,afade=t=out:st=4.5:d=0.5"');
+  });
+
+  it('appends :curve=<name> when a curve is specified on fade-in', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: {
+        duration: 5,
+        audioFade: { in: { duration: 0.5, curve: 'qsin' } },
+      },
+    } as never);
+
+    expect(result.trim()).toBe('-af "afade=t=in:st=0:d=0.5:curve=qsin"');
+  });
+
+  it('appends :curve=<name> when a curve is specified on fade-out', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: {
+        duration: 5,
+        audioFade: { out: { duration: 0.5, curve: 'qsin' } },
+      },
+    } as never);
+
+    expect(result.trim()).toBe('-af "afade=t=out:st=4.5:d=0.5:curve=qsin"');
+  });
+
+  it('does not append :curve when no curve is given', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: {
+        duration: 5,
+        audioFade: { in: { duration: 1 } },
+      },
+    } as never);
+
+    expect(result).not.toContain('curve');
   });
 });

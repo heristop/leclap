@@ -7,6 +7,7 @@ export class AssetNotFoundError extends BaseError {
     if (searchPath) {
       message += ` (Searched in: ${searchPath})`;
     }
+
     super(message);
   }
 }

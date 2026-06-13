@@ -5,17 +5,14 @@ import {
   type TemplateDescriptor,
   type Section,
 } from '../schemas/template.schemas';
+import { validateTransitions, validateMotion, type ValidationError } from './templateValidationRules';
+
+export type { ValidationError } from './templateValidationRules';
 
 export interface ValidationResult {
   success: boolean;
   data?: TemplateDescriptor | Section;
   errors?: ValidationError[];
-}
-
-export interface ValidationError {
-  path: string;
-  message: string;
-  code: string;
 }
 
 export class TemplateValidator {
@@ -183,12 +180,16 @@ export class TemplateValidator {
         // Only validate section references as hard errors
         // Variable references are warnings since templates often use runtime variables
         const sectionErrors = this.validateSectionReferences(template);
+        const transitionErrors = validateTransitions(template);
+        const motionErrors = validateMotion(template);
 
-        if (sectionErrors.length > 0) {
+        const allErrors = [...sectionErrors, ...transitionErrors, ...motionErrors];
+
+        if (allErrors.length > 0) {
           return {
             success: false,
             data: template,
-            errors: sectionErrors,
+            errors: allErrors,
           };
         }
 

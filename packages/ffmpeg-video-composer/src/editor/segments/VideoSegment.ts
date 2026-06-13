@@ -26,13 +26,15 @@ class Video extends SegmentBuilder {
       ? '-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast -movflags +faststart'
       : `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high -movflags +faststart -preset ${this.project.config.hardwareConfig?.preset ?? 'medium'}`;
 
+    const audioFadeArg = this.buildAudioFadeArg();
+
     if (this.section.options?.videoUrl) {
       // Use a video as second input
       this.command +=
         ` ${this.hwaccelArg} ${this.sources.join(' ')} ` +
         ` -r 30 -t ${this.section.options.duration} ` +
         ` ${encodingParams} ` +
-        ` ${this.filters} ${this.destination} `;
+        ` ${this.filters} ${audioFadeArg}${this.destination} `;
 
       return;
     }
@@ -47,7 +49,7 @@ class Video extends SegmentBuilder {
         ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
         ` -r 30 -t ${this.section.options.duration} ` +
         ` ${encodingParams} ` +
-        ` ${this.filters} ${this.destination} `;
+        ` ${this.filters} ${audioFadeArg}${this.destination} `;
 
       return;
     }
@@ -60,7 +62,7 @@ class Video extends SegmentBuilder {
       ` ${this.hwaccelArg} -i ${assertSafeArgToken(this.source, 'source')} ${this.sources.join(' ')} ` +
       ` -r 30 -t ${this.section.options?.duration} ` +
       ` ${encodingParams} ` +
-      ` ${this.filters} ${this.destination} `;
+      ` ${this.filters} ${audioFadeArg}${this.destination} `;
   };
 }
 

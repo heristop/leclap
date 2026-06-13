@@ -36,8 +36,8 @@ describe('TemplateValidator (gap coverage)', () => {
           orientation: 'landscape',
           colorsList: ['#fff'],
           musicEnabled: true,
-          audioVolumeLevel: 0.5,
-          transitionDuration: 1,
+          audio: { sourceVolume: 0.5 },
+          transition: { type: 'fade', duration: 1 },
           music: { name: 'theme', url: 'http://a/m.mp3' },
         },
         sections: [
@@ -47,7 +47,7 @@ describe('TemplateValidator (gap coverage)', () => {
             type: 'video',
             options: { useVideoSection: 'main', duration: 5, speed: 1, muteSection: true },
             filters: [{ type: 'scale', value: '2' }],
-            inputs: [{ name: 'logo', url: 'http://a/l.png', type: 'image' }],
+            inputs: [{ name: 'logo', url: 'http://a/l.png' }],
             maps: [{ inputs: ['0:v'], outputs: ['o'], filters: [{ type: 'eq', value: '1' }] }],
             title: { en: 'Intro' },
             description: { en: 'desc' },
@@ -350,6 +350,234 @@ describe('TemplateValidator (gap coverage)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Cross-section semantic checks: transitions and motion effects.
+// ---------------------------------------------------------------------------
+
+describe('TemplateValidator – validateTransitions', () => {
+  let validator: TemplateValidator;
+
+  beforeEach(() => {
+    validator = new TemplateValidator();
+  });
+
+  // ── dangling_transition ──────────────────────────────────────────────────
+
+  it('flags a non-cut transition on the last rendering section', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'intro', type: 'video', transition: { type: 'fade' } },
+        { name: 'body', type: 'project_video', transition: { type: 'dissolve' } },
+      ],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'dangling_transition')).toBe(true);
+    // only the LAST rendering section is flagged, not the middle one
+    expect(result.errors?.filter((e) => e.code === 'dangling_transition')).toHaveLength(1);
+    expect(result.errors?.find((e) => e.code === 'dangling_transition')?.path).toContain('sections[1]');
+  });
+
+  it('does NOT flag a cut transition on the last rendering section', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'intro', type: 'video' },
+        { name: 'outro', type: 'color_background', transition: { type: 'cut' } },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('does NOT flag a non-cut transition on a middle rendering section', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', transition: { type: 'fade' } },
+        { name: 'b', type: 'image_background' },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('ignores form and music sections when determining the last rendering section', () => {
+    // form and music are not rendering sections; the last rendering section is 'outro'
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'body', type: 'project_video', transition: { type: 'wipeleft' } },
+        { name: 'outro', type: 'color_background', transition: { type: 'fade' } },
+        { name: 'meta', type: 'form' },
+        { name: 'bg', type: 'music' },
+      ],
+    });
+    expect(result.success).toBe(false);
+    const dangling = result.errors?.filter((e) => e.code === 'dangling_transition');
+    expect(dangling).toHaveLength(1);
+    expect(dangling?.[0].path).toContain('sections[1]');
+  });
+
+  it('passes a template with no sections', () => {
+    expect(validator.validateTemplate({ sections: [] }).success).toBe(true);
+  });
+
+  it('passes when the last rendering section has no transition', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', transition: { type: 'fade' } },
+        { name: 'b', type: 'project_video' },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  // ── transition_too_long ───────────────────────────────────────────────────
+
+  it('flags a transition whose effective duration >= the smaller adjacent duration', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        // section A: duration 2s, transition 2s (effective = 2, smaller = min(2,3) = 2 → 2 >= 2 → error)
+        { name: 'a', type: 'video', options: { duration: 2 }, transition: { type: 'fade', duration: 2 } },
+        { name: 'b', type: 'color_background', options: { duration: 3 } },
+      ],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'transition_too_long')).toBe(true);
+  });
+
+  it('flags a transition whose effective duration uses the global default and is too long', () => {
+    const result = validator.validateTemplate({
+      global: { transition: { type: 'dissolve', duration: 1 } },
+      sections: [
+        // no per-section duration on the transition, falls back to global 1s; smaller of (0.5, 2) = 0.5 → 1 >= 0.5 → error
+        { name: 'a', type: 'video', options: { duration: 0.5 }, transition: { type: 'dissolve' } },
+        { name: 'b', type: 'image_background', options: { duration: 2 } },
+      ],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'transition_too_long')).toBe(true);
+  });
+
+  it('does NOT flag a transition that is shorter than both adjacent durations', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', options: { duration: 5 }, transition: { type: 'fade', duration: 1 } },
+        { name: 'b', type: 'color_background', options: { duration: 5 } },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('skips the check when either adjacent section has no explicit duration (project_video runtime probe)', () => {
+    // b is project_video with no explicit duration – runtime-probed, skip check
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', options: { duration: 1 }, transition: { type: 'fade', duration: 0.9 } },
+        { name: 'b', type: 'project_video' },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('skips the check when the transition section itself has no explicit duration', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        // a has no explicit duration, so skip even though transition duration would be > b's duration
+        { name: 'a', type: 'video', transition: { type: 'fade', duration: 5 } },
+        { name: 'b', type: 'color_background', options: { duration: 1 } },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('uses the hardcoded 0.3s default when neither section nor global specifies a transition duration', () => {
+    // effective duration = 0.3; both sections are 1s each → 0.3 < 1 → no error
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', options: { duration: 1 }, transition: { type: 'fade' } },
+        { name: 'b', type: 'color_background', options: { duration: 1 } },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('flags when effective duration (0.3 default) >= smaller adjacent duration', () => {
+    // effective = 0.3, durations are (0.2, 1) → smaller = 0.2 → 0.3 >= 0.2 → error
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', options: { duration: 0.2 }, transition: { type: 'fade' } },
+        { name: 'b', type: 'color_background', options: { duration: 1 } },
+      ],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'transition_too_long')).toBe(true);
+  });
+});
+
+describe('TemplateValidator – validateMotion', () => {
+  let validator: TemplateValidator;
+
+  beforeEach(() => {
+    validator = new TemplateValidator();
+  });
+
+  it('flags kenburns motion on a video section', () => {
+    const result = validator.validateTemplate({
+      sections: [{ name: 'a', type: 'video', motion: [{ type: 'kenburns' }] }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'motion_unsupported_section')).toBe(true);
+    expect(result.errors?.find((e) => e.code === 'motion_unsupported_section')?.path).toContain('sections[0]');
+  });
+
+  it('flags kenburns motion on a project_video section', () => {
+    const result = validator.validateTemplate({
+      sections: [{ name: 'a', type: 'project_video', motion: [{ type: 'kenburns', direction: 'in' }] }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'motion_unsupported_section')).toBe(true);
+  });
+
+  it('flags kenburns motion on a color_background section', () => {
+    const result = validator.validateTemplate({
+      sections: [{ name: 'a', type: 'color_background', motion: [{ type: 'kenburns' }] }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'motion_unsupported_section')).toBe(true);
+  });
+
+  it('allows kenburns motion on an image_background section', () => {
+    const result = validator.validateTemplate({
+      sections: [{ name: 'a', type: 'image_background', motion: [{ type: 'kenburns', intensity: 1.5 }] }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('allows non-kenburns motion effects on any section type', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', motion: [{ type: 'flip', axis: 'horizontal' }] },
+        { name: 'b', type: 'project_video', motion: [{ type: 'rotate', angle: 90 }] },
+        { name: 'c', type: 'color_background', motion: [{ type: 'crop', w: 100, h: 100 }] },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('flags each section that has kenburns on a non-image_background type', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', motion: [{ type: 'kenburns' }] },
+        { name: 'b', type: 'image_background', motion: [{ type: 'kenburns' }] },
+        { name: 'c', type: 'project_video', motion: [{ type: 'kenburns' }] },
+      ],
+    });
+    expect(result.success).toBe(false);
+    const motionErrors = result.errors?.filter((e) => e.code === 'motion_unsupported_section');
+    expect(motionErrors).toHaveLength(2); // a and c, not b
+  });
+
+  it('passes a section with no motion effects', () => {
+    expect(validator.validateTemplate({ sections: [{ name: 'a', type: 'video' }] }).success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Schema-level coverage: exercise each schema's accept/reject paths directly.
 // ---------------------------------------------------------------------------
 
@@ -368,10 +596,10 @@ describe('template.schemas', () => {
   it('GlobalConfigSchema enforces ranges and enums', () => {
     expect(GlobalConfigSchema.safeParse({ orientation: 'landscape' }).success).toBe(true);
     expect(GlobalConfigSchema.safeParse({ orientation: 'diagonal' }).success).toBe(false);
-    expect(GlobalConfigSchema.safeParse({ audioVolumeLevel: 0.5 }).success).toBe(true);
-    expect(GlobalConfigSchema.safeParse({ audioVolumeLevel: 2 }).success).toBe(false);
-    expect(GlobalConfigSchema.safeParse({ transitionDuration: 1 }).success).toBe(true);
-    expect(GlobalConfigSchema.safeParse({ transitionDuration: -1 }).success).toBe(false);
+    expect(GlobalConfigSchema.safeParse({ audio: { sourceVolume: 0.5 } }).success).toBe(true);
+    expect(GlobalConfigSchema.safeParse({ audio: { sourceVolume: 2 } }).success).toBe(false);
+    expect(GlobalConfigSchema.safeParse({ transition: { type: 'fade', duration: 1 } }).success).toBe(true);
+    expect(GlobalConfigSchema.safeParse({ transition: { type: 'fade', duration: -1 } }).success).toBe(false);
   });
 
   it('FilterSchema accepts value or values', () => {
@@ -391,8 +619,8 @@ describe('template.schemas', () => {
       InputSchema.safeParse({
         name: 'a',
         url: 'http://x',
-        type: 'frame',
-        options: { frames: 3, frequency: 1, overlay: '0:0', scale: '1:1', persistent: true },
+        type: 'animation',
+        options: { fps: 25, position: '0:0', scale: '1:1', persistent: true, loop: false },
         filters: [{ type: 'scale', value: '2' }],
       }).success
     ).toBe(true);

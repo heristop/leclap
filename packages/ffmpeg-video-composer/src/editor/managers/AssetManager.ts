@@ -108,26 +108,11 @@ class AssetManager {
       throw new Error(`[${this.segment.currentSection?.name}][Assets] Url for ${item.name} is not valid: ${item.url}`);
     }
 
-    const isZipAnimation = item.type === 'frame' && new RegExp('(.*?).(zip)$').test(item.url);
+    const isZipAnimation = item.type === 'animation' && new RegExp('(.*?).(zip)$').test(item.url);
 
     if (isZipAnimation) {
       // Process zip animation
       await this.fetchAndUnzipAnimation(item);
-
-      return;
-    }
-
-    await this.fetchMediaByType(item);
-  };
-
-  private readonly fetchMediaByType = async (item: MapAnimationInput): Promise<void> => {
-    const isPngAnimation = item.type === 'frame' && item.options.frames > 0;
-
-    if (isPngAnimation) {
-      // Process png animation
-      await Promise.all(
-        Array.from({ length: item.options.frames }, (_, idx) => idx + 1).map((i) => this.fetchMedia(item, i))
-      );
 
       return;
     }
@@ -189,6 +174,40 @@ class AssetManager {
     const match = cssContent.match(regex);
 
     return match ? match[1] : null;
+  };
+
+  /**
+   * Builds the image2 frame-sequence input for an unzipped animation: `-framerate <fps> -i <dir>/<pattern>`.
+   *
+   * The frame pattern is derived from the ACTUAL extracted filenames (e.g. `CADRE_BLANC-001.png` →
+   * `CADRE_BLANC-%03d.png`) rather than assumed — the zip's naming convention is preserved by stripping
+   * the trailing zero-padded counter and replacing it with a printf token of the matching width.
+   * Returns undefined when no frames were extracted OR the filenames carry no trailing counter
+   * (e.g. `frame.png` instead of `frame001.png`) — callers should treat that as a ZIP extraction
+   * failure and fall back to single-media handling, with a warning.
+   */
+  resolveAnimationSequencePattern = (name: string): string | undefined => {
+    const cache = this.inputsCache;
+    const frames = cache[name];
+
+    if (!Array.isArray(frames) || frames.length === 0) {
+      return undefined;
+    }
+
+    const firstFrame = frames[0] ?? '';
+    const fileName = firstFrame.substring(firstFrame.lastIndexOf('/') + 1);
+
+    // Match a trailing zero-padded counter before the extension: <prefix><NNN>.<ext>.
+    const counterMatch = /^(.*?)(\d+)(\.[^.]+)$/.exec(fileName);
+
+    if (!counterMatch) {
+      return undefined;
+    }
+
+    const [, prefix, counter, extension] = counterMatch;
+    const pattern = `${prefix}%0${counter.length}d${extension}`;
+
+    return `${this.segment.animationsDir}/${name}/${pattern}`;
   };
 
   fetchAndUnzipAnimation = async (media: Media): Promise<void> => {

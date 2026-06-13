@@ -25,6 +25,7 @@ function makeProject(config: ProjectConfig = {}) {
       musicFilters: [] as string[],
       fileConcatPath: '',
       musicPath: '',
+      transitions: [] as Array<{ type: string; duration: number }>,
     },
   };
 }
@@ -172,10 +173,10 @@ describe('MusicComposer.prepareMusicTrack', () => {
   it('builds a fade-in filter for the first section', () => {
     const project = makeProject();
     project.buildInfos.totalSegments = 3;
-    const template = makeTemplate({ global: { transitionDuration: 0.5 } });
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.5 } } });
     const { composer } = makeComposer({ project, template });
 
-    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4, musicVolumeLevel: 0.8 } });
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4, musicVolume: 0.8 } });
 
     expect(project.buildInfos.currentIncrement).toBe(1);
     const filters = project.buildInfos.musicFilters.join('');
@@ -226,7 +227,7 @@ describe('MusicComposer.appendMusic', () => {
   it('builds a single-segment filter complex and mixes the music', async () => {
     const project = makeProject({ audioConfig: { sampleRate: 48000 } });
     project.buildInfos.musicPath = '/cache/musics/song.mp3';
-    const template = makeTemplate({ global: { audioVolumeLevel: 0.9 } });
+    const template = makeTemplate({ global: { audio: { sourceVolume: 0.9 } } });
     const filesystem = makeFilesystem();
     const ffmpeg = {
       execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
@@ -314,5 +315,234 @@ describe('MusicComposer.loopMusic', () => {
     await composer.loopMusic();
 
     expect(musicAdapter.process).toHaveBeenCalledWith(logger, filesystem, 42, '/cache/musics/song.mp3');
+  });
+});
+
+describe('MusicComposer.prepareMusicTrack — transition-aware windows', () => {
+  it('second section start time is shifted by -0.5 when a wipeleft transition sits between sections', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    // Boundary 0 (after section 1) is a wipeleft transition of duration 0.5.
+    project.buildInfos.transitions = [{ type: 'wipeleft', duration: 0.5 }];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.3 } } });
+    const { composer } = makeComposer({ project, template });
+
+    // Section 1 (first): duration 4
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    // Section 2 (last): duration 4
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // Section 1: ss=0, no shift needed
+    expect(filters).toContain('atrim=start=0:duration=4.3');
+    // Section 2: ss should be 4 - 0.5 = 3.5 (boundary transition subtracted from currentLength)
+    expect(filters).toContain('atrim=start=3.5:duration=4.3');
+  });
+
+  it('cut transition does not shift the window', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    project.buildInfos.transitions = [{ type: 'cut', duration: 0.5 }];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.3 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // No shift: section 2 starts at 4 (full duration of section 1)
+    expect(filters).toContain('atrim=start=4:duration=4.3');
+  });
+
+  it('missing transition entry is treated as cut (no shift)', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    // Empty transitions array — defensive against missing entry.
+    project.buildInfos.transitions = [];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.3 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 5 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 3 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('atrim=start=5:duration=3.3');
+  });
+});
+
+describe('MusicComposer.appendMusic — normalize', () => {
+  const segments1: Section[] = [{ name: 's1', type: 'video', options: { duration: 4 } }];
+
+  it('appends loudnorm filter after the final mix when normalize is loudnorm', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const template = makeTemplate({ global: { audio: { normalize: 'loudnorm' } } });
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    // The normalize filter must sit INSIDE the chain, before the [final] label —
+    // a labeled output ends an ffmpeg chain, so `[final],loudnorm` is invalid graph syntax.
+    expect(cmd).toContain('loudnorm=I=-16:TP=-1.5:LRA=11[final]');
+  });
+
+  it('appends dynaudnorm filter after the final mix when normalize is dynaudnorm', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const template = makeTemplate({ global: { audio: { normalize: 'dynaudnorm' } } });
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('dynaudnorm=f=150:g=15[final]');
+  });
+
+  it('does not modify graph when no normalize is configured', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const template = makeTemplate({ global: { audio: { sourceVolume: 1 } } });
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).not.toContain('loudnorm');
+    expect(cmd).not.toContain('dynaudnorm');
+    expect(cmd).toContain('amix=inputs=2:duration=first[final]');
+  });
+});
+
+describe('MusicComposer.appendMusic — ducking', () => {
+  const segments1: Section[] = [{ name: 's1', type: 'video', options: { duration: 4 } }];
+
+  it('inserts sidechaincompress with defaults when ducking is true', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const template = makeTemplate({ global: { audio: { ducking: true } } });
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('sidechaincompress=threshold=0.05:ratio=8:attack=20:release=400');
+    expect(cmd).toContain('asplit=2');
+    expect(cmd).toContain('amix=inputs=2:duration=first:normalize=0');
+  });
+
+  it('uses object ducking values when provided', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const template = makeTemplate({ global: { audio: { ducking: { threshold: 0.1, ratio: 4 } } } });
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('sidechaincompress=threshold=0.1:ratio=4:attack=20:release=400');
+  });
+
+  it('does not insert ducking when no ducking config is set (regression)', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const template = makeTemplate({});
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).not.toContain('sidechaincompress');
+    expect(cmd).not.toContain('asplit');
+    // The non-ducking path keeps the original plain amix (no normalize=0)
+    expect(cmd).toContain('amix=inputs=2:duration=first[final]');
+    expect(cmd).not.toContain('normalize=0');
+  });
+});
+
+describe('MusicComposer.normalizeAudio — no-music path', () => {
+  it('runs a loudnorm filter command and replaces the output file', async () => {
+    const template = makeTemplate({ global: { audio: { normalize: 'loudnorm' } } });
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ template, filesystem, ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4');
+
+    expect(filesystem.move).toHaveBeenCalled();
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('loudnorm=I=-16:TP=-1.5:LRA=11');
+    expect(cmd).toContain('-c:v copy');
+    expect(filesystem.unlink).toHaveBeenCalled();
+  });
+
+  it('runs a dynaudnorm filter command when normalize is dynaudnorm', async () => {
+    const template = makeTemplate({ global: { audio: { normalize: 'dynaudnorm' } } });
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ template, filesystem, ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('dynaudnorm=f=150:g=15');
+  });
+
+  it('is a no-op when no normalize is configured', async () => {
+    const template = makeTemplate({});
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ template, filesystem, ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4');
+
+    expect(filesystem.move).not.toHaveBeenCalled();
+    expect(ffmpeg.execute).not.toHaveBeenCalled();
+  });
+
+  it('throws when the ffmpeg normalize command fails (rc 1)', async () => {
+    const template = makeTemplate({ global: { audio: { normalize: 'loudnorm' } } });
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn(async () => ({ rc: 1 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ template, filesystem, ffmpeg });
+
+    await expect(composer.normalizeAudio('/build/output.mp4')).rejects.toThrow('Error on audio normalization');
+    expect(filesystem.unlink).not.toHaveBeenCalled();
   });
 });

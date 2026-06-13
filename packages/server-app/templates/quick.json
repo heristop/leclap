@@ -5,8 +5,13 @@
     },
     "orientation": "portrait",
     "musicEnabled": false,
-    "audioVolumeLevel": 1,
-    "transitionDuration": 0.5
+    "transition": {
+      "type": "cut",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1
+    }
   },
   "sections": [
     {

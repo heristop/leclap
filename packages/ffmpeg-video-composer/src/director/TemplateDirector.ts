@@ -8,7 +8,10 @@ import type { IEventEmitter } from '../platform/AbstractEventManager';
 import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, LogParams, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
-import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
+import {
+  DEFAULT_TRANSITION_DURATION,
+  type TemplateDescriptor as SchemaTemplateDescriptor,
+} from '../schemas/template.schemas';
 import type Project from '../core/models/Project';
 import type Template from '../core/models/Template';
 import type TemplateConcreteBuilder from './TemplateConcreteBuilder';
@@ -74,7 +77,12 @@ class TemplateDirector {
 
   config = (projectConfig: ProjectConfig, templateDescriptor: TemplateDescriptor): TemplateDirector => {
     this.project.config = projectConfig;
-    this.template.descriptor = templateDescriptor as unknown as SchemaTemplateDescriptor;
+    // Deep-clone the descriptor: section.filters are mutated in place during builds (sugar/scale
+    // prepend preset filters), so compiling the same descriptor object twice would double-apply them
+    // (Ken Burns twice, contrast squared). JSON round-trip matches the repo's existing deep-clone of
+    // template descriptors (Hermes/WASM-safe — descriptors are plain JSON).
+    const clonedDescriptor = JSON.parse(JSON.stringify(templateDescriptor)) as TemplateDescriptor;
+    this.template.descriptor = clonedDescriptor as unknown as SchemaTemplateDescriptor;
 
     this.filesystemAdapter.setBuildDir(this.project.config.buildDir ?? 'build');
     this.filesystemAdapter.setAssetsDir(this.project.config.assetsDir ?? 'assets');
@@ -134,6 +142,7 @@ class TemplateDirector {
       return null;
     }
 
+    this.buildTransitions(videoSegments);
     await this.calculateTotalLength(videoSegments);
 
     this.logger.info(`[TemplateDirection] Length: ${this.project.buildInfos.totalLength}`);
@@ -146,6 +155,32 @@ class TemplateDirector {
     }
 
     return null;
+  };
+
+  /**
+   * Builds the per-boundary transition list for the N rendering sections (N-1 boundaries, in order).
+   * Each boundary takes the transition of the EARLIER section (`sections[i].transition`) or the global
+   * default; a boundary is only a non-cut transition when one is declared (section or global). Cut
+   * boundaries keep type 'cut' (duration 0 in timeline math). Stored on buildInfos.transitions —
+   * consumed by MusicComposer (xfade-aware windows) and the final-assembly path selection.
+   */
+  private readonly buildTransitions = (segments: Section[]): void => {
+    const globalTransition = this.template.descriptor.global?.transition;
+    const transitions = this.project.buildInfos.transitions;
+    transitions.length = 0;
+
+    for (let i = 0; i < segments.length - 1; i++) {
+      const declared = segments[i].transition ?? globalTransition;
+
+      if (!declared || declared.type === 'cut') {
+        transitions.push({ type: 'cut', duration: 0 });
+
+        continue;
+      }
+
+      const duration = declared.duration ?? globalTransition?.duration ?? DEFAULT_TRANSITION_DURATION;
+      transitions.push({ type: declared.type, duration });
+    }
   };
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
@@ -165,6 +200,11 @@ class TemplateDirector {
       this.project.buildInfos.totalLength += duration;
       durMap[segment.name] = duration;
     }
+
+    // Each non-cut boundary cross-dissolves, overlapping its two clips and shortening the rendered
+    // timeline by the transition duration. Cut boundaries subtract 0.
+    const transitionTotal = this.project.buildInfos.transitions.reduce((sum, t) => sum + t.duration, 0);
+    this.project.buildInfos.totalLength -= transitionTotal;
   };
 
   getVideoSectionDuration = async (segment: Section): Promise<number> => {
@@ -203,11 +243,15 @@ class TemplateDirector {
         const frac = Math.min(Math.max(fraction, 0), 1);
         this.emitter.emit('compilation-progress', Math.min(1, (accumulated + frac * segmentLength) / totalLength));
       };
+      // Adapters that read raw elapsed time from FFmpeg (the on-device CLI's `-progress`) normalise
+      // against this to produce the 0..1 fraction above.
+      this.ffmpegAdapter.expectedDurationSeconds = segmentLength;
 
       try {
         await this.processSingleVideoSegment(segment);
       } finally {
         this.ffmpegAdapter.progressListener = undefined;
+        this.ffmpegAdapter.expectedDurationSeconds = undefined;
       }
 
       accumulated += segmentLength;
@@ -240,11 +284,41 @@ class TemplateDirector {
   };
 
   finalizeCompilation = async (segments: Section[]): Promise<string | null> => {
-    const concatSegments = this.videoEditor.concat.bind(this.videoEditor);
-    const finalPath = await concatSegments();
+    const transitions = this.project.buildInfos.transitions;
+    const hasTransition = transitions.some((transition) => transition.type !== 'cut');
+
+    const finalPath = await this.assembleFinalVideo(hasTransition, transitions);
+
+    // No-music path: normalize the assembled output in place before finalize() fires the `finalize`
+    // event and runs project.clean() (which resets finalVideo). No-op unless global.audio.normalize
+    // is set. When music IS enabled, normalization is handled inside the music mix instead.
+    if (!this.template.descriptor.global?.musicEnabled) {
+      await this.musicComposer.normalizeAudio(this.project.finalVideo);
+    }
+
+    // Music windows already account for the xfade-shortened timeline (buildInfos.transitions), so the
+    // existing music flow (loopMusic + appendMusic) runs unchanged inside finalize after assembly.
     await this.videoEditor.finalize(segments);
 
     return finalPath;
+  };
+
+  private readonly assembleFinalVideo = async (
+    hasTransition: boolean,
+    transitions: Array<{ type: string; duration: number }>
+  ): Promise<string> => {
+    if (!hasTransition) {
+      const concatSegments = this.videoEditor.concat.bind(this.videoEditor);
+
+      return concatSegments();
+    }
+
+    // segmentFiles are the per-section rendered outputs, in order — the same files appended to the
+    // concat list (collected in append()). The transitions arg includes cut entries (rendered as
+    // 1ms fades); length must equal segmentFiles.length - 1.
+    const segmentFiles = this.project.buildInfos.videoInputs;
+
+    return this.videoEditor.assembleWithTransitions(segmentFiles, transitions);
   };
 
   private readonly resolveUserVideoSource = async (section: Section): Promise<string | undefined> => {

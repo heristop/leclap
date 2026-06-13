@@ -10,10 +10,17 @@ import type { CompileInput, CompileOptions, CompileResult, CompileService } from
 const toPath = (uri: string): string => uri.replace(/^file:\/\//, '');
 const toUri = (p: string): string => (p.startsWith('file://') ? p : `file://${p}`);
 
+// A fresh `-progress` file per command so a poll never reads a previous run's stale tail.
+let progressCounter = 0;
+
 // The native leclap-ffmpeg module IS the engine the reused core drives (run = ffmpeg, probe = ffprobe).
 const engine: NativeEngine = {
   run: (args) => Leclap.run(args),
   probe: (args) => Leclap.probe(args),
+  // M3 live progress: the core injects `-progress <path>` and polls it while the (blocking) native
+  // run is in flight; ffmpeg writes the file at a real device path, we read it via expo-file-system.
+  progressFilePath: () => `${toPath(FileSystem.cacheDirectory ?? '')}leclap-progress-${(progressCounter += 1)}.txt`,
+  readTextFile: (path) => FileSystem.readAsStringAsync(toUri(path)).catch(() => ''),
 };
 
 // Prepare the on-device build/asset dirs and the ProjectConfig the core compiles against.

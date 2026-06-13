@@ -1,0 +1,171 @@
+{
+  "header": {
+    "create": "Create a template",
+    "edit": "Edit template",
+    "close": "Close",
+    "back": "Back"
+  },
+  "name": {
+    "label": "Name",
+    "placeholder": "My template"
+  },
+  "orientation": {
+    "label": "Orientation",
+    "landscape": "Landscape 16:9",
+    "portrait": "Portrait 9:16"
+  },
+  "sections": {
+    "label": "Sections — order top to bottom",
+    "add": "Add a section"
+  },
+  "scenes": {
+    "add": "Add a scene"
+  },
+  "wizard": {
+    "continue": "Continue",
+    "info": {
+      "title": "Name your template",
+      "subtitle": "A clear name and the screen shape."
+    },
+    "scenes": {
+      "title": "Build the scenes",
+      "subtitle": "Add scenes, set transitions, fine-tune each one."
+    },
+    "style": {
+      "title": "Style & audio",
+      "subtitle": "A default transition and how the audio mixes."
+    }
+  },
+  "section": {
+    "duration": "Duration (s)",
+    "mute": "Mute audio",
+    "overlayText": "Overlay text (optional)",
+    "overlayPlaceholder": "supports {{token}}",
+    "countdownToggle": "Countdown before recording",
+    "countdown": "Countdown (s)",
+    "whatToFilm": "What to film (optional)",
+    "whatToFilmPlaceholder": "e.g. Stand centered, look at the camera",
+    "addTitle": "Add title text",
+    "editTitle": "Edit title overlay"
+  },
+  "color": {
+    "label": "Color (hex)",
+    "placeholder": "#7C83FD"
+  },
+  "field": {
+    "label": "Field {{n}} label",
+    "placeholder": "Your name",
+    "add": "Add field"
+  },
+  "enterField": "Enter {{label}}",
+  "music": {
+    "pick": "Pick the tracks viewers can choose from.",
+    "allowUpload": "Allow viewers to upload their own track"
+  },
+  "image": {
+    "pick": "Pick the images viewers can choose from.",
+    "allowUpload": "Allow viewers to upload their own image"
+  },
+  "advanced": {
+    "look": "Look",
+    "audio": "Audio",
+    "cameraGuide": "Camera guide",
+    "layers": "Layers",
+    "motion": "Motion"
+  },
+  "transition": {
+    "title": "Transition",
+    "help": "How this scene blends into the next one.",
+    "cut": "Cut",
+    "cutOption": "Cut — hard switch",
+    "duration": "Duration"
+  },
+  "look": {
+    "label": "Look",
+    "none": "None"
+  },
+  "overlay": {
+    "title": "Position text",
+    "hint": "Drag the text to position it.",
+    "placeholder": "supports {{token}}",
+    "sample": "Your text",
+    "remove": "Remove overlay",
+    "size": "Size",
+    "colour": "Colour",
+    "box": "Background box",
+    "boxOn": "Box",
+    "boxOff": "No box"
+  },
+  "audio": {
+    "musicVolume": "Music volume",
+    "musicVolumeGlobal": "Music volume (global)",
+    "resetGlobal": "Reset to global music volume",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "duration": "Duration",
+    "curve": "Curve",
+    "sourceVolume": "Voice / source volume",
+    "musicVolumeGlobalLabel": "Background music volume",
+    "normalize": "Loudness",
+    "normalizeOff": "Off",
+    "normalizeLoudnorm": "EBU",
+    "normalizeDynaudnorm": "Dynamic",
+    "ducking": "Duck music under voice"
+  },
+  "layers": {
+    "label": "Layers",
+    "base": "Base",
+    "layerN": "Layer {{n}}",
+    "remove": "Remove layer {{n}}",
+    "add": "Add layer",
+    "opacity": "Opacity",
+    "fill": "Fill",
+    "solid": "Solid",
+    "gradient": "Gradient",
+    "direction": "Direction",
+    "vertical": "Vertical",
+    "horizontal": "Horizontal",
+    "diagonal": "Diagonal"
+  },
+  "framing": {
+    "help": "A faint body outline shown in the camera to help framing.",
+    "silhouette": "Silhouette",
+    "off": "Off",
+    "left": "Left",
+    "center": "Center",
+    "right": "Right",
+    "opacity": "Opacity"
+  },
+  "motion": {
+    "kenburns": "Ken Burns motion",
+    "on": "On",
+    "off": "Off",
+    "direction": "Direction",
+    "in": "In",
+    "out": "Out",
+    "left": "Left",
+    "right": "Right",
+    "up": "Up",
+    "down": "Down",
+    "intensity": "Intensity"
+  },
+  "style": {
+    "defaultTransition": "Default transition",
+    "defaultTransitionHelp": "Used between scenes that don't set their own.",
+    "globalAudio": "Audio mix"
+  },
+  "save": "Save template",
+  "alerts": {
+    "nameRequired": {
+      "title": "Name required",
+      "message": "Give your template a name."
+    },
+    "addSection": {
+      "title": "Add a section",
+      "message": "A template needs at least one section."
+    },
+    "almostThere": "Almost there",
+    "needName": "Give your template a name.",
+    "needScene": "Add at least one scene."
+  }
+}

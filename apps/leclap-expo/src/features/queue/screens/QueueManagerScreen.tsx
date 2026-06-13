@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useRouter } from 'expo-router';
 import {
   useCompilationQueue,
@@ -60,23 +62,23 @@ function getStatusIcon(status: string): StatusIconName {
 }
 
 // Friendly, human-readable status label (the raw status reads like a database field).
-function getStatusLabel(status: string): string {
+function getStatusLabel(status: string, t: TFunction<'queue'>): string {
   switch (status) {
     case 'pending':
-      return 'Waiting';
+      return t('status.waiting');
     case 'processing':
-      return 'Rendering';
+      return t('status.rendering');
     case 'failed':
-      return 'Failed';
+      return t('status.failed');
     case 'completed':
-      return 'Ready';
+      return t('status.ready');
     default:
       return status;
   }
 }
 
 // "just now" / "5 min ago" / "3 h ago" / "Apr 12" — friendlier than a full timestamp.
-function relativeTime(iso: string): string {
+function relativeTime(iso: string, t: TFunction<'queue'>): string {
   const then = new Date(iso).getTime();
 
   if (Number.isNaN(then)) {
@@ -86,17 +88,17 @@ function relativeTime(iso: string): string {
   const mins = Math.max(0, Math.round((Date.now() - then) / 60000));
 
   if (mins < 1) {
-    return 'just now';
+    return t('relativeTime.justNow');
   }
 
   if (mins < 60) {
-    return `${mins} min ago`;
+    return t('relativeTime.minAgo', { count: mins });
   }
 
   const hours = Math.round(mins / 60);
 
   if (hours < 24) {
-    return `${hours} h ago`;
+    return t('relativeTime.hourAgo', { count: hours });
   }
 
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -129,10 +131,12 @@ function QueueItemCard({
   item,
   isSelected,
   onPress,
+  t,
 }: {
   item: QueueItemData;
   isSelected: boolean;
   onPress: (id: string) => void;
+  t: TFunction<'queue'>;
 }) {
   const handlePress = () => {
     onPress(item.id);
@@ -148,7 +152,10 @@ function QueueItemCard({
       onLongPress={handlePress}
       activeOpacity={0.85}
       accessibilityRole="button"
-      accessibilityLabel={`Video, ${getStatusLabel(item.status)}, added ${relativeTime(item.createdAt)}`}
+      accessibilityLabel={t('screen.videoAccessibility', {
+        status: getStatusLabel(item.status, t),
+        time: relativeTime(item.createdAt, t),
+      })}
     >
       {/* Status-coloured left accent — reads the card's state before any text. */}
       <View style={[styles.accentBar, { backgroundColor: accent }]} />
@@ -160,9 +167,9 @@ function QueueItemCard({
       <View style={styles.queueItemInfo}>
         <View style={styles.queueItemTopRow}>
           <Text style={styles.queueItemTitle} numberOfLines={1}>
-            Your video
+            {t('screen.yourVideo')}
           </Text>
-          <Text style={styles.queueItemTime}>{relativeTime(item.createdAt)}</Text>
+          <Text style={styles.queueItemTime}>{relativeTime(item.createdAt, t)}</Text>
         </View>
 
         <View style={styles.statusRow}>
@@ -172,9 +179,11 @@ function QueueItemCard({
             ) : (
               <Ionicons name={getStatusIcon(item.status)} size={13} color={accent} />
             )}
-            <Text style={[styles.statusPillText, { color: accent }]}>{getStatusLabel(item.status)}</Text>
+            <Text style={[styles.statusPillText, { color: accent }]}>{getStatusLabel(item.status, t)}</Text>
           </View>
-          {item.retryCount > 0 && <Text style={styles.retryCount}>Retried {item.retryCount}×</Text>}
+          {item.retryCount > 0 && (
+            <Text style={styles.retryCount}>{t('screen.retried', { count: item.retryCount })}</Text>
+          )}
         </View>
 
         {item.error !== undefined && (
@@ -241,6 +250,7 @@ function useQueueManagerHandlers(params: {
   setShowBatchActions: (v: boolean) => void;
   setFilterStatus: (s: FilterStatus) => void;
   router: { back: () => void; canGoBack: () => boolean; replace: (href: '/') => void };
+  t: TFunction<'queue'>;
 }) {
   const {
     isOffline,
@@ -256,6 +266,7 @@ function useQueueManagerHandlers(params: {
     setShowBatchActions,
     setFilterStatus,
     router,
+    t,
   } = params;
 
   const handleRefresh = () => {
@@ -294,16 +305,16 @@ function useQueueManagerHandlers(params: {
 
   const handleBatchRetry = () => {
     if (isOffline) {
-      Alert.alert("You're offline", 'Connect to the internet to retry these videos.');
+      Alert.alert(t('offline.title'), t('offline.retryMessage'));
 
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
     const ids = [...selectedItems];
-    Alert.alert('Retry videos', `Try compiling ${ids.length} selected video${ids.length === 1 ? '' : 's'} again?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('alerts.retry.title'), t('alerts.retry.message', { count: ids.length }), [
+      { text: t('actions.cancel', { ns: 'common' }), style: 'cancel' },
       {
-        text: 'Retry All',
+        text: t('alerts.retry.confirm'),
         onPress: () => {
           runBatchMutations(ids, retryMutate);
           setSelectedItems(() => []);
@@ -316,10 +327,10 @@ function useQueueManagerHandlers(params: {
   const handleBatchRemove = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
     const ids = [...selectedItems];
-    Alert.alert('Remove videos', `Remove ${ids.length} video${ids.length === 1 ? '' : 's'} from the queue?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('alerts.remove.title'), t('alerts.remove.message', { count: ids.length }), [
+      { text: t('actions.cancel', { ns: 'common' }), style: 'cancel' },
       {
-        text: 'Remove All',
+        text: t('alerts.remove.confirm'),
         style: 'destructive',
         onPress: () => {
           runBatchMutations(ids, removeMutate);
@@ -332,7 +343,7 @@ function useQueueManagerHandlers(params: {
 
   const handleProcessAll = () => {
     if (isOffline) {
-      Alert.alert("You're offline", 'Connect to the internet to start compiling.');
+      Alert.alert(t('offline.title'), t('offline.compileMessage'));
 
       return;
     }
@@ -343,19 +354,16 @@ function useQueueManagerHandlers(params: {
       })
       .catch((error: unknown) => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => null);
-        Alert.alert(
-          "Couldn't compile",
-          error instanceof Error ? error.message : 'Something went wrong. Please try again.'
-        );
+        Alert.alert(t('couldntCompile.title'), error instanceof Error ? error.message : t('couldntCompile.fallback'));
       });
   };
 
   const handleCleanup = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
-    Alert.alert('Clear finished', 'Remove videos that finished more than 7 days ago?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('alerts.cleanup.title'), t('alerts.cleanup.message'), [
+      { text: t('actions.cancel', { ns: 'common' }), style: 'cancel' },
       {
-        text: 'Cleanup',
+        text: t('alerts.cleanup.confirm'),
         onPress: () => {
           cleanupMutate()
             .then(() => {
@@ -456,10 +464,12 @@ function QueueEmptyState({
   filterStatus,
   onCreate,
   onShowAll,
+  t,
 }: {
   filterStatus: FilterStatus;
   onCreate: () => void;
   onShowAll: () => void;
+  t: TFunction<'queue'>;
 }) {
   return (
     <View style={styles.emptyContainer}>
@@ -468,19 +478,21 @@ function QueueEmptyState({
       </View>
       {filterStatus === 'all' ? (
         <>
-          <Text style={styles.emptyTitle}>No videos yet</Text>
-          <Text style={styles.emptyText}>Record a few clips and they’ll show up here as they’re put together.</Text>
+          <Text style={styles.emptyTitle}>{t('empty.title')}</Text>
+          <Text style={styles.emptyText}>{t('empty.text')}</Text>
           <TouchableOpacity style={styles.emptyCta} onPress={onCreate}>
             <Ionicons name="add" size={18} color={colors.surface} />
-            <Text style={styles.emptyCtaText}>Create a video</Text>
+            <Text style={styles.emptyCtaText}>{t('empty.cta')}</Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
-          <Text style={styles.emptyTitle}>Nothing {getStatusLabel(filterStatus).toLowerCase()}</Text>
-          <Text style={styles.emptyText}>No videos match this filter right now.</Text>
+          <Text style={styles.emptyTitle}>
+            {t('empty.filteredTitle', { status: getStatusLabel(filterStatus, t).toLowerCase() })}
+          </Text>
+          <Text style={styles.emptyText}>{t('empty.filteredText')}</Text>
           <TouchableOpacity style={styles.emptyCtaGhost} onPress={onShowAll}>
-            <Text style={styles.emptyCtaGhostText}>Show all</Text>
+            <Text style={styles.emptyCtaGhostText}>{t('empty.showAll')}</Text>
           </TouchableOpacity>
         </>
       )}
@@ -490,7 +502,15 @@ function QueueEmptyState({
 
 // Processing summary banner — only shown while something is rendering. Extracted to keep the screen
 // render under the complexity cap.
-function ProcessingBanner({ processingCount, pendingCount }: { processingCount: number; pendingCount: number }) {
+function ProcessingBanner({
+  processingCount,
+  pendingCount,
+  t,
+}: {
+  processingCount: number;
+  pendingCount: number;
+  t: TFunction<'queue'>;
+}) {
   if (processingCount === 0) {
     return null;
   }
@@ -499,8 +519,8 @@ function ProcessingBanner({ processingCount, pendingCount }: { processingCount: 
     <View style={styles.summaryBanner}>
       <ActivityIndicator size="small" color={colors.primary} />
       <Text style={styles.summaryText}>
-        {processingCount === 1 ? '1 video rendering' : `${processingCount} videos rendering`}
-        {pendingCount > 0 && ` · ${pendingCount} waiting`}
+        {t('processingBanner.rendering', { count: processingCount })}
+        {pendingCount > 0 && t('processingBanner.waiting', { count: pendingCount })}
       </Text>
     </View>
   );
@@ -513,12 +533,14 @@ function QueueActionBar({
   cleanupPending,
   onProcessAll,
   onCleanup,
+  t,
 }: {
   isOffline: boolean;
   processPending: boolean;
   cleanupPending: boolean;
   onProcessAll: () => void;
   onCleanup: () => void;
+  t: TFunction<'queue'>;
 }) {
   return (
     <View style={styles.actionBar}>
@@ -529,18 +551,19 @@ function QueueActionBar({
       >
         <Ionicons name="play" size={16} color={isOffline ? colors.textSecondary : colors.primary} />
         <Text style={[styles.actionButtonText, isOffline && { color: colors.textSecondary }]}>
-          {processPending ? 'Processing...' : 'Process All'}
+          {processPending ? t('actionBar.processing') : t('actionBar.processAll')}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.actionButton} onPress={onCleanup} disabled={cleanupPending}>
         <Ionicons name="trash-outline" size={16} color={colors.textSecondary} />
-        <Text style={styles.actionButtonText}>{cleanupPending ? 'Cleaning...' : 'Cleanup'}</Text>
+        <Text style={styles.actionButtonText}>{cleanupPending ? t('actionBar.cleaning') : t('actionBar.cleanup')}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 export default function QueueManagerScreen() {
+  const { t } = useTranslation('queue');
   const router = useRouter();
   const { data: queueItems = [], refetch } = useCompilationQueue();
   const { isOffline } = useOffline();
@@ -572,6 +595,7 @@ export default function QueueManagerScreen() {
     setShowBatchActions,
     setFilterStatus,
     router,
+    t,
   });
 
   return (
@@ -580,21 +604,22 @@ export default function QueueManagerScreen() {
         <TouchableOpacity style={styles.backButton} onPress={handlers.handleBackPress}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Compilations</Text>
+        <Text style={styles.headerTitle}>{t('screen.title')}</Text>
         <TouchableOpacity style={styles.selectAllButton} onPress={handlers.handleSelectAll}>
           <Text style={styles.selectAllText}>
-            {selectedItems.length === filteredItems.length ? 'Deselect All' : 'Select All'}
+            {selectedItems.length === filteredItems.length ? t('screen.deselectAll') : t('screen.selectAll')}
           </Text>
         </TouchableOpacity>
       </View>
       <NetworkStatusIndicator compact />
-      <ProcessingBanner processingCount={processingCount} pendingCount={pendingCount} />
+      <ProcessingBanner processingCount={processingCount} pendingCount={pendingCount} t={t} />
       <QueueActionBar
         isOffline={isOffline}
         processPending={processQueue.isPending}
         cleanupPending={cleanupQueue.isPending}
         onProcessAll={handlers.handleProcessAll}
         onCleanup={handlers.handleCleanup}
+        t={t}
       />
       <ScrollView
         horizontal
@@ -604,35 +629,35 @@ export default function QueueManagerScreen() {
       >
         <FilterButton
           status="all"
-          label="All"
+          label={t('filters.all')}
           count={queueItems.length}
           activeFilter={filterStatus}
           onPress={handlers.handleFilterChange}
         />
         <FilterButton
           status="pending"
-          label="Pending"
+          label={t('filters.pending')}
           count={pendingCount}
           activeFilter={filterStatus}
           onPress={handlers.handleFilterChange}
         />
         <FilterButton
           status="processing"
-          label="Processing"
+          label={t('filters.processing')}
           count={processingCount}
           activeFilter={filterStatus}
           onPress={handlers.handleFilterChange}
         />
         <FilterButton
           status="failed"
-          label="Failed"
+          label={t('filters.failed')}
           count={failedCount}
           activeFilter={filterStatus}
           onPress={handlers.handleFilterChange}
         />
         <FilterButton
           status="completed"
-          label="Completed"
+          label={t('filters.completed')}
           count={completedCount}
           activeFilter={filterStatus}
           onPress={handlers.handleFilterChange}
@@ -656,6 +681,7 @@ export default function QueueManagerScreen() {
             onShowAll={() => {
               handlers.handleFilterChange('all');
             }}
+            t={t}
           />
         ) : (
           filteredItems.map((item) => (
@@ -664,6 +690,7 @@ export default function QueueManagerScreen() {
               item={item}
               isSelected={selectedItems.includes(item.id)}
               onPress={handlers.handleSelectItem}
+              t={t}
             />
           ))
         )}
@@ -676,9 +703,7 @@ export default function QueueManagerScreen() {
       >
         <View style={styles.batchModalOverlay}>
           <View style={styles.batchModalContent}>
-            <Text style={styles.batchModalTitle}>
-              {selectedItems.length} item{selectedItems.length === 1 ? '' : 's'} selected
-            </Text>
+            <Text style={styles.batchModalTitle}>{t('batchModal.selected', { count: selectedItems.length })}</Text>
             <View style={styles.batchActions}>
               <TouchableOpacity
                 style={[styles.batchButton, styles.batchRetryButton]}
@@ -686,18 +711,18 @@ export default function QueueManagerScreen() {
                 disabled={isOffline}
               >
                 <Ionicons name="refresh" size={20} color={colors.primary} />
-                <Text style={styles.batchButtonText}>Retry</Text>
+                <Text style={styles.batchButtonText}>{t('batchModal.retry')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.batchButton, styles.batchRemoveButton]}
                 onPress={handlers.handleBatchRemove}
               >
                 <Ionicons name="trash-outline" size={20} color={colors.error} />
-                <Text style={[styles.batchButtonText, { color: colors.error }]}>Remove</Text>
+                <Text style={[styles.batchButtonText, { color: colors.error }]}>{t('batchModal.remove')}</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={styles.batchCancelButton} onPress={handlers.handleCloseBatchModal}>
-              <Text style={styles.batchCancelText}>Cancel</Text>
+              <Text style={styles.batchCancelText}>{t('actions.cancel', { ns: 'common' })}</Text>
             </TouchableOpacity>
           </View>
         </View>

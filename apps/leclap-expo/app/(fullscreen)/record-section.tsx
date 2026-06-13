@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/src/features/editor/components/VideoRecorder';
 import type { Section } from '@/src/types';
@@ -33,13 +35,16 @@ interface RecordSectionHeaderProps {
   isRecording: boolean;
   recordingDuration: number;
   onBack: () => void;
+  t: TFunction<'recording'>;
 }
 
-const RecordSectionHeader = ({ section, isRecording, recordingDuration, onBack }: RecordSectionHeaderProps) => (
+const RecordSectionHeader = ({ section, isRecording, recordingDuration, onBack, t }: RecordSectionHeaderProps) => (
   <View style={styles.headerBar}>
     <TouchableOpacity style={styles.headerButton} onPress={onBack} disabled={isRecording}>
       <Ionicons name="arrow-back" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
-      <Text style={[styles.headerButtonText, isRecording && { color: 'rgba(255,255,255,0.5)' }]}>Back</Text>
+      <Text style={[styles.headerButtonText, isRecording && { color: 'rgba(255,255,255,0.5)' }]}>
+        {t('actions.back', { ns: 'common' })}
+      </Text>
     </TouchableOpacity>
 
     <View style={styles.headerTitleContainer}>
@@ -173,6 +178,7 @@ const navigateAfterRecording = ({
 
 const RecordSectionScreen = () => {
   const router = useRouter();
+  const { t } = useTranslation('recording');
   const params = useLocalSearchParams<{
     projectId: string;
     sectionJson: string;
@@ -195,9 +201,9 @@ const RecordSectionScreen = () => {
 
   if (!projectId || !section) {
     console.error('RecordSectionScreen: Missing projectId or section data');
-    Alert.alert('Error', 'Could not load recording screen. Missing data.', [
+    Alert.alert(t('alerts.loadError.title'), t('alerts.loadError.message'), [
       {
-        text: 'OK',
+        text: t('actions.ok', { ns: 'common' }),
         onPress: () => {
           router.back();
         },
@@ -206,7 +212,7 @@ const RecordSectionScreen = () => {
 
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error loading recording screen.</Text>
+        <Text style={styles.errorText}>{t('loadingError')}</Text>
       </View>
     );
   }
@@ -221,7 +227,7 @@ const RecordSectionScreen = () => {
       navigateAfterRecording({ router, project, section, video, projectId, orientation });
     } catch (error) {
       console.error('Error saving recorded video:', error);
-      Alert.alert('Error', 'Failed to save recorded video. Please try again.');
+      Alert.alert(t('alerts.saveError.title'), t('alerts.saveError.message'));
     }
   };
 
@@ -236,6 +242,7 @@ const RecordSectionScreen = () => {
         onBack={() => {
           router.back();
         }}
+        t={t}
       />
 
       <VideoRecorder
@@ -247,6 +254,7 @@ const RecordSectionScreen = () => {
         sectionDescription={section.description?.en}
         countdownSeconds={section.options?.countdown ? (section.options.countdownDuration ?? 4) : undefined}
         maxDurationSeconds={section.options?.duration}
+        framingGuide={section.options?.framingGuide}
         fullscreen
       />
     </View>

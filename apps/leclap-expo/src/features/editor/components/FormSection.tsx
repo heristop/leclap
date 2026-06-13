@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, Dimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import type { Section } from '@/src/types';
 
@@ -10,6 +11,7 @@ interface FormSectionProps {
 }
 
 const FormSection: React.FC<FormSectionProps> = ({ section, formData, onFormDataChange }) => {
+  const { t } = useTranslation('editor');
   const fields = section.options?.fields ?? [];
 
   // Track screen orientation
@@ -50,7 +52,7 @@ const FormSection: React.FC<FormSectionProps> = ({ section, formData, onFormData
                 onFormDataChange(field.name, text);
               }}
               maxLength={field.maxLength || 100}
-              placeholder={`Enter ${field.label.en}`}
+              placeholder={t('enterField', { label: field.label.en })}
               multiline={field.maxLength > 100}
             />
             {field.maxLength && (

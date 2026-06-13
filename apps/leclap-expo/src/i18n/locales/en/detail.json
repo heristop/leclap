@@ -1,0 +1,81 @@
+{
+  "button": {
+    "create": "Create My Video",
+    "addingToQueue": "Adding to Queue...",
+    "creating": "Creating Video..."
+  },
+  "preview": "Preview",
+  "media": {
+    "title": "Music & Background",
+    "description": "Choose soundtrack and backdrop",
+    "saved": "Selection saved",
+    "accessibilityLabel": "Music and background selection"
+  },
+  "music": {
+    "comingSoon": "Music selection coming soon",
+    "useDefault": "Use Default Music",
+    "pick": "Pick a track for this section.",
+    "defaultOption": "Default soundtrack",
+    "done": "Done"
+  },
+  "loading": "Loading template...",
+  "notFound": "Template or Project not found",
+  "backToTemplates": "Back to Templates",
+  "orientation": {
+    "portrait": "Portrait orientation",
+    "landscape": "Landscape orientation"
+  },
+  "defaultDescription": "Create a video using this template",
+  "sectionsTitle": "Sections",
+  "progress": "{{done}} of {{total}} sections completed",
+  "mode": {
+    "linear": "Step-by-step",
+    "hub": "All at once"
+  },
+  "step": {
+    "indicator": "Section {{index}} of {{total}}",
+    "completed": "Completed",
+    "notCompleted": "Not completed yet",
+    "edit": "Edit — {{cta}}",
+    "back": "Back",
+    "next": "Next",
+    "previousAccessibility": "Previous section",
+    "nextAccessibility": "Next section"
+  },
+  "linearCopy": {
+    "mediaTitle": "Music & Background",
+    "mediaDescription": "Choose the soundtrack and backdrop for your video.",
+    "mediaCta": "Choose Music & Background",
+    "sectionFallbackDescription": "Complete this section to continue.",
+    "recordCta": "Record Clip",
+    "formCta": "Fill In Details",
+    "openCta": "Open Section"
+  },
+  "alerts": {
+    "incompleteForm": {
+      "title": "Incomplete Form",
+      "message": "Please fill out all required fields"
+    },
+    "error": {
+      "title": "Error",
+      "message": "Could not preview video."
+    },
+    "unsupported": {
+      "title": "Unsupported",
+      "message": "This section type is not yet editable."
+    },
+    "addedToQueue": {
+      "title": "Added to Queue",
+      "message": "The server is unreachable right now — your video will render automatically once it’s back."
+    },
+    "compilationFailed": {
+      "title": "Compilation Failed",
+      "fallback": "An error occurred during video compilation."
+    },
+    "compilationError": {
+      "title": "Compilation Error",
+      "message": "An unexpected error occurred: {{error}}",
+      "unknownError": "Unknown error"
+    }
+  }
+}

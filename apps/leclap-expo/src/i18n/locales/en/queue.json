@@ -1,0 +1,133 @@
+{
+  "status": {
+    "waiting": "Waiting",
+    "rendering": "Rendering",
+    "failed": "Failed",
+    "ready": "Ready"
+  },
+  "relativeTime": {
+    "justNow": "just now",
+    "minAgo_one": "{{count}} min ago",
+    "minAgo_other": "{{count}} min ago",
+    "hourAgo_one": "{{count}} h ago",
+    "hourAgo_other": "{{count}} h ago"
+  },
+  "screen": {
+    "title": "Compilations",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "videoAccessibility": "Video, {{status}}, added {{time}}",
+    "yourVideo": "Your video",
+    "retried": "Retried {{count}}×"
+  },
+  "filters": {
+    "all": "All",
+    "pending": "Pending",
+    "processing": "Processing",
+    "failed": "Failed",
+    "completed": "Completed"
+  },
+  "actionBar": {
+    "processAll": "Process All",
+    "processing": "Processing...",
+    "cleanup": "Cleanup",
+    "cleaning": "Cleaning..."
+  },
+  "processingBanner": {
+    "rendering_one": "1 video rendering",
+    "rendering_other": "{{count}} videos rendering",
+    "waiting": " · {{count}} waiting"
+  },
+  "empty": {
+    "title": "No videos yet",
+    "text": "Record a few clips and they’ll show up here as they’re put together.",
+    "cta": "Create a video",
+    "filteredTitle": "Nothing {{status}}",
+    "filteredText": "No videos match this filter right now.",
+    "showAll": "Show all"
+  },
+  "batchModal": {
+    "selected_one": "{{count}} item selected",
+    "selected_other": "{{count}} items selected",
+    "retry": "Retry",
+    "remove": "Remove"
+  },
+  "offline": {
+    "title": "You're offline",
+    "retryMessage": "Connect to the internet to retry these videos.",
+    "compileMessage": "Connect to the internet to start compiling."
+  },
+  "couldntCompile": {
+    "title": "Couldn't compile",
+    "fallback": "Something went wrong. Please try again."
+  },
+  "alerts": {
+    "retry": {
+      "title": "Retry videos",
+      "message_one": "Try compiling {{count}} selected video again?",
+      "message_other": "Try compiling {{count}} selected videos again?",
+      "confirm": "Retry All"
+    },
+    "remove": {
+      "title": "Remove videos",
+      "message_one": "Remove {{count}} video from the queue?",
+      "message_other": "Remove {{count}} videos from the queue?",
+      "confirm": "Remove All"
+    },
+    "cleanup": {
+      "title": "Clear finished",
+      "message": "Remove videos that finished more than 7 days ago?",
+      "confirm": "Cleanup"
+    }
+  },
+  "header": {
+    "empty": "No videos in queue",
+    "queued_one": "{{count}} video queued",
+    "queued_other": "{{count}} videos queued",
+    "willProcessOnline": "📴 Will process when online",
+    "processingWhenPossible": "🌐 Processing when possible",
+    "offlineBadge": "Offline"
+  },
+  "card": {
+    "project": "Project: {{id}}...",
+    "added": "Added {{time}}"
+  },
+  "itemStatus": {
+    "failed_one": "❌ Failed ({{count}} retry)",
+    "failed_other": "❌ Failed ({{count}} retries)",
+    "processing": "⚙️ Processing...",
+    "pending": "⏳ Pending"
+  },
+  "actions": {
+    "retry": "Retry",
+    "remove": "Remove"
+  },
+  "showMore_one": "👆 Tap to show {{count}} more item",
+  "showMore_other": "👆 Tap to show {{count}} more items",
+  "footer": {
+    "offline": "📱 Offline: Videos will process automatically when connected",
+    "online": "🌐 Online: Processing queue in background"
+  },
+  "itemAlerts": {
+    "noInternet": {
+      "title": "🌐 No Internet Connection",
+      "message": "Please connect to the internet to retry video compilation."
+    },
+    "retryFailed": {
+      "title": "❌ Retry Failed",
+      "fallback": "Compilation failed again."
+    },
+    "success": {
+      "title": "✅ Success!",
+      "message": "Video compilation completed successfully!",
+      "confirm": "Great!"
+    },
+    "retryError": {
+      "title": "⚠️ Retry Error"
+    },
+    "remove": {
+      "title": "🗑️ Remove from Queue",
+      "message": "Are you sure you want to remove this compilation from the queue?"
+    }
+  }
+}

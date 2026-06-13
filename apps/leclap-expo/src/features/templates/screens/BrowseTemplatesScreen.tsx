@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '@/src/hooks/useTemplates';
 import type { Template } from '@/src/types';
@@ -19,6 +20,7 @@ interface BrowseTemplatesScreenProps {
 
 const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplatesScreenProps) => {
   const router = useRouter();
+  const { t } = useTranslation('templates');
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
   const { isOffline } = useOffline();
   const mode = useCompileMode();
@@ -46,8 +48,8 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
       <View style={styles.container}>
         <CompilationQueueStatus />
 
-        <Text style={styles.screenTitle}>Scenarios</Text>
-        <Text style={styles.subtitle}>Select a scenario to create your video</Text>
+        <Text style={styles.screenTitle}>{t('screenTitle')}</Text>
+        <Text style={styles.subtitle}>{t('subtitle')}</Text>
 
         <TemplateListSkeleton count={6} />
       </View>
@@ -57,8 +59,8 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error instanceof Error ? error.message : 'Failed to load templates'}</Text>
-        <Text style={styles.errorSubtext}>Make sure the server is running.</Text>
+        <Text style={styles.errorText}>{error instanceof Error ? error.message : t('loadError')}</Text>
+        <Text style={styles.errorSubtext}>{t('loadErrorHint')}</Text>
         <View style={{ marginTop: spacing.m, alignItems: 'center', height: 160 }}>
           <Button
             variant="primary"
@@ -69,7 +71,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
             size="large"
             fullWidth={false}
           >
-            Try Again
+            {t('actions.tryAgain', { ns: 'common' })}
           </Button>
         </View>
       </View>
@@ -87,8 +89,8 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         onRefresh={() => {
           refetch().catch(console.error);
         }}
-        screenTitle="Scenarios"
-        subtitle="Select a scenario to create your video"
+        screenTitle={t('screenTitle')}
+        subtitle={t('subtitle')}
       />
 
       <TouchableOpacity
@@ -96,7 +98,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         onPress={goCreateTemplate}
         style={styles.fab}
         activeOpacity={0.85}
-        accessibilityLabel="Create a template"
+        accessibilityLabel={t('createTemplate')}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>

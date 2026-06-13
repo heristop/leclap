@@ -2,27 +2,25 @@ import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { isServerOptionEnabled } from '@/src/config/runtime';
 import { useCompileMode, useSetCompileMode, type CompileMode } from '@/src/stores/useSettingsStore';
 
-const MODES: { value: CompileMode; label: string; hint: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+const MODES: { value: CompileMode; icon: keyof typeof Ionicons.glyphMap }[] = [
   {
     value: 'local',
-    label: 'Local',
-    hint: 'Scenarios and rendering run on your device — private and instant.',
     icon: 'phone-portrait-outline',
   },
   {
     value: 'server',
-    label: 'Cloud',
-    hint: 'Scenarios and rendering are handled by the server.',
     icon: 'cloud-outline',
   },
 ];
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { t } = useTranslation('settings');
   const mode = useCompileMode();
   const setMode = useSetCompileMode();
   const serverEnabled = isServerOptionEnabled();
@@ -39,21 +37,21 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleClose} style={styles.iconBtn} accessibilityLabel="Close settings">
+        <TouchableOpacity onPress={handleClose} style={styles.iconBtn} accessibilityLabel={t('close')}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>{t('title')}</Text>
         <View style={styles.iconBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.sectionLabel}>Compilation</Text>
-        <Text style={styles.sectionCaption}>Where your videos are rendered.</Text>
+        <Text style={styles.sectionLabel}>{t('compilation.label')}</Text>
+        <Text style={styles.sectionCaption}>{t('compilation.caption')}</Text>
 
         {!serverEnabled && (
           <View style={styles.notice}>
             <Ionicons name="shield-checkmark-outline" size={18} color={colors.success} />
-            <Text style={styles.noticeText}>This build is on-device only. All compilation happens locally.</Text>
+            <Text style={styles.noticeText}>{t('onDeviceNotice')}</Text>
           </View>
         )}
 
@@ -76,8 +74,10 @@ export default function SettingsScreen() {
                     <Ionicons name={m.icon} size={20} color={active ? '#fff' : colors.primary} />
                   </View>
                   <View style={styles.optionBody}>
-                    <Text style={[styles.optionLabel, active && styles.optionLabelActive]}>{m.label}</Text>
-                    <Text style={styles.optionHint}>{m.hint}</Text>
+                    <Text style={[styles.optionLabel, active && styles.optionLabelActive]}>
+                      {t(`modes.${m.value}.label`)}
+                    </Text>
+                    <Text style={styles.optionHint}>{t(`modes.${m.value}.hint`)}</Text>
                   </View>
                   <Ionicons
                     name={active ? 'radio-button-on' : 'radio-button-off'}
@@ -90,11 +90,7 @@ export default function SettingsScreen() {
           </View>
         )}
 
-        <Text style={styles.footnote}>
-          {serverEnabled
-            ? 'Local is the default. Choose Cloud to browse and render the server’s scenarios — useful for ones with animated overlays the on-device engine can’t make yet.'
-            : 'Cloud is disabled for this build (EXPO_PUBLIC_ENABLE_SERVER=false).'}
-        </Text>
+        <Text style={styles.footnote}>{serverEnabled ? t('footnote.enabled') : t('footnote.disabled')}</Text>
       </ScrollView>
     </View>
   );

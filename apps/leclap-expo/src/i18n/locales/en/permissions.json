@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "title": "Camera Permission Required",
+    "message": "We need camera access to record videos. Please grant permission in your device settings."
+  },
+  "microphone": {
+    "title": "Microphone Permission Required",
+    "message": "We need microphone access to record audio in your videos. Please grant permission in your device settings."
+  },
+  "mediaLibrary": {
+    "title": "Media Library Permission Required",
+    "message": "We need access to your media library to save videos. Please grant permission in your device settings."
+  },
+  "openSettings": "Open Settings"
+}

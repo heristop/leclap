@@ -12,12 +12,12 @@
     },
     "orientation": "landscape",
     "musicEnabled": true,
-    "transition": {
-      "type": "fade",
-      "duration": 0.5
-    },
     "audio": {
       "sourceVolume": 1
+    },
+    "transition": {
+      "type": "cut",
+      "duration": 0.5
     }
   },
   "sections": [
@@ -35,10 +35,10 @@
           "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip",
           "type": "animation",
           "options": {
-            "fps": 25,
-            "position": "0:0",
             "scale": "1280:720",
-            "persistent": true
+            "persistent": true,
+            "fps": 25,
+            "position": "0:0"
           },
           "filters": []
         },
@@ -200,10 +200,10 @@
           "name": "animatedIcon",
           "type": "animation",
           "options": {
-            "fps": 3.333,
-            "position": "600:200",
             "scale": "1280:720",
-            "persistent": false
+            "persistent": false,
+            "fps": 3.333,
+            "position": "600:200"
           },
           "filters": []
         }

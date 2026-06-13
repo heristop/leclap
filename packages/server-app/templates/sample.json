@@ -12,12 +12,12 @@
     },
     "orientation": "landscape",
     "musicEnabled": true,
+    "audio": {
+      "sourceVolume": 1
+    },
     "transition": {
       "type": "cut",
       "duration": 0.5
-    },
-    "audio": {
-      "sourceVolume": 1
     }
   },
   "sections": [
@@ -35,10 +35,10 @@
           "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip",
           "type": "animation",
           "options": {
-            "fps": 25,
-            "position": "0:0",
             "scale": "1280:720",
-            "persistent": true
+            "persistent": true,
+            "fps": 25,
+            "position": "0:0"
           },
           "filters": []
         },
@@ -192,7 +192,7 @@
         "en": "Tell us your first and last name, the job that you do and the name of your company."
       },
       "options": {
-        "duration": 20.0,
+        "duration": 20,
         "musicVolume": 0.1
       },
       "inputs": [
@@ -200,10 +200,10 @@
           "name": "animatedIcon",
           "type": "animation",
           "options": {
-            "fps": 3.333,
-            "position": "600:200",
             "scale": "1280:720",
-            "persistent": false
+            "persistent": false,
+            "fps": 3.333,
+            "position": "600:200"
           },
           "filters": []
         }
@@ -493,7 +493,7 @@
         "en": "What are you going to make us discover?"
       },
       "options": {
-        "duration": 45.0,
+        "duration": 45,
         "musicVolume": 0.1
       },
       "filters": [
@@ -623,7 +623,7 @@
       },
       "description": {},
       "options": {
-        "duration": 180.0,
+        "duration": 180,
         "speed": 0.25,
         "muteSection": true,
         "musicVolume": 0.4

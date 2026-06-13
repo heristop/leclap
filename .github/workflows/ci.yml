@@ -45,7 +45,7 @@ jobs:
           node scripts/copy-core-assets.mjs
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm lint -f stylish
 
       - name: Check Dependencies
         run: pnpm deps:check

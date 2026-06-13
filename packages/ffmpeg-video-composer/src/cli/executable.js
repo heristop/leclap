@@ -96,10 +96,11 @@ ${report.recommendations.map((rec) => `  ${pc.cyan('•')} ${rec}`).join('\n')}
     }
 
     // Show summary
-    const hasFFmpeg =
-      report.ffmpegStatus.system.available ||
-      report.ffmpegStatus.static.available ||
-      report.ffmpegStatus.wasm.available;
+    const hasFFmpeg = [
+      report.ffmpegStatus.system.available,
+      report.ffmpegStatus.static.available,
+      report.ffmpegStatus.wasm.available,
+    ].some(Boolean);
 
     if (hasFFmpeg) {
       Terminal.showSuccess('Your system is ready for video magic! 🎉');

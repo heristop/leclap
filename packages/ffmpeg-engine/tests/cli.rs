@@ -65,6 +65,23 @@ fn run_is_reentrant_across_calls() {
     assert!(std::path::Path::new(&a).exists() && std::path::Path::new(&b).exists());
 }
 
+/// Re-entrancy guard for the ERROR path: a run that fails (missing input) must not leave fftools'
+/// globals dirty — the next run still succeeds. The happy-path re-entrancy test above only proves
+/// reset after success; a reset regression on the failure path would slip past it.
+#[test]
+fn run_recovers_after_a_failed_run() {
+    let bad = run(s(&["-y", "-i", "/no/such/leclap-input.mp4", "-f", "null", "-"]));
+    assert_ne!(bad.code, 0, "a run with a missing input must fail; log:\n{}", bad.log);
+
+    let out = tmp("leclap_cli_recover.mp4");
+    let _ = std::fs::remove_file(&out);
+    let good = run(s(&[
+        "-y", "-f", "lavfi", "-i", "testsrc=duration=1:size=320x240:rate=10", "-c:v", "mpeg4", "-an", &out,
+    ]));
+    assert_eq!(good.code, 0, "a clean run after a failed one must succeed; log:\n{}", good.log);
+    assert!(std::path::Path::new(&out).exists(), "expected {out}");
+}
+
 /// drawtext actually renders (proves libfreetype is linked and the filter works at runtime, not just
 /// that the symbol is present). Skips if no system TTF is found.
 #[test]

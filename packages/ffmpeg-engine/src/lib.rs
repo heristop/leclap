@@ -40,17 +40,28 @@ pub struct ProbeResult {
     pub output: String,
 }
 
-/// Build a NUL-terminated argv from owned `CString`s; returns `None` if any arg has an interior NUL.
-fn build_argv(args: &[String]) -> Option<Vec<CString>> {
-    args.iter().map(|s| CString::new(s.as_str()).ok()).collect()
+/// Exit code returned by `run`/`probe` when `args` is malformed — empty, or an arg contains an
+/// interior NUL byte. Distinct from any code ffmpeg/ffprobe themselves return (they use 0, 1, 255…),
+/// so a caller can tell "I passed bad arguments" apart from "ffmpeg ran and failed".
+pub const ARGV_ERROR: i32 = -2;
+
+/// Validate `args` into NUL-terminated `CString`s. `Err` carries a human-readable reason for the
+/// `ARGV_ERROR` log: an empty argv, or the index of the arg with an interior NUL byte.
+fn build_argv(args: &[String]) -> Result<Vec<CString>, String> {
+    if args.is_empty() {
+        return Err("no arguments provided".to_string());
+    }
+
+    args.iter()
+        .enumerate()
+        .map(|(i, s)| CString::new(s.as_str()).map_err(|_| format!("argument {i} contains an interior NUL byte")))
+        .collect()
 }
 
-fn invoke(f: unsafe extern "C" fn(c_int, *const *mut c_char) -> c_int, args: &[String]) -> i32 {
-    let Some(cstrings) = build_argv(args) else {
-        return -1;
-    };
-    // fftools reads argv (getopt-style) but never writes the strings; the `*mut` cast is for the C
-    // signature only. The CStrings own the buffers for the duration of the call.
+/// Call the fftools entrypoint with an already-validated argv. The `CString`s own the buffers and
+/// must outlive this call; fftools reads argv (getopt-style) but never writes the strings, so the
+/// `*mut` cast is for the C signature only.
+fn invoke(f: unsafe extern "C" fn(c_int, *const *mut c_char) -> c_int, cstrings: &[CString]) -> i32 {
     let ptrs: Vec<*mut c_char> = cstrings.iter().map(|c| c.as_ptr() as *mut c_char).collect();
     unsafe { f(ptrs.len() as c_int, ptrs.as_ptr()) }
 }
@@ -102,8 +113,13 @@ fn with_captured_fd<F: FnOnce() -> i32>(target_fd: c_int, tmp_name: &str, body: 
 /// written to the file(s) named in `args`. Returns the exit code (0 = success) + the stderr log.
 #[uniffi::export]
 pub fn run(args: Vec<String>) -> RunResult {
+    let cstrings = match build_argv(&args) {
+        Ok(c) => c,
+        Err(reason) => return RunResult { code: ARGV_ERROR, log: format!("argv error: {reason}") },
+    };
+
     let _guard = ENGINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let (code, log) = with_captured_fd(2, "leclap-run.log", || invoke(leclap_ffmpeg_run, &args));
+    let (code, log) = with_captured_fd(2, "leclap-run.log", || invoke(leclap_ffmpeg_run, &cstrings));
 
     RunResult { code, log }
 }
@@ -111,8 +127,13 @@ pub fn run(args: Vec<String>) -> RunResult {
 /// Run an ffprobe command, capturing stdout. `args` excludes the program name.
 #[uniffi::export]
 pub fn probe(args: Vec<String>) -> ProbeResult {
+    let cstrings = match build_argv(&args) {
+        Ok(c) => c,
+        Err(reason) => return ProbeResult { code: ARGV_ERROR, output: format!("argv error: {reason}") },
+    };
+
     let _guard = ENGINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let (code, output) = with_captured_fd(1, "leclap-probe.out", || invoke(leclap_ffprobe_run, &args));
+    let (code, output) = with_captured_fd(1, "leclap-probe.out", || invoke(leclap_ffprobe_run, &cstrings));
 
     ProbeResult { code, output }
 }
@@ -162,5 +183,28 @@ mod tests {
 
         let _ = std::fs::remove_file(&tmp);
         assert_eq!(before, after, "stderr is still redirected to the capture file");
+    }
+
+    // M5 argv sentinel: malformed argv short-circuits with ARGV_ERROR (never reaches fftools), so a
+    // caller can distinguish bad arguments from an ffmpeg failure. These return before ENGINE_LOCK.
+    #[test]
+    fn run_rejects_empty_argv_with_sentinel() {
+        let r = run(vec![]);
+        assert_eq!(r.code, ARGV_ERROR);
+        assert!(r.log.contains("argv error"), "log: {}", r.log);
+    }
+
+    #[test]
+    fn run_rejects_interior_nul_with_sentinel() {
+        let r = run(vec!["-i".to_string(), "bad\0name.mp4".to_string()]);
+        assert_eq!(r.code, ARGV_ERROR);
+        assert!(r.log.contains("NUL"), "log: {}", r.log);
+    }
+
+    #[test]
+    fn probe_rejects_empty_argv_with_sentinel() {
+        let r = probe(vec![]);
+        assert_eq!(r.code, ARGV_ERROR);
+        assert!(r.output.contains("argv error"), "output: {}", r.output);
     }
 }

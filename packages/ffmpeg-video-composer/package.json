@@ -41,6 +41,7 @@
     "./src/*": "./src/*"
   },
   "scripts": {
+    "postinstall": "pnpm build",
     "build": "tsdown",
     "prepack": "tsdown",
     "build:watch": "tsdown --watch",

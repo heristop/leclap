@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 // shadcn-style Dialog over Radix — focus-trap, ESC, scroll-lock and aria for free.
@@ -25,27 +26,31 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        'rise-in fixed left-1/2 top-1/2 z-[59] grid w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-1 rounded-2xl border border-divider bg-surface p-6 shadow-[var(--shadow-lg)] focus:outline-none',
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close
-        aria-label="Close"
-        className="tap cursor-pointer absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 before:absolute before:-inset-1.5 before:content-[''] before:cursor-pointer"
+>(({ className, children, ...props }, ref) => {
+  const { t } = useTranslation('common');
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          'rise-in fixed left-1/2 top-1/2 z-[59] grid w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-1 rounded-2xl border border-divider bg-surface p-6 shadow-[var(--shadow-lg)] focus:outline-none',
+          className
+        )}
+        {...props}
       >
-        <X className="h-5 w-5" />
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
+        {children}
+        <DialogPrimitive.Close
+          aria-label={t('actions.close')}
+          className="tap cursor-pointer absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 before:absolute before:-inset-1.5 before:content-[''] before:cursor-pointer"
+        >
+          <X className="h-5 w-5" />
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

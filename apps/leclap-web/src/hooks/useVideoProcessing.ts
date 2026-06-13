@@ -56,15 +56,26 @@ function computeEstimatedTimeRemaining(elapsed: number, percentage: number): num
   return percentage > 0 ? Math.round((elapsed / percentage) * (100 - percentage)) : undefined;
 }
 
+// project_video section names in template order — clips reach the compile path in this order, which
+// matches the keys coreCompilationService stores each clip under.
+function orderedClipNames(template: Template): string[] {
+  return ((template.descriptor.sections ?? []) as Array<{ name: string; type: string }>)
+    .filter((s) => s.type === 'project_video')
+    .map((s) => s.name);
+}
+
 function buildCompilationConfig(
-  files: File[],
+  clipsBySection: Record<string, File>,
   templateWithFormData: Template & { formData?: Record<string, string> },
-  videoEdits?: Record<number, VideoEdit | undefined>,
+  editsBySection?: Record<string, VideoEdit | undefined>,
   mediaChoices?: MediaChoices
 ): CompilationConfig {
   const { formData, ...template } = templateWithFormData;
+  const files = orderedClipNames(template)
+    .map((name) => clipsBySection[name])
+    .filter((f): f is File => Boolean(f));
 
-  return { template, formData: formData ?? {}, files, videoEdits, mediaChoices };
+  return { template, formData: formData ?? {}, files, videoEdits: editsBySection, mediaChoices };
 }
 
 function applyProgressUpdate(
@@ -130,22 +141,27 @@ export const useVideoProcessing = () => {
   };
 
   const processVideo = async (
-    files: File[],
+    clipsBySection: Record<string, File>,
     templateWithFormData: Template & { formData?: Record<string, string> },
-    videoEdits?: Record<number, VideoEdit | undefined>,
+    editsBySection?: Record<string, VideoEdit | undefined>,
     mediaChoices?: MediaChoices
   ) => {
     // Only `project_video` sections consume an uploaded clip — color/text-only templates
     // (e.g. the premium title/quote cards) render with no upload at all.
     const requiresUpload = (templateWithFormData.descriptor.sections ?? []).some((s) => s.type === 'project_video');
 
-    if (files.length === 0 && requiresUpload) {
+    if (Object.keys(clipsBySection).length === 0 && requiresUpload) {
       setState((prev) => ({ ...prev, error: 'Please select at least one video file.' }));
 
       return;
     }
 
-    const compilationConfig = buildCompilationConfig(files, templateWithFormData, videoEdits, mediaChoices);
+    const compilationConfig = buildCompilationConfig(
+      clipsBySection,
+      templateWithFormData,
+      editsBySection,
+      mediaChoices
+    );
 
     startTransition(() => {
       setOptimisticState({

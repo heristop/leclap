@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Clock, Cpu, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { Card } from '@/presentation/components/ui';
@@ -48,24 +50,59 @@ interface StepIndicatorProps {
   currentStepIndex: number;
 }
 
+// Angles (deg) for the one-shot success burst — an even ring of 6 dots.
+const BURST_ANGLES = [0, 60, 120, 180, 240, 300];
+
+// A radial pop of dots, mounted only for the moment a step completes. The
+// caller re-mounts it via `key` so the animation restarts on each success.
+const SuccessBurst = () => (
+  <span aria-hidden className="pointer-events-none absolute inset-0">
+    {BURST_ANGLES.map((angle, i) => (
+      <span key={angle} className="absolute left-1/2 top-1/2 h-0 w-0" style={{ transform: `rotate(${angle}deg)` }}>
+        <span
+          className="dot-burst block h-1 w-1 -ml-0.5 -mt-0.5 rounded-full bg-success"
+          style={{ animationDelay: `${i * 16}ms` }}
+        />
+      </span>
+    ))}
+  </span>
+);
+
 const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => {
   const isCompleted = stepNumber < currentStepIndex;
   const isCurrent = stepNumber === currentStepIndex;
   const isPending = stepNumber > currentStepIndex;
 
+  // Fire the burst once, on the false→true completion edge — not on mount when a
+  // step is already done, nor on unrelated re-renders. Each edge bumps the key so
+  // the burst element re-mounts and replays.
+  const [burstKey, setBurstKey] = useState(0);
+  const wasCompleted = useRef(isCompleted);
+
+  useEffect(() => {
+    if (isCompleted && !wasCompleted.current) {
+      setBurstKey((key) => key + 1);
+    }
+
+    wasCompleted.current = isCompleted;
+  }, [isCompleted]);
+
   return (
     <div className="flex flex-col items-center space-y-2">
-      <div
-        className={clsx(
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] border',
-          isCompleted &&
-            'bg-success border-success text-success-foreground scale-105 shadow-[0_0_10px_oklch(0.84_0.065_160/0.45)]',
-          isCurrent &&
-            'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
-          isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
-        )}
-      >
-        {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : stepNumber}
+      <div className="relative">
+        <div
+          className={clsx(
+            'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] border',
+            isCompleted &&
+              'bg-success border-success text-success-foreground scale-105 shadow-[0_0_10px_oklch(0.84_0.065_160/0.45)]',
+            isCurrent &&
+              'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
+            isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
+          )}
+        >
+          {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : stepNumber}
+        </div>
+        {burstKey > 0 && <SuccessBurst key={burstKey} />}
       </div>
       <div
         className={clsx(
@@ -85,35 +122,41 @@ interface PerformanceMetricsProps {
   totalSteps: number;
 }
 
-const PerformanceMetrics = ({ percentage, currentStepIndex, totalSteps }: PerformanceMetricsProps) => (
-  <div className="grid grid-cols-3 gap-4 p-4 bg-surface/40 rounded-xl border border-foreground/5">
-    <div className="text-center">
-      <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-        <Zap className="w-4 h-4" />
-        <span>Speed</span>
-      </div>
-      <p className="text-lg font-semibold text-foreground">{percentage > 0 ? 'Active' : 'Idle'}</p>
-    </div>
+const PerformanceMetrics = ({ percentage, currentStepIndex, totalSteps }: PerformanceMetricsProps) => {
+  const { t } = useTranslation('process');
 
-    <div className="text-center">
-      <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-        <Cpu className="w-4 h-4" />
-        <span>Stage</span>
+  return (
+    <div className="grid grid-cols-3 gap-4 p-4 bg-surface/40 rounded-xl border border-foreground/5">
+      <div className="text-center">
+        <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
+          <Zap className="w-4 h-4" />
+          <span>{t('progress.metrics.speed')}</span>
+        </div>
+        <p className="text-lg font-semibold text-foreground">
+          {percentage > 0 ? t('progress.metrics.active') : t('progress.metrics.idle')}
+        </p>
       </div>
-      <p className="text-lg font-semibold text-foreground">
-        {currentStepIndex}/{totalSteps}
-      </p>
-    </div>
 
-    <div className="text-center">
-      <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-        <Clock className="w-4 h-4" />
-        <span>Progress</span>
+      <div className="text-center">
+        <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
+          <Cpu className="w-4 h-4" />
+          <span>{t('progress.metrics.stage')}</span>
+        </div>
+        <p className="text-lg font-semibold text-foreground">
+          {currentStepIndex}/{totalSteps}
+        </p>
       </div>
-      <p className="text-lg font-semibold text-foreground">{Math.round(percentage)}%</p>
+
+      <div className="text-center">
+        <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
+          <Clock className="w-4 h-4" />
+          <span>{t('progress.metrics.progress')}</span>
+        </div>
+        <p className="text-lg font-semibold text-foreground">{Math.round(percentage)}%</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface ProgressHeaderProps {
   stage: string;
@@ -130,6 +173,7 @@ const ProgressHeader = ({
   totalSteps,
   estimatedTimeRemaining,
 }: ProgressHeaderProps) => {
+  const { t } = useTranslation('process');
   const StageIcon = getStageIcon(percentage);
 
   return (
@@ -146,9 +190,9 @@ const ProgressHeader = ({
           <StageIcon className={clsx('w-5 h-5', percentage < 100 && percentage > 0 && 'animate-pulse')} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground">{stage || 'Processing Video'}</h3>
+          <h3 className="text-lg font-semibold text-foreground">{stage || t('progress.header.title')}</h3>
           <p className="text-sm text-gray-400">
-            Step {currentStepIndex} of {totalSteps}
+            {t('progress.header.step', { current: currentStepIndex, total: totalSteps })}
           </p>
         </div>
       </div>
@@ -156,7 +200,7 @@ const ProgressHeader = ({
       {estimatedTimeRemaining !== undefined && estimatedTimeRemaining > 0 && (
         <div className="flex items-center space-x-2 text-sm text-gray-400">
           <Clock className="w-4 h-4" />
-          <span>~{formatTime(estimatedTimeRemaining)} remaining</span>
+          <span>{t('progress.header.timeRemaining', { time: formatTime(estimatedTimeRemaining) })}</span>
         </div>
       )}
     </div>
@@ -169,12 +213,13 @@ interface ProgressBarProps {
 }
 
 const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
+  const { t } = useTranslation('process');
   const progressColor = getProgressColor(percentage);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-300">{currentStep || 'Processing...'}</span>
+        <span className="font-medium text-gray-300">{currentStep || t('progress.bar.currentStepFallback')}</span>
         <span
           className={clsx(
             'font-semibold',
@@ -190,7 +235,7 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
         aria-valuenow={Math.round(percentage)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Video processing progress"
+        aria-label={t('progress.bar.ariaLabel')}
         className="relative w-full h-3 bg-foreground/10 rounded-full overflow-hidden border border-foreground/5"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
@@ -210,6 +255,7 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
 };
 
 export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
+  const { t } = useTranslation('process');
   const { stage, percentage, currentStep, totalSteps, currentStepIndex, estimatedTimeRemaining } = progress;
 
   return (
@@ -239,10 +285,8 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
               <CheckCircle2 className="w-5 h-5 text-success-foreground" />
             </div>
             <div>
-              <h4 className="font-semibold text-success-foreground">Processing Complete!</h4>
-              <p className="text-sm text-success-foreground/80">
-                Your video has been processed and is ready for download.
-              </p>
+              <h4 className="font-semibold text-success-foreground">{t('progress.complete.title')}</h4>
+              <p className="text-sm text-success-foreground/80">{t('progress.complete.description')}</p>
             </div>
           </div>
         </Card>

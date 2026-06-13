@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { WelcomeStep, CreateStep, CompilingStep, DoneStep, ErrorStep } from '@/presentation/components/OnboardingSteps';
 import { templateService, type Template } from '@/services/templateService';
@@ -39,6 +40,7 @@ interface OnboardingProps {
 }
 
 export const Onboarding = ({ onDone }: OnboardingProps) => {
+  const { t } = useTranslation('onboarding');
   const [step, setStep] = useState<Step>('welcome');
   const [name, setName] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -126,7 +128,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
             <button
               onClick={onDone}
               className="tap absolute top-4 right-4 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-1.5 before:content-['']"
-              aria-label="Skip onboarding"
+              aria-label={t('skipAria')}
             >
               <X className="w-5 h-5" />
             </button>
@@ -190,6 +192,8 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           }}
           countdownSeconds={recordingConfig.countdownSeconds}
           maxDurationSeconds={recordingConfig.maxDurationSeconds}
+          framingGuide={recordingConfig.framingGuide}
+          description={recordingConfig.description}
         />
       )}
     </div>,

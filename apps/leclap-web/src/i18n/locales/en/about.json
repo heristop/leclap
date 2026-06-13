@@ -1,0 +1,47 @@
+{
+  "hero": {
+    "badge": "Privacy-first · In your browser",
+    "title": "About LeClap",
+    "tagline": "A cinematic video composer that runs entirely in your browser. Compose from real templates, render with FFmpeg compiled to WebAssembly, and download — no servers, no uploads, no limits."
+  },
+  "cta": {
+    "prompt": "Ready to compose your first video?",
+    "start": "Start creating"
+  },
+  "stats": {
+    "browser": "Runs in your browser",
+    "uploads": "Files uploaded",
+    "projects": "Projects, always free"
+  },
+  "pillars": {
+    "private": {
+      "title": "Private by design",
+      "description": "Your clips never leave your device. There is no upload, no account, no server in the loop."
+    },
+    "ffmpeg": {
+      "title": "Real FFmpeg, locally",
+      "description": "The same FFmpeg engine the core library uses, compiled to WebAssembly and run on your machine."
+    },
+    "templates": {
+      "title": "Template-driven",
+      "description": "Compose from real JSON templates — filters, overlays, transitions and audio mixing included."
+    }
+  },
+  "author": {
+    "name": "Alexandre Mogère",
+    "handle": "@heristop",
+    "bio": "Paris-based web developer building tools that empower creators, and writing about coding & AI at Zazen Code.",
+    "avatarAlt": "Alexandre Mogère",
+    "social": {
+      "website": "Website",
+      "github": "GitHub",
+      "twitter": "Twitter"
+    }
+  },
+  "builtWith": {
+    "title": "Built with",
+    "react": "Concurrent UI",
+    "ffmpeg": "Client-side rendering",
+    "tailwind": "Utility-first styling"
+  }
+}

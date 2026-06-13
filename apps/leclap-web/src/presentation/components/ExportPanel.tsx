@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, startTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Download,
   Play,
@@ -54,6 +55,7 @@ interface VideoPreviewProps {
 }
 
 const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause }: VideoPreviewProps) => {
+  const { t } = useTranslation('process');
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -120,7 +122,7 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
       <video
         ref={videoRef}
         src={processedVideo.url}
-        aria-label="Processed video preview"
+        aria-label={t('export.preview.videoAriaLabel')}
         className="w-full h-auto max-h-96 object-contain"
         onClick={handlePlayPause}
         onPlay={() => {
@@ -138,7 +140,7 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
         <button
           type="button"
           onClick={handlePlayPause}
-          aria-label={isPlaying ? 'Pause video' : 'Play video'}
+          aria-label={isPlaying ? t('export.preview.pause') : t('export.preview.play')}
           className={clsx(
             'pointer-events-auto grid h-16 w-16 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-sm',
             'transition-all duration-200 ease-out hover:scale-105 hover:bg-black/60',
@@ -155,7 +157,7 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
         <div className="flex items-center justify-between gap-3 text-sm text-white">
           <div className="flex min-w-0 items-center gap-2">
             <FileVideo className="h-4 w-4 shrink-0 text-brand-300" />
-            <span className="truncate font-medium">Processed Video</span>
+            <span className="truncate font-medium">{t('export.preview.label')}</span>
           </div>
           <div className="pointer-events-auto flex items-center gap-1">
             {processedVideo.duration && (
@@ -166,7 +168,7 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
             <button
               type="button"
               onClick={toggleMute}
-              aria-label={isMuted ? 'Unmute' : 'Mute'}
+              aria-label={isMuted ? t('export.preview.unmute') : t('export.preview.mute')}
               className="grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
             >
               {isMuted ? <VolumeX /> : <Volume2 />}
@@ -174,7 +176,7 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
             <button
               type="button"
               onClick={toggleFullscreen}
-              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              aria-label={isFullscreen ? t('export.preview.exitFullscreen') : t('export.preview.enterFullscreen')}
               className="grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
             >
               {isFullscreen ? <Minimize2 /> : <Maximize2 />}
@@ -190,32 +192,36 @@ interface VideoInfoProps {
   processedVideo: ProcessedVideo;
 }
 
-const VideoInfo = ({ processedVideo }: VideoInfoProps) => (
-  <Card
-    elevation="flat"
-    className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm"
-  >
-    <div className="flex items-center space-x-3">
-      <div className="p-2 bg-info/20 rounded-lg border border-info/20">
-        <HardDrive className="w-5 h-5 text-info" />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-gray-400">File Size</p>
-        <p className="text-lg font-semibold text-foreground">{formatFileSize(processedVideo.size)}</p>
-      </div>
-    </div>
+const VideoInfo = ({ processedVideo }: VideoInfoProps) => {
+  const { t } = useTranslation('process');
 
-    <div className="flex items-center space-x-3">
-      <div className="p-2 bg-success/20 rounded-lg border border-success/20">
-        <FileVideo className="w-5 h-5 text-success-foreground" />
+  return (
+    <Card
+      elevation="flat"
+      className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm"
+    >
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-info/20 rounded-lg border border-info/20">
+          <HardDrive className="w-5 h-5 text-info" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-400">{t('export.info.fileSize')}</p>
+          <p className="text-lg font-semibold text-foreground">{formatFileSize(processedVideo.size)}</p>
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-medium text-gray-400">Format</p>
-        <p className="text-lg font-semibold text-foreground">MP4</p>
+
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-success/20 rounded-lg border border-success/20">
+          <FileVideo className="w-5 h-5 text-success-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-400">{t('export.info.format')}</p>
+          <p className="text-lg font-semibold text-foreground">MP4</p>
+        </div>
       </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 interface ActionButtonsProps {
   processedVideo: ProcessedVideo;
@@ -233,85 +239,96 @@ const ActionButtons = ({
   onDownload,
   onCopyLink,
   onShare,
-}: ActionButtonsProps) => (
-  <div className="space-y-3">
-    {/* Primary Download Button */}
-    <Button
-      onClick={onDownload}
-      disabled={downloadProgress > 0 && downloadProgress < 100}
-      size="lg"
-      className={clsx(
-        'w-full text-white hover:shadow-success/20 hover:scale-[1.02] focus-visible:ring-success/30',
-        downloadProgress > 0 && downloadProgress < 100 && 'cursor-wait opacity-75'
-      )}
-    >
-      <span className="p-2 bg-foreground/20 rounded-lg [&_svg]:size-6">
-        <Download />
-      </span>
-      <span>
-        {downloadProgress > 0 && downloadProgress < 100 ? `Downloading... ${downloadProgress}%` : 'Download Video'}
-      </span>
-    </Button>
+}: ActionButtonsProps) => {
+  const { t } = useTranslation('process');
 
-    {/* Progress Bar for Download */}
-    {downloadProgress > 0 && downloadProgress < 100 && (
-      <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
-        <div className="h-full bg-success transition-all duration-300" style={{ width: `${downloadProgress}%` }} />
-      </div>
-    )}
-
-    {/* Secondary Actions */}
-    <div className="grid grid-cols-2 gap-3">
+  return (
+    <div className="space-y-3">
+      {/* Primary Download Button */}
       <Button
-        variant="outline"
-        onClick={onCopyLink}
+        onClick={onDownload}
+        disabled={downloadProgress > 0 && downloadProgress < 100}
+        size="lg"
         className={clsx(
-          'px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20',
-          showCopied && 'border-success/50 text-success-foreground bg-success/10'
+          'w-full text-white hover:shadow-success/20 hover:scale-[1.02] focus-visible:ring-success/30',
+          downloadProgress > 0 && downloadProgress < 100 && 'cursor-wait opacity-75'
         )}
       >
-        {showCopied ? (
-          <>
-            <Check className="!size-4" />
-            <span>Copied!</span>
-          </>
-        ) : (
-          <>
-            <Copy className="!size-4" />
-            <span>Copy Link</span>
-          </>
-        )}
+        <span className="p-2 bg-foreground/20 rounded-lg [&_svg]:size-6">
+          <Download />
+        </span>
+        <span>
+          {downloadProgress > 0 && downloadProgress < 100
+            ? t('export.actions.downloading', { progress: downloadProgress })
+            : t('export.actions.download')}
+        </span>
       </Button>
 
-      {'share' in navigator && (
+      {/* Progress Bar for Download */}
+      {downloadProgress > 0 && downloadProgress < 100 && (
+        <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+          <div className="h-full bg-success transition-all duration-300" style={{ width: `${downloadProgress}%` }} />
+        </div>
+      )}
+
+      {/* Secondary Actions */}
+      <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
-          onClick={onShare}
-          className="px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20"
+          onClick={onCopyLink}
+          className={clsx(
+            'px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20',
+            showCopied && 'border-success/50 text-success-foreground bg-success/10'
+          )}
         >
-          <Share2 className="!size-4" />
-          <span>Share</span>
+          {showCopied ? (
+            <>
+              <Check className="!size-4" />
+              <span>{t('export.actions.copied')}</span>
+            </>
+          ) : (
+            <>
+              <Copy className="!size-4" />
+              <span>{t('export.actions.copyLink')}</span>
+            </>
+          )}
         </Button>
-      )}
-    </div>
-  </div>
-);
 
-const SuccessMessage = () => (
-  <Card elevation="flat" className="p-4 bg-success/[0.12] border-success/30 rounded-xl backdrop-blur-sm">
-    <h4 className="font-semibold text-success-foreground mb-2 flex items-center gap-2">
-      <CheckCircle2 className="w-4 h-4" /> Video Processing Complete!
-    </h4>
-    <ul className="text-sm text-success-foreground/80 space-y-1">
-      <li>• Your video has been processed</li>
-      <li>• All processing was done locally in your browser</li>
-      <li>• No data was sent to external servers</li>
-      <li>• You can download and share your video now</li>
-    </ul>
-  </Card>
-);
+        {'share' in navigator && (
+          <Button
+            variant="outline"
+            onClick={onShare}
+            className="px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20"
+          >
+            <Share2 className="!size-4" />
+            <span>{t('export.actions.share')}</span>
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SuccessMessage = () => {
+  const { t } = useTranslation('process');
+
+  return (
+    <Card elevation="flat" className="p-4 bg-success/[0.12] border-success/30 rounded-xl backdrop-blur-sm">
+      <h4 className="font-semibold text-success-foreground mb-2 flex items-center gap-2">
+        <CheckCircle2 className="w-4 h-4" /> {t('export.success.title')}
+      </h4>
+      <ul className="text-sm text-success-foreground/80 space-y-1">
+        <li>• {t('export.success.processed')}</li>
+        <li>• {t('export.success.local')}</li>
+        <li>• {t('export.success.noData')}</li>
+        <li>• {t('export.success.downloadShare')}</li>
+      </ul>
+    </Card>
+  );
+};
 
 export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
+  const { t } = useTranslation('process');
   const [isPlaying, setIsPlaying] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -365,8 +382,8 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
     });
     navigator
       .share({
-        title: 'Processed Video',
-        text: 'Check out this video I created with FFmpeg Video Composer!',
+        title: t('export.share.title'),
+        text: t('export.share.text'),
         files: [file],
       })
       .catch((error: unknown) => {

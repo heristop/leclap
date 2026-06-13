@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, Info, Monitor, Globe, ChevronDown, Lightbulb } from 'lucide-react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Button, Card, Badge } from '@/presentation/components/ui';
 
+type CheckId = 'wasm' | 'sab' | 'coi' | 'fileApi' | 'workers';
+type CheckStatus = 'supported' | 'unsupported' | 'partial' | 'checking';
+
 interface CompatibilityCheck {
-  name: string;
-  status: 'supported' | 'unsupported' | 'partial' | 'checking';
-  description: string;
+  id: CheckId;
+  status: CheckStatus;
   required: boolean;
 }
 
@@ -16,23 +20,13 @@ interface BrowserInfo {
   recommendation?: string;
 }
 
-const INITIAL_CHECKS: CompatibilityCheck[] = [
-  { name: 'WebAssembly', status: 'checking', description: 'Required for FFmpeg processing', required: true },
-  {
-    name: 'SharedArrayBuffer',
-    status: 'checking',
-    description: 'Required for multi-threaded processing',
-    required: true,
-  },
-  {
-    name: 'Cross-Origin Isolation',
-    status: 'checking',
-    description: 'Required for SharedArrayBuffer support',
-    required: true,
-  },
-  { name: 'File API', status: 'checking', description: 'Required for file uploads', required: true },
-  { name: 'Web Workers', status: 'checking', description: 'Allows background processing', required: false },
-];
+const INITIAL_CHECKS = [
+  { id: 'wasm', status: 'checking', required: true },
+  { id: 'sab', status: 'checking', required: true },
+  { id: 'coi', status: 'checking', required: true },
+  { id: 'fileApi', status: 'checking', required: true },
+  { id: 'workers', status: 'checking', required: false },
+] as const satisfies readonly CompatibilityCheck[];
 
 const runCompatibilityChecks = (current: CompatibilityCheck[]): CompatibilityCheck[] => {
   const newChecks = [...current];
@@ -51,47 +45,50 @@ const runCompatibilityChecks = (current: CompatibilityCheck[]): CompatibilityChe
 const resolveBrowserVersion = (userAgent: string, pattern: RegExp): string =>
   userAgent.match(pattern)?.[1] ?? 'Unknown';
 
-const resolveChrome = (userAgent: string): BrowserInfo => {
+const buildRecommendation = (t: TFunction<'browser'>, browser: string, version: string): string =>
+  t('updateBrowser', { browser, version });
+
+const resolveChrome = (userAgent: string, t: TFunction<'browser'>): BrowserInfo => {
   const version = resolveBrowserVersion(userAgent, /Chrome\/(\d+)/);
   const versionNum = parseInt(version, 10);
 
   return {
     name: 'Chrome',
     version,
-    ...(versionNum < 88 && { recommendation: 'Please update to Chrome 88+ for optimal performance' }),
+    ...(versionNum < 88 && { recommendation: buildRecommendation(t, 'Chrome', '88') }),
   };
 };
 
-const resolveFirefox = (userAgent: string): BrowserInfo => {
+const resolveFirefox = (userAgent: string, t: TFunction<'browser'>): BrowserInfo => {
   const version = resolveBrowserVersion(userAgent, /Firefox\/(\d+)/);
   const versionNum = parseInt(version, 10);
 
   return {
     name: 'Firefox',
     version,
-    ...(versionNum < 79 && { recommendation: 'Please update to Firefox 79+ for optimal performance' }),
+    ...(versionNum < 79 && { recommendation: buildRecommendation(t, 'Firefox', '79') }),
   };
 };
 
-const resolveSafari = (userAgent: string): BrowserInfo => {
+const resolveSafari = (userAgent: string, t: TFunction<'browser'>): BrowserInfo => {
   const version = resolveBrowserVersion(userAgent, /Version\/(\d+)/);
   const versionNum = parseInt(version, 10);
 
   return {
     name: 'Safari',
     version,
-    ...(versionNum < 14 && { recommendation: 'Please update to Safari 14+ for optimal performance' }),
+    ...(versionNum < 14 && { recommendation: buildRecommendation(t, 'Safari', '14') }),
   };
 };
 
-const detectBrowser = (): BrowserInfo => {
+const detectBrowser = (t: TFunction<'browser'>): BrowserInfo => {
   const userAgent = navigator.userAgent;
 
-  if (userAgent.includes('Chrome')) return resolveChrome(userAgent);
+  if (userAgent.includes('Chrome')) return resolveChrome(userAgent, t);
 
-  if (userAgent.includes('Firefox')) return resolveFirefox(userAgent);
+  if (userAgent.includes('Firefox')) return resolveFirefox(userAgent, t);
 
-  if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return resolveSafari(userAgent);
+  if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return resolveSafari(userAgent, t);
 
   return { name: 'Unknown', version: 'Unknown' };
 };
@@ -109,14 +106,14 @@ const getBrowserIcon = (name: string) => {
   }
 };
 
-const statusColor: Record<CompatibilityCheck['status'], string> = {
+const statusColor: Record<CheckStatus, string> = {
   supported: 'text-[var(--color-success)]',
   unsupported: 'text-[var(--color-error)]',
   partial: 'text-[var(--color-warning)]',
   checking: 'text-gray-500',
 };
 
-const CheckItem = ({ check }: { check: CompatibilityCheck }) => (
+const CheckItem = ({ check, t }: { check: CompatibilityCheck; t: TFunction<'browser'> }) => (
   <div className="flex items-center gap-3 p-2.5 rounded-xl bg-foreground/[0.03] border border-foreground/10">
     <span className={clsx('shrink-0', statusColor[check.status])}>
       {check.status === 'supported' && <CheckCircle2 className="w-4 h-4" />}
@@ -128,14 +125,14 @@ const CheckItem = ({ check }: { check: CompatibilityCheck }) => (
     </span>
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2">
-        <p className="text-sm font-medium text-foreground truncate">{check.name}</p>
+        <p className="text-sm font-medium text-foreground truncate">{t(`checks.${check.id}.name`)}</p>
         {check.required && (
           <Badge variant="neutral" className="px-1.5 py-0.5 text-[0.6rem] tracking-wide text-gray-500 rounded">
-            Required
+            {t('required')}
           </Badge>
         )}
       </div>
-      <p className="text-xs text-gray-500">{check.description}</p>
+      <p className="text-xs text-gray-500">{t(`checks.${check.id}.description`)}</p>
     </div>
   </div>
 );
@@ -143,9 +140,10 @@ const CheckItem = ({ check }: { check: CompatibilityCheck }) => (
 interface RecommendationsProps {
   browserInfo: BrowserInfo | null;
   overallStatus: 'supported' | 'partial';
+  t: TFunction<'browser'>;
 }
 
-const Recommendations = ({ browserInfo, overallStatus }: RecommendationsProps) => {
+const Recommendations = ({ browserInfo, overallStatus, t }: RecommendationsProps) => {
   if (!browserInfo?.recommendation && overallStatus === 'supported') {
     return null;
   }
@@ -153,15 +151,15 @@ const Recommendations = ({ browserInfo, overallStatus }: RecommendationsProps) =
   return (
     <div className="p-3.5 rounded-xl bg-brand-500/[0.06] border border-brand-500/20">
       <h4 className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-300 mb-2">
-        <Lightbulb className="w-4 h-4" /> Recommendations
+        <Lightbulb className="w-4 h-4" /> {t('recommendations')}
       </h4>
       <ul className="text-sm text-gray-400 space-y-1">
         {browserInfo?.recommendation && <li>• {browserInfo.recommendation}</li>}
         {overallStatus !== 'supported' && (
           <>
-            <li>• For best performance, use Chrome 88+, Firefox 79+, or Safari 14+</li>
-            <li>• Ensure your browser supports WebAssembly and SharedArrayBuffer</li>
-            <li>• Some features require HTTPS or localhost for security reasons</li>
+            <li>• {t('recommendBrowsers')}</li>
+            <li>• {t('recommendFeatures')}</li>
+            <li>• {t('recommendHttps')}</li>
           </>
         )}
       </ul>
@@ -175,9 +173,17 @@ interface ExpandedContentProps {
   overallStatus: 'supported' | 'partial';
   isExpanded: boolean;
   browserInfo: BrowserInfo | null;
+  t: TFunction<'browser'>;
 }
 
-const ExpandedContent = ({ checks, supportedCount, overallStatus, isExpanded, browserInfo }: ExpandedContentProps) => (
+const ExpandedContent = ({
+  checks,
+  supportedCount,
+  overallStatus,
+  isExpanded,
+  browserInfo,
+  t,
+}: ExpandedContentProps) => (
   <div
     className={clsx(
       'grid transition-all duration-300 ease-in-out',
@@ -189,7 +195,7 @@ const ExpandedContent = ({ checks, supportedCount, overallStatus, isExpanded, br
         <div className="pt-4">
           <div className="flex items-center justify-between text-xs mb-2">
             <span className="font-medium text-gray-400">
-              {supportedCount}/{checks.length} features supported
+              {t('featuresSupported', { count: supportedCount, total: checks.length })}
             </span>
             <span
               className={clsx(
@@ -213,18 +219,19 @@ const ExpandedContent = ({ checks, supportedCount, overallStatus, isExpanded, br
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {checks.map((check) => (
-            <CheckItem key={check.name} check={check} />
+            <CheckItem key={check.id} check={check} t={t} />
           ))}
         </div>
 
-        <Recommendations browserInfo={browserInfo} overallStatus={overallStatus} />
+        <Recommendations browserInfo={browserInfo} overallStatus={overallStatus} t={t} />
       </div>
     </div>
   </div>
 );
 
 export const BrowserCompatibility = () => {
-  const [checks, setChecks] = useState<CompatibilityCheck[]>(INITIAL_CHECKS);
+  const { t } = useTranslation('browser');
+  const [checks, setChecks] = useState<CompatibilityCheck[]>(() => INITIAL_CHECKS.map((check) => ({ ...check })));
   const [browserInfo, setBrowserInfo] = useState<BrowserInfo | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const checksRef = useRef(checks);
@@ -233,13 +240,13 @@ export const BrowserCompatibility = () => {
     const timer = setTimeout(() => {
       const newChecks = runCompatibilityChecks(checksRef.current);
       setChecks(newChecks);
-      setBrowserInfo(detectBrowser());
+      setBrowserInfo(detectBrowser(t));
     }, 500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, []);
+  }, [t]);
 
   const supportedCount = checks.filter((check) => check.status === 'supported').length;
   const requiredCount = checks.filter((check) => check.required).length;
@@ -285,10 +292,8 @@ export const BrowserCompatibility = () => {
               )}
             </span>
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-foreground">Browser compatibility</h3>
-              <p className="text-xs text-gray-400 truncate">
-                {isOk ? 'All systems go — ready to render locally' : 'Some features may be limited'}
-              </p>
+              <h3 className="text-sm font-semibold text-foreground">{t('title')}</h3>
+              <p className="text-xs text-gray-400 truncate">{isOk ? t('statusOk') : t('statusLimited')}</p>
             </div>
           </div>
 
@@ -314,6 +319,7 @@ export const BrowserCompatibility = () => {
           overallStatus={overallStatus}
           isExpanded={isExpanded}
           browserInfo={browserInfo}
+          t={t}
         />
       </Card>
     </div>

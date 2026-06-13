@@ -83,7 +83,7 @@ describe('applyVideoEdits', () => {
   it('returns the original files untouched when no clip has a meaningful edit', async () => {
     const files = [makeFile('a.mp4'), makeFile('b.mp4')];
 
-    const result = await applyVideoEdits(files, {});
+    const result = await applyVideoEdits(files, {}, ['s0', 's1']);
 
     expect(result).toBe(files);
     expect(execMock).not.toHaveBeenCalled();
@@ -91,11 +91,11 @@ describe('applyVideoEdits', () => {
 
   it('crops a clip with a normalized iw/ih filter and renames it video_<n>.mp4', async () => {
     const files = [makeFile('clip.mov')];
-    const edits: Record<number, VideoEdit> = {
-      0: { crop: { x: 0.1, y: 0.2, w: 0.5, h: 0.6 } },
+    const edits: Record<string, VideoEdit> = {
+      s0: { crop: { x: 0.1, y: 0.2, w: 0.5, h: 0.6 } },
     };
 
-    const [out] = await applyVideoEdits(files, edits);
+    const [out] = await applyVideoEdits(files, edits, ['s0']);
 
     expect(out).toBeInstanceOf(File);
     expect(out.name).toBe('video_1.mp4');
@@ -112,9 +112,9 @@ describe('applyVideoEdits', () => {
 
   it('trims a clip with -ss/-to output seeking', async () => {
     const files = [makeFile('clip.mp4')];
-    const edits: Record<number, VideoEdit> = { 0: { trim: { start: 2, end: 8 } } };
+    const edits: Record<string, VideoEdit> = { s0: { trim: { start: 2, end: 8 } } };
 
-    await applyVideoEdits(files, edits);
+    await applyVideoEdits(files, edits, ['s0']);
 
     const args = execMock.mock.calls[0][0];
     expect(args).toContain('-ss');
@@ -126,9 +126,9 @@ describe('applyVideoEdits', () => {
 
   it('passes un-edited clips through and only processes edited ones', async () => {
     const files = [makeFile('keep.mp4'), makeFile('edit.mp4')];
-    const edits: Record<number, VideoEdit> = { 1: { crop: { x: 0, y: 0, w: 0.8, h: 0.8 } } };
+    const edits: Record<string, VideoEdit> = { s1: { crop: { x: 0, y: 0, w: 0.8, h: 0.8 } } };
 
-    const result = await applyVideoEdits(files, edits);
+    const result = await applyVideoEdits(files, edits, ['s0', 's1']);
 
     expect(result[0]).toBe(files[0]); // untouched original
     expect(result[1]).not.toBe(files[1]);
@@ -139,9 +139,9 @@ describe('applyVideoEdits', () => {
   it('falls back to the original clip when ffmpeg fails', async () => {
     execMock.mockRejectedValueOnce(new Error('ffmpeg boom'));
     const files = [makeFile('clip.mp4')];
-    const edits: Record<number, VideoEdit> = { 0: { crop: { x: 0.2, y: 0.2, w: 0.5, h: 0.5 } } };
+    const edits: Record<string, VideoEdit> = { s0: { crop: { x: 0.2, y: 0.2, w: 0.5, h: 0.5 } } };
 
-    const [out] = await applyVideoEdits(files, edits);
+    const [out] = await applyVideoEdits(files, edits, ['s0']);
 
     expect(out).toBe(files[0]); // original returned on failure
     expect(deleteFileMock).toHaveBeenCalled(); // cleanup still ran

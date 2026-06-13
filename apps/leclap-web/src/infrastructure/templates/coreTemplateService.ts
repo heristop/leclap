@@ -1,11 +1,8 @@
 // Core package template loading service
 import { templateLogger } from '@/lib/logger';
-// Premium templates are authored once in the core package's shared app-template list; web + expo +
-// the MCP catalog all consume the same source. The remaining demos below are web-only.
+// The catalog is the shared app-template list, authored once in the core package and consumed by
+// web + expo + the MCP catalog. (Legacy web-only demo templates were removed.)
 import { APP_TEMPLATES } from 'ffmpeg-video-composer/src/shared/templates';
-import simpleVideo from './core/simple-video.json';
-import sampleAdvanced from './core/sample-advanced.json';
-import concatWithMusic from './core/concat-with-music.json';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
@@ -44,8 +41,13 @@ type TemplateDescriptorGlobal = {
   orientation?: string;
   colorsList?: string[];
   musicEnabled?: boolean;
-  audioVolumeLevel?: number;
-  transitionDuration?: number;
+  transition?: { type: string; duration?: number };
+  audio?: {
+    sourceVolume?: number;
+    musicVolume?: number;
+    normalize?: 'loudnorm' | 'dynaudnorm';
+    ducking?: boolean | object;
+  };
 };
 interface TemplateDescriptor {
   global?: TemplateDescriptorGlobal;
@@ -63,8 +65,8 @@ export interface CoreTemplate {
   previewImage?: string;
 }
 
-// Premium templates come from the shared app-template list; map each into the web CoreTemplate shape.
-const PREMIUM_TEMPLATES: CoreTemplate[] = APP_TEMPLATES.map((t) => ({
+// The catalog is the shared app-template list, mapped into the web CoreTemplate shape.
+const TEMPLATE_SOURCES: CoreTemplate[] = APP_TEMPLATES.map((t) => ({
   id: t.id,
   name: t.name,
   description: t.description,
@@ -73,14 +75,6 @@ const PREMIUM_TEMPLATES: CoreTemplate[] = APP_TEMPLATES.map((t) => ({
   hasForm: t.hasForm,
   templateDescriptor: t.descriptor as unknown as TemplateDescriptor,
 }));
-
-// The premium set (shared) plus the web-only demos that still live as local JSON under ./core/.
-const TEMPLATE_SOURCES = [
-  ...PREMIUM_TEMPLATES,
-  simpleVideo,
-  sampleAdvanced,
-  concatWithMusic,
-] as unknown as CoreTemplate[];
 
 const CORE_TEMPLATES: Record<string, CoreTemplate | undefined> = Object.fromEntries(
   TEMPLATE_SOURCES.map((template) => [template.id, template])

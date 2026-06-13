@@ -2,8 +2,11 @@ import { useState, startTransition } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 import { Upload, X, File, AlertCircle, Video as VideoIcon } from 'lucide-react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { Button, Card, Badge } from '@/presentation/components/ui';
+import type { FramingGuideConfig } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 interface FileUploadProps {
   onFilesUploaded: (files: File[]) => void;
@@ -13,6 +16,10 @@ interface FileUploadProps {
   // Recording-UX config forwarded to the in-browser camera (countdown + end warning).
   countdownSeconds?: number;
   maxDurationSeconds?: number;
+  // Camera framing guide overlay — forwarded to CameraCapture.
+  framingGuide?: FramingGuideConfig;
+  // "What to film" hint forwarded to the camera.
+  description?: string;
 }
 
 function formatFileSize(bytes: number): string {
@@ -29,6 +36,8 @@ interface UploadErrorsProps {
 }
 
 function UploadErrors({ errors }: UploadErrorsProps) {
+  const { t } = useTranslation('media');
+
   if (errors.length === 0) return null;
 
   return (
@@ -40,7 +49,7 @@ function UploadErrors({ errors }: UploadErrorsProps) {
       <div className="flex items-start">
         <AlertCircle className="w-5 h-5 text-[var(--color-error)] mt-0.5 mr-2 flex-shrink-0" />
         <div>
-          <h4 className="text-sm font-medium text-[var(--color-error)] mb-1">Upload errors:</h4>
+          <h4 className="text-sm font-medium text-[var(--color-error)] mb-1">{t('upload.errorsTitle')}</h4>
           <ul className="text-sm text-[var(--color-error)]/90 space-y-1">
             {errors.map((error, index) => (
               <li key={index}>• {error}</li>
@@ -59,6 +68,8 @@ interface UploadedFileItemProps {
 }
 
 function UploadedFileItem({ file, index, onRemove }: UploadedFileItemProps) {
+  const { t } = useTranslation('media');
+
   return (
     <div className="group flex items-center justify-between gap-3 p-3 bg-surface/40 rounded-xl border border-foreground/5 hover:bg-surface/60 hover:border-foreground/10 transition-colors backdrop-blur-sm">
       <div className="flex items-center space-x-3 min-w-0">
@@ -78,7 +89,7 @@ function UploadedFileItem({ file, index, onRemove }: UploadedFileItemProps) {
           onRemove(index);
         }}
         className="p-1 text-gray-500 hover:text-[var(--color-error)] [&_svg]:size-4"
-        aria-label={`Remove ${file.name}`}
+        aria-label={t('upload.removeAria', { name: file.name })}
       >
         <X />
       </Button>
@@ -86,23 +97,28 @@ function UploadedFileItem({ file, index, onRemove }: UploadedFileItemProps) {
   );
 }
 
-function collectDropErrors(rejectedFiles: FileRejection[], maxSizeInMB: number, maxFiles: number): string[] {
+function collectDropErrors(
+  rejectedFiles: FileRejection[],
+  maxSizeInMB: number,
+  maxFiles: number,
+  t: TFunction<'media'>
+): string[] {
   const errors: string[] = [];
 
   for (const file of rejectedFiles) {
     for (const error of file.errors) {
       if (error.code === 'file-too-large') {
-        errors.push(`${file.file.name} is too large (max ${maxSizeInMB}MB)`);
+        errors.push(t('upload.errorTooLarge', { name: file.file.name, size: maxSizeInMB }));
         continue;
       }
 
       if (error.code === 'file-invalid-type') {
-        errors.push(`${file.file.name} is not a valid video file`);
+        errors.push(t('upload.errorInvalidType', { name: file.file.name }));
         continue;
       }
 
       if (error.code === 'too-many-files') {
-        errors.push(`Too many files. Maximum ${maxFiles} files allowed`);
+        errors.push(t('upload.errorTooMany', { max: maxFiles }));
         continue;
       }
     }
@@ -130,10 +146,12 @@ function DropZone({
   maxFiles,
   maxSizeInMB,
 }: DropZoneProps) {
+  const { t } = useTranslation('media');
+
   return (
     <div
       {...getRootProps()}
-      aria-label="Upload video files"
+      aria-label={t('upload.uploadAria')}
       className={clsx(
         'tap group relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
@@ -143,7 +161,7 @@ function DropZone({
         uploadedFiles.length >= maxFiles && 'opacity-50 cursor-not-allowed'
       )}
     >
-      <input {...getInputProps()} aria-label="Upload video files" />
+      <input {...getInputProps()} aria-label={t('upload.uploadAria')} />
 
       <div className="flex flex-col items-center space-y-4">
         <div
@@ -159,19 +177,17 @@ function DropZone({
 
         <div>
           <p className="text-lg font-medium text-foreground">
-            {isDragActive ? 'Drop the files here' : 'Drag & drop video files here'}
+            {isDragActive ? t('upload.dropActive') : t('upload.dropIdle')}
           </p>
-          <p className="text-sm text-gray-400 mt-1">
-            or click to browse files ({maxFiles - uploadedFiles.length} remaining)
-          </p>
-          <p className="text-xs text-gray-500 mt-2">Supports MP4, AVI, MOV, MKV, WebM • Max {maxSizeInMB}MB per file</p>
+          <p className="text-sm text-gray-400 mt-1">{t('upload.browse', { count: maxFiles - uploadedFiles.length })}</p>
+          <p className="text-xs text-gray-500 mt-2">{t('upload.formats', { size: maxSizeInMB })}</p>
         </div>
       </div>
 
       {uploadedFiles.length > 0 && (
         <div className="absolute top-2 right-2">
           <Badge variant="success" className="normal-case tracking-normal">
-            {uploadedFiles.length}/{maxFiles} files
+            {t('upload.filesBadge', { count: uploadedFiles.length, max: maxFiles })}
           </Badge>
         </div>
       )}
@@ -186,7 +202,10 @@ export const FileUpload = ({
   maxSizeInMB = 100,
   countdownSeconds,
   maxDurationSeconds,
+  framingGuide,
+  description,
 }: FileUploadProps) => {
+  const { t } = useTranslation('media');
   const [dragActive, setDragActive] = useState(false);
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
@@ -201,7 +220,7 @@ export const FileUpload = ({
   };
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    const errors = collectDropErrors(rejectedFiles, maxSizeInMB, maxFiles);
+    const errors = collectDropErrors(rejectedFiles, maxSizeInMB, maxFiles, t);
 
     if (errors.length > 0) {
       setUploadErrors(errors);
@@ -255,7 +274,7 @@ export const FileUpload = ({
       {/* Record-with-camera alternative to uploading a file. */}
       <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
         <span className="flex-1 h-px bg-foreground/10" />
-        or
+        {t('upload.or')}
         <span className="flex-1 h-px bg-foreground/10" />
       </div>
 
@@ -273,7 +292,7 @@ export const FileUpload = ({
         )}
       >
         <VideoIcon className="transition-transform duration-300 group-hover:scale-110" />
-        Record with camera
+        {t('upload.recordWithCamera')}
       </Button>
 
       <UploadErrors errors={uploadErrors} />
@@ -286,12 +305,14 @@ export const FileUpload = ({
           }}
           countdownSeconds={countdownSeconds}
           maxDurationSeconds={maxDurationSeconds}
+          framingGuide={framingGuide}
+          description={description}
         />
       )}
 
       {uploadedFiles.length > 0 && (
         <div className="space-y-2 fade-in">
-          <h4 className="text-sm font-medium text-gray-300">Uploaded Files:</h4>
+          <h4 className="text-sm font-medium text-gray-300">{t('upload.uploadedFiles')}</h4>
           <div className="space-y-2">
             {uploadedFiles.map((file, index) => (
               <UploadedFileItem key={`${file.name}-${index}`} file={file} index={index} onRemove={removeFile} />

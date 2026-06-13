@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface StepperProps {
@@ -28,10 +29,11 @@ function stepLabelClasses(isCompleted: boolean, isCurrent: boolean): string {
 }
 
 export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperProps) => {
+  const { t } = useTranslation('shell');
   const progress = steps.length > 1 ? (currentStep / (steps.length - 1)) * 100 : 0;
 
   return (
-    <nav aria-label="Progress" className={cn('w-full', className)}>
+    <nav aria-label={t('stepperProgress')} className={cn('w-full', className)}>
       <ol className="relative flex items-start justify-between">
         {/* Connector track + progress fill (centered on the 2.5rem circles) */}
         <div className="absolute left-0 right-0 top-5 -z-10 h-0.5 -translate-y-1/2 bg-foreground/10" />
@@ -72,7 +74,7 @@ export const Stepper = ({ steps, currentStep, className, onStepClick }: StepperP
 
       {/* Compact indicator on small screens (labels are hidden there) */}
       <p className="sm:hidden mt-4 text-center text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-300">
-        Step {currentStep + 1} of {steps.length}
+        {t('stepperStep', { current: currentStep + 1, total: steps.length })}
         <span className="text-gray-500"> · {steps[currentStep]}</span>
       </p>
     </nav>

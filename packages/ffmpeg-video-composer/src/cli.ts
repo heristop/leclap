@@ -172,11 +172,12 @@ async function runCompilation(templatePath: string): Promise<unknown> {
 
   const result = await compile(projectConfig, templateDescriptor);
 
-  console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`);
-
-  if (result) {
-    console.log(`${pc.dim('Output:')} ${result}`);
+  if (!result) {
+    throw new Error('Compilation failed to produce output');
   }
+
+  console.log(`\n${pc.green('✅')} ${pc.bold('🎉 Compilation completed successfully!')}`);
+  console.log(`${pc.dim('Output:')} ${result}`);
 
   return result;
 }

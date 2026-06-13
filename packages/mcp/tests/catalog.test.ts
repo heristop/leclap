@@ -11,42 +11,25 @@ import { listTemplateSummaries, getTemplate } from '../src/catalog/index.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const coreRoot = path.resolve(here, '../../ffmpeg-video-composer');
-// App templates ship from src/shared/templates; test/scenario templates live in tests/fixtures.
-const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates'), path.join(coreRoot, 'tests/fixtures')];
+// The catalog ships ONLY the curated premium app templates (src/shared/templates). Test/scenario
+// fixtures (tests/fixtures) are engine test inputs and are intentionally NOT cataloged.
+const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates')];
 
 const EXPECTED_IDS = [
-  'concat_videos_with_music',
-  'fast_and_curious',
-  'intertitle',
-  'local_music',
-  'loop_music',
-  'picture',
-  'portrait',
-  'premium_intro',
-  'premium_quote',
-  'premium_quote_portrait',
-  'premium_reel_portrait',
-  'premium_spotlight',
-  'premium_titles',
-  'sample',
-  'video',
-  'video_speed',
+  'premium-fast-curious',
+  'premium-intro',
+  'premium-quote',
+  'premium-quote-portrait',
+  'premium-reel-portrait',
+  'premium-spotlight',
+  'premium-titles',
 ];
-
-// Two shipped templates set a music volume boost factor (>1) that the descriptor schema's
-// `musicVolumeLevel`/`audioVolumeLevel` `.max(1)` bound rejects. They are still valid built-in
-// starting points — only that one numeric bound trips — so we assert the rest parse cleanly and
-// pin these two to fail on the volume bound alone (so any *other* drift still surfaces).
-const KNOWN_VOLUME_OVERFLOW = new Map<string, ReadonlyArray<string>>([
-  ['concat_videos_with_music', ['sections.2.options.musicVolumeLevel']],
-  ['loop_music', ['global.audioVolumeLevel']],
-]);
 
 function readSourceJson(id: string): unknown {
   const file = TEMPLATE_DIRS.map((dir) => path.join(dir, `${id}.json`)).find((candidate) => fs.existsSync(candidate));
 
   if (!file) {
-    throw new Error(`template ${id}.json not found in src/shared/templates or tests/fixtures`);
+    throw new Error(`template ${id}.json not found in src/shared/templates`);
   }
 
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -63,19 +46,11 @@ describe('builtinTemplates (generated)', () => {
     }
   });
 
-  it('every template passes the core descriptor schema (modulo known volume-overflow templates)', () => {
+  it('every template passes the core descriptor schema', () => {
     for (const id of EXPECTED_IDS) {
       const result = TemplateDescriptorSchema.safeParse(builtinTemplates[id]);
-      const known = KNOWN_VOLUME_OVERFLOW.get(id);
 
-      if (!known) {
-        expect(result.success, `${id} should parse`).toBe(true);
-        continue;
-      }
-
-      expect(result.success, `${id} is expected to overflow the volume bound`).toBe(false);
-      const paths = result.success ? [] : result.error.issues.map((issue) => issue.path.join('.'));
-      expect(paths, `${id} should fail only on the volume bound`).toEqual([...known]);
+      expect(result.success, `${id} should parse`).toBe(true);
     }
   });
 });
@@ -93,31 +68,30 @@ describe('listTemplateSummaries', () => {
   const byId = (id: string) => summaries.find((s) => s.id === id)!;
 
   it('derives requiredVideoSections from project_video sections', () => {
-    // local_music has a single `project_video` section named `earth`.
-    expect(byId('local_music').requiredVideoSections).toEqual(['earth']);
-    // video has only a `video` section — no clips required.
-    expect(byId('video').requiredVideoSections).toEqual([]);
+    // Every premium template wraps a single `project_video` section named `video_1`.
+    expect(byId('premium-intro').requiredVideoSections).toEqual(['video_1']);
+    expect(byId('premium-titles').requiredVideoSections).toEqual(['video_1']);
   });
 
-  it('flags requiresNetwork for templates that reference http urls', () => {
-    expect(byId('sample').requiresNetwork).toBe(true);
-    expect(byId('portrait').requiresNetwork).toBe(false);
+  it('flags requiresNetwork false — premium templates ship only bundled assets', () => {
+    expect(byId('premium-intro').requiresNetwork).toBe(false);
+    expect(byId('premium-reel-portrait').requiresNetwork).toBe(false);
   });
 
   it('reads orientation from global (portrait stays portrait)', () => {
-    expect(byId('portrait').orientation).toBe('portrait');
-    expect(byId('video').orientation).toBe('landscape');
+    expect(byId('premium-reel-portrait').orientation).toBe('portrait');
+    expect(byId('premium-titles').orientation).toBe('landscape');
   });
 
   it('collects declared form field names', () => {
-    expect(byId('sample').fields).toContain('form_1_firstname');
-    expect(byId('video').fields).toEqual([]);
+    expect(byId('premium-intro').fields).toContain('form_1_firstname');
+    expect(byId('premium-titles').fields).toEqual([]);
   });
 });
 
 describe('getTemplate', () => {
   it('returns a descriptor for a known id and undefined otherwise', () => {
-    expect(getTemplate('video')).toBeDefined();
+    expect(getTemplate('premium-titles')).toBeDefined();
     expect(getTemplate('does-not-exist')).toBeUndefined();
   });
 });

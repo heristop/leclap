@@ -11,9 +11,16 @@ export interface TemplateDescriptor {
     orientation?: 'portrait' | 'landscape';
     colorsList?: string[];
     musicEnabled?: boolean;
-    audioVolumeLevel?: number;
-    musicVolumeLevel?: number;
-    transitionDuration?: number;
+    transition?: {
+      type: string;
+      duration?: number;
+    };
+    audio?: {
+      sourceVolume?: number;
+      musicVolume?: number;
+      normalize?: 'loudnorm' | 'dynaudnorm';
+      ducking?: boolean | object;
+    };
     music?: {
       name: string;
       url?: string;
@@ -26,6 +33,12 @@ export interface TemplateDescriptor {
   sections?: Section[];
 }
 
+export interface FramingGuide {
+  type: 'silhouette';
+  position: 'left' | 'center' | 'right';
+  opacity?: number;
+}
+
 export interface Section {
   name: string;
   type: string;
@@ -34,7 +47,7 @@ export interface Section {
     lowerCase?: boolean;
     useVideoSection?: string;
     duration?: number;
-    musicVolumeLevel?: number;
+    musicVolume?: number;
     fields?: Field[];
     speed?: number;
     muteSection?: boolean;
@@ -46,6 +59,7 @@ export interface Section {
     backgroundColor?: string;
     forceAspectRatio?: boolean;
     forceOriginalAspectRatio?: boolean;
+    framingGuide?: FramingGuide;
   };
   inputs?: { name: string; url: string }[];
   maps?: unknown[]; // Maps for FFMPEG operations

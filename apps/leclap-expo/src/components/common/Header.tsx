@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar, Animated, E
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/src/styles/theme';
 import logoImage from '@/assets/images/logo.png';
 
@@ -150,7 +151,7 @@ function ActionButtons({
 }
 
 export default function Header({
-  title = 'LeClap',
+  title,
   showBackButton = false,
   showLogo = true,
   rightContent,
@@ -161,7 +162,10 @@ export default function Header({
   actions = [],
 }: HeaderProps) {
   const router = useRouter();
+  const { t } = useTranslation('header');
   useLogoAnimation();
+
+  const resolvedTitle = title ?? t('defaultTitle');
 
   const handleBackPress = (): void => {
     if (!onBackPress) {
@@ -198,19 +202,15 @@ export default function Header({
           )}
 
           <View style={styles.titleContainer}>
-            <Text style={[styles.title, { color: textColor }]}>{title}</Text>
-            {showSlogan && (
-              <Text style={[styles.subtitle, { color: getSubtitleColor(variant) }]}>
-                Your story. Your scenes. Your clap.
-              </Text>
-            )}
+            <Text style={[styles.title, { color: textColor }]}>{resolvedTitle}</Text>
+            {showSlogan && <Text style={[styles.subtitle, { color: getSubtitleColor(variant) }]}>{t('slogan')}</Text>}
           </View>
         </View>
 
         <View style={styles.rightSection}>
           <ActionButtons
             actions={actions}
-            title={title}
+            title={resolvedTitle}
             onNavigateToBrowseTemplates={handleNavigateToBrowseTemplates}
             textColor={textColor}
           />
@@ -220,7 +220,7 @@ export default function Header({
                 router.push('/(fullscreen)/settings');
               }}
               style={styles.actionButton}
-              accessibilityLabel="Settings"
+              accessibilityLabel={t('settings')}
             >
               <Ionicons name="settings-outline" size={24} color={textColor} />
             </TouchableOpacity>

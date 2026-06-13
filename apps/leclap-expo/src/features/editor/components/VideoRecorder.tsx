@@ -13,7 +13,11 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevice, type VideoFile } from 'react-native-vision-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { colors, spacing, typography } from '@/src/styles/theme';
+import { FramingGuideOverlay } from './FramingGuideOverlay';
+import type { FramingGuide } from '@/src/types';
 
 interface VideoRecorderProps {
   orientation: 'portrait' | 'landscape';
@@ -25,6 +29,8 @@ interface VideoRecorderProps {
   countdownSeconds?: number;
   // The section's target duration; drives the "wrap up" warning shown in its last seconds.
   maxDurationSeconds?: number;
+  // Camera framing guide overlay — shown during live preview/recording only, never burned into video.
+  framingGuide?: FramingGuide;
 }
 
 // How many seconds before the target duration the end-of-recording warning kicks in.
@@ -37,10 +43,12 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-function getInstructionText(orientation: 'portrait' | 'landscape'): string {
-  return orientation === 'portrait'
-    ? 'Hold your device vertically for best results'
-    : 'Hold your device horizontally for best results';
+function getInstructionText(orientation: 'portrait' | 'landscape', t: TFunction<'recording'>): string {
+  return orientation === 'portrait' ? t('instructions.portrait') : t('instructions.landscape');
+}
+
+function getNextCameraType(current: 'front' | 'back'): 'front' | 'back' {
+  return current === 'back' ? 'front' : 'back';
 }
 
 function getPreviewDimensions(orientation: 'portrait' | 'landscape', fullscreen: boolean) {
@@ -73,7 +81,7 @@ function TimerOverlay({ isPortrait, recordingDuration }: TimerOverlayProps) {
 
 // Big centered "3 · 2 · 1" shown over the camera before recording starts. Each
 // number springs in (scale 1.4 → 1, fade) so the tick reads as a distinct beat.
-function CountdownOverlay({ value }: { value: number }) {
+function CountdownOverlay({ value, t }: { value: number; t: TFunction<'recording'> }) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -87,23 +95,46 @@ function CountdownOverlay({ value }: { value: number }) {
   }, [value, scale, opacity]);
 
   return (
-    <View style={styles.countdownOverlay} pointerEvents="none" accessibilityLabel={`Recording in ${value}`}>
+    <View
+      style={styles.countdownOverlay}
+      pointerEvents="none"
+      accessibilityLabel={t('countdown.accessibility', { value })}
+    >
       <Animated.Text style={[styles.countdownText, { opacity, transform: [{ scale }] }]}>{value}</Animated.Text>
-      <Text style={styles.countdownHint}>Get ready…</Text>
+      <Text style={styles.countdownHint}>{t('countdown.getReady')}</Text>
     </View>
   );
 }
 
 // Pulsing red border + "wrap up" badge shown during the last seconds of the target duration.
-function EndWarningOverlay({ remaining, pulse }: { remaining: number; pulse: Animated.Value }) {
+function EndWarningOverlay({
+  remaining,
+  pulse,
+  t,
+}: {
+  remaining: number;
+  pulse: Animated.Value;
+  t: TFunction<'recording'>;
+}) {
   return (
     <Animated.View style={[styles.endWarningBorder, { opacity: pulse }]} pointerEvents="none">
       <View style={styles.endWarningBadge}>
         <Ionicons name="timer-outline" size={16} color="white" />
-        <Text style={styles.endWarningText}>{remaining > 0 ? `Wrap up — ${remaining}s left` : 'Time’s up'}</Text>
+        <Text style={styles.endWarningText}>
+          {remaining > 0 ? t('endWarning.wrapUp', { remaining }) : t('endWarning.timesUp')}
+        </Text>
       </View>
     </Animated.View>
   );
+}
+
+// Renders the framing guide over the live camera, including WHILE recording — its whole
+// purpose is helping the user hold their framing during the take (matches web behavior).
+// Dedicated component keeps the complexity budget of the VideoRecorder function intact.
+function FramingGuideOverlayWhenLive({ guide }: { guide: FramingGuide | undefined }) {
+  if (!guide) return null;
+
+  return <FramingGuideOverlay guide={guide} />;
 }
 
 interface CountdownState {
@@ -121,6 +152,7 @@ interface CaptureOverlaysProps {
   remaining: number;
   warningPulse: Animated.Value;
   countdown: CountdownState;
+  t: TFunction<'recording'>;
 }
 
 // All camera overlays in one place: the elapsed timer, the end-of-duration warning,
@@ -133,12 +165,13 @@ function CaptureOverlays({
   remaining,
   warningPulse,
   countdown,
+  t,
 }: CaptureOverlaysProps) {
   return (
     <>
       {isRecording && <TimerOverlay isPortrait={isPortrait} recordingDuration={recordingDuration} />}
-      {showEndWarning && <EndWarningOverlay remaining={remaining} pulse={warningPulse} />}
-      {countdown.isCounting && countdown.value !== null && <CountdownOverlay value={countdown.value} />}
+      {showEndWarning && <EndWarningOverlay remaining={remaining} pulse={warningPulse} t={t} />}
+      {countdown.isCounting && countdown.value !== null && <CountdownOverlay value={countdown.value} t={t} />}
     </>
   );
 }
@@ -500,7 +533,9 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   fullscreen = false,
   countdownSeconds,
   maxDurationSeconds,
+  framingGuide,
 }) => {
+  const { t } = useTranslation('recording');
   const [isRecording, setIsRecording] = useState(false);
   const [showDescription, setShowDescription] = useState(true);
   const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
@@ -525,15 +560,12 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     countdownSeconds,
     maxDurationSeconds,
   });
-  const toggleCameraType = () => {
-    setCameraType((current) => (current === 'back' ? 'front' : 'back'));
-  };
 
   if (isCheckingPermissions) {
     return (
       <View style={styles.permissionContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.permissionText}>Checking camera permissions...</Text>
+        <Text style={styles.permissionText}>{t('permissions.checking')}</Text>
       </View>
     );
   }
@@ -542,8 +574,8 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     return (
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-outline" size={48} color={colors.error} />
-        <Text style={styles.permissionTitle}>Camera Permission Required</Text>
-        <Text style={styles.permissionText}>Please grant camera and microphone permissions to record video.</Text>
+        <Text style={styles.permissionTitle}>{t('permissions.title')}</Text>
+        <Text style={styles.permissionText}>{t('permissions.message')}</Text>
       </View>
     );
   }
@@ -551,7 +583,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   if (!device) {
     return (
       <View style={[styles.container, { width: dimensions.width, height: dimensions.height }]}>
-        <Text style={styles.errorText}>No camera device available</Text>
+        <Text style={styles.errorText}>{t('noDevice')}</Text>
       </View>
     );
   }
@@ -560,6 +592,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     <View style={fullscreen ? styles.fullscreenContainer : styles.container}>
       <StatusBar hidden backgroundColor="transparent" translucent />
       <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio />
+      <FramingGuideOverlayWhenLive guide={framingGuide} />
       <CaptureOverlays
         isPortrait={isPortrait}
         isRecording={isRecording}
@@ -568,13 +601,20 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         remaining={remaining}
         warningPulse={warningPulse}
         countdown={countdown}
+        t={t}
       />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
         <TouchableOpacity style={[styles.recordButton, isRecording && styles.stopButton]} onPress={onRecordButtonPress}>
           <Animated.View style={[styles.recordIcon, { transform: [{ scale: pulseAnim }] }]} />
         </TouchableOpacity>
       </View>
-      <FlipButton isPortrait={isPortrait} isRecording={isRecording} onPress={toggleCameraType} />
+      <FlipButton
+        isPortrait={isPortrait}
+        isRecording={isRecording}
+        onPress={() => {
+          setCameraType(getNextCameraType);
+        }}
+      />
       {sectionDescription && showDescription && (
         <DescriptionOverlay
           isPortrait={isPortrait}
@@ -585,7 +625,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         />
       )}
       <Text style={[styles.instructionText, isPortrait ? styles.portraitInstructions : styles.landscapeInstructions]}>
-        {getInstructionText(orientation)}
+        {getInstructionText(orientation, t)}
       </Text>
     </View>
   );

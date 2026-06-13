@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,9 +13,10 @@ import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
-import { useCompileMode } from '@/src/stores/useSettingsStore';
+import { useCompileMode, useWizardMode, useSetWizardMode, type WizardMode } from '@/src/stores/useSettingsStore';
 import { UserMediaPicker } from '@/src/features/templates/components/UserMediaPicker';
 import { needsMediaStep } from '@/src/services/media/mediaStepHelpers';
+import { MUSIC_LIBRARY, findMusic } from '@/src/data/mediaCatalog';
 
 const EDITABLE_TYPES = ['project_video', 'form', 'music', 'picture'] as const;
 const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -45,6 +48,13 @@ function getSectionInfo(t: Template | undefined, p: Project | null): { filtered:
   return { filtered, completed: p ? filtered.filter((s) => isSectionCompleted(s, p)).length : 0 };
 }
 
+// The currently-stored track id for a music section (or undefined when none chosen yet).
+function activeMusicSelection(project: Project, section: Section | null): string | undefined {
+  if (!section) return undefined;
+
+  return project.formData[`music_${section.name}`] as string | undefined;
+}
+
 function compileTemplate(content: Template['content'], formData: Project['formData']): Record<string, unknown> {
   let str = JSON.stringify(JSON.parse(JSON.stringify(content)) as unknown);
 
@@ -55,10 +65,10 @@ function compileTemplate(content: Template['content'], formData: Project['formDa
   return JSON.parse(str) as Record<string, unknown>;
 }
 
-function getButtonLabel(isPending: boolean, willQueue: boolean): string {
-  if (!isPending) return 'Create My Video';
+function getButtonLabel(isPending: boolean, willQueue: boolean, t: TFunction<'detail'>): string {
+  if (!isPending) return t('button.create');
 
-  return willQueue ? 'Adding to Queue...' : 'Creating Video...';
+  return willQueue ? t('button.addingToQueue') : t('button.creating');
 }
 
 function isCompileDisabled(allDone: boolean, isPending: boolean): boolean {
@@ -88,6 +98,8 @@ type FormModalProps = {
   onSubmit: () => void;
 };
 const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: FormModalProps) => {
+  const { t } = useTranslation('common');
+
   if (!section) return null;
 
   return (
@@ -108,7 +120,7 @@ const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: F
         </ScrollView>
         <View style={styles.formFooter}>
           <TouchableOpacity style={styles.formSubmitButton} onPress={onSubmit}>
-            <Text style={styles.formSubmitButtonText}>Done</Text>
+            <Text style={styles.formSubmitButtonText}>{t('actions.done')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -116,33 +128,99 @@ const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: F
   );
 };
 
-type MusicModalProps = { section: Section | null; onClose: () => void; onUseDefault: () => void };
-const MusicModal = ({ section, onClose, onUseDefault }: MusicModalProps) => {
+type MusicModalProps = {
+  section: Section | null;
+  allowedMusic: string[] | undefined;
+  selectedId: string | undefined;
+  onSelect: (id: string) => void;
+  onClose: () => void;
+  onUseDefault: () => void;
+};
+// Per-section music chooser. The viewer picks one allowed track (or the default soundtrack); the
+// choice is stored as project.formData[`music_<name>`]. Allowed track ids come from the template's
+// global.allowedMusic; an empty/absent list falls back to the whole music library.
+const MusicModal = ({ section, allowedMusic, selectedId, onSelect, onClose, onUseDefault }: MusicModalProps) => {
+  const { t } = useTranslation('detail');
+
   if (!section) return null;
+
+  const allowed = allowedMusic && allowedMusic.length > 0 ? allowedMusic : undefined;
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={styles.formModalContainer}>
         <View style={styles.formHeader}>
           <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel={t('music.done')}>
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
-        <View style={styles.placeholderContainer}>
-          <Ionicons name="musical-notes" size={48} color={colors.primary} />
-          <Text style={styles.placeholderText}>Music selection coming soon</Text>
-          <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}>
-            <Text style={styles.tempCompleteButtonText}>Use Default Music</Text>
+        <ScrollView contentContainerStyle={styles.musicScroll}>
+          <Text style={styles.musicHint}>{t('music.pick')}</Text>
+          <TouchableOpacity
+            accessibilityRole="radio"
+            accessibilityState={{ selected: selectedId === 'default' }}
+            onPress={() => {
+              onSelect('default');
+            }}
+            style={[styles.musicDefaultRow, selectedId === 'default' && styles.musicDefaultRowActive]}
+          >
+            <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+            <Text style={styles.musicDefaultText}>{t('music.defaultOption')}</Text>
+            {selectedId === 'default' ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
           </TouchableOpacity>
-        </View>
+          <MusicSectionPicker allowed={allowed} selectedId={selectedId} onSelect={onSelect} />
+          <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}>
+            <Text style={styles.tempCompleteButtonText}>{t('music.done')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     </Modal>
   );
 };
 
+// Single-select track list. `allowed` (when set) restricts the library to the template's allowed ids.
+type MusicSectionPickerProps = {
+  allowed: string[] | undefined;
+  selectedId: string | undefined;
+  onSelect: (id: string) => void;
+};
+const MusicSectionPicker = ({ allowed, selectedId, onSelect }: MusicSectionPickerProps) => {
+  const ids = allowed ?? MUSIC_LIBRARY.map((m) => m.id);
+
+  return (
+    <View>
+      {ids.map((id) => {
+        const track = findMusic(id);
+        const selected = selectedId === id;
+
+        return (
+          <TouchableOpacity
+            key={id}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            accessibilityLabel={track?.title ?? id}
+            onPress={() => {
+              onSelect(id);
+            }}
+            style={[styles.musicTrackRow, selected && styles.musicTrackRowActive]}
+          >
+            <Ionicons name="musical-note" size={18} color={selected ? colors.primary : colors.textSecondary} />
+            <View style={styles.musicTrackText}>
+              <Text style={styles.musicTrackTitle}>{track?.title ?? id}</Text>
+              {track?.author ? <Text style={styles.musicTrackAuthor}>{track.author}</Text> : null}
+            </View>
+            {selected ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+};
+
 type SectionItemProps = { section: Section; project: Project; onPress: () => void; onPreview: () => void };
 const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps) => {
+  const { t } = useTranslation('detail');
   const completed = isSectionCompleted(section, project);
 
   return (
@@ -177,7 +255,7 @@ const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps)
             }}
           >
             <Ionicons name="play" size={16} color={colors.primary} />
-            <Text style={styles.previewButtonText}>Preview</Text>
+            <Text style={styles.previewButtonText}>{t('preview')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -198,6 +276,7 @@ type HandlerCtx = {
 };
 
 function useSectionHandlers(ctx: HandlerCtx) {
+  const { t } = useTranslation('detail');
   const {
     project,
     template,
@@ -228,7 +307,7 @@ function useSectionHandlers(ctx: HandlerCtx) {
       return;
     }
 
-    Alert.alert('Incomplete Form', 'Please fill out all required fields');
+    Alert.alert(t('alerts.incompleteForm.title'), t('alerts.incompleteForm.message'));
   };
   const handlePreviewVideo = (section: Section) => {
     if (project?.recordedVideos[section.name] && template?.content.global?.orientation) {
@@ -245,7 +324,7 @@ function useSectionHandlers(ctx: HandlerCtx) {
       return;
     }
     console.error('Cannot preview video: Missing project, video, or orientation data.');
-    Alert.alert('Error', 'Could not preview video.');
+    Alert.alert(t('alerts.error.title'), t('alerts.error.message'));
   };
   const handleSectionPress = (section: Section) => {
     if (!project || !template) return;
@@ -276,22 +355,40 @@ function useSectionHandlers(ctx: HandlerCtx) {
       return;
     }
 
-    Alert.alert('Unsupported', 'This section type is not yet editable.');
+    Alert.alert(t('alerts.unsupported.title'), t('alerts.unsupported.message'));
   };
+  // Persist the chosen track id (or 'default') for the active music section, keeping the modal open
+  // so the selection's checkmark updates in place — the user dismisses with Done/close.
+  const selectMusic = (id: string) => {
+    if (!project || !activeMusicSection) return;
+
+    const updated = {
+      ...project,
+      formData: { ...project.formData, [`music_${activeMusicSection.name}`]: id },
+      updatedAt: new Date().toISOString(),
+    };
+    setProject(updated);
+    saveProjectMutation.mutate(updated);
+  };
+
+  const handleMusicSelect = (id: string) => {
+    selectMusic(id);
+  };
+
   const handleMusicUseDefault = () => {
-    if (project && activeMusicSection) {
-      const updated = {
-        ...project,
-        formData: { ...project.formData, [`music_${activeMusicSection.name}`]: 'default' },
-        updatedAt: new Date().toISOString(),
-      };
-      setProject(updated);
-      saveProjectMutation.mutate(updated);
-    }
+    if (project && activeMusicSection && !project.formData[`music_${activeMusicSection.name}`]) selectMusic('default');
+
     setActiveMusicSection(null);
   };
 
-  return { handleFormDataChange, handleFormSubmit, handlePreviewVideo, handleSectionPress, handleMusicUseDefault };
+  return {
+    handleFormDataChange,
+    handleFormSubmit,
+    handlePreviewVideo,
+    handleSectionPress,
+    handleMusicSelect,
+    handleMusicUseDefault,
+  };
 }
 
 type CompileCtx = {
@@ -305,6 +402,8 @@ type CompileCtx = {
 };
 
 function useCompileHandler(ctx: CompileCtx) {
+  const { t } = useTranslation('detail');
+  const { t: tc } = useTranslation('common');
   const { project, template, mediaChoices, setProject, saveProjectMutation, queueVideoCompilation, router } = ctx;
 
   return () => {
@@ -336,12 +435,9 @@ function useCompileHandler(ctx: CompileCtx) {
           }
 
           if (!result.immediate) {
-            const title = 'Added to Queue';
-            const msg = 'The server is unreachable right now — your video will render automatically once it’s back.';
-
-            Alert.alert(title, msg, [
+            Alert.alert(t('alerts.addedToQueue.title'), t('alerts.addedToQueue.message'), [
               {
-                text: 'OK',
+                text: tc('actions.ok'),
                 onPress: () => {
                   router.back();
                 },
@@ -350,13 +446,18 @@ function useCompileHandler(ctx: CompileCtx) {
 
             return;
           }
-          Alert.alert('Compilation Failed', result.result?.error ?? 'An error occurred during video compilation.');
+          Alert.alert(
+            t('alerts.compilationFailed.title'),
+            result.result?.error ?? t('alerts.compilationFailed.fallback')
+          );
         },
         onError: (error: unknown) => {
           console.error('Error during compilation:', error);
           Alert.alert(
-            'Compilation Error',
-            `An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`
+            t('alerts.compilationError.title'),
+            t('alerts.compilationError.message', {
+              error: error instanceof Error ? error.message : t('alerts.compilationError.unknownError'),
+            })
           );
         },
       }
@@ -438,6 +539,14 @@ function computeAllDone(
   return !hasMediaStep || mediaStepDone;
 }
 
+/** Bundles the persisted wizard-mode preference so the screen hook reads it in one statement. */
+function useWizardToggle() {
+  const mode = useWizardMode();
+  const setMode = useSetWizardMode();
+
+  return { mode, setMode };
+}
+
 /** Owns the user's media-step state (music/background choices + picker visibility). */
 function useMediaState() {
   const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
@@ -494,16 +603,17 @@ function computeProgress(
 }
 
 function useTemplateDetail(templateName: string, projectId: string | undefined) {
+  const { t } = useTranslation('detail');
   const router = useRouter();
   const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
   const { data: existingProject, isLoading: projectLoading } = useProject(projectId ?? '');
   const saveProjectMutation = useSaveProject();
   const queueVideoCompilation = useQueueVideoCompilation();
   const { isOffline } = useOffline();
-  const mode = useCompileMode();
+  const compileMode = useCompileMode();
+  const wizard = useWizardToggle();
   // A job is only queued in Cloud mode when the server can't be reached. Local always renders now,
   // so the button must never say "Adding to Queue…" on-device.
-  const willQueue = mode === 'server' && isOffline;
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
   const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
@@ -517,9 +627,6 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     mediaChoices,
     mediaStepDone,
   } = useMediaState();
-  const setProjectSafe = (p: Project) => {
-    setProject(p);
-  };
 
   useProjectInitialization({
     template,
@@ -527,7 +634,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     projectLoading,
     projectId,
     saveProjectMutation,
-    setProject: setProjectSafe,
+    setProject,
   });
   const { filtered: filteredSections, completed: completedSectionsCount } = getSectionInfo(template, project);
   const hasMediaStep = needsMediaStep(template?.content.global);
@@ -536,7 +643,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     template,
     activeFormSection,
     activeMusicSection,
-    setProject: setProjectSafe,
+    setProject,
     setActiveFormSection,
     setActiveMusicSection,
     saveProjectMutation,
@@ -547,6 +654,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     handleFormSubmit,
     handlePreviewVideo,
     handleSectionPress,
+    handleMusicSelect,
     handleMusicUseDefault,
     handleCompile,
   } = useTemplateHandlers({ ...hCtx, mediaChoices, queueVideoCompilation });
@@ -561,9 +669,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     completedSectionsCount,
     allDone,
     orientation: template?.content.global?.orientation ?? 'portrait',
-    description:
-      template?.content.sections?.find((s) => s.description?.en)?.description?.en ??
-      'Create a video using this template',
+    description: template?.content.sections?.find((s) => s.description?.en)?.description?.en ?? t('defaultDescription'),
     activeFormSection,
     setActiveFormSection,
     activeMusicSection,
@@ -577,43 +683,55 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     setBackgroundChoice,
     mediaStepDone,
     isPending: queueVideoCompilation.isPending,
-    willQueue,
+    willQueue: compileMode === 'server' && isOffline,
+    wizardMode: wizard.mode,
+    setWizardMode: wizard.setMode,
     handleFormDataChange,
     handleFormSubmit,
     handlePreviewVideo,
     handleSectionPress,
+    handleMusicSelect,
     handleMusicUseDefault,
     handleCompile,
     router,
   };
 }
 
-const LoadingState = () => (
-  <View style={styles.centerContainer}>
-    <ActivityIndicator size="large" color={colors.primary} />
-    <Text style={styles.loadingText}>Loading template...</Text>
-  </View>
-);
+const LoadingState = () => {
+  const { t } = useTranslation('detail');
+
+  return (
+    <View style={styles.centerContainer}>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <Text style={styles.loadingText}>{t('loading')}</Text>
+    </View>
+  );
+};
 
 type ErrorStateProps = { error: unknown; onBack: () => void };
-const ErrorState = ({ error, onBack }: ErrorStateProps) => (
-  <View style={styles.centerContainer}>
-    <Text style={styles.errorText}>{error instanceof Error ? error.message : 'Template or Project not found'}</Text>
-    <TouchableOpacity style={styles.backButton} onPress={onBack}>
-      <Text style={styles.backButtonText}>Back to Templates</Text>
-    </TouchableOpacity>
-  </View>
-);
+const ErrorState = ({ error, onBack }: ErrorStateProps) => {
+  const { t } = useTranslation('detail');
+
+  return (
+    <View style={styles.centerContainer}>
+      <Text style={styles.errorText}>{error instanceof Error ? error.message : t('notFound')}</Text>
+      <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <Text style={styles.backButtonText}>{t('backToTemplates')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 type OrientationRowProps = { orientation: string };
 const OrientationRow = ({ orientation }: OrientationRowProps) => {
+  const { t } = useTranslation('detail');
   const isPortrait = orientation === 'portrait';
   const icon: keyof typeof Ionicons.glyphMap = isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline';
 
   return (
     <View style={styles.orientationRow}>
       <Ionicons name={icon} size={24} color={colors.text} />
-      <Text style={styles.orientationText}>{isPortrait ? 'Portrait' : 'Landscape'} orientation</Text>
+      <Text style={styles.orientationText}>{isPortrait ? t('orientation.portrait') : t('orientation.landscape')}</Text>
     </View>
   );
 };
@@ -624,49 +742,327 @@ type CompileFooterProps = {
   willQueue: boolean;
   onCompile: () => void;
 };
-const CompileFooter = ({ isDisabled, isPending, willQueue, onCompile }: CompileFooterProps) => (
-  <View style={styles.footer}>
-    <TouchableOpacity
-      style={[styles.createButton, isDisabled && styles.disabledButton]}
-      disabled={isDisabled}
-      onPress={onCompile}
-    >
-      <Text style={styles.createButtonText}>{getButtonLabel(isPending, willQueue)}</Text>
-      {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
-    </TouchableOpacity>
-  </View>
-);
+const CompileFooter = ({ isDisabled, isPending, willQueue, onCompile }: CompileFooterProps) => {
+  const { t } = useTranslation('detail');
+
+  return (
+    <View style={styles.footer}>
+      <TouchableOpacity
+        style={[styles.createButton, isDisabled && styles.disabledButton]}
+        disabled={isDisabled}
+        onPress={onCompile}
+      >
+        <Text style={styles.createButtonText}>{getButtonLabel(isPending, willQueue, t)}</Text>
+        {isPending && <ActivityIndicator size="small" color="white" style={styles.loader} />}
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 type MediaStepRowProps = { done: boolean; onPress: () => void };
-const MediaStepRow = ({ done, onPress }: MediaStepRowProps) => (
-  <TouchableOpacity
-    style={styles.sectionItem}
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityLabel="Music and background selection"
-  >
-    <View style={styles.sectionItemContent}>
-      <View style={styles.sectionTypeIcon}>
-        <Ionicons name="musical-notes" size={24} color={colors.primary} />
+const MediaStepRow = ({ done, onPress }: MediaStepRowProps) => {
+  const { t } = useTranslation('detail');
+
+  return (
+    <TouchableOpacity
+      style={styles.sectionItem}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t('media.accessibilityLabel')}
+    >
+      <View style={styles.sectionItemContent}>
+        <View style={styles.sectionTypeIcon}>
+          <Ionicons name="musical-notes" size={24} color={colors.primary} />
+        </View>
+        <View style={styles.sectionItemText}>
+          <Text style={styles.sectionItemTitle}>{t('media.title')}</Text>
+          <Text style={styles.sectionItemDescription} numberOfLines={1}>
+            {done ? t('media.saved') : t('media.description')}
+          </Text>
+        </View>
+        <View style={styles.sectionItemStatus}>
+          {done ? (
+            <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+          ) : (
+            <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
+          )}
+        </View>
       </View>
-      <View style={styles.sectionItemText}>
-        <Text style={styles.sectionItemTitle}>Music &amp; Background</Text>
-        <Text style={styles.sectionItemDescription} numberOfLines={1}>
-          {done ? 'Selection saved' : 'Choose soundtrack and backdrop'}
-        </Text>
-      </View>
-      <View style={styles.sectionItemStatus}>
-        {done ? (
-          <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-        ) : (
-          <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
-        )}
-      </View>
+    </TouchableOpacity>
+  );
+};
+
+type HubSectionListProps = {
+  filteredSections: Section[];
+  project: Project;
+  hasMediaStep: boolean;
+  mediaStepDone: boolean;
+  onSectionPress: (s: Section) => void;
+  onPreview: (s: Section) => void;
+  onMediaPress: () => void;
+};
+const HubSectionList = (p: HubSectionListProps) => {
+  const { t } = useTranslation('detail');
+
+  return (
+    <>
+      <Text style={styles.sectionTitle}>{t('sectionsTitle')}</Text>
+      {p.filteredSections.map((section) => (
+        <SectionItem
+          key={section.name}
+          section={section}
+          project={p.project}
+          onPress={() => {
+            p.onSectionPress(section);
+          }}
+          onPreview={() => {
+            p.onPreview(section);
+          }}
+        />
+      ))}
+      {p.hasMediaStep && <MediaStepRow done={p.mediaStepDone} onPress={p.onMediaPress} />}
+    </>
+  );
+};
+
+type ModeToggleProps = { mode: WizardMode; onChange: (m: WizardMode) => void };
+const ModeToggle = ({ mode, onChange }: ModeToggleProps) => {
+  const { t } = useTranslation('detail');
+  const options: { value: WizardMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { value: 'linear', label: t('mode.linear'), icon: 'footsteps-outline' },
+    { value: 'hub', label: t('mode.hub'), icon: 'grid-outline' },
+  ];
+
+  return (
+    <View style={styles.modeToggle} accessibilityRole="tablist">
+      {options.map((opt) => {
+        const active = mode === opt.value;
+
+        return (
+          <TouchableOpacity
+            key={opt.value}
+            style={[styles.modeToggleOption, active && styles.modeToggleOptionActive]}
+            onPress={() => {
+              onChange(opt.value);
+            }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={opt.label}
+          >
+            <Ionicons name={opt.icon} size={16} color={active ? colors.text : colors.textSecondary} />
+            <Text style={[styles.modeToggleText, active && styles.modeToggleTextActive]}>{opt.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
-  </TouchableOpacity>
-);
+  );
+};
+
+// The linear walk reuses the hub's per-section helpers. A "media" pseudo-step is appended after the
+// real sections when the template offers music/background, mirroring the web wizard's media step.
+type LinearStep = { kind: 'section'; section: Section } | { kind: 'media' };
+
+function buildLinearSteps(filteredSections: Section[], hasMediaStep: boolean): LinearStep[] {
+  const steps: LinearStep[] = filteredSections.map((section) => ({ kind: 'section', section }));
+
+  if (hasMediaStep) steps.push({ kind: 'media' });
+
+  return steps;
+}
+
+function isLinearStepComplete(step: LinearStep, project: Project, mediaStepDone: boolean): boolean {
+  if (step.kind === 'media') return mediaStepDone;
+
+  return isSectionCompleted(step.section, project);
+}
+
+function getLinearStepCopy(
+  step: LinearStep,
+  t: TFunction<'detail'>
+): { title: string; description: string; cta: string } {
+  if (step.kind === 'media') {
+    return {
+      title: t('linearCopy.mediaTitle'),
+      description: t('linearCopy.mediaDescription'),
+      cta: t('linearCopy.mediaCta'),
+    };
+  }
+  const { section } = step;
+  const title = section.title?.en ?? section.name;
+  const description = section.description?.en ?? t('linearCopy.sectionFallbackDescription');
+
+  if (section.type === 'project_video' || section.type === 'picture') {
+    return { title, description, cta: t('linearCopy.recordCta') };
+  }
+
+  if (section.type === 'form') return { title, description, cta: t('linearCopy.formCta') };
+
+  return { title, description, cta: t('linearCopy.openCta') };
+}
+
+type LinearStepScreenProps = {
+  step: LinearStep;
+  index: number;
+  total: number;
+  complete: boolean;
+  onAction: () => void;
+};
+const LinearStepScreen = ({ step, index, total, complete, onAction }: LinearStepScreenProps) => {
+  const { t } = useTranslation('detail');
+  const { title, description, cta } = getLinearStepCopy(step, t);
+
+  return (
+    <View>
+      <Text style={styles.stepIndicator}>{t('step.indicator', { index: index + 1, total })}</Text>
+      <Text style={styles.stepTitle}>{title}</Text>
+      <Text style={styles.stepDescription}>{description}</Text>
+      <View style={styles.stepStatusRow}>
+        <Ionicons
+          name={complete ? 'checkmark-circle' : 'ellipse-outline'}
+          size={22}
+          color={complete ? colors.success : colors.divider}
+        />
+        <Text style={styles.stepStatusText}>{complete ? t('step.completed') : t('step.notCompleted')}</Text>
+      </View>
+      <TouchableOpacity style={styles.stepPrimaryButton} onPress={onAction}>
+        <Text style={styles.stepPrimaryButtonText}>{complete ? t('step.edit', { cta }) : cta}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+type LinearNavProps = {
+  isFirst: boolean;
+  isLast: boolean;
+  canAdvance: boolean;
+  isPending: boolean;
+  willQueue: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onCompile: () => void;
+};
+const LinearNav = ({
+  isFirst,
+  isLast,
+  canAdvance,
+  isPending,
+  willQueue,
+  onBack,
+  onNext,
+  onCompile,
+}: LinearNavProps) => {
+  const { t } = useTranslation('detail');
+  const nextDisabled = !canAdvance;
+  const compileDisabled = !canAdvance || isPending;
+
+  return (
+    <View style={styles.stepNav}>
+      <TouchableOpacity
+        style={[styles.stepNavButton, isFirst && styles.stepNavButtonDisabled]}
+        disabled={isFirst}
+        onPress={onBack}
+        accessibilityRole="button"
+        accessibilityLabel={t('step.previousAccessibility')}
+      >
+        <Ionicons name="arrow-back" size={20} color={colors.primary} />
+        <Text style={styles.stepNavText}>{t('step.back')}</Text>
+      </TouchableOpacity>
+      {isLast ? (
+        <TouchableOpacity
+          style={[styles.stepNavButton, styles.stepNavButtonPrimary, compileDisabled && styles.stepNavButtonDisabled]}
+          disabled={compileDisabled}
+          onPress={onCompile}
+          accessibilityRole="button"
+        >
+          <Text style={[styles.stepNavText, styles.stepNavTextPrimary]}>{getButtonLabel(isPending, willQueue, t)}</Text>
+          {isPending && <ActivityIndicator size="small" color="white" />}
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={[styles.stepNavButton, styles.stepNavButtonPrimary, nextDisabled && styles.stepNavButtonDisabled]}
+          disabled={nextDisabled}
+          onPress={onNext}
+          accessibilityRole="button"
+          accessibilityLabel={t('step.nextAccessibility')}
+        >
+          <Text style={[styles.stepNavText, styles.stepNavTextPrimary]}>{t('step.next')}</Text>
+          <Ionicons name="arrow-forward" size={20} color="white" />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+type LinearModeViewProps = {
+  steps: LinearStep[];
+  stepIndex: number;
+  project: Project;
+  mediaStepDone: boolean;
+  isPending: boolean;
+  willQueue: boolean;
+  onStepAction: (step: LinearStep) => void;
+  onBack: () => void;
+  onNext: () => void;
+  onCompile: () => void;
+};
+const LinearModeView = (p: LinearModeViewProps) => {
+  if (p.steps.length === 0) return null;
+  const step = p.steps[p.stepIndex];
+  const complete = isLinearStepComplete(step, p.project, p.mediaStepDone);
+
+  return (
+    <>
+      <LinearStepScreen
+        step={step}
+        index={p.stepIndex}
+        total={p.steps.length}
+        complete={complete}
+        onAction={() => {
+          p.onStepAction(step);
+        }}
+      />
+      <LinearNav
+        isFirst={p.stepIndex === 0}
+        isLast={p.stepIndex === p.steps.length - 1}
+        canAdvance={complete}
+        isPending={p.isPending}
+        willQueue={p.willQueue}
+        onBack={p.onBack}
+        onNext={p.onNext}
+        onCompile={p.onCompile}
+      />
+    </>
+  );
+};
+
+function firstIncompleteIndex(steps: LinearStep[], project: Project | null, mediaStepDone: boolean): number {
+  if (!project) return 0;
+  const idx = steps.findIndex((step) => !isLinearStepComplete(step, project, mediaStepDone));
+
+  return idx === -1 ? Math.max(steps.length - 1, 0) : idx;
+}
+
+// Owns the cursor for linear mode. Clamps to the step range so re-entering the screen (e.g. after
+// recording the last section, which router.replace-remounts this screen) never lands on a stale or
+// out-of-bounds index. Initialises to the first incomplete step so the user resumes where work
+// remains rather than at step 0.
+function useLinearCursor(steps: LinearStep[], project: Project | null, mediaStepDone: boolean) {
+  const [stepIndex, setStepIndex] = useState(() => firstIncompleteIndex(steps, project, mediaStepDone));
+  const clamp = (i: number) => Math.min(Math.max(i, 0), Math.max(steps.length - 1, 0));
+
+  return {
+    stepIndex: clamp(stepIndex),
+    goNext: () => {
+      setStepIndex((i) => clamp(i + 1));
+    },
+    goBack: () => {
+      setStepIndex((i) => clamp(i - 1));
+    },
+  };
+}
 
 const TemplateDetailScreen = () => {
+  const { t } = useTranslation('detail');
   const params = useLocalSearchParams<{ id: string; projectId?: string }>();
   const {
     template,
@@ -692,14 +1088,20 @@ const TemplateDetailScreen = () => {
     mediaStepDone,
     isPending,
     willQueue,
+    wizardMode,
+    setWizardMode,
     handleFormDataChange,
     handleFormSubmit,
     handlePreviewVideo,
     handleSectionPress,
+    handleMusicSelect,
     handleMusicUseDefault,
     handleCompile,
     router,
   } = useTemplateDetail(params.id, params.projectId);
+
+  const linearSteps = buildLinearSteps(filteredSections, hasMediaStep);
+  const cursor = useLinearCursor(linearSteps, project, mediaStepDone);
 
   if (templateLoading) {
     return <LoadingState />;
@@ -711,12 +1113,21 @@ const TemplateDetailScreen = () => {
     return <ErrorState error={templateError} onBack={goBack} />;
   }
   const isDisabled = isCompileDisabled(allDone, isPending);
+  const { allowedMusic, allowUploadMusic, allowedBackgrounds, allowUploadBackground } = template.content.global ?? {};
   const { totalItems, totalDone } = computeProgress(
     filteredSections,
     completedSectionsCount,
     hasMediaStep,
     mediaStepDone
   );
+  const openLinearStep = (step: LinearStep) => {
+    if (step.kind === 'media') {
+      setMediaPickerVisible(true);
+
+      return;
+    }
+    handleSectionPress(step.section);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -733,36 +1144,41 @@ const TemplateDetailScreen = () => {
       >
         <OrientationRow orientation={orientation} />
         <Text style={styles.description}>{description}</Text>
+        <ModeToggle mode={wizardMode} onChange={setWizardMode} />
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { width: `${(totalDone / totalItems) * 100}%` }]} />
         </View>
-        <Text style={styles.progressText}>
-          {totalDone} of {totalItems} sections completed
-        </Text>
-        <Text style={styles.sectionTitle}>Sections</Text>
-        {filteredSections.map((section) => (
-          <SectionItem
-            key={section.name}
-            section={section}
+        <Text style={styles.progressText}>{t('progress', { done: totalDone, total: totalItems })}</Text>
+        {wizardMode === 'linear' ? (
+          <LinearModeView
+            steps={linearSteps}
+            stepIndex={cursor.stepIndex}
             project={project}
-            onPress={() => {
-              handleSectionPress(section);
-            }}
-            onPreview={() => {
-              handlePreviewVideo(section);
-            }}
+            mediaStepDone={mediaStepDone}
+            isPending={isPending}
+            willQueue={willQueue}
+            onStepAction={openLinearStep}
+            onBack={cursor.goBack}
+            onNext={cursor.goNext}
+            onCompile={handleCompile}
           />
-        ))}
-        {hasMediaStep && (
-          <MediaStepRow
-            done={mediaStepDone}
-            onPress={() => {
+        ) : (
+          <HubSectionList
+            filteredSections={filteredSections}
+            project={project}
+            hasMediaStep={hasMediaStep}
+            mediaStepDone={mediaStepDone}
+            onSectionPress={handleSectionPress}
+            onPreview={handlePreviewVideo}
+            onMediaPress={() => {
               setMediaPickerVisible(true);
             }}
           />
         )}
       </ScrollView>
-      <CompileFooter isDisabled={isDisabled} isPending={isPending} willQueue={willQueue} onCompile={handleCompile} />
+      {wizardMode === 'hub' && (
+        <CompileFooter isDisabled={isDisabled} isPending={isPending} willQueue={willQueue} onCompile={handleCompile} />
+      )}
       <FormModal
         section={activeFormSection}
         formData={project.formData}
@@ -774,6 +1190,9 @@ const TemplateDetailScreen = () => {
       />
       <MusicModal
         section={activeMusicSection}
+        allowedMusic={allowedMusic}
+        selectedId={activeMusicSelection(project, activeMusicSection)}
+        onSelect={handleMusicSelect}
         onClose={() => {
           setActiveMusicSection(null);
         }}
@@ -782,10 +1201,10 @@ const TemplateDetailScreen = () => {
       {hasMediaStep && (
         <UserMediaPicker
           visible={mediaPickerVisible}
-          allowedMusic={template.content.global?.allowedMusic}
-          allowUploadMusic={template.content.global?.allowUploadMusic}
-          allowedBackgrounds={template.content.global?.allowedBackgrounds}
-          allowUploadBackground={template.content.global?.allowUploadBackground}
+          allowedMusic={allowedMusic}
+          allowUploadMusic={allowUploadMusic}
+          allowedBackgrounds={allowedBackgrounds}
+          allowUploadBackground={allowUploadBackground}
           musicChoice={musicChoice}
           backgroundChoice={backgroundChoice}
           onMusicChange={setMusicChoice}

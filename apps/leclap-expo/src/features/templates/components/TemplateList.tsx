@@ -5,6 +5,7 @@ import TemplateCard from './TemplateCard';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 
 interface TemplateListProps {
   templates: Template[];
@@ -23,6 +24,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
   screenTitle,
   subtitle,
 }) => {
+  const { t } = useTranslation('templates');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -79,7 +81,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
         <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search templates..."
+          placeholder={t('search.placeholder')}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -115,7 +117,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
               handleRefresh().catch(() => null);
             }}
             tintColor={colors.primary}
-            title={isOffline ? 'Pull to sync when online' : 'Pull to refresh'}
+            title={isOffline ? t('refresh.syncWhenOnline') : t('refresh.pullToRefresh')}
             titleColor={colors.textSecondary}
             colors={[colors.primary]}
           />

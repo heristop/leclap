@@ -12,9 +12,11 @@ import {
   Oswald_600SemiBold,
   Oswald_700Bold,
 } from '@expo-google-fonts/oswald';
+import { I18nextProvider } from 'react-i18next';
 import { QueryProvider } from '@/src/providers/QueryProvider';
 import { OfflineProvider } from '@/src/providers/OfflineProvider';
 import AnimatedSplashScreen from '@/src/components/SplashScreen';
+import i18n from '@/src/i18n';
 import config from '../tamagui.config';
 
 // Keep the splash screen visible while we fetch resources
@@ -54,23 +56,25 @@ export default function RootLayout() {
 
   return (
     <TamaguiProvider config={config} defaultTheme="light">
-      <QueryProvider>
-        <OfflineProvider>
-          <Stack
-            initialRouteName="index"
-            screenOptions={{
-              headerShown: false,
-              // Minimal configuration to avoid LinkPreviewContext issues
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(app)" />
-            <Stack.Screen name="template/[id]" />
-            <Stack.Screen name="(fullscreen)" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </OfflineProvider>
-      </QueryProvider>
+      <I18nextProvider i18n={i18n}>
+        <QueryProvider>
+          <OfflineProvider>
+            <Stack
+              initialRouteName="index"
+              screenOptions={{
+                headerShown: false,
+                // Minimal configuration to avoid LinkPreviewContext issues
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(app)" />
+              <Stack.Screen name="template/[id]" />
+              <Stack.Screen name="(fullscreen)" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </OfflineProvider>
+        </QueryProvider>
+      </I18nextProvider>
     </TamaguiProvider>
   );
 }

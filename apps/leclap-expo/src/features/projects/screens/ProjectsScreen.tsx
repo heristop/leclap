@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Ale
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import type { Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import SwipeableProjectItem from '@/src/components/ui/SwipeableProjectItem';
@@ -11,17 +12,20 @@ import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useProjectService } from '@/src/presentation/hooks/useProjectService';
 
 function EmptyState() {
+  const { t } = useTranslation('projects');
+
   return (
     <View style={styles.emptyContainer}>
       <Ionicons name="videocam-outline" size={64} color={colors.divider} />
-      <Text style={styles.emptyTitle}>No videos yet</Text>
-      <Text style={styles.emptyText}>Start by creating a new video from the Scenarios tab</Text>
+      <Text style={styles.emptyTitle}>{t('empty.title')}</Text>
+      <Text style={styles.emptyText}>{t('empty.subtitle')}</Text>
     </View>
   );
 }
 
 function useProjectsScreenState() {
   const router = useRouter();
+  const { t } = useTranslation('projects');
   const rawProjects = useProjectStore((state) => state.projects);
   const { loadProjects, deleteProject, deleteAllProjects } = useProjectService();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
@@ -81,7 +85,7 @@ function useProjectsScreenState() {
       })
       .catch((error: unknown) => {
         console.error('Error deleting all projects:', error);
-        Alert.alert('Error', 'Failed to delete all projects. Please try again.');
+        Alert.alert(t('alerts.deleteAllError.title'), t('alerts.deleteAllError.message'));
         setShowDeleteAllDialog(false);
       });
   };
@@ -100,6 +104,7 @@ function useProjectsScreenState() {
 
 export default function ProjectsScreen() {
   const router = useRouter();
+  const { t } = useTranslation('projects');
   const {
     projects,
     refreshing,
@@ -114,7 +119,7 @@ export default function ProjectsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
-        <Text style={styles.screenTitle}>My Videos</Text>
+        <Text style={styles.screenTitle}>{t('title')}</Text>
 
         <TouchableOpacity
           style={styles.createNewButton}
@@ -123,7 +128,7 @@ export default function ProjectsScreen() {
           }}
         >
           <Ionicons name="add-circle" size={22} color="white" />
-          <Text style={styles.createNewButtonText}>Create New Video</Text>
+          <Text style={styles.createNewButtonText}>{t('createNew')}</Text>
         </TouchableOpacity>
 
         <FlatList
@@ -157,10 +162,10 @@ export default function ProjectsScreen() {
         {/* Delete All Confirmation Dialog */}
         <ConfirmDialog
           visible={showDeleteAllDialog}
-          title="Delete All Projects"
-          message="Are you sure you want to delete all your videos? This action cannot be undone."
-          confirmText="Delete All"
-          cancelText="Cancel"
+          title={t('deleteAll.title')}
+          message={t('deleteAll.message')}
+          confirmText={t('deleteAll.confirm')}
+          cancelText={t('actions.cancel', { ns: 'common' })}
           confirmIconName="trash"
           confirmType="danger"
           onConfirm={handleDeleteAllProjects}

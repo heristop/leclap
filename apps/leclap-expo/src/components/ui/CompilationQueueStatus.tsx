@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { usePendingCompilations, useRetryQueueItem, useRemoveQueueItem } from '@/src/hooks/useCompilationQueue';
 import { useOffline } from '@/src/providers/OfflineProvider';
@@ -26,12 +28,12 @@ function getStatusIcon(status: string): 'time-outline' | 'sync' | 'alert-circle-
   return 'help-circle-outline';
 }
 
-function getStatusLabel(status: string, retryCount: number): string {
-  if (status === 'failed') return `❌ Failed (${retryCount} ${retryCount === 1 ? 'retry' : 'retries'})`;
+function getStatusLabel(status: string, retryCount: number, t: TFunction<'queue'>): string {
+  if (status === 'failed') return t('itemStatus.failed', { count: retryCount });
 
-  if (status === 'processing') return '⚙️ Processing...';
+  if (status === 'processing') return t('itemStatus.processing');
 
-  return '⏳ Pending';
+  return t('itemStatus.pending');
 }
 
 function fireAndForget(promise: Promise<unknown>): void {
@@ -48,13 +50,12 @@ type QueueItem = {
 type RetryMutation = ReturnType<typeof useRetryQueueItem>;
 type RemoveMutation = ReturnType<typeof useRemoveQueueItem>;
 
-const OK_BUTTON = [{ text: 'OK', style: 'default' as const }];
-
-function handleRetry(itemId: string, isOffline: boolean, retryQueueItem: RetryMutation): void {
+function handleRetry(itemId: string, isOffline: boolean, retryQueueItem: RetryMutation, t: TFunction<'queue'>): void {
   fireAndForget(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
+  const okButton = [{ text: t('actions.ok', { ns: 'common' }), style: 'default' as const }];
 
   if (isOffline) {
-    Alert.alert('🌐 No Internet Connection', 'Please connect to the internet to retry video compilation.', OK_BUTTON);
+    Alert.alert(t('itemAlerts.noInternet.title'), t('itemAlerts.noInternet.message'), okButton);
 
     return;
   }
@@ -62,26 +63,28 @@ function handleRetry(itemId: string, isOffline: boolean, retryQueueItem: RetryMu
   retryQueueItem.mutate(itemId, {
     onSuccess: (result) => {
       if (!result.success) {
-        Alert.alert('❌ Retry Failed', result.error ?? 'Compilation failed again.', OK_BUTTON);
+        Alert.alert(t('itemAlerts.retryFailed.title'), result.error ?? t('itemAlerts.retryFailed.fallback'), okButton);
 
         return;
       }
 
-      Alert.alert('✅ Success!', 'Video compilation completed successfully!', [{ text: 'Great!', style: 'default' }]);
+      Alert.alert(t('itemAlerts.success.title'), t('itemAlerts.success.message'), [
+        { text: t('itemAlerts.success.confirm'), style: 'default' },
+      ]);
     },
     onError: (error) => {
-      Alert.alert('⚠️ Retry Error', error.message, OK_BUTTON);
+      Alert.alert(t('itemAlerts.retryError.title'), error.message, okButton);
     },
   });
 }
 
-function handleRemove(itemId: string, removeQueueItem: RemoveMutation): void {
+function handleRemove(itemId: string, removeQueueItem: RemoveMutation, t: TFunction<'queue'>): void {
   fireAndForget(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
 
-  Alert.alert('🗑️ Remove from Queue', 'Are you sure you want to remove this compilation from the queue?', [
-    { text: 'Cancel', style: 'cancel' },
+  Alert.alert(t('itemAlerts.remove.title'), t('itemAlerts.remove.message'), [
+    { text: t('actions.cancel', { ns: 'common' }), style: 'cancel' },
     {
-      text: 'Remove',
+      text: t('actions.remove'),
       style: 'destructive',
       onPress: () => {
         fireAndForget(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
@@ -98,9 +101,18 @@ type QueueItemViewProps = {
   onRemove: (id: string) => void;
   isRetryPending: boolean;
   isRemovePending: boolean;
+  t: TFunction<'queue'>;
 };
 
-function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, isRemovePending }: QueueItemViewProps) {
+function QueueItemView({
+  item,
+  expandAnim,
+  onRetry,
+  onRemove,
+  isRetryPending,
+  isRemovePending,
+  t,
+}: QueueItemViewProps) {
   const statusColor = getStatusColor(item.status);
   const animStyle = {
     transform: [{ translateY: expandAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
@@ -120,11 +132,13 @@ function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, is
         </View>
         <View style={styles.queueItemInfo}>
           <Text style={styles.queueItemTitle} numberOfLines={1}>
-            Project: {item.projectId.substring(0, 8)}...
+            {t('card.project', { id: item.projectId.substring(0, 8) })}
           </Text>
-          <Text style={styles.queueItemStatus}>{getStatusLabel(item.status, item.retryCount)}</Text>
+          <Text style={styles.queueItemStatus}>{getStatusLabel(item.status, item.retryCount, t)}</Text>
           <Text style={styles.queueItemTime}>
-            Added {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {t('card.added', {
+              time: new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            })}
           </Text>
         </View>
       </View>
@@ -138,7 +152,7 @@ function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, is
             disabled={isRetryPending}
           >
             <Ionicons name="refresh" size={16} color={colors.primary} />
-            <Text style={styles.actionButtonText}>Retry</Text>
+            <Text style={styles.actionButtonText}>{t('actions.retry')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -149,18 +163,23 @@ function QueueItemView({ item, expandAnim, onRetry, onRemove, isRetryPending, is
           disabled={isRemovePending}
         >
           <Ionicons name="trash-outline" size={16} color={colors.error} />
-          <Text style={[styles.actionButtonText, { color: colors.error }]}>Remove</Text>
+          <Text style={[styles.actionButtonText, { color: colors.error }]}>{t('actions.remove')}</Text>
         </TouchableOpacity>
       </View>
     </Animated.View>
   );
 }
 
-type QueueHeaderProps = { pendingCount: number; isOffline: boolean; isExpanded: boolean; onToggle: () => void };
+type QueueHeaderProps = {
+  pendingCount: number;
+  isOffline: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
+  t: TFunction<'queue'>;
+};
 
-function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle }: QueueHeaderProps) {
-  const label =
-    pendingCount === 0 ? 'No videos in queue' : `${pendingCount} video${pendingCount === 1 ? '' : 's'} queued`;
+function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle, t }: QueueHeaderProps) {
+  const label = pendingCount === 0 ? t('header.empty') : t('header.queued', { count: pendingCount });
 
   return (
     <TouchableOpacity style={styles.header} onPress={onToggle} activeOpacity={0.7}>
@@ -175,12 +194,12 @@ function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle }: QueueHea
       <View style={styles.headerTextContainer}>
         <Text style={styles.headerText}>{label}</Text>
         <Text style={styles.headerSubtext}>
-          {isOffline ? '📴 Will process when online' : '🌐 Processing when possible'}
+          {isOffline ? t('header.willProcessOnline') : t('header.processingWhenPossible')}
         </Text>
       </View>
       {isOffline && (
         <View style={styles.offlineBadge}>
-          <Text style={styles.offlineBadgeText}>Offline</Text>
+          <Text style={styles.offlineBadgeText}>{t('header.offlineBadge')}</Text>
         </View>
       )}
       <Ionicons
@@ -193,19 +212,20 @@ function QueueHeader({ pendingCount, isOffline, isExpanded, onToggle }: QueueHea
   );
 }
 
-function QueueFooter({ isOffline }: { isOffline: boolean }) {
+function QueueFooter({ isOffline, t }: { isOffline: boolean; t: TFunction<'queue'> }) {
   return (
     <View style={styles.queueSummary}>
       {isOffline ? (
-        <Text style={styles.offlineMessage}>📱 Offline: Videos will process automatically when connected</Text>
+        <Text style={styles.offlineMessage}>{t('footer.offline')}</Text>
       ) : (
-        <Text style={styles.onlineMessage}>🌐 Online: Processing queue in background</Text>
+        <Text style={styles.onlineMessage}>{t('footer.online')}</Text>
       )}
     </View>
   );
 }
 
 function CompilationQueueStatus() {
+  const { t } = useTranslation('queue');
   const { data: pendingCompilations = [] } = usePendingCompilations();
   const { isOffline } = useOffline();
   const retryQueueItem = useRetryQueueItem();
@@ -239,6 +259,7 @@ function CompilationQueueStatus() {
         isOffline={isOffline}
         isExpanded={isExpanded}
         onToggle={toggleExpanded}
+        t={t}
       />
       <Animated.View style={animContainerStyle}>
         {visibleItems.map((item) => (
@@ -247,24 +268,23 @@ function CompilationQueueStatus() {
             item={item}
             expandAnim={expandAnim}
             onRetry={(id) => {
-              handleRetry(id, isOffline, retryQueueItem);
+              handleRetry(id, isOffline, retryQueueItem, t);
             }}
             onRemove={(id) => {
-              handleRemove(id, removeQueueItem);
+              handleRemove(id, removeQueueItem, t);
             }}
             isRetryPending={retryQueueItem.isPending}
             isRemovePending={removeQueueItem.isPending}
+            t={t}
           />
         ))}
       </Animated.View>
       {!isExpanded && hiddenCount > 0 && (
         <TouchableOpacity style={styles.showMoreButton} onPress={toggleExpanded}>
-          <Text style={styles.showMoreText}>
-            👆 Tap to show {hiddenCount} more item{hiddenCount === 1 ? '' : 's'}
-          </Text>
+          <Text style={styles.showMoreText}>{t('showMore', { count: hiddenCount })}</Text>
         </TouchableOpacity>
       )}
-      {pendingCompilations.length > 0 && <QueueFooter isOffline={isOffline} />}
+      {pendingCompilations.length > 0 && <QueueFooter isOffline={isOffline} t={t} />}
     </View>
   );
 }

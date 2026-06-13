@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import TrimPanel, { type TrimRange } from '@/src/features/editor/components/TrimPanel';
 import { styles } from './previewStyles';
 
@@ -23,16 +24,18 @@ export function TrimEditPanel({
   onCancel,
   onApply,
 }: TrimEditPanelProps) {
+  const { t } = useTranslation('preview');
+
   return (
     <View style={styles.editPanel}>
-      <Text style={styles.editTitle}>Trim clip</Text>
+      <Text style={styles.editTitle}>{t('trim.title')}</Text>
       <TrimPanel duration={duration} value={value} currentTime={currentTime} onChange={onChange} onSeek={onSeek} />
       <View style={styles.editActions}>
         <TouchableOpacity style={styles.ghostButton} onPress={onCancel} activeOpacity={0.8}>
-          <Text style={styles.ghostButtonText}>Cancel</Text>
+          <Text style={styles.ghostButtonText}>{t('actions.cancel', { ns: 'common' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.primaryButton} onPress={onApply} activeOpacity={0.85}>
-          <Text style={styles.primaryButtonText}>Done</Text>
+          <Text style={styles.primaryButtonText}>{t('actions.done', { ns: 'common' })}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -47,18 +50,20 @@ interface CropEditPanelProps {
 
 /** Bottom panel shown in crop mode. */
 export function CropEditPanel({ onReset, onCancel, onApply }: CropEditPanelProps) {
+  const { t } = useTranslation('preview');
+
   return (
     <View style={styles.editPanel}>
-      <Text style={styles.editTitle}>Drag the frame to crop</Text>
+      <Text style={styles.editTitle}>{t('crop.title')}</Text>
       <View style={styles.editActions}>
         <TouchableOpacity style={styles.ghostButton} onPress={onReset} activeOpacity={0.8}>
-          <Text style={styles.ghostButtonText}>Reset</Text>
+          <Text style={styles.ghostButtonText}>{t('actions.reset', { ns: 'common' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.ghostButton} onPress={onCancel} activeOpacity={0.8}>
-          <Text style={styles.ghostButtonText}>Cancel</Text>
+          <Text style={styles.ghostButtonText}>{t('actions.cancel', { ns: 'common' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.primaryButton} onPress={onApply} activeOpacity={0.85}>
-          <Text style={styles.primaryButtonText}>Done</Text>
+          <Text style={styles.primaryButtonText}>{t('actions.done', { ns: 'common' })}</Text>
         </TouchableOpacity>
       </View>
     </View>

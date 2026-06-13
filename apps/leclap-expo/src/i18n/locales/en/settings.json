@@ -1,0 +1,23 @@
+{
+  "title": "Settings",
+  "close": "Close settings",
+  "compilation": {
+    "label": "Compilation",
+    "caption": "Where your videos are rendered."
+  },
+  "onDeviceNotice": "This build is on-device only. All compilation happens locally.",
+  "modes": {
+    "local": {
+      "label": "Local",
+      "hint": "Scenarios and rendering run on your device — private and instant."
+    },
+    "server": {
+      "label": "Cloud",
+      "hint": "Scenarios and rendering are handled by the server."
+    }
+  },
+  "footnote": {
+    "enabled": "Local is the default. Choose Cloud to browse and render the server’s scenarios — useful for ones with animated overlays the on-device engine can’t make yet.",
+    "disabled": "Cloud is disabled for this build (EXPO_PUBLIC_ENABLE_SERVER=false)."
+  }
+}

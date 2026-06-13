@@ -6,6 +6,7 @@
     "lib": ["ES2024", "DOM"],
     "jsx": "react-jsx",
     "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,

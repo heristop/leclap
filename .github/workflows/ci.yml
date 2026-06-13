@@ -114,7 +114,13 @@ jobs:
           fi
 
       # Runs the cli.rs execution tests (real in-process ffmpeg/ffprobe via the embedded fftools).
-      - name: Cargo test
+      # Re-entrancy guard: the engine embeds fftools in-process and resets their globals at every
+      # ffmpeg_main entry (the leclap-reentrancy patch in patch-fftools.sh). `--test-threads=1` forces
+      # run/probe/cancel to share one process sequentially, so run_is_reentrant_across_calls and
+      # run_recovers_after_a_failed_run actually exercise that reset — if the patch ever silently stops
+      # matching upstream, CI fails here rather than shipping a one-shot engine. Also covers the
+      # fd-restore (panic safety) and cancel tests in the same run.
+      - name: Cargo test (engine re-entrancy guard)
         working-directory: packages/ffmpeg-engine
         env:
           FFMPEG_PKG_CONFIG_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib/pkgconfig
@@ -123,7 +129,7 @@ jobs:
           # (undefined Wels*/avcodec symbols).
           PKG_CONFIG_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib/pkgconfig
           DYLD_FALLBACK_LIBRARY_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib
-        run: cargo test --release
+        run: cargo test --release -- --test-threads=1
 
   # publish:
   #   needs: build-and-test

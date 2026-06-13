@@ -2,109 +2,136 @@
 import type { TemplateDescriptor } from 'ffmpeg-video-composer';
 
 export const builtinTemplates: Record<string, TemplateDescriptor> = {
-  concat_videos_with_music: {
+  'premium-fast-curious': {
     global: {
       variables: {
-        video: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/earth.mp4',
-        colorTransition: '#000000',
-      },
-      music: {
-        name: 'point_being_-_go_by_ocean___ryan_mccaffrey.mp3',
+        optionA: 'Tea',
+        optionB: 'Coffee',
       },
       orientation: 'landscape',
       musicEnabled: true,
-      transitionDuration: 0.1,
+      music: {
+        name: 'pop.mp3',
+      },
+      transition: {
+        type: 'fade',
+        duration: 0.2,
+      },
+      audio: {
+        sourceVolume: 1,
+        normalize: 'loudnorm',
+      },
     },
     sections: [
       {
-        name: 'test_video_1',
-        type: 'video',
-        options: {
-          videoUrl: '{{ video }}',
-          duration: 4,
-          musicVolumeLevel: 1,
+        name: 'form_1',
+        type: 'form',
+        title: {
+          en: "Who's the star?",
         },
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ colorTransition }}',
+        description: {
+          en: '',
+        },
+        options: {
+          fields: [
+            {
+              name: 'form_1_firstname',
+              maxLength: 20,
+              label: {
+                en: 'First name',
+              },
             },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-        ],
+          ],
+        },
       },
       {
-        name: 'test_video_2',
-        type: 'video',
-        options: {
-          videoUrl: '{{ video }}',
-          duration: 4,
-          musicVolumeLevel: 0.1,
-        },
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-        ],
-      },
-      {
-        name: 'test_video_2',
-        type: 'video',
-        options: {
-          videoUrl: '{{ video }}',
-          duration: 4,
-          musicVolumeLevel: 2,
-        },
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  fast_and_curious: {
-    global: {
-      variables: {
-        watermark: 'https://github.com/heristop/ffmpeg-template-assembly/raw/main/src/shared/assets/pictures/logo.png',
-        colorsList: ['#FFFFFF', '#000000'],
-      },
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 2,
-    },
-    sections: [
-      {
-        name: 'intro_1_1',
+        name: 'fast_curious_1',
         type: 'color_background',
         options: {
-          backgroundColor: '{{ color1 }}',
+          backgroundColor: '#ff2e4d',
+          duration: 0.6,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 360,
+              c: '#ff2e4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 360,
+              w: 1280,
+              h: 360,
+              c: '#f5f5f0@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'FAST',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 184,
+              x: '(w-text_w)/2 - 150',
+              y: '(h-text_h)/2 - 90',
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'CURIOUS',
+              },
+              fontcolor: '#ff2e4d',
+              fontsize: 184,
+              x: '(w-text_w)/2 + 90',
+              y: '(h-text_h)/2 + 20',
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'WITH {{ form_1_firstname }}',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 38,
+              x: '(w-tw) - 110',
+              y: 'h - 120',
+              fontfile: 'Oswald.ttf',
+              box: 1,
+              boxcolor: '#141416',
+              boxborderw: 16,
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.4',
+              color: '#141416',
+            },
+          },
+        ],
+      },
+      {
+        name: 'fast_curious_2',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#f5f5f0',
           duration: 0.5,
-          musicVolumeLevel: 0.4,
         },
         filters: [
           {
@@ -114,7 +141,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 0,
               w: 1280,
               h: 360,
-              c: '{{ color2 }}@1',
+              c: '#f5f5f0@1',
               t: 'fill',
             },
           },
@@ -125,7 +152,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 360,
               w: 1280,
               h: 360,
-              c: '{{ color1 }}@1',
+              c: '#ff2e4d@1',
               t: 'fill',
             },
           },
@@ -133,53 +160,52 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'drawtext',
             values: {
               text: {
-                en: 'fast',
+                en: 'FAST',
               },
-              fontcolor: '{{ color1 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 - 168',
-              y: '(h-text_h)/2 - 70',
-              fontfile: 'Quicksand.ttf',
+              fontcolor: '#ff2e4d',
+              fontsize: 184,
+              x: '(w-text_w)/2 - 150',
+              y: '(h-text_h)/2 - 90',
+              fontfile: 'BebasNeue.ttf',
             },
           },
           {
             type: 'drawtext',
             values: {
               text: {
-                en: 'curious',
+                en: 'CURIOUS',
               },
-              fontcolor: '{{ color2 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 + 100 ',
-              y: '(h-text_h)/2 + 27',
-              fontfile: 'Quicksand.ttf',
+              fontcolor: '#f5f5f0',
+              fontsize: 184,
+              x: '(w-text_w)/2 + 90',
+              y: '(h-text_h)/2 + 20',
+              fontfile: 'BebasNeue.ttf',
             },
           },
           {
             type: 'drawtext',
             values: {
               text: {
-                en: 'with {{ form_1_firstname }}',
+                en: 'WITH {{ form_1_firstname }}',
               },
-              fontcolor: '{{ color1 }}',
-              fontsize: 40,
-              x: '(w-tw) - 180',
-              y: '(h-text_h)/2 + 200',
-              fontfile: 'Quicksand.ttf',
+              fontcolor: '#ff2e4d',
+              fontsize: 38,
+              x: '(w-tw) - 110',
+              y: 'h - 120',
+              fontfile: 'Oswald.ttf',
               box: 1,
-              boxcolor: '{{ color2 }}',
+              boxcolor: '#141416',
               boxborderw: 16,
             },
           },
         ],
       },
       {
-        name: 'intro_1_2',
+        name: 'fast_curious_3',
         type: 'color_background',
         options: {
-          backgroundColor: '{{ color2 }}',
-          duration: 0.5,
-          musicVolumeLevel: 0.4,
+          backgroundColor: '#ff2e4d',
+          duration: 1.2,
         },
         filters: [
           {
@@ -189,7 +215,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 0,
               w: 1280,
               h: 360,
-              c: '{{ color1 }}@1',
+              c: '#ff2e4d@1',
               t: 'fill',
             },
           },
@@ -200,7 +226,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 360,
               w: 1280,
               h: 360,
-              c: '{{ color2 }}@1',
+              c: '#f5f5f0@1',
               t: 'fill',
             },
           },
@@ -208,55 +234,61 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'drawtext',
             values: {
               text: {
-                fr: 'fast',
-                en: 'fast',
+                en: 'FAST',
               },
-              fontcolor: '{{ color2 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 - 168',
-              y: '(h-text_h)/2 - 70',
-              fontfile: 'Quicksand.ttf',
+              fontcolor: '#f5f5f0',
+              fontsize: 184,
+              x: '(w-text_w)/2 - 150',
+              y: '(h-text_h)/2 - 90',
+              fontfile: 'BebasNeue.ttf',
             },
           },
           {
             type: 'drawtext',
             values: {
               text: {
-                fr: 'curious',
-                en: 'curious',
+                en: 'CURIOUS',
               },
-              fontcolor: '{{ color1 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 + 100 ',
-              y: '(h-text_h)/2 + 27',
-              fontfile: 'Quicksand.ttf',
+              fontcolor: '#ff2e4d',
+              fontsize: 184,
+              x: '(w-text_w)/2 + 90',
+              y: '(h-text_h)/2 + 20',
+              fontfile: 'BebasNeue.ttf',
             },
           },
           {
             type: 'drawtext',
             values: {
               text: {
-                en: 'with {{ form_1_firstname }}',
+                en: 'WITH {{ form_1_firstname }}',
               },
-              fontcolor: '{{ color2 }}',
-              fontsize: 40,
-              x: '(w-tw) - 180',
-              y: '(h-text_h)/2 + 200',
-              fontfile: 'Quicksand.ttf',
+              fontcolor: '#f5f5f0',
+              fontsize: 38,
+              x: '(w-tw) - 110',
+              y: 'h - 120',
+              fontfile: 'Oswald.ttf',
               box: 1,
-              boxcolor: '{{ color1 }}',
+              boxcolor: '#141416',
               boxborderw: 16,
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#141416',
             },
           },
         ],
       },
       {
-        name: 'intro_1_3',
+        name: 'question_1',
         type: 'color_background',
         options: {
-          backgroundColor: '{{ color2 }}',
-          duration: 1.1,
-          musicVolumeLevel: 0.4,
+          backgroundColor: '#f5f5f0',
+          duration: 2.6,
         },
         filters: [
           {
@@ -264,163 +296,31 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             values: {
               x: 0,
               y: 0,
-              w: 1280,
-              h: 360,
-              c: '{{ color2 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '{{ color1 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                fr: 'fast',
-                en: 'fast',
-              },
-              fontcolor: '{{ color1 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 - 168',
-              y: '(h-text_h)/2 - 70',
-              fontfile: 'Quicksand.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                fr: 'curious',
-                en: 'curious',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 + 100 ',
-              y: '(h-text_h)/2 + 27',
-              fontfile: 'Quicksand.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'with {{ form_1_firstname }}',
-              },
-              fontcolor: '{{ color1 }}',
-              fontsize: 40,
-              x: '(w-tw) - 180',
-              y: '(h-text_h)/2 + 200',
-              fontfile: 'Quicksand.ttf',
-              box: 1,
-              boxcolor: '{{ color2 }}',
-              boxborderw: 16,
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  intertitle: {
-    global: {
-      variables: {
-        watermark: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/logo.png',
-        colorsList: ['#FFFFFF'],
-      },
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'test_intertitle',
-        type: 'video',
-        options: {
-          useVideoSection: 'video_1',
-          duration: 6,
-          musicVolumeLevel: 0.4,
-        },
-        inputs: [
-          {
-            name: 'intertitles_border',
-            url: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip',
-            type: 'frame',
-            options: {
-              frequency: 0.04,
-              overlay: '0:0',
-              scale: '1280:720',
-              persistent: true,
-            },
-            filters: [],
-          },
-          {
-            name: 'watermark',
-            url: '{{ watermark }}',
-          },
-        ],
-        maps: [
-          {
-            inputs: ['@watermark'],
-            filters: [
-              {
-                type: 'scale',
-                values: {
-                  h: -1,
-                  w: 200,
-                },
-              },
-            ],
-            outputs: ['scaled_logo'],
-          },
-          {
-            inputs: ['@video'],
-            options: {
-              useSectionFilters: true,
-            },
-            outputs: ['project_video'],
-          },
-          {
-            inputs: ['@intertitles_border', 'scaled_logo'],
-            filters: [
-              {
-                type: 'overlay',
-                value: '50:50',
-              },
-            ],
-            outputs: ['animation_and_logo'],
-          },
-          {
-            inputs: ['project_video', 'animation_and_logo'],
-            filters: [
-              {
-                type: 'overlay',
-                value: '0:0',
-              },
-            ],
-            outputs: ['final'],
-          },
-        ],
-        filters: [
-          {
-            type: 'boxblur',
-            value: '5',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
+              w: 640,
               h: 720,
-              c: '{{ color1 }}@0.15',
+              c: '#f5f5f0@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 640,
+              y: 0,
+              w: 640,
+              h: 720,
+              c: '#ff2e4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 628,
+              y: 0,
+              w: 24,
+              h: 720,
+              c: '#141416@1',
               t: 'fill',
             },
           },
@@ -428,28 +328,69 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'drawtext',
             values: {
               text: {
-                en: '{{ form_1_firstname }} {{ form_1_lastname }}',
+                en: 'PICK ONE — FAST',
               },
-              fontcolor: '#FFFFFF',
+              fontcolor: '#f5f5f0',
               fontsize: 40,
               x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4',
-              fontfile: 'Inconsolata.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
+              y: 70,
+              fontfile: 'Oswald.ttf',
+              box: 1,
+              boxcolor: '#141416',
+              boxborderw: 18,
+              alpha: "'if(lt(t,0.2),0,if(lt(t,0.7),(t-0.2)/0.5,1))'",
             },
           },
           {
             type: 'drawtext',
             values: {
               text: {
-                en: 'Job: {{ form_1_job }}',
+                en: '{{ optionA }}',
               },
-              fontcolor: '#FFFFFF',
-              fontsize: 40,
+              fontcolor: '#ff2e4d',
+              fontsize: 150,
+              x: '(640-text_w)/2',
+              y: '(h-text_h)/2',
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.5),0,if(lt(t,1.1),(t-0.5)/0.6,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ optionB }}',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 150,
+              x: '640 + (640-text_w)/2',
+              y: '(h-text_h)/2',
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.8),0,if(lt(t,1.4),(t-0.8)/0.6,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'OR',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 46,
               x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4+60',
-              fontfile: 'Inconsolata.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
+              y: '(h-text_h)/2 + 6',
+              fontfile: 'Oswald.ttf',
+              box: 1,
+              boxcolor: '#141416',
+              boxborderw: 22,
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.3',
+              color: '#141416',
             },
           },
           {
@@ -458,207 +399,95 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               t: 'out',
               d: '{{ transitionDuration }}',
               st: '{{ transitionStartTime }}',
-              color: '#000000',
+              color: '#141416',
             },
           },
         ],
       },
-    ],
-  } as TemplateDescriptor,
-  local_music: {
-    global: {
-      variables: {
-        colorTransition: 'blue',
-      },
-      music: {
-        name: 'point_being_-_go_by_ocean___ryan_mccaffrey.mp3',
-      },
-      orientation: 'landscape',
-      musicEnabled: true,
-      transitionDuration: 2,
-    },
-    sections: [
       {
-        name: 'earth',
+        name: 'video_1',
         type: 'project_video',
+        look: 'vivid',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your moment — punchy intro, then you',
+        },
         options: {
-          duration: 6,
+          duration: 30,
+          forceAspectRatio: true,
         },
         filters: [
           {
-            type: 'fadein',
-            values: {
-              color: '{{ colorTransition }}',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  loop_music: {
-    global: {
-      variables: {
-        colorsList: ['#FFFFFF'],
-      },
-      music: {
-        name: 'popopop',
-        url: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/pop.mp3',
-      },
-      orientation: 'landscape',
-      musicEnabled: true,
-      audioVolumeLevel: 4,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'test_loop_intro',
-        type: 'video',
-        options: {
-          useVideoSection: 'video_4',
-          duration: 6,
-          musicVolumeLevel: 0.6,
-        },
-        filters: [
-          {
-            type: 'boxblur',
-            value: '5',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: 'black',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  picture: {
-    global: {
-      variables: {
-        colorsList: ['#FFFFFF'],
-      },
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'test_picture',
-        type: 'image_background',
-        options: {
-          duration: 6,
-          pictureUrl:
-            'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/SamplePNGImage_3mbmb.png',
-        },
-        filters: [
-          {
-            type: 'boxblur',
-            value: '5',
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_1_firstname }} {{ form_1_lastname }}',
-              },
-              fontcolor: '#FFFFFF',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4',
-              fontfile: 'Inconsolata.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Job: {{ form_1_job }}',
-              },
-              fontcolor: '#FFFFFF',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4+60',
-              fontfile: 'Inconsolata.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#000000',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  portrait: {
-    global: {
-      variables: {
-        colorsList: ['#FFFFFF'],
-      },
-      orientation: 'portrait',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'test_portrait',
-        type: 'video',
-        options: {
-          useVideoSection: 'video_portrait',
-          duration: 6,
-          musicVolumeLevel: 0.4,
-          forceOriginalAspectRatio: true,
-        },
-        inputs: [],
-        maps: [],
-        filters: [
-          {
-            type: 'boxblur',
-            value: '5',
+            type: 'vignette',
           },
           {
             type: 'drawbox',
             values: {
               x: 0,
-              y: 0,
-              w: 720,
-              h: 1280,
-              c: '{{ color1 }}@0.15',
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#141416@0.55',
               t: 'fill',
             },
           },
           {
-            type: 'fade',
+            type: 'drawbox',
             values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#000000',
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#ff2e4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_firstname }}',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 52,
+              x: 80,
+              y: 644,
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#141416',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#141416',
             },
           },
         ],
       },
     ],
   } as TemplateDescriptor,
-  premium_intro: {
+  'premium-intro': {
     global: {
       orientation: 'landscape',
       musicEnabled: true,
       music: {
         name: 'arcadia.mp3',
       },
-      audioVolumeLevel: 1,
-      transitionDuration: 0.5,
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+        normalize: 'loudnorm',
+      },
     },
     sections: [
       {
@@ -801,6 +630,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'video_1',
         type: 'project_video',
+        look: 'cinematic',
         title: {
           en: 'Record your clip',
         },
@@ -808,7 +638,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           en: 'Your moment — graded in the title-card palette',
         },
         options: {
-          duration: 30000,
+          duration: 30,
           forceAspectRatio: true,
         },
         filters: [
@@ -866,15 +696,20 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  premium_quote_portrait: {
+  'premium-quote-portrait': {
     global: {
       orientation: 'portrait',
       musicEnabled: true,
       music: {
         name: 'anxiety.mp3',
       },
-      audioVolumeLevel: 1,
-      transitionDuration: 0.5,
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
     },
     sections: [
       {
@@ -1010,6 +845,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'video_1',
         type: 'project_video',
+        look: 'cinematic',
         title: {
           en: 'Record your clip',
         },
@@ -1017,7 +853,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           en: 'Your story — graded in the layered-purple palette',
         },
         options: {
-          duration: 30000,
+          duration: 30,
           forceAspectRatio: true,
         },
         filters: [
@@ -1062,20 +898,26 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  premium_quote: {
+  'premium-quote': {
     global: {
       orientation: 'landscape',
       musicEnabled: true,
       music: {
         name: 'autumn-day.mp3',
       },
-      audioVolumeLevel: 1,
-      transitionDuration: 0.5,
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
     },
     sections: [
       {
         name: 'premium_quote',
         type: 'color_background',
+        look: 'cinematic',
         options: {
           backgroundColor: '#f4f1ea',
           duration: 5,
@@ -1195,6 +1037,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'video_1',
         type: 'project_video',
+        look: 'warm',
         title: {
           en: 'Record your clip',
         },
@@ -1202,7 +1045,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           en: 'Your moment — graded in the editorial palette',
         },
         options: {
-          duration: 30000,
+          duration: 30,
           forceAspectRatio: true,
         },
         filters: [
@@ -1247,15 +1090,20 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  premium_reel_portrait: {
+  'premium-reel-portrait': {
     global: {
       orientation: 'portrait',
       musicEnabled: true,
       music: {
         name: 'beachfront-celebration.mp3',
       },
-      audioVolumeLevel: 1,
-      transitionDuration: 0.5,
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
     },
     sections: [
       {
@@ -1404,6 +1252,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'video_1',
         type: 'project_video',
+        look: 'vivid',
         title: {
           en: 'Record your clip',
         },
@@ -1411,8 +1260,12 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           en: 'Your reel — graded in the bold red palette',
         },
         options: {
-          duration: 30000,
+          duration: 30,
           forceAspectRatio: true,
+          framingGuide: {
+            type: 'silhouette',
+            position: 'right',
+          },
         },
         filters: [
           {
@@ -1456,15 +1309,20 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  premium_spotlight: {
+  'premium-spotlight': {
     global: {
       orientation: 'landscape',
       musicEnabled: true,
       music: {
         name: 'air-prelude.mp3',
       },
-      audioVolumeLevel: 1,
-      transitionDuration: 0.5,
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
     },
     sections: [
       {
@@ -1491,6 +1349,10 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'intro',
         type: 'color_background',
+        transition: {
+          type: 'wipeleft',
+          duration: 0.4,
+        },
         options: {
           backgroundColor: '#0d1b2a',
           duration: 2.4,
@@ -1593,6 +1455,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'video_1',
         type: 'project_video',
+        look: 'cinematic',
         title: {
           en: 'Record your clip',
         },
@@ -1600,7 +1463,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           en: 'Your moment — graded and captioned',
         },
         options: {
-          duration: 30000,
+          duration: 30,
           forceAspectRatio: true,
         },
         filters: [
@@ -1751,15 +1614,20 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  premium_titles: {
+  'premium-titles': {
     global: {
       orientation: 'landscape',
       musicEnabled: true,
       music: {
         name: 'americana.mp3',
       },
-      audioVolumeLevel: 1,
-      transitionDuration: 0.6,
+      transition: {
+        type: 'fade',
+        duration: 0.6,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
     },
     sections: [
       {
@@ -1991,6 +1859,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       {
         name: 'video_1',
         type: 'project_video',
+        look: 'cool',
         title: {
           en: 'Record your clip',
         },
@@ -1998,7 +1867,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
           en: 'Your moment — graded in the teal-and-charcoal brand',
         },
         options: {
-          duration: 30000,
+          duration: 30,
           forceAspectRatio: true,
         },
         filters: [
@@ -2037,802 +1906,6 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'fadeout',
             values: {
               color: '#0b0f14',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  sample: {
-    global: {
-      variables: {
-        watermark: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/logo.png',
-        videoOutro: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/outro.mp4',
-        animatedIcon:
-          'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/animation_icons.zip',
-        colorsList: ['rgb(41 37 36)', 'rgb(250 250 249)'],
-      },
-      music: {
-        name: 'default',
-        url: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3',
-      },
-      orientation: 'landscape',
-      musicEnabled: true,
-      audioVolumeLevel: 1,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'intro_1',
-        type: 'video',
-        options: {
-          useVideoSection: 'video_1',
-          duration: 6,
-          musicVolumeLevel: 0.4,
-        },
-        inputs: [
-          {
-            name: 'intertitles_border',
-            url: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip',
-            type: 'frame',
-            options: {
-              frequency: 0.04,
-              overlay: '0:0',
-              scale: '1280:720',
-              persistent: true,
-            },
-            filters: [],
-          },
-          {
-            name: 'watermark',
-            url: '{{ watermark }}',
-          },
-        ],
-        maps: [
-          {
-            inputs: ['@watermark'],
-            filters: [
-              {
-                type: 'scale',
-                values: {
-                  h: -1,
-                  w: 100,
-                },
-              },
-            ],
-            outputs: ['scaled_logo'],
-          },
-          {
-            inputs: ['@video'],
-            options: {
-              useSectionFilters: true,
-            },
-            outputs: ['video'],
-          },
-          {
-            inputs: ['@intertitles_border', 'scaled_logo'],
-            filters: [
-              {
-                type: 'overlay',
-                value: '50:50',
-              },
-            ],
-            outputs: ['animation_and_logo'],
-          },
-          {
-            inputs: ['video', 'animation_and_logo'],
-            filters: [
-              {
-                type: 'overlay',
-                value: '0:0',
-              },
-            ],
-            outputs: ['final'],
-          },
-        ],
-        filters: [
-          {
-            type: 'boxblur',
-            value: '5',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '{{ color1 }}@0.2',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_1_firstname }} {{ form_1_lastname }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4',
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '“{{ form_1_job }}”',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4+60',
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '{{ color1 }}',
-            },
-          },
-        ],
-      },
-      {
-        name: 'form_1',
-        type: 'form',
-        title: {
-          fr: 'Des infos avant de commencer',
-          en: 'A few info before we start',
-        },
-        description: {
-          fr: '',
-          en: '',
-        },
-        options: {
-          fields: [
-            {
-              name: 'form_1_firstname',
-              maxLength: 30,
-              label: {
-                fr: 'Prénom',
-                en: 'First name',
-              },
-            },
-            {
-              name: 'form_1_lastname',
-              maxLength: 30,
-              label: {
-                en: 'Last name',
-              },
-            },
-            {
-              name: 'form_1_job',
-              maxLength: 40,
-              label: {
-                en: 'Your Job',
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: 'video_1',
-        type: 'project_video',
-        title: {
-          en: 'Tell us a little bit about you',
-        },
-        description: {
-          en: 'Tell us your first and last name, the job that you do and the name of your company.',
-        },
-        options: {
-          duration: 20000,
-          musicVolumeLevel: 0.1,
-        },
-        inputs: [
-          {
-            name: 'animatedIcon',
-            type: 'frame',
-            options: {
-              frequency: 0.3,
-              overlay: '600:200',
-              scale: '1280:720',
-              persistent: false,
-            },
-            filters: [],
-          },
-        ],
-        filters: [
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_1_firstname }} {{ form_1_lastname }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 40,
-              x: '(w-tw-40)',
-              y: '(h-th-220)',
-              fontfile: 'Rubik.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_1_job }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 30,
-              x: '(w-tw-40)',
-              y: '(h-th-160)',
-              fontfile: 'Rubik.ttf',
-              box: 1,
-              boxcolor: '{{ color2 }}@0.5',
-              boxborderw: 10,
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '{{ transitionDuration }}',
-              color: '{{ color2 }}',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '{{ color1 }}',
-            },
-          },
-        ],
-      },
-      {
-        name: 'intertitle_1_1',
-        type: 'color_background',
-        options: {
-          backgroundColor: '{{ color1 }}',
-          duration: 0.5,
-          musicVolumeLevel: 0.4,
-          lowerCase: true,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 360,
-              c: '{{ color2 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '{{ color1 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'drink',
-              },
-              fontcolor: '{{ color1 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 - 168',
-              y: '(h-text_h)/2 - 68',
-              fontfile: 'Rubik.ttf',
-            },
-          },
-        ],
-      },
-      {
-        name: 'intertitle_1_2',
-        type: 'color_background',
-        options: {
-          backgroundColor: '{{ color2 }}',
-          duration: 0.5,
-          musicVolumeLevel: 0.4,
-          lowerCase: true,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 360,
-              c: '{{ color1 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '{{ color2 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'code',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 - 168',
-              y: '(h-text_h)/2 - 68',
-              fontfile: 'Rubik.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'with {{ form_1_firstname }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 40,
-              x: '(w-tw) - 180',
-              y: '(h-text_h)/2 + 200',
-              fontfile: 'Rubik.ttf',
-              box: 1,
-              boxcolor: '{{ color1 }}',
-              boxborderw: 12,
-            },
-          },
-        ],
-      },
-      {
-        name: 'intertitle_1_3',
-        type: 'color_background',
-        options: {
-          backgroundColor: '{{ color2 }}',
-          duration: 1.1,
-          musicVolumeLevel: 0.4,
-          lowerCase: true,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 360,
-              c: '{{ color2 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '{{ color1 }}@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'drink',
-              },
-              fontcolor: '{{ color1 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 - 168',
-              y: '(h-text_h)/2 - 68',
-              fontfile: 'Rubik.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '& code',
-              },
-              fontcolor: '{{ color1 }}',
-              fontsize: 194,
-              x: '(w-text_w)/2 + 99',
-              y: '(h-text_h)/2 + 26',
-              fontfile: 'Rubik.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '& code',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 192,
-              x: '(w-text_w)/2 + 100 ',
-              y: '(h-text_h)/2 + 27',
-              fontfile: 'Rubik.ttf',
-            },
-          },
-        ],
-      },
-      {
-        name: 'form_2',
-        type: 'form',
-        title: {
-          en: '3 keywords to describe your job',
-        },
-        description: {
-          fr: '',
-          en: '',
-        },
-        options: {
-          fields: [
-            {
-              name: 'form_2_keyword1',
-              maxLength: 25,
-              label: {
-                en: 'Keyword 1',
-              },
-            },
-            {
-              name: 'form_2_keyword2',
-              maxLength: 25,
-              label: {
-                en: 'Keyword 2',
-              },
-            },
-            {
-              name: 'form_2_keyword3',
-              maxLength: 25,
-              label: {
-                en: 'Keyword 3',
-              },
-            },
-            {
-              name: 'form_2_keyword4',
-              maxLength: 25,
-              label: {
-                en: 'Keyword 4',
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: 'video_2',
-        type: 'project_video',
-        title: {
-          en: 'Make your speech',
-        },
-        description: {
-          en: 'What are you going to make us discover?',
-        },
-        options: {
-          duration: 45000,
-          musicVolumeLevel: 0.1,
-        },
-        filters: [
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Languages',
-              },
-              fontcolor: '{{ color1 }}',
-              fontsize: 24,
-              x: 'w-text_w-12',
-              y: 60,
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              box: 1,
-              boxcolor: '{{ color2 }}@0.5',
-              boxborderw: 12,
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                fr: '{{ form_2_keyword1 }}',
-                en: '{{ form_2_keyword1 }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 24,
-              x: 'w-text_w-12',
-              y: 160,
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              box: 1,
-              boxcolor: '{{ color1 }}@0.5',
-              boxborderw: 12,
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                fr: '{{ form_2_keyword2 }}',
-                en: '{{ form_2_keyword2 }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 24,
-              x: 'w-text_w-12',
-              y: 240,
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              box: 1,
-              boxcolor: '{{ color1 }}@0.5',
-              boxborderw: 12,
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_2_keyword3 }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 24,
-              x: 'w-text_w-12',
-              y: 320,
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              box: 1,
-              boxcolor: '{{ color1 }}@0.5',
-              boxborderw: 12,
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_2_keyword4 }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 24,
-              x: 'w-text_w-12',
-              y: 400,
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              box: 1,
-              boxcolor: '{{ color1 }}@0.5',
-              boxborderw: 12,
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ color1 }}',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '{{ color1 }}',
-            },
-          },
-        ],
-      },
-      {
-        name: 'form_3',
-        type: 'form',
-        title: {
-          en: 'Describe your work environment',
-        },
-        description: {
-          fr: '',
-          en: '',
-        },
-        options: {
-          fields: [
-            {
-              name: 'form_3_keyword1',
-              maxLength: 25,
-              label: {
-                en: '1 word to describe your work environment',
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: 'video_3',
-        type: 'project_video',
-        title: {
-          en: 'Show the work environment',
-        },
-        description: {},
-        options: {
-          duration: 180000,
-          musicVolumeLevel: 0.4,
-          speed: 0.25,
-          muteSection: true,
-        },
-        maps: [
-          {
-            inputs: ['1:v'],
-            filters: [
-              {
-                type: 'setpts',
-                value: '0.25*PTS',
-              },
-            ],
-            outputs: ['final'],
-          },
-        ],
-        filters: [
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_3_keyword1 }}',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 36,
-              x: '(w-tw-40)',
-              y: '(h-th-160)',
-              fontfile: 'Rubik+Doodle+Shadow.ttf',
-              box: 1,
-              boxcolor: '{{ color1 }}@0.5',
-              boxborderw: 10,
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ color1 }}',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '{{ color1 }}',
-            },
-          },
-        ],
-      },
-      {
-        name: 'outro',
-        type: 'video',
-        options: {
-          videoUrl: '{{ videoOutro }}',
-          duration: 3,
-          musicVolumeLevel: 0.2,
-        },
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ color1 }}',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '{{ color1 }}',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Thank you for watching!',
-              },
-              fontcolor: '{{ color2 }}',
-              fontsize: 60,
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/1.4',
-              fontfile: 'Rubik+Marker+Hatch.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'",
-            },
-          },
-        ],
-      },
-      {
-        name: 'music_1',
-        type: 'music',
-        title: {
-          en: 'Pick your music',
-        },
-        description: {
-          en: '',
-        },
-        options: {},
-      },
-    ],
-  } as TemplateDescriptor,
-  video_speed: {
-    global: {
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'video_3',
-        type: 'project_video',
-        title: {
-          en: 'Show accelerated video',
-        },
-        description: {},
-        options: {
-          duration: 30000,
-          speed: 0.25,
-          muteSection: true,
-        },
-        maps: [
-          {
-            inputs: ['1:v'],
-            filters: [
-              {
-                type: 'setpts',
-                value: '0.25*PTS',
-              },
-            ],
-            outputs: ['final'],
-          },
-        ],
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '#000000',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '#000000',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  video: {
-    global: {
-      variables: {
-        videoSample: 'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/earth.mp4',
-        colorTransition: '#FFFFFF',
-      },
-      orientation: 'landscape',
-      musicEnabled: false,
-      transitionDuration: 0.5,
-    },
-    sections: [
-      {
-        name: 'test_video',
-        type: 'video',
-        options: {
-          videoUrl: '{{ videoSample }}',
-          duration: 2,
-        },
-        filters: [
-          {
-            type: 'fadein',
-            values: {
-              color: '{{ colorTransition }}',
             },
           },
         ],

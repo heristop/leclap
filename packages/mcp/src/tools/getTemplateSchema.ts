@@ -4,18 +4,29 @@ import { z } from 'zod';
 
 // Short authoring guide prepended to the JSON Schema so an agent knows how to read it.
 const GUIDE = [
-  'Template authoring guide:',
+  'Template authoring guide (descriptor v2):',
   'A template has an optional top-level `global` (project-wide defaults) and an ordered `sections` ' +
-    'array — each section becomes a clip and they are concatenated in order.',
+    'array — each section becomes a clip and they are composed in order.',
   'Each section has a `name`, a `type` (video, project_video, form, color_background, ' +
     'image_background, music), optional `options`, and optional `filters`/`inputs`/`maps`.',
+  'All durations are in SECONDS (options.duration, transition.duration, audioFade durations, etc.).',
+  'v2 adds a structured-sugar layer (prefer it over raw filters): `transition` ({type: an xfade name ' +
+    'or "cut", duration?}) on global and/or per section; `look` (cinematic/warm/cool/vintage/noir/' +
+    'vivid/dreamy) and `grade` (brightness/contrast/saturation/gamma/hue/colorBalance/blur); `motion` ' +
+    '(kenburns [image_background only], rotate, crop, flip); audio polish via global.audio ' +
+    '(sourceVolume, musicVolume, normalize, ducking) and options.audioFade; color_background `layers`; ' +
+    'and project_video `framingGuide` (a recording-UI overlay, never rendered). They compile to ' +
+    'ordinary on-device-safe FFmpeg filters. `filters[]` remains the raw escape hatch (FFmpeg-native keys).',
+  'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
+    'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +
     'colorsList), and `{{ form_field }}` placeholders, all resolved at compose time.',
   'project_video sections need user-supplied clips passed at compose time; the JSON Schema below is ' +
     'the authoritative shape.',
-  'Start from a PREMIUM built-in (premium_intro, premium_quote, premium_titles, premium_reel_portrait, ' +
-    'premium_quote_portrait) via get_template, then edit it — they already look professional and use ' +
-    'only on-device-safe filters. Run validate_template (no render) to check edits before compose_video.',
+  'Start from a PREMIUM built-in (premium-intro, premium-quote, premium-titles, premium-reel-portrait, ' +
+    'premium-quote-portrait, premium-spotlight) via get_template, then edit it — they already look ' +
+    'professional and use only on-device-safe filters. Run validate_template (no render) to check edits ' +
+    'before compose_video.',
 ].join('\n');
 
 function describeSchema(): string {

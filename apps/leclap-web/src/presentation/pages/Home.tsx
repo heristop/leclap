@@ -1,11 +1,14 @@
 import { Clapperboard, ArrowRight, Play, Film, Wand2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
 import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 
 export const Home = () => {
+  const { t } = useTranslation('home');
+
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
       <Seo />
@@ -31,23 +34,21 @@ export const Home = () => {
             className="text-7xl md:text-9xl font-bold mb-6 tracking-tighter fade-in"
             style={{ animationDelay: '0.2s' }}
           >
-            <span className="text-gradient-animated">LeClap</span>
+            <span className="text-gradient-animated">{t('brand', { ns: 'common' })}</span>
           </h1>
 
           <p
             className="text-2xl md:text-3xl text-gray-300 mb-12 max-w-3xl mx-auto font-light leading-relaxed fade-in"
             style={{ animationDelay: '0.4s' }}
           >
-            The cinematic video composer that runs entirely in your browser.
-            <span className="block mt-2 text-lg text-gray-400">
-              Powered by WebAssembly & FFmpeg. No servers. No limits.
-            </span>
+            {t('hero.tagline')}
+            <span className="block mt-2 text-lg text-gray-400">{t('hero.subtagline')}</span>
           </p>
 
           <div className="flex flex-col md:flex-row justify-center gap-6 fade-in" style={{ animationDelay: '0.6s' }}>
             <Button asChild size="lg" className="group rounded-full glow-brand hover:scale-105">
               <Link to="/builder">
-                Start Creating
+                {t('hero.startCreating')}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
@@ -62,7 +63,7 @@ export const Home = () => {
               className="rounded-full"
             >
               <Play />
-              See How It Works
+              {t('hero.seeHow')}
             </Button>
           </div>
         </div>

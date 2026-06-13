@@ -1,0 +1,45 @@
+{
+  "hero": {
+    "tagline": "The cinematic video composer that runs entirely in your browser.",
+    "subtagline": "Powered by WebAssembly & FFmpeg. No servers. No limits.",
+    "startCreating": "Start Creating",
+    "seeHow": "See How It Works"
+  },
+  "features": {
+    "badge": "Everything, client-side",
+    "title": "A real video composer, in the browser",
+    "subtitle": "Production-grade FFmpeg, real templates, and live forms — running entirely on your device.",
+    "items": {
+      "templates": {
+        "title": "Real JSON Templates",
+        "highlight": "Production-ready",
+        "description": "Use actual template files from the core package with complex FFmpeg configurations, filters, and effects."
+      },
+      "forms": {
+        "title": "Interactive Forms",
+        "highlight": "Dynamic",
+        "description": "Dynamic form generation from template definitions with real-time validation and user input processing."
+      },
+      "processing": {
+        "title": "Advanced Processing",
+        "highlight": "Professional",
+        "description": "Full FFmpeg pipeline with video filters, text overlays, transitions, and audio mixing."
+      },
+      "privacy": {
+        "title": "Complete Privacy",
+        "highlight": "Private",
+        "description": "All processing happens locally in your browser. Your files never leave your device or touch any server."
+      },
+      "wasm": {
+        "title": "WebAssembly Powered",
+        "highlight": "Fast",
+        "description": "Lightning-fast video processing using WebAssembly FFmpeg for near-native performance."
+      },
+      "crossPlatform": {
+        "title": "Cross-Platform",
+        "highlight": "Universal",
+        "description": "Works in any modern browser on desktop, mobile, and tablet. No installation required."
+      }
+    }
+  }
+}

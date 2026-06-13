@@ -1,5 +1,6 @@
 import { ArrowRight, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AboutStats } from '@/presentation/components/about/AboutStats';
 import { AboutPillars } from '@/presentation/components/about/AboutPillars';
 import { AboutAuthor } from '@/presentation/components/about/AboutAuthor';
@@ -8,13 +9,11 @@ import { Seo } from '@/presentation/components/Seo';
 import { Badge, Button, Reveal } from '@/presentation/components/ui';
 
 export const About = () => {
+  const { t } = useTranslation('about');
+
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden pt-24 pb-20">
-      <Seo
-        title="About"
-        description="LeClap is an open, browser-based cinematic video composer powered by WebAssembly and FFmpeg. Learn what it is and who built it."
-        path="/about"
-      />
+      <Seo title={t('about.title', { ns: 'seo' })} description={t('about.description', { ns: 'seo' })} path="/about" />
       {/* Ambient background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] animate-pulse" />
@@ -27,15 +26,12 @@ export const About = () => {
           <header className="text-center mb-14 fade-in">
             <Badge variant="brand" className="mb-6 px-4 py-1.5 tracking-[0.18em]">
               <Shield className="w-3.5 h-3.5" />
-              Privacy-first · In your browser
+              {t('hero.badge')}
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 brand-gradient-text font-display tracking-tight">
-              About LeClap
+              {t('hero.title')}
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              A cinematic video composer that runs entirely in your browser. Compose from real templates, render with
-              FFmpeg compiled to WebAssembly, and download — no servers, no uploads, no limits.
-            </p>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">{t('hero.tagline')}</p>
           </header>
 
           {/* Stats strip */}
@@ -60,10 +56,10 @@ export const About = () => {
 
           {/* CTA */}
           <Reveal delay={320} className="mt-16 text-center">
-            <p className="text-gray-400 mb-6">Ready to compose your first video?</p>
+            <p className="text-gray-400 mb-6">{t('cta.prompt')}</p>
             <Button asChild size="lg" className="group rounded-full lift">
               <Link to="/builder">
-                Start creating
+                {t('cta.start')}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>

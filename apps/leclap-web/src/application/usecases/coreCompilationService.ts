@@ -22,9 +22,9 @@ export interface CompilationConfig {
   template: Template;
   formData: Record<string, string>;
   files: File[];
-  // Per-clip trim/crop selected on the Edit step, keyed by file index. Applied client-side
-  // (ffmpeg.wasm) before compilation.
-  videoEdits?: Record<number, VideoEdit | undefined>;
+  // Per-clip trim/crop, keyed by project_video section name. Applied client-side (ffmpeg.wasm)
+  // before compilation.
+  videoEdits?: Record<string, VideoEdit | undefined>;
   // Music and background selections from the Builder Media step.
   mediaChoices?: MediaChoices;
   // Optional render-config override. The builder's "Preview render" passes a reduced scale
@@ -69,9 +69,11 @@ class CoreCompilationService {
 
       await this.filesystemAdapter.clear();
 
-      const editedFiles = await this.applyEdits(files, videoEdits, onProgress);
+      const clipSectionNames = this.projectVideoSectionNames(template);
 
-      const userVideoPaths = await this.storeUploadedFiles(editedFiles, onProgress);
+      const editedFiles = await this.applyEdits(files, videoEdits, clipSectionNames, onProgress);
+
+      const userVideoPaths = await this.storeUploadedFiles(editedFiles, clipSectionNames, onProgress);
 
       const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, videoConfig);
 
@@ -158,14 +160,15 @@ class CoreCompilationService {
 
   private async applyEdits(
     files: File[],
-    videoEdits: Record<number, VideoEdit | undefined> | undefined,
+    videoEdits: Record<string, VideoEdit | undefined> | undefined,
+    sectionNames: string[],
     onProgress: (progress: CompilationProgress) => void
   ): Promise<File[]> {
     if (!videoEdits) {
       return files;
     }
 
-    return applyVideoEdits(files, videoEdits, ({ index, total }) => {
+    return applyVideoEdits(files, videoEdits, sectionNames, ({ index, total }) => {
       onProgress({
         stage: 'Editing',
         percentage: 8,
@@ -176,8 +179,18 @@ class CoreCompilationService {
     });
   }
 
+  // The ordered `project_video` section names of a template — each user clip maps to one, in order,
+  // so clips are stored under the section's real name (e.g. `video_1`, `intro_clip`) rather than a
+  // positional `video_N`. This is what the descriptor's `project_video` sections reference.
+  private projectVideoSectionNames(template: Template): string[] {
+    const sections = (template.descriptor.sections ?? []) as Array<{ name: string; type: string }>;
+
+    return sections.filter((s) => s.type === 'project_video').map((s) => s.name);
+  }
+
   private async storeUploadedFiles(
     files: File[],
+    sectionNames: string[],
     onProgress: (progress: CompilationProgress) => void
   ): Promise<Record<string, string>> {
     onProgress({
@@ -189,10 +202,11 @@ class CoreCompilationService {
     });
 
     const entries = files.map((file, i) => {
-      const fileName = `video_${i + 1}.${file.name.split('.').pop() ?? 'mp4'}`;
+      const key = sectionNames[i] ?? `video_${i + 1}`;
+      const fileName = `${key}.${file.name.split('.').pop() ?? 'mp4'}`;
       const storagePath = `/tmp/${fileName}`;
 
-      return { file, key: `video_${i + 1}`, storagePath };
+      return { file, key, storagePath };
     });
 
     await Promise.all(entries.map(({ file, storagePath }) => this.filesystemAdapter.storeFile(file, storagePath)));

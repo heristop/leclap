@@ -138,10 +138,12 @@ async function editClip(ffmpeg: FFmpeg, file: File, edit: VideoEdit, index: numb
  */
 export async function applyVideoEdits(
   files: File[],
-  edits: Record<number, VideoEdit | undefined>,
+  edits: Record<string, VideoEdit | undefined>,
+  sectionNames: string[],
   onProgress?: (progress: ApplyEditsProgress) => void
 ): Promise<File[]> {
-  const toEdit = files.some((_, i) => isEditApplied(edits[i]));
+  const editFor = (i: number): VideoEdit | undefined => edits[sectionNames[i]];
+  const toEdit = files.some((_, i) => isEditApplied(editFor(i)));
 
   if (!toEdit) {
     return files;
@@ -155,7 +157,7 @@ export async function applyVideoEdits(
   // for this file in vite.config.ts for that reason.
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const edit = edits[i];
+    const edit = editFor(i);
 
     if (!edit || !isEditApplied(edit)) {
       result.push(file);

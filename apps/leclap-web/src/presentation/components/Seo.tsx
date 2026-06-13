@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // NOTE: replace with the real production domain (also used in index.html, robots.txt, sitemap.xml).
 const SITE_URL = 'https://leclap.app';
-const DEFAULT_TITLE = 'LeClap — Cinematic Video Composer in Your Browser';
-const DEFAULT_DESCRIPTION =
-  'Create cinematic videos from templates right in your browser. LeClap runs client-side with WebAssembly and FFmpeg — no uploads, no servers, no limits.';
 
 type SeoProps = {
   /** Page title; rendered as "<title> — LeClap". Omit on the home page for the default. */
@@ -46,8 +44,9 @@ function upsertCanonical(href: string): void {
  * Drop `<Seo title="…" description="…" path="/…" />` at the top of a page.
  */
 export function Seo({ title, description, path = '/', noindex = false }: SeoProps): null {
-  const fullTitle = title ? `${title} — LeClap` : DEFAULT_TITLE;
-  const desc = description ?? DEFAULT_DESCRIPTION;
+  const { t } = useTranslation('seo');
+  const fullTitle = title ? `${title} — LeClap` : t('default.title');
+  const desc = description ?? t('default.description');
   const url = `${SITE_URL}${path}`;
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, startTransition, type ComponentType, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, Play, Zap, Video, Users, Image, Sparkles, Layers } from 'lucide-react';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
@@ -75,26 +76,29 @@ const CardMetaChips = ({
   template: Template;
   fieldCount: number;
   sectionCount: number;
-}) => (
-  <div className="flex flex-wrap gap-2">
-    <MetaChip icon={template.orientation === 'portrait' ? Image : Video}>
-      {template.orientation === 'portrait' ? 'Portrait 9:16' : 'Landscape 16:9'}
-    </MetaChip>
-    <MetaChip icon={template.hasForm ? Users : Zap}>
-      {template.hasForm ? `${fieldCount} field${fieldCount === 1 ? '' : 's'}` : 'Auto-process'}
-    </MetaChip>
-    <MetaChip icon={Layers}>
-      {sectionCount} section{sectionCount === 1 ? '' : 's'}
-    </MetaChip>
-    {template.descriptor.global?.musicEnabled && (
-      <Badge variant="secondary" className="normal-case tracking-normal">
-        <Sparkles className="w-3.5 h-3.5" /> Music
-      </Badge>
-    )}
-  </div>
-);
+}) => {
+  const { t } = useTranslation('templates');
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <MetaChip icon={template.orientation === 'portrait' ? Image : Video}>
+        {template.orientation === 'portrait' ? t('orientation.portrait') : t('orientation.landscape')}
+      </MetaChip>
+      <MetaChip icon={template.hasForm ? Users : Zap}>
+        {template.hasForm ? t('fields', { count: fieldCount }) : t('autoProcess')}
+      </MetaChip>
+      <MetaChip icon={Layers}>{t('sections', { count: sectionCount })}</MetaChip>
+      {template.descriptor.global?.musicEnabled && (
+        <Badge variant="secondary" className="normal-case tracking-normal">
+          <Sparkles className="w-3.5 h-3.5" /> {t('music')}
+        </Badge>
+      )}
+    </div>
+  );
+};
 
 const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => {
+  const { t } = useTranslation('templates');
   const IconComponent = getTemplateIcon(template);
   const fieldCount = templateService.extractFormFields(template.descriptor).length;
   const sectionCount = template.descriptor.sections?.length ?? 0;
@@ -123,8 +127,10 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
         <CardIcon isSelected={isSelected} Icon={IconComponent} />
 
         <div className="flex flex-col items-end gap-2">
-          {template.source === 'user' && <Badge variant="brand">Custom</Badge>}
-          <Badge variant={complexityBadgeVariant[template.complexity] ?? 'neutral'}>{template.complexity}</Badge>
+          {template.source === 'user' && <Badge variant="brand">{t('custom')}</Badge>}
+          <Badge variant={complexityBadgeVariant[template.complexity] ?? 'neutral'}>
+            {t(`complexity.${template.complexity}`)}
+          </Badge>
         </div>
       </div>
 
@@ -148,23 +154,28 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const ErrorDisplay = ({ error }: { error: string }) => (
-  <div className="text-center py-12">
-    <div className="inline-block p-6 rounded-2xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10">
-      <div className="text-[var(--color-error)] mb-2 font-medium font-display text-lg">Failed to load templates</div>
-      <p className="text-sm text-gray-400 mb-4">{error}</p>
-      <Button
-        onClick={() => {
-          window.location.reload();
-        }}
-      >
-        Retry
-      </Button>
+const ErrorDisplay = ({ error }: { error: string }) => {
+  const { t } = useTranslation('templates');
+
+  return (
+    <div className="text-center py-12">
+      <div className="inline-block p-6 rounded-2xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10">
+        <div className="text-[var(--color-error)] mb-2 font-medium font-display text-lg">{t('error.title')}</div>
+        <p className="text-sm text-gray-400 mb-4">{error}</p>
+        <Button
+          onClick={() => {
+            window.location.reload();
+          }}
+        >
+          {t('actions.retry', { ns: 'common' })}
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const TemplateSelector = ({ onTemplateSelected, selectedTemplate }: TemplateSelectorProps) => {
+  const { t } = useTranslation('templates');
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -178,16 +189,16 @@ export const TemplateSelector = ({ onTemplateSelected, selectedTemplate }: Templ
         setError(null);
       } catch (error) {
         logger.error('Failed to load templates:', error);
-        setError('Failed to load templates. Please try again.');
+        setError(t('error.message'));
       } finally {
         setLoading(false);
       }
     };
 
     loadTemplates().catch(() => {
-      setError('Failed to load templates. Please try again.');
+      setError(t('error.message'));
     });
-  }, []);
+  }, [t]);
 
   const handleTemplateSelect = (template: Template) => {
     startTransition(() => {

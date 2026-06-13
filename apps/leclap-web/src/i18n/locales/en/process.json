@@ -1,0 +1,99 @@
+{
+  "processor": {
+    "status": {
+      "processingTitle": "Processing Video...",
+      "processingDescription": "Please wait while we process your video",
+      "readyTitle": "Ready to Process",
+      "readyDescription": "All requirements met. You can start processing.",
+      "setupTitle": "Setup Required",
+      "setupDescription": "Please select a template and upload video files"
+    },
+    "error": {
+      "title": "Processing Error"
+    },
+    "action": {
+      "start": "Start Processing",
+      "processing": "Processing..."
+    },
+    "template": {
+      "selected": "Selected Template: {{name}}",
+      "complexity": "Complexity:",
+      "orientation": "Orientation:",
+      "sections": "Sections:",
+      "music": "Music:",
+      "musicEnabled": "Enabled",
+      "musicDisabled": "Disabled",
+      "formData": "Form Data:"
+    },
+    "requirements": {
+      "title": "Before you can start processing:",
+      "engineReady": "Video processing engine ready",
+      "selectTemplate": "Select a template",
+      "fillForm": "Fill template form",
+      "uploadFile": "Upload at least one video file"
+    },
+    "tips": {
+      "title": "Processing Tips",
+      "keepTabActive": "Keep this tab active during processing",
+      "largerFiles": "Larger files will take longer to process",
+      "monitorProgress": "You can monitor progress in real-time",
+      "inBrowser": "Processing happens entirely in your browser"
+    }
+  },
+  "progress": {
+    "header": {
+      "title": "Processing Video",
+      "step": "Step {{current}} of {{total}}",
+      "timeRemaining": "~{{time}} remaining"
+    },
+    "metrics": {
+      "speed": "Speed",
+      "stage": "Stage",
+      "progress": "Progress",
+      "active": "Active",
+      "idle": "Idle"
+    },
+    "bar": {
+      "currentStepFallback": "Processing...",
+      "ariaLabel": "Video processing progress"
+    },
+    "complete": {
+      "title": "Processing Complete!",
+      "description": "Your video has been processed and is ready for download."
+    }
+  },
+  "export": {
+    "preview": {
+      "videoAriaLabel": "Processed video preview",
+      "label": "Processed Video",
+      "pause": "Pause video",
+      "play": "Play video",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "exitFullscreen": "Exit fullscreen",
+      "enterFullscreen": "Enter fullscreen"
+    },
+    "info": {
+      "fileSize": "File Size",
+      "format": "Format"
+    },
+    "actions": {
+      "downloading": "Downloading... {{progress}}%",
+      "download": "Download Video",
+      "copied": "Copied!",
+      "copyLink": "Copy Link",
+      "share": "Share"
+    },
+    "success": {
+      "title": "Video Processing Complete!",
+      "processed": "Your video has been processed",
+      "local": "All processing was done locally in your browser",
+      "noData": "No data was sent to external servers",
+      "downloadShare": "You can download and share your video now"
+    },
+    "share": {
+      "title": "Processed Video",
+      "text": "Check out this video I created with FFmpeg Video Composer!"
+    }
+  }
+}

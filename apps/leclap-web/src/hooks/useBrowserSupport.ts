@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 export interface BrowserSupportCheck {
-  name: string;
+  id: 'camera' | 'engine' | 'fileHandling';
+  labelKey: `browser:checks.${'camera' | 'engine' | 'fileHandling'}.name`;
   ok: boolean;
 }
 
@@ -21,12 +22,17 @@ const supportsCamera = (): boolean => {
 };
 
 const evaluateSupport = (): BrowserSupportCheck[] => [
-  { name: 'Camera access', ok: supportsCamera() },
+  { id: 'camera', labelKey: 'browser:checks.camera.name', ok: supportsCamera() },
   {
-    name: 'In-browser video engine',
+    id: 'engine',
+    labelKey: 'browser:checks.engine.name',
     ok: typeof WebAssembly === 'object' && typeof SharedArrayBuffer !== 'undefined' && crossOriginIsolated,
   },
-  { name: 'File handling', ok: typeof File !== 'undefined' && typeof FileReader !== 'undefined' },
+  {
+    id: 'fileHandling',
+    labelKey: 'browser:checks.fileHandling.name',
+    ok: typeof File !== 'undefined' && typeof FileReader !== 'undefined',
+  },
 ];
 
 export const useBrowserSupport = () => {

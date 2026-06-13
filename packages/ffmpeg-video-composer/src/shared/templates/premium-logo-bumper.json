@@ -1,0 +1,77 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "music": {
+      "name": "pop.mp3"
+    },
+    "transition": {
+      "type": "fade",
+      "duration": 0.3
+    },
+    "audio": {
+      "sourceVolume": 1
+    }
+  },
+  "sections": [
+    {
+      "name": "logo_bumper",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#0b0b0f",
+        "duration": 2.2
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1280, "h": 720, "c": "#0b0b0f@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1280, "h": 10, "c": "#7C83FD@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 710, "w": 1280, "h": 10, "c": "#FF8AAE@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "LeClap" },
+            "fontcolor": "#ffffff",
+            "fontsize": 184,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2 - 20",
+            "fontfile": "BebasNeue.ttf",
+            "alpha": "'if(lt(t,0.55),0,if(lt(t,1.05),(t-0.55)/0.5,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "CINEMATIC VIDEOS, IN YOUR BROWSER" },
+            "fontcolor": "#FF8AAE",
+            "fontsize": 30,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2 + 140",
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,1.0),0,if(lt(t,1.6),(t-1.0)/0.6,1))'"
+          }
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.3", "color": "#0b0b0f" }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#0b0b0f"
+          }
+        }
+      ]
+    }
+  ]
+}

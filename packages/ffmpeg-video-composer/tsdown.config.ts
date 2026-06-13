@@ -23,6 +23,7 @@ export default defineConfig([
       { from: 'src/shared/library/musics/*.mp3', to: 'dist/musics' },
     ],
     deps: {
+      onlyBundle: false,
       neverBundle: [
         'child_process',
         'fs',
@@ -59,6 +60,7 @@ export default defineConfig([
     platform: 'node',
     banner: '#!/usr/bin/env node',
     deps: {
+      onlyBundle: false,
       neverBundle: [
         'child_process',
         'fs',
@@ -94,6 +96,7 @@ export default defineConfig([
     platform: 'browser',
     globalName: 'FFmpegVideoComposer',
     deps: {
+      onlyBundle: false,
       neverBundle: [
         // Keep these as external for browser bundlers to handle
         '@ffmpeg/ffmpeg',
@@ -173,6 +176,7 @@ export default defineConfig([
       },
     },
     deps: {
+      onlyBundle: false,
       neverBundle: [
         'expo-file-system',
         'expo-file-system/legacy',

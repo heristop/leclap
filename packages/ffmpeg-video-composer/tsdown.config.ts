@@ -134,7 +134,11 @@ export default defineConfig([
     plugins: [
       replace({
         preventAssignment: true,
-        delimiters: [String.raw`\b`, String.raw`\b`],
+        // Leading boundary excludes a preceding word char, `$`, `.` or `/` so the bare `global`
+        // identifier is rewritten but module specifiers / properties (e.g. `./global.schemas`,
+        // `foo.global`) are left intact. A plain `\b` treats `.`/`/` as boundaries and would mangle
+        // the path `./global.schemas` into `./globalThis.schemas`.
+        delimiters: [String.raw`(?<![\w$./])`, String.raw`\b`],
         // Only rewrite `global` in the JS bundle. Without this exclude the same
         // substitution mangles reflect-metadata's inlined `declare global {` into the
         // invalid `declare globalThis {` in the generated .d.ts, breaking tsc consumers.

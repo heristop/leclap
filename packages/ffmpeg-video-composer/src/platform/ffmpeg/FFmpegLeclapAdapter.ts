@@ -11,7 +11,38 @@ import type { FFMpegInfos } from '../../core/types';
 export interface NativeEngine {
   run(args: string[]): Promise<{ code: number; log: string }> | { code: number; log: string };
   probe(args: string[]): Promise<{ code: number; output: string }> | { code: number; output: string };
+  /**
+   * M3 (optional, supplied by the React-Native entry): a fresh writable path for ffmpeg's
+   * `-progress <file>`, and a reader for it. When both are present — and the director has set a
+   * `progressListener` + `expectedDurationSeconds` — `execute()` polls the file to surface live
+   * intra-segment progress. Absent (tests, WASM path) → progress stays per-segment coarse.
+   */
+  progressFilePath?(): string;
+  readTextFile?(path: string): Promise<string>;
 }
+
+// ffmpeg `-progress` appends repeated `key=value` blocks; the latest `out_time_us` is the current
+// output position in microseconds. Returns the last parseable value, or null if none written yet.
+const parseProgressMicros = (text: string): number | null => {
+  let micros: number | null = null;
+
+  for (const line of text.split('\n')) {
+    const eq = line.indexOf('=');
+    const key = eq > 0 ? line.slice(0, eq) : '';
+
+    if (key !== 'out_time_us' && key !== 'out_time_ms') {
+      continue;
+    }
+
+    const value = Number(line.slice(eq + 1).trim());
+
+    if (Number.isFinite(value)) {
+      micros = value;
+    }
+  }
+
+  return micros;
+};
 
 interface ProbeStream {
   codec_type?: string;
@@ -31,16 +62,66 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
   }
 
   execute = async (command: string): Promise<{ rc: number }> => {
-    const { code, log } = await this.engine.run(parseCommand(command));
+    const args = parseCommand(command);
+    const stopProgress = this.startProgressTracking(args);
 
-    if (code !== 0) {
-      // The captured stderr (`log`) is the actual ffmpeg error — surface its tail.
-      const tail = log.split('\n').filter(Boolean).slice(-8).join('\n');
+    try {
+      const { code, log } = await this.engine.run(args);
 
-      throw new FFmpegError('FFmpeg command failed', `rc=${code}\n${tail}\ncmd: ffmpeg ${command}`);
+      if (code !== 0) {
+        // The captured stderr (`log`) is the actual ffmpeg error — surface its tail.
+        const tail = log.split('\n').filter(Boolean).slice(-8).join('\n');
+
+        throw new FFmpegError('FFmpeg command failed', `rc=${code}\n${tail}\ncmd: ffmpeg ${command}`);
+      }
+
+      return { rc: code };
+    } finally {
+      stopProgress();
+    }
+  };
+
+  // When the engine supplies a progress file + reader and the director set a listener + duration,
+  // inject `-progress <file>` (a global option, so it leads argv) and poll it. Returns a stopper;
+  // a no-op when any piece is missing.
+  private readonly startProgressTracking = (args: string[]): (() => void) => {
+    const path = this.engine.progressFilePath?.();
+    const duration = this.expectedDurationSeconds;
+
+    if (!path || !this.engine.readTextFile || !this.progressListener || duration === undefined || duration <= 0) {
+      return () => {};
     }
 
-    return { rc: code };
+    args.unshift('-progress', path);
+
+    return this.pollProgress(path, duration);
+  };
+
+  private readonly pollProgress = (path: string, durationSeconds: number): (() => void) => {
+    const listener = this.progressListener;
+    const read = (p: string): Promise<string> => this.engine.readTextFile?.(p) ?? Promise.resolve('');
+
+    if (!listener) {
+      return () => {};
+    }
+
+    let stopped = false;
+    const timer = setInterval(() => {
+      read(path)
+        .then((text) => {
+          const micros = stopped ? null : parseProgressMicros(text);
+
+          if (micros !== null) {
+            listener(Math.min(1, micros / 1_000_000 / durationSeconds));
+          }
+        })
+        .catch(() => {});
+    }, 500);
+
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
   };
 
   private readonly parseProbeStreams = (output: string, source: string): ProbeStream[] => {

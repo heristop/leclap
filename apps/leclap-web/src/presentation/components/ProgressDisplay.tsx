@@ -190,7 +190,9 @@ const ProgressHeader = ({
           <StageIcon className={clsx('w-5 h-5', percentage < 100 && percentage > 0 && 'animate-pulse')} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground">{stage || t('progress.header.title')}</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            {stage.length > 0 ? stage : t('progress.header.title')}
+          </h3>
           <p className="text-sm text-gray-400">
             {t('progress.header.step', { current: currentStepIndex, total: totalSteps })}
           </p>
@@ -219,7 +221,9 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-300">{currentStep || t('progress.bar.currentStepFallback')}</span>
+        <span className="font-medium text-gray-300">
+          {currentStep.length > 0 ? currentStep : t('progress.bar.currentStepFallback')}
+        </span>
         <span
           className={clsx(
             'font-semibold',

@@ -6,12 +6,13 @@
 // Templates that exist only for tests / MCP examples / server scenarios live under the package's
 // `tests/fixtures/` and are NOT listed here.
 import type { TemplateDescriptor } from '../../core/types';
-import premiumSpotlight from './premium_spotlight.json';
-import premiumIntro from './premium_intro.json';
-import premiumReelPortrait from './premium_reel_portrait.json';
-import premiumQuote from './premium_quote.json';
-import premiumQuotePortrait from './premium_quote_portrait.json';
-import premiumTitles from './premium_titles.json';
+import premiumSpotlight from './premium-spotlight.json';
+import premiumFastCurious from './premium-fast-curious.json';
+import premiumIntro from './premium-intro.json';
+import premiumReelPortrait from './premium-reel-portrait.json';
+import premiumQuote from './premium-quote.json';
+import premiumQuotePortrait from './premium-quote-portrait.json';
+import premiumTitles from './premium-titles.json';
 
 export type AppTemplateCategory = 'advanced' | 'portrait';
 
@@ -55,6 +56,15 @@ export const APP_TEMPLATES: AppTemplate[] = [
       category: 'advanced',
     },
     premiumSpotlight
+  ),
+  define(
+    {
+      id: 'premium-fast-curious',
+      name: 'Fast & Curious',
+      description: 'Punchy two-tone flash intro — your name on a bold cut, then your clip.',
+      category: 'advanced',
+    },
+    premiumFastCurious
   ),
   define(
     {

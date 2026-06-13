@@ -12,6 +12,7 @@ import { Design } from '@/presentation/pages/Design';
 import { Doc } from '@/presentation/pages/Doc';
 import { NotFound } from '@/presentation/pages/NotFound';
 import { Onboarding } from '@/presentation/components/Onboarding';
+import { BrandIntro } from '@/presentation/components/brand/BrandIntro';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 function App() {
@@ -69,6 +70,9 @@ function App() {
           </div>
         </footer>
       </div>
+
+      {/* Once-per-session brand sting (clapperboard claps in), above the onboarding. */}
+      <BrandIntro />
 
       {/* First-visit guided intro (record → compile a sample → download). */}
       {show && <Onboarding onDone={dismiss} />}

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

@@ -1,0 +1,16 @@
+{
+  "loading": "Loading preview...",
+  "notAvailable": "Video not available for preview.",
+  "toolbar": {
+    "saveAndClose": "Save and close preview",
+    "trim": "Trim",
+    "crop": "Crop",
+    "retake": "Retake"
+  },
+  "trim": {
+    "title": "Trim clip"
+  },
+  "crop": {
+    "title": "Drag the frame to crop"
+  }
+}

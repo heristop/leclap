@@ -1,6 +1,7 @@
 import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { Alert, Linking } from 'react-native';
+import i18n from '@/src/i18n';
 
 /**
  * Utility functions for handling app permissions
@@ -20,19 +21,15 @@ export const requestCameraPermission = async (): Promise<boolean> => {
   const { status } = await Camera.requestCameraPermissionsAsync();
 
   if (status !== 'granted') {
-    Alert.alert(
-      'Camera Permission Required',
-      'We need camera access to record videos. Please grant permission in your device settings.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Open Settings',
-          onPress: () => {
-            Linking.openSettings().catch(() => {});
-          },
+    Alert.alert(i18n.t('permissions.camera.title'), i18n.t('permissions.camera.message'), [
+      { text: i18n.t('actions.cancel', { ns: 'common' }), style: 'cancel' },
+      {
+        text: i18n.t('permissions.openSettings'),
+        onPress: () => {
+          Linking.openSettings().catch(() => {});
         },
-      ]
-    );
+      },
+    ]);
 
     return false;
   }
@@ -54,19 +51,15 @@ export const requestAudioPermission = async (): Promise<boolean> => {
   const { status } = await Camera.requestMicrophonePermissionsAsync();
 
   if (status !== 'granted') {
-    Alert.alert(
-      'Microphone Permission Required',
-      'We need microphone access to record audio in your videos. Please grant permission in your device settings.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Open Settings',
-          onPress: () => {
-            Linking.openSettings().catch(() => {});
-          },
+    Alert.alert(i18n.t('permissions.microphone.title'), i18n.t('permissions.microphone.message'), [
+      { text: i18n.t('actions.cancel', { ns: 'common' }), style: 'cancel' },
+      {
+        text: i18n.t('permissions.openSettings'),
+        onPress: () => {
+          Linking.openSettings().catch(() => {});
         },
-      ]
-    );
+      },
+    ]);
 
     return false;
   }
@@ -88,19 +81,15 @@ export const requestMediaLibraryPermission = async (): Promise<boolean> => {
   const { status } = await MediaLibrary.requestPermissionsAsync();
 
   if (status !== 'granted') {
-    Alert.alert(
-      'Media Library Permission Required',
-      'We need access to your media library to save videos. Please grant permission in your device settings.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Open Settings',
-          onPress: () => {
-            Linking.openSettings().catch(() => {});
-          },
+    Alert.alert(i18n.t('permissions.mediaLibrary.title'), i18n.t('permissions.mediaLibrary.message'), [
+      { text: i18n.t('actions.cancel', { ns: 'common' }), style: 'cancel' },
+      {
+        text: i18n.t('permissions.openSettings'),
+        onPress: () => {
+          Linking.openSettings().catch(() => {});
         },
-      ]
-    );
+      },
+    ]);
 
     return false;
   }

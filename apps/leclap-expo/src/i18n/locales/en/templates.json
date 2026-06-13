@@ -1,0 +1,14 @@
+{
+  "screenTitle": "Scenarios",
+  "subtitle": "Select a scenario to create your video",
+  "loadError": "Failed to load templates",
+  "loadErrorHint": "Make sure the server is running.",
+  "createTemplate": "Create a template",
+  "search": {
+    "placeholder": "Search templates..."
+  },
+  "refresh": {
+    "syncWhenOnline": "Pull to sync when online",
+    "pullToRefresh": "Pull to refresh"
+  }
+}

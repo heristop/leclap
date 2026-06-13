@@ -1,0 +1,19 @@
+{
+  "title": "My Videos",
+  "createNew": "Create New Video",
+  "empty": {
+    "title": "No videos yet",
+    "subtitle": "Start by creating a new video from the Scenarios tab"
+  },
+  "deleteAll": {
+    "title": "Delete All Projects",
+    "message": "Are you sure you want to delete all your videos? This action cannot be undone.",
+    "confirm": "Delete All"
+  },
+  "alerts": {
+    "deleteAllError": {
+      "title": "Error",
+      "message": "Failed to delete all projects. Please try again."
+    }
+  }
+}

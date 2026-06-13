@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '@/src/styles/theme';
 import { styles } from './previewStyles';
 
@@ -45,6 +46,8 @@ export function PreviewToolbar({
   onCrop,
   onRetake,
 }: PreviewToolbarProps) {
+  const { t } = useTranslation('preview');
+
   return (
     <>
       <TouchableOpacity
@@ -52,15 +55,15 @@ export function PreviewToolbar({
         onPress={onDone}
         activeOpacity={0.7}
         disabled={saving}
-        accessibilityLabel="Save and close preview"
+        accessibilityLabel={t('toolbar.saveAndClose')}
       >
         {saving ? <ActivityIndicator color="#000" /> : <Ionicons name="checkmark" size={32} color="#000" />}
       </TouchableOpacity>
 
       <View style={styles.toolbar}>
-        {canEdit && <ToolButton icon="cut-outline" label="Trim" active={trimActive} onPress={onTrim} />}
-        {canEdit && <ToolButton icon="crop-outline" label="Crop" active={cropActive} onPress={onCrop} />}
-        <ToolButton icon="refresh" label="Retake" onPress={onRetake} />
+        {canEdit && <ToolButton icon="cut-outline" label={t('toolbar.trim')} active={trimActive} onPress={onTrim} />}
+        {canEdit && <ToolButton icon="crop-outline" label={t('toolbar.crop')} active={cropActive} onPress={onCrop} />}
+        <ToolButton icon="refresh" label={t('toolbar.retake')} onPress={onRetake} />
       </View>
     </>
   );

@@ -54,6 +54,16 @@ function setup() {
   return captureHandler(config);
 }
 
+// Premium templates wrap a single project_video named `video_1`; the compose handler rejects
+// before rendering unless that clip is supplied. Stage a real file under the media dir so the
+// path-safety check passes and the (mocked) render is reached.
+async function stageClip(name = 'video_1'): Promise<Record<string, string>> {
+  const clip = path.join(mediaDir, 'clip.mp4');
+  await fs.writeFile(clip, 'stub');
+
+  return { [name]: clip };
+}
+
 describe('compose_video handler', () => {
   it('returns structuredContent on a successful render', async () => {
     runRenderMock.mockResolvedValue({
@@ -65,7 +75,7 @@ describe('compose_video handler', () => {
       audioCodec: 'aac',
     });
 
-    const result = (await setup()({ templateName: 'video' })) as {
+    const result = (await setup()({ templateName: 'premium-titles', userVideoPaths: await stageClip() })) as {
       isError?: boolean;
       structuredContent?: Record<string, unknown>;
     };
@@ -88,7 +98,7 @@ describe('compose_video handler', () => {
       logTail: 'ffmpeg said no',
     });
 
-    const result = (await setup()({ templateName: 'video' })) as {
+    const result = (await setup()({ templateName: 'premium-titles', userVideoPaths: await stageClip() })) as {
       isError?: boolean;
       content: { text: string }[];
     };
@@ -99,14 +109,14 @@ describe('compose_video handler', () => {
   });
 
   it('rejects before rendering when a required project_video clip is missing', async () => {
-    // local_music declares a single project_video section named `earth`.
-    const result = (await setup()({ templateName: 'local_music' })) as {
+    // premium-titles declares a single project_video section named `video_1`.
+    const result = (await setup()({ templateName: 'premium-titles' })) as {
       isError?: boolean;
       content: { text: string }[];
     };
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('earth');
+    expect(result.content[0].text).toContain('video_1');
     expect(runRenderMock).not.toHaveBeenCalled();
   });
 

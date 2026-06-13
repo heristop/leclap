@@ -11,9 +11,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const coreRoot = path.resolve(here, '../../ffmpeg-video-composer');
 const outFile = path.resolve(here, '../src/catalog/templates.generated.ts');
 
-// Two source locations: the app templates shipped in web + expo (src/shared/templates) and the
-// test/scenario templates (tests/fixtures). The catalog embeds both; ids stay the filename.
-const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates'), path.join(coreRoot, 'tests/fixtures')];
+// The catalog ships ONLY the curated app templates (src/shared/templates) — the same premium set
+// the web + expo apps expose. Test/scenario fixtures (tests/fixtures) are intentionally excluded:
+// they are engine test inputs, not user-facing starting points. Ids stay the filename.
+const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates')];
 
 function buildEntries(): string {
   const files = TEMPLATE_DIRS.flatMap((dir) =>

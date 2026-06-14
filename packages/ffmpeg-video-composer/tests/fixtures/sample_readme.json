@@ -1,23 +1,23 @@
 {
   "global": {
     "variables": {
-      "watermark": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/logo.png",
-      "videoOutro": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/outro.mp4",
-      "animatedIcon": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/animation_icons.zip",
+      "watermark": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/pictures/logo.png",
+      "videoOutro": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/videos/outro.mp4",
+      "animatedIcon": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/animations/animation_icons.zip",
       "colorsList": ["rgb(41 37 36)", "rgb(250 250 249)"]
     },
     "music": {
-      "name": "default",
-      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3"
+      "name": "go-by-ocean",
+      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/library/musics/go-by-ocean.mp3"
     },
     "orientation": "landscape",
     "musicEnabled": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
     "audio": {
       "sourceVolume": 1
-    },
-    "transition": {
-      "type": "cut",
-      "duration": 0.5
     }
   },
   "sections": [
@@ -32,13 +32,13 @@
       "inputs": [
         {
           "name": "intertitles_border",
-          "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip",
+          "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/animations/white_border.zip",
           "type": "animation",
           "options": {
-            "scale": "1280:720",
-            "persistent": true,
             "fps": 25,
-            "position": "0:0"
+            "position": "0:0",
+            "scale": "1280:720",
+            "persistent": true
           },
           "filters": []
         },
@@ -200,10 +200,10 @@
           "name": "animatedIcon",
           "type": "animation",
           "options": {
-            "scale": "1280:720",
-            "persistent": false,
             "fps": 3.333,
-            "position": "600:200"
+            "position": "600:200",
+            "scale": "1280:720",
+            "persistent": false
           },
           "filters": []
         }

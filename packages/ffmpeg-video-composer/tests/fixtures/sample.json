@@ -1,14 +1,14 @@
 {
   "global": {
     "variables": {
-      "watermark": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/logo.png",
-      "videoOutro": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/outro.mp4",
-      "animatedIcon": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/animation_icons.zip",
+      "watermark": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/pictures/logo.png",
+      "videoOutro": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/videos/outro.mp4",
+      "animatedIcon": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/animations/animation_icons.zip",
       "colorsList": ["rgb(41 37 36)", "rgb(250 250 249)"]
     },
     "music": {
-      "name": "default",
-      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3"
+      "name": "go-by-ocean",
+      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/library/musics/go-by-ocean.mp3"
     },
     "orientation": "landscape",
     "musicEnabled": true,
@@ -32,7 +32,7 @@
       "inputs": [
         {
           "name": "intertitles_border",
-          "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip",
+          "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/animations/white_border.zip",
           "type": "animation",
           "options": {
             "fps": 25,

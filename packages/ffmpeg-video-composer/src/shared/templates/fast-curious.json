@@ -148,6 +148,11 @@
       ]
     },
     {
+      "type": "partial",
+      "ref": "flash-transition",
+      "prefix": "t1_"
+    },
+    {
       "name": "question_2",
       "type": "color_background",
       "options": { "backgroundColor": "#ff2e4d", "duration": 2.4 },
@@ -245,6 +250,11 @@
         { "type": "fadein", "values": { "color": "#141416" } },
         { "type": "fadeout", "values": { "color": "#141416" } }
       ]
+    },
+    {
+      "type": "partial",
+      "ref": "flash-transition",
+      "prefix": "t2_"
     },
     {
       "name": "question_3",

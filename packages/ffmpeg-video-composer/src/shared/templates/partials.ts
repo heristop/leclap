@@ -3,6 +3,7 @@
 // validation and compilation — so the schema, validator, and engine only ever see real sections.
 import type { Section, TemplateDescriptor } from '../../core/types';
 import logoBumper from './partials/logo-bumper.json';
+import flashTransition from './partials/flash-transition.json';
 
 export interface TemplatePartial {
   /** Stable id referenced by `{ type: "partial", ref }`. */
@@ -17,6 +18,11 @@ export const APP_PARTIALS: TemplatePartial[] = [
     id: 'logo-bumper',
     description: 'Animated LeClap clapperboard intro sting.',
     sections: (logoBumper as { sections: Section[] }).sections,
+  },
+  {
+    id: 'flash-transition',
+    description: 'Two-tone strobe — red/white halves swap on hard cuts, dropped between answer clips.',
+    sections: (flashTransition as { sections: Section[] }).sections,
   },
 ];
 

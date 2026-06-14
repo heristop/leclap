@@ -17,12 +17,12 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 type Step = 'welcome' | 'create' | 'compiling' | 'done' | 'error';
 
 // The onboarding makes a first video from a built-in template so newcomers see the whole flow
-// (record → compile → download) in one guided pass. We match the template to the device: a portrait
-// reel on phones held upright, the landscape Premium Spotlight otherwise — so the recorded clip
-// fills the frame instead of being letter-boxed. Both wrap the clip in a cinematic intro + outro
-// and grade it; the name typed at the record step lands in the first form field (the title card).
-const LANDSCAPE_TEMPLATE_ID = 'premium-spotlight';
-const PORTRAIT_TEMPLATE_ID = 'premium-reel-portrait';
+// (record → compile → download) in one guided pass. We match the template to the device: the
+// Portrait Spotlight on phones held upright, the Landscape Spotlight otherwise — so the recorded
+// clip fills the frame instead of being letter-boxed. Both wrap the clip in a cinematic intro +
+// outro and grade it; the name typed at the record step lands in the first form field (title card).
+const LANDSCAPE_TEMPLATE_ID = 'landscape-spotlight';
+const PORTRAIT_TEMPLATE_ID = 'portrait-spotlight';
 
 const pickSampleTemplateId = (): string =>
   window.matchMedia('(orientation: portrait)').matches ? PORTRAIT_TEMPLATE_ID : LANDSCAPE_TEMPLATE_ID;

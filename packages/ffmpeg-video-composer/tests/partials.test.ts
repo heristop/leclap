@@ -5,7 +5,7 @@ import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
 import { expandPartials } from '@/shared/templates/partials';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { compile } from '@/index';
-import fastCurious from '@/shared/templates/premium-fast-curious.json';
+import fastCurious from '@/shared/templates/fast-curious.json';
 
 const coreRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RAW = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';

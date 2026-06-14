@@ -242,17 +242,30 @@ class AssetManager {
     const { name, url, extension } = this.extractFromMedia(media, frame);
     const cache = this.inputsCache;
 
-    if (!cache[url]) {
-      this.logger.info(`[${this.segment.currentSection?.name}][Media] fetching asset ${name}`);
-
-      const path = await this.filesystemAdapter.fetch(url);
-      const targetPath = `${this.segment.assetsDir}/${name}.${extension}`;
-
-      await this.filesystemAdapter.move(path, targetPath);
-
-      cache[url] = targetPath;
-      this.logger.info(`[${this.segment.currentSection?.name}][Media] fetched asset ${name}`);
+    if (cache[url]) {
+      return;
     }
+
+    // Offline-first: use a local copy staged under assetsDir when present, only download otherwise
+    // (mirrors bundled fonts/music). Lets renders run without the network for locally-staged media.
+    const local = await this.filesystemAdapter.resolveLocalAsset(url);
+
+    if (local) {
+      this.logger.info(`[${this.segment.currentSection?.name}][Media] local asset ${name}`);
+      cache[url] = local;
+
+      return;
+    }
+
+    this.logger.info(`[${this.segment.currentSection?.name}][Media] fetching asset ${name}`);
+
+    const path = await this.filesystemAdapter.fetch(url);
+    const targetPath = `${this.segment.assetsDir}/${name}.${extension}`;
+
+    await this.filesystemAdapter.move(path, targetPath);
+
+    cache[url] = targetPath;
+    this.logger.info(`[${this.segment.currentSection?.name}][Media] fetched asset ${name}`);
   };
 
   fetchCachedMedia = (media: Media, frame = 0): string => {

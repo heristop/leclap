@@ -20,6 +20,8 @@ function createFilesystem() {
     fetchAndRead: vi.fn(async () => ''),
     // Default to "not bundled" so these tests still exercise the Google Fonts download path.
     resolveBundledFont: vi.fn(async (): Promise<string | null> => null),
+    // Default to "no local copy" so media tests still exercise the download path.
+    resolveLocalAsset: vi.fn(async (): Promise<string | null> => null),
   };
 }
 
@@ -338,6 +340,17 @@ describe('AssetManager.fetchMedia', () => {
     await manager.fetchMedia({ name: 'clip', url: 'http://a/clip.mp4' } as Media);
     expect(fs.move).toHaveBeenCalledWith('/tmp/video', '/assets/clip.mp4');
     expect(cache['http://a/clip.mp4']).toBe('/assets/clip.mp4');
+  });
+
+  it('uses a staged local asset and skips the download', async () => {
+    const fs = createFilesystem();
+    fs.resolveLocalAsset.mockResolvedValue('/assets/pictures/logo.png');
+    const cache: Record<string, string | string[]> = {};
+    const { manager } = build({ section: { name: 's', type: 'video' }, inputsCache: cache, fs });
+    await manager.fetchMedia({ name: 'watermark', url: 'http://a/logo.png' } as Media);
+    expect(fs.fetch).not.toHaveBeenCalled();
+    expect(fs.move).not.toHaveBeenCalled();
+    expect(cache['http://a/logo.png']).toBe('/assets/pictures/logo.png');
   });
 
   it('does not re-fetch an already cached media url', async () => {

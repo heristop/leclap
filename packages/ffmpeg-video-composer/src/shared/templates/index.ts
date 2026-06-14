@@ -6,13 +6,14 @@
 // Templates that exist only for tests / MCP examples / server scenarios live under the package's
 // `tests/fixtures/` and are NOT listed here.
 import type { TemplateDescriptor } from '../../core/types';
-import premiumSpotlight from './premium-spotlight.json';
-import premiumFastCurious from './premium-fast-curious.json';
-import premiumIntro from './premium-intro.json';
-import premiumReelPortrait from './premium-reel-portrait.json';
-import premiumQuote from './premium-quote.json';
-import premiumQuotePortrait from './premium-quote-portrait.json';
-import premiumTitles from './premium-titles.json';
+import landscapeSpotlight from './landscape-spotlight.json';
+import portraitSpotlight from './portrait-spotlight.json';
+import fastCurious from './fast-curious.json';
+import intro from './intro.json';
+import reelPortrait from './reel-portrait.json';
+import quote from './quote.json';
+import quotePortrait from './quote-portrait.json';
+import titles from './titles.json';
 
 export type AppTemplateCategory = 'advanced' | 'portrait';
 
@@ -47,69 +48,81 @@ const define = (meta: AppTemplateMeta, raw: unknown): AppTemplate => {
   return { ...meta, orientation: orientationOf(descriptor), hasForm: hasFormOf(descriptor), descriptor };
 };
 
+// Ordered EASY → EXPERT: the spotlight templates are the gentlest starting point (record a clip,
+// the intro/outro wrap it), and Fast & Curious is the most involved (partial bumper, two-tone
+// flash cards, a this-or-that beat). The apps surface the catalog in this order.
 export const APP_TEMPLATES: AppTemplate[] = [
   define(
     {
-      id: 'premium-spotlight',
-      name: 'Premium Spotlight',
+      id: 'landscape-spotlight',
+      name: 'Landscape Spotlight',
       description: 'Record a clip — graded intro + outro wrap it into a polished video.',
       category: 'advanced',
     },
-    premiumSpotlight
+    landscapeSpotlight
   ),
   define(
     {
-      id: 'premium-fast-curious',
+      id: 'portrait-spotlight',
+      name: 'Portrait Spotlight',
+      description: 'Record a vertical clip — graded intro + outro wrap it into a polished video.',
+      category: 'portrait',
+    },
+    portraitSpotlight
+  ),
+  define(
+    {
+      id: 'intro',
+      name: 'Intro',
+      description: 'Cinematic title card — bold name, accent rule, graded backdrop.',
+      category: 'advanced',
+    },
+    intro
+  ),
+  define(
+    {
+      id: 'titles',
+      name: 'Titles',
+      description: 'Layered title sequence with eased typography.',
+      category: 'advanced',
+    },
+    titles
+  ),
+  define(
+    {
+      id: 'quote',
+      name: 'Quote',
+      description: 'Typographic quote card with staged text reveal.',
+      category: 'advanced',
+    },
+    quote
+  ),
+  define(
+    {
+      id: 'quote-portrait',
+      name: 'Quote (Portrait)',
+      description: 'Vertical typographic quote card.',
+      category: 'portrait',
+    },
+    quotePortrait
+  ),
+  define(
+    {
+      id: 'reel-portrait',
+      name: 'Reel',
+      description: 'Vertical social reel — graded backdrop, bold caption.',
+      category: 'portrait',
+    },
+    reelPortrait
+  ),
+  define(
+    {
+      id: 'fast-curious',
       name: 'Fast & Curious',
       description: 'Punchy two-tone flash intro — your name on a bold cut, then your clip.',
       category: 'advanced',
     },
-    premiumFastCurious
-  ),
-  define(
-    {
-      id: 'premium-intro',
-      name: 'Premium Intro',
-      description: 'Cinematic title card — bold name, accent rule, graded backdrop.',
-      category: 'advanced',
-    },
-    premiumIntro
-  ),
-  define(
-    {
-      id: 'premium-reel-portrait',
-      name: 'Premium Reel',
-      description: 'Vertical social reel — graded backdrop, bold caption.',
-      category: 'portrait',
-    },
-    premiumReelPortrait
-  ),
-  define(
-    {
-      id: 'premium-quote',
-      name: 'Premium Quote',
-      description: 'Typographic quote card with staged text reveal.',
-      category: 'advanced',
-    },
-    premiumQuote
-  ),
-  define(
-    {
-      id: 'premium-quote-portrait',
-      name: 'Premium Quote (Portrait)',
-      description: 'Vertical typographic quote card.',
-      category: 'portrait',
-    },
-    premiumQuotePortrait
-  ),
-  define(
-    {
-      id: 'premium-titles',
-      name: 'Premium Titles',
-      description: 'Layered title sequence with eased typography.',
-      category: 'advanced',
-    },
-    premiumTitles
+    fastCurious
   ),
 ];
 

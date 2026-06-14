@@ -24,6 +24,10 @@
   },
   "sections": [
     {
+      "type": "partial",
+      "ref": "logo-bumper"
+    },
+    {
       "name": "form_1",
       "type": "form",
       "title": {
@@ -106,7 +110,15 @@
           }
         },
         { "type": "fade", "values": { "t": "in", "d": "0.3", "color": "#141416" } },
-        { "type": "fade", "values": { "t": "out", "d": "{{ transitionDuration }}", "st": "{{ transitionStartTime }}", "color": "#141416" } }
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#141416"
+          }
+        }
       ]
     },
     {
@@ -197,7 +209,15 @@
           }
         },
         { "type": "fade", "values": { "t": "in", "d": "0.3", "color": "#141416" } },
-        { "type": "fade", "values": { "t": "out", "d": "{{ transitionDuration }}", "st": "{{ transitionStartTime }}", "color": "#141416" } }
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#141416"
+          }
+        }
       ]
     },
     {
@@ -288,7 +308,15 @@
           }
         },
         { "type": "fade", "values": { "t": "in", "d": "0.3", "color": "#141416" } },
-        { "type": "fade", "values": { "t": "out", "d": "{{ transitionDuration }}", "st": "{{ transitionStartTime }}", "color": "#141416" } }
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#141416"
+          }
+        }
       ]
     },
     {

@@ -77,7 +77,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       return path.join(this.assetsDir, dir);
     }
 
-    return path.join(this.root, 'packages', 'core', 'src', 'shared', 'assets', dir);
+    return path.join(this.root, 'packages', 'creative-kit', 'src', 'assets', dir);
   };
 
   override getBuildPath = async (dir: string): Promise<string> => {
@@ -153,6 +153,34 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     return dest;
   };
 
+  // Resolve a template asset to an already-present local file under the configured assetsDir, so a
+  // render whose media is staged locally runs offline. A descriptor may reference the asset as a
+  // local path or as a URL whose path mirrors the assets layout (…/assets/<subdir>/<file>); both map
+  // to a candidate under assetsDir. Returns null (→ caller downloads) when nothing's configured or
+  // present. resolveStagedPath enforces the result stays under a staging root (no path traversal).
+  override resolveLocalAsset = async (url: string): Promise<string | null> => {
+    if (!this.assetsDir && !url.startsWith('/')) return null;
+
+    const candidate = url.startsWith('/') ? url : path.join(this.assetsDir ?? '', this.assetsRelativeFromUrl(url));
+
+    try {
+      return await this.resolveStagedPath(candidate);
+    } catch {
+      return null;
+    }
+  };
+
+  // Path after the last `/assets/` segment of a URL (…/assets/pictures/logo.png → pictures/logo.png),
+  // falling back to the bare basename so a flat assets dir still resolves.
+  private readonly assetsRelativeFromUrl = (url: string): string => {
+    const marker = '/assets/';
+    const index = url.lastIndexOf(marker);
+
+    if (index !== -1) return url.slice(index + marker.length);
+
+    return url.slice(url.lastIndexOf('/') + 1);
+  };
+
   override stat = async (filePath: string): Promise<boolean> => {
     try {
       await fs.stat(filePath);
@@ -177,7 +205,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
   // Resolve a file shipped with the package (under `library/<kind>`) to an absolute local path.
   // Candidates cover both the bundled build (dist/<kind>, next to the entry) and running from
-  // source/tests (src/shared/library/<kind>). Returns null when it isn't bundled.
+  // source/tests (packages/creative-kit/src/library/<kind>). Returns null when it isn't bundled.
   private async resolveBundledAsset(kind: string, file: string): Promise<string | null> {
     let moduleDir: string;
 
@@ -189,7 +217,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
     const candidates = [
       path.join(moduleDir, kind, file),
-      path.join(moduleDir, '..', '..', 'shared', 'library', kind, file),
+      path.join(moduleDir, '..', '..', '..', '..', 'creative-kit', 'src', 'library', kind, file),
     ];
     const present = await Promise.all(candidates.map((candidate) => this.stat(candidate)));
     const index = present.findIndex(Boolean);

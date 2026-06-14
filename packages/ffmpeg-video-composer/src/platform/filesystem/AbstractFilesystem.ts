@@ -38,6 +38,15 @@ abstract class AbstractFilesystem {
     return Promise.resolve(null);
   }
 
+  // Resolve a template asset URL to an already-present local file (under the configured assets dir),
+  // or null when there's no local copy — in which case the caller downloads it. Lets renders run
+  // offline when their media is staged locally while still fetching remote-only assets. The Node
+  // adapter overrides this; browser/expo keep the null default (they seed media via their own
+  // pipelines), so media fetching there is unchanged.
+  resolveLocalAsset(_url: string): Promise<string | null> {
+    return Promise.resolve(null);
+  }
+
   setBuildDir = (buildDir: string) => {
     this.buildDir = buildDir;
   };

@@ -117,13 +117,20 @@ const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause 
   return (
     <div
       ref={containerRef}
-      className="group relative bg-black rounded-xl overflow-hidden shadow-2xl border border-foreground/10"
+      className={clsx(
+        'group relative overflow-hidden bg-black shadow-2xl',
+        // In fullscreen the element fills the screen — center the video and let it use the full
+        // height. Otherwise it's an inline, rounded, height-capped preview card.
+        isFullscreen
+          ? 'flex h-full w-full items-center justify-center rounded-none border-0'
+          : 'rounded-xl border border-foreground/10'
+      )}
     >
       <video
         ref={videoRef}
         src={processedVideo.url}
         aria-label={t('export.preview.videoAriaLabel')}
-        className="w-full h-auto max-h-96 object-contain"
+        className={clsx('object-contain', isFullscreen ? 'h-full max-h-full w-full' : 'h-auto max-h-96 w-full')}
         onClick={handlePlayPause}
         onPlay={() => {
           onPlay();
@@ -216,7 +223,7 @@ const VideoInfo = ({ processedVideo }: VideoInfoProps) => {
         </div>
         <div>
           <p className="text-sm font-medium text-gray-400">{t('export.info.format')}</p>
-          <p className="text-lg font-semibold text-foreground">MP4</p>
+          <p className="text-lg font-semibold text-foreground">MP4</p> {/* i18n-ignore */}
         </div>
       </div>
     </Card>

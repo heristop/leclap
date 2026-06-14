@@ -59,6 +59,7 @@ export interface CoreTemplate {
   name: string;
   description: string;
   category: 'sample' | 'video' | 'portrait' | 'advanced' | 'demo';
+  complexity: 'simple' | 'intermediate' | 'advanced';
   orientation: 'landscape' | 'portrait';
   hasForm: boolean;
   templateDescriptor: TemplateDescriptor;
@@ -71,6 +72,7 @@ const TEMPLATE_SOURCES: CoreTemplate[] = APP_TEMPLATES.map((t) => ({
   name: t.name,
   description: t.description,
   category: t.category,
+  complexity: t.complexity,
   orientation: t.orientation,
   hasForm: t.hasForm,
   templateDescriptor: t.descriptor as unknown as TemplateDescriptor,

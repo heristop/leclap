@@ -16,6 +16,8 @@ import quotePortrait from './quote-portrait.json';
 import titles from './titles.json';
 
 export type AppTemplateCategory = 'advanced' | 'portrait';
+/** Authoring difficulty surfaced in the catalog: simple (1) → intermediate (2) → advanced (3). */
+export type TemplateComplexity = 'simple' | 'intermediate' | 'advanced';
 
 export interface AppTemplate {
   /** Stable catalog id (hyphenated), shared by web + expo. */
@@ -23,6 +25,7 @@ export interface AppTemplate {
   name: string;
   description: string;
   category: AppTemplateCategory;
+  complexity: TemplateComplexity;
   orientation: 'landscape' | 'portrait';
   /** True when the descriptor has a `form` section (the app collects fields before compiling). */
   hasForm: boolean;
@@ -39,6 +42,7 @@ interface AppTemplateMeta {
   name: string;
   description: string;
   category: AppTemplateCategory;
+  complexity: TemplateComplexity;
 }
 
 // orientation + hasForm are derived from the descriptor so they can never drift from the JSON.
@@ -58,6 +62,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Landscape Spotlight',
       description: 'Record a clip — graded intro + outro wrap it into a polished video.',
       category: 'advanced',
+      complexity: 'simple',
     },
     landscapeSpotlight
   ),
@@ -67,6 +72,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Portrait Spotlight',
       description: 'Record a vertical clip — graded intro + outro wrap it into a polished video.',
       category: 'portrait',
+      complexity: 'simple',
     },
     portraitSpotlight
   ),
@@ -76,6 +82,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Intro',
       description: 'Cinematic title card — bold name, accent rule, graded backdrop.',
       category: 'advanced',
+      complexity: 'simple',
     },
     intro
   ),
@@ -85,6 +92,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Titles',
       description: 'Layered title sequence with eased typography.',
       category: 'advanced',
+      complexity: 'intermediate',
     },
     titles
   ),
@@ -94,6 +102,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Quote',
       description: 'Typographic quote card with staged text reveal.',
       category: 'advanced',
+      complexity: 'intermediate',
     },
     quote
   ),
@@ -103,6 +112,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Quote (Portrait)',
       description: 'Vertical typographic quote card.',
       category: 'portrait',
+      complexity: 'intermediate',
     },
     quotePortrait
   ),
@@ -112,6 +122,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Reel',
       description: 'Vertical social reel — graded backdrop, bold caption.',
       category: 'portrait',
+      complexity: 'intermediate',
     },
     reelPortrait
   ),
@@ -121,6 +132,7 @@ export const APP_TEMPLATES: AppTemplate[] = [
       name: 'Fast & Curious',
       description: 'Punchy two-tone flash intro — your name on a bold cut, then your clip.',
       category: 'advanced',
+      complexity: 'advanced',
     },
     fastCurious
   ),

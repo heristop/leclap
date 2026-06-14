@@ -52,7 +52,7 @@ class TemplateService {
       description: coreTemplate.description,
       orientation: coreTemplate.orientation,
       hasForm: coreTemplate.hasForm,
-      complexity: this.mapCoreComplexity(coreTemplate.category),
+      complexity: coreTemplate.complexity,
       source: 'sample',
       descriptor: coreTemplate.templateDescriptor,
     };
@@ -102,7 +102,7 @@ class TemplateService {
         description: coreTemplate.description,
         orientation: coreTemplate.orientation,
         hasForm: coreTemplate.hasForm,
-        complexity: this.mapCoreComplexity(coreTemplate.category),
+        complexity: coreTemplate.complexity,
         source: 'sample',
         descriptor: coreTemplate.templateDescriptor,
       };
@@ -110,18 +110,6 @@ class TemplateService {
       templateLogger.error(`Failed to get template ${templateId}:`, error);
 
       return null;
-    }
-  }
-
-  private mapCoreComplexity(category: CoreTemplate['category']): 'simple' | 'intermediate' | 'advanced' {
-    switch (category) {
-      case 'advanced':
-        return 'advanced';
-      case 'sample':
-      case 'demo':
-        return 'intermediate';
-      default:
-        return 'simple';
     }
   }
 

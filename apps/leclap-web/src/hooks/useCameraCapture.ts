@@ -75,6 +75,44 @@ function useRevokeObjectUrl(url: string | null): void {
   }, [url]);
 }
 
+// Builds a horizontally-flipped copy of the live video as a recordable stream, so the saved
+// front-camera file matches the mirrored selfie preview. Draws each frame to a canvas with an
+// inverted X scale, captures that canvas as a video track, and reuses the original audio track(s).
+function createMirroredStream(video: HTMLVideoElement, source: MediaStream): { stream: MediaStream; stop: () => void } {
+  const width = video.videoWidth || 1280;
+  const height = video.videoHeight || 720;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx?.translate(width, 0);
+  ctx?.scale(-1, 1);
+
+  let raf = 0;
+  const draw = (): void => {
+    ctx?.drawImage(video, 0, 0, width, height);
+    raf = requestAnimationFrame(draw);
+  };
+  raf = requestAnimationFrame(draw);
+
+  const stream = canvas.captureStream(30);
+
+  for (const track of source.getAudioTracks()) {
+    stream.addTrack(track);
+  }
+
+  return {
+    stream,
+    stop: () => {
+      cancelAnimationFrame(raf);
+
+      for (const track of stream.getVideoTracks()) {
+        track.stop();
+      }
+    },
+  };
+}
+
 interface RecorderHandlers {
   onStart: () => void;
   onResult: (objectUrl: string) => void;
@@ -90,17 +128,45 @@ interface RecorderController {
 // Captures the active stream via MediaRecorder. The produced File is exposed
 // through `fileRef`; `onResult` fires with a fresh object URL once recording
 // stops so the caller can show a preview.
-function useRecorder(streamRef: React.RefObject<MediaStream | null>, handlers: RecorderHandlers): RecorderController {
+function useRecorder(
+  streamRef: React.RefObject<MediaStream | null>,
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  mirror: boolean,
+  handlers: RecorderHandlers
+): RecorderController {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileRef = useRef<File | null>(null);
+  const mirrorStopRef = useRef<(() => void) | null>(null);
+
+  // If recording is torn down without a clean stop (cancel / unmount mid-record), kill the mirror
+  // draw loop so it doesn't keep running against a detached video element.
+  useEffect(() => {
+    return () => {
+      mirrorStopRef.current?.();
+      mirrorStopRef.current = null;
+    };
+  }, []);
 
   const startRecording = () => {
-    if (!streamRef.current) return;
+    const source = streamRef.current;
+
+    if (!source) return;
 
     chunksRef.current = [];
     const mimeType = pickMimeType();
-    const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
+
+    // Front camera: record a mirrored canvas so the saved file matches the selfie preview. Back
+    // camera records the raw stream untouched.
+    let recordStream = source;
+
+    if (mirror && videoRef.current) {
+      const mirrored = createMirroredStream(videoRef.current, source);
+      mirrorStopRef.current = mirrored.stop;
+      recordStream = mirrored.stream;
+    }
+
+    const recorder = new MediaRecorder(recordStream, mimeType ? { mimeType } : undefined);
 
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunksRef.current.push(event.data);
@@ -110,6 +176,8 @@ function useRecorder(streamRef: React.RefObject<MediaStream | null>, handlers: R
       const blob = new Blob(chunksRef.current, { type });
       const ext = type.includes('mp4') ? 'mp4' : 'webm';
       fileRef.current = new File([blob], `recording-${Date.now()}.${ext}`, { type });
+      mirrorStopRef.current?.();
+      mirrorStopRef.current = null;
       handlers.onResult(URL.createObjectURL(blob));
     };
 
@@ -277,7 +345,7 @@ export function useCameraCapture(
     };
   }, [facingMode, restartToken]);
 
-  const recorder = useRecorder(streamRef, {
+  const recorder = useRecorder(streamRef, videoRef, facingMode === 'user', {
     onStart: () => {
       setElapsed(0);
       setMode('recording');

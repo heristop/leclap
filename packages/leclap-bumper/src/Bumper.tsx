@@ -1,4 +1,5 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+import { BEBAS, OSWALD } from './fonts';
 
 // The LeClap clapperboard "clap" intro, rendered with Remotion springs so the motion has real
 // physics (the splash + the old SVG script were hand-eased). Same favicon geometry as
@@ -79,10 +80,9 @@ export const Bumper = () => {
               opacity: wm,
               transform: `translateY(${interpolate(wm, [0, 1], [16, 0])}px)`,
               color: '#fff',
-              fontFamily: '"Arial Narrow", "Helvetica Neue", Helvetica, sans-serif',
-              fontSize: 104,
-              fontWeight: 800,
-              letterSpacing: -1,
+              fontFamily: BEBAS,
+              fontSize: 150,
+              letterSpacing: 3,
               lineHeight: 1,
             }}
           >
@@ -92,8 +92,8 @@ export const Bumper = () => {
             style={{
               opacity: tag,
               color: PINK,
-              fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-              fontSize: 22,
+              fontFamily: OSWALD,
+              fontSize: 24,
               fontWeight: 600,
               letterSpacing: 4,
             }}

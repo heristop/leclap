@@ -56,6 +56,7 @@
     "test:integration": "pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
   },
   "dependencies": {
+    "@leclap/creative-kit": "workspace:*",
     "axios": "^1.17.0",
     "boxen": "^8.0.1",
     "cli-spinners": "^3.4.0",

@@ -1,7 +1,7 @@
 // Browser/WASM compilation service backed by the core package.
 import 'reflect-metadata';
 import { compileBrowser as compile } from 'ffmpeg-video-composer/src/browser.ts';
-import { FONTS } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
+import { FONTS } from '@leclap/creative-kit/fonts';
 import BrowserFilesystemAdapter from 'ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts';
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
@@ -14,7 +14,7 @@ import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdit
 import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
-import { renderQuip } from 'ffmpeg-video-composer/src/shared/renderQuips';
+import { renderQuip } from '@leclap/creative-kit/renderQuips';
 
 export type { MediaChoices };
 

@@ -1,57 +1,73 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { BEBAS, OSWALD } from './fonts';
 
-// The LeClap clapperboard "clap" intro, rendered with Remotion springs so the motion has real
-// physics (the splash + the old SVG script were hand-eased). Same favicon geometry as
-// apps/leclap-web/.../brand/AnimatedLogo.tsx — the hinged clapper `<g>` rotates at its hinge.
+// The LeClap clapperboard "clap" intro. The clapper stick is hinged at the slate's TOP-LEFT corner
+// (pivot 116,188) and lies flush on the slate's top edge when closed — so the snap reads as a real
+// clapperboard clacking shut, not a bar floating away from the board. Springs give the motion
+// physics; a drop shadow + slow push-in add depth.
 const GRAD = 'lcBumperGrad';
 const LAVENDER = '#7C83FD';
 const PINK = '#FF8AAE';
 const INK = '#0b0b0f';
 
+// Clapper hinge (slate top-left). Open angle is small so the left edge stays glued to the slate.
+const HINGE = '116 188';
+const OPEN_ANGLE = -26;
+
+const TEETH = [130, 172, 214, 256, 298, 340];
+
 export const Bumper = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
-  // Badge pops in (overshoots via a springy, under-damped config).
+  // Badge pops in with a springy overshoot.
   const pop = spring({ frame, fps, durationInFrames: 20, config: { damping: 11, stiffness: 150, mass: 0.7 } });
-  const scale = interpolate(pop, [0, 1], [0.82, 1]);
+  const popScale = interpolate(pop, [0, 1], [0.84, 1]);
+  // Slow cinematic push-in across the whole clip.
+  const push = interpolate(frame, [0, durationInFrames], [1, 1.05]);
 
-  // Clapper snaps shut: open -34° → 0°, overshooting past closed before settling.
+  // Clapper snaps shut: open -26° → 0°, overshooting past closed before settling (under-damped).
   const clap = spring({
-    frame: frame - Math.round(0.36 * fps),
+    frame: frame - Math.round(0.34 * fps),
     fps,
     durationInFrames: 18,
-    config: { damping: 9, stiffness: 220, mass: 0.6 },
+    config: { damping: 9, stiffness: 240, mass: 0.6 },
   });
-  const angle = interpolate(clap, [0, 1], [-34, 0]);
+  const angle = interpolate(clap, [0, 1], [OPEN_ANGLE, 0]);
 
   // White flash on the snap impact.
-  const flashStart = Math.round(0.5 * fps);
-  const flash = interpolate(frame, [flashStart - 1, flashStart + 1, flashStart + 6], [0, 0.85, 0], {
+  const flashStart = Math.round(0.48 * fps);
+  const flash = interpolate(frame, [flashStart - 1, flashStart + 1, flashStart + 6], [0, 0.8, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  // Wordmark + tagline rise in after the clap.
-  const wm = spring({ frame: frame - Math.round(0.7 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
-  const tag = spring({ frame: frame - Math.round(0.95 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
+  // Wordmark + tagline rise in after the clap lands.
+  const wm = spring({ frame: frame - Math.round(0.66 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
+  const tag = spring({ frame: frame - Math.round(0.9 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
 
   return (
     <AbsoluteFill style={{ backgroundColor: INK, justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, background: LAVENDER }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, background: PINK }} />
+      {/* radial brand glow behind the mark */}
+      <AbsoluteFill style={{ background: `radial-gradient(circle at 50% 42%, ${LAVENDER}22, transparent 55%)` }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 8, background: LAVENDER }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 8, background: PINK }} />
 
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 44,
-          transform: 'translateY(-26px)',
+          gap: 46,
+          transform: `scale(${push}) translateY(-24px)`,
         }}
       >
-        <svg width={300} height={300} viewBox="0 0 512 512" style={{ transform: `scale(${scale})` }}>
+        <svg
+          width={300}
+          height={300}
+          viewBox="0 0 512 512"
+          style={{ transform: `scale(${popScale})`, filter: 'drop-shadow(0 26px 55px rgba(0,0,0,0.5))' }}
+        >
           <defs>
             <linearGradient id={GRAD} x1="80" y1="64" x2="432" y2="448" gradientUnits="userSpaceOnUse">
               <stop stopColor={LAVENDER} />
@@ -59,16 +75,17 @@ export const Bumper = () => {
             </linearGradient>
           </defs>
           <rect width="512" height="512" rx="116" fill={`url(#${GRAD})`} />
-          <g transform="rotate(-9 256 248)">
-            <rect x="124" y="172" width="264" height="200" rx="22" fill="#fff" />
-            <path d="M230 232v96l82-48z" fill={`url(#${GRAD})`} />
-            <g transform={`rotate(${angle} 120 150)`}>
-              <rect x="112" y="100" width="288" height="58" rx="14" fill="#fff" />
+          <g transform="rotate(-8 256 256)">
+            {/* slate (board) + play cue */}
+            <rect x="116" y="188" width="280" height="196" rx="24" fill="#fff" />
+            <path d="M232 252v68l60-34z" fill={`url(#${GRAD})`} />
+            {/* hinged clapper stick: flush on the slate top when closed, swings up at the left hinge */}
+            <g transform={`rotate(${angle} ${HINGE})`}>
+              <rect x="116" y="136" width="280" height="52" rx="12" fill="#fff" />
               <g fill={`url(#${GRAD})`}>
-                <path d="M150 100h36l-24 58h-36z" />
-                <path d="M214 100h36l-24 58h-36z" />
-                <path d="M278 100h36l-24 58h-36z" />
-                <path d="M342 100h30l-24 58h-30z" />
+                {TEETH.map((x) => (
+                  <path key={x} d={`M${x} 136h26l-15 52h-26z`} />
+                ))}
               </g>
             </g>
           </g>
@@ -78,7 +95,7 @@ export const Bumper = () => {
           <div
             style={{
               opacity: wm,
-              transform: `translateY(${interpolate(wm, [0, 1], [16, 0])}px)`,
+              transform: `translateY(${interpolate(wm, [0, 1], [18, 0])}px)`,
               color: '#fff',
               fontFamily: BEBAS,
               fontSize: 150,

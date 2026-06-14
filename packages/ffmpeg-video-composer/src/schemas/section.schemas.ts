@@ -132,6 +132,35 @@ export const BaseSectionOptionsSchema = z
   .strict()
   .describe('Common options shared by all section types; variant-specific options are added via extend.');
 
+// ── caption ────────────────────────────────────────────────────────────────────
+
+// A styled lower-third / overlay caption. The `style` preset sets the base look; the optional
+// fields override it. Consumed by the caption preset (editor/presets/captions.ts), which turns this
+// into a single drawtext filter.
+export const CaptionSchema = z
+  .object({
+    text: TranslationSchema.describe('Localised caption text; the active locale is resolved downstream.'),
+    style: z.enum(['bar', 'subtle', 'bold']).optional().describe('Visual preset for the caption (default "bar").'),
+    position: z
+      .enum(['top', 'center', 'bottom', 'lower-third'])
+      .optional()
+      .describe('Vertical placement of the caption (default "lower-third").'),
+    align: z
+      .enum(['left', 'center', 'right'])
+      .optional()
+      .describe('Horizontal alignment of the caption (default "center").'),
+    font: z.string().optional().describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
+    fontsize: z.number().positive().optional().describe('Font size in px; overrides the preset size.'),
+    color: z.string().optional().describe('Text colour as a CSS hex string; overrides the preset colour.'),
+    box: z.boolean().optional().describe('When true, draws a background box behind the text (preset default otherwise).'),
+    boxColor: z.string().optional().describe('Box colour as a CSS hex string when the box is on.'),
+    boxOpacity: z.number().min(0).max(1).optional().describe('Box opacity 0..1 when the box is on.'),
+  })
+  .strict()
+  .describe('A styled lower-third / overlay caption rendered as a drawtext filter.');
+
+export type Caption = z.infer<typeof CaptionSchema>;
+
 // ── base section ───────────────────────────────────────────────────────────────
 
 export const BaseSectionSchema = z

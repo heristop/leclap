@@ -10,9 +10,10 @@ const LAVENDER = '#7C83FD';
 const PINK = '#FF8AAE';
 const INK = '#0b0b0f';
 
-// Clapper hinge (slate top-left). Open angle is small so the left edge stays glued to the slate.
+// Clapper hinge (slate top-left). Small open angle, held only briefly, so the board reads as the
+// clean closed icon most of the time and the clap is a quick accent rather than a distorted pose.
 const HINGE = '116 188';
-const OPEN_ANGLE = -26;
+const OPEN_ANGLE = -18;
 
 const TEETH = [130, 172, 214, 256, 298, 340];
 
@@ -26,25 +27,32 @@ export const Bumper = () => {
   // Slow cinematic push-in across the whole clip.
   const push = interpolate(frame, [0, durationInFrames], [1, 1.05]);
 
-  // Clapper snaps shut: open -26° → 0°, overshooting past closed before settling (under-damped).
-  const clap = spring({
-    frame: frame - Math.round(0.34 * fps),
-    fps,
-    durationInFrames: 18,
-    config: { damping: 9, stiffness: 240, mass: 0.6 },
+  // Clap gesture: the board enters closed, the clapper flicks open a touch, then SLAMS shut (the
+  // clack) with a slight overshoot. Held-closed most of the time keeps the icon clean.
+  const openFrame = Math.round(0.42 * fps);
+  const slamFrame = Math.round(0.62 * fps);
+  const opened = interpolate(frame, [openFrame, slamFrame], [0, OPEN_ANGLE], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
   });
-  const angle = interpolate(clap, [0, 1], [OPEN_ANGLE, 0]);
+  const slam = spring({
+    frame: frame - slamFrame,
+    fps,
+    durationInFrames: 9,
+    config: { damping: 10, stiffness: 300, mass: 0.5 },
+  });
+  const angle = frame < slamFrame ? opened : interpolate(slam, [0, 1], [OPEN_ANGLE, 0]);
 
-  // White flash on the snap impact.
-  const flashStart = Math.round(0.48 * fps);
+  // White flash at the slam contact.
+  const flashStart = slamFrame + 3;
   const flash = interpolate(frame, [flashStart - 1, flashStart + 1, flashStart + 6], [0, 0.8, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
   // Wordmark + tagline rise in after the clap lands.
-  const wm = spring({ frame: frame - Math.round(0.66 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
-  const tag = spring({ frame: frame - Math.round(0.9 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
+  const wm = spring({ frame: frame - Math.round(0.82 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
+  const tag = spring({ frame: frame - Math.round(1.04 * fps), fps, durationInFrames: 16, config: { damping: 16 } });
 
   return (
     <AbsoluteFill style={{ backgroundColor: INK, justifyContent: 'center', alignItems: 'center' }}>
@@ -115,7 +123,7 @@ export const Bumper = () => {
               letterSpacing: 4,
             }}
           >
-            CINEMATIC VIDEOS IN YOUR BROWSER
+            CINEMATIC VIDEOS, ANYWHERE
           </div>
         </div>
       </div>

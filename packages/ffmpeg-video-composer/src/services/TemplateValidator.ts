@@ -6,6 +6,7 @@ import {
   type Section,
 } from '../schemas/template.schemas';
 import { validateTransitions, validateMotion, type ValidationError } from './templateValidationRules';
+import { expandPartialsSafe } from '../shared/templates/partials';
 
 export type { ValidationError } from './templateValidationRules';
 
@@ -149,6 +150,18 @@ export class TemplateValidator {
   }
 
   validateTemplate(templateData: unknown): ValidationResult {
+    // Expand `{ type: "partial", ref }` sections to real sections first, so the schema + reference
+    // checks (and the engine downstream) only ever see real sections.
+    const expansion = expandPartialsSafe(templateData);
+
+    if (!expansion.ok) {
+      return { success: false, errors: [expansion.error] };
+    }
+
+    return this.validateParsed(expansion.data);
+  }
+
+  private validateParsed(templateData: unknown): ValidationResult {
     try {
       let result;
 

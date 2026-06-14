@@ -1,0 +1,19 @@
+{
+  "name": "@leclap/bumper",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Build-time Remotion render of the animated LeClap clapperboard intro (leclap_bumper.mp4). Not shipped at runtime.",
+  "scripts": {
+    "render": "node render.mjs",
+    "studio": "remotion studio"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "remotion": "^4.0.0"
+  }
+}

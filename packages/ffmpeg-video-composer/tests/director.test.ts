@@ -93,9 +93,22 @@ describe('Concat', () => {
 
 describe('Mixed Template', () => {
   it('should compile a mixed template successfully', async () => {
-    // The CLI entry main() is covered directly in main-entry.test.ts; here we just exercise the
-    // mixed drink-and-code template through the compile pipeline (cwd-independent).
-    expect(await runTemplateCompilation('drink-and-code')).not.toBeNull();
+    // The CLI entry main() is covered directly in main-entry.test.ts; here we exercise the mixed
+    // drink-and-code template (intro, project_video lower-third + Ken Burns, DRINK & CODE flash-card,
+    // keyword pills, outro) through the compile pipeline (cwd-independent).
+    const output = await runTemplateCompilation('drink-and-code');
+    expect(output).not.toBeNull();
+
+    // Regression guard for video Ken Burns: zoompan on a project_video must NOT time-stretch the
+    // clip. The original bug emitted d=duration×fps (the stills convention), slow-motioning video_2
+    // from ~9s to ~35s and bloating this render from ~31.7s to ~57.6s. The d=1 + fps-conform fix
+    // keeps real time, so the assembled timeline stays ~31.7s. The band tolerates per-machine
+    // asset/encoder jitter while still catching any return of the stretch.
+    const ffmpeg = new FFmpegNodeAdapter();
+    const info = await ffmpeg.getInfos(output as string);
+    const probed = info.duration as number;
+    expect(probed).toBeGreaterThan(29);
+    expect(probed).toBeLessThan(34);
   }, 100000);
 });
 

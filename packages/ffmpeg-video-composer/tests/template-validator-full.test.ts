@@ -516,21 +516,18 @@ describe('TemplateValidator – validateMotion', () => {
     validator = new TemplateValidator();
   });
 
-  it('flags kenburns motion on a video section', () => {
+  it('allows kenburns motion on a video section', () => {
     const result = validator.validateTemplate({
       sections: [{ name: 'a', type: 'video', motion: [{ type: 'kenburns' }] }],
     });
-    expect(result.success).toBe(false);
-    expect(result.errors?.some((e) => e.code === 'motion_unsupported_section')).toBe(true);
-    expect(result.errors?.find((e) => e.code === 'motion_unsupported_section')?.path).toContain('sections[0]');
+    expect(result.success).toBe(true);
   });
 
-  it('flags kenburns motion on a project_video section', () => {
+  it('allows kenburns motion on a project_video section', () => {
     const result = validator.validateTemplate({
       sections: [{ name: 'a', type: 'project_video', motion: [{ type: 'kenburns', direction: 'in' }] }],
     });
-    expect(result.success).toBe(false);
-    expect(result.errors?.some((e) => e.code === 'motion_unsupported_section')).toBe(true);
+    expect(result.success).toBe(true);
   });
 
   it('flags kenburns motion on a color_background section', () => {
@@ -559,12 +556,12 @@ describe('TemplateValidator – validateMotion', () => {
     expect(result.success).toBe(true);
   });
 
-  it('flags each section that has kenburns on a non-image_background type', () => {
+  it('flags each section with kenburns on an unsupported (non-video, non-image) type', () => {
     const result = validator.validateTemplate({
       sections: [
-        { name: 'a', type: 'video', motion: [{ type: 'kenburns' }] },
+        { name: 'a', type: 'color_background', motion: [{ type: 'kenburns' }] },
         { name: 'b', type: 'image_background', motion: [{ type: 'kenburns' }] },
-        { name: 'c', type: 'project_video', motion: [{ type: 'kenburns' }] },
+        { name: 'c', type: 'color_background', motion: [{ type: 'kenburns' }] },
       ],
     });
     expect(result.success).toBe(false);

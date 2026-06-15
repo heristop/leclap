@@ -367,8 +367,14 @@ class SegmentBuilder {
    */
   private readonly injectSugarFilters = (opts: SectionOptions | undefined): void => {
     const scale = this.project.config.videoConfig?.scale ?? '1280:720';
-    const duration = opts?.duration ?? 0;
-    const ctx = { duration, scale, fps: 30 };
+    // Real footage drives zoompan one output frame per input frame (no time-stretch) and calibrates
+    // the Ken Burns curve over the clip's true length. project_video clips are usually shorter than
+    // their declared options.duration; their probed length is filled into buildInfos.durations by
+    // TemplateDirector.calculateTotalLength before segments build, so read it here.
+    const isVideo = this.section.type === 'project_video' || this.section.type === 'video';
+    const probedDuration = isVideo ? this.project.buildInfos.durations[this.section.name] : undefined;
+    const duration = probedDuration ?? opts?.duration ?? 0;
+    const ctx = { duration, scale, fps: 30, isVideo };
 
     this.section.filters = [
       ...layersToFilters(opts?.layers as BackgroundLayer[] | undefined),

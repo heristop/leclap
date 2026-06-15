@@ -18,7 +18,7 @@ const creativeKitRoot = path.resolve(coreRoot, '../creative-kit');
 const RAW = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';
 const localRawPath = (relative: string): string => {
   if (relative.startsWith('src/shared/assets/')) {
-    return path.join(creativeKitRoot, 'src/assets', relative.slice('src/shared/assets/'.length));
+    return path.join(creativeKitRoot, 'src/library', relative.slice('src/shared/assets/'.length));
   }
 
   if (relative.startsWith('src/shared/library/')) {
@@ -90,7 +90,7 @@ describe('expandPartials', () => {
       sections: [
         {
           type: 'partial',
-          ref: 'question-flash',
+          ref: 'flash-card',
           prefix: 'q1_',
           variables: { optionA: 'Tea', optionB: 'Coffee', index: '1' },
         },
@@ -107,6 +107,50 @@ describe('expandPartials', () => {
     expect(json).not.toContain('{{ optionA }}');
     expect(json).not.toContain('{{ index }}');
     expect(out.sections?.[0]?.name).toBe('q1_flash');
+  });
+
+  it('flash-card: defaults keep the "OR" separator and an enabled label (fast-curious path)', () => {
+    const descriptor = {
+      sections: [{ type: 'partial', ref: 'flash-card', variables: { optionA: 'Tea', optionB: 'Coffee', index: '2' } }],
+    } as unknown as TemplateDescriptor;
+
+    const json = JSON.stringify(expandPartials(descriptor).sections);
+
+    expect(json).toContain('"en":"OR"'); // conjunction default
+    expect(json).toContain('"enable":"1"'); // label shown (showLabel default)
+    expect(json).toContain('PICK ONE — 2 / 3');
+  });
+
+  it('flash-card: conjunction + showLabel overrides swap the separator and disable the label', () => {
+    const descriptor = {
+      sections: [
+        {
+          type: 'partial',
+          ref: 'flash-card',
+          variables: { optionA: 'drink', optionB: 'code', conjunction: '&', showLabel: '0' },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const json = JSON.stringify(expandPartials(descriptor).sections);
+
+    expect(json).toContain('"en":"&"'); // separator is now "&"
+    expect(json).not.toContain('"en":"OR"'); // the OR is gone
+    expect(json).toContain('"enable":"0"'); // the "PICK ONE" label drawtext is disabled (box + text hidden)
+  });
+
+  it('flash-card: a bare ref (no variables) expands fully from defaults — no dangling {{ }}', () => {
+    const descriptor = {
+      sections: [{ type: 'partial', ref: 'flash-card' }],
+    } as unknown as TemplateDescriptor;
+
+    const json = JSON.stringify(expandPartials(descriptor).sections);
+
+    // Every placeholder has a default, so nothing is left unsubstituted.
+    expect(json).not.toMatch(/\{\{\s*\w+\s*\}\}/);
+    expect(json).toContain('THIS');
+    expect(json).toContain('THAT');
+    expect(json).toContain('PICK ONE — 1 / 3');
   });
 });
 
@@ -151,10 +195,10 @@ describe('partial integration — fast & curious includes the logo-bumper partia
     const expanded = expandPartials(fastCurious as unknown as TemplateDescriptor);
     expect(expanded.sections?.[0]?.name).toBe('logo_bumper');
 
-    const clip = path.resolve(creativeKitRoot, 'src/assets/videos/video_1.mp4');
+    const clip = path.resolve(creativeKitRoot, 'src/library/videos/video_1.mp4');
     const cfg: ProjectConfig = {
       buildDir: path.resolve(coreRoot, '../../build/partial-fc'),
-      assetsDir: path.resolve(creativeKitRoot, 'src/assets'),
+      assetsDir: path.resolve(creativeKitRoot, 'src/library'),
       currentLocale: 'en',
       audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
       videoConfig: { orientation: 'landscape', scale: '1280:720' },

@@ -19,7 +19,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       orientation: 'landscape',
       musicEnabled: true,
       music: {
-        name: 'pop.mp3',
+        name: 'go-by-ocean.mp3',
       },
       transition: {
         type: 'fade',
@@ -27,6 +27,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
       audio: {
         sourceVolume: 1,
+        musicVolume: 0.25,
         normalize: 'loudnorm',
       },
     },
@@ -58,7 +59,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
       {
         type: 'partial',
-        ref: 'question-flash',
+        ref: 'flash-card',
         prefix: 'q1_',
         variables: {
           optionA: '{{ optionA1 }}',
@@ -138,7 +139,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
       {
         type: 'partial',
-        ref: 'question-flash',
+        ref: 'flash-card',
         prefix: 'q2_',
         variables: {
           optionA: '{{ optionA2 }}',
@@ -218,7 +219,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
       {
         type: 'partial',
-        ref: 'question-flash',
+        ref: 'flash-card',
         prefix: 'q3_',
         variables: {
           optionA: '{{ optionA3 }}',
@@ -469,6 +470,10 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
         options: {
           duration: 30,
           forceAspectRatio: true,
+          framingGuide: {
+            type: 'silhouette',
+            position: 'center',
+          },
         },
         filters: [
           {
@@ -631,7 +636,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               text: {
                 en: '{{ form_1_name }}',
               },
-              fontcolor: '#f5c518',
+              fontcolor: '#7C83FD',
               fontsize: 124,
               x: '(w-text_w)/2',
               y: 320,
@@ -646,7 +651,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 470,
               w: 200,
               h: 5,
-              c: '#f5c518@1',
+              c: '#7C83FD@1',
               t: 'fill',
             },
           },
@@ -711,7 +716,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 628,
               w: 90,
               h: 5,
-              c: '#f5c518@1',
+              c: '#7C83FD@1',
               t: 'fill',
             },
           },
@@ -721,7 +726,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               text: {
                 en: '{{ form_1_name }}',
               },
-              fontcolor: '#f5c518',
+              fontcolor: '#7C83FD',
               fontsize: 52,
               x: 80,
               y: 644,
@@ -789,11 +794,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               text: {
                 en: 'LeClap',
               },
-              fontcolor: '#f5c518',
+              fontcolor: '#7C83FD',
               fontsize: 128,
               x: '(w-text_w)/2',
               y: 280,
-              fontfile: 'BebasNeue.ttf',
+              fontfile: 'Oswald.ttf',
               alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
             },
           },
@@ -804,7 +809,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 432,
               w: 200,
               h: 5,
-              c: '#f5c518@1',
+              c: '#7C83FD@1',
               t: 'fill',
             },
           },
@@ -943,7 +948,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               text: {
                 en: '{{ form_1_name }}',
               },
-              fontcolor: '#f5c518',
+              fontcolor: '#7C83FD',
               fontsize: 120,
               x: '(w-text_w)/2',
               y: 560,
@@ -958,7 +963,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 740,
               w: 200,
               h: 5,
-              c: '#f5c518@1',
+              c: '#7C83FD@1',
               t: 'fill',
             },
           },
@@ -1023,7 +1028,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 1150,
               w: 90,
               h: 5,
-              c: '#f5c518@1',
+              c: '#7C83FD@1',
               t: 'fill',
             },
           },
@@ -1033,7 +1038,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               text: {
                 en: '{{ form_1_name }}',
               },
-              fontcolor: '#f5c518',
+              fontcolor: '#7C83FD',
               fontsize: 52,
               x: 60,
               y: 1166,
@@ -1101,11 +1106,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               text: {
                 en: 'LeClap',
               },
-              fontcolor: '#f5c518',
+              fontcolor: '#7C83FD',
               fontsize: 124,
               x: '(w-text_w)/2',
               y: 540,
-              fontfile: 'BebasNeue.ttf',
+              fontfile: 'Oswald.ttf',
               alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
             },
           },
@@ -1116,7 +1121,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               y: 720,
               w: 200,
               h: 5,
-              c: '#f5c518@1',
+              c: '#7C83FD@1',
               t: 'fill',
             },
           },
@@ -1143,933 +1148,6 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
               t: 'in',
               d: '0.6',
               color: '#0d1b2a',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  'quote-portrait': {
-    meta: {
-      name: 'Quote (Portrait)',
-      description: 'Vertical typographic quote card.',
-    },
-    global: {
-      orientation: 'portrait',
-      musicEnabled: true,
-      music: {
-        name: 'anxiety.mp3',
-      },
-      transition: {
-        type: 'fade',
-        duration: 0.5,
-      },
-      audio: {
-        sourceVolume: 1,
-      },
-    },
-    sections: [
-      {
-        name: 'premium_quote_portrait',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#2a1a3e',
-          duration: 5,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 720,
-              h: 1280,
-              c: '#1a1030@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 720,
-              h: 426,
-              c: '#2a1a3e@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 854,
-              w: 720,
-              h: 426,
-              c: '#120a24@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'stay curious',
-              },
-              fontcolor: '#f2c14e',
-              fontsize: 96,
-              x: '(w-text_w)/2',
-              y: 470,
-              fontfile: 'Pacifico.ttf',
-              alpha: "'if(lt(t,0.4),0,if(lt(t,1.3),(t-0.4)/0.9,1))'",
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 310,
-              y: 620,
-              w: 100,
-              h: 3,
-              c: '#f2c14e@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Every great build starts',
-              },
-              fontcolor: '#efe9f7',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: 680,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,1.0),0,if(lt(t,1.8),(t-1.0)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'with a single question.',
-              },
-              fontcolor: '#efe9f7',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: 740,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,1.4),0,if(lt(t,2.2),(t-1.4)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'L E C L A P   S T O R I E S',
-              },
-              fontcolor: '#a98fd6',
-              fontsize: 26,
-              x: '(w-text_w)/2',
-              y: 980,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,2.0),0,if(lt(t,2.8),(t-2.0)/0.8,1))'",
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.6',
-              color: '#1a1030',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#1a1030',
-            },
-          },
-        ],
-      },
-      {
-        name: 'video_1',
-        type: 'project_video',
-        look: 'cinematic',
-        title: {
-          en: 'Record your clip',
-        },
-        description: {
-          en: 'Your story — graded in the layered-purple palette',
-        },
-        options: {
-          duration: 30,
-          forceAspectRatio: true,
-        },
-        filters: [
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 1110,
-              w: 720,
-              h: 130,
-              c: '#1a1030@0.55',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 48,
-              y: 1140,
-              w: 80,
-              h: 6,
-              c: '#f2c14e@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '#1a1030',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '#1a1030',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  quote: {
-    meta: {
-      name: 'Quote',
-      description: 'Typographic quote card with staged text reveal.',
-    },
-    global: {
-      orientation: 'landscape',
-      musicEnabled: true,
-      music: {
-        name: 'autumn-day.mp3',
-      },
-      transition: {
-        type: 'fade',
-        duration: 0.5,
-      },
-      audio: {
-        sourceVolume: 1,
-      },
-    },
-    sections: [
-      {
-        name: 'premium_quote',
-        type: 'color_background',
-        look: 'cinematic',
-        options: {
-          backgroundColor: '#f4f1ea',
-          duration: 5,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#f4f1ea@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 14,
-              h: 720,
-              c: '#1b2a4a@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '“',
-              },
-              fontcolor: '#c2a14d',
-              fontsize: 220,
-              x: 150,
-              y: 90,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Design is not just what it',
-              },
-              fontcolor: '#1b2a4a',
-              fontsize: 60,
-              x: 200,
-              y: 250,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,0.8),0,if(lt(t,1.6),(t-0.8)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'looks like. It is how it works.',
-              },
-              fontcolor: '#1b2a4a',
-              fontsize: 60,
-              x: 200,
-              y: 330,
-              fontfile: 'PlayfairDisplay.ttf',
-              alpha: "'if(lt(t,1.2),0,if(lt(t,2.0),(t-1.2)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 200,
-              y: 448,
-              w: 70,
-              h: 4,
-              c: '#c2a14d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'STEVE JOBS',
-              },
-              fontcolor: '#7a6a3a',
-              fontsize: 30,
-              x: 200,
-              y: 478,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,1.8),0,if(lt(t,2.6),(t-1.8)/0.8,1))'",
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.6',
-              color: '#f4f1ea',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#f4f1ea',
-            },
-          },
-        ],
-      },
-      {
-        name: 'video_1',
-        type: 'project_video',
-        look: 'warm',
-        title: {
-          en: 'Record your clip',
-        },
-        description: {
-          en: 'Your moment — graded in the editorial palette',
-        },
-        options: {
-          duration: 30,
-          forceAspectRatio: true,
-        },
-        filters: [
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 600,
-              w: 1280,
-              h: 120,
-              c: '#1b2a4a@0.55',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 80,
-              y: 628,
-              w: 90,
-              h: 5,
-              c: '#c2a14d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '#f4f1ea',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '#f4f1ea',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  'reel-portrait': {
-    meta: {
-      name: 'Reel',
-      description: 'Vertical social reel — graded backdrop, bold caption.',
-    },
-    global: {
-      orientation: 'portrait',
-      musicEnabled: true,
-      music: {
-        name: 'beachfront-celebration.mp3',
-      },
-      transition: {
-        type: 'fade',
-        duration: 0.5,
-      },
-      audio: {
-        sourceVolume: 1,
-      },
-    },
-    sections: [
-      {
-        name: 'premium_reel_portrait',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#101418',
-          duration: 4,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 720,
-              h: 1280,
-              c: '#101418@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 720,
-              h: 380,
-              c: '#16202a@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 60,
-              y: 470,
-              w: 90,
-              h: 10,
-              c: '#ff4d4d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'EP. 01',
-              },
-              fontcolor: '#ff4d4d',
-              fontsize: 34,
-              x: 60,
-              y: 520,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'BUILD IN',
-              },
-              fontcolor: '#ffffff',
-              fontsize: 120,
-              x: 56,
-              y: 580,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.6),0,if(lt(t,1.4),(t-0.6)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'PUBLIC',
-              },
-              fontcolor: '#ff4d4d',
-              fontsize: 120,
-              x: 56,
-              y: 700,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.9),0,if(lt(t,1.7),(t-0.9)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'Ship on device. No server. No wait.',
-              },
-              fontcolor: '#9aa7b4',
-              fontsize: 30,
-              x: 60,
-              y: 870,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,1.4),0,if(lt(t,2.2),(t-1.4)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 60,
-              y: 1150,
-              w: 600,
-              h: 2,
-              c: '#2a3744@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '@leclap',
-              },
-              fontcolor: '#ffffff',
-              fontsize: 30,
-              x: 60,
-              y: 1180,
-              fontfile: 'Oswald.ttf',
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.6',
-              color: '#101418',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#101418',
-            },
-          },
-        ],
-      },
-      {
-        name: 'video_1',
-        type: 'project_video',
-        look: 'vivid',
-        title: {
-          en: 'Record your clip',
-        },
-        description: {
-          en: 'Your reel — graded in the bold red palette',
-        },
-        options: {
-          duration: 30,
-          forceAspectRatio: true,
-          framingGuide: {
-            type: 'silhouette',
-            position: 'right',
-          },
-        },
-        filters: [
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 1110,
-              w: 720,
-              h: 130,
-              c: '#101418@0.6',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 48,
-              y: 1140,
-              w: 80,
-              h: 8,
-              c: '#ff4d4d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '#101418',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '#101418',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  titles: {
-    meta: {
-      name: 'Titles',
-      description: 'Layered title sequence with eased typography.',
-    },
-    global: {
-      orientation: 'landscape',
-      musicEnabled: true,
-      music: {
-        name: 'americana.mp3',
-      },
-      transition: {
-        type: 'fade',
-        duration: 0.6,
-      },
-      audio: {
-        sourceVolume: 1,
-      },
-    },
-    sections: [
-      {
-        name: 'title_card_1',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#0b0f14',
-          duration: 3,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#0b0f14@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'A NEW WAY',
-              },
-              fontcolor: '#ffffff',
-              fontsize: 140,
-              x: '(w-text_w)/2',
-              y: 230,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'TO MAKE VIDEO',
-              },
-              fontcolor: '#00d4a0',
-              fontsize: 140,
-              x: '(w-text_w)/2',
-              y: 370,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.7),0,if(lt(t,1.5),(t-0.7)/0.8,1))'",
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.6',
-              color: '#0b0f14',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#0b0f14',
-            },
-          },
-        ],
-      },
-      {
-        name: 'title_card_2',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#00d4a0',
-          duration: 3,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#00d4a0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 220,
-              c: '#0b0f14@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 500,
-              w: 1280,
-              h: 220,
-              c: '#0b0f14@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'DETERMINISTIC',
-              },
-              fontcolor: '#0b0f14',
-              fontsize: 110,
-              x: '(w-text_w)/2',
-              y: 290,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'on-device   .   agent-callable',
-              },
-              fontcolor: '#0b0f14',
-              fontsize: 34,
-              x: '(w-text_w)/2',
-              y: 410,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,0.8),0,if(lt(t,1.5),(t-0.8)/0.7,1))'",
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '{{ transitionDuration }}',
-              color: '#0b0f14',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#0b0f14',
-            },
-          },
-        ],
-      },
-      {
-        name: 'title_card_3',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#0b0f14',
-          duration: 3,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#0b0f14@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 540,
-              y: 300,
-              w: 200,
-              h: 6,
-              c: '#00d4a0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'LeClap',
-              },
-              fontcolor: '#ffffff',
-              fontsize: 150,
-              x: '(w-text_w)/2',
-              y: 340,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.3),(t-0.5)/0.8,1))'",
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '{{ transitionDuration }}',
-              color: '#0b0f14',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '0.8',
-              st: '{{ transitionStartTime }}',
-              color: '#0b0f14',
-            },
-          },
-        ],
-      },
-      {
-        name: 'video_1',
-        type: 'project_video',
-        look: 'cool',
-        title: {
-          en: 'Record your clip',
-        },
-        description: {
-          en: 'Your moment — graded in the teal-and-charcoal brand',
-        },
-        options: {
-          duration: 30,
-          forceAspectRatio: true,
-        },
-        filters: [
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 600,
-              w: 1280,
-              h: 120,
-              c: '#0b0f14@0.55',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 80,
-              y: 628,
-              w: 90,
-              h: 5,
-              c: '#00d4a0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '#0b0f14',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '#0b0f14',
             },
           },
         ],

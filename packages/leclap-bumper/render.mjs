@@ -6,7 +6,7 @@ import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderMedia } from '@remotion/renderer';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const out = path.resolve(here, '../creative-kit/src/assets/videos/leclap_bumper.mp4');
+const out = path.resolve(here, '../creative-kit/src/library/videos/leclap_bumper.mp4');
 
 await ensureBrowser();
 const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts') });

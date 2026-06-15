@@ -9,7 +9,7 @@ const configFilePath = globalThis.process.argv[2];
 function buildProjectConfig(): { buildDir: string; assetsDir: string; fields: Record<string, string> } {
   const cwd = process.cwd();
   const buildDir = path.resolve(cwd, 'build');
-  const assetsDir = path.resolve(cwd, 'packages/creative-kit/src/assets');
+  const assetsDir = path.resolve(cwd, 'packages/creative-kit/src/library');
 
   return {
     buildDir,

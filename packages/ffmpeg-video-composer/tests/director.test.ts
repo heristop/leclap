@@ -10,7 +10,7 @@ import { compile, FFmpegNodeAdapter } from '@/index';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
 const buildDir = path.resolve(repoRoot, 'build');
-const assetsDir = path.resolve(repoRoot, 'packages/creative-kit/src/assets');
+const assetsDir = path.resolve(repoRoot, 'packages/creative-kit/src/library');
 
 // Project Configuration
 const projectConfig: ProjectConfig = {
@@ -37,43 +37,12 @@ const projectConfig: ProjectConfig = {
   },
 };
 
-// The sample templates point their assets at this repo's GitHub raw URLs (so a user copying a
-// template gets working media). For the integration suite we rewrite those to the identical files
-// shipped under the local assets dir: the run stays fully hermetic — no network, no flakiness, and
-// it still exercises the whole compile pipeline (segments, filters, maps, concat, music). The
-// local-file fetch path enforces a staging-dir guard, and these paths sit under `assetsDir`.
-const RAW_ASSET_PREFIX = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';
-const localRawPath = (relative: string): string => {
-  if (relative.startsWith('src/shared/assets/')) {
-    return path.join(repoRoot, 'packages/creative-kit/src/assets', relative.slice('src/shared/assets/'.length));
-  }
-
-  if (relative.startsWith('src/shared/library/')) {
-    return path.join(repoRoot, 'packages/creative-kit/src/library', relative.slice('src/shared/library/'.length));
-  }
-
-  return path.join(repoRoot, relative);
-};
-
-const localizeAsset = (value: unknown): unknown => {
-  if (typeof value === 'string') {
-    return value.startsWith(RAW_ASSET_PREFIX) ? localRawPath(value.slice(RAW_ASSET_PREFIX.length)) : value;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(localizeAsset);
-  }
-
-  if (value !== null && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, localizeAsset(val)]));
-  }
-
-  return value;
-};
-
+// The fixtures reference their assets as paths relative to the assets layout (e.g. `videos/earth.mp4`,
+// `musics/pop.mp3`). With `assetsDir` set to packages/creative-kit/src/library, the engine resolves
+// each one offline-first to the staged file — so the suite stays fully hermetic (no network, no
+// flakiness) while still exercising the whole pipeline (segments, filters, maps, concat, music).
 async function runTemplateCompilation(configName: string): Promise<string | null> {
-  const raw = (await import(`./fixtures/${configName}.json`)).default;
-  const template = localizeAsset(raw) as TemplateDescriptor;
+  const template = (await import(`./fixtures/${configName}.json`)).default as TemplateDescriptor;
 
   return await compile(projectConfig, template);
 }
@@ -125,8 +94,8 @@ describe('Concat', () => {
 describe('Mixed Template', () => {
   it('should compile a mixed template successfully', async () => {
     // The CLI entry main() is covered directly in main-entry.test.ts; here we just exercise the
-    // mixed sample template through the compile pipeline (cwd-independent).
-    expect(await runTemplateCompilation('sample')).not.toBeNull();
+    // mixed drink-and-code template through the compile pipeline (cwd-independent).
+    expect(await runTemplateCompilation('drink-and-code')).not.toBeNull();
   }, 100000);
 });
 

@@ -257,6 +257,7 @@ export default function CreateTemplateScreen() {
         visible={overlayIndex !== null && overlay !== undefined}
         overlay={overlay}
         orientation={state.orientation}
+        variables={state.globalVariables.map((v) => v.name).filter((name) => name.trim() !== '')}
         t={t}
         onClose={() => {
           setOverlayIndex(null);

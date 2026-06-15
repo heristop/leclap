@@ -9,7 +9,7 @@ import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/medi
 import type { MediaChoice } from './templateEditorModel';
 
 type MediaKind = 'music' | 'picture';
-type Tab = 'library' | 'upload';
+type Tab = 'library' | 'upload' | 'url';
 
 export interface MediaPickerProps {
   kind: MediaKind;
@@ -70,8 +70,18 @@ export const MediaPicker = ({
   allowedIds,
   allowUpload = true,
 }: MediaPickerProps) => {
-  const initialTab: Tab = !multiple && value?.source === 'upload' ? 'upload' : 'library';
-  const [tab, setTab] = useState<Tab>(initialTab);
+  // Open on the tab matching the current single-select choice (so re-opening a URL/upload choice
+  // lands you back where you set it); the multi-select editor only has the library grid.
+  const pickInitialTab = (): Tab => {
+    if (multiple) return 'library';
+
+    if (value?.source === 'upload') return 'upload';
+
+    if (value?.source === 'url') return 'url';
+
+    return 'library';
+  };
+  const [tab, setTab] = useState<Tab>(pickInitialTab);
 
   if (multiple) {
     return (
@@ -96,13 +106,14 @@ export const MediaPicker = ({
         <SingleLibraryGrid kind={kind} value={choice} onChange={handleChange} allowedIds={allowedIds} />
       ) : null}
       {tab === 'upload' ? <UploadPane kind={kind} value={choice} onChange={handleChange} /> : null}
+      {tab === 'url' ? <UrlPane value={choice} onChange={handleChange} /> : null}
     </div>
   );
 };
 
 const TabSwitch = ({ tab, setTab, allowUpload }: { tab: Tab; setTab: (t: Tab) => void; allowUpload: boolean }) => {
   const { t } = useTranslation('admin');
-  const tabs = allowUpload ? (['library', 'upload'] as const) : (['library'] as const);
+  const tabs: Tab[] = allowUpload ? ['library', 'upload', 'url'] : ['library', 'url'];
 
   return (
     <div
@@ -361,6 +372,41 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
       <span className="text-xs text-gray-500">
         {kind === 'music' ? t('media.musicFormats') : t('media.imageFormats')}
       </span>
+    </div>
+  );
+};
+
+// Paste a direct asset URL (image/audio hosted elsewhere). The engine fetches it at compile time,
+// so no copy is stored on device — distinct from Upload. Clearing the field drops the choice.
+const UrlPane = ({
+  value,
+  onChange,
+}: {
+  value: MediaChoice | null;
+  onChange: (choice: MediaChoice | null) => void;
+}) => {
+  const { t } = useTranslation('admin');
+  const inputId = useId();
+  const url = value?.source === 'url' ? value.url : '';
+
+  return (
+    <div>
+      <label htmlFor={inputId} className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+        {t('media.urlLabel')}
+      </label>
+      <input
+        id={inputId}
+        type="url"
+        inputMode="url"
+        value={url}
+        placeholder={t('media.urlPlaceholder')}
+        onChange={(e) => {
+          const next = e.target.value.trim();
+          onChange(next === '' ? null : { source: 'url', url: next });
+        }}
+        className="w-full rounded-lg border border-foreground/10 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-gray-500 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+      />
+      <span className="mt-1 block text-xs text-gray-500">{t('media.urlHint')}</span>
     </div>
   );
 };

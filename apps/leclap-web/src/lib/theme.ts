@@ -16,6 +16,47 @@ export const setTheme = (theme: Theme): void => {
   }
 };
 
+/** The theme the user explicitly picked, or null while they're still on the system default. */
+export const getStoredTheme = (): Theme | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+
+    return stored === 'light' || stored === 'dark' ? stored : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Keep the app on the OS color scheme while the user hasn't chosen a theme of their own — the
+ * default is "follow system preference". Re-applies on every OS change until a stored choice exists
+ * (a toggle persists one), then stops overriding it. `onChange` lets a caller mirror the resolved
+ * theme into React state. Returns an unsubscribe function.
+ */
+export const watchSystemTheme = (onChange?: (theme: Theme) => void): (() => void) => {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+  const apply = (): void => {
+    if (getStoredTheme() !== null) {
+      return;
+    }
+
+    const theme: Theme = media.matches ? 'dark' : 'light';
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    onChange?.(theme);
+  };
+
+  media.addEventListener('change', apply);
+
+  return () => {
+    media.removeEventListener('change', apply);
+  };
+};
+
 const prefersReducedMotion = (): boolean => {
   if (typeof window === 'undefined') {
     return false;

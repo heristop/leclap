@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import type Segment from '../../core/models/Segment';
-import type { Section, Map, MapAnimationInput, Filter } from '@/core/types';
+import type { Section, Map, MapAnimationInput } from '@/core/types';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
@@ -66,43 +66,74 @@ class MapManager {
    *
    * `eof_action=repeat` freezes the last animation frame for the rest of the section when
    * `persistent` is set; `pass` lets the main video show through once the animation ends.
-   * Scale and any per-input filters are applied after the overlay, matching the original
-   * chained behaviour. The first animation of the section carries `useSectionFilters` so the
-   * section's filter chain (blur/draw/fade) is applied to the main video before compositing.
+   *
+   * BOTH legs are scaled to the output resolution BEFORE the overlay: the main-video leg is
+   * normalized to `videoScale` and the animation leg to its declared `options.scale`. Without this
+   * the animation composites onto the raw (often larger) input and the section's trailing scale
+   * shrinks the whole frame — pushing a full-screen animation into the top-left corner. Per-input
+   * filters and the section chain (blur/draw/fade) still run after the overlay, preserving layering.
+   * The first animation of the section carries `useSectionFilters`.
    */
-  addAnimationOverlay = (input: MapAnimationInput, inputIndex: number): void => {
+  // Builds the background the first section animation composites onto: normalize the raw video leg to
+  // the output resolution, then bake the section's authored chain (blur/draw/fade) into it — so the
+  // animation overlays ON TOP of the finished background rather than being blurred/shrunk with it
+  // (which buried full-frame borders behind the blur). Returns the pad to use as the overlay base.
+  private readonly buildAnimationBackground = (name: string, videoStream: string, videoScale: string): string => {
+    let baseStream = videoStream;
+
+    // unshift keeps the normalize pad defined before the background map that consumes it.
+    if (videoScale) {
+      const normalizedPad = `${name}_norm`;
+      this.segment.filtersMapList.unshift(`[${videoStream}]scale=${videoScale},setsar=1[${normalizedPad}]`);
+      baseStream = normalizedPad;
+    }
+
+    // Only build a background map when the section has filters to bake in; otherwise the animation
+    // overlays straight onto the (normalized) video leg.
+    if ((this.currentSection.filters?.length ?? 0) > 0) {
+      const backgroundPad = `${name}_bg`;
+      this.addMap({
+        inputs: [baseStream],
+        filters: [],
+        outputs: [backgroundPad],
+        options: { useSectionFilters: true },
+      });
+      baseStream = backgroundPad;
+    }
+
+    return baseStream;
+  };
+
+  addAnimationOverlay = (input: MapAnimationInput, inputIndex: number, videoScale = ''): void => {
     const videoStream = `${this.getVideoInputIncrement()}:v`;
     const eofAction = input.options.persistent ? 'repeat' : 'pass';
     const position = input.options.position || '0:0';
 
-    // First animation of the section applies the section's authored filter chain to the
-    // main video leg; later animations chain off the prior overlay output instead.
-    const useSectionFilters = this.segment.inputsMapCount === 0;
-    const baseStream = useSectionFilters ? videoStream : (this.segment.mapsList.at(-1) ?? videoStream);
+    // First animation of the section builds the background (normalize + section filters) on the main
+    // video leg; later animations chain off the prior overlay output instead.
+    const isFirstOverlay = this.segment.inputsMapCount === 0;
+    const baseStream = isFirstOverlay
+      ? this.buildAnimationBackground(input.name, videoStream, videoScale)
+      : (this.segment.mapsList.at(-1) ?? videoStream);
 
-    const filters: Filter[] = [
-      {
-        type: 'overlay',
-        value: `${position}:eof_action=${eofAction}`,
-      },
-    ];
+    // Scale the animation leg to its declared size before the overlay, so `scale` sizes the
+    // animation itself rather than the already-composited frame (a no-op when applied after).
+    let animationLeg = `${inputIndex}:v`;
 
     if (input.options.scale) {
-      filters.push({ type: 'scale', value: input.options.scale });
+      const animationPad = `${input.name}_src`;
+      this.segment.filtersMapList.unshift(`[${inputIndex}:v]scale=${input.options.scale},setsar=1[${animationPad}]`);
+      animationLeg = animationPad;
     }
-
-    // Per-input extra filters (authored under the input's `filters`).
-    filters.push(...input.filters);
 
     this.segment.inputsMapCount++;
 
+    // The animation overlays on top of the already-filtered background; no section filters here.
     this.addMap({
-      inputs: [baseStream, `${inputIndex}:v`],
-      filters,
+      inputs: [baseStream, animationLeg],
+      filters: [{ type: 'overlay', value: `${position}:eof_action=${eofAction}` }, ...input.filters],
       outputs: [input.name],
-      options: {
-        useSectionFilters,
-      },
+      options: { useSectionFilters: false },
     });
   };
 

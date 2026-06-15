@@ -23,6 +23,38 @@ MUSIC (public/musics/)
   License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
   Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100288
 
+- Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Monkeys%20Spinning%20Monkeys.mp3
+
+- Fluffing a Duck — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Fluffing%20a%20Duck.mp3
+
+- Sneaky Snitch — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3
+
+- Carefree — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3
+
+- Pixelland — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Pixelland.mp3
+
+- The Builder — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Builder.mp3
+
+- Brain Dance — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Brain%20Dance.mp3
+
+- Local Forecast - Elevator — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast%20-%20Elevator.mp3
+
 Tracks are trimmed to ~75s to keep the bundle small; the composer loops them to
 cover the full video length.
 
@@ -52,5 +84,11 @@ via Google Fonts (github.com/google/fonts).
 - Playfair Display
 - Pacifico
 - Roboto Mono
+- Anton
+- Archivo Black
+- Bungee
+- Abril Fatface
+- Righteous
+- Lobster
 
 Keep this file in sync with packages/creative-kit/src/fonts.ts.

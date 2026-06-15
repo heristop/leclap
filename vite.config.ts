@@ -440,6 +440,16 @@ export default defineConfig({
         },
       },
       {
+        // The admin TemplateEditor is the editor's composition root — it wires ~10 sub-panels, the
+        // partial manager, services, and hooks together, so it legitimately sits over the dependency
+        // and statement budgets that suit leaf modules.
+        files: ['apps/leclap-web/src/presentation/components/admin/TemplateEditor.tsx'],
+        rules: {
+          'import/max-dependencies': 'off',
+          'max-statements': 'off',
+        },
+      },
+      {
         // On-device engine spike: uses Metro's static `require('../../assets/sample.mp4')` for the
         // bundled clip — a Metro asset import that `unicorn/prefer-module` would otherwise flag.
         files: ['apps/leclap-expo/app/**/ffmpeg-spike.tsx'],

@@ -17,6 +17,7 @@ import {
 import { coreCompilationService, type CompilationProgress } from '@/application/usecases/coreCompilationService';
 import { logger } from '@/lib/logger';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
+import { VideoPreview } from '@/presentation/components/VideoPreview';
 import type { EditorState } from '../templateEditorModel';
 import { buildPreviewPlan } from './previewRender';
 import { generatePlaceholderClips } from './placeholderClips';
@@ -139,12 +140,7 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
 
           {result && !rendering && (
             <div className="space-y-3">
-              <video
-                src={result.url}
-                controls
-                playsInline
-                className="w-full rounded-xl border border-foreground/10 bg-black"
-              />
+              <VideoPreview url={result.url} />
               <a
                 href={result.url}
                 download="preview.mp4"

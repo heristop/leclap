@@ -27,7 +27,7 @@ export function previewFormData(state: EditorState): Record<string, string> {
   const descriptor = materializeTemplatePartials(buildDescriptor(state));
 
   for (const field of templateService.extractFormFields(descriptor)) {
-    const label = field.label.en?.trim() ?? '';
+    const label = field.label.en.trim();
     out[field.name] = label === '' ? field.name : label;
   }
 

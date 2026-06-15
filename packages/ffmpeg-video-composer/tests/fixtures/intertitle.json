@@ -1,7 +1,7 @@
 {
   "global": {
     "variables": {
-      "watermark": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/logo.png",
+      "watermark": "pictures/logo.png",
       "colorsList": ["#FFFFFF"]
     },
     "orientation": "landscape",
@@ -23,7 +23,7 @@
       "inputs": [
         {
           "name": "intertitles_border",
-          "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/animations/white_border.zip",
+          "url": "animations/white_border.zip",
           "type": "animation",
           "options": {
             "fps": 25,

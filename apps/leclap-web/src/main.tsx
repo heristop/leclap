@@ -6,12 +6,16 @@ import './index.css';
 import i18n from '@/i18n';
 import App from '@/App';
 import { isBot } from '@/lib/isBot';
+import { watchSystemTheme } from '@/lib/theme';
 
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
   throw new Error('Root element not found');
 }
+
+// Default theme is the OS color scheme: follow it live until the user picks one via the toggle.
+watchSystemTheme();
 
 createRoot(rootElement).render(
   <StrictMode>

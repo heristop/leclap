@@ -8,11 +8,11 @@ import { Builder } from '@/presentation/pages/Builder';
 import { About } from '@/presentation/pages/About';
 import { Admin } from '@/presentation/pages/Admin';
 import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
+import { PartialsPage } from '@/presentation/pages/PartialsPage';
 import { Design } from '@/presentation/pages/Design';
 import { Doc } from '@/presentation/pages/Doc';
 import { NotFound } from '@/presentation/pages/NotFound';
 import { Onboarding } from '@/presentation/components/Onboarding';
-import { BrandIntro } from '@/presentation/components/brand/BrandIntro';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 function App() {
@@ -56,6 +56,7 @@ function App() {
             <Route path="/templates" element={<Admin />} />
             <Route path="/templates/new" element={<TemplateEditorPage />} />
             <Route path="/templates/:id/edit" element={<TemplateEditorPage />} />
+            <Route path="/partials" element={<PartialsPage />} />
             {/* Legacy path kept so existing bookmarks/links keep working. */}
             <Route path="/admin" element={<Navigate to="/templates" replace />} />
             <Route path="/design" element={<Design />} />
@@ -72,9 +73,6 @@ function App() {
           </div>
         </footer>
       </div>
-
-      {/* Once-per-session brand sting (clapperboard claps in), above the onboarding. */}
-      <BrandIntro />
 
       {/* First-visit guided intro (record → compile a sample → download). */}
       {show && <Onboarding onDone={dismiss} />}

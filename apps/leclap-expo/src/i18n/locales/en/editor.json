@@ -68,10 +68,41 @@
   },
   "advanced": {
     "look": "Look",
+    "fineTune": "Fine-tune",
+    "caption": "Caption",
     "audio": "Audio",
     "cameraGuide": "Camera guide",
     "layers": "Layers",
     "motion": "Motion"
+  },
+  "grade": {
+    "brightness": "Brightness",
+    "contrast": "Contrast",
+    "saturation": "Saturation",
+    "gamma": "Gamma",
+    "hue": "Hue",
+    "blur": "Blur"
+  },
+  "caption": {
+    "placeholder": "On-screen title (optional)",
+    "hint": "A short title burned into the video.",
+    "positionLabel": "Position",
+    "styleLabel": "Style",
+    "position": {
+      "top": "Top",
+      "center": "Center",
+      "bottom": "Bottom",
+      "lower-third": "Lower third"
+    },
+    "style": {
+      "bar": "Bar",
+      "subtle": "Subtle",
+      "bold": "Bold"
+    }
+  },
+  "partial": {
+    "pick": "Choose a partial",
+    "variables": "Variables"
   },
   "transition": {
     "title": "Transition",
@@ -91,6 +122,8 @@
     "sample": "Your text",
     "remove": "Remove overlay",
     "size": "Size",
+    "font": "Font",
+    "insertVariable": "Insert variable",
     "colour": "Colour",
     "box": "Background box",
     "boxOn": "Box",

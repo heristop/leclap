@@ -7,6 +7,7 @@ import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { MediaPicker } from './MediaPicker';
+import { PartialFields } from './PartialFields';
 import type { EditorSection } from '../model/templateEditorModel';
 
 const toggleId = (list: string[], id: string): string[] =>
@@ -204,6 +205,12 @@ export const SceneBasics = ({
         />
       </View>
     );
+  }
+
+  // A partial inserts a reusable fragment (expanded at compile time): pick which one and override its
+  // variables.
+  if (section.kind === 'partial') {
+    return <PartialFields refId={section.ref} variables={section.variables} t={t} onChange={onChange} />;
   }
 
   return (

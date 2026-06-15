@@ -102,9 +102,9 @@ class AssetManager {
 
     this.resolveItemUrl(item);
 
-    // Check url format
-    // Allow HTTP URLs and local paths starting with /
-    if (!/^http/.exec(item.url) && !item.url.startsWith('/')) {
+    // A ref is an http(s) URL, an absolute staged path, or a path relative to assetsDir — all valid.
+    // The only invalid case is a `{{ … }}` that never got mapped to a real value.
+    if (item.url.includes('{{')) {
       throw new Error(`[${this.segment.currentSection?.name}][Assets] Url for ${item.name} is not valid: ${item.url}`);
     }
 

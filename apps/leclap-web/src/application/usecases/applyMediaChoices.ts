@@ -19,12 +19,23 @@ function resolveMusic(choice: MediaChoice): { name: string; url?: string } {
     return { name: choice.id, url: entry?.url };
   }
 
+  if (choice.source === 'url') {
+    // A pasted remote URL is fetched as-is by the engine; name is a readable label (the file part).
+    const file = choice.url.split('/').filter(Boolean).at(-1);
+
+    return { name: file ?? choice.url, url: choice.url };
+  }
+
   return { name: choice.key, url: `media://${choice.key}` };
 }
 
 function resolveBg(choice: MediaChoice): string {
   if (choice.source === 'library') {
     return findBackground(choice.id)?.url ?? '';
+  }
+
+  if (choice.source === 'url') {
+    return choice.url;
   }
 
   return `media://${choice.key}`;

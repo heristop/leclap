@@ -64,28 +64,28 @@ describe('listTemplateSummaries', () => {
   it('derives requiredVideoSections from project_video sections', () => {
     // Every app template wraps a single `project_video` section named `video_1`.
     expect(byId('intro').requiredVideoSections).toEqual(['video_1']);
-    expect(byId('titles').requiredVideoSections).toEqual(['video_1']);
+    expect(byId('landscape-spotlight').requiredVideoSections).toEqual(['video_1']);
   });
 
   it('flags requiresNetwork false — app templates ship only bundled assets', () => {
     expect(byId('intro').requiresNetwork).toBe(false);
-    expect(byId('reel-portrait').requiresNetwork).toBe(false);
+    expect(byId('portrait-spotlight').requiresNetwork).toBe(false);
   });
 
   it('reads orientation from global (portrait stays portrait)', () => {
-    expect(byId('reel-portrait').orientation).toBe('portrait');
-    expect(byId('titles').orientation).toBe('landscape');
+    expect(byId('portrait-spotlight').orientation).toBe('portrait');
+    expect(byId('landscape-spotlight').orientation).toBe('landscape');
   });
 
   it('collects declared form field names', () => {
     expect(byId('intro').fields).toContain('form_1_firstname');
-    expect(byId('titles').fields).toEqual([]);
+    expect(byId('landscape-spotlight').fields).toEqual(['form_1_name']);
   });
 });
 
 describe('getTemplate', () => {
   it('returns a descriptor for a known id and undefined otherwise', () => {
-    expect(getTemplate('titles')).toBeDefined();
+    expect(getTemplate('intro')).toBeDefined();
     expect(getTemplate('does-not-exist')).toBeUndefined();
   });
 });

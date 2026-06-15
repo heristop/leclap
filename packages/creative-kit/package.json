@@ -1,0 +1,59 @@
+{
+  "name": "@leclap/creative-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Private shared LeClap creative catalog: templates, partials, fonts, media, and bundled assets",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./editor": {
+      "types": "./src/editor/index.ts",
+      "default": "./src/editor/index.ts"
+    },
+    "./renderQuips": {
+      "types": "./src/renderQuips.ts",
+      "default": "./src/renderQuips.ts"
+    },
+    "./partials": {
+      "types": "./src/partials.ts",
+      "default": "./src/partials.ts"
+    },
+    "./fonts": {
+      "types": "./src/fonts.ts",
+      "default": "./src/fonts.ts"
+    },
+    "./media": {
+      "types": "./src/media.ts",
+      "default": "./src/media.ts"
+    },
+    "./*.json": {
+      "default": "./src/templates/*.json"
+    },
+    "./templates/*": {
+      "default": "./src/templates/*"
+    },
+    "./library/*": {
+      "default": "./src/library/*"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vp test run",
+    "gen:templates": "node scripts/gen-templates.mjs",
+    "gen:partials": "node scripts/gen-partials.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "ffmpeg-video-composer": "workspace:*",
+    "typescript": "^6.0.3",
+    "vite-plus": "^0.1.24",
+    "vitest": "^4.1.8",
+    "zod": "^4.4.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

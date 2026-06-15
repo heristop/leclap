@@ -1,0 +1,148 @@
+{
+  "description": "Blinking this-or-that flash card — the two options swap colorA/colorB three times within one section (instant cuts via enable timelines). Every placeholder has a default and is overridable on the ref: optionA/optionB (the two choices), index (progress number), conjunction (separator word, e.g. 'OR' or '&'), showLabel ('1'/'0' to show/hide the 'PICK ONE — n / 3' label box), and colorA/colorB/textColor (the bold red/white palette).",
+  "variables": {
+    "optionA": "THIS",
+    "optionB": "THAT",
+    "index": "1",
+    "conjunction": "OR",
+    "showLabel": "1",
+    "colorA": "#ff2e4d",
+    "colorB": "#f5f5f0",
+    "textColor": "#f5f5f0"
+  },
+  "sections": [
+    {
+      "name": "flash",
+      "type": "color_background",
+      "options": { "backgroundColor": "#141416", "duration": 2.8 },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 640,
+            "h": 720,
+            "c": "{{ colorA }}@1",
+            "t": "fill",
+            "enable": "'lt(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 640,
+            "y": 0,
+            "w": 640,
+            "h": 720,
+            "c": "{{ colorB }}@1",
+            "t": "fill",
+            "enable": "'lt(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 640,
+            "h": 720,
+            "c": "{{ colorB }}@1",
+            "t": "fill",
+            "enable": "'gte(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 640,
+            "y": 0,
+            "w": 640,
+            "h": 720,
+            "c": "{{ colorA }}@1",
+            "t": "fill",
+            "enable": "'gte(mod(t,0.8),0.4)'"
+          }
+        },
+        { "type": "drawbox", "values": { "x": 628, "y": 0, "w": 24, "h": 720, "c": "#141416@1", "t": "fill" } },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "PICK ONE — {{ index }} / 3" },
+            "enable": "{{ showLabel }}",
+            "fontcolor": "{{ textColor }}",
+            "fontsize": 40,
+            "x": "(w-text_w)/2",
+            "y": 70,
+            "fontfile": "Oswald.ttf",
+            "box": 1,
+            "boxcolor": "#141416",
+            "boxborderw": 18
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ optionA }}" },
+            "fontcolor": "{{ colorB }}",
+            "fontsize": 150,
+            "x": "(640-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "BebasNeue.ttf",
+            "enable": "'lt(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ optionB }}" },
+            "fontcolor": "{{ colorA }}",
+            "fontsize": 150,
+            "x": "640 + (640-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "BebasNeue.ttf",
+            "enable": "'lt(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ optionA }}" },
+            "fontcolor": "{{ colorA }}",
+            "fontsize": 150,
+            "x": "(640-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "BebasNeue.ttf",
+            "enable": "'gte(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ optionB }}" },
+            "fontcolor": "{{ colorB }}",
+            "fontsize": 150,
+            "x": "640 + (640-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "BebasNeue.ttf",
+            "enable": "'gte(mod(t,0.8),0.4)'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ conjunction }}" },
+            "fontcolor": "{{ textColor }}",
+            "fontsize": 46,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2 + 6",
+            "fontfile": "Oswald.ttf",
+            "box": 1,
+            "boxcolor": "#141416",
+            "boxborderw": 22
+          }
+        }
+      ]
+    }
+  ]
+}

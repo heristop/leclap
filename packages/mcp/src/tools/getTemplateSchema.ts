@@ -23,9 +23,9 @@ const GUIDE = [
     'colorsList), and `{{ form_field }}` placeholders, all resolved at compose time.',
   'project_video sections need user-supplied clips passed at compose time; the JSON Schema below is ' +
     'the authoritative shape.',
-  'Start from a built-in (intro, quote, titles, reel-portrait, quote-portrait, landscape-spotlight, ' +
-    'portrait-spotlight) via get_template, then edit it — they already look professional and use only ' +
-    'on-device-safe filters. Run validate_template (no render) to check edits before compose_video.',
+  'Start from a built-in (intro, fast-curious, landscape-spotlight, portrait-spotlight) via ' +
+    'get_template, then edit it — they already look professional and use only on-device-safe filters. ' +
+    'Run validate_template (no render) to check edits before compose_video.',
 ].join('\n');
 
 function describeSchema(): string {

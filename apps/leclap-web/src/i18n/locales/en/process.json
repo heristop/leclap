@@ -13,7 +13,8 @@
     },
     "action": {
       "start": "Start Processing",
-      "processing": "Processing..."
+      "processing": "Processing...",
+      "stop": "Stop"
     },
     "template": {
       "selected": "Selected Template: {{name}}",
@@ -70,6 +71,7 @@
       "play": "Play video",
       "mute": "Mute",
       "unmute": "Unmute",
+      "volume": "Volume",
       "exitFullscreen": "Exit fullscreen",
       "enterFullscreen": "Enter fullscreen"
     },

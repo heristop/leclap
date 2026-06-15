@@ -73,33 +73,51 @@ Project-wide defaults and the options a builder/editor exposes to end users. `gl
 
 ### Section types
 
-| `type`             | Renders                                                                     |
-| ------------------ | --------------------------------------------------------------------------- |
-| `video`            | A pre-recorded / asset-backed clip (`options.videoUrl`).                    |
-| `project_video`    | A clip captured from the device camera (supports a `framingGuide`).         |
-| `form`             | A text-input form (`options.fields`); collects values for `{{ field }}`.    |
-| `color_background` | A solid or layered colour background (`options.backgroundColor`, `layers`). |
-| `image_background` | A still image background (`options.pictureUrl`).                            |
-| `music`            | An audio-only / timeline-padding section (no video).                        |
+| `type`             | Renders                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| `video`            | A pre-recorded / asset-backed clip (`options.videoUrl`).                                     |
+| `project_video`    | A clip captured from the device camera (supports a `framingGuide`).                          |
+| `form`             | A text-input form (`options.fields`); collects values for `{{ field }}`.                     |
+| `color_background` | A solid or layered colour background (`options.backgroundColor`, `layers`).                  |
+| `image_background` | A still image background (`options.pictureUrl`).                                             |
+| `music`            | An audio-only / timeline-padding section (no video).                                         |
+| `partial`          | Expands inline to a reusable partial's sections (see [Partial sections](#partial-sections)). |
 
-Renderable visual segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `SegmentFactory` maps `type` → class.
+Renderable visual segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `SegmentFactory` maps `type` → class. A `partial` is not rendered directly — it is expanded into real sections before validation and compile.
+
+### Partial sections
+
+A `partial` section pulls in a reusable fragment from the shared registry ([`@leclap/creative-kit`](../packages/creative-kit) — e.g. `logo-bumper`, `flash-card`), so a template composes vetted building blocks instead of repeating them.
+
+```jsonc
+{ "type": "partial", "ref": "flash-card", "prefix": "q1_", "variables": { "optionA": "{{ optionA1 }}" } }
+```
+
+| Field       | Type                     | Description                                                                                 |
+| ----------- | ------------------------ | ------------------------------------------------------------------------------------------- |
+| `ref`       | `string`                 | Id of a partial in the registry; its sections replace this one.                             |
+| `prefix`    | `string`                 | Prepended to each expanded section's `name`, so the same partial can be used repeatedly.    |
+| `variables` | `Record<string, string>` | Substituted into the partial's `{{ key }}` placeholders (values may themselves be globals). |
+
+Expansion happens **before** schema validation and compile, so everything downstream only sees real sections.
 
 ### Base fields (all sections)
 
-| Field         | Type             | Description                                                                               |
-| ------------- | ---------------- | ----------------------------------------------------------------------------------------- |
-| `name`        | `string`         | Unique id within the template; used in section references.                                |
-| `type`        | section literal  | One of the types above (discriminates the union).                                         |
-| `title`       | `Translation`    | Localised title shown to the user (e.g. `{ "en": "…" }`).                                 |
-| `description` | `Translation`    | Localised instruction text shown to the user.                                             |
-| `options`     | type-specific    | See [Options](#options).                                                                  |
-| `inputs`      | `Input[]`        | Animation inputs composited over the section (see [Animation inputs](#animation-inputs)). |
-| `maps`        | `Map[]`          | Custom filtergraph maps (see [Maps](#maps)).                                              |
-| `filters`     | `Filter[]`       | Raw FFmpeg filter chain on the section output (see [Filters](#filters)).                  |
-| `transition`  | `Transition`     | Boundary transition applied **after** this section; overrides `global.transition`.        |
-| `look`        | look preset      | Named colour-grade (see [Looks & grade](#looks--grade)).                                  |
-| `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                           |
-| `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                               |
+| Field         | Type             | Description                                                                                        |
+| ------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
+| `name`        | `string`         | Unique id within the template; used in section references.                                         |
+| `type`        | section literal  | One of the types above (discriminates the union).                                                  |
+| `title`       | `Translation`    | Localised title shown to the user (e.g. `{ "en": "…" }`).                                          |
+| `description` | `Translation`    | Localised instruction text shown to the user.                                                      |
+| `options`     | type-specific    | See [Options](#options).                                                                           |
+| `inputs`      | `Input[]`        | Animation inputs composited over the section (see [Animation inputs](#animation-inputs)).          |
+| `maps`        | `Map[]`          | Custom filtergraph maps (see [Maps](#maps)).                                                       |
+| `filters`     | `Filter[]`       | Raw FFmpeg filter chain on the section output (see [Filters](#filters)).                           |
+| `transition`  | `Transition`     | Boundary transition applied **after** this section; overrides `global.transition`.                 |
+| `look`        | look preset      | Named colour-grade (see [Looks & grade](#looks--grade)).                                           |
+| `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                    |
+| `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                                        |
+| `caption`     | `Caption`        | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)). |
 
 ### Options
 
@@ -241,6 +259,23 @@ Looks and grades compile to ordinary FFmpeg filters (`eq`, `colorbalance`, `curv
 ```
 
 `type` is always `silhouette`; `position` is `left` | `center` | `right`; `opacity` 0..1 (default 0.5).
+
+## Captions
+
+A section's `caption` field renders a styled lower-third / overlay as a `drawtext` filter — burned into the video (unlike the framing guide). A `style` preset sets the base look; the other fields override it.
+
+```jsonc
+{ "text": { "en": "Design is how it works" }, "style": "bar", "position": "lower-third", "align": "center" }
+```
+
+| Field                             | Type          | Description                                                                 |
+| --------------------------------- | ------------- | --------------------------------------------------------------------------- |
+| `text`                            | `Translation` | Localised caption text (required).                                          |
+| `style`                           | preset        | Visual preset (default `bar`).                                              |
+| `position`                        | enum          | Vertical placement (default `lower-third`).                                 |
+| `align`                           | enum          | Horizontal alignment (default `center`).                                    |
+| `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex). |
+| `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).        |
 
 ## Animation inputs
 

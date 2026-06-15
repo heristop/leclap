@@ -20,7 +20,6 @@ This is a pnpm-workspace monorepo (`apps/*`, `packages/*`). The full layout, arc
 In short:
 
 - `packages/ffmpeg-video-composer` — the published composition library (Node + browser/WASM).
-- `packages/server-app` — Fastify demo server (`/compile`, `/templates`, `/health`).
 - `packages/ffmpeg-engine` — Rust + uniffi on-device FFmpeg engine.
 - `apps/leclap-web` — React + Vite web app (in-browser WASM).
 - `apps/leclap-expo` — Expo / React Native app.
@@ -60,7 +59,7 @@ feat(core): add intertitle segment
 docs: add contributing guide
 ```
 
-Use scopes that match the package/app (`core`, `expo`, `web`, `server`). Keep each commit focused and path-limited.
+Use scopes that match the package/app (`core`, `expo`, `web`, `engine`, `mcp`). Keep each commit focused and path-limited.
 
 ## Pull requests
 

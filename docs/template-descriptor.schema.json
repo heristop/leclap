@@ -8378,6 +8378,16 @@
                 "description": "Inline partial sections, expanded in place — an alternative to `ref` for self-contained partials.",
                 "type": "array",
                 "items": {}
+              },
+              "variables": {
+                "description": "Values substituted into the partial’s `{{ key }}` placeholders, so one partial serves many slots.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
               }
             },
             "required": ["type"],

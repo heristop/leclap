@@ -41,13 +41,15 @@ function App() {
       <div className="min-h-screen bg-background">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-brand-600 focus:text-white"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-brand-600 focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/80"
         >
           {t('skipToContent')}
         </a>
         <Header />
 
-        <main id="main-content">
+        {/* tabIndex={-1} so the skip link can move keyboard focus here, not just scroll — without it
+            focus stays on the link and the next Tab falls back into the header nav. */}
+        <main id="main-content" tabIndex={-1} className="outline-none">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/builder" element={<Builder />} />

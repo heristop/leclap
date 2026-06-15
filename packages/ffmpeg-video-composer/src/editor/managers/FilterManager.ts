@@ -1,7 +1,10 @@
 import { inject, injectable } from 'tsyringe';
 import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
+import type Project from '../../core/models/Project';
 import type { Filter } from '@/core/types';
+import { usesLgplEngine } from '../../core/encoding';
+import { eqValueToLutyuv } from '../presets/looks';
 import type FormatterManager from './FormatterManager';
 
 @injectable()
@@ -9,7 +12,8 @@ class FilterManager {
   constructor(
     @inject('template') private readonly template: Template,
     @inject('FormattersManager') protected readonly formattersManager: FormatterManager,
-    @inject('segment') public segment: Segment
+    @inject('segment') public segment: Segment,
+    @inject('project') private readonly project: Project
   ) {}
 
   addFilter = (filter: Filter): string => {
@@ -23,6 +27,11 @@ class FilterManager {
     // Remap custom types
     if (['fadein', 'fadeout'].includes(resolvedFilter.type)) {
       resolvedFilter = this.remapFadeTypeShortcuts(resolvedFilter);
+    }
+
+    // The on-device LGPL engine lacks the GPL `eq` filter — rewrite it to an equivalent lutyuv LUT.
+    if (resolvedFilter.type === 'eq' && resolvedFilter.value && usesLgplEngine(this.project.config)) {
+      resolvedFilter = { ...resolvedFilter, type: 'lutyuv', value: eqValueToLutyuv(String(resolvedFilter.value)) };
     }
 
     if (resolvedFilter.value) {

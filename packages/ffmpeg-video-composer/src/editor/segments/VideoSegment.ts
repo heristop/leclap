@@ -1,6 +1,27 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
 import { assertSafeArgToken } from '@/core/argGuard';
+import { buildVideoEncoderArgs, buildPixFmtArg, usesLgplEngine } from '@/core/encoding';
+import type { ProjectConfig } from '@/core/types';
+
+// Encoder args for a re-encoded video segment (bumper / videoUrl / useVideoSection). Routes through
+// the shared codec resolution so the on-device LGPL engine uses libopenh264 — NOT libx264 (GPL),
+// which `typeof window !== 'undefined'` wrongly selected on React Native (Hermes defines `window`).
+function videoSegmentEncoding(config: ProjectConfig): string {
+  if (usesLgplEngine(config)) {
+    return `${buildVideoEncoderArgs(config)} -c:a aac -ac 2 ${buildPixFmtArg(config)} -movflags +faststart`;
+  }
+
+  // Browser WASM: a lighter encode to stay within the in-memory FS budget.
+  if (typeof window !== 'undefined') {
+    return '-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast -movflags +faststart';
+  }
+
+  // Node / server: high-quality software encode.
+  const preset = config.hardwareConfig?.preset ?? 'medium';
+
+  return `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high -movflags +faststart -preset ${preset}`;
+}
 
 @injectable()
 class Video extends SegmentBuilder {
@@ -20,11 +41,7 @@ class Video extends SegmentBuilder {
 
     this.filters += ' -map 0:a? ';
 
-    // Detect if running in browser/WASM - use simpler encoding to avoid memory issues
-    const isWasm = typeof window !== 'undefined';
-    const encodingParams = isWasm
-      ? '-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast -movflags +faststart'
-      : `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high -movflags +faststart -preset ${this.project.config.hardwareConfig?.preset ?? 'medium'}`;
+    const encodingParams = videoSegmentEncoding(this.project.config);
 
     const audioFadeArg = this.buildAudioFadeArg();
 

@@ -181,6 +181,12 @@ export default defineConfig([
         'expo-file-system',
         'expo-file-system/legacy',
         'reflect-metadata',
+        // tsyringe is bundled (Hermes must not transform its decorators), but its tslib helper
+        // calls (__extends/__decorate/__metadata) must NOT be inlined: rolldown pulls tslib's CJS
+        // UMD build, whose `exports`/`define.amd` interop yields `undefined` helpers under Hermes
+        // ("Cannot read property '__extends' of undefined"). Kept external so Metro/Babel resolve
+        // and transform tslib correctly. Metro finds it via the core package's own dependency.
+        'tslib',
         'child_process',
         'fs',
         'fs/promises',

@@ -1,8 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
-import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import { hasVirtualFilesystem, type default as AbstractFFmpeg } from '../platform/ffmpeg/AbstractFFmpeg';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import FFmpegWasmAdapter from '../platform/ffmpeg/FFmpegWasmAdapter';
 import type { Section, ProjectConfig } from '@/core/types';
 import type Project from '../core/models/Project';
 import SegmentFactory from '../editor/factories/SegmentFactory';
@@ -57,7 +56,7 @@ class TemplateConcreteBuilder {
     this.logger.info(`[${this.section.name}][RenderPart] segment.destination = ${this.segment.destination}`);
     this.logger.debug(`[${this.section.name}][Command] ffmpeg ${command}`);
 
-    if (this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
+    if (hasVirtualFilesystem(this.ffmpegAdapter)) {
       await this.writeInputFilesToWasm();
     }
 
@@ -76,7 +75,7 @@ class TemplateConcreteBuilder {
   };
 
   private async handleSuccessResult(): Promise<void> {
-    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+    if (!hasVirtualFilesystem(this.ffmpegAdapter)) {
       await this.handleNativeSuccessResult();
 
       return;
@@ -127,7 +126,7 @@ class TemplateConcreteBuilder {
       await this.filesystemAdapter.writeFile(this.segment.destination, data);
       this.logger.info(`[${this.section.name}][RenderPart] Transferred from WASM to IndexedDB: ${fileLocation}`);
 
-      if (this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
+      if (hasVirtualFilesystem(this.ffmpegAdapter)) {
         await this.ffmpegAdapter.deleteFile(fileLocation);
       }
     } catch (error) {
@@ -142,7 +141,7 @@ class TemplateConcreteBuilder {
   private async findWasmOutputFile(
     outputFile: string
   ): Promise<{ data: Uint8Array | null; fileLocation: string | null }> {
-    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+    if (!hasVirtualFilesystem(this.ffmpegAdapter)) {
       return { data: null, fileLocation: null };
     }
 
@@ -160,7 +159,7 @@ class TemplateConcreteBuilder {
   private async searchWasmDirectories(
     outputFile: string
   ): Promise<{ data: Uint8Array | null; fileLocation: string | null }> {
-    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+    if (!hasVirtualFilesystem(this.ffmpegAdapter)) {
       return { data: null, fileLocation: null };
     }
 
@@ -177,7 +176,7 @@ class TemplateConcreteBuilder {
 
     const foundInRoot = files.find((f) => f.name === outputFile);
 
-    if (foundInRoot && this.ffmpegAdapter instanceof FFmpegWasmAdapter) {
+    if (foundInRoot && hasVirtualFilesystem(this.ffmpegAdapter)) {
       const data = await this.ffmpegAdapter.readFile(outputFile);
 
       return { data, fileLocation: outputFile };
@@ -189,7 +188,7 @@ class TemplateConcreteBuilder {
   private async searchWasmTmpDir(
     outputFile: string
   ): Promise<{ data: Uint8Array | null; fileLocation: string | null }> {
-    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+    if (!hasVirtualFilesystem(this.ffmpegAdapter)) {
       return { data: null, fileLocation: null };
     }
 
@@ -214,7 +213,7 @@ class TemplateConcreteBuilder {
   }
 
   private async writeInputFilesToWasm(): Promise<void> {
-    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+    if (!hasVirtualFilesystem(this.ffmpegAdapter)) {
       return;
     }
 
@@ -242,7 +241,7 @@ class TemplateConcreteBuilder {
   }
 
   private async writeAssetToWasm(key: string, path: string): Promise<void> {
-    if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) {
+    if (!hasVirtualFilesystem(this.ffmpegAdapter)) {
       return;
     }
 

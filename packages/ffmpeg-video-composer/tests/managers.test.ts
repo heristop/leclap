@@ -481,6 +481,7 @@ describe('FilterManager', () => {
     opts: {
       section?: Section;
       transitionDuration?: number;
+      videoCodec?: string;
     } = {}
   ) {
     const template = createTemplate({
@@ -496,7 +497,8 @@ describe('FilterManager', () => {
       formatMultipleTypesValue: vi.fn((f: Filter) => `single:${f.type}=${String(f.value)}`),
       formatMultipleTypesValues: vi.fn((f: Filter) => `multi:${f.type}`),
     };
-    const manager = new FilterManager(template as any, formatters as any, segment as any);
+    const project = { config: { codecConfig: { videoCodec: opts.videoCodec ?? 'h264' } } };
+    const manager = new FilterManager(template as any, formatters as any, segment as any, project as any);
 
     return { manager, formatters, segment };
   }
@@ -506,6 +508,20 @@ describe('FilterManager', () => {
     const out = manager.addFilter({ type: 'eq', value: 'x' } as Filter);
     expect(formatters.formatMultipleTypesValue).toHaveBeenCalled();
     expect(out).toBe('single:eq=x');
+  });
+
+  it('keeps the GPL eq filter on the full-ffmpeg (h264) engine', () => {
+    const { manager } = build({ videoCodec: 'h264' });
+    const out = manager.addFilter({ type: 'eq', value: 'contrast=1.1' } as Filter);
+    expect(out).toBe('single:eq=contrast=1.1');
+  });
+
+  it('rewrites eq to an LGPL lutyuv LUT on the on-device libopenh264 engine', () => {
+    const { manager } = build({ videoCodec: 'libopenh264' });
+    const out = manager.addFilter({ type: 'eq', value: 'contrast=1.1:saturation=1.2' } as Filter);
+    expect(out).toContain('single:lutyuv=');
+    expect(out).toContain("u='clip((val-128)*1.2+128,0,255)'");
+    expect(out).not.toContain('eq=');
   });
 
   it('delegates multi-value filters to formatMultipleTypesValues', () => {

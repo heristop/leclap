@@ -238,6 +238,31 @@ describe('Build Output', () => {
     });
   });
 
+  // The React-Native entry runs in Hermes and drives the native FFmpeg CLI engine. It must never
+  // pull in the WASM adapter: `@ffmpeg/ffmpeg`'s worker uses `import(coreURL)` which Metro can't
+  // transform, so a single leaked reference breaks the whole Android/iOS bundle. The leak happens
+  // when shared code (e.g. TemplateConcreteBuilder) statically imports FFmpegWasmAdapter just to do
+  // an `instanceof` check — branch on the virtual-filesystem capability instead.
+  describe('React Native Build - Platform Isolation', () => {
+    it('should have reactnative.js in dist', async () => {
+      await expect(access(path.join(DIST_DIR, 'reactnative.js'), constants.F_OK)).resolves.toBeUndefined();
+    });
+
+    it('should NOT contain @ffmpeg/ffmpeg imports', async () => {
+      const content = await readFile(path.join(DIST_DIR, 'reactnative.js'), 'utf-8');
+      expect(content).not.toMatch(/@ffmpeg\/ffmpeg/);
+      expect(content).not.toMatch(/@ffmpeg\/util/);
+    });
+
+    it('should NOT bundle the WASM adapter implementation', async () => {
+      // `initializeFFmpeg` is the WASM adapter's constructor-time loader — unique to its runtime
+      // code (present in browser.js). A doc comment may still mention "FFmpegWasmAdapter" by name,
+      // so assert on this implementation token rather than the class name to avoid false positives.
+      const content = await readFile(path.join(DIST_DIR, 'reactnative.js'), 'utf-8');
+      expect(content).not.toMatch(/initializeFFmpeg/);
+    });
+  });
+
   describe('Sourcemaps', () => {
     it('index.js.map should be valid JSON', async () => {
       const content = await readFile(path.join(DIST_DIR, 'index.js.map'), 'utf-8');

@@ -2,7 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { FileText, Video, Music, Check, ChevronRight, ChevronLeft, Pencil, Sparkles, X } from 'lucide-react';
+import {
+  FileText,
+  Video,
+  Music,
+  Check,
+  ChevronRight,
+  ChevronLeft,
+  ChevronUp,
+  ChevronDown,
+  Pencil,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { Button, Card } from '@/presentation/components/ui';
 import { TemplateForm } from '@/presentation/components/TemplateForm';
 import { StepClip } from '@/presentation/components/builder/StepClip';
@@ -152,6 +164,7 @@ const PanelBody = (p: PanelBodyProps) => {
   return (
     <StepClip
       chrome={false}
+      orientation={template.descriptor.global?.orientation === 'portrait' ? 'portrait' : 'landscape'}
       section={descriptorSection}
       vars={buildDescriptionVars(template.descriptor.global?.variables, model.formData)}
       clipNumber={section.clipIndex + 1}
@@ -281,24 +294,30 @@ const panelDone = (panel: ActivePanel, template: Template, model: SectionHubMode
 interface SectionSheetProps extends SectionHubProps {
   panel: NonNullable<ActivePanel>;
   onClose: () => void;
+  // Step to the previous/next section without closing the sheet (undefined at the ends). `position`
+  // drives the "2 / 3" indicator.
+  onPrev?: () => void;
+  onNext?: () => void;
+  position: { index: number; total: number };
 }
 
 // The focused editing surface: a bottom sheet on mobile, a right-anchored side sheet on desktop —
-// NOT a centered modal and NOT a Radix Dialog, so the clip recorder's full-screen portal (z-[60])
-// keeps working over it. Mounted ONLY while a section is open (so it never lingers as a ghost layer
-// peeking from the edge); it mounts off-screen and slides in on the next frame. On desktop there is
-// no scrim — the hub stays fully visible and interactive on the left.
-const SectionSheet = (p: SectionSheetProps) => {
-  const { panel, onClose, template, model, t } = p;
-  const { i18n } = useTranslation('builder');
-  const [entered, setEntered] = useState(false);
+// True for form fields / selects / contenteditable, where ↑/↓ must keep their native behaviour.
+function isEditableTarget(el: HTMLElement | null): boolean {
+  const tag = el?.tagName;
 
-  // Drag-to-dismiss (mobile only): follow the finger downward, then close past a threshold or snap
-  // back. `dragY === null` means not dragging — the sheet's CSS classes/transition drive it; a number
-  // means a live drag, so we override transform inline and kill the transition for 1:1 tracking.
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || Boolean(el?.isContentEditable);
+}
+
+// Past this many pixels of downward drag, releasing dismisses the mobile bottom sheet.
+const CLOSE_THRESHOLD = 120;
+
+// Drag-to-dismiss (mobile only): follow the finger downward, then close past the threshold or snap
+// back. `dragY === null` means not dragging — the sheet's CSS transition drives it; a number means a
+// live drag, so the caller overrides transform inline and kills the transition for 1:1 tracking.
+function useDragToDismiss(onClose: () => void) {
   const [dragY, setDragY] = useState<number | null>(null);
   const dragStartRef = useRef<number | null>(null);
-  const CLOSE_THRESHOLD = 120;
 
   const onDragStart = (e: React.PointerEvent) => {
     dragStartRef.current = e.clientY;
@@ -308,11 +327,13 @@ const SectionSheet = (p: SectionSheetProps) => {
 
   const onDragMove = (e: React.PointerEvent) => {
     if (dragStartRef.current === null) return;
+
     setDragY(Math.max(0, e.clientY - dragStartRef.current));
   };
 
   const onDragEnd = () => {
     if (dragStartRef.current === null) return;
+
     const shouldClose = (dragY ?? 0) > CLOSE_THRESHOLD;
     dragStartRef.current = null;
 
@@ -325,11 +346,30 @@ const SectionSheet = (p: SectionSheetProps) => {
     setDragY(null);
   };
 
+  return { dragY, onDragStart, onDragMove, onDragEnd };
+}
+
+// NOT a centered modal and NOT a Radix Dialog, so the clip recorder's full-screen portal (z-[60])
+// keeps working over it. Mounted ONLY while a section is open (so it never lingers as a ghost layer
+// peeking from the edge); it mounts off-screen and slides in on the next frame. On desktop there is
+// no scrim — the hub stays fully visible and interactive on the left.
+const SectionSheet = (p: SectionSheetProps) => {
+  const { panel, onClose, onPrev, onNext, position, template, model, t } = p;
+  const { i18n } = useTranslation('builder');
+  const [entered, setEntered] = useState(false);
+  const { dragY, onDragStart, onDragMove, onDragEnd } = useDragToDismiss(onClose);
+
   // Read the latest onClose via a ref. Depending on onClose directly (a fresh closure each parent
   // render) would re-run the effect on every keystroke — which previously stole focus back to the
   // close button mid-typing and re-subscribed the listener.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  // Latest prev/next via refs so the keydown listener can stay subscribed once (these are fresh
+  // closures each parent render).
+  const onPrevRef = useRef(onPrev);
+  onPrevRef.current = onPrev;
+  const onNextRef = useRef(onNext);
+  onNextRef.current = onNext;
 
   // Mount off-screen, then flip to on-screen on the next frame so the transform transition plays.
   useEffect(() => {
@@ -342,10 +382,26 @@ const SectionSheet = (p: SectionSheetProps) => {
     };
   }, []);
 
-  // Escape closes the sheet (subscribed once; no auto-focus so the body's first field stays typable).
+  // Keyboard: Escape closes; ↑/↓ step to the previous/next section. Subscribed once while the sheet
+  // is open. Skipped while focus is in a text field / select so it never fights typing, caret motion,
+  // or option lists; plain Tab/Shift+Tab keep their normal field-to-field behaviour.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current();
+      if (e.key === 'Escape') {
+        onCloseRef.current();
+
+        return;
+      }
+
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+
+      if (isEditableTarget(e.target as HTMLElement | null)) return;
+
+      e.preventDefault();
+
+      if (e.key === 'ArrowUp') onPrevRef.current?.();
+
+      if (e.key === 'ArrowDown') onNextRef.current?.();
     };
 
     window.addEventListener('keydown', onKey);
@@ -413,23 +469,69 @@ const SectionSheet = (p: SectionSheetProps) => {
             <h2 className="truncate font-display text-2xl font-bold leading-tight text-foreground">{heading}</h2>
             {subtitle && <p className="mt-0.5 truncate text-sm text-gray-400">{subtitle}</p>}
           </div>
-          <button
-            type="button"
-            aria-label={t('actions.close', { ns: 'common' })}
-            onClick={onClose}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 motion-reduce:transition-none"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-0.5">
+            <button
+              type="button"
+              aria-label={t('hub.prevSection')}
+              title={t('hub.prevSection')}
+              onClick={onPrev}
+              disabled={!onPrev}
+              className="grid h-8 w-8 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-30 motion-reduce:transition-none"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+            <span className="px-0.5 text-xs font-medium tabular-nums text-gray-400" aria-hidden="true">
+              {position.index + 1}/{position.total}
+            </span>
+            <button
+              type="button"
+              aria-label={t('hub.nextSection')}
+              title={t('hub.nextSection')}
+              onClick={onNext}
+              disabled={!onNext}
+              className="grid h-8 w-8 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-30 motion-reduce:transition-none"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              aria-label={t('actions.close', { ns: 'common' })}
+              onClick={onClose}
+              className="ml-0.5 grid h-9 w-9 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 motion-reduce:transition-none"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto overscroll-contain p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:p-8">
-          <PanelBody {...p} panel={panel} />
+          <div key={panel.kind === 'section' ? panel.section.name : 'media'} className="fade-in">
+            <PanelBody {...p} panel={panel} />
+          </div>
         </div>
       </div>
     </>,
     document.body
   );
 };
+
+// Progress across the input sections (+ optional media row), shown by the hub's bar and counters.
+function hubProgress(sections: InputSection[], template: Template, model: SectionHubModel, showMediaRow: boolean) {
+  const mediaItems = showMediaRow ? 1 : 0;
+  const mediaDone = showMediaRow && mediaComplete(model) ? 1 : 0;
+  const totalItems = sections.length + mediaItems;
+  const doneItems = sections.filter((s) => sectionComplete(template, s, model)).length + mediaDone;
+  const progress = totalItems > 0 ? (doneItems / totalItems) * 100 : 100;
+
+  return { totalItems, doneItems, progress, remaining: totalItems - doneItems };
+}
+
+// Ordered panels (input sections + optional media) backing the sheet's prev/next navigation.
+function buildPanels(sections: InputSection[], showMediaRow: boolean): NonNullable<ActivePanel>[] {
+  return [
+    ...sections.map((section): NonNullable<ActivePanel> => ({ kind: 'section', section })),
+    ...(showMediaRow ? [{ kind: 'media' } as NonNullable<ActivePanel>] : []),
+  ];
+}
 
 export const SectionHub = (props: Omit<SectionHubProps, 't'>) => {
   const { template, model, clipCount, showMediaRow, allComplete, onCreate, onChangeTemplate } = props;
@@ -438,12 +540,11 @@ export const SectionHub = (props: Omit<SectionHubProps, 't'>) => {
   const sections = templateService.orderedInputSections(template.descriptor);
   const vars = buildDescriptionVars(template.descriptor.global?.variables, model.formData);
 
-  const mediaItems = showMediaRow ? 1 : 0;
-  const mediaDone = showMediaRow && mediaComplete(model) ? 1 : 0;
-  const totalItems = sections.length + mediaItems;
-  const doneItems = sections.filter((s) => sectionComplete(template, s, model)).length + mediaDone;
-  const progress = totalItems > 0 ? (doneItems / totalItems) * 100 : 100;
-  const remaining = totalItems - doneItems;
+  const { totalItems, doneItems, progress, remaining } = hubProgress(sections, template, model, showMediaRow);
+
+  const panels = buildPanels(sections, showMediaRow);
+  const panelKeyOf = (pp: NonNullable<ActivePanel>): string => (pp.kind === 'section' ? pp.section.name : 'media');
+  const panelIndex = panel ? panels.findIndex((pp) => panelKeyOf(pp) === panelKeyOf(panel)) : -1;
 
   return (
     <div className="fade-in mx-auto max-w-3xl">
@@ -545,10 +646,24 @@ export const SectionHub = (props: Omit<SectionHubProps, 't'>) => {
 
       {panel !== null && (
         <SectionSheet
-          key={panel.kind === 'section' ? panel.section.name : 'media'}
           {...props}
           t={t}
           panel={panel}
+          position={{ index: panelIndex, total: panels.length }}
+          onPrev={
+            panelIndex > 0
+              ? () => {
+                  setPanel(panels[panelIndex - 1]);
+                }
+              : undefined
+          }
+          onNext={
+            panelIndex >= 0 && panelIndex < panels.length - 1
+              ? () => {
+                  setPanel(panels[panelIndex + 1]);
+                }
+              : undefined
+          }
           onClose={() => {
             setPanel(null);
           }}

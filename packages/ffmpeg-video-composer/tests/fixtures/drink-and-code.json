@@ -11,8 +11,7 @@
       "form_2_keyword1": "Javascript",
       "form_2_keyword2": "Typescript",
       "form_2_keyword3": "Rust",
-      "form_2_keyword4": "FFmpeg",
-      "form_3_keyword1": "Remote"
+      "form_2_keyword4": "Caffeine"
     },
     "music": {
       "name": "go-by-ocean",
@@ -21,17 +20,19 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "transition": {
-      "type": "fade",
+      "type": "dissolve",
       "duration": 0.5
     },
     "audio": {
-      "sourceVolume": 1
+      "sourceVolume": 1,
+      "normalize": "loudnorm"
     }
   },
   "sections": [
     {
       "name": "intro_1",
       "type": "video",
+      "transition": { "type": "smoothup", "duration": 0.6 },
       "options": {
         "useVideoSection": "video_1",
         "duration": 6,
@@ -109,7 +110,7 @@
             "y": 0,
             "w": 1280,
             "h": 720,
-            "c": "{{ color1 }}@0.2",
+            "c": "{{ color1 }}@0.32",
             "t": "fill"
           }
         },
@@ -120,7 +121,7 @@
               "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
             },
             "fontcolor": "{{ color2 }}",
-            "fontsize": 40,
+            "fontsize": 58,
             "x": "(w-text_w)/2",
             "y": "(h-text_h)/1.4",
             "fontfile": "Rubik+Doodle+Shadow.ttf",
@@ -134,9 +135,9 @@
               "en": "“{{ form_1_job }}”"
             },
             "fontcolor": "{{ color2 }}",
-            "fontsize": 40,
+            "fontsize": 34,
             "x": "(w-text_w)/2",
-            "y": "(h-text_h)/1.4+60",
+            "y": "(h-text_h)/1.4+72",
             "fontfile": "Rubik+Doodle+Shadow.ttf",
             "alpha": "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'"
           }
@@ -193,6 +194,10 @@
     {
       "name": "video_1",
       "type": "project_video",
+      "look": "warm",
+      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
+      "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.1 }],
+      "transition": { "type": "pixelize", "duration": 0.4 },
       "title": {
         "en": "Tell us a little bit about you"
       },
@@ -218,6 +223,10 @@
       ],
       "filters": [
         {
+          "type": "vignette",
+          "value": "PI/5"
+        },
+        {
           "type": "drawtext",
           "values": {
             "text": {
@@ -227,7 +236,10 @@
             "fontsize": 40,
             "x": "(w-tw-40)",
             "y": "(h-th-220)",
-            "fontfile": "Rubik.ttf"
+            "fontfile": "Rubik.ttf",
+            "box": 1,
+            "boxcolor": "{{ color1 }}@0.55",
+            "boxborderw": 16
           }
         },
         {
@@ -242,8 +254,8 @@
             "y": "(h-th-160)",
             "fontfile": "Rubik.ttf",
             "box": 1,
-            "boxcolor": "{{ color2 }}@0.5",
-            "boxborderw": 10
+            "boxcolor": "{{ color1 }}@0.65",
+            "boxborderw": 14
           }
         },
         {
@@ -324,6 +336,10 @@
     {
       "name": "video_2",
       "type": "project_video",
+      "look": "warm",
+      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
+      "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.1 }],
+      "transition": { "type": "coverleft", "duration": 0.5 },
       "title": {
         "en": "Make your speech"
       },
@@ -342,12 +358,12 @@
               "en": "Languages"
             },
             "fontcolor": "{{ color1 }}",
-            "fontsize": 24,
+            "fontsize": 34,
             "x": "w-text_w-12",
             "y": 60,
             "fontfile": "Rubik+Doodle+Shadow.ttf",
             "box": 1,
-            "boxcolor": "{{ color2 }}@0.5",
+            "boxcolor": "{{ color2 }}@0.75",
             "boxborderw": 12
           }
         },
@@ -359,12 +375,12 @@
               "en": "{{ form_2_keyword1 }}"
             },
             "fontcolor": "{{ color2 }}",
-            "fontsize": 24,
+            "fontsize": 30,
             "x": "w-text_w-12",
             "y": 160,
             "fontfile": "Rubik+Doodle+Shadow.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.5",
+            "boxcolor": "{{ color1 }}@0.75",
             "boxborderw": 12
           }
         },
@@ -376,12 +392,12 @@
               "en": "{{ form_2_keyword2 }}"
             },
             "fontcolor": "{{ color2 }}",
-            "fontsize": 24,
+            "fontsize": 30,
             "x": "w-text_w-12",
             "y": 240,
             "fontfile": "Rubik+Doodle+Shadow.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.5",
+            "boxcolor": "{{ color1 }}@0.75",
             "boxborderw": 12
           }
         },
@@ -392,12 +408,12 @@
               "en": "{{ form_2_keyword3 }}"
             },
             "fontcolor": "{{ color2 }}",
-            "fontsize": 24,
+            "fontsize": 30,
             "x": "w-text_w-12",
             "y": 320,
             "fontfile": "Rubik+Doodle+Shadow.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.5",
+            "boxcolor": "{{ color1 }}@0.75",
             "boxborderw": 12
           }
         },
@@ -408,12 +424,12 @@
               "en": "{{ form_2_keyword4 }}"
             },
             "fontcolor": "{{ color2 }}",
-            "fontsize": 24,
+            "fontsize": 30,
             "x": "w-text_w-12",
             "y": 400,
             "fontfile": "Rubik+Doodle+Shadow.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.5",
+            "boxcolor": "{{ color1 }}@0.75",
             "boxborderw": 12
           }
         },
@@ -440,22 +456,14 @@
       "description": {
         "fr": "",
         "en": ""
-      },
-      "options": {
-        "fields": [
-          {
-            "name": "form_3_keyword1",
-            "maxLength": 25,
-            "label": {
-              "en": "1 word to describe your work environment"
-            }
-          }
-        ]
       }
     },
     {
       "name": "video_3",
       "type": "project_video",
+      "look": "warm",
+      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
+      "transition": { "type": "circleclose", "duration": 0.7 },
       "title": {
         "en": "Show the work environment"
       },
@@ -512,6 +520,8 @@
     {
       "name": "outro",
       "type": "video",
+      "look": "warm",
+      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
       "options": {
         "videoUrl": "{{ videoOutro }}",
         "duration": 5,

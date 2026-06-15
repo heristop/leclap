@@ -12,15 +12,11 @@ import { TransitionSheet } from '@/src/features/templates/components/TransitionS
 import { OverlayPositioner } from '@/src/features/templates/components/OverlayPositioner';
 import { StyleAudioStep } from '@/src/features/templates/components/StyleAudioStep';
 import { InfoStep, ScenesStep } from '@/src/features/templates/components/WizardStepViews';
-import {
-  WIZARD_STEPS,
-  STEP_TITLE_KEY,
-  STEP_SUBTITLE_KEY,
-  saveBlocker,
-  isStepValid,
-  stepIndex,
-  type WizardStep,
-} from '@/src/features/templates/components/wizardSteps';
+import { useEditorHistory } from '@/src/features/templates/components/useEditorHistory';
+import { exportTemplate, importTemplate } from '@/src/features/templates/components/editorIO';
+import { previewRender } from '@/src/features/templates/components/previewRender';
+import sampleClip from '../../assets/sample.mp4';
+import { STEP_TITLE_KEY, saveBlocker } from '@/src/features/templates/components/wizardSteps';
 import {
   buildDescriptor,
   newSection,
@@ -45,6 +41,29 @@ const toEditable = (template: UserTemplate | undefined): EditableTemplate | null
 
 type VideoSection = Extract<EditorSection, { kind: 'video' }>;
 
+// Export shares the descriptor JSON; import picks a .json, validates it, and replaces the state
+// (a single history entry). Cancel is a no-op; a bad file alerts. Lifted out so the wizard hook
+// stays under its statement budget.
+function makeTemplateIO(state: EditorState, setState: (s: EditorState) => void, t: TFunction<'editor'>) {
+  return {
+    onExport: () => {
+      exportTemplate(state).catch(() => {});
+    },
+    onImport: () => {
+      importTemplate(state)
+        .then((next) => {
+          if (!next) return;
+
+          setState(next);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        })
+        .catch(() => {
+          Alert.alert(t('importError.title'), t('importError.description'));
+        });
+    },
+  };
+}
+
 // All wizard state + the pure-op mutators, lifted out of the screen so the component stays small.
 // Every section edit flows through the shared pure ops — never mutating EditorState in place.
 function useTemplateWizard(t: TFunction<'editor'>) {
@@ -53,8 +72,9 @@ function useTemplateWizard(t: TFunction<'editor'>) {
   const getById = useUserTemplateStore((s) => s.getById);
   const save = useUserTemplateStore((s) => s.save);
 
-  const [state, setState] = useState<EditorState>(() => toEditorState(toEditable(id ? getById(id) : undefined)));
-  const [step, setStep] = useState<WizardStep>('info');
+  const { state, setState, undo, redo, canUndo, canRedo } = useEditorHistory(() =>
+    toEditorState(toEditable(id ? getById(id) : undefined))
+  );
   const [transitionIndex, setTransitionIndex] = useState<number | null>(null);
   const [overlayIndex, setOverlayIndex] = useState<number | null>(null);
 
@@ -73,7 +93,6 @@ function useTemplateWizard(t: TFunction<'editor'>) {
     const blocker = saveBlocker(state);
 
     if (blocker) {
-      setStep(blocker.step);
       Alert.alert(t('alerts.almostThere'), t(blocker.messageKey));
 
       return;
@@ -90,34 +109,8 @@ function useTemplateWizard(t: TFunction<'editor'>) {
     router.back();
   };
 
-  const goNext = () => {
-    if (!isStepValid(step, state)) {
-      Alert.alert(t('alerts.almostThere'), step === 'info' ? t('alerts.needName') : t('alerts.needScene'));
-
-      return;
-    }
-
-    const nextIndex = stepIndex(step) + 1;
-
-    if (nextIndex >= WIZARD_STEPS.length) {
-      onSave();
-
-      return;
-    }
-
-    setStep(WIZARD_STEPS[nextIndex]);
-  };
-
-  const goBack = () => {
-    const prevIndex = stepIndex(step) - 1;
-
-    if (prevIndex < 0) {
-      router.back();
-
-      return;
-    }
-
-    setStep(WIZARD_STEPS[prevIndex]);
+  const close = () => {
+    router.back();
   };
 
   const openOverlay = (i: number) => {
@@ -136,10 +129,11 @@ function useTemplateWizard(t: TFunction<'editor'>) {
   const overlaySection = overlayIndex === null ? undefined : state.sections[overlayIndex];
   const overlay: TextOverlay | undefined = overlaySection?.kind === 'video' ? overlaySection.overlays[0] : undefined;
 
+  const io = makeTemplateIO(state, setState, t);
+
   return {
     state,
     setState,
-    step,
     patch,
     patchSection,
     transitionIndex,
@@ -149,19 +143,24 @@ function useTemplateWizard(t: TFunction<'editor'>) {
     overlayIndex,
     setOverlayIndex,
     overlay,
-    isLast: stepIndex(step) === WIZARD_STEPS.length - 1,
-    goNext,
-    goBack,
+    onSave,
+    close,
     openOverlay,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    ...io,
   };
 }
 
 export default function CreateTemplateScreen() {
   const { t } = useTranslation('editor');
+  const router = useRouter();
+  const [rendering, setRendering] = useState(false);
   const {
     state,
     setState,
-    step,
     patch,
     patchSection,
     transitionIndex,
@@ -171,74 +170,140 @@ export default function CreateTemplateScreen() {
     overlayIndex,
     setOverlayIndex,
     overlay,
-    isLast,
-    goNext,
-    goBack,
+    onSave,
+    close,
     openOverlay,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    onImport,
+    onExport,
   } = useTemplateWizard(t);
+
+  // Compile the draft on-device with placeholder clips, then open the shared preview screen — the
+  // Expo twin of the web "Test render". The button's own spinner covers the wait.
+  const onPreview = () => {
+    if (rendering) return;
+
+    setRendering(true);
+    previewRender(state, sampleClip)
+      .then((result) => {
+        if (result.success && result.outputUri) {
+          router.push({
+            pathname: '/(fullscreen)/preview',
+            params: { videoUri: result.outputUri, orientation: state.orientation },
+          });
+
+          return;
+        }
+
+        Alert.alert(t('previewError.title'), result.error ?? t('previewError.description'));
+      })
+      .catch(() => {
+        Alert.alert(t('previewError.title'), t('previewError.description'));
+      })
+      .finally(() => {
+        setRendering(false);
+      });
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           testID="close-editor"
-          onPress={goBack}
+          onPress={close}
           style={styles.iconBtn}
           accessibilityLabel={t('header.back')}
         >
-          <Ionicons name={stepIndex(step) === 0 ? 'close' : 'chevron-back'} size={26} color={colors.text} />
+          <Ionicons name="close" size={26} color={colors.text} />
         </TouchableOpacity>
-        <View style={styles.dots}>
-          {WIZARD_STEPS.map((s, i) => (
-            <View key={s} style={[styles.dot, i === stepIndex(step) && styles.dotActive]} />
-          ))}
+        <View style={styles.headerSpacer} />
+        <View style={styles.actions}>
+          <TouchableOpacity
+            onPress={undo}
+            disabled={!canUndo}
+            accessibilityLabel={t('header.undo')}
+            style={styles.actionBtn}
+          >
+            <Ionicons name="arrow-undo" size={20} color={canUndo ? colors.text : colors.divider} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={redo}
+            disabled={!canRedo}
+            accessibilityLabel={t('header.redo')}
+            style={styles.actionBtn}
+          >
+            <Ionicons name="arrow-redo" size={20} color={canRedo ? colors.text : colors.divider} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onImport} accessibilityLabel={t('header.import')} style={styles.actionBtn}>
+            <Ionicons name="download-outline" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onExport} accessibilityLabel={t('header.export')} style={styles.actionBtn}>
+            <Ionicons name="share-outline" size={20} color={colors.text} />
+          </TouchableOpacity>
         </View>
-        <View style={styles.iconBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={styles.stepTitle}>{t(STEP_TITLE_KEY[step])}</Text>
-        <Text style={styles.stepSubtitle}>{t(STEP_SUBTITLE_KEY[step])}</Text>
+        <Text style={styles.sectionHeading}>{t(STEP_TITLE_KEY.info)}</Text>
+        <InfoStep state={state} t={t} onPatch={patch} />
 
-        {step === 'info' ? <InfoStep state={state} t={t} onPatch={patch} /> : null}
+        <Text style={styles.sectionHeading}>{t(STEP_TITLE_KEY.scenes)}</Text>
+        <ScenesStep
+          state={state}
+          t={t}
+          onPatchSection={patchSection}
+          onLayers={(i, layers) => {
+            setState((s) => patchLayers(s, i, layers));
+          }}
+          onRemove={(i) => {
+            setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
+          }}
+          onDuplicate={(i) => {
+            setState((s) => duplicateSection(s, i));
+            Haptics.selectionAsync().catch(() => {});
+          }}
+          onMove={(i, dir) => {
+            setState((s) => reorderSection(s, i, i + dir));
+            Haptics.selectionAsync().catch(() => {});
+          }}
+          onAdd={(kind) => {
+            setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] }));
+            Haptics.selectionAsync().catch(() => {});
+          }}
+          onOpenTransition={setTransitionIndex}
+          onEditOverlay={openOverlay}
+        />
 
-        {step === 'scenes' ? (
-          <ScenesStep
-            state={state}
-            t={t}
-            onPatchSection={patchSection}
-            onLayers={(i, layers) => {
-              setState((s) => patchLayers(s, i, layers));
-            }}
-            onRemove={(i) => {
-              setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
-            }}
-            onDuplicate={(i) => {
-              setState((s) => duplicateSection(s, i));
-              Haptics.selectionAsync().catch(() => {});
-            }}
-            onMove={(i, dir) => {
-              setState((s) => reorderSection(s, i, i + dir));
-              Haptics.selectionAsync().catch(() => {});
-            }}
-            onAdd={(kind) => {
-              setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] }));
-              Haptics.selectionAsync().catch(() => {});
-            }}
-            onOpenTransition={setTransitionIndex}
-            onEditOverlay={openOverlay}
-          />
-        ) : null}
-
-        {step === 'style' ? <StyleAudioStep state={state} t={t} onPatch={patch} /> : null}
+        <Text style={styles.sectionHeading}>{t(STEP_TITLE_KEY.style)}</Text>
+        <StyleAudioStep state={state} t={t} onPatch={patch} />
 
         <View style={{ height: spacing.xl }} />
       </ScrollView>
 
-      <View style={styles.footer} testID={isLast ? 'save-template' : 'wizard-next'}>
-        <Button variant="primary" size="large" icon={isLast ? 'save' : 'arrow-forward'} fullWidth onPress={goNext}>
-          {isLast ? t('save') : t('wizard.continue')}
-        </Button>
+      <View style={styles.footer} testID="save-template">
+        <View style={styles.footerRow}>
+          <View style={styles.footerCol}>
+            <Button
+              variant="secondary"
+              size="large"
+              icon="play"
+              fullWidth
+              loading={rendering}
+              disabled={rendering}
+              onPress={onPreview}
+            >
+              {t('preview')}
+            </Button>
+          </View>
+          <View style={styles.footerCol}>
+            <Button variant="primary" size="large" icon="save" fullWidth disabled={rendering} onPress={onSave}>
+              {t('save')}
+            </Button>
+          </View>
+        </View>
       </View>
 
       <TransitionSheet
@@ -291,13 +356,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
-  dots: { flexDirection: 'row', gap: spacing.s },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.divider },
-  dotActive: { width: 22, backgroundColor: colors.primary },
+  headerSpacer: { flex: 1 },
   iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  actions: { flexDirection: 'row', alignItems: 'center' },
+  actionBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: spacing.m },
-  stepTitle: { ...typography.title, color: colors.text },
-  stepSubtitle: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs, marginBottom: spacing.m },
+  sectionHeading: { ...typography.title, color: colors.text, marginTop: spacing.l, marginBottom: spacing.s },
   footer: {
     padding: spacing.m,
     paddingBottom: spacing.l,
@@ -305,4 +369,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.divider,
     backgroundColor: colors.surface,
   },
+  footerRow: { flexDirection: 'row', gap: spacing.s },
+  footerCol: { flex: 1 },
 });

@@ -2,8 +2,10 @@
   "screenTitle": "Scenarios",
   "subtitle": "Select a scenario to create your video",
   "loadError": "Failed to load templates",
-  "loadErrorHint": "Make sure the server is running.",
+  "loadErrorHint": "Pull to refresh and try again.",
   "createTemplate": "Create a template",
+  "cardDefaultDescription": "Create a video using this template",
+  "custom": "Custom",
   "search": {
     "placeholder": "Search templates..."
   },

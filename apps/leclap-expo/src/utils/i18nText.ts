@@ -35,7 +35,7 @@ export function resolveVariables(text: string, vars: Record<string, string | str
 export function buildDescriptionVars(
   variables: Record<string, string | string[]> | undefined,
   colorsList: string[] | undefined,
-  formData: Record<string, unknown> | undefined
+  formData?: Record<string, unknown>
 ): Record<string, string | string[]> {
   const vars: Record<string, string | string[]> = { ...variables };
 

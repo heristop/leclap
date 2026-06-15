@@ -33,16 +33,25 @@ const formatTime = (seconds: number) => {
 interface RecordSectionHeaderProps {
   section: Section;
   isRecording: boolean;
+  // Back is also blocked while the stopped clip finalizes, so navigation can't fire mid-save.
+  backDisabled: boolean;
   recordingDuration: number;
   onBack: () => void;
   t: TFunction<'recording'>;
 }
 
-const RecordSectionHeader = ({ section, isRecording, recordingDuration, onBack, t }: RecordSectionHeaderProps) => (
+const RecordSectionHeader = ({
+  section,
+  isRecording,
+  backDisabled,
+  recordingDuration,
+  onBack,
+  t,
+}: RecordSectionHeaderProps) => (
   <View style={styles.headerBar}>
-    <TouchableOpacity style={styles.headerButton} onPress={onBack} disabled={isRecording}>
-      <Ionicons name="arrow-back" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
-      <Text style={[styles.headerButtonText, isRecording && { color: 'rgba(255,255,255,0.5)' }]}>
+    <TouchableOpacity style={styles.headerButton} onPress={onBack} disabled={backDisabled}>
+      <Ionicons name="arrow-back" size={24} color={backDisabled ? 'rgba(255,255,255,0.5)' : 'white'} />
+      <Text style={[styles.headerButtonText, backDisabled && { color: 'rgba(255,255,255,0.5)' }]}>
         {t('actions.back', { ns: 'common' })}
       </Text>
     </TouchableOpacity>
@@ -195,6 +204,7 @@ const RecordSectionScreen = () => {
   const saveProjectMutation = useSaveProject();
 
   const [isRecording] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const recordingDuration = useRecordingTimer(isRecording);
 
   useOrientationLock(orientation);
@@ -238,6 +248,7 @@ const RecordSectionScreen = () => {
       <RecordSectionHeader
         section={section}
         isRecording={isRecording}
+        backDisabled={isRecording || isFinalizing}
         recordingDuration={recordingDuration}
         onBack={() => {
           router.back();
@@ -255,6 +266,7 @@ const RecordSectionScreen = () => {
         countdownSeconds={section.options?.countdown ? (section.options.countdownDuration ?? 4) : undefined}
         maxDurationSeconds={section.options?.duration}
         framingGuide={section.options?.framingGuide}
+        onFinalizingChange={setIsFinalizing}
         fullscreen
       />
     </View>

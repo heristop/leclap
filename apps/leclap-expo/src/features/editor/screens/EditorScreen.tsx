@@ -14,7 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import FormSection from '../components/FormSection';
 import type { Template, Section, Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { fetchTemplateByName } from '@/src/services/api';
+import { findInCatalog } from '@/src/templates/catalog';
+import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
 import { compileHybrid } from '@/src/services/compile/compileHybrid';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useRouter } from 'expo-router';
@@ -247,7 +248,12 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
       setIsLoading(true);
 
       try {
-        const templateData = await fetchTemplateByName(templateName);
+        const templateData = findInCatalog(useUserTemplateStore.getState().templates, templateName);
+
+        if (!templateData) {
+          throw new Error(`Template "${templateName}" not found in the local catalog`);
+        }
+
         setTemplate(templateData);
 
         const existing = projectId ? projects.find((p) => p.id === projectId) : undefined;

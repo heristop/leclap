@@ -9,8 +9,6 @@ import type { Template } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
 import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
-import { useOffline } from '@/src/providers/OfflineProvider';
-import { useCompileMode } from '@/src/stores/useSettingsStore';
 import Button from '../../../components/ui/Button';
 import * as Haptics from 'expo-haptics';
 
@@ -22,11 +20,8 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   const router = useRouter();
   const { t } = useTranslation('templates');
   const { data: templates = [], isLoading, error, refetch } = useTemplates();
-  const { isOffline } = useOffline();
-  const mode = useCompileMode();
-  // Offline only matters in Cloud mode (server fetch). Local scenarios are bundled, so being offline
-  // changes nothing — don't let it frame the on-device experience as a degraded/offline one.
-  const offlineForUi = mode === 'server' && isOffline;
+  // The catalog is bundled and renders on-device, so being offline never degrades the experience.
+  const offlineForUi = false;
 
   const handleSelectTemplate = (template: Template) => {
     const navigate = () => {

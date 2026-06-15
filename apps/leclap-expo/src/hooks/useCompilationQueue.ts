@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  addToCompilationQueue,
   getCompilationQueue,
   updateCompilationQueueItem,
   removeFromCompilationQueue,
@@ -13,7 +12,6 @@ import { type CompileRecordedVideos } from '@/src/services/api';
 import { compileHybrid } from '@/src/services/compile/compileHybrid';
 import { isFFmpegAvailable } from '@/src/services/compile/ffmpegAvailability';
 import { hasInternetConnection, waitForConnection } from '@/src/services/network';
-import { resolveCompileMode } from '@/src/stores/useSettingsStore';
 import type { MediaChoices } from '@/src/types';
 
 type QueueItemResult = { id: string; success: boolean; error?: string };
@@ -129,7 +127,6 @@ export const useQueueVideoCompilation = () => {
 
   return useMutation({
     mutationFn: async ({
-      projectId,
       templateDescriptor,
       recordedVideos,
       mediaChoices,
@@ -139,36 +136,11 @@ export const useQueueVideoCompilation = () => {
       recordedVideos: CompileRecordedVideos;
       mediaChoices?: MediaChoices;
     }) => {
-      // Local mode: the video is rendered on the phone, right now — never queued. Surface success
-      // or failure inline (the caller shows the result or the error).
-      if (resolveCompileMode() === 'local') {
-        const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
+      // The app is fully local: the video renders on the phone right now and is never queued. Surface
+      // success or failure inline (the caller shows the result or the error).
+      const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
 
-        return { immediate: true, result };
-      }
-
-      // Cloud mode: render on the server. Do it now if the server is reachable; otherwise queue it
-      // and let the queue drain when the connection comes back.
-      if (await hasInternetConnection()) {
-        try {
-          const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
-
-          if (result.success) {
-            return { immediate: true, result };
-          }
-        } catch (error) {
-          console.warn('Server compilation failed, adding to queue:', error);
-        }
-      }
-
-      const queueItemId = await addToCompilationQueue({
-        projectId,
-        templateDescriptor,
-        recordedVideos,
-        status: 'pending',
-      });
-
-      return { immediate: false, queueItemId };
+      return { immediate: true, result };
     },
     onSuccess: () => {
       invalidateQueueKeys(queryClient);

@@ -3,7 +3,15 @@
     "create": "Create a template",
     "edit": "Edit template",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "undo": "Undo",
+    "redo": "Redo",
+    "import": "Import template JSON",
+    "export": "Export template JSON"
+  },
+  "importError": {
+    "title": "Could not import",
+    "description": "That file isn't a valid template descriptor."
   },
   "name": {
     "label": "Name",
@@ -191,6 +199,11 @@
     "globalAudio": "Audio mix"
   },
   "save": "Save template",
+  "preview": "Preview",
+  "previewError": {
+    "title": "Preview failed",
+    "description": "Could not render a preview of this template."
+  },
   "alerts": {
     "nameRequired": {
       "title": "Name required",

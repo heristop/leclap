@@ -3,6 +3,8 @@
 export interface Template {
   name: string;
   content: TemplateDescriptor;
+  /** `user` = built by the user in the editor; `sample` = a bundled @leclap/creative-kit template. */
+  source?: 'sample' | 'user';
 }
 
 export interface TemplateDescriptor {

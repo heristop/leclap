@@ -12,6 +12,7 @@ import {
   Easing,
 } from 'react-native';
 import { Camera, useCameraDevice, type VideoFile } from 'react-native-vision-camera';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -31,10 +32,18 @@ interface VideoRecorderProps {
   maxDurationSeconds?: number;
   // Camera framing guide overlay — shown during live preview/recording only, never burned into video.
   framingGuide?: FramingGuide;
+  // Fired when the post-stop "finalizing" freeze begins/ends so the host can disable its own chrome
+  // (e.g. the Back button), which lives outside this component's stacking context.
+  onFinalizingChange?: (finalizing: boolean) => void;
 }
 
 // How many seconds before the target duration the end-of-recording warning kicks in.
 const END_WARNING_THRESHOLD = 3;
+
+// Scrim gradients (brand near-black) that keep the header/description/controls legible over the live
+// camera. `as const` so the colors satisfy LinearGradient's readonly-tuple prop type.
+const TOP_SCRIM_COLORS = ['rgba(11,11,15,0.65)', 'rgba(11,11,15,0)'] as const;
+const BOTTOM_SCRIM_COLORS = ['rgba(11,11,15,0)', 'rgba(11,11,15,0.7)'] as const;
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -207,13 +216,16 @@ interface DescriptionOverlayProps {
 function DescriptionOverlay({ isPortrait, description, onDismiss }: DescriptionOverlayProps) {
   return (
     <TouchableOpacity
+      activeOpacity={0.9}
       style={[
         styles.descriptionOverlay,
         isPortrait ? styles.portraitDescriptionOverlay : styles.landscapeDescriptionOverlay,
       ]}
       onPress={onDismiss}
     >
+      <Ionicons name="sparkles" size={16} color={colors.primary} style={styles.descriptionIcon} />
       <Text style={styles.descriptionOverlayText}>{description}</Text>
+      <Ionicons name="close" size={16} color="rgba(255,255,255,0.6)" style={styles.descriptionClose} />
     </TouchableOpacity>
   );
 }
@@ -371,6 +383,9 @@ function useWarningPulse(active: boolean): Animated.Value {
 interface RecordingActionsParams {
   cameraRef: React.RefObject<Camera | null>;
   setIsRecording: (v: boolean) => void;
+  // Toggled while the native engine finalizes the stopped recording (and the clip is saved/navigated).
+  // Drives the blocking overlay so taps during that brief freeze can't start a new take or navigate.
+  setIsFinalizing: (v: boolean) => void;
   onVideoRecorded: (videoFile: VideoFile, orientation: 'portrait' | 'landscape') => void;
   orientation: 'portrait' | 'landscape';
   device: ReturnType<typeof useCameraDevice>;
@@ -379,6 +394,7 @@ interface RecordingActionsParams {
 function useRecordingActions({
   cameraRef,
   setIsRecording,
+  setIsFinalizing,
   onVideoRecorded,
   orientation,
   device,
@@ -423,6 +439,7 @@ function useRecordingActions({
           isStoppingRef.current = false;
           console.error('Recording error:', error);
           setIsRecording(false);
+          setIsFinalizing(false);
         },
       });
     } catch (error) {
@@ -439,6 +456,9 @@ function useRecordingActions({
       return;
     }
     isStoppingRef.current = true;
+    // Block the controls the instant stop is requested — the native finalize + save run after this,
+    // and `onRecordingFinished` (which clears the guards) only fires once they complete.
+    setIsFinalizing(true);
 
     try {
       await cameraRef.current.stopRecording();
@@ -447,6 +467,7 @@ function useRecordingActions({
       isStoppingRef.current = false;
       console.error('Failed to stop recording:', error);
       setIsRecording(false);
+      setIsFinalizing(false);
     }
   };
 
@@ -532,41 +553,62 @@ function useCaptureControls({
   return { countdown, warningPulse, showEndWarning, remaining, onRecordButtonPress };
 }
 
-const VideoRecorder: React.FC<VideoRecorderProps> = ({
-  orientation,
-  onVideoRecorded,
-  sectionDescription,
-  fullscreen = false,
-  countdownSeconds,
-  maxDurationSeconds,
-  framingGuide,
-}) => {
-  const { t } = useTranslation('recording');
-  const [isRecording, setIsRecording] = useState(false);
-  const [showDescription, setShowDescription] = useState(true);
-  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
-  const cameraRef = useRef<Camera | null>(null);
-  const device = useCameraDevice(cameraType);
-  const { hasPermission, isCheckingPermissions } = useCameraPermissions();
-  const recordingDuration = useRecordingTimer(isRecording);
-  const pulseAnim = usePulseAnimation(isRecording);
-  const isPortrait = orientation === 'portrait';
-  const dimensions = getPreviewDimensions(orientation, fullscreen);
-  const { handleRecordPress } = useRecordingActions({
-    cameraRef,
-    setIsRecording,
-    onVideoRecorded,
-    orientation,
-    device,
-  });
-  const { countdown, warningPulse, showEndWarning, remaining, onRecordButtonPress } = useCaptureControls({
-    isRecording,
-    recordingDuration,
-    handleRecordPress,
-    countdownSeconds,
-    maxDurationSeconds,
-  });
+interface RecorderFooterProps {
+  isPortrait: boolean;
+  isRecording: boolean;
+  sectionDescription?: string;
+  showDescription: boolean;
+  onDismissDescription: () => void;
+  orientation: 'portrait' | 'landscape';
+  t: TFunction<'recording'>;
+}
 
+// The pre-recording chrome: the dismissable section prompt and the orientation hint chip. Both hide
+// once recording starts.
+const RecorderFooter = ({
+  isPortrait,
+  isRecording,
+  sectionDescription,
+  showDescription,
+  onDismissDescription,
+  orientation,
+  t,
+}: RecorderFooterProps) => (
+  <>
+    {sectionDescription && showDescription && !isRecording && (
+      <DescriptionOverlay isPortrait={isPortrait} description={sectionDescription} onDismiss={onDismissDescription} />
+    )}
+    {!isRecording && (
+      <View style={[styles.instructionChip, isPortrait ? styles.portraitInstructions : styles.landscapeInstructions]}>
+        <Ionicons
+          name={isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline'}
+          size={13}
+          color="rgba(255,255,255,0.7)"
+        />
+        <Text style={styles.instructionText}>{getInstructionText(orientation, t)}</Text>
+      </View>
+    )}
+  </>
+);
+
+interface PermissionGateProps {
+  isCheckingPermissions: boolean;
+  hasPermission: boolean | null;
+  device: ReturnType<typeof useCameraDevice>;
+  dimensions: { width: number; height: number };
+  t: TFunction<'recording'>;
+}
+
+// Returns the blocking state (permission check, denied, or no camera) to show instead of the
+// recorder, or null when the camera is ready. Pulling these out of VideoRecorder keeps its branch
+// count down.
+const permissionGate = ({
+  isCheckingPermissions,
+  hasPermission,
+  device,
+  dimensions,
+  t,
+}: PermissionGateProps): React.ReactElement | null => {
   if (isCheckingPermissions) {
     return (
       <View style={styles.permissionContainer}>
@@ -594,10 +636,67 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     );
   }
 
+  return null;
+};
+
+const VideoRecorder: React.FC<VideoRecorderProps> = ({
+  orientation,
+  onVideoRecorded,
+  sectionDescription,
+  fullscreen = false,
+  countdownSeconds,
+  maxDurationSeconds,
+  framingGuide,
+  onFinalizingChange,
+}) => {
+  const { t } = useTranslation('recording');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isFinalizing, setIsFinalizingState] = useState(false);
+  // Keep local state and the host callback in lock-step so the host's Back button disables in the
+  // same render the in-component controls do.
+  const setIsFinalizing = (v: boolean) => {
+    setIsFinalizingState(v);
+    onFinalizingChange?.(v);
+  };
+  const [showDescription, setShowDescription] = useState(true);
+  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
+  const cameraRef = useRef<Camera | null>(null);
+  const device = useCameraDevice(cameraType);
+  const { hasPermission, isCheckingPermissions } = useCameraPermissions();
+  const recordingDuration = useRecordingTimer(isRecording);
+  const pulseAnim = usePulseAnimation(isRecording);
+  const isPortrait = orientation === 'portrait';
+  const dimensions = getPreviewDimensions(orientation, fullscreen);
+  const { handleRecordPress } = useRecordingActions({
+    cameraRef,
+    setIsRecording,
+    setIsFinalizing,
+    onVideoRecorded,
+    orientation,
+    device,
+  });
+  const { countdown, warningPulse, showEndWarning, remaining, onRecordButtonPress } = useCaptureControls({
+    isRecording,
+    recordingDuration,
+    handleRecordPress,
+    countdownSeconds,
+    maxDurationSeconds,
+  });
+
+  const gate = permissionGate({ isCheckingPermissions, hasPermission, device, dimensions, t });
+
+  if (gate) return gate;
+
+  // The gate already covers a missing device; this narrows the type for <Camera> below.
+  if (!device) return null;
+
   return (
     <View style={fullscreen ? styles.fullscreenContainer : styles.container}>
       <StatusBar hidden backgroundColor="transparent" translucent />
       <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio />
+      {/* Top + bottom scrims keep the header, description and controls legible over any camera frame. */}
+      <LinearGradient pointerEvents="none" colors={TOP_SCRIM_COLORS} style={styles.topScrim} />
+      <LinearGradient pointerEvents="none" colors={BOTTOM_SCRIM_COLORS} style={styles.bottomScrim} />
       <FramingGuideOverlayWhenLive guide={framingGuide} orientation={orientation} />
       <CaptureOverlays
         isPortrait={isPortrait}
@@ -610,29 +709,41 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         t={t}
       />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
-        <TouchableOpacity style={[styles.recordButton, isRecording && styles.stopButton]} onPress={onRecordButtonPress}>
+        <TouchableOpacity
+          style={[styles.recordButton, isRecording && styles.stopButton]}
+          onPress={onRecordButtonPress}
+          disabled={isFinalizing}
+        >
           <Animated.View style={[styles.recordIcon, { transform: [{ scale: pulseAnim }] }]} />
         </TouchableOpacity>
       </View>
       <FlipButton
         isPortrait={isPortrait}
-        isRecording={isRecording}
+        isRecording={isRecording || isFinalizing}
         onPress={() => {
           setCameraType(getNextCameraType);
         }}
       />
-      {sectionDescription && showDescription && (
-        <DescriptionOverlay
-          isPortrait={isPortrait}
-          description={sectionDescription}
-          onDismiss={() => {
-            setShowDescription(false);
-          }}
-        />
+      <RecorderFooter
+        isPortrait={isPortrait}
+        isRecording={isRecording}
+        sectionDescription={sectionDescription}
+        showDescription={showDescription}
+        onDismissDescription={() => {
+          setShowDescription(false);
+        }}
+        orientation={orientation}
+        t={t}
+      />
+      {/* Full-screen blocker shown the moment stop is pressed, until the clip finishes finalizing and
+          the screen navigates away. Its high zIndex also covers the host header's Back button, so no
+          action can fire during the freeze. */}
+      {isFinalizing && (
+        <View style={styles.finalizingOverlay}>
+          <ActivityIndicator size="large" color="white" />
+          <Text style={styles.finalizingText}>{t('processing')}</Text>
+        </View>
       )}
-      <Text style={[styles.instructionText, isPortrait ? styles.portraitInstructions : styles.landscapeInstructions]}>
-        {getInstructionText(orientation, t)}
-      </Text>
     </View>
   );
 };
@@ -641,6 +752,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000', position: 'relative' },
   fullscreenContainer: { flex: 1, backgroundColor: '#000', position: 'relative' },
   camera: { width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 },
+  // Above every other overlay (timer is zIndex 50) so it fully captures touches during the freeze.
+  finalizingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(11,11,15,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.m,
+    zIndex: 100,
+  },
+  finalizingText: { ...typography.body, color: 'white', fontSize: 15 },
   timer: {
     position: 'absolute',
     flexDirection: 'row',
@@ -740,34 +865,58 @@ const styles = StyleSheet.create({
   },
   portraitFlipButton: { bottom: 50, right: 50 },
   landscapeFlipButton: { bottom: 50, left: 50 },
+  topScrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 220, zIndex: 1 },
+  bottomScrim: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280, zIndex: 1 },
   descriptionOverlay: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 12,
-    padding: spacing.m,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.s,
+    backgroundColor: 'rgba(11,11,15,0.78)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
     zIndex: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  portraitDescriptionOverlay: { top: 120, left: 20, right: 20 },
-  landscapeDescriptionOverlay: { top: 80, left: 100, maxWidth: '50%' },
-  descriptionOverlayText: { ...typography.body, color: 'white', textAlign: 'center', fontSize: 16, fontWeight: '500' },
+  portraitDescriptionOverlay: { top: 96, left: 16, right: 16 },
+  landscapeDescriptionOverlay: { top: 76, left: 100, maxWidth: '50%' },
+  descriptionIcon: { marginTop: 1 },
+  descriptionClose: { marginTop: 1 },
+  descriptionOverlayText: {
+    ...typography.body,
+    flex: 1,
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  instructionChip: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(11,11,15,0.5)',
+    paddingVertical: 6,
+    paddingHorizontal: spacing.m,
+    borderRadius: 999,
+    zIndex: 4,
+  },
   instructionText: {
     ...typography.caption,
-    textAlign: 'center',
-    position: 'absolute',
-    color: 'white',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    padding: spacing.s,
-    borderRadius: 8,
-    zIndex: 4,
-    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 13,
   },
-  portraitInstructions: { bottom: 150, left: 20, right: 20 },
-  landscapeInstructions: { bottom: 20, left: 100, right: 100 },
+  portraitInstructions: { bottom: 150 },
+  landscapeInstructions: { bottom: 20 },
   errorText: { ...typography.body, color: colors.error, textAlign: 'center' },
   permissionContainer: {
     flex: 1,

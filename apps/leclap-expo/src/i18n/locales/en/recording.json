@@ -27,5 +27,6 @@
       "message": "Failed to save recorded video. Please try again."
     }
   },
-  "loadingError": "Error loading recording screen."
+  "loadingError": "Error loading recording screen.",
+  "processing": "Processing…"
 }

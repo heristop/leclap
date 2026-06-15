@@ -9,7 +9,6 @@ import editor from './editor.json';
 import recording from './recording.json';
 import preview from './preview.json';
 import queue from './queue.json';
-import settings from './settings.json';
 import permissions from './permissions.json';
 import alerts from './alerts.json';
 import detail from './detail.json';
@@ -23,7 +22,6 @@ export const en = {
   recording,
   preview,
   queue,
-  settings,
   permissions,
   alerts,
   detail,

@@ -51,11 +51,11 @@ const destinations: CopyDest[] = [
     dest: resolve(root, 'apps/leclap-web/public/assets/videos'),
   },
   {
-    // The RN app only needs the brand bumper bundled (the sole descriptor-referenced video); the rest
+    // The RN app only needs the brand bumpers bundled (the descriptor-referenced videos); the rest
     // are sample clips that would bloat the binary. Web ships the full set above.
     src: resolve(libDir, 'videos'),
     dest: resolve(root, 'apps/leclap-expo/assets/videos'),
-    include: ['leclap_bumper.mp4'],
+    include: ['leclap_bumper.mp4', 'leclap_bumper_portrait.mp4'],
   },
 ];
 

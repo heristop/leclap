@@ -32,10 +32,10 @@
     "deps:graph": "depcruise packages/ffmpeg-video-composer/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
     "deps:html": "depcruise packages/ffmpeg-video-composer/src --output-type html > docs/dependency-report.html",
     "prepare": "vp config",
-    "playground:start": "pnpm --filter @leclap/expo run start",
-    "playground:android": "pnpm --filter @leclap/expo run android",
-    "playground:ios": "pnpm --filter @leclap/expo run ios",
-    "playground:web": "pnpm --filter @leclap/web run dev",
+    "app:web": "pnpm --filter @leclap/web run dev",
+    "app:expo": "pnpm --filter @leclap/expo run start",
+    "app:ios": "pnpm --filter @leclap/expo run ios",
+    "app:android": "pnpm --filter @leclap/expo run android",
     "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/mcp/dist/index.js"
   },
   "devDependencies": {

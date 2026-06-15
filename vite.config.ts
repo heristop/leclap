@@ -21,6 +21,11 @@ export default defineConfig({
   staged: {
     '*.{ts,tsx,js,cjs,mjs,json,md,yml,yaml}': 'vp fmt',
     '*.{ts,tsx}': 'vp lint',
+    // Block commits that introduce a circular / forbidden module dependency. A function task (not a
+    // string) so the staged filenames are NOT appended — depcruise cruises the whole core graph (which
+    // follows into creative-kit, where such cycles surface), not a file list. Static analysis only, so
+    // it's fast. Scoped to the two packages the graph covers, so unrelated commits skip it.
+    'packages/{ffmpeg-video-composer,creative-kit}/**/*.{ts,tsx}': () => 'pnpm deps:check',
   },
   lint: {
     plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
@@ -324,12 +329,6 @@ export default defineConfig({
         rules: {},
       },
       {
-        // @leclap/server-app (Node/Fastify service)
-        files: ['packages/server-app/**'],
-        env: { node: true, es2024: true },
-        rules: {},
-      },
-      {
         // leclap-web (React + Vite browser app)
         files: ['apps/leclap-web/**'],
         plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
@@ -356,14 +355,16 @@ export default defineConfig({
         },
       },
       {
-        // @leclap/leclap-bumper (Remotion render package): React/Remotion components run long, like
-        // the UI layer, so the file/function size budgets are relaxed here as they are for apps/**.
-        files: ['packages/leclap-bumper/**'],
+        // @leclap/brand-motion (Remotion render package): a Remotion component's body is one long
+        // sequence of derived interpolate/spring animation values, so the file/function size and
+        // statement budgets are relaxed here as they are for apps/**.
+        files: ['packages/leclap-brand-motion/**'],
         plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
         env: { browser: true, es2024: true },
         rules: {
           'max-lines': 'off',
           'max-lines-per-function': 'off',
+          'max-statements': 'off',
         },
       },
       // -------------------------------------------------------------------------------------
@@ -458,7 +459,7 @@ export default defineConfig({
         },
       },
       {
-        // Generated data modules (e.g. catalog/templates.generated.ts from scripts/embedTemplates.ts)
+        // Generated data modules (e.g. catalog/templates.generated.ts from scripts/embed-templates.ts)
         // are machine-emitted, not hand-maintained, so the file/function size budgets don't apply.
         files: ['**/*.generated.ts'],
         rules: {

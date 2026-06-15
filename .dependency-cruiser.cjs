@@ -88,8 +88,16 @@ module.exports = {
               attributes: { fillcolor: '#ffffcc' },
             },
             {
-              criteria: { source: '^packages/ffmpeg-video-composer/src/shared' },
-              attributes: { fillcolor: '#ffccff' },
+              criteria: { source: '^packages/ffmpeg-video-composer/src/schemas' },
+              attributes: { fillcolor: '#ccffff' },
+            },
+            {
+              criteria: { source: '^packages/ffmpeg-video-composer/src/services' },
+              attributes: { fillcolor: '#ffe0cc' },
+            },
+            {
+              criteria: { source: '^packages/ffmpeg-video-composer/src/utils' },
+              attributes: { fillcolor: '#e6ccff' },
             },
           ],
           dependencies: [
@@ -110,8 +118,16 @@ module.exports = {
               attributes: { color: '#ffff0077' },
             },
             {
-              criteria: { resolved: '^packages/ffmpeg-video-composer/src/shared' },
-              attributes: { color: '#ff00ff77' },
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/schemas' },
+              attributes: { color: '#00ffff77' },
+            },
+            {
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/services' },
+              attributes: { color: '#ff880077' },
+            },
+            {
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/utils' },
+              attributes: { color: '#8800ff77' },
             },
           ],
         },

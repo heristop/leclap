@@ -26,7 +26,7 @@ FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --dis
  --enable-decoder=h264,hevc,aac,mp3,pcm_s16le,mpeg4,png,mjpeg \
  --enable-encoder=aac,mpeg4,libopenh264 \
  --enable-filter=scale,crop,pad,setsar,setdar,format,fps,trim,setpts,settb,fade,drawtext,overlay,concat,xfade,loop,tile,\
-boxblur,drawbox,eq,gblur,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,\
+boxblur,drawbox,gblur,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
 atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,volume,anull,anullsrc,color,sine \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"
 

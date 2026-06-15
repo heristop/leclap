@@ -1,0 +1,16 @@
+{
+  "global": {
+    "orientation": "portrait",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "smoke",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#1e293b",
+        "duration": 1
+      }
+    }
+  ]
+}

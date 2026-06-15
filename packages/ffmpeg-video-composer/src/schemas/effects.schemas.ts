@@ -284,6 +284,10 @@ export const FramingGuideSchema = z
     position: z
       .enum(['left', 'center', 'right'])
       .describe('Horizontal position of the silhouette within the recording viewfinder.'),
-    opacity: z.number().min(0).max(1).optional().describe('Opacity of the framing guide overlay, 0..1 (default 0.5).'),
+    opacity: z.number().min(0).max(1).optional().describe('Opacity of the framing guide overlay, 0..1 (default 0.45).'),
+    style: z
+      .enum(['bust', 'outline'])
+      .optional()
+      .describe('Silhouette rendering style: a filled "bust" (default) or a stroked "outline".'),
   })
   .describe('Camera framing guide shown in the recording UI; never rendered into the video.');

@@ -3,6 +3,7 @@ export type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.
 import { coreTemplateService, type CoreTemplate } from '@/infrastructure/templates/coreTemplateService';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { userTemplateService } from '@/services/userTemplateService';
+import { materializeTemplatePartials } from '@/services/templatePartialService';
 import { templateLogger } from '@/lib/logger';
 
 export interface Template {
@@ -44,6 +45,16 @@ const getServerUrl = () => {
 class TemplateService {
   private readonly serverUrl = getServerUrl();
   private readonly templatesCache = new Map<string, TemplateDescriptor>();
+
+  private materializeForRead(template: TemplateDescriptor): TemplateDescriptor {
+    try {
+      return materializeTemplatePartials(template);
+    } catch (error) {
+      templateLogger.warn('Could not expand template partials:', error);
+
+      return template;
+    }
+  }
 
   private convertCoreTemplate(coreTemplate: CoreTemplate): Template {
     const template: Template = {
@@ -126,7 +137,7 @@ class TemplateService {
       type?: string;
     }> = [];
 
-    for (const section of template.sections ?? []) {
+    for (const section of this.materializeForRead(template).sections ?? []) {
       if (section.type === 'form' && section.options?.fields) {
         // Core's Field.label is a Translation (values may be undefined); the
         // consumers here only read field names/length, so coerce the shape.
@@ -139,7 +150,7 @@ class TemplateService {
 
   // Fields of ONE form section (by section name) — for the per-section form step in the wizard.
   extractFormFieldsForSection(template: TemplateDescriptor, sectionName: string): FormFieldShape[] {
-    const section = (template.sections ?? []).find((s) => s.name === sectionName);
+    const section = (this.materializeForRead(template).sections ?? []).find((s) => s.name === sectionName);
 
     if (section?.type !== 'form' || !section.options?.fields) {
       return [];
@@ -155,7 +166,7 @@ class TemplateService {
     const out: InputSection[] = [];
     let clipIndex = 0;
 
-    for (const section of (template.sections ?? []) as Array<{
+    for (const section of (this.materializeForRead(template).sections ?? []) as Array<{
       name: string;
       type: string;
       title?: Translation;
@@ -188,12 +199,13 @@ class TemplateService {
   }
 
   getTemplateComplexity(template: TemplateDescriptor): 'simple' | 'intermediate' | 'advanced' {
+    const materialized = this.materializeForRead(template);
     // Single pass over the sections instead of three separate traversals.
     let formSections = 0;
     let videoSections = 0;
     let totalFilters = 0;
 
-    for (const section of template.sections ?? []) {
+    for (const section of materialized.sections ?? []) {
       if (section.type === 'form') formSections++;
 
       if (section.type === 'project_video') videoSections++;

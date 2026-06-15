@@ -196,13 +196,6 @@ class MusicComposer {
     return section.options?.duration ?? 0;
   }
 
-  // Duration of the xfade boundary after section at `boundaryIndex` (0-based). 0 for cut or missing.
-  private getBoundaryTransitionDuration(boundaryIndex: number): number {
-    const b = this.project.buildInfos.transitions.at(boundaryIndex);
-
-    return b === undefined || b.type === 'cut' ? 0 : b.duration;
-  }
-
   /**
    * Configure audio filters for video segment
    */
@@ -224,12 +217,13 @@ class MusicComposer {
     const ss = this.project.buildInfos.currentLength;
     const t = duration + transitionDuration;
 
-    // When using xfade transitions, each boundary shortens the rendered timeline by the transition
-    // duration, so the music window start for the next section must be shifted accordingly.
-    // Boundary (sectionIncrement - 1) sits after the current section (1-indexed → 0-indexed).
-    // Last section has no following boundary — no adjustment needed.
-    const boundaryDuration = isLastSection ? 0 : this.getBoundaryTransitionDuration(sectionIncrement - 1);
-    this.project.buildInfos.currentLength += duration - boundaryDuration;
+    // Advance the music cursor by the FULL section duration so the next section's window starts
+    // exactly where this one's content ends. The acrossfade (d=transitionDuration) then blends each
+    // leg's last `transitionDuration` with the next leg's first `transitionDuration` over IDENTICAL
+    // source audio, keeping the music continuous. Subtracting the boundary transition here shifted
+    // the next window early, so the acrossfade blended two offset copies of the song — a doubled,
+    // time-shifted echo most audible in a music-only outro.
+    this.project.buildInfos.currentLength += duration;
 
     const baseFilter = `[1:a]atrim=start=${ss}:duration=${t},asetpts=PTS-STARTPTS`;
     const filter = this.buildMusicFilter({

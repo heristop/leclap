@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildDescriptor, newSection, type EditorState, type EditorSection } from '../templateEditorModel';
+import type { StoredPartial } from '@/stores/userPartialStore';
 import {
   descriptorIndexFromPath,
   descriptorIndexForEditor,
@@ -79,5 +80,19 @@ describe('groupValidationErrors + errorsForEditorSection', () => {
     const grouped = groupValidationErrors(runValidation(buildDescriptor(s)));
     expect(grouped.hasErrors).toBe(false);
     expect(grouped.global).toHaveLength(0);
+  });
+
+  it('validates local partial refs through the provided registry', () => {
+    const localPartial: StoredPartial = {
+      id: 'local:intro',
+      description: 'Local intro',
+      source: 'local',
+      createdAt: 1,
+      updatedAt: 1,
+      sections: [{ name: 'intro', type: 'color_background', options: { duration: 1, backgroundColor: '#111111' } }],
+    };
+    const s = state([{ kind: 'partial', ref: 'local:intro', variables: [] }]);
+
+    expect(runValidation(buildDescriptor(s), [localPartial])).toEqual([]);
   });
 });

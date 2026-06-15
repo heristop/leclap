@@ -29,10 +29,10 @@ function setup(): Handler {
 
 describe('validate_template handler', () => {
   it('validates a built-in by name and reports its form fields', () => {
-    const result = setup()({ templateName: 'premium-intro' });
+    const result = setup()({ templateName: 'intro' });
 
     expect(result.isError).toBeUndefined();
-    // premium-intro collects the title-card fields, then records one clip (video_1).
+    // intro collects the title-card fields, then records one clip (video_1).
     expect(result.structuredContent).toMatchObject({ valid: true, requiredClips: ['video_1'] });
     expect(result.structuredContent?.formFields).toEqual(['form_1_firstname', 'form_1_lastname', 'form_1_job']);
   });
@@ -58,7 +58,7 @@ describe('validate_template handler', () => {
   });
 
   it('rejects when both template and templateName are supplied', () => {
-    const result = setup()({ template: {}, templateName: 'premium-intro' });
+    const result = setup()({ template: {}, templateName: 'intro' });
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('exactly one');

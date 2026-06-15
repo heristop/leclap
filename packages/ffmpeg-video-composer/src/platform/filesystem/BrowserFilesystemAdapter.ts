@@ -81,6 +81,10 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   private readonly storeName = 'files';
   private db: IDBDatabase | null = null;
   private readonly initPromise: Promise<void> | null = null;
+  private static readonly rawPrefixes = [
+    'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/',
+    'https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/',
+  ];
 
   constructor() {
     super();
@@ -319,6 +323,30 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     } catch (error) {
       throw new Error(`Failed to fetch ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  override async resolveLocalAsset(url: string): Promise<string | null> {
+    const publicPath = this.publicAssetPath(url);
+
+    if (!publicPath) {
+      return null;
+    }
+
+    try {
+      return await this.fetch(publicPath);
+    } catch {
+      return null;
+    }
+  }
+
+  private publicAssetPath(url: string): string | null {
+    if (url.startsWith('/assets/')) {
+      return url;
+    }
+
+    const prefix = BrowserFilesystemAdapter.rawPrefixes.find((candidate) => url.startsWith(candidate));
+
+    return prefix ? `/assets/${url.slice(prefix.length)}` : null;
   }
 
   async append(targetPath: string, content: string): Promise<void> {

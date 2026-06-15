@@ -14,8 +14,14 @@ const load = async (): Promise<void> => {
   ];
 
   const loaded = await Promise.all(fonts.map((font) => font.load()));
-  loaded.forEach((font) => document.fonts.add(font));
+
+  for (const font of loaded) {
+    document.fonts.add(font);
+  }
+
   continueRender(handle);
 };
 
-load().catch(() => continueRender(handle));
+load().catch(() => {
+  continueRender(handle);
+});

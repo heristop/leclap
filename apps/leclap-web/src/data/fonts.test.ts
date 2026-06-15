@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { FONTS } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
+import { FONTS } from '@leclap/creative-kit/fonts';
 
 const publicDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../public');
 

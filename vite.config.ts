@@ -355,6 +355,17 @@ export default defineConfig({
           'unicorn/prefer-module': 'off',
         },
       },
+      {
+        // @leclap/leclap-bumper (Remotion render package): React/Remotion components run long, like
+        // the UI layer, so the file/function size budgets are relaxed here as they are for apps/**.
+        files: ['packages/leclap-bumper/**'],
+        plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
+        env: { browser: true, es2024: true },
+        rules: {
+          'max-lines': 'off',
+          'max-lines-per-function': 'off',
+        },
+      },
       // -------------------------------------------------------------------------------------
 
       {
@@ -413,6 +424,17 @@ export default defineConfig({
         // The WASM<->MEMFS bridge adapter is inherently long and sits a few lines over budget,
         // largely due to the ffmpeg log/progress listeners the unit tests assert.
         files: ['packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts'],
+        rules: {
+          'max-lines': 'off',
+        },
+      },
+      {
+        // Segment orchestration and the browser FS adapter both grew past the file budget with the
+        // gradient-layer / caption / partials features; splitting either mid-pipeline buys little.
+        files: [
+          'packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts',
+          'packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts',
+        ],
         rules: {
           'max-lines': 'off',
         },

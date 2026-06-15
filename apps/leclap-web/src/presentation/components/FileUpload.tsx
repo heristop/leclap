@@ -20,6 +20,8 @@ interface FileUploadProps {
   framingGuide?: FramingGuideConfig;
   // "What to film" hint forwarded to the camera.
   description?: string;
+  // Template orientation — forwarded so the camera frames/records vertical for portrait templates.
+  orientation?: 'portrait' | 'landscape';
 }
 
 function formatFileSize(bytes: number): string {
@@ -204,6 +206,7 @@ export const FileUpload = ({
   maxDurationSeconds,
   framingGuide,
   description,
+  orientation,
 }: FileUploadProps) => {
   const { t } = useTranslation('media');
   const [dragActive, setDragActive] = useState(false);
@@ -307,6 +310,7 @@ export const FileUpload = ({
           maxDurationSeconds={maxDurationSeconds}
           framingGuide={framingGuide}
           description={description}
+          orientation={orientation}
         />
       )}
 

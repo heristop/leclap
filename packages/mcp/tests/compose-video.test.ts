@@ -76,7 +76,7 @@ describe('compose_video handler', () => {
       audioCodec: 'aac',
     });
 
-    const result = (await setup()({ templateName: 'premium-titles', userVideoPaths: await stageClip() })) as {
+    const result = (await setup()({ templateName: 'titles', userVideoPaths: await stageClip() })) as {
       isError?: boolean;
       structuredContent?: Record<string, unknown>;
     };
@@ -99,7 +99,7 @@ describe('compose_video handler', () => {
       logTail: 'ffmpeg said no',
     });
 
-    const result = (await setup()({ templateName: 'premium-titles', userVideoPaths: await stageClip() })) as {
+    const result = (await setup()({ templateName: 'titles', userVideoPaths: await stageClip() })) as {
       isError?: boolean;
       content: { text: string }[];
     };
@@ -110,8 +110,8 @@ describe('compose_video handler', () => {
   });
 
   it('rejects before rendering when a required project_video clip is missing', async () => {
-    // premium-titles declares a single project_video section named `video_1`.
-    const result = (await setup()({ templateName: 'premium-titles' })) as {
+    // titles declares a single project_video section named `video_1`.
+    const result = (await setup()({ templateName: 'titles' })) as {
       isError?: boolean;
       content: { text: string }[];
     };

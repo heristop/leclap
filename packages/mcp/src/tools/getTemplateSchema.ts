@@ -4,13 +4,13 @@ import { z } from 'zod';
 
 // Short authoring guide prepended to the JSON Schema so an agent knows how to read it.
 const GUIDE = [
-  'Template authoring guide (descriptor v2):',
+  'Template authoring guide:',
   'A template has an optional top-level `global` (project-wide defaults) and an ordered `sections` ' +
     'array — each section becomes a clip and they are composed in order.',
   'Each section has a `name`, a `type` (video, project_video, form, color_background, ' +
     'image_background, music), optional `options`, and optional `filters`/`inputs`/`maps`.',
   'All durations are in SECONDS (options.duration, transition.duration, audioFade durations, etc.).',
-  'v2 adds a structured-sugar layer (prefer it over raw filters): `transition` ({type: an xfade name ' +
+  'A structured-sugar layer sits above raw filters (prefer it over raw filters): `transition` ({type: an xfade name ' +
     'or "cut", duration?}) on global and/or per section; `look` (cinematic/warm/cool/vintage/noir/' +
     'vivid/dreamy) and `grade` (brightness/contrast/saturation/gamma/hue/colorBalance/blur); `motion` ' +
     '(kenburns [image_background only], rotate, crop, flip); audio polish via global.audio ' +
@@ -23,10 +23,9 @@ const GUIDE = [
     'colorsList), and `{{ form_field }}` placeholders, all resolved at compose time.',
   'project_video sections need user-supplied clips passed at compose time; the JSON Schema below is ' +
     'the authoritative shape.',
-  'Start from a PREMIUM built-in (premium-intro, premium-quote, premium-titles, premium-reel-portrait, ' +
-    'premium-quote-portrait, premium-spotlight) via get_template, then edit it — they already look ' +
-    'professional and use only on-device-safe filters. Run validate_template (no render) to check edits ' +
-    'before compose_video.',
+  'Start from a built-in (intro, quote, titles, reel-portrait, quote-portrait, landscape-spotlight, ' +
+    'portrait-spotlight) via get_template, then edit it — they already look professional and use only ' +
+    'on-device-safe filters. Run validate_template (no render) to check edits before compose_video.',
 ].join('\n');
 
 function describeSchema(): string {

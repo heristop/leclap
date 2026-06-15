@@ -11,7 +11,7 @@ import {
   findMusic,
   findBackground,
   type MediaCredit,
-} from '../../../../packages/ffmpeg-video-composer/src/shared/library/catalog';
+} from '@leclap/creative-kit/media';
 
 export { MUSIC_LIBRARY, BACKGROUND_LIBRARY, findMusic, findBackground, type MediaCredit };
 

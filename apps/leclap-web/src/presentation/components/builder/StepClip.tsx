@@ -25,6 +25,8 @@ interface StepClipProps {
   // When false, render only the capture body — no centered header, no outer Card. The hub side sheet
   // supplies its own header/container, so the page chrome would just be a redundant card-in-card.
   chrome?: boolean;
+  // Template orientation — drives a vertical 9:16 camera frame + recording for portrait templates.
+  orientation?: 'portrait' | 'landscape';
 }
 
 // One focused screen for a single clip: record-with-camera or upload (max 1 file), wired to THIS
@@ -40,9 +42,10 @@ export const StepClip = ({
   onEditChange,
   vars,
   chrome = true,
+  orientation,
 }: StepClipProps) => {
   const { t, i18n } = useTranslation('builder');
-  const rec = recordingConfigForSection(section, i18n.language);
+  const rec = recordingConfigForSection(section);
   const resolvedTitle = resolveTranslation(section.title, i18n.language);
   const title = resolvedTitle ? resolveVariables(resolvedTitle, vars) : t('steps.clip', { number: clipNumber });
   // The recording config already resolved the description to the current locale; substitute its
@@ -61,6 +64,7 @@ export const StepClip = ({
         maxDurationSeconds={rec.maxDurationSeconds}
         framingGuide={rec.framingGuide}
         description={hint}
+        orientation={orientation}
       />
       {file && <VideoEditor file={file} label={t('stepClip.editorLabel')} edit={edit} onChange={onEditChange} />}
     </>

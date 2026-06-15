@@ -37,6 +37,7 @@ export interface FramingGuide {
   type: 'silhouette';
   position: 'left' | 'center' | 'right';
   opacity?: number;
+  style?: 'bust' | 'outline';
 }
 
 export interface Section {

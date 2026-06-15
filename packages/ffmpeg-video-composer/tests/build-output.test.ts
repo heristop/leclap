@@ -2,11 +2,44 @@ import 'reflect-metadata';
 import { describe, it, expect } from 'vitest';
 import { readFile, stat, access } from 'node:fs/promises';
 import { constants } from 'node:fs';
+import { execFile } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '../dist');
+const PKG_ROOT = path.resolve(__dirname, '..');
+
+interface CliResult {
+  code: number;
+  output: string;
+}
+
+// Run the BUILT cli.js as a real subprocess and capture its exit code + combined output. Always
+// resolves (even on non-zero exit) so the test can assert on the output rather than the promise
+// rejecting.
+function runCli(args: string[]): Promise<CliResult> {
+  return new Promise((resolve) => {
+    execFile(
+      process.execPath,
+      [path.join(DIST_DIR, 'cli.js'), ...args],
+      { cwd: PKG_ROOT, timeout: 90_000, maxBuffer: 10 * 1024 * 1024 },
+      (error, stdout, stderr) => {
+        const output = `${stdout}${stderr}`;
+
+        if (error === null) {
+          resolve({ code: 0, output });
+
+          return;
+        }
+
+        // error.code is the process exit code (number); a string errno or undefined for a
+        // spawn/signal/timeout failure — treat those as a generic non-zero.
+        resolve({ code: typeof error.code === 'number' ? error.code : 1, output });
+      }
+    );
+  });
+}
 
 function isTsSource(s: string): boolean {
   return s.endsWith('.ts');
@@ -333,5 +366,24 @@ describe('Build Output', () => {
       expect(typeof mod.BrowserFilesystemAdapter).toBe('function');
       expect(typeof mod.FFmpegWasmAdapter).toBe('function');
     });
+  });
+
+  // Regression guard for "CLI is broken: this.applyOrientationToScale is not a function". The unit
+  // suite exercises TemplateDirector.config() against the TS SOURCE, so it never catches a dist/cli.js
+  // that drifted from source (a stale or incomplete build where config() calls a class method the
+  // bundle never emitted). cli-entry.test.ts mocks src/index, so it can't catch it either. Only
+  // running the actual built cli.js as a subprocess does. The fixture is a minimal PORTRAIT color
+  // template so the compile is fast/self-contained and still exercises the portrait
+  // applyOrientationToScale branch that broke.
+  describe('CLI bundle (dist/cli.js)', () => {
+    it('compiles a template end-to-end without missing-method errors', async () => {
+      const fixture = path.join(__dirname, 'fixtures/cli-smoke.json');
+      const { code, output } = await runCli([fixture]);
+
+      // The specific regression: a method called by config() was absent from the bundle.
+      expect(output).not.toMatch(/is not a function/);
+      expect(output).toContain('Compilation completed successfully');
+      expect(code).toBe(0);
+    }, 90_000);
   });
 });

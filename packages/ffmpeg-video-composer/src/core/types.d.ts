@@ -56,8 +56,14 @@ export type ProjectBuildInfos = {
 
 // Descriptor
 export interface TemplateDescriptor {
+  meta?: TemplateMeta;
   global?: TemplateDescriptorGlobal;
-  sections?: Section[];
+  sections?: DescriptorSection[];
+}
+
+interface TemplateMeta {
+  name?: string;
+  description?: string;
 }
 
 interface TemplateDescriptorGlobal {
@@ -97,6 +103,8 @@ export interface Variables {
   [key: string]: string | string[];
 }
 
+type DescriptorSection = Section | PartialSection;
+
 export interface Section {
   name: string;
   type: string;
@@ -107,9 +115,43 @@ export interface Section {
   title?: Translation;
   description?: Translation;
   transition?: SectionTransition;
+  caption?: Caption;
   look?: string;
   grade?: GradeConfig;
   motion?: MotionEffect[];
+}
+
+export interface PartialSection {
+  type: 'partial';
+  name?: string;
+  options?: SectionOptions;
+  inputs?: Input[];
+  maps?: Map[];
+  filters?: Filter[];
+  title?: Translation;
+  description?: Translation;
+  transition?: SectionTransition;
+  caption?: Caption;
+  look?: string;
+  grade?: GradeConfig;
+  motion?: MotionEffect[];
+  ref?: string;
+  prefix?: string;
+  sections?: unknown[];
+  variables?: Record<string, string>;
+}
+
+export interface Caption {
+  text: Record<string, string>;
+  style?: 'bar' | 'subtle' | 'bold';
+  position?: 'top' | 'center' | 'bottom' | 'lower-third';
+  align?: 'left' | 'center' | 'right';
+  font?: string;
+  fontsize?: number;
+  color?: string;
+  box?: boolean;
+  boxColor?: string;
+  boxOpacity?: number;
 }
 
 interface AudioFade {
@@ -183,6 +225,7 @@ interface FramingGuideConfig {
   type: 'silhouette';
   position: 'left' | 'center' | 'right';
   opacity?: number;
+  style?: 'bust' | 'outline';
 }
 
 interface Input {

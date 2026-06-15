@@ -58,8 +58,8 @@ function resolveDescriptor(args: ValidateArgs): DescriptorResult {
 // The clips compose_video will require (one per project_video section, keyed by section name).
 function requiredClips(descriptor: TemplateDescriptor): string[] {
   return (descriptor.sections ?? [])
-    .filter((section) => section.type === 'project_video')
-    .map((section) => section.name);
+    .filter((section) => section.type === 'project_video' && typeof section.name === 'string')
+    .map((section) => section.name as string);
 }
 
 // The form field names the template collects — what compose_video expects in `fields`.

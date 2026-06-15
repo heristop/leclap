@@ -4,6 +4,8 @@
 // No React/DOM dependency — unit-testable in node.
 import { TemplateValidator, type ValidationError } from 'ffmpeg-video-composer/src/services/TemplateValidator.ts';
 import type { EditorState, TemplateDescriptor } from '../templateEditorModel';
+import type { StoredPartial } from '@/stores/userPartialStore';
+import { materializeTemplatePartials } from '@/services/templatePartialService';
 
 export type { ValidationError };
 
@@ -20,8 +22,22 @@ export interface SectionValidation {
 const validator = new TemplateValidator();
 
 // Validate a built descriptor, returning the flat error list (empty on success).
-export function runValidation(descriptor: TemplateDescriptor): ValidationError[] {
-  const result = validator.validateTemplate(descriptor);
+export function runValidation(descriptor: TemplateDescriptor, localPartials?: StoredPartial[]): ValidationError[] {
+  let materialized: TemplateDescriptor;
+
+  try {
+    materialized = materializeTemplatePartials(descriptor, localPartials);
+  } catch (error) {
+    return [
+      {
+        path: 'partial',
+        message: error instanceof Error ? error.message : 'Could not expand template partials',
+        code: 'unknown_partial',
+      },
+    ];
+  }
+
+  const result = validator.validateTemplate(materialized);
 
   if (result.success) return [];
 

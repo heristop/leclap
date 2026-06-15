@@ -1,0 +1,24 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "caption_card",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#0d1b2a",
+        "duration": 2
+      },
+      "caption": {
+        "text": {
+          "en": "Hello {{ form_1_firstname }}",
+          "fr": "Bonjour {{ form_1_firstname }}"
+        },
+        "position": "lower-third",
+        "style": "bar"
+      }
+    }
+  ]
+}

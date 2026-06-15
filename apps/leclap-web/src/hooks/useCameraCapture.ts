@@ -10,6 +10,8 @@ export interface CameraCaptureOptions {
   countdownSeconds?: number;
   // The section's target duration; drives the "wrap up" warning in its last seconds.
   maxDurationSeconds?: number;
+  // Portrait template: request and record a 9:16 frame so the clip matches the vertical output.
+  portrait?: boolean;
 }
 
 export type FacingMode = 'user' | 'environment';
@@ -75,22 +77,41 @@ function useRevokeObjectUrl(url: string | null): void {
   }, [url]);
 }
 
-// Builds a horizontally-flipped copy of the live video as a recordable stream, so the saved
-// front-camera file matches the mirrored selfie preview. Draws each frame to a canvas with an
-// inverted X scale, captures that canvas as a video track, and reuses the original audio track(s).
-function createMirroredStream(video: HTMLVideoElement, source: MediaStream): { stream: MediaStream; stop: () => void } {
-  const width = video.videoWidth || 1280;
-  const height = video.videoHeight || 720;
+// Center-crop rectangle of a wxh source for a target aspect ratio (e.g. 9/16 for a portrait
+// template). Matches the live preview's object-cover so the saved file shows the same framing.
+function cropRect(w: number, h: number, targetAspect: number): { sx: number; sy: number; sw: number; sh: number } {
+  const wide = w / h > targetAspect;
+  const sw = wide ? Math.round(h * targetAspect) : w;
+  const sh = wide ? h : Math.round(w / targetAspect);
+
+  return { sx: Math.round((w - sw) / 2), sy: Math.round((h - sh) / 2), sw, sh };
+}
+
+// Builds a recordable stream from the live video via a canvas, so the saved file matches the
+// preview: optionally horizontally flipped (front-camera selfie) and/or center-cropped to a 9:16
+// portrait frame for portrait templates. Reuses the original audio track(s).
+function createCanvasStream(
+  video: HTMLVideoElement,
+  source: MediaStream,
+  opts: { mirror: boolean; portrait: boolean }
+): { stream: MediaStream; stop: () => void } {
+  const vw = video.videoWidth || 1280;
+  const vh = video.videoHeight || 720;
+  const { sx, sy, sw, sh } = cropRect(vw, vh, opts.portrait ? 9 / 16 : vw / vh);
+
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = sw;
+  canvas.height = sh;
   const ctx = canvas.getContext('2d');
-  ctx?.translate(width, 0);
-  ctx?.scale(-1, 1);
+
+  if (opts.mirror) {
+    ctx?.translate(sw, 0);
+    ctx?.scale(-1, 1);
+  }
 
   let raf = 0;
   const draw = (): void => {
-    ctx?.drawImage(video, 0, 0, width, height);
+    ctx?.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
     raf = requestAnimationFrame(draw);
   };
   raf = requestAnimationFrame(draw);
@@ -132,6 +153,7 @@ function useRecorder(
   streamRef: React.RefObject<MediaStream | null>,
   videoRef: React.RefObject<HTMLVideoElement | null>,
   mirror: boolean,
+  portrait: boolean,
   handlers: RecorderHandlers
 ): RecorderController {
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -156,14 +178,15 @@ function useRecorder(
     chunksRef.current = [];
     const mimeType = pickMimeType();
 
-    // Front camera: record a mirrored canvas so the saved file matches the selfie preview. Back
-    // camera records the raw stream untouched.
+    // Record through a canvas when the saved file must differ from the raw track: a mirrored
+    // front-camera selfie and/or a 9:16 center-crop for a portrait template. Otherwise (landscape,
+    // back camera) record the raw stream untouched.
     let recordStream = source;
 
-    if (mirror && videoRef.current) {
-      const mirrored = createMirroredStream(videoRef.current, source);
-      mirrorStopRef.current = mirrored.stop;
-      recordStream = mirrored.stream;
+    if ((mirror || portrait) && videoRef.current) {
+      const processed = createCanvasStream(videoRef.current, source, { mirror, portrait });
+      mirrorStopRef.current = processed.stop;
+      recordStream = processed.stream;
     }
 
     const recorder = new MediaRecorder(recordStream, mimeType ? { mimeType } : undefined);
@@ -316,8 +339,13 @@ export function useCameraCapture(
       streamRef.current = null;
 
       try {
+        // Ask for a portrait frame on portrait templates (honored on mobile; desktop webcams stay
+        // landscape and get center-cropped to 9:16 when recording).
+        const ideal = options.portrait
+          ? { width: { ideal: 720 }, height: { ideal: 1280 } }
+          : { width: { ideal: 1280 }, height: { ideal: 720 } };
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: { facingMode, ...ideal },
           audio: true,
         });
         streamRef.current = stream;
@@ -343,9 +371,9 @@ export function useCameraCapture(
       stopTracks(streamRef.current);
       streamRef.current = null;
     };
-  }, [facingMode, restartToken]);
+  }, [facingMode, restartToken, options.portrait]);
 
-  const recorder = useRecorder(streamRef, videoRef, facingMode === 'user', {
+  const recorder = useRecorder(streamRef, videoRef, facingMode === 'user', options.portrait ?? false, {
     onStart: () => {
       setElapsed(0);
       setMode('recording');

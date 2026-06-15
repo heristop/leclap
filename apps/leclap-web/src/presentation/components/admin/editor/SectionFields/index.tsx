@@ -7,11 +7,14 @@ import { ColorFields } from './ColorFields';
 import { ImageFields } from './ImageFields';
 import { MusicFields } from './MusicFields';
 import { FormFields } from './FormFields';
+import { PartialFields } from './PartialFields';
+import type { AvailablePartial } from '@/services/templatePartialService';
 
 interface SectionFieldsProps {
   section: EditorSection;
   orientation: EditorState['orientation'];
   variables: string[];
+  partials: AvailablePartial[];
   onChange: (p: Partial<EditorSection>) => void;
   onLayers: (layers: BackgroundLayer[]) => void;
   inputCls: string;
@@ -21,10 +24,15 @@ export const SectionFields = ({
   section,
   orientation,
   variables,
+  partials,
   onChange,
   onLayers,
   inputCls,
 }: SectionFieldsProps) => {
+  if (section.kind === 'partial') {
+    return <PartialFields section={section} partials={partials} onChange={onChange} inputCls={inputCls} />;
+  }
+
   if (section.kind === 'video') {
     return (
       <VideoFields

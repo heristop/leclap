@@ -318,8 +318,8 @@ describe('MusicComposer.loopMusic', () => {
   });
 });
 
-describe('MusicComposer.prepareMusicTrack — transition-aware windows', () => {
-  it('second section start time is shifted by -0.5 when a wipeleft transition sits between sections', () => {
+describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => {
+  it('does not shift the next window for a non-cut transition, so acrossfade legs stay source-contiguous', () => {
     const project = makeProject();
     project.buildInfos.totalSegments = 2;
     // Boundary 0 (after section 1) is a wipeleft transition of duration 0.5.
@@ -333,10 +333,13 @@ describe('MusicComposer.prepareMusicTrack — transition-aware windows', () => {
     composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
 
     const filters = project.buildInfos.musicFilters.join('');
-    // Section 1: ss=0, no shift needed
+    // Section 1: ss=0, window covers source [0, 4.3].
     expect(filters).toContain('atrim=start=0:duration=4.3');
-    // Section 2: ss should be 4 - 0.5 = 3.5 (boundary transition subtracted from currentLength)
-    expect(filters).toContain('atrim=start=3.5:duration=4.3');
+    // Section 2 must start at the FULL section-1 duration (4), NOT 4 - 0.5. With start=4 the
+    // acrossfade (d=0.3) blends section-1's last 0.3s (source [4.0, 4.3]) with section-2's first
+    // 0.3s (source [4.0, 4.3]) — identical content, so the music stays continuous instead of
+    // playing two offset copies of the song at the boundary.
+    expect(filters).toContain('atrim=start=4:duration=4.3');
   });
 
   it('cut transition does not shift the window', () => {
@@ -367,6 +370,31 @@ describe('MusicComposer.prepareMusicTrack — transition-aware windows', () => {
 
     const filters = project.buildInfos.musicFilters.join('');
     expect(filters).toContain('atrim=start=5:duration=3.3');
+  });
+
+  it('keeps adjacent acrossfade legs source-contiguous across three sections (no doubled echo)', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 3;
+    // Every boundary is a non-cut transition; whatever their nominal durations, the music windows
+    // must stay contiguous in source time so each acrossfade splices identical audio.
+    project.buildInfos.transitions = [
+      { type: 'fade', duration: 0.5 },
+      { type: 'wipeleft', duration: 0.7 },
+    ];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.3 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 6 } });
+    composer.prepareMusicTrack({ name: 's3', type: 'video', options: { duration: 5 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // Each window starts at the cumulative FULL duration of the prior sections (0, 4, 10) and runs
+    // for duration + global-transition (0.3). Leg N's tail [start+dur, start+dur+0.3] therefore
+    // equals leg N+1's head [start, start+0.3], so the d=0.3 acrossfade never blends offset audio.
+    expect(filters).toContain('atrim=start=0:duration=4.3'); // leg1 source [0, 4.3]
+    expect(filters).toContain('atrim=start=4:duration=6.3'); // leg2 source [4, 10.3] — head [4,4.3] == leg1 tail
+    expect(filters).toContain('atrim=start=10:duration=5.3'); // leg3 source [10, 15.3] — head [10,10.3] == leg2 tail
   });
 });
 

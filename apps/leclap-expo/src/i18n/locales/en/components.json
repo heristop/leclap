@@ -1,0 +1,14 @@
+{
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "fallbackMessage": "An unexpected error occurred"
+  },
+  "videoPlayer": {
+    "retake": "Re-take"
+  },
+  "camera": {
+    "noDevice": "No camera device available",
+    "goBack": "Go Back",
+    "instruction": "Hold your device vertically for best results"
+  }
+}

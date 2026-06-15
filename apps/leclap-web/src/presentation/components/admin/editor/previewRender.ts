@@ -5,6 +5,7 @@
 // module stays DOM-free and unit-testable in node.
 import { buildDescriptor, type EditorState, type TemplateDescriptor } from '../templateEditorModel';
 import { templateService, type Template } from '@/services/templateService';
+import { materializeTemplatePartials } from '@/services/templatePartialService';
 
 // 480p-equivalent, always expressed in landscape (width:height). The engine swaps it to
 // 480:854 itself when the descriptor orientation is portrait (see SegmentBuilder), so callers
@@ -23,14 +24,11 @@ export function countProjectVideoSections(descriptor: TemplateDescriptor): numbe
 // descriptor's form sections.
 export function previewFormData(state: EditorState): Record<string, string> {
   const out: Record<string, string> = {};
+  const descriptor = materializeTemplatePartials(buildDescriptor(state));
 
-  for (const section of state.sections) {
-    if (section.kind !== 'form') continue;
-
-    for (const field of section.fields) {
-      const label = field.label.trim();
-      out[field.name] = label === '' ? field.name : label;
-    }
+  for (const field of templateService.extractFormFields(descriptor)) {
+    const label = field.label.en?.trim() ?? '';
+    out[field.name] = label === '' ? field.name : label;
   }
 
   // Author global variables also fill in with their own values (buildDescriptor already merges
@@ -67,11 +65,12 @@ export interface PreviewPlan {
 // Everything the compile call needs except the generated clips (which require the DOM).
 export function buildPreviewPlan(state: EditorState): PreviewPlan {
   const template = previewTemplate(state);
+  const materialized = materializeTemplatePartials(template.descriptor);
 
   return {
     template,
     formData: previewFormData(state),
-    clipCount: countProjectVideoSections(template.descriptor),
+    clipCount: countProjectVideoSections(materialized),
     videoConfig: { scale: PREVIEW_SCALE },
   };
 }

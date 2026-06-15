@@ -201,6 +201,8 @@
     "center": "Center",
     "right": "Right",
     "opacity": "Opacity",
+    "styleBust": "Bust",
+    "styleOutline": "Outline",
     "mirrorNote": "Mirrored on the front camera, like a mirror.",
     "noGuide": "No guide"
   },

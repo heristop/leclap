@@ -85,7 +85,9 @@ function resolveNamed(name: string): DescriptorResult {
 function requiredVideoSections(descriptor: TemplateDescriptor): string[] {
   const sections = descriptor.sections ?? [];
 
-  return sections.filter((section) => section.type === 'project_video').map((section) => section.name);
+  return sections
+    .filter((section) => section.type === 'project_video' && typeof section.name === 'string')
+    .map((section) => section.name as string);
 }
 
 // Reject when a required project_video section has no supplied clip, or when a supplied key names a

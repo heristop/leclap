@@ -1,7 +1,6 @@
 import type { TemplateDescriptor } from 'ffmpeg-video-composer';
 
 import { builtinTemplates } from './templates.generated.js';
-import { templateMetadata } from './metadata.js';
 
 // A flattened, agent-friendly view of a built-in template — just enough for an agent to pick a
 // starting point to copy and customize, without parsing the full descriptor.
@@ -17,9 +16,16 @@ export interface TemplateSummary {
 
 type Sections = NonNullable<TemplateDescriptor['sections']>;
 type Section = Sections[number];
+type TemplateMeta = {
+  description?: unknown;
+};
 
-function describe(id: string): string {
-  return templateMetadata[id] ?? 'Built-in template (no description available)';
+function describe(template: TemplateDescriptor): string {
+  const description = (template as TemplateDescriptor & { meta?: TemplateMeta }).meta?.description;
+
+  return typeof description === 'string' && description.length > 0
+    ? description
+    : 'Built-in template (no description available)';
 }
 
 // The core's hand-written descriptor type widens `orientation` to `string`; narrow it back to
@@ -31,7 +37,7 @@ function orientationOf(template: TemplateDescriptor): 'landscape' | 'portrait' {
 // Same rule as server-app's `validateCompileRequest`: only `project_video` sections need the
 // user to supply recorded clips at compose time.
 function requiredVideoSections(sections: Sections): string[] {
-  return sections.filter((s) => s.type === 'project_video').map((s) => s.name);
+  return sections.filter((s) => s.type === 'project_video' && typeof s.name === 'string').map((s) => s.name as string);
 }
 
 function sectionFields(section: Section): string[] {
@@ -55,7 +61,7 @@ function summarize(id: string, template: TemplateDescriptor): TemplateSummary {
 
   return {
     id,
-    description: describe(id),
+    description: describe(template),
     orientation: orientationOf(template),
     musicEnabled: template.global?.musicEnabled ?? false,
     requiredVideoSections: requiredVideoSections(sections),

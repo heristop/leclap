@@ -21,8 +21,8 @@
   }
 }
 
-/* Curated overlay-text fonts, bundled under /public/fonts (mirrors the core
-   catalog in packages/core/src/shared/library/fonts.ts). `font-family` matches
+/* Curated overlay-text fonts, bundled under /public/fonts (mirrors the creative kit
+   catalog in packages/creative-kit/src/fonts.ts). `font-family` matches
    each entry's `cssFamily`; the same TTFs are preloaded for WASM drawtext. */
 @font-face {
   font-family: 'Rubik';

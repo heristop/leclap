@@ -9,7 +9,7 @@ import {
 import { Trash2, Plus, Type, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { FONTS, findFont } from 'ffmpeg-video-composer/src/shared/library/fonts.ts';
+import { FONTS, findFont } from '@leclap/creative-kit/fonts';
 import {
   Button,
   Checkbox,

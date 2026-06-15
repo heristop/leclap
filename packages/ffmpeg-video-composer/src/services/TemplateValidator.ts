@@ -6,7 +6,7 @@ import {
   type Section,
 } from '../schemas/template.schemas';
 import { validateTransitions, validateMotion, type ValidationError } from './templateValidationRules';
-import { expandPartialsSafe } from '../shared/templates/partials';
+import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 
 export type { ValidationError } from './templateValidationRules';
 

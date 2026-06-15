@@ -19,6 +19,17 @@
     "intermediate": "intermediate",
     "advanced": "advanced"
   },
+  "search": {
+    "placeholder": "Search templates…",
+    "all": "All",
+    "portrait": "Portrait",
+    "landscape": "Landscape"
+  },
+  "empty": {
+    "title": "No templates match",
+    "hint": "Try a different search or clear the filters.",
+    "clear": "Clear filters"
+  },
   "form": {
     "header": {
       "title": "Template Configuration",
@@ -29,6 +40,8 @@
       "completed": "Field completed",
       "maxChars": "Maximum {{count}} characters allowed",
       "remaining": "{{count}} remaining",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "required",
       "fieldRequired": "This field is required",
       "maxCharsLabel": "(max {{count}} chars)"
     },

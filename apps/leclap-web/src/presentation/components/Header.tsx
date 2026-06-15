@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Clapperboard, Code2, Menu, X, Sun, Moon } from 'lucide-react';
+import { Code2, Menu, X, Sun, Moon } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
+import { LogoMark } from './LogoMark';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 
 type ThemeToggleProps = {
@@ -225,9 +226,7 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" viewTransition className="flex items-center space-x-3 group">
-            <div className="tap p-2 brand-gradient rounded-xl shadow-lg shadow-brand-900/30 group-hover:shadow-brand-500/30 group-hover:-rotate-6 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
-              <Clapperboard className="w-6 h-6 text-white" />
-            </div>
+            <LogoMark className="tap w-10 h-10 cursor-pointer [filter:drop-shadow(0_6px_14px_rgba(91,97,214,0.35))] group-hover:-rotate-6 group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
             <div>
               <h1 className="text-xl font-bold text-foreground tracking-tight">{t('brand')}</h1>
             </div>

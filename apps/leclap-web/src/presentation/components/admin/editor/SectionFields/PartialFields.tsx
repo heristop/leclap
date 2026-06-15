@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
+import { Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 
 type PartialSection = Extract<EditorSection, { kind: 'partial' }>;
 
@@ -64,16 +64,28 @@ export const PartialFields = ({ section, partials, onChange, inputCls }: Partial
       </div>
 
       {selected && (
-        <p className="rounded-lg bg-foreground/5 px-3 py-2 text-xs text-gray-600 dark:text-gray-300">
-          {selected.source === 'local' ? 'Local' : 'Built-in'} · {selected.sections.length} section
-          {selected.sections.length === 1 ? '' : 's'} · {selected.description}
-        </p>
+        <div className="rounded-lg bg-foreground/5 px-3 py-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={selected.source === 'local' ? 'brand' : 'neutral'}>
+              {selected.source === 'local' ? 'Local' : 'Built-in'}
+            </Badge>
+            <Badge variant="secondary">
+              {selected.sections.length} {selected.sections.length === 1 ? 'section' : 'sections'}
+            </Badge>
+          </div>
+          {selected.description && (
+            <p className="mt-2 text-xs text-gray-600 dark:text-gray-300">{selected.description}</p>
+          )}
+        </div>
       )}
 
       <div>
-        <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+        <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
           Variables
         </span>
+        <p className="mb-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+          Map each variable name to the value the partial should use.
+        </p>
         <div className="space-y-2">
           {section.variables.map((variable, i) => (
             <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">

@@ -96,6 +96,7 @@ const FieldInput = ({ field, value, hasError, placeholder, fieldId, errorId, onC
         placeholder={placeholder}
         maxLength={field.maxLength}
         rows={3}
+        aria-required
         aria-invalid={hasError}
         aria-describedby={hasError ? errorId : undefined}
         className={clsx(
@@ -116,6 +117,7 @@ const FieldInput = ({ field, value, hasError, placeholder, fieldId, errorId, onC
       }}
       placeholder={placeholder}
       maxLength={field.maxLength}
+      aria-required
       aria-invalid={hasError}
       aria-describedby={hasError ? errorId : undefined}
       className={errorClass}
@@ -128,11 +130,13 @@ interface FieldStatusProps {
   errorMessage: string | undefined;
   errorId: string;
   value: string;
-  remainingChars: number | null;
+  charCount: number;
+  maxChars: number | null;
 }
 
-const FieldStatus = ({ hasError, errorMessage, errorId, value, remainingChars }: FieldStatusProps) => {
+const FieldStatus = ({ hasError, errorMessage, errorId, value, charCount, maxChars }: FieldStatusProps) => {
   const { t } = useTranslation('templates');
+  const nearLimit = maxChars !== null && maxChars - charCount < 10;
 
   return (
     <div className="flex justify-between items-center">
@@ -152,9 +156,9 @@ const FieldStatus = ({ hasError, errorMessage, errorId, value, remainingChars }:
         </span>
       )}
 
-      {remainingChars !== null && (
-        <span className={clsx('text-xs', remainingChars < 10 ? 'text-red-800 dark:text-red-400' : 'text-gray-500')}>
-          {t('form.status.remaining', { count: remainingChars })}
+      {maxChars !== null && (
+        <span className={clsx('text-xs tabular-nums', nearLimit ? 'text-red-800 dark:text-red-400' : 'text-gray-500')}>
+          {t('form.status.counter', { count: charCount, max: maxChars })}
         </span>
       )}
     </div>
@@ -231,7 +235,7 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
   const label = field.label.en || field.label.fr || Object.values(field.label)[0];
   const value = formData[field.name] || '';
   const hasError = Boolean(errors[field.name]);
-  const remainingChars = field.maxLength ? field.maxLength - value.length : null;
+  const maxChars = field.maxLength ?? null;
 
   return (
     <div className="space-y-2 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
@@ -241,6 +245,9 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
       >
         <IconComponent className="w-4 h-4 text-brand-600 dark:text-brand-300" />
         <span>{label}</span>
+        <span className="text-brand-600 dark:text-brand-300" aria-label={t('form.status.requiredMark')}>
+          *
+        </span>
         {field.maxLength && (
           <span className="text-xs text-gray-500">{t('form.status.maxCharsLabel', { count: field.maxLength })}</span>
         )}
@@ -263,7 +270,8 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
         errorMessage={errors[field.name]}
         errorId={errorId}
         value={value}
-        remainingChars={remainingChars}
+        charCount={value.length}
+        maxChars={maxChars}
       />
     </div>
   );

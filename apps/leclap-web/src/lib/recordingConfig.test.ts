@@ -106,7 +106,7 @@ describe('recordingConfigFromDescriptor', () => {
 });
 
 // Guards the catalog content: the showcase example templates enable the pre-record countdown on
-// every clip section, with a 3s lead-in.
+// every clip section, with a 2s lead-in.
 describe('example templates enable the recording countdown', () => {
   const everyClipCountsDown = (id: string) => {
     const sections = (APP_TEMPLATES_BY_ID[id]?.descriptor.sections ?? []) as TemplateDescriptor['sections'];
@@ -115,7 +115,7 @@ describe('example templates enable the recording countdown', () => {
     expect(clips.length).toBeGreaterThan(0);
 
     for (const clip of clips) {
-      expect(recordingConfigForSection(clip).countdownSeconds).toBe(3);
+      expect(recordingConfigForSection(clip).countdownSeconds).toBe(2);
     }
   };
 

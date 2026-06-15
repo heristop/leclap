@@ -11,7 +11,13 @@
       "create": "Create your first template"
     },
     "samples": "Sample templates",
-    "goToBuilder": "Go to the builder"
+    "goToBuilder": "Go to the builder",
+    "partials": "Partials"
+  },
+  "partials": {
+    "title": "Partials",
+    "subtitle": "Build reusable scene fragments with the same visual controls as templates.",
+    "back": "Templates"
   },
   "card": {
     "noDescription": "No description",

@@ -39,10 +39,11 @@ const getStageIcon = (percentage: number) => {
 
 const getProgressColor = (percentage: number): string => {
   // One on-brand fill (lavender→pink) that turns success-green on completion —
-  // not a rainbow ramp.
+  // not a rainbow ramp. A single travelling shimmer (below) carries the motion;
+  // the fill itself stays still so the two don't compete.
   if (percentage >= 100) return 'bg-success';
 
-  return 'brand-gradient bg-[length:200%_100%] animate-gradient';
+  return 'brand-gradient';
 };
 
 interface StepIndicatorProps {
@@ -96,7 +97,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
             isCompleted &&
               'bg-success border-success text-success-foreground scale-105 shadow-[0_0_10px_oklch(0.84_0.065_160/0.45)]',
             isCurrent &&
-              'brand-gradient border-transparent text-white animate-pulse ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
+              'brand-gradient border-transparent text-white animate-pulse motion-reduce:animate-none ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
             isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
           )}
         >
@@ -187,7 +188,12 @@ const ProgressHeader = ({
               : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
           )}
         >
-          <StageIcon className={clsx('w-5 h-5', percentage < 100 && percentage > 0 && 'animate-pulse')} />
+          <StageIcon
+            className={clsx(
+              'w-5 h-5',
+              percentage < 100 && percentage > 0 && 'animate-pulse motion-reduce:animate-none'
+            )}
+          />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-foreground">
@@ -242,16 +248,16 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
         aria-label={t('progress.bar.ariaLabel')}
         className="relative w-full h-3 bg-foreground/10 rounded-full overflow-hidden border border-foreground/5"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
-
         <div
           className={clsx(
-            'h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden',
+            'h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden motion-reduce:transition-none',
             progressColor
           )}
           style={{ width: `${Math.max(percentage, 0)}%` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-[shimmer_1.5s_infinite]" />
+          {percentage < 100 && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-[shimmer_1.5s_infinite] motion-reduce:hidden" />
+          )}
         </div>
       </div>
     </div>
@@ -274,7 +280,7 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
 
       <ProgressBar percentage={percentage} currentStep={currentStep} />
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3 sm:justify-between sm:gap-x-1">
         {Array.from({ length: totalSteps }, (_, index) => (
           <StepIndicator key={index + 1} stepNumber={index + 1} currentStepIndex={currentStepIndex} />
         ))}

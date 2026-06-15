@@ -138,6 +138,25 @@ function unionOptions(): JsonSchemaNode {
   return { type: 'object', properties: merged };
 }
 
+// Merge a node's union variants (anyOf/oneOf) into a single object so a discriminated union — e.g.
+// MotionEffect's kenburns | rotate | crop | flip — renders as one combined table. A plain object
+// passes through unchanged.
+function mergeVariants(node: JsonSchemaNode | undefined): JsonSchemaNode | undefined {
+  const variants = node?.anyOf ?? node?.oneOf;
+
+  if (!node || !variants) return node;
+
+  const merged: Record<string, JsonSchemaNode> = {};
+
+  for (const variant of variants) {
+    for (const [key, value] of Object.entries(variant.properties ?? {})) {
+      merged[key] ??= value;
+    }
+  }
+
+  return { type: 'object', properties: merged };
+}
+
 // Reach into a nested effect node by walking section → properties → key.
 function sectionProperty(key: string): JsonSchemaNode | undefined {
   return prop(sectionVariants()[0], key);
@@ -198,6 +217,12 @@ export function fieldGroups(): FieldGroup[] {
       node: sectionProperty('grade'),
     },
     {
+      id: 'motion',
+      title: 'motion[]',
+      summary: 'Per-section motion and geometric effects (Ken Burns, rotate, crop, flip), applied in order.',
+      node: mergeVariants(sectionProperty('motion')?.items),
+    },
+    {
       id: 'audio',
       title: 'audio (global)',
       summary: 'The final-mix audio settings: volumes, normalisation, ducking.',
@@ -208,6 +233,12 @@ export function fieldGroups(): FieldGroup[] {
       title: 'framingGuide',
       summary: 'The silhouette overlay shown while recording a clip.',
       node: optionProperty('framingGuide'),
+    },
+    {
+      id: 'layers',
+      title: 'layers[]',
+      summary: 'Background layers (solid or gradient) composited over a color_background section.',
+      node: optionProperty('layers')?.items,
     },
     {
       id: 'inputs',

@@ -154,10 +154,12 @@ export const JsonBlock = ({ code }: { code: string }) => {
         <code className="font-mono">
           {lines.map((line, index) => (
             <div key={index} className="grid grid-cols-[2.5rem_1fr] gap-3">
-              <span aria-hidden="true" className="select-none text-right text-gray-600">
+              <span aria-hidden="true" className="select-none text-right text-[oklch(0.5_0.012_280)]">
                 {index + 1}
               </span>
-              <span className="text-gray-200">{tintLine(line)}</span>
+              {/* The block is always dark, but the theme's gray scale is tuned for light surfaces,
+                  so use a fixed light tone — otherwise braces/brackets/commas render dark-on-dark. */}
+              <span className="text-[oklch(0.78_0.012_280)]">{tintLine(line)}</span>
             </div>
           ))}
         </code>

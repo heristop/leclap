@@ -29,6 +29,7 @@ form-banner-*.png
 /apps/leclap-expo/assets/musics/
 /apps/leclap-expo/assets/backgrounds/
 /apps/leclap-expo/assets/fonts/
+/apps/leclap-expo/assets/videos/
 # keep the Expo app's own (non-library) font tracked
 !/apps/leclap-expo/assets/fonts/SpaceMono-Regular.ttf
 # server template JSONs copied from packages/server-app/templates by the same script
@@ -39,6 +40,7 @@ form-banner-*.png
 /scripts/ffmpeg/.work/
 /scripts/ffmpeg/deps/
 /packages/ffmpeg-engine/target-host/
+/packages/ffmpeg-engine/*.o
 
 # Engine binaries staged into the Expo module — never committed; rebuild with
 # scripts/ffmpeg/build-engine.sh (see docs/on-device-compilation.md).

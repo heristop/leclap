@@ -34,8 +34,7 @@ function orientationOf(template: TemplateDescriptor): 'landscape' | 'portrait' {
   return template.global?.orientation === 'portrait' ? 'portrait' : 'landscape';
 }
 
-// Same rule as server-app's `validateCompileRequest`: only `project_video` sections need the
-// user to supply recorded clips at compose time.
+// Only `project_video` sections need the user to supply recorded clips at compose time.
 function requiredVideoSections(sections: Sections): string[] {
   return sections.filter((s) => s.type === 'project_video' && typeof s.name === 'string').map((s) => s.name as string);
 }

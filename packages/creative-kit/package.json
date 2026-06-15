@@ -42,8 +42,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vp test run",
-    "gen:templates": "node scripts/gen-templates.mjs",
-    "gen:partials": "node scripts/gen-partials.mjs"
+    "gen:templates": "node scripts/gen-templates.ts",
+    "gen:partials": "node scripts/gen-partials.ts"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

@@ -69,7 +69,7 @@ function buildProjectConfig() {
 /**
  * Handle FFmpeg-related compilation errors
  */
-function handleFFmpegError(error) {
+function handleFFmpegError(error: Error) {
   console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
 
   Terminal.showError(error.message, [
@@ -89,7 +89,7 @@ function handleFFmpegError(error) {
 /**
  * Handle compilation errors
  */
-function handleCompilationError(error) {
+function handleCompilationError(error: unknown) {
   console.log(`\n${pc.red('❌')} ${pc.bold('Compilation failed')}`);
 
   if (!(error instanceof Error)) {
@@ -111,7 +111,7 @@ function handleCompilationError(error) {
   process.exit(1);
 }
 
-async function main(filePath) {
+async function main(filePath: string | undefined) {
   if (!filePath) {
     console.error('Usage: pnpm compile <template.json>');
     process.exit(1);
@@ -124,7 +124,7 @@ async function main(filePath) {
 
     ensureMiseFFmpeg();
 
-    const templateDescriptor = await loadConfig(`${filePath}`);
+    const templateDescriptor = await loadConfig(filePath);
     const projectConfig = buildProjectConfig();
 
     await fs.mkdir(projectConfig.buildDir, { recursive: true });

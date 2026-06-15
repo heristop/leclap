@@ -7,15 +7,9 @@ const root = resolve(__dirname, '..');
 
 const libDir = resolve(root, 'packages/creative-kit/src/library');
 
-// Bundle the server's template JSONs into the Expo app so the local catalog == the server catalog
-// (the app compiles them on-device by default, or via the server when the user toggles it).
-const serverTemplatesDir = resolve(root, 'packages/server-app/templates');
+type CopyDest = { src: string; dest: string; include?: string[] };
 
-const destinations = [
-  {
-    src: serverTemplatesDir,
-    dest: resolve(root, 'apps/leclap-expo/src/templates/server'),
-  },
+const destinations: CopyDest[] = [
   {
     src: resolve(libDir, 'musics'),
     dest: resolve(root, 'apps/leclap-web/public/musics'),
@@ -56,11 +50,18 @@ const destinations = [
     src: resolve(libDir, 'videos'),
     dest: resolve(root, 'apps/leclap-web/public/assets/videos'),
   },
+  {
+    // The RN app only needs the brand bumper bundled (the sole descriptor-referenced video); the rest
+    // are sample clips that would bloat the binary. Web ships the full set above.
+    src: resolve(libDir, 'videos'),
+    dest: resolve(root, 'apps/leclap-expo/assets/videos'),
+    include: ['leclap_bumper.mp4'],
+  },
 ];
 
-for (const { src, dest } of destinations) {
+for (const { src, dest, include } of destinations) {
   mkdirSync(dest, { recursive: true });
-  const files = readdirSync(src);
+  const files = include ?? readdirSync(src);
   let count = 0;
 
   for (const file of files) {

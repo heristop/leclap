@@ -13,7 +13,7 @@
     "README.md"
   ],
   "scripts": {
-    "embed-templates": "node --experimental-strip-types scripts/embedTemplates.ts",
+    "embed-templates": "node scripts/embed-templates.ts",
     "build": "tsdown",
     "prepack": "tsdown",
     "typecheck": "tsc --noEmit",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "^13.0.0",
-    "@types/node": "^25.9.2",
+    "@types/node": "^25.9.3",
     "tsdown": "^0.22.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

@@ -7,21 +7,33 @@ import 'reflect-metadata';
 import { FFmpegDetector } from './dist/index.js';
 import pc from 'picocolors';
 
-function formatShort(info) {
+type DiagnosticsReport = Awaited<ReturnType<typeof FFmpegDetector.runFullDiagnostics>>;
+type SystemInfo = DiagnosticsReport['systemInfo'];
+type FFmpegStatus = DiagnosticsReport['ffmpegStatus'];
+
+function formatShort(info: { available: boolean }) {
   return info.available ? pc.green('✓') : pc.dim('✗');
 }
 
-function printSystemRow({ os, arch, nodeVersion, packageManager, memoryGB }) {
+function printSystemRow({ os, arch, nodeVersion, packageManager, memoryGB }: SystemInfo) {
   const systemRow = `${pc.dim('OS')} ${os} ${arch}  ${pc.dim('Node')} ${nodeVersion}  ${pc.dim('PM')} ${packageManager}  ${pc.dim('RAM')} ${memoryGB}GB`;
   console.log(systemRow);
 }
 
-function printFFmpegRow({ system, staticFFmpeg, wasm }) {
+function printFFmpegRow({
+  system,
+  staticFFmpeg,
+  wasm,
+}: {
+  system: FFmpegStatus['system'];
+  staticFFmpeg: FFmpegStatus['static'];
+  wasm: FFmpegStatus['wasm'];
+}) {
   const ffmpegRow = `${pc.dim('FFmpeg')} ${formatShort(system)} sys ${system.available ? pc.green(system.version) : ''}  ${formatShort(staticFFmpeg)} static  ${formatShort(wasm)} wasm`;
   console.log(ffmpegRow);
 }
 
-function printRecommendations(recommendations) {
+function printRecommendations(recommendations: DiagnosticsReport['recommendations']) {
   if (recommendations.length > 0) {
     console.log(pc.dim('\nInfo:'));
 
@@ -55,12 +67,12 @@ async function runDiagnostics() {
 
     console.log();
   } catch (error) {
-    console.error(pc.red('\n✗ Failed:'), error.message);
+    console.error(pc.red('\n✗ Failed:'), error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
 
-runDiagnostics().catch((error) => {
-  console.error(pc.red('\n✗ Unexpected:'), error.message);
+runDiagnostics().catch((error: unknown) => {
+  console.error(pc.red('\n✗ Unexpected:'), error instanceof Error ? error.message : String(error));
   process.exit(1);
 });

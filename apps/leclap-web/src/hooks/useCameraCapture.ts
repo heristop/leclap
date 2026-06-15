@@ -243,7 +243,15 @@ function usePreRecordCountdown(
     }
 
     const id = window.setTimeout(() => {
-      setCountdownValue((v) => (v === null ? null : v - 1));
+      // Complete straight from 1 — the countdown never displays 0.
+      if (countdownValue <= 1) {
+        setCountdownValue(null);
+        startRef.current();
+
+        return;
+      }
+
+      setCountdownValue(countdownValue - 1);
     }, 1000);
 
     return () => {

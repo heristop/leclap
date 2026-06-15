@@ -9,9 +9,8 @@ import { compile, FFmpegNodeAdapter } from '@/index';
 // the same whether invoked from the repo root or from the core package.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
-const coreRoot = path.resolve(__dirname, '..');
 const buildDir = path.resolve(repoRoot, 'build');
-const assetsDir = path.resolve(coreRoot, 'src/shared/assets');
+const assetsDir = path.resolve(repoRoot, 'packages/creative-kit/src/assets');
 
 // Project Configuration
 const projectConfig: ProjectConfig = {
@@ -44,10 +43,21 @@ const projectConfig: ProjectConfig = {
 // it still exercises the whole compile pipeline (segments, filters, maps, concat, music). The
 // local-file fetch path enforces a staging-dir guard, and these paths sit under `assetsDir`.
 const RAW_ASSET_PREFIX = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';
+const localRawPath = (relative: string): string => {
+  if (relative.startsWith('src/shared/assets/')) {
+    return path.join(repoRoot, 'packages/creative-kit/src/assets', relative.slice('src/shared/assets/'.length));
+  }
+
+  if (relative.startsWith('src/shared/library/')) {
+    return path.join(repoRoot, 'packages/creative-kit/src/library', relative.slice('src/shared/library/'.length));
+  }
+
+  return path.join(repoRoot, relative);
+};
 
 const localizeAsset = (value: unknown): unknown => {
   if (typeof value === 'string') {
-    return value.startsWith(RAW_ASSET_PREFIX) ? path.join(coreRoot, value.slice(RAW_ASSET_PREFIX.length)) : value;
+    return value.startsWith(RAW_ASSET_PREFIX) ? localRawPath(value.slice(RAW_ASSET_PREFIX.length)) : value;
   }
 
   if (Array.isArray(value)) {

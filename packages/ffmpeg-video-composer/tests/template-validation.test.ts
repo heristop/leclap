@@ -47,6 +47,19 @@ describe('Template Validation', () => {
   };
 
   describe('Valid Templates', () => {
+    test('should validate descriptor metadata', () => {
+      const result = validator.validateTemplate({
+        meta: {
+          name: 'Quote',
+          description: 'Typographic quote card.',
+        },
+        global: { orientation: 'portrait' },
+        sections: [],
+      });
+
+      expect(result.success).toBe(true);
+    });
+
     test('should validate sample.json template', () => {
       const template = loadTemplate('sample.json');
       const result = validator.validateTemplate(template);
@@ -350,6 +363,37 @@ describe('Template Validation', () => {
     it('rejects transition duration above 5', () => {
       const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'fade', duration: 10 } });
       expect(r.success).toBe(false);
+    });
+  });
+
+  describe('Schema — partial section', () => {
+    it('accepts a partial reference section by ref', () => {
+      const r = SectionSchema.safeParse({ type: 'partial', ref: 'flash-transition' });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts a partial reference with an optional prefix', () => {
+      const r = SectionSchema.safeParse({ type: 'partial', ref: 'flash-transition', prefix: 't1_' });
+      expect(r.success).toBe(true);
+    });
+
+    it('accepts an inline partial carrying its own sections', () => {
+      const r = SectionSchema.safeParse({
+        type: 'partial',
+        sections: [{ name: 'flash_a', type: 'color_background', options: { duration: 0.12 } }],
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('validates a template descriptor whose first section is a partial', () => {
+      const r = TemplateDescriptorSchema.safeParse({
+        global: { orientation: 'landscape' },
+        sections: [
+          { type: 'partial', ref: 'logo-bumper' },
+          { name: 'video_1', type: 'project_video' },
+        ],
+      });
+      expect(r.success).toBe(true);
     });
   });
 

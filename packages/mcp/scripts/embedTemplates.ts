@@ -3,26 +3,23 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Codegen: inline every built-in template JSON from the CORE SOURCE into a checked-in
-// TypeScript module. The core ships only `dist` in its npm tarball, so the templates would not
-// be reachable at runtime — embedding them at build time keeps the catalog self-contained.
+// Codegen: inline every built-in template JSON from @leclap/creative-kit into a checked-in
+// TypeScript module. Embedding them at build time keeps the catalog self-contained.
 // Run via `pnpm embed-templates`; commit the generated file (it must be tracked, not ignored).
 const here = path.dirname(fileURLToPath(import.meta.url));
-const coreRoot = path.resolve(here, '../../ffmpeg-video-composer');
+const creativeKitRoot = path.resolve(here, '../../creative-kit');
 const outFile = path.resolve(here, '../src/catalog/templates.generated.ts');
 
-// The catalog ships ONLY the curated app templates (src/shared/templates) — the same premium set
-// the web + expo apps expose. Test/scenario fixtures (tests/fixtures) are intentionally excluded:
-// they are engine test inputs, not user-facing starting points. Ids stay the filename.
-const TEMPLATE_DIRS = [path.join(coreRoot, 'src/shared/templates')];
+// The catalog ships every creative-kit template descriptor. Assets and partials live outside this
+// folder, so adding a template only requires adding a JSON file here. Ids stay the filename.
+const templatesDir = path.join(creativeKitRoot, 'src/templates');
 
 function buildEntries(): string {
-  const files = TEMPLATE_DIRS.flatMap((dir) =>
-    fs
-      .readdirSync(dir)
-      .filter((name) => name.endsWith('.json'))
-      .map((name) => path.join(dir, name))
-  ).sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
+  const files = fs
+    .readdirSync(templatesDir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => path.join(templatesDir, name))
+    .sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
 
   return files
     .map((file) => {

@@ -1,8 +1,8 @@
 // Core package template loading service
 import { templateLogger } from '@/lib/logger';
-// The catalog is the shared app-template list, authored once in the core package and consumed by
-// web + expo + the MCP catalog. (Legacy web-only demo templates were removed.)
-import { APP_TEMPLATES } from 'ffmpeg-video-composer/src/shared/templates';
+// The catalog is authored once in @leclap/creative-kit and consumed by web + expo + the MCP catalog.
+// Legacy web-only demo templates were removed.
+import { APP_TEMPLATES } from '@leclap/creative-kit';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;

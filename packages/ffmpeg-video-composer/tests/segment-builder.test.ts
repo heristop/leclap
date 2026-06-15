@@ -89,18 +89,11 @@ beforeEach(() => {
 });
 
 describe('SegmentBuilder constructor', () => {
-  it('swaps width/height in the scale for portrait orientation', () => {
+  // Output orientation is resolved ONCE in TemplateDirector.config, not per segment — a per-segment
+  // swap re-applied on the shared project config and alternated portrait/landscape across segments.
+  it('does not swap the scale for a portrait template (handled by the director)', () => {
     const project = makeProject({ videoConfig: { scale: '1280:720' } });
     const template = makeTemplate({ global: { orientation: 'portrait' } });
-
-    makeBuilder({ project, template });
-
-    expect(project.config.videoConfig?.scale).toBe('720:1280');
-  });
-
-  it('leaves the scale untouched for landscape orientation', () => {
-    const project = makeProject({ videoConfig: { scale: '1280:720' } });
-    const template = makeTemplate({ global: { orientation: 'landscape' } });
 
     makeBuilder({ project, template });
 

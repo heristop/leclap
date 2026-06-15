@@ -9,6 +9,8 @@ export interface RecordingConfig {
   framingGuide?: FramingGuideConfig;
   // Author's "what to film" instructions, shown as an on-screen hint while recording.
   description?: string;
+  // Template orientation — drives a vertical 9:16 camera frame + recording for portrait templates.
+  orientation?: 'portrait' | 'landscape';
 }
 
 // Recording-UX config drawn from the first project_video section of a template —
@@ -40,5 +42,7 @@ export function recordingConfigForSection(section: ProjectVideoSection | null | 
 // Config drawn from the FIRST project_video section — the template-wide default for callers that
 // don't operate per section.
 export function recordingConfigFromDescriptor(descriptor: TemplateDescriptor | null | undefined): RecordingConfig {
-  return recordingConfigForSection(descriptor?.sections?.find((s) => s.type === 'project_video'));
+  const base = recordingConfigForSection(descriptor?.sections?.find((s) => s.type === 'project_video'));
+
+  return { ...base, orientation: descriptor?.global?.orientation === 'portrait' ? 'portrait' : 'landscape' };
 }

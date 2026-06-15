@@ -105,9 +105,9 @@ describe('FilesystemNodeAdapter', () => {
   });
 
   describe('getAssetsPath', () => {
-    it('joins the root with the shared assets path', async () => {
+    it('joins the root with the creative-kit assets path', async () => {
       const result = await adapter.getAssetsPath('videos');
-      expect(result).toBe([process.cwd(), 'packages', 'core', 'src', 'shared', 'assets', 'videos'].join('/'));
+      expect(result).toBe([process.cwd(), 'packages', 'creative-kit', 'src', 'assets', 'videos'].join('/'));
     });
   });
 

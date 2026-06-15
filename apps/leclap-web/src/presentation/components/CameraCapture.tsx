@@ -19,6 +19,8 @@ interface CameraCaptureProps {
   framingGuide?: FramingGuideConfig;
   // Author's "what to film" prompt, shown as a muted caption over the live preview.
   description?: string;
+  // Template orientation: 'portrait' frames the camera as a centered 9:16 box and records vertical.
+  orientation?: 'portrait' | 'landscape';
 }
 
 interface TopBarProps {
@@ -185,6 +187,7 @@ interface StageProps {
   remaining: number;
   framingGuide?: FramingGuideConfig;
   description?: string;
+  portrait: boolean;
   onRetry: () => void;
 }
 
@@ -199,9 +202,14 @@ const CameraStage = ({
   remaining,
   framingGuide,
   description,
+  portrait,
   onRetry,
 }: StageProps) => {
   const { t } = useTranslation('media');
+
+  // Portrait templates frame the camera as a centered vertical 9:16 box (the recorder crops to
+  // match); landscape fills the stage. Overlays live inside the frame so they track its shape.
+  const frameClass = portrait ? 'relative h-full aspect-[9/16] max-w-full overflow-hidden' : 'relative w-full h-full';
 
   return (
     <div className="relative flex-1 flex items-center justify-center overflow-hidden">
@@ -209,31 +217,42 @@ const CameraStage = ({
         <CameraErrorView error={error} onRetry={onRetry} />
       ) : (
         <>
-          {/* Live preview (hidden while reviewing the recording) */}
-          <video
-            ref={videoRef}
-            aria-label={t('camera.livePreviewAria')}
-            playsInline
-            autoPlay
-            muted
-            className={clsx(
-              'w-full h-full object-cover transition-opacity duration-300',
-              facingMode === 'user' && '-scale-x-100',
-              mode === 'preview' ? 'opacity-0 absolute' : 'opacity-100'
-            )}
-          />
-
-          {mode === 'preview' && previewUrl && (
+          <div className={frameClass}>
+            {/* Live preview (hidden while reviewing the recording) */}
             <video
-              src={previewUrl}
-              aria-label={t('camera.recordedPreviewAria')}
-              controls
-              autoPlay
-              loop
+              ref={videoRef}
+              aria-label={t('camera.livePreviewAria')}
               playsInline
-              className="w-full h-full object-contain bg-black"
+              autoPlay
+              muted
+              className={clsx(
+                'w-full h-full object-cover transition-opacity duration-300',
+                facingMode === 'user' && '-scale-x-100',
+                mode === 'preview' ? 'opacity-0 absolute' : 'opacity-100'
+              )}
             />
-          )}
+
+            {mode === 'preview' && previewUrl && (
+              <video
+                src={previewUrl}
+                aria-label={t('camera.recordedPreviewAria')}
+                controls
+                autoPlay
+                loop
+                playsInline
+                className="w-full h-full object-contain bg-black"
+              />
+            )}
+
+            <StageOverlays
+              mode={mode}
+              countdownValue={countdownValue}
+              endingSoon={endingSoon}
+              remaining={remaining}
+              framingGuide={framingGuide}
+              description={description}
+            />
+          </div>
 
           {mode === 'loading' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-foreground/80">
@@ -241,15 +260,6 @@ const CameraStage = ({
               <p className="text-sm">{t('camera.starting')}</p>
             </div>
           )}
-
-          <StageOverlays
-            mode={mode}
-            countdownValue={countdownValue}
-            endingSoon={endingSoon}
-            remaining={remaining}
-            framingGuide={framingGuide}
-            description={description}
-          />
         </>
       )}
     </div>
@@ -340,8 +350,10 @@ export const CameraCapture = ({
   maxDurationSeconds,
   framingGuide,
   description,
+  orientation = 'landscape',
 }: CameraCaptureProps) => {
-  const camera = useCameraCapture(onCapture, onClose, { countdownSeconds, maxDurationSeconds });
+  const portrait = orientation === 'portrait';
+  const camera = useCameraCapture(onCapture, onClose, { countdownSeconds, maxDurationSeconds, portrait });
 
   return createPortal(
     <div className="dark fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col fade-in safe-b">
@@ -363,6 +375,7 @@ export const CameraCapture = ({
         remaining={camera.remaining}
         framingGuide={framingGuide}
         description={description}
+        portrait={portrait}
         onRetry={camera.startCamera}
       />
 

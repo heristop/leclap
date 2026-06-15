@@ -2,11 +2,19 @@
 import type { TemplateDescriptor } from 'ffmpeg-video-composer';
 
 export const builtinTemplates: Record<string, TemplateDescriptor> = {
-  'premium-fast-curious': {
+  'fast-curious': {
+    meta: {
+      name: 'Fast & Curious',
+      description: 'Punchy two-tone flash intro — your name on a bold cut, then your clip.',
+    },
     global: {
       variables: {
-        optionA: 'Tea',
-        optionB: 'Coffee',
+        optionA1: 'Tea',
+        optionB1: 'Coffee',
+        optionA2: 'Beach',
+        optionB2: 'Mountains',
+        optionA3: 'Cats',
+        optionB3: 'Dogs',
       },
       orientation: 'landscape',
       musicEnabled: true,
@@ -23,6 +31,10 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     },
     sections: [
+      {
+        type: 'partial',
+        ref: 'logo-bumper',
+      },
       {
         name: 'form_1',
         type: 'form',
@@ -45,378 +57,31 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
         },
       },
       {
-        name: 'fast_curious_1',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#ff2e4d',
-          duration: 0.6,
+        type: 'partial',
+        ref: 'question-flash',
+        prefix: 'q1_',
+        variables: {
+          optionA: '{{ optionA1 }}',
+          optionB: '{{ optionB1 }}',
+          index: '1',
         },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 360,
-              c: '#ff2e4d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '#f5f5f0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'FAST',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 184,
-              x: '(w-text_w)/2 - 150',
-              y: '(h-text_h)/2 - 90',
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'CURIOUS',
-              },
-              fontcolor: '#ff2e4d',
-              fontsize: 184,
-              x: '(w-text_w)/2 + 90',
-              y: '(h-text_h)/2 + 20',
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'WITH {{ form_1_firstname }}',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 38,
-              x: '(w-tw) - 110',
-              y: 'h - 120',
-              fontfile: 'Oswald.ttf',
-              box: 1,
-              boxcolor: '#141416',
-              boxborderw: 16,
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.4',
-              color: '#141416',
-            },
-          },
-        ],
-      },
-      {
-        name: 'fast_curious_2',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#f5f5f0',
-          duration: 0.5,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 360,
-              c: '#f5f5f0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '#ff2e4d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'FAST',
-              },
-              fontcolor: '#ff2e4d',
-              fontsize: 184,
-              x: '(w-text_w)/2 - 150',
-              y: '(h-text_h)/2 - 90',
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'CURIOUS',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 184,
-              x: '(w-text_w)/2 + 90',
-              y: '(h-text_h)/2 + 20',
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'WITH {{ form_1_firstname }}',
-              },
-              fontcolor: '#ff2e4d',
-              fontsize: 38,
-              x: '(w-tw) - 110',
-              y: 'h - 120',
-              fontfile: 'Oswald.ttf',
-              box: 1,
-              boxcolor: '#141416',
-              boxborderw: 16,
-            },
-          },
-        ],
-      },
-      {
-        name: 'fast_curious_3',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#ff2e4d',
-          duration: 1.2,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 360,
-              c: '#ff2e4d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 360,
-              w: 1280,
-              h: 360,
-              c: '#f5f5f0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'FAST',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 184,
-              x: '(w-text_w)/2 - 150',
-              y: '(h-text_h)/2 - 90',
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'CURIOUS',
-              },
-              fontcolor: '#ff2e4d',
-              fontsize: 184,
-              x: '(w-text_w)/2 + 90',
-              y: '(h-text_h)/2 + 20',
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'WITH {{ form_1_firstname }}',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 38,
-              x: '(w-tw) - 110',
-              y: 'h - 120',
-              fontfile: 'Oswald.ttf',
-              box: 1,
-              boxcolor: '#141416',
-              boxborderw: 16,
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#141416',
-            },
-          },
-        ],
-      },
-      {
-        name: 'question_1',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#f5f5f0',
-          duration: 2.6,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 640,
-              h: 720,
-              c: '#f5f5f0@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 640,
-              y: 0,
-              w: 640,
-              h: 720,
-              c: '#ff2e4d@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 628,
-              y: 0,
-              w: 24,
-              h: 720,
-              c: '#141416@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'PICK ONE — FAST',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 40,
-              x: '(w-text_w)/2',
-              y: 70,
-              fontfile: 'Oswald.ttf',
-              box: 1,
-              boxcolor: '#141416',
-              boxborderw: 18,
-              alpha: "'if(lt(t,0.2),0,if(lt(t,0.7),(t-0.2)/0.5,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ optionA }}',
-              },
-              fontcolor: '#ff2e4d',
-              fontsize: 150,
-              x: '(640-text_w)/2',
-              y: '(h-text_h)/2',
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.5),0,if(lt(t,1.1),(t-0.5)/0.6,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ optionB }}',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 150,
-              x: '640 + (640-text_w)/2',
-              y: '(h-text_h)/2',
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.8),0,if(lt(t,1.4),(t-0.8)/0.6,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'OR',
-              },
-              fontcolor: '#f5f5f0',
-              fontsize: 46,
-              x: '(w-text_w)/2',
-              y: '(h-text_h)/2 + 6',
-              fontfile: 'Oswald.ttf',
-              box: 1,
-              boxcolor: '#141416',
-              boxborderw: 22,
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.3',
-              color: '#141416',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#141416',
-            },
-          },
-        ],
       },
       {
         name: 'video_1',
         type: 'project_video',
         look: 'vivid',
         title: {
-          en: 'Record your clip',
+          en: 'Answer #1',
         },
         description: {
-          en: 'Your moment — punchy intro, then you',
+          en: '{{ optionA1 }} or {{ optionB1 }}? — film your answer',
         },
         options: {
-          duration: 30,
+          duration: 20,
           forceAspectRatio: true,
+          countdown: true,
+          countdownDuration: 3,
+          musicVolume: 0.1,
         },
         filters: [
           {
@@ -448,10 +113,170 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'drawtext',
             values: {
               text: {
-                en: '{{ form_1_firstname }}',
+                en: '{{ optionA1 }} or {{ optionB1 }}?',
               },
               fontcolor: '#f5f5f0',
-              fontsize: 52,
+              fontsize: 44,
+              x: 80,
+              y: 644,
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#141416',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#141416',
+            },
+          },
+        ],
+      },
+      {
+        type: 'partial',
+        ref: 'question-flash',
+        prefix: 'q2_',
+        variables: {
+          optionA: '{{ optionA2 }}',
+          optionB: '{{ optionB2 }}',
+          index: '2',
+        },
+      },
+      {
+        name: 'video_2',
+        type: 'project_video',
+        look: 'vivid',
+        title: {
+          en: 'Answer #2',
+        },
+        description: {
+          en: '{{ optionA2 }} or {{ optionB2 }}? — film your answer',
+        },
+        options: {
+          duration: 20,
+          forceAspectRatio: true,
+          countdown: true,
+          countdownDuration: 3,
+          musicVolume: 0.1,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#141416@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#ff2e4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ optionA2 }} or {{ optionB2 }}?',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 44,
+              x: 80,
+              y: 644,
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#141416',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#141416',
+            },
+          },
+        ],
+      },
+      {
+        type: 'partial',
+        ref: 'question-flash',
+        prefix: 'q3_',
+        variables: {
+          optionA: '{{ optionA3 }}',
+          optionB: '{{ optionB3 }}',
+          index: '3',
+        },
+      },
+      {
+        name: 'video_3',
+        type: 'project_video',
+        look: 'vivid',
+        title: {
+          en: 'Answer #3',
+        },
+        description: {
+          en: '{{ optionA3 }} or {{ optionB3 }}? — film your answer',
+        },
+        options: {
+          duration: 20,
+          forceAspectRatio: true,
+          countdown: true,
+          countdownDuration: 3,
+          musicVolume: 0.1,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#141416@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#ff2e4d@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ optionA3 }} or {{ optionB3 }}?',
+              },
+              fontcolor: '#f5f5f0',
+              fontsize: 44,
               x: 80,
               y: 644,
               fontfile: 'BebasNeue.ttf',
@@ -473,7 +298,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  'premium-intro': {
+  intro: {
+    meta: {
+      name: 'Intro',
+      description: 'Cinematic title card — bold name, accent rule, graded backdrop.',
+    },
     global: {
       orientation: 'landscape',
       musicEnabled: true,
@@ -696,7 +525,635 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  'premium-quote-portrait': {
+  'landscape-spotlight': {
+    meta: {
+      name: 'Landscape Spotlight',
+      description: 'Record a clip — graded intro + outro wrap it into a polished video.',
+    },
+    global: {
+      orientation: 'landscape',
+      musicEnabled: true,
+      music: {
+        name: 'arcadia.mp3',
+      },
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
+    },
+    sections: [
+      {
+        name: 'form_1',
+        type: 'form',
+        title: {
+          en: 'Your details',
+        },
+        description: {
+          en: '',
+        },
+        options: {
+          fields: [
+            {
+              name: 'form_1_name',
+              maxLength: 24,
+              label: {
+                en: 'Your name',
+              },
+            },
+          ],
+        },
+      },
+      {
+        name: 'intro',
+        type: 'color_background',
+        transition: {
+          type: 'wipeleft',
+          duration: 0.4,
+        },
+        options: {
+          backgroundColor: '#0d1b2a',
+          duration: 2.4,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#0d1b2a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 150,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 570,
+              w: 1280,
+              h: 150,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'PRESENTING',
+              },
+              fontcolor: '#e8eef7',
+              fontsize: 30,
+              x: '(w-text_w)/2',
+              y: 250,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_name }}',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 124,
+              x: '(w-text_w)/2',
+              y: 320,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.6),0,if(lt(t,1.5),(t-0.6)/0.9,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 540,
+              y: 470,
+              w: 200,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#0d1b2a',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+      {
+        name: 'video_1',
+        type: 'project_video',
+        look: 'cinematic',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your moment — graded and captioned',
+        },
+        options: {
+          duration: 30,
+          forceAspectRatio: true,
+          countdown: true,
+          countdownDuration: 3,
+          musicVolume: 0.1,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 600,
+              w: 1280,
+              h: 120,
+              c: '#0d1b2a@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 80,
+              y: 628,
+              w: 90,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_name }}',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 52,
+              x: 80,
+              y: 644,
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#0d1b2a',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+      {
+        name: 'outro',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#0d1b2a',
+          duration: 2.6,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 720,
+              c: '#0d1b2a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 1280,
+              h: 150,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 570,
+              w: 1280,
+              h: 150,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'LeClap',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 128,
+              x: '(w-text_w)/2',
+              y: 280,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 540,
+              y: 432,
+              w: 200,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'made on your device',
+              },
+              fontcolor: '#e8eef7',
+              fontsize: 30,
+              x: '(w-text_w)/2',
+              y: 458,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,0.9),0,if(lt(t,1.6),(t-0.9)/0.7,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  'portrait-spotlight': {
+    meta: {
+      name: 'Portrait Spotlight',
+      description: 'Record a vertical clip — graded intro + outro wrap it into a polished video.',
+    },
+    global: {
+      orientation: 'portrait',
+      musicEnabled: true,
+      music: {
+        name: 'arcadia.mp3',
+      },
+      transition: {
+        type: 'fade',
+        duration: 0.5,
+      },
+      audio: {
+        sourceVolume: 1,
+      },
+    },
+    sections: [
+      {
+        name: 'form_1',
+        type: 'form',
+        title: {
+          en: 'Your details',
+        },
+        description: {
+          en: '',
+        },
+        options: {
+          fields: [
+            {
+              name: 'form_1_name',
+              maxLength: 24,
+              label: {
+                en: 'Your name',
+              },
+            },
+          ],
+        },
+      },
+      {
+        name: 'intro',
+        type: 'color_background',
+        transition: {
+          type: 'wipeleft',
+          duration: 0.4,
+        },
+        options: {
+          backgroundColor: '#0d1b2a',
+          duration: 2.4,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 1280,
+              c: '#0d1b2a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 220,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 1060,
+              w: 720,
+              h: 220,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'PRESENTING',
+              },
+              fontcolor: '#e8eef7',
+              fontsize: 34,
+              x: '(w-text_w)/2',
+              y: 470,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_name }}',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 120,
+              x: '(w-text_w)/2',
+              y: 560,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.6),0,if(lt(t,1.5),(t-0.6)/0.9,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 260,
+              y: 740,
+              w: 200,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#0d1b2a',
+            },
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'out',
+              d: '{{ transitionDuration }}',
+              st: '{{ transitionStartTime }}',
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+      {
+        name: 'video_1',
+        type: 'project_video',
+        look: 'cinematic',
+        title: {
+          en: 'Record your clip',
+        },
+        description: {
+          en: 'Your moment — graded and captioned',
+        },
+        options: {
+          duration: 30,
+          forceAspectRatio: true,
+          countdown: true,
+          countdownDuration: 3,
+          musicVolume: 0.1,
+        },
+        filters: [
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 1100,
+              w: 720,
+              h: 180,
+              c: '#0d1b2a@0.55',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 60,
+              y: 1150,
+              w: 90,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: '{{ form_1_name }}',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 52,
+              x: 60,
+              y: 1166,
+              fontfile: 'BebasNeue.ttf',
+            },
+          },
+          {
+            type: 'fadein',
+            values: {
+              color: '#0d1b2a',
+            },
+          },
+          {
+            type: 'fadeout',
+            values: {
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+      {
+        name: 'outro',
+        type: 'color_background',
+        options: {
+          backgroundColor: '#0d1b2a',
+          duration: 2.6,
+        },
+        filters: [
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 1280,
+              c: '#0d1b2a@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 0,
+              w: 720,
+              h: 220,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 0,
+              y: 1060,
+              w: 720,
+              h: 220,
+              c: '#13243f@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'LeClap',
+              },
+              fontcolor: '#f5c518',
+              fontsize: 124,
+              x: '(w-text_w)/2',
+              y: 540,
+              fontfile: 'BebasNeue.ttf',
+              alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
+            },
+          },
+          {
+            type: 'drawbox',
+            values: {
+              x: 260,
+              y: 720,
+              w: 200,
+              h: 5,
+              c: '#f5c518@1',
+              t: 'fill',
+            },
+          },
+          {
+            type: 'drawtext',
+            values: {
+              text: {
+                en: 'made on your device',
+              },
+              fontcolor: '#e8eef7',
+              fontsize: 34,
+              x: '(w-text_w)/2',
+              y: 748,
+              fontfile: 'Oswald.ttf',
+              alpha: "'if(lt(t,0.9),0,if(lt(t,1.6),(t-0.9)/0.7,1))'",
+            },
+          },
+          {
+            type: 'vignette',
+          },
+          {
+            type: 'fade',
+            values: {
+              t: 'in',
+              d: '0.6',
+              color: '#0d1b2a',
+            },
+          },
+        ],
+      },
+    ],
+  } as TemplateDescriptor,
+  'quote-portrait': {
+    meta: {
+      name: 'Quote (Portrait)',
+      description: 'Vertical typographic quote card.',
+    },
     global: {
       orientation: 'portrait',
       musicEnabled: true,
@@ -898,7 +1355,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  'premium-quote': {
+  quote: {
+    meta: {
+      name: 'Quote',
+      description: 'Typographic quote card with staged text reveal.',
+    },
     global: {
       orientation: 'landscape',
       musicEnabled: true,
@@ -1090,7 +1551,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  'premium-reel-portrait': {
+  'reel-portrait': {
+    meta: {
+      name: 'Reel',
+      description: 'Vertical social reel — graded backdrop, bold caption.',
+    },
     global: {
       orientation: 'portrait',
       musicEnabled: true,
@@ -1309,312 +1774,11 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
       },
     ],
   } as TemplateDescriptor,
-  'premium-spotlight': {
-    global: {
-      orientation: 'landscape',
-      musicEnabled: true,
-      music: {
-        name: 'air-prelude.mp3',
-      },
-      transition: {
-        type: 'fade',
-        duration: 0.5,
-      },
-      audio: {
-        sourceVolume: 1,
-      },
+  titles: {
+    meta: {
+      name: 'Titles',
+      description: 'Layered title sequence with eased typography.',
     },
-    sections: [
-      {
-        name: 'form_1',
-        type: 'form',
-        title: {
-          en: 'Your details',
-        },
-        description: {
-          en: '',
-        },
-        options: {
-          fields: [
-            {
-              name: 'form_1_name',
-              maxLength: 24,
-              label: {
-                en: 'Your name',
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: 'intro',
-        type: 'color_background',
-        transition: {
-          type: 'wipeleft',
-          duration: 0.4,
-        },
-        options: {
-          backgroundColor: '#0d1b2a',
-          duration: 2.4,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#0d1b2a@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 150,
-              c: '#13243f@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 570,
-              w: 1280,
-              h: 150,
-              c: '#13243f@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'PRESENTING',
-              },
-              fontcolor: '#e8eef7',
-              fontsize: 30,
-              x: '(w-text_w)/2',
-              y: 250,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'",
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_1_name }}',
-              },
-              fontcolor: '#f5c518',
-              fontsize: 124,
-              x: '(w-text_w)/2',
-              y: 320,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.6),0,if(lt(t,1.5),(t-0.6)/0.9,1))'",
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 540,
-              y: 470,
-              w: 200,
-              h: 5,
-              c: '#f5c518@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.6',
-              color: '#0d1b2a',
-            },
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'out',
-              d: '{{ transitionDuration }}',
-              st: '{{ transitionStartTime }}',
-              color: '#0d1b2a',
-            },
-          },
-        ],
-      },
-      {
-        name: 'video_1',
-        type: 'project_video',
-        look: 'cinematic',
-        title: {
-          en: 'Record your clip',
-        },
-        description: {
-          en: 'Your moment — graded and captioned',
-        },
-        options: {
-          duration: 30,
-          forceAspectRatio: true,
-        },
-        filters: [
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 600,
-              w: 1280,
-              h: 120,
-              c: '#0d1b2a@0.55',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 80,
-              y: 628,
-              w: 90,
-              h: 5,
-              c: '#f5c518@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: '{{ form_1_name }}',
-              },
-              fontcolor: '#f5c518',
-              fontsize: 52,
-              x: 80,
-              y: 644,
-              fontfile: 'BebasNeue.ttf',
-            },
-          },
-          {
-            type: 'fadein',
-            values: {
-              color: '#0d1b2a',
-            },
-          },
-          {
-            type: 'fadeout',
-            values: {
-              color: '#0d1b2a',
-            },
-          },
-        ],
-      },
-      {
-        name: 'outro',
-        type: 'color_background',
-        options: {
-          backgroundColor: '#0d1b2a',
-          duration: 2.6,
-        },
-        filters: [
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 720,
-              c: '#0d1b2a@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 0,
-              w: 1280,
-              h: 150,
-              c: '#13243f@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 0,
-              y: 570,
-              w: 1280,
-              h: 150,
-              c: '#13243f@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'LeClap',
-              },
-              fontcolor: '#f5c518',
-              fontsize: 128,
-              x: '(w-text_w)/2',
-              y: 280,
-              fontfile: 'BebasNeue.ttf',
-              alpha: "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'",
-            },
-          },
-          {
-            type: 'drawbox',
-            values: {
-              x: 540,
-              y: 432,
-              w: 200,
-              h: 5,
-              c: '#f5c518@1',
-              t: 'fill',
-            },
-          },
-          {
-            type: 'drawtext',
-            values: {
-              text: {
-                en: 'made on your device',
-              },
-              fontcolor: '#e8eef7',
-              fontsize: 30,
-              x: '(w-text_w)/2',
-              y: 458,
-              fontfile: 'Oswald.ttf',
-              alpha: "'if(lt(t,0.9),0,if(lt(t,1.6),(t-0.9)/0.7,1))'",
-            },
-          },
-          {
-            type: 'vignette',
-          },
-          {
-            type: 'fade',
-            values: {
-              t: 'in',
-              d: '0.6',
-              color: '#0d1b2a',
-            },
-          },
-        ],
-      },
-    ],
-  } as TemplateDescriptor,
-  'premium-titles': {
     global: {
       orientation: 'landscape',
       musicEnabled: true,
@@ -1824,7 +1988,7 @@ export const builtinTemplates: Record<string, TemplateDescriptor> = {
             type: 'drawtext',
             values: {
               text: {
-                en: 'LECLAP',
+                en: 'LeClap',
               },
               fontcolor: '#ffffff',
               fontsize: 150,

@@ -73,6 +73,7 @@ describe('sectionHints', () => {
     expect(SECTION_HINTS).toEqual({
       video: 'Record yourself on camera',
       form: 'Ask the viewer for text to overlay',
+      partial: 'Reuse a saved scene fragment',
       color: 'Solid color card with a title',
       music: 'Background track for the whole video',
       image: 'A photo backdrop with motion',

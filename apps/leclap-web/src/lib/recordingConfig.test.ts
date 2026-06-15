@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { recordingConfigFromDescriptor } from './recordingConfig';
+import { APP_TEMPLATES_BY_ID } from '@leclap/creative-kit';
+import { recordingConfigForSection, recordingConfigFromDescriptor } from './recordingConfig';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 const descriptorWithProjectVideo = (overrides: Record<string, unknown> = {}): TemplateDescriptor => ({
@@ -18,6 +19,7 @@ describe('recordingConfigFromDescriptor', () => {
       countdownSeconds: undefined,
       maxDurationSeconds: undefined,
       framingGuide: undefined,
+      orientation: 'landscape',
     });
   });
 
@@ -30,6 +32,7 @@ describe('recordingConfigFromDescriptor', () => {
       countdownSeconds: undefined,
       maxDurationSeconds: undefined,
       framingGuide: undefined,
+      orientation: 'landscape',
     });
   });
 
@@ -99,5 +102,29 @@ describe('recordingConfigFromDescriptor', () => {
     expect(recordingConfigFromDescriptor(descriptorWithProjectVideo({ duration: 10 }))).not.toHaveProperty(
       'description'
     );
+  });
+});
+
+// Guards the catalog content: the showcase example templates enable the pre-record countdown on
+// every clip section, with a 3s lead-in.
+describe('example templates enable the recording countdown', () => {
+  const everyClipCountsDown = (id: string) => {
+    const sections = (APP_TEMPLATES_BY_ID[id]?.descriptor.sections ?? []) as TemplateDescriptor['sections'];
+    const clips = (sections ?? []).filter((s) => s.type === 'project_video');
+
+    expect(clips.length).toBeGreaterThan(0);
+
+    for (const clip of clips) {
+      expect(recordingConfigForSection(clip).countdownSeconds).toBe(3);
+    }
+  };
+
+  it('Fast & Curious counts down before every answer clip', () => {
+    everyClipCountsDown('fast-curious');
+  });
+
+  it('the landscape & portrait spotlights count down before the clip', () => {
+    everyClipCountsDown('landscape-spotlight');
+    everyClipCountsDown('portrait-spotlight');
   });
 });

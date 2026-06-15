@@ -47,7 +47,7 @@ function ensureMiseFFmpeg() {
 function buildProjectConfig() {
   const cwd = process.cwd();
   const buildDir = path.resolve(cwd, 'build');
-  const assetsDir = path.resolve(scriptDir, 'src/shared/assets');
+  const assetsDir = path.resolve(scriptDir, '../creative-kit/src/assets');
 
   return {
     buildDir,

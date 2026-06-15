@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
-const libDir = resolve(root, 'packages/ffmpeg-video-composer/src/shared/library');
+const libDir = resolve(root, 'packages/creative-kit/src/library');
+const assetsDir = resolve(root, 'packages/creative-kit/src/assets');
 
 // Bundle the server's template JSONs into the Expo app so the local catalog == the server catalog
 // (the app compiles them on-device by default, or via the server when the user toggles it).
@@ -39,6 +40,22 @@ const destinations = [
   {
     src: resolve(libDir, 'fonts'),
     dest: resolve(root, 'apps/leclap-expo/assets/fonts'),
+  },
+  {
+    src: resolve(assetsDir, 'animations'),
+    dest: resolve(root, 'apps/leclap-web/public/assets/animations'),
+  },
+  {
+    src: resolve(assetsDir, 'musics'),
+    dest: resolve(root, 'apps/leclap-web/public/assets/musics'),
+  },
+  {
+    src: resolve(assetsDir, 'pictures'),
+    dest: resolve(root, 'apps/leclap-web/public/assets/pictures'),
+  },
+  {
+    src: resolve(assetsDir, 'videos'),
+    dest: resolve(root, 'apps/leclap-web/public/assets/videos'),
   },
 ];
 

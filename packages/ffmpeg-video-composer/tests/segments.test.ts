@@ -68,13 +68,15 @@ function buildSegment(SegmentCtor: SegmentClass, overrides: BuildOverrides = {})
 }
 
 describe('SegmentBuilder constructor (via concrete segment)', () => {
-  it('swaps width/height in scale when template orientation is portrait', () => {
+  // Output orientation is resolved once in TemplateDirector.config, so the segment constructor never
+  // swaps the scale — see template-director.test.ts for the portrait swap.
+  it('leaves the scale untouched for a portrait template (swap handled by the director)', () => {
     const { seg } = buildSegment(Video, {
       templateDescriptor: { orientation: 'portrait' },
       projectConfig: { videoConfig: { scale: '1280:720', setsar: '1/1' } },
     });
 
-    expect(seg.getProject().config.videoConfig.scale).toBe('720:1280');
+    expect(seg.getProject().config.videoConfig.scale).toBe('1280:720');
   });
 
   it('leaves scale untouched when orientation is not portrait', () => {

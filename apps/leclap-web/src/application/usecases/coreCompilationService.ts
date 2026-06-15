@@ -86,7 +86,12 @@ class CoreCompilationService {
       // place, fetchFonts() finds it cached and skips the (unusable) woff2 fetch.
       await this.preloadBundledFonts();
 
-      const templateDescriptor = this.prepareTemplateDescriptor(materializedTemplate, formData, userVideoPaths, onProgress);
+      const templateDescriptor = this.prepareTemplateDescriptor(
+        materializedTemplate,
+        formData,
+        userVideoPaths,
+        onProgress
+      );
 
       if (mediaChoices) {
         applyMediaChoices(templateDescriptor, mediaChoices);

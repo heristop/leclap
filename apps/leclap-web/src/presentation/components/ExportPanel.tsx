@@ -1,23 +1,10 @@
-import { useState, useRef, useEffect, startTransition } from 'react';
+import { useState, startTransition } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Download,
-  Play,
-  Pause,
-  Share2,
-  Copy,
-  Check,
-  FileVideo,
-  HardDrive,
-  CheckCircle2,
-  Volume2,
-  VolumeX,
-  Maximize2,
-  Minimize2,
-} from 'lucide-react';
+import { Download, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from 'lucide-react';
 import clsx from 'clsx';
 import { logger } from '@/lib/logger';
 import { Button, Card } from '@/presentation/components/ui';
+import { VideoPreview } from '@/presentation/components/VideoPreview';
 
 interface ProcessedVideo {
   blob: Blob;
@@ -37,162 +24,6 @@ const formatFileSize = (bytes: number) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-const formatDuration = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
-
-interface VideoPreviewProps {
-  processedVideo: ProcessedVideo;
-  isPlaying: boolean;
-  onPlayPause: () => void;
-  onPlay: () => void;
-  onPause: () => void;
-}
-
-const VideoPreview = ({ processedVideo, isPlaying, onPlayPause, onPlay, onPause }: VideoPreviewProps) => {
-  const { t } = useTranslation('process');
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-
-  const handlePlayPause = () => {
-    if (!videoRef.current) return;
-
-    if (isPlaying) {
-      videoRef.current.pause();
-      onPlayPause();
-
-      return;
-    }
-
-    videoRef.current.play().catch((error: unknown) => {
-      logger.error('Error playing video:', error);
-    });
-    onPlayPause();
-  };
-
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-
-    const next = !videoRef.current.muted;
-    videoRef.current.muted = next;
-    setIsMuted(next);
-  };
-
-  const toggleFullscreen = () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch((error: unknown) => {
-        logger.error('Error exiting fullscreen:', error);
-      });
-
-      return;
-    }
-
-    const el = containerRef.current;
-
-    if (!el) return;
-
-    el.requestFullscreen().catch((error: unknown) => {
-      logger.error('Error entering fullscreen:', error);
-    });
-  };
-
-  return (
-    <div
-      ref={containerRef}
-      className={clsx(
-        'group relative overflow-hidden bg-black shadow-2xl',
-        // In fullscreen the element fills the screen — center the video and let it use the full
-        // height. Otherwise it's an inline, rounded, height-capped preview card.
-        isFullscreen
-          ? 'flex h-full w-full items-center justify-center rounded-none border-0'
-          : 'rounded-xl border border-foreground/10'
-      )}
-    >
-      <video
-        ref={videoRef}
-        src={processedVideo.url}
-        aria-label={t('export.preview.videoAriaLabel')}
-        className={clsx('object-contain', isFullscreen ? 'h-full max-h-full w-full' : 'h-auto max-h-96 w-full')}
-        onClick={handlePlayPause}
-        onPlay={() => {
-          onPlay();
-        }}
-        onPause={() => {
-          onPause();
-        }}
-        controls={false}
-        preload="metadata"
-      />
-
-      {/* Custom Play/Pause Overlay */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <button
-          type="button"
-          onClick={handlePlayPause}
-          aria-label={isPlaying ? t('export.preview.pause') : t('export.preview.play')}
-          className={clsx(
-            'pointer-events-auto grid h-16 w-16 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-sm',
-            'transition-all duration-200 ease-out hover:scale-105 hover:bg-black/60',
-            'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 [&_svg]:size-7',
-            isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
-          )}
-        >
-          {isPlaying ? <Pause /> : <Play className="ml-0.5" />}
-        </button>
-      </div>
-
-      {/* Video Controls Bar */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-4 pt-12">
-        <div className="flex items-center justify-between gap-3 text-sm text-white">
-          <div className="flex min-w-0 items-center gap-2">
-            <FileVideo className="h-4 w-4 shrink-0 text-brand-300" />
-            <span className="truncate font-medium">{t('export.preview.label')}</span>
-          </div>
-          <div className="pointer-events-auto flex items-center gap-1">
-            {processedVideo.duration && (
-              <span className="mr-1 font-mono text-xs tabular-nums text-white/70">
-                {formatDuration(processedVideo.duration)}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={toggleMute}
-              aria-label={isMuted ? t('export.preview.unmute') : t('export.preview.mute')}
-              className="grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
-            >
-              {isMuted ? <VolumeX /> : <Volume2 />}
-            </button>
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              aria-label={isFullscreen ? t('export.preview.exitFullscreen') : t('export.preview.enterFullscreen')}
-              className="grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
-            >
-              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 interface VideoInfoProps {
@@ -336,7 +167,6 @@ const SuccessMessage = () => {
 
 export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
   const { t } = useTranslation('process');
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
@@ -401,19 +231,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
   return (
     <div className="space-y-6 fade-in">
       {/* Video Preview */}
-      <VideoPreview
-        processedVideo={processedVideo}
-        isPlaying={isPlaying}
-        onPlayPause={() => {
-          setIsPlaying((prev) => !prev);
-        }}
-        onPlay={() => {
-          setIsPlaying(true);
-        }}
-        onPause={() => {
-          setIsPlaying(false);
-        }}
-      />
+      <VideoPreview url={processedVideo.url} duration={processedVideo.duration} />
 
       {/* Video Information */}
       <VideoInfo processedVideo={processedVideo} />

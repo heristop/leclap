@@ -36,4 +36,35 @@ describe('BrowserFilesystemAdapter.fetch', () => {
 
     expect(window.fetch).toHaveBeenCalledWith('/not/in/store.png');
   });
+
+  it('resolves old GitHub raw bundled asset URLs through the app public assets', async () => {
+    const fs = new BrowserFilesystemAdapter();
+    (window.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([7, 8, 9]).buffer,
+    });
+
+    const path = await fs.resolveLocalAsset(
+      'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/leclap_bumper.mp4'
+    );
+
+    expect(window.fetch).toHaveBeenCalledWith('/assets/videos/leclap_bumper.mp4');
+    expect(path).toBe('/tmp/fetch/leclap_bumper.mp4');
+    expect(await fs.readFile('/tmp/fetch/leclap_bumper.mp4')).toEqual(new Uint8Array([7, 8, 9]));
+  });
+
+  it('falls back to remote fetching when a bundled public asset is unavailable', async () => {
+    const fs = new BrowserFilesystemAdapter();
+    (window.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    });
+
+    await expect(
+      fs.resolveLocalAsset(
+        'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/missing.mp4'
+      )
+    ).resolves.toBeNull();
+  });
 });

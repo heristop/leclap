@@ -99,6 +99,7 @@ class TemplateDirector {
     this.filesystemAdapter.setAssetsDir(this.project.config.assetsDir ?? 'assets');
 
     this.project.applyDefault();
+    this.applyOrientationToScale();
 
     if (!this.project.config.userVideoPaths) {
       this.logger.info('TemplateDirector: No userVideoPaths provided in config');
@@ -112,6 +113,24 @@ class TemplateDirector {
     );
 
     return this;
+  };
+
+  // Resolve the output orientation ONCE, here — the single point where the descriptor and the
+  // project config meet. A portrait template swaps the configured W:H so the recorded clip, the
+  // cards, and the final normalize all render to the same vertical scale. This deliberately replaces
+  // the old per-SegmentBuilder swap, which mutated the shared project config on every segment
+  // construction and so alternated portrait/landscape across segments — stretching the recorded clip.
+  private readonly applyOrientationToScale = (): void => {
+    if (this.template.descriptor.global?.orientation !== 'portrait') return;
+
+    const videoConfig = this.project.config.videoConfig;
+    const parts = videoConfig?.scale?.split(':');
+    const width = parts?.[0];
+    const height = parts?.[1];
+
+    if (width === undefined || height === undefined || !videoConfig) return;
+
+    this.project.config.videoConfig = { ...videoConfig, scale: `${height}:${width}` };
   };
 
   construct = async (): Promise<string | null> => {

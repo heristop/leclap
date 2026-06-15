@@ -19,8 +19,8 @@ export default defineConfig([
     // fonts locally (FilesystemNodeAdapter.resolveBundledFont looks in dist/fonts) instead of
     // downloading them from Google Fonts. dist is already in package.json "files".
     copy: [
-      { from: 'src/shared/library/fonts/*.ttf', to: 'dist/fonts' },
-      { from: 'src/shared/library/musics/*.mp3', to: 'dist/musics' },
+      { from: '../creative-kit/src/library/fonts/*.ttf', to: 'dist/fonts' },
+      { from: '../creative-kit/src/library/musics/*.mp3', to: 'dist/musics' },
     ],
     deps: {
       onlyBundle: false,

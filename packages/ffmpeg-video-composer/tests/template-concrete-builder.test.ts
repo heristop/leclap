@@ -195,6 +195,28 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     return wasm;
   }
 
+  it('accepts an output already mirrored into the browser filesystem', async () => {
+    const wasm = makeWasmAdapter();
+    wasm.execute.mockResolvedValue({ rc: 0 });
+    wasm.readFile.mockRejectedValue(new Error('not in MEMFS anymore'));
+
+    segmentStub.inputsAsset = {};
+
+    const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(true);
+    const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
+
+    await builder.buildPart(baseSection, { buildDir: '/build' });
+    await builder.renderPart();
+
+    expect(filesystem.stat).toHaveBeenCalledWith('/build/seg_output.mp4');
+    expect(wasm.readFile).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith(
+      '[intro][RenderPart] WASM output already mirrored to filesystem: /build/seg_output.mp4'
+    );
+    expect(project.errors).toHaveLength(0);
+  });
+
   it('writes input files to WASM, finds the output directly and transfers to filesystem', async () => {
     const wasm = makeWasmAdapter();
     wasm.execute.mockResolvedValue({ rc: 0 });
@@ -205,6 +227,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     segmentStub.inputsAsset = { asset_a: '/assets/a.png', asset_b: '/assets/b.png' };
 
     const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
     await builder.buildPart(baseSection, { buildDir: '/build' });
@@ -296,6 +319,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     segmentStub.inputsAsset = {};
 
     const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
     await builder.buildPart(baseSection, { buildDir: '/build' });
@@ -327,6 +351,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     segmentStub.inputsAsset = {};
 
     const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
     await builder.buildPart(baseSection, { buildDir: '/build' });
@@ -350,7 +375,9 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     segmentStub.inputsAsset = {};
 
-    const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never });
+    const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
+    const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
     await builder.buildPart(baseSection, { buildDir: '/build' });
 
@@ -367,7 +394,9 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     segmentStub.inputsAsset = {};
 
-    const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never });
+    const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
+    const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
     await builder.buildPart(baseSection, { buildDir: '/build' });
 

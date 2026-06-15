@@ -131,10 +131,16 @@ function EndWarningOverlay({
 // Renders the framing guide over the live camera, including WHILE recording — its whole
 // purpose is helping the user hold their framing during the take (matches web behavior).
 // Dedicated component keeps the complexity budget of the VideoRecorder function intact.
-function FramingGuideOverlayWhenLive({ guide }: { guide: FramingGuide | undefined }) {
+function FramingGuideOverlayWhenLive({
+  guide,
+  orientation,
+}: {
+  guide: FramingGuide | undefined;
+  orientation: 'portrait' | 'landscape';
+}) {
   if (!guide) return null;
 
-  return <FramingGuideOverlay guide={guide} />;
+  return <FramingGuideOverlay guide={guide} orientation={orientation} />;
 }
 
 interface CountdownState {
@@ -592,7 +598,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     <View style={fullscreen ? styles.fullscreenContainer : styles.container}>
       <StatusBar hidden backgroundColor="transparent" translucent />
       <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio />
-      <FramingGuideOverlayWhenLive guide={framingGuide} />
+      <FramingGuideOverlayWhenLive guide={framingGuide} orientation={orientation} />
       <CaptureOverlays
         isPortrait={isPortrait}
         isRecording={isRecording}

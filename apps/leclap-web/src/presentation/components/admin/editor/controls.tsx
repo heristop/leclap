@@ -1,4 +1,4 @@
-// Small, on-brand form primitives shared by the v2 builder panels. Kept here so the
+// Small, on-brand form primitives shared by the builder panels. Kept here so the
 // panels stay focused and every slider/segmented-control looks identical.
 import { useId, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';

@@ -10,6 +10,7 @@ import {
   FileText,
   Music,
   Image as ImageIcon,
+  Braces,
   Save,
   ArrowDown,
   AlertCircle,
@@ -24,6 +25,10 @@ import {
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
+import { userPartialService } from '@/services/userPartialService';
+import { listAvailablePartials, type AvailablePartial } from '@/services/templatePartialService';
+import type { TemplatePartial } from '@leclap/creative-kit/partials';
+import type { StoredPartial } from '@/stores/userPartialStore';
 import {
   Button,
   Select,
@@ -136,15 +141,20 @@ const inputCls =
 export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorProps) => {
   const history = useEditorHistory(toEditorState(initial));
   const { state, set, undo, redo, canUndo, canRedo, reset } = history;
+  const [localPartials, setLocalPartials] = useState<StoredPartial[]>(() => userPartialService.list());
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [importErrors, setImportErrors] = useState<string[] | null>(null);
   const [mode, setMode] = useBuilderMode();
   const advanced = mode === 'advanced';
   const variables = collectVariables(state);
+  const partials = listAvailablePartials(localPartials);
+  const refreshPartials = (): void => {
+    setLocalPartials(userPartialService.list());
+  };
 
   // Inline validation, recomputed on a 300ms debounce so typing stays smooth.
-  const validation = useDebouncedValidation(state);
+  const validation = useDebouncedValidation(state, localPartials);
   // Hard errors gate Save + Preview (mirrors the original save-time guards).
   const hasHardErrors = validation.hasErrors;
   // The first unmet save guard, surfaced inline so a disabled Save explains itself.
@@ -232,6 +242,7 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
                   { value: 'advanced', label: 'Advanced' },
                 ]}
               />
+              <PartialsDialog partials={partials} onChanged={refreshPartials} />
               <EditorToolbar
                 canUndo={canUndo}
                 canRedo={canRedo}
@@ -265,6 +276,7 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
             dragIndex={dragIndex}
             validation={validation}
             editorState={state}
+            partials={partials}
             setDragIndex={setDragIndex}
             reorder={reorder}
             removeSection={removeSection}
@@ -358,18 +370,18 @@ function useSectionOps(set: SetState) {
 
 // Debounced (300ms) inline validation: build the descriptor, run the core validator, and group the
 // errors by section. Returns immediately-empty on the first render, then updates after the debounce.
-function useDebouncedValidation(state: EditorState): SectionValidation {
+function useDebouncedValidation(state: EditorState, localPartials: StoredPartial[]): SectionValidation {
   const [validation, setValidation] = useState<SectionValidation>(() => groupValidationErrors([]));
 
   useEffect(() => {
     const handle = setTimeout(() => {
-      setValidation(groupValidationErrors(runValidation(buildDescriptor(state))));
+      setValidation(groupValidationErrors(runValidation(buildDescriptor(state), localPartials)));
     }, 300);
 
     return () => {
       clearTimeout(handle);
     };
-  }, [state]);
+  }, [state, localPartials]);
 
   return validation;
 }
@@ -493,6 +505,204 @@ const IconBtn = ({
     {children}
   </button>
 );
+
+const PartialsDialog = ({ partials, onChanged }: { partials: AvailablePartial[]; onChanged: () => void }) => {
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState('');
+  const [draft, setDraft] = useState('');
+  const [error, setError] = useState('');
+  const selected = partials.find((partial) => partial.id === selectedId) ?? null;
+  const readonly = selected?.readonly === true;
+
+  const loadPartial = (partial: AvailablePartial): void => {
+    setSelectedId(partial.id);
+    setDraft(formatPartialJson(partial));
+    setError('');
+  };
+
+  const loadNew = (): void => {
+    setSelectedId('');
+    setDraft(formatPartialJson(defaultPartialDraft()));
+    setError('');
+  };
+
+  const openManager = (): void => {
+    setOpen(true);
+
+    const current = partials.find((partial) => partial.id === selectedId) ?? partials[0];
+
+    if (current) {
+      loadPartial(current);
+
+      return;
+    }
+    loadNew();
+  };
+
+  const saveDraft = (): void => {
+    try {
+      const saved = userPartialService.save(parsePartialJson(draft));
+      onChanged();
+      setSelectedId(saved.id);
+      setDraft(formatPartialJson(saved));
+      setError('');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not save partial.');
+    }
+  };
+
+  const deleteSelected = (): void => {
+    if (selected?.source !== 'local') return;
+
+    userPartialService.remove(selected.id);
+    onChanged();
+
+    const fallback = partials.find((partial) => partial.id !== selected.id);
+
+    if (fallback) {
+      loadPartial(fallback);
+
+      return;
+    }
+    loadNew();
+  };
+
+  return (
+    <>
+      <IconBtn label="Manage partials" onClick={openManager}>
+        <Braces className="h-4 w-4" />
+      </IconBtn>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Partials</DialogTitle>
+            <DialogDescription>Reusable descriptor fragments for partial scene sections.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 md:grid-cols-[13rem_1fr]">
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={loadNew}
+                className="tap flex w-full items-center gap-2 rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2 text-left text-sm font-semibold text-foreground transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+              >
+                <Plus className="h-4 w-4" /> New local partial
+              </button>
+              <div className="max-h-[48vh] space-y-1 overflow-y-auto pr-1">
+                {partials.map((partial) => (
+                  <button
+                    key={partial.id}
+                    type="button"
+                    onClick={() => {
+                      loadPartial(partial);
+                    }}
+                    className={clsx(
+                      'tap w-full rounded-lg px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+                      partial.id === selectedId
+                        ? 'bg-brand-500/15 text-brand-700 dark:text-brand-200'
+                        : 'bg-foreground/5 text-gray-600 hover:bg-foreground/10 dark:text-gray-300'
+                    )}
+                  >
+                    <span className="block truncate text-sm font-semibold">{partial.id}</span>
+                    <span className="block text-xs opacity-75">
+                      {partial.source === 'local' ? 'Local' : 'Built-in'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <textarea
+                aria-label="Partial JSON"
+                className="min-h-[20rem] w-full resize-y rounded-lg border border-foreground/10 bg-surface-2 px-3 py-2 font-mono text-xs text-foreground placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:opacity-70"
+                value={draft}
+                readOnly={readonly}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                }}
+                spellCheck={false}
+              />
+
+              {error && (
+                <p
+                  role="alert"
+                  className="flex items-start gap-2 rounded-lg border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3 py-2 text-xs font-medium text-[var(--color-error)]"
+                >
+                  <AlertCircle className="mt-px size-3.5 shrink-0" /> {error}
+                </p>
+              )}
+
+              <div className="flex flex-wrap justify-between gap-2">
+                <Button variant="secondary" type="button" onClick={loadNew}>
+                  <Plus className="h-4 w-4" /> New
+                </Button>
+                <div className="flex gap-2">
+                  {selected?.source === 'local' && (
+                    <Button variant="danger" type="button" onClick={deleteSelected}>
+                      <Trash2 className="h-4 w-4" /> Delete
+                    </Button>
+                  )}
+                  <Button variant="primary" type="button" onClick={saveDraft} disabled={readonly}>
+                    <Save className="h-4 w-4" /> Save partial
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+function defaultPartialDraft(): TemplatePartial {
+  return {
+    id: 'local:new-partial',
+    description: 'Local partial',
+    sections: [{ name: 'intro', type: 'color_background', options: { duration: 1, backgroundColor: '#111111' } }],
+  };
+}
+
+function formatPartialJson(partial: TemplatePartial): string {
+  return JSON.stringify(
+    {
+      id: partial.id,
+      description: partial.description,
+      sections: partial.sections,
+    },
+    null,
+    2
+  );
+}
+
+function parsePartialJson(text: string): TemplatePartial {
+  const parsed: unknown = JSON.parse(text);
+
+  if (parsed === null || typeof parsed !== 'object') {
+    throw new Error('Partial JSON must be an object.');
+  }
+
+  const partial = parsed as { id?: unknown; description?: unknown; sections?: unknown };
+
+  if (typeof partial.id !== 'string') {
+    throw new Error('Partial JSON must include a string id.');
+  }
+
+  if (typeof partial.description !== 'string') {
+    throw new Error('Partial JSON must include a string description.');
+  }
+
+  if (!Array.isArray(partial.sections)) {
+    throw new Error('Partial JSON must include a sections array.');
+  }
+
+  return {
+    id: partial.id,
+    description: partial.description,
+    sections: partial.sections as TemplatePartial['sections'],
+  };
+}
 
 const GlobalValidationBanner = ({ errors }: { errors: ValidationError[] }) => (
   <div
@@ -674,6 +884,7 @@ interface SectionListProps {
   dragIndex: number | null;
   validation: SectionValidation;
   editorState: EditorState;
+  partials: AvailablePartial[];
   setDragIndex: (i: number | null) => void;
   reorder: (from: number, to: number) => void;
   removeSection: (i: number) => void;
@@ -726,6 +937,7 @@ const SectionList = ({
   dragIndex,
   validation,
   editorState,
+  partials,
   setDragIndex,
   reorder,
   removeSection,
@@ -866,6 +1078,7 @@ const SectionList = ({
             collapsed={collapsed.has(i)}
             insertAt={insertAt}
             errors={errorsForEditorSection(validation, editorState, i)}
+            partials={partials}
             setArmedIndex={setArmedIndex}
             setDragIndex={setDragIndex}
             setInsertAt={setInsertAt}
@@ -903,6 +1116,7 @@ interface SectionCardProps {
   collapsed: boolean;
   insertAt: number | null;
   errors: ValidationError[];
+  partials: AvailablePartial[];
   setArmedIndex: (i: number | null) => void;
   setDragIndex: (i: number | null) => void;
   setInsertAt: (i: number | null) => void;
@@ -925,6 +1139,7 @@ const SectionCard = ({
   collapsed,
   insertAt,
   errors,
+  partials,
   setArmedIndex,
   setDragIndex,
   setInsertAt,
@@ -1027,6 +1242,7 @@ const SectionCard = ({
         section={section}
         orientation={orientation}
         variables={variables}
+        partials={partials}
         onChange={(p) => {
           patchSection(index, p);
         }}
@@ -1054,7 +1270,7 @@ const AddSectionButtons = ({ addSection }: { addSection: (kind: EditorSection['k
       Add a scene
     </span>
     <div className="grid gap-2 sm:grid-cols-2">
-      {(['video', 'form', 'color', 'music', 'image'] as const).map((kind) => (
+      {(['video', 'form', 'color', 'music', 'image', 'partial'] as const).map((kind) => (
         <button
           key={kind}
           type="button"
@@ -1101,6 +1317,10 @@ function sectionSummary(section: EditorSection): string {
     return plural(section.allowed.length, 'track') + (section.allowUpload ? ' · upload' : '');
   }
 
+  if (section.kind === 'partial') {
+    return `${section.ref || 'Unselected'}${section.prefix ? ` · ${section.prefix}` : ''}`;
+  }
+
   if (section.kind === 'image') {
     return `${section.duration}s · ${plural(section.allowed.length, 'image')}${section.allowUpload ? ' · upload' : ''}`;
   }
@@ -1116,6 +1336,8 @@ const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
   if (kind === 'music') return <Music className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 
   if (kind === 'image') return <ImageIcon className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
+
+  if (kind === 'partial') return <Braces className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
 
   return <VideoIcon className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
 };

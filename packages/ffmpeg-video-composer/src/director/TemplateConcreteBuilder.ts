@@ -106,6 +106,14 @@ class TemplateConcreteBuilder {
       const outputFile = this.segment.destination;
       this.logger.info(`[${this.section.name}][RenderPart] Looking for WASM output: ${outputFile}`);
 
+      if (await this.filesystemAdapter.stat(outputFile)) {
+        this.logger.info(
+          `[${this.section.name}][RenderPart] WASM output already mirrored to filesystem: ${outputFile}`
+        );
+
+        return;
+      }
+
       const { data, fileLocation } = await this.findWasmOutputFile(outputFile);
 
       if (!(data && fileLocation)) {

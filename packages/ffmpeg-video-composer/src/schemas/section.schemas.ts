@@ -134,25 +134,32 @@ export const BaseSectionOptionsSchema = z
 
 // ── caption ────────────────────────────────────────────────────────────────────
 
+export const CAPTION_STYLES = ['bar', 'subtle', 'bold'] as const;
+export const CAPTION_POSITIONS = ['top', 'center', 'bottom', 'lower-third'] as const;
+export const CAPTION_ALIGNS = ['left', 'center', 'right'] as const;
+
 // A styled lower-third / overlay caption. The `style` preset sets the base look; the optional
 // fields override it. Consumed by the caption preset (editor/presets/captions.ts), which turns this
 // into a single drawtext filter.
 export const CaptionSchema = z
   .object({
     text: TranslationSchema.describe('Localised caption text; the active locale is resolved downstream.'),
-    style: z.enum(['bar', 'subtle', 'bold']).optional().describe('Visual preset for the caption (default "bar").'),
+    style: z.enum(CAPTION_STYLES).optional().describe('Visual preset for the caption (default "bar").'),
     position: z
-      .enum(['top', 'center', 'bottom', 'lower-third'])
+      .enum(CAPTION_POSITIONS)
       .optional()
       .describe('Vertical placement of the caption (default "lower-third").'),
-    align: z
-      .enum(['left', 'center', 'right'])
+    align: z.enum(CAPTION_ALIGNS).optional().describe('Horizontal alignment of the caption (default "center").'),
+    font: z
+      .string()
       .optional()
-      .describe('Horizontal alignment of the caption (default "center").'),
-    font: z.string().optional().describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
+      .describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
     fontsize: z.number().positive().optional().describe('Font size in px; overrides the preset size.'),
     color: z.string().optional().describe('Text colour as a CSS hex string; overrides the preset colour.'),
-    box: z.boolean().optional().describe('When true, draws a background box behind the text (preset default otherwise).'),
+    box: z
+      .boolean()
+      .optional()
+      .describe('When true, draws a background box behind the text (preset default otherwise).'),
     boxColor: z.string().optional().describe('Box colour as a CSS hex string when the box is on.'),
     boxOpacity: z.number().min(0).max(1).optional().describe('Box opacity 0..1 when the box is on.'),
   })
@@ -179,6 +186,7 @@ export const BaseSectionSchema = z
     transition: TransitionSchema.optional().describe(
       'Transition applied after this section; overrides global.transition.'
     ),
+    caption: CaptionSchema.optional().describe('Styled on-screen caption rendered as a drawtext filter.'),
     look: z
       .enum(LOOK_PRESETS)
       .optional()
@@ -249,6 +257,27 @@ export const MusicSectionSchema = BaseSectionSchema.extend({
   options: BaseSectionOptionsSchema.optional().describe('Duration and audio options for the music section.'),
 }).describe('A section with no video content, used to pad the timeline or inject music.');
 
+export const PartialSectionSchema = BaseSectionSchema.extend({
+  type: z
+    .literal('partial')
+    .describe('Section type: a reference to a reusable partial, expanded into real sections before validation.'),
+  name: z.string().optional().describe('Optional name for the partial reference (mainly for editor display).'),
+  options: BaseSectionOptionsSchema.optional().describe('Playback and compositing options for the partial reference.'),
+  ref: z.string().optional().describe('Id of a registered partial to expand in place.'),
+  prefix: z
+    .string()
+    .optional()
+    .describe('Prepended to each expanded section name, so a partial can be included more than once.'),
+  sections: z
+    .array(z.unknown())
+    .optional()
+    .describe('Inline partial sections, expanded in place — an alternative to `ref` for self-contained partials.'),
+  variables: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe('Values substituted into the partial’s `{{ key }}` placeholders, so one partial serves many slots.'),
+}).describe('A reference to a reusable partial (by `ref`) or an inline one (`sections`), expanded before compilation.');
+
 export const SectionSchema = z.discriminatedUnion('type', [
   VideoSectionSchema,
   ProjectVideoSectionSchema,
@@ -256,10 +285,20 @@ export const SectionSchema = z.discriminatedUnion('type', [
   ColorBackgroundSectionSchema,
   ImageBackgroundSectionSchema,
   MusicSectionSchema,
+  PartialSectionSchema,
 ]);
+
+export const TemplateMetaSchema = z
+  .object({
+    name: z.string().optional().describe('Human-readable template name for catalogs and editors.'),
+    description: z.string().optional().describe('Short human-readable template summary for catalogs and agents.'),
+  })
+  .strict()
+  .describe('Optional human-facing metadata embedded in the descriptor; behavioral catalog fields are derived.');
 
 export const TemplateDescriptorSchema = z
   .object({
+    meta: TemplateMetaSchema.optional().describe('Optional template metadata for display and discovery.'),
     global: GlobalConfigSchema.optional().describe(
       'Template-wide defaults: variables, orientation, audio, transitions, and music.'
     ),

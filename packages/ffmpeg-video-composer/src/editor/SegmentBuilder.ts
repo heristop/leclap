@@ -12,6 +12,7 @@ import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/argGuard';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters } from './presets/looks';
+import { captionToFilters } from './presets/captions';
 import { buildZipAnimationSource, buildSingleFileAnimationSource, buildGradientSource } from './inputSources';
 import { buildAudioFadeArg } from './audioFade';
 import { resolveVideoCodec, isHardwareCodec, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
@@ -104,19 +105,9 @@ class SegmentBuilder {
     this.formattersManager = managers.formattersManager;
     this.logger = managers.logger;
     this.filesystemAdapter = managers.filesystemAdapter;
-
-    if (this.template.descriptor.global?.orientation === 'portrait') {
-      const parts = this.project.config.videoConfig?.scale?.split(':');
-      const width = parts?.[0];
-      const height = parts?.[1];
-
-      if (width !== undefined && height !== undefined && this.project.config.videoConfig) {
-        // Clone rather than mutate in place: `project.config.videoConfig` is the caller's shared
-        // ProjectConfig object, so an in-place swap leaks the portrait scale into later compiles that
-        // reuse the same config (e.g. a portrait job then a landscape one → landscape comes out vertical).
-        this.project.config.videoConfig = { ...this.project.config.videoConfig, scale: `${height}:${width}` };
-      }
-    }
+    // Output orientation (portrait W:H swap) is resolved once in TemplateDirector.config, not here:
+    // a per-segment swap re-applied on the shared project config and alternated portrait/landscape
+    // across segments, stretching the recorded clip.
   }
 
   hydrate = (section: Section): SegmentBuilder => {
@@ -369,7 +360,7 @@ class SegmentBuilder {
 
   /**
    * Prepends structured-sugar filters to the section's authored filter list in the
-   * deterministic order: layers → motion → grade → look → authored filters.
+   * deterministic order: layers → motion → grade → look → caption → authored filters.
    * Called before prependScaleFilters so scale/sar remain first in the chain.
    */
   private readonly injectSugarFilters = (opts: SectionOptions | undefined): void => {
@@ -382,6 +373,7 @@ class SegmentBuilder {
       ...motionToFilters(this.section.motion as MotionEffect[] | undefined, ctx),
       ...gradeToFilters(this.section.grade as Grade | undefined),
       ...lookToFilters(this.section.look),
+      ...captionToFilters(this.section.caption),
       ...(this.section.filters ?? []),
     ];
   };

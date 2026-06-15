@@ -2,15 +2,38 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
-import { expandPartials } from '@/shared/templates/partials';
+import { APP_TEMPLATES_BY_ID } from '@leclap/creative-kit';
+import { expandPartials as expandPartialsCk } from '@leclap/creative-kit/partials';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { compile } from '@/index';
-import fastCurious from '@/shared/templates/fast-curious.json';
+
+// expandPartials is typed against creative-kit's structurally-looser descriptor (its types carry
+// index signatures that core's strict zod-inferred types don't), so a core descriptor isn't directly
+// assignable. Bridge once here so the core-typed fixtures below pass through unchanged.
+const expandPartials = (descriptor: TemplateDescriptor): TemplateDescriptor =>
+  expandPartialsCk(descriptor as Parameters<typeof expandPartialsCk>[0]) as unknown as TemplateDescriptor;
 
 const coreRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const creativeKitRoot = path.resolve(coreRoot, '../creative-kit');
 const RAW = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';
+const localRawPath = (relative: string): string => {
+  if (relative.startsWith('src/shared/assets/')) {
+    return path.join(creativeKitRoot, 'src/assets', relative.slice('src/shared/assets/'.length));
+  }
+
+  if (relative.startsWith('src/shared/library/')) {
+    return path.join(creativeKitRoot, 'src/library', relative.slice('src/shared/library/'.length));
+  }
+
+  return path.join(coreRoot, '..', '..', relative);
+};
+
 const localize = (value: unknown): unknown => {
-  if (typeof value === 'string') return value.startsWith(RAW) ? path.join(coreRoot, value.slice(RAW.length)) : value;
+  if (typeof value === 'string') {
+    if (!value.startsWith(RAW)) return value;
+
+    return localRawPath(value.slice(RAW.length));
+  }
   if (Array.isArray(value)) return value.map(localize);
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, localize(v)]));
@@ -61,6 +84,30 @@ describe('expandPartials', () => {
 
     expect(out.sections?.[0]?.name).toBe('intro_logo_bumper');
   });
+
+  it('substitutes {{ variable }} placeholders from the ref variables map', () => {
+    const descriptor = {
+      sections: [
+        {
+          type: 'partial',
+          ref: 'question-flash',
+          prefix: 'q1_',
+          variables: { optionA: 'Tea', optionB: 'Coffee', index: '1' },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const out = expandPartials(descriptor);
+    const json = JSON.stringify(out.sections);
+
+    // Provided values are injected, placeholders are gone, and the prefix is applied.
+    expect(json).toContain('Tea');
+    expect(json).toContain('Coffee');
+    expect(json).toContain('PICK ONE — 1 / 3');
+    expect(json).not.toContain('{{ optionA }}');
+    expect(json).not.toContain('{{ index }}');
+    expect(out.sections?.[0]?.name).toBe('q1_flash');
+  });
 });
 
 describe('TemplateValidator + partials', () => {
@@ -77,7 +124,8 @@ describe('TemplateValidator + partials', () => {
 
     expect(result.success).toBe(true);
     // The partial ref is gone — replaced by the partial's real `video` section.
-    expect(result.data && 'sections' in result.data ? result.data.sections?.[0]?.type : undefined).toBe('video');
+    const data = result.data as TemplateDescriptor | undefined;
+    expect(data?.sections?.[0]?.type).toBe('video');
   });
 
   it('rejects an unknown partial ref with a clean error (not a crash)', () => {
@@ -92,18 +140,21 @@ describe('TemplateValidator + partials', () => {
 
 describe('partial integration — fast & curious includes the logo-bumper partial', () => {
   it('expands the partial and compiles the whole template end-to-end', async () => {
+    const fastCurious = APP_TEMPLATES_BY_ID['fast-curious']?.descriptor;
+
+    expect(fastCurious).toBeDefined();
     // The template's first section is `{ type: "partial", ref: "logo-bumper" }`.
-    expect((fastCurious.sections[0] as { type?: string }).type).toBe('partial');
+    expect((fastCurious as TemplateDescriptor).sections?.[0]?.type).toBe('partial');
 
     // Expand here so the partial's bundled asset URL is localised for a hermetic compile (compile()
     // re-expands internally, a no-op once expanded).
     const expanded = expandPartials(fastCurious as unknown as TemplateDescriptor);
     expect(expanded.sections?.[0]?.name).toBe('logo_bumper');
 
-    const clip = path.resolve(coreRoot, 'src/shared/assets/videos/video_1.mp4');
+    const clip = path.resolve(creativeKitRoot, 'src/assets/videos/video_1.mp4');
     const cfg: ProjectConfig = {
       buildDir: path.resolve(coreRoot, '../../build/partial-fc'),
-      assetsDir: path.resolve(coreRoot, 'src/shared/assets'),
+      assetsDir: path.resolve(creativeKitRoot, 'src/assets'),
       currentLocale: 'en',
       audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
       videoConfig: { orientation: 'landscape', scale: '1280:720' },

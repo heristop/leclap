@@ -13,6 +13,7 @@ import {
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
+import { VideoPreview } from '@/presentation/components/VideoPreview';
 import { Button, Input } from '@/presentation/components/ui';
 import { useBrowserSupport } from '@/hooks/useBrowserSupport';
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
@@ -232,13 +233,9 @@ export const DoneStep = ({ result, onDone }: DoneStepProps) => {
         <Check className="w-6 h-6 text-white" />
       </div>
       <h2 className="text-2xl font-bold font-display brand-gradient-text mb-2">{t('done.title')}</h2>
-      <video
-        src={result.url}
-        aria-label={t('done.videoAria')}
-        controls
-        playsInline
-        className="w-full rounded-xl border border-foreground/10 bg-black mb-6"
-      />
+      <div className="mb-6">
+        <VideoPreview url={result.url} duration={result.duration} />
+      </div>
       <div className="flex flex-col sm:flex-row gap-3">
         <Button asChild variant="primary" className="flex-1">
           <a href={result.url} download="leclap-intro.mp4">

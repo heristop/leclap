@@ -2,7 +2,7 @@ import {
   MUSIC_LIBRARY as CORE_MUSIC,
   BACKGROUND_LIBRARY as CORE_BG,
   type MediaCredit as CoreMediaCredit,
-} from 'ffmpeg-video-composer/src/shared/library/catalog.ts';
+} from '@leclap/creative-kit/media';
 
 export type MediaCredit = CoreMediaCredit & {
   url: string; // same-origin path under /public, derived from `file`

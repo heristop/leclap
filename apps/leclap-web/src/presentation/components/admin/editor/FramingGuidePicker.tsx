@@ -1,18 +1,25 @@
-// Recording framing guide for project_video sections: a none/left/center/right
-// segmented control with a mini camera-frame mockup showing where the silhouette sits,
-// plus an opacity slider. The viewfinder mock matches the template orientation so a
+// Recording framing guide for project_video sections: a none/left/center/right segmented control,
+// a bust/outline style toggle, and an opacity slider, with a mini camera-frame mockup showing the
+// real silhouette where it will sit. The viewfinder mock matches the template orientation so a
 // landscape template previews wide, a portrait one tall. Writes
-// section.framingGuide = {type:'silhouette',position,opacity?} or clears it.
+// section.framingGuide = {type:'silhouette',position,opacity?,style?} or clears it.
 // The guide is shown in the recording UI only — never rendered into the video.
 import { useTranslation } from 'react-i18next';
-import { User } from 'lucide-react';
-import type { FramingGuide, Orientation } from '../templateEditorModel';
+import { DEFAULT_FRAMING_OPACITY, type FramingGuide, type Orientation } from '../templateEditorModel';
+import { SilhouetteSvg, silhouetteDockClass } from '@/presentation/components/FramingGuideOverlay';
 import { SegmentedControl, RangeSlider, type SegmentOption } from './controls';
 
 type Position = 'left' | 'center' | 'right';
 type Choice = 'none' | Position;
+type Style = 'bust' | 'outline';
 
-const DEFAULT_OPACITY = 0.5;
+// 'bust' is the default, so it is omitted from the descriptor to keep stored templates minimal.
+const buildGuide = (position: Position, opacity: number, style: Style): FramingGuide => ({
+  type: 'silhouette',
+  position,
+  opacity,
+  ...(style === 'bust' ? {} : { style }),
+});
 
 interface FramingGuidePickerProps {
   guide: FramingGuide | undefined;
@@ -23,7 +30,8 @@ interface FramingGuidePickerProps {
 export const FramingGuidePicker = ({ guide, orientation, onChange }: FramingGuidePickerProps) => {
   const { t } = useTranslation('admin');
   const choice: Choice = guide?.position ?? 'none';
-  const opacity = guide?.opacity ?? DEFAULT_OPACITY;
+  const opacity = guide?.opacity ?? DEFAULT_FRAMING_OPACITY;
+  const style: Style = guide?.style ?? 'bust';
 
   const options: ReadonlyArray<SegmentOption<Choice>> = [
     { value: 'none', label: t('framing.none') },
@@ -32,10 +40,13 @@ export const FramingGuidePicker = ({ guide, orientation, onChange }: FramingGuid
     { value: 'right', label: t('framing.right') },
   ];
 
+  const styleOptions: ReadonlyArray<SegmentOption<Style>> = [
+    { value: 'bust', label: t('framing.styleBust') },
+    { value: 'outline', label: t('framing.styleOutline') },
+  ];
+
   const setChoice = (next: Choice) => {
-    const guideValue: FramingGuide | undefined =
-      next === 'none' ? undefined : { type: 'silhouette', position: next, opacity };
-    onChange(guideValue);
+    onChange(next === 'none' ? undefined : buildGuide(next, opacity, style));
   };
 
   return (
@@ -48,43 +59,47 @@ export const FramingGuidePicker = ({ guide, orientation, onChange }: FramingGuid
         <div className="space-y-3">
           <SegmentedControl value={choice} options={options} onChange={setChoice} />
           {guide && (
-            <RangeSlider
-              label={t('framing.opacity')}
-              value={opacity}
-              min={0}
-              max={1}
-              step={0.05}
-              format={(v) => `${Math.round(v * 100)}%`}
-              onChange={(o) => {
-                onChange({ type: 'silhouette', position: guide.position, opacity: o });
-              }}
-            />
+            <>
+              <SegmentedControl
+                value={style}
+                options={styleOptions}
+                onChange={(s) => {
+                  onChange(buildGuide(guide.position, opacity, s));
+                }}
+              />
+              <RangeSlider
+                label={t('framing.opacity')}
+                value={opacity}
+                min={0}
+                max={1}
+                step={0.05}
+                format={(v) => `${Math.round(v * 100)}%`}
+                onChange={(o) => {
+                  onChange(buildGuide(guide.position, o, style));
+                }}
+              />
+            </>
           )}
           <p className="text-xs text-gray-400 dark:text-gray-500">{t('framing.mirrorNote')}</p>
         </div>
-        <FrameMockup position={guide?.position ?? null} opacity={opacity} orientation={orientation} />
+        <FrameMockup position={guide?.position ?? null} opacity={opacity} style={style} orientation={orientation} />
       </div>
     </div>
   );
 };
 
-// Horizontal dock for the silhouette — a comfortable inset so left / center / right
-// read as three distinct spots at a glance.
-const POSITION_CLASS: Record<Position, string> = {
-  left: 'left-[14%]',
-  center: 'left-1/2 -translate-x-1/2',
-  right: 'right-[14%]',
-};
-
-// A viewfinder mock matching the template orientation, with faint rule-of-thirds
-// guides and a small silhouette docked to the chosen spot. Decorative → aria-hidden.
+// A viewfinder mock matching the template orientation, with faint rule-of-thirds guides and the real
+// recording silhouette docked to the chosen spot — same shape, style, and position as the live
+// overlay, so the preview is WYSIWYG. Decorative → aria-hidden.
 const FrameMockup = ({
   position,
   opacity,
+  style,
   orientation,
 }: {
   position: Position | null;
   opacity: number;
+  style: Style;
   orientation: Orientation;
 }) => {
   const { t } = useTranslation('admin');
@@ -98,10 +113,9 @@ const FrameMockup = ({
     >
       <Thirds />
       {position && (
-        <User
-          className={`absolute bottom-[8%] h-[40%] w-auto text-white ${POSITION_CLASS[position]}`}
-          style={{ opacity }}
-        />
+        <div className={silhouetteDockClass(orientation === 'portrait', position)}>
+          <SilhouetteSvg opacity={opacity} style={style} />
+        </div>
       )}
       {!position && (
         <span className="absolute inset-0 grid place-items-center text-[0.6rem] text-white/40">

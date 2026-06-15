@@ -1,9 +1,9 @@
 import type { TemplateDescriptor, Section } from '@/src/types';
 import portraitDescriptor from './server/portrait.json';
 import quickDescriptor from './server/quick.json';
-// The in-app catalog (web + expo) is authored once as the core package's shared app-template list.
+// The in-app catalog (web + expo) is authored once in @leclap/creative-kit.
 // Test/scenario templates live in ../fixtures and are NOT part of this set.
-import { APP_TEMPLATES } from 'ffmpeg-video-composer/src/shared/templates';
+import { APP_TEMPLATES } from '@leclap/creative-kit';
 
 /** A template in the local catalog — bundled (on-device ready), or a user-created one. */
 export interface CatalogTemplate {

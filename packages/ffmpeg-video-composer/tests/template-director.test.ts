@@ -153,6 +153,25 @@ describe('TemplateDirector.config', () => {
     expect(logger.info).toHaveBeenCalledWith('TemplateDirector: No userVideoPaths provided in config');
   });
 
+  it('swaps the output scale to portrait once for a portrait template', () => {
+    const { director, project } = makeDirector();
+    const config: ProjectConfig = { videoConfig: { scale: '1280:720' } };
+    const descriptor = { global: { orientation: 'portrait' }, sections: [] } as TemplateDescriptor;
+
+    director.config(config, descriptor);
+
+    expect(project.config.videoConfig?.scale).toBe('720:1280');
+  });
+
+  it('leaves the output scale untouched for a landscape template', () => {
+    const { director, project } = makeDirector();
+    const config: ProjectConfig = { videoConfig: { scale: '1280:720' } };
+
+    director.config(config, { global: { orientation: 'landscape' }, sections: [] } as TemplateDescriptor);
+
+    expect(project.config.videoConfig?.scale).toBe('1280:720');
+  });
+
   it('falls back to default build/assets dirs when not provided', () => {
     const { director, filesystem } = makeDirector();
 

@@ -134,6 +134,9 @@
     "left": "Left",
     "center": "Center",
     "right": "Right",
+    "style": "Style",
+    "styleBust": "Bust",
+    "styleOutline": "Outline",
     "opacity": "Opacity"
   },
   "motion": {

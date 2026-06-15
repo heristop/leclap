@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Svg, { Path, Ellipse } from 'react-native-svg';
+import Svg, { G, Path, Ellipse } from 'react-native-svg';
+import { DEFAULT_FRAMING_OPACITY } from '@/src/features/templates/model/templateEditorModel';
 import type { FramingGuide } from '@/src/types';
 
 interface FramingGuideOverlayProps {
   guide: FramingGuide;
+  orientation: 'portrait' | 'landscape';
 }
 
 // Horizontal alignment of the silhouette within the frame.
@@ -17,31 +19,40 @@ const JUSTIFY: Record<FramingGuide['position'], 'flex-start' | 'center' | 'flex-
   right: 'flex-end',
 };
 
-// A simple bust silhouette: head (ellipse) + torso/shoulders (smooth path).
-// The viewBox is 120×200; the component scales it to fill 70 % of the frame height.
-const SilhouetteSvg = ({ opacity }: { opacity: number }) => (
-  <Svg
-    viewBox="0 0 120 200"
-    width="100%"
-    height="100%"
-    style={{ opacity }}
-    accessible={false}
-    importantForAccessibility="no"
-  >
-    {/* Head */}
-    <Ellipse cx="60" cy="44" rx="28" ry="32" fill="white" stroke="rgba(0,0,0,0.35)" strokeWidth="2" />
-    {/* Shoulders / torso — smooth bust shape */}
-    <Path
-      d="M2 200 C2 145 20 120 60 115 C100 120 118 145 118 200 Z"
-      fill="white"
-      stroke="rgba(0,0,0,0.35)"
-      strokeWidth="2"
-    />
-  </Svg>
-);
+// A bust silhouette drawn twice: a soft dark halo underneath, then the body on top, so the shape
+// stays legible on light/busy feeds (where a plain white washes out) and on dark feeds alike.
+// 'bust' fills the body white; 'outline' leaves it hollow with a white stroke. ViewBox 120×200.
+const TORSO = 'M2 200 C2 145 20 120 60 115 C100 120 118 145 118 200 Z';
 
-export const FramingGuideOverlay = ({ guide }: FramingGuideOverlayProps) => {
-  const opacity = guide.opacity ?? 0.35;
+const SilhouetteSvg = ({ opacity, style }: { opacity: number; style: 'bust' | 'outline' }) => {
+  const bodyFill = style === 'outline' ? 'none' : 'rgba(255,255,255,0.92)';
+  const bodyStrokeWidth = style === 'outline' ? 3 : 1.5;
+
+  return (
+    <Svg
+      viewBox="0 0 120 200"
+      width="100%"
+      height="100%"
+      style={{ opacity }}
+      accessible={false}
+      importantForAccessibility="no"
+    >
+      <G fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="7" strokeLinejoin="round">
+        <Ellipse cx="60" cy="44" rx="28" ry="32" />
+        <Path d={TORSO} />
+      </G>
+      <G fill={bodyFill} stroke="white" strokeWidth={bodyStrokeWidth} strokeLinejoin="round">
+        <Ellipse cx="60" cy="44" rx="28" ry="32" />
+        <Path d={TORSO} />
+      </G>
+    </Svg>
+  );
+};
+
+export const FramingGuideOverlay = ({ guide, orientation }: FramingGuideOverlayProps) => {
+  const opacity = guide.opacity ?? DEFAULT_FRAMING_OPACITY;
+  // A tall portrait frame gets a larger bust; a wide landscape frame a smaller one.
+  const height = orientation === 'portrait' ? '74%' : '62%';
 
   return (
     <View
@@ -50,8 +61,8 @@ export const FramingGuideOverlay = ({ guide }: FramingGuideOverlayProps) => {
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <View style={styles.silhouette}>
-        <SilhouetteSvg opacity={opacity} />
+      <View style={[styles.silhouette, { height }]}>
+        <SilhouetteSvg opacity={opacity} style={guide.style ?? 'bust'} />
       </View>
     </View>
   );
@@ -71,7 +82,6 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   silhouette: {
-    height: '70%',
     aspectRatio: 120 / 200,
   },
 });

@@ -8,6 +8,7 @@ const TITLE_CASE = (value: string): string => value.charAt(0).toUpperCase() + va
 export const SECTION_HINTS = {
   video: 'Record yourself on camera',
   form: 'Ask the viewer for text to overlay',
+  partial: 'Reuse a saved scene fragment',
   color: 'Solid color card with a title',
   music: 'Background track for the whole video',
   image: 'A photo backdrop with motion',

@@ -64,6 +64,8 @@
   "hub": {
     "subtitle": "Fill in each part, then create your video",
     "changeTemplate": "Change template",
+    "prevSection": "Previous section",
+    "nextSection": "Next section",
     "completed_one": "{{done}} of {{count}} section completed",
     "completed_other": "{{done}} of {{count}} sections completed",
     "createCta": "Create my video",

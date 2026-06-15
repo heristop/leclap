@@ -6,7 +6,7 @@ This is the template descriptor reference. Upgrading an older template? See [Mig
 
 - **Source of truth (zod):** [`packages/ffmpeg-video-composer/src/schemas/`](../packages/ffmpeg-video-composer/src/schemas/) — every field carries a `.describe()`. `TemplateDescriptorSchema` is the root.
 - **Machine-readable schema:** [`docs/template-descriptor.schema.json`](./template-descriptor.schema.json) — generated from the zod source via `pnpm --filter ffmpeg-video-composer generate:schema`. Feed this to an editor or an agent for autocompletion/validation.
-- **Examples:** [`packages/ffmpeg-video-composer/src/shared/templates/`](../packages/ffmpeg-video-composer/src/shared/templates/) — the `premium-*.json` set.
+- **Examples:** [`packages/creative-kit/src/templates/`](../packages/creative-kit/src/templates/) — shared template descriptors plus bundled creative assets.
 - **Validation:** `TemplateValidator` validates a descriptor against the schema (plus cross-field rules) before compilation.
 
 > For the conceptual compile pipeline (director → builder → segments → managers), see [`architecture.md`](./architecture.md).
@@ -24,6 +24,9 @@ Because `filters[]` is a raw pass-through, its `values` keys stay **FFmpeg-nativ
 
 ```jsonc
 {
+  "meta": {
+    /* Optional display metadata */
+  },
   "global": {
     /* GlobalConfig — project-wide defaults */
   },
@@ -33,9 +36,18 @@ Because `filters[]` is a raw pass-through, its `values` keys stay **FFmpeg-nativ
 }
 ```
 
-Both keys are optional (so partial descriptors can be validated incrementally), but a useful template has at least one section.
+All top-level keys are optional (so partial descriptors can be validated incrementally), but a useful template has at least one section.
 
 **All durations are in SECONDS, everywhere** — `options.duration`, `transition.duration`, `audioFade.in.duration`, `countdownDuration`, etc.
+
+## `meta`
+
+Optional human-facing metadata embedded in the descriptor, used by template browsers and agent catalogs.
+
+| Field         | Type     | Description                                     |
+| ------------- | -------- | ----------------------------------------------- |
+| `name`        | `string` | Human-readable template name.                   |
+| `description` | `string` | Short template summary for catalogs and agents. |
 
 ## `global`
 

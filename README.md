@@ -60,7 +60,7 @@ Then pick your playground:
 ```bash
 pnpm playground:web      # web app — compiles videos in-browser (no server), premium pack included
 pnpm playground:start    # Expo mobile app (start the server too: pnpm server:dev)
-pnpm compile packages/ffmpeg-video-composer/src/shared/templates/premium_quote.json   # CLI → a premium card
+pnpm compile packages/creative-kit/src/templates/quote.json   # CLI → a premium card
 ```
 
 Or drive it like an AI agent would — discover, validate, and render a premium template headless, with no API key (see [`examples/agent-demo`](examples/agent-demo)):
@@ -108,9 +108,9 @@ A **template** drives the whole composition: a `global` block (defaults, theme c
 }
 ```
 
-📖 **Full reference:** [Template Configuration (JSON)](docs/template-configuration.md) · ready-made examples in [`src/shared/templates/`](packages/ffmpeg-video-composer/src/shared/templates/).
+📖 **Full reference:** [Template Configuration (JSON)](docs/template-configuration.md) · ready-made examples in [`packages/creative-kit/src/templates/`](packages/creative-kit/src/templates/).
 
-✨ **Premium pack:** the `premium_*` templates (intro, quote, titles, portrait reel) look professional out of the box — they use only the filters and bundled fonts the engine ships, so they render identically on Node, in the browser (WASM), and on-device. Start from one, then tweak text, colors, and media — by prompt (MCP) or in the visual builder.
+✨ **Creative kit:** the shared template descriptors (intro, quote, titles, portrait reel, and more) look professional out of the box — they use only the filters and bundled fonts the engine ships, so they render identically on Node, in the browser (WASM), and on-device. Start from one, then tweak text, colors, and media — by prompt (MCP) or in the visual builder.
 
 ## 📥 Using the library
 

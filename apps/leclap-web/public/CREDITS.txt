@@ -53,4 +53,4 @@ via Google Fonts (github.com/google/fonts).
 - Pacifico
 - Roboto Mono
 
-Keep this file in sync with packages/core/src/shared/library/fonts.ts.
+Keep this file in sync with packages/creative-kit/src/fonts.ts.

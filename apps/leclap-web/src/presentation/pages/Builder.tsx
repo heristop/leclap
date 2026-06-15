@@ -12,6 +12,7 @@ import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
+import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
 import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
@@ -323,27 +324,7 @@ const StepContent = (p: StepContentProps) => {
   return null;
 };
 
-// All wizard inputs in one state object so the Builder component stays small. `selectedTemplate` is
-// separate — picking one resets the model.
-interface WizardModel {
-  clipsBySection: Record<string, File>;
-  editsBySection: Record<string, VideoEdit | undefined>;
-  formData: Record<string, string>;
-  musicChoice: MediaChoice | null;
-  backgroundChoice: MediaChoice | null;
-  stepIndex: number;
-}
-
 type ProcessProgress = ReturnType<typeof useVideoProcessing>['progress'];
-
-const EMPTY_MODEL: WizardModel = {
-  clipsBySection: {},
-  editsBySection: {},
-  formData: {},
-  musicChoice: null,
-  backgroundChoice: null,
-  stepIndex: 0,
-};
 
 // Callbacks the flow needs — bundled so the flow component takes one prop instead of a dozen.
 interface WizardHandlers {

@@ -175,6 +175,35 @@ describe('TemplateDirector.config', () => {
       sections: 'clip1, clip2',
     });
   });
+
+  it('expands `partial` ref sections so they survive compileVideoSegments (not dropped)', () => {
+    const { director, template } = makeDirector();
+    // `compileVideoSegments` keeps only real rendering types; a `type:'partial'` section reaching it
+    // unexpanded is silently filtered out — which is exactly how question-flash went missing.
+    const descriptor: TemplateDescriptor = {
+      sections: [
+        {
+          type: 'partial',
+          ref: 'question-flash',
+          prefix: 'q1_',
+          variables: { optionA: 'Tea', optionB: 'Coffee', index: '1' },
+        },
+        { name: 'video_1', type: 'project_video' },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    director.config({}, descriptor);
+
+    const sections = (template.descriptor.sections ?? []) as Array<{ type?: string; name?: string }>;
+    // The partial ref is replaced by the partial's real `color_background` section (prefixed name).
+    expect(sections.some((s) => s.type === 'partial')).toBe(false);
+    expect(sections.some((s) => s.type === 'color_background')).toBe(true);
+    expect(sections.some((s) => s.name === 'q1_flash')).toBe(true);
+    // The sibling project_video is untouched.
+    expect(sections.some((s) => s.name === 'video_1')).toBe(true);
+    // The ref variables are substituted into the expanded section.
+    expect(JSON.stringify(sections)).toContain('Tea');
+  });
 });
 
 describe('TemplateDirector.compileVideoSegments', () => {

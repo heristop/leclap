@@ -10,6 +10,7 @@ import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, LogParams, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
+import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 import type Project from '../core/models/Project';
 import type Template from '../core/models/Template';
 import type TemplateConcreteBuilder from './TemplateConcreteBuilder';
@@ -80,7 +81,19 @@ class TemplateDirector {
     // (Ken Burns twice, contrast squared). JSON round-trip matches the repo's existing deep-clone of
     // template descriptors (Hermes/WASM-safe — descriptors are plain JSON).
     const clonedDescriptor = JSON.parse(JSON.stringify(templateDescriptor)) as TemplateDescriptor;
-    this.template.descriptor = clonedDescriptor as unknown as SchemaTemplateDescriptor;
+    // Expand `{ type:'partial', ref }` sections into real sections here, the single point where the
+    // descriptor used for compilation is set. Callers pass the raw descriptor (Node `compile` never
+    // validates; the browser path validates into the template but this assignment would overwrite
+    // it), so without this every partial — logo bumper, question-flash — is dropped downstream by
+    // the rendering-type filter. Idempotent: re-expanding an already-expanded descriptor is a no-op.
+    const expansion = expandPartialsSafe(clonedDescriptor);
+
+    if (!expansion.ok) {
+      // Unknown ref: keep the clone (the stray partial is skipped by compileVideoSegments, as before).
+      this.logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
+    }
+
+    this.template.descriptor = (expansion.ok ? expansion.data : clonedDescriptor) as SchemaTemplateDescriptor;
 
     this.filesystemAdapter.setBuildDir(this.project.config.buildDir ?? 'build');
     this.filesystemAdapter.setAssetsDir(this.project.config.assetsDir ?? 'assets');

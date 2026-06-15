@@ -15,7 +15,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { Button, Card } from '@/presentation/components/ui';
+import { Badge, Button, Card } from '@/presentation/components/ui';
 import { TemplateForm } from '@/presentation/components/TemplateForm';
 import { StepClip } from '@/presentation/components/builder/StepClip';
 import { MediaPicker } from '@/presentation/components/admin/MediaPicker';
@@ -73,6 +73,9 @@ interface HubRowProps {
   title: string;
   subtitle?: string;
   done: boolean;
+  // The first not-yet-complete row — gets a brand accent bar + "Next up" badge so the eye lands on
+  // the one thing left to do.
+  isNext: boolean;
   onOpen: () => void;
   // Staggers the row's entrance so the list cascades in on first paint.
   delayMs: number;
@@ -80,21 +83,24 @@ interface HubRowProps {
 }
 
 // One tappable section row: a numbered node (→ check when done), the section type + title/subtitle,
-// and a chevron affordance. Lifts and presses so it reads as obviously interactive.
-const HubRow = ({ icon: Icon, index, title, subtitle, done, onOpen, delayMs, t }: HubRowProps) => (
+// and a chevron affordance. Sits on a lighter surface than the glass card so the rows read as items
+// on a panel rather than nested glass. Lifts and presses so it reads as obviously interactive.
+const HubRow = ({ icon: Icon, index, title, subtitle, done, isNext, onOpen, delayMs, t }: HubRowProps) => (
   <button
     type="button"
     onClick={onOpen}
     style={{ animationDelay: `${delayMs}ms` }}
     className={cn(
-      'fade-in group flex w-full items-center gap-4 rounded-2xl border p-4 text-left min-h-[4.5rem]',
-      'border-foreground/10 bg-foreground/5 transition-all duration-200 motion-reduce:transition-none',
-      'hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-foreground/[0.08] hover:shadow-lg hover:shadow-black/5',
+      'fade-in group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl border p-4 pl-5 text-left min-h-[4.5rem]',
+      'border-foreground/10 bg-surface/50 transition-all duration-200 motion-reduce:transition-none',
+      'hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-surface/80 hover:shadow-lg hover:shadow-black/5',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
       'active:translate-y-0 active:scale-[0.99]',
+      isNext && !done && 'border-brand-500/40 bg-brand-500/[0.04]',
       done && 'border-success/30 bg-success/[0.06]'
     )}
   >
+    {isNext && !done && <span aria-hidden="true" className="brand-gradient absolute inset-y-0 left-0 w-1" />}
     <span
       className={cn(
         'grid h-11 w-11 shrink-0 place-items-center rounded-full text-base font-bold tabular-nums transition-colors duration-200 motion-reduce:transition-none',
@@ -106,9 +112,14 @@ const HubRow = ({ icon: Icon, index, title, subtitle, done, onOpen, delayMs, t }
     <span className="min-w-0 flex-1">
       <span className="flex items-center gap-2">
         <Icon className="h-4 w-4 shrink-0 text-gray-400" />
-        <span className="truncate font-semibold text-foreground">{title}</span>
+        <span className="line-clamp-2 font-semibold text-foreground">{title}</span>
+        {isNext && !done && (
+          <Badge variant="brand" className="shrink-0">
+            {t('hub.next')}
+          </Badge>
+        )}
       </span>
-      {subtitle && <span className="mt-0.5 block truncate text-sm text-gray-400">{subtitle}</span>}
+      {subtitle && <span className="mt-0.5 block line-clamp-1 text-sm text-gray-400">{subtitle}</span>}
     </span>
     <span className="flex shrink-0 items-center gap-2 text-gray-400">
       <span className="hidden items-center gap-1.5 text-xs font-medium opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none sm:flex">
@@ -303,10 +314,20 @@ interface SectionSheetProps extends SectionHubProps {
 
 // The focused editing surface: a bottom sheet on mobile, a right-anchored side sheet on desktop —
 // True for form fields / selects / contenteditable, where ↑/↓ must keep their native behaviour.
-function isEditableTarget(el: HTMLElement | null): boolean {
+// Whether ↑/↓ should be left to the focused field instead of navigating sections. A single-line text
+// input is NOT blocked: there ↑/↓ only jog the caret to start/end, so section nav still works while
+// the form's name field is focused (the common case). Fields where ↑/↓ have real native meaning are
+// left alone: multi-line textareas, native selects, contentEditable, and number/range/date spinners.
+const NATIVE_ARROW_INPUT_TYPES = ['number', 'range', 'date', 'time', 'datetime-local', 'week', 'month'];
+
+function arrowNavBlocked(el: HTMLElement | null): boolean {
   const tag = el?.tagName;
 
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || Boolean(el?.isContentEditable);
+  if (tag === 'TEXTAREA' || tag === 'SELECT' || Boolean(el?.isContentEditable)) return true;
+
+  if (tag === 'INPUT') return NATIVE_ARROW_INPUT_TYPES.includes((el as HTMLInputElement).type);
+
+  return false;
 }
 
 // Past this many pixels of downward drag, releasing dismisses the mobile bottom sheet.
@@ -382,9 +403,9 @@ const SectionSheet = (p: SectionSheetProps) => {
     };
   }, []);
 
-  // Keyboard: Escape closes; ↑/↓ step to the previous/next section. Subscribed once while the sheet
-  // is open. Skipped while focus is in a text field / select so it never fights typing, caret motion,
-  // or option lists; plain Tab/Shift+Tab keep their normal field-to-field behaviour.
+  // Keyboard: Escape closes; ↑/↓ step to the previous/next section. Subscribed on `window` so it
+  // works without first focusing the sheet, and left to the field only for textareas / selects /
+  // number-style inputs (see arrowNavBlocked); plain Tab/Shift+Tab keep their field-to-field behaviour.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -395,7 +416,7 @@ const SectionSheet = (p: SectionSheetProps) => {
 
       if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
 
-      if (isEditableTarget(e.target as HTMLElement | null)) return;
+      if (arrowNavBlocked(e.target as HTMLElement | null)) return;
 
       e.preventDefault();
 
@@ -525,6 +546,15 @@ function hubProgress(sections: InputSection[], template: Template, model: Sectio
   return { totalItems, doneItems, progress, remaining: totalItems - doneItems };
 }
 
+// The first not-yet-complete item drives the "Next up" cue. Sections come first, then the media row;
+// media is "next" only once every section is done.
+function nextCue(sections: InputSection[], template: Template, model: SectionHubModel, showMediaRow: boolean) {
+  const nextSectionIndex = sections.findIndex((section) => !sectionComplete(template, section, model));
+  const mediaIsNext = showMediaRow && nextSectionIndex === -1 && !mediaComplete(model);
+
+  return { nextSectionIndex, mediaIsNext };
+}
+
 // Ordered panels (input sections + optional media) backing the sheet's prev/next navigation.
 function buildPanels(sections: InputSection[], showMediaRow: boolean): NonNullable<ActivePanel>[] {
   return [
@@ -541,6 +571,8 @@ export const SectionHub = (props: Omit<SectionHubProps, 't'>) => {
   const vars = buildDescriptionVars(template.descriptor.global?.variables, model.formData);
 
   const { totalItems, doneItems, progress, remaining } = hubProgress(sections, template, model, showMediaRow);
+
+  const { nextSectionIndex, mediaIsNext } = nextCue(sections, template, model, showMediaRow);
 
   const panels = buildPanels(sections, showMediaRow);
   const panelKeyOf = (pp: NonNullable<ActivePanel>): string => (pp.kind === 'section' ? pp.section.name : 'media');
@@ -593,6 +625,7 @@ export const SectionHub = (props: Omit<SectionHubProps, 't'>) => {
                   : resolveTranslation(section.description, i18n.language)
               }
               done={sectionComplete(template, section, model)}
+              isNext={i === nextSectionIndex}
               onOpen={() => {
                 setPanel({ kind: 'section', section });
               }}
@@ -607,6 +640,7 @@ export const SectionHub = (props: Omit<SectionHubProps, 't'>) => {
               title={t('stepMedia.title')}
               subtitle={mediaComplete(model) ? t('hub.selectionSaved') : t('hub.mediaSubtitleShort')}
               done={mediaComplete(model)}
+              isNext={mediaIsNext}
               onOpen={() => {
                 setPanel({ kind: 'media' });
               }}

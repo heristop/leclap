@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
 import { VideoProcessor } from '@/presentation/components/VideoProcessor';
+import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibility';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { ExportPanel } from '@/presentation/components/ExportPanel';
-import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibility';
 import { Seo } from '@/presentation/components/Seo';
 import { SectionHub } from '@/presentation/components/builder';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
@@ -212,7 +212,7 @@ const StepProcess = ({
         <Card
           ref={progressRef}
           elevation="flat"
-          className="mt-8 glass-panel-dark p-8 shadow-2xl shadow-brand-500/20 ring-2 ring-brand-500/40 animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-24"
+          className="mt-8 glass-panel-dark p-8 shadow-xl ring-1 ring-brand-500/20 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none scroll-mt-24"
         >
           <h3 className="text-xl font-semibold mb-4 font-display text-brand-700 dark:text-brand-300 flex items-center gap-2">
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -608,7 +608,7 @@ export const Builder = () => {
         />
       </div>
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 relative z-10">
-        <BrowserCompatibility />
+        {!flowProps.selectedTemplate && <BrowserCompatibility />}
         <HubFlow {...flowProps} />
         {!isFFmpegReady && (
           <Card

@@ -41,7 +41,9 @@ export const Prose = ({ children, className }: { children: React.ReactNode; clas
 );
 
 export const Code = ({ children }: { children: React.ReactNode }) => (
-  <code className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[0.82em] text-brand-300">{children}</code>
+  <code className="rounded-md border border-brand-500/20 bg-brand-500/10 px-1.5 py-0.5 font-mono text-[0.82em] font-medium text-brand-700 dark:border-brand-400/20 dark:bg-surface-2 dark:text-brand-200">
+    {children}
+  </code>
 );
 
 // ── Field table ─────────────────────────────────────────────────────────────────

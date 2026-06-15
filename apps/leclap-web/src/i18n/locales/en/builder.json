@@ -63,6 +63,7 @@
   },
   "hub": {
     "subtitle": "Fill in each part, then create your video",
+    "next": "Next up",
     "changeTemplate": "Change template",
     "prevSection": "Previous section",
     "nextSection": "Next section",

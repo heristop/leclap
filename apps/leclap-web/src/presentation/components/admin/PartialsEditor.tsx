@@ -3,7 +3,8 @@ import { AlertCircle, Plus, Save, Trash2 } from 'lucide-react';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import { userPartialService } from '@/services/userPartialService';
 import { listAvailablePartials, type AvailablePartial } from '@/services/templatePartialService';
-import { Button } from '@/presentation/components/ui';
+import { Badge, Button } from '@/presentation/components/ui';
+import { cn } from '@/lib/utils';
 import { collectVariables, type EditorSection, type EditorState } from './templateEditorModel';
 import { AddSectionButtons, SceneList } from './editor/SceneList';
 import { EDITOR_INPUT_CLASS } from './editor/editorStyles';
@@ -24,6 +25,40 @@ function defaultPartialDraft(): TemplatePartial {
     sections: [{ name: 'intro', type: 'color_background', options: { duration: 1, backgroundColor: '#111111' } }],
   };
 }
+
+// A sidebar item: id, one-line description, a source badge (Local / Built-in) and a section count —
+// enough to pick the right partial without opening each one.
+const PartialListItem = ({
+  partial,
+  selected,
+  onSelect,
+}: {
+  partial: AvailablePartial;
+  selected: boolean;
+  onSelect: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onSelect}
+    className={cn(
+      'tap w-full rounded-lg px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+      selected ? 'bg-brand-500/15 text-brand-700 dark:text-brand-200' : 'bg-foreground/5 hover:bg-foreground/10'
+    )}
+  >
+    <span className="flex items-center gap-2">
+      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{partial.id}</span>
+      <Badge variant={partial.source === 'local' ? 'brand' : 'neutral'} className="shrink-0">
+        {partial.source === 'local' ? 'Local' : 'Built-in'}
+      </Badge>
+    </span>
+    {partial.description && (
+      <span className="mt-0.5 block truncate text-xs text-gray-500 dark:text-gray-400">{partial.description}</span>
+    )}
+    <span className="mt-0.5 block text-xs text-gray-400">
+      {partial.sections.length} {partial.sections.length === 1 ? 'section' : 'sections'}
+    </span>
+  </button>
+);
 
 export const PartialsEditor = ({ initialDraft = null }: PartialsEditorProps) => {
   const [localPartials, setLocalPartials] = useState(() => userPartialService.list());
@@ -100,25 +135,23 @@ export const PartialsEditor = ({ initialDraft = null }: PartialsEditorProps) => 
         <Button variant="secondary" type="button" onClick={loadNew} className="w-full justify-start">
           <Plus className="h-4 w-4" /> New local partial
         </Button>
-        <div className="space-y-1 rounded-xl border border-foreground/10 bg-surface/60 p-2">
+        <div className="space-y-1.5 rounded-xl border border-foreground/10 bg-surface/60 p-2">
           {partials.map((partial) => (
-            <button
+            <PartialListItem
               key={partial.id}
-              type="button"
-              onClick={() => {
+              partial={partial}
+              selected={partial.id === selectedId}
+              onSelect={() => {
                 loadPartial(partial);
               }}
-              className={
-                partial.id === selectedId
-                  ? 'tap w-full rounded-lg bg-brand-500/15 px-3 py-2 text-left text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-brand-200'
-                  : 'tap w-full rounded-lg bg-foreground/5 px-3 py-2 text-left text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-gray-300'
-              }
-            >
-              <span className="block truncate text-sm font-semibold">{partial.id}</span>
-              <span className="block text-xs opacity-75">{partial.source === 'local' ? 'Local' : 'Built-in'}</span>
-            </button>
+            />
           ))}
         </div>
+        {localPartials.length === 0 && (
+          <p className="px-1 text-xs text-gray-500 dark:text-gray-400">
+            No local partials yet — create one above to reuse across templates.
+          </p>
+        )}
       </aside>
 
       <section className="space-y-4">

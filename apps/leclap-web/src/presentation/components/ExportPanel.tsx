@@ -30,34 +30,24 @@ interface VideoInfoProps {
   processedVideo: ProcessedVideo;
 }
 
+// Compact meta chip — keeps the file facts visible but secondary to the video preview above.
+const MetaChip = ({ icon: Icon, label, value }: { icon: typeof HardDrive; label: string; value: string }) => (
+  <span className="inline-flex items-center gap-2 rounded-lg border border-foreground/10 bg-foreground/[0.04] px-3 py-1.5 text-sm">
+    <Icon className="h-4 w-4 text-brand-600 dark:text-brand-300" />
+    <span className="text-gray-400">{label}</span>
+    <span className="font-semibold tabular-nums text-foreground">{value}</span>
+  </span>
+);
+
 const VideoInfo = ({ processedVideo }: VideoInfoProps) => {
   const { t } = useTranslation('process');
 
   return (
-    <Card
-      elevation="flat"
-      className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-surface/40 rounded-xl backdrop-blur-sm"
-    >
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-info/20 rounded-lg border border-info/20">
-          <HardDrive className="w-5 h-5 text-info" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-400">{t('export.info.fileSize')}</p>
-          <p className="text-lg font-semibold text-foreground">{formatFileSize(processedVideo.size)}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-success/20 rounded-lg border border-success/20">
-          <FileVideo className="w-5 h-5 text-success-foreground" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-400">{t('export.info.format')}</p>
-          <p className="text-lg font-semibold text-foreground">MP4</p> {/* i18n-ignore */}
-        </div>
-      </div>
-    </Card>
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <MetaChip icon={HardDrive} label={t('export.info.fileSize')} value={formatFileSize(processedVideo.size)} />
+      {/* i18n-ignore */}
+      <MetaChip icon={FileVideo} label={t('export.info.format')} value="MP4" />
+    </div>
   );
 };
 
@@ -121,7 +111,7 @@ const ActionButtons = ({
         >
           {showCopied ? (
             <>
-              <Check className="!size-4" />
+              <Check className="!size-4 pop-in" />
               <span>{t('export.actions.copied')}</span>
             </>
           ) : (
@@ -151,11 +141,11 @@ const SuccessMessage = () => {
   const { t } = useTranslation('process');
 
   return (
-    <Card elevation="flat" className="p-4 bg-success/[0.12] border-success/30 rounded-xl backdrop-blur-sm">
-      <h4 className="font-semibold text-success-foreground mb-2 flex items-center gap-2">
-        <CheckCircle2 className="w-4 h-4" /> {t('export.success.title')}
+    <Card elevation="flat" className="p-4 bg-surface/40 border-foreground/10 rounded-xl backdrop-blur-sm">
+      <h4 className="font-medium text-gray-300 mb-2 flex items-center gap-2">
+        <CheckCircle2 className="w-4 h-4 text-success-foreground" /> {t('export.success.title')}
       </h4>
-      <ul className="text-sm text-success-foreground/80 space-y-1">
+      <ul className="text-sm text-gray-400 space-y-1">
         <li>• {t('export.success.processed')}</li>
         <li>• {t('export.success.local')}</li>
         <li>• {t('export.success.noData')}</li>

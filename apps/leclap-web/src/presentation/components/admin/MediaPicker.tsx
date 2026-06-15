@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { coverGradient } from '@/lib/poster';
 import { Button } from '@/presentation/components/ui';
 import { browserMediaService } from '@/services/browserMediaService';
 import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/mediaCatalog';
@@ -36,20 +37,6 @@ const ACCEPT: Record<MediaKind, Record<string, string[]>> = {
   music: { 'audio/*': ['.mp3', '.wav', '.m4a', '.aac', '.ogg'] },
   picture: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
 };
-
-// Deterministic two-stop gradient per track, so a track without cover art still
-// gets a stable, distinct "cover" (Spotify/Deezer-style) instead of a flat block.
-function coverGradient(seed: string): string {
-  let hash = 7;
-
-  for (const char of seed) {
-    hash = (hash * 31 + (char.codePointAt(0) ?? 0)) % 360;
-  }
-
-  const second = (hash + 48) % 360;
-
-  return `linear-gradient(135deg, oklch(0.62 0.19 ${hash}), oklch(0.5 0.21 ${second}))`;
-}
 
 function filterByAllowed(items: MediaCredit[], allowedIds: string[] | undefined): MediaCredit[] {
   if (!allowedIds) return items;

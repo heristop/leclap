@@ -113,7 +113,7 @@ export const Admin = () => {
             </Button>
             <Button asChild variant="secondary" className="w-full justify-start active:scale-[0.98]">
               <Link to="/partials">
-                <Braces /> Partials
+                <Braces /> {t('page.partials')}
               </Link>
             </Button>
             <div className="space-y-1 rounded-xl border border-foreground/10 bg-surface/60 p-2">

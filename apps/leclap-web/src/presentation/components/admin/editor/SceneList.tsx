@@ -28,6 +28,7 @@ import { SectionFields } from './SectionFields';
 import { errorsForEditorSection, type SectionValidation, type ValidationError } from './validationMapping';
 import { SECTION_HINTS } from './sectionHints';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
+import { SECTION_CATEGORY, type SectionCategory } from '@/lib/sectionMeta';
 
 const VISUAL_KINDS: ReadonlySet<EditorSection['kind']> = new Set(['video', 'color', 'image']);
 
@@ -428,6 +429,38 @@ const DEFAULT_SECTION_BUTTONS: readonly EditorSection['kind'][] = [
   'partial',
 ];
 
+// Group the six section types under category labels instead of one flat list of buttons.
+const CATEGORY_ORDER: readonly SectionCategory[] = ['clip', 'input', 'data'];
+const CATEGORY_LABELS: Record<SectionCategory, string> = {
+  clip: 'Clips & visuals',
+  input: 'Input',
+  data: 'Data',
+};
+
+const AddSectionButton = ({
+  kind,
+  onAdd,
+}: {
+  kind: EditorSection['kind'];
+  onAdd: (kind: EditorSection['kind']) => void;
+}) => (
+  <button
+    type="button"
+    onClick={() => {
+      onAdd(kind);
+    }}
+    className="tap group flex min-h-10 items-start gap-2.5 rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2.5 text-left transition-all hover:-translate-y-0.5 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]"
+  >
+    <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-brand-500/10 transition-colors group-hover:bg-brand-500/15">
+      <SectionIcon kind={kind} />
+    </span>
+    <span className="min-w-0">
+      <span className="block text-sm font-semibold text-foreground">{SECTION_LABELS[kind]}</span>
+      <span className="block text-xs text-gray-500 dark:text-gray-400">{SECTION_HINTS[kind]}</span>
+    </span>
+  </button>
+);
+
 export const AddSectionButtons = ({
   addSection,
   kinds = DEFAULT_SECTION_BUTTONS,
@@ -435,30 +468,28 @@ export const AddSectionButtons = ({
   addSection: (kind: EditorSection['kind']) => void;
   kinds?: readonly EditorSection['kind'][];
 }) => (
-  <div className="mb-6">
-    <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+  <div className="mb-6 space-y-4">
+    <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
       Add a scene
     </span>
-    <div className="grid gap-2 sm:grid-cols-2">
-      {kinds.map((kind) => (
-        <button
-          key={kind}
-          type="button"
-          onClick={() => {
-            addSection(kind);
-          }}
-          className="tap group flex min-h-10 items-start gap-2.5 rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2.5 text-left transition-all hover:-translate-y-0.5 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]"
-        >
-          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-brand-500/10 transition-colors group-hover:bg-brand-500/15">
-            <SectionIcon kind={kind} />
+    {CATEGORY_ORDER.map((category) => {
+      const inCategory = kinds.filter((kind) => SECTION_CATEGORY[kind] === category);
+
+      if (inCategory.length === 0) return null;
+
+      return (
+        <div key={category} className="space-y-2">
+          <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            {CATEGORY_LABELS[category]}
           </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-semibold text-foreground">{SECTION_LABELS[kind]}</span>
-            <span className="block text-xs text-gray-500 dark:text-gray-400">{SECTION_HINTS[kind]}</span>
-          </span>
-        </button>
-      ))}
-    </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {inCategory.map((kind) => (
+              <AddSectionButton key={kind} kind={kind} onAdd={addSection} />
+            ))}
+          </div>
+        </div>
+      );
+    })}
   </div>
 );
 

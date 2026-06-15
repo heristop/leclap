@@ -293,6 +293,38 @@ const SectionSheet = (p: SectionSheetProps) => {
   const { i18n } = useTranslation('builder');
   const [entered, setEntered] = useState(false);
 
+  // Drag-to-dismiss (mobile only): follow the finger downward, then close past a threshold or snap
+  // back. `dragY === null` means not dragging — the sheet's CSS classes/transition drive it; a number
+  // means a live drag, so we override transform inline and kill the transition for 1:1 tracking.
+  const [dragY, setDragY] = useState<number | null>(null);
+  const dragStartRef = useRef<number | null>(null);
+  const CLOSE_THRESHOLD = 120;
+
+  const onDragStart = (e: React.PointerEvent) => {
+    dragStartRef.current = e.clientY;
+    setDragY(0);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onDragMove = (e: React.PointerEvent) => {
+    if (dragStartRef.current === null) return;
+    setDragY(Math.max(0, e.clientY - dragStartRef.current));
+  };
+
+  const onDragEnd = () => {
+    if (dragStartRef.current === null) return;
+    const shouldClose = (dragY ?? 0) > CLOSE_THRESHOLD;
+    dragStartRef.current = null;
+
+    if (shouldClose) {
+      onClose();
+
+      return;
+    }
+
+    setDragY(null);
+  };
+
   // Read the latest onClose via a ref. Depending on onClose directly (a fresh closure each parent
   // render) would re-run the effect on every keystroke — which previously stole focus back to the
   // close button mid-typing and re-subscribed the listener.
@@ -338,6 +370,9 @@ const SectionSheet = (p: SectionSheetProps) => {
       <div
         aria-hidden="true"
         onClick={onClose}
+        style={
+          dragY === null ? undefined : { opacity: Math.max(0, 1 - dragY / (CLOSE_THRESHOLD * 2)), transition: 'none' }
+        }
         className={cn(
           'fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-opacity duration-300 motion-reduce:transition-none sm:hidden',
           entered ? 'opacity-100' : 'opacity-0'
@@ -346,6 +381,7 @@ const SectionSheet = (p: SectionSheetProps) => {
       <div
         role="dialog"
         aria-label={heading}
+        style={dragY === null ? undefined : { transform: `translateY(${dragY}px)`, transition: 'none' }}
         className={cn(
           'fixed z-50 flex flex-col bg-surface shadow-2xl transition-transform duration-300 ease-[var(--ease-out-expo)] motion-reduce:transition-none',
           // Physical inset props only (no logical `inset-x`/`inset-y` mixing). Mobile = bottom sheet.
@@ -355,7 +391,15 @@ const SectionSheet = (p: SectionSheetProps) => {
           entered ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-y-0 sm:translate-x-full'
         )}
       >
-        <div aria-hidden="true" className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-foreground/20 sm:hidden" />
+        <div
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+          className="shrink-0 cursor-grab touch-none pb-1 pt-3 active:cursor-grabbing sm:hidden"
+        >
+          <div aria-hidden="true" className="mx-auto h-1.5 w-10 rounded-full bg-foreground/20" />
+        </div>
         <div className="flex items-start gap-3 border-b border-divider px-6 py-4 md:px-8">
           <span
             className={cn(

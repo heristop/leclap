@@ -15,7 +15,7 @@ Sources of truth (in order of authority):
 - **Full field reference + examples:** `docs/template-configuration.md`.
 - **zod source (every field has `.describe()`):** `packages/ffmpeg-video-composer/src/schemas/` (`template.schemas.ts` re-exports `effects`/`global`/`filter`/`section`).
 - **Validator:** `packages/ffmpeg-video-composer/src/services/TemplateValidator.ts` (+ `templateValidationRules.ts`).
-- **Built-in examples:** `packages/ffmpeg-video-composer/src/shared/templates/premium-*.json`.
+- **Built-in examples:** `packages/creative-kit/src/templates/*.json`.
 
 ## Two layers: structured sugar vs. raw filters
 

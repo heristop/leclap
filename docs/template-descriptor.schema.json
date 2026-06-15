@@ -2,6 +2,21 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
+    "meta": {
+      "description": "Optional template metadata for display and discovery.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Human-readable template name for catalogs and editors.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Short human-readable template summary for catalogs and agents.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "global": {
       "description": "Template-wide defaults: variables, orientation, audio, transitions, and music.",
       "type": "object",
@@ -858,6 +873,66 @@
                   }
                 },
                 "required": ["type"],
+                "additionalProperties": false
+              },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
                 "additionalProperties": false
               },
               "look": {
@@ -1944,6 +2019,66 @@
                 "required": ["type"],
                 "additionalProperties": false
               },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -2408,10 +2543,15 @@
                         "description": "Horizontal position of the silhouette within the recording viewfinder."
                       },
                       "opacity": {
-                        "description": "Opacity of the framing guide overlay, 0..1 (default 0.5).",
+                        "description": "Opacity of the framing guide overlay, 0..1 (default 0.45).",
                         "type": "number",
                         "minimum": 0,
                         "maximum": 1
+                      },
+                      "style": {
+                        "description": "Silhouette rendering style: a filled \"bust\" (default) or a stroked \"outline\".",
+                        "type": "string",
+                        "enum": ["bust", "outline"]
                       }
                     },
                     "required": ["type", "position"],
@@ -3050,6 +3190,66 @@
                   }
                 },
                 "required": ["type"],
+                "additionalProperties": false
+              },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
                 "additionalProperties": false
               },
               "look": {
@@ -4134,6 +4334,66 @@
                   }
                 },
                 "required": ["type"],
+                "additionalProperties": false
+              },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
                 "additionalProperties": false
               },
               "look": {
@@ -5306,6 +5566,66 @@
                 "required": ["type"],
                 "additionalProperties": false
               },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -6390,6 +6710,66 @@
                 "required": ["type"],
                 "additionalProperties": false
               },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -6846,6 +7226,1163 @@
             "required": ["name", "type"],
             "additionalProperties": false,
             "description": "A section with no video content, used to pad the timeline or inject music."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "Optional name for the partial reference (mainly for editor display).",
+                "type": "string"
+              },
+              "inputs": {
+                "description": "Animation inputs composited on top of the section video.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Unique identifier for this input within the section, used as a stream label in maps."
+                    },
+                    "url": {
+                      "description": "URL or file path of the input asset; may use {{ varName }} template variables.",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "type": "string",
+                      "enum": ["animation"]
+                    },
+                    "options": {
+                      "description": "Playback and compositing options for this input.",
+                      "type": "object",
+                      "properties": {
+                        "fps": {
+                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "position": {
+                          "description": "Overlay position as \"x:y\" in output pixels (e.g. \"0:0\" top-left).",
+                          "type": "string"
+                        },
+                        "scale": {
+                          "description": "Scale expression applied to the input before compositing, as \"w:h\".",
+                          "type": "string"
+                        },
+                        "persistent": {
+                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "type": "boolean"
+                        },
+                        "loop": {
+                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "filters": {
+                      "description": "Filter chain applied to this input stream before compositing.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
+                          },
+                          "value": {
+                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "values": {
+                            "description": "Structured parameters for multi-argument filters.",
+                            "type": "object",
+                            "properties": {
+                              "h": {
+                                "description": "Height parameter passed to the FFmpeg filter (pixels or expression).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "w": {
+                                "description": "Width parameter passed to the FFmpeg filter (pixels or expression).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "x": {
+                                "description": "Horizontal offset parameter passed to the FFmpeg filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "y": {
+                                "description": "Vertical offset parameter passed to the FFmpeg filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "c": {
+                                "description": "Colour parameter passed to the FFmpeg filter (e.g. for drawbox).",
+                                "type": "string"
+                              },
+                              "t": {
+                                "description": "Time or thickness parameter passed to the FFmpeg filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "text": {
+                                "description": "Localised text rendered by the filter (e.g. for drawtext).",
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              "fontcolor": {
+                                "description": "Font colour passed to the drawtext filter, as a CSS hex string or FFmpeg colour name.",
+                                "type": "string"
+                              },
+                              "fontsize": {
+                                "description": "Font size in pixels or as an FFmpeg expression passed to the drawtext filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "fontfile": {
+                                "description": "Path or URL to the font file used by the drawtext filter.",
+                                "type": "string"
+                              },
+                              "alpha": {
+                                "description": "Alpha (opacity) expression passed to the filter.",
+                                "type": "string"
+                              },
+                              "d": {
+                                "description": "Duration parameter passed to the FFmpeg filter in seconds.",
+                                "type": "string"
+                              },
+                              "st": {
+                                "description": "Start time parameter passed to the FFmpeg filter in seconds.",
+                                "type": "string"
+                              },
+                              "color": {
+                                "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "range": {
+                            "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "A single FFmpeg filter applied to the section or input stream."
+                      }
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false,
+                  "description": "An external asset (animation) composited into the section video."
+                }
+              },
+              "maps": {
+                "description": "Custom FFmpeg filtergraph maps overriding the default compositing pipeline.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "inputs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Ordered list of input stream labels fed into this map's filter graph."
+                    },
+                    "outputs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Ordered list of output stream labels produced by this map's filter graph."
+                    },
+                    "filters": {
+                      "description": "Filter chain applied between the map inputs and outputs.",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
+                          },
+                          "value": {
+                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "values": {
+                            "description": "Structured parameters for multi-argument filters.",
+                            "type": "object",
+                            "properties": {
+                              "h": {
+                                "description": "Height parameter passed to the FFmpeg filter (pixels or expression).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "w": {
+                                "description": "Width parameter passed to the FFmpeg filter (pixels or expression).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "x": {
+                                "description": "Horizontal offset parameter passed to the FFmpeg filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "y": {
+                                "description": "Vertical offset parameter passed to the FFmpeg filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "c": {
+                                "description": "Colour parameter passed to the FFmpeg filter (e.g. for drawbox).",
+                                "type": "string"
+                              },
+                              "t": {
+                                "description": "Time or thickness parameter passed to the FFmpeg filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "text": {
+                                "description": "Localised text rendered by the filter (e.g. for drawtext).",
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              "fontcolor": {
+                                "description": "Font colour passed to the drawtext filter, as a CSS hex string or FFmpeg colour name.",
+                                "type": "string"
+                              },
+                              "fontsize": {
+                                "description": "Font size in pixels or as an FFmpeg expression passed to the drawtext filter.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "fontfile": {
+                                "description": "Path or URL to the font file used by the drawtext filter.",
+                                "type": "string"
+                              },
+                              "alpha": {
+                                "description": "Alpha (opacity) expression passed to the filter.",
+                                "type": "string"
+                              },
+                              "d": {
+                                "description": "Duration parameter passed to the FFmpeg filter in seconds.",
+                                "type": "string"
+                              },
+                              "st": {
+                                "description": "Start time parameter passed to the FFmpeg filter in seconds.",
+                                "type": "string"
+                              },
+                              "color": {
+                                "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "range": {
+                            "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "A single FFmpeg filter applied to the section or input stream."
+                      }
+                    },
+                    "options": {
+                      "description": "Additional behavioural options for this map.",
+                      "type": "object",
+                      "properties": {
+                        "useSectionFilters": {
+                          "description": "When true, the section-level filters are applied inside this map's filter chain (default false).",
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["inputs", "outputs"],
+                  "additionalProperties": false,
+                  "description": "An FFmpeg filtergraph map connecting named input streams to output streams via an optional filter chain."
+                }
+              },
+              "filters": {
+                "description": "Filter chain applied to the section output stream.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
+                    },
+                    "value": {
+                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "values": {
+                      "description": "Structured parameters for multi-argument filters.",
+                      "type": "object",
+                      "properties": {
+                        "h": {
+                          "description": "Height parameter passed to the FFmpeg filter (pixels or expression).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "w": {
+                          "description": "Width parameter passed to the FFmpeg filter (pixels or expression).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "x": {
+                          "description": "Horizontal offset parameter passed to the FFmpeg filter.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Vertical offset parameter passed to the FFmpeg filter.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "c": {
+                          "description": "Colour parameter passed to the FFmpeg filter (e.g. for drawbox).",
+                          "type": "string"
+                        },
+                        "t": {
+                          "description": "Time or thickness parameter passed to the FFmpeg filter.",
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "text": {
+                          "description": "Localised text rendered by the filter (e.g. for drawtext).",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "fontcolor": {
+                          "description": "Font colour passed to the drawtext filter, as a CSS hex string or FFmpeg colour name.",
+                          "type": "string"
+                        },
+                        "fontsize": {
+                          "description": "Font size in pixels or as an FFmpeg expression passed to the drawtext filter.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "fontfile": {
+                          "description": "Path or URL to the font file used by the drawtext filter.",
+                          "type": "string"
+                        },
+                        "alpha": {
+                          "description": "Alpha (opacity) expression passed to the filter.",
+                          "type": "string"
+                        },
+                        "d": {
+                          "description": "Duration parameter passed to the FFmpeg filter in seconds.",
+                          "type": "string"
+                        },
+                        "st": {
+                          "description": "Start time parameter passed to the FFmpeg filter in seconds.",
+                          "type": "string"
+                        },
+                        "color": {
+                          "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "range": {
+                      "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false,
+                  "description": "A single FFmpeg filter applied to the section or input stream."
+                }
+              },
+              "title": {
+                "description": "Localised display title shown to the user for this section.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "description": "Localised description shown to the user to explain what to record or fill in.",
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "transition": {
+                "description": "Transition applied after this section; overrides global.transition.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "fade",
+                          "fadeblack",
+                          "fadewhite",
+                          "fadegrays",
+                          "distance",
+                          "dissolve",
+                          "pixelize",
+                          "radial",
+                          "hblur",
+                          "wipeleft",
+                          "wiperight",
+                          "wipeup",
+                          "wipedown",
+                          "wipetl",
+                          "wipetr",
+                          "wipebl",
+                          "wipebr",
+                          "slideleft",
+                          "slideright",
+                          "slideup",
+                          "slidedown",
+                          "smoothleft",
+                          "smoothright",
+                          "smoothup",
+                          "smoothdown",
+                          "circlecrop",
+                          "rectcrop",
+                          "circleclose",
+                          "circleopen",
+                          "horzclose",
+                          "horzopen",
+                          "vertclose",
+                          "vertopen",
+                          "diagbl",
+                          "diagbr",
+                          "diagtl",
+                          "diagtr",
+                          "hlslice",
+                          "hrslice",
+                          "vuslice",
+                          "vdslice",
+                          "hlwind",
+                          "hrwind",
+                          "vuwind",
+                          "vdwind",
+                          "coverleft",
+                          "coverright",
+                          "coverup",
+                          "coverdown",
+                          "revealleft",
+                          "revealright",
+                          "revealup",
+                          "revealdown",
+                          "squeezeh",
+                          "squeezev",
+                          "zoomin"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "const": "cut"
+                      }
+                    ],
+                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                  },
+                  "duration": {
+                    "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 5
+                  }
+                },
+                "required": ["type"],
+                "additionalProperties": false
+              },
+              "caption": {
+                "description": "Styled on-screen caption rendered as a drawtext filter.",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Localised caption text; the active locale is resolved downstream."
+                  },
+                  "style": {
+                    "description": "Visual preset for the caption (default \"bar\").",
+                    "type": "string",
+                    "enum": ["bar", "subtle", "bold"]
+                  },
+                  "position": {
+                    "description": "Vertical placement of the caption (default \"lower-third\").",
+                    "type": "string",
+                    "enum": ["top", "center", "bottom", "lower-third"]
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the caption (default \"center\").",
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "font": {
+                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                    "type": "string"
+                  },
+                  "fontsize": {
+                    "description": "Font size in px; overrides the preset size.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                    "type": "string"
+                  },
+                  "box": {
+                    "description": "When true, draws a background box behind the text (preset default otherwise).",
+                    "type": "boolean"
+                  },
+                  "boxColor": {
+                    "description": "Box colour as a CSS hex string when the box is on.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Box opacity 0..1 when the box is on.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              },
+              "look": {
+                "description": "Named colour-grade preset applied to the section video (default: none).",
+                "type": "string",
+                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+              },
+              "grade": {
+                "description": "Fine-grained colour-grade settings applied to the section video.",
+                "type": "object",
+                "properties": {
+                  "brightness": {
+                    "description": "Brightness offset, -1..1 (default 0).",
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                  },
+                  "contrast": {
+                    "description": "Contrast multiplier, 0..2 (default 1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "saturation": {
+                    "description": "Saturation multiplier, 0..3 (default 1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 3
+                  },
+                  "gamma": {
+                    "description": "Gamma correction exponent, 0.1..3 (default 1).",
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 3
+                  },
+                  "hue": {
+                    "description": "Hue rotation in degrees, -180..180 (default 0).",
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180
+                  },
+                  "colorBalance": {
+                    "description": "Per-range colour balance correction.",
+                    "type": "object",
+                    "properties": {
+                      "shadows": {
+                        "description": "RGB adjustment applied to shadow tones.",
+                        "type": "object",
+                        "properties": {
+                          "r": {
+                            "description": "Red channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          },
+                          "g": {
+                            "description": "Green channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          },
+                          "b": {
+                            "description": "Blue channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "midtones": {
+                        "description": "RGB adjustment applied to midtone tones.",
+                        "type": "object",
+                        "properties": {
+                          "r": {
+                            "description": "Red channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          },
+                          "g": {
+                            "description": "Green channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          },
+                          "b": {
+                            "description": "Blue channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "highlights": {
+                        "description": "RGB adjustment applied to highlight tones.",
+                        "type": "object",
+                        "properties": {
+                          "r": {
+                            "description": "Red channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          },
+                          "g": {
+                            "description": "Green channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          },
+                          "b": {
+                            "description": "Blue channel adjustment, -1..1.",
+                            "type": "number",
+                            "minimum": -1,
+                            "maximum": 1
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "blur": {
+                    "description": "Gaussian blur radius in pixels, 0..20 (default 0).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 20
+                  },
+                  "curvesPreset": {
+                    "description": "Named curves preset key applied on top of other grade settings.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "motion": {
+                "description": "Ordered list of motion and geometric effects applied to the section video.",
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "kenburns",
+                          "description": "Slow zoom-and-pan (Ken Burns) effect on the section video."
+                        },
+                        "direction": {
+                          "description": "Direction of the Ken Burns pan or zoom (default: in).",
+                          "type": "string",
+                          "enum": ["in", "out", "left", "right", "up", "down"]
+                        },
+                        "intensity": {
+                          "description": "Zoom scale factor at the end of the effect, 1.01..2 (default 1.15).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 2
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "rotate",
+                          "description": "Rotates the video frame by a fixed angle."
+                        },
+                        "angle": {
+                          "type": "number",
+                          "description": "Rotation angle in degrees; positive values rotate clockwise."
+                        }
+                      },
+                      "required": ["type", "angle"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "crop",
+                          "description": "Crops the video frame to the specified rectangle."
+                        },
+                        "w": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ],
+                          "description": "Crop width in pixels or as an FFmpeg expression."
+                        },
+                        "h": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ],
+                          "description": "Crop height in pixels or as an FFmpeg expression."
+                        },
+                        "x": {
+                          "description": "Crop x offset in pixels or FFmpeg expression (default (iw-ow)/2).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "description": "Crop y offset in pixels or FFmpeg expression (default (ih-oh)/2).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": ["type", "w", "h"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "flip",
+                          "description": "Flips the video frame along the specified axis."
+                        },
+                        "axis": {
+                          "type": "string",
+                          "enum": ["horizontal", "vertical"],
+                          "description": "Axis of the flip: \"horizontal\" mirrors left-right, \"vertical\" mirrors top-bottom."
+                        }
+                      },
+                      "required": ["type", "axis"],
+                      "additionalProperties": false
+                    }
+                  ],
+                  "description": "Motion or geometric effect applied to the section video."
+                }
+              },
+              "type": {
+                "type": "string",
+                "const": "partial",
+                "description": "Section type: a reference to a reusable partial, expanded into real sections before validation."
+              },
+              "options": {
+                "description": "Playback and compositing options for the partial reference.",
+                "type": "object",
+                "properties": {
+                  "upperCase": {
+                    "description": "When true, all text values in this section are rendered in upper case (default false).",
+                    "type": "boolean"
+                  },
+                  "lowerCase": {
+                    "description": "When true, all text values in this section are rendered in lower case (default false).",
+                    "type": "boolean"
+                  },
+                  "useVideoSection": {
+                    "description": "Name of a project_video section whose recorded clip is reused in this section instead of capturing a new one.",
+                    "type": "string"
+                  },
+                  "duration": {
+                    "description": "Fixed duration of the section in seconds; overrides clip length.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "musicVolume": {
+                    "description": "Per-section music volume override, 0..1; overrides global.audio.musicVolume for this section.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "audioFade": {
+                    "description": "Audio fade-in/out applied to this section.",
+                    "type": "object",
+                    "properties": {
+                      "in": {
+                        "description": "Fade-in applied at the start of the section audio.",
+                        "type": "object",
+                        "properties": {
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "Fade length in seconds."
+                          },
+                          "curve": {
+                            "description": "FFmpeg afade curve shape (default: tri).",
+                            "type": "string",
+                            "enum": [
+                              "tri",
+                              "qsin",
+                              "hsin",
+                              "esin",
+                              "log",
+                              "ipar",
+                              "qua",
+                              "cub",
+                              "squ",
+                              "cbr",
+                              "par",
+                              "exp",
+                              "iqsin",
+                              "ihsin",
+                              "dese",
+                              "desi",
+                              "losi",
+                              "sinc",
+                              "isinc",
+                              "nofade"
+                            ]
+                          }
+                        },
+                        "required": ["duration"],
+                        "additionalProperties": false
+                      },
+                      "out": {
+                        "description": "Fade-out applied at the end of the section audio.",
+                        "type": "object",
+                        "properties": {
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "Fade length in seconds."
+                          },
+                          "curve": {
+                            "description": "FFmpeg afade curve shape (default: tri).",
+                            "type": "string",
+                            "enum": [
+                              "tri",
+                              "qsin",
+                              "hsin",
+                              "esin",
+                              "log",
+                              "ipar",
+                              "qua",
+                              "cub",
+                              "squ",
+                              "cbr",
+                              "par",
+                              "exp",
+                              "iqsin",
+                              "ihsin",
+                              "dese",
+                              "desi",
+                              "losi",
+                              "sinc",
+                              "isinc",
+                              "nofade"
+                            ]
+                          }
+                        },
+                        "required": ["duration"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "fields": {
+                    "description": "Form fields defined for this section (used in form sections).",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier for this form field, used as a variable name in filter templates."
+                        },
+                        "maxLength": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "description": "Maximum number of characters allowed in this field."
+                        },
+                        "label": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Localised display label shown to the user for this field."
+                        }
+                      },
+                      "required": ["name", "maxLength", "label"],
+                      "additionalProperties": false,
+                      "description": "A single user-editable text field rendered in a form section."
+                    }
+                  },
+                  "speed": {
+                    "description": "Playback speed multiplier applied to the section clip (default 1).",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "muteSection": {
+                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "type": "boolean"
+                  },
+                  "countdown": {
+                    "description": "When true, a countdown overlay is shown before recording starts (default false).",
+                    "type": "boolean"
+                  },
+                  "countdownDuration": {
+                    "description": "Duration of the countdown in seconds (default 3); only used when countdown is true.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "videoUrl": {
+                    "description": "URL of a pre-recorded video asset used as the section clip.",
+                    "type": "string"
+                  },
+                  "logoUrl": {
+                    "description": "URL of a logo image composited into the section.",
+                    "type": "string"
+                  },
+                  "backgroundUrl": {
+                    "description": "URL of a background image or video composited behind the section content.",
+                    "type": "string"
+                  },
+                  "backgroundColor": {
+                    "description": "Solid background colour as a CSS hex string (e.g. \"#000000\").",
+                    "type": "string"
+                  },
+                  "pictureUrl": {
+                    "description": "URL of a picture asset used as the section background or overlay.",
+                    "type": "string"
+                  },
+                  "forceAspectRatio": {
+                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "type": "boolean"
+                  },
+                  "forceOriginalAspectRatio": {
+                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "ref": {
+                "description": "Id of a registered partial to expand in place.",
+                "type": "string"
+              },
+              "prefix": {
+                "description": "Prepended to each expanded section name, so a partial can be included more than once.",
+                "type": "string"
+              },
+              "sections": {
+                "description": "Inline partial sections, expanded in place — an alternative to `ref` for self-contained partials.",
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": ["type"],
+            "additionalProperties": false,
+            "description": "A reference to a reusable partial (by `ref`) or an inline one (`sections`), expanded before compilation."
           }
         ]
       }

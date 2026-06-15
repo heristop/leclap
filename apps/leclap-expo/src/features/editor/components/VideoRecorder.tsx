@@ -332,7 +332,15 @@ function useCountdown(onComplete: () => void) {
     }
 
     const id = setTimeout(() => {
-      setValue((v) => (v === null ? null : v - 1));
+      // Complete straight from 1 — the countdown never displays 0.
+      if (value <= 1) {
+        setValue(null);
+        onCompleteRef.current();
+
+        return;
+      }
+
+      setValue(value - 1);
     }, 1000);
 
     return () => {

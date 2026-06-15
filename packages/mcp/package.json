@@ -21,6 +21,7 @@
     "test:integration": "pnpm --filter ffmpeg-video-composer build && pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
   },
   "dependencies": {
+    "@leclap/creative-kit": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "ffmpeg-video-composer": "workspace:*",
     "reflect-metadata": "^0.2.2",

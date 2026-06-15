@@ -104,11 +104,6 @@ The integration suite spawns the built server over stdio and renders a self-cont
 color-card template end to end — the regression guard proving the stdio framing survives a
 real (pino-heavy) compile.
 
-> **Contributor note (cucumber 13 + tsx):** cucumber's `loader` config option maps to Node's
-> deprecated `--loader`, which tsx 4 rejects. Register the TS/ESM hook via
-> `NODE_OPTIONS="--import tsx/esm"` in the `test:integration` script instead, with step modules
-> loaded through the `import` glob in `cucumber.json`.
-
 ## Not yet (future)
 
 HTTP/SSE transport, MCP resources (`leclap://templates/{name}`), progress notifications,

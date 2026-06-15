@@ -5,9 +5,16 @@
 // lint-style safety net, not a parser — annotate a deliberate literal with a
 // trailing `// i18n-ignore` (or the line above) to silence it.
 //
-// Usage: node scripts/i18n-check.mjs   (exits 1 if any findings)
+// Usage: node scripts/i18n-check.ts   (exits 1 if any findings)
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
+
+interface Finding {
+  file: string;
+  line: number;
+  kind: string;
+  text: string;
+}
 
 const ROOTS = ['apps/leclap-web/src', 'apps/leclap-expo/src', 'apps/leclap-expo/app'];
 
@@ -25,7 +32,7 @@ const EXCLUDE = [
   'apps/leclap-expo/src/features/editor/screens/EditorScreen.tsx',
   'apps/leclap-expo/src/features/editor/screens/VideoRecordingScreen.tsx',
 ];
-const isExcluded = (p) => EXCLUDE.some((e) => p.includes(e));
+const isExcluded = (p: string) => EXCLUDE.some((e) => p.includes(e));
 
 // User-facing string-valued JSX props that must be translated.
 const ATTR = /\b(aria-label|accessibilityLabel|placeholder|title|alt)=["']([^"'{}]*[A-Za-z]{2,}[^"'{}]*)["']/g;
@@ -34,7 +41,7 @@ const ALERT = /Alert\.alert\(\s*["']([^"']*[A-Za-z]{2,}[^"']*)["']/g;
 const JSXTEXT = />([^<>{}]*[A-Za-z]{2,}[^<>{}]*)</g;
 
 // Attribute/alert values look human when they aren't bare identifiers/urls/paths.
-const looksHuman = (s) => {
+const looksHuman = (s: string) => {
   const v = s.trim();
 
   if (v.length < 2) return false;
@@ -52,7 +59,7 @@ const looksHuman = (s) => {
 // Single-word TS type names that slip through `>…<` as generic-return fragments.
 const TS_TYPES = new Set(['Promise', 'Array', 'Record', 'Map', 'Set', 'Partial', 'Readonly', 'Awaited', 'ReturnType']);
 
-const looksProse = (s) => {
+const looksProse = (s: string) => {
   const v = s.replace(/&[a-z]+;/g, ' ').trim();
   // collapse HTML entities (&amp; etc.)
   if (v.length < 2 || !/[A-Za-z]{2,}/.test(v)) return false;
@@ -62,8 +69,8 @@ const looksProse = (s) => {
   return /^[A-Za-z0-9 ,.!?'’%–—-]+$/.test(v); // words + light punctuation only
 };
 
-const files = [];
-const walk = (dir) => {
+const files: string[] = [];
+const walk = (dir: string) => {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
 
@@ -89,7 +96,7 @@ for (const root of ROOTS) {
 
 // Scan the literal JSX text nodes on a line (`.tsx` only) and push any prose findings.
 // Kept separate so the main loop stays simple.
-const scanJsxText = (file, line, lineNo, out) => {
+const scanJsxText = (file: string, line: string, lineNo: number, out: Finding[]) => {
   if (!file.endsWith('.tsx')) return;
 
   for (const m of line.matchAll(JSXTEXT)) {
@@ -102,7 +109,7 @@ const scanJsxText = (file, line, lineNo, out) => {
   }
 };
 
-const scanLine = (file, lines, i, out) => {
+const scanLine = (file: string, lines: string[], i: number, out: Finding[]) => {
   const line = lines[i];
 
   if (line.includes('i18n-ignore') || (i > 0 && lines[i - 1].includes('i18n-ignore'))) return;
@@ -118,7 +125,7 @@ const scanLine = (file, lines, i, out) => {
   scanJsxText(file, line, i + 1, out);
 };
 
-const findings = [];
+const findings: Finding[] = [];
 
 for (const file of files) {
   if (isExcluded(file)) continue;

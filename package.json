@@ -9,8 +9,8 @@
     "url": "git+https://github.com/heristop/ffmpeg-video-composer.git"
   },
   "scripts": {
-    "compile": "node packages/ffmpeg-video-composer/compile.js",
-    "diagnose": "node packages/ffmpeg-video-composer/diagnose.js",
+    "compile": "node packages/ffmpeg-video-composer/compile.ts",
+    "diagnose": "node packages/ffmpeg-video-composer/diagnose.ts",
     "build": "pnpm -r build",
     "build:exe": "pnpm --filter ffmpeg-video-composer run build:exe",
     "build:exe:all": "pnpm --filter ffmpeg-video-composer run build:exe:all",
@@ -25,8 +25,10 @@
     "test:coverage": "vp test run --coverage",
     "test:integration": "pnpm --filter ffmpeg-video-composer test:integration && pnpm --filter @leclap/mcp test:integration",
     "test:build": "pnpm --filter ffmpeg-video-composer build && vp test run packages/ffmpeg-video-composer/tests/build-output.test.ts",
-    "graph": "madge --dot --extensions ts packages/ffmpeg-video-composer/src/ > graph.dot",
+    "gen:icons": "node scripts/gen-icons.ts",
+    "gen:icons:native": "node scripts/gen-expo-native-icons.ts",
     "deps:check": "depcruise packages/ffmpeg-video-composer/src",
+    "deps:dot": "depcruise packages/ffmpeg-video-composer/src --output-type dot > docs/graph.dot",
     "deps:graph": "depcruise packages/ffmpeg-video-composer/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
     "deps:html": "depcruise packages/ffmpeg-video-composer/src --output-type html > docs/dependency-report.html",
     "prepare": "vp config",
@@ -34,10 +36,10 @@
     "playground:android": "pnpm --filter @leclap/expo run android",
     "playground:ios": "pnpm --filter @leclap/expo run ios",
     "playground:web": "pnpm --filter @leclap/web run dev",
-    "server:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/server-app run build && pnpm --filter @leclap/server-app run start",
     "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/mcp/dist/index.js"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@swc/core": "^1.15.41",
     "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.1.8",

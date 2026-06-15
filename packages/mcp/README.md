@@ -4,7 +4,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the
 [`ffmpeg-video-composer`](../ffmpeg-video-composer) engine as **agent-callable video tools**.
 
 An AI agent (Claude Desktop, Cursor, …) discovers the template schema and the built-in
-catalog, **authors a JSON template itself**, and calls a tool to render it **deterministically**
+catalog (from [`@leclap/creative-kit`](../creative-kit)), **authors a JSON template itself**, and calls a tool to render it **deterministically**
 to an mp4. The server embeds no LLM — the calling agent is the LLM; this server validates and
 renders. The result is _agent-composable, deterministic, reproducible_ video — the opposite of
 generative (Sora/Runway). Design spec:
@@ -114,3 +114,7 @@ real (pino-heavy) compile.
 HTTP/SSE transport, MCP resources (`leclap://templates/{name}`), progress notifications,
 remote-URL probing, an async job API. This package is structured tarball-clean but is not yet
 published to npm.
+
+---
+
+Part of the [LeClap monorepo](../../README.md).

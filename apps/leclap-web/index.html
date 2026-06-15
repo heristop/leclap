@@ -71,18 +71,19 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
-    <!-- Apply the saved/preferred theme before paint to avoid a flash of the wrong theme -->
+    <!-- Apply the theme before paint to avoid a flash of the wrong one. Default is the OS color
+         scheme; a saved choice (only written when the user toggles) overrides it. -->
     <script>
       (function () {
+        var stored = null;
         try {
-          var t = localStorage.getItem('leclap-theme');
-          if (t !== 'light' && t !== 'dark') {
-            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          document.documentElement.classList.toggle('dark', t === 'dark');
+          stored = localStorage.getItem('leclap-theme');
         } catch (e) {
-          document.documentElement.classList.add('dark');
+          /* storage blocked — fall through to the system preference */
         }
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var dark = stored === 'dark' || (stored !== 'light' && prefersDark);
+        document.documentElement.classList.toggle('dark', dark);
       })();
     </script>
   </head>

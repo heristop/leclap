@@ -93,12 +93,7 @@ class CoreCompilationService {
         onProgress
       );
 
-      if (mediaChoices) {
-        applyMediaChoices(templateDescriptor, mediaChoices);
-      }
-
-      await materializeTemplateMedia(templateDescriptor, browserMediaService, this.filesystemAdapter);
-      await this.preloadBundledMusic(templateDescriptor);
+      await this.prepareMedia(templateDescriptor, mediaChoices);
 
       const outputPath = await this.runCompilation(projectConfig, templateDescriptor, onProgress);
 
@@ -268,6 +263,20 @@ class CoreCompilationService {
     // Project merges this over the engine defaults, so a partial { scale } override just lowers the
     // render resolution while orientation/setsar keep their defaults.
     return { buildDir, userVideoPaths, fields: formData, ...(videoConfig ? { videoConfig } : {}) };
+  }
+
+  // Apply the user's media choices, then materialize all referenced media into the WASM FS and
+  // preload any bundled music so the compile step finds everything on disk.
+  private async prepareMedia(
+    templateDescriptor: TemplateDescriptor,
+    mediaChoices: MediaChoices | undefined
+  ): Promise<void> {
+    if (mediaChoices) {
+      applyMediaChoices(templateDescriptor, mediaChoices);
+    }
+
+    await materializeTemplateMedia(templateDescriptor, browserMediaService, this.filesystemAdapter);
+    await this.preloadBundledMusic(templateDescriptor);
   }
 
   private prepareTemplateDescriptor(

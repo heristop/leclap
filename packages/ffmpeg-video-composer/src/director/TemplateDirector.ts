@@ -84,7 +84,7 @@ class TemplateDirector {
     // Expand `{ type:'partial', ref }` sections into real sections here, the single point where the
     // descriptor used for compilation is set. Callers pass the raw descriptor (Node `compile` never
     // validates; the browser path validates into the template but this assignment would overwrite
-    // it), so without this every partial — logo bumper, question-flash — is dropped downstream by
+    // it), so without this every partial — logo bumper, flash-card — is dropped downstream by
     // the rendering-type filter. Idempotent: re-expanding an already-expanded descriptor is a no-op.
     const expansion = expandPartialsSafe(clonedDescriptor);
 

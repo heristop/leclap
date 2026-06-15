@@ -16,7 +16,7 @@
       "type": "image_background",
       "options": {
         "duration": 6,
-        "pictureUrl": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/SamplePNGImage_3mbmb.png"
+        "pictureUrl": "pictures/SamplePNGImage_3mbmb.png"
       },
       "filters": [
         {

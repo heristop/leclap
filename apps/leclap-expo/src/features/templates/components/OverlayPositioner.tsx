@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   PanResponder,
   type LayoutChangeEvent,
@@ -16,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { FONTS, findFont } from '@leclap/creative-kit/fonts';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Slider, Segmented } from './EditorControls';
 import { newOverlay, type TextOverlay, type Orientation } from '../model/templateEditorModel';
@@ -28,6 +30,8 @@ interface OverlayPositionerProps {
   visible: boolean;
   overlay: TextOverlay | undefined;
   orientation: Orientation;
+  /** Global variable names insertable as `{{ name }}` tokens into the overlay text. */
+  variables: string[];
   t: TFunction<'editor'>;
   onClose: () => void;
   onChange: (overlay: TextOverlay) => void;
@@ -38,6 +42,7 @@ export const OverlayPositioner = ({
   visible,
   overlay,
   orientation,
+  variables,
   t,
   onClose,
   onChange,
@@ -100,7 +105,15 @@ export const OverlayPositioner = ({
                   { left: left - 1, top: top - 1, transform: [{ translateX: -0.5 }] },
                 ]}
               >
-                <Text style={{ color: value.fontcolor, fontSize: previewSize, fontWeight: '700' }} numberOfLines={1}>
+                <Text
+                  style={{
+                    color: value.fontcolor,
+                    fontSize: previewSize,
+                    fontWeight: '700',
+                    fontFamily: findFont(value.font)?.cssFamily,
+                  }}
+                  numberOfLines={1}
+                >
                   {value.text.trim() === '' ? t('overlay.sample') : value.text}
                 </Text>
               </View>
@@ -120,6 +133,29 @@ export const OverlayPositioner = ({
             placeholderTextColor={colors.textSecondary}
           />
 
+          {variables.length > 0 ? (
+            <View>
+              <Text style={styles.controlLabel}>{t('overlay.insertVariable')}</Text>
+              <View style={styles.varChips}>
+                {variables.map((name) => (
+                  <TouchableOpacity
+                    key={name}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t('overlay.insertVariable')} ${name}`}
+                    onPress={() => {
+                      onChange({ ...value, text: `${value.text}{{ ${name} }}` });
+                    }}
+                    style={styles.varChip}
+                  >
+                    <Text style={styles.varChipText} numberOfLines={1}>
+                      {name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
           <Slider
             label={t('overlay.size')}
             value={value.fontsize}
@@ -131,6 +167,33 @@ export const OverlayPositioner = ({
               onChange({ ...value, fontsize });
             }}
           />
+
+          <Text style={styles.controlLabel}>{t('overlay.font')}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>
+            {FONTS.map((font) => {
+              const active = value.font === font.id;
+
+              return (
+                <TouchableOpacity
+                  key={font.id}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={`${t('overlay.font')} ${font.label}`}
+                  onPress={() => {
+                    onChange({ ...value, font: font.id });
+                  }}
+                  style={[styles.fontChip, active && styles.fontChipActive]}
+                >
+                  <Text
+                    style={[styles.fontChipText, active && styles.fontChipTextActive, { fontFamily: font.cssFamily }]}
+                    numberOfLines={1}
+                  >
+                    {font.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           <Text style={styles.controlLabel}>{t('overlay.colour')}</Text>
           <View style={styles.swatchRow}>
@@ -219,4 +282,25 @@ const styles = StyleSheet.create({
   swatchRow: { flexDirection: 'row', gap: spacing.s, flexWrap: 'wrap' },
   swatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: colors.divider },
   swatchActive: { borderColor: colors.text },
+  varChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  varChip: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+  },
+  varChipText: { ...typography.smallText, color: colors.primary },
+  fontRow: { gap: spacing.xs, paddingVertical: 2 },
+  fontChip: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 10,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    backgroundColor: colors.surface,
+  },
+  fontChipActive: { borderColor: colors.primary, backgroundColor: colors.background },
+  fontChipText: { ...typography.body, color: colors.text },
+  fontChipTextActive: { color: colors.primary },
 });

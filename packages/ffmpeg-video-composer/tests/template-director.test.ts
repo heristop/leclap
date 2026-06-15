@@ -198,12 +198,12 @@ describe('TemplateDirector.config', () => {
   it('expands `partial` ref sections so they survive compileVideoSegments (not dropped)', () => {
     const { director, template } = makeDirector();
     // `compileVideoSegments` keeps only real rendering types; a `type:'partial'` section reaching it
-    // unexpanded is silently filtered out — which is exactly how question-flash went missing.
+    // unexpanded is silently filtered out — which is exactly how the flash-card partial went missing.
     const descriptor: TemplateDescriptor = {
       sections: [
         {
           type: 'partial',
-          ref: 'question-flash',
+          ref: 'flash-card',
           prefix: 'q1_',
           variables: { optionA: 'Tea', optionB: 'Coffee', index: '1' },
         },

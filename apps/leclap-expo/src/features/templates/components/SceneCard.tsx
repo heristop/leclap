@@ -8,6 +8,8 @@ import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/styles/theme';
 import { LookCarousel } from './LookCarousel';
+import { GradeFields } from './GradeFields';
+import { CaptionFields } from './CaptionFields';
 import { LayerRows } from './LayerRows';
 import { FramingGuideRow } from './FramingGuideRow';
 import { MotionFields } from './MotionFields';
@@ -23,6 +25,7 @@ const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> =
   color: 'color-palette',
   music: 'musical-notes',
   image: 'image-outline',
+  partial: 'cube-outline',
 };
 
 interface SceneCardProps {
@@ -110,6 +113,24 @@ const SceneAdvanced = ({ section, t, onChange, onLayers }: SceneAdvancedProps) =
             }}
           />
         </Disclosure>
+        <Disclosure title={t('advanced.fineTune')} icon="options-outline">
+          <GradeFields
+            grade={section.grade}
+            t={t}
+            onChange={(grade) => {
+              onChange({ grade });
+            }}
+          />
+        </Disclosure>
+        <Disclosure title={t('advanced.caption')} icon="text-outline">
+          <CaptionFields
+            caption={section.caption}
+            t={t}
+            onChange={(caption) => {
+              onChange({ caption });
+            }}
+          />
+        </Disclosure>
         <Disclosure title={t('advanced.audio')} icon="volume-medium-outline">
           <SectionAudioFields
             musicVolume={section.musicVolume}
@@ -146,6 +167,24 @@ const SceneAdvanced = ({ section, t, onChange, onLayers }: SceneAdvancedProps) =
             }}
           />
         </Disclosure>
+        <Disclosure title={t('advanced.fineTune')} icon="options-outline">
+          <GradeFields
+            grade={section.grade}
+            t={t}
+            onChange={(grade) => {
+              onChange({ grade });
+            }}
+          />
+        </Disclosure>
+        <Disclosure title={t('advanced.caption')} icon="text-outline">
+          <CaptionFields
+            caption={section.caption}
+            t={t}
+            onChange={(caption) => {
+              onChange({ caption });
+            }}
+          />
+        </Disclosure>
         <Disclosure title={t('advanced.audio')} icon="volume-medium-outline">
           <SectionAudioFields
             musicVolume={section.musicVolume}
@@ -177,6 +216,24 @@ const SceneAdvanced = ({ section, t, onChange, onLayers }: SceneAdvancedProps) =
           t={t}
           onChange={(look) => {
             onChange({ look });
+          }}
+        />
+      </Disclosure>
+      <Disclosure title={t('advanced.fineTune')} icon="options-outline">
+        <GradeFields
+          grade={section.grade}
+          t={t}
+          onChange={(grade) => {
+            onChange({ grade });
+          }}
+        />
+      </Disclosure>
+      <Disclosure title={t('advanced.caption')} icon="text-outline">
+        <CaptionFields
+          caption={section.caption}
+          t={t}
+          onChange={(caption) => {
+            onChange({ caption });
           }}
         />
       </Disclosure>

@@ -131,8 +131,12 @@
     "source": "Media source",
     "tab": {
       "library": "library",
-      "upload": "upload"
+      "upload": "upload",
+      "url": "url"
     },
+    "urlLabel": "Asset URL",
+    "urlPlaceholder": "https://example.com/media.mp4",
+    "urlHint": "Paste a direct link — fetched at compile time, not stored on device.",
     "emptyLibrary": "Nothing here yet — upload your own instead.",
     "emptyMultiLibrary": "Nothing in the library yet.",
     "play": "Play {{title}}",
@@ -149,6 +153,7 @@
   "overlay": {
     "textOverlays": "Text overlays",
     "doubleClickToEdit": "Double-click to edit",
+    "textPlaceholder": "Add your text",
     "editText": "Edit overlay text",
     "selectOrAdd": "Select a text — or add one below.",
     "addText": "Add text",

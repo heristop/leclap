@@ -220,11 +220,13 @@ describe('SegmentBuilder.buildMaps', () => {
     expect(Object.keys(assets)).toEqual(['asset_confettis']);
     expect(assets.asset_confettis).toContain('-framerate 25 -i ');
     expect(assets.asset_confettis).toContain('/animations/confettis/frame-%03d.png');
-    // overlay map wired once at the animation's stream index (video increment 1 + 1 + position 0 = 2)
+    // overlay map wired once at the animation's stream index (video increment 1 + 1 + position 0 = 2),
+    // with the output scale so the video leg is normalized before compositing.
     expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
     expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'confettis' }),
-      2
+      2,
+      '1280:720'
     );
   });
 

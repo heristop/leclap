@@ -61,5 +61,10 @@ Then try the `/compose-video` prompt, or just ask:
 > "Compose a 15s premium quote card with the line _'Design is how it works'_ and open the result."
 
 The agent calls `get_template` → edits the descriptor → `validate_template` (instant) →
-`compose_video`, and hands you back the mp4 path. See the
+`compose_video`, and hands you back the mp4 path. The templates and fonts it draws on come from
+[`@leclap/creative-kit`](../../packages/creative-kit). See the
 [`@leclap/mcp` README](../../packages/mcp/README.md) for the full tool/prompt reference.
+
+---
+
+Part of the [LeClap monorepo](../../README.md).

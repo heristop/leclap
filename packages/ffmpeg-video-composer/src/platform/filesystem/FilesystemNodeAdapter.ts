@@ -116,9 +116,11 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   override fetch = async (url: string): Promise<string> => {
     const dest = path.join(this.tempDir, path.basename(url));
 
-    if (url.startsWith('/')) {
-      // Local staged media only — reject out-of-tree absolute paths (path traversal).
-      const real = await this.resolveStagedPath(url);
+    if (!/^https?:\/\//i.test(url)) {
+      // Local staged media — an absolute path or a path relative to assetsDir (e.g. `videos/x.mp4`).
+      // resolveStagedPath rejects anything that resolves outside the staged dirs (path traversal).
+      const candidate = url.startsWith('/') ? url : path.join(this.assetsDir ?? '', url);
+      const real = await this.resolveStagedPath(candidate);
       await fs.copyFile(real, dest);
 
       return dest;
@@ -177,6 +179,9 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     const index = url.lastIndexOf(marker);
 
     if (index !== -1) return url.slice(index + marker.length);
+
+    // A bare relative path (no URL scheme) is already assets-relative — keep its subdirs intact.
+    if (!url.includes('://')) return url;
 
     return url.slice(url.lastIndexOf('/') + 1);
   };

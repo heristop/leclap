@@ -5,10 +5,10 @@ import 'reflect-metadata';
 import { compile, loadConfig, FFmpegDetector, Terminal } from './index';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
+import { resolveAssetsDir } from './cli/resolveAssetsDir';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -114,29 +114,9 @@ ${report.recommendations.map((rec) => `  ${pc.cyan('•')} ${rec}`).join('\n')}
   }
 }
 
-// Pick the assets directory for the render. Prefer the caller's own `<cwd>/assets`; when that
-// doesn't exist, fall back to the bundled demo media in the sibling creative-kit package (resolved
-// relative to this module) so `leclap <demo-template>` renders from the monorepo with no setup. In a
-// published install creative-kit isn't present, so this falls through to the `<cwd>/assets` default.
-function resolveAssetsDir(cwd: string): string {
-  const local = path.resolve(cwd, 'assets');
-
-  if (existsSync(local)) return local;
-
-  const demo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../creative-kit/src/assets');
-
-  if (existsSync(demo)) {
-    console.log(`${pc.dim('Using bundled demo assets:')} ${demo}`);
-
-    return demo;
-  }
-
-  return local;
-}
-
 function buildProjectConfig(cwd: string): ProjectConfig & { buildDir: string } {
   const buildDir = path.resolve(cwd, 'build');
-  const assetsDir = resolveAssetsDir(cwd);
+  const assetsDir = resolveAssetsDir(cwd, path.dirname(fileURLToPath(import.meta.url)));
 
   return {
     buildDir,

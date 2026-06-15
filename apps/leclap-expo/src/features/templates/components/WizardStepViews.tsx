@@ -25,6 +25,7 @@ const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> =
   color: 'color-palette',
   music: 'musical-notes',
   image: 'image-outline',
+  partial: 'cube-outline',
 };
 
 interface InfoStepProps {

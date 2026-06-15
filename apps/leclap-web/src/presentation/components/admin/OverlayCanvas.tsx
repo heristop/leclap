@@ -302,7 +302,7 @@ const OverlayBox = (props: OverlayBoxProps) => {
       style={boxStyle(overlay, previewH, orientation)}
       className={cn(
         'absolute max-w-[92%] cursor-move touch-none whitespace-pre-wrap text-center leading-tight outline-none',
-        active && 'ring-2 ring-brand-500 ring-offset-1 ring-offset-black/40'
+        active && 'rounded-[0.2em] ring-2 ring-brand-500'
       )}
     >
       <BoxContent
@@ -339,6 +339,7 @@ const BoxContent = ({ overlay, editing, t, editRef, onCommitText, onCaret, onEnd
         autoFocus
         aria-label={t('overlay.editText')}
         value={overlay.text}
+        placeholder={t('overlay.textPlaceholder')}
         onChange={(e) => {
           onCommitText(e.target.value);
           onCaret(e.target.selectionStart, e.target.selectionEnd);
@@ -359,13 +360,24 @@ const BoxContent = ({ overlay, editing, t, editRef, onCommitText, onCaret, onEnd
           }
         }}
         rows={1}
-        className="w-full resize-none bg-transparent text-center outline-none [font:inherit] [color:inherit]"
+        // `field-sizing: content` makes the textarea grow/shrink with its text so the box (and its
+        // selection ring) hugs the overlay content instead of sitting at the fixed default textarea
+        // width; min-w keeps the placeholder readable while empty.
+        className="min-w-[3ch] resize-none bg-transparent text-center outline-none [field-sizing:content] [font:inherit] [color:inherit] placeholder:opacity-45"
       />
     );
   }
 
+  // Empty, not editing: a fixed-size hint chip (independent of the overlay's own font size, which can
+  // scale to a couple of pixels in the preview) so a placed-but-blank overlay reads as a clear "tap to
+  // add text" target rather than a thin empty rectangle.
   if (overlay.text.trim() === '') {
-    return <span className="opacity-50">{t('overlay.doubleClickToEdit')}</span>;
+    return (
+      <span className="pointer-events-none flex items-center gap-1 whitespace-nowrap text-[11px] leading-none font-medium tracking-normal normal-case opacity-60 [font-family:var(--font-sans)]">
+        <Type className="h-3 w-3" aria-hidden />
+        {t('overlay.doubleClickToEdit')}
+      </span>
+    );
   }
 
   return <span>{overlay.text}</span>;

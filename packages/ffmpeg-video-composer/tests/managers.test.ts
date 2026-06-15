@@ -800,15 +800,50 @@ describe('MapManager', () => {
       };
     }
 
-    it('emits a single overlay map onto the main video and names the pad after the input', () => {
+    it('scales the animation leg before the overlay and names the pad after the input', () => {
       const { manager, segment } = build({ section: animationSection() });
       manager.addAnimationOverlay(makeAnimInput(), 2);
       expect(segment.inputsMapCount).toBe(1);
-      expect(segment.filtersMapList).toHaveLength(1);
-      // main video leg [0:v] (fresh video increment) and the animation input [2:v]
-      expect(segment.filtersMapList[0]).toContain('[0:v]');
-      expect(segment.filtersMapList[0]).toContain('[2:v]');
+      // a pre-overlay scale chain for the animation leg, then the overlay map
+      expect(segment.filtersMapList).toHaveLength(2);
+      expect(segment.filtersMapList[0]).toBe('[2:v]scale=100:100,setsar=1[anim_src]');
+      // the overlay map composites the main video leg with the scaled animation pad
+      const overlay = segment.filtersMapList.at(-1) ?? '';
+      expect(overlay).toContain('[0:v]');
+      expect(overlay).toContain('[anim_src]');
       expect(segment.mapsList).toContain('anim');
+    });
+
+    it('normalizes the main video leg to the output scale before the overlay (fill, not corner)', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput(), 2, '1280:720');
+      // the raw video leg is scaled to the output size on its own chain, before the overlay
+      expect(segment.filtersMapList).toContain('[0:v]scale=1280:720,setsar=1[anim_norm]');
+      // the overlay composites the normalized base + the scaled animation, not the raw streams
+      const overlay = segment.filtersMapList.at(-1) ?? '';
+      expect(overlay).toContain('[anim_norm]');
+      expect(overlay).toContain('[anim_src]');
+    });
+
+    it('bakes the section filters into the background so the animation overlays ON TOP (not blurred)', () => {
+      const { manager, segment } = build({
+        section: {
+          name: 's',
+          type: 'video',
+          filters: [{ type: 'boxblur', value: '5' }],
+          options: { duration: 10 },
+        } as Section,
+      });
+      manager.addAnimationOverlay(makeAnimInput(), 2, '1280:720');
+      // a background map applies the section's blur to the normalized video, and the overlay map
+      // composites the animation onto that background pad — so the animation is never blurred.
+      const background = segment.filtersMapList.find((c) => c.includes('[anim_bg]'));
+      expect(background).toContain('[anim_norm]');
+      expect(background).toContain('F(boxblur)');
+      const overlay = segment.filtersMapList.at(-1) ?? '';
+      expect(overlay).toContain('[anim_bg]');
+      expect(overlay).toContain('[anim_src]');
+      expect(overlay).toContain('F(overlay)');
     });
 
     it('uses eof_action=repeat when persistent and eof_action=pass otherwise', () => {
@@ -829,17 +864,25 @@ describe('MapManager', () => {
       const { manager, segment } = build({ section: animationSection() });
       manager.addAnimationOverlay(makeAnimInput({}), 2);
       manager.addAnimationOverlay({ ...makeAnimInput({}), name: 'anim2' }, 3);
-      // second overlay bases off the first overlay's output pad, not the main video
-      expect(segment.filtersMapList[1]).toContain('[anim]');
+      // the second overlay map bases off the first overlay's output pad, not the main video
+      const overlay2 = segment.filtersMapList.at(-1) ?? '';
+      expect(overlay2).toContain('[anim]');
+      expect(overlay2).toContain('[anim2_src]');
       expect(segment.mapsList).toContain('anim2');
     });
 
-    it('applies the input scale on the overlay output when set', () => {
-      const { manager, filterManager } = build({ section: animationSection() });
+    it('scales the animation leg to the input scale (pre-overlay), not via a post-overlay filter', () => {
+      const { manager, segment } = build({ section: animationSection() });
       manager.addAnimationOverlay(makeAnimInput({ scale: '640:360' }), 2);
-      expect(filterManager.addFilter).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'scale', value: '640:360' })
-      );
+      expect(segment.filtersMapList).toContain('[2:v]scale=640:360,setsar=1[anim_src]');
+    });
+
+    it('uses the raw animation stream when no scale is set (no pre-scale chain)', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ scale: undefined }), 2);
+      expect(segment.filtersMapList.some((chain) => chain.includes('[anim_src]'))).toBe(false);
+      const overlay = segment.filtersMapList.at(-1) ?? '';
+      expect(overlay).toContain('[2:v]');
     });
   });
 

@@ -5,7 +5,7 @@
     },
     "music": {
       "name": "default",
-      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/point_being_-_go_by_ocean___ryan_mccaffrey.mp3"
+      "url": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/musics/go-by-ocean.mp3"
     },
     "orientation": "portrait",
     "musicEnabled": true,

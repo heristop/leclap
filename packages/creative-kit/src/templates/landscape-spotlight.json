@@ -1,0 +1,312 @@
+{
+  "meta": {
+    "name": "Landscape Spotlight",
+    "description": "Record a clip — graded intro + outro wrap it into a polished video."
+  },
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "music": {
+      "name": "arcadia.mp3"
+    },
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "Your details"
+      },
+      "description": {
+        "en": ""
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_name",
+            "maxLength": 24,
+            "label": {
+              "en": "Your name"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro",
+      "type": "color_background",
+      "transition": {
+        "type": "wipeleft",
+        "duration": 0.4
+      },
+      "options": {
+        "backgroundColor": "#0d1b2a",
+        "duration": 2.4
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 720,
+            "c": "#0d1b2a@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 150,
+            "c": "#13243f@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 570,
+            "w": 1280,
+            "h": 150,
+            "c": "#13243f@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "PRESENTING"
+            },
+            "fontcolor": "#e8eef7",
+            "fontsize": 30,
+            "x": "(w-text_w)/2",
+            "y": 250,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_name }}"
+            },
+            "fontcolor": "#7C83FD",
+            "fontsize": 124,
+            "x": "(w-text_w)/2",
+            "y": 320,
+            "fontfile": "BebasNeue.ttf",
+            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.5),(t-0.6)/0.9,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 540,
+            "y": 470,
+            "w": 200,
+            "h": 5,
+            "c": "#7C83FD@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "in",
+            "d": "0.6",
+            "color": "#0d1b2a"
+          }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#0d1b2a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "look": "cinematic",
+      "title": {
+        "en": "Record your clip"
+      },
+      "description": {
+        "en": "Your moment — graded and captioned"
+      },
+      "options": {
+        "duration": 30,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 3,
+        "musicVolume": 0.1
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 600,
+            "w": 1280,
+            "h": 120,
+            "c": "#0d1b2a@0.55",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 80,
+            "y": 628,
+            "w": 90,
+            "h": 5,
+            "c": "#7C83FD@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_name }}"
+            },
+            "fontcolor": "#7C83FD",
+            "fontsize": 52,
+            "x": 80,
+            "y": 644,
+            "fontfile": "BebasNeue.ttf"
+          }
+        },
+        {
+          "type": "fadein",
+          "values": {
+            "color": "#0d1b2a"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "#0d1b2a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#0d1b2a",
+        "duration": 2.6
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 720,
+            "c": "#0d1b2a@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 150,
+            "c": "#13243f@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 570,
+            "w": 1280,
+            "h": 150,
+            "c": "#13243f@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "LeClap"
+            },
+            "fontcolor": "#7C83FD",
+            "fontsize": 128,
+            "x": "(w-text_w)/2",
+            "y": 280,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 540,
+            "y": 432,
+            "w": 200,
+            "h": 5,
+            "c": "#7C83FD@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "made on your device"
+            },
+            "fontcolor": "#e8eef7",
+            "fontsize": 30,
+            "x": "(w-text_w)/2",
+            "y": 458,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.9),0,if(lt(t,1.6),(t-0.9)/0.7,1))'"
+          }
+        },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "in",
+            "d": "0.6",
+            "color": "#0d1b2a"
+          }
+        }
+      ]
+    }
+  ]
+}

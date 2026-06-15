@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
-import { getTheme, toggleTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
+import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 
 type ThemeToggleProps = {
   theme: Theme;
@@ -187,6 +187,10 @@ export const Header = () => {
     setThemeState(toggleTheme(origin));
   };
 
+  // While the user is still on the system default, mirror live OS color-scheme changes into the
+  // toggle's state so its icon stays in sync (the class is applied globally in main.tsx).
+  useEffect(() => watchSystemTheme(setThemeState), []);
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -205,6 +209,12 @@ export const Header = () => {
 
   return (
     <header
+      // A `position: fixed` element is viewport-relative, so it is NOT covered by the body
+      // scrollbar-width compensation Radix overlays apply on open (react-remove-scroll sets
+      // `--removed-body-scroll-bar-size` and pads the body). Without this the navbar shifts right
+      // when a dropdown/dialog removes the scrollbar; padding-right by the same var keeps it put
+      // (0px when nothing is open) while leaving the header background full-width.
+      style={{ paddingRight: 'var(--removed-body-scroll-bar-size, 0px)' }}
       className={clsx(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         overHero && 'dark',

@@ -60,7 +60,7 @@ Run `npx ffmpeg-video-composer --diagnose` to see what your environment provides
 
 ## Templates
 
-Templates are Zod-validated JSON descriptors: global options (size, music, locale) plus an ordered list of sections, each with `inputs → maps → filters`. See the [template configuration reference](https://github.com/heristop/ffmpeg-video-composer/blob/main/docs/template-configuration.md) and the ready-made examples in the [repository](https://github.com/heristop/ffmpeg-video-composer).
+Templates are Zod-validated JSON descriptors: global options (size, music, locale) plus an ordered list of sections, each with `inputs → maps → filters`. See the [template configuration reference](https://github.com/heristop/ffmpeg-video-composer/blob/main/docs/template-configuration.md) and the ready-made catalog — templates, partials, and bundled fonts — in [`@leclap/creative-kit`](https://github.com/heristop/ffmpeg-video-composer/tree/main/packages/creative-kit).
 
 ## License
 

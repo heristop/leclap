@@ -67,3 +67,7 @@ cargo test                      # from this directory
 
 LGPL-3.0-or-later (no `--enable-gpl` in the FFmpeg build — see
 [`scripts/ffmpeg/common.sh`](../../scripts/ffmpeg/common.sh)).
+
+---
+
+Part of the [LeClap monorepo](../../README.md). On-device pipeline: [On-Device Compilation](../../docs/on-device-compilation.md).

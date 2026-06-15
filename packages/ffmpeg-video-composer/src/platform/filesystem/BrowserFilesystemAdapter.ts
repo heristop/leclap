@@ -83,7 +83,7 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   private readonly initPromise: Promise<void> | null = null;
   private static readonly rawPrefixes = [
     'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/',
-    'https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/assets/',
+    'https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/creative-kit/src/library/',
   ];
 
   constructor() {

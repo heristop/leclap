@@ -4,7 +4,7 @@
       "colorsList": ["#101010", "#fafafa"]
     },
     "music": {
-      "name": "point_being_-_go_by_ocean___ryan_mccaffrey.mp3"
+      "name": "go-by-ocean.mp3"
     },
     "orientation": "landscape",
     "musicEnabled": true,
@@ -75,7 +75,7 @@
       "options": {
         "duration": 4,
         "musicVolume": 0.5,
-        "pictureUrl": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/pictures/SamplePNGImage_3mbmb.png"
+        "pictureUrl": "pictures/SamplePNGImage_3mbmb.png"
       },
       "filters": [
         {

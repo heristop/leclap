@@ -95,4 +95,21 @@ describe('groupValidationErrors + errorsForEditorSection', () => {
 
     expect(runValidation(buildDescriptor(s), [localPartial])).toEqual([]);
   });
+
+  it('anchors a blank partial ref on the partial card instead of the global banner', () => {
+    const s = state([{ kind: 'partial', ref: '', variables: [] }]);
+    const errors = runValidation(buildDescriptor(s));
+
+    expect(errors).toEqual([
+      {
+        path: 'sections[0].ref',
+        message: 'Select a partial.',
+        code: 'missing_partial_ref',
+      },
+    ]);
+
+    const grouped = groupValidationErrors(errors);
+    expect(grouped.global).toHaveLength(0);
+    expect(errorsForEditorSection(grouped, s, 0)).toHaveLength(1);
+  });
 });

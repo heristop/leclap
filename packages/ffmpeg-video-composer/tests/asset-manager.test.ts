@@ -175,11 +175,23 @@ describe('AssetManager.fetchAssets', () => {
     expect(variableManager.mapVariables).toHaveBeenCalledWith('{{ clip }}');
   });
 
-  it('throws when a resolved url is neither http nor an absolute path', async () => {
+  it('accepts a relative assets path (resolved offline-first, else fetched)', async () => {
     const section = {
       name: 'intro',
       type: 'video',
-      inputs: [{ name: 'clip', url: 'relative/path.mp4' }],
+      inputs: [{ name: 'clip', url: 'videos/clip.mp4' }],
+    } as unknown as Section;
+    const { manager, fs } = build({ section });
+    await manager.fetchAssets();
+    // No local copy in the mock → falls back to fetch with the relative path preserved.
+    expect(fs.fetch).toHaveBeenCalledWith('videos/clip.mp4');
+  });
+
+  it('throws when a url is an unresolved {{ variable }}', async () => {
+    const section = {
+      name: 'intro',
+      type: 'video',
+      inputs: [{ name: 'clip', url: '{{ missing }}' }],
     } as unknown as Section;
     const { manager } = build({ section });
     await expect(manager.fetchAssets()).rejects.toThrow(/is not valid/);

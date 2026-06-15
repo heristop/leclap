@@ -60,8 +60,8 @@ describe('Template Validation', () => {
       expect(result.success).toBe(true);
     });
 
-    test('should validate sample.json template', () => {
-      const template = loadTemplate('sample.json');
+    test('should validate drink-and-code.json template', () => {
+      const template = loadTemplate('drink-and-code.json');
       const result = validator.validateTemplate(template);
 
       expect(result.success).toBe(true);
@@ -368,12 +368,12 @@ describe('Template Validation', () => {
 
   describe('Schema — partial section', () => {
     it('accepts a partial reference section by ref', () => {
-      const r = SectionSchema.safeParse({ type: 'partial', ref: 'flash-transition' });
+      const r = SectionSchema.safeParse({ type: 'partial', ref: 'flash-card' });
       expect(r.success).toBe(true);
     });
 
     it('accepts a partial reference with an optional prefix', () => {
-      const r = SectionSchema.safeParse({ type: 'partial', ref: 'flash-transition', prefix: 't1_' });
+      const r = SectionSchema.safeParse({ type: 'partial', ref: 'flash-card', prefix: 't1_' });
       expect(r.success).toBe(true);
     });
 

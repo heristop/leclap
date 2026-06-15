@@ -41,3 +41,7 @@ then `... start`.
 
 Clients point at the server with `VITE_API_URL` (web) or `extra.API_URL` (Expo),
 both defaulting to `http://localhost:8082`.
+
+---
+
+Part of the [LeClap monorepo](../../README.md).

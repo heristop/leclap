@@ -251,9 +251,11 @@ class SegmentBuilder {
       const source = this.resolveAnimationSource(input, inputsCache);
 
       if (source !== undefined) {
-        // Single image2-sequence or single-file animation input + one overlay map.
+        // Single image2-sequence or single-file animation input + one overlay map. The video leg is
+        // normalized to the output scale before compositing so full-frame animations fill the frame.
         inputsAsset[`asset_${input.name}`] = source;
-        this.mapManager.addAnimationOverlay(input as MapAnimationInput, baseIndex + i);
+        const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
+        this.mapManager.addAnimationOverlay(input as MapAnimationInput, baseIndex + i, videoScale);
         continue;
       }
 

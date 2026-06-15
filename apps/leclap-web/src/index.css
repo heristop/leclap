@@ -54,6 +54,36 @@
   src: url('/fonts/RobotoMono.ttf') format('truetype');
   font-display: swap;
 }
+@font-face {
+  font-family: 'Anton';
+  src: url('/fonts/Anton.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo Black';
+  src: url('/fonts/ArchivoBlack.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bungee';
+  src: url('/fonts/Bungee.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Abril Fatface';
+  src: url('/fonts/AbrilFatface.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Righteous';
+  src: url('/fonts/Righteous.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lobster';
+  src: url('/fonts/Lobster.ttf') format('truetype');
+  font-display: swap;
+}
 
 html {
   /* Fluid base: ~16px on phones → 18px on desktop, so the whole rem-based UI
@@ -555,75 +585,6 @@ body {
   100% {
     background-position: 0% 50%;
   }
-}
-
-/* ---- Brand logo "clap" intro (AnimatedLogo / BrandIntro) ---- */
-@keyframes clap-snap {
-  0% {
-    transform: rotate(-34deg);
-  }
-  62% {
-    transform: rotate(5deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-@keyframes logo-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes clap-flash {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  45% {
-    opacity: 0.85;
-  }
-}
-@keyframes wordmark-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Rotate the clapper at its hinge (left edge of its own bounding box), scale the slate from its
-   center — fill-box keeps the origins correct under the static -9deg tilt on the parent group. */
-.lc-logo .lc-clap {
-  transform-box: fill-box;
-  transform-origin: left center;
-}
-.lc-logo .lc-slate {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.lc-logo-play .lc-slate {
-  animation: logo-pop 0.5s var(--ease-spring) both;
-}
-.lc-logo-play .lc-clap {
-  animation: clap-snap 0.55s var(--ease-spring) 0.38s both;
-}
-.lc-logo-play .lc-flash {
-  animation: clap-flash 0.4s var(--ease-out-expo) 0.42s both;
-}
-.lc-wordmark-rise {
-  animation: wordmark-rise 0.5s var(--ease-out-expo) 0.62s both;
 }
 
 @utility shimmer {

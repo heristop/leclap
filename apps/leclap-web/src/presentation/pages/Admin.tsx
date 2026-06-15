@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight, Braces } from 'lucide-react';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
 import { Seo } from '@/presentation/components/Seo';
@@ -97,116 +97,148 @@ export const Admin = () => {
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-16 relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold font-display text-foreground mb-1">{t('page.heading')}</h1>
             <p className="text-gray-600 dark:text-gray-300">{t('page.subtitle')}</p>
           </div>
-          <Button asChild className="active:scale-[0.98] shrink-0">
-            <Link to="/templates/new">
-              <Plus /> {t('page.create')}
-            </Link>
-          </Button>
         </div>
 
-        {/* My templates */}
-        <section className="mb-12">
-          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-300 mb-4">
-            <FolderOpen className="w-4 h-4" /> {t('page.myTemplates')}{' '}
-            {mine.length > 0 && <span className="text-gray-500">{t('page.count', { count: mine.length })}</span>}
-          </h2>
-          {mine.length === 0 ? (
-            <div className="fade-in mx-auto max-w-md rounded-2xl border border-dashed border-brand-500/30 bg-brand-500/[0.04] p-10 text-center">
-              <span className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-300">
-                <FolderOpen className="size-6" />
-              </span>
-              <p className="text-foreground font-medium mb-1">{t('page.empty.title')}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{t('page.empty.subtitle')}</p>
-              <Button asChild className="mx-auto active:scale-[0.98]">
-                <Link to="/templates/new">
-                  <Plus /> {t('page.empty.create')}
-                </Link>
-              </Button>
+        <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
+          <aside className="space-y-3">
+            <Button asChild className="w-full justify-start active:scale-[0.98]">
+              <Link to="/templates/new">
+                <Plus /> {t('page.create')}
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" className="w-full justify-start active:scale-[0.98]">
+              <Link to="/partials">
+                <Braces /> Partials
+              </Link>
+            </Button>
+            <div className="space-y-1 rounded-xl border border-foreground/10 bg-surface/60 p-2">
+              <a
+                href="#my-templates"
+                className="tap flex w-full items-center justify-between rounded-lg bg-brand-500/15 px-3 py-2 text-left text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-brand-200"
+              >
+                <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+                  <FolderOpen className="size-4 shrink-0" /> {t('page.myTemplates')}
+                </span>
+                <span className="shrink-0 text-xs opacity-75">{mine.length}</span>
+              </a>
+              <a
+                href="#sample-templates"
+                className="tap flex w-full items-center justify-between rounded-lg bg-foreground/5 px-3 py-2 text-left text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-gray-300"
+              >
+                <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+                  <Sparkles className="size-4 shrink-0" /> {t('page.samples')}
+                </span>
+                <span className="shrink-0 text-xs opacity-75">{samples.length}</span>
+              </a>
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {mine.map((tpl, index) => (
-                <Reveal key={tpl.id} delay={index * 70} className="h-full">
-                  <TemplateCard
-                    template={tpl}
-                    t={t}
-                    actions={
-                      <>
-                        <Button asChild variant="secondary" size="sm" className="min-h-10 flex-1 active:scale-[0.98]">
-                          <Link to={`/templates/${tpl.id}/edit`}>
-                            <Pencil /> {t('card.edit')}
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            handleDelete(tpl);
-                          }}
-                          aria-label={t('card.delete', { name: tpl.name })}
-                          className="min-h-10 min-w-10 active:scale-[0.98] hover:text-[var(--color-error)]"
-                        >
-                          <Trash2 />
-                        </Button>
-                      </>
-                    }
-                  />
-                </Reveal>
-              ))}
-            </div>
-          )}
-        </section>
+            <Button asChild variant="outline" className="w-full justify-start active:scale-[0.98]">
+              <Link to="/builder">
+                {t('page.goToBuilder')} <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </aside>
 
-        {/* Sample templates */}
-        <section>
-          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">
-            <Sparkles className="w-4 h-4" /> {t('page.samples')}
-          </h2>
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-40 rounded-2xl border border-foreground/5 bg-surface/50 shimmer" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {samples.map((tpl, index) => (
-                <Reveal key={tpl.id} delay={index * 70} className="h-full">
-                  <TemplateCard
-                    template={tpl}
-                    t={t}
-                    actions={
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          handleDuplicate(tpl);
-                        }}
-                        className="min-h-10 flex-1 active:scale-[0.98]"
-                      >
-                        <Copy /> {t('card.duplicate')}
-                      </Button>
-                    }
-                  />
-                </Reveal>
-              ))}
-            </div>
-          )}
-        </section>
+          <div>
+            {/* My templates */}
+            <section id="my-templates" className="mb-12 scroll-mt-24">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-300 mb-4">
+                <FolderOpen className="w-4 h-4" /> {t('page.myTemplates')}{' '}
+                {mine.length > 0 && <span className="text-gray-500">{t('page.count', { count: mine.length })}</span>}
+              </h2>
+              {mine.length === 0 ? (
+                <div className="fade-in mx-auto max-w-md rounded-2xl border border-dashed border-brand-500/30 bg-brand-500/[0.04] p-10 text-center">
+                  <span className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-300">
+                    <FolderOpen className="size-6" />
+                  </span>
+                  <p className="text-foreground font-medium mb-1">{t('page.empty.title')}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{t('page.empty.subtitle')}</p>
+                  <Button asChild className="mx-auto active:scale-[0.98]">
+                    <Link to="/templates/new">
+                      <Plus /> {t('page.empty.create')}
+                    </Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {mine.map((tpl, index) => (
+                    <Reveal key={tpl.id} delay={index * 70} className="h-full">
+                      <TemplateCard
+                        template={tpl}
+                        t={t}
+                        actions={
+                          <>
+                            <Button
+                              asChild
+                              variant="secondary"
+                              size="sm"
+                              className="min-h-10 flex-1 active:scale-[0.98]"
+                            >
+                              <Link to={`/templates/${tpl.id}/edit`}>
+                                <Pencil /> {t('card.edit')}
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                handleDelete(tpl);
+                              }}
+                              aria-label={t('card.delete', { name: tpl.name })}
+                              className="min-h-10 min-w-10 active:scale-[0.98] hover:text-[var(--color-error)]"
+                            >
+                              <Trash2 />
+                            </Button>
+                          </>
+                        }
+                      />
+                    </Reveal>
+                  ))}
+                </div>
+              )}
+            </section>
 
-        <div className="mt-12 text-center">
-          <Link
-            to="/builder"
-            viewTransition
-            className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 font-medium transition-colors"
-          >
-            {t('page.goToBuilder')} <ArrowRight className="w-4 h-4" />
-          </Link>
+            {/* Sample templates */}
+            <section id="sample-templates" className="scroll-mt-24">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4">
+                <Sparkles className="w-4 h-4" /> {t('page.samples')}
+              </h2>
+              {loading ? (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-40 rounded-2xl border border-foreground/5 bg-surface/50 shimmer" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {samples.map((tpl, index) => (
+                    <Reveal key={tpl.id} delay={index * 70} className="h-full">
+                      <TemplateCard
+                        template={tpl}
+                        t={t}
+                        actions={
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              handleDuplicate(tpl);
+                            }}
+                            className="min-h-10 flex-1 active:scale-[0.98]"
+                          >
+                            <Copy /> {t('card.duplicate')}
+                          </Button>
+                        }
+                      />
+                    </Reveal>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </div>

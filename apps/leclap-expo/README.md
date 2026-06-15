@@ -1,6 +1,6 @@
 # LeClap - Mobile Video Composer
 
-LeClap is a mobile application built with Expo and React Native that provides an interface for creating video content using customizable templates. It integrates with the FFmpeg Video Composer backend to provide video editing on mobile devices.
+LeClap is a mobile application built with Expo and React Native for creating video content from customizable templates. It compiles videos **on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)), falling back to the [HTTP server](../../packages/server-app) when needed — rendering the same [`@leclap/creative-kit`](../../packages/creative-kit) templates as the web app and CLI.
 
 ## Features
 
@@ -30,8 +30,8 @@ LeClap is a mobile application built with Expo and React Native that provides an
 This app requires the **FFmpeg Video Composer** backend server to be running for video compilation functionality. Ensure you have:
 
 1. **FFmpeg** installed on your system and available in PATH
-2. **Node.js** >= 22.x
-3. The backend server running on `localhost:8082`
+2. **Node.js** ≥ 24
+3. The backend server running on `localhost:8082` (fallback for on-device compiles)
 
 ### Mobile Development
 
@@ -199,4 +199,4 @@ This app replaces the deprecated `leclap-playground` with:
 
 ## License
 
-This project is part of the FFmpeg Video Composer suite and follows the same MIT License.
+This project is part of the [LeClap monorepo](../../README.md) and follows the same MIT License. For the on-device compile pipeline, see [On-Device Compilation](../../docs/on-device-compilation.md).

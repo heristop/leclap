@@ -21,8 +21,34 @@ export interface SectionValidation {
 
 const validator = new TemplateValidator();
 
+function missingPartialRefErrors(descriptor: TemplateDescriptor): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  for (const [index, section] of (descriptor.sections ?? []).entries()) {
+    if ((section as { type?: unknown }).type !== 'partial') continue;
+
+    const partial = section as { ref?: unknown; sections?: unknown[] };
+    const hasRef = typeof partial.ref === 'string' && partial.ref.trim() !== '';
+    const hasInlineSections = Array.isArray(partial.sections) && partial.sections.length > 0;
+
+    if (!hasRef && !hasInlineSections) {
+      errors.push({
+        path: `sections[${index}].ref`,
+        message: 'Select a partial.',
+        code: 'missing_partial_ref',
+      });
+    }
+  }
+
+  return errors;
+}
+
 // Validate a built descriptor, returning the flat error list (empty on success).
 export function runValidation(descriptor: TemplateDescriptor, localPartials?: StoredPartial[]): ValidationError[] {
+  const missingRefs = missingPartialRefErrors(descriptor);
+
+  if (missingRefs.length > 0) return missingRefs;
+
   let materialized: TemplateDescriptor;
 
   try {

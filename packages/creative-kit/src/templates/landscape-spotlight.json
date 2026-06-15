@@ -159,7 +159,7 @@
         "duration": 30,
         "forceAspectRatio": true,
         "countdown": true,
-        "countdownDuration": 3,
+        "countdownDuration": 2,
         "musicVolume": 0.1
       },
       "filters": [
@@ -216,97 +216,8 @@
       ]
     },
     {
-      "name": "outro",
-      "type": "color_background",
-      "options": {
-        "backgroundColor": "#0d1b2a",
-        "duration": 2.6
-      },
-      "filters": [
-        {
-          "type": "drawbox",
-          "values": {
-            "x": 0,
-            "y": 0,
-            "w": 1280,
-            "h": 720,
-            "c": "#0d1b2a@1",
-            "t": "fill"
-          }
-        },
-        {
-          "type": "drawbox",
-          "values": {
-            "x": 0,
-            "y": 0,
-            "w": 1280,
-            "h": 150,
-            "c": "#13243f@1",
-            "t": "fill"
-          }
-        },
-        {
-          "type": "drawbox",
-          "values": {
-            "x": 0,
-            "y": 570,
-            "w": 1280,
-            "h": 150,
-            "c": "#13243f@1",
-            "t": "fill"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "LeClap"
-            },
-            "fontcolor": "#7C83FD",
-            "fontsize": 128,
-            "x": "(w-text_w)/2",
-            "y": 280,
-            "fontfile": "Oswald.ttf",
-            "alpha": "'if(lt(t,0.4),0,if(lt(t,1.2),(t-0.4)/0.8,1))'"
-          }
-        },
-        {
-          "type": "drawbox",
-          "values": {
-            "x": 540,
-            "y": 432,
-            "w": 200,
-            "h": 5,
-            "c": "#7C83FD@1",
-            "t": "fill"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "made on your device"
-            },
-            "fontcolor": "#e8eef7",
-            "fontsize": 30,
-            "x": "(w-text_w)/2",
-            "y": 458,
-            "fontfile": "Oswald.ttf",
-            "alpha": "'if(lt(t,0.9),0,if(lt(t,1.6),(t-0.9)/0.7,1))'"
-          }
-        },
-        {
-          "type": "vignette"
-        },
-        {
-          "type": "fade",
-          "values": {
-            "t": "in",
-            "d": "0.6",
-            "color": "#0d1b2a"
-          }
-        }
-      ]
+      "type": "partial",
+      "ref": "logo-bumper"
     }
   ]
 }

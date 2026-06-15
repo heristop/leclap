@@ -31,8 +31,14 @@ describe('@leclap/creative-kit catalog', () => {
   it('expands shared partial refs', () => {
     const descriptor = APP_TEMPLATES_BY_ID['fast-curious']?.descriptor;
 
-    expect(descriptor?.sections?.[0]?.type).toBe('partial');
-    expect(expandPartials(descriptor!).sections?.[0]?.name).toBe('logo_bumper');
+    // fast-curious composes shared partials (flash-card cards between clips, logo-bumper outro).
+    expect(descriptor?.sections?.some((section) => section.type === 'partial')).toBe(true);
+
+    const expanded = expandPartials(descriptor!);
+
+    // After expansion no partial refs remain and the logo-bumper outro is its `logo_bumper` section.
+    expect(expanded.sections?.some((section) => section.type === 'partial')).toBe(false);
+    expect(expanded.sections?.some((section) => section.name === 'logo_bumper')).toBe(true);
   });
 
   it('expands app-provided partial registries without editing the built-in catalog', () => {

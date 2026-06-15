@@ -1,6 +1,6 @@
 // Curated TTF font library for the overlay-text editor, shared by web + expo.
 // The .ttf files live under ./library/fonts and are copied into each
-// app's static dir by scripts/copy-core-assets.mjs at build/dev time.
+// app's static dir by scripts/copy-core-assets.ts at build/dev time.
 export interface FontEntry {
   id: string;
   label: string;

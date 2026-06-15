@@ -20,7 +20,7 @@ form-banner-*.png
 
 # Curated media + fonts are committed once in
 # packages/creative-kit/src/library/ (the single source of truth).
-# scripts/copy-core-assets.mjs copies them into each app's static dir on dev/build,
+# scripts/copy-core-assets.ts copies them into each app's static dir on dev/build,
 # so the generated copies are not tracked.
 /apps/leclap-web/public/musics/
 /apps/leclap-web/public/backgrounds/

@@ -42,7 +42,7 @@ jobs:
       - name: Prepare workspace
         run: |
           pnpm --filter ffmpeg-video-composer build
-          node scripts/copy-core-assets.mjs
+          node scripts/copy-core-assets.ts
 
       - name: Lint
         run: pnpm lint -f stylish

@@ -7,8 +7,8 @@ type TemplateValidationError = Extract<SafeParseResult, { success: false }>['err
 export type ValidationResult = { ok: true; descriptor: TemplateDescriptor } | { ok: false; message: string };
 
 // Summarize the first three schema issues as `dotted.path: message`, capping the rest with a
-// `(+N more)` suffix — same shape as server-app/templateValidation.ts, so the full error tree
-// (and any internal schema detail) never leaks to the agent.
+// `(+N more)` suffix, so the full error tree (and any internal schema detail) never leaks to the
+// agent.
 function summarizeIssues(error: TemplateValidationError): string {
   const issues = error.issues.slice(0, 3).map((issue) => {
     const at = issue.path.length > 0 ? issue.path.join('.') : '(root)';

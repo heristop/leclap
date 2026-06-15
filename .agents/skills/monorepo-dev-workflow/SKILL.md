@@ -23,11 +23,10 @@ pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`
 | Typecheck a package | `pnpm --filter <pkg> exec tsc --noEmit`                                             |
 | Run Expo app        | `pnpm app:expo` · `app:ios` · `app:android`                                         |
 | Run web app         | `pnpm app:web`                                                                      |
-| Run server          | `pnpm server:dev`                                                                   |
 | Build executables   | `pnpm build:exe:all`                                                                |
 | Dep graph / check   | `pnpm graph` · `pnpm deps:check`                                                    |
 
-`<pkg>` names: `ffmpeg-video-composer`, `@leclap/server-app`, `@leclap/expo`, `@leclap/web`.
+`<pkg>` names: `ffmpeg-video-composer`, `@leclap/mcp`, `@leclap/creative-kit`, `@leclap/brand-motion`, `@leclap/expo`, `@leclap/web`.
 
 ## Before committing
 

@@ -1,7 +1,6 @@
-// Per-clip trim/crop selected by the user before compilation. Mirrors the server contract
-// (packages/server-app videoEdit.ts): trim is in seconds, crop is normalized to the source frame
-// (0..1) so it is resolution-independent. The web app applies these client-side via ffmpeg.wasm
-// before the in-browser compile (it does not use the server's /compile endpoint).
+// Per-clip trim/crop selected by the user before compilation. Trim is in seconds, crop is
+// normalized to the source frame (0..1) so it is resolution-independent. The web app applies these
+// client-side via ffmpeg.wasm before the in-browser compile.
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { compilationLogger } from '@/lib/logger';

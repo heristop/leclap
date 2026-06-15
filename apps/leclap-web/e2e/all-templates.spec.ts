@@ -9,8 +9,8 @@ import { test, expect, type Page } from '@playwright/test';
 // The no-audio fixture is the regression guard for the "Stream map '0:a'
 // matches no streams" abort that a video-only upload triggered.
 //
-// Run with the dev server up:  pnpm --filter leclap dev   (port 5174)
-// then:                        pnpm --filter leclap test:e2e
+// Run with the dev server up:  pnpm --filter @leclap/web dev   (port 5174)
+// then:                        pnpm --filter @leclap/web test:e2e
 
 const VIDEO_DIR =
   '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/creative-kit/src/library/videos';

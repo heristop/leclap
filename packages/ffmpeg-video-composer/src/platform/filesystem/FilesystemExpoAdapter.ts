@@ -15,11 +15,47 @@ const toPath = (p: string): string => p.replace(/^file:\/\//, '');
 const join = (...parts: string[]): string => parts.filter(Boolean).join('/').replace(/\/+/g, '/');
 const basename = (p: string): string => p.split('/').pop() ?? p;
 
+// The path a canonical asset URL maps to under `assetsDir` (mirrors the Node adapter): everything
+// after the `/assets/` marker (keeping subdirs like `videos/leclap_bumper.mp4`), or the basename for
+// a flat URL. Lets the app's bundled-and-staged copy satisfy a descriptor's remote `videoUrl`.
+const assetsRelativeFromUrl = (url: string): string => {
+  const marker = '/assets/';
+  const index = url.lastIndexOf(marker);
+
+  if (index !== -1) return url.slice(index + marker.length);
+
+  if (!url.includes('://')) return url;
+
+  return basename(url);
+};
+
 class FilesystemExpoAdapter extends AbstractFilesystem {
   protected override root: string = toPath(FileSystem.documentDirectory ?? '');
   protected override tempDir: string = toPath(FileSystem.cacheDirectory ?? '');
 
   override getAssetsPath = async (dir: string): Promise<string> => join(this.assetsDir ?? '', dir);
+
+  // Resolve a font the app staged under `assetsDir/fonts` (its Metro-bundled .ttf, copied there
+  // before compile). Mirrors the Node adapter resolving `dist/fonts` — so on-device renders use the
+  // bundled font offline instead of the Google Fonts download, which can't resolve multi-word
+  // families (e.g. "Bebas Neue" from a `BebasNeue.ttf` filename) and rate-limits.
+  override resolveBundledFont = async (fontFile: string): Promise<string | null> => {
+    const path = join(this.assetsDir ?? '', 'fonts', fontFile);
+
+    return (await FileSystem.getInfoAsync(toUri(path))).exists ? path : null;
+  };
+
+  // Resolve a descriptor asset URL (e.g. the bumper's canonical `videoUrl`) to the app's bundled copy
+  // staged under `assetsDir` — returning null only when no local copy exists, so the core downloads.
+  // Without this, the on-device fetch hits the canonical URL, which 404s to an HTML page → the engine
+  // reads invalid input (AVERROR_INVALIDDATA). Mirrors the Node and Browser adapters.
+  override resolveLocalAsset = async (url: string): Promise<string | null> => {
+    if (!this.assetsDir && !url.startsWith('/')) return null;
+
+    const path = url.startsWith('/') ? url : join(this.assetsDir ?? '', assetsRelativeFromUrl(url));
+
+    return (await FileSystem.getInfoAsync(toUri(path))).exists ? path : null;
+  };
 
   override getBuildPath = async (dir: string): Promise<string> => {
     const full = join(this.buildDir ?? '', dir);

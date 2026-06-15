@@ -5,6 +5,7 @@ import { vi, beforeEach, describe, it, expect, type Mock } from 'vitest';
 // triggering the real WebAssembly dynamic import / initialization.
 vi.mock('@/platform/ffmpeg/FFmpegWasmAdapter', () => {
   class MockFFmpegWasmAdapter {
+    usesVirtualFilesystem = true;
     execute = vi.fn();
     getInfos = vi.fn();
     waitForReady = vi.fn();
@@ -41,6 +42,7 @@ vi.mock('@/editor/factories/SegmentFactory', () => {
 
 import TemplateConcreteBuilder from '@/director/TemplateConcreteBuilder';
 import FFmpegWasmAdapter from '@/platform/ffmpeg/FFmpegWasmAdapter';
+import { hasVirtualFilesystem } from '@/platform/ffmpeg/AbstractFFmpeg';
 import type { ProjectConfig, Section } from '@/core/types';
 
 type ProjectStub = { errors: string[]; config: ProjectConfig };
@@ -508,5 +510,27 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
 
     expect(result).toEqual({ data: null, fileLocation: null });
     expect(ffmpeg.readFile).not.toHaveBeenCalled();
+  });
+});
+
+describe('hasVirtualFilesystem', () => {
+  it('is true for the WASM adapter (declares the capability)', () => {
+    const wasm = new FFmpegWasmAdapter({} as never);
+
+    expect(hasVirtualFilesystem(wasm as never)).toBe(true);
+  });
+
+  it('is false for a native adapter, even one exposing file helpers', () => {
+    // The native mock deliberately has writeFile/readFile/etc. — the guard keys off the explicit
+    // `usesVirtualFilesystem` discriminant, not method presence, so it must still be false.
+    const native = {
+      execute: vi.fn(),
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      deleteFile: vi.fn(),
+      listDir: vi.fn(),
+    };
+
+    expect(hasVirtualFilesystem(native as never)).toBe(false);
   });
 });

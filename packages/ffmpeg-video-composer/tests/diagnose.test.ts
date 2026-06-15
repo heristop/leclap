@@ -6,13 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// diagnose.js lives at the package root (one level up from tests/).
+// diagnose.ts lives at the package root (one level up from tests/).
 const PACKAGE_ROOT = path.resolve(__dirname, '..');
 
 describe('Diagnose Script', () => {
   it('should run diagnose script without reflect-metadata errors', async () => {
     // Run the diagnose script
-    const { stdout, stderr } = await execAsync('node diagnose.js', {
+    const { stdout, stderr } = await execAsync('node diagnose.ts', {
       cwd: PACKAGE_ROOT,
       timeout: 30000,
     });
@@ -31,7 +31,7 @@ describe('Diagnose Script', () => {
 
   it('should complete successfully when FFmpeg is available', async () => {
     try {
-      const { stdout, stderr } = await execAsync('node diagnose.js', {
+      const { stdout, stderr } = await execAsync('node diagnose.ts', {
         cwd: PACKAGE_ROOT,
         timeout: 30000,
       });
@@ -61,7 +61,7 @@ describe('Diagnose Script', () => {
 
   it('should import reflect-metadata at the top of the file', async () => {
     const { readFile } = await import('node:fs/promises');
-    const diagnoseContent = await readFile(path.join(PACKAGE_ROOT, 'diagnose.js'), 'utf-8');
+    const diagnoseContent = await readFile(path.join(PACKAGE_ROOT, 'diagnose.ts'), 'utf-8');
 
     // Check that reflect-metadata is imported
     expect(diagnoseContent).toContain("import 'reflect-metadata'");

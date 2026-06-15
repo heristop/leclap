@@ -1,14 +1,11 @@
 import { inject, injectable } from 'tsyringe';
 import type { FFMpegInfos } from '@/core/types';
-import AbstractFFmpeg from './AbstractFFmpeg';
+import AbstractFFmpeg, { type FSNode, type VirtualFilesystemFFmpeg } from './AbstractFFmpeg';
 import { parseCommand } from './parseCommand';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import type AbstractFilesystem from '../filesystem/AbstractFilesystem';
 
-export interface FSNode {
-  name: string;
-  isDir: boolean;
-}
+export type { FSNode };
 
 interface FFmpegWasm {
   load(config?: { coreURL: string; wasmURL: string }): Promise<void>;
@@ -25,7 +22,8 @@ interface FFmpegWasm {
 type FFmpegLogData = { message?: string; progress?: number; time?: number };
 
 @injectable()
-class FFmpegWasmAdapter extends AbstractFFmpeg {
+class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpeg {
+  readonly usesVirtualFilesystem = true;
   private ffmpeg: FFmpegWasm | null = null;
   private isLoaded = false;
 

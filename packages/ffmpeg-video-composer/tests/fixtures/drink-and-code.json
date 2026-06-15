@@ -284,7 +284,6 @@
         "optionA": "drink",
         "optionB": "code",
         "conjunction": "&",
-        "showLabel": "0",
         "colorA": "{{ color1 }}",
         "colorB": "{{ color2 }}",
         "textColor": "{{ color2 }}"

@@ -56,8 +56,6 @@ The library picks the best available FFmpeg automatically:
 
 Run `npx ffmpeg-video-composer --diagnose` to see what your environment provides.
 
-> Text/intertitle/background-color segments need an FFmpeg built with `libfreetype` (`drawtext` filter). Verify with `ffmpeg -hide_banner -filters | grep drawtext`.
-
 ## Templates
 
 Templates are Zod-validated JSON descriptors: global options (size, music, locale) plus an ordered list of sections, each with `inputs → maps → filters`. See the [template configuration reference](https://github.com/heristop/ffmpeg-video-composer/blob/main/docs/template-configuration.md) and the ready-made catalog — templates, partials, and bundled fonts — in [`@leclap/creative-kit`](https://github.com/heristop/ffmpeg-video-composer/tree/main/packages/creative-kit).

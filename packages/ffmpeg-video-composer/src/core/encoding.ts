@@ -26,6 +26,18 @@ export function isHardwareCodec(config: ProjectConfig): boolean {
   return codec.includes('mediacodec') || codec.includes('videotoolbox');
 }
 
+/**
+ * True for the on-device native engine (libopenh264 / mpeg4 / hardware encoders) — a LGPL FFmpeg
+ * build with `--disable-gpl`, so GPL-only filters like `eq` are absent. The core remaps those to
+ * LGPL equivalents (see FilterManager's eq→lutyuv). The server/web/Node default (`h264`/libx264) is
+ * a full GPL-capable build and keeps the original filters.
+ */
+export function usesLgplEngine(config: ProjectConfig): boolean {
+  const codec = resolveVideoCodec(config);
+
+  return codec === 'libopenh264' || codec === 'mpeg4' || isHardwareCodec(config);
+}
+
 /** `-pix_fmt yuv420p` for software encoders; empty for hardware (the filtergraph sets the format). */
 export function buildPixFmtArg(config: ProjectConfig): string {
   return isHardwareCodec(config) ? '' : '-pix_fmt yuv420p';
@@ -50,8 +62,9 @@ export function buildVideoEncoderArgs(config: ProjectConfig): string {
   }
 
   // libopenh264 (Cisco's LGPL-OK software H.264, used on-device) — bitrate-based; no libx264 flags.
+  // OpenH264 only encodes Constrained Baseline, so no `-profile:v` (main/high is rejected or ignored).
   if (codec === 'libopenh264') {
-    return '-c:v libopenh264 -b:v 4M -profile:v main';
+    return '-c:v libopenh264 -b:v 4M';
   }
 
   return `-c:v ${codec} -crf 23 -tune film -b:v 12M -profile:v high -preset ${config.hardwareConfig?.preset ?? 'medium'}`;

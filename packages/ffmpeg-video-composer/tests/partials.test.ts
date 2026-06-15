@@ -92,7 +92,7 @@ describe('expandPartials', () => {
           type: 'partial',
           ref: 'flash-card',
           prefix: 'q1_',
-          variables: { optionA: 'Tea', optionB: 'Coffee', index: '1' },
+          variables: { optionA: 'Tea', optionB: 'Coffee' },
         },
       ],
     } as unknown as TemplateDescriptor;
@@ -103,31 +103,30 @@ describe('expandPartials', () => {
     // Provided values are injected, placeholders are gone, and the prefix is applied.
     expect(json).toContain('Tea');
     expect(json).toContain('Coffee');
-    expect(json).toContain('PICK ONE — 1 / 3');
     expect(json).not.toContain('{{ optionA }}');
-    expect(json).not.toContain('{{ index }}');
+    expect(json).not.toContain('{{ optionB }}');
     expect(out.sections?.[0]?.name).toBe('q1_flash');
   });
 
-  it('flash-card: defaults keep the "OR" separator and an enabled label (fast-curious path)', () => {
+  it('flash-card: defaults keep the "OR" separator (fast-curious path)', () => {
     const descriptor = {
-      sections: [{ type: 'partial', ref: 'flash-card', variables: { optionA: 'Tea', optionB: 'Coffee', index: '2' } }],
+      sections: [{ type: 'partial', ref: 'flash-card', variables: { optionA: 'Tea', optionB: 'Coffee' } }],
     } as unknown as TemplateDescriptor;
 
     const json = JSON.stringify(expandPartials(descriptor).sections);
 
     expect(json).toContain('"en":"OR"'); // conjunction default
-    expect(json).toContain('"enable":"1"'); // label shown (showLabel default)
-    expect(json).toContain('PICK ONE — 2 / 3');
+    expect(json).toContain('Tea');
+    expect(json).toContain('Coffee');
   });
 
-  it('flash-card: conjunction + showLabel overrides swap the separator and disable the label', () => {
+  it('flash-card: a conjunction override swaps the separator', () => {
     const descriptor = {
       sections: [
         {
           type: 'partial',
           ref: 'flash-card',
-          variables: { optionA: 'drink', optionB: 'code', conjunction: '&', showLabel: '0' },
+          variables: { optionA: 'drink', optionB: 'code', conjunction: '&' },
         },
       ],
     } as unknown as TemplateDescriptor;
@@ -136,7 +135,6 @@ describe('expandPartials', () => {
 
     expect(json).toContain('"en":"&"'); // separator is now "&"
     expect(json).not.toContain('"en":"OR"'); // the OR is gone
-    expect(json).toContain('"enable":"0"'); // the "PICK ONE" label drawtext is disabled (box + text hidden)
   });
 
   it('flash-card: a bare ref (no variables) expands fully from defaults — no dangling {{ }}', () => {
@@ -150,7 +148,7 @@ describe('expandPartials', () => {
     expect(json).not.toMatch(/\{\{\s*\w+\s*\}\}/);
     expect(json).toContain('THIS');
     expect(json).toContain('THAT');
-    expect(json).toContain('PICK ONE — 1 / 3');
+    expect(json).toContain('"en":"OR"');
   });
 });
 
@@ -187,13 +185,14 @@ describe('partial integration — fast & curious includes the logo-bumper partia
     const fastCurious = APP_TEMPLATES_BY_ID['fast-curious']?.descriptor;
 
     expect(fastCurious).toBeDefined();
-    // The template's first section is `{ type: "partial", ref: "logo-bumper" }`.
-    expect((fastCurious as TemplateDescriptor).sections?.[0]?.type).toBe('partial');
+    // The template composes shared partials (flash-card cards between clips, logo-bumper outro).
+    expect((fastCurious as TemplateDescriptor).sections?.some((s) => s.type === 'partial')).toBe(true);
 
     // Expand here so the partial's bundled asset URL is localised for a hermetic compile (compile()
     // re-expands internally, a no-op once expanded).
     const expanded = expandPartials(fastCurious as unknown as TemplateDescriptor);
-    expect(expanded.sections?.[0]?.name).toBe('logo_bumper');
+    expect(expanded.sections?.some((s) => s.type === 'partial')).toBe(false);
+    expect(expanded.sections?.some((s) => s.name === 'logo_bumper')).toBe(true);
 
     const clip = path.resolve(creativeKitRoot, 'src/library/videos/video_1.mp4');
     const cfg: ProjectConfig = {

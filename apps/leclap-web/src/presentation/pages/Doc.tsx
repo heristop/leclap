@@ -180,7 +180,10 @@ export const Doc = () => (
               <p>
                 <Code>look</Code> applies one of these named colour-grade presets to a section. Layer manual{' '}
                 <Code>grade</Code> values (brightness, contrast, saturation…) on top for fine control — see the{' '}
-                <a href="#fields" className="text-brand-300 underline-offset-2 hover:underline">
+                <a
+                  href="#fields"
+                  className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-300"
+                >
                   field reference
                 </a>
                 .

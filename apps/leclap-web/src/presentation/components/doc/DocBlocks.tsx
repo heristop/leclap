@@ -23,7 +23,7 @@ export const DocSection = ({ id, title, kicker, children }: DocSectionProps) => 
         <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-foreground">{title}</h2>
         <span
           aria-hidden="true"
-          className="text-brand-400 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
+          className="text-brand-600 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-brand-300"
         >
           #
         </span>
@@ -56,7 +56,7 @@ export const FieldTable = ({ rows }: { rows: FieldRow[] }) => {
     <div className="overflow-x-auto rounded-2xl border border-divider bg-surface/60">
       <table className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-divider text-[0.7rem] uppercase tracking-wider text-gray-500">
+          <tr className="border-b border-divider bg-foreground/[0.025] text-[0.7rem] uppercase tracking-wider text-gray-500">
             <th className="px-4 py-3 font-semibold">Field</th>
             <th className="px-4 py-3 font-semibold">Type</th>
             <th className="px-4 py-3 font-semibold">Constraints</th>
@@ -64,16 +64,25 @@ export const FieldTable = ({ rows }: { rows: FieldRow[] }) => {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.name} className="border-b border-divider/60 align-top last:border-0">
+            <tr
+              key={row.name}
+              className="border-b border-divider/60 align-top transition-colors last:border-0 hover:bg-foreground/[0.025]"
+            >
               <td className="px-4 py-3 whitespace-nowrap">
-                <span className="font-mono text-[0.85rem] text-foreground">{row.name}</span>
-                {row.required ? <span className="ml-1.5 align-top text-[0.6rem] text-accent-400">req</span> : null}
-                <p className="mt-1 max-w-[42ch] text-[0.8rem] leading-5 text-gray-400 whitespace-normal">
+                <span className="inline-flex items-center gap-2">
+                  <span className="font-mono text-[0.85rem] font-medium text-foreground">{row.name}</span>
+                  {row.required ? (
+                    <span className="rounded bg-brand-500/12 px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
+                      required
+                    </span>
+                  ) : null}
+                </span>
+                <p className="mt-1.5 max-w-[42ch] text-[0.8rem] leading-5 text-gray-400 whitespace-normal">
                   {row.description}
                 </p>
               </td>
               <td className="px-4 py-3">
-                <span className="font-mono text-[0.78rem] text-secondary-400">{row.type}</span>
+                <span className="font-mono text-[0.78rem] text-secondary-700 dark:text-secondary-300">{row.type}</span>
               </td>
               <td className="px-4 py-3">
                 <span className="font-mono text-[0.78rem] text-gray-400">{row.constraints || '—'}</span>

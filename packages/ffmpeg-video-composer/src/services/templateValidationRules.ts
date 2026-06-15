@@ -9,6 +9,10 @@ export interface ValidationError {
 
 const RENDERING_SECTION_TYPES = new Set(['video', 'project_video', 'color_background', 'image_background']);
 
+// Section types kenburns can zoom/pan: stills (image_background) and real footage (project_video,
+// video). A solid color_background or non-rendering type (form, music) has nothing to pan.
+const KENBURNS_SECTION_TYPES = new Set(['image_background', 'project_video', 'video']);
+
 type IndexedSection = { section: Section; index: number };
 
 // dangling_transition: non-cut transition on the last rendering section
@@ -99,13 +103,13 @@ export function validateMotion(template: TemplateDescriptor): ValidationError[] 
       continue;
     }
 
-    if (section.type === 'image_background') {
+    if (KENBURNS_SECTION_TYPES.has(section.type)) {
       continue;
     }
 
     errors.push({
       path: `sections[${index}].motion`,
-      message: `Section "${section.name}": kenburns motion requires an image_background section (zoompan operates on stills)`,
+      message: `Section "${section.name}": kenburns motion requires a video or image_background section`,
       code: 'motion_unsupported_section',
     });
   }

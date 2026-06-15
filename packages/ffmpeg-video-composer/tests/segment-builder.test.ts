@@ -58,8 +58,10 @@ function makeFilesystem() {
   };
 }
 
-function makeProject(config: ProjectConfig = {}) {
-  return { config };
+function makeProject(config: ProjectConfig = {}, durations: Record<string, number> = {}) {
+  // buildInfos.durations holds the ffprobe-probed clip lengths the director fills before segments
+  // build; injectSugarFilters reads it to calibrate Ken Burns on video sections.
+  return { config, buildInfos: { durations } };
 }
 
 function makeTemplate(descriptor: TemplateDescriptor = {}, inputs: unknown = []) {
@@ -573,6 +575,32 @@ describe('SegmentBuilder structured-sugar injection', () => {
     // the first eq is from grade; look's eq comes after; colorbalance is from look
     expect(eqGradeIdx).toBeLessThan(colorbalanceIdx);
     expect(colorbalanceIdx).toBeLessThan(hflipIdx);
+  });
+
+  it('calibrates Ken Burns on a project_video over the probed clip length with d=1 (no stretch)', async () => {
+    const segment = makeSegment();
+    const managers = makeManagers();
+    // Probed clip length 9s while the declared options.duration is 45s: the curve must use the
+    // probed 9s (frames=270 → step 0.000556) and d=1 so the clip is never time-stretched.
+    const project = makeProject({ videoConfig: { scale: '1280:720', setsar: '1/1' } }, { clip: 9 });
+    const { builder } = makeBuilder({ segment, project, managers });
+    builder.hydrate({ name: 'clip', type: 'project_video' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'project_video',
+      options: { duration: 45 },
+      motion: [{ type: 'kenburns', direction: 'in' }],
+      filters: [],
+      maps: [],
+    } as never;
+
+    await builder.buildFilters();
+
+    const zoompan = (segment.filtersList as string[]).find((s) => s.startsWith('zoompan='));
+    expect(zoompan).toBeDefined();
+    expect(zoompan).toContain(':d=1:'); // one output frame per input frame — no slow-motion
+    expect(zoompan).not.toContain(':d=270:');
+    expect(zoompan).toContain('zoom+0.000556'); // step (1.15-1)/270 → calibrated over probed 9s, not declared 45s
   });
 
   it('does not inject sugar filters when look/grade/motion/layers are all absent', async () => {

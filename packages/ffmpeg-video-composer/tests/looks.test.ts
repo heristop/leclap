@@ -252,6 +252,43 @@ describe('motionToFilters', () => {
     });
   });
 
+  // Video sections must not be time-stretched by zoompan: d=1 emits exactly one output frame per
+  // input frame, while `frames` still calibrates the zoom/pan curve over the clip's real (probed)
+  // length. Stills keep d=frames (the blocks above). See kenburnsToFilters / injectSugarFilters.
+  describe('kenburns on video (isVideo → d=1)', () => {
+    const CTX_VIDEO = { duration: 9, scale: '1280:720', fps: 30, isVideo: true }; // frames = 270
+
+    it('conforms fps, then pre-upscales, then a d=1 zoompan calibrated over the real frame count', () => {
+      const filters = motionToFilters([{ type: 'kenburns', direction: 'in', intensity: 1.2 }], CTX_VIDEO);
+      expect(filters).toHaveLength(3);
+
+      // fps conform first so a non-30fps clip keeps real time under the d=1 1:1 frame mapping.
+      expect(filters[0]).toEqual<Filter>({ type: 'fps', value: '30' });
+      expect(filters[1]).toEqual<Filter>({ type: 'scale', value: '2560:-2' });
+
+      const zp = filters[2];
+      expect(zp.type).toBe('zoompan');
+      const val = String(zp.value);
+      expect(val).toContain("z='min(zoom+0.000741,1.2)'"); // step = (1.2-1)/270
+      expect(val).toContain(':d=1:s=1280x720:fps=30');
+      expect(val).not.toContain(':d=270:');
+    });
+
+    it('pans over the real frame count with d=1 (left)', () => {
+      const filters = motionToFilters([{ type: 'kenburns', direction: 'left', intensity: 1.2 }], CTX_VIDEO);
+      const zp = filters.find((f) => f.type === 'zoompan');
+      const val = String(zp?.value);
+      expect(val).toContain("x='(iw-iw/zoom)*(on/270)'");
+      expect(val).toContain(':d=1:');
+    });
+
+    it('stills are unaffected: the same effect without isVideo keeps d=frames', () => {
+      const stillCtx = { duration: 9, scale: '1280:720', fps: 30 };
+      const val = String(motionToFilters([{ type: 'kenburns', direction: 'in', intensity: 1.2 }], stillCtx)[1].value);
+      expect(val).toContain(':d=270:');
+    });
+  });
+
   describe('rotate', () => {
     it('emits rotate filter with angle expression', () => {
       const filters = motionToFilters([{ type: 'rotate', angle: 90 }], CTX_6S);

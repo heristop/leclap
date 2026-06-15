@@ -75,6 +75,30 @@ function buildEqParts(grade: Grade): string[] {
   });
 }
 
+/**
+ * Translate an `eq` filter value (`contrast`/`brightness`/`saturation`/`gamma`) into an equivalent
+ * LGPL `lutyuv` expression. The `eq` filter is GPL-only, so the on-device LGPL engine can't run it;
+ * lutyuv replicates eq's per-channel LUT math — luma = pow((y-0.5)·contrast+0.5+brightness, 1/gamma),
+ * chroma = (c-128)·saturation+128 — within ~50 dB PSNR of eq. Unknown keys fall back to identity.
+ */
+export function eqValueToLutyuv(eqValue: string): string {
+  const params: Record<string, number> = { contrast: 1, brightness: 0, saturation: 1, gamma: 1 };
+
+  for (const part of eqValue.split(':')) {
+    const [key, raw] = part.split('=');
+    const value = Number(raw);
+
+    if (key in params && Number.isFinite(value)) {
+      params[key] = value;
+    }
+  }
+
+  const luma = `clip(pow(clip((val/255-0.5)*${params.contrast}+0.5+${params.brightness},0,1),1/${params.gamma})*255,0,255)`;
+  const chroma = `clip((val-128)*${params.saturation}+128,0,255)`;
+
+  return `y='${luma}':u='${chroma}':v='${chroma}'`;
+}
+
 function buildCbParts(grade: Grade): string[] {
   const { colorBalance } = grade;
 
@@ -146,6 +170,13 @@ type MotionContext = {
   /** Scale as 'W:H', e.g. '1280:720' (from default.config.ts / videoConfig.scale). */
   scale: string;
   fps: number;
+  /**
+   * True for real footage (project_video/video). zoompan must then advance one output frame per
+   * input frame (`d=1`) so it never time-stretches the clip; stills (undefined/false) synthesize
+   * `frames` output frames from the single input frame (`d=frames`). `duration` should be the
+   * clip's real (probed) length for video so the zoom/pan curve completes across the footage.
+   */
+  isVideo?: boolean;
 };
 
 /**
@@ -193,7 +224,11 @@ function kenburnsToFilters(effect: KenBurnsEffect, ctx: MotionContext): Filter[]
   const preUpscale: Filter = { type: 'scale', value: `${w * 2}:-2` };
 
   const step = parseFloat(((intensity - 1) / frames).toFixed(6));
-  const baseZoompanSuffix = `:d=${frames}:s=${sizeStr}:fps=${ctx.fps}`;
+  // Stills synthesize `frames` output frames from one input frame; video must advance one output
+  // per input frame (d=1) or zoompan slow-motions the clip. `frames` still scales the zoom/pan
+  // curve (step, on/frames) across the clip's real length in both cases.
+  const d = ctx.isVideo ? 1 : frames;
+  const baseZoompanSuffix = `:d=${d}:s=${sizeStr}:fps=${ctx.fps}`;
   const centerX = `iw/2-(iw/zoom/2)`;
   const centerY = `ih/2-(ih/zoom/2)`;
 
@@ -238,6 +273,13 @@ function kenburnsToFilters(effect: KenBurnsEffect, ctx: MotionContext): Filter[]
     type: 'zoompan',
     value: `z='${exprs.z}':x='${exprs.x}':y='${exprs.y}'${baseZoompanSuffix}`,
   };
+
+  if (ctx.isVideo) {
+    // Conform to the target fps BEFORE zoompan so d=1 maps frames 1:1 without retiming the clip:
+    // a 25fps source fed straight into a 30fps d=1 zoompan replays its frames 1:1 at 30fps and runs
+    // ~20% fast (9.1s → 7.6s). The fps filter resamples to CFR 30 first, preserving real time.
+    return [{ type: 'fps', value: `${ctx.fps}` }, preUpscale, zp];
+  }
 
   return [preUpscale, zp];
 }

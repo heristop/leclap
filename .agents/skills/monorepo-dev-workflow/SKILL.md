@@ -21,8 +21,8 @@ pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`
 | Test                | `pnpm test` · UI `pnpm test:ui` · coverage `pnpm test:coverage` · CI `pnpm test:ci` |
 | Build               | `pnpm build` (tsdown)                                                               |
 | Typecheck a package | `pnpm --filter <pkg> exec tsc --noEmit`                                             |
-| Run Expo app        | `pnpm playground:start` · `playground:ios` · `playground:android`                   |
-| Run web app         | `pnpm playground:web`                                                               |
+| Run Expo app        | `pnpm app:expo` · `app:ios` · `app:android`                                         |
+| Run web app         | `pnpm app:web`                                                                      |
 | Run server          | `pnpm server:dev`                                                                   |
 | Build executables   | `pnpm build:exe:all`                                                                |
 | Dep graph / check   | `pnpm graph` · `pnpm deps:check`                                                    |

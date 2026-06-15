@@ -7,6 +7,7 @@ Guidance for AI agents working in the **leclap** monorepo. This is the canonical
 A template-based, cross-platform FFmpeg video composer. A JSON template describes a video's structure (sections, filters, music); the engine compiles it into a finished video. The same core runs on **Node.js**, in the **browser** (WebAssembly), and in **React Native**.
 
 - High-level intro: [`README.md`](./README.md)
+- Design system (brand, colors, typography): [`DESIGN.md`](./DESIGN.md)
 - Architecture & design patterns: [`docs/architecture.md`](./docs/architecture.md)
 - Template JSON reference: [`docs/template-configuration.md`](./docs/template-configuration.md)
 - FFmpeg detection/fallback: [`docs/ffmpeg-fallback-strategy.md`](./docs/ffmpeg-fallback-strategy.md)
@@ -19,7 +20,6 @@ pnpm workspaces (`apps/*`, `packages/*`); no turbo/nx. The repo root is a **priv
 | -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `.`                              | `leclap` _(private)_    | Workspace root — shared tooling (`vp`, vitest) and orchestration scripts only.                                            |
 | `packages/ffmpeg-video-composer` | `ffmpeg-video-composer` | The composition library (CLI + programmatic API), Node + browser/WASM. The heart of the repo.                             |
-| `packages/server-app`            | `@leclap/server-app`    | Fastify HTTP server exposing `/compile`, `/templates`, `/health` _(demo)_. Consumes `ffmpeg-video-composer`.              |
 | `packages/mcp`                   | `@leclap/mcp`           | MCP server exposing the engine as agent-callable tools (compose/list/probe) over stdio. Consumes `ffmpeg-video-composer`. |
 | `packages/ffmpeg-engine`         | _(cargo crate)_         | Embedded FFmpeg engine (Rust + uniffi) for on-device compiles; built via `scripts/ffmpeg/`.                               |
 | `apps/leclap-expo`               | `@leclap/expo`          | Expo / React Native app — on-device native-engine compiles, Tamagui UI _(reference)_.                                     |
@@ -37,23 +37,22 @@ The `compile`/`diagnose` dev scripts live in `packages/ffmpeg-video-composer` (r
 
 Run from the repo root unless noted. Tooling is **vite-plus (`vp`)**.
 
-| Task                | Command                                                                |
-| ------------------- | ---------------------------------------------------------------------- |
-| Lint (oxlint)       | `pnpm lint`                                                            |
-| Format              | `pnpm fmt` / check only: `pnpm fmt:check`                              |
-| All checks          | `pnpm check`                                                           |
-| Test (vitest)       | `pnpm test` · UI: `pnpm test:ui` · coverage: `pnpm test:coverage`      |
-| Build (tsdown)      | `pnpm build`                                                           |
-| Typecheck a package | `pnpm --filter <pkg> exec tsc --noEmit`                                |
-| Run Expo app        | `pnpm playground:start` (also `playground:ios` / `playground:android`) |
-| Run web app         | `pnpm playground:web`                                                  |
-| Run server          | `pnpm server:dev`                                                      |
+| Task                | Command                                                           |
+| ------------------- | ----------------------------------------------------------------- |
+| Lint (oxlint)       | `pnpm lint`                                                       |
+| Format              | `pnpm fmt` / check only: `pnpm fmt:check`                         |
+| All checks          | `pnpm check`                                                      |
+| Test (vitest)       | `pnpm test` · UI: `pnpm test:ui` · coverage: `pnpm test:coverage` |
+| Build (tsdown)      | `pnpm build`                                                      |
+| Typecheck a package | `pnpm --filter <pkg> exec tsc --noEmit`                           |
+| Run Expo app        | `pnpm app:expo` (also `app:ios` / `app:android`)                  |
+| Run web app         | `pnpm app:web`                                                    |
 
 ## Architecture & patterns
 
 - **Platform abstraction** — `PlatformBridge` (`packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts`) detects the runtime and wires the right adapters. Each capability has an `Abstract*` base and per-platform `*Adapter`s: FFmpeg, filesystem, logging, music, events.
 - **Compilation flow** — `TemplateDirector` orchestrates: init → build sections → concat → apply music. Sections are created by `SegmentFactory` and rendered by `*Segment` classes; FFmpeg commands are assembled by the editor **managers** (asset/variable/map/filter/formatter).
-- **On-device compilation (Expo)** — the app drives the same core through a native FFmpeg CLI engine (`packages/ffmpeg-engine` + `FFmpegLeclapAdapter`) instead of WASM/system FFmpeg; `compileHybrid` falls back to the server when the engine is absent or can't render a job. See [`docs/on-device-compilation.md`](./docs/on-device-compilation.md).
+- **On-device compilation (Expo)** — the app is fully local: it drives the same core through a native FFmpeg CLI engine (`packages/ffmpeg-engine` + `FFmpegLeclapAdapter`) instead of WASM/system FFmpeg. There is no compile server; templates come from `@leclap/creative-kit` and render on the phone. See [`docs/on-device-compilation.md`](./docs/on-device-compilation.md).
 - **Dependency injection** — tsyringe. Classes use `@injectable()` / `@singleton()`; dependencies are resolved from `container`. Wiring happens in the entry points `packages/ffmpeg-video-composer/src/index.ts` (Node) and `packages/ffmpeg-video-composer/src/browser.ts` (browser/WASM).
 - **Validation** — templates are validated with zod schemas in `packages/ffmpeg-video-composer/src/schemas/template.schemas.ts` via `services/TemplateValidator.ts`.
 

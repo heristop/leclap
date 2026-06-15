@@ -42,6 +42,25 @@ export interface TemplateDescriptor {
   [key: string]: unknown;
 }
 
+/**
+ * A reusable section fragment referenced from a template via `{ "type": "partial", "ref": "<id>" }`.
+ * Lives here (not in partials.ts) so the generated registry can import the type without creating a
+ * cycle back into the module that consumes the registry.
+ */
+export interface TemplatePartial {
+  /** Stable id referenced by `{ type: "partial", ref }` (the partial's filename). */
+  id: string;
+  description: string;
+  /**
+   * Default values for the partial's own `{{ key }}` placeholders (e.g. its colours). A ref's
+   * `variables` override these per use; keys left unset fall back to the default, so the partial
+   * keeps its built-in look without every template having to restate it.
+   */
+  variables?: Record<string, string>;
+  /** The real sections this partial expands into. */
+  sections: TemplateSection[];
+}
+
 export type AppTemplateCategory = 'advanced' | 'portrait';
 export type TemplateComplexity = 'simple' | 'intermediate' | 'advanced';
 

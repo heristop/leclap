@@ -1,24 +1,14 @@
 // Template "partials": reusable section fragments referenced from a template via
 // `{ "type": "partial", "ref": "<id>" }` instead of being copy-pasted. Expanded at load — before
 // validation and compilation — so the schema, validator, and engine only ever see real sections.
-import type { TemplateDescriptor, TemplateSection } from './types';
-// APP_PARTIALS is generated from src/partials/*.json by scripts/gen-partials.mjs — declare a partial
+import type { TemplateDescriptor, TemplateSection, TemplatePartial } from './types';
+// APP_PARTIALS is generated from src/partials/*.json by scripts/gen-partials.ts — declare a partial
 // by dropping a JSON in src/partials/ (id = filename) and running `pnpm gen:partials`, no edit here.
 import { APP_PARTIALS } from './partials.generated';
 
-export interface TemplatePartial {
-  /** Stable id referenced by `{ type: "partial", ref }` (the partial's filename). */
-  id: string;
-  description: string;
-  /**
-   * Default values for the partial's own `{{ key }}` placeholders (e.g. its colours). A ref's
-   * `variables` override these per use; keys left unset fall back to the default, so the partial
-   * keeps its built-in look without every template having to restate it.
-   */
-  variables?: Record<string, string>;
-  /** The real sections this partial expands into. */
-  sections: TemplateSection[];
-}
+// TemplatePartial lives in ./types (so the generated registry can reference it without a cycle);
+// re-exported here to keep `@leclap/creative-kit/partials` the single import site for consumers.
+export type { TemplatePartial };
 
 export { APP_PARTIALS };
 

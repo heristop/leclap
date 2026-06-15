@@ -1,6 +1,6 @@
 // Single source of truth for the curated media library, shared by web + expo.
 // Assets live under ./library/musics and ./library/backgrounds and are copied
-// into each app's static dir by scripts/copy-core-assets.mjs at build/dev time.
+// into each app's static dir by scripts/copy-core-assets.ts at build/dev time.
 export interface MediaCredit {
   id: string;
   title: string;

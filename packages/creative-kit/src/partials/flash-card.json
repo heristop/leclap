@@ -1,11 +1,9 @@
 {
-  "description": "Blinking this-or-that flash card — the two options swap colorA/colorB three times within one section (instant cuts via enable timelines). Every placeholder has a default and is overridable on the ref: optionA/optionB (the two choices), index (progress number), conjunction (separator word, e.g. 'OR' or '&'), showLabel ('1'/'0' to show/hide the 'PICK ONE — n / 3' label box), and colorA/colorB/textColor (the bold red/white palette).",
+  "description": "Blinking this-or-that flash card — the two options swap colorA/colorB three times within one section (instant cuts via enable timelines). Every placeholder has a default and is overridable on the ref: optionA/optionB (the two choices), conjunction (separator word, e.g. 'OR' or '&'), and colorA/colorB/textColor (the bold red/white palette).",
   "variables": {
     "optionA": "THIS",
     "optionB": "THAT",
-    "index": "1",
     "conjunction": "OR",
-    "showLabel": "1",
     "colorA": "#ff2e4d",
     "colorB": "#f5f5f0",
     "textColor": "#f5f5f0"
@@ -65,21 +63,6 @@
           }
         },
         { "type": "drawbox", "values": { "x": 628, "y": 0, "w": 24, "h": 720, "c": "#141416@1", "t": "fill" } },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "PICK ONE — {{ index }} / 3" },
-            "enable": "{{ showLabel }}",
-            "fontcolor": "{{ textColor }}",
-            "fontsize": 40,
-            "x": "(w-text_w)/2",
-            "y": 70,
-            "fontfile": "Oswald.ttf",
-            "box": 1,
-            "boxcolor": "#141416",
-            "boxborderw": 18
-          }
-        },
         {
           "type": "drawtext",
           "values": {

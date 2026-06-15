@@ -40,6 +40,34 @@ export const BACKGROUND_ASSETS: Record<string, number> = {
   'rocky-coast.jpg':  require('../../assets/backgrounds/rocky-coast.jpg'),
 };
 
+// Template drawtext fonts, keyed by the .ttf filename the core references. Staged into the on-device
+// assets dir before compile so the engine resolves them locally (the Google Fonts download can't
+// handle multi-word families like "Bebas Neue" derived from a `BebasNeue.ttf` filename).
+// prettier-ignore
+export const FONT_ASSETS: Record<string, number> = {
+  'AbrilFatface.ttf':    require('../../assets/fonts/AbrilFatface.ttf'),
+  'Anton.ttf':           require('../../assets/fonts/Anton.ttf'),
+  'ArchivoBlack.ttf':    require('../../assets/fonts/ArchivoBlack.ttf'),
+  'BebasNeue.ttf':       require('../../assets/fonts/BebasNeue.ttf'),
+  'Bungee.ttf':          require('../../assets/fonts/Bungee.ttf'),
+  'Lobster.ttf':         require('../../assets/fonts/Lobster.ttf'),
+  'Oswald.ttf':          require('../../assets/fonts/Oswald.ttf'),
+  'Pacifico.ttf':        require('../../assets/fonts/Pacifico.ttf'),
+  'PlayfairDisplay.ttf': require('../../assets/fonts/PlayfairDisplay.ttf'),
+  'Righteous.ttf':       require('../../assets/fonts/Righteous.ttf'),
+  'RobotoMono.ttf':      require('../../assets/fonts/RobotoMono.ttf'),
+  'Rubik.ttf':           require('../../assets/fonts/Rubik.ttf'),
+};
+
+// Videos a template references by a canonical asset URL (descriptor `options.videoUrl`). Bundled and
+// staged into the assets dir before compile so the engine resolves them locally instead of
+// downloading the canonical URL (which 404s on-device → an HTML page → AVERROR_INVALIDDATA).
+// Only the brand bumpers are bundled; sample clips stay web-only to keep the binary small.
+export const VIDEO_ASSETS: Record<string, number> = {
+  'leclap_bumper.mp4': require('../../assets/videos/leclap_bumper.mp4'),
+  'leclap_bumper_portrait.mp4': require('../../assets/videos/leclap_bumper_portrait.mp4'),
+};
+
 export const musicAsset = (id: string): number | undefined => {
   const f = findMusic(id)?.file;
 

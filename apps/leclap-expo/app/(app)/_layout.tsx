@@ -19,7 +19,7 @@ export default function AppLayout() {
 
   return (
     <>
-      <Header showSettings />
+      <Header />
 
       <Tabs
         tabBar={(props) => <CustomTabBar {...props} />}

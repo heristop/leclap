@@ -1,9 +1,11 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, type ColorTokens, type FontTokens, Text, YStack, XStack, View } from 'tamagui';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Template } from '@/src/types';
+import { buildDescriptionVars, resolveVariables } from '@/src/utils/i18nText';
 import { colors as theme, fonts } from '@/src/styles/theme';
 
 interface TemplateCardProps {
@@ -30,12 +32,19 @@ const gradientFor = (name: string): [string, string] => {
 };
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
+  const { t } = useTranslation('templates');
   const orientation = template.content.global?.orientation ?? 'portrait';
   const templateName = template.name.replace('.json', '');
 
-  const description =
-    template.content.sections?.find((section) => section.description?.en)?.description?.en ??
-    'Create a video using this template';
+  // Interpolate the first section's `{{ tokens }}` against the template's variable defaults so the
+  // card preview reads with real values (no project/answers yet — globals only), matching the web.
+  const rawDescription = template.content.sections?.find((section) => section.description?.en)?.description?.en;
+  const description = rawDescription
+    ? resolveVariables(
+        rawDescription,
+        buildDescriptionVars(template.content.global?.variables, template.content.global?.colorsList)
+      )
+    : t('cardDefaultDescription');
 
   const [c1, c2] = gradientFor(templateName);
 
@@ -73,6 +82,26 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
             style={StyleSheet.absoluteFill}
           />
           <Ionicons name="film-outline" size={46} color="rgba(255,255,255,0.92)" />
+
+          {/* `Custom` badge for user-built templates — iso with the web TemplateSelector (brand badge). */}
+          {template.source === 'user' && (
+            <XStack
+              position="absolute"
+              top="$s"
+              left="$s"
+              backgroundColor={theme.primary as ColorTokens}
+              paddingHorizontal="$s"
+              paddingVertical="$xs"
+              borderRadius={999}
+              alignItems="center"
+              gap={4}
+            >
+              <Ionicons name="sparkles" size={11} color="white" />
+              <Text fontFamily={fonts.poppins.semiBold as FontTokens} fontSize={11} color="white">
+                {t('custom')}
+              </Text>
+            </XStack>
+          )}
 
           <XStack
             position="absolute"

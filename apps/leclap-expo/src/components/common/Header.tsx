@@ -14,8 +14,6 @@ interface HeaderProps {
   rightContent?: React.ReactNode;
   onBackPress?: () => void;
   showSlogan?: boolean;
-  /** Show a settings gear in the right section that opens the Settings screen. */
-  showSettings?: boolean;
   variant?: 'primary' | 'transparent' | 'light';
   actions?: {
     icon: string;
@@ -73,10 +71,6 @@ function getStatusBarStyle(variant: HeaderProps['variant']): 'dark-content' | 'l
 
 function getSafeAreaBackground(variant: HeaderProps['variant'], containerBackground: string): string {
   return variant === 'transparent' ? 'transparent' : containerBackground;
-}
-
-function getLogoBorderColor(variant: HeaderProps['variant']): string {
-  return variant === 'light' ? colors.primary : colors.accent;
 }
 
 type ActionItem = {
@@ -157,7 +151,6 @@ export default function Header({
   rightContent,
   onBackPress,
   showSlogan = true,
-  showSettings = false,
   variant = 'primary',
   actions = [],
 }: HeaderProps) {
@@ -196,7 +189,7 @@ export default function Header({
           )}
 
           {showLogo && (
-            <View style={[styles.logoContainer, { borderColor: getLogoBorderColor(variant) }]}>
+            <View style={styles.logoContainer}>
               <Image source={logoImage} style={styles.logo} resizeMode="contain" />
             </View>
           )}
@@ -214,17 +207,6 @@ export default function Header({
             onNavigateToBrowseTemplates={handleNavigateToBrowseTemplates}
             textColor={textColor}
           />
-          {showSettings && (
-            <TouchableOpacity
-              onPress={() => {
-                router.push('/(fullscreen)/settings');
-              }}
-              style={styles.actionButton}
-              accessibilityLabel={t('settings')}
-            >
-              <Ionicons name="settings-outline" size={24} color={textColor} />
-            </TouchableOpacity>
-          )}
           {rightContent}
         </View>
       </View>
@@ -260,24 +242,19 @@ const styles = StyleSheet.create({
     marginRight: spacing.s,
     padding: spacing.xs,
   },
+  // The logo is a self-contained gradient disc — show it directly, no boxed backing/ring.
   logoContainer: {
     marginRight: spacing.s,
-    backgroundColor: colors.surface,
     width: 40,
     height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   logo: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
   },
   titleContainer: {
     justifyContent: 'center',

@@ -7,13 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/src/features/editor/components/FormSection';
 import type { Template, Section, Project, MediaChoice, MediaChoices } from '@/src/types';
+import { buildDescriptionVars, resolveTranslation, resolveVariables } from '@/src/utils/i18nText';
 import { colors } from '@/src/styles/theme';
 import { styles } from './TemplateDetailScreen.styles';
 import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
-import { useOffline } from '@/src/providers/OfflineProvider';
-import { useCompileMode, useWizardMode, useSetWizardMode, type WizardMode } from '@/src/stores/useSettingsStore';
 import { UserMediaPicker } from '@/src/features/templates/components/UserMediaPicker';
 import { needsMediaStep } from '@/src/services/media/mediaStepHelpers';
 import { MUSIC_LIBRARY, findMusic } from '@/src/data/mediaCatalog';
@@ -46,6 +45,26 @@ function getSectionInfo(t: Template | undefined, p: Project | null): { filtered:
   const filtered = (t?.content.sections ?? []).filter((s) => (EDITABLE_TYPES as readonly string[]).includes(s.type));
 
   return { filtered, completed: p ? filtered.filter((s) => isSectionCompleted(s, p)).length : 0 };
+}
+
+// The header blurb is the first section's description — interpolate its `{{ tokens }}` against the
+// template's variable defaults + the user's answers so it reads with real values (web parity).
+function buildHeaderDescription(
+  template: Template | undefined,
+  project: Project | null,
+  t: TFunction<'detail'>
+): string {
+  const raw = template?.content.sections?.find((s) => s.description?.en)?.description?.en;
+
+  if (!template || !raw) return t('defaultDescription');
+
+  const vars = buildDescriptionVars(
+    template.content.global?.variables,
+    template.content.global?.colorsList,
+    project?.formData
+  );
+
+  return resolveVariables(raw, vars);
 }
 
 // The currently-stored track id for a music section (or undefined when none chosen yet).
@@ -218,10 +237,21 @@ const MusicSectionPicker = ({ allowed, selectedId, onSelect }: MusicSectionPicke
   );
 };
 
-type SectionItemProps = { section: Section; project: Project; onPress: () => void; onPreview: () => void };
-const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps) => {
-  const { t } = useTranslation('detail');
+type SectionItemProps = {
+  section: Section;
+  project: Project;
+  vars: Record<string, string | string[]>;
+  onPress: () => void;
+  onPreview: () => void;
+};
+const SectionItem = ({ section, project, vars, onPress, onPreview }: SectionItemProps) => {
+  const { t, i18n } = useTranslation('detail');
   const completed = isSectionCompleted(section, project);
+  // Interpolate `{{ token }}` placeholders against the template's variables + the user's answers, so
+  // the row reads "Tea or Coffee?" rather than the raw "{{ optionA1 }} or {{ optionB1 }}?" (web parity).
+  const title = resolveVariables(resolveTranslation(section.title, i18n.language) ?? section.name, vars);
+  const descriptionText = resolveTranslation(section.description, i18n.language);
+  const description = descriptionText ? resolveVariables(descriptionText, vars) : '';
 
   return (
     <TouchableOpacity style={styles.sectionItem} onPress={onPress}>
@@ -230,10 +260,10 @@ const SectionItem = ({ section, project, onPress, onPreview }: SectionItemProps)
           <Ionicons name={getSectionIcon(section)} size={24} color={colors.primary} />
         </View>
         <View style={styles.sectionItemText}>
-          <Text style={styles.sectionItemTitle}>{section.title?.en ?? section.name}</Text>
-          {section.description?.en ? (
+          <Text style={styles.sectionItemTitle}>{title}</Text>
+          {description ? (
             <Text style={styles.sectionItemDescription} numberOfLines={1}>
-              {section.description.en}
+              {description}
             </Text>
           ) : null}
         </View>
@@ -417,7 +447,7 @@ function useCompileHandler(ctx: CompileCtx) {
       },
       {
         onSuccess: (result) => {
-          if (result.immediate && result.result?.success) {
+          if (result.immediate && result.result.success) {
             const updated = {
               ...project,
               outputVideoUri: result.result.outputUri,
@@ -448,7 +478,7 @@ function useCompileHandler(ctx: CompileCtx) {
           }
           Alert.alert(
             t('alerts.compilationFailed.title'),
-            result.result?.error ?? t('alerts.compilationFailed.fallback')
+            result.result.error ?? t('alerts.compilationFailed.fallback')
           );
         },
         onError: (error: unknown) => {
@@ -539,14 +569,6 @@ function computeAllDone(
   return !hasMediaStep || mediaStepDone;
 }
 
-/** Bundles the persisted wizard-mode preference so the screen hook reads it in one statement. */
-function useWizardToggle() {
-  const mode = useWizardMode();
-  const setMode = useSetWizardMode();
-
-  return { mode, setMode };
-}
-
 /** Owns the user's media-step state (music/background choices + picker visibility). */
 function useMediaState() {
   const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
@@ -609,11 +631,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
   const { data: existingProject, isLoading: projectLoading } = useProject(projectId ?? '');
   const saveProjectMutation = useSaveProject();
   const queueVideoCompilation = useQueueVideoCompilation();
-  const { isOffline } = useOffline();
-  const compileMode = useCompileMode();
-  const wizard = useWizardToggle();
-  // A job is only queued in Cloud mode when the server can't be reached. Local always renders now,
-  // so the button must never say "Adding to Queue…" on-device.
+  // The app is fully local — compilation always renders on-device now, never queued.
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
   const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
@@ -636,6 +654,10 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     saveProjectMutation,
     setProject,
   });
+  // A projectId was passed but its query finished with no such project — a genuine not-found (e.g. a
+  // deleted/stale link). Distinct from `project` simply not being initialized yet (no projectId →
+  // a draft is always created), which must read as "loading", not "not found".
+  const projectMissing = projectId !== undefined && !projectLoading && !existingProject;
   const { filtered: filteredSections, completed: completedSectionsCount } = getSectionInfo(template, project);
   const hasMediaStep = needsMediaStep(template?.content.global);
   const hCtx: HandlerCtx = {
@@ -660,16 +682,19 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
   } = useTemplateHandlers({ ...hCtx, mediaChoices, queueVideoCompilation });
   const allDone = computeAllDone(project, template, filteredSections, hasMediaStep, mediaStepDone);
 
+  const description = buildHeaderDescription(template, project, t);
+
   return {
     template,
     templateLoading,
     templateError,
+    projectMissing,
     project,
     filteredSections,
     completedSectionsCount,
     allDone,
     orientation: template?.content.global?.orientation ?? 'portrait',
-    description: template?.content.sections?.find((s) => s.description?.en)?.description?.en ?? t('defaultDescription'),
+    description,
     activeFormSection,
     setActiveFormSection,
     activeMusicSection,
@@ -683,9 +708,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     setBackgroundChoice,
     mediaStepDone,
     isPending: queueVideoCompilation.isPending,
-    willQueue: compileMode === 'server' && isOffline,
-    wizardMode: wizard.mode,
-    setWizardMode: wizard.setMode,
+    willQueue: false,
     handleFormDataChange,
     handleFormSubmit,
     handlePreviewVideo,
@@ -795,6 +818,7 @@ const MediaStepRow = ({ done, onPress }: MediaStepRowProps) => {
 type HubSectionListProps = {
   filteredSections: Section[];
   project: Project;
+  vars: Record<string, string | string[]>;
   hasMediaStep: boolean;
   mediaStepDone: boolean;
   onSectionPress: (s: Section) => void;
@@ -812,6 +836,7 @@ const HubSectionList = (p: HubSectionListProps) => {
           key={section.name}
           section={section}
           project={p.project}
+          vars={p.vars}
           onPress={() => {
             p.onSectionPress(section);
           }}
@@ -825,242 +850,6 @@ const HubSectionList = (p: HubSectionListProps) => {
   );
 };
 
-type ModeToggleProps = { mode: WizardMode; onChange: (m: WizardMode) => void };
-const ModeToggle = ({ mode, onChange }: ModeToggleProps) => {
-  const { t } = useTranslation('detail');
-  const options: { value: WizardMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { value: 'linear', label: t('mode.linear'), icon: 'footsteps-outline' },
-    { value: 'hub', label: t('mode.hub'), icon: 'grid-outline' },
-  ];
-
-  return (
-    <View style={styles.modeToggle} accessibilityRole="tablist">
-      {options.map((opt) => {
-        const active = mode === opt.value;
-
-        return (
-          <TouchableOpacity
-            key={opt.value}
-            style={[styles.modeToggleOption, active && styles.modeToggleOptionActive]}
-            onPress={() => {
-              onChange(opt.value);
-            }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
-            accessibilityLabel={opt.label}
-          >
-            <Ionicons name={opt.icon} size={16} color={active ? colors.text : colors.textSecondary} />
-            <Text style={[styles.modeToggleText, active && styles.modeToggleTextActive]}>{opt.label}</Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-};
-
-// The linear walk reuses the hub's per-section helpers. A "media" pseudo-step is appended after the
-// real sections when the template offers music/background, mirroring the web wizard's media step.
-type LinearStep = { kind: 'section'; section: Section } | { kind: 'media' };
-
-function buildLinearSteps(filteredSections: Section[], hasMediaStep: boolean): LinearStep[] {
-  const steps: LinearStep[] = filteredSections.map((section) => ({ kind: 'section', section }));
-
-  if (hasMediaStep) steps.push({ kind: 'media' });
-
-  return steps;
-}
-
-function isLinearStepComplete(step: LinearStep, project: Project, mediaStepDone: boolean): boolean {
-  if (step.kind === 'media') return mediaStepDone;
-
-  return isSectionCompleted(step.section, project);
-}
-
-function getLinearStepCopy(
-  step: LinearStep,
-  t: TFunction<'detail'>
-): { title: string; description: string; cta: string } {
-  if (step.kind === 'media') {
-    return {
-      title: t('linearCopy.mediaTitle'),
-      description: t('linearCopy.mediaDescription'),
-      cta: t('linearCopy.mediaCta'),
-    };
-  }
-  const { section } = step;
-  const title = section.title?.en ?? section.name;
-  const description = section.description?.en ?? t('linearCopy.sectionFallbackDescription');
-
-  if (section.type === 'project_video' || section.type === 'picture') {
-    return { title, description, cta: t('linearCopy.recordCta') };
-  }
-
-  if (section.type === 'form') return { title, description, cta: t('linearCopy.formCta') };
-
-  return { title, description, cta: t('linearCopy.openCta') };
-}
-
-type LinearStepScreenProps = {
-  step: LinearStep;
-  index: number;
-  total: number;
-  complete: boolean;
-  onAction: () => void;
-};
-const LinearStepScreen = ({ step, index, total, complete, onAction }: LinearStepScreenProps) => {
-  const { t } = useTranslation('detail');
-  const { title, description, cta } = getLinearStepCopy(step, t);
-
-  return (
-    <View>
-      <Text style={styles.stepIndicator}>{t('step.indicator', { index: index + 1, total })}</Text>
-      <Text style={styles.stepTitle}>{title}</Text>
-      <Text style={styles.stepDescription}>{description}</Text>
-      <View style={styles.stepStatusRow}>
-        <Ionicons
-          name={complete ? 'checkmark-circle' : 'ellipse-outline'}
-          size={22}
-          color={complete ? colors.success : colors.divider}
-        />
-        <Text style={styles.stepStatusText}>{complete ? t('step.completed') : t('step.notCompleted')}</Text>
-      </View>
-      <TouchableOpacity style={styles.stepPrimaryButton} onPress={onAction}>
-        <Text style={styles.stepPrimaryButtonText}>{complete ? t('step.edit', { cta }) : cta}</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-type LinearNavProps = {
-  isFirst: boolean;
-  isLast: boolean;
-  canAdvance: boolean;
-  isPending: boolean;
-  willQueue: boolean;
-  onBack: () => void;
-  onNext: () => void;
-  onCompile: () => void;
-};
-const LinearNav = ({
-  isFirst,
-  isLast,
-  canAdvance,
-  isPending,
-  willQueue,
-  onBack,
-  onNext,
-  onCompile,
-}: LinearNavProps) => {
-  const { t } = useTranslation('detail');
-  const nextDisabled = !canAdvance;
-  const compileDisabled = !canAdvance || isPending;
-
-  return (
-    <View style={styles.stepNav}>
-      <TouchableOpacity
-        style={[styles.stepNavButton, isFirst && styles.stepNavButtonDisabled]}
-        disabled={isFirst}
-        onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel={t('step.previousAccessibility')}
-      >
-        <Ionicons name="arrow-back" size={20} color={colors.primary} />
-        <Text style={styles.stepNavText}>{t('step.back')}</Text>
-      </TouchableOpacity>
-      {isLast ? (
-        <TouchableOpacity
-          style={[styles.stepNavButton, styles.stepNavButtonPrimary, compileDisabled && styles.stepNavButtonDisabled]}
-          disabled={compileDisabled}
-          onPress={onCompile}
-          accessibilityRole="button"
-        >
-          <Text style={[styles.stepNavText, styles.stepNavTextPrimary]}>{getButtonLabel(isPending, willQueue, t)}</Text>
-          {isPending && <ActivityIndicator size="small" color="white" />}
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={[styles.stepNavButton, styles.stepNavButtonPrimary, nextDisabled && styles.stepNavButtonDisabled]}
-          disabled={nextDisabled}
-          onPress={onNext}
-          accessibilityRole="button"
-          accessibilityLabel={t('step.nextAccessibility')}
-        >
-          <Text style={[styles.stepNavText, styles.stepNavTextPrimary]}>{t('step.next')}</Text>
-          <Ionicons name="arrow-forward" size={20} color="white" />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
-
-type LinearModeViewProps = {
-  steps: LinearStep[];
-  stepIndex: number;
-  project: Project;
-  mediaStepDone: boolean;
-  isPending: boolean;
-  willQueue: boolean;
-  onStepAction: (step: LinearStep) => void;
-  onBack: () => void;
-  onNext: () => void;
-  onCompile: () => void;
-};
-const LinearModeView = (p: LinearModeViewProps) => {
-  if (p.steps.length === 0) return null;
-  const step = p.steps[p.stepIndex];
-  const complete = isLinearStepComplete(step, p.project, p.mediaStepDone);
-
-  return (
-    <>
-      <LinearStepScreen
-        step={step}
-        index={p.stepIndex}
-        total={p.steps.length}
-        complete={complete}
-        onAction={() => {
-          p.onStepAction(step);
-        }}
-      />
-      <LinearNav
-        isFirst={p.stepIndex === 0}
-        isLast={p.stepIndex === p.steps.length - 1}
-        canAdvance={complete}
-        isPending={p.isPending}
-        willQueue={p.willQueue}
-        onBack={p.onBack}
-        onNext={p.onNext}
-        onCompile={p.onCompile}
-      />
-    </>
-  );
-};
-
-function firstIncompleteIndex(steps: LinearStep[], project: Project | null, mediaStepDone: boolean): number {
-  if (!project) return 0;
-  const idx = steps.findIndex((step) => !isLinearStepComplete(step, project, mediaStepDone));
-
-  return idx === -1 ? Math.max(steps.length - 1, 0) : idx;
-}
-
-// Owns the cursor for linear mode. Clamps to the step range so re-entering the screen (e.g. after
-// recording the last section, which router.replace-remounts this screen) never lands on a stale or
-// out-of-bounds index. Initialises to the first incomplete step so the user resumes where work
-// remains rather than at step 0.
-function useLinearCursor(steps: LinearStep[], project: Project | null, mediaStepDone: boolean) {
-  const [stepIndex, setStepIndex] = useState(() => firstIncompleteIndex(steps, project, mediaStepDone));
-  const clamp = (i: number) => Math.min(Math.max(i, 0), Math.max(steps.length - 1, 0));
-
-  return {
-    stepIndex: clamp(stepIndex),
-    goNext: () => {
-      setStepIndex((i) => clamp(i + 1));
-    },
-    goBack: () => {
-      setStepIndex((i) => clamp(i - 1));
-    },
-  };
-}
-
 const TemplateDetailScreen = () => {
   const { t } = useTranslation('detail');
   const params = useLocalSearchParams<{ id: string; projectId?: string }>();
@@ -1068,6 +857,7 @@ const TemplateDetailScreen = () => {
     template,
     templateLoading,
     templateError,
+    projectMissing,
     project,
     filteredSections,
     completedSectionsCount,
@@ -1088,8 +878,6 @@ const TemplateDetailScreen = () => {
     mediaStepDone,
     isPending,
     willQueue,
-    wizardMode,
-    setWizardMode,
     handleFormDataChange,
     handleFormSubmit,
     handlePreviewVideo,
@@ -1100,17 +888,22 @@ const TemplateDetailScreen = () => {
     router,
   } = useTemplateDetail(params.id, params.projectId);
 
-  const linearSteps = buildLinearSteps(filteredSections, hasMediaStep);
-  const cursor = useLinearCursor(linearSteps, project, mediaStepDone);
-
   if (templateLoading) {
     return <LoadingState />;
   }
 
   const goBack = makeGoBack(router);
 
-  if (templateError || !template || !project) {
+  // Genuine failure: the template query errored / finished with no such template, or a projectId was
+  // passed that resolves to no project (deleted/stale link).
+  if (templateError || !template || projectMissing) {
     return <ErrorState error={templateError} onBack={goBack} />;
+  }
+
+  // Template is loaded but `project` (local state) is still being set by useProjectInitialization's
+  // effect — show the loader instead of flashing "not found" for that one render.
+  if (!project) {
+    return <LoadingState />;
   }
   const isDisabled = isCompileDisabled(allDone, isPending);
   const { allowedMusic, allowUploadMusic, allowedBackgrounds, allowUploadBackground } = template.content.global ?? {};
@@ -1120,14 +913,6 @@ const TemplateDetailScreen = () => {
     hasMediaStep,
     mediaStepDone
   );
-  const openLinearStep = (step: LinearStep) => {
-    if (step.kind === 'media') {
-      setMediaPickerVisible(true);
-
-      return;
-    }
-    handleSectionPress(step.section);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1144,41 +929,28 @@ const TemplateDetailScreen = () => {
       >
         <OrientationRow orientation={orientation} />
         <Text style={styles.description}>{description}</Text>
-        <ModeToggle mode={wizardMode} onChange={setWizardMode} />
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { width: `${(totalDone / totalItems) * 100}%` }]} />
         </View>
         <Text style={styles.progressText}>{t('progress', { done: totalDone, total: totalItems })}</Text>
-        {wizardMode === 'linear' ? (
-          <LinearModeView
-            steps={linearSteps}
-            stepIndex={cursor.stepIndex}
-            project={project}
-            mediaStepDone={mediaStepDone}
-            isPending={isPending}
-            willQueue={willQueue}
-            onStepAction={openLinearStep}
-            onBack={cursor.goBack}
-            onNext={cursor.goNext}
-            onCompile={handleCompile}
-          />
-        ) : (
-          <HubSectionList
-            filteredSections={filteredSections}
-            project={project}
-            hasMediaStep={hasMediaStep}
-            mediaStepDone={mediaStepDone}
-            onSectionPress={handleSectionPress}
-            onPreview={handlePreviewVideo}
-            onMediaPress={() => {
-              setMediaPickerVisible(true);
-            }}
-          />
-        )}
+        <HubSectionList
+          filteredSections={filteredSections}
+          project={project}
+          vars={buildDescriptionVars(
+            template.content.global?.variables,
+            template.content.global?.colorsList,
+            project.formData
+          )}
+          hasMediaStep={hasMediaStep}
+          mediaStepDone={mediaStepDone}
+          onSectionPress={handleSectionPress}
+          onPreview={handlePreviewVideo}
+          onMediaPress={() => {
+            setMediaPickerVisible(true);
+          }}
+        />
       </ScrollView>
-      {wizardMode === 'hub' && (
-        <CompileFooter isDisabled={isDisabled} isPending={isPending} willQueue={willQueue} onCompile={handleCompile} />
-      )}
+      <CompileFooter isDisabled={isDisabled} isPending={isPending} willQueue={willQueue} onCompile={handleCompile} />
       <FormModal
         section={activeFormSection}
         formData={project.formData}

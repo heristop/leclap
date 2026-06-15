@@ -11,6 +11,7 @@ import type { UserTemplate } from '@/src/stores/useUserTemplateStore';
 const toTemplate = (entry: CatalogTemplate | UserTemplate): Template => ({
   name: entry.name,
   content: entry.descriptor,
+  source: entry.source,
 });
 
 /** User templates first (most recently created on top), then the bundled samples. */

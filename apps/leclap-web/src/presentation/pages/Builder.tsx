@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
 import { VideoProcessor } from '@/presentation/components/VideoProcessor';
@@ -125,6 +125,7 @@ interface StepProcessProps {
   progress: ReturnType<typeof useVideoProcessing>['progress'];
   error: string | null;
   onStartProcessing: () => void;
+  onCancelProcessing: () => void;
 }
 
 const StepProcess = ({
@@ -137,8 +138,16 @@ const StepProcess = ({
   progress,
   error,
   onStartProcessing,
+  onCancelProcessing,
 }: StepProcessProps) => {
   const { t } = useTranslation('builder');
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  // The progress panel renders below the summary/compile cards, so on a short viewport it lands below
+  // the fold. Pull it into view the moment compilation starts so the user always sees the loading.
+  useEffect(() => {
+    if (isProcessing) progressRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [isProcessing]);
 
   return (
     <div className="fade-in max-w-5xl mx-auto">
@@ -191,6 +200,7 @@ const StepProcess = ({
             isProcessing={isProcessing}
             canProcess={canProcess}
             onStartProcessing={onStartProcessing}
+            onCancelProcessing={onCancelProcessing}
             error={error}
             template={selectedTemplate}
             formData={formData}
@@ -200,10 +210,14 @@ const StepProcess = ({
       </div>
       {isProcessing && (
         <Card
+          ref={progressRef}
           elevation="flat"
-          className="mt-8 glass-panel-dark p-8 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500"
+          className="mt-8 glass-panel-dark p-8 shadow-2xl shadow-brand-500/20 ring-2 ring-brand-500/40 animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-24"
         >
-          <h3 className="text-xl font-semibold mb-4 font-display text-foreground">{t('stepProcess.progress')}</h3>
+          <h3 className="text-xl font-semibold mb-4 font-display text-brand-700 dark:text-brand-300 flex items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            {t('stepProcess.progress')}
+          </h3>
           <ProgressDisplay progress={progress} />
         </Card>
       )}
@@ -271,6 +285,7 @@ interface StepContentProps {
   onMusicChange: (c: MediaChoice | null) => void;
   onBackgroundChange: (c: MediaChoice | null) => void;
   onStartProcessing: () => void;
+  onCancelProcessing: () => void;
   onResultBack: () => void;
   onReset: () => void;
 }
@@ -296,6 +311,7 @@ const StepContent = (p: StepContentProps) => {
         progress={p.processing.progress}
         error={p.processing.error}
         onStartProcessing={p.onStartProcessing}
+        onCancelProcessing={p.onCancelProcessing}
       />
     );
   }
@@ -338,6 +354,7 @@ interface WizardHandlers {
   onMusicChange: (c: MediaChoice | null) => void;
   onBackgroundChange: (c: MediaChoice | null) => void;
   onStartProcessing: () => void;
+  onCancelProcessing: () => void;
   onResultBack: () => void;
   onReset: () => void;
 }
@@ -397,6 +414,7 @@ const HubFlow = (p: FlowProps) => {
           onMusicChange={handlers.onMusicChange}
           onBackgroundChange={handlers.onBackgroundChange}
           onStartProcessing={handlers.onStartProcessing}
+          onCancelProcessing={handlers.onCancelProcessing}
           onResultBack={handlers.onResultBack}
           onReset={handlers.onReset}
         />
@@ -437,6 +455,7 @@ interface ActionDeps {
   setSelectedTemplate: (t: Template | null) => void;
   setModel: (value: WizardModel | ((m: WizardModel) => WizardModel)) => void;
   processVideo: ReturnType<typeof useVideoProcessing>['processVideo'];
+  cancelProcessing: ReturnType<typeof useVideoProcessing>['cancelProcessing'];
 }
 
 // Builds every callback the flows need. Pure factory (no hooks) so it doesn't bloat the component.
@@ -498,6 +517,7 @@ const makeWizardActions = (deps: ActionDeps) => {
       update({ backgroundChoice: c });
     },
     onStartProcessing: startProcessing,
+    onCancelProcessing: deps.cancelProcessing,
     onResultBack: () => {
       update({ stepIndex: 1 });
     },
@@ -523,7 +543,8 @@ const makeWizardActions = (deps: ActionDeps) => {
 const useBuilderController = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [model, setModel] = useState<WizardModel>(EMPTY_MODEL);
-  const { isProcessing, progress, processedVideo, error, processVideo, isFFmpegReady } = useVideoProcessing();
+  const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, isFFmpegReady } =
+    useVideoProcessing();
   const steps: WizardStep[] = selectedTemplate ? buildSteps(selectedTemplate) : [{ kind: 'template' }];
   const stepIndex = Math.min(model.stepIndex, steps.length - 1);
   const clipCount = selectedTemplate ? totalClips(selectedTemplate) : 0;
@@ -539,6 +560,7 @@ const useBuilderController = () => {
     setSelectedTemplate,
     setModel,
     processVideo,
+    cancelProcessing,
   });
   const flowProps: FlowProps = {
     selectedTemplate,

@@ -10,6 +10,7 @@ interface VideoProcessorProps {
   isProcessing: boolean;
   canProcess: boolean;
   onStartProcessing: () => void;
+  onCancelProcessing: () => void;
   error: string | null;
   template: Template | null;
   formData: Record<string, string>;
@@ -100,11 +101,13 @@ function ActionButton({
   actuallyProcessing,
   isOptimisticProcessing,
   onStartProcessing,
+  onCancelProcessing,
 }: {
   canProcess: boolean;
   actuallyProcessing: boolean;
   isOptimisticProcessing: boolean;
   onStartProcessing: () => void;
+  onCancelProcessing: () => void;
 }) {
   const { t } = useTranslation('process');
 
@@ -113,25 +116,26 @@ function ActionButton({
       <Button
         variant="primary"
         size="lg"
-        onClick={onStartProcessing}
-        disabled={!canProcess || actuallyProcessing}
+        // While processing, the same button stops the render; otherwise it starts it.
+        onClick={actuallyProcessing ? onCancelProcessing : onStartProcessing}
+        // Only disabled in the idle "not ready" state — never while processing, so Stop stays clickable.
+        disabled={!actuallyProcessing && !canProcess}
+        aria-label={actuallyProcessing ? t('processor.action.stop') : t('processor.action.start')}
         className={clsx(
           'group px-8 py-4',
-          canProcess && !actuallyProcessing && 'hover:scale-[1.03] active:scale-95',
-          actuallyProcessing && 'cursor-wait opacity-95',
+          (actuallyProcessing || canProcess) && 'hover:scale-[1.03] active:scale-95',
           isOptimisticProcessing && 'scale-95'
         )}
       >
         <span
           className={clsx(
             'p-2 rounded-lg transition-all duration-200 [&_svg]:size-6',
-            canProcess && !actuallyProcessing ? 'bg-foreground/20' : 'bg-foreground/5',
-            actuallyProcessing && 'animate-pulse'
+            actuallyProcessing || canProcess ? 'bg-foreground/20' : 'bg-foreground/5'
           )}
         >
           {actuallyProcessing ? <Square /> : <Play />}
         </span>
-        <span>{actuallyProcessing ? t('processor.action.processing') : t('processor.action.start')}</span>
+        <span>{actuallyProcessing ? t('processor.action.stop') : t('processor.action.start')}</span>
       </Button>
     </div>
   );
@@ -285,6 +289,7 @@ export const VideoProcessor = ({
   isProcessing,
   canProcess,
   onStartProcessing,
+  onCancelProcessing,
   error,
   template,
   formData,
@@ -304,6 +309,12 @@ export const VideoProcessor = ({
     }, 1000);
   };
 
+  const handleCancelProcessing = () => {
+    // Drop the optimistic flag immediately so the button flips back to "Start" the instant we stop.
+    setIsOptimisticProcessing(false);
+    onCancelProcessing();
+  };
+
   const actuallyProcessing = isProcessing || isOptimisticProcessing;
 
   return (
@@ -317,6 +328,7 @@ export const VideoProcessor = ({
         actuallyProcessing={actuallyProcessing}
         isOptimisticProcessing={isOptimisticProcessing}
         onStartProcessing={handleStartProcessing}
+        onCancelProcessing={handleCancelProcessing}
       />
 
       {template && <TemplateInfo template={template} formData={formData} />}

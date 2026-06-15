@@ -134,6 +134,13 @@ export const useVideoProcessing = () => {
   );
 
   const abortController = useRef<AbortController | null>(null);
+  // Set when the user hits Stop, so the rejection the cancelled compile throws is treated as a clean
+  // stop (return to the ready state) rather than a failure with an error banner.
+  const cancelledRef = useRef<boolean>(false);
+  // Read the flag through a closure: cancelProcessing() flips it during the await, but TS narrows the
+  // ref to `false` from the in-scope reset and carries that across the await, so an inline read in the
+  // catch would be seen as "always false". A closure read returns the declared boolean type instead.
+  const wasCancelled = () => cancelledRef.current;
   const startTime = useRef<number>(0);
 
   const updateProgress = (update: Partial<ProcessingProgress>) => {
@@ -178,6 +185,7 @@ export const useVideoProcessing = () => {
 
     setState((prev) => ({ ...prev, isProcessing: true, error: null, processedVideo: null }));
     abortController.current = new AbortController();
+    cancelledRef.current = false;
     startTime.current = Date.now();
 
     try {
@@ -185,6 +193,11 @@ export const useVideoProcessing = () => {
       setState((prev) => ({ ...prev, processedVideo: result, isProcessing: false }));
       haptic('success');
     } catch (error) {
+      // A user-initiated stop rejects the compile too — swallow it: cancelProcessing() already reset
+      // to a clean, restartable state, so surfacing it as an error would be misleading.
+      if (wasCancelled()) {
+        return;
+      }
       handleProcessingError(error, optimisticState.progress, setState, setOptimisticState);
     } finally {
       abortController.current = null;
@@ -192,13 +205,22 @@ export const useVideoProcessing = () => {
   };
 
   const cancelProcessing = () => {
-    if (abortController.current) {
-      abortController.current.abort();
-      startTransition(() => {
-        setOptimisticState({ isProcessing: false, error: 'Processing was cancelled by user' });
-      });
-      setState((prev) => ({ ...prev, isProcessing: false, error: 'Processing was cancelled by user' }));
+    const controller = abortController.current;
+
+    if (!controller) {
+      return;
     }
+    cancelledRef.current = true;
+    // Signal the engine to halt at the next segment boundary, then tear down the local controller.
+    coreCompilationService.cancel();
+    controller.abort();
+    haptic('warning');
+    // Reset to the ready state (no error) so the user can immediately restart compilation.
+    const reset = { isProcessing: false, error: null, progress: initialProgress };
+    startTransition(() => {
+      setOptimisticState(reset);
+    });
+    setState((prev) => ({ ...prev, ...reset }));
   };
 
   const clearResults = () => {

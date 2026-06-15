@@ -1,8 +1,9 @@
 // Browser/WASM compilation service backed by the core package.
 import 'reflect-metadata';
-import { compileBrowser as compile } from 'ffmpeg-video-composer/src/browser.ts';
+import { compileBrowser as compile, container } from 'ffmpeg-video-composer/src/browser.ts';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import BrowserFilesystemAdapter from 'ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts';
+import type AbstractEventManager from 'ffmpeg-video-composer/src/platform/AbstractEventManager.ts';
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 // VideoConfig isn't exported from core types; derive it from the ProjectConfig field so the
@@ -14,6 +15,7 @@ import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdit
 import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
+import { materializeTemplatePartials } from '@/services/templatePartialService';
 import { renderQuip } from '@leclap/creative-kit/renderQuips';
 
 export type { MediaChoices };
@@ -69,7 +71,8 @@ class CoreCompilationService {
 
       await this.filesystemAdapter.clear();
 
-      const clipSectionNames = this.projectVideoSectionNames(template);
+      const materializedTemplate = { ...template, descriptor: materializeTemplatePartials(template.descriptor) };
+      const clipSectionNames = this.projectVideoSectionNames(materializedTemplate);
 
       const editedFiles = await this.applyEdits(files, videoEdits, clipSectionNames, onProgress);
 
@@ -83,7 +86,7 @@ class CoreCompilationService {
       // place, fetchFonts() finds it cached and skips the (unusable) woff2 fetch.
       await this.preloadBundledFonts();
 
-      const templateDescriptor = this.prepareTemplateDescriptor(template, formData, userVideoPaths, onProgress);
+      const templateDescriptor = this.prepareTemplateDescriptor(materializedTemplate, formData, userVideoPaths, onProgress);
 
       if (mediaChoices) {
         applyMediaChoices(templateDescriptor, mediaChoices);
@@ -103,6 +106,19 @@ class CoreCompilationService {
       compilationLogger.error('Compilation error:', error);
 
       throw new Error(`Video compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Cooperatively stop an in-flight compilation. The engine's TemplateDirector listens for
+  // `task-cancelled` on the shared event manager and flips its stop flag, so the build halts at the
+  // next segment boundary instead of running to completion. Safe to call when nothing is running:
+  // the container resolve just throws (engine not initialised yet) and we swallow it.
+  cancel(): void {
+    try {
+      const eventManager = container.resolve<AbstractEventManager>('eventManager');
+      eventManager.connect().emit('task-cancelled');
+    } catch (error) {
+      compilationLogger.warn('Cancel requested before the engine was ready:', error);
     }
   }
 
@@ -296,7 +312,7 @@ class CoreCompilationService {
       onProgress({
         stage: 'Compiling',
         percentage: 60 + Math.round(clamped * 25),
-        currentStep: `${renderQuip(clamped)} ${Math.round(clamped * 100)}%`,
+        currentStep: renderQuip(clamped),
         totalSteps: 7,
         currentStepIndex: 5,
       });

@@ -2,12 +2,10 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
-import { getTemplate, templateIds } from '../catalog/index.js';
 import { validateTemplate } from '../compose/validation.js';
 
 const inputShape = {
-  template: z.record(z.string(), z.unknown()).optional(),
-  templateName: z.string().optional(),
+  template: z.record(z.string(), z.unknown()),
 };
 
 const outputShape = {
@@ -18,7 +16,7 @@ const outputShape = {
   formFields: z.array(z.string()),
 };
 
-type ValidateArgs = { template?: Record<string, unknown>; templateName?: string };
+type ValidateArgs = { template: Record<string, unknown> };
 type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
 type DescriptorResult = { ok: true; descriptor: TemplateDescriptor } | ToolError;
 
@@ -26,26 +24,8 @@ function errorResult(text: string): ToolError {
   return { isError: true, content: [{ type: 'text', text }] };
 }
 
-// Exactly one of `template` / `templateName`; inline descriptors are schema-validated, named ones
-// come from the built-in catalog (already valid).
+// Schema-validate the inline descriptor against the core schema.
 function resolveDescriptor(args: ValidateArgs): DescriptorResult {
-  const hasInline = args.template !== undefined;
-  const hasNamed = args.templateName !== undefined;
-
-  if (hasInline === hasNamed) {
-    return errorResult('Provide exactly one of `template` (inline) or `templateName` (built-in).');
-  }
-
-  if (args.templateName !== undefined) {
-    const descriptor = getTemplate(args.templateName);
-
-    if (!descriptor) {
-      return errorResult(`Unknown template "${args.templateName}". Valid ids: ${templateIds().join(', ')}.`);
-    }
-
-    return { ok: true, descriptor };
-  }
-
   const result = validateTemplate(args.template);
 
   if (!result.ok) {
@@ -113,10 +93,10 @@ export function registerValidateTemplate(server: McpServer): void {
     {
       title: 'Validate Template',
       description:
-        'Dry-run a template descriptor against the core schema WITHOUT rendering — returns instantly. ' +
-        'Pass an inline `template` (or a built-in `templateName`) and get back whether it is valid plus ' +
-        'what compose_video will require: the project_video clip sections and the form fields. Use this ' +
-        'to iterate on a descriptor in milliseconds before the slower compose_video render.',
+        'Dry-run an inline `template` descriptor against the core schema WITHOUT rendering — returns ' +
+        'instantly. Get back whether it is valid plus what compose_video will require: the ' +
+        'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
+        'milliseconds before the slower compose_video render.',
       inputSchema: inputShape,
       outputSchema: outputShape,
     },

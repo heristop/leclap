@@ -55,9 +55,15 @@ function setup() {
   return captureHandler(config);
 }
 
-// Premium templates wrap a single project_video named `video_1`; the compose handler rejects
-// before rendering unless that clip is supplied. Stage a real file under the media dir so the
-// path-safety check passes and the (mocked) render is reached.
+// A minimal valid inline descriptor with a single project_video named `video_1`; the compose handler
+// rejects before rendering unless that clip is supplied.
+const clipTemplate: Record<string, unknown> = {
+  global: { orientation: 'landscape', musicEnabled: false },
+  sections: [{ name: 'video_1', type: 'project_video', options: { duration: 5 } }],
+};
+
+// Stage a real file under the media dir so the path-safety check passes and the (mocked) render is
+// reached.
 async function stageClip(name = 'video_1'): Promise<Record<string, string>> {
   const clip = path.join(mediaDir, 'clip.mp4');
   await fs.writeFile(clip, 'stub');
@@ -76,7 +82,7 @@ describe('compose_video handler', () => {
       audioCodec: 'aac',
     });
 
-    const result = (await setup()({ templateName: 'landscape-spotlight', userVideoPaths: await stageClip() })) as {
+    const result = (await setup()({ template: clipTemplate, userVideoPaths: await stageClip() })) as {
       isError?: boolean;
       structuredContent?: Record<string, unknown>;
     };
@@ -99,7 +105,7 @@ describe('compose_video handler', () => {
       logTail: 'ffmpeg said no',
     });
 
-    const result = (await setup()({ templateName: 'landscape-spotlight', userVideoPaths: await stageClip() })) as {
+    const result = (await setup()({ template: clipTemplate, userVideoPaths: await stageClip() })) as {
       isError?: boolean;
       content: { text: string }[];
     };
@@ -110,8 +116,8 @@ describe('compose_video handler', () => {
   });
 
   it('rejects before rendering when a required project_video clip is missing', async () => {
-    // landscape-spotlight declares a single project_video section named `video_1`.
-    const result = (await setup()({ templateName: 'landscape-spotlight' })) as {
+    // clipTemplate declares a single project_video section named `video_1`.
+    const result = (await setup()({ template: clipTemplate })) as {
       isError?: boolean;
       content: { text: string }[];
     };
@@ -121,14 +127,14 @@ describe('compose_video handler', () => {
     expect(runRenderMock).not.toHaveBeenCalled();
   });
 
-  it('rejects an unknown templateName', async () => {
-    const result = (await setup()({ templateName: 'no-such-template' })) as {
+  it('rejects an invalid inline template before rendering', async () => {
+    const result = (await setup()({ template: { sections: 'not-an-array' } })) as {
       isError?: boolean;
       content: { text: string }[];
     };
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('Unknown template');
+    expect(result.content[0].text).toContain('Invalid template');
     expect(runRenderMock).not.toHaveBeenCalled();
   });
 });

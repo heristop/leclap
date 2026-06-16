@@ -7,14 +7,12 @@ import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
-import { getTemplate, templateIds } from '../catalog/index.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
 import { validateTemplate } from '../compose/validation.js';
 import { runRender, type RenderResult } from '../compose/renderRunner.js';
 
 const inputShape = {
-  template: z.record(z.string(), z.unknown()).optional(),
-  templateName: z.string().optional(),
+  template: z.record(z.string(), z.unknown()),
   fields: z.record(z.string(), z.string()).optional(),
   userVideoPaths: z.record(z.string(), z.string()).optional(),
   locale: z.string().optional(),
@@ -34,8 +32,7 @@ const outputShape = {
 };
 
 type ComposeArgs = {
-  template?: Record<string, unknown>;
-  templateName?: string;
+  template: Record<string, unknown>;
   fields?: Record<string, string>;
   userVideoPaths?: Record<string, string>;
   locale?: string;
@@ -49,20 +46,8 @@ function errorResult(text: string): ToolError {
   return { isError: true, content: [{ type: 'text', text }] };
 }
 
-// Exactly one of `template` / `templateName` must be supplied. Named templates come from the
-// built-in catalog; inline templates are validated against the core schema.
+// Validate the inline descriptor against the core schema before rendering.
 function resolveDescriptor(args: ComposeArgs): DescriptorResult {
-  const hasInline = args.template !== undefined;
-  const hasNamed = args.templateName !== undefined;
-
-  if (hasInline === hasNamed) {
-    return errorResult('Provide exactly one of `template` (inline) or `templateName` (built-in).');
-  }
-
-  if (args.templateName !== undefined) {
-    return resolveNamed(args.templateName);
-  }
-
   const result = validateTemplate(args.template);
 
   if (!result.ok) {
@@ -70,16 +55,6 @@ function resolveDescriptor(args: ComposeArgs): DescriptorResult {
   }
 
   return { ok: true, descriptor: result.descriptor };
-}
-
-function resolveNamed(name: string): DescriptorResult {
-  const descriptor = getTemplate(name);
-
-  if (!descriptor) {
-    return errorResult(`Unknown template "${name}". Valid ids: ${templateIds().join(', ')}.`);
-  }
-
-  return { ok: true, descriptor };
 }
 
 function requiredVideoSections(descriptor: TemplateDescriptor): string[] {
@@ -235,10 +210,10 @@ export function registerCompose(server: McpServer, config: McpConfig): void {
     {
       title: 'Compose Video',
       description:
-        'Render a video from a built-in template (templateName) or an inline template descriptor ' +
-        '(template). Supply user clips via userVideoPaths (absolute paths under the configured media ' +
-        'dir) for each project_video section, optional form `fields`, and an optional `locale`. ' +
-        'Renders in a forked worker and returns the output mp4 path plus duration/codec metadata.',
+        'Render a video from an inline template descriptor (`template`). Supply user clips via ' +
+        'userVideoPaths (absolute paths under the configured media dir) for each project_video ' +
+        'section, optional form `fields`, and an optional `locale`. Renders in a forked worker and ' +
+        'returns the output mp4 path plus duration/codec metadata.',
       inputSchema: inputShape,
       outputSchema: outputShape,
     },

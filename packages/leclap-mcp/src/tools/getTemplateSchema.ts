@@ -23,9 +23,10 @@ const GUIDE = [
     'colorsList), and `{{ form_field }}` placeholders, all resolved at compose time.',
   'project_video sections need user-supplied clips passed at compose time; the JSON Schema below is ' +
     'the authoritative shape.',
-  'Start from a built-in (intro, fast-curious, landscape-spotlight, portrait-spotlight) via ' +
-    'get_template, then edit it — they already look professional and use only on-device-safe filters. ' +
-    'Run validate_template (no render) to check edits before compose_video.',
+  'Author the descriptor from this schema — keep it premium and use only on-device-safe filters. ' +
+    'For an animated intro that FFmpeg filters cannot produce, call render_remotion_clip with your own ' +
+    'Remotion project (entry + compositionId) and add the returned clip as a leading project_video ' +
+    'section. Run validate_template (no render) to check it before compose_video.',
 ].join('\n');
 
 function describeSchema(): string {
@@ -35,7 +36,7 @@ function describeSchema(): string {
 }
 
 function fallbackText(): string {
-  return `${GUIDE}\n\n(The machine-readable JSON Schema could not be generated. Use get_template to copy a working example, and consult docs/template-configuration.md for the full field reference.)`;
+  return `${GUIDE}\n\n(The machine-readable JSON Schema could not be generated. Consult docs/template-configuration.md for the full field reference.)`;
 }
 
 function buildText(): string {

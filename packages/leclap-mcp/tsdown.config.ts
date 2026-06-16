@@ -6,6 +6,9 @@ const external = [
   'ffmpeg-video-composer',
   '@modelcontextprotocol/sdk',
   'reflect-metadata',
+  // Optional peer deps for render_remotion_clip — dynamically imported, never bundled.
+  '@remotion/bundler',
+  '@remotion/renderer',
   'child_process',
   'node:child_process',
   'fs',

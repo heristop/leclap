@@ -6,7 +6,7 @@ import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderMedia } from '@remotion/renderer';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const videosDir = path.resolve(here, '../creative-kit/src/library/videos');
+const videosDir = path.resolve(here, '../leclap-creative-kit/src/library/videos');
 
 const targets = [
   { id: 'LeClapBrandMotion', file: 'leclap_bumper.mp4' },

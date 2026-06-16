@@ -8,7 +8,7 @@ The LeClap visual language: a bold, juicy, lavender-to-pink identity on near-bla
 
 </div>
 
-> **Source of truth.** Web tokens: [`apps/leclap-web/src/index.css`](apps/leclap-web/src/index.css) (`@theme`); Expo tokens: [`apps/leclap-expo/tamagui.config.ts`](apps/leclap-expo/tamagui.config.ts) + [`apps/leclap-expo/src/styles/theme.ts`](apps/leclap-expo/src/styles/theme.ts). Bundled video fonts: [`packages/creative-kit/src/fonts.ts`](packages/creative-kit/src/fonts.ts). All colors are authored in **OKLCH**; the hex values below are the design reference.
+> **Source of truth.** Web tokens: [`apps/leclap-web/src/index.css`](apps/leclap-web/src/index.css) (`@theme`); Expo tokens: [`apps/leclap-expo/tamagui.config.ts`](apps/leclap-expo/tamagui.config.ts) + [`apps/leclap-expo/src/styles/theme.ts`](apps/leclap-expo/src/styles/theme.ts). Bundled video fonts: [`packages/leclap-creative-kit/src/fonts.ts`](packages/leclap-creative-kit/src/fonts.ts). All colors are authored in **OKLCH**; the hex values below are the design reference.
 
 ## Logo
 

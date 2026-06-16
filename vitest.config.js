@@ -23,7 +23,7 @@ export default defineConfig({
     include: [
       'packages/ffmpeg-video-composer/tests/**/*.test.ts',
       'apps/leclap-web/tests/**/*.test.ts',
-      'packages/mcp/tests/**/*.test.ts',
+      'packages/leclap-mcp/tests/**/*.test.ts',
     ],
     // Playwright specs live under e2e/ and import @playwright/test (not a vitest
     // dependency); they run via `pnpm test:e2e`, not the unit suite.

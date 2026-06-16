@@ -6,7 +6,7 @@ This is the template descriptor reference. Upgrading an older template? See [Mig
 
 - **Source of truth (zod):** [`packages/ffmpeg-video-composer/src/schemas/`](../packages/ffmpeg-video-composer/src/schemas/) — every field carries a `.describe()`. `TemplateDescriptorSchema` is the root.
 - **Machine-readable schema:** [`docs/template-descriptor.schema.json`](./template-descriptor.schema.json) — generated from the zod source via `pnpm --filter ffmpeg-video-composer generate:schema`. Feed this to an editor or an agent for autocompletion/validation.
-- **Examples:** [`packages/creative-kit/src/templates/`](../packages/creative-kit/src/templates/) — shared template descriptors plus bundled creative assets.
+- **Examples:** [`packages/leclap-creative-kit/src/templates/`](../packages/leclap-creative-kit/src/templates/) — shared template descriptors plus bundled creative assets.
 - **Validation:** `TemplateValidator` validates a descriptor against the schema (plus cross-field rules) before compilation.
 
 > For the conceptual compile pipeline (director → builder → segments → managers), see [`architecture.md`](./architecture.md).
@@ -87,7 +87,7 @@ Renderable visual segments live in `packages/ffmpeg-video-composer/src/editor/se
 
 ### Partial sections
 
-A `partial` section pulls in a reusable fragment from the shared registry ([`@leclap/creative-kit`](../packages/creative-kit) — e.g. `logo-bumper`, `flash-card`), so a template composes vetted building blocks instead of repeating them.
+A `partial` section pulls in a reusable fragment from the shared registry ([`@leclap/creative-kit`](../packages/leclap-creative-kit) — e.g. `logo-bumper`, `flash-card`), so a template composes vetted building blocks instead of repeating them.
 
 ```jsonc
 { "type": "partial", "ref": "flash-card", "prefix": "q1_", "variables": { "optionA": "{{ optionA1 }}" } }

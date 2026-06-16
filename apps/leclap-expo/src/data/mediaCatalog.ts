@@ -27,7 +27,7 @@ export const MUSIC_ASSETS: Record<string, number> = {
   'arcadia.mp3':                require('../../assets/musics/arcadia.mp3'),
   'autumn-day.mp3':             require('../../assets/musics/autumn-day.mp3'),
   'beachfront-celebration.mp3': require('../../assets/musics/beachfront-celebration.mp3'),
-  'go-by-ocean.mp3':            require('../../assets/musics/go-by-ocean.mp3'),
+  'point-being.mp3':            require('../../assets/musics/point-being.mp3'),
 };
 
 // prettier-ignore

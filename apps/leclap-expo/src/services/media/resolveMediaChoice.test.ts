@@ -25,7 +25,7 @@ describe('needsMediaStep', () => {
   });
 
   it('returns true when allowedMusic contains at least one id', () => {
-    expect(needsMediaStep({ allowedMusic: ['go-by-ocean'] })).toBe(true);
+    expect(needsMediaStep({ allowedMusic: ['point-being'] })).toBe(true);
   });
 
   it('returns true when allowedBackgrounds contains at least one id', () => {

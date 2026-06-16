@@ -81,8 +81,9 @@ async function materializeClips(
 // metadata record. Editing always lands as a `draft` — a prior compiled output is invalidated.
 export async function saveDraft(model: WizardModel, template: Template, currentId?: string): Promise<StoredProject> {
   const current = currentId ? (projectStore.get(currentId) ?? undefined) : undefined;
-  const diff = diffClips(current?.clips ?? {}, model.clipsBySection);
-  const clips = await materializeClips(current?.clips ?? {}, model, diff);
+  const prevClips = current?.clips ?? {};
+  const diff = diffClips(prevClips, model.clipsBySection);
+  const clips = await materializeClips(prevClips, model, diff);
 
   const stalePrune = current?.output ? [...diff.prune, current.output.blobKey] : diff.prune;
   await Promise.all(stalePrune.map((key) => projectBlobStore.delete(key)));
@@ -95,9 +96,54 @@ export async function saveDraft(model: WizardModel, template: Template, currentI
       clips,
       now: Date.now(),
       createdAt: current?.createdAt,
+      name: current?.name,
       status: 'draft',
     })
   );
+}
+
+// Give a project a custom title (falls back to the existing name when blank).
+export function renameProject(id: string, name: string): StoredProject | null {
+  const current = projectStore.get(id);
+
+  if (!current) return null;
+
+  return projectStore.save({ ...current, name: name.trim() || current.name, updatedAt: Date.now() });
+}
+
+// Clone a project's clips + answers into a fresh draft (its own blob copies, no carried-over output).
+export async function duplicateProject(id: string): Promise<StoredProject | null> {
+  const source = projectStore.get(id);
+
+  if (!source) return null;
+
+  const clipEntries = await Promise.all(
+    Object.entries(source.clips).map(async ([section, clip]) => {
+      const bytes = await projectBlobStore.get(clip.blobKey);
+
+      if (!bytes) return null;
+
+      const blobKey = await projectBlobStore.put(bytes);
+
+      return [section, { ...clip, blobKey }] as const;
+    })
+  );
+
+  const clips = Object.fromEntries(
+    clipEntries.filter((entry): entry is readonly [string, StoredClip] => entry !== null)
+  );
+  const now = Date.now();
+
+  return projectStore.save({
+    ...source,
+    id: makeId(),
+    name: `${source.name} (copy)`,
+    status: 'draft',
+    output: undefined,
+    clips,
+    createdAt: now,
+    updatedAt: now,
+  });
 }
 
 export type LoadResult =

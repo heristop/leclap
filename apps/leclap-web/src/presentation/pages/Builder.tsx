@@ -532,6 +532,29 @@ interface PersistenceArgs {
   setModel: (model: WizardModel) => void;
 }
 
+// For a completed project decide where to open it: `edit` drops into the first input step (no result
+// loaded); otherwise jump to the result step and materialize the rendered video for re-viewing.
+const resolveCompletedOpen = async (
+  result: Extract<Awaited<ReturnType<typeof loadProject>>, { ok: true }>,
+  edit: boolean
+): Promise<{ stepIndex: number; hydrated: ProcessedVideo | null }> => {
+  const steps = buildSteps(result.template);
+
+  if (edit) {
+    const inputIndex = steps.findIndex((step) => step.kind === 'form' || step.kind === 'clip');
+
+    return { stepIndex: inputIndex >= 0 ? inputIndex : result.model.stepIndex, hydrated: null };
+  }
+
+  const resultIndex = steps.findIndex((step) => step.kind === 'result');
+  const output = await loadOutput(result.project);
+  const hydrated = output
+    ? { blob: output.blob, url: URL.createObjectURL(output.blob), size: output.size, duration: output.duration }
+    : null;
+
+  return { stepIndex: resultIndex >= 0 ? resultIndex : result.model.stepIndex, hydrated };
+};
+
 // Owns project persistence for the builder: hydrating from `?projectId`, debounced draft auto-save,
 // and recording the finished render. Split out so useBuilderController stays small.
 const useProjectPersistence = (args: PersistenceArgs) => {
@@ -559,6 +582,8 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     // closed-over boolean it sees only assigned `false`/`true` otherwise becomes).
     const run = { cancelled: false };
     const cancelled = () => run.cancelled;
+    // `?edit=1` re-opens a completed project at its inputs (to change & re-render) rather than its result.
+    const editParam = searchParams.get('edit') === '1';
 
     if (projectIdParam) {
       setHydrating(true);
@@ -579,20 +604,12 @@ const useProjectPersistence = (args: PersistenceArgs) => {
           let nextModel = result.model;
 
           if (result.project.status === 'completed') {
-            const resultIndex = buildSteps(result.template).findIndex((step) => step.kind === 'result');
+            const opened = await resolveCompletedOpen(result, editParam);
+            nextModel = { ...result.model, stepIndex: opened.stepIndex };
 
-            if (resultIndex >= 0) nextModel = { ...result.model, stepIndex: resultIndex };
-
-            const output = await loadOutput(result.project);
-
-            if (!cancelled() && output) {
-              savedOutputRef.current = output.blob;
-              setHydratedResult({
-                blob: output.blob,
-                url: URL.createObjectURL(output.blob),
-                size: output.size,
-                duration: output.duration,
-              });
+            if (!cancelled() && opened.hydrated) {
+              savedOutputRef.current = opened.hydrated.blob;
+              setHydratedResult(opened.hydrated);
             }
           }
 
@@ -609,7 +626,7 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     return () => {
       run.cancelled = true;
     };
-  }, [projectIdParam, setSelectedTemplate, setModel]);
+  }, [projectIdParam, searchParams, setSelectedTemplate, setModel]);
 
   useEffect(
     () => () => {

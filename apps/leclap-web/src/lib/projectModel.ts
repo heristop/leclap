@@ -49,17 +49,19 @@ export interface ModelToProjectInput {
   now: number;
   // Carried over from the existing record so the creation time is stable across saves.
   createdAt?: number;
+  // A user-set title; falls back to the template name when the project hasn't been renamed.
+  name?: string;
   status?: ProjectStatus;
   output?: StoredOutput;
 }
 
 // Pure: fold the in-memory wizard model + its template into a serializable project record.
 export function modelToProject(input: ModelToProjectInput): StoredProject {
-  const { id, model, template, clips, now, createdAt, status = 'draft', output } = input;
+  const { id, model, template, clips, now, createdAt, name, status = 'draft', output } = input;
 
   return {
     id,
-    name: template.name,
+    name: name ?? template.name,
     templateId: template.id,
     templateName: template.name,
     orientation: template.orientation,

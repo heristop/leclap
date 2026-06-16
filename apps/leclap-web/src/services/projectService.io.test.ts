@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
-import { saveDraft, loadProject, saveCompleted, deleteProject } from './projectService';
+import {
+  saveDraft,
+  loadProject,
+  saveCompleted,
+  deleteProject,
+  renameProject,
+  duplicateProject,
+} from './projectService';
 import { projectBlobStore } from './projectBlobBackend';
 import { projectStore } from '@/stores/projectStore';
 import { templateService, type Template } from '@/services/templateService';
@@ -133,6 +140,44 @@ describe('projectService IO orchestration', () => {
 
     expect(projectStore.get(saved.id)).toBeNull();
     expect(state.blobs.size).toBe(0);
+  });
+
+  it('renames a project and keeps the name across the next auto-save', async () => {
+    const saved = await saveDraft(modelWith({ formData: { name: 'Ada' } }), TEMPLATE);
+
+    const renamed = renameProject(saved.id, 'My birthday reel');
+    expect(renamed?.name).toBe('My birthday reel');
+
+    // A later auto-save must not clobber the custom name back to the template name.
+    const resaved = await saveDraft(modelWith({ formData: { name: 'Ada' }, stepIndex: 1 }), TEMPLATE, saved.id);
+    expect(resaved.name).toBe('My birthday reel');
+  });
+
+  it('blank rename keeps the existing name', () => {
+    const id = 'p-x';
+    state.projects.set(id, { id, name: 'Keep me', templateId: 'tpl-1', clips: {}, updatedAt: 1 });
+
+    expect(renameProject(id, '   ')?.name).toBe('Keep me');
+  });
+
+  it('duplicates into a fresh draft with its own clip blobs', async () => {
+    const source = await saveDraft(modelWith({ clipsBySection: { video_1: file('c.mp4', [1, 2]) } }), TEMPLATE);
+    await saveCompleted(source.id, { blob: new Blob([new Uint8Array([9])]), size: 1 });
+
+    const copy = await duplicateProject(source.id);
+
+    expect(copy?.id).not.toBe(source.id);
+    expect(copy?.status).toBe('draft');
+    expect(copy?.output).toBeUndefined();
+    expect(copy?.name).toContain('(copy)');
+    // The copy points at different blob keys, so deleting the source leaves the copy intact.
+    expect(copy?.clips.video_1.blobKey).not.toBe(source.clips.video_1.blobKey);
+
+    await deleteProject(source.id);
+    const reloaded = await loadProject(copy!.id);
+    expect(reloaded.ok).toBe(true);
+
+    if (reloaded.ok) expect(reloaded.model.clipsBySection.video_1).toBeInstanceOf(File);
   });
 
   it('reports template-removed when the project references a missing template', async () => {

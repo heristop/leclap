@@ -21,6 +21,7 @@
     "test": "vp test run"
   },
   "dependencies": {
+    "citty": "^0.2.2",
     "ffmpeg-video-composer": "workspace:*",
     "picocolors": "^1.1.1",
     "reflect-metadata": "^0.2.2"

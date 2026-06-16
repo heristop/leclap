@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Check, Copy } from 'lucide-react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { Check, Copy, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
@@ -57,8 +57,7 @@ export const CommandPill = ({ command, label }: { command: string; label?: strin
 };
 
 // ── Anchored section heading ────────────────────────────────────────────────────
-// A section wrapper that owns its anchor id, offsets for the fixed header, and a
-// hover-revealed "#" permalink so any subsection is linkable and keyboard-reachable.
+// Owns an anchor id with scroll-mt for the sticky header; shows a "#" permalink on hover.
 
 interface DocSectionProps {
   id: string;
@@ -88,7 +87,6 @@ export const DocSection = ({ id, title, kicker, children }: DocSectionProps) => 
 );
 
 // ── Prose ───────────────────────────────────────────────────────────────────────
-// Caps measure at a comfortable reading width and tints body text off the surface.
 
 export const Prose = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={cn('max-w-[68ch] text-[0.95rem] leading-7 text-gray-300 space-y-4', className)}>{children}</div>
@@ -99,6 +97,100 @@ export const Code = ({ children }: { children: React.ReactNode }) => (
     {children}
   </code>
 );
+
+// ── CLI quick-start with a package-manager switch ────────────────────────────────
+// The same three steps rendered for the reader's package manager. Each PM differs in its one-off
+// runner (npx / pnpm dlx / yarn dlx / bunx), its install verb, and how it runs a package script.
+
+const PACKAGE_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+type PackageManager = (typeof PACKAGE_MANAGERS)[number];
+
+const PM_DLX: Record<PackageManager, string> = { npm: 'npx', pnpm: 'pnpm dlx', yarn: 'yarn dlx', bun: 'bunx' };
+const PM_INSTALL: Record<PackageManager, string> = {
+  npm: 'npm install',
+  pnpm: 'pnpm install',
+  yarn: 'yarn',
+  bun: 'bun install',
+};
+const PM_RUN: Record<PackageManager, string> = {
+  npm: 'npm run render',
+  pnpm: 'pnpm render',
+  yarn: 'yarn render',
+  bun: 'bun run render',
+};
+
+export const CliGetStarted = () => {
+  const [pm, setPm] = useState<PackageManager>('pnpm');
+  const tabs = useRef<Record<PackageManager, HTMLButtonElement | null>>({
+    npm: null,
+    pnpm: null,
+    yarn: null,
+    bun: null,
+  });
+  const [pill, setPill] = useState({ left: 0, width: 0 });
+
+  // Measure the active tab and glide the highlight to it — re-measure on resize so it stays aligned.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = tabs.current[pm];
+
+      if (el) {
+        setPill({ left: el.offsetLeft, width: el.offsetWidth });
+      }
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+
+    return () => {
+      window.removeEventListener('resize', measure);
+    };
+  }, [pm]);
+
+  return (
+    <div className="mt-7 flex max-w-xl flex-col gap-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Get started with the CLI</p>
+        <div className="relative inline-flex rounded-lg bg-[oklch(0.2_0.01_280)] p-0.5">
+          {/* magnetic highlight: slides + overshoots to the selected tab */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-0.5 top-0.5 rounded-md bg-brand-500/20 ring-1 ring-brand-500/60 transition-[left,width] duration-300 [transition-timing-function:cubic-bezier(0.34,1.55,0.64,1)]"
+            style={{ left: pill.left, width: pill.width }}
+          />
+          {PACKAGE_MANAGERS.map((name) => (
+            <button
+              key={name}
+              ref={(el) => {
+                tabs.current[name] = el;
+              }}
+              type="button"
+              onClick={() => {
+                setPm(name);
+              }}
+              aria-pressed={pm === name}
+              className={cn(
+                'tap relative z-10 rounded-md px-2.5 py-1 font-mono text-xs transition-colors',
+                pm === name
+                  ? 'text-[oklch(0.92_0.008_280)]'
+                  : 'text-[oklch(0.62_0.01_280)] hover:text-[oklch(0.85_0.008_280)]'
+              )}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      </div>
+      <CommandPill command={`${PM_DLX[pm]} @leclap/cli init my-video`} />
+      <CommandPill command={`cd my-video && ${PM_INSTALL[pm]}`} />
+      <CommandPill command={PM_RUN[pm]} />
+      <p className="text-sm leading-6 text-gray-400">
+        <Code>init</Code> also offers to wire the <Code>@leclap/mcp</Code> server and a Remotion intro. Then{' '}
+        <Code>leclap diagnose</Code> to check your FFmpeg, or <Code>leclap --help</Code> for every command.
+      </p>
+    </div>
+  );
+};
 
 // ── Field table ─────────────────────────────────────────────────────────────────
 // Schema-driven: each row is one object property (name · type · constraints · meaning).
@@ -148,6 +240,28 @@ export const FieldTable = ({ rows }: { rows: FieldRow[] }) => {
     </div>
   );
 };
+
+// ── Named reference table ───────────────────────────────────────────────────────
+// A schema-driven field table with its own anchored heading + summary. The workhorse of the
+// reference pages — pass the rows from `docGroups.*` and it renders title · blurb · table.
+
+export const RefTable = ({
+  id,
+  title,
+  summary,
+  rows,
+}: {
+  id: string;
+  title: string;
+  summary?: string;
+  rows: FieldRow[];
+}) => (
+  <section id={id} className="scroll-mt-28">
+    <h2 className="mb-1 font-mono text-lg font-semibold text-foreground">{title}</h2>
+    {summary ? <p className="mb-3 max-w-[68ch] text-sm leading-6 text-gray-400">{summary}</p> : null}
+    <FieldTable rows={rows} />
+  </section>
+);
 
 // ── Reference chip list ─────────────────────────────────────────────────────────
 // Renders a live enum (transitions / looks / curves) as monospace chips.
@@ -231,11 +345,54 @@ export const JsonBlock = ({ code }: { code: string }) => {
   );
 };
 
+// ── Config sample ───────────────────────────────────────────────────────────────
+// A labelled JSON snippet illustrating one feature in context.
+
+export const Sample = ({
+  code,
+  title = 'Config sample',
+  className,
+}: {
+  code: string;
+  title?: string;
+  className?: string;
+}) => (
+  <div className={cn('mt-6', className)}>
+    <h3 className="mb-2 text-sm font-semibold text-foreground">{title}</h3>
+    <JsonBlock code={code} />
+  </div>
+);
+
 // ── Pull-out note ───────────────────────────────────────────────────────────────
 
-export const Callout = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <aside className="rounded-2xl border-l-2 border-brand-500/60 bg-brand-500/5 px-5 py-4">
+export const Callout = ({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <aside className={cn('rounded-2xl border-l-2 border-brand-500/60 bg-brand-500/5 px-5 py-4', className)}>
     <Badge variant="brand">{label}</Badge>
+    <div className="mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300">{children}</div>
+  </aside>
+);
+
+// ── Tip ───────────────────────────────────────────────────────────────────────────
+// Amber aside for "do this" advice — visually distinct from the brand Callout.
+
+export const Tip = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <aside
+    className={cn(
+      'rounded-2xl border-l-2 border-accent-600/50 bg-accent-400/[0.08] px-5 py-4 dark:border-accent-400/60',
+      className
+    )}
+  >
+    <p className="flex items-center gap-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-accent-700 dark:text-accent-400">
+      <Lightbulb aria-hidden="true" className="h-3.5 w-3.5" /> Tip
+    </p>
     <div className="mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300">{children}</div>
   </aside>
 );

@@ -152,6 +152,9 @@ body {
   --color-accent-300: oklch(0.975 0.075 103.6);
   --color-accent-400: oklch(0.957 0.135 104.6);
   --color-accent-500: oklch(0.918 0.159 103.3);
+  /* Darker amber for accent TEXT on light surfaces (the 300–500 yellows are legible only on dark). */
+  --color-accent-600: oklch(0.74 0.15 96);
+  --color-accent-700: oklch(0.57 0.13 84);
 
   /* Semantic (Expo) */
   /* Light pastel emerald-green fill; emerald-teal foreground for checks/labels/text on or of success. */

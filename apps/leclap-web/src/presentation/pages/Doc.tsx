@@ -108,7 +108,7 @@ export const Doc = () => (
         </p>
         <div className="mt-6 flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Compile one with the CLI</p>
-          <CommandPill command="npx ffmpeg-video-composer my-template.json" />
+          <CommandPill command="npx @leclap/cli my-template.json" />
         </div>
       </div>
     </div>

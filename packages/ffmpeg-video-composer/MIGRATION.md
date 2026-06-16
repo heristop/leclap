@@ -10,7 +10,7 @@ of the published package. The `compile` / `loadConfig` API is the same.
 - **API is unchanged** — `compile(projectConfig, template)` and `loadConfig(path)`
   keep the same signatures.
 - **Node `>=24.11.0`** is now required (was `>=22.14.0`).
-- **New entry points** — a CLI binary plus `/browser` and `/reactnative` exports.
+- **New entry points** — `/browser` and `/reactnative` exports (the CLI now lives in `@leclap/cli`).
 - **The template descriptor grew a lot** — colour grading, motion, captions,
   per-section transitions, partials, background layers, and an audio mix block.
   All of it is **additive**: existing templates keep working.
@@ -28,11 +28,11 @@ Upgrade your runtime; the package will refuse to install on older Node.
 
 | Concern       | v1               | v2                                                 |
 | ------------- | ---------------- | -------------------------------------------------- |
-| CLI binary    | (none published) | `ffmpeg-video-composer` → `./dist/cli.js`          |
+| CLI binary    | (none published) | moved to the `@leclap/cli` package (`leclap` bin)  |
 | Browser entry | (none)           | `ffmpeg-video-composer/browser`                    |
 | RN entry      | (none)           | `ffmpeg-video-composer/reactnative`                |
-| `compile.js`  | shipped script   | removed — use the CLI                              |
-| `diagnose.js` | shipped script   | removed — use `ffmpeg-video-composer --diagnose`   |
+| `compile.js`  | shipped script   | removed — use `@leclap/cli`                        |
+| `diagnose.js` | shipped script   | removed — use `@leclap/cli --diagnose`             |
 | `./src/index` | available        | dropped (`.`, `./browser`, `./reactnative` remain) |
 
 The default `.` import is unchanged:

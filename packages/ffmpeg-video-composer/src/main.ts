@@ -27,22 +27,17 @@ function buildProjectConfig(): { buildDir: string; assetsDir: string; fields: Re
 }
 
 function handleCompilationError(error: Error): never {
-  Terminal.stopSpinner('error', '❌ Compilation failed');
+  Terminal.stopSpinner('error', 'Compilation failed');
 
-  // Check if it's an FFmpeg-related error
   if (error.message.includes('FFmpeg') || error.message.includes('ffmpeg')) {
-    console.log(`\n${pc.red('😱')} ${pc.bold('FFmpeg Issue Detected!')}\n`);
+    console.log(`\n${pc.bold('FFmpeg Issue Detected')}\n`);
 
     Terminal.showError(error.message, [
-      '🔧 Run diagnostics: pnpm diagnose',
-      '📦 Quick fix: pnpm add ffmpeg-static',
-      '🍺 macOS: brew install ffmpeg',
-      '🐧 Linux: sudo apt install ffmpeg',
+      'Run diagnostics: pnpm diagnose',
+      'Quick fix: pnpm add ffmpeg-static',
+      'macOS: brew install ffmpeg',
+      'Linux: sudo apt install ffmpeg',
     ]);
-
-    console.log(
-      `\n${pc.yellow('💡')} ${pc.dim('Tip: Run')} ${pc.bold('pnpm diagnose')} ${pc.dim('for detailed system analysis')}\n`
-    );
     process.exit(1);
   }
 
@@ -53,31 +48,26 @@ function handleCompilationError(error: Error): never {
 }
 
 async function main(configFilePath: string): Promise<string | null> {
-  // Show welcome banner for first-time users
   if (shouldShowWelcome()) {
     showWelcomeBanner();
   }
 
-  // Load the template descriptor
   const templateDescriptor = await loadConfig(configFilePath);
-
-  // Ensure build directory exists
   const projectConfig = buildProjectConfig();
   await fs.mkdir(projectConfig.buildDir, { recursive: true });
 
-  // Call the compilation function with progress indicator
-  console.log(`${pc.cyan('🎬')} ${pc.bold('Starting video compilation...')}\n`);
+  console.log(`${pc.bold('Starting video compilation...')}\n`);
 
-  Terminal.startSpinner('🎞️ Processing your video magic...');
+  Terminal.startSpinner('Processing…');
 
   try {
     const result = await compile(projectConfig, templateDescriptor);
-    Terminal.stopSpinner('success', '🎉 Compilation completed successfully!');
+    Terminal.stopSpinner('success', 'Compilation complete');
 
     return result;
   } catch (error) {
     if (!(error instanceof Error)) {
-      Terminal.stopSpinner('error', '❌ Compilation failed');
+      Terminal.stopSpinner('error', 'Compilation failed');
       console.error('Unknown error:', String(error));
       process.exit(1);
     }
@@ -112,25 +102,17 @@ if (configFilePath) {
   });
 }
 
-/**
- * Check if we should show welcome banner
- */
+// Skip the banner in CI and non-interactive terminals. FFMPEG_COMPOSER_SKIP_WELCOME suppresses it.
 function shouldShowWelcome(): boolean {
-  // Don't show in CI or non-interactive terminals
   if (process.env.CI || !process.stdout.isTTY) {
     return false;
   }
 
-  // Show welcome if it looks like a first run
   return !process.env.FFMPEG_COMPOSER_SKIP_WELCOME;
 }
 
-/**
- * Show welcome banner for first-time users
- */
 function showWelcomeBanner(): void {
-  console.log(`\n${pc.cyan('🎬')} ${pc.bold('Welcome to FFmpeg Video Composer!')}`);
-  console.log(pc.dim('✨ Creating video magic from templates...\n'));
+  console.log(`\n${pc.cyan('🎬')} ${pc.bold('Welcome to FFmpeg Video Composer (by LeClap)')}`);
 }
 
 export { main };

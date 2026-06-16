@@ -149,7 +149,7 @@ describe('PlatformBridge - uncovered branches', () => {
       const adapter = await new PlatformBridge().create('ffmpeg');
       expect(adapter).toBeInstanceOf(FFmpegNodeAdapter);
       expect(Terminal.startSpinner).toHaveBeenCalled();
-      expect(Terminal.stopSpinner).toHaveBeenCalledWith('success', 'Detection complete!');
+      expect(Terminal.stopSpinner).toHaveBeenCalledWith('success', 'Detection complete');
       expect(console.log).toHaveBeenCalled();
     });
 

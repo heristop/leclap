@@ -94,7 +94,7 @@ describe('main.ts', () => {
       const main = await loadMain();
       await main('config.json');
       // welcome banner prints a line containing the app name
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Welcome to FFmpeg Video Composer'));
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Welcome to FFmpeg Video Composer (by LeClap)'));
     } finally {
       if (ttyDescriptor) {
         Object.defineProperty(process.stdout, 'isTTY', ttyDescriptor);
@@ -111,7 +111,7 @@ describe('main.ts', () => {
 
     const main = await loadMain();
     await main('config.json');
-    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Welcome to FFmpeg Video Composer'));
+    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Welcome to FFmpeg Video Composer (by LeClap)'));
   });
 
   it('handles a generic compilation Error by exiting', async () => {

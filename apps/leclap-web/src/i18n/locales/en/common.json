@@ -1,0 +1,45 @@
+{
+  "brand": "LeClap",
+  "actions": {
+    "back": "Back",
+    "next": "Next",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "retry": "Retry",
+    "tryAgain": "Try again",
+    "download": "Download",
+    "share": "Share",
+    "done": "Done",
+    "close": "Close",
+    "reset": "Reset",
+    "remove": "Remove",
+    "edit": "Edit"
+  },
+  "status": {
+    "ready": "Ready",
+    "loading": "Loading",
+    "processing": "Processing",
+    "idle": "Idle",
+    "active": "Active"
+  },
+  "nav": {
+    "home": "Home",
+    "studio": "Studio",
+    "projects": "Projects",
+    "templates": "Templates",
+    "docs": "Docs",
+    "about": "About",
+    "primaryLabel": "Primary"
+  },
+  "header": {
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme",
+    "toggleTheme": "Toggle light / dark",
+    "viewSource": "View source code on GitHub",
+    "github": "GitHub",
+    "toggleMenu": "Toggle menu"
+  },
+  "skipToContent": "Skip to main content",
+  "footer": "All processing happens locally in your browser - your files never leave your device"
+}

@@ -1,0 +1,273 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { Template } from '@/src/types';
+import type { CompileRecordedVideos } from '@/src/services/api';
+
+// Storage keys
+const TEMPLATES_CACHE_KEY = 'le_clap_templates_cache';
+const TEMPLATES_METADATA_KEY = 'le_clap_templates_metadata';
+const COMPILATION_QUEUE_KEY = 'le_clap_compilation_queue';
+
+// Mirrors the retry ceiling the queue processor enforces (useCompilationQueue).
+const DEFAULT_MAX_RETRIES = 3;
+
+export interface TemplatesCacheMetadata {
+  lastUpdated: string;
+  version: string;
+}
+
+export interface CompilationQueueItem {
+  id: string;
+  projectId: string;
+  templateDescriptor: unknown;
+  recordedVideos: CompileRecordedVideos;
+  status: 'pending' | 'processing' | 'failed' | 'completed';
+  createdAt: string;
+  retryCount: number;
+  lastRetryAt?: string;
+  error?: string;
+}
+
+/**
+ * Cache templates to AsyncStorage for offline access
+ */
+export const cacheTemplates = async (templates: Template[]): Promise<void> => {
+  try {
+    const metadata: TemplatesCacheMetadata = {
+      lastUpdated: new Date().toISOString(),
+      version: '1.0.0',
+    };
+
+    await Promise.all([
+      AsyncStorage.setItem(TEMPLATES_CACHE_KEY, JSON.stringify(templates)),
+      AsyncStorage.setItem(TEMPLATES_METADATA_KEY, JSON.stringify(metadata)),
+    ]);
+  } catch (error) {
+    console.error('Error caching templates:', error);
+
+    throw error;
+  }
+};
+
+/**
+ * Get cached templates from AsyncStorage
+ */
+export const getCachedTemplates = async (): Promise<Template[] | null> => {
+  try {
+    const cachedData = await AsyncStorage.getItem(TEMPLATES_CACHE_KEY);
+
+    return cachedData ? JSON.parse(cachedData) : null;
+  } catch (error) {
+    console.error('Error getting cached templates:', error);
+
+    return null;
+  }
+};
+
+/**
+ * Get templates cache metadata
+ */
+export const getTemplatesCacheMetadata = async (): Promise<TemplatesCacheMetadata | null> => {
+  try {
+    const metadata = await AsyncStorage.getItem(TEMPLATES_METADATA_KEY);
+
+    return metadata ? JSON.parse(metadata) : null;
+  } catch (error) {
+    console.error('Error getting templates cache metadata:', error);
+
+    return null;
+  }
+};
+
+/**
+ * Check if templates cache is stale (older than 24 hours)
+ */
+export const isTemplatesCacheStale = async (): Promise<boolean> => {
+  try {
+    const metadata = await getTemplatesCacheMetadata();
+
+    if (!metadata) return true;
+
+    const lastUpdated = new Date(metadata.lastUpdated);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
+
+    return hoursDiff > 24; // Stale if older than 24 hours
+  } catch (error) {
+    console.error('Error checking cache staleness:', error);
+
+    return true;
+  }
+};
+
+/**
+ * Add item to compilation queue
+ */
+export const addToCompilationQueue = async (
+  item: Omit<CompilationQueueItem, 'id' | 'createdAt' | 'retryCount'>
+): Promise<string> => {
+  try {
+    const queueItem: CompilationQueueItem = {
+      ...item,
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
+      createdAt: new Date().toISOString(),
+      retryCount: 0,
+    };
+
+    const existingQueue = await getCompilationQueue();
+    const updatedQueue = [...existingQueue, queueItem];
+
+    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
+
+    return queueItem.id;
+  } catch (error) {
+    console.error('Error adding to compilation queue:', error);
+
+    throw error;
+  }
+};
+
+/**
+ * Get compilation queue
+ */
+export const getCompilationQueue = async (): Promise<CompilationQueueItem[]> => {
+  try {
+    const queueData = await AsyncStorage.getItem(COMPILATION_QUEUE_KEY);
+
+    return queueData ? JSON.parse(queueData) : [];
+  } catch (error) {
+    console.error('Error getting compilation queue:', error);
+
+    return [];
+  }
+};
+
+/**
+ * Update compilation queue item
+ */
+export const updateCompilationQueueItem = async (
+  itemId: string,
+  updates: Partial<CompilationQueueItem>
+): Promise<void> => {
+  try {
+    const queue = await getCompilationQueue();
+    const itemIndex = queue.findIndex((item) => item.id === itemId);
+
+    if (itemIndex === -1) {
+      throw new Error(`Queue item with id ${itemId} not found`);
+    }
+
+    queue[itemIndex] = { ...queue[itemIndex], ...updates };
+    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(queue));
+  } catch (error) {
+    console.error('Error updating compilation queue item:', error);
+
+    throw error;
+  }
+};
+
+/**
+ * Remove item from compilation queue
+ */
+export const removeFromCompilationQueue = async (itemId: string): Promise<void> => {
+  try {
+    const queue = await getCompilationQueue();
+    const updatedQueue = queue.filter((item) => item.id !== itemId);
+    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
+  } catch (error) {
+    console.error('Error removing from compilation queue:', error);
+
+    throw error;
+  }
+};
+
+/**
+ * Get pending compilation queue items
+ */
+export const getPendingCompilations = async (): Promise<CompilationQueueItem[]> => {
+  try {
+    const queue = await getCompilationQueue();
+
+    return queue.filter((item) => item.status === 'pending' || item.status === 'failed');
+  } catch (error) {
+    console.error('Error getting pending compilations:', error);
+
+    return [];
+  }
+};
+
+/**
+ * Reconcile items left stuck in `processing` after a crash or app kill mid-compile.
+ *
+ * The processor flips an item to `processing` before handing it to the compiler but never persists
+ * a "finished" state if the app dies first, so it would sit in `processing` forever (no
+ * cold-boot reconciliation). Call this once at startup, before draining the queue:
+ *  - retries left  → back to `pending` so it re-processes;
+ *  - retries spent → `failed` so we stop instead of looping forever.
+ * Returns the ids of the items it reset.
+ */
+export const reconcileStuckCompilations = async (maxRetries: number = DEFAULT_MAX_RETRIES): Promise<string[]> => {
+  try {
+    const queue = await getCompilationQueue();
+    const resetIds: string[] = [];
+
+    const reconciledQueue = queue.map((item) => {
+      if (item.status !== 'processing') {
+        return item;
+      }
+
+      resetIds.push(item.id);
+
+      if (item.retryCount >= maxRetries) {
+        return {
+          ...item,
+          status: 'failed' as const,
+          lastRetryAt: new Date().toISOString(),
+          error: 'Compilation interrupted before completion and retries are exhausted.',
+        };
+      }
+
+      return {
+        ...item,
+        status: 'pending' as const,
+        lastRetryAt: new Date().toISOString(),
+      };
+    });
+
+    if (resetIds.length === 0) {
+      return resetIds;
+    }
+
+    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(reconciledQueue));
+
+    return resetIds;
+  } catch (error) {
+    console.error('Error reconciling stuck compilations:', error);
+
+    return [];
+  }
+};
+
+/**
+ * Clear completed compilation queue items older than 7 days
+ */
+export const cleanupCompilationQueue = async (): Promise<void> => {
+  try {
+    const queue = await getCompilationQueue();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const filteredQueue = queue.filter((item) => {
+      if (item.status === 'completed') {
+        const createdAt = new Date(item.createdAt);
+
+        return createdAt > sevenDaysAgo;
+      }
+
+      return true; // Keep non-completed items
+    });
+
+    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(filteredQueue));
+  } catch (error) {
+    console.error('Error cleaning up compilation queue:', error);
+  }
+};

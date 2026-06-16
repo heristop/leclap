@@ -1,0 +1,35 @@
+{
+  "upload": {
+    "dropActive": "Drop the files here",
+    "dropIdle": "Drag & drop video files here",
+    "browse": "or click to browse files ({{count}} remaining)",
+    "formats": "Supports MP4, AVI, MOV, MKV, WebM • Max {{size}}MB per file",
+    "filesBadge": "{{count}}/{{max}} files",
+    "uploadAria": "Upload video files",
+    "removeAria": "Remove {{name}}",
+    "errorsTitle": "Upload errors:",
+    "errorTooLarge": "{{name}} is too large (max {{size}}MB)",
+    "errorInvalidType": "{{name}} is not a valid video file",
+    "errorTooMany": "Too many files. Maximum {{max}} files allowed",
+    "or": "or",
+    "recordWithCamera": "Record with camera",
+    "uploadedFiles": "Uploaded Files:"
+  },
+  "camera": {
+    "getReady": "Get ready…",
+    "recordingIn": "Recording in {{value}}",
+    "wrapUp": "Wrap up — {{remaining}}s left",
+    "timesUp": "Time’s up",
+    "unavailable": "Camera unavailable",
+    "startRecording": "Start recording",
+    "stopRecording": "Stop recording",
+    "cancelCountdown": "Cancel countdown",
+    "retake": "Retake",
+    "useVideo": "Use Video",
+    "closeAria": "Close camera",
+    "switchAria": "Switch camera",
+    "livePreviewAria": "Live camera preview",
+    "recordedPreviewAria": "Recorded video preview",
+    "starting": "Starting camera…"
+  }
+}

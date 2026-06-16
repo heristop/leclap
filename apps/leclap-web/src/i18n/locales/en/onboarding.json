@@ -1,0 +1,44 @@
+{
+  "welcome": {
+    "title": "Welcome to",
+    "subtitle": "Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.",
+    "features": {
+      "record": "Record a short intro with your camera",
+      "template": "We apply a cinematic sample template",
+      "download": "Download your finished video"
+    },
+    "start": "Create my intro",
+    "checking": "Checking your browser…",
+    "unsupported": "Browser can't record here",
+    "unsupportedHint": "Use Chrome, Edge, or Firefox on desktop to record your intro.",
+    "skip": "Skip for now"
+  },
+  "create": {
+    "title": "Present yourself",
+    "subtitle": "Tell us your name and record a short clip — that's all we need.",
+    "nameLabel": "Your name",
+    "namePlaceholder": "e.g. Alex",
+    "recorded": "Intro recorded",
+    "reRecord": "Re-record",
+    "record": "Record",
+    "upload": "Upload",
+    "recordAria": "Record an intro with your camera",
+    "uploadAria": "Upload an intro video",
+    "uploadInputAria": "Upload intro video",
+    "create": "Create my video"
+  },
+  "compiling": {
+    "title": "Creating your video…",
+    "subtitle": "This runs entirely in your browser — hang tight."
+  },
+  "done": {
+    "title": "Your first video is ready!",
+    "videoAria": "Your created video",
+    "startCreating": "Start creating"
+  },
+  "error": {
+    "title": "That didn't work",
+    "continueToBuilder": "Continue to Templates"
+  },
+  "skipAria": "Skip onboarding"
+}

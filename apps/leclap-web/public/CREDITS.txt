@@ -1,0 +1,94 @@
+Media credits — leclap web app
+================================
+
+These curated assets are bundled under public/ for the template editor's
+"Background music" and "Background image" pickers. In-app, each item also shows
+its author and license next to the preview.
+
+MUSIC (public/musics/)
+----------------------
+- Point Being — Go By Ocean / Ryan McCaffrey
+  License: YouTube Audio Library — free to use, no attribution required.
+  Source: https://www.youtube.com/audiolibrary
+
+- Americana — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100254
+
+- Arcadia — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100291
+
+- Anxiety — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100288
+
+- Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Monkeys%20Spinning%20Monkeys.mp3
+
+- Fluffing a Duck — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Fluffing%20a%20Duck.mp3
+
+- Sneaky Snitch — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3
+
+- Carefree — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3
+
+- Pixelland — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Pixelland.mp3
+
+- The Builder — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Builder.mp3
+
+- Brain Dance — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Brain%20Dance.mp3
+
+- Local Forecast - Elevator — Kevin MacLeod (incompetech.com)
+  License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
+  Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast%20-%20Elevator.mp3
+
+Tracks are trimmed to ~75s to keep the bundle small; the composer loops them to
+cover the full video length.
+
+BACKGROUNDS (public/backgrounds/)
+---------------------------------
+Photos from Unsplash (sourced via Lorem Picsum), free to use under the Unsplash
+License — https://unsplash.com/license
+
+- Forest & Sea — Paul Jarvis — https://unsplash.com/photos/6J--NXulQCs
+- Desk Flatlay — Aleks Dorohovich — https://unsplash.com/photos/nJdwUHmaY8A
+- Green Forest — Jerry Adney — https://unsplash.com/photos/_WiFMBRT7Aw
+- Rocky Coast — Austin Neill — https://unsplash.com/photos/erTjj730fMk
+- Laptop Desk — Luke Chesser — https://unsplash.com/photos/1uxV8fAfhVM
+- Golden Hour — Alexander Shustov — https://unsplash.com/photos/2FrX56QL7P8
+
+Keep this file in sync with apps/leclap-web/src/data/mediaCatalog.ts.
+
+FONTS (public/fonts/)
+---------------------
+Curated TrueType fonts bundled for the overlay-text editor, all licensed under
+the SIL Open Font License 1.1 — https://openfontlicense.org
+via Google Fonts (github.com/google/fonts).
+
+- Rubik
+- Oswald
+- Bebas Neue
+- Playfair Display
+- Pacifico
+- Roboto Mono
+- Anton
+- Archivo Black
+- Bungee
+- Abril Fatface
+- Righteous
+- Lobster
+
+Keep this file in sync with packages/creative-kit/src/fonts.ts.

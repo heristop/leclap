@@ -1,0 +1,75 @@
+import { z } from 'zod';
+import { TranslationSchema } from './global.schemas';
+
+// ── filter schemas ─────────────────────────────────────────────────────────────
+
+export const FilterValuesSchema = z
+  .object({
+    h: z
+      .union([z.number(), z.string()])
+      .optional()
+      .describe('Height parameter passed to the FFmpeg filter (pixels or expression).'),
+    w: z
+      .union([z.number(), z.string()])
+      .optional()
+      .describe('Width parameter passed to the FFmpeg filter (pixels or expression).'),
+    x: z
+      .union([z.number(), z.string()])
+      .optional()
+      .describe('Horizontal offset parameter passed to the FFmpeg filter.'),
+    y: z.union([z.number(), z.string()]).optional().describe('Vertical offset parameter passed to the FFmpeg filter.'),
+    c: z.string().optional().describe('Colour parameter passed to the FFmpeg filter (e.g. for drawbox).'),
+    t: z
+      .union([z.string(), z.number()])
+      .optional()
+      .describe('Time or thickness parameter passed to the FFmpeg filter.'),
+    text: TranslationSchema.optional().describe('Localised text rendered by the filter (e.g. for drawtext).'),
+    fontcolor: z
+      .string()
+      .optional()
+      .describe('Font colour passed to the drawtext filter, as a CSS hex string or FFmpeg colour name.'),
+    fontsize: z
+      .union([z.number(), z.string()])
+      .optional()
+      .describe('Font size in pixels or as an FFmpeg expression passed to the drawtext filter.'),
+    fontfile: z.string().optional().describe('Path or URL to the font file used by the drawtext filter.'),
+    alpha: z.string().optional().describe('Alpha (opacity) expression passed to the filter.'),
+    d: z.string().optional().describe('Duration parameter passed to the FFmpeg filter in seconds.'),
+    st: z.string().optional().describe('Start time parameter passed to the FFmpeg filter in seconds.'),
+    color: z.string().optional().describe('Alternate colour parameter (some filters use "color" instead of "c").'),
+  })
+  .describe('Key-value filter parameters forwarded verbatim to the corresponding FFmpeg filter.');
+
+export const FilterSchema = z
+  .object({
+    type: z
+      .string()
+      .describe(
+        'Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied.'
+      ),
+    value: z
+      .union([z.string(), z.number()])
+      .optional()
+      .describe('Single scalar parameter for simple filters that accept one value.'),
+    values: FilterValuesSchema.optional().describe('Structured parameters for multi-argument filters.'),
+    range: z.string().optional().describe('Time range over which the filter is active, as "start:end" in seconds.'),
+  })
+  .describe('A single FFmpeg filter applied to the section or input stream.');
+
+export const MapOptionsSchema = z
+  .object({
+    useSectionFilters: z
+      .boolean()
+      .optional()
+      .describe("When true, the section-level filters are applied inside this map's filter chain (default false)."),
+  })
+  .describe('Behavioural options for a map entry.');
+
+export const MapSchema = z
+  .object({
+    inputs: z.array(z.string()).describe("Ordered list of input stream labels fed into this map's filter graph."),
+    outputs: z.array(z.string()).describe("Ordered list of output stream labels produced by this map's filter graph."),
+    filters: z.array(FilterSchema).optional().describe('Filter chain applied between the map inputs and outputs.'),
+    options: MapOptionsSchema.optional().describe('Additional behavioural options for this map.'),
+  })
+  .describe('An FFmpeg filtergraph map connecting named input streams to output streams via an optional filter chain.');

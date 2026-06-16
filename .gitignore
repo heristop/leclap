@@ -6,3 +6,44 @@ coverage
 node_modules
 dist
 .env
+.playwright-mcp
+test-results
+playwright-report
+
+# local smoke-test / preview screenshots
+*-smoke.png
+form-banner-*.png
+
+# local Claude Code state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Curated media + fonts are committed once in
+# packages/creative-kit/src/library/ (the single source of truth).
+# scripts/copy-core-assets.ts copies them into each app's static dir on dev/build,
+# so the generated copies are not tracked.
+/apps/leclap-web/public/musics/
+/apps/leclap-web/public/backgrounds/
+/apps/leclap-web/public/fonts/
+/apps/leclap-web/public/assets/
+/apps/leclap-expo/assets/musics/
+/apps/leclap-expo/assets/backgrounds/
+/apps/leclap-expo/assets/fonts/
+/apps/leclap-expo/assets/videos/
+# keep the Expo app's own (non-library) font tracked
+!/apps/leclap-expo/assets/fonts/SpaceMono-Regular.ttf
+# server template JSONs copied from packages/server-app/templates by the same script
+/apps/leclap-expo/src/templates/server/
+
+# On-device FFmpeg engine — generated build artifacts (regenerable from source;
+# see scripts/ffmpeg/*.sh and packages/ffmpeg-engine/). dist/ + target/ already match above.
+/scripts/ffmpeg/.work/
+/scripts/ffmpeg/deps/
+/packages/ffmpeg-engine/target-host/
+/packages/ffmpeg-engine/*.o
+
+# Engine binaries staged into the Expo module — never committed; rebuild with
+# scripts/ffmpeg/build-engine.sh (see docs/on-device-compilation.md).
+apps/leclap-expo/modules/leclap-ffmpeg/android/src/main/jniLibs/
+apps/leclap-expo/modules/leclap-ffmpeg/ios/libleclap_ffmpeg_core.a
+apps/leclap-expo/modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework/

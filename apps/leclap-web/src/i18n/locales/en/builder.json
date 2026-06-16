@@ -1,0 +1,89 @@
+{
+  "srHeading": "Templates — create your video from a cinematic template",
+  "loadingEngine": "Loading Engine",
+  "project": {
+    "loading": "Loading your project…"
+  },
+  "chip": {
+    "template": "Template"
+  },
+  "steps": {
+    "template": "Template",
+    "details": "Details",
+    "clip": "Clip {{number}}",
+    "yourClip": "Your clip",
+    "music": "Music",
+    "create": "Create",
+    "done": "Done"
+  },
+  "modeToggle": {
+    "ariaLabel": "Builder layout",
+    "linear": "Step-by-step",
+    "hub": "All at once"
+  },
+  "stepTemplate": {
+    "title": "Choose Your Style",
+    "subtitle": "Select a cinematic template to start creating"
+  },
+  "stepMedia": {
+    "title": "Music & Background",
+    "subtitle": "Choose the soundtrack and backdrop for your video",
+    "music": "Music",
+    "background": "Background Image"
+  },
+  "stepProcess": {
+    "title": "Create Video",
+    "subtitle": "We're ready to build your masterpiece",
+    "summary": "Project Summary",
+    "template": "Template",
+    "clips": "Clips",
+    "videoCount": "{{count}} video(s)",
+    "engineStatus": "Engine Status",
+    "ready": "Ready",
+    "initializing": "Initializing...",
+    "progress": "Processing Progress"
+  },
+  "stepResult": {
+    "title": "Your Video is Ready!",
+    "subtitle": "Download and share your creation",
+    "createAnother": "Create Another Video"
+  },
+  "stepForm": {
+    "defaultTitle": "Your details",
+    "subtitle": "Fill in the details for this part"
+  },
+  "stepClip": {
+    "clipOf": "Clip {{number}} of {{total}}",
+    "editorLabel": "Trim & crop"
+  },
+  "edit": {
+    "trim": "Trim",
+    "crop": "Crop",
+    "videoAriaLabel": "Video being edited",
+    "resetTrim": "Reset trim",
+    "resetCrop": "Reset crop",
+    "cropHint": "Drag the frame or its corners to crop."
+  },
+  "hub": {
+    "subtitle": "Fill in each part, then create your video",
+    "next": "Next up",
+    "changeTemplate": "Change template",
+    "prevSection": "Previous section",
+    "nextSection": "Next section",
+    "completed_one": "{{done}} of {{count}} section completed",
+    "completed_other": "{{done}} of {{count}} sections completed",
+    "createCta": "Create my video",
+    "ready": "All set — ready to render",
+    "remaining_one": "Complete {{count}} more section to continue",
+    "remaining_other": "Complete {{count}} more sections to continue",
+    "yourDetails": "Your details",
+    "recordClip": "Record your clip",
+    "section": "Section",
+    "mediaHeading": "Music & background",
+    "mediaSubtitle": "Choose the soundtrack and backdrop",
+    "mediaSubtitleShort": "Choose soundtrack and backdrop",
+    "selectionSaved": "Selection saved",
+    "clipOf": "Clip {{number}} of {{total}}",
+    "recordOrUpload": "Record or upload your clip"
+  }
+}

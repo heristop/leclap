@@ -1,0 +1,139 @@
+{
+  "global": {
+    "variables": {
+      "watermark": "pictures/logo.png",
+      "colorsList": ["#FFFFFF"]
+    },
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    }
+  },
+  "sections": [
+    {
+      "name": "test_intertitle",
+      "type": "video",
+      "options": {
+        "useVideoSection": "video_1",
+        "duration": 6,
+        "musicVolume": 0.4
+      },
+      "inputs": [
+        {
+          "name": "intertitles_border",
+          "url": "animations/white_border.zip",
+          "type": "animation",
+          "options": {
+            "fps": 25,
+            "position": "0:0",
+            "scale": "1280:720",
+            "persistent": true
+          },
+          "filters": []
+        },
+        {
+          "name": "watermark",
+          "url": "{{ watermark }}"
+        }
+      ],
+      "maps": [
+        {
+          "inputs": ["@watermark"],
+          "filters": [
+            {
+              "type": "scale",
+              "values": {
+                "h": -1,
+                "w": 200
+              }
+            }
+          ],
+          "outputs": ["scaled_logo"]
+        },
+        {
+          "inputs": ["@video"],
+          "options": {
+            "useSectionFilters": true
+          },
+          "outputs": ["project_video"]
+        },
+        {
+          "inputs": ["@intertitles_border", "scaled_logo"],
+          "filters": [
+            {
+              "type": "overlay",
+              "value": "50:50"
+            }
+          ],
+          "outputs": ["animation_and_logo"]
+        },
+        {
+          "inputs": ["project_video", "animation_and_logo"],
+          "filters": [
+            {
+              "type": "overlay",
+              "value": "0:0"
+            }
+          ],
+          "outputs": ["final"]
+        }
+      ],
+      "filters": [
+        {
+          "type": "boxblur",
+          "value": "5"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 720,
+            "c": "{{ color1 }}@0.15",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
+            },
+            "fontcolor": "#FFFFFF",
+            "fontsize": 40,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/1.4",
+            "fontfile": "Inconsolata.ttf",
+            "alpha": "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "Job: {{ form_1_job }}"
+            },
+            "fontcolor": "#FFFFFF",
+            "fontsize": 40,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/1.4+60",
+            "fontfile": "Inconsolata.ttf",
+            "alpha": "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'"
+          }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#000000"
+          }
+        }
+      ]
+    }
+  ]
+}

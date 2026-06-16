@@ -1,0 +1,32 @@
+{
+  "instructions": {
+    "portrait": "Hold your device vertically for best results",
+    "landscape": "Hold your device horizontally for best results"
+  },
+  "countdown": {
+    "getReady": "Get ready…",
+    "accessibility": "Recording in {{value}}"
+  },
+  "endWarning": {
+    "wrapUp": "Wrap up — {{remaining}}s left",
+    "timesUp": "Time’s up"
+  },
+  "permissions": {
+    "checking": "Checking camera permissions...",
+    "title": "Camera Permission Required",
+    "message": "Please grant camera and microphone permissions to record video."
+  },
+  "noDevice": "No camera device available",
+  "alerts": {
+    "loadError": {
+      "title": "Error",
+      "message": "Could not load recording screen. Missing data."
+    },
+    "saveError": {
+      "title": "Error",
+      "message": "Failed to save recorded video. Please try again."
+    }
+  },
+  "loadingError": "Error loading recording screen.",
+  "processing": "Processing…"
+}

@@ -1,0 +1,348 @@
+{
+  "page": {
+    "heading": "Builder",
+    "subtitle": "Use a sample or craft your own — saved in this browser.",
+    "create": "Create template",
+    "myTemplates": "My templates",
+    "count": "({{count}})",
+    "empty": {
+      "title": "You haven't created any templates yet.",
+      "subtitle": "Start from scratch, or duplicate a sample below.",
+      "create": "Create your first template"
+    },
+    "samples": "Sample templates",
+    "goToBuilder": "Go to Templates",
+    "partials": "Partials"
+  },
+  "partials": {
+    "title": "Partials",
+    "subtitle": "Build reusable scene fragments with the same visual controls as templates.",
+    "back": "Templates"
+  },
+  "card": {
+    "noDescription": "No description",
+    "section_one": "{{count}} section",
+    "section_other": "{{count}} sections",
+    "form": "form",
+    "edit": "Edit",
+    "duplicate": "Duplicate & edit",
+    "delete": "Delete {{name}}"
+  },
+  "orientationLabel": {
+    "landscape": "landscape",
+    "portrait": "portrait"
+  },
+  "complexity": {
+    "simple": "simple",
+    "intermediate": "intermediate",
+    "advanced": "advanced"
+  },
+  "seo": {
+    "edit": "Edit template",
+    "create": "Create a template"
+  },
+  "editor": {
+    "title": {
+      "edit": "Edit template",
+      "create": "Create a template"
+    },
+    "subtitle": "Build your scenes top to bottom, then save — it appears in the builder as a Custom template.",
+    "back": "Templates",
+    "mode": {
+      "simple": "Simple",
+      "advanced": "Advanced"
+    },
+    "toolbar": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "export": "Export template JSON",
+      "import": "Import template JSON"
+    },
+    "basics": {
+      "name": "Name",
+      "namePlaceholder": "My template",
+      "orientation": "Orientation",
+      "landscape": "Landscape (16:9)",
+      "portrait": "Portrait (9:16)"
+    },
+    "advanced": {
+      "label": "Advanced settings",
+      "summary": "Audio mix · Variables"
+    },
+    "variables": {
+      "label": "Global variables",
+      "hint": "Reusable values you can insert as {{token}} in any text.",
+      "name": "Variable {{index}} name",
+      "value": "Variable {{index}} value",
+      "remove": "Remove variable {{index}}",
+      "namePlaceholder": "name",
+      "valuePlaceholder": "value",
+      "add": "Add variable"
+    },
+    "scenes": {
+      "label": "Scenes",
+      "hint": "Each scene plays in order, top to bottom — drag the handle to rearrange.",
+      "empty": "No scenes yet — add your first one below.",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "dropHere": "Drop here"
+    },
+    "addScene": {
+      "label": "Add a scene"
+    },
+    "sectionLabel": {
+      "video": "Your video",
+      "form": "Form fields",
+      "color": "Color background",
+      "music": "Background music",
+      "image": "Background image"
+    },
+    "card": {
+      "dragToReorder": "Drag to reorder",
+      "expand": "Expand section",
+      "collapse": "Collapse section",
+      "duplicate": "Duplicate section",
+      "remove": "Remove section"
+    },
+    "summary": {
+      "seconds": "{{count}}s",
+      "muted": "muted",
+      "overlay_one": "{{count}} overlay",
+      "overlay_other": "{{count}} overlays",
+      "countdown": "countdown {{count}}s",
+      "field_one": "{{count}} field",
+      "field_other": "{{count}} fields",
+      "track_one": "{{count}} track",
+      "track_other": "{{count}} tracks",
+      "image_one": "{{count}} image",
+      "image_other": "{{count}} images",
+      "upload": "upload"
+    },
+    "validation": {
+      "name": "Give your template a name.",
+      "atLeastOneSection": "Add at least one section.",
+      "mediaOrUpload": "Pick at least one option for the {{label}} section, or allow uploads.",
+      "fixErrors": "Fix the highlighted section errors before saving.",
+      "saveFailed": "Could not save the template."
+    },
+    "globalBanner": "This template has problems:",
+    "importError": {
+      "title": "Could not import",
+      "description": "The file is not a valid template descriptor."
+    },
+    "save": "Save template",
+    "cancel": "Cancel"
+  },
+  "media": {
+    "source": "Media source",
+    "tab": {
+      "library": "library",
+      "upload": "upload",
+      "url": "url"
+    },
+    "urlLabel": "Asset URL",
+    "urlPlaceholder": "https://example.com/media.mp4",
+    "urlHint": "Paste a direct link — fetched at compile time, not stored on device.",
+    "emptyLibrary": "Nothing here yet — upload your own instead.",
+    "emptyMultiLibrary": "Nothing in the library yet.",
+    "play": "Play {{title}}",
+    "pause": "Pause {{title}}",
+    "uploadMusic": "Upload a music file",
+    "uploadImage": "Upload a background image",
+    "dropTrack": "Drop a track or click to browse",
+    "dropImage": "Drop an image or click to browse",
+    "musicFormats": "MP3, WAV, M4A · stored on this device",
+    "imageFormats": "JPG, PNG, WebP · stored on this device",
+    "uploaded": "Uploaded · stored on this device",
+    "removeUpload": "Remove uploaded file"
+  },
+  "overlay": {
+    "textOverlays": "Text overlays",
+    "doubleClickToEdit": "Double-click to edit",
+    "textPlaceholder": "Add your text",
+    "editText": "Edit overlay text",
+    "selectOrAdd": "Select a text — or add one below.",
+    "addText": "Add text",
+    "size": "Size — {{size}}px",
+    "deleteText": "Delete text",
+    "color": "Color",
+    "textColor": "Text color",
+    "box": "Box",
+    "boxColor": "Box color",
+    "boxOpacity": "Box opacity — {{percent}}%",
+    "font": "Font",
+    "insertVariable": "Insert variable",
+    "insertVariableHint": "Add a form field or global variable first",
+    "label": "Text {{index}}",
+    "labelWithText": "Text: {{text}}"
+  },
+  "controls": {
+    "reset": "Reset {{label}}",
+    "muted": "Muted",
+    "volume": "{{label}} volume"
+  },
+  "audio": {
+    "label": "Audio",
+    "hint": "Balance your recorded clip against the music, then add finishing touches.",
+    "yourVideo": "Your video",
+    "music": "Music",
+    "normalize": "Normalize loudness",
+    "normalizeOff": "Off",
+    "normalizeLoudnorm": "Loudnorm",
+    "normalizeDynamic": "Dynamic",
+    "ducking": "Lower music when people speak"
+  },
+  "sectionAudio": {
+    "label": "Section audio",
+    "musicVolume": "Music volume",
+    "musicVolumeGlobal": "Music volume (global)",
+    "resetToGlobal": "Reset to global ({{percent}})",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "duration": "Duration (s)",
+    "fadeDuration": "{{side}} duration in seconds",
+    "curve": "Curve",
+    "fadeCurve": "{{side}} curve"
+  },
+  "framing": {
+    "label": "Framing guide",
+    "hint": "A silhouette shown while recording to help frame the shot — never rendered into the video.",
+    "none": "None",
+    "left": "Left",
+    "center": "Center",
+    "right": "Right",
+    "opacity": "Opacity",
+    "styleBust": "Bust",
+    "styleOutline": "Outline",
+    "mirrorNote": "Mirrored on the front camera, like a mirror.",
+    "noGuide": "No guide"
+  },
+  "grade": {
+    "fineTune": "Fine-tune",
+    "customised": "customised",
+    "brightness": "Brightness",
+    "contrast": "Contrast",
+    "saturation": "Saturation",
+    "gamma": "Gamma",
+    "hue": "Hue",
+    "blur": "Blur"
+  },
+  "layer": {
+    "background": "Background",
+    "position": "Position (% of frame)",
+    "base": "Base",
+    "name": "Layer {{index}}",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove layer",
+    "color": "{{name}} color",
+    "opacity": "Opacity",
+    "gradient": "Gradient",
+    "gradientStart": "Gradient start",
+    "gradientEnd": "Gradient end",
+    "direction": "Direction",
+    "add": "Add layer"
+  },
+  "look": {
+    "label": "Look",
+    "preset": "Look preset",
+    "none": "None"
+  },
+  "motion": {
+    "label": "Motion",
+    "direction": "Motion direction",
+    "kenBurns": "Ken Burns motion",
+    "intensity": "Intensity",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "panLeft": "Pan left",
+    "panRight": "Pan right",
+    "panUp": "Pan up",
+    "panDown": "Pan down"
+  },
+  "disclosure": {
+    "effects": "Effects",
+    "audio": "Audio",
+    "cameraGuide": "Camera guide"
+  },
+  "summaryChip": {
+    "none": "None",
+    "default": "Default",
+    "off": "Off",
+    "kenBurns": "Ken Burns",
+    "customVolume": "Custom volume",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "fadeInOut": "Fade in/out"
+  },
+  "hint": {
+    "video": "Record yourself on camera",
+    "form": "Ask the viewer for text to overlay",
+    "color": "Solid color card with a title",
+    "music": "Background track for the whole video",
+    "image": "A photo backdrop with motion"
+  },
+  "testRender": {
+    "rendering": "Rendering…",
+    "preview": "Preview render",
+    "ariaLabel": "Render a preview of this template with sample footage",
+    "title": "Preview render",
+    "description": "A fast 480p draft using sample footage — placeholder clips stand in for your video sections.",
+    "failed": "The preview render failed.",
+    "download": "Download draft"
+  },
+  "timeline": {
+    "label": "Timeline",
+    "ariaLabel": "Visual sections timeline",
+    "hint": "Click a block to jump to its section. Drag, or focus and press Alt + ← / → to reorder.",
+    "kind": {
+      "color": "Color background",
+      "image": "Image background",
+      "video": "Your video"
+    },
+    "chip": "{{kind}}, block {{position}} of {{count}}"
+  },
+  "transition": {
+    "title": "Transition",
+    "description": "How this section blends into the next one.",
+    "duration": "Duration",
+    "none": "No transition",
+    "cut": "Cut",
+    "label": "{{name}} · {{duration}}s",
+    "group": {
+      "Fades": "Fades",
+      "Wipes": "Wipes",
+      "Slides": "Slides",
+      "Circles": "Circles",
+      "Slices": "Slices",
+      "Covers": "Covers",
+      "Reveals": "Reveals"
+    }
+  },
+  "video": {
+    "duration": "Duration (s)",
+    "muteAudio": "Mute audio",
+    "whatToFilm": "What to film",
+    "whatToFilmPlaceholder": "e.g. Stand centered, look at the camera, say your name",
+    "whatToFilmHint": "Shown to the person filming while they record — a quick prompt, never burned into the video.",
+    "countdown": "Countdown before recording",
+    "countdownSeconds": "Countdown (s)"
+  },
+  "image": {
+    "pickImages": "Pick the images viewers can choose from.",
+    "allowUpload": "Allow viewers to upload their own image"
+  },
+  "musicSection": {
+    "pickTracks": "Pick the tracks viewers can choose from.",
+    "allowUpload": "Allow viewers to upload their own track"
+  },
+  "form": {
+    "fieldId": "Field ID",
+    "fieldIdPlaceholder": "field id",
+    "fieldLabel": "Field label",
+    "fieldLabelPlaceholder": "Label",
+    "maxLength": "Max length",
+    "removeField": "Remove field",
+    "addField": "Add field"
+  }
+}

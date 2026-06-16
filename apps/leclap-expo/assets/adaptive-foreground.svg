@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="LeClap">
+  <defs>
+    <pattern id="lcs" width="96" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-26)">
+      <rect width="96" height="96" fill="#FEF0A6"/>
+      <rect x="48" width="48" height="96" fill="#8C80D8"/>
+    </pattern>
+    <linearGradient id="lcBoard" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#FFA0B7"/>
+      <stop offset="1" stop-color="#EE6184"/>
+    </linearGradient>
+    <!-- soft dark glow so the clapper separates from the flat purple icon background -->
+    <filter id="lsh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="9" flood-color="#1C1540" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <!-- Adaptive-icon FOREGROUND only: the clapper, transparent background. Android shows just the
+       central ~72 of the 108dp foreground (a ~1.5x effective zoom under the mask), so the clapper is
+       kept to ~46% of the canvas, so it stays inside the visible circle and isn't cropped. The #7C83FD
+       background is the separate icon layer. -->
+  <g transform="translate(512 510) scale(0.88) translate(-297 -270)" filter="url(#lsh)">
+    <rect x="96" y="302" width="408" height="194" rx="40" fill="url(#lcBoard)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
+    <rect x="132" y="252" width="372" height="58" rx="18" fill="url(#lcs)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
+    <g transform="rotate(-25 140 250)">
+      <rect x="132" y="192" width="372" height="58" rx="18" fill="url(#lcs)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
+    </g>
+    <rect x="90" y="216" width="80" height="96" rx="24" fill="url(#lcBoard)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
+    <circle cx="130" cy="264" r="17" fill="#FFF6D0" stroke="#5E51AC" stroke-width="6"/>
+  </g>
+</svg>

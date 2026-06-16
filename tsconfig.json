@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
-    "rootDirs": ["src"],
+    "rootDirs": ["packages/ffmpeg-video-composer/src"],
     "outDir": "dist",
-    "lib": ["es2022"],
-    "target": "es2022",
+    "lib": ["es2024"],
+    "target": "es2024",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
+    "strict": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "types": ["node", "jest"],
-    "baseUrl": ".",
+    "types": ["node"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./packages/ffmpeg-video-composer/src/*"]
     }
   },
-  "exclude": ["dist", "./src/shared/assets/**/*"],
+  "exclude": ["dist", "./packages/ffmpeg-video-composer/src/shared/assets/**/*"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",

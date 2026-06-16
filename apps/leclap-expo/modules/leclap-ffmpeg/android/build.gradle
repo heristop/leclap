@@ -1,0 +1,30 @@
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+group = 'expo.modules.leclapffmpeg'
+version = '0.1.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+
+android {
+  namespace "expo.modules.leclapffmpeg"
+  compileSdkVersion rootProject.hasProperty("compileSdkVersion") ? rootProject.compileSdkVersion : 36
+
+  defaultConfig {
+    minSdkVersion 24
+    targetSdkVersion rootProject.hasProperty("targetSdkVersion") ? rootProject.targetSdkVersion : 36
+  }
+
+  // The Rust engine (libleclap_ffmpeg_core.so) + the FFmpeg .so libs ship in src/main/jniLibs.
+  // AGP packages them automatically; nothing else to declare.
+}
+
+dependencies {
+  // uniffi's generated Kotlin bindings load the engine via JNA; the @aar pulls in JNA's own .so.
+  // 5.17.0: its libjnidispatch.so is page-aligned for Android (4/16 KB). 5.14.0 shipped a 64 KB-
+  // aligned libjnidispatch.so that the API-34 bionic linker aborts on ("did_read_ failed").
+  implementation "net.java.dev.jna:jna:5.17.0@aar"
+}

@@ -1,0 +1,7 @@
+{
+  "default": {
+    "paths": ["features/**/*.feature"],
+    "import": ["features/**/*.ts"],
+    "format": ["summary"]
+  }
+}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary meta -->
+    <title>LeClap — Cinematic Video Composer in Your Browser</title>
+    <meta
+      name="description"
+      content="Create cinematic videos from templates right in your browser. LeClap runs client-side with WebAssembly and FFmpeg — no uploads, no servers, no limits."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0b0b0f" />
+    <link rel="canonical" href="https://leclap.dev/" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LeClap" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LeClap" />
+    <meta property="og:title" content="LeClap — Cinematic Video Composer in Your Browser" />
+    <meta
+      property="og:description"
+      content="Build cinematic videos from templates entirely in your browser. Powered by WebAssembly and FFmpeg — no uploads, no servers, no limits."
+    />
+    <meta property="og:url" content="https://leclap.dev/" />
+    <meta property="og:image" content="https://leclap.dev/og-image.png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LeClap — Cinematic Video Composer in Your Browser" />
+    <meta
+      name="twitter:description"
+      content="Build cinematic videos from templates entirely in your browser. Powered by WebAssembly and FFmpeg — no uploads, no servers, no limits."
+    />
+    <meta name="twitter:image" content="https://leclap.dev/og-image.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Structured data: the web app itself -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "LeClap",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Any (modern web browser)",
+        "url": "https://leclap.dev/",
+        "description": "A cinematic video composer that runs entirely in the browser, building videos from templates with WebAssembly and FFmpeg — no servers or uploads.",
+        "browserRequirements": "Requires a browser with WebAssembly support",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <!-- Apply the theme before paint to avoid a flash of the wrong one. Default is the OS color
+         scheme; a saved choice (only written when the user toggles) overrides it. -->
+    <script>
+      (function () {
+        var stored = null;
+        try {
+          stored = localStorage.getItem('leclap-theme');
+        } catch (e) {
+          /* storage blocked — fall through to the system preference */
+        }
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var dark = stored === 'dark' || (stored !== 'light' && prefersDark);
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

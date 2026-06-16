@@ -1,0 +1,46 @@
+{
+  "global": {
+    "variables": {
+      "colorsList": ["#FFFFFF"]
+    },
+    "music": {
+      "name": "popopop",
+      "url": "musics/pop.mp3"
+    },
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 4
+    }
+  },
+  "sections": [
+    {
+      "name": "test_loop_intro",
+      "type": "video",
+      "options": {
+        "useVideoSection": "video_4",
+        "duration": 6,
+        "musicVolume": 0.6
+      },
+      "filters": [
+        {
+          "type": "boxblur",
+          "value": "5"
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "black"
+          }
+        }
+      ]
+    }
+  ]
+}

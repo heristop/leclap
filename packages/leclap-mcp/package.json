@@ -1,0 +1,48 @@
+{
+  "name": "@leclap/mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing ffmpeg-video-composer as agent-callable video composition tools",
+  "author": "heristop",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "leclap-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vp test run",
+    "test:integration": "pnpm --filter ffmpeg-video-composer build && pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ffmpeg-video-composer": "workspace:*",
+    "reflect-metadata": "^0.2.2",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@remotion/bundler": ">=4",
+    "@remotion/renderer": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "@remotion/bundler": { "optional": true },
+    "@remotion/renderer": { "optional": true }
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^13.0.0",
+    "@remotion/bundler": "^4.0.477",
+    "@remotion/renderer": "^4.0.477",
+    "@types/node": "^25.9.3",
+    "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}

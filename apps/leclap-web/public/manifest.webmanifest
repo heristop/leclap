@@ -1,0 +1,19 @@
+{
+  "name": "LeClap — Cinematic Video Composer",
+  "short_name": "LeClap",
+  "description": "Create cinematic videos from templates right in your browser. Runs client-side with WebAssembly and FFmpeg — no uploads, no servers.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0b0f",
+  "theme_color": "#0b0b0f",
+  "categories": ["multimedia", "productivity", "video"],
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/pwa-192x192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/pwa-512x512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/pwa-512x512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

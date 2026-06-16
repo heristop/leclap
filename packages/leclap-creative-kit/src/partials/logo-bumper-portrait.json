@@ -1,0 +1,31 @@
+{
+  "sections": [
+    {
+      "name": "logo_bumper",
+      "type": "video",
+      "options": {
+        "videoUrl": "https://github.com/heristop/leclap/raw/main/src/shared/assets/videos/leclap_bumper_portrait.mp4",
+        "duration": 2.4,
+        "muteSection": true
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 720, "h": 10, "c": "#7C83FD@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 1270, "w": 720, "h": 10, "c": "#FF8AAE@1", "t": "fill" }
+        },
+        {
+          "type": "fadein",
+          "values": { "color": "#0b0b0f" }
+        },
+        {
+          "type": "fadeout",
+          "values": { "color": "#0b0b0f" }
+        }
+      ]
+    }
+  ]
+}

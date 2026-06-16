@@ -1,0 +1,42 @@
+{
+  "kicker": "Your work",
+  "title": "Projects",
+  "subtitle": "Every build is saved here automatically — pick up a draft where you left off, or re-open a finished video.",
+  "seo": {
+    "title": "Projects",
+    "description": "Your saved LeClap video projects — resume drafts and re-open finished videos."
+  },
+  "status": {
+    "draft": "Draft",
+    "completed": "Completed"
+  },
+  "clips_one": "{{count}} clip",
+  "clips_other": "{{count}} clips",
+  "time": {
+    "justNow": "just now",
+    "minutes": "{{count}}m ago",
+    "hours": "{{count}}h ago",
+    "days": "{{count}}d ago",
+    "weeks": "{{count}}w ago",
+    "months": "{{count}}mo ago"
+  },
+  "actions": {
+    "new": "New project",
+    "resume": "Resume",
+    "view": "View",
+    "edit": "Edit build",
+    "rename": "Rename project",
+    "duplicate": "Duplicate project",
+    "delete": "Delete project"
+  },
+  "empty": {
+    "title": "No projects yet",
+    "hint": "Start a build and it'll be saved here so you can come back to it anytime."
+  },
+  "delete": {
+    "title": "Delete this project?",
+    "message": "“{{name}}” and its saved clips will be permanently removed. This can't be undone.",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  }
+}

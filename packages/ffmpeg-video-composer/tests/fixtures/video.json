@@ -1,0 +1,32 @@
+{
+  "global": {
+    "variables": {
+      "videoSample": "videos/earth.mp4",
+      "colorTransition": "#FFFFFF"
+    },
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    }
+  },
+  "sections": [
+    {
+      "name": "test_video",
+      "type": "video",
+      "options": {
+        "videoUrl": "{{ videoSample }}",
+        "duration": 2
+      },
+      "filters": [
+        {
+          "type": "fadein",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "actions": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "retry": "Retry",
+    "reset": "Reset",
+    "ok": "OK",
+    "tryAgain": "Try Again"
+  }
+}

@@ -1,0 +1,46 @@
+import 'reflect-metadata';
+import { describe, expect, it } from 'vitest';
+import { registerComposeGuide } from '../src/prompts/composeGuide.js';
+
+type Handler = (args: Record<string, unknown>) => unknown;
+
+function captureHandler(): Handler {
+  let captured: Handler | undefined;
+  const fakeServer = {
+    registerPrompt: (_name: string, _meta: unknown, cb: Handler) => {
+      captured = cb;
+    },
+  };
+
+  registerComposeGuide(fakeServer as never);
+
+  if (!captured) {
+    throw new Error('handler was not registered');
+  }
+
+  return captured;
+}
+
+describe('compose-video prompt', () => {
+  it('primes the schema-first authoring loop', () => {
+    const result = captureHandler()({ goal: 'a launch card', orientation: 'landscape' }) as {
+      messages: { content: { text: string } }[];
+    };
+    const text = result.messages[0].content.text;
+
+    expect(text).toContain('get_template_schema');
+    expect(text).toContain('validate_template');
+    expect(text).toContain('compose_video');
+  });
+
+  it('points to render_remotion_clip for an animated intro fed via userVideoPaths', () => {
+    const result = captureHandler()({ goal: 'a launch card', orientation: 'landscape' }) as {
+      messages: { content: { text: string } }[];
+    };
+    const text = result.messages[0].content.text;
+
+    expect(text).toContain('render_remotion_clip');
+    expect(text).toContain('project_video');
+    expect(text).toContain('userVideoPaths');
+  });
+});

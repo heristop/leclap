@@ -1,0 +1,88 @@
+{
+  "global": {
+    "variables": {
+      "video": "videos/earth.mp4",
+      "colorTransition": "#000000"
+    },
+    "music": {
+      "name": "point-being.mp3"
+    },
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.1
+    }
+  },
+  "sections": [
+    {
+      "name": "test_video_1",
+      "type": "video",
+      "options": {
+        "videoUrl": "{{ video }}",
+        "duration": 4,
+        "musicVolume": 1
+      },
+      "filters": [
+        {
+          "type": "fadein",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "test_video_2",
+      "type": "video",
+      "options": {
+        "videoUrl": "{{ video }}",
+        "duration": 4,
+        "musicVolume": 0.1
+      },
+      "filters": [
+        {
+          "type": "fadein",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "test_video_2",
+      "type": "video",
+      "options": {
+        "videoUrl": "{{ video }}",
+        "duration": 4,
+        "musicVolume": 2
+      },
+      "filters": [
+        {
+          "type": "fadein",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "{{ colorTransition }}"
+          }
+        }
+      ]
+    }
+  ]
+}

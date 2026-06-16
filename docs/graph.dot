@@ -1,165 +1,493 @@
-digraph G {
-	graph [bb="0,0,1145.5,684.75",
-		bgcolor="#111111",
-		layout=dot,
-		overlap=false,
-		pad=0.3,
-		rankdir=LR
-	];
-	node [color="#c6c5fe",
-		fontcolor="#c6c5fe",
-		fontname=Arial,
-		fontsize="14px",
-		height=0,
-		label="\N",
-		shape=box,
-		style=rounded
-	];
-	edge [color="#757575"];
-	"core/default.config.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="752.88,168.88",
-		width=1.9514];
-	"core/models/Project.ts"	[height=0.32986,
-		pos="463.12,168.88",
-		width=2.0868];
-	"core/models/Project.ts" -> "core/default.config.ts"	[pos="e,682.16,168.88 538.6,168.88 579.09,168.88 629.22,168.88 670.7,168.88"];
-	"core/types.d.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="752.88,116.88",
-		width=1.441];
-	"core/models/Project.ts" -> "core/types.d.ts"	[pos="e,700.57,127.45 538.66,157.33 556.94,154.37 576.45,151.11 594.5,147.88 625.84,142.27 660.57,135.48 689.42,129.7"];
-	"core/models/Segment.ts"	[height=0.32986,
-		pos="463.12,126.88",
-		width=2.2639];
-	"core/models/Segment.ts" -> "core/types.d.ts"	[pos="e,700.51,118.66 545.05,124.06 590.73,122.48 646.95,120.52 689.25,119.05"];
-	"core/models/Template.ts"	[height=0.32986,
-		pos="463.12,84.875",
-		width=2.2743];
-	"core/models/Template.ts" -> "core/types.d.ts"	[pos="e,700.65,111.18 545.43,93.917 591.1,98.996 647.22,105.24 689.41,109.93"];
-	"director/TemplateConcreteBuilder.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="1028.4,53.875",
-		width=3.2014];
-	"director/TemplateDirector.ts"	[height=0.32986,
-		pos="752.88,53.875",
-		width=2.5139];
-	"director/TemplateDirector.ts" -> "director/TemplateConcreteBuilder.ts"	[pos="e,912.97,53.875 843.81,53.875 862.29,53.875 882.07,53.875 901.55,53.875"];
-	"editor/MusicComposer.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="463.12,210.88",
-		width=2.3056];
-	"editor/SegmentBuilder.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="463.12,315.88",
-		width=2.2743];
-	"editor/VideoEditor.ts"	[height=0.32986,
-		pos="147.88,210.88",
-		width=1.8993];
-	"editor/VideoEditor.ts" -> "editor/MusicComposer.ts"	[pos="e,379.91,210.88 216.46,210.88 260.93,210.88 319.74,210.88 368.66,210.88"];
-	"editor/factories/SegmentFactory.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="147.88,420.88",
-		width=3.0764];
-	"editor/managers/AssetManager.ts"	[height=0.32986,
-		pos="752.88,504.88",
-		width=3.0451];
-	"editor/managers/VariableManager.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="1028.4,483.88",
-		width=3.2535];
-	"editor/managers/AssetManager.ts" -> "editor/managers/VariableManager.ts"	[pos="e,910.79,492.83 862.76,496.51 874.84,495.59 887.24,494.64 899.53,493.69"];
-	"editor/managers/FilterManager.ts"	[height=0.32986,
-		pos="463.12,482.88",
-		width=2.9931];
-	"editor/managers/FormatterManager.ts"	[height=0.32986,
-		pos="752.88,462.88",
-		width=3.3993];
-	"editor/managers/FilterManager.ts" -> "editor/managers/FormatterManager.ts"	[pos="e,630.1,471.34 571.27,475.43 586.85,474.34 603.05,473.22 619.06,472.11"];
-	"editor/managers/FormatterManager.ts" -> "editor/managers/VariableManager.ts"	[pos="e,911.05,474.94 875.43,472.21 883.48,472.83 891.6,473.45 899.67,474.07"];
-	"editor/managers/MapManager.ts"	[height=0.32986,
-		pos="147.88,462.88",
-		width=2.9514];
-	"editor/managers/MapManager.ts" -> "editor/managers/FilterManager.ts"	[pos="e,355.1,476.04 254.49,469.62 283.23,471.45 314.55,473.45 343.94,475.33"];
-	"editor/managers/MapManager.ts" -> "editor/managers/FormatterManager.ts"	[pos="e,630.3,462.03 254.28,462.2 279.65,462.07 306.67,461.94 331.75,461.88 448.53,461.56 477.72,461.5 594.5,461.88 602.48,461.9 610.69,\
-461.93 618.98,461.97"];
-	"editor/segments/ColorBackgroundSegment.ts"	[height=0.32986,
-		pos="147.88,378.88",
-		width=4.0243];
-	"editor/segments/ColorBackgroundSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,418.62,328.19 245.51,366.54 262.31,363.97 279.58,361.06 295.75,357.88 333.4,350.45 375.28,339.87 407.61,331.18"];
-	"editor/segments/ImageBackgroundSegment.ts"	[height=0.32986,
-		pos="147.88,336.88",
-		width=4.1076];
-	"editor/segments/ImageBackgroundSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,380.86,321.32 295.87,327.02 321,325.34 346.47,323.63 369.67,322.07"];
-	"editor/segments/ProjectVideoSegment.ts"	[height=0.32986,
-		pos="147.88,294.88",
-		width=3.6389];
-	"editor/segments/ProjectVideoSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,381.18,310.45 279,303.6 309.57,305.65 341.53,307.79 370.03,309.7"];
-	"editor/segments/VideoSegment.ts"	[height=0.32986,
-		pos="147.88,252.88",
-		width=3.0556];
-	"editor/segments/VideoSegment.ts" -> "editor/SegmentBuilder.ts"	[pos="e,418.62,303.56 245.51,265.21 262.31,267.78 279.58,270.69 295.75,273.88 333.4,281.3 375.28,291.88 407.61,300.57"];
-	"index.ts"	[height=0.32986,
-		pos="463.12,42.875",
-		width=0.86806];
-	"index.ts" -> "core/types.d.ts"	[pos="e,716.42,104.59 494.71,46.35 521.31,49.717 560.78,55.542 594.5,63.875 605.6,66.619 663.41,86.326 705.76,100.91"];
-	"index.ts" -> "director/TemplateDirector.ts"	[pos="e,662.18,50.446 494.65,44.042 531.66,45.457 595.92,47.913 650.95,50.017"];
-	"platform/PlatformBridge.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="752.88,11.875",
-		width=2.4097];
-	"index.ts" -> "platform/PlatformBridge.ts"	[pos="e,665.93,21.134 494.65,39.587 532.47,35.512 598.75,28.371 654.56,22.359"];
-	"main.ts"	[height=0.32986,
-		pos="147.88,42.875",
-		width=0.83681];
-	"main.ts" -> "index.ts"	[pos="e,431.58,42.875 178.34,42.875 234.26,42.875 355.91,42.875 420.26,42.875"];
-	"platform/EventManager.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="147.88,504.88",
-		width=2.3785];
-	"platform/ffmpeg/AbstractFFmpeg.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="463.12,546.88",
-		width=3.191];
-	"platform/ffmpeg/AbstractMusic.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="463.12,588.88",
-		width=2.9826];
-	"platform/ffmpeg/FFmpegNodeAdapter.ts"	[height=0.32986,
-		pos="147.88,546.88",
-		width=3.5972];
-	"platform/ffmpeg/FFmpegNodeAdapter.ts" -> "platform/ffmpeg/AbstractFFmpeg.ts"	[pos="e,347.9,546.88 277.64,546.88 297.11,546.88 317.17,546.88 336.57,546.88"];
-	"platform/ffmpeg/MusicNodeAdapter.ts"	[height=0.32986,
-		pos="147.88,588.88",
-		width=3.3889];
-	"platform/ffmpeg/MusicNodeAdapter.ts" -> "platform/ffmpeg/AbstractMusic.ts"	[pos="e,355.38,588.88 269.99,588.88 294.29,588.88 319.79,588.88 343.99,588.88"];
-	"platform/filesystem/AbstractFilesystem.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="463.12,630.88",
-		width=3.6493];
-	"platform/filesystem/FilesystemNodeAdapter.ts"	[height=0.32986,
-		pos="147.88,630.88",
-		width=4.0556];
-	"platform/filesystem/FilesystemNodeAdapter.ts" -> "platform/filesystem/AbstractFilesystem.ts"	[pos="e,331.46,630.88 294.04,630.88 302.72,630.88 311.44,630.88 320.11,630.88"];
-	"platform/logging/AbstractLogger.ts"	[color="#cfffac",
-		fontcolor="#cfffac",
-		height=0.32986,
-		pos="463.12,672.88",
-		width=3.0764];
-	"platform/logging/PinoLogAdapter.ts"	[height=0.32986,
-		pos="147.88,672.88",
-		width=3.1493];
-	"platform/logging/PinoLogAdapter.ts" -> "platform/logging/AbstractLogger.ts"	[pos="e,352.05,672.88 261.52,672.88 287.19,672.88 314.58,672.88 340.6,672.88"];
+strict digraph "dependency-cruiser output"{
+    rankdir="LR" splines="ortho" overlap="false" nodesep="0.16" ranksep="0.18" fontname="Helvetica-bold" fontsize="9" style="rounded,bold,filled" fillcolor="transparent" compound="true" bgcolor="lightgray" color="black" fontcolor="black"
+    node [shape="box" style="rounded, filled" height="0.2" color="black" fillcolor="#ffffcc" fontcolor="black" fontname="Helvetica" fontsize="9"]
+    edge [arrowhead="normal" arrowsize="0.6" penwidth="2.0" color="#00000033" fontname="Helvetica" fontsize="9"]
+
+    subgraph "cluster_@ffmpeg" {label="@ffmpeg" "@ffmpeg/ffmpeg" [label=<ffmpeg> tooltip="ffmpeg" ] }
+    subgraph "cluster_@ffmpeg" {label="@ffmpeg" "@ffmpeg/util" [label=<util> tooltip="util" ] }
+    "axios" [label=<axios> tooltip="axios" ]
+    "child_process" [label=<child_process> tooltip="child_process" URL="https://nodejs.org/api/child_process.html" color="grey" fontcolor="grey"]
+    subgraph "cluster_dist" {label="dist" "dist/AssetManager-DePmCIXC.js" [label=<AssetManager-DePmCIXC.js> tooltip="AssetManager-DePmCIXC.js" URL="dist/AssetManager-DePmCIXC.js" ] }
+    "dist/AssetManager-DePmCIXC.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/AssetManager-DePmCIXC.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/AssetManager-DePmCIXC.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/EventManager-CLFYzLae.js" [label=<EventManager-CLFYzLae.js> tooltip="EventManager-CLFYzLae.js" URL="dist/EventManager-CLFYzLae.js" ] }
+    "dist/EventManager-CLFYzLae.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/EventManager-CLFYzLae.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/FFmpegWasmAdapter-CejzeqEC.js" [label=<FFmpegWasmAdapter-CejzeqEC.js> tooltip="FFmpegWasmAdapter-CejzeqEC.js" URL="dist/FFmpegWasmAdapter-CejzeqEC.js" ] }
+    "dist/FFmpegWasmAdapter-CejzeqEC.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/FFmpegWasmAdapter-CejzeqEC.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/FFmpegWasmAdapter-CejzeqEC.js" -> "@ffmpeg/ffmpeg" [style="dashed"]
+    "dist/FFmpegWasmAdapter-CejzeqEC.js" -> "@ffmpeg/util" [style="dashed"]
+    "dist/FFmpegWasmAdapter-CejzeqEC.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/FilterManager-CzI0e_kr.js" [label=<FilterManager-CzI0e_kr.js> tooltip="FilterManager-CzI0e_kr.js" URL="dist/FilterManager-CzI0e_kr.js" ] }
+    "dist/FilterManager-CzI0e_kr.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/FilterManager-CzI0e_kr.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/FilterManager-CzI0e_kr.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/FormatterManager-TvfDFkXB.js" [label=<FormatterManager-TvfDFkXB.js> tooltip="FormatterManager-TvfDFkXB.js" URL="dist/FormatterManager-TvfDFkXB.js" ] }
+    "dist/FormatterManager-TvfDFkXB.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/FormatterManager-TvfDFkXB.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/FormatterManager-TvfDFkXB.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/MapManager-CoJnCxHc.js" [label=<MapManager-CoJnCxHc.js> tooltip="MapManager-CoJnCxHc.js" URL="dist/MapManager-CoJnCxHc.js" ] }
+    "dist/MapManager-CoJnCxHc.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/MapManager-CoJnCxHc.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/MapManager-CoJnCxHc.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/MusicComposer-BOhj_q_7.js" [label=<MusicComposer-BOhj_q_7.js> tooltip="MusicComposer-BOhj_q_7.js" URL="dist/MusicComposer-BOhj_q_7.js" ] }
+    "dist/MusicComposer-BOhj_q_7.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/MusicComposer-BOhj_q_7.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/MusicComposer-BOhj_q_7.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/TemplateConcreteBuilder-D96Yv_Lp.js" [label=<TemplateConcreteBuilder-D96Yv_Lp.js> tooltip="TemplateConcreteBuilder-D96Yv_Lp.js" URL="dist/TemplateConcreteBuilder-D96Yv_Lp.js" ] }
+    "dist/TemplateConcreteBuilder-D96Yv_Lp.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/TemplateConcreteBuilder-D96Yv_Lp.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/TemplateConcreteBuilder-D96Yv_Lp.js" -> "dist/FFmpegWasmAdapter-CejzeqEC.js"
+    "dist/TemplateConcreteBuilder-D96Yv_Lp.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/VariableManager-DLtqyBRr.js" [label=<VariableManager-DLtqyBRr.js> tooltip="VariableManager-DLtqyBRr.js" URL="dist/VariableManager-DLtqyBRr.js" ] }
+    "dist/VariableManager-DLtqyBRr.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/VariableManager-DLtqyBRr.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/VariableManager-DLtqyBRr.js" -> "tsyringe"
+    subgraph "cluster_dist" {label="dist" "dist/decorate-Dpn-sGWD.js" [label=<decorate-Dpn-sGWD.js> tooltip="decorate-Dpn-sGWD.js" URL="dist/decorate-Dpn-sGWD.js" ] }
+    subgraph "cluster_dist" {label="dist" "dist/decorateParam-BHFVrJEk.js" [label=<decorateParam-BHFVrJEk.js> tooltip="decorateParam-BHFVrJEk.js" URL="dist/decorateParam-BHFVrJEk.js" ] }
+    subgraph "cluster_dist" {label="dist" "dist/index.js" [label=<index.js> tooltip="index.js" URL="dist/index.js" ] }
+    "dist/index.js" -> "dist/AssetManager-DePmCIXC.js" [style="dashed"]
+    "dist/index.js" -> "dist/decorate-Dpn-sGWD.js"
+    "dist/index.js" -> "dist/decorateParam-BHFVrJEk.js"
+    "dist/index.js" -> "dist/EventManager-CLFYzLae.js" [style="dashed"]
+    "dist/index.js" -> "dist/FFmpegWasmAdapter-CejzeqEC.js"
+    "dist/index.js" -> "dist/FilterManager-CzI0e_kr.js" [style="dashed"]
+    "dist/index.js" -> "dist/FormatterManager-TvfDFkXB.js" [style="dashed"]
+    "dist/index.js" -> "dist/MapManager-CoJnCxHc.js" [style="dashed"]
+    "dist/index.js" -> "dist/MusicComposer-BOhj_q_7.js" [style="dashed"]
+    "dist/index.js" -> "dist/TemplateConcreteBuilder-D96Yv_Lp.js" [style="dashed"]
+    "dist/index.js" -> "dist/VariableManager-DLtqyBRr.js" [style="dashed"]
+    "dist/index.js" -> "@ffmpeg/ffmpeg" [style="dashed"]
+    "dist/index.js" -> "axios"
+    "dist/index.js" -> "child_process" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "extract-zip"
+    "dist/index.js" -> "ffmpeg-static" [style="dashed"]
+    "dist/index.js" -> "fs" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "fs/promises" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "module" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "os" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "path" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "picocolors"
+    "dist/index.js" -> "pino"
+    "dist/index.js" -> "reflect-metadata"
+    "dist/index.js" -> "tsyringe"
+    "dist/index.js" -> "util" [style="dashed" penwidth="1.0"]
+    "dist/index.js" -> "zod"
+    subgraph "cluster_dns" {label="dns" "dns/promises" [label=<promises> tooltip="promises" URL="https://nodejs.org/api/dns.html" color="grey" fontcolor="grey"] }
+    "extract-zip" [label=<extract-zip> tooltip="extract-zip" ]
+    "ffmpeg-static" [label=<ffmpeg-static> tooltip="ffmpeg-static" ]
+    "fs" [label=<fs> tooltip="fs" URL="https://nodejs.org/api/fs.html" color="grey" fontcolor="grey"]
+    subgraph "cluster_fs" {label="fs" "fs/promises" [label=<promises> tooltip="promises" URL="https://nodejs.org/api/fs.html" color="grey" fontcolor="grey"] }
+    "module" [label=<module> tooltip="module" URL="https://nodejs.org/api/module.html" color="grey" fontcolor="grey"]
+    "net" [label=<net> tooltip="net" URL="https://nodejs.org/api/net.html" color="grey" fontcolor="grey"]
+    subgraph "cluster_node_modules" {label="node_modules" "node_modules/.pnpm" [label=<.pnpm> tooltip=".pnpm" URL="https://www.npmjs.com/package/.pnpm" shape="box3d" fillcolor="#c40b0a1a" fontcolor="#c40b0a"] }
+    "os" [label=<os> tooltip="os" URL="https://nodejs.org/api/os.html" color="grey" fontcolor="grey"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/creative-kit" {label="creative-kit" subgraph "cluster_packages/creative-kit/src" {label="src" "packages/creative-kit/src/fonts.ts" [label=<fonts.ts> tooltip="fonts.ts" URL="packages/creative-kit/src/fonts.ts" fillcolor="#ddfeff"] } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/creative-kit" {label="creative-kit" subgraph "cluster_packages/creative-kit/src" {label="src" "packages/creative-kit/src/partials.generated.ts" [label=<partials.generated.ts> tooltip="partials.generated.ts" URL="packages/creative-kit/src/partials.generated.ts" fillcolor="#ddfeff"] } } }
+    "packages/creative-kit/src/partials.generated.ts" -> "packages/creative-kit/src/partials/flash-card.json"
+    "packages/creative-kit/src/partials.generated.ts" -> "packages/creative-kit/src/partials/logo-bumper.json"
+    "packages/creative-kit/src/partials.generated.ts" -> "packages/creative-kit/src/types.ts" [arrowhead="onormal" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/creative-kit" {label="creative-kit" subgraph "cluster_packages/creative-kit/src" {label="src" "packages/creative-kit/src/partials.ts" [label=<partials.ts> tooltip="partials.ts" URL="packages/creative-kit/src/partials.ts" fillcolor="#ddfeff"] } } }
+    "packages/creative-kit/src/partials.ts" -> "packages/creative-kit/src/partials.generated.ts"
+    "packages/creative-kit/src/partials.ts" -> "packages/creative-kit/src/types.ts" [arrowhead="onormal" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/creative-kit" {label="creative-kit" subgraph "cluster_packages/creative-kit/src" {label="src" subgraph "cluster_packages/creative-kit/src/partials" {label="partials" "packages/creative-kit/src/partials/flash-card.json" [label=<flash-card.json> tooltip="flash-card.json" URL="packages/creative-kit/src/partials/flash-card.json" fillcolor="#ffee44"] } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/creative-kit" {label="creative-kit" subgraph "cluster_packages/creative-kit/src" {label="src" subgraph "cluster_packages/creative-kit/src/partials" {label="partials" "packages/creative-kit/src/partials/logo-bumper.json" [label=<logo-bumper.json> tooltip="logo-bumper.json" URL="packages/creative-kit/src/partials/logo-bumper.json" fillcolor="#ffee44"] } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/creative-kit" {label="creative-kit" subgraph "cluster_packages/creative-kit/src" {label="src" "packages/creative-kit/src/types.ts" [label=<types.ts> tooltip="types.ts" URL="packages/creative-kit/src/types.ts" fillcolor="#ddfeff"] } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" "packages/ffmpeg-video-composer/src/browser.ts" [label=<browser.ts> tooltip="browser.ts" URL="packages/ffmpeg-video-composer/src/browser.ts" fillcolor="#ddfeff"] } } }
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" [color="#00770077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" [color="#00770077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/BrowserEventManager.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/browser.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" "packages/ffmpeg-video-composer/src/cli.ts" [label=<cli.ts> tooltip="cli.ts" URL="packages/ffmpeg-video-composer/src/cli.ts" fillcolor="#ddfeff"] } } }
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "packages/ffmpeg-video-composer/src/cli/resolveAssetsDir.ts"
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "packages/ffmpeg-video-composer/src/index.ts"
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "fs/promises" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "path" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli.ts" -> "url" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/cli" {label="cli" "packages/ffmpeg-video-composer/src/cli/executable.js" [label=<executable.js> tooltip="executable.js" URL="packages/ffmpeg-video-composer/src/cli/executable.js" ] } } } }
+    "packages/ffmpeg-video-composer/src/cli/executable.js" -> "dist/index.js"
+    "packages/ffmpeg-video-composer/src/cli/executable.js" -> "fs/promises" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli/executable.js" -> "path" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli/executable.js" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/cli" {label="cli" "packages/ffmpeg-video-composer/src/cli/resolveAssetsDir.ts" [label=<resolveAssetsDir.ts> tooltip="resolveAssetsDir.ts" URL="packages/ffmpeg-video-composer/src/cli/resolveAssetsDir.ts" fillcolor="#ddfeff"] } } } }
+    "packages/ffmpeg-video-composer/src/cli/resolveAssetsDir.ts" -> "fs" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli/resolveAssetsDir.ts" -> "path" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/cli/resolveAssetsDir.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" "packages/ffmpeg-video-composer/src/core/argGuard.ts" [label=<argGuard.ts> tooltip="argGuard.ts" URL="packages/ffmpeg-video-composer/src/core/argGuard.ts" fillcolor="#ccccff"] } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" "packages/ffmpeg-video-composer/src/core/default.config.ts" [label=<default.config.ts> tooltip="default.config.ts" URL="packages/ffmpeg-video-composer/src/core/default.config.ts" fillcolor="#ccccff"] } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" "packages/ffmpeg-video-composer/src/core/encoding.ts" [label=<encoding.ts> tooltip="encoding.ts" URL="packages/ffmpeg-video-composer/src/core/encoding.ts" fillcolor="#ccccff"] } } } }
+    "packages/ffmpeg-video-composer/src/core/encoding.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" subgraph "cluster_packages/ffmpeg-video-composer/src/core/errors" {label="errors" "packages/ffmpeg-video-composer/src/core/errors/AssetNotFoundError.ts" [label=<AssetNotFoundError.ts> tooltip="AssetNotFoundError.ts" URL="packages/ffmpeg-video-composer/src/core/errors/AssetNotFoundError.ts" fillcolor="#ccccff"] } } } } }
+    "packages/ffmpeg-video-composer/src/core/errors/AssetNotFoundError.ts" -> "packages/ffmpeg-video-composer/src/core/errors/BaseError.ts" [color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" subgraph "cluster_packages/ffmpeg-video-composer/src/core/errors" {label="errors" "packages/ffmpeg-video-composer/src/core/errors/BaseError.ts" [label=<BaseError.ts> tooltip="BaseError.ts" URL="packages/ffmpeg-video-composer/src/core/errors/BaseError.ts" fillcolor="#ccccff"] } } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" subgraph "cluster_packages/ffmpeg-video-composer/src/core/errors" {label="errors" "packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" [label=<FFmpegError.ts> tooltip="FFmpegError.ts" URL="packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" fillcolor="#ccccff"] } } } } }
+    "packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" -> "packages/ffmpeg-video-composer/src/core/errors/BaseError.ts" [color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" subgraph "cluster_packages/ffmpeg-video-composer/src/core/models" {label="models" "packages/ffmpeg-video-composer/src/core/models/Project.ts" [label=<Project.ts> tooltip="Project.ts" URL="packages/ffmpeg-video-composer/src/core/models/Project.ts" fillcolor="#ccccff"] } } } } }
+    "packages/ffmpeg-video-composer/src/core/models/Project.ts" -> "packages/ffmpeg-video-composer/src/core/default.config.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/core/models/Project.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/core/models/Project.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" subgraph "cluster_packages/ffmpeg-video-composer/src/core/models" {label="models" "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [label=<Segment.ts> tooltip="Segment.ts" URL="packages/ffmpeg-video-composer/src/core/models/Segment.ts" fillcolor="#ccccff"] } } } } }
+    "packages/ffmpeg-video-composer/src/core/models/Segment.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/core/models/Segment.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" subgraph "cluster_packages/ffmpeg-video-composer/src/core/models" {label="models" "packages/ffmpeg-video-composer/src/core/models/Template.ts" [label=<Template.ts> tooltip="Template.ts" URL="packages/ffmpeg-video-composer/src/core/models/Template.ts" fillcolor="#ccccff"] } } } } }
+    "packages/ffmpeg-video-composer/src/core/models/Template.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/core/models/Template.ts" -> "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" [color="#ff880077"]
+    "packages/ffmpeg-video-composer/src/core/models/Template.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/core/models/Template.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/core" {label="core" "packages/ffmpeg-video-composer/src/core/types.d.ts" [label=<types.d.ts> tooltip="types.d.ts" URL="packages/ffmpeg-video-composer/src/core/types.d.ts" fillcolor="#ccccff"] } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/director" {label="director" "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" [label=<TemplateConcreteBuilder.ts> tooltip="TemplateConcreteBuilder.ts" URL="packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" fillcolor="#ccffcc"] } } } }
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/director" {label="director" "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" [label=<TemplateDirector.ts> tooltip="TemplateDirector.ts" URL="packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" fillcolor="#ccffcc"] } } } }
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/platform/AbstractEventManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" [arrowhead="onormal" penwidth="1.0" color="#00770077"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "packages/creative-kit/src/partials.ts"
+    "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" [label=<MusicComposer.ts> tooltip="MusicComposer.ts" URL="packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" fillcolor="#ffcccc"] } } } }
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [label=<SegmentBuilder.ts> tooltip="SegmentBuilder.ts" URL="packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" fillcolor="#ffcccc"] } } } }
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/audioFade.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/inputSources.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/presets/captions.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/editor/presets/looks.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/argGuard.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/encoding.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" [label=<VideoEditor.ts> tooltip="VideoEditor.ts" URL="packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" fillcolor="#ffcccc"] } } } }
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/platform/AbstractEventManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/core/encoding.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" "packages/ffmpeg-video-composer/src/editor/audioFade.ts" [label=<audioFade.ts> tooltip="audioFade.ts" URL="packages/ffmpeg-video-composer/src/editor/audioFade.ts" fillcolor="#ffcccc"] } } } }
+    "packages/ffmpeg-video-composer/src/editor/audioFade.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/factories" {label="factories" "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" [label=<SegmentFactory.ts> tooltip="SegmentFactory.ts" URL="packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "packages/ffmpeg-video-composer/src/editor/segments/ColorBackgroundSegment.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "packages/ffmpeg-video-composer/src/editor/segments/ImageBackgroundSegment.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "packages/ffmpeg-video-composer/src/editor/segments/ProjectVideoSegment.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "packages/ffmpeg-video-composer/src/editor/segments/VideoSegment.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/factories/SegmentFactory.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" "packages/ffmpeg-video-composer/src/editor/inputSources.ts" [label=<inputSources.ts> tooltip="inputSources.ts" URL="packages/ffmpeg-video-composer/src/editor/inputSources.ts" fillcolor="#ffcccc"] } } } }
+    "packages/ffmpeg-video-composer/src/editor/inputSources.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/editor/inputSources.ts" -> "packages/ffmpeg-video-composer/src/core/argGuard.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/inputSources.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/managers" {label="managers" "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" [label=<AssetManager.ts> tooltip="AssetManager.ts" URL="packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/managers" {label="managers" "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" [label=<FilterManager.ts> tooltip="FilterManager.ts" URL="packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/core/encoding.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/editor/presets/looks.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/managers" {label="managers" "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [label=<FormatterManager.ts> tooltip="FormatterManager.ts" URL="packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/managers" {label="managers" "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" [label=<MapManager.ts> tooltip="MapManager.ts" URL="packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/managers" {label="managers" "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [label=<VariableManager.ts> tooltip="VariableManager.ts" URL="packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/presets" {label="presets" "packages/ffmpeg-video-composer/src/editor/presets/captions.ts" [label=<captions.ts> tooltip="captions.ts" URL="packages/ffmpeg-video-composer/src/editor/presets/captions.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/presets/captions.ts" -> "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/editor/presets/captions.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/presets/captions.ts" -> "packages/creative-kit/src/fonts.ts"
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/presets" {label="presets" "packages/ffmpeg-video-composer/src/editor/presets/looks.ts" [label=<looks.ts> tooltip="looks.ts" URL="packages/ffmpeg-video-composer/src/editor/presets/looks.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/presets/looks.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/editor/presets/looks.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/segments" {label="segments" "packages/ffmpeg-video-composer/src/editor/segments/ColorBackgroundSegment.ts" [label=<ColorBackgroundSegment.ts> tooltip="ColorBackgroundSegment.ts" URL="packages/ffmpeg-video-composer/src/editor/segments/ColorBackgroundSegment.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/segments/ColorBackgroundSegment.ts" -> "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/segments/ColorBackgroundSegment.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/segments" {label="segments" "packages/ffmpeg-video-composer/src/editor/segments/ImageBackgroundSegment.ts" [label=<ImageBackgroundSegment.ts> tooltip="ImageBackgroundSegment.ts" URL="packages/ffmpeg-video-composer/src/editor/segments/ImageBackgroundSegment.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/segments/ImageBackgroundSegment.ts" -> "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/segments/ImageBackgroundSegment.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/segments" {label="segments" "packages/ffmpeg-video-composer/src/editor/segments/ProjectVideoSegment.ts" [label=<ProjectVideoSegment.ts> tooltip="ProjectVideoSegment.ts" URL="packages/ffmpeg-video-composer/src/editor/segments/ProjectVideoSegment.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/segments/ProjectVideoSegment.ts" -> "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/segments/ProjectVideoSegment.ts" -> "packages/ffmpeg-video-composer/src/core/argGuard.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/segments/ProjectVideoSegment.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/editor" {label="editor" subgraph "cluster_packages/ffmpeg-video-composer/src/editor/segments" {label="segments" "packages/ffmpeg-video-composer/src/editor/segments/VideoSegment.ts" [label=<VideoSegment.ts> tooltip="VideoSegment.ts" URL="packages/ffmpeg-video-composer/src/editor/segments/VideoSegment.ts" fillcolor="#ffcccc"] } } } } }
+    "packages/ffmpeg-video-composer/src/editor/segments/VideoSegment.ts" -> "packages/ffmpeg-video-composer/src/editor/SegmentBuilder.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/editor/segments/VideoSegment.ts" -> "packages/ffmpeg-video-composer/src/core/argGuard.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/editor/segments/VideoSegment.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" "packages/ffmpeg-video-composer/src/index.ts" [label=<index.ts> tooltip="index.ts" URL="packages/ffmpeg-video-composer/src/index.ts" fillcolor="#ddfeff"] } } }
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" [style="dashed" color="#00770077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" [color="#00770077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" [style="dashed" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" [style="dashed" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [style="dashed" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" [style="dashed" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [style="dashed" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" [style="dashed" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" [arrowhead="inv" color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/EventManager.ts" [style="dashed" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="inv" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "packages/ffmpeg-video-composer/src/utils/terminal.ts" [arrowhead="inv" color="#8800ff77"]
+    "packages/ffmpeg-video-composer/src/index.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" "packages/ffmpeg-video-composer/src/main.ts" [label=<main.ts> tooltip="main.ts" URL="packages/ffmpeg-video-composer/src/main.ts" fillcolor="#ddfeff"] } } }
+    "packages/ffmpeg-video-composer/src/main.ts" -> "packages/ffmpeg-video-composer/src/index.ts"
+    "packages/ffmpeg-video-composer/src/main.ts" -> "packages/ffmpeg-video-composer/src/utils/terminal.ts" [color="#8800ff77"]
+    "packages/ffmpeg-video-composer/src/main.ts" -> "fs/promises" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/main.ts" -> "path" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/main.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" "packages/ffmpeg-video-composer/src/platform/AbstractEventManager.ts" [label=<AbstractEventManager.ts> tooltip="AbstractEventManager.ts" URL="packages/ffmpeg-video-composer/src/platform/AbstractEventManager.ts" fillcolor="#ffffcc"] } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" "packages/ffmpeg-video-composer/src/platform/BrowserEventManager.ts" [label=<BrowserEventManager.ts> tooltip="BrowserEventManager.ts" URL="packages/ffmpeg-video-composer/src/platform/BrowserEventManager.ts" fillcolor="#ffffcc"] } } } }
+    "packages/ffmpeg-video-composer/src/platform/BrowserEventManager.ts" -> "packages/ffmpeg-video-composer/src/platform/AbstractEventManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/BrowserEventManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" "packages/ffmpeg-video-composer/src/platform/EventManager.ts" [label=<EventManager.ts> tooltip="EventManager.ts" URL="packages/ffmpeg-video-composer/src/platform/EventManager.ts" fillcolor="#ffffcc"] } } } }
+    "packages/ffmpeg-video-composer/src/platform/EventManager.ts" -> "packages/ffmpeg-video-composer/src/platform/AbstractEventManager.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/EventManager.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" [label=<PlatformBridge.ts> tooltip="PlatformBridge.ts" URL="packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" fillcolor="#ffffcc"] } } } }
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/utils/terminal.ts" [color="#8800ff77"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [label=<AbstractFFmpeg.ts> tooltip="AbstractFFmpeg.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" [label=<AbstractMusic.ts> tooltip="AbstractMusic.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" [label=<FFmpegDetector.ts> tooltip="FFmpegDetector.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" -> "packages/ffmpeg-video-composer/src/utils/terminal.ts" [color="#8800ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" -> "node_modules/.pnpm" [penwidth="1.0" style="dashed"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" -> "child_process" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" -> "os" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDetector.ts" -> "util" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" [label=<FFmpegLeclapAdapter.ts> tooltip="FFmpegLeclapAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/parseCommand.ts" [color="#ffff0077"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" [label=<FFmpegNodeAdapter.ts> tooltip="FFmpegNodeAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/parseCommand.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "child_process" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegNodeAdapter.ts" -> "util" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" [label=<FFmpegStaticAdapter.ts> tooltip="FFmpegStaticAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/parseCommand.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "child_process" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "module" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegStaticAdapter.ts" -> "util" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" [label=<FFmpegWasmAdapter.ts> tooltip="FFmpegWasmAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/errors/FFmpegError.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/parseCommand.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegWasmAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0" style="dashed"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" [label=<MusicFFmpegAdapter.ts> tooltip="MusicFFmpegAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" [label=<MusicNodeAdapter.ts> tooltip="MusicNodeAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "child_process" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "fs/promises" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "path" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicNodeAdapter.ts" -> "util" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" [label=<MusicWasmAdapter.ts> tooltip="MusicWasmAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractFFmpeg.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/AbstractMusic.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicWasmAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/ffmpeg" {label="ffmpeg" "packages/ffmpeg-video-composer/src/platform/ffmpeg/parseCommand.ts" [label=<parseCommand.ts> tooltip="parseCommand.ts" URL="packages/ffmpeg-video-composer/src/platform/ffmpeg/parseCommand.ts" fillcolor="#ffffcc"] } } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/filesystem" {label="filesystem" "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [label=<AbstractFilesystem.ts> tooltip="AbstractFilesystem.ts" URL="packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" fillcolor="#ffffcc"] } } } } }
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/filesystem" {label="filesystem" "packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts" [label=<BrowserFilesystemAdapter.ts> tooltip="BrowserFilesystemAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/filesystem" {label="filesystem" "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts" [label=<FilesystemExpoAdapter.ts> tooltip="FilesystemExpoAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/filesystem" {label="filesystem" "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" [label=<FilesystemNodeAdapter.ts> tooltip="FilesystemNodeAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/AbstractFilesystem.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/urlGuard.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0" arrowhead="onormal"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "fs" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "os" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "path" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemNodeAdapter.ts" -> "url" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/filesystem" {label="filesystem" "packages/ffmpeg-video-composer/src/platform/filesystem/urlGuard.ts" [label=<urlGuard.ts> tooltip="urlGuard.ts" URL="packages/ffmpeg-video-composer/src/platform/filesystem/urlGuard.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/filesystem/urlGuard.ts" -> "dns/promises" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/platform/filesystem/urlGuard.ts" -> "net" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/logging" {label="logging" "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [label=<AbstractLogger.ts> tooltip="AbstractLogger.ts" URL="packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/platform" {label="platform" subgraph "cluster_packages/ffmpeg-video-composer/src/platform/logging" {label="logging" "packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" [label=<PinoLogAdapter.ts> tooltip="PinoLogAdapter.ts" URL="packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" fillcolor="#ffffcc"] } } } } }
+    "packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [arrowhead="onormal" penwidth="1.0" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/platform/logging/PinoLogAdapter.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" "packages/ffmpeg-video-composer/src/reactnative.ts" [label=<reactnative.ts> tooltip="reactnative.ts" URL="packages/ffmpeg-video-composer/src/reactnative.ts" fillcolor="#ddfeff"] } } }
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/core/models/Project.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/core/models/Segment.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/core/models/Template.ts" [color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/core/types.d.ts" [arrowhead="onormal" penwidth="1.0" color="#0000ff77"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateConcreteBuilder.ts" [color="#00770077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/director/TemplateDirector.ts" [color="#00770077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/AssetManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FilterManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/FormatterManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/MapManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/managers/VariableManager.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/MusicComposer.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/editor/VideoEditor.ts" [color="#ff000077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/platform/BrowserEventManager.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts" [arrowhead="inv" color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/platform/ffmpeg/MusicFFmpegAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "packages/ffmpeg-video-composer/src/platform/logging/AbstractLogger.ts" [color="#ffff0077"]
+    "packages/ffmpeg-video-composer/src/reactnative.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/schemas" {label="schemas" "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [label=<effects.schemas.ts> tooltip="effects.schemas.ts" URL="packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" fillcolor="#ccffff"] } } } }
+    "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/schemas" {label="schemas" "packages/ffmpeg-video-composer/src/schemas/filter.schemas.ts" [label=<filter.schemas.ts> tooltip="filter.schemas.ts" URL="packages/ffmpeg-video-composer/src/schemas/filter.schemas.ts" fillcolor="#ccffff"] } } } }
+    "packages/ffmpeg-video-composer/src/schemas/filter.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/filter.schemas.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/schemas" {label="schemas" "packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" [label=<global.schemas.ts> tooltip="global.schemas.ts" URL="packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" fillcolor="#ccffff"] } } } }
+    "packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/schemas" {label="schemas" "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" [label=<section.schemas.ts> tooltip="section.schemas.ts" URL="packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" fillcolor="#ccffff"] } } } }
+    "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/filter.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/schemas" {label="schemas" "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [label=<template.schemas.ts> tooltip="template.schemas.ts" URL="packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" fillcolor="#ccffff"] } } } }
+    "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [arrowhead="inv" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/filter.schemas.ts" [arrowhead="inv" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/global.schemas.ts" [arrowhead="inv" color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" -> "packages/ffmpeg-video-composer/src/schemas/section.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/services" {label="services" "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" [label=<TemplateValidator.ts> tooltip="TemplateValidator.ts" URL="packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" fillcolor="#ffe0cc"] } } } }
+    "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" -> "packages/ffmpeg-video-composer/src/services/templateValidationRules.ts" [color="#ff880077"]
+    "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" -> "packages/creative-kit/src/partials.ts"
+    "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" -> "fs" [style="dashed" penwidth="1.0"]
+    "packages/ffmpeg-video-composer/src/services/TemplateValidator.ts" -> "node_modules/.pnpm" [penwidth="1.0" arrowhead="onormal"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/services" {label="services" "packages/ffmpeg-video-composer/src/services/templateValidationRules.ts" [label=<templateValidationRules.ts> tooltip="templateValidationRules.ts" URL="packages/ffmpeg-video-composer/src/services/templateValidationRules.ts" fillcolor="#ffe0cc"] } } } }
+    "packages/ffmpeg-video-composer/src/services/templateValidationRules.ts" -> "packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts" [color="#00ffff77"]
+    "packages/ffmpeg-video-composer/src/services/templateValidationRules.ts" -> "packages/ffmpeg-video-composer/src/schemas/template.schemas.ts" [arrowhead="onormal" penwidth="1.0" color="#00ffff77"]
+    subgraph "cluster_packages" {label="packages" subgraph "cluster_packages/ffmpeg-video-composer" {label="ffmpeg-video-composer" subgraph "cluster_packages/ffmpeg-video-composer/src" {label="src" subgraph "cluster_packages/ffmpeg-video-composer/src/utils" {label="utils" "packages/ffmpeg-video-composer/src/utils/terminal.ts" [label=<terminal.ts> tooltip="terminal.ts" URL="packages/ffmpeg-video-composer/src/utils/terminal.ts" fillcolor="#e6ccff"] } } } }
+    "packages/ffmpeg-video-composer/src/utils/terminal.ts" -> "node_modules/.pnpm" [penwidth="1.0"]
+    "path" [label=<path> tooltip="path" URL="https://nodejs.org/api/path.html" color="grey" fontcolor="grey"]
+    "picocolors" [label=<picocolors> tooltip="picocolors" ]
+    "pino" [label=<pino> tooltip="pino" ]
+    "reflect-metadata" [label=<reflect-metadata> tooltip="reflect-metadata" ]
+    "tsyringe" [label=<tsyringe> tooltip="tsyringe" ]
+    "url" [label=<url> tooltip="url" URL="https://nodejs.org/api/url.html" color="grey" fontcolor="grey"]
+    "util" [label=<util> tooltip="util" URL="https://nodejs.org/api/util.html" color="grey" fontcolor="grey"]
+    "zod" [label=<zod> tooltip="zod" ]
 }

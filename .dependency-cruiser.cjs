@@ -9,8 +9,8 @@ module.exports = {
         'your solution (i.e. use dependency inversion, make sure the modules have a single responsibility) ',
       from: {},
       to: {
-        circular: true
-      }
+        circular: true,
+      },
     },
     {
       name: 'no-orphans',
@@ -22,15 +22,15 @@ module.exports = {
       from: {
         orphan: true,
         pathNot: [
-          '(^|/)\\.[^/]+\\.(c?js|ts|mjs|cjs)$', // dot files
-          '\\.d\\.ts$',                         // TypeScript declaration files
-          '(^|/)tsconfig\\..*\\.json$',         // tsconfig files
-          '(^|/)(babel|jest|webpack)\\..*\\.(c?js|ts|mjs|cjs|json)$', // tool configurations
-          '(^|/)src/index\\.(c?js|ts|mjs|cjs)$', // index files
-          '(^|/)src/main\\.ts$'                 // main entry point
-        ]
+          String.raw`(^|/)\.[^/]+\.(c?js|ts|mjs|cjs)$`, // dot files
+          String.raw`\.d\.ts$`, // TypeScript declaration files
+          String.raw`(^|/)tsconfig\..*\.json$`, // tsconfig files
+          String.raw`(^|/)(babel|jest|webpack)\..*\.(c?js|ts|mjs|cjs|json)$`, // tool configurations
+          String.raw`(^|/)packages/ffmpeg-video-composer/src/index\.(c?js|ts|mjs|cjs)$`, // index files
+          String.raw`(^|/)packages/ffmpeg-video-composer/src/main\.ts$`, // main entry point
+        ],
       },
-      to: {}
+      to: {},
     },
     {
       name: 'not-to-deprecated',
@@ -41,32 +41,23 @@ module.exports = {
       severity: 'warn',
       from: {},
       to: {
-        dependencyTypes: [
-          'deprecated'
-        ]
-      }
-    }
+        dependencyTypes: ['deprecated'],
+      },
+    },
   ],
   options: {
     doNotFollow: {
       path: 'node_modules',
-      dependencyTypes: [
-        'npm',
-        'npm-dev',
-        'npm-optional',
-        'npm-peer',
-        'npm-bundled',
-        'npm-no-pkg'
-      ]
+      dependencyTypes: ['npm', 'npm-dev', 'npm-optional', 'npm-peer', 'npm-bundled', 'npm-no-pkg'],
     },
     tsPreCompilationDeps: true,
     tsConfig: {
-      fileName: 'tsconfig.json'
+      fileName: 'tsconfig.json',
     },
     enhancedResolveOptions: {
       exportsFields: ['exports'],
       conditionNames: ['import', 'require', 'node', 'default', 'types'],
-      mainFields: ['module', 'main', 'types', 'typings']
+      mainFields: ['module', 'main', 'types', 'typings'],
     },
     reporterOptions: {
       dot: {
@@ -77,54 +68,70 @@ module.exports = {
             color: 'black',
             fontcolor: 'black',
             fillcolor: 'transparent',
-            splines: 'ortho'
+            splines: 'ortho',
           },
           modules: [
             {
-              criteria: { source: '^src/core' },
-              attributes: { fillcolor: '#ccccff' }
+              criteria: { source: '^packages/ffmpeg-video-composer/src/core' },
+              attributes: { fillcolor: '#ccccff' },
             },
             {
-              criteria: { source: '^src/director' },
-              attributes: { fillcolor: '#ccffcc' }
+              criteria: { source: '^packages/ffmpeg-video-composer/src/director' },
+              attributes: { fillcolor: '#ccffcc' },
             },
             {
-              criteria: { source: '^src/editor' },
-              attributes: { fillcolor: '#ffcccc' }
+              criteria: { source: '^packages/ffmpeg-video-composer/src/editor' },
+              attributes: { fillcolor: '#ffcccc' },
             },
             {
-              criteria: { source: '^src/platform' },
-              attributes: { fillcolor: '#ffffcc' }
+              criteria: { source: '^packages/ffmpeg-video-composer/src/platform' },
+              attributes: { fillcolor: '#ffffcc' },
             },
             {
-              criteria: { source: '^src/shared' },
-              attributes: { fillcolor: '#ffccff' }
-            }
+              criteria: { source: '^packages/ffmpeg-video-composer/src/schemas' },
+              attributes: { fillcolor: '#ccffff' },
+            },
+            {
+              criteria: { source: '^packages/ffmpeg-video-composer/src/services' },
+              attributes: { fillcolor: '#ffe0cc' },
+            },
+            {
+              criteria: { source: '^packages/ffmpeg-video-composer/src/utils' },
+              attributes: { fillcolor: '#e6ccff' },
+            },
           ],
           dependencies: [
             {
-              criteria: { resolved: '^src/core' },
-              attributes: { color: '#0000ff77' }
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/core' },
+              attributes: { color: '#0000ff77' },
             },
             {
-              criteria: { resolved: '^src/director' },
-              attributes: { color: '#00770077' }
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/director' },
+              attributes: { color: '#00770077' },
             },
             {
-              criteria: { resolved: '^src/editor' },
-              attributes: { color: '#ff000077' }
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/editor' },
+              attributes: { color: '#ff000077' },
             },
             {
-              criteria: { resolved: '^src/platform' },
-              attributes: { color: '#ffff0077' }
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/platform' },
+              attributes: { color: '#ffff0077' },
             },
             {
-              criteria: { resolved: '^src/shared' },
-              attributes: { color: '#ff00ff77' }
-            }
-          ]
-        }
-      }
-    }
-  }
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/schemas' },
+              attributes: { color: '#00ffff77' },
+            },
+            {
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/services' },
+              attributes: { color: '#ff880077' },
+            },
+            {
+              criteria: { resolved: '^packages/ffmpeg-video-composer/src/utils' },
+              attributes: { color: '#8800ff77' },
+            },
+          ],
+        },
+      },
+    },
+  },
 };

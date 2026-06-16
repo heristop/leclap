@@ -1,0 +1,67 @@
+{
+  "error": {
+    "title": "Failed to load templates",
+    "message": "Failed to load templates. Please try again."
+  },
+  "orientation": {
+    "portrait": "Portrait 9:16",
+    "landscape": "Landscape 16:9"
+  },
+  "fields_one": "{{count}} field",
+  "fields_other": "{{count}} fields",
+  "autoProcess": "Auto-process",
+  "sections_one": "{{count}} section",
+  "sections_other": "{{count}} sections",
+  "music": "Music",
+  "custom": "Custom",
+  "complexity": {
+    "simple": "simple",
+    "intermediate": "intermediate",
+    "advanced": "advanced"
+  },
+  "search": {
+    "placeholder": "Search templates…",
+    "all": "All",
+    "portrait": "Portrait",
+    "landscape": "Landscape"
+  },
+  "empty": {
+    "title": "No templates match",
+    "hint": "Try a different search or clear the filters.",
+    "clear": "Clear filters"
+  },
+  "form": {
+    "header": {
+      "title": "Template Configuration",
+      "subtitle": "Fill in the required information to personalize your video"
+    },
+    "status": {
+      "required": "Required field",
+      "completed": "Field completed",
+      "maxChars": "Maximum {{count}} characters allowed",
+      "remaining": "{{count}} remaining",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "required",
+      "fieldRequired": "This field is required",
+      "maxCharsLabel": "(max {{count}} chars)"
+    },
+    "placeholder": {
+      "firstName": "Enter your first name",
+      "lastName": "Enter your last name",
+      "job": "Your job title",
+      "keyword": "Enter a keyword",
+      "description": "Enter description...",
+      "generic": "Enter {{label}}"
+    },
+    "validation": {
+      "completeTitle": "Form Complete!",
+      "completeMessage": "All required fields are filled. Ready to proceed.",
+      "incompleteTitle": "Form Incomplete",
+      "incompleteMessage": "Please fill in {{count}} remaining field(s)."
+    },
+    "noForm": {
+      "title": "No Form Required",
+      "message": "This template doesn't require any custom input. You can proceed directly to processing."
+    }
+  }
+}

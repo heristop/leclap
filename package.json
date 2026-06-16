@@ -1,93 +1,60 @@
 {
-  "name": "ffmpeg-video-composer",
-  "version": "1.0.0",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
+  "name": "leclap",
+  "private": true,
+  "type": "module",
   "author": "heristop",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/heristop/ffmpeg-video-composer.git"
+    "url": "git+https://github.com/heristop/leclap.git"
   },
-  "license": "MIT",
   "scripts": {
-    "compile": "node --loader ts-node/esm src/main.ts",
-    "lint": "eslint .",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:ci": "vitest run --coverage.enabled --coverage.reporter='text-summary'",
-    "test:coverage": "vitest run --coverage",
-    "test:precommit": "vitest --run",
-    "build": "tsdown",
-    "graph": "madge --dot --extensions ts src/ > graph.dot",
-    "deps:check": "depcruise src",
-    "deps:graph": "depcruise src --output-type dot | dot -T svg > docs/dependency-graph.svg",
-    "deps:html": "depcruise src --output-type html > docs/dependency-report.html",
-    "prepare": "husky",
-    "playground:start": "pnpm --filter le-clap run start",
-    "playground:android": "pnpm --filter le-clap run android",
-    "playground:ios": "pnpm --filter le-clap run ios",
-    "server:dev": "pnpm --filter server run build && pnpm --filter server run start"
-  },
-  "type": "module",
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "ffmpeg",
-    "video-processing",
-    "video-editing",
-    "ffmpeg-script"
-  ],
-  "dependencies": {
-    "axios": "^1.12.2",
-    "extract-zip": "^2.0.1",
-    "pino": "^10.0.0",
-    "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.10.0"
+    "compile": "node packages/ffmpeg-video-composer/compile.ts",
+    "diagnose": "node packages/ffmpeg-video-composer/diagnose.ts",
+    "build": "pnpm -r build",
+    "build:exe": "pnpm --filter @leclap/cli run build:exe",
+    "build:exe:all": "pnpm --filter @leclap/cli run build:exe:all",
+    "lint": "vp lint",
+    "fmt": "vp fmt",
+    "fmt:check": "vp fmt --check",
+    "format": "vp fmt",
+    "check": "vp check",
+    "test": "pnpm -r test",
+    "test:ui": "vp test --ui",
+    "test:ci": "vp test run --coverage.enabled --coverage.reporter=text-summary",
+    "test:coverage": "vp test run --coverage",
+    "test:integration": "pnpm --filter ffmpeg-video-composer test:integration && pnpm --filter @leclap/mcp test:integration",
+    "test:build": "pnpm --filter ffmpeg-video-composer build && vp test run packages/ffmpeg-video-composer/tests/build-output.test.ts",
+    "gen:icons": "node scripts/gen-icons.ts",
+    "gen:icons:native": "node scripts/gen-expo-native-icons.ts",
+    "deps:check": "depcruise packages/ffmpeg-video-composer/src",
+    "deps:dot": "depcruise packages/ffmpeg-video-composer/src --output-type dot > docs/graph.dot",
+    "deps:graph": "depcruise packages/ffmpeg-video-composer/src --output-type dot | dot -T svg > docs/dependency-graph.svg",
+    "deps:html": "depcruise packages/ffmpeg-video-composer/src --output-type html > docs/dependency-report.html",
+    "prepare": "vp config",
+    "app:web": "pnpm --filter @leclap/web run dev",
+    "app:expo": "pnpm --filter @leclap/expo run start",
+    "app:ios": "pnpm --filter @leclap/expo run ios",
+    "app:android": "pnpm --filter @leclap/expo run android",
+    "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/leclap-mcp/dist/index.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
-    "@swc/core": "^1.13.5",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.7.1",
-    "@typescript-eslint/eslint-plugin": "^8.46.0",
-    "@typescript-eslint/parser": "^8.46.0",
-    "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/ui": "^3.2.4",
-    "dependency-cruiser": "^17.0.2",
-    "eslint": "^9.37.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.4",
-    "globals": "^16.4.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.4",
-    "prettier": "^3.6.2",
-    "ts-jest": "^29.4.5",
+    "@resvg/resvg-js": "^2.6.2",
+    "@swc/core": "^1.15.41",
+    "@types/node": "^25.9.3",
+    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/ui": "^4.1.8",
+    "dependency-cruiser": "^17.4.3",
     "ts-node": "^10.9.2",
-    "tsdown": "^0.15.6",
-    "typescript": "^5.9.3",
-    "unplugin-swc": "^1.5.7",
-    "vite-plugin-checker": "^0.11.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "typescript": "^6.0.3",
+    "unplugin-swc": "^1.5.9",
+    "vite-plugin-checker": "^0.14.1",
+    "vite-plus": "^0.1.24",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.8"
   },
   "engines": {
-    "node": ">=22.14.0"
+    "node": ">=24.11.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@swc/core",
-      "esbuild"
-    ]
-  },
-  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
+  "packageManager": "pnpm@11.5.2"
 }

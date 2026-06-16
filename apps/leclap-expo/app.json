@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "LeClap",
+    "slug": "leclap",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo.png",
+    "scheme": "leclap",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "LeClap needs access to your camera to record videos for your projects",
+        "NSMicrophoneUsageDescription": "LeClap needs access to your microphone to record audio for your videos",
+        "NSPhotoLibraryUsageDescription": "LeClap needs access to your photo library to save and import your videos"
+      },
+      "bundleIdentifier": "com.heristop.leclap"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#7C83FD"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.heristop.leclap"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 150,
+          "resizeMode": "contain",
+          "backgroundColor": "#7C83FD"
+        }
+      ],
+      "expo-video",
+      "expo-font",
+      "expo-web-browser",
+      "expo-document-picker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "LeClap needs access to your photo library to use an image as a video background."
+        }
+      ],
+      "./plugins/withNdkVersion.js"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "API_URL": "http://localhost:8082"
+    }
+  }
+}

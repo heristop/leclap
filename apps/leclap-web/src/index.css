@@ -1,0 +1,751 @@
+@import 'tailwindcss';
+
+/* Class-based dark mode: `dark:` utilities apply under a `.dark` ancestor. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 dropped the default `cursor: pointer` on buttons — restore it for
+   every interactive element so clickable affordances feel right. */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled),
+  label[for],
+  summary,
+  a[href],
+  .tap {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+}
+
+/* Curated overlay-text fonts, bundled under /public/fonts (mirrors the creative kit
+   catalog in packages/creative-kit/src/fonts.ts). `font-family` matches
+   each entry's `cssFamily`; the same TTFs are preloaded for WASM drawtext. */
+@font-face {
+  font-family: 'Rubik';
+  src: url('/fonts/Rubik.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Oswald';
+  src: url('/fonts/Oswald.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('/fonts/BebasNeue.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/PlayfairDisplay.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pacifico';
+  src: url('/fonts/Pacifico.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('/fonts/RobotoMono.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anton';
+  src: url('/fonts/Anton.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo Black';
+  src: url('/fonts/ArchivoBlack.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bungee';
+  src: url('/fonts/Bungee.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Abril Fatface';
+  src: url('/fonts/AbrilFatface.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Righteous';
+  src: url('/fonts/Righteous.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lobster';
+  src: url('/fonts/Lobster.ttf') format('truetype');
+  font-display: swap;
+}
+
+html {
+  /* Fluid base: ~16px on phones → 18px on desktop, so the whole rem-based UI
+     scales down gracefully on small screens instead of overflowing. */
+  font-size: clamp(1rem, 0.92rem + 0.4vw, 1.125rem);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Reserve the scrollbar gutter so opening a dialog (which locks body scroll)
+     doesn't add compensating padding and trigger a horizontal scrollbar. */
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  /* Oswald is a condensed face — a touch of tracking keeps body copy legible
+     on the dark surface. */
+  letter-spacing: 0.012em;
+  /* Native-app feel: no blue tap flash, no rubber-band chaining, no accidental
+     text selection on UI chrome during taps. */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@theme {
+  /* ---------------------------------------------------------------------- */
+  /* LeClap brand system — mirrors the Expo (Tamagui) design language:      */
+  /* lavender primary, pink secondary, pastel-yellow accent, near-black     */
+  /* surfaces, Oswald display type. All values are OKLCH.                   */
+  /* ---------------------------------------------------------------------- */
+
+  /* Surfaces — LIGHT theme defaults; dark overrides live in `.dark` below */
+  --color-background: oklch(0.985 0.003 280);
+  --color-surface: oklch(0.965 0.004 280);
+  --color-surface-2: oklch(0.935 0.005 280);
+  --color-foreground: oklch(0.24 0.014 280);
+  --color-muted-foreground: oklch(0.5 0.012 280);
+  --color-divider: oklch(0.9 0.005 280);
+
+  /* Primary — Bleu lavande (#7C83FD) */
+  --color-brand-50: oklch(0.964 0.016 282.3);
+  --color-brand-100: oklch(0.93 0.031 281.8);
+  --color-brand-200: oklch(0.864 0.062 282);
+  --color-brand-300: oklch(0.787 0.104 281.3);
+  --color-brand-400: oklch(0.717 0.143 279.5);
+  --color-brand-500: oklch(0.663 0.178 277.9);
+  --color-brand-600: oklch(0.598 0.171 277.6);
+  --color-brand-700: oklch(0.525 0.159 276.9);
+  --color-brand-800: oklch(0.44 0.127 277.1);
+  --color-brand-900: oklch(0.332 0.09 277.8);
+
+  /* Secondary — Rose clair (#FF8AAE) */
+  --color-secondary-50: oklch(0.97 0.016 358);
+  --color-secondary-100: oklch(0.939 0.033 359.2);
+  --color-secondary-200: oklch(0.883 0.066 0.8);
+  --color-secondary-300: oklch(0.823 0.106 2.4);
+  --color-secondary-400: oklch(0.771 0.146 1.5);
+  --color-secondary-500: oklch(0.719 0.173 3.4);
+  --color-secondary-600: oklch(0.646 0.174 5.3);
+  --color-secondary-700: oklch(0.557 0.152 3.5);
+
+  /* Accent — Jaune pastel (#FFF685) */
+  --color-accent-300: oklch(0.975 0.075 103.6);
+  --color-accent-400: oklch(0.957 0.135 104.6);
+  --color-accent-500: oklch(0.918 0.159 103.3);
+  /* Darker amber for accent TEXT on light surfaces (the 300–500 yellows are legible only on dark). */
+  --color-accent-600: oklch(0.74 0.15 96);
+  --color-accent-700: oklch(0.57 0.13 84);
+
+  /* Semantic (Expo) */
+  /* Light pastel emerald-green fill; emerald-teal foreground for checks/labels/text on or of success. */
+  --color-success: oklch(0.84 0.065 160);
+  --color-success-foreground: oklch(0.53 0.11 172);
+  --color-error: oklch(0.643 0.215 28.8);
+  --color-warning: oklch(0.77 0.174 64.1);
+  --color-info: oklch(0.658 0.169 248.8);
+
+  /* Muted text ramp (LIGHT defaults; dark overrides in `.dark`). Used for text
+     hierarchy, not structural borders, with a faint lavender tint. In light
+     mode the steps darken (more contrast on white); in dark mode they brighten. */
+  --color-gray-100: oklch(0.28 0.012 280);
+  --color-gray-200: oklch(0.31 0.012 280);
+  --color-gray-300: oklch(0.34 0.012 280);
+  --color-gray-400: oklch(0.42 0.013 280);
+  --color-gray-500: oklch(0.5 0.014 280);
+  --color-gray-600: oklch(0.58 0.014 280);
+
+  --font-sans: 'Oswald', 'sans-serif';
+  --font-display: 'Oswald', 'sans-serif';
+
+  /* Radii (Expo radius scale) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Motion — one smooth curve, one springy curve, used everywhere for a */
+  /* cohesive "juicy" feel rather than scattered ad-hoc transitions.     */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-processing: processing 2s ease-in-out infinite;
+  --animate-fade-in: fade-in 0.6s var(--ease-out-expo) both;
+  --animate-rise-in: rise-in 0.5s var(--ease-spring) both;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-glow: glow 2.4s ease-in-out infinite;
+  --animate-gradient: gradient-pan 6s ease infinite;
+
+  /* Elevation — brand-tinted depth for the bold design system */
+  --shadow-md: 0 8px 24px -8px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 20px 50px -12px oklch(0 0 0 / 0.45);
+  --shadow-glow: 0 0 40px -8px oklch(0.663 0.178 277.9 / 0.45);
+
+  /* Expressive display type scale */
+  --text-display: clamp(2.5rem, 1.8rem + 3.5vw, 4.5rem);
+  --text-display-sm: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Theme switching — semantic tokens default to LIGHT (in @theme); the     */
+/* `.dark` class on <html> swaps them to the original dark surface values.  */
+/* Brand/secondary/accent scales stay constant across themes.              */
+/* ---------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --glass-bg: oklch(1 0 0 / 0.62);
+  --glass-border: oklch(0.3 0.02 280 / 0.1);
+  --grad-text: linear-gradient(
+    120deg,
+    var(--color-brand-600),
+    var(--color-secondary-600) 55%,
+    var(--color-secondary-700)
+  );
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-background: oklch(0.182 0 0);
+  --color-surface: oklch(0.235 0 0);
+  --color-surface-2: oklch(0.269 0 0);
+  --color-foreground: oklch(0.976 0.001 286.4);
+  --color-muted-foreground: oklch(0.757 0 0);
+  --color-divider: oklch(0.321 0 0);
+
+  --color-gray-100: oklch(0.93 0.01 280);
+  --color-gray-200: oklch(0.9 0.01 280);
+  --color-gray-300: oklch(0.87 0.01 280);
+  --color-gray-400: oklch(0.8 0.012 280);
+  --color-gray-500: oklch(0.7 0.014 280);
+  --color-gray-600: oklch(0.6 0.014 280);
+
+  --glass-bg: oklch(0.235 0 0 / 0.72);
+  --glass-border: oklch(1 0 0 / 0.08);
+  --grad-text: linear-gradient(120deg, var(--color-brand-300), var(--color-secondary-300) 55%, var(--color-accent-400));
+}
+
+/* Custom scrollbar — themed via tokens */
+::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-divider);
+  border-radius: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-brand-600);
+}
+
+/* Glassmorphism — restrained, over the Expo surface */
+@utility glass-panel {
+  background: oklch(1 0 0 / 0.7);
+  backdrop-filter: blur(0.75rem);
+  -webkit-backdrop-filter: blur(0.75rem);
+  border: 0.0625rem solid oklch(1 0 0 / 0.5);
+}
+
+@utility glass-panel-dark {
+  background: var(--glass-bg);
+  backdrop-filter: blur(0.75rem) saturate(1.1);
+  -webkit-backdrop-filter: blur(0.75rem) saturate(1.1);
+  border: 0.0625rem solid var(--glass-border);
+}
+
+/* The brand's signature gradient — lavender → pink. Used sparingly (primary */
+/* CTAs, active states, hero accents) so it reads as identity, not noise.    */
+@utility brand-gradient {
+  background-image: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-secondary-400) 100%);
+}
+
+@utility brand-gradient-text {
+  background-image: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Bold design-system utilities (Tailwind v4 `@utility` → variant-composable) --- */
+
+/* Animated brand→pink→accent text for hero headings. */
+@utility text-gradient-animated {
+  background-image: linear-gradient(
+    120deg,
+    var(--color-brand-400),
+    var(--color-secondary-400) 45%,
+    var(--color-accent-400),
+    var(--color-brand-400)
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 6s linear infinite;
+}
+
+@utility glow-brand {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Springy lift + brand glow on hover — the signature "pop". */
+@utility hover-pop {
+  transition:
+    transform 0.3s var(--ease-spring),
+    box-shadow 0.3s var(--ease-smooth);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+/* Gradient ring (lavender→pink) drawn with a mask — no extra DOM node. */
+@utility gradient-border {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--color-brand-500), var(--color-secondary-400));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* Subtle dotted texture for hero backdrops (theme-aware via divider token). */
+@utility bg-dots {
+  background-image: radial-gradient(var(--color-divider) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Design-system component blocks — BEM (block__element--modifier).        */
+/* Tailwind @apply supplies tokens/utilities; gradients/shadows/easing are  */
+/* inlined where @apply can't express them. See AGENTS.md › CSS & styling.  */
+/* ---------------------------------------------------------------------- */
+@layer components {
+  /* Button */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-300;
+    transition-timing-function: var(--ease-spring);
+    touch-action: manipulation;
+  }
+  .btn:focus-visible {
+    @apply outline-none ring-4 ring-brand-500/30;
+  }
+  .btn:disabled {
+    @apply opacity-50 pointer-events-none;
+  }
+  .btn__icon {
+    @apply w-5 h-5;
+  }
+  .btn--sm {
+    @apply text-sm px-3 py-1.5;
+  }
+  .btn--md {
+    @apply px-5 py-2.5;
+  }
+  .btn--lg {
+    @apply text-lg px-7 py-3.5;
+  }
+  .btn--primary {
+    @apply text-white shadow-lg;
+    background-image: linear-gradient(135deg, var(--color-brand-500), var(--color-secondary-400));
+  }
+  .btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+  .btn--secondary {
+    @apply bg-surface-2 text-foreground border border-divider;
+  }
+  .btn--secondary:hover {
+    transform: translateY(-2px);
+  }
+  .btn--ghost {
+    @apply text-gray-300;
+  }
+  .btn--ghost:hover {
+    @apply text-foreground;
+    background-color: oklch(0.5 0 0 / 0.12);
+  }
+  .btn--accent {
+    @apply bg-accent-400 text-gray-900 shadow-lg;
+  }
+  .btn--accent:hover {
+    transform: translateY(-2px);
+  }
+  .btn--danger {
+    @apply text-white;
+    background-color: var(--color-error);
+  }
+
+  /* Card */
+  .card {
+    @apply bg-surface border border-divider rounded-2xl;
+  }
+  .card--raised {
+    box-shadow: var(--shadow-md);
+  }
+  .card--floating {
+    box-shadow: var(--shadow-lg);
+  }
+  .card--interactive {
+    @apply cursor-pointer transition-all duration-300;
+    transition-timing-function: var(--ease-spring);
+  }
+  .card--interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider;
+  }
+  .badge--brand {
+    @apply bg-brand-500/20 text-brand-200 border border-brand-500/30;
+  }
+  .badge--secondary {
+    @apply bg-secondary-500/15 text-secondary-300 border border-secondary-500/25;
+  }
+  .badge--accent {
+    @apply bg-accent-400 text-gray-900;
+  }
+  .badge--neutral {
+    @apply text-gray-300 border border-divider;
+    background-color: oklch(0.5 0 0 / 0.1);
+  }
+  .badge--success {
+    @apply text-success-foreground;
+    background-color: oklch(0.84 0.065 160 / 0.15);
+    border: 1px solid oklch(0.84 0.065 160 / 0.3);
+  }
+
+  /* Heading */
+  .heading {
+    @apply font-display font-bold tracking-tight text-foreground;
+  }
+  .heading--display {
+    font-size: var(--text-display);
+    line-height: 1.05;
+  }
+  .heading--display-sm {
+    font-size: var(--text-display-sm);
+    @apply leading-tight;
+  }
+  .heading--lg {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  /* Field (form controls) */
+  .field {
+    @apply w-full px-3 py-2 rounded-lg bg-surface-2 border border-divider text-foreground transition-all;
+  }
+  .field::placeholder {
+    @apply text-gray-500;
+  }
+  .field:focus {
+    @apply outline-none border-brand-500 ring-2 ring-brand-500/30;
+  }
+}
+
+/* Juicy, reusable hover-lift for cards/CTAs. */
+@utility lift {
+  transition:
+    transform 0.3s var(--ease-spring),
+    box-shadow 0.3s var(--ease-smooth),
+    border-color 0.3s var(--ease-smooth);
+
+  &:hover {
+    transform: translateY(-0.3rem) scale(1.01);
+  }
+}
+
+/* Tactile press feedback — gives buttons/cards a native, springy "give". */
+@utility tap {
+  touch-action: manipulation;
+  transition: transform 0.18s var(--ease-spring);
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+/* Honour iOS/Android safe areas for full-bleed bars. */
+@utility safe-b {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+@keyframes processing {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(0.995);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes gradient-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@utility shimmer {
+  animation: var(--animate-shimmer);
+  background: linear-gradient(to right, var(--color-surface) 8%, var(--color-surface-2) 18%, var(--color-surface) 33%);
+  background-size: 800px 104px;
+}
+
+@utility processing {
+  animation: var(--animate-processing);
+}
+@utility fade-in {
+  animation: var(--animate-fade-in);
+}
+@utility rise-in {
+  animation: var(--animate-rise-in);
+}
+/* `animate-float` / `animate-glow` are auto-generated from the `--animate-*`
+   theme tokens, so no manual class is needed. */
+
+/* Respect users who prefer less motion — disable looping/entrance FX. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* View Transitions API — juicy cross-fade + slide on SPA route changes
+   (enabled per-link via React Router's `viewTransition` prop). Scoped to
+   exclude the theme toggle, which drives its own circular-reveal wipe below. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.theme-vt)::view-transition-old(root) {
+    animation: vt-out 0.22s var(--ease-smooth) both;
+  }
+  html:not(.theme-vt)::view-transition-new(root) {
+    animation: vt-in 0.42s var(--ease-out-expo) both;
+  }
+}
+
+/* Theme toggle wipe — the new theme sits on top and is revealed by the JS
+   clip-path animation (see `toggleTheme` in lib/theme.ts); the old theme stays
+   put underneath. We disable the default cross-fade so only the wipe shows. */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.theme-vt::view-transition-old(root) {
+  z-index: 1;
+}
+html.theme-vt::view-transition-new(root) {
+  z-index: 9999;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.992);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.992);
+  }
+}
+
+/* Juicy theme switch — briefly cross-fade themeable properties on toggle */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition:
+    background-color 0.34s var(--ease-smooth),
+    border-color 0.34s var(--ease-smooth),
+    color 0.34s var(--ease-smooth),
+    fill 0.34s var(--ease-smooth) !important;
+  transition-delay: 0s !important;
+}
+
+/* Professional, accessible focus ring (keyboard navigation only) */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Juicy: breathing halo on the active stepper node */
+@keyframes step-pulse {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.663 0.178 277.9 / 0.3);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px oklch(0.663 0.178 277.9 / 0);
+  }
+}
+.step-pulse {
+  animation: step-pulse 2.2s var(--ease-out-expo) infinite;
+}
+
+/* Juicy: spring-pop for elements that appear (checks, badges, success) */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.14);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.pop-in {
+  animation: pop-in 0.42s var(--ease-spring) both;
+}
+
+/* Juicy: a one-shot ring of dots that pops outward when a step completes.
+   Each dot's parent is rotated to its angle; this only animates the outward
+   travel + fade, so the burst reads as radial. Plays once (no infinite). */
+@keyframes dot-burst {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.3);
+  }
+  35% {
+    opacity: 0.85;
+    transform: translateY(-13px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.5);
+  }
+}
+.dot-burst {
+  animation: dot-burst 0.6s var(--ease-out-expo) both;
+}
+
+/* Juicy: floating action bar slides up from below the viewport */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(140%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.slide-up {
+  animation: slide-up 0.45s var(--ease-out-expo) both;
+}

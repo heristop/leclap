@@ -6,8 +6,8 @@ import { logger } from '@/lib/logger';
 import type { FieldRow } from './schemaFields';
 
 // ── Copyable command pill ───────────────────────────────────────────────────────
-// A dark terminal chip (Remotion-style): a `$` prompt + the command; the whole pill copies on click
-// and flashes a checkmark.
+// A dark terminal chip: a `$` prompt + the command; the whole pill copies on click and flashes a
+// checkmark.
 
 export const CommandPill = ({ command, label }: { command: string; label?: string }) => {
   const [copied, setCopied] = useState(false);

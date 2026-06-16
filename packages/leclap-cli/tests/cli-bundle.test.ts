@@ -41,7 +41,8 @@ describe('CLI bundle (dist/index.js)', () => {
     const { code, output } = await runCli(['render', fixture]);
 
     expect(output).not.toMatch(/is not a function/);
-    expect(output).toContain('Compilation completed successfully');
+    expect(output).not.toMatch(/"level":\d+/); // engine JSON logs are silenced
+    expect(output).toContain('Rendered');
     expect(code).toBe(0);
   }, 90_000);
 });

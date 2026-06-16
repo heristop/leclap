@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description    = 'The iOS native module for the embedded FFmpeg CLI engine used by leclap.'
   s.license        = 'MIT'
   s.author         = 'leclap'
-  s.homepage       = 'https://github.com/heristop/ffmpeg-video-composer'
+  s.homepage       = 'https://github.com/heristop/leclap'
   s.platforms      = { :ios => '15.1' }
   s.swift_version  = '5.9'
   s.source         = { git: '' }

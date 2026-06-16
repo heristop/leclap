@@ -45,7 +45,7 @@ describe('BrowserFilesystemAdapter.fetch', () => {
     });
 
     const path = await fs.resolveLocalAsset(
-      'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/leclap_bumper.mp4'
+      'https://github.com/heristop/leclap/raw/main/src/shared/assets/videos/leclap_bumper.mp4'
     );
 
     expect(window.fetch).toHaveBeenCalledWith('/assets/videos/leclap_bumper.mp4');
@@ -62,9 +62,7 @@ describe('BrowserFilesystemAdapter.fetch', () => {
     });
 
     await expect(
-      fs.resolveLocalAsset(
-        'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/missing.mp4'
-      )
+      fs.resolveLocalAsset('https://github.com/heristop/leclap/raw/main/src/shared/assets/videos/missing.mp4')
     ).resolves.toBeNull();
   });
 });

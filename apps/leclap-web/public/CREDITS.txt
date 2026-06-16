@@ -9,7 +9,7 @@ MUSIC (public/musics/)
 ----------------------
 - Go by Ocean — Ryan McCaffrey
   Bundled sample.
-  Source: https://github.com/heristop/ffmpeg-video-composer
+  Source: https://github.com/heristop/leclap
 
 - Americana — Kevin MacLeod (incompetech.com)
   License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/

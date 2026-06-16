@@ -82,8 +82,8 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
   private db: IDBDatabase | null = null;
   private readonly initPromise: Promise<void> | null = null;
   private static readonly rawPrefixes = [
-    'https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/',
-    'https://github.com/heristop/ffmpeg-video-composer/raw/main/packages/leclap-creative-kit/src/library/',
+    'https://github.com/heristop/leclap/raw/main/src/shared/assets/',
+    'https://github.com/heristop/leclap/raw/main/packages/leclap-creative-kit/src/library/',
   ];
 
   constructor() {

@@ -8,7 +8,7 @@
 
 Describe a video in one JSON _template_ — sections, filters, music, overlays — then render the **same template identically** on a phone (React Native, **on-device**) or in the **browser** (WebAssembly). No upload, no server, no generative model: the output is deterministic and reproducible.
 
-[![CI](https://github.com/heristop/ffmpeg-video-composer/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/ffmpeg-video-composer/actions/workflows/ci.yml)
+[![CI](https://github.com/heristop/leclap/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/leclap/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
 [![pnpm](https://img.shields.io/badge/pnpm-11-f69220.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org/)
@@ -39,14 +39,14 @@ See it in action (unmute for sound):
 
 https://github.com/user-attachments/assets/3d346912-c937-4b48-966e-fd8d7d05f70a
 
-<p align="center"><img src="https://github.com/heristop/ffmpeg-video-composer/raw/main/docs/leclap.gif" alt="LeClap mobile app" width="260" /></p>
+<p align="center"><img src="https://github.com/heristop/leclap/raw/main/docs/leclap.gif" alt="LeClap mobile app" width="260" /></p>
 
 ## 🚀 Quick start
 
 > 💡 **Recommended: [mise](https://mise.jdx.dev).** `mise install` provisions the exact pinned toolchain — **Node 24, pnpm 11, FFmpeg 8.1.1, and Rust** — so every contributor and CI run identical versions. Managing versions yourself? Bring **Node ≥ 24** and **pnpm 11**.
 
 ```bash
-git clone https://github.com/heristop/ffmpeg-video-composer.git
+git clone https://github.com/heristop/leclap.git
 cd ffmpeg-video-composer
 mise install     # Node 24, pnpm 11, FFmpeg 8.1.1 + Rust
 pnpm install
@@ -91,6 +91,7 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 
 ## 📚 Documentation
 
+- **[🌐 Descriptor reference (web)](https://leclap.dev/doc)** — the full, schema-driven descriptor reference, one page per topic (sections, transitions, looks, grade, motion, audio, captions, filters, examples, JSON Schema).
 - **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference.
 - **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
 - **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** — how automatic FFmpeg detection works.

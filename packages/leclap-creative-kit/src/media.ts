@@ -16,7 +16,7 @@ export const MUSIC_LIBRARY: MediaCredit[] = [
     title: 'Go by Ocean',
     author: 'Ryan McCaffrey',
     license: 'Bundled sample',
-    sourceUrl: 'https://github.com/heristop/ffmpeg-video-composer',
+    sourceUrl: 'https://github.com/heristop/leclap',
     file: 'go-by-ocean.mp3',
   },
   {

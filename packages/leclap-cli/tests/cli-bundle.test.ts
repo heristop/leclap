@@ -36,9 +36,9 @@ function runCli(args: string[]): Promise<CliResult> {
 }
 
 describe('CLI bundle (dist/index.js)', () => {
-  it('compiles a template end-to-end without missing-method errors', async () => {
+  it('renders a template end-to-end via the `render` subcommand', async () => {
     const fixture = path.join(here, 'fixtures/cli-smoke.json');
-    const { code, output } = await runCli([fixture]);
+    const { code, output } = await runCli(['render', fixture]);
 
     expect(output).not.toMatch(/is not a function/);
     expect(output).toContain('Compilation completed successfully');

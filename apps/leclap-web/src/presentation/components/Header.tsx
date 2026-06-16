@@ -38,9 +38,11 @@ const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
 // href carries the route; labelKey resolves to a common.nav.* translation.
 const navigationItems = [
   { labelKey: 'nav.home', href: '/' },
-  { labelKey: 'nav.builder', href: '/builder' },
+  // Naming swap (intentional): the create-a-video wizard at /builder is surfaced as "Templates", and
+  // the template manager at /templates is surfaced as "Builder".
+  { labelKey: 'nav.templates', href: '/builder' },
   { labelKey: 'nav.projects', href: '/projects' },
-  { labelKey: 'nav.templates', href: '/templates' },
+  { labelKey: 'nav.builder', href: '/templates' },
   { labelKey: 'nav.docs', href: '/doc' },
   { labelKey: 'nav.about', href: '/about' },
 ] as const;

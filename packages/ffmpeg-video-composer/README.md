@@ -33,8 +33,9 @@ const result = await compile(projectConfig, template);
 Prefer the command line? Use [`@leclap/cli`](https://github.com/heristop/ffmpeg-video-composer/tree/main/packages/leclap-cli):
 
 ```bash
-npx @leclap/cli my-template.json   # compile a template
-npx @leclap/cli --diagnose         # check your FFmpeg setup
+npx @leclap/cli init my-video             # scaffold a starter project
+npx @leclap/cli render my-template.json   # compile a template
+npx @leclap/cli diagnose                  # check your FFmpeg setup
 ```
 
 ## Entry points
@@ -54,7 +55,7 @@ The library picks the best available FFmpeg automatically:
 3. **WebAssembly** — `@ffmpeg/ffmpeg` in the browser (2 GB input limit).
 4. **None** — a clear error message with installation guidance.
 
-Run `npx @leclap/cli --diagnose` to see what your environment provides.
+Run `npx @leclap/cli diagnose` to see what your environment provides.
 
 ## Templates
 

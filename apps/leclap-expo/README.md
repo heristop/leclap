@@ -1,6 +1,6 @@
 # @leclap/expo — LeClap mobile
 
-Expo / React Native client for LeClap. It compiles videos **fully on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)) — no server — rendering the same [`@leclap/creative-kit`](../../packages/creative-kit) templates as the web app and CLI. Record a clip per template section from the camera, preview, then compile.
+Expo / React Native client for LeClap. It compiles videos **fully on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)) — no server — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the web app and CLI. Record a clip per template section from the camera, preview, then compile.
 
 ## Prerequisites
 

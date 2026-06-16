@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
-const libDir = resolve(root, 'packages/creative-kit/src/library');
+const libDir = resolve(root, 'packages/leclap-creative-kit/src/library');
 
 type CopyDest = { src: string; dest: string; include?: string[] };
 

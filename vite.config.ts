@@ -459,7 +459,7 @@ export default defineConfig({
         },
       },
       {
-        // Generated data modules (e.g. catalog/templates.generated.ts from scripts/embed-templates.ts)
+        // Generated data modules (e.g. creative-kit's templates.generated.ts from scripts/gen-templates.ts)
         // are machine-emitted, not hand-maintained, so the file/function size budgets don't apply.
         files: ['**/*.generated.ts'],
         rules: {

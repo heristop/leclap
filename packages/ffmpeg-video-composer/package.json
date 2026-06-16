@@ -2,7 +2,7 @@
   "name": "ffmpeg-video-composer",
   "version": "2.0.0-beta.0",
   "description": "Template-driven video composition: one JSON spec renders on Node, in the browser via WebAssembly, and fully on-device on React Native — powered by FFmpeg.",
-  "homepage": "https://github.com/heristop/ffmpeg-video-composer#readme",
+  "homepage": "https://github.com/heristop/leclap#readme",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -100,7 +100,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/heristop/ffmpeg-video-composer.git",
+    "url": "git+https://github.com/heristop/leclap.git",
     "directory": "packages/ffmpeg-video-composer"
   },
   "license": "MIT",

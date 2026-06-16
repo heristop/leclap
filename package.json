@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/heristop/ffmpeg-video-composer.git"
+    "url": "git+https://github.com/heristop/leclap.git"
   },
   "scripts": {
     "compile": "node packages/ffmpeg-video-composer/compile.ts",

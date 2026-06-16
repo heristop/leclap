@@ -2,6 +2,7 @@ import { Clapperboard, ArrowRight, Play, Film, Wand2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
+import { HomeShowcase } from '@/presentation/components/HomeShowcase';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
 import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
@@ -47,7 +48,7 @@ export const Home = () => {
 
           <div className="flex flex-col md:flex-row justify-center gap-6 fade-in" style={{ animationDelay: '0.6s' }}>
             <Button asChild size="lg" className="group rounded-full glow-brand hover:scale-105">
-              <Link to="/builder">
+              <Link to="/studio">
                 {t('hero.startCreating')}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -68,6 +69,9 @@ export const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Showcase — an actual in-browser render */}
+      <HomeShowcase />
 
       {/* Features Section */}
       <FeaturesSection />

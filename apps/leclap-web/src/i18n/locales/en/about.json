@@ -35,13 +35,14 @@
     "social": {
       "website": "Website",
       "github": "GitHub",
-      "twitter": "Twitter"
+      "twitter": "Twitter",
+      "coffee": "Buy me a coffee"
     }
   },
-  "builtWith": {
-    "title": "Built with",
-    "react": "Concurrent UI",
-    "ffmpeg": "Client-side rendering",
-    "tailwind": "Utility-first styling"
+  "thanks": {
+    "kicker": "With gratitude",
+    "lead": "None of this renders without FFmpeg.",
+    "body": "Every clip, filter, and transition LeClap produces runs on FFmpeg — decades of open-source multimedia engineering kept alive by a worldwide community of volunteers.",
+    "link": "Support the FFmpeg project"
   }
 }

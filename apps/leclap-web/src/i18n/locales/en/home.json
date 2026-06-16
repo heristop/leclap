@@ -5,6 +5,16 @@
     "startCreating": "Start Creating",
     "seeHow": "See How It Works"
   },
+  "showcase": {
+    "eyebrow": "See it in action",
+    "title": "Made entirely in your browser",
+    "subtitle": "No upload, no server — this clip was composed on-device from a template with transitions and music, then rendered by WebAssembly FFmpeg.",
+    "badge": "Sample render · in-browser",
+    "videoAria": "A sample video composed in LeClap, playing on a loop",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "volume": "Volume"
+  },
   "features": {
     "badge": "Everything, client-side",
     "title": "A real video composer, in the browser",

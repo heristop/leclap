@@ -13,7 +13,10 @@
     "videoAria": "A sample video composed in LeClap, playing on a loop",
     "mute": "Mute",
     "unmute": "Unmute",
-    "volume": "Volume"
+    "volume": "Volume",
+    "cta": "Make your own",
+    "browseTemplates": "Browse templates",
+    "readDocs": "Read the docs"
   },
   "features": {
     "badge": "Everything, client-side",

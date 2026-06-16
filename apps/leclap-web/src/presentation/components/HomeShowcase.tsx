@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
+import { Button } from '@/presentation/components/ui';
 
-// The clip is an actual LeClap render (1280x720), shipped under public/sample-videos. It plays as a
+// The clip is an actual LeClap render (1280x720), shipped under public/videos. It plays as a
 // muted ambient loop to show the product's output up front; a corner control lets viewers unmute.
-// The ~18 MB file is lazy-mounted only as the frame nears the viewport, so it never costs an
-// above-the-fold visitor. Reduced-motion users get a paused player with native controls.
-const VIDEO_SRC = '/sample-videos/drink-and-coffee.mp4';
+// Served VP9/WebM first (smaller) with an H.264/MP4 fallback for older Safari/iOS. The file is
+// lazy-mounted only as the frame nears the viewport, so it never costs an above-the-fold visitor.
+// Reduced-motion users get a paused player with native controls.
+const VIDEO_SRC_WEBM = '/videos/drink-and-coffee.webm';
+const VIDEO_SRC_MP4 = '/videos/drink-and-coffee.mp4';
 const DEFAULT_VOLUME = 0.7;
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -112,7 +116,6 @@ export const HomeShowcase = () => {
             {shouldLoad && (
               <video
                 ref={videoRef}
-                src={VIDEO_SRC}
                 className="h-full w-full object-cover"
                 autoPlay={!reduced}
                 loop
@@ -121,7 +124,10 @@ export const HomeShowcase = () => {
                 controls={reduced}
                 preload="metadata"
                 aria-label={t('showcase.videoAria')}
-              />
+              >
+                <source src={VIDEO_SRC_WEBM} type="video/webm" />
+                <source src={VIDEO_SRC_MP4} type="video/mp4" />
+              </video>
             )}
 
             <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
@@ -155,6 +161,23 @@ export const HomeShowcase = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* CTA cluster — remotion.dev-style composition (one filled primary + outlined secondaries),
+            built from the app's own Button variants and brand tokens. */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Button asChild size="lg" className="group rounded-full">
+            <Link to="/studio">
+              {t('showcase.cta')}
+              <ArrowRight className="transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="rounded-full">
+            <Link to="/templates">{t('showcase.browseTemplates')}</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="rounded-full">
+            <Link to="/doc">{t('showcase.readDocs')}</Link>
+          </Button>
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
-import { Clapperboard, ArrowRight, Play, Film, Wand2 } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
@@ -9,26 +10,37 @@ import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 
 export const Home = () => {
   const { t } = useTranslation('home');
+  // POC: a dimmed background clip behind the hero. Paused for reduced-motion viewers.
+  const [reduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
       <Seo />
       {/* Hero Section — always-dark "stage": force dark tokens regardless of theme */}
       <div className="dark relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80 z-0" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay z-0" />
-
-        {/* Floating Elements */}
-        <div className="absolute top-1/4 left-1/4 animate-float opacity-20" style={{ animationDelay: '0s' }}>
-          <Film className="w-24 h-24 text-blue-400" />
-        </div>
-        <div className="absolute bottom-1/4 right-1/4 animate-float opacity-20" style={{ animationDelay: '2s' }}>
-          <Clapperboard className="w-32 h-32 text-purple-400" />
-        </div>
-        <div className="absolute top-1/3 right-1/3 animate-float opacity-20" style={{ animationDelay: '4s' }}>
-          <Wand2 className="w-16 h-16 text-pink-400" />
-        </div>
+        {/* Cinematic stage: a base gradient, a dimmed/blurred background clip, the image overlay, then
+            a vignette that grounds the footage and keeps the hero copy legible. */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
+        <video
+          src="/videos/clapperboard.mp4"
+          className="pointer-events-none absolute inset-0 z-0 h-full w-full scale-105 object-cover opacity-40 blur-[3px]"
+          autoPlay={!reduced}
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay" />
+        {/* Vignette + center-darkening so the footage fades into the stage and the title stays readable. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_15%,rgba(8,8,14,0.72))]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-t from-background via-transparent to-background/40"
+        />
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1

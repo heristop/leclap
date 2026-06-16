@@ -10,7 +10,7 @@ import { compile, FFmpegNodeAdapter } from '@/index';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
 const buildDir = path.resolve(repoRoot, 'build');
-const assetsDir = path.resolve(repoRoot, 'packages/creative-kit/src/library');
+const assetsDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 
 // Project Configuration
 const projectConfig: ProjectConfig = {
@@ -38,7 +38,7 @@ const projectConfig: ProjectConfig = {
 };
 
 // The fixtures reference their assets as paths relative to the assets layout (e.g. `videos/earth.mp4`,
-// `musics/pop.mp3`). With `assetsDir` set to packages/creative-kit/src/library, the engine resolves
+// `musics/pop.mp3`). With `assetsDir` set to packages/leclap-creative-kit/src/library, the engine resolves
 // each one offline-first to the staged file — so the suite stays fully hermetic (no network, no
 // flakiness) while still exercising the whole pipeline (segments, filters, maps, concat, music).
 async function runTemplateCompilation(configName: string): Promise<string | null> {

@@ -14,7 +14,7 @@ const expandPartials = (descriptor: TemplateDescriptor): TemplateDescriptor =>
   expandPartialsCk(descriptor as Parameters<typeof expandPartialsCk>[0]) as unknown as TemplateDescriptor;
 
 const coreRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const creativeKitRoot = path.resolve(coreRoot, '../creative-kit');
+const creativeKitRoot = path.resolve(coreRoot, '../leclap-creative-kit');
 const RAW = 'https://github.com/heristop/ffmpeg-video-composer/raw/main/';
 const localRawPath = (relative: string): string => {
   if (relative.startsWith('src/shared/assets/')) {

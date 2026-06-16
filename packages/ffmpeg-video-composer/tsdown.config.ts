@@ -19,46 +19,9 @@ export default defineConfig([
     // fonts locally (FilesystemNodeAdapter.resolveBundledFont looks in dist/fonts) instead of
     // downloading them from Google Fonts. dist is already in package.json "files".
     copy: [
-      { from: '../creative-kit/src/library/fonts/*.ttf', to: 'dist/fonts' },
-      { from: '../creative-kit/src/library/musics/*.mp3', to: 'dist/musics' },
+      { from: '../leclap-creative-kit/src/library/fonts/*.ttf', to: 'dist/fonts' },
+      { from: '../leclap-creative-kit/src/library/musics/*.mp3', to: 'dist/musics' },
     ],
-    deps: {
-      onlyBundle: false,
-      neverBundle: [
-        'child_process',
-        'fs',
-        'path',
-        'os',
-        'util',
-        'events',
-        'node:events',
-        'stream',
-        'crypto',
-        'readline',
-        'tty',
-        'extract-zip',
-        'boxen',
-        'figlet',
-        'gradient-string',
-        'cli-spinners',
-        'pino',
-        'pino-pretty',
-        'ffmpeg-static',
-      ],
-    },
-  },
-  // CLI build — emitted as dist/cli.js so the package `bin` resolves inside the
-  // published tarball (the old src/cli/executable.js pointed outside the package).
-  {
-    entry: ['src/cli.ts'],
-    format: ['esm'],
-    outExtensions: () => ({ js: '.js' }),
-    dts: false,
-    sourcemap: true,
-    outDir: 'dist',
-    target: 'es2024',
-    platform: 'node',
-    banner: '#!/usr/bin/env node',
     deps: {
       onlyBundle: false,
       neverBundle: [

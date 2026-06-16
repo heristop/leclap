@@ -4,7 +4,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the
 [`ffmpeg-video-composer`](../ffmpeg-video-composer) engine as **agent-callable video tools**.
 
 An AI agent (Claude Desktop, Cursor, …) discovers the template schema and the built-in
-catalog (from [`@leclap/creative-kit`](../creative-kit)), **authors a JSON template itself**, and calls a tool to render it **deterministically**
+catalog (from [`@leclap/creative-kit`](../leclap-creative-kit)), **authors a JSON template itself**, and calls a tool to render it **deterministically**
 to an mp4. The server embeds no LLM — the calling agent is the LLM; this server validates and
 renders. The result is _agent-composable, deterministic, reproducible_ video — the opposite of
 generative (Sora/Runway). Design spec:
@@ -37,7 +37,7 @@ on-device filter allowlist), and the `validate_template` → `compose_video` loo
 # build the engine + this server, then start it over stdio
 pnpm --filter ffmpeg-video-composer build
 pnpm --filter @leclap/mcp build
-node packages/mcp/dist/index.js
+node packages/leclap-mcp/dist/index.js
 ```
 
 It speaks MCP over **stdio** (stdout is the protocol channel — all diagnostics go to stderr).
@@ -63,7 +63,7 @@ Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoP
   "mcpServers": {
     "leclap": {
       "command": "node",
-      "args": ["/abs/path/to/ffmpeg-video-composer/packages/mcp/dist/index.js"],
+      "args": ["/abs/path/to/ffmpeg-video-composer/packages/leclap-mcp/dist/index.js"],
       "env": {
         "LECLAP_MCP_OUTPUT_DIR": "/abs/path/to/Movies/leclap-renders",
         "LECLAP_MCP_MEDIA_DIR": "/abs/path/to/Movies"
@@ -78,7 +78,7 @@ Then ask the agent to _"list the video templates, then render the sample templat
 ### Inspector
 
 ```bash
-npx @modelcontextprotocol/inspector node packages/mcp/dist/index.js
+npx @modelcontextprotocol/inspector node packages/leclap-mcp/dist/index.js
 ```
 
 ## Architecture

@@ -11,7 +11,7 @@ import { builtinTemplates } from '../src/catalog/templates.generated.js';
 import { listTemplateSummaries, getTemplate } from '../src/catalog/index.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const creativeKitRoot = path.resolve(here, '../../creative-kit');
+const creativeKitRoot = path.resolve(here, '../../leclap-creative-kit');
 // The MCP catalog ships every @leclap/creative-kit template descriptor. Test/scenario fixtures
 // are outside this directory and are intentionally NOT cataloged.
 const TEMPLATE_DIR = path.join(creativeKitRoot, 'src/templates');

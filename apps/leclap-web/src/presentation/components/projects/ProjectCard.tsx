@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Clock, Copy, Film, Pencil, Play, SquarePen, Trash2 } from 'lucide-react';
 import { coverGradient } from '@/lib/poster';
 import { relativeTime } from '@/lib/relativeTime';
+import { useProjectPoster } from '@/hooks/useProjectPoster';
 import { Button, Card } from '@/presentation/components/ui';
 import type { StoredProject } from '@/lib/projectModel';
 
@@ -30,6 +31,7 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
   const completed = project.status === 'completed';
   const elapsed = relativeTime(project.updatedAt, Date.now());
   const clipCount = Object.keys(project.clips).length;
+  const poster = useProjectPoster(project);
 
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(project.name);
@@ -48,10 +50,34 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
 
   return (
     <Card className="lift group relative h-full overflow-hidden p-0">
-      <div className="relative h-24 overflow-hidden" style={{ backgroundImage: coverGradient(project.templateId) }}>
+      <div
+        className="relative h-24 overflow-hidden"
+        style={poster ? undefined : { backgroundImage: coverGradient(project.templateId) }}
+      >
+        {poster && (
+          <>
+            <img
+              src={poster}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 h-full w-full scale-105 object-cover blur-[3px] transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none"
+            />
+            {/* The template's seeded gradient as a translucent wash over the frame, so the gallery still
+                reads as grouped by template while the real render shows through underneath. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-55"
+              style={{ backgroundImage: coverGradient(project.templateId) }}
+            />
+          </>
+        )}
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(115%_115%_at_0%_0%,rgba(255,255,255,0.32),transparent_55%)]"
+          className={
+            poster
+              ? 'absolute inset-0 bg-gradient-to-t from-black/35 to-transparent'
+              : 'absolute inset-0 bg-[radial-gradient(115%_115%_at_0%_0%,rgba(255,255,255,0.32),transparent_55%)]'
+          }
         />
         <span className="absolute left-3 top-3 rounded-full bg-black/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white ring-1 ring-white/25 backdrop-blur-sm">
           {t(`status.${project.status}`)}

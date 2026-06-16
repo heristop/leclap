@@ -1,9 +1,8 @@
-# https://leclap.app/robots.txt
-# TODO: replace leclap.app with the real production domain.
+# https://leclap.dev/robots.txt
 User-agent: *
 Allow: /
 
 # Private template editor — keep it out of the index.
 Disallow: /admin
 
-Sitemap: https://leclap.app/sitemap.xml
+Sitemap: https://leclap.dev/sitemap.xml

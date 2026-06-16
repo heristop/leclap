@@ -11,7 +11,7 @@ export const AboutStats = () => {
   const { t } = useTranslation('about');
 
   return (
-    <div className="glass-panel-dark rounded-2xl p-6 sm:p-8 mb-16 fade-in" style={{ animationDelay: '0.1s' }}>
+    <div className="glass-panel-dark rounded-2xl p-6 sm:p-8 mb-16">
       <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-4">
         {stats.map(({ id, value, icon: Icon }) => (
           <div

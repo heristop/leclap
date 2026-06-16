@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// NOTE: replace with the real production domain (also used in index.html, robots.txt, sitemap.xml).
-const SITE_URL = 'https://leclap.app';
+// Production domain (also used in index.html, robots.txt, sitemap.xml).
+const SITE_URL = 'https://leclap.dev';
 
 type SeoProps = {
   /** Page title; rendered as "<title> — LeClap". Omit on the home page for the default. */

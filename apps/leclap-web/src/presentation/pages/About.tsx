@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AboutStats } from '@/presentation/components/about/AboutStats';
 import { AboutPillars } from '@/presentation/components/about/AboutPillars';
 import { AboutAuthor } from '@/presentation/components/about/AboutAuthor';
-import { AboutBuiltWith } from '@/presentation/components/about/AboutBuiltWith';
+import { AboutThanks } from '@/presentation/components/about/AboutThanks';
 import { Seo } from '@/presentation/components/Seo';
 import { Badge, Button, Reveal } from '@/presentation/components/ui';
 
@@ -39,26 +39,24 @@ export const About = () => {
             <AboutStats />
           </Reveal>
 
-          {/* Pillars */}
-          <Reveal delay={80}>
-            <AboutPillars />
-          </Reveal>
+          {/* Pillars — each card self-reveals with an internal cascade */}
+          <AboutPillars />
 
           {/* Author */}
           <Reveal delay={160}>
             <AboutAuthor />
           </Reveal>
 
-          {/* Built with */}
+          {/* Thanks to FFmpeg */}
           <Reveal delay={240}>
-            <AboutBuiltWith />
+            <AboutThanks />
           </Reveal>
 
           {/* CTA */}
           <Reveal delay={320} className="mt-16 text-center">
             <p className="text-gray-400 mb-6">{t('cta.prompt')}</p>
             <Button asChild size="lg" className="group rounded-full lift">
-              <Link to="/builder">
+              <Link to="/studio">
                 {t('cta.start')}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>

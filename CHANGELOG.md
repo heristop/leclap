@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-beta.0] - 2026-06-11
 
-Upgrading from v1? See the [migration guide](MIGRATION.md). The npm package name
+Upgrading from v1? See the [migration guide](packages/ffmpeg-video-composer/MIGRATION.md). The npm package name
 is **unchanged** (`ffmpeg-video-composer`); the `le-clap`→`leclap` rename was
 internal to the monorepo and does not affect consumers.
 

@@ -33,8 +33,10 @@ export const CommandPill = ({ command, label }: { command: string; label?: strin
       aria-label={copied ? 'Copied' : `Copy: ${command}`}
       className="tap group inline-flex max-w-full items-center gap-4 rounded-xl border border-white/10 bg-[oklch(0.2_0.01_280)] px-4 py-3 text-left shadow-lg shadow-black/20 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
     >
-      <code className="overflow-x-auto whitespace-nowrap font-mono text-sm text-gray-100">
-        <span aria-hidden className="select-none text-gray-500">
+      {/* The pill is always dark, but the theme's gray scale is tuned for light surfaces — use fixed
+          light tones so the command isn't dark-on-dark. */}
+      <code className="overflow-x-auto whitespace-nowrap font-mono text-sm text-[oklch(0.92_0.008_280)]">
+        <span aria-hidden className="select-none text-[oklch(0.62_0.01_280)]">
           ${' '}
         </span>
         {command}
@@ -42,7 +44,9 @@ export const CommandPill = ({ command, label }: { command: string; label?: strin
       <span
         className={cn(
           'ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md transition-colors',
-          copied ? 'text-success' : 'text-gray-400 group-hover:bg-white/10 group-hover:text-gray-100'
+          copied
+            ? 'text-success'
+            : 'text-[oklch(0.68_0.01_280)] group-hover:bg-white/10 group-hover:text-[oklch(0.95_0.005_280)]'
         )}
       >
         {copied ? <Check className="h-4 w-4 pop-in" /> : <Copy className="h-4 w-4" />}

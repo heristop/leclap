@@ -47,7 +47,7 @@ function ensureMiseFFmpeg() {
 function buildProjectConfig() {
   const cwd = process.cwd();
   const buildDir = path.resolve(cwd, 'build');
-  const assetsDir = path.resolve(scriptDir, '../creative-kit/src/library');
+  const assetsDir = path.resolve(scriptDir, '../leclap-creative-kit/src/library');
 
   return {
     buildDir,

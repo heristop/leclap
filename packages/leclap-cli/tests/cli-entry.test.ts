@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const compileMock = vi.fn();
 const loadConfigMock = vi.fn();
 
-vi.mock('../src/index', () => ({
+vi.mock('ffmpeg-video-composer', () => ({
   compile: (...args: unknown[]) => compileMock(...args),
   loadConfig: (...args: unknown[]) => loadConfigMock(...args),
   FFmpegDetector: {
@@ -42,7 +42,7 @@ vi.mock('picocolors', () => {
 
 const settleAutoRun = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-describe('cli.ts auto-run', () => {
+describe('CLI auto-run', () => {
   const originalArgv = process.argv;
   let exitSpy: ReturnType<typeof vi.spyOn>;
   let logSpy: ReturnType<typeof vi.spyOn>;
@@ -69,7 +69,7 @@ describe('cli.ts auto-run', () => {
   it('exits with failure when compilation resolves without an output path', async () => {
     compileMock.mockResolvedValue(null);
 
-    await import('../src/cli');
+    await import('../src/index');
     await settleAutoRun();
 
     expect(exitSpy).toHaveBeenCalledWith(1);

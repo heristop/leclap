@@ -457,7 +457,7 @@ describe('SegmentBuilder.buildFilters / formatFilters', () => {
 });
 
 describe('SegmentBuilder.buildInputs', () => {
-  it('adds a transparent lavfi color input when a background color is set but no assets', () => {
+  it('fills an asset-less color_background with its configured backgroundColor', () => {
     const segment = makeSegment();
     segment.inputsAsset = {} as unknown;
     const project = makeProject({ videoConfig: { scale: '1280:720' } });
@@ -466,13 +466,17 @@ describe('SegmentBuilder.buildInputs', () => {
     (builder as unknown as { section: Section }).section = {
       name: 'bg',
       type: 'color_background',
-      options: { backgroundColor: '#fff', duration: 3 },
+      options: { backgroundColor: '#3366cc', duration: 3 },
     } as never;
 
     builder.buildInputs();
 
-    // sources are internal; exercise the branch and confirm no throw via re-call
-    expect(() => builder.buildInputs()).not.toThrow();
+    // A solid color_background with no assets must use its color as the lavfi source — not a
+    // transparent placeholder, which renders white.
+    const sources = (builder as unknown as { sources: string[] }).sources;
+    const colorSource = sources.find((source) => source.includes('color=c='));
+    expect(colorSource).toContain('color=c=#3366cc');
+    expect(colorSource).not.toContain('white@0.0');
   });
 
   it('uses the configured background color when assets are present and adds -i inputs', () => {

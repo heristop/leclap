@@ -210,12 +210,13 @@ class SegmentBuilder {
   buildInputs = (): void => {
     const opts = this.section.options;
     const inputsAsset = this.segment.inputsAsset as unknown as InputsAssetMap;
-    const hasAssets = Object.keys(inputsAsset).length > 0;
 
     if (opts?.backgroundColor) {
       // Guard the RESOLVED color (variables/colorN already substituted by normalizeBackgroundColor):
       // it is interpolated unquoted into the `color=` lavfi source, so whitespace would inject argv.
-      const bgColor = assertSafeArgToken(hasAssets ? opts.backgroundColor : 'white@0.0', 'backgroundColor');
+      // The color fills the frame whether or not assets composite over it — an asset-less solid
+      // color_background must still use its own color (not a transparent placeholder, which is white).
+      const bgColor = assertSafeArgToken(opts.backgroundColor, 'backgroundColor');
       const scale = this.project.config.videoConfig?.scale?.replace(':', 'x') ?? '';
       const duration = opts.duration ?? '';
 

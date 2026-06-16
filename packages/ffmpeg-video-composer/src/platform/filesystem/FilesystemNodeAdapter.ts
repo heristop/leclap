@@ -77,7 +77,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       return path.join(this.assetsDir, dir);
     }
 
-    return path.join(this.root, 'packages', 'creative-kit', 'src', 'assets', dir);
+    return path.join(this.root, 'packages', 'leclap-creative-kit', 'src', 'assets', dir);
   };
 
   override getBuildPath = async (dir: string): Promise<string> => {
@@ -210,7 +210,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
   // Resolve a file shipped with the package (under `library/<kind>`) to an absolute local path.
   // Candidates cover both the bundled build (dist/<kind>, next to the entry) and running from
-  // source/tests (packages/creative-kit/src/library/<kind>). Returns null when it isn't bundled.
+  // source/tests (packages/leclap-creative-kit/src/library/<kind>). Returns null when it isn't bundled.
   private async resolveBundledAsset(kind: string, file: string): Promise<string | null> {
     let moduleDir: string;
 
@@ -222,7 +222,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
 
     const candidates = [
       path.join(moduleDir, kind, file),
-      path.join(moduleDir, '..', '..', '..', '..', 'creative-kit', 'src', 'library', kind, file),
+      path.join(moduleDir, '..', '..', '..', '..', 'leclap-creative-kit', 'src', 'library', kind, file),
     ];
     const present = await Promise.all(candidates.map((candidate) => this.stat(candidate)));
     const index = present.findIndex(Boolean);

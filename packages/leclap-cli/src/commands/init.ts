@@ -103,7 +103,7 @@ function mcpConfig(projectDir: string, remotion: boolean) {
 // accent bar, and a fading tagline. The MCP renders composition "Intro" to a clip via render_remotion_clip.
 function remotionFiles(projectName: string): Record<string, string> {
   // A single-quoted TS string literal, to match the generated files' quote style.
-  const wm = `'${projectName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+  const wm = `'${projectName.replace(/\\/g, String.raw`\\`).replace(/'/g, String.raw`\'`)}'`;
   const intro = `import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 
 const BG = '#0d1b2a';
@@ -175,7 +175,7 @@ function readme(projectName: string, opts: StarterOptions): string {
 
 ## Author with an AI agent (MCP)
 
-This project ships an \`.mcp.json\` wiring [\`@leclap/mcp\`](https://github.com/heristop/ffmpeg-video-composer).
+This project ships an \`.mcp.json\` wiring [\`@leclap/mcp\`](https://github.com/heristop/leclap).
 Point your agent client (Claude Code, Cursor, …) at it, then ask the agent to author and \`compose_video\`.${
         opts.remotion
           ? ` For an animated intro, the agent calls \`render_remotion_clip { compositionId: "Intro" }\`
@@ -208,7 +208,7 @@ npx @leclap/cli render template.json
 \`\`\`
 ${mcpSection}${remotionSection}
 
-See the descriptor reference: https://github.com/heristop/ffmpeg-video-composer
+See the descriptor reference: https://github.com/heristop/leclap
 `;
 }
 

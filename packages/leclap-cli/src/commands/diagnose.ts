@@ -1,25 +1,21 @@
 import { defineCommand } from 'citty';
-import pc from 'picocolors';
 import { FFmpegDetector, Terminal } from 'ffmpeg-video-composer';
-import { printTitle, printBox } from '../ui.js';
+import { heading, fail, step, hint } from '../ui.js';
 
 export const diagnose = defineCommand({
   meta: { name: 'diagnose', description: 'Check your FFmpeg setup' },
   async run() {
     try {
-      console.clear();
-      printTitle('FFmpeg Diagnostics');
+      console.log(`\n${heading('FFmpeg diagnostics')}\n`);
 
       const report = await FFmpegDetector.runFullDiagnostics(true);
 
       if (report.recommendations.length > 0) {
-        const recommendationText = `
-${pc.bold('🎯 Personalized Recommendations:')}
+        console.log(`\n${hint('Suggestions')}`);
 
-${report.recommendations.map((rec) => `  ${pc.cyan('•')} ${rec}`).join('\n')}
-`;
-
-        printBox(recommendationText, '💡 Suggestions');
+        for (const rec of report.recommendations) {
+          console.log(step(rec));
+        }
       }
 
       const hasFFmpeg = [
@@ -28,15 +24,17 @@ ${report.recommendations.map((rec) => `  ${pc.cyan('•')} ${rec}`).join('\n')}
         report.ffmpegStatus.wasm.available,
       ].some(Boolean);
 
+      console.log('');
+
       if (hasFFmpeg) {
-        Terminal.showSuccess('Your system is ready for video magic! 🎉');
+        Terminal.showSuccess('Ready to render.');
       }
 
       if (!hasFFmpeg) {
-        console.log(`\n${pc.yellow('⚠️')} ${pc.bold('Setup required before you can compile videos')}\n`);
+        console.log(fail('Setup required before you can render.'));
       }
     } catch (error) {
-      console.error('Diagnostics failed:', error instanceof Error ? error.message : String(error));
+      console.error(fail(`Diagnostics failed: ${error instanceof Error ? error.message : String(error)}`));
       process.exit(1);
     }
   },

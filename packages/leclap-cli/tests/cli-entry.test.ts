@@ -10,6 +10,8 @@ vi.mock('ffmpeg-video-composer', () => ({
   Terminal: {
     showError: vi.fn(),
     showSuccess: vi.fn(),
+    startSpinner: vi.fn(),
+    stopSpinner: vi.fn(),
   },
 }));
 
@@ -64,6 +66,6 @@ describe('render command', () => {
 
     expect(exitSpy).toHaveBeenCalledWith(1);
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Compilation failed to produce output'));
-    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Compilation completed successfully'));
+    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Rendered'));
   });
 });

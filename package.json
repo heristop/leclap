@@ -12,8 +12,8 @@
     "compile": "node packages/ffmpeg-video-composer/compile.ts",
     "diagnose": "node packages/ffmpeg-video-composer/diagnose.ts",
     "build": "pnpm -r build",
-    "build:exe": "pnpm --filter ffmpeg-video-composer run build:exe",
-    "build:exe:all": "pnpm --filter ffmpeg-video-composer run build:exe:all",
+    "build:exe": "pnpm --filter @leclap/cli run build:exe",
+    "build:exe:all": "pnpm --filter @leclap/cli run build:exe:all",
     "lint": "vp lint",
     "fmt": "vp fmt",
     "fmt:check": "vp fmt --check",
@@ -36,7 +36,7 @@
     "app:expo": "pnpm --filter @leclap/expo run start",
     "app:ios": "pnpm --filter @leclap/expo run ios",
     "app:android": "pnpm --filter @leclap/expo run android",
-    "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/mcp/dist/index.js"
+    "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/leclap-mcp/dist/index.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

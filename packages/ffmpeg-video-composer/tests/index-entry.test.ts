@@ -74,14 +74,13 @@ async function loadIndex() {
 }
 
 describe('index.ts compile / loadConfig', () => {
-  let logSpy: ReturnType<typeof vi.spyOn>;
   let errorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     fsRead.mockResolvedValue(JSON.stringify({ sections: [] }));
     construct.mockResolvedValue('/build/out.mp4');
-    logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
     errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -124,8 +123,8 @@ describe('index.ts compile / loadConfig', () => {
   it('compile logs whether user video paths were supplied', async () => {
     const { compile } = await loadIndex();
     await compile({ buildDir: '/build', userVideoPaths: { intro: '/v.mp4' } }, { sections: [] });
-    expect(logSpy).toHaveBeenCalledWith(
-      'Starting compilation with config:',
+    expect(fakeLogger.info).toHaveBeenCalledWith(
+      'Starting compilation',
       expect.objectContaining({ hasUserVideoPaths: true })
     );
   });

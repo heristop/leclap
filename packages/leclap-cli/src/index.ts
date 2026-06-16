@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { defineCommand, runMain } from 'citty';
 import { rewriteArgv, KNOWN_COMMANDS } from './args.js';
 import { render } from './commands/render.js';
+import { init } from './commands/init.js';
 import { diagnose } from './commands/diagnose.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
@@ -15,7 +16,7 @@ const { version } = JSON.parse(readFileSync(new URL('../package.json', import.me
 
 const main = defineCommand({
   meta: { name: 'leclap', version, description: 'LeClap — create videos from JSON templates' },
-  subCommands: { render, diagnose },
+  subCommands: { render, init, diagnose },
 });
 
 runMain(main, { rawArgs: rewriteArgv(process.argv.slice(2), KNOWN_COMMANDS) }).catch((error: unknown) => {

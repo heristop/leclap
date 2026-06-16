@@ -49,16 +49,13 @@ function makeId(): string {
   }
 }
 
-// Persist (or update) a draft: write any new clip bytes, prune replaced/removed ones, then save the
-// metadata record. Editing always lands as a `draft` — a prior compiled output is invalidated.
-export async function saveDraft(
+// Keep unchanged clip metadata, write the bytes for new/replaced clips, and assemble the next
+// section → clip map. Split out of saveDraft to keep its branch count down.
+async function materializeClips(
+  prevClips: Record<string, StoredClip>,
   model: WizardModel,
-  template: Template,
-  current?: StoredProject
-): Promise<StoredProject> {
-  const prevClips = current?.clips ?? {};
-  const diff = diffClips(prevClips, model.clipsBySection);
-
+  diff: ClipDiff
+): Promise<Record<string, StoredClip>> {
   const clips: Record<string, StoredClip> = {};
 
   for (const [section, meta] of Object.entries(prevClips)) {
@@ -77,20 +74,30 @@ export async function saveDraft(
 
   for (const [section, meta] of written) clips[section] = meta;
 
+  return clips;
+}
+
+// Persist (or update) a draft: write any new clip bytes, prune replaced/removed ones, then save the
+// metadata record. Editing always lands as a `draft` — a prior compiled output is invalidated.
+export async function saveDraft(model: WizardModel, template: Template, currentId?: string): Promise<StoredProject> {
+  const current = currentId ? (projectStore.get(currentId) ?? undefined) : undefined;
+  const diff = diffClips(current?.clips ?? {}, model.clipsBySection);
+  const clips = await materializeClips(current?.clips ?? {}, model, diff);
+
   const stalePrune = current?.output ? [...diff.prune, current.output.blobKey] : diff.prune;
   await Promise.all(stalePrune.map((key) => projectBlobStore.delete(key)));
 
-  const project = modelToProject({
-    id: current?.id ?? makeId(),
-    model,
-    template,
-    clips,
-    now: Date.now(),
-    createdAt: current?.createdAt,
-    status: 'draft',
-  });
-
-  return projectStore.save(project);
+  return projectStore.save(
+    modelToProject({
+      id: current?.id ?? makeId(),
+      model,
+      template,
+      clips,
+      now: Date.now(),
+      createdAt: current?.createdAt,
+      status: 'draft',
+    })
+  );
 }
 
 export type LoadResult =

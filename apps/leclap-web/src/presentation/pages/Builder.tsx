@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
 import { VideoProcessor } from '@/presentation/components/VideoProcessor';
@@ -13,6 +14,7 @@ import { templateService, type Template, type InputSection } from '@/services/te
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
+import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/projectService';
 import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
@@ -520,6 +522,159 @@ const makeWizardActions = (deps: ActionDeps) => {
   };
 };
 
+interface PersistenceArgs {
+  selectedTemplate: Template | null;
+  model: WizardModel;
+  currentStepKind: WizardStep['kind'] | undefined;
+  isProcessing: boolean;
+  processedVideo: ProcessedVideo | null;
+  setSelectedTemplate: (template: Template | null) => void;
+  setModel: (model: WizardModel) => void;
+}
+
+// Owns project persistence for the builder: hydrating from `?projectId`, debounced draft auto-save,
+// and recording the finished render. Split out so useBuilderController stays small.
+const useProjectPersistence = (args: PersistenceArgs) => {
+  const { selectedTemplate, model, currentStepKind, isProcessing, processedVideo, setSelectedTemplate, setModel } =
+    args;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const projectIdParam = searchParams.get('projectId');
+
+  // The project this session writes to (assigned on the first auto-save, or on hydration).
+  const currentProjectIdRef = useRef<string | null>(null);
+  // Suppresses the no-op auto-save that the state update right after hydration would otherwise trigger.
+  const skipNextSaveRef = useRef(false);
+  // The output blob already persisted, so re-renders don't re-save the same finished video.
+  const savedOutputRef = useRef<Blob | null>(null);
+  const isProcessingRef = useRef(isProcessing);
+  isProcessingRef.current = isProcessing;
+  const [hydrating, setHydrating] = useState(Boolean(projectIdParam));
+  const hydratingRef = useRef(hydrating);
+  hydratingRef.current = hydrating;
+  // A completed project's output, materialized from IndexedDB so the result re-opens without a recompile.
+  const [hydratedResult, setHydratedResult] = useState<ProcessedVideo | null>(null);
+
+  useEffect(() => {
+    // Read the cancel flag through a function so the linter can't narrow it to a literal (which a
+    // closed-over boolean it sees only assigned `false`/`true` otherwise becomes).
+    const run = { cancelled: false };
+    const cancelled = () => run.cancelled;
+
+    if (projectIdParam) {
+      setHydrating(true);
+      loadProject(projectIdParam)
+        .then(async (result) => {
+          if (cancelled()) return;
+
+          if (!result.ok) {
+            setHydrating(false);
+
+            return;
+          }
+
+          skipNextSaveRef.current = true;
+          currentProjectIdRef.current = result.project.id;
+          setSelectedTemplate(result.template);
+
+          let nextModel = result.model;
+
+          if (result.project.status === 'completed') {
+            const resultIndex = buildSteps(result.template).findIndex((step) => step.kind === 'result');
+
+            if (resultIndex >= 0) nextModel = { ...result.model, stepIndex: resultIndex };
+
+            const output = await loadOutput(result.project);
+
+            if (!cancelled() && output) {
+              savedOutputRef.current = output.blob;
+              setHydratedResult({
+                blob: output.blob,
+                url: URL.createObjectURL(output.blob),
+                size: output.size,
+                duration: output.duration,
+              });
+            }
+          }
+
+          if (cancelled()) return;
+
+          setModel(nextModel);
+          setHydrating(false);
+        })
+        .catch(() => {
+          if (!cancelled()) setHydrating(false);
+        });
+    }
+
+    return () => {
+      run.cancelled = true;
+    };
+  }, [projectIdParam, setSelectedTemplate, setModel]);
+
+  useEffect(
+    () => () => {
+      if (hydratedResult) URL.revokeObjectURL(hydratedResult.url);
+    },
+    [hydratedResult]
+  );
+
+  // Debounced draft auto-save — only while editing an input step (never on the process/result
+  // screens, mid-render, or the no-op save right after hydration).
+  useEffect(() => {
+    const onResultOrProcess = currentStepKind === 'process' || currentStepKind === 'result';
+    const blocked = !selectedTemplate || onResultOrProcess || isProcessingRef.current || hydratingRef.current;
+    let handle: ReturnType<typeof setTimeout> | undefined;
+
+    if (!blocked) {
+      const consume = skipNextSaveRef.current;
+      skipNextSaveRef.current = false;
+
+      if (!consume) {
+        const template = selectedTemplate;
+        handle = setTimeout(() => {
+          saveDraft(model, template, currentProjectIdRef.current ?? undefined)
+            .then((saved) => {
+              currentProjectIdRef.current = saved.id;
+            })
+            .catch((saveError: unknown) => {
+              console.error('Project auto-save failed', saveError);
+            });
+        }, 600);
+      }
+    }
+
+    return () => {
+      if (handle) clearTimeout(handle);
+    };
+  }, [model, selectedTemplate, currentStepKind]);
+
+  // Record a finished render against the current project.
+  useEffect(() => {
+    const projectId = currentProjectIdRef.current;
+    const output = processedVideo;
+
+    if (output && projectId && savedOutputRef.current !== output.blob) {
+      savedOutputRef.current = output.blob;
+      saveCompleted(projectId, { blob: output.blob, size: output.size, duration: output.duration }).catch(
+        (saveError: unknown) => {
+          console.error('Saving finished video failed', saveError);
+        }
+      );
+    }
+  }, [processedVideo]);
+
+  const resetProject = () => {
+    currentProjectIdRef.current = null;
+    skipNextSaveRef.current = true;
+    savedOutputRef.current = null;
+    setHydratedResult(null);
+
+    if (projectIdParam) setSearchParams({}, { replace: true });
+  };
+
+  return { hydrating, hydratedResult, resetProject };
+};
+
 // Owns all wizard state + derived values + actions, so the Builder component is render-only.
 const useBuilderController = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
@@ -528,9 +683,21 @@ const useBuilderController = () => {
     useVideoProcessing();
   const steps: WizardStep[] = selectedTemplate ? buildSteps(selectedTemplate) : [{ kind: 'template' }];
   const stepIndex = Math.min(model.stepIndex, steps.length - 1);
+  const currentStepKind = steps[stepIndex]?.kind;
   const clipCount = selectedTemplate ? totalClips(selectedTemplate) : 0;
   const builderState: BuilderState = { ...model, selectedTemplate };
   const allComplete = allInputsComplete(steps, builderState);
+
+  const { hydrating, hydratedResult, resetProject } = useProjectPersistence({
+    selectedTemplate,
+    model,
+    currentStepKind,
+    isProcessing,
+    processedVideo,
+    setSelectedTemplate,
+    setModel,
+  });
+
   const actions = makeWizardActions({
     model,
     selectedTemplate,
@@ -543,6 +710,15 @@ const useBuilderController = () => {
     processVideo,
     cancelProcessing,
   });
+
+  const handlers: WizardHandlers = {
+    ...actions.handlers,
+    onReset: () => {
+      actions.handlers.onReset();
+      resetProject();
+    },
+  };
+
   const flowProps: FlowProps = {
     selectedTemplate,
     model,
@@ -551,7 +727,7 @@ const useBuilderController = () => {
     clipCount,
     builderState,
     allComplete,
-    processedVideo,
+    processedVideo: processedVideo ?? hydratedResult,
     processing: {
       isFFmpegReady,
       isProcessing,
@@ -559,19 +735,19 @@ const useBuilderController = () => {
       progress,
       error,
     },
-    handlers: actions.handlers,
+    handlers,
     goTo: actions.goTo,
     nextStep: actions.nextStep,
     prevStep: actions.prevStep,
   };
 
-  return { isFFmpegReady, flowProps };
+  return { isFFmpegReady, hydrating, flowProps };
 };
 
 export const Builder = () => {
   const { t } = useTranslation('builder');
   const { loadingProgress } = useFFmpeg();
-  const { isFFmpegReady, flowProps } = useBuilderController();
+  const { isFFmpegReady, hydrating, flowProps } = useBuilderController();
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden">
@@ -589,8 +765,17 @@ export const Builder = () => {
         />
       </div>
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 relative z-10">
-        {!flowProps.selectedTemplate && <BrowserCompatibility />}
-        <HubFlow {...flowProps} />
+        {hydrating ? (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-gray-400 fade-in">
+            <Loader2 className="h-7 w-7 animate-spin text-brand-500 motion-reduce:animate-none" />
+            <p className="text-sm font-medium">{t('project.loading')}</p>
+          </div>
+        ) : (
+          <>
+            {!flowProps.selectedTemplate && <BrowserCompatibility />}
+            <HubFlow {...flowProps} />
+          </>
+        )}
         {!isFFmpegReady && (
           <Card
             elevation="flat"

@@ -1,0 +1,58 @@
+{
+  "name": "@leclap/cli",
+  "version": "0.1.0",
+  "description": "LeClap CLI — compile videos from JSON templates with ffmpeg-video-composer",
+  "author": "heristop",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "leclap": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown",
+    "build:exe": "pkg dist/index.js --targets node24-win-x64,node24-macos-x64,node24-linux-x64 --out-path dist/bin",
+    "build:exe:all": "pnpm build && pnpm build:exe",
+    "typecheck": "tsc --noEmit",
+    "test": "vp test run"
+  },
+  "dependencies": {
+    "ffmpeg-video-composer": "workspace:*",
+    "picocolors": "^1.1.1",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "@yao-pkg/pkg": "^6.20.0",
+    "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": [
+      "dist/**/*"
+    ],
+    "outputPath": "dist/bin"
+  },
+  "keywords": [
+    "ffmpeg",
+    "video",
+    "cli",
+    "video-composition",
+    "templates",
+    "leclap"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heristop/ffmpeg-video-composer.git",
+    "directory": "packages/leclap-cli"
+  }
+}

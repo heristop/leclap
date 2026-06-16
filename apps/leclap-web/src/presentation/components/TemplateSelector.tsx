@@ -253,7 +253,7 @@ export const TemplateSelector = ({ onTemplateSelected, selectedTemplate }: Templ
           action={{ label: t('empty.clear'), onClick: resetFacets }}
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {shown.map((template, index) => (
             <Reveal key={template.id} delay={index * 70} className="h-full">
               <TemplateCard

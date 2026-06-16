@@ -137,7 +137,7 @@ export const Admin = () => {
               </a>
             </div>
             <Button asChild variant="outline" className="w-full justify-start active:scale-[0.98]">
-              <Link to="/builder">
+              <Link to="/studio">
                 {t('page.goToBuilder')} <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>

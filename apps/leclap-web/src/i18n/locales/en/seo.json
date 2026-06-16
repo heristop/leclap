@@ -3,9 +3,9 @@
     "title": "LeClap — Cinematic Video Composer in Your Browser",
     "description": "Create cinematic videos from templates right in your browser. LeClap runs client-side with WebAssembly and FFmpeg — no uploads, no servers, no limits."
   },
-  "builder": {
-    "title": "Templates",
-    "description": "Pick a template and compose your video entirely in the browser — trim, crop, add music and export with WebAssembly FFmpeg. No uploads, no servers."
+  "studio": {
+    "title": "Studio",
+    "description": "Pick a template and compose your video right in the browser — trim, crop, add music, and export with on-device FFmpeg. No uploads, no servers."
   },
   "about": {
     "title": "About",

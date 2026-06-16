@@ -13,7 +13,7 @@ import { test, expect, type Page } from '@playwright/test';
 // then:                        pnpm --filter @leclap/web test:e2e
 
 const VIDEO_DIR =
-  '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/creative-kit/src/library/videos';
+  '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/leclap-creative-kit/src/library/videos';
 
 const FIXTURES = [
   { label: 'with-audio', video: `${VIDEO_DIR}/earth.mp4` },
@@ -69,7 +69,7 @@ test.describe('All templates compile in FFmpeg WASM', () => {
   for (const fixture of FIXTURES) {
     test(`every template produces a non-empty MP4 (${fixture.label})`, async ({ page }) => {
       test.setTimeout(20 * 60 * 1000);
-      await page.goto('/builder');
+      await page.goto('/studio');
 
       const ids = await listTemplateIds(page);
       expect(ids.length).toBeGreaterThan(0);
@@ -78,7 +78,7 @@ test.describe('All templates compile in FFmpeg WASM', () => {
 
       for (const id of ids) {
         // Reload between templates to reset the in-memory template cache + FS.
-        await page.goto('/builder');
+        await page.goto('/studio');
         results[id] = await compileTemplate(page, id, FORM_DATA[id] ?? {}, fixture.video);
         console.log(
           `[${fixture.label}] ${results[id].ok ? 'PASS' : 'FAIL'} ${id}` +

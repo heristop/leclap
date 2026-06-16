@@ -21,7 +21,14 @@ const HINGE = '140 250';
 const OPEN = -25; // resting open angle — matches the static logo
 const CLAMP = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
-export const Bumper = () => {
+export interface BumperProps {
+  /** The big animated wordmark. */
+  wordmark?: string;
+  /** The small tagline under the wordmark (rendered uppercase). */
+  tagline?: string;
+}
+
+export const Bumper = ({ wordmark = 'LeClap', tagline = 'CINEMATIC VIDEOS, ANYWHERE' }: BumperProps) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const r = (s: number) => Math.round(s * fps);
@@ -199,7 +206,7 @@ export const Bumper = () => {
               lineHeight: 1,
             }}
           >
-            LeClap
+            {wordmark}
           </div>
           <div
             style={{
@@ -209,9 +216,10 @@ export const Bumper = () => {
               fontSize: 24,
               fontWeight: 600,
               letterSpacing: 4,
+              textTransform: 'uppercase',
             }}
           >
-            CINEMATIC VIDEOS, ANYWHERE
+            {tagline}
           </div>
         </div>
       </div>

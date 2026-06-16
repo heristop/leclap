@@ -6,6 +6,8 @@
   "description": "Build-time Remotion render of the animated LeClap logo intro (leclap_bumper.mp4). Not shipped at runtime.",
   "scripts": {
     "render": "node render.ts",
+    "render:bumper": "node render-bumper.ts",
+    "render:og": "node render-og.ts",
     "studio": "remotion studio"
   },
   "dependencies": {

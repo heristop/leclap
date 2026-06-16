@@ -17,6 +17,7 @@ import {
   ChipList,
   JsonBlock,
   Callout,
+  CommandPill,
 } from '@/presentation/components/doc/DocBlocks';
 import { fieldGroups } from '@/presentation/components/doc/schemaFields';
 import { examples } from '@/presentation/components/doc/examples';
@@ -105,6 +106,10 @@ export const Doc = () => (
           the browser via WebAssembly, and on-device in React Native. Everything below is generated from the engine's
           own schema, so it never drifts from what compiles.
         </p>
+        <div className="mt-6 flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Compile one with the CLI</p>
+          <CommandPill command="npx ffmpeg-video-composer my-template.json" />
+        </div>
       </div>
     </div>
 

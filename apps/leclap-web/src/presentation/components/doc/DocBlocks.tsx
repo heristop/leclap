@@ -1,6 +1,56 @@
+import { useState } from 'react';
+import { Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/presentation/components/ui';
+import { logger } from '@/lib/logger';
 import type { FieldRow } from './schemaFields';
+
+// ── Copyable command pill ───────────────────────────────────────────────────────
+// A dark terminal chip (Remotion-style): a `$` prompt + the command; the whole pill copies on click
+// and flashes a checkmark.
+
+export const CommandPill = ({ command, label }: { command: string; label?: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard
+      .writeText(command)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => {
+          setCopied(false);
+        }, 1500);
+      })
+      .catch((error: unknown) => {
+        logger.error('Copy failed', error);
+      });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={copied ? 'Copied' : `Copy: ${command}`}
+      className="tap group inline-flex max-w-full items-center gap-4 rounded-xl border border-white/10 bg-[oklch(0.2_0.01_280)] px-4 py-3 text-left shadow-lg shadow-black/20 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+    >
+      <code className="overflow-x-auto whitespace-nowrap font-mono text-sm text-gray-100">
+        <span aria-hidden className="select-none text-gray-500">
+          ${' '}
+        </span>
+        {command}
+      </code>
+      <span
+        className={cn(
+          'ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md transition-colors',
+          copied ? 'text-success' : 'text-gray-400 group-hover:bg-white/10 group-hover:text-gray-100'
+        )}
+      >
+        {copied ? <Check className="h-4 w-4 pop-in" /> : <Copy className="h-4 w-4" />}
+        {label && <span className="sr-only">{label}</span>}
+      </span>
+    </button>
+  );
+};
 
 // ── Anchored section heading ────────────────────────────────────────────────────
 // A section wrapper that owns its anchor id, offsets for the fixed header, and a

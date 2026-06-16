@@ -22,11 +22,21 @@ import type { StoredProject } from '@/lib/projectModel';
 export const ProjectsPage = () => {
   const { t } = useTranslation('projects');
   const navigate = useNavigate();
-  const { projects, remove } = useProjects();
+  const { projects, remove, rename, duplicate } = useProjects();
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
 
   const openProject = (project: StoredProject) => {
     Promise.resolve(navigate(`/builder?projectId=${project.id}`)).catch(() => {});
+  };
+
+  const editProject = (project: StoredProject) => {
+    Promise.resolve(navigate(`/builder?projectId=${project.id}&edit=1`)).catch(() => {});
+  };
+
+  const duplicateProject = (project: StoredProject) => {
+    duplicate(project.id).catch((error: unknown) => {
+      console.error('Duplicate failed', error);
+    });
   };
 
   const startNew = () => {
@@ -77,7 +87,14 @@ export const ProjectsPage = () => {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project, index) => (
               <Reveal key={project.id} delay={index * 60} className="h-full">
-                <ProjectCard project={project} onOpen={openProject} onDelete={setPendingDelete} />
+                <ProjectCard
+                  project={project}
+                  onOpen={openProject}
+                  onEdit={editProject}
+                  onDuplicate={duplicateProject}
+                  onDelete={setPendingDelete}
+                  onRename={rename}
+                />
               </Reveal>
             ))}
           </div>

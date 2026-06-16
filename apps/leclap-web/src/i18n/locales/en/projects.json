@@ -24,6 +24,9 @@
     "new": "New project",
     "resume": "Resume",
     "view": "View",
+    "edit": "Edit build",
+    "rename": "Rename project",
+    "duplicate": "Duplicate project",
     "delete": "Delete project"
   },
   "empty": {

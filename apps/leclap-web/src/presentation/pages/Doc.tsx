@@ -106,9 +106,13 @@ export const Doc = () => (
           the browser via WebAssembly, and on-device in React Native. Everything below is generated from the engine's
           own schema, so it never drifts from what compiles.
         </p>
-        <div className="mt-6 flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Compile one with the CLI</p>
-          <CommandPill command="npx @leclap/cli my-template.json" />
+        <div className="mt-7 flex max-w-xl flex-col gap-2.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Get started with the CLI</p>
+          <CommandPill command="npx @leclap/cli init my-video" />
+          <CommandPill command="leclap render template.json" />
+          <p className="text-sm leading-6 text-gray-400">
+            Then <Code>leclap diagnose</Code> to check your FFmpeg, or <Code>leclap --help</Code> for every command.
+          </p>
         </div>
       </div>
     </div>

@@ -31,8 +31,8 @@ Upgrade your runtime; the package will refuse to install on older Node.
 | CLI binary    | (none published) | moved to the `@leclap/cli` package (`leclap` bin)  |
 | Browser entry | (none)           | `ffmpeg-video-composer/browser`                    |
 | RN entry      | (none)           | `ffmpeg-video-composer/reactnative`                |
-| `compile.js`  | shipped script   | removed — use `@leclap/cli`                        |
-| `diagnose.js` | shipped script   | removed — use `@leclap/cli --diagnose`             |
+| `compile.js`  | shipped script   | removed — use `@leclap/cli render`                 |
+| `diagnose.js` | shipped script   | removed — use `@leclap/cli diagnose`               |
 | `./src/index` | available        | dropped (`.`, `./browser`, `./reactnative` remain) |
 
 The default `.` import is unchanged:

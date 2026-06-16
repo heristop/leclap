@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { TemplateDescriptorSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
-import { typeLabel, constraintsLabel, fieldRows, fieldGroups, type JsonSchemaNode } from './schemaFields';
+import {
+  typeLabel,
+  constraintsLabel,
+  fieldRows,
+  docGroups,
+  sectionTypeValues,
+  type JsonSchemaNode,
+} from './schemaFields';
 import { examples } from './examples';
 
 describe('typeLabel', () => {
@@ -42,22 +49,54 @@ describe('fieldRows', () => {
   });
 });
 
-describe('fieldGroups', () => {
-  it('produces non-empty, schema-driven groups for the documented sections', () => {
-    const groups = fieldGroups();
-    const byId = Object.fromEntries(groups.map((g) => [g.id, g]));
+describe('docGroups', () => {
+  it('produces non-empty, schema-driven rows for every documented group', () => {
+    const ids = [
+      'meta',
+      'global',
+      'globalAudio',
+      'ducking',
+      'section',
+      'options',
+      'inputs',
+      'transition',
+      'grade',
+      'motion',
+      'framingGuide',
+      'layers',
+      'caption',
+      'filters',
+      'filterValues',
+      'maps',
+      'audioFade',
+    ] as const;
 
-    for (const id of ['global', 'section', 'options', 'transition', 'grade', 'audio', 'framing-guide', 'inputs']) {
-      expect(byId[id], `group ${id}`).toBeDefined();
-      expect(byId[id].rows.length, `group ${id} rows`).toBeGreaterThan(0);
+    for (const id of ids) {
+      expect(docGroups[id]().length, `group ${id} rows`).toBeGreaterThan(0);
     }
   });
 
   it('unions options across section types (layers + framingGuide both surface)', () => {
-    const options = fieldGroups().find((g) => g.id === 'options');
-    const names = options?.rows.map((r) => r.name) ?? [];
+    const names = docGroups.options().map((r) => r.name);
     expect(names).toContain('layers');
     expect(names).toContain('framingGuide');
+  });
+});
+
+describe('sectionTypeValues', () => {
+  it('lists every section type from the discriminated union', () => {
+    const types = sectionTypeValues();
+    for (const expected of [
+      'video',
+      'project_video',
+      'form',
+      'color_background',
+      'image_background',
+      'music',
+      'partial',
+    ]) {
+      expect(types, expected).toContain(expected);
+    }
   });
 });
 

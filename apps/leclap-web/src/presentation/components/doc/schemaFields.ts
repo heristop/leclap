@@ -172,81 +172,40 @@ function optionProperty(key: string): JsonSchemaNode | undefined {
   return undefined;
 }
 
-export interface FieldGroup {
-  id: string;
-  title: string;
-  summary: string;
-  rows: FieldRow[];
-}
+// ── Granular accessors for the multi-page docs ──────────────────────────────────
+// Each returns the field rows for one schema node, so a topic page renders exactly its slice while
+// staying schema-driven (add a field in the engine's zod schema and it surfaces here).
 
-// The grouped field reference rendered on the page — each group is schema-driven, so
-// adding a field in the engine's zod schema surfaces here automatically.
-export function fieldGroups(): FieldGroup[] {
-  const global = schema.properties?.global;
-  const section = sectionVariants()[0];
+const audioNode = (): JsonSchemaNode | undefined => prop(schema.properties?.global, 'audio');
 
-  const groups: Array<{ id: string; title: string; summary: string; node?: JsonSchemaNode }> = [
-    {
-      id: 'global',
-      title: 'global',
-      summary: 'Project-wide defaults and the choices a builder exposes to users.',
-      node: global,
-    },
-    {
-      id: 'section',
-      title: 'section',
-      summary: 'The base fields every section shares, whatever its type.',
-      node: section,
-    },
-    {
-      id: 'options',
-      title: 'options',
-      summary: 'Per-section knobs — duration, framing, fades, layers and more.',
-      node: unionOptions(),
-    },
-    {
-      id: 'transition',
-      title: 'transition',
-      summary: 'The boundary effect carrying one section into the next.',
-      node: sectionProperty('transition'),
-    },
-    {
-      id: 'grade',
-      title: 'grade',
-      summary: 'Manual colour grade, applied on top of any named look.',
-      node: sectionProperty('grade'),
-    },
-    {
-      id: 'motion',
-      title: 'motion[]',
-      summary: 'Per-section motion and geometric effects (Ken Burns, rotate, crop, flip), applied in order.',
-      node: mergeVariants(sectionProperty('motion')?.items),
-    },
-    {
-      id: 'audio',
-      title: 'audio (global)',
-      summary: 'The final-mix audio settings: volumes, normalisation, ducking.',
-      node: global?.properties?.audio,
-    },
-    {
-      id: 'framing-guide',
-      title: 'framingGuide',
-      summary: 'The silhouette overlay shown while recording a clip.',
-      node: optionProperty('framingGuide'),
-    },
-    {
-      id: 'layers',
-      title: 'layers[]',
-      summary: 'Background layers (solid or gradient) composited over a color_background section.',
-      node: optionProperty('layers')?.items,
-    },
-    {
-      id: 'inputs',
-      title: 'inputs',
-      summary: 'Animation assets composited over the section video.',
-      node: sectionProperty('inputs')?.items,
-    },
-  ];
+export const docGroups = {
+  meta: (): FieldRow[] => fieldRows(prop(schema, 'meta')),
+  global: (): FieldRow[] => fieldRows(schema.properties?.global),
+  globalAudio: (): FieldRow[] => fieldRows(audioNode()),
+  ducking: (): FieldRow[] => fieldRows(mergeVariants(prop(audioNode(), 'ducking'))),
+  section: (): FieldRow[] => fieldRows(sectionVariants()[0]),
+  options: (): FieldRow[] => fieldRows(unionOptions()),
+  inputs: (): FieldRow[] => fieldRows(sectionProperty('inputs')?.items),
+  transition: (): FieldRow[] => fieldRows(sectionProperty('transition')),
+  grade: (): FieldRow[] => fieldRows(sectionProperty('grade')),
+  motion: (): FieldRow[] => fieldRows(mergeVariants(sectionProperty('motion')?.items)),
+  framingGuide: (): FieldRow[] => fieldRows(optionProperty('framingGuide')),
+  layers: (): FieldRow[] => fieldRows(optionProperty('layers')?.items),
+  caption: (): FieldRow[] => fieldRows(sectionProperty('caption')),
+  filters: (): FieldRow[] => fieldRows(sectionProperty('filters')?.items),
+  filterValues: (): FieldRow[] => fieldRows(prop(sectionProperty('filters')?.items, 'values')),
+  maps: (): FieldRow[] => fieldRows(sectionProperty('maps')?.items),
+  audioFade: (): FieldRow[] => fieldRows(prop(optionProperty('audioFade'), 'in')),
+};
 
-  return groups.map(({ id, title, summary, node }) => ({ id, title, summary, rows: fieldRows(node) }));
+// Every section `type` literal from the discriminated union, schema-driven so the set stays current.
+export function sectionTypeValues(): string[] {
+  return sectionVariants()
+    .map((variant) => {
+      const typeNode = prop(variant, 'type');
+      const value = typeNode?.const ?? typeNode?.enum?.[0];
+
+      return typeof value === 'string' ? value : '';
+    })
+    .filter((value) => value !== '');
 }

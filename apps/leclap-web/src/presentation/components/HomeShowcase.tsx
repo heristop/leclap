@@ -23,14 +23,17 @@ export const HomeShowcase = () => {
   // Two IntersectionObservers on the same frame: one fires early (300px ahead) to start fetching the
   // clip, the other only when the frame truly enters the viewport so the entrance animation is
   // actually seen rather than playing out off-screen.
-  const [loadRef, shouldLoad] = useInView<HTMLDivElement>({ rootMargin: '300px' });
-  const [revealRef, revealed] = useInView<HTMLDivElement>({ threshold: 0.25 });
+  const [loadRef, shouldLoad] = useInView({ rootMargin: '300px' });
+  const [revealRef, revealed] = useInView({ threshold: 0.1 });
+  // Toggles as the frame enters/leaves the viewport (not once) so playback can pause off-screen.
+  const [playRef, playInView] = useInView({ once: false, threshold: 0 });
   const setFrameRef = useCallback(
     (node: HTMLDivElement | null) => {
       loadRef.current = node;
       revealRef.current = node;
+      playRef.current = node;
     },
-    [loadRef, revealRef]
+    [loadRef, revealRef, playRef]
   );
   const [reduced, setReduced] = useState(prefersReducedMotion);
   const [muted, setMuted] = useState(true);
@@ -38,13 +41,30 @@ export const HomeShowcase = () => {
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const onChange = () => setReduced(mq.matches);
+    const onChange = () => {
+      setReduced(mq.matches);
+    };
     mq.addEventListener('change', onChange);
 
     return () => {
       mq.removeEventListener('change', onChange);
     };
   }, []);
+
+  // Pause the clip while it's off-screen (and resume on return) so it never decodes behind the fold.
+  useEffect(() => {
+    const el = videoRef.current;
+
+    if (!el || reduced) return;
+
+    if (!playInView) {
+      el.pause();
+
+      return;
+    }
+
+    el.play().catch(() => {});
+  }, [playInView, reduced, shouldLoad]);
 
   const toggleMute = () => {
     const el = videoRef.current;
@@ -100,9 +120,10 @@ export const HomeShowcase = () => {
             ref={setFrameRef}
             className={cn(
               'relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-foreground/10',
-              'transition-all duration-700 ease-[var(--ease-spring)] will-change-[transform,opacity]',
+              'transition-all duration-700 ease-[var(--ease-spring)]',
               'motion-reduce:transition-none motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100',
-              revealed ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-6 scale-[0.97] opacity-0'
+              // will-change only while hidden, then dropped so the frame's compositor layer is freed.
+              revealed ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-6 scale-[0.97] opacity-0 will-change-[transform,opacity]'
             )}
           >
             {/* Shimmer placeholder holds the frame until the video is mounted. */}

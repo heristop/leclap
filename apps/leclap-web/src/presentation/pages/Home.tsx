@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,22 +6,42 @@ import { FeaturesSection } from '@/presentation/components/FeaturesSection';
 import { HomeShowcase } from '@/presentation/components/HomeShowcase';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
+import { useInView } from '@/hooks/useInView';
 import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 
 export const Home = () => {
   const { t } = useTranslation('home');
   // POC: a dimmed background clip behind the hero. Paused for reduced-motion viewers.
   const [reduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // Stop decoding the blurred hero clip once it scrolls off-screen — a full-frame blurred video
+  // composited every frame is the page's heaviest scroll cost, and it's invisible past the fold.
+  const [heroRef, heroInView] = useInView({ once: false, threshold: 0 });
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const el = heroVideoRef.current;
+
+    if (!el || reduced) return;
+
+    if (!heroInView) {
+      el.pause();
+
+      return;
+    }
+
+    el.play().catch(() => {});
+  }, [heroInView, reduced]);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
       <Seo />
       {/* Hero Section — always-dark "stage": force dark tokens regardless of theme */}
-      <div className="dark relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      <div ref={heroRef} className="dark relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Cinematic stage: a base gradient, a dimmed/blurred background clip, the image overlay, then
             a vignette that grounds the footage and keeps the hero copy legible. */}
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
         <video
+          ref={heroVideoRef}
           src="/videos/clapperboard.mp4"
           className="pointer-events-none absolute inset-0 z-0 h-full w-full scale-105 object-cover opacity-40 blur-[3px]"
           autoPlay={!reduced}

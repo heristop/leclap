@@ -16,9 +16,10 @@ interface UseInViewOptions {
 export function useInView<T extends HTMLElement = HTMLDivElement>({
   threshold = 0.1,
   once = true,
-  // No negative bottom margin: that would exclude the viewport's bottom band and leave
-  // page-bottom elements (which can't scroll any higher) permanently hidden.
-  rootMargin = '0px',
+  // Positive bottom margin grows the observer root downward, so an element reveals a bit before it
+  // reaches the fold (snappier on scroll-down). Keep the bottom margin positive — a negative one
+  // would hide page-bottom elements that can't scroll any higher.
+  rootMargin = '0px 0px 15% 0px',
 }: UseInViewOptions = {}): [RefObject<T | null>, boolean] {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);

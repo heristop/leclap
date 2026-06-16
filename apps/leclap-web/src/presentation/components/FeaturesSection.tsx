@@ -24,7 +24,7 @@ export const FeaturesSection = () => {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4">
-        <Reveal className="max-w-2xl mb-14">
+        <Reveal className="max-w-2xl mb-14" rootMargin="0px" threshold={0.2}>
           <Badge variant="brand" className="tracking-[0.18em]">
             {t('features.badge')}
           </Badge>
@@ -36,7 +36,7 @@ export const FeaturesSection = () => {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map(({ id, icon: Icon }, index) => (
-            <Reveal key={id} delay={index * 80} className="h-full">
+            <Reveal key={id} delay={index * 80} className="h-full" rootMargin="0px" threshold={0.2}>
               <Card
                 elevation="flat"
                 gradientBorder

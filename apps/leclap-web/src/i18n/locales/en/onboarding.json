@@ -38,7 +38,7 @@
   },
   "error": {
     "title": "That didn't work",
-    "continueToBuilder": "Continue to builder"
+    "continueToBuilder": "Continue to Templates"
   },
   "skipAria": "Skip onboarding"
 }

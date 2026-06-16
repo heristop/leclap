@@ -6,6 +6,7 @@ import Project from './core/models/Project';
 import Template from './core/models/Template';
 import Segment from './core/models/Segment';
 import type AbstractFilesystem from './platform/filesystem/AbstractFilesystem';
+import type AbstractLogger from './platform/logging/AbstractLogger';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
 
 let isInitialized = false;
@@ -99,7 +100,8 @@ export async function compile(
       throw new Error('buildDir is required in projectConfig');
     }
 
-    console.log('Starting compilation with config:', {
+    const logger = container.resolve<AbstractLogger>('logger');
+    logger.info('Starting compilation', {
       hasUserVideoPaths: Boolean(projectConfig.userVideoPaths),
       videoPaths: projectConfig.userVideoPaths ? Object.keys(projectConfig.userVideoPaths) : 'none',
     });

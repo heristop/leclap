@@ -1,8 +1,13 @@
 {
-  // Scopes Cloudflare's wrangler to THIS app (not the pnpm workspace root) and points it at the
-  // built static SPA. Pair with the Pages project's "Root directory = apps/leclap-web" setting so the
-  // build + deploy run here. Deploy: `pnpm --filter @leclap/web build` then `wrangler pages deploy`.
+  // Cloudflare Workers static-assets deploy for the web SPA. Set the Pages/Workers project's
+  // "Root directory" to apps/leclap-web so `wrangler deploy` runs here (not the pnpm workspace root,
+  // which trips wrangler's app auto-detection). `directory` is relative to this app → dist/.
+  // public/_headers (COOP/COEP cross-origin isolation) + public/_redirects are copied into dist and
+  // honored by Workers static assets.
   "name": "leclap",
   "compatibility_date": "2026-06-16",
-  "pages_build_output_dir": "dist"
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
 }

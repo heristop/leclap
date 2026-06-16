@@ -85,7 +85,8 @@
   "files": [
     "bin",
     "dist",
-    "README.md"
+    "README.md",
+    "MIGRATION.md"
   ],
   "keywords": [
     "ffmpeg",

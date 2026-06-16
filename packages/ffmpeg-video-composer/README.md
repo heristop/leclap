@@ -4,7 +4,7 @@
 
 Template-driven video composition over FFmpeg. A single JSON _template_ describes a video's structure — sections, filters, music, text overlays — and the library renders it into a finished video. The same engine runs in Node.js, in the browser (WebAssembly), and in React Native.
 
-> Upgrading from v1? The package name is unchanged — see the [migration guide](https://github.com/heristop/ffmpeg-video-composer/blob/main/MIGRATION.md).
+> Upgrading from v1? The package name is unchanged — see the [migration guide](./MIGRATION.md).
 
 ## Install
 
@@ -58,7 +58,7 @@ Run `npx ffmpeg-video-composer --diagnose` to see what your environment provides
 
 ## Templates
 
-Templates are Zod-validated JSON descriptors: global options (size, music, locale) plus an ordered list of sections, each with `inputs → maps → filters`. See the [template configuration reference](https://github.com/heristop/ffmpeg-video-composer/blob/main/docs/template-configuration.md) and the ready-made catalog — templates, partials, and bundled fonts — in [`@leclap/creative-kit`](https://github.com/heristop/ffmpeg-video-composer/tree/main/packages/creative-kit).
+Templates are Zod-validated JSON descriptors: global options (size, music, locale) plus an ordered list of sections, each with `inputs → maps → filters`. See the [template configuration reference](https://github.com/heristop/ffmpeg-video-composer/blob/main/docs/template-configuration.md) and the ready-made catalog — templates, partials, and bundled fonts — in [`@leclap/creative-kit`](https://github.com/heristop/ffmpeg-video-composer/tree/main/packages/leclap-creative-kit).
 
 ## License
 

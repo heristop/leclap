@@ -1,11 +1,18 @@
 import { cpSync, mkdirSync, readdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
 const libDir = resolve(root, 'packages/leclap-creative-kit/src/library');
+
+// Plain ANSI, no dependency — and dropped entirely when the output isn't a TTY (CI logs, pipes).
+const color = process.stdout.isTTY && !process.env.NO_COLOR;
+const paint = (code: number, text: string): string => (color ? `[${code}m${text}[0m` : text);
+const bold = (text: string): string => paint(1, text);
+const dim = (text: string): string => paint(2, text);
+const green = (text: string): string => paint(32, text);
 
 type CopyDest = { src: string; dest: string; include?: string[] };
 
@@ -59,15 +66,22 @@ const destinations: CopyDest[] = [
   },
 ];
 
+console.log(`\n${bold('Staging creative-kit assets')}`);
+
+let total = 0;
+
 for (const { src, dest, include } of destinations) {
   mkdirSync(dest, { recursive: true });
   const files = include ?? readdirSync(src);
-  let count = 0;
 
   for (const file of files) {
     cpSync(resolve(src, file), resolve(dest, file));
-    count++;
   }
 
-  console.log(`Copied ${count} files: ${src} -> ${dest}`);
+  total += files.length;
+
+  const count = String(files.length).padStart(3);
+  console.log(`  ${green('✓')} ${basename(src).padEnd(11)} ${dim(count)} ${dim('→')} ${dim(relative(root, dest))}`);
 }
+
+console.log(`\n${green('✓')} ${bold(`${total} files`)} staged across ${destinations.length} targets\n`);

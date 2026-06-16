@@ -1,6 +1,9 @@
 {
   "srHeading": "Video Builder — create videos from templates",
   "loadingEngine": "Loading Engine",
+  "project": {
+    "loading": "Loading your project…"
+  },
   "chip": {
     "template": "Template"
   },

@@ -1,6 +1,6 @@
 {
   "page": {
-    "heading": "Templates",
+    "heading": "Builder",
     "subtitle": "Use a sample or craft your own — saved in this browser.",
     "create": "Create template",
     "myTemplates": "My templates",
@@ -11,7 +11,7 @@
       "create": "Create your first template"
     },
     "samples": "Sample templates",
-    "goToBuilder": "Go to the builder",
+    "goToBuilder": "Go to Templates",
     "partials": "Partials"
   },
   "partials": {

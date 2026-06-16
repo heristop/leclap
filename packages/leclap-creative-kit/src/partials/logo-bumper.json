@@ -4,7 +4,7 @@
       "name": "logo_bumper",
       "type": "video",
       "options": {
-        "videoUrl": "https://github.com/heristop/ffmpeg-video-composer/raw/main/src/shared/assets/videos/leclap_bumper.mp4",
+        "videoUrl": "https://github.com/heristop/leclap/raw/main/src/shared/assets/videos/leclap_bumper.mp4",
         "duration": 2.4,
         "muteSection": true
       },

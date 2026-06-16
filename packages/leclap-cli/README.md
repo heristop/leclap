@@ -1,17 +1,17 @@
 # @leclap/cli
 
 The LeClap command-line tool — the **human-facing** way to scaffold a video project and render it
-locally on the [`ffmpeg-video-composer`](https://github.com/heristop/ffmpeg-video-composer) engine. You
+locally on the [`ffmpeg-video-composer`](https://github.com/heristop/leclap) engine. You
 write a JSON `template.json`, drop media in `assets/`, and `render` it to an mp4. `init` exists to take a
 new user from nothing to a first render in one command.
 
 ## Quick start
 
 ```bash
-npx @leclap/cli init my-video     # scaffold a starter project (prompts for MCP + Remotion)
+pnpm dlx @leclap/cli init my-video   # scaffold a starter project (prompts for MCP + Remotion)
 cd my-video
-npm install
-npx @leclap/cli render template.json
+pnpm install
+pnpm render                          # runs the scaffolded `leclap render template.json` script
 ```
 
 ## Commands

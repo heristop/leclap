@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Security report
-    url: https://github.com/heristop/ffmpeg-video-composer/security/advisories/new
+    url: https://github.com/heristop/leclap/security/advisories/new
     about: Please report security vulnerabilities privately, not as public issues.

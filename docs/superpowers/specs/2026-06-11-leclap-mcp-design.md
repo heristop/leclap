@@ -2,7 +2,7 @@
 
 - Date: 2026-06-11
 - Status: approved (design)
-- Area: new package `packages/mcp` (`@leclap/mcp`); consumes the built `ffmpeg-video-composer` core.
+- Area: new package `packages/leclap-mcp` (`@leclap/mcp`); consumes the built `ffmpeg-video-composer` core.
 
 ## Context
 

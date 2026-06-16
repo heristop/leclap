@@ -7,7 +7,7 @@ import path from 'node:path';
 // TypeScript module. Embedding them at build time keeps the catalog self-contained.
 // Run via `pnpm embed-templates`; commit the generated file (it must be tracked, not ignored).
 const here = path.dirname(fileURLToPath(import.meta.url));
-const creativeKitRoot = path.resolve(here, '../../creative-kit');
+const creativeKitRoot = path.resolve(here, '../../leclap-creative-kit');
 const outFile = path.resolve(here, '../src/catalog/templates.generated.ts');
 
 // The catalog ships every creative-kit template descriptor. Assets and partials live outside this

@@ -19,8 +19,20 @@ export async function captureVideoPoster(blob: Blob, maxWidth = 480, timeoutMs =
 
   const once = (target: HTMLVideoElement, event: string) =>
     new Promise<void>((resolve, reject) => {
-      target.addEventListener(event, () => resolve(), { once: true });
-      target.addEventListener('error', () => reject(new Error(`video ${event} error`)), { once: true });
+      target.addEventListener(
+        event,
+        () => {
+          resolve();
+        },
+        { once: true }
+      );
+      target.addEventListener(
+        'error',
+        () => {
+          reject(new Error(`video ${event} error`));
+        },
+        { once: true }
+      );
     });
 
   const grab = async (): Promise<string | null> => {
@@ -55,7 +67,9 @@ export async function captureVideoPoster(blob: Blob, maxWidth = 480, timeoutMs =
   };
 
   const timeout = new Promise<null>((resolve) => {
-    setTimeout(() => resolve(null), timeoutMs);
+    setTimeout(() => {
+      resolve(null);
+    }, timeoutMs);
   });
 
   try {

@@ -8,6 +8,8 @@ export interface McpConfig {
   outputDir: string;
   mediaDir: string;
   renderTimeoutMs: number;
+  /** Default Remotion entry (the module that calls registerRoot) for render_remotion_clip; optional. */
+  remotionEntry?: string;
 }
 
 const DEFAULT_RENDER_TIMEOUT_MS = 600_000;
@@ -57,9 +59,12 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
     readFlag(argv, '--render-timeout-ms') ?? process.env.LECLAP_MCP_RENDER_TIMEOUT_MS
   );
 
+  const remotionEntry = readFlag(argv, '--remotion-entry') ?? process.env.LECLAP_MCP_REMOTION_ENTRY;
+
   return {
     outputDir: path.resolve(outputDir),
     mediaDir: path.resolve(mediaDir),
     renderTimeoutMs,
+    ...(remotionEntry ? { remotionEntry: path.resolve(remotionEntry) } : {}),
   };
 }

@@ -28,15 +28,6 @@ function setup(): Handler {
 }
 
 describe('validate_template handler', () => {
-  it('validates a built-in by name and reports its form fields', () => {
-    const result = setup()({ templateName: 'intro' });
-
-    expect(result.isError).toBeUndefined();
-    // intro collects the title-card fields, then records one clip (video_1).
-    expect(result.structuredContent).toMatchObject({ valid: true, requiredClips: ['video_1'] });
-    expect(result.structuredContent?.formFields).toEqual(['form_1_firstname', 'form_1_lastname', 'form_1_job']);
-  });
-
   it('validates an inline descriptor and reports no clips/fields for a color card', () => {
     // A pure color card — no project_video clips, no form fields.
     const template: Record<string, unknown> = {
@@ -55,19 +46,5 @@ describe('validate_template handler', () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('Invalid template');
-  });
-
-  it('rejects when both template and templateName are supplied', () => {
-    const result = setup()({ template: {}, templateName: 'intro' });
-
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('exactly one');
-  });
-
-  it('rejects an unknown templateName', () => {
-    const result = setup()({ templateName: 'does_not_exist' });
-
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('Unknown template');
   });
 });

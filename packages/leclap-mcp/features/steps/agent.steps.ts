@@ -4,11 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { Given, Then, When } from '@cucumber/cucumber';
 import type { AgentWorld } from '../support/world.ts';
 
-const fixturePath = fileURLToPath(new URL('../fixtures/color-card.json', import.meta.url));
-
-interface ListTemplatesOutput {
-  templates: unknown[];
-}
+const fixture = (name: string): string => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url));
 
 interface ComposeOutput {
   outputPath: string;
@@ -27,18 +23,15 @@ interface ToolResult {
   isError?: boolean;
 }
 
-async function loadFixture(): Promise<Record<string, unknown>> {
-  const raw = await readFile(fixturePath, 'utf8');
-
-  return JSON.parse(raw) as Record<string, unknown>;
+async function loadJson(name: string): Promise<Record<string, unknown>> {
+  return JSON.parse(await readFile(fixture(name), 'utf8')) as Record<string, unknown>;
 }
 
 async function compose(world: AgentWorld): Promise<ComposeOutput> {
-  const template = await loadFixture();
-  const result = (await world.requireClient().callTool({
-    name: 'compose_video',
-    arguments: { template, locale: 'en' },
-  })) as ToolResult;
+  const template = await loadJson('color-card.json');
+  const result = (await world.timed('compose_video', (client) =>
+    client.callTool({ name: 'compose_video', arguments: { template, locale: 'en' } })
+  )) as ToolResult;
 
   assert.ok(!result.isError, `compose_video failed: ${JSON.stringify(result.content)}`);
 
@@ -50,28 +43,80 @@ Given('a running leclap MCP server', function (this: AgentWorld) {
   this.requireClient();
 });
 
-When('the agent lists templates', async function (this: AgentWorld) {
-  this.lastResult = await this.requireClient().callTool({ name: 'list_templates', arguments: {} });
+// --- ping ---------------------------------------------------------------------------------------
+When('the agent pings the server', async function (this: AgentWorld) {
+  this.lastResult = await this.timed('ping', (client) => client.callTool({ name: 'ping', arguments: {} }));
 });
 
-Then('it receives {int} templates', function (this: AgentWorld, count: number) {
+Then('the server reports ready', function (this: AgentWorld) {
   const result = this.lastResult as ToolResult;
-  const structured = result.structuredContent as ListTemplatesOutput;
-
-  assert.equal(structured.templates.length, count);
+  const text = result.content?.map((part) => part.text ?? '').join('\n') ?? '';
+  assert.ok(text.toLowerCase().includes('ok'), 'ping should report readiness');
 });
 
+// --- get_template_schema ------------------------------------------------------------------------
 When('the agent requests the template schema', async function (this: AgentWorld) {
-  this.lastResult = await this.requireClient().callTool({ name: 'get_template_schema', arguments: {} });
+  this.lastResult = await this.timed('get_template_schema', (client) =>
+    client.callTool({ name: 'get_template_schema', arguments: {} })
+  );
 });
 
 Then('the schema includes sections', function (this: AgentWorld) {
   const result = this.lastResult as ToolResult;
   const text = result.content?.map((part) => part.text ?? '').join('\n') ?? '';
-
   assert.ok(text.includes('sections'), 'schema text should mention sections');
 });
 
+// --- validate_template --------------------------------------------------------------------------
+When('the agent validates a valid inline template', async function (this: AgentWorld) {
+  const template = await loadJson('color-card.json');
+  this.lastResult = await this.timed('validate_template', (client) =>
+    client.callTool({ name: 'validate_template', arguments: { template } })
+  );
+});
+
+Then('the template is reported valid', function (this: AgentWorld) {
+  const result = this.lastResult as ToolResult;
+  assert.ok(!result.isError, `validate_template failed: ${JSON.stringify(result.content)}`);
+  assert.equal((result.structuredContent as { valid?: boolean }).valid, true);
+});
+
+When('the agent validates a malformed inline template', async function (this: AgentWorld) {
+  this.lastResult = await this.timed('validate_template:invalid', (client) =>
+    client.callTool({ name: 'validate_template', arguments: { template: { sections: 'not-an-array' } } })
+  );
+});
+
+Then('the call returns an error', function (this: AgentWorld) {
+  const result = this.lastResult as ToolResult;
+  assert.equal(result.isError, true, 'expected an error result');
+});
+
+// --- compose-video prompt -----------------------------------------------------------------------
+When('the agent opens the compose-video prompt', async function (this: AgentWorld) {
+  this.lastResult = await this.timed('compose-video:prompt', (client) =>
+    client.getPrompt({ name: 'compose-video', arguments: {} })
+  );
+});
+
+Then('it receives a primed authoring message', function (this: AgentWorld) {
+  const result = this.lastResult as { messages?: { content?: { type: string; text?: string } }[] };
+  const messages = result.messages ?? [];
+  assert.ok(messages.length > 0, 'prompt should return at least one message');
+  const text = messages.map((m) => m.content?.text ?? '').join('\n');
+  assert.ok(text.includes('get_template_schema'), 'prompt should prime the authoring workflow');
+});
+
+// --- efficiency ---------------------------------------------------------------------------------
+Then('the {string} call ran in under {int} ms', function (this: AgentWorld, tool: string, budgetMs: number) {
+  assert.ok(this.lastDurationMs > 0, `${tool} should have a measured duration`);
+  assert.ok(
+    this.lastDurationMs < budgetMs,
+    `${tool} took ${this.lastDurationMs.toFixed(1)}ms, over the ${budgetMs}ms budget`
+  );
+});
+
+// --- compose_video + probe_media (real render — measured, not budget-asserted) ------------------
 When('the agent composes the color-card template', async function (this: AgentWorld) {
   const output = await compose(this);
   this.outputPath = output.outputPath;
@@ -96,10 +141,9 @@ Then('the render has a positive duration and non-zero size', function (this: Age
 When('the agent probes the rendered file', async function (this: AgentWorld) {
   assert.ok(this.outputPath, 'a rendered file is required before probing');
 
-  this.lastResult = await this.requireClient().callTool({
-    name: 'probe_media',
-    arguments: { path: this.outputPath },
-  });
+  this.lastResult = await this.timed('probe_media', (client) =>
+    client.callTool({ name: 'probe_media', arguments: { path: this.outputPath } })
+  );
 });
 
 Then('it reports a video codec', function (this: AgentWorld) {

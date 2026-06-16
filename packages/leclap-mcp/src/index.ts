@@ -14,8 +14,8 @@ import { installStdoutGuard } from './stdoutGuard.js';
 // the imported modules write to stdout on load, so installing here is safe.)
 const out = installStdoutGuard();
 
-// Later tasks replace `ping` with the real tool surface (list_templates, get_template,
-// get_template_schema, compose_video, probe_media). All diagnostics go to stderr — never
+// The tool surface is authoring-only (get_template_schema, validate_template, compose_video,
+// probe_media, the Remotion authoring helpers, ping). All diagnostics go to stderr — never
 // `console.log`, which the guard would divert anyway.
 async function main(): Promise<void> {
   const config = loadConfig();

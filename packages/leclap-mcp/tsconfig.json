@@ -7,6 +7,7 @@
     "moduleResolution": "NodeNext",
     "lib": ["es2024", "dom"],
     "types": ["node"],
+    "skipLibCheck": true,
     "paths": {
       "ffmpeg-video-composer": ["../ffmpeg-video-composer/dist"]
     }

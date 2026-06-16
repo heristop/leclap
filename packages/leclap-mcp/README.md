@@ -3,26 +3,36 @@
 An [MCP](https://modelcontextprotocol.io) server that exposes the
 [`ffmpeg-video-composer`](../ffmpeg-video-composer) engine as **agent-callable video tools**.
 
-An AI agent (Claude Desktop, Cursor, …) discovers the template schema and the built-in
-catalog (from [`@leclap/creative-kit`](../leclap-creative-kit)), **authors a JSON template itself**, and calls a tool to render it **deterministically**
-to an mp4. The server embeds no LLM — the calling agent is the LLM; this server validates and
-renders. The result is _agent-composable, deterministic, reproducible_ video — the opposite of
-generative (Sora/Runway). Design spec:
+An AI agent (Claude Desktop, Cursor, …) is the LLM; this server helps it **author a customized
+template with nice effects** from the schema, then validates and renders it **deterministically** to
+an mp4. The server ships **no built-in template catalog** — it is decoupled from the app's
+creative-kit — so it stays a generic authoring tool. Remotion-assisted authoring is a bonus path.
+The result is _agent-composable, deterministic, reproducible_ video — the opposite of generative
+(Sora/Runway). Design spec:
 [`docs/superpowers/specs/2026-06-11-leclap-mcp-design.md`](../../docs/superpowers/specs/2026-06-11-leclap-mcp-design.md).
 
 ## Tools
 
-| Tool                  | Description                                                                                                       |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `list_templates`      | The built-in catalog (id, description, orientation, required clips, fields, `requiresNetwork`)                    |
-| `get_template`        | The full JSON descriptor of one built-in (start here, then modify)                                                |
-| `get_template_schema` | The JSON Schema for a template descriptor + a short authoring guide                                               |
-| `validate_template`   | Dry-run a descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`              |
-| `compose_video`       | Validate a descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
-| `probe_media`         | Inspect a local media file → codecs, duration, sample rate, size                                                  |
+| Tool                                      | Description                                                                                                       |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `get_template_schema`                     | The JSON Schema for a template descriptor + a short authoring guide                                               |
+| `validate_template`                       | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`      |
+| `compose_video`                           | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
+| `probe_media`                             | Inspect a local media file → codecs, duration, sample rate, size                                                  |
+| `render_remotion_clip`                    | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section |
 
-Typical agent flow: `get_template_schema` (or `get_template`) → author/modify a descriptor →
-`validate_template` (instant, iterate until valid) → `compose_video` → read the returned `outputPath`.
+Typical agent flow: `get_template_schema` → author an inline descriptor (optionally prepend a
+`render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`
+→ read the returned `outputPath`.
+
+**Bring-your-own Remotion (optional).** If you have a Remotion project, `render_remotion_clip` renders
+one of its compositions — genuine motion graphics (spring physics, kinetic typography) an FFmpeg
+filtergraph can't express — to an mp4. Point it at your `entry` (the module that calls `registerRoot`)
+or a prebuilt `serveUrl`, plus a `compositionId` and optional `inputProps`; or set a default with
+`--remotion-entry` / `LECLAP_MCP_REMOTION_ENTRY`. Feed the returned clip to `compose_video` as a
+`project_video` clip (via `userVideoPaths`) and the deterministic engine composites it in front of your
+scenes. It needs the **optional peer deps** `@remotion/renderer` + `@remotion/bundler` and is
+**design-time only** (headless Chromium) — everything else in the MCP stays self-contained and on-device.
 
 ### Prompt
 

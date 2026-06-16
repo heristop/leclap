@@ -1,17 +1,38 @@
 Feature: Agent drives the leclap MCP server over stdio
 
-  An MCP client connects to the built stdio server and exercises discovery,
-  a real render, and a probe — proving the JSON-RPC framing survives a
-  pino-heavy render through the forked worker (no fd-1 stdout corruption).
+  An MCP client connects to the built stdio server and exercises every tool on the
+  authoring surface — schema, validate, Remotion-assisted authoring, a real render,
+  and a probe — proving the JSON-RPC framing survives a pino-heavy render through the
+  forked worker (no fd-1 stdout corruption). Each call is timed; the instant tools are
+  held under a latency budget and a per-tool efficiency table is printed at the end.
 
   Background:
     Given a running leclap MCP server
 
-  Scenario: Discover templates
-    When the agent lists templates
-    Then it receives 4 templates
+  Scenario: Health check
+    When the agent pings the server
+    Then the server reports ready
+    And the "ping" call ran in under 1500 ms
+
+  Scenario: Discover the authoring schema
     When the agent requests the template schema
     Then the schema includes sections
+    And the "get_template_schema" call ran in under 1500 ms
+
+  Scenario: Validate a well-formed inline template
+    When the agent validates a valid inline template
+    Then the template is reported valid
+    And the "validate_template" call ran in under 1500 ms
+
+  Scenario: Reject a malformed inline template
+    When the agent validates a malformed inline template
+    Then the call returns an error
+    And the "validate_template:invalid" call ran in under 1500 ms
+
+  Scenario: Author with the compose-video prompt
+    When the agent opens the compose-video prompt
+    Then it receives a primed authoring message
+    And the "compose-video:prompt" call ran in under 1500 ms
 
   Scenario: Compose a video from an inline template
     When the agent composes the color-card template

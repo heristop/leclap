@@ -11,7 +11,20 @@ import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
 import { PartialsPage } from '@/presentation/pages/PartialsPage';
 import { ProjectsPage } from '@/presentation/pages/ProjectsPage';
 import { Design } from '@/presentation/pages/Design';
-import { Doc } from '@/presentation/pages/Doc';
+import {
+  DocLayout,
+  DocOverview,
+  DocSections,
+  DocTransitions,
+  DocLooks,
+  DocGrade,
+  DocMotion,
+  DocAudio,
+  DocCaptions,
+  DocFilters,
+  DocExamples,
+  DocSchema,
+} from '@/presentation/pages/doc';
 import { NotFound } from '@/presentation/pages/NotFound';
 import { Onboarding } from '@/presentation/components/Onboarding';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -53,7 +66,9 @@ function App() {
         <main id="main-content" tabIndex={-1} className="outline-none">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/builder" element={<Builder />} />
+            <Route path="/studio" element={<Builder />} />
+            {/* Legacy path kept so existing bookmarks/links keep working. */}
+            <Route path="/builder" element={<Navigate to="/studio" replace />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/templates" element={<Admin />} />
             <Route path="/templates/new" element={<TemplateEditorPage />} />
@@ -62,7 +77,19 @@ function App() {
             {/* Legacy path kept so existing bookmarks/links keep working. */}
             <Route path="/admin" element={<Navigate to="/templates" replace />} />
             <Route path="/design" element={<Design />} />
-            <Route path="/doc" element={<Doc />} />
+            <Route path="/doc" element={<DocLayout />}>
+              <Route index element={<DocOverview />} />
+              <Route path="sections" element={<DocSections />} />
+              <Route path="transitions" element={<DocTransitions />} />
+              <Route path="looks" element={<DocLooks />} />
+              <Route path="grade" element={<DocGrade />} />
+              <Route path="motion" element={<DocMotion />} />
+              <Route path="audio" element={<DocAudio />} />
+              <Route path="captions" element={<DocCaptions />} />
+              <Route path="filters" element={<DocFilters />} />
+              <Route path="examples" element={<DocExamples />} />
+              <Route path="schema" element={<DocSchema />} />
+            </Route>
             <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

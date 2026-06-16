@@ -25,7 +25,7 @@ export const NotFound = () => {
             </Link>
           </Button>
           <Button asChild variant="secondary" size="lg">
-            <Link to="/builder">
+            <Link to="/studio">
               <Compass /> {t('notFound.openBuilder')}
             </Link>
           </Button>

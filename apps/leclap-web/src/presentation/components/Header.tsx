@@ -38,11 +38,10 @@ const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
 // href carries the route; labelKey resolves to a common.nav.* translation.
 const navigationItems = [
   { labelKey: 'nav.home', href: '/' },
-  // Naming swap (intentional): the create-a-video wizard at /builder is surfaced as "Templates", and
-  // the template manager at /templates is surfaced as "Builder".
-  { labelKey: 'nav.templates', href: '/builder' },
+  // Studio is the create-a-video flow; Templates is the template manager/authoring area.
+  { labelKey: 'nav.studio', href: '/studio' },
+  { labelKey: 'nav.templates', href: '/templates' },
   { labelKey: 'nav.projects', href: '/projects' },
-  { labelKey: 'nav.builder', href: '/templates' },
   { labelKey: 'nav.docs', href: '/doc' },
   { labelKey: 'nav.about', href: '/about' },
 ] as const;
@@ -251,7 +250,7 @@ export const Header = () => {
               className="hidden sm:flex rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 hover:border-foreground/10"
             >
               <a
-                href="https://github.com/heristop/ffmpeg-video-composer"
+                href="https://github.com/heristop/leclap"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t('header.viewSource')}

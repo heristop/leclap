@@ -770,9 +770,9 @@ export const Builder = () => {
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden">
       <h1 className="sr-only">{t('srHeading')}</h1>
       <Seo
-        title={t('builder.title', { ns: 'seo' })}
-        description={t('builder.description', { ns: 'seo' })}
-        path="/builder"
+        title={t('studio.title', { ns: 'seo' })}
+        description={t('studio.description', { ns: 'seo' })}
+        path="/studio"
       />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/15 rounded-full blur-[120px] animate-float" />

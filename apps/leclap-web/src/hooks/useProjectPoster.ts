@@ -20,7 +20,7 @@ export function useProjectPoster(project: StoredProject): string | null {
     if (!blobKey) {
       setPoster(null);
 
-      return;
+      return () => {};
     }
 
     const cached = posterCache.get(blobKey);
@@ -28,14 +28,14 @@ export function useProjectPoster(project: StoredProject): string | null {
     if (cached) {
       setPoster(cached);
 
-      return;
+      return () => {};
     }
 
     let cancelled = false;
 
     loadOutput(project)
       .then(async (output) => {
-        if (!output || cancelled) return;
+        if (!output) return;
 
         const dataUrl = await captureVideoPoster(output.blob);
 

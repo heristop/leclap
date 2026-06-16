@@ -1,0 +1,8 @@
+{
+  // Scopes Cloudflare's wrangler to THIS app (not the pnpm workspace root) and points it at the
+  // built static SPA. Pair with the Pages project's "Root directory = apps/leclap-web" setting so the
+  // build + deploy run here. Deploy: `pnpm --filter @leclap/web build` then `wrangler pages deploy`.
+  "name": "leclap",
+  "compatibility_date": "2026-06-16",
+  "pages_build_output_dir": "dist"
+}

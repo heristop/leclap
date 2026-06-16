@@ -13,6 +13,7 @@ import process from './process.json';
 import browser from './browser.json';
 import admin from './admin.json';
 import shell from './shell.json';
+import projects from './projects.json';
 
 export const en = {
   common,
@@ -27,6 +28,7 @@ export const en = {
   browser,
   admin,
   shell,
+  projects,
 } as const;
 
 export type Resources = typeof en;

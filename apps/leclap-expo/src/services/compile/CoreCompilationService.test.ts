@@ -41,15 +41,15 @@ jest.mock('expo-asset', () => ({
   Asset: {
     fromModule: jest.fn(() => ({
       downloadAsync: jest.fn().mockResolvedValue({
-        localUri: 'file:///asset/go-by-ocean.mp3',
-        uri: 'file:///asset/go-by-ocean.mp3',
+        localUri: 'file:///asset/point-being.mp3',
+        uri: 'file:///asset/point-being.mp3',
       }),
     })),
   },
 }));
 
 jest.mock('@/src/data/mediaCatalog', () => ({
-  MUSIC_ASSETS: { 'go-by-ocean.mp3': 42 },
+  MUSIC_ASSETS: { 'point-being.mp3': 42 },
   FONT_ASSETS: { 'BebasNeue.ttf': 7 },
   VIDEO_ASSETS: { 'leclap_bumper.mp4': 99 },
 }));
@@ -90,7 +90,7 @@ describe('CoreCompilationService abort wiring', () => {
 
 describe('CoreCompilationService bundled-asset staging', () => {
   const withMusic = {
-    descriptor: { sections: [], global: { music: { name: 'go-by-ocean.mp3' } } },
+    descriptor: { sections: [], global: { music: { name: 'point-being.mp3' } } },
     clips: {},
   } as unknown as CompileInput;
 
@@ -106,7 +106,7 @@ describe('CoreCompilationService bundled-asset staging', () => {
     await new CoreCompilationService().compile(withMusic);
 
     expect(copiedTo()).toContain('file:///cache/leclap-assets/fonts/BebasNeue.ttf');
-    expect(copiedTo()).toContain('file:///cache/leclap-assets/musics/go-by-ocean.mp3');
+    expect(copiedTo()).toContain('file:///cache/leclap-assets/musics/point-being.mp3');
     // The brand bumper must be staged so the core resolves it locally instead of downloading its
     // canonical URL (which 404s on-device → AVERROR_INVALIDDATA).
     expect(copiedTo()).toContain('file:///cache/leclap-assets/videos/leclap_bumper.mp4');

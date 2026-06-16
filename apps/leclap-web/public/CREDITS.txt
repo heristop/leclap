@@ -7,9 +7,9 @@ its author and license next to the preview.
 
 MUSIC (public/musics/)
 ----------------------
-- Go by Ocean — Ryan McCaffrey
-  Bundled sample.
-  Source: https://github.com/heristop/leclap
+- Point Being — Go By Ocean / Ryan McCaffrey
+  License: YouTube Audio Library — free to use, no attribution required.
+  Source: https://www.youtube.com/audiolibrary
 
 - Americana — Kevin MacLeod (incompetech.com)
   License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/

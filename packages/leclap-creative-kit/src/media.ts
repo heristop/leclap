@@ -7,17 +7,17 @@ export interface MediaCredit {
   author: string;
   license: string;
   sourceUrl: string;
-  file: string; // filename only, e.g. 'go-by-ocean.mp3'
+  file: string; // filename only, e.g. 'point-being.mp3'
 }
 
 export const MUSIC_LIBRARY: MediaCredit[] = [
   {
-    id: 'go-by-ocean',
-    title: 'Go by Ocean',
-    author: 'Ryan McCaffrey',
-    license: 'Bundled sample',
-    sourceUrl: 'https://github.com/heristop/leclap',
-    file: 'go-by-ocean.mp3',
+    id: 'point-being',
+    title: 'Point Being',
+    author: 'Go By Ocean / Ryan McCaffrey',
+    license: 'YouTube Audio Library (no attribution required)',
+    sourceUrl: 'https://www.youtube.com/audiolibrary',
+    file: 'point-being.mp3',
   },
   {
     id: 'americana',

@@ -22,7 +22,16 @@ const HIDDEN = {
  * Scroll-reveal wrapper: fades/rises its children in when they enter the viewport
  * (IntersectionObserver via {@link useInView}). Reduced-motion users see content immediately.
  */
-export const Reveal = ({ className, delay = 0, from = 'up', threshold, rootMargin, style, children, ...props }: RevealProps) => {
+export const Reveal = ({
+  className,
+  delay = 0,
+  from = 'up',
+  threshold,
+  rootMargin,
+  style,
+  children,
+  ...props
+}: RevealProps) => {
   const [ref, inView] = useInView({ threshold, rootMargin });
 
   return (

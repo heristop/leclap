@@ -1,5 +1,13 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+  Route,
+  Navigate,
+  Outlet,
+  ScrollRestoration,
+} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
@@ -21,15 +29,20 @@ import {
   DocMotion,
   DocAudio,
   DocCaptions,
+  DocAnimations,
   DocFilters,
   DocExamples,
   DocSchema,
 } from '@/presentation/pages/doc';
 import { NotFound } from '@/presentation/pages/NotFound';
+import { RouteError } from '@/presentation/components/RouteError';
 import { Onboarding } from '@/presentation/components/Onboarding';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
-function App() {
+// The shared chrome (skip link, header, footer, onboarding) wraps every route via <Outlet />.
+// <ScrollRestoration /> gives native scroll behavior: top on forward navigations, restored position
+// on back/forward — the browser default that client-side routing otherwise loses.
+function RootLayout() {
   const { t } = useTranslation();
   const { show, dismiss } = useOnboarding();
 
@@ -51,7 +64,8 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <>
+      <ScrollRestoration />
       <div className="min-h-screen bg-background">
         <a
           href="#main-content"
@@ -64,35 +78,7 @@ function App() {
         {/* tabIndex={-1} so the skip link can move keyboard focus here, not just scroll — without it
             focus stays on the link and the next Tab falls back into the header nav. */}
         <main id="main-content" tabIndex={-1} className="outline-none">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/studio" element={<Builder />} />
-            {/* Legacy path kept so existing bookmarks/links keep working. */}
-            <Route path="/builder" element={<Navigate to="/studio" replace />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/templates" element={<Admin />} />
-            <Route path="/templates/new" element={<TemplateEditorPage />} />
-            <Route path="/templates/:id/edit" element={<TemplateEditorPage />} />
-            <Route path="/partials" element={<PartialsPage />} />
-            {/* Legacy path kept so existing bookmarks/links keep working. */}
-            <Route path="/admin" element={<Navigate to="/templates" replace />} />
-            <Route path="/design" element={<Design />} />
-            <Route path="/doc" element={<DocLayout />}>
-              <Route index element={<DocOverview />} />
-              <Route path="sections" element={<DocSections />} />
-              <Route path="transitions" element={<DocTransitions />} />
-              <Route path="looks" element={<DocLooks />} />
-              <Route path="grade" element={<DocGrade />} />
-              <Route path="motion" element={<DocMotion />} />
-              <Route path="audio" element={<DocAudio />} />
-              <Route path="captions" element={<DocCaptions />} />
-              <Route path="filters" element={<DocFilters />} />
-              <Route path="examples" element={<DocExamples />} />
-              <Route path="schema" element={<DocSchema />} />
-            </Route>
-            <Route path="/about" element={<About />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Outlet />
         </main>
 
         {/* Footer */}
@@ -105,8 +91,47 @@ function App() {
 
       {/* First-visit guided intro (record → compile a sample → download). */}
       {show && <Onboarding onDone={dismiss} />}
-    </Router>
+    </>
   );
+}
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />} errorElement={<RouteError />}>
+      <Route path="/" element={<Home />} />
+      <Route path="/studio" element={<Builder />} />
+      {/* Legacy path kept so existing bookmarks/links keep working. */}
+      <Route path="/builder" element={<Navigate to="/studio" replace />} />
+      <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/templates" element={<Admin />} />
+      <Route path="/templates/new" element={<TemplateEditorPage />} />
+      <Route path="/templates/:id/edit" element={<TemplateEditorPage />} />
+      <Route path="/partials" element={<PartialsPage />} />
+      {/* Legacy path kept so existing bookmarks/links keep working. */}
+      <Route path="/admin" element={<Navigate to="/templates" replace />} />
+      <Route path="/design" element={<Design />} />
+      <Route path="/doc" element={<DocLayout />}>
+        <Route index element={<DocOverview />} />
+        <Route path="sections" element={<DocSections />} />
+        <Route path="transitions" element={<DocTransitions />} />
+        <Route path="looks" element={<DocLooks />} />
+        <Route path="grade" element={<DocGrade />} />
+        <Route path="motion" element={<DocMotion />} />
+        <Route path="audio" element={<DocAudio />} />
+        <Route path="captions" element={<DocCaptions />} />
+        <Route path="animations" element={<DocAnimations />} />
+        <Route path="filters" element={<DocFilters />} />
+        <Route path="examples" element={<DocExamples />} />
+        <Route path="schema" element={<DocSchema />} />
+      </Route>
+      <Route path="/about" element={<About />} />
+      <Route path="*" element={<NotFound />} />
+    </Route>
+  )
+);
+
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;

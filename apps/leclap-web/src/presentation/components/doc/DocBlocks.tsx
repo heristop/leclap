@@ -1,7 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Check, Copy, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/presentation/components/ui';
+import { Badge, SegmentedControl } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
 import type { FieldRow } from './schemaFields';
 
@@ -121,65 +121,25 @@ const PM_RUN: Record<PackageManager, string> = {
 
 export const CliGetStarted = () => {
   const [pm, setPm] = useState<PackageManager>('pnpm');
-  const tabs = useRef<Record<PackageManager, HTMLButtonElement | null>>({
-    npm: null,
-    pnpm: null,
-    yarn: null,
-    bun: null,
-  });
-  const [pill, setPill] = useState({ left: 0, width: 0 });
-
-  // Measure the active tab and glide the highlight to it — re-measure on resize so it stays aligned.
-  useLayoutEffect(() => {
-    const measure = () => {
-      const el = tabs.current[pm];
-
-      if (el) {
-        setPill({ left: el.offsetLeft, width: el.offsetWidth });
-      }
-    };
-
-    measure();
-    window.addEventListener('resize', measure);
-
-    return () => {
-      window.removeEventListener('resize', measure);
-    };
-  }, [pm]);
 
   return (
     <div className="mt-7 flex max-w-xl flex-col gap-2.5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Get started with the CLI</p>
-        <div className="relative inline-flex rounded-lg bg-[oklch(0.2_0.01_280)] p-0.5">
-          {/* magnetic highlight: slides + overshoots to the selected tab */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute bottom-0.5 top-0.5 rounded-md bg-brand-500/20 ring-1 ring-brand-500/60 transition-[left,width] duration-300 [transition-timing-function:cubic-bezier(0.34,1.55,0.64,1)]"
-            style={{ left: pill.left, width: pill.width }}
-          />
-          {PACKAGE_MANAGERS.map((name) => (
-            <button
-              key={name}
-              ref={(el) => {
-                tabs.current[name] = el;
-              }}
-              type="button"
-              onClick={() => {
-                setPm(name);
-              }}
-              aria-pressed={pm === name}
-              className={cn(
-                'tap relative z-10 rounded-md px-2.5 py-1 font-mono text-xs transition-colors',
-                pm === name
-                  ? 'text-[oklch(0.92_0.008_280)]'
-                  : 'text-[oklch(0.62_0.01_280)] hover:text-[oklch(0.85_0.008_280)]'
-              )}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          value={pm}
+          onChange={(value) => {
+            setPm(value as PackageManager);
+          }}
+          options={PACKAGE_MANAGERS.map((name) => ({ value: name, label: name }))}
+          classNames={{
+            track: 'bg-[oklch(0.2_0.01_280)]',
+            thumb: 'bg-brand-500/20 shadow-none ring-1 ring-brand-500/60',
+            button: 'px-2.5 py-1 font-mono text-xs',
+            active: 'text-[oklch(0.92_0.008_280)]',
+            inactive: 'text-[oklch(0.62_0.01_280)] hover:text-[oklch(0.85_0.008_280)]',
+          }}
+        />
       </div>
       <CommandPill command={`${PM_DLX[pm]} @leclap/cli init my-video`} />
       <CommandPill command={`cd my-video && ${PM_INSTALL[pm]}`} />

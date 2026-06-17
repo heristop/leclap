@@ -19,7 +19,9 @@ const main = defineCommand({
   subCommands: { render, init, diagnose },
 });
 
-runMain(main, { rawArgs: rewriteArgv(process.argv.slice(2), KNOWN_COMMANDS) }).catch((error: unknown) => {
-  console.error(error);
+try {
+  await runMain(main, { rawArgs: rewriteArgv(process.argv.slice(2), KNOWN_COMMANDS) });
+} catch (error) {
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   process.exit(1);
-});
+}

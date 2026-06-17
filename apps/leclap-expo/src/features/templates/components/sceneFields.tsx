@@ -2,13 +2,20 @@
 // the small shared field primitives and styles. Split out of SceneCard to keep both files focused.
 // Every edit goes up via onChange (patchSection) — this never mutates EditorState.
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, Switch, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Switch, ScrollView, Image, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
+import { ANIMATION_LIBRARY, BACKGROUND_LIBRARY, backgroundAsset } from '@/src/data/mediaCatalog';
 import { MediaPicker } from './MediaPicker';
 import { PartialFields } from './PartialFields';
-import type { EditorSection } from '../model/templateEditorModel';
+import { Slider, Segmented } from './EditorControls';
+import {
+  makeTemplateId,
+  type EditorSection,
+  type AnimationOverlay,
+  type ImageOverlay,
+} from '../model/templateEditorModel';
 
 const toggleId = (list: string[], id: string): string[] =>
   list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
@@ -108,6 +115,17 @@ export const SceneBasics = ({
             />
           </FieldRow>
         ) : null}
+        <OverlaysField
+          animations={section.animations}
+          images={section.images}
+          onChangeAnimations={(animations) => {
+            onChange({ animations });
+          }}
+          onChangeImages={(images) => {
+            onChange({ images });
+          }}
+          t={t}
+        />
       </View>
     );
   }
@@ -138,6 +156,13 @@ export const SceneBasics = ({
             />
           </View>
         </FieldRow>
+        <AnimationFieldsList
+          value={section.animations}
+          onChange={(animations) => {
+            onChange({ animations });
+          }}
+          t={t}
+        />
       </View>
     );
   }
@@ -303,6 +328,570 @@ export const IconBtn = ({
   </TouchableOpacity>
 );
 
+const parsePair = (value: string | undefined): [string, string] => {
+  const [a = '', b = ''] = (value ?? '').split(':');
+
+  return [a, b];
+};
+
+const formatPair = (a: string, b: string): string | undefined =>
+  a.trim() === '' && b.trim() === '' ? undefined : `${a.trim() || '0'}:${b.trim() || '0'}`;
+
+// The merged "Overlays" control for a video section: a segmented toggle picks between authoring
+// animation overlays and still-image overlays, then renders the matching list. Mirrors the web
+// builder's single "Overlays" disclosure with an Animation⇄Image toggle. Image overlays on Expo are
+// bundled-library only (offline/local-first). Defaults to whichever kind already has layers.
+type OverlayKind = 'animation' | 'image';
+
+export const OverlaysField = ({
+  animations,
+  images,
+  onChangeAnimations,
+  onChangeImages,
+  t,
+}: {
+  animations: AnimationOverlay[] | undefined;
+  images: ImageOverlay[] | undefined;
+  onChangeAnimations: (animations: AnimationOverlay[] | undefined) => void;
+  onChangeImages: (images: ImageOverlay[] | undefined) => void;
+  t: TFunction<'editor'>;
+}) => {
+  const [kind, setKind] = React.useState<OverlayKind>((images?.length ?? 0) > 0 ? 'image' : 'animation');
+
+  return (
+    <View style={{ marginTop: spacing.m }}>
+      <Segmented<OverlayKind>
+        label={t('overlays.kind')}
+        value={kind}
+        options={[
+          { value: 'animation', label: t('overlays.animation'), icon: 'sparkles-outline' },
+          { value: 'image', label: t('overlays.image'), icon: 'image-outline' },
+        ]}
+        onChange={setKind}
+      />
+      {kind === 'animation' ? (
+        <AnimationFieldsList value={animations} onChange={onChangeAnimations} t={t} />
+      ) : (
+        <ImageFieldsList value={images} onChange={onChangeImages} t={t} />
+      )}
+    </View>
+  );
+};
+
+// A list of animation overlays for a visual scene: each row is a full AnimationFields editor with a
+// remove control, plus a trailing picker to append more. Mirrors the web AnimationOverlayField; writes
+// section.animations.
+export const AnimationFieldsList = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: AnimationOverlay[] | undefined;
+  onChange: (animations: AnimationOverlay[] | undefined) => void;
+  t: TFunction<'editor'>;
+}) => {
+  const animations = value ?? [];
+
+  const replaceAt = (index: number, next: AnimationOverlay) => {
+    onChange(animations.map((animation, i) => (i === index ? next : animation)));
+  };
+
+  const removeAt = (index: number) => {
+    const next = animations.filter((_, i) => i !== index);
+
+    onChange(next.length > 0 ? next : undefined);
+  };
+
+  const add = (animation: AnimationOverlay) => {
+    onChange([...animations, { ...animation, id: makeTemplateId() }]);
+  };
+
+  return (
+    <View>
+      {animations.map((animation, index) => (
+        <View key={animation.id ?? `animation-${index}`} style={styles.animLayer}>
+          <View style={styles.animLayerHead}>
+            <Text style={styles.fieldLabel}>{t('animation.layer', { number: index + 1 })}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                removeAt(index);
+              }}
+              accessibilityLabel={t('animation.remove')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          <AnimationFields
+            value={animation}
+            onChange={(next) => {
+              if (!next) {
+                removeAt(index);
+
+                return;
+              }
+
+              replaceAt(index, { ...next, id: animation.id });
+            }}
+            t={t}
+          />
+        </View>
+      ))}
+      <Text style={[styles.fieldLabel, { marginTop: spacing.m }]}>{t('animation.add')}</Text>
+      <AnimationFields
+        value={undefined}
+        onChange={(next) => {
+          if (next) add(next);
+        }}
+        t={t}
+      />
+    </View>
+  );
+};
+
+// Animation-overlay sub-section for a visual scene (video / colour): pick a bundled .apng, then tune
+// loop / keep-last-frame and position / scale. Mirrors the web AnimationGallery; one overlay each.
+// Shared numeric placement controls for an overlay (animation or image): position, scale, opacity and
+// rotation. AnimationFields stacks its picker + loop/keep-last-frame on top; ImageFields stacks its
+// picture picker — both delegate the common controls here so the two panels stay identical. Labels use
+// the generic `animation.*` keys so both panels read the same.
+type PlacementValue = { position?: string; scale?: string; opacity?: number; rotation?: number };
+
+const PlacementFields = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: PlacementValue;
+  onChange: (patch: PlacementValue) => void;
+  t: TFunction<'editor'>;
+}) => (
+  <>
+    <PairRow
+      label={t('animation.position')}
+      value={value.position}
+      aLabel="X"
+      bLabel="Y"
+      placeholder="0"
+      onChange={(position) => {
+        onChange({ position });
+      }}
+    />
+    <PairRow
+      label={t('animation.scale')}
+      value={value.scale}
+      aLabel="W"
+      bLabel="H"
+      placeholder="auto"
+      onChange={(scale) => {
+        onChange({ scale });
+      }}
+    />
+    <Slider
+      label={t('animation.opacity')}
+      value={value.opacity ?? 1}
+      min={0}
+      max={1}
+      step={0.05}
+      format={(v) => `${Math.round(v * 100)}%`}
+      resetTo={1}
+      onChange={(opacity) => {
+        onChange({ opacity });
+      }}
+    />
+    <Slider
+      label={t('animation.rotation')}
+      value={value.rotation ?? 0}
+      min={-180}
+      max={180}
+      step={1}
+      format={(v) => `${Math.round(v)}°`}
+      resetTo={0}
+      onChange={(rotation) => {
+        onChange({ rotation });
+      }}
+    />
+  </>
+);
+
+export const AnimationFields = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: AnimationOverlay | undefined;
+  onChange: (animation?: AnimationOverlay) => void;
+  t: TFunction<'editor'>;
+}) => {
+  const patch = (over: Partial<AnimationOverlay>) => {
+    if (value) onChange({ ...value, ...over });
+  };
+
+  return (
+    <View style={{ marginTop: spacing.m }}>
+      <Text style={styles.fieldLabel}>{t('animation.label')}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.animStrip}>
+        <AnimCard
+          label={t('animation.none')}
+          active={!value}
+          onPress={() => {
+            onChange();
+          }}
+          icon="ban-outline"
+        />
+        {ANIMATION_LIBRARY.map((animation) => (
+          <AnimCard
+            key={animation.id}
+            label={animation.label}
+            active={value?.url === animation.url}
+            onPress={() => {
+              onChange({ url: animation.url, label: animation.label });
+            }}
+            source={animation.module}
+          />
+        ))}
+      </ScrollView>
+
+      {value ? (
+        <View>
+          <AnimationPlaybackFields value={value} patch={patch} t={t} />
+          <Toggle
+            label={t('animation.keepLastFrame')}
+            value={value.persistent ?? true}
+            onChange={(persistent) => {
+              patch({ persistent });
+            }}
+          />
+          <PlacementFields value={value} onChange={patch} t={t} />
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
+type PlaybackMode = 'forever' | 'loops' | 'seconds';
+
+// Derive the active mode from which extent field is set; loop:false (play once) reads as a 1-loop count.
+const playbackModeOf = (v: AnimationOverlay): PlaybackMode => {
+  if (v.duration !== undefined) return 'seconds';
+
+  if (v.loops !== undefined || v.loop === false) return 'loops';
+
+  return 'forever';
+};
+
+// Playback extent + start offset. The 3-way control sets exactly one extent (clearing the others); a
+// whole-second start delays the overlay (0 = from the beginning).
+const AnimationPlaybackFields = ({
+  value,
+  patch,
+  t,
+}: {
+  value: AnimationOverlay;
+  patch: (over: Partial<AnimationOverlay>) => void;
+  t: TFunction<'editor'>;
+}) => {
+  const mode = playbackModeOf(value);
+
+  const setMode = (next: PlaybackMode) => {
+    if (next === 'forever') patch({ loop: true, loops: undefined, duration: undefined });
+
+    if (next === 'loops') patch({ loops: value.loops ?? 1, loop: undefined, duration: undefined });
+
+    if (next === 'seconds') patch({ duration: value.duration ?? 3, loop: undefined, loops: undefined });
+  };
+
+  return (
+    <View>
+      <Segmented<PlaybackMode>
+        label={t('animation.playback')}
+        value={mode}
+        options={[
+          { value: 'forever', label: t('animation.forever') },
+          { value: 'loops', label: t('animation.loopsTab') },
+          { value: 'seconds', label: t('animation.secondsTab') },
+        ]}
+        onChange={setMode}
+      />
+      {mode === 'loops' ? (
+        <FieldRow label={t('animation.loopsLabel')}>
+          <NumberInput
+            value={value.loops ?? 1}
+            onChange={(n) => {
+              patch({ loops: Math.max(1, n) });
+            }}
+          />
+        </FieldRow>
+      ) : null}
+      {mode === 'seconds' ? (
+        <FieldRow label={t('animation.secondsLabel')}>
+          <NumberInput
+            value={value.duration ?? 3}
+            onChange={(n) => {
+              patch({ duration: Math.max(1, n) });
+            }}
+          />
+        </FieldRow>
+      ) : null}
+      <FieldRow label={t('animation.startLabel')}>
+        <NumberInput
+          value={value.start ?? 0}
+          onChange={(n) => {
+            patch({ start: n > 0 ? n : undefined });
+          }}
+        />
+      </FieldRow>
+    </View>
+  );
+};
+
+const AnimCard = ({
+  label,
+  active,
+  onPress,
+  source,
+  icon,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  source?: number;
+  icon?: keyof typeof Ionicons.glyphMap;
+}) => (
+  <TouchableOpacity onPress={onPress} style={[styles.animCard, active && styles.animCardActive]}>
+    <View style={styles.animThumb}>
+      {source ? (
+        <Image source={source} style={styles.animThumbImg} resizeMode="contain" />
+      ) : (
+        <Ionicons name={icon ?? 'ban-outline'} size={18} color={colors.textSecondary} />
+      )}
+    </View>
+    <Text style={[styles.animCardLabel, active && { color: colors.primary }]} numberOfLines={1}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+// A list of still-image overlays for a video scene: each row is a full ImageFields editor with a
+// remove control, plus a trailing picker to append more. Mirrors AnimationFieldsList; writes
+// section.images. Expo image overlays are bundled-library only — each emits a `library` MediaChoice.
+export const ImageFieldsList = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: ImageOverlay[] | undefined;
+  onChange: (images: ImageOverlay[] | undefined) => void;
+  t: TFunction<'editor'>;
+}) => {
+  const images = value ?? [];
+
+  const replaceAt = (index: number, next: ImageOverlay) => {
+    onChange(images.map((image, i) => (i === index ? next : image)));
+  };
+
+  const removeAt = (index: number) => {
+    const next = images.filter((_, i) => i !== index);
+
+    onChange(next.length > 0 ? next : undefined);
+  };
+
+  const add = (image: ImageOverlay) => {
+    onChange([...images, { ...image, id: makeTemplateId() }]);
+  };
+
+  return (
+    <View>
+      {images.map((image, index) => (
+        <View key={image.id} style={styles.animLayer}>
+          <View style={styles.animLayerHead}>
+            <Text style={styles.fieldLabel}>{t('image.layer', { number: index + 1 })}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                removeAt(index);
+              }}
+              accessibilityLabel={t('image.remove')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          <ImageFields
+            value={image}
+            onChange={(next) => {
+              if (!next) {
+                removeAt(index);
+
+                return;
+              }
+
+              replaceAt(index, { ...next, id: image.id });
+            }}
+            t={t}
+          />
+        </View>
+      ))}
+      <Text style={[styles.fieldLabel, { marginTop: spacing.m }]}>{t('image.add')}</Text>
+      <ImageFields
+        value={undefined}
+        onChange={(next) => {
+          if (next) add(next);
+        }}
+        t={t}
+      />
+    </View>
+  );
+};
+
+// Still-image-overlay sub-section for a video scene: pick a bundled background by id, then tune
+// position / scale with the same numeric PairRow inputs as animations. Emits a `library` MediaChoice
+// so the descriptor carries a `library://<id>` marker (staged on-device before compile). One overlay
+// each; the "None" card clears the layer.
+export const ImageFields = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: ImageOverlay | undefined;
+  onChange: (image: ImageOverlay | undefined) => void;
+  t: TFunction<'editor'>;
+}) => {
+  const selectedId = value?.choice.source === 'library' ? value.choice.id : undefined;
+
+  const patch = (over: Partial<ImageOverlay>) => {
+    if (value) onChange({ ...value, ...over });
+  };
+
+  const clear = () => {
+    const empty: ImageOverlay | undefined = undefined;
+    onChange(empty);
+  };
+
+  return (
+    <View style={{ marginTop: spacing.m }}>
+      <Text style={styles.fieldLabel}>{t('image.label')}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.animStrip}>
+        <AnimCard label={t('image.none')} active={!value} onPress={clear} icon="ban-outline" />
+        {BACKGROUND_LIBRARY.map((background) => (
+          <PictureCard
+            key={background.id}
+            label={background.title}
+            active={selectedId === background.id}
+            onPress={() => {
+              onChange({
+                id: value?.id ?? makeTemplateId(),
+                position: value?.position,
+                scale: value?.scale,
+                choice: { source: 'library', id: background.id },
+              });
+            }}
+            source={backgroundAsset(background.id)}
+          />
+        ))}
+      </ScrollView>
+
+      {value ? (
+        <View>
+          <PlacementFields value={value} onChange={patch} t={t} />
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
+const PictureCard = ({
+  label,
+  active,
+  onPress,
+  source,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  source: number | undefined;
+}) => (
+  <TouchableOpacity onPress={onPress} style={[styles.animCard, active && styles.animCardActive]}>
+    <View style={styles.animThumb}>
+      {source === undefined ? (
+        <Ionicons name="image-outline" size={18} color={colors.textSecondary} />
+      ) : (
+        <Image source={source} style={styles.animThumbImg} resizeMode="cover" />
+      )}
+    </View>
+    <Text style={[styles.animCardLabel, active && { color: colors.primary }]} numberOfLines={1}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+const PairRow = ({
+  label,
+  value,
+  aLabel,
+  bLabel,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: string | undefined;
+  aLabel: string;
+  bLabel: string;
+  placeholder: string;
+  onChange: (value: string | undefined) => void;
+}) => {
+  const [a, b] = parsePair(value);
+
+  return (
+    <View style={{ marginTop: spacing.s }}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <View style={styles.animPairRow}>
+        <PairInput
+          prefix={aLabel}
+          value={a}
+          placeholder={placeholder}
+          onChange={(v) => {
+            onChange(formatPair(v, b));
+          }}
+        />
+        <PairInput
+          prefix={bLabel}
+          value={b}
+          placeholder={placeholder}
+          onChange={(v) => {
+            onChange(formatPair(a, v));
+          }}
+        />
+      </View>
+    </View>
+  );
+};
+
+const PairInput = ({
+  prefix,
+  value,
+  placeholder,
+  onChange,
+}: {
+  prefix: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}) => (
+  <View style={styles.animPairInput}>
+    <Text style={styles.animPairPrefix}>{prefix}</Text>
+    <TextInput
+      style={styles.animPairField}
+      value={value}
+      placeholder={placeholder}
+      placeholderTextColor={colors.textSecondary}
+      keyboardType="numbers-and-punctuation"
+      onChangeText={(text) => {
+        onChange(text.replace(/[^\d-]/g, ''));
+      }}
+    />
+  </View>
+);
+
 export const sceneStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
@@ -377,4 +966,45 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124,131,253,0.08)',
   },
   addInlineText: { ...typography.caption, color: colors.primary, fontWeight: '600' },
+  animStrip: { gap: spacing.s, paddingVertical: spacing.xs, paddingRight: spacing.s },
+  animLayer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    padding: spacing.s,
+    marginTop: spacing.s,
+  },
+  animLayerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  animCard: {
+    width: 88,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    padding: 4,
+  },
+  animCardActive: { borderColor: colors.primary, backgroundColor: 'rgba(124,131,253,0.08)' },
+  animThumb: {
+    height: 54,
+    borderRadius: 8,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  animThumbImg: { width: '100%', height: '100%' },
+  animCardLabel: { ...typography.smallText, color: colors.textSecondary, textAlign: 'center', marginTop: 4 },
+  animPairRow: { flexDirection: 'row', gap: spacing.s },
+  animPairInput: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    paddingHorizontal: spacing.s,
+  },
+  animPairPrefix: { ...typography.smallText, color: colors.textSecondary, fontWeight: '700' },
+  animPairField: { ...typography.body, fontSize: 14, color: colors.text, flex: 1, paddingVertical: 8 },
 });

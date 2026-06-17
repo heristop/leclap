@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/src/features/editor/components/FormSection';
@@ -123,26 +123,28 @@ const FormModal = ({ section, formData, onFormDataChange, onClose, onSubmit }: F
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.formModalContainer}>
-        <View style={styles.formHeader}>
-          <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        <ScrollView>
-          <FormSection
-            section={section}
-            formData={formData as Record<string, string>}
-            onFormDataChange={onFormDataChange}
-          />
-        </ScrollView>
-        <View style={styles.formFooter}>
-          <TouchableOpacity style={styles.formSubmitButton} onPress={onSubmit}>
-            <Text style={styles.formSubmitButtonText}>{t('actions.done')}</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <SafeAreaView style={styles.formModalContainer} edges={['top', 'bottom']}>
+          <View style={styles.formHeader}>
+            <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView>
+            <FormSection
+              section={section}
+              formData={formData as Record<string, string>}
+              onFormDataChange={onFormDataChange}
+            />
+          </ScrollView>
+          <View style={styles.formFooter}>
+            <TouchableOpacity style={styles.formSubmitButton} onPress={onSubmit}>
+              <Text style={styles.formSubmitButtonText}>{t('actions.done')}</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 };
@@ -167,33 +169,35 @@ const MusicModal = ({ section, allowedMusic, selectedId, onSelect, onClose, onUs
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.formModalContainer}>
-        <View style={styles.formHeader}>
-          <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
-          <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel={t('music.done')}>
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        <ScrollView contentContainerStyle={styles.musicScroll}>
-          <Text style={styles.musicHint}>{t('music.pick')}</Text>
-          <TouchableOpacity
-            accessibilityRole="radio"
-            accessibilityState={{ selected: selectedId === 'default' }}
-            onPress={() => {
-              onSelect('default');
-            }}
-            style={[styles.musicDefaultRow, selectedId === 'default' && styles.musicDefaultRowActive]}
-          >
-            <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
-            <Text style={styles.musicDefaultText}>{t('music.defaultOption')}</Text>
-            {selectedId === 'default' ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
-          </TouchableOpacity>
-          <MusicSectionPicker allowed={allowed} selectedId={selectedId} onSelect={onSelect} />
-          <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}>
-            <Text style={styles.tempCompleteButtonText}>{t('music.done')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <SafeAreaView style={styles.formModalContainer} edges={['top', 'bottom']}>
+          <View style={styles.formHeader}>
+            <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
+            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel={t('music.done')}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView contentContainerStyle={styles.musicScroll}>
+            <Text style={styles.musicHint}>{t('music.pick')}</Text>
+            <TouchableOpacity
+              accessibilityRole="radio"
+              accessibilityState={{ selected: selectedId === 'default' }}
+              onPress={() => {
+                onSelect('default');
+              }}
+              style={[styles.musicDefaultRow, selectedId === 'default' && styles.musicDefaultRowActive]}
+            >
+              <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+              <Text style={styles.musicDefaultText}>{t('music.defaultOption')}</Text>
+              {selectedId === 'default' ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
+            </TouchableOpacity>
+            <MusicSectionPicker allowed={allowed} selectedId={selectedId} onSelect={onSelect} />
+            <TouchableOpacity style={styles.tempCompleteButton} onPress={onUseDefault}>
+              <Text style={styles.tempCompleteButtonText}>{t('music.done')}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 };

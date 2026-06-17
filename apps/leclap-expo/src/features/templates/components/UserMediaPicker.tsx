@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -332,47 +332,49 @@ export function UserMediaPicker({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={st.container}>
-        <View style={st.header}>
-          <Text style={st.title}>Music &amp; Background</Text>
-          <TouchableOpacity onPress={onClose} accessibilityLabel="Close">
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <SafeAreaView style={st.container} edges={['top', 'bottom']}>
+          <View style={st.header}>
+            <Text style={st.title}>Music &amp; Background</Text>
+            <TouchableOpacity onPress={onClose} accessibilityLabel="Close">
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
 
-        <FlatList
-          data={[]}
-          keyExtractor={() => ''}
-          renderItem={null}
-          ListHeaderComponent={
-            <>
-              {showMusic && (
-                <MusicSection
-                  allowedIds={allowedMusic}
-                  allowUpload={allowUploadMusic}
-                  choice={musicChoice}
-                  onChange={onMusicChange}
-                />
-              )}
-              {showBackground && (
-                <BackgroundSection
-                  allowedIds={allowedBackgrounds}
-                  allowUpload={allowUploadBackground}
-                  choice={backgroundChoice}
-                  onChange={onBackgroundChange}
-                />
-              )}
-            </>
-          }
-          contentContainerStyle={st.scrollContent}
-        />
+          <FlatList
+            data={[]}
+            keyExtractor={() => ''}
+            renderItem={null}
+            ListHeaderComponent={
+              <>
+                {showMusic && (
+                  <MusicSection
+                    allowedIds={allowedMusic}
+                    allowUpload={allowUploadMusic}
+                    choice={musicChoice}
+                    onChange={onMusicChange}
+                  />
+                )}
+                {showBackground && (
+                  <BackgroundSection
+                    allowedIds={allowedBackgrounds}
+                    allowUpload={allowUploadBackground}
+                    choice={backgroundChoice}
+                    onChange={onBackgroundChange}
+                  />
+                )}
+              </>
+            }
+            contentContainerStyle={st.scrollContent}
+          />
 
-        <View style={st.footer}>
-          <TouchableOpacity style={st.doneButton} onPress={onClose} accessibilityRole="button">
-            <Text style={st.doneButtonText}>Done</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+          <View style={st.footer}>
+            <TouchableOpacity style={st.doneButton} onPress={onClose} accessibilityRole="button">
+              <Text style={st.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

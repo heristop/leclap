@@ -18,9 +18,10 @@ export interface HybridOptions {
 }
 
 /**
- * Compile a template on-device. The app is fully local — there is no server fallback. A template the
- * native engine can't render yet (animation `maps`) returns a clear error instead of a broken video.
- * Returns the same `{ success, outputUri, error }` shape callers already consume.
+ * Compile a template on-device. The app is fully local — there is no server fallback. The reused core
+ * renders everything the descriptor expresses (incl. animation `maps[]`), so the capability gate is
+ * permissive; a genuine engine failure surfaces as a real error from `CoreCompilationService` rather
+ * than a pre-emptive refusal. Returns the same `{ success, outputUri, error }` shape callers consume.
  */
 export async function compileHybrid(
   templateDescriptor: unknown,

@@ -12,6 +12,9 @@ import {
   findBackground,
   type MediaCredit,
 } from '@leclap/creative-kit/media';
+import { ANIMATION_ASSETS } from './animation-assets.generated';
+
+export { ANIMATION_ASSETS };
 
 export { MUSIC_LIBRARY, BACKGROUND_LIBRARY, findMusic, findBackground, type MediaCredit };
 
@@ -67,6 +70,38 @@ export const VIDEO_ASSETS: Record<string, number> = {
   'leclap_bumper.mp4': require('../../assets/videos/leclap_bumper.mp4'),
   'leclap_bumper_portrait.mp4': require('../../assets/videos/leclap_bumper_portrait.mp4'),
 };
+
+// Animation overlays (.apng) bundled for the picker + on-device staging. ANIMATION_ASSETS is the
+// generated require map (filename → Metro asset id); the library derives a display label and the
+// canonical `/assets/animations/<file>` url that the descriptor stores and the engine resolves
+// locally (FilesystemExpoAdapter.resolveLocalAsset + stageBundledAnimations) — same url as the web.
+export interface AnimationAsset {
+  id: string;
+  label: string;
+  file: string;
+  url: string;
+  module: number;
+}
+
+const labelFromFile = (file: string): string => {
+  const base = file
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .trim();
+
+  return base.charAt(0).toUpperCase() + base.slice(1);
+};
+
+export const ANIMATION_LIBRARY: AnimationAsset[] = Object.entries(ANIMATION_ASSETS).map(([file, module]) => ({
+  id: file.replace(/\.[^.]+$/, '').replace(/_/g, '-'),
+  label: labelFromFile(file),
+  file,
+  url: `/assets/animations/${file}`,
+  module,
+}));
+
+export const findAnimationByUrl = (url: string): AnimationAsset | undefined =>
+  ANIMATION_LIBRARY.find((a) => a.url === url);
 
 export const musicAsset = (id: string): number | undefined => {
   const f = findMusic(id)?.file;

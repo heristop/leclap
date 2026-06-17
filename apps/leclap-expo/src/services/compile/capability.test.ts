@@ -4,8 +4,9 @@ import type { CompileRecordedVideos } from '@/src/services/api';
 
 const oneClip: CompileRecordedVideos = { video_1: { path: '/clip.mp4', orientation: 'landscape' } };
 
-// The reused core handles everything the server does, so capability is permissive — only animation
-// `maps` (unsupported unzip) route to the server; compileHybrid falls back on any on-device error.
+// The reused core turns the descriptor into the SAME ffmpeg commands on Node, web and on-device, so
+// capability is fully permissive — including animation `maps[]`, now single-file overlays (the old
+// ZIP-frame unzip that routed them away is gone). compileHybrid surfaces any real on-device error.
 describe('describeOnDeviceCapability', () => {
   it('allows a single project_video clip', () => {
     const d: TemplateDescriptor = { sections: [{ name: 'video_1', type: 'project_video' }] };
@@ -37,11 +38,18 @@ describe('describeOnDeviceCapability', () => {
     expect(isOnDeviceCapable(d, twoClips)).toBe(true);
   });
 
-  it('routes animation-map sections to the server (unzip unsupported)', () => {
+  it('allows animation-map sections (single-file overlays render on-device)', () => {
     const d: TemplateDescriptor = {
-      sections: [{ name: 'video_1', type: 'project_video', maps: [{ frames: 'anim.zip' }] }],
+      sections: [
+        {
+          name: 'video_1',
+          type: 'project_video',
+          inputs: [{ name: 'glow', url: 'animations/glow_border.apng' }],
+          maps: [{ inputs: ['@glow'], filters: [{ type: 'overlay', value: '0:0' }], outputs: ['final'] }],
+        },
+      ],
     };
-    expect(describeOnDeviceCapability(d, oneClip)).toMatchObject({ capable: false });
-    expect(isOnDeviceCapable(d, oneClip)).toBe(false);
+    expect(describeOnDeviceCapability(d, oneClip)).toEqual({ capable: true });
+    expect(isOnDeviceCapable(d, oneClip)).toBe(true);
   });
 });

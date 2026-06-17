@@ -6,7 +6,14 @@ import { Asset } from 'expo-asset';
 // the core's tsyringe decorators. reflect-metadata is loaded once at the app entry (app/_layout.tsx).
 import { compileReactNative, type NativeEngine } from 'ffmpeg-video-composer/reactnative';
 import { renderQuip } from '@leclap/creative-kit/renderQuips';
-import { MUSIC_ASSETS, FONT_ASSETS, VIDEO_ASSETS } from '@/src/data/mediaCatalog';
+import {
+  MUSIC_ASSETS,
+  FONT_ASSETS,
+  VIDEO_ASSETS,
+  ANIMATION_ASSETS,
+  BACKGROUND_ASSETS,
+  findBackground,
+} from '@/src/data/mediaCatalog';
 import * as Leclap from '@/modules/leclap-ffmpeg';
 import type { CompileInput, CompileOptions, CompileResult, CompileService } from './CompileService';
 
@@ -93,6 +100,96 @@ async function stageBundledVideos(assetsDir: string): Promise<void> {
   );
 }
 
+// Stage the animation overlays a template references — both section `inputs[]` of type 'animation' and
+// whole-video `global.animations[]` — under `assetsDir/animations`, so the engine resolves them locally
+// instead of downloading the canonical `/assets/animations/<file>` url (which 404s on-device). Section
+// animations and global ones sit directly on the descriptor (already expanded, unlike partials), so it
+// exposes them here; only the referenced files are staged — the .apng set is large.
+async function stageBundledAnimations(descriptor: CompileInput['descriptor'], assetsDir: string): Promise<void> {
+  const files = new Set<string>();
+
+  const addFile = (url: string | undefined) => {
+    const file = url?.split('/').pop();
+
+    if (file && file in ANIMATION_ASSETS) files.add(file);
+  };
+
+  for (const section of descriptor.sections ?? []) {
+    const inputs = (section as { inputs?: Array<{ type?: string; url?: string }> }).inputs ?? [];
+
+    for (const input of inputs) {
+      if (input.type === 'animation') addFile(input.url);
+    }
+  }
+
+  // Whole-video overlays (global.animations[]) reference the same bundled .apng files but live off the
+  // sections, so they need staging too or the final overlay pass 404s the canonical url on-device.
+  const globalAnimations =
+    (descriptor.global as { animations?: Array<{ url?: string }> } | undefined)?.animations ?? [];
+
+  for (const animation of globalAnimations) addFile(animation.url);
+
+  if (files.size === 0) return;
+
+  const animationsDir = `${assetsDir}/animations`;
+  await FileSystem.makeDirectoryAsync(toUri(animationsDir), { intermediates: true }).catch(() => {});
+
+  await Promise.all(
+    [...files].map(async (file) => {
+      const destination = `${animationsDir}/${file}`;
+
+      if ((await FileSystem.getInfoAsync(toUri(destination))).exists) return;
+
+      const asset = await Asset.fromModule(ANIMATION_ASSETS[file]).downloadAsync();
+      await FileSystem.copyAsync({ from: toUri(asset.localUri ?? asset.uri), to: toUri(destination) });
+    })
+  );
+}
+
+// Stage the still-image overlays a template references (visual-section `inputs[]` of type 'image')
+// under `assetsDir/backgrounds`, then rewrite each input.url so the engine resolves the staged copy
+// locally instead of trying to fetch the marker. Unlike animations (whose url is already the canonical
+// `/assets/animations/<file>` path), an authored image-overlay input carries a `library://<id>` marker:
+// we resolve `<id>` → the bundled background `<file>.jpg`, stage it, and rewrite the url to the canonical
+// `/assets/backgrounds/<file>` path that FilesystemExpoAdapter.resolveLocalAsset maps to
+// `${assetsDir}/backgrounds/<file>` (same convention as animations). Mirrors the web applyMediaChoices,
+// which rewrites the same `library://` marker before materializing media. Expo image overlays are
+// bundled-library only, so non-`library://` urls (none today) are left untouched. Mutates the descriptor.
+async function stageBundledImages(descriptor: CompileInput['descriptor'], assetsDir: string): Promise<void> {
+  const files = new Set<string>();
+
+  for (const section of descriptor.sections ?? []) {
+    const inputs = (section as { inputs?: Array<{ type?: string; url?: string }> }).inputs ?? [];
+
+    for (const input of inputs) {
+      if (input.type !== 'image' || !input.url?.startsWith('library://')) continue;
+
+      const file = findBackground(input.url.slice('library://'.length))?.file;
+
+      if (!file || !(file in BACKGROUND_ASSETS)) continue;
+
+      files.add(file);
+      input.url = `/assets/backgrounds/${file}`;
+    }
+  }
+
+  if (files.size === 0) return;
+
+  const backgroundsDir = `${assetsDir}/backgrounds`;
+  await FileSystem.makeDirectoryAsync(toUri(backgroundsDir), { intermediates: true }).catch(() => {});
+
+  await Promise.all(
+    [...files].map(async (file) => {
+      const destination = `${backgroundsDir}/${file}`;
+
+      if ((await FileSystem.getInfoAsync(toUri(destination))).exists) return;
+
+      const asset = await Asset.fromModule(BACKGROUND_ASSETS[file]).downloadAsync();
+      await FileSystem.copyAsync({ from: toUri(asset.localUri ?? asset.uri), to: toUri(destination) });
+    })
+  );
+}
+
 // Prepare the on-device build/asset dirs and the ProjectConfig the core compiles against.
 async function buildProjectConfig(input: CompileInput) {
   const { descriptor, clips } = input;
@@ -104,6 +201,8 @@ async function buildProjectConfig(input: CompileInput) {
   await stageBundledFonts(assetsDir);
   await stageBundledMusic(descriptor.global?.music?.name, assetsDir);
   await stageBundledVideos(assetsDir);
+  await stageBundledAnimations(descriptor, assetsDir);
+  await stageBundledImages(descriptor, assetsDir);
 
   // Recorded clips, keyed by section name → the plain paths ffmpeg reads.
   const userVideoPaths: Record<string, string> = {};

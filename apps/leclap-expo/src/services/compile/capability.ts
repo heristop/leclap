@@ -1,4 +1,4 @@
-import type { TemplateDescriptor, Section } from '@/src/types';
+import type { TemplateDescriptor } from '@/src/types';
 import type { CompileRecordedVideos } from '@/src/services/api';
 
 export interface Capability {
@@ -10,22 +10,16 @@ export interface Capability {
 /**
  * Whether a job can be produced on-device. The reused core (`ffmpeg-video-composer`) turns the
  * descriptor into the SAME ffmpeg commands it runs on Node + web, so on-device covers everything the
- * core supports: multi-section concat, color/title cards, drawtext, multiple clips, music. The only
- * thing the native engine can't do yet is animation `maps` (ZIP frame overlays — unzip is
- * unsupported). `compileHybrid` uses this gate to fail fast with a clear error instead of producing
- * a broken video.
+ * core supports: multi-section concat, color/title cards, drawtext, multiple clips, music, and
+ * animation `maps[]` — now single-file APNG/WebM overlays composited through the shared filtergraph
+ * (the old ZIP-frame path that needed unzip is gone). So capability is fully permissive; the gate
+ * stays as a hook for any genuine future on-device limitation, and `compileHybrid` surfaces a real
+ * engine error rather than pre-emptively refusing a template the core can render.
  */
 export function describeOnDeviceCapability(
-  descriptor: TemplateDescriptor,
+  _descriptor: TemplateDescriptor,
   _recordedVideos: CompileRecordedVideos
 ): Capability {
-  const sections = descriptor.sections ?? [];
-  const withMaps = sections.find((s: Section) => Array.isArray(s.maps) && s.maps.length > 0);
-
-  if (withMaps) {
-    return { capable: false, reason: `section "${withMaps.name}" uses animation maps (server)` };
-  }
-
   return { capable: true };
 }
 

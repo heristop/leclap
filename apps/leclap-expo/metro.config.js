@@ -13,6 +13,18 @@ const existing = config.resolver.blockList;
 const blockList = Array.isArray(existing) ? existing : [];
 config.resolver.blockList = [...blockList, /.*\.(test|spec)\.[jt]sx?$/];
 
+// Animated PNG overlays (.apng) aren't a default Metro asset extension, so require() them as assets
+// (bundled for staging on-device + used as picker thumbnails).
+if (!config.resolver.assetExts.includes('apng')) {
+  config.resolver.assetExts = [...config.resolver.assetExts, 'apng'];
+}
+
+// The internal @leclap/* packages publish only an `exports` map and no `main` (e.g.
+// @leclap/creative-kit -> ./src/index.ts), and the app imports several subpaths
+// (@leclap/creative-kit/editor, /fonts, /media, …). Metro must honor package exports to resolve
+// them; without this it falls back to a non-existent `main` and throws UnableToResolveError.
+config.resolver.unstable_enablePackageExports = true;
+
 // NOTE: no Node-module shims are needed. The reused core is cleanly split behind its platform
 // abstractions, so the React-Native entry (`ffmpeg-video-composer/src/reactnative.ts`) pulls only
 // Hermes-safe deps (tsyringe, zod, expo-file-system) — verified by tracing its import graph. If a

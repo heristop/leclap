@@ -108,4 +108,47 @@ describe('applyMediaChoices', () => {
       expect(pictureUrlOf(descriptor, 0)).toBe('media://img1');
     });
   });
+
+  describe('section image inputs (background/logo overlays)', () => {
+    function inputsOf(descriptor: TemplateDescriptor): { name: string; url?: string }[] {
+      const section = descriptor.sections?.[0] as { inputs?: { name: string; url?: string }[] } | undefined;
+      return section?.inputs ?? [];
+    }
+
+    it('resolves a library:// input marker to the curated /backgrounds url', () => {
+      const descriptor = {
+        sections: [
+          {
+            name: 'video_1',
+            type: 'project_video',
+            inputs: [{ name: 'background', url: 'library://forest-sea', type: 'image' }],
+          },
+        ],
+      } as unknown as TemplateDescriptor;
+
+      applyMediaChoices(descriptor, {});
+
+      expect(inputsOf(descriptor)[0]?.url).toMatch(/^\/backgrounds\//);
+    });
+
+    it('leaves media:// and pasted-url inputs untouched (for materialize / engine fetch)', () => {
+      const descriptor = {
+        sections: [
+          {
+            name: 'video_1',
+            type: 'project_video',
+            inputs: [
+              { name: 'logo', url: 'media://logoK', type: 'image' },
+              { name: 'background', url: 'https://x/y.png', type: 'image' },
+            ],
+          },
+        ],
+      } as unknown as TemplateDescriptor;
+
+      applyMediaChoices(descriptor, {});
+
+      expect(inputsOf(descriptor).find((i) => i.name === 'logo')?.url).toBe('media://logoK');
+      expect(inputsOf(descriptor).find((i) => i.name === 'background')?.url).toBe('https://x/y.png');
+    });
+  });
 });

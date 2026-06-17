@@ -55,6 +55,35 @@ describe('materializeTemplateMedia', () => {
     expect(pictureUrlOf(descriptor)).toBe('/assets/pictures/imgK.png');
   });
 
+  it('writes an uploaded image on a section input (background/logo overlay) and rewrites its url', async () => {
+    const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
+    const descriptor = {
+      global: {},
+      sections: [
+        {
+          name: 'video_1',
+          type: 'project_video',
+          inputs: [
+            { name: 'background', url: '/backgrounds/x.jpg', type: 'image' },
+            { name: 'logo', url: 'media://logoK', type: 'image' },
+          ],
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    await materializeTemplateMedia(
+      descriptor,
+      sourceWith({ logoK: { bytes: new Uint8Array([3]), ext: 'png' } }),
+      target
+    );
+
+    expect(target.writeFile).toHaveBeenCalledWith('/assets/pictures/logoK.png', new Uint8Array([3]));
+    const section = descriptor.sections?.[0] as { inputs?: { name: string; url?: string }[] } | undefined;
+    const inputs = section?.inputs;
+    expect(inputs?.find((i) => i.name === 'logo')?.url).toBe('/assets/pictures/logoK.png');
+    expect(inputs?.find((i) => i.name === 'background')?.url).toBe('/backgrounds/x.jpg');
+  });
+
   it('leaves curated URLs untouched', async () => {
     const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
     const descriptor = {

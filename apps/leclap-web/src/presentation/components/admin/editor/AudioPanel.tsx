@@ -45,7 +45,7 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
     <div>
       <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">{t('audio.label')}</span>
       <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{t('audio.hint')}</p>
-      <div className="space-y-4 rounded-xl border border-foreground/10 bg-surface/40 p-3">
+      <div className="space-y-4 rounded-xl border border-foreground/10 bg-surface p-3">
         <VolumeSlider
           label={t('audio.yourVideo')}
           value={audio.sourceVolume}

@@ -1,13 +1,14 @@
 // Field block for a color_background section. Essentials (always visible): duration + the layered
 // background editor (base color / extra layers). Finishing controls (Effects, Section audio) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music } from 'lucide-react';
+import { Sparkles, Music, Film } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { EditorSection } from '../../templateEditorModel';
+import type { EditorSection, Orientation } from '../../templateEditorModel';
 import { LayersEditor } from '../LayersEditor';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
-import { effectsSummary, audioSummary } from '../sectionHints';
+import { effectsSummary, audioSummary, animationSummary } from '../sectionHints';
+import { AnimationOverlayField } from '../AnimationOverlayField';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { VisualEffects } from './VisualEffects';
@@ -16,12 +17,13 @@ type ColorSection = Extract<EditorSection, { kind: 'color' }>;
 
 interface ColorFieldsProps {
   section: ColorSection;
+  orientation: Orientation;
   onChange: (p: Partial<EditorSection>) => void;
   onLayers: (layers: NonNullable<ColorSection['layers']>) => void;
   inputCls: string;
 }
 
-export const ColorFields = ({ section, onChange, onLayers, inputCls }: ColorFieldsProps) => {
+export const ColorFields = ({ section, orientation, onChange, onLayers, inputCls }: ColorFieldsProps) => {
   const { t } = useTranslation('admin');
   const advanced = useIsAdvanced();
 
@@ -53,6 +55,19 @@ export const ColorFields = ({ section, onChange, onLayers, inputCls }: ColorFiel
               }}
               onGrade={(grade) => {
                 onChange({ grade });
+              }}
+            />
+          </SectionDisclosure>
+          <SectionDisclosure
+            label={t('disclosure.animation')}
+            icon={<Film className="size-4 shrink-0 text-brand-500" aria-hidden />}
+            summary={animationSummary(t, section.animations)}
+          >
+            <AnimationOverlayField
+              value={section.animations}
+              orientation={orientation}
+              onChange={(animations) => {
+                onChange({ animations });
               }}
             />
           </SectionDisclosure>

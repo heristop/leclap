@@ -2,17 +2,19 @@ import { Plus, Trash2 } from 'lucide-react';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';
 import { Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
+import { VariableTextField } from '../VariableTextField';
 
 type PartialSection = Extract<EditorSection, { kind: 'partial' }>;
 
 interface PartialFieldsProps {
   section: PartialSection;
   partials: AvailablePartial[];
+  variables: string[];
   onChange: (p: Partial<EditorSection>) => void;
   inputCls: string;
 }
 
-export const PartialFields = ({ section, partials, onChange, inputCls }: PartialFieldsProps) => {
+export const PartialFields = ({ section, partials, variables, onChange, inputCls }: PartialFieldsProps) => {
   const selected = partials.find((partial) => partial.id === section.ref);
 
   const patchVariable = (index: number, patch: Partial<PartialSection['variables'][number]>): void => {
@@ -98,13 +100,14 @@ export const PartialFields = ({ section, partials, onChange, inputCls }: Partial
                 }}
                 placeholder="name"
               />
-              <input
+              <VariableTextField
                 aria-label={`Partial variable ${i + 1} value`}
                 className={inputCls}
                 value={variable.value}
-                onChange={(e) => {
-                  patchVariable(i, { value: e.target.value });
+                onChange={(value) => {
+                  patchVariable(i, { value });
                 }}
+                variables={variables.map((name) => ({ name, scope: 'global' as const }))}
                 placeholder="value"
               />
               <button

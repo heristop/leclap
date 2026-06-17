@@ -1,6 +1,6 @@
-// The shared look + grade block rendered inside every visual section card (video /
-// color / image). LookGallery writes `look`; GradePanel writes `grade`. Both go through
-// the same section patch so the card owns no extra state.
+// The shared look + grade block rendered inside the "Effects" disclosure of every visual section card
+// (video / color / image). LookGallery writes `look`; GradePanel writes `grade`. Animation lives in
+// its own sibling disclosure (AnimationGallery), not here.
 import type { Grade } from '../../templateEditorModel';
 import { LookGallery } from '../LookGallery';
 import { GradePanel } from '../GradePanel';

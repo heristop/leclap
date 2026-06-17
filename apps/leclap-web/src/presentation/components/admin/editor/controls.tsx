@@ -41,9 +41,9 @@ export const RangeSlider = ({ label, value, min, max, step = 0.01, format, reset
                 onChange(resetTo);
               }}
               aria-label={t('controls.reset', { label })}
-              className="tap rounded-md p-0.5 text-gray-500 transition-colors hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90"
+              className="tap rounded-md p-1.5 text-gray-500 transition-colors hover:bg-foreground/5 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90"
             >
-              <RotateCcw className="h-3 w-3" />
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -93,7 +93,7 @@ export const SegmentedControl = <T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="flex gap-1 rounded-xl border border-foreground/10 bg-surface/40 p-1"
+      className="flex gap-1 rounded-xl border border-foreground/10 bg-surface p-1"
     >
       {options.map((option) => {
         const active = option.value === value;

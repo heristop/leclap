@@ -181,7 +181,7 @@ const CaptionAdvanced = ({
               const raw = e.target.value.trim();
               onChange(nextCaption(caption, { fontsize: raw === '' ? undefined : Number(raw) }));
             }}
-            className="w-full rounded-lg border border-foreground/10 bg-surface/40 px-2.5 py-1.5 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+            className="w-full rounded-lg border border-foreground/10 bg-surface px-2.5 py-1.5 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
           />
         </div>
       </div>

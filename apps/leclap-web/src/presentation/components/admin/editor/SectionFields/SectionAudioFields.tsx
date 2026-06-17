@@ -85,7 +85,7 @@ export const SectionAudioFields = ({ section, onChange, inputCls }: SectionAudio
       )}
 
       {/* Fade-in */}
-      <div className="rounded-xl border border-foreground/10 bg-surface/40 p-3 space-y-2">
+      <div className="rounded-xl border border-foreground/10 bg-surface p-3 space-y-2">
         <label
           htmlFor={fadeInCheckId}
           className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200"
@@ -118,7 +118,7 @@ export const SectionAudioFields = ({ section, onChange, inputCls }: SectionAudio
       </div>
 
       {/* Fade-out */}
-      <div className="rounded-xl border border-foreground/10 bg-surface/40 p-3 space-y-2">
+      <div className="rounded-xl border border-foreground/10 bg-surface p-3 space-y-2">
         <label
           htmlFor={fadeOutCheckId}
           className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200"

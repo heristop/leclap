@@ -15,6 +15,7 @@ export const docNav: readonly DocNavItem[] = [
   { to: '/doc/motion', label: 'Motion & layers' },
   { to: '/doc/audio', label: 'Audio' },
   { to: '/doc/captions', label: 'Captions' },
+  { to: '/doc/animations', label: 'Animations & images' },
   { to: '/doc/filters', label: 'Filters & maps' },
   { to: '/doc/examples', label: 'Examples' },
   { to: '/doc/schema', label: 'JSON Schema' },

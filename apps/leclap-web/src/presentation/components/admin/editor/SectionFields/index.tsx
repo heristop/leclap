@@ -30,7 +30,15 @@ export const SectionFields = ({
   inputCls,
 }: SectionFieldsProps) => {
   if (section.kind === 'partial') {
-    return <PartialFields section={section} partials={partials} onChange={onChange} inputCls={inputCls} />;
+    return (
+      <PartialFields
+        section={section}
+        partials={partials}
+        variables={variables}
+        onChange={onChange}
+        inputCls={inputCls}
+      />
+    );
   }
 
   if (section.kind === 'video') {
@@ -46,11 +54,19 @@ export const SectionFields = ({
   }
 
   if (section.kind === 'color') {
-    return <ColorFields section={section} onChange={onChange} onLayers={onLayers} inputCls={inputCls} />;
+    return (
+      <ColorFields
+        section={section}
+        orientation={orientation}
+        onChange={onChange}
+        onLayers={onLayers}
+        inputCls={inputCls}
+      />
+    );
   }
 
   if (section.kind === 'image') {
-    return <ImageFields section={section} onChange={onChange} inputCls={inputCls} />;
+    return <ImageFields section={section} orientation={orientation} onChange={onChange} inputCls={inputCls} />;
   }
 
   if (section.kind === 'music') {

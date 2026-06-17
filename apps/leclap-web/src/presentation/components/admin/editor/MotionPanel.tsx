@@ -59,7 +59,7 @@ export const MotionPanel = ({ motion, onChange }: MotionPanelProps) => {
       <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
         {t('motion.label')}
       </span>
-      <div className="grid gap-3 rounded-xl border border-foreground/10 bg-surface/40 p-3 sm:grid-cols-[1fr_8rem]">
+      <div className="grid gap-3 rounded-xl border border-foreground/10 bg-surface p-3 sm:grid-cols-[1fr_8rem]">
         <div className="space-y-3">
           <ToggleRow
             enabled={enabled}

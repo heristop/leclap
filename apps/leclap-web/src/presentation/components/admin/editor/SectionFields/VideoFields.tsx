@@ -2,15 +2,17 @@
 // optional countdown, and the WYSIWYG text-overlay editor — the title is the main creative act, so
 // it stays one click away. The finishing controls (Effects, Section audio, Camera guide) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Camera } from 'lucide-react';
+import { Sparkles, Music, Camera, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';
 import { OverlayCanvas } from '../../OverlayCanvas';
+import { VariableTextField } from '../VariableTextField';
 import { FramingGuidePicker } from '../FramingGuidePicker';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
-import { effectsSummary, audioSummary, framingSummary } from '../sectionHints';
+import { effectsSummary, audioSummary, framingSummary, overlaysSummary } from '../sectionHints';
+import { OverlaysField } from '../OverlaysField';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { VisualEffects } from './VisualEffects';
@@ -67,16 +69,17 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
         <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
           {t('video.whatToFilm')}
         </span>
-        <textarea
+        <VariableTextField
+          multiline
+          rows={2}
           value={section.description ?? ''}
-          onChange={(e) => {
-            const text = e.target.value;
-
+          onChange={(text) => {
             onChange({ description: text.trim() === '' ? undefined : text });
           }}
-          rows={2}
+          variables={variables.map((name) => ({ name, scope: 'global' as const }))}
           placeholder={t('video.whatToFilmPlaceholder')}
           className={`${inputCls} resize-none`}
+          aria-label={t('video.whatToFilm')}
         />
         <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">{t('video.whatToFilmHint')}</span>
       </label>
@@ -124,6 +127,23 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
               }}
               onGrade={(grade) => {
                 onChange({ grade });
+              }}
+            />
+          </SectionDisclosure>
+          <SectionDisclosure
+            label={t('disclosure.overlays')}
+            icon={<Layers className="size-4 shrink-0 text-brand-500" aria-hidden />}
+            summary={overlaysSummary(t, section.animations, section.images)}
+          >
+            <OverlaysField
+              animations={section.animations}
+              images={section.images}
+              orientation={orientation}
+              onAnimationsChange={(animations) => {
+                onChange({ animations });
+              }}
+              onImagesChange={(images) => {
+                onChange({ images });
               }}
             />
           </SectionDisclosure>

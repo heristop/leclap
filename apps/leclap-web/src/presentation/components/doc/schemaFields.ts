@@ -186,6 +186,7 @@ export const docGroups = {
   section: (): FieldRow[] => fieldRows(sectionVariants()[0]),
   options: (): FieldRow[] => fieldRows(unionOptions()),
   inputs: (): FieldRow[] => fieldRows(sectionProperty('inputs')?.items),
+  inputOptions: (): FieldRow[] => fieldRows(prop(sectionProperty('inputs')?.items, 'options')),
   transition: (): FieldRow[] => fieldRows(sectionProperty('transition')),
   grade: (): FieldRow[] => fieldRows(sectionProperty('grade')),
   motion: (): FieldRow[] => fieldRows(mergeVariants(sectionProperty('motion')?.items)),

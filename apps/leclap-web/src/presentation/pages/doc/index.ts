@@ -7,6 +7,7 @@ export { DocGrade } from './Grade';
 export { DocMotion } from './Motion';
 export { DocAudio } from './Audio';
 export { DocCaptions } from './Captions';
+export { DocAnimations } from './Animations';
 export { DocFilters } from './Filters';
 export { DocExamples } from './Examples';
 export { DocSchema } from './Schema';

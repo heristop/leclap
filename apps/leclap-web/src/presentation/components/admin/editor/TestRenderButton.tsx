@@ -1,8 +1,8 @@
 // "Preview render": compile the CURRENT descriptor through the real WASM pipeline with PLACEHOLDER
 // media (generated brand-gradient clips for project_video sections; form fields filled with their
-// own labels) at a reduced 480p scale, so an author sees a draft of their template without real
-// footage. Progress is shown with the existing ProgressDisplay; the output plays in a dialog. The
-// button is disabled while a render runs and guards against concurrent/double-click renders.
+// own labels) at native resolution with the ultrafast preset, so an author sees a draft of their
+// template without real footage. Progress is shown with the existing ProgressDisplay; the output
+// plays in a dialog. The button is disabled while a render runs and guards against double-clicks.
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clapperboard, Download, AlertCircle } from 'lucide-react';
@@ -78,6 +78,9 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
           formData: plan.formData,
           files,
           videoConfig: plan.videoConfig,
+          // The draft renders at native resolution (so absolute-pixel overlays line up), so push the
+          // encoder to its fastest preset to keep it quick.
+          preset: 'ultrafast',
         },
         setProgress
       );

@@ -41,7 +41,7 @@ export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
   };
 
   return (
-    <div className="rounded-xl border border-foreground/10 bg-surface/40">
+    <div className="rounded-xl border border-foreground/10 bg-surface">
       <button
         type="button"
         onClick={() => {

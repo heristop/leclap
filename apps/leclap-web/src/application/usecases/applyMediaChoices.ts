@@ -41,6 +41,35 @@ function resolveBg(choice: MediaChoice): string {
   return `media://${choice.key}`;
 }
 
+function applyMusicChoice(descriptor: TemplateDescriptor, choice: MediaChoice): void {
+  descriptor.global ??= {};
+  descriptor.global.music = resolveMusic(choice);
+  descriptor.global.musicEnabled = true;
+}
+
+function applyBackgroundChoice(descriptor: TemplateDescriptor, choice: MediaChoice): void {
+  const url = resolveBg(choice);
+
+  for (const section of descriptor.sections ?? []) {
+    if (section.type === 'image_background') {
+      section.options = { ...section.options, pictureUrl: url } as ImageBackgroundOptions;
+    }
+  }
+}
+
+// Author-set image-overlay inputs (a video section's background/logo) carry a `library://<id>`
+// marker; resolve it to the curated `/backgrounds/<file>` url. `media://` uploads are left for
+// materializeTemplateMedia; pasted urls pass through untouched.
+function resolveLibraryInputMarkers(descriptor: TemplateDescriptor): void {
+  for (const section of descriptor.sections ?? []) {
+    for (const input of section.inputs ?? []) {
+      if (input.url?.startsWith('library://')) {
+        input.url = findBackground(input.url.slice('library://'.length))?.url ?? input.url;
+      }
+    }
+  }
+}
+
 /**
  * Injects user-chosen music and background into a template descriptor in place,
  * BEFORE materializeTemplateMedia runs. Curated library URLs land as-is;
@@ -49,18 +78,12 @@ function resolveBg(choice: MediaChoice): string {
  */
 export function applyMediaChoices(descriptor: TemplateDescriptor, choices: MediaChoices): void {
   if (choices.music) {
-    descriptor.global ??= {};
-    descriptor.global.music = resolveMusic(choices.music);
-    descriptor.global.musicEnabled = true;
+    applyMusicChoice(descriptor, choices.music);
   }
 
   if (choices.background) {
-    const url = resolveBg(choices.background);
-
-    for (const section of descriptor.sections ?? []) {
-      if (section.type === 'image_background') {
-        section.options = { ...section.options, pictureUrl: url } as ImageBackgroundOptions;
-      }
-    }
+    applyBackgroundChoice(descriptor, choices.background);
   }
+
+  resolveLibraryInputMarkers(descriptor);
 }

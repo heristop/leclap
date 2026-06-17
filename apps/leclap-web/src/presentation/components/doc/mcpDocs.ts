@@ -38,7 +38,8 @@ export const mcpDoc: McpDoc = {
     },
     {
       name: 'render_remotion_clip',
-      purpose: 'Renders a composition from your own Remotion project to an MP4 clip — motion graphics FFmpeg cannot express.',
+      purpose:
+        'Renders a composition from your own Remotion project to an MP4 clip — motion graphics FFmpeg cannot express.',
       when: 'Optional: for an animated intro, then feed the clip to compose_video as a project_video via userVideoPaths. Needs @remotion/* and a configured entry.',
     },
     {

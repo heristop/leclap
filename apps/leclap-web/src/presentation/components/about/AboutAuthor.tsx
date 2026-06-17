@@ -12,8 +12,7 @@ const PILL_BASE =
   'inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border tap transition-colors duration-300 cursor-pointer';
 // Neutral ghost pill for the profile links; a warm amber tint marks the support action.
 const PILL_NEUTRAL = 'text-gray-400 hover:text-foreground bg-foreground/5 hover:bg-foreground/10 border-foreground/10';
-const PILL_ACCENT =
-  'text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20';
+const PILL_ACCENT = 'text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20';
 
 export const AboutAuthor = () => {
   const { t } = useTranslation('about');

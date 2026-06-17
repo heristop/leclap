@@ -123,7 +123,9 @@ export const HomeShowcase = () => {
               'transition-all duration-700 ease-[var(--ease-spring)]',
               'motion-reduce:transition-none motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100',
               // will-change only while hidden, then dropped so the frame's compositor layer is freed.
-              revealed ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-6 scale-[0.97] opacity-0 will-change-[transform,opacity]'
+              revealed
+                ? 'translate-y-0 scale-100 opacity-100'
+                : 'translate-y-6 scale-[0.97] opacity-0 will-change-[transform,opacity]'
             )}
           >
             {/* Shimmer placeholder holds the frame until the video is mounted. */}
@@ -184,8 +186,7 @@ export const HomeShowcase = () => {
           </div>
         </div>
 
-        {/* CTA cluster — remotion.dev-style composition (one filled primary + outlined secondaries),
-            built from the app's own Button variants and brand tokens. */}
+        {/* CTA cluster: one filled primary + outlined secondaries, from the app's Button variants. */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg" className="group rounded-full">
             <Link to="/studio">

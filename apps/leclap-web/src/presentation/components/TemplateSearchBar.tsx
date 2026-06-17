@@ -1,81 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
+import { SegmentedControl } from '@/presentation/components/ui';
 import type { ComplexityFacet, OrientationFacet } from '@/lib/filterTemplates';
-
-interface SegmentedProps {
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-}
-
-// Padding (px) of the track — the thumb sits inside it, so offsets are measured from the padding edge.
-const TRACK_PAD = 2;
-
-// A single sliding thumb that glides between options ("magnetic" feel) instead of the active
-// background snapping. Position + width are measured from the active button and animated via
-// transform/width, with a reduced-motion fallback that snaps.
-const Segmented = ({ value, options, onChange }: SegmentedProps) => {
-  const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
-  const activeIndex = Math.max(
-    0,
-    options.findIndex((option) => option.value === value)
-  );
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const el = buttonsRef.current[activeIndex];
-
-      if (!el) return;
-
-      const next = { left: el.offsetLeft, width: el.offsetWidth };
-      setThumb((prev) => (prev && prev.left === next.left && prev.width === next.width ? prev : next));
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-
-    for (const el of buttonsRef.current) {
-      if (el) observer.observe(el);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [activeIndex, options]);
-
-  return (
-    <div className="relative inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm">
-      {thumb && (
-        <span
-          aria-hidden
-          className="absolute bottom-0.5 left-0 top-0.5 rounded-md bg-surface shadow-sm transition-[transform,width] duration-300 ease-[var(--ease-out-expo)] motion-reduce:transition-none"
-          style={{ transform: `translateX(${thumb.left - TRACK_PAD}px)`, width: thumb.width }}
-        />
-      )}
-      {options.map((option, index) => (
-        <button
-          key={option.value}
-          ref={(el) => {
-            buttonsRef.current[index] = el;
-          }}
-          type="button"
-          onClick={() => {
-            onChange(option.value);
-          }}
-          className={cn(
-            'tap relative z-10 rounded-md px-3 py-1.5 font-medium transition-colors',
-            value === option.value ? 'text-foreground' : 'text-gray-400 hover:text-foreground'
-          )}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-};
 
 interface TemplateSearchBarProps {
   query: string;
@@ -112,7 +38,7 @@ export const TemplateSearchBar = ({
         />
       </div>
       <div className="flex flex-wrap gap-2">
-        <Segmented
+        <SegmentedControl
           value={orientation}
           onChange={(value) => {
             onOrientation(value as OrientationFacet);
@@ -123,7 +49,7 @@ export const TemplateSearchBar = ({
             { value: 'landscape', label: t('search.landscape') },
           ]}
         />
-        <Segmented
+        <SegmentedControl
           value={complexity}
           onChange={(value) => {
             onComplexity(value as ComplexityFacet);

@@ -42,16 +42,16 @@
     "@resvg/resvg-js": "^2.6.2",
     "@swc/core": "^1.15.41",
     "@types/node": "^25.9.3",
-    "@vitest/coverage-v8": "^4.1.8",
-    "@vitest/ui": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/ui": "^4.1.9",
     "dependency-cruiser": "^17.4.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "unplugin-swc": "^1.5.9",
-    "vite-plugin-checker": "^0.14.1",
+    "vite-plugin-checker": "^0.14.3",
     "vite-plus": "^0.1.24",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24.11.0"

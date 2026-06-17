@@ -42,7 +42,6 @@
     "axios": "^1.18.0",
     "boxen": "^8.0.1",
     "cli-spinners": "^3.4.0",
-    "extract-zip": "^2.0.1",
     "figlet": "^1.11.0",
     "gradient-string": "^3.0.0",
     "picocolors": "^1.1.1",

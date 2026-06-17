@@ -11,12 +11,12 @@
     "studio": "remotion studio"
   },
   "dependencies": {
-    "@remotion/bundler": "^4.0.477",
-    "@remotion/cli": "^4.0.477",
-    "@remotion/renderer": "^4.0.477",
+    "@remotion/bundler": "^4.0.478",
+    "@remotion/cli": "^4.0.478",
+    "@remotion/renderer": "^4.0.478",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "remotion": "^4.0.477"
+    "remotion": "^4.0.478"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

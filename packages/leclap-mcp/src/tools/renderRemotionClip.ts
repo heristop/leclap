@@ -71,6 +71,37 @@ async function loadRemotion(): Promise<RemotionModules | { error: string }> {
   }
 }
 
+// Remotion renders the bundle behind `serveUrl` in headless Chromium, so a REMOTE serveUrl would
+// execute attacker-hosted JS (no pre-existing file needed). Restrict it to a local bundle path /
+// file: / loopback http. NOTE: `entry` is the consumer's own Remotion project module and is bundled
+// (and executed) as-is by design — this tool is design-time/local-only, so do NOT expose the server
+// to untrusted clients.
+function assertServeUrlAllowed(serveUrl: string): string | ToolError {
+  let url: URL;
+
+  try {
+    url = new URL(serveUrl);
+  } catch {
+    return serveUrl; // not a URL — treat as a local bundle path
+  }
+
+  if (url.protocol === 'file:') {
+    return serveUrl;
+  }
+
+  if (url.protocol === 'http:' || url.protocol === 'https:') {
+    const host = url.hostname.replace(/^\[|\]$/g, '');
+
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+      return serveUrl;
+    }
+
+    return errorResult(`Remote serveUrl is not allowed (only localhost): ${serveUrl}`);
+  }
+
+  return errorResult(`Unsupported serveUrl scheme: ${serveUrl}`);
+}
+
 // A prebuilt serveUrl wins; otherwise bundle the consumer's entry (per-call or configured default).
 async function resolveServeUrl(
   args: ClipArgs,
@@ -78,7 +109,9 @@ async function resolveServeUrl(
   remotion: RemotionModules
 ): Promise<{ serveUrl: string } | ToolError> {
   if (args.serveUrl) {
-    return { serveUrl: args.serveUrl };
+    const checked = assertServeUrlAllowed(args.serveUrl);
+
+    return typeof checked === 'string' ? { serveUrl: checked } : checked;
   }
 
   const entry = args.entry ?? config.remotionEntry;

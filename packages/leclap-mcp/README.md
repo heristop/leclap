@@ -13,13 +13,13 @@ The result is _agent-composable, deterministic, reproducible_ video — the oppo
 
 ## Tools
 
-| Tool                                      | Description                                                                                                       |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `get_template_schema`                     | The JSON Schema for a template descriptor + a short authoring guide                                               |
-| `validate_template`                       | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`      |
-| `compose_video`                           | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
-| `probe_media`                             | Inspect a local media file → codecs, duration, sample rate, size                                                  |
-| `render_remotion_clip`                    | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section |
+| Tool                   | Description                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                       |
+| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`              |
+| `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
+| `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                          |
+| `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section     |
 
 Typical agent flow: `get_template_schema` → author an inline descriptor (optionally prepend a
 `render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`

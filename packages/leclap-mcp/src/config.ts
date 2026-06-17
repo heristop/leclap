@@ -53,7 +53,10 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
     process.env.LECLAP_MCP_OUTPUT_DIR ??
     path.join(os.homedir(), '.leclap', 'renders');
 
-  const mediaDir = readFlag(argv, '--media-dir') ?? process.env.LECLAP_MCP_MEDIA_DIR ?? os.homedir();
+  // Narrow default: confining reads to the whole home directory would let probe_media/compose_video
+  // read any file under $HOME. Operators who keep media elsewhere set --media-dir / LECLAP_MCP_MEDIA_DIR.
+  const mediaDir =
+    readFlag(argv, '--media-dir') ?? process.env.LECLAP_MCP_MEDIA_DIR ?? path.join(os.homedir(), '.leclap', 'media');
 
   const renderTimeoutMs = resolveTimeout(
     readFlag(argv, '--render-timeout-ms') ?? process.env.LECLAP_MCP_RENDER_TIMEOUT_MS

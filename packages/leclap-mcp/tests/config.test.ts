@@ -32,7 +32,7 @@ describe('loadConfig', () => {
     const config = loadConfig([]);
 
     expect(config.outputDir).toBe(path.join(os.homedir(), '.leclap', 'renders'));
-    expect(config.mediaDir).toBe(path.resolve(os.homedir()));
+    expect(config.mediaDir).toBe(path.join(os.homedir(), '.leclap', 'media'));
     expect(config.renderTimeoutMs).toBe(600_000);
   });
 

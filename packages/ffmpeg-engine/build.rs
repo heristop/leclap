@@ -79,5 +79,11 @@ fn main() {
         // statically embeds its own libopenh264 (build-deps.sh) and iOS drops it for videotoolbox.
         println!("cargo:rustc-link-search=native=/opt/homebrew/opt/openh264/lib");
         println!("cargo:rustc-link-lib=dylib=openh264");
+
+        // Same story for libvpx (`--enable-libvpx`, the WebM/VP9-alpha decoder): the brew build is a
+        // dylib, so link it dynamically for the host test. Android/iOS statically embed their own
+        // libvpx via build-deps.sh / build-deps-ios.sh (resolved through FFmpeg's .pc Libs.private).
+        println!("cargo:rustc-link-search=native=/opt/homebrew/opt/libvpx/lib");
+        println!("cargo:rustc-link-lib=dylib=vpx");
     }
 }

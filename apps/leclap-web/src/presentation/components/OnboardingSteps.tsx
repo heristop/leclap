@@ -8,6 +8,7 @@ import {
   ArrowRight,
   RotateCcw,
   X,
+  Square,
   Clapperboard,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -114,6 +115,7 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
 interface CreateStepProps {
   name: string;
   onNameChange: (value: string) => void;
+  sampleName: string;
   videoFile: File | null;
   canCreate: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -125,6 +127,7 @@ interface CreateStepProps {
 export const CreateStep = ({
   name,
   onNameChange,
+  sampleName,
   videoFile,
   canCreate,
   fileInputRef,
@@ -144,12 +147,11 @@ export const CreateStep = ({
       </label>
       <Input
         id="ob-name"
-        required
         value={name}
         onChange={(e) => {
           onNameChange(e.target.value);
         }}
-        placeholder={t('create.namePlaceholder')}
+        placeholder={t('create.namePlaceholder', { name: sampleName })}
         className="mb-6 px-4 py-3 rounded-xl"
       />
 
@@ -185,12 +187,17 @@ export const CreateStep = ({
             <Upload className="w-6 h-6 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/tile:scale-110" />
             <span className="text-sm font-semibold">{t('create.upload')}</span>
           </button>
+          {/* Visually hidden via `sr-only`, NOT `display:none`: WebKit/Safari refuses to open the OS
+              file dialog for a `display:none` input clicked programmatically, so the picker "won't
+              open". sr-only keeps it rendered (and out of the tab order via tabIndex) so .click() works
+              across browsers. */}
           <input
             ref={fileInputRef}
             type="file"
             accept="video/*"
             aria-label={t('create.uploadInputAria')}
-            className="hidden"
+            tabIndex={-1}
+            className="sr-only"
             onChange={onFilePicked}
           />
         </div>
@@ -205,9 +212,10 @@ export const CreateStep = ({
 
 interface CompilingStepProps {
   progress: CompilationProgress;
+  onStop: () => void;
 }
 
-export const CompilingStep = ({ progress }: CompilingStepProps) => {
+export const CompilingStep = ({ progress, onStop }: CompilingStepProps) => {
   const { t } = useTranslation('onboarding');
 
   return (
@@ -215,16 +223,21 @@ export const CompilingStep = ({ progress }: CompilingStepProps) => {
       <h2 className="text-2xl font-bold font-display text-foreground mb-1">{t('compiling.title')}</h2>
       <p className="text-gray-300 mb-6 text-sm">{t('compiling.subtitle')}</p>
       <ProgressDisplay progress={progress} />
+      <div className="mt-6 flex justify-center">
+        <Button onClick={onStop} variant="danger">
+          <Square /> {t('compiling.stop')}
+        </Button>
+      </div>
     </div>
   );
 };
 
 interface DoneStepProps {
   result: CompilationResult;
-  onDone: () => void;
+  onStartCreating: () => void;
 }
 
-export const DoneStep = ({ result, onDone }: DoneStepProps) => {
+export const DoneStep = ({ result, onStartCreating }: DoneStepProps) => {
   const { t } = useTranslation('onboarding');
 
   return (
@@ -239,10 +252,10 @@ export const DoneStep = ({ result, onDone }: DoneStepProps) => {
       <div className="flex flex-col sm:flex-row gap-3">
         <Button asChild variant="primary" className="flex-1">
           <a href={result.url} download="leclap-intro.mp4">
-            <Download /> {t('download', { ns: 'common' })}
+            <Download /> {t('actions.download', { ns: 'common' })}
           </a>
         </Button>
-        <Button onClick={onDone} variant="secondary" className="flex-1">
+        <Button onClick={onStartCreating} variant="secondary" className="flex-1">
           {t('done.startCreating')} <ArrowRight />
         </Button>
       </div>
@@ -268,7 +281,7 @@ export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => 
       <p className="text-gray-300 mb-6 text-sm">{errorMessage}</p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Button onClick={onRetry} variant="primary" className="flex-1">
-          {t('tryAgain', { ns: 'common' })}
+          {t('actions.tryAgain', { ns: 'common' })}
         </Button>
         <Button onClick={onDone} variant="secondary" className="flex-1">
           {t('error.continueToBuilder')}

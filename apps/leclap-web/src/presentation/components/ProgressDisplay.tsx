@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, Cpu, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
+import { Clock, Cpu, CheckCircle2, AlertCircle, Zap, ShieldCheck, type LucideIcon } from 'lucide-react';
 import clsx from 'clsx';
 import { Card } from '@/presentation/components/ui';
 
@@ -97,7 +97,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
             isCompleted &&
               'bg-success border-success text-success-foreground scale-105 shadow-[0_0_10px_oklch(0.84_0.065_160/0.45)]',
             isCurrent &&
-              'brand-gradient border-transparent text-white animate-pulse motion-reduce:animate-none ring-4 ring-brand-500/25 shadow-[0_0_16px_oklch(0.663_0.178_277.9/0.55)]',
+              'brand-gradient border-transparent text-white animate-pulse motion-reduce:animate-none ring-4 ring-brand-500/25',
             isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
           )}
         >
@@ -117,44 +117,37 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
   );
 };
 
-interface PerformanceMetricsProps {
-  percentage: number;
-  currentStepIndex: number;
-  totalSteps: number;
+interface MetricProps {
+  icon: LucideIcon;
+  label: string;
+  value: string;
 }
 
-const PerformanceMetrics = ({ percentage, currentStepIndex, totalSteps }: PerformanceMetricsProps) => {
+const Metric = ({ icon: Icon, label, value }: MetricProps) => (
+  <div className="text-center">
+    <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
+      <Icon className="w-4 h-4" />
+      <span>{label}</span>
+    </div>
+    <p className="text-lg font-semibold text-foreground">{value}</p>
+  </div>
+);
+
+interface PerformanceMetricsProps {
+  percentage: number;
+  elapsedMs: number;
+}
+
+// Three distinct readouts: where it runs, how long it's taken, and the headline %. A "stage X/Y"
+// cell is intentionally absent — it would only restate the header step and the bar.
+const PerformanceMetrics = ({ percentage, elapsedMs }: PerformanceMetricsProps) => {
   const { t } = useTranslation('process');
 
   return (
     <div className="grid grid-cols-3 gap-4 p-4 bg-surface/40 rounded-xl border border-foreground/5">
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-          <Zap className="w-4 h-4" />
-          <span>{t('progress.metrics.speed')}</span>
-        </div>
-        <p className="text-lg font-semibold text-foreground">
-          {percentage > 0 ? t('progress.metrics.active') : t('progress.metrics.idle')}
-        </p>
-      </div>
-
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-          <Cpu className="w-4 h-4" />
-          <span>{t('progress.metrics.stage')}</span>
-        </div>
-        <p className="text-lg font-semibold text-foreground">
-          {currentStepIndex}/{totalSteps}
-        </p>
-      </div>
-
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-          <Clock className="w-4 h-4" />
-          <span>{t('progress.metrics.progress')}</span>
-        </div>
-        <p className="text-lg font-semibold text-foreground">{Math.round(percentage)}%</p>
-      </div>
+      <Metric icon={ShieldCheck} label={t('progress.metrics.private')} value={t('progress.metrics.onDevice')} />
+      <Metric icon={Clock} label={t('progress.metrics.elapsed')} value={formatTime(elapsedMs)} />
+      <Metric icon={Zap} label={t('progress.metrics.progress')} value={`${Math.round(percentage)}%`} />
     </div>
   );
 };
@@ -266,14 +259,59 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
 
 export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
   const { t } = useTranslation('process');
-  const { stage, percentage, currentStep, totalSteps, currentStepIndex, estimatedTimeRemaining } = progress;
+  const { stage, percentage: rawPercentage, currentStep, totalSteps, estimatedTimeRemaining } = progress;
+
+  // The bar is the single source of truth. Keep it monotonic so a late segment resetting its raw
+  // fraction can't rewind it; a fresh run (raw back near 0) drops the floor so the next compile starts over.
+  const maxPctRef = useRef(0);
+
+  if (rawPercentage <= 1) {
+    maxPctRef.current = rawPercentage;
+  }
+
+  const percentage = Math.max(maxPctRef.current, rawPercentage);
+  maxPctRef.current = percentage;
+
+  // Derive the active dot from the bar so the dots march 1→N in lockstep with progress instead of
+  // sitting on a hardcoded step; one past the last when complete so every dot reads done.
+  const done = percentage >= 100;
+  const activeStep = done
+    ? totalSteps + 1
+    : Math.min(totalSteps, Math.max(1, Math.ceil((percentage / 100) * totalSteps)));
+  const headerStep = Math.min(activeStep, totalSteps);
+
+  // Live elapsed time: the clock starts when this mounts (the compile is what mounts it) and freezes
+  // at completion.
+  const startRef = useRef<number | null>(null);
+
+  startRef.current ??= Date.now();
+
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    const tick = () => {
+      setElapsedMs(Date.now() - (startRef.current ?? Date.now()));
+    };
+
+    tick();
+
+    if (done) {
+      return () => {};
+    }
+
+    const id = window.setInterval(tick, 500);
+
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [done]);
 
   return (
     <div className="space-y-6 processing fade-in" role="status" aria-live="polite" aria-atomic="false">
       <ProgressHeader
         stage={stage}
         percentage={percentage}
-        currentStepIndex={currentStepIndex}
+        currentStepIndex={headerStep}
         totalSteps={totalSteps}
         estimatedTimeRemaining={estimatedTimeRemaining}
       />
@@ -282,11 +320,11 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
 
       <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3 sm:justify-between sm:gap-x-1">
         {Array.from({ length: totalSteps }, (_, index) => (
-          <StepIndicator key={index + 1} stepNumber={index + 1} currentStepIndex={currentStepIndex} />
+          <StepIndicator key={index + 1} stepNumber={index + 1} currentStepIndex={activeStep} />
         ))}
       </div>
 
-      <PerformanceMetrics percentage={percentage} currentStepIndex={currentStepIndex} totalSteps={totalSteps} />
+      <PerformanceMetrics percentage={percentage} elapsedMs={elapsedMs} />
 
       {percentage >= 100 && (
         <Card elevation="flat" className="bg-success/[0.12] border-success/30 p-4 fade-in">

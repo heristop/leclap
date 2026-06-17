@@ -1,4 +1,4 @@
-export default class defaultConfig {
+export default class DefaultConfig {
   static readonly VIDEO_CODEC: string = '';
   static readonly AUDIO_CODEC: string = '';
   static readonly HWACCEL: string | null = null;

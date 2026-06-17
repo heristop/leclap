@@ -40,11 +40,13 @@ async function registerManagers(): Promise<void> {
 async function registerEditorClasses(): Promise<void> {
   const VideoEditor = (await import('./editor/VideoEditor')).default;
   const MusicComposer = (await import('./editor/MusicComposer')).default;
+  const AnimationComposer = (await import('./editor/AnimationComposer')).default;
   const TemplateConcreteBuilder = (await import('./director/TemplateConcreteBuilder')).default;
   const TemplateDirectorClass = (await import('./director/TemplateDirector')).default;
 
   container.register('VideoEditor', { useClass: VideoEditor });
   container.register('MusicComposer', { useClass: MusicComposer });
+  container.register('AnimationComposer', { useClass: AnimationComposer });
   container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
   container.register('TemplateDirector', { useClass: TemplateDirectorClass });
 }

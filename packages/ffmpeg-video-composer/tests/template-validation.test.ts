@@ -462,7 +462,7 @@ describe('Template Validation', () => {
       const r = SectionSchema.safeParse({
         name: 's1',
         type: 'video',
-        inputs: [{ name: 'anim', url: 'anim.zip', type: 'animation' }],
+        inputs: [{ name: 'anim', url: 'anim.apng', type: 'animation' }],
       });
       expect(r.success).toBe(true);
     });
@@ -471,7 +471,7 @@ describe('Template Validation', () => {
       const r = SectionSchema.safeParse({
         name: 's1',
         type: 'video',
-        inputs: [{ name: 'anim', url: 'anim.zip', type: 'frame' }],
+        inputs: [{ name: 'anim', url: 'anim.apng', type: 'frame' }],
       });
       expect(r.success).toBe(false);
     });
@@ -481,7 +481,7 @@ describe('Template Validation', () => {
         name: 's1',
         type: 'video',
         inputs: [
-          { name: 'anim', url: 'anim.zip', type: 'animation', options: { fps: 25, position: '0:0', loop: true } },
+          { name: 'anim', url: 'anim.apng', type: 'animation', options: { fps: 25, position: '0:0', loop: true } },
         ],
       });
       expect(r.success).toBe(true);

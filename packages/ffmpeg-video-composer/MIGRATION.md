@@ -146,6 +146,26 @@ A `project_video` section, v1 → v2 (renames applied, new sugar added):
 }
 ```
 
+## Animations are now single-file (ZIP frame-sequences removed)
+
+Animation overlays (`inputs[].type: "animation"`) must now be a **single animated
+file**. APNG and WebM (VP9 with alpha) are the two recommended formats — APNG for
+lossless alpha and universal decode, WebM for much smaller files; `.webp` and
+`.gif` also work. The old **ZIP frame-sequence** form (`url` ending in `.zip`,
+extracted to an `image2` PNG sequence) has been removed, along with the
+`extract-zip` dependency and the `unzip` filesystem method.
+
+- **Why:** ZIP extraction only ran on Node — the browser-WASM and on-device
+  (React Native) engines could never extract it. A single animated file decodes
+  natively on every platform with no extraction step.
+- **Migrate:** convert your frame sequence to one file and point the input `url`
+  at it — `ffmpeg -framerate <fps> -i frame-%03d.png -plays 0 out.apng` (APNG), or
+  `ffmpeg -framerate <fps> -i frame-%03d.png -c:v libvpx-vp9 -pix_fmt yuva420p out.webm`
+  (WebM, smaller). The `.webm` `-c:v libvpx-vp9` flag is added automatically at
+  render. A `url` still ending in `.zip` now **throws** a clear error at render time.
+- `options.fps` is now informational for single-file animations — the file's own
+  frame rate governs playback. Encode at the rate you want.
+
 ## Security / behavior changes
 
 These tighten how untrusted or edge-case templates are handled. If you feed

@@ -33,6 +33,7 @@ const PRIVATE_IPV4_RANGES: { a: number; b?: [number, number] }[] = [
   { a: 169, b: [254, 254] }, // 169.254.0.0/16 link-local (includes 169.254.169.254 cloud metadata)
   { a: 0 }, //                  0.0.0.0/8 "this network"
   { a: 100, b: [64, 127] }, //  100.64.0.0/10 CGNAT
+  { a: 198, b: [18, 19] }, //   198.18.0.0/15 benchmarking (can be NAT'd to internal services)
 ];
 
 const isPrivateIpv4 = (ip: string): boolean => {

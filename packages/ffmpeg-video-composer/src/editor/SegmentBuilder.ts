@@ -13,7 +13,7 @@ import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/argGuard';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters } from './presets/looks';
 import { captionToFilters } from './presets/captions';
-import { buildZipAnimationSource, buildSingleFileAnimationSource, buildGradientSource } from './inputSources';
+import { buildSingleFileAnimationSource, buildSingleFileImageSource, buildGradientSource } from './inputSources';
 import { buildAudioFadeArg } from './audioFade';
 import { resolveVideoCodec, isHardwareCodec, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 import type { Grade, MotionEffect, BackgroundLayer } from '../schemas/template.schemas';
@@ -43,9 +43,6 @@ container.register<SegmentManagersBag>('SegmentManagersBag', {
     filesystemAdapter: c.resolve<AbstractFilesystem>('filesystemAdapter'),
   }),
 });
-
-// Runtime-typed view of template.assets.inputs used as a string-keyed cache.
-type InputsCache = Record<string, string | string[]>;
 
 // Runtime-typed view of segment.inputsAsset used as a string-keyed store.
 type InputsAssetMap = Record<string, string>;
@@ -240,63 +237,79 @@ class SegmentBuilder {
     this.segment.inputsAsset = [];
 
     const inputsAsset = this.segment.inputsAsset as unknown as InputsAssetMap;
-    const inputsCache = this.template.assets.inputs as unknown as InputsCache;
     const inputs = this.section.inputs ?? [];
 
-    // Stream index of the input at section-position `i`: the main video sits at
-    // `getVideoInputIncrement()`, asset inputs follow it in section order.
-    const baseIndex = this.mapManager.getVideoInputIncrement() + 1;
+    // Stream index of each input in section order. The main video sits at `getVideoInputIncrement()`;
+    // asset inputs follow it. When the section's base media is itself the leading input — image_background's
+    // pictureUrl (and video's videoUrl) are injected by AssetManager.prepareAssets as the first input named
+    // after the section — that input occupies the base slot, so overlays after it are numbered from there.
+    // Otherwise the base is a separate source (color lavfi / useVideoSection) and assets start one slot later.
+    const baseIsFirstInput = inputs[0]?.name === this.section.name && inputs[0]?.type !== 'animation';
+    let inputIndex = this.mapManager.getVideoInputIncrement() + (baseIsFirstInput ? 0 : 1);
+    const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const pendingAnimations: Array<{ input: MapAnimationInput; index: number }> = [];
 
-    for (let i = 0; i < inputs.length; i++) {
-      const input = inputs[i];
-      const source = this.resolveAnimationSource(input, inputsCache);
+    // Stage every input as one `-i` in section order (stable stream indices), deferring the animation
+    // overlay maps so gradient layers can composite UNDER them.
+    for (const input of inputs) {
+      const source = this.resolveAnimationSource(input);
 
       if (source !== undefined) {
-        // Single image2-sequence or single-file animation input + one overlay map. The video leg is
-        // normalized to the output scale before compositing so full-frame animations fill the frame.
         inputsAsset[`asset_${input.name}`] = source;
-        const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
-        this.mapManager.addAnimationOverlay(input as MapAnimationInput, baseIndex + i, videoScale);
-        continue;
+        pendingAnimations.push({ input: input as MapAnimationInput, index: inputIndex });
       }
 
-      // Process single media (plain staged path).
-      inputsAsset[`asset_${input.name}`] = this.assetManager.fetchCachedMedia(input);
+      if (source === undefined) {
+        // Plain staged media (e.g. an image_background picture or a watermark).
+        inputsAsset[`asset_${input.name}`] = this.assetManager.fetchCachedMedia(input);
+      }
+
+      inputIndex++;
     }
 
-    this.buildGradientLayers(baseIndex + inputs.length, inputsAsset);
+    // Gradient layers are the BACKGROUND: composite them first (the first overlay bakes the section
+    // filters), then the animation overlays on top — so the final mapped pad is an animation overlay,
+    // not the gradient (which would otherwise overwrite the output and drop the overlays). The video
+    // leg is normalized to the output scale before compositing so full-frame animations fill the frame.
+    this.buildGradientLayers(inputIndex, inputsAsset);
+
+    for (const animation of pendingAnimations) {
+      this.mapManager.addAnimationOverlay(animation.input, animation.index, videoScale);
+    }
   };
 
   /**
    * Resolves the `-i` source fragment for an animation input, or undefined when the input is plain
-   * media. ZIP animations become one `-framerate <fps> -i <dir>/<pattern>` image2 sequence (falling
-   * back to plain media when no frames extracted); `.apng`/`.webp`/`.gif`/`.webm` become one `-i`.
+   * media. A single-file animated input (`.apng`/`.webp`/`.gif`/`.webm`) becomes one `-i`.
    */
-  private readonly resolveAnimationSource = (
-    input: { type?: string; url?: string; name: string },
-    inputsCache: InputsCache
-  ): string | undefined => {
+  private readonly resolveAnimationSource = (input: {
+    type?: string;
+    url?: string;
+    name: string;
+  }): string | undefined => {
+    // A still-image overlay takes the same overlay path as an animation (positioned/scaled via
+    // addAnimationOverlay), differing only in its `-i` source (held with `-loop 1`, not stream-looped).
+    if (input.type === 'image') {
+      return buildSingleFileImageSource(this.assetManager.fetchCachedMedia(input));
+    }
+
     if (input.type !== 'animation') {
       return undefined;
     }
 
-    const animation = input as MapAnimationInput;
+    const url = input.url ?? '';
 
-    if (input.url?.endsWith('.zip') && Boolean(inputsCache[input.name])) {
-      const pattern = this.assetManager.resolveAnimationSequencePattern(input.name);
-
-      if (pattern === undefined) {
-        // Surface the cause before an authored map referencing @<name> hits an undefined pad.
-        this.logger.warn(`animation "${input.name}": ZIP frames have no trailing counter, treating as plain media`);
-
-        return undefined;
-      }
-
-      return buildZipAnimationSource(animation, pattern);
+    if (url.endsWith('.zip')) {
+      // `.zip` frame sequences are unsupported: only single-file animated formats decode on every
+      // platform (Node, browser-WASM, on-device) without an extraction step.
+      throw new Error(
+        `animation "${input.name}": ZIP frame-sequence animations are no longer supported — ` +
+          `use a single-file animated format (.apng, .webp, .gif or .webm).`
+      );
     }
 
-    if (/\.(apng|webp|gif|webm)$/i.test(input.url ?? '')) {
-      return buildSingleFileAnimationSource(animation, this.assetManager.fetchCachedMedia(animation));
+    if (/\.(apng|webp|gif|webm)$/i.test(url)) {
+      return buildSingleFileAnimationSource(input as MapAnimationInput, this.assetManager.fetchCachedMedia(input));
     }
 
     return undefined;

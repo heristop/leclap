@@ -10,7 +10,6 @@ class Segment {
   public mapsList: string[] = [];
   public assetsDir = '';
   public fontsDir = '';
-  public animationsDir = '';
   public tempFonts: string[] = [];
   public inputsAsset: string[] = [];
   public inputsMapCount = 0;

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // --- Mock node:fs (the source imports { promises as fs, createWriteStream } from 'node:fs') ---
 // Use vi.hoisted so these are initialised before the hoisted vi.mock factories run.
-const { fsMocks, createWriteStreamMock, axiosMock, axiosGetMock, extractMock } = vi.hoisted(() => ({
+const { fsMocks, createWriteStreamMock, axiosMock, axiosGetMock } = vi.hoisted(() => ({
   fsMocks: {
     mkdir: vi.fn(),
     stat: vi.fn(),
@@ -15,11 +15,11 @@ const { fsMocks, createWriteStreamMock, axiosMock, axiosGetMock, extractMock } =
     writeFile: vi.fn(),
     appendFile: vi.fn(),
     readdir: vi.fn(),
+    realpath: vi.fn(),
   },
   createWriteStreamMock: vi.fn(),
   axiosMock: vi.fn(),
   axiosGetMock: vi.fn(),
-  extractMock: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
@@ -38,11 +38,6 @@ vi.mock('axios', () => ({
   default: Object.assign((...args: unknown[]) => axiosMock(...args), {
     get: (...args: unknown[]) => axiosGetMock(...args),
   }),
-}));
-
-// --- Mock extract-zip (used by unzip) ---
-vi.mock('extract-zip', () => ({
-  default: (...args: unknown[]) => extractMock(...args),
 }));
 
 // --- Mock node:dns/promises (used by the SSRF guard in fetch / fetchAndRead) ---
@@ -101,6 +96,31 @@ describe('FilesystemNodeAdapter', () => {
       adapter.setBuildDir('/build');
       expect(adapter.getSource(undefined)).toBe('/assets/videos/intro.mp4');
       expect(adapter.getDestination()).toBe('/build/intro_output.mp4');
+    });
+  });
+
+  describe('resolveLocalAsset', () => {
+    // realpath echoes its input so resolveStagedPath returns the candidate (and the staging roots resolve
+    // to themselves), letting us assert the candidate-path mapping without a real filesystem.
+    beforeEach(() => fsMocks.realpath.mockImplementation(async (p: string) => p));
+
+    it('maps a web-rooted /assets/... url under assetsDir (not as a device path)', async () => {
+      adapter.setAssetsDir('/staged');
+      // A `/assets/...` reference is what the web builder emits; it must resolve under assetsDir, not as
+      // the literal filesystem path `/assets/...` (which would ENOENT and break compilation).
+      expect(await adapter.resolveLocalAsset('/assets/animations/glow_border.apng')).toBe(
+        '/staged/animations/glow_border.apng'
+      );
+    });
+
+    it('keeps a relative path assets-relative', async () => {
+      adapter.setAssetsDir('/staged');
+      expect(await adapter.resolveLocalAsset('animations/border.apng')).toBe('/staged/animations/border.apng');
+    });
+
+    it('uses a real staged device path (no /assets/ marker) as-is', async () => {
+      adapter.setAssetsDir('/staged');
+      expect(await adapter.resolveLocalAsset('/tmp/recorded.mp4')).toBe('/tmp/recorded.mp4');
     });
   });
 
@@ -313,16 +333,6 @@ describe('FilesystemNodeAdapter', () => {
     });
   });
 
-  describe('unzip', () => {
-    it('extracts and returns the list of files joined to the target dir', async () => {
-      extractMock.mockResolvedValue(undefined);
-      fsMocks.readdir.mockResolvedValue(['a.txt', 'b.txt']);
-      const result = await adapter.unzip('/archive.zip', '/out');
-      expect(extractMock).toHaveBeenCalledWith('/archive.zip', { dir: '/out' });
-      expect(result).toEqual(['/out/a.txt', '/out/b.txt']);
-    });
-  });
-
   describe('fetchAndRead', () => {
     it('returns the response body on success', async () => {
       axiosMock.mockResolvedValue({ status: 200, headers: {}, data: 'remote-content' });
@@ -361,7 +371,6 @@ describe('AbstractFilesystem (defaults via subclass)', () => {
     readFile = async () => new Uint8Array();
     copy = async () => {};
     move = async () => {};
-    unzip = async () => [];
     fetchAndRead = async () => '';
   }
 
@@ -371,5 +380,17 @@ describe('AbstractFilesystem (defaults via subclass)', () => {
     expect(fs.getRootDir()).toBeUndefined();
     expect(fs.getTempDir()).toBeUndefined();
     expect(fs.getAssetsDir('videos')).toBe('undefined/videos');
+  });
+
+  // Non-regression: `tempDir` is never set on the browser path, so getTempDir() must fall back to the
+  // build dir. Without this, MusicComposer/AnimationComposer build `undefined/tmp_*.mp4` and the
+  // normalize / music-mix / animation steps read a non-existent file → spurious "Aborted()".
+  it('falls back to the build dir for temp files when tempDir is unset', () => {
+    const fs = new StubFilesystem();
+    fs.setBuildDir('/tmp/build');
+
+    expect(fs.getTempDir()).toBe('/tmp/build');
+    // The exact path shape the composers assemble must be valid, not `undefined/...`.
+    expect(`${fs.getTempDir()}/tmp_normalize_123.mp4`).toBe('/tmp/build/tmp_normalize_123.mp4');
   });
 });

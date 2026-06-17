@@ -124,16 +124,38 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
     };
   };
 
+  // The embedded ffprobe prints a `ffprobe version …` banner line on stdout ahead of the JSON
+  // document (it slips past `-v quiet`), which made a strict JSON.parse fail on the leading `f`.
+  // Slice to the outermost `{ … }` so only the JSON document is parsed.
+  private static extractJsonObject(output: string): string {
+    const start = output.indexOf('{');
+    const end = output.lastIndexOf('}');
+
+    if (start === -1 || end <= start) {
+      return output;
+    }
+
+    return output.slice(start, end + 1);
+  }
+
   private readonly parseProbeStreams = (output: string, source: string): ProbeStream[] => {
     try {
-      return (JSON.parse(output) as { streams?: ProbeStream[] }).streams ?? [];
+      return (JSON.parse(FFmpegLeclapAdapter.extractJsonObject(output)) as { streams?: ProbeStream[] }).streams ?? [];
     } catch (error) {
       throw new FFmpegError(`FFprobe output not parseable for ${source}`, String(error));
     }
   };
 
   getInfos = async (source: string): Promise<FFMpegInfos> => {
-    const { code, output } = await this.engine.probe(['-v', 'quiet', '-print_format', 'json', '-show_streams', source]);
+    const { code, output } = await this.engine.probe([
+      '-hide_banner',
+      '-v',
+      'quiet',
+      '-print_format',
+      'json',
+      '-show_streams',
+      source,
+    ]);
 
     if (code !== 0) {
       throw new FFmpegError(`FFprobe analysis failed for ${source}`, `rc=${code}`);

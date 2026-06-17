@@ -27,7 +27,6 @@ function makeManagers(logger = makeLogger(), filesystem = makeFilesystem()) {
       fetchAssets: vi.fn(async () => undefined),
       fetchFonts: vi.fn(async () => undefined),
       fetchCachedMedia: vi.fn((media: { name: string }, frame = 0) => `/cache/${media.name}_${frame}.png`),
-      resolveAnimationSequencePattern: vi.fn((name: string) => `/animations/${name}/frame-%03d.png`),
     },
     variableManager: {},
     mapManager: {
@@ -195,61 +194,6 @@ describe('SegmentBuilder.buildMaps', () => {
     expect(managers.assetManager.fetchCachedMedia).toHaveBeenCalled();
   });
 
-  it('registers a zip animation as ONE image2-sequence input with -framerate and one overlay map', async () => {
-    const segment = makeSegment();
-    // The cache merely needs a truthy entry for the input name to take the zip-animation branch.
-    const inputs = { confettis: ['/cache/f1.png', '/cache/f2.png'] };
-    const template = makeTemplate({}, inputs);
-    const { builder, managers } = makeBuilder({ segment, template });
-    builder.hydrate({ name: 'clip', type: 'video' });
-    (builder as unknown as { section: Section }).section = {
-      name: 'clip',
-      type: 'video',
-      inputs: [
-        {
-          name: 'confettis',
-          url: 'http://x/confettis.zip',
-          type: 'animation',
-          options: { fps: 25, persistent: true },
-        },
-      ],
-    } as never;
-
-    await builder.buildMaps();
-
-    const assets = segment.inputsAsset as unknown as Record<string, string>;
-    // exactly one asset entry, carrying the framerate + image2 pattern source fragment
-    expect(Object.keys(assets)).toEqual(['asset_confettis']);
-    expect(assets.asset_confettis).toContain('-framerate 25 -i ');
-    expect(assets.asset_confettis).toContain('/animations/confettis/frame-%03d.png');
-    // overlay map wired once at the animation's stream index (video increment 1 + 1 + position 0 = 2),
-    // with the output scale so the video leg is normalized before compositing.
-    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
-    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'confettis' }),
-      2,
-      '1280:720'
-    );
-  });
-
-  it('prepends -stream_loop -1 for a looping zip animation', async () => {
-    const segment = makeSegment();
-    const inputs = { conf: ['/cache/f1.png'] };
-    const template = makeTemplate({}, inputs);
-    const { builder } = makeBuilder({ segment, template });
-    builder.hydrate({ name: 'clip', type: 'video' });
-    (builder as unknown as { section: Section }).section = {
-      name: 'clip',
-      type: 'video',
-      inputs: [{ name: 'conf', url: 'http://x/conf.zip', type: 'animation', options: { loop: true } }],
-    } as never;
-
-    await builder.buildMaps();
-
-    const assets = segment.inputsAsset as unknown as Record<string, string>;
-    expect(assets.asset_conf.startsWith('-stream_loop -1 -framerate')).toBe(true);
-  });
-
   it('registers a .webm single-file animation with -c:v libvpx-vp9 before its -i', async () => {
     const segment = makeSegment();
     const { builder, managers } = makeBuilder({ segment });
@@ -266,6 +210,83 @@ describe('SegmentBuilder.buildMaps', () => {
     expect(assets.asset_anim).toContain('-c:v libvpx-vp9');
     expect(assets.asset_anim).toContain('-i /cache/anim_0.png');
     expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
+  });
+
+  it('registers a type:image input held with -loop 1 and composited as an overlay', async () => {
+    const segment = makeSegment();
+    const { builder, managers } = makeBuilder({ segment });
+    builder.hydrate({ name: 'clip', type: 'video' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'video',
+      inputs: [
+        { name: 'logo', url: 'pictures/logo.png', type: 'image', options: { position: '40:40', scale: '120:-1' } },
+      ],
+    } as never;
+
+    await builder.buildMaps();
+
+    const assets = segment.inputsAsset as unknown as Record<string, string>;
+    expect(assets.asset_logo).toContain('-loop 1 -i /cache/logo_0.png');
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'logo', type: 'image' }),
+      expect.any(Number),
+      '1280:720'
+    );
+  });
+
+  it('numbers animation overlays after a base media input (image_background picture)', async () => {
+    // image_background's pictureUrl is injected as the first input (named after the section); it is the
+    // base video leg at getVideoInputIncrement(), not an overlay. An animation that follows must be the
+    // NEXT input index, not shifted one past the base — otherwise its overlay references a missing stream.
+    const segment = makeSegment();
+    const { builder, managers } = makeBuilder({ segment });
+    builder.hydrate({ name: 'hero', type: 'image_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'hero',
+      type: 'image_background',
+      inputs: [
+        { name: 'hero', url: 'pictures/bg.png' },
+        { name: 'shine', url: 'shine.apng', type: 'animation', options: {} },
+      ],
+    } as never;
+
+    await builder.buildMaps();
+
+    // base picture is input 1 (getVideoInputIncrement); the animation is the next input → index 2.
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'shine' }),
+      2,
+      '1280:720'
+    );
+  });
+
+  it('composites gradient layers under animation overlays (animation is the final map)', async () => {
+    const segment = makeSegment();
+    const { builder, managers } = makeBuilder({ segment });
+    builder.hydrate({ name: 'bg', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'bg',
+      type: 'color_background',
+      options: {
+        backgroundColor: '#000',
+        duration: 2,
+        layers: [{ gradient: { from: '#f06', to: '#0cf', direction: 'diagonal' }, opacity: 1 }],
+      },
+      inputs: [{ name: 'shine', url: 'shine.apng', type: 'animation', options: {} }],
+    } as never;
+
+    await builder.buildMaps();
+
+    expect(managers.mapManager.addGradientOverlay).toHaveBeenCalledTimes(1);
+    expect(managers.mapManager.addAnimationOverlay).toHaveBeenCalledTimes(1);
+    // The gradient is the background: it must composite BEFORE the animation overlay so the animation
+    // is the final mapped pad. Built the other way round, the gradient pad wins and overlays vanish.
+    const gradientOrder = managers.mapManager.addGradientOverlay.mock.invocationCallOrder[0];
+    const animationOrder = managers.mapManager.addAnimationOverlay.mock.invocationCallOrder[0];
+    expect(gradientOrder).toBeLessThan(animationOrder);
   });
 
   it('treats a non-animation .png input as plain cached media (no overlay map)', async () => {

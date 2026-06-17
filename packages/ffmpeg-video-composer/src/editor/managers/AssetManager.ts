@@ -7,8 +7,8 @@ import type Segment from '../../core/models/Segment';
 import type VariableManager from './VariableManager';
 
 // The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
-// but it is used at runtime as a string-keyed cache of string or string[] values.
-type InputsCache = Record<string, string | string[]>;
+// but it is used at runtime as a string-keyed cache of staged media paths.
+type InputsCache = Record<string, string>;
 
 // A resolved Media with guaranteed name, url, and extension strings.
 type ResolvedMedia = {
@@ -36,7 +36,6 @@ class AssetManager {
   async setUpPaths(): Promise<void> {
     this.segment.assetsDir = await this.filesystemAdapter.getBuildPath('assets');
     this.segment.fontsDir = await this.filesystemAdapter.getBuildPath('fonts');
-    this.segment.animationsDir = await this.filesystemAdapter.getBuildPath('animations');
   }
 
   prepareAssets = (): void => {
@@ -50,12 +49,16 @@ class AssetManager {
 
     for (const key in options) {
       if (Object.hasOwnProperty.call(options, key) && key.endsWith('Url')) {
+        // The section background (e.g. image_background's pictureUrl) is the base layer and must be the
+        // first input: image_background loops it with `-loop 1`, which binds to the first `-i`. If an
+        // animation overlay precedes it, `-loop 1` lands on an animation `.apng` (whose demuxer has no
+        // `loop` option) and the overlays composite onto the wrong base stream.
         currentSection.inputs = [
-          ...(currentSection.inputs ?? []),
           {
             name: currentSection.name,
             url: options[key] ?? '',
           },
+          ...(currentSection.inputs ?? []),
         ];
       }
     }
@@ -108,16 +111,7 @@ class AssetManager {
       throw new Error(`[${this.segment.currentSection?.name}][Assets] Url for ${item.name} is not valid: ${item.url}`);
     }
 
-    const isZipAnimation = item.type === 'animation' && new RegExp('(.*?).(zip)$').test(item.url);
-
-    if (isZipAnimation) {
-      // Process zip animation
-      await this.fetchAndUnzipAnimation(item);
-
-      return;
-    }
-
-    // Process single media
+    // Single-file media — animations (.apng/.webp/.gif/.webm) are fetched like any other asset.
     await this.fetchMedia(item);
   };
 
@@ -176,68 +170,6 @@ class AssetManager {
     return match ? match[1] : null;
   };
 
-  /**
-   * Builds the image2 frame-sequence input for an unzipped animation: `-framerate <fps> -i <dir>/<pattern>`.
-   *
-   * The frame pattern is derived from the ACTUAL extracted filenames (e.g. `CADRE_BLANC-001.png` →
-   * `CADRE_BLANC-%03d.png`) rather than assumed — the zip's naming convention is preserved by stripping
-   * the trailing zero-padded counter and replacing it with a printf token of the matching width.
-   * Returns undefined when no frames were extracted OR the filenames carry no trailing counter
-   * (e.g. `frame.png` instead of `frame001.png`) — callers should treat that as a ZIP extraction
-   * failure and fall back to single-media handling, with a warning.
-   */
-  resolveAnimationSequencePattern = (name: string): string | undefined => {
-    const cache = this.inputsCache;
-    const frames = cache[name];
-
-    if (!Array.isArray(frames) || frames.length === 0) {
-      return undefined;
-    }
-
-    const firstFrame = frames[0] ?? '';
-    const fileName = firstFrame.substring(firstFrame.lastIndexOf('/') + 1);
-
-    // Match a trailing zero-padded counter before the extension: <prefix><NNN>.<ext>.
-    const counterMatch = /^(.*?)(\d+)(\.[^.]+)$/.exec(fileName);
-
-    if (!counterMatch) {
-      return undefined;
-    }
-
-    const [, prefix, counter, extension] = counterMatch;
-    const pattern = `${prefix}%0${counter.length}d${extension}`;
-
-    return `${this.segment.animationsDir}/${name}/${pattern}`;
-  };
-
-  fetchAndUnzipAnimation = async (media: Media): Promise<void> => {
-    // Fetch zip file
-    await this.fetchMedia(media);
-
-    const targetPath = `${this.segment.animationsDir}/${media.name}`;
-    const cache = this.inputsCache;
-
-    if (cache[media.name]) {
-      return;
-    }
-
-    const mediaUrl = media.url ?? '';
-    const cachedUrl = mediaUrl === '' ? undefined : cache[mediaUrl];
-    const url = typeof cachedUrl === 'string' ? cachedUrl : mediaUrl;
-
-    const framesList = await this.filesystemAdapter.unzip(url, targetPath);
-
-    cache[media.name] ??= [];
-
-    const frames = cache[media.name];
-
-    if (Array.isArray(frames)) {
-      for (const frame of framesList) {
-        frames.push(frame);
-      }
-    }
-  };
-
   fetchMedia = async (media: Media, frame = 0): Promise<void> => {
     const { name, url, extension } = this.extractFromMedia(media, frame);
     const cache = this.inputsCache;
@@ -273,15 +205,11 @@ class AssetManager {
     const cache = this.inputsCache;
 
     if (url in cache) {
-      const byUrl = cache[url];
-
-      return typeof byUrl === 'string' ? byUrl : (byUrl[0] ?? '');
+      return cache[url];
     }
 
     if (name in cache) {
-      const byName = cache[name];
-
-      return typeof byName === 'string' ? byName : (byName[0] ?? '');
+      return cache[name];
     }
 
     throw new Error(`No cache found for keys ${url}, ${name}`);

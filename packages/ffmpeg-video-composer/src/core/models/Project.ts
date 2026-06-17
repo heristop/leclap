@@ -1,6 +1,6 @@
 import { singleton } from 'tsyringe';
 import type { ProjectBuildInfos, ProjectConfig } from '../types';
-import defaultConfig from '../default.config';
+import DefaultConfig from '../default.config';
 
 @singleton()
 class Project {
@@ -47,27 +47,27 @@ class Project {
   applyDefault = () => {
     this.config = {
       codecConfig: {
-        videoCodec: defaultConfig.VIDEO_CODEC,
-        audioCodec: defaultConfig.AUDIO_CODEC,
+        videoCodec: DefaultConfig.VIDEO_CODEC,
+        audioCodec: DefaultConfig.AUDIO_CODEC,
         ...this.config.codecConfig,
       },
       hardwareConfig: {
-        hwaccel: defaultConfig.HWACCEL,
-        preset: defaultConfig.PRESET,
+        hwaccel: DefaultConfig.HWACCEL,
+        preset: DefaultConfig.PRESET,
         ...this.config.hardwareConfig,
       },
       audioConfig: {
-        sampleRate: defaultConfig.SAMPLE_RATE,
-        channelLayout: defaultConfig.CHANNEL_LAYOUT,
+        sampleRate: DefaultConfig.SAMPLE_RATE,
+        channelLayout: DefaultConfig.CHANNEL_LAYOUT,
         ...this.config.audioConfig,
       },
       videoConfig: {
-        orientation: defaultConfig.ORIENTATION,
-        scale: defaultConfig.SCALE,
-        setsar: defaultConfig.SETSAR,
+        orientation: DefaultConfig.ORIENTATION,
+        scale: DefaultConfig.SCALE,
+        setsar: DefaultConfig.SETSAR,
         ...this.config.videoConfig,
       },
-      currentLocale: this.config.currentLocale ?? defaultConfig.CURRENT_LOCALE,
+      currentLocale: this.config.currentLocale ?? DefaultConfig.CURRENT_LOCALE,
       ...this.config,
     };
   };

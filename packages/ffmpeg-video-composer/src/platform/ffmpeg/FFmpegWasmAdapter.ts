@@ -97,28 +97,58 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
     return poll();
   };
 
-  execute = async (command: string): Promise<{ rc: number }> => {
-    await this.waitForReady();
-    const ffmpeg = this.getFFmpeg();
-
+  // Capture ffmpeg's log stream into an error list + a rolling tail (minus the version/config
+  // banner) so a failure can be diagnosed even when the only flagged line is the benign trailing
+  // "Aborted()". Returns the buffers plus a detach() to remove the listener.
+  private attachLogCapture(ffmpeg: FFmpegWasm): {
+    errorMessages: string[];
+    recentLog: string[];
+    detach: () => void;
+  } {
     const errorMessages: string[] = [];
+    const recentLog: string[] = [];
 
     const errorCallback = ({ message }: FFmpegLogData) => {
-      if (message) {
-        const isError =
-          message.toLowerCase().includes('error') &&
-          !message.includes('ffmpeg version') &&
-          !message.includes('configuration:');
-        const isAbort = message.includes('Aborted()') || message.includes('abort');
+      if (!message) {
+        return;
+      }
 
-        if (isError || isAbort) {
-          console.error('[FFmpegWasm Error]', message);
-          errorMessages.push(message);
+      const isBanner =
+        message.includes('ffmpeg version') || message.includes('configuration:') || message.startsWith('  lib');
+
+      if (!isBanner) {
+        recentLog.push(message);
+
+        if (recentLog.length > 12) {
+          recentLog.shift();
         }
+      }
+
+      const isError = message.toLowerCase().includes('error') && !isBanner;
+      const isAbort = message.includes('Aborted()') || message.includes('abort');
+
+      if (isError || isAbort) {
+        console.error('[FFmpegWasm Error]', message);
+        errorMessages.push(message);
       }
     };
 
     ffmpeg.on('log', errorCallback);
+
+    return {
+      errorMessages,
+      recentLog,
+      detach: () => {
+        ffmpeg.off('log', errorCallback);
+      },
+    };
+  }
+
+  execute = async (command: string): Promise<{ rc: number }> => {
+    await this.waitForReady();
+    const ffmpeg = this.getFFmpeg();
+
+    const { errorMessages, recentLog, detach } = this.attachLogCapture(ffmpeg);
 
     try {
       const args = parseCommand(command);
@@ -138,7 +168,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
 
       await ffmpeg.exec(args);
 
-      ffmpeg.off('log', errorCallback);
+      detach();
 
       // Copy the produced output back out of MEMFS into the filesystem adapter
       // so the rest of the compilation pipeline can read it. ffmpeg-core logs
@@ -151,12 +181,17 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
       // segments) are not failures, and ffmpeg-core logs "Aborted()" even on a
       // normal exit - so the log alone is not a reliable failure signal.
       if (outputPath !== undefined && !produced) {
-        throw new FFmpegError('FFmpeg WASM execution failed', errorMessages[0] ?? 'No output produced');
+        // Surface the REAL failure, not the benign trailing "Aborted()": prefer a captured error line
+        // that isn't the abort, else the tail of the ffmpeg output, plus the output it was writing.
+        const realError = errorMessages.find((m) => !m.includes('Aborted()') && !m.toLowerCase().includes('abort'));
+        const detail = realError ?? recentLog.slice(-6).join(' / ');
+
+        throw new FFmpegError('FFmpeg WASM execution failed', `${detail} (while writing ${outputPath})`);
       }
 
       return { rc: 0 };
     } catch (error) {
-      ffmpeg.off('log', errorCallback);
+      detach();
 
       throw new FFmpegError(
         'FFmpeg WebAssembly command failed',

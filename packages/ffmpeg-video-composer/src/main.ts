@@ -6,7 +6,7 @@ import pc from 'picocolors';
 
 const configFilePath = globalThis.process.argv[2];
 
-function buildProjectConfig(): { buildDir: string; assetsDir: string; fields: Record<string, string> } {
+function buildProjectConfig(): { buildDir: string; assetsDir: string } {
   const cwd = process.cwd();
   const buildDir = path.resolve(cwd, 'build');
   const assetsDir = path.resolve(cwd, 'packages/leclap-creative-kit/src/library');
@@ -14,15 +14,6 @@ function buildProjectConfig(): { buildDir: string; assetsDir: string; fields: Re
   return {
     buildDir,
     assetsDir,
-    fields: {
-      form_1_firstname: 'Emily',
-      form_1_lastname: 'Parker',
-      form_1_job: 'Frontend Developer',
-      form_2_keyword1: 'php',
-      form_2_keyword2: 'javascript',
-      form_2_keyword3: 'typescript',
-      form_2_keyword4: 'caffeine',
-    },
   };
 }
 
@@ -89,7 +80,9 @@ async function runMain(filePath: string): Promise<void> {
 }
 
 if (configFilePath) {
-  runMain(configFilePath).catch((error: unknown) => {
+  try {
+    await runMain(configFilePath);
+  } catch (error) {
     if (!(error instanceof Error)) {
       console.error('Unknown error:', String(error));
       process.exit(1);
@@ -99,7 +92,7 @@ if (configFilePath) {
 
     if (error.stack) console.error(error.stack);
     process.exit(1);
-  });
+  }
 }
 
 // Skip the banner in CI and non-interactive terminals. FFMPEG_COMPOSER_SKIP_WELCOME suppresses it.

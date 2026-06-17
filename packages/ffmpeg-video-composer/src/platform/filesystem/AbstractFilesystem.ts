@@ -1,3 +1,5 @@
+import { assertSafeSegmentName } from '../../core/argGuard';
+
 abstract class AbstractFilesystem {
   protected root: string | undefined;
   protected tempDir: string | undefined;
@@ -19,7 +21,6 @@ abstract class AbstractFilesystem {
   abstract readFile(filePath: string): Promise<Uint8Array>;
   abstract copy(sourcePath: string, targetPath: string): Promise<void>;
   abstract move(sourcePath: string, targetPath: string): Promise<void>;
-  abstract unzip(url: string, targetPath: string): Promise<string[]>;
   abstract fetchAndRead(url: string): Promise<string>;
 
   // Resolve a font that ships with the package to an absolute local path, or null when the platform
@@ -62,11 +63,14 @@ abstract class AbstractFilesystem {
   getRootDir = (): string | undefined => this.root;
 
   setSegment = (segmentName: string) => {
-    this.segmentName = segmentName;
+    this.segmentName = assertSafeSegmentName(segmentName);
   };
 
+  // Scratch dir for the composers' transient files (tmp_normalize/tmp_video/tmp_anim). `tempDir` is
+  // never set by any platform, so fall back to the build dir — always set by setBuildDir and writable
+  // — otherwise the path is built as `undefined/tmp_*.mp4` and the step reads a non-existent file.
   getTempDir = () => {
-    return this.tempDir;
+    return this.tempDir ?? this.buildDir;
   };
 }
 

@@ -377,10 +377,6 @@ class BrowserFilesystemAdapter extends AbstractFilesystem {
     await this.remove(sourcePath);
   }
 
-  async unzip(_url: string, _targetPath: string): Promise<string[]> {
-    throw new Error('ZIP extraction not supported in browser environment. Use a specialized zip library.');
-  }
-
   async fetchAndRead(url: string): Promise<string> {
     const downloadPath = await this.fetch(url);
 

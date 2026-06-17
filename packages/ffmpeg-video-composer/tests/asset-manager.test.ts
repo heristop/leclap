@@ -16,7 +16,6 @@ function createFilesystem() {
     fetch: vi.fn(async (_url: string) => '/tmp/downloaded'),
     move: vi.fn(async () => undefined),
     copy: vi.fn(async () => undefined),
-    unzip: vi.fn(async () => ['frame-001.png', 'frame-002.png']),
     fetchAndRead: vi.fn(async () => ''),
     // Default to "not bundled" so these tests still exercise the Google Fonts download path.
     resolveBundledFont: vi.fn(async (): Promise<string | null> => null),
@@ -54,7 +53,6 @@ function build(
     currentSection: opts.section,
     assetsDir: '/assets',
     fontsDir: '/fonts',
-    animationsDir: '/animations',
     tempFonts: [] as string[],
     inputsMapCount: 0,
     mapsList: [] as string[],
@@ -72,13 +70,12 @@ beforeEach(() => {
 });
 
 describe('AssetManager.setUpPaths', () => {
-  it('resolves assets, fonts and animations directories', async () => {
+  it('resolves the assets and fonts directories', async () => {
     const { manager, segment, fs } = build();
     await manager.setUpPaths();
     expect(segment.assetsDir).toBe('/build/assets');
     expect(segment.fontsDir).toBe('/build/fonts');
-    expect(segment.animationsDir).toBe('/build/animations');
-    expect(fs.getBuildPath).toHaveBeenCalledTimes(3);
+    expect(fs.getBuildPath).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -112,6 +109,26 @@ describe('AssetManager.prepareAssets', () => {
     manager.prepareAssets();
     const inputs = section.inputs as unknown as Array<{ url: string }>;
     expect(inputs[0].url).toBe('');
+  });
+
+  it('places the section background (*Url) input before existing animation inputs', () => {
+    // image_background loops the picture with `-loop 1`, which binds to the FIRST input; the picture
+    // must therefore precede animation overlays, otherwise `-loop 1` lands on an animation `.apng`
+    // (whose demuxer has no `loop` option) and the overlays composite onto the wrong base stream.
+    const section = {
+      name: 'hero',
+      type: 'image_background',
+      options: { pictureUrl: 'pictures/bg.png', duration: 2 },
+      inputs: [
+        { name: 'shine', url: 'shine.apng', type: 'animation' },
+        { name: 'border', url: 'border.apng', type: 'animation' },
+      ],
+    } as unknown as Section;
+    const { manager } = build({ section });
+    manager.prepareAssets();
+    const inputs = section.inputs as unknown as Array<{ name: string; url: string }>;
+    expect(inputs[0].url).toBe('pictures/bg.png');
+    expect(inputs.map((i) => i.name)).toEqual(['hero', 'shine', 'border']);
   });
 });
 
@@ -219,25 +236,14 @@ describe('AssetManager.fetchAssets', () => {
     expect(fs.fetch).not.toHaveBeenCalled();
   });
 
-  it('routes a zip animation through unzip', async () => {
-    const section = {
-      name: 'intro',
-      type: 'video',
-      inputs: [{ name: 'spark', url: 'http://a/frames.zip', type: 'animation', options: {} }],
-    } as unknown as Section;
-    const { manager, fs } = build({ section });
-    await manager.fetchAssets();
-    expect(fs.unzip).toHaveBeenCalled();
-  });
-
-  it('fetches a non-zip animation input as a single media', async () => {
+  it('fetches a single-file animation input as one media', async () => {
     const section = {
       name: 'intro',
       type: 'video',
       inputs: [
         {
           name: 'spark',
-          url: 'http://a/spark.png',
+          url: 'http://a/spark.apng',
           type: 'animation',
           options: {},
         },
@@ -246,7 +252,6 @@ describe('AssetManager.fetchAssets', () => {
     const { manager, fs } = build({ section });
     await manager.fetchAssets();
     expect(fs.fetch).toHaveBeenCalledTimes(1);
-    expect(fs.unzip).not.toHaveBeenCalled();
   });
 });
 
@@ -295,54 +300,6 @@ describe('AssetManager.fetchFonts', () => {
   });
 });
 
-describe('AssetManager.fetchAndUnzipAnimation', () => {
-  it('unzips and records frames into the cache under the media name', async () => {
-    const fs = createFilesystem();
-    fs.unzip.mockResolvedValue(['a.png', 'b.png']);
-    const cache: Record<string, string | string[]> = {};
-    const { manager, template } = build({ section: { name: 's', type: 'video' }, inputsCache: cache, fs });
-    const media = { name: 'spark', url: 'http://a/frames.zip' } as Media;
-    await manager.fetchAndUnzipAnimation(media);
-    const frames = template.assets.inputs.spark;
-    expect(Array.isArray(frames)).toBe(true);
-    expect(frames).toEqual(expect.arrayContaining(['a.png', 'b.png']));
-  });
-
-  it('returns early when the media name is already cached', async () => {
-    const fs = createFilesystem();
-    const { manager } = build({
-      section: { name: 's', type: 'video' },
-      inputsCache: { spark: ['x.png'], 'http://a/frames.zip': '/cached.zip' },
-      fs,
-    });
-    // url is cached -> fetchMedia inside is a no-op; name cached -> unzip skipped
-    await manager.fetchAndUnzipAnimation({ name: 'spark', url: 'http://a/frames.zip' } as Media);
-    expect(fs.unzip).not.toHaveBeenCalled();
-  });
-
-  it('uses the cached download url when unzipping', async () => {
-    const fs = createFilesystem();
-    fs.unzip.mockResolvedValue(['c.png']);
-    const { manager } = build({
-      section: { name: 's', type: 'video' },
-      inputsCache: { 'http://a/frames.zip': '/cached/frames.zip' },
-      fs,
-    });
-    await manager.fetchAndUnzipAnimation({ name: 'spark', url: 'http://a/frames.zip' } as Media);
-    expect(fs.unzip).toHaveBeenCalledWith('/cached/frames.zip', '/animations/spark');
-  });
-
-  it('unzips using the path that fetchMedia just cached for the url', async () => {
-    const fs = createFilesystem();
-    fs.unzip.mockResolvedValue(['d.png']);
-    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
-    await manager.fetchAndUnzipAnimation({ name: 'spark', url: 'http://a/frames.zip' } as Media);
-    // fetchMedia runs first and caches the url -> assets path (keyed by media name + ext);
-    // unzip then uses that cached path.
-    expect(fs.unzip).toHaveBeenCalledWith('/assets/spark.zip', '/animations/spark');
-  });
-});
-
 describe('AssetManager.fetchMedia', () => {
   it('fetches, moves and caches a media by its url', async () => {
     const fs = createFilesystem();
@@ -386,14 +343,6 @@ describe('AssetManager.fetchCachedMedia', () => {
     expect(manager.fetchCachedMedia({ name: 'clip', url: 'http://a/clip.mp4' } as Media)).toBe('/assets/clip.mp4');
   });
 
-  it('returns the first element when the url cache entry is an array', () => {
-    const { manager } = build({
-      section: { name: 's', type: 'video' },
-      inputsCache: { 'http://a/clip.mp4': ['/assets/f1.png', '/assets/f2.png'] },
-    });
-    expect(manager.fetchCachedMedia({ name: 'clip', url: 'http://a/clip.mp4' } as Media)).toBe('/assets/f1.png');
-  });
-
   it('falls back to the name key when url is not cached', () => {
     const { manager } = build({
       section: { name: 's', type: 'video' },
@@ -402,22 +351,6 @@ describe('AssetManager.fetchCachedMedia', () => {
     expect(manager.fetchCachedMedia({ name: 'clip', url: 'http://uncached/clip.mp4' } as Media)).toBe(
       '/assets/by-name.mp4'
     );
-  });
-
-  it('returns the first array element when the name cache entry is an array', () => {
-    const { manager } = build({
-      section: { name: 's', type: 'video' },
-      inputsCache: { clip: ['/assets/n1.png'] },
-    });
-    expect(manager.fetchCachedMedia({ name: 'clip', url: 'http://uncached/clip.mp4' } as Media)).toBe('/assets/n1.png');
-  });
-
-  it('returns empty string when array cache entry is empty', () => {
-    const { manager } = build({
-      section: { name: 's', type: 'video' },
-      inputsCache: { 'http://a/clip.mp4': [] as string[] },
-    });
-    expect(manager.fetchCachedMedia({ name: 'clip', url: 'http://a/clip.mp4' } as Media)).toBe('');
   });
 
   it('throws when neither url nor name is cached', () => {

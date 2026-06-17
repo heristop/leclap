@@ -45,7 +45,6 @@ function createSegment(currentSection?: Section) {
     mapsList: [] as string[],
     assetsDir: '',
     fontsDir: '',
-    animationsDir: '',
     tempFonts: [] as string[],
     inputsAsset: [] as string[],
     inputsMapCount: 0,
@@ -196,6 +195,41 @@ describe('FormatterManager', () => {
     it('default branch concatenates type and value', () => {
       const { manager } = build();
       expect(manager.formatMultipleTypesValue({ type: 'eq', value: 'contrast=1' } as Filter)).toBe('eq=contrast=1');
+    });
+  });
+
+  // The filtergraph is emitted as a single double-quoted `-vf "…"` argv token; a raw `"` in a filter
+  // value/type or in overlay text would close it and inject extra ffmpeg arguments. No formatter
+  // output may contain a literal double quote.
+  describe('filtergraph injection safety', () => {
+    it('strips a double quote from a raw filter value (no argv breakout)', () => {
+      const { manager } = build();
+      const out = manager.formatMultipleTypesValue({
+        type: 'eq',
+        value: 'contrast=1" -i /etc/passwd -y /tmp/x "',
+      } as Filter);
+      expect(out).not.toContain('"');
+    });
+
+    it('strips a double quote from the filter type', () => {
+      const { manager } = build();
+      expect(manager.formatMultipleTypesValue({ type: 'drawbox" -i /etc/passwd', value: 'x' } as Filter)).not.toContain(
+        '"'
+      );
+    });
+
+    it('strips a double quote from a default (key=value) filter value', () => {
+      const { manager } = build({ section: { name: 's', type: 'video' } });
+      const out = manager.formatMultipleTypesValues({
+        type: 'drawbox',
+        values: { x: '0" -i /etc/passwd "' },
+      } as Filter);
+      expect(out).not.toContain('"');
+    });
+
+    it('neutralises a double quote in drawtext display text', () => {
+      const { manager } = build({ section: { name: 's', type: 'color_background' } });
+      expect(manager.formatText('hi " -i /etc/passwd "')).not.toContain('"');
     });
   });
 
@@ -816,6 +850,14 @@ describe('MapManager', () => {
       };
     }
 
+    it('overlays without throwing when the input omits filters (optional in the schema)', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      const noFilters = { ...makeAnimInput(), filters: undefined } as unknown as MapAnimationInput;
+
+      expect(() => manager.addAnimationOverlay(noFilters, 2)).not.toThrow();
+      expect(segment.mapsList).toContain('anim');
+    });
+
     it('scales the animation leg before the overlay and names the pad after the input', () => {
       const { manager, segment } = build({ section: animationSection() });
       manager.addAnimationOverlay(makeAnimInput(), 2);
@@ -899,6 +941,33 @@ describe('MapManager', () => {
       expect(segment.filtersMapList.some((chain) => chain.includes('[anim_src]'))).toBe(false);
       const overlay = segment.filtersMapList.at(-1) ?? '';
       expect(overlay).toContain('[2:v]');
+    });
+
+    it('fades the animation leg via colorchannelmixer when opacity < 1 (no scale)', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ scale: undefined, opacity: 0.5 }), 2);
+      // an opacity chain on the animation leg feeds the overlay
+      expect(segment.filtersMapList[0]).toBe('[2:v]format=rgba,colorchannelmixer=aa=0.5[anim_src]');
+      const overlay = segment.filtersMapList.at(-1) ?? '';
+      expect(overlay).toContain('[anim_src]');
+    });
+
+    it('appends the opacity fade after the scale on a single animation-leg chain', () => {
+      const { manager, segment } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ scale: '640:360', opacity: 0.4 }), 2);
+      expect(segment.filtersMapList[0]).toBe(
+        '[2:v]scale=640:360,setsar=1,format=rgba,colorchannelmixer=aa=0.4[anim_src]'
+      );
+    });
+
+    it('does not fade the animation leg when opacity is 1 or unset', () => {
+      const opaque = build({ section: animationSection() });
+      opaque.manager.addAnimationOverlay(makeAnimInput({ scale: undefined, opacity: 1 }), 2);
+      expect(opaque.segment.filtersMapList.some((chain) => chain.includes('colorchannelmixer'))).toBe(false);
+
+      const unset = build({ section: animationSection() });
+      unset.manager.addAnimationOverlay(makeAnimInput({ scale: undefined }), 2);
+      expect(unset.segment.filtersMapList.some((chain) => chain.includes('colorchannelmixer'))).toBe(false);
     });
   });
 

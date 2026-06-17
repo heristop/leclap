@@ -218,6 +218,64 @@
           "required": ["name"],
           "additionalProperties": false
         },
+        "animations": {
+          "description": "Whole-video animation overlays composited over the final joined video, spanning all sections.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL or file path of the animation overlay (.apng/.webp/.gif/.webm); may use {{ varName }}."
+              },
+              "position": {
+                "description": "Overlay position as \"x:y\" in output pixels (e.g. \"0:0\" top-left).",
+                "type": "string"
+              },
+              "scale": {
+                "description": "Scale expression applied to the overlay before compositing, as \"w:h\".",
+                "type": "string"
+              },
+              "opacity": {
+                "description": "Overlay alpha from 0 (invisible) to 1 (opaque); 1 (or omitted) keeps it fully opaque.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "rotation": {
+                "description": "Clockwise rotation in degrees applied to the overlay before compositing.",
+                "type": "number"
+              },
+              "loop": {
+                "description": "When true, the overlay loops continuously for the whole video duration (default false).",
+                "type": "boolean"
+              },
+              "loops": {
+                "description": "Number of times the overlay plays (finite). Takes precedence over loop; omit for loop/once.",
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "duration": {
+                "description": "Seconds the overlay plays before it ends (loops the source to fill). Takes precedence over loops/loop.",
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "start": {
+                "description": "Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning.",
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "persistent": {
+                "description": "When true, the overlay freezes its last frame once it ends instead of letting the video show through.",
+                "type": "boolean"
+              }
+            },
+            "required": ["url"],
+            "additionalProperties": false,
+            "description": "A single whole-video animation overlay composited over the final joined video."
+          }
+        },
         "allowedMusic": {
           "description": "Allowlist of music track identifiers the user may choose from.",
           "type": "array",
@@ -256,7 +314,7 @@
                 "description": "Unique identifier for the section within the template, used in section references."
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -270,16 +328,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -292,12 +350,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -447,7 +531,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {
@@ -1400,7 +1484,7 @@
                 "description": "Unique identifier for the section within the template, used in section references."
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -1414,16 +1498,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -1436,12 +1520,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -1591,7 +1701,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {
@@ -2573,7 +2683,7 @@
                 "description": "Unique identifier for the section within the template, used in section references."
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -2587,16 +2697,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -2609,12 +2719,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -2764,7 +2900,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {
@@ -3717,7 +3853,7 @@
                 "description": "Unique identifier for the section within the template, used in section references."
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -3731,16 +3867,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -3753,12 +3889,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -3908,7 +4070,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {
@@ -4947,7 +5109,7 @@
                 "description": "Unique identifier for the section within the template, used in section references."
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -4961,16 +5123,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -4983,12 +5145,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -5138,7 +5326,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {
@@ -6091,7 +6279,7 @@
                 "description": "Unique identifier for the section within the template, used in section references."
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -6105,16 +6293,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -6127,12 +6315,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -6282,7 +6496,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {
@@ -7235,7 +7449,7 @@
                 "type": "string"
               },
               "inputs": {
-                "description": "Animation inputs composited on top of the section video.",
+                "description": "Animation and image overlays composited on top of the section video, in array order.",
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -7249,16 +7463,16 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type; \"animation\" indicates a frame-sequence zip asset.",
+                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
                       "type": "string",
-                      "enum": ["animation"]
+                      "enum": ["animation", "image"]
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
                       "properties": {
                         "fps": {
-                          "description": "Frames per second at which the animation sequence plays (default 25).",
+                          "description": "Frames per second the animation plays at (default 25).",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -7271,12 +7485,38 @@
                           "type": "string"
                         },
                         "persistent": {
-                          "description": "When true, the input is kept alive across section boundaries instead of being re-opened (default false).",
+                          "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
                         },
                         "loop": {
-                          "description": "When true, the input loops continuously for the duration of the section (default false).",
+                          "description": "When true, loop continuously for the section/video (default false).",
                           "type": "boolean"
+                        },
+                        "loops": {
+                          "description": "Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.",
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "duration": {
+                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "start": {
+                          "description": "Seconds to delay the overlay before it appears (default 0).",
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "opacity": {
+                          "description": "Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "rotation": {
+                          "description": "Clockwise rotation in degrees applied before compositing.",
+                          "type": "number"
                         }
                       },
                       "additionalProperties": false
@@ -7426,7 +7666,7 @@
                   },
                   "required": ["name"],
                   "additionalProperties": false,
-                  "description": "An external asset (animation) composited into the section video."
+                  "description": "An external asset (animation or still image) composited into the section video."
                 }
               },
               "maps": {

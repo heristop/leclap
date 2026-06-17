@@ -50,7 +50,7 @@
     "ffmpeg-video-composer": "workspace:*",
     "typescript": "^6.0.3",
     "vite-plus": "^0.1.24",
-    "vitest": "^4.1.8",
+    "vitest": "^4.1.9",
     "zod": "^4.4.3"
   },
   "engines": {

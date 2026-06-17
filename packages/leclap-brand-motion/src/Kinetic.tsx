@@ -40,7 +40,9 @@ export const Kinetic = ({ wordmark = 'LeClap', tagline = 'MOTION, AUTHORED' }: K
       <AbsoluteFill style={{ background: 'radial-gradient(circle at 50% 48%, transparent 52%, rgba(0,0,0,0.5))' }} />
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26 }}>
-        <div style={{ display: 'flex', fontFamily: OSWALD, fontWeight: 700, fontSize: 150, color: '#fff', lineHeight: 1 }}>
+        <div
+          style={{ display: 'flex', fontFamily: OSWALD, fontWeight: 700, fontSize: 150, color: '#fff', lineHeight: 1 }}
+        >
           {letters.map((char, index) => {
             const enter = spring({
               frame: frame - index * 2,

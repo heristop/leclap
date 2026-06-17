@@ -1,7 +1,14 @@
 // Noob on-ramp microcopy + collapsed-disclosure summary chips. All pure string helpers so they're
 // unit-testable and reusable across the Add-section row and the section cards.
 import type { TFunction } from 'i18next';
-import type { EditorSection, FramingGuide, Grade, MotionEffect } from '../templateEditorModel';
+import type {
+  AnimationOverlay,
+  EditorSection,
+  FramingGuide,
+  Grade,
+  ImageOverlay,
+  MotionEffect,
+} from '../templateEditorModel';
 
 const TITLE_CASE = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
 
@@ -26,6 +33,41 @@ export function effectsSummary(t: TFunction<'admin'>, look: string | undefined, 
   if (kenburns) parts.push(t('summaryChip.kenBurns'));
 
   return parts.length > 0 ? parts.join(' · ') : t('summaryChip.none');
+}
+
+// "Animation" group summary: a single overlay's label (lost on re-hydrate from a saved descriptor,
+// where it reads as a generic count), the layer count when several, or "None" when no overlay is set.
+export function animationSummary(t: TFunction<'admin'>, animations: AnimationOverlay[] | undefined): string {
+  const count = animations?.length ?? 0;
+
+  if (count === 0) return t('summaryChip.none');
+
+  if (count === 1) return animations?.[0]?.label ?? t('animationOverlay.count', { count });
+
+  return t('animationOverlay.count', { count });
+}
+
+// Image-overlay summary: the layer count, or "None" when the section carries no images.
+export function imageSummary(t: TFunction<'admin'>, images: ImageOverlay[] | undefined): string {
+  const count = images?.length ?? 0;
+
+  if (count === 0) return t('summaryChip.none');
+
+  return t('imageOverlay.count', { count });
+}
+
+// Combined animations + images summary for the merged "Overlays" group: the total layer count across
+// both kinds, or "None" when the section carries neither.
+export function overlaysSummary(
+  t: TFunction<'admin'>,
+  animations: AnimationOverlay[] | undefined,
+  images: ImageOverlay[] | undefined
+): string {
+  const count = (animations?.length ?? 0) + (images?.length ?? 0);
+
+  if (count === 0) return t('summaryChip.none');
+
+  return t('overlays.count', { count });
 }
 
 // Label for the active fade combination ('' when neither side fades).

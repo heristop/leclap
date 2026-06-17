@@ -48,7 +48,7 @@ export const LayerRow = ({
   const layerName = isBase ? t('layer.base') : t('layer.name', { index });
 
   return (
-    <div className="rounded-xl border border-foreground/10 bg-surface-2/50 p-2.5">
+    <div className="rounded-xl border border-foreground/10 bg-surface p-2.5">
       <div className="mb-2 flex items-center gap-1.5">
         <span className="text-xs font-semibold text-gray-500">{layerName}</span>
         <div className="ml-auto flex items-center gap-0.5">
@@ -164,7 +164,7 @@ const GradientFields = ({
   if (!gradient) return null;
 
   return (
-    <div className="space-y-2 rounded-lg border border-foreground/10 bg-surface/40 p-2">
+    <div className="space-y-2 rounded-lg border border-foreground/10 bg-surface p-2">
       <ColorPicker
         aria-label={t('layer.gradientStart')}
         value={gradient.from}

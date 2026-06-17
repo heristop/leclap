@@ -10,6 +10,20 @@ export const snippets = {
     options: { backgroundColor: '#0d1b2a', duration: 3 },
   }),
 
+  animation: json({
+    name: 'intro',
+    type: 'image_background',
+    options: { pictureUrl: '{{ photo }}', duration: 4 },
+    inputs: [
+      {
+        name: 'border',
+        url: '/assets/animations/rounded_border.apng',
+        type: 'animation',
+        options: { position: '0:0', scale: '1280:720', loop: false, persistent: true },
+      },
+    ],
+  }),
+
   transition: json({
     global: { transition: { type: 'fade', duration: 0.4 } },
     sections: [

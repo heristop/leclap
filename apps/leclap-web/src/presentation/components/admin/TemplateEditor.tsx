@@ -21,11 +21,6 @@ import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import type { StoredPartial } from '@/stores/userPartialStore';
 import {
   Button,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
   Dialog,
   DialogContent,
   DialogHeader,
@@ -44,6 +39,7 @@ import { AudioPanel } from './editor/AudioPanel';
 import { TimelineStrip } from './editor/TimelineStrip';
 import { TestRenderButton } from './editor/TestRenderButton';
 import { SectionDisclosure } from './editor/SectionDisclosure';
+import { AnimationOverlayField } from './editor/AnimationOverlayField';
 import { FadeIn } from './editor/FadeIn';
 import { SegmentedControl } from './editor/controls';
 import { BuilderModeProvider, useBuilderMode } from './editor/useBuilderMode';
@@ -56,6 +52,7 @@ import {
 import { exportDescriptorJson, exportFilename, importDescriptorJson } from './editor/templateIO';
 import { SceneList, AddSectionButtons } from './editor/SceneList';
 import { EDITOR_INPUT_CLASS } from './editor/editorStyles';
+import { cn } from '@/lib/utils';
 import { useEditorSectionOps } from './editor/useEditorSectionOps';
 import { partialFromDraftState } from './editor/partialDraft';
 
@@ -214,7 +211,9 @@ export const TemplateEditor = ({ initial, onSaved, onCancel }: TemplateEditorPro
                 Build your scenes top to bottom, then save — it appears in the builder as a Custom template.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            {/* Full-width + wrapping on mobile so the toggle and icon buttons drop to their own row(s)
+                under the title instead of overflowing a narrow viewport; inline on the right at sm+. */}
+            <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
               <SegmentedControl
                 value={mode}
                 onChange={setMode}
@@ -566,6 +565,64 @@ interface MetadataFieldsProps {
   patch: (p: Partial<EditorState>) => void;
 }
 
+// Orientation reads better as the shape it produces than as a dropdown label: two tappable cards, each
+// a mini frame drawn in the actual aspect ratio (wide vs tall) with its ratio underneath.
+const ORIENTATIONS = [
+  { value: 'landscape', label: 'Landscape 16:9', ratio: '16:9', frame: 'w-7 h-4' },
+  { value: 'portrait', label: 'Portrait 9:16', ratio: '9:16', frame: 'w-4 h-7' },
+] as const;
+
+const OrientationToggle = ({
+  value,
+  onChange,
+}: {
+  value: EditorState['orientation'];
+  onChange: (value: EditorState['orientation']) => void;
+}) => (
+  <div role="radiogroup" aria-label="Orientation" className="grid grid-cols-2 gap-2">
+    {ORIENTATIONS.map((option) => {
+      const active = value === option.value;
+
+      return (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={active}
+          aria-label={option.label}
+          onClick={() => {
+            onChange(option.value);
+          }}
+          className={cn(
+            'tap group flex flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30',
+            active
+              ? 'border-brand-500 bg-brand-500/10'
+              : 'border-foreground/15 bg-surface-inset hover:border-foreground/30'
+          )}
+        >
+          <span className="grid h-8 place-items-center">
+            <span
+              className={cn(
+                'rounded-[3px] border-2 transition-colors',
+                option.frame,
+                active ? 'border-brand-500' : 'border-gray-400 group-hover:border-foreground/60'
+              )}
+            />
+          </span>
+          <span
+            className={cn(
+              'text-[0.7rem] font-semibold tabular-nums transition-colors',
+              active ? 'text-foreground' : 'text-gray-500'
+            )}
+          >
+            {option.ratio}
+          </span>
+        </button>
+      );
+    })}
+  </div>
+);
+
 // Always-visible basics: name + orientation. Compact, sits right under the header.
 const BasicsFields = ({ state, patch }: MetadataFieldsProps) => {
   const nameId = useId();
@@ -593,20 +650,12 @@ const BasicsFields = ({ state, patch }: MetadataFieldsProps) => {
         <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
           Orientation
         </label>
-        <Select
+        <OrientationToggle
           value={state.orientation}
-          onValueChange={(v) => {
-            patch({ orientation: v as EditorState['orientation'] });
+          onChange={(orientation) => {
+            patch({ orientation });
           }}
-        >
-          <SelectTrigger aria-label="Orientation">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="landscape">Landscape (16:9)</SelectItem>
-            <SelectItem value="portrait">Portrait (9:16)</SelectItem>
-          </SelectContent>
-        </Select>
+        />
       </div>
     </div>
   );
@@ -618,7 +667,7 @@ const AdvancedSettings = ({ state, patch }: MetadataFieldsProps) => (
   <SectionDisclosure
     label="Advanced settings"
     icon={<Settings2 className="size-4 shrink-0 text-brand-500" aria-hidden />}
-    summary="Audio mix · Variables"
+    summary="Audio mix · Variables · Whole-video animations"
   >
     <AudioPanel
       audio={state.audio}
@@ -627,7 +676,24 @@ const AdvancedSettings = ({ state, patch }: MetadataFieldsProps) => (
       }}
     />
     <GlobalVariablesEditor state={state} patch={patch} />
+    <WholeVideoAnimations state={state} patch={patch} />
   </SectionDisclosure>
+);
+
+// Whole-video animation overlays (global.animations) — composited over the FINAL joined video so they
+// span every section continuously, unlike a section's own animation. Reuses the section animation list editor.
+const WholeVideoAnimations = ({ state, patch }: MetadataFieldsProps) => (
+  <div className="mt-4 border-t border-foreground/10 pt-4">
+    <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Whole-video animations</span>
+    <p className="mt-1 mb-3 text-xs text-gray-500">Overlays that span the entire video, across every section.</p>
+    <AnimationOverlayField
+      value={state.globalAnimations}
+      orientation={state.orientation}
+      onChange={(animations) => {
+        patch({ globalAnimations: animations ?? [] });
+      }}
+    />
+  </div>
 );
 
 // Author-defined template constants. Each row is a {name, value} pair that
@@ -646,20 +712,26 @@ const GlobalVariablesEditor = ({ state, patch }: MetadataFieldsProps) => {
         Global variables
       </span>
       <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-        Reusable values you can insert as {'{{ name }}'} in any text.
+        Reusable values. Type <span className="font-mono text-brand-600 dark:text-brand-300">#</span> in any text field
+        to insert one.
       </p>
       <div className="space-y-2">
         {globalVariables.map((variable, i) => (
           <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
-            <input
-              aria-label={`Variable ${i + 1} name`}
-              className={EDITOR_INPUT_CLASS}
-              value={variable.name}
-              onChange={(e) => {
-                update(i, { name: e.target.value });
-              }}
-              placeholder="name"
-            />
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-brand-600 dark:text-brand-300">
+                #
+              </span>
+              <input
+                aria-label={`Variable ${i + 1} name`}
+                className={`${EDITOR_INPUT_CLASS} pl-7`}
+                value={variable.name}
+                onChange={(e) => {
+                  update(i, { name: e.target.value });
+                }}
+                placeholder="name"
+              />
+            </div>
             <input
               aria-label={`Variable ${i + 1} value`}
               className={EDITOR_INPUT_CLASS}

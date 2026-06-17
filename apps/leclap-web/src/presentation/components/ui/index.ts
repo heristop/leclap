@@ -27,3 +27,4 @@ export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectI
 export { Checkbox } from './checkbox';
 export { ColorPicker, type ColorPickerProps } from './color-picker';
 export { Reveal, type RevealProps } from './reveal';
+export { SegmentedControl, type SegmentedControlProps, type SegmentedOption } from './segmented-control';

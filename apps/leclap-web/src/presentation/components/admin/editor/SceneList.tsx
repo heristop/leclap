@@ -327,7 +327,7 @@ const SectionCard = ({
       setArmedIndex(null);
     }}
     className={clsx(
-      'relative my-2 rounded-xl border bg-surface-2/60 p-3 transition-all duration-200 ease-[var(--ease-out-expo)] scroll-mt-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+      'relative my-2 rounded-xl border bg-surface-2 p-3 transition-all duration-200 ease-[var(--ease-out-expo)] scroll-mt-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
       dragging &&
         'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20',
       !dragging && errors.length > 0 && 'border-[var(--color-error)]/60 ring-1 ring-[var(--color-error)]/30',

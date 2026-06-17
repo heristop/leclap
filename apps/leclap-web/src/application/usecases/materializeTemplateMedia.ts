@@ -60,4 +60,20 @@ export async function materializeTemplateMedia(
       section.options = { ...section.options, pictureUrl: path } as ImageBackgroundOptions;
     })
   );
+
+  // Uploaded images on any section's `inputs` (the video-section image overlays).
+  const inputUploads = (descriptor.sections ?? []).flatMap((section) =>
+    (section.inputs ?? []).filter((input) => input.url?.startsWith(PREFIX))
+  );
+
+  await Promise.all(
+    inputUploads.map(async (input) => {
+      const key = (input.url ?? '').slice(PREFIX.length);
+      const meta = await source.getMeta(key);
+      const bytes = await readOrThrow(source, key);
+      const path = `/assets/pictures/${key}.${meta?.ext ?? 'bin'}`;
+      await target.writeFile(path, bytes);
+      input.url = path;
+    })
+  );
 }

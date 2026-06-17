@@ -248,6 +248,39 @@
     "preset": "Look preset",
     "none": "None"
   },
+  "animation": {
+    "label": "Animation",
+    "preset": "Animation overlay",
+    "none": "None",
+    "upload": "Upload",
+    "uploadHint": "Upload .apng or .webm",
+    "uploaded": "Uploaded",
+    "dropAnimation": "Drop an animation or click to browse",
+    "animationFormats": "APNG, WebM · kept inline in the template",
+    "removeUpload": "Remove uploaded animation",
+    "invalidType": "Please choose an .apng or .webm file.",
+    "previewBg": "Preview background",
+    "bgChecker": "Checkerboard",
+    "bgDark": "Dark",
+    "bgLight": "Light",
+    "position": "Position",
+    "scale": "Scale",
+    "scaleHint": "px · −1 keeps aspect",
+    "positionHint": "px from top-left",
+    "opacity": "Opacity",
+    "rotation": "Rotation",
+    "loop": "Loop",
+    "playback": "Playback",
+    "forever": "Forever",
+    "loopsTab": "Loops",
+    "secondsTab": "Seconds",
+    "loopsLabel": "Number of loops",
+    "secondsLabel": "Duration (s)",
+    "startLabel": "Start at (s)",
+    "keepLastFrame": "Keep last frame",
+    "dragHint": "Drag to move · corner to resize · arrows to nudge",
+    "reset": "Reset to default"
+  },
   "motion": {
     "label": "Motion",
     "direction": "Motion direction",
@@ -263,10 +296,35 @@
   "disclosure": {
     "effects": "Effects",
     "audio": "Audio",
-    "cameraGuide": "Camera guide"
+    "animation": "Animation",
+    "cameraGuide": "Camera guide",
+    "images": "Images",
+    "overlays": "Overlays"
+  },
+  "overlays": {
+    "kind": "Overlay type",
+    "animation": "Animation",
+    "image": "Image",
+    "count_one": "{{count}} overlay",
+    "count_other": "{{count}} overlays"
+  },
+  "imageOverlay": {
+    "add": "Add an image",
+    "label": "Image",
+    "remove": "Remove image",
+    "count_one": "{{count}} image",
+    "count_other": "{{count}} images"
+  },
+  "animationOverlay": {
+    "add": "Add an animation",
+    "label": "Animation",
+    "remove": "Remove animation",
+    "count_one": "{{count}} animation",
+    "count_other": "{{count}} animations"
   },
   "summaryChip": {
     "none": "None",
+    "on": "On",
     "default": "Default",
     "off": "Off",
     "kenBurns": "Ken Burns",
@@ -287,7 +345,7 @@
     "preview": "Preview render",
     "ariaLabel": "Render a preview of this template with sample footage",
     "title": "Preview render",
-    "description": "A fast 480p draft using sample footage — placeholder clips stand in for your video sections.",
+    "description": "A fast draft using sample footage — placeholder clips stand in for your video sections.",
     "failed": "The preview render failed.",
     "download": "Download draft"
   },
@@ -318,6 +376,11 @@
       "Covers": "Covers",
       "Reveals": "Reveals"
     }
+  },
+  "variables": {
+    "global": "Global",
+    "local": "Local",
+    "insertHint": "Type # to insert a variable"
   },
   "video": {
     "duration": "Duration (s)",

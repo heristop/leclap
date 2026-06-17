@@ -38,6 +38,7 @@ function panelDrivenState(): EditorState {
     globalVariables: [],
     audio: { ...DEFAULT_AUDIO_MIX, normalize: 'loudnorm', ducking: true },
     defaultTransition: { type: 'cut', duration: 0.5 },
+    globalAnimations: [],
   };
 
   // TransitionPicker → setTransitionAfter on the video section (it has a visual section after it).

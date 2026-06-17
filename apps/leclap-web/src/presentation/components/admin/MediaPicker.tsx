@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { coverGradient } from '@/lib/poster';
-import { Button } from '@/presentation/components/ui';
+import { Button, SegmentedControl } from '@/presentation/components/ui';
 import { browserMediaService } from '@/services/browserMediaService';
 import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/mediaCatalog';
 import type { MediaChoice } from './templateEditorModel';
@@ -103,29 +103,15 @@ const TabSwitch = ({ tab, setTab, allowUpload }: { tab: Tab; setTab: (t: Tab) =>
   const tabs: Tab[] = allowUpload ? ['library', 'upload', 'url'] : ['library', 'url'];
 
   return (
-    <div
-      role="tablist"
-      aria-label={t('media.source')}
-      className="mb-3 inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm"
-    >
-      {tabs.map((tabId) => (
-        <button
-          key={tabId}
-          type="button"
-          role="tab"
-          aria-selected={tab === tabId}
-          onClick={() => {
-            setTab(tabId);
-          }}
-          className={cn(
-            'rounded-md px-3 py-1.5 font-medium capitalize transition-colors',
-            tab === tabId ? 'bg-surface text-foreground shadow-sm' : 'text-gray-400 hover:text-foreground'
-          )}
-        >
-          {t(`media.tab.${tabId}`)}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      ariaLabel={t('media.source')}
+      value={tab}
+      onChange={(value) => {
+        setTab(value as Tab);
+      }}
+      options={tabs.map((tabId) => ({ value: tabId, label: t(`media.tab.${tabId}`) }))}
+      classNames={{ track: 'mb-3', button: 'capitalize' }}
+    />
   );
 };
 

@@ -20,6 +20,7 @@ function state(sections: EditorSection[]): EditorState {
     globalVariables: [],
     audio: { sourceVolume: 1, musicVolume: 0.5, ducking: false },
     defaultTransition: { type: 'cut', duration: 0.5 },
+    globalAnimations: [],
   };
 }
 

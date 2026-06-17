@@ -23,7 +23,7 @@ export const SectionDisclosure = ({ label, icon, summary, children }: SectionDis
   const bodyId = useId();
 
   return (
-    <div className="rounded-xl border border-foreground/10 bg-surface/40">
+    <div className="rounded-xl border border-foreground/10 bg-surface">
       <button
         type="button"
         onClick={() => {
@@ -42,7 +42,11 @@ export const SectionDisclosure = ({ label, icon, summary, children }: SectionDis
         />
         {icon}
         <span className="text-sm font-semibold text-foreground">{label}</span>
-        {!open && <span className="ml-auto min-w-0 truncate text-xs text-gray-600 dark:text-gray-300">{summary}</span>}
+        {!open && (
+          <span className="ml-auto max-w-[55%] shrink-0 truncate rounded-md bg-foreground/[0.06] px-2 py-0.5 text-[0.7rem] font-medium text-gray-500 dark:text-gray-400">
+            {summary}
+          </span>
+        )}
       </button>
       <div
         id={bodyId}

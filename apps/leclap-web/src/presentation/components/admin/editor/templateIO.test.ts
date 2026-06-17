@@ -14,6 +14,7 @@ function state(over: Partial<EditorState> = {}): EditorState {
     globalVariables: [{ name: 'brand', value: 'LeClap' }],
     audio: { sourceVolume: 1, musicVolume: 0.5, ducking: false },
     defaultTransition: { type: 'cut', duration: 0.5 },
+    globalAnimations: [],
     ...over,
   };
 }

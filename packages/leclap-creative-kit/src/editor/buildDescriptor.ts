@@ -11,6 +11,9 @@ import type {
   Grade,
   MotionEffect,
   EditorCaption,
+  AnimationOverlay,
+  ImageOverlay,
+  MediaChoice,
 } from './model';
 
 // Default authoring locale for Translation fields the editor emits (section descriptions,
@@ -43,14 +46,87 @@ function captionDescriptorFrom(caption: EditorCaption | undefined): Section['cap
   }) as Section['caption'];
 }
 
+// The playback extent — exactly one of duration / loops / loop (precedence duration > loops > loop).
+// Emitting only the active one keeps the descriptor unambiguous and minimal.
+function animationExtent(a: AnimationOverlay) {
+  if (a.duration !== undefined) return { duration: a.duration };
+
+  if (a.loops !== undefined) return { loops: a.loops };
+
+  return { loop: a.loop ?? true };
+}
+
+// Placement/playback options shared by a section animation input and a whole-video global animation:
+// the playback extent (duration | loops | loop), persistent=eof_action=repeat (holds past its own EOF),
+// start delays the overlay; position/scale pass through when set; opacity only when it fades (< 1) and
+// rotation only when nonzero so opaque/upright overlays stay clean.
+function animationOptions(animation: AnimationOverlay) {
+  return {
+    ...animationExtent(animation),
+    persistent: animation.persistent ?? true,
+    ...(animation.start ? { start: animation.start } : {}),
+    ...(animation.position ? { position: animation.position } : {}),
+    ...(animation.scale ? { scale: animation.scale } : {}),
+    ...(animation.opacity !== undefined && animation.opacity < 1 ? { opacity: animation.opacity } : {}),
+    ...(animation.rotation ? { rotation: animation.rotation } : {}),
+  };
+}
+
+// A looping animated overlay → a single `type: 'animation'` input the core auto-composites over the section.
+function animationInputFrom(animation: AnimationOverlay, index: number): NonNullable<Section['inputs']>[number] {
+  return { name: `animation_${index}`, url: animation.url, type: 'animation', options: animationOptions(animation) };
+}
+
+// A whole-video overlay → one global.animations entry (url + flattened options). Composited over the
+// final joined video by the engine's AnimationComposer, spanning every section.
+function globalAnimationFrom(
+  animation: AnimationOverlay
+): NonNullable<NonNullable<TemplateDescriptor['global']>['animations']>[number] {
+  return { url: animation.url, ...animationOptions(animation) };
+}
+
+// The author's animated overlays → `type: 'animation'` inputs named `animation_<i>` by array order.
+// Entries without a url (a half-filled picker) are skipped.
+function animationInputsFrom(animations: AnimationOverlay[] | undefined): NonNullable<Section['inputs']> {
+  return (animations ?? []).filter((a) => a.url).map((a, i) => animationInputFrom(a, i));
+}
+
+// A MediaChoice → the marker url the descriptor carries: library → `library://<id>` (the web resolves
+// it to /backgrounds/<file>), upload → `media://<key>` (materialized into the engine FS at compile),
+// url → the pasted url as-is.
+function markerFromChoice(choice: MediaChoice): string {
+  if (choice.source === 'library') return `library://${choice.id}`;
+
+  if (choice.source === 'upload') return `media://${choice.key}`;
+
+  return choice.url;
+}
+
+// A still-image overlay → a `type: 'image'` input composited over the section via the same overlay
+// path as animations. Named `image_<i>` by its array position. position/scale pass through when set;
+// opacity only when it actually fades the overlay (< 1) so opaque overlays stay clean; rotation only
+// when nonzero (0/undefined = upright).
+function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Section['inputs']>[number] {
+  const options = {
+    ...(overlay.position ? { position: overlay.position } : {}),
+    ...(overlay.scale ? { scale: overlay.scale } : {}),
+    ...(overlay.opacity !== undefined && overlay.opacity < 1 ? { opacity: overlay.opacity } : {}),
+    ...(overlay.rotation ? { rotation: overlay.rotation } : {}),
+  };
+
+  return { name: `image_${index}`, url: markerFromChoice(overlay.choice), type: 'image', options };
+}
+
 function visualExtras(section: {
   transitionAfter?: SectionTransition;
   caption?: EditorCaption;
   look?: string;
   grade?: Grade;
   motion?: MotionEffect[];
+  animations?: AnimationOverlay[];
 }): Partial<Section> {
   const caption = captionDescriptorFrom(section.caption);
+  const animationInputs = animationInputsFrom(section.animations);
 
   return {
     ...(section.transitionAfter ? { transition: section.transitionAfter } : {}),
@@ -58,6 +134,7 @@ function visualExtras(section: {
     ...(section.look ? { look: section.look } : {}),
     ...(section.grade ? { grade: section.grade } : {}),
     ...(section.motion && section.motion.length > 0 ? { motion: section.motion } : {}),
+    ...(animationInputs.length > 0 ? { inputs: animationInputs } : {}),
   };
 }
 
@@ -159,6 +236,13 @@ function videoDescriptorFrom(section: VideoSection, index: number): Section {
   const filters = section.overlays.filter((o) => o.text.trim() !== '').map(drawtextFilterFrom);
   const description = section.description?.trim();
 
+  // Animations + image overlays all composite over the clip, in z-order: the animations first (array
+  // order), then the images on top (array order). Overrides visualExtras' animation-only `inputs`.
+  const overlayInputs: NonNullable<Section['inputs']> = [
+    ...animationInputsFrom(section.animations),
+    ...(section.images ?? []).map((image, i) => imageInputFrom(image, i)),
+  ];
+
   return {
     name: `video_${index}`,
     type: 'project_video',
@@ -174,6 +258,7 @@ function videoDescriptorFrom(section: VideoSection, index: number): Section {
     ...(description ? { description: { [DEFAULT_LOCALE]: description } } : {}),
     ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
+    ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
   };
 }
 
@@ -268,6 +353,7 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     transition: { type: state.defaultTransition.type, duration: state.defaultTransition.duration },
     // Audio mix: source (recorded clip) volume and background-music volume, each 0..1 (0 = muted).
     audio: audioGlobal(state.audio),
+    ...(state.globalAnimations.length > 0 ? { animations: state.globalAnimations.map(globalAnimationFrom) } : {}),
     ...mediaGlobals(state.sections),
   };
 

@@ -23,6 +23,7 @@ const baseState = (): EditorState => ({
   globalVariables: [],
   audio: { ...DEFAULT_AUDIO_MIX },
   defaultTransition: { type: 'cut', duration: 0.5 },
+  globalAnimations: [],
 });
 
 const get = <K extends EditorSection['kind']>(state: EditorState, i: number) =>

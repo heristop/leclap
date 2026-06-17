@@ -72,7 +72,15 @@
   },
   "image": {
     "pick": "Pick the images viewers can choose from.",
-    "allowUpload": "Allow viewers to upload their own image"
+    "allowUpload": "Allow viewers to upload their own image",
+    "label": "Image",
+    "none": "None",
+    "position": "Position (px)",
+    "scale": "Scale (px, -1 = auto)",
+    "rotation": "Rotation (°)",
+    "add": "Add an image",
+    "layer": "Image {{number}}",
+    "remove": "Remove image"
   },
   "advanced": {
     "look": "Look",
@@ -196,7 +204,9 @@
   "style": {
     "defaultTransition": "Default transition",
     "defaultTransitionHelp": "Used between scenes that don't set their own.",
-    "globalAudio": "Audio mix"
+    "globalAudio": "Audio mix",
+    "wholeVideoAnimations": "Whole-video animations",
+    "wholeVideoAnimationsHelp": "Overlays that span the entire video, across every scene."
   },
   "save": "Save template",
   "preview": "Preview",
@@ -216,5 +226,30 @@
     "almostThere": "Almost there",
     "needName": "Give your template a name.",
     "needScene": "Add at least one scene."
+  },
+  "animation": {
+    "label": "Animation",
+    "none": "None",
+    "loop": "Loop",
+    "playback": "Playback",
+    "forever": "Forever",
+    "loopsTab": "Loops",
+    "secondsTab": "Seconds",
+    "loopsLabel": "Number of loops",
+    "secondsLabel": "Duration (s)",
+    "startLabel": "Start at (s)",
+    "keepLastFrame": "Keep last frame",
+    "position": "Position (px)",
+    "scale": "Scale (px, -1 = auto)",
+    "opacity": "Opacity",
+    "rotation": "Rotation (°)",
+    "add": "Add an animation",
+    "layer": "Animation {{number}}",
+    "remove": "Remove animation"
+  },
+  "overlays": {
+    "kind": "Overlays",
+    "animation": "Animation",
+    "image": "Image"
   }
 }

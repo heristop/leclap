@@ -60,7 +60,38 @@ describe('FFmpegLeclapAdapter', () => {
     const infos = await adapter.getInfos('clip.mp4');
 
     expect(infos).toEqual({ duration: 8, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 });
-    expect(probe).toHaveBeenCalledWith(['-v', 'quiet', '-print_format', 'json', '-show_streams', 'clip.mp4']);
+    expect(probe).toHaveBeenCalledWith([
+      '-hide_banner',
+      '-v',
+      'quiet',
+      '-print_format',
+      'json',
+      '-show_streams',
+      'clip.mp4',
+    ]);
+  });
+
+  it('getInfos() tolerates a non-JSON banner line printed on stdout ahead of the JSON', async () => {
+    // The embedded ffprobe can emit a version/banner line on stdout before the JSON document, which
+    // made a strict JSON.parse fail with "Unexpected character: f" (the "ffprobe…" line).
+    const noisy = `ffprobe version n8.0\n${JSON.stringify({
+      streams: [{ codec_type: 'video', codec_name: 'h264', duration: '2.40' }],
+    })}\n`;
+    const adapter = new FFmpegLeclapAdapter(
+      engineWith({ probe: vi.fn().mockResolvedValue({ code: 0, output: noisy }) })
+    );
+
+    const infos = await adapter.getInfos('intro_output.mp4');
+
+    expect(infos).toEqual({ duration: 2.4, videoCodec: 'h264', audioCodec: null, sampleRate: null });
+  });
+
+  it('getInfos() still throws when the probe output has no JSON object at all', async () => {
+    const adapter = new FFmpegLeclapAdapter(
+      engineWith({ probe: vi.fn().mockResolvedValue({ code: 0, output: 'failed to open file' }) })
+    );
+
+    await expect(adapter.getInfos('x.mp4')).rejects.toThrow(/FFprobe output not parseable/);
   });
 
   it('getInfos() throws on a non-zero probe', async () => {

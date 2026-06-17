@@ -7,6 +7,7 @@ import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type { Section } from '@/core/types';
 import type MusicComposer from './MusicComposer';
+import type AnimationComposer from './AnimationComposer';
 import { buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 
 /** A boundary transition between two adjacent segments — `type` is an xfade name or `cut`. */
@@ -23,6 +24,7 @@ class VideoEditor {
     @inject('project') private readonly project: Project,
     @inject('template') private readonly template: Template,
     @inject('MusicComposer') private readonly musicComposer: MusicComposer,
+    @inject('AnimationComposer') private readonly animationComposer: AnimationComposer,
 
     @inject('logger') private readonly logger: AbstractLogger,
     @inject('ffmpegAdapter') private readonly ffmpegAdapter: AbstractFFmpeg,
@@ -335,34 +337,55 @@ class VideoEditor {
     }
   }
 
+  // Whole-video animation overlays (global.animations) are composited over the joined video first,
+  // re-encoding it once; music (below) then stream-copies that overlaid video. Runs only when the
+  // template declares overlays and a final video exists.
+  private async overlayAnimations(): Promise<void> {
+    if (this.template.descriptor.global?.animations?.length && this.project.finalVideo) {
+      await this.animationComposer.appendAnimations(this.project.finalVideo);
+    }
+  }
+
+  // Music is mixed only when the template enables it AND a track actually resolved (buildInfos.
+  // musicPath is empty when none is selected). Without a track there's nothing to loop or append —
+  // the concat output is already the final video. Probing an empty path would otherwise fail.
+  private async mixMusic(segments: Section[]): Promise<void> {
+    if (
+      !this.template.descriptor.global?.musicEnabled ||
+      !this.project.buildInfos.musicPath ||
+      !this.project.finalVideo
+    ) {
+      return;
+    }
+
+    await this.musicComposer.loopMusic();
+    await this.musicComposer.appendMusic(segments, this.project.finalVideo);
+  }
+
+  private async emitFinalize(): Promise<void> {
+    if (this.project.errors.length > 0) {
+      return;
+    }
+
+    this.emitter?.emit('finalize', {
+      video_source: this.project.finalVideo,
+      template_assets: this.template.assets,
+    });
+
+    await this.cleanupConcatFile();
+
+    this.emitter?.emit('compilation-progress', 1);
+    this.logger.info('[End] project cleaned');
+
+    this.project.clean();
+    this.template.clean();
+  }
+
   finalize = async (segments: Section[]): Promise<void> => {
     try {
-      // Music is mixed only when the template enables it AND a track actually resolved (buildInfos.
-      // musicPath is empty when none is selected). Without a track there's nothing to loop or append —
-      // the concat output is already the final video. Probing an empty path would otherwise fail.
-      if (
-        this.template.descriptor.global?.musicEnabled &&
-        this.project.buildInfos.musicPath &&
-        this.project.finalVideo
-      ) {
-        await this.musicComposer.loopMusic();
-        await this.musicComposer.appendMusic(segments, this.project.finalVideo);
-      }
-
-      if (this.project.errors.length === 0) {
-        this.emitter?.emit('finalize', {
-          video_source: this.project.finalVideo,
-          template_assets: this.template.assets,
-        });
-
-        await this.cleanupConcatFile();
-
-        this.emitter?.emit('compilation-progress', 1);
-        this.logger.info('[End] project cleaned');
-
-        this.project.clean();
-        this.template.clean();
-      }
+      await this.overlayAnimations();
+      await this.mixMusic(segments);
+      await this.emitFinalize();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`[Finalize] Error: ${message}`);

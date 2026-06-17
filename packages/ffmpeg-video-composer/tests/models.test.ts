@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import Template from '@/core/models/Template';
 import Project from '@/core/models/Project';
 import Segment from '@/core/models/Segment';
-import defaultConfig from '@/core/default.config';
+import DefaultConfig from '@/core/default.config';
 
 // A minimal descriptor that satisfies TemplateDescriptorSchema (global? + sections?).
 const validDescriptor = {
@@ -163,23 +163,23 @@ describe('Project', () => {
       project.applyDefault();
 
       expect(project.config.codecConfig).toEqual({
-        videoCodec: defaultConfig.VIDEO_CODEC,
-        audioCodec: defaultConfig.AUDIO_CODEC,
+        videoCodec: DefaultConfig.VIDEO_CODEC,
+        audioCodec: DefaultConfig.AUDIO_CODEC,
       });
       expect(project.config.hardwareConfig).toEqual({
-        hwaccel: defaultConfig.HWACCEL,
-        preset: defaultConfig.PRESET,
+        hwaccel: DefaultConfig.HWACCEL,
+        preset: DefaultConfig.PRESET,
       });
       expect(project.config.audioConfig).toEqual({
-        sampleRate: defaultConfig.SAMPLE_RATE,
-        channelLayout: defaultConfig.CHANNEL_LAYOUT,
+        sampleRate: DefaultConfig.SAMPLE_RATE,
+        channelLayout: DefaultConfig.CHANNEL_LAYOUT,
       });
       expect(project.config.videoConfig).toEqual({
-        orientation: defaultConfig.ORIENTATION,
-        scale: defaultConfig.SCALE,
-        setsar: defaultConfig.SETSAR,
+        orientation: DefaultConfig.ORIENTATION,
+        scale: DefaultConfig.SCALE,
+        setsar: DefaultConfig.SETSAR,
       });
-      expect(project.config.currentLocale).toBe(defaultConfig.CURRENT_LOCALE);
+      expect(project.config.currentLocale).toBe(DefaultConfig.CURRENT_LOCALE);
     });
 
     it('lets a user-provided nested config block override the defaults entirely', () => {
@@ -200,12 +200,12 @@ describe('Project', () => {
       expect(project.config.videoConfig?.orientation).toBeUndefined();
       // Blocks the user did NOT provide still receive their full defaults.
       expect(project.config.audioConfig).toEqual({
-        sampleRate: defaultConfig.SAMPLE_RATE,
-        channelLayout: defaultConfig.CHANNEL_LAYOUT,
+        sampleRate: DefaultConfig.SAMPLE_RATE,
+        channelLayout: DefaultConfig.CHANNEL_LAYOUT,
       });
       expect(project.config.codecConfig).toEqual({
-        videoCodec: defaultConfig.VIDEO_CODEC,
-        audioCodec: defaultConfig.AUDIO_CODEC,
+        videoCodec: DefaultConfig.VIDEO_CODEC,
+        audioCodec: DefaultConfig.AUDIO_CODEC,
       });
     });
 
@@ -229,7 +229,6 @@ describe('Segment', () => {
     expect(segment.mapsList).toEqual([]);
     expect(segment.assetsDir).toBe('');
     expect(segment.fontsDir).toBe('');
-    expect(segment.animationsDir).toBe('');
     expect(segment.tempFonts).toEqual([]);
     expect(segment.inputsAsset).toEqual([]);
     expect(segment.inputsMapCount).toBe(0);

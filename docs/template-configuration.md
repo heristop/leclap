@@ -53,19 +53,20 @@ Optional human-facing metadata embedded in the descriptor, used by template brow
 
 Project-wide defaults and the options a builder/editor exposes to end users. `global` is `strict` — unknown keys are rejected.
 
-| Field                   | Type                                 | Description                                                                     |
-| ----------------------- | ------------------------------------ | ------------------------------------------------------------------------------- |
-| `variables`             | `Record<string, string \| string[]>` | Named values referenced anywhere via `{{ varName }}`.                           |
-| `orientation`           | `'landscape' \| 'portrait'`          | Output orientation → resolution preset (default `landscape`).                   |
-| `colorsList`            | `string[]`                           | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.       |
-| `musicEnabled`          | `boolean`                            | Whether background music is enabled (default `true`).                           |
-| `music`                 | `{ name: string, url?: string }`     | Default background track. Omit `url` to use an app-managed track.               |
-| `transition`            | `Transition`                         | Default boundary transition between sections (see [Transitions](#transitions)). |
-| `audio`                 | `GlobalAudio`                        | Global audio mix (see [Audio](#audio)).                                         |
-| `allowedMusic`          | `string[]`                           | Allowlist of music identifiers the user may choose.                             |
-| `allowUploadMusic`      | `boolean`                            | Allow the user to upload a custom music file (default `false`).                 |
-| `allowedBackgrounds`    | `string[]`                           | Allowlist of background identifiers the user may choose.                        |
-| `allowUploadBackground` | `boolean`                            | Allow the user to upload a custom background (default `false`).                 |
+| Field                   | Type                                 | Description                                                                                                    |
+| ----------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `variables`             | `Record<string, string \| string[]>` | Named values referenced anywhere via `{{ varName }}`.                                                          |
+| `orientation`           | `'landscape' \| 'portrait'`          | Output orientation → resolution preset (default `landscape`).                                                  |
+| `colorsList`            | `string[]`                           | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                      |
+| `musicEnabled`          | `boolean`                            | Whether background music is enabled (default `true`).                                                          |
+| `music`                 | `{ name: string, url?: string }`     | Default background track. Omit `url` to use an app-managed track.                                              |
+| `animations`            | `GlobalAnimation[]`                  | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)). |
+| `transition`            | `Transition`                         | Default boundary transition between sections (see [Transitions](#transitions)).                                |
+| `audio`                 | `GlobalAudio`                        | Global audio mix (see [Audio](#audio)).                                                                        |
+| `allowedMusic`          | `string[]`                           | Allowlist of music identifiers the user may choose.                                                            |
+| `allowUploadMusic`      | `boolean`                            | Allow the user to upload a custom music file (default `false`).                                                |
+| `allowedBackgrounds`    | `string[]`                           | Allowlist of background identifiers the user may choose.                                                       |
+| `allowUploadBackground` | `boolean`                            | Allow the user to upload a custom background (default `false`).                                                |
 
 ## Sections
 
@@ -103,21 +104,21 @@ Expansion happens **before** schema validation and compile, so everything downst
 
 ### Base fields (all sections)
 
-| Field         | Type             | Description                                                                                        |
-| ------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
-| `name`        | `string`         | Unique id within the template; used in section references.                                         |
-| `type`        | section literal  | One of the types above (discriminates the union).                                                  |
-| `title`       | `Translation`    | Localised title shown to the user (e.g. `{ "en": "…" }`).                                          |
-| `description` | `Translation`    | Localised instruction text shown to the user.                                                      |
-| `options`     | type-specific    | See [Options](#options).                                                                           |
-| `inputs`      | `Input[]`        | Animation inputs composited over the section (see [Animation inputs](#animation-inputs)).          |
-| `maps`        | `Map[]`          | Custom filtergraph maps (see [Maps](#maps)).                                                       |
-| `filters`     | `Filter[]`       | Raw FFmpeg filter chain on the section output (see [Filters](#filters)).                           |
-| `transition`  | `Transition`     | Boundary transition applied **after** this section; overrides `global.transition`.                 |
-| `look`        | look preset      | Named colour-grade (see [Looks & grade](#looks--grade)).                                           |
-| `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                    |
-| `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                                        |
-| `caption`     | `Caption`        | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)). |
+| Field         | Type             | Description                                                                                                      |
+| ------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `name`        | `string`         | Unique id within the template; used in section references.                                                       |
+| `type`        | section literal  | One of the types above (discriminates the union).                                                                |
+| `title`       | `Translation`    | Localised title shown to the user (e.g. `{ "en": "…" }`).                                                        |
+| `description` | `Translation`    | Localised instruction text shown to the user.                                                                    |
+| `options`     | type-specific    | See [Options](#options).                                                                                         |
+| `inputs`      | `Input[]`        | Animation/image overlays composited over the section (see [Overlay inputs](#overlay-inputs-animations--images)). |
+| `maps`        | `Map[]`          | Custom filtergraph maps (see [Maps](#maps)).                                                                     |
+| `filters`     | `Filter[]`       | Raw FFmpeg filter chain on the section output (see [Filters](#filters)).                                         |
+| `transition`  | `Transition`     | Boundary transition applied **after** this section; overrides `global.transition`.                               |
+| `look`        | look preset      | Named colour-grade (see [Looks & grade](#looks--grade)).                                                         |
+| `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                                  |
+| `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                                                      |
+| `caption`     | `Caption`        | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)).               |
 
 ### Options
 
@@ -277,20 +278,28 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 | `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex). |
 | `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).        |
 
-## Animation inputs
+## Overlay inputs (animations & images)
 
-`inputs[]` composites animated overlays on top of a section. An animation is **one** input — either an `image2` PNG sequence (a ZIP of frames) **or** a single animated file (`.apng` / `.webp` / `.gif` / `.webm`):
+`inputs[]` composites overlays on top of a section. Each input is one of two `type`s — `animation` (a single-file animated input) or `image` (a single still picture). Both share the same `position`/`scale` placement convention and composite in array order (later entries paint on top), so a section can carry any number of them — e.g. a branded backdrop, a logo, and a confetti animation at once.
+
+### `type: "animation"`
+
+An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 with alpha) are the two recommended formats — APNG decodes natively on every platform (incl. on-device) with lossless alpha; WebM is much smaller. `.webp` and `.gif` also work:
 
 ```jsonc
 {
   "name": "confetti",
-  "url": "{{ confettiZip }}",
+  "url": "{{ confettiUrl }}", // e.g. "animations/confetti.apng"
   "type": "animation",
   "options": {
-    "fps": 25, // sequence playback rate (default 25)
+    "fps": 25, // informational; the file's own frame rate governs playback
     "position": "0:0", // overlay "x:y" in output px
     "scale": "640:-1", // pre-composite scale "w:h"
-    "loop": true, // → stream_loop (loops for the section)
+    "opacity": 0.6, // 0..1, default 1 — fades the whole overlay
+    "loop": true, // → -stream_loop -1 (play for the whole section)
+    "loops": 3, // OR a finite play count → -stream_loop {N-1} (overrides loop)
+    "duration": 8, // OR seconds the overlay plays → -t 8 (overrides loops/loop)
+    "start": 3, // delay before it appears, seconds → -itsoffset 3 (default 0)
     "persistent": true, // → eof_action=repeat (holds last frame past EOF)
   },
   "filters": [
@@ -299,9 +308,48 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 }
 ```
 
-`loop` maps to `stream_loop`; `persistent` maps to `eof_action=repeat`. Reference an input by `@name` from a `maps[]` entry.
+**Playback extent** — set exactly one of `loop` (forever), `loops` (a finite play count), or `duration` (seconds); precedence is `duration` > `loops` > `loop`. `start` delays the overlay (`-itsoffset`, default 0). `persistent` maps to `eof_action=repeat` (freeze the last frame once the overlay ends, instead of letting the video show through). `opacity` < 1 fades the leg via `colorchannelmixer=aa`. Reference an input by `@name` from a `maps[]` entry.
 
-> The old `frames` / `frequency` / `overlay` options and `type: "frame"` are **removed** — see [Migrating older templates](#migrating-older-templates).
+### `type: "image"`
+
+A still picture (PNG/JPG/WebP) composited over the section — a backdrop, watermark, or logo. It is held for the section's full duration (`-loop 1`) and placed with the same `position`/`scale` as an animation. The builder names these `image_0`, `image_1`, … by their array order:
+
+```jsonc
+{
+  "name": "image_0",
+  "url": "{{ logoUrl }}", // e.g. "pictures/logo.png", or a library:// / media:// marker (web/expo)
+  "type": "image",
+  "options": {
+    "position": "40:40", // overlay "x:y" in output px
+    "scale": "160:-1", // pre-composite scale "w:h" (-1 keeps aspect)
+  },
+}
+```
+
+In the template builder, each image is picked from the bundled library or uploaded, then **dragged to position and resized** on the preview frame — exactly like an animation overlay.
+
+## Whole-video animations
+
+`inputs[]` overlays are scoped to one section — they restart at every section. To run an overlay **continuously across the whole video** (a border that holds through intro → clip → outro, a drifting light leak, a grain layer), declare it under `global.animations[]`. The engine composites these once over the **final joined video** — after the sections are concatenated, before music is mixed — so the same mechanism that lets music span the whole video lets an animation span it too.
+
+```jsonc
+"global": {
+  "animations": [
+    {
+      "url": "animations/light_leak.apng", // .apng/.webp/.gif/.webm, may use {{ varName }}
+      "duration": 8,        // play for 8s (omit for `loop: true` to span the whole video)
+      "start": 3,           // delay before it appears, seconds (default 0)
+      "opacity": 0.35,      // 0..1, default 1 — fade the overlay
+      "position": "0:0",   // overlay "x:y" in output px (default top-left)
+      "scale": "1280:720", // pre-composite scale "w:h" (-1 keeps aspect)
+      "rotation": 0,        // clockwise degrees (default upright)
+      "persistent": false   // freeze last frame on end vs. let the video show through
+    }
+  ]
+}
+```
+
+Each entry takes the same placement/playback options as a section animation input (`position`/`scale`/`opacity`/`rotation`, the playback extent `loop`/`loops`/`duration`, and `start`/`persistent`), minus `name`/`type`/`maps`. They composite in array order (later entries paint on top of earlier ones, on top of every section). A whole-video overlay sits **above** everything, including a section's own `maps[]` composite — for an overlay that must sit _under_ a section's drawn elements, keep it as a section input. The builder exposes these in its **Style & audio** step as "Whole-video animations".
 
 ## Maps
 
@@ -475,13 +523,14 @@ Run a descriptor through `TemplateValidator` (zod + the cross-field rules above)
 
 ## Migrating older templates
 
-| Old field                                   | Replacement                                                                      |
-| ------------------------------------------- | -------------------------------------------------------------------------------- |
-| `global.audioVolumeLevel`                   | `global.audio.sourceVolume`                                                      |
-| `global.transitionDuration`                 | `global.transition.duration` (with `transition.type`)                            |
-| `options.musicVolumeLevel`                  | `options.musicVolume`                                                            |
-| `inputs[].frames` / `frequency` / `overlay` | removed — use a single `animation` input (ZIP or `.apng`/`.webp`/`.gif`/`.webm`) |
-| `inputs[].type: "frame"`                    | removed — use `type: "animation"`                                                |
+| Old field                                       | Replacement                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `global.audioVolumeLevel`                       | `global.audio.sourceVolume`                                                          |
+| `global.transitionDuration`                     | `global.transition.duration` (with `transition.type`)                                |
+| `options.musicVolumeLevel`                      | `options.musicVolume`                                                                |
+| `inputs[].frames` / `frequency` / `overlay`     | removed — use a single `animation` input (`.apng`/`.webp`/`.gif`/`.webm`)            |
+| `inputs[].type: "frame"`                        | removed — use `type: "animation"`                                                    |
+| ZIP frame-sequence animation (`url: "…/x.zip"`) | removed — convert to a single-file animation (`.apng` recommended); see MIGRATION.md |
 
 Other breaking changes:
 

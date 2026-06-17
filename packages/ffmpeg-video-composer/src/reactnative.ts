@@ -19,6 +19,7 @@ import AbstractLogger from './platform/logging/AbstractLogger';
 import BrowserEventManager from './platform/BrowserEventManager';
 import VideoEditor from './editor/VideoEditor';
 import MusicComposer from './editor/MusicComposer';
+import AnimationComposer from './editor/AnimationComposer';
 import Project from './core/models/Project';
 import Template from './core/models/Template';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
@@ -65,6 +66,7 @@ function registerServices(): void {
 
   container.register('VideoEditor', { useClass: VideoEditor });
   container.register('MusicComposer', { useClass: MusicComposer });
+  container.register('AnimationComposer', { useClass: AnimationComposer });
   container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
   container.register('TemplateDirector', { useClass: TemplateDirector });
 }
@@ -108,7 +110,24 @@ function resolveDirector(ctx: CompilationContext): TemplateDirector {
   } catch {
     const { eventManager, logger, ffmpegAdapter, filesystemAdapter, project, template } = ctx;
     const musicComposer = new MusicComposer(project, template, logger, ffmpegAdapter, filesystemAdapter);
-    const videoEditor = new VideoEditor(project, template, musicComposer, logger, ffmpegAdapter, filesystemAdapter);
+    const variableManager = new VariableManager(template, project);
+    const animationComposer = new AnimationComposer({
+      project,
+      template,
+      logger,
+      ffmpegAdapter,
+      filesystemAdapter,
+      variableManager,
+    });
+    const videoEditor = new VideoEditor(
+      project,
+      template,
+      musicComposer,
+      animationComposer,
+      logger,
+      ffmpegAdapter,
+      filesystemAdapter
+    );
     const concreteBuilder = new TemplateConcreteBuilder(project, logger, ffmpegAdapter, filesystemAdapter);
 
     return new TemplateDirector(eventManager, videoEditor, {

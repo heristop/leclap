@@ -23,7 +23,7 @@
       "inputs": [
         {
           "name": "intertitles_border",
-          "url": "animations/white_border.zip",
+          "url": "animations/white_border.apng",
           "type": "animation",
           "options": {
             "fps": 25,

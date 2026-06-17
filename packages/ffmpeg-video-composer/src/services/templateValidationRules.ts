@@ -90,6 +90,26 @@ export function validateTransitions(template: TemplateDescriptor): ValidationErr
   return [...danglingTransitionErrors(renderingSections), ...transitionLengthErrors(renderingSections, template)];
 }
 
+// global_animation_missing_url: a whole-video overlay (global.animations) needs a resolvable url; an
+// empty one stages nothing and the final overlay pass would fail. opacity range is enforced by the schema.
+export function validateGlobalAnimations(template: TemplateDescriptor): ValidationError[] {
+  const animations = template.global?.animations ?? [];
+
+  return animations
+    .map((animation, index): ValidationError | null => {
+      if (animation.url && animation.url.trim() !== '') {
+        return null;
+      }
+
+      return {
+        path: `global.animations[${index}].url`,
+        message: `Whole-video animation ${index} has no url`,
+        code: 'global_animation_missing_url',
+      };
+    })
+    .filter((error): error is ValidationError => error !== null);
+}
+
 export function validateMotion(template: TemplateDescriptor): ValidationError[] {
   const errors: ValidationError[] = [];
 

@@ -22,3 +22,16 @@ export function assertSafeArgToken(value: string, field: string): string {
 
   return value;
 }
+
+// A section name is interpolated into output/asset file paths (`<buildDir>/<name>_output.mp4`, the
+// concat list, staged segment files). Reject path separators, parent refs, and NUL so a malicious
+// template's section name can't traverse out of the build/assets directory — other characters are
+// fine since names are author-chosen identifiers. The Node `compile` entry doesn't run the Zod
+// schema, so this runtime guard is the real boundary on the CLI/MCP path.
+export function assertSafeSegmentName(name: string): string {
+  if (name.includes('/') || name.includes('\\') || name.includes('..') || name.includes(NUL)) {
+    throw new Error(`Unsafe section name "${name}": must not contain path separators, "..", or a NUL byte`);
+  }
+
+  return name;
+}

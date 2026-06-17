@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import axios, { type AxiosResponse, type ResponseType } from 'axios';
-import extract from 'extract-zip';
 import AbstractFilesystem from './AbstractFilesystem';
 import { assertSafeRemoteUrl } from './urlGuard';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
@@ -117,10 +116,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     const dest = path.join(this.tempDir, path.basename(url));
 
     if (!/^https?:\/\//i.test(url)) {
-      // Local staged media — an absolute path or a path relative to assetsDir (e.g. `videos/x.mp4`).
-      // resolveStagedPath rejects anything that resolves outside the staged dirs (path traversal).
-      const candidate = url.startsWith('/') ? url : path.join(this.assetsDir ?? '', url);
-      const real = await this.resolveStagedPath(candidate);
+      // Local staged media — a real device path or a path that maps under assetsDir (relative, or a
+      // web-rooted `/assets/...` path). resolveStagedPath rejects anything resolving outside the
+      // staged dirs (path traversal).
+      const real = await this.resolveStagedPath(this.localCandidate(url));
       await fs.copyFile(real, dest);
 
       return dest;
@@ -163,13 +162,21 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   override resolveLocalAsset = async (url: string): Promise<string | null> => {
     if (!this.assetsDir && !url.startsWith('/')) return null;
 
-    const candidate = url.startsWith('/') ? url : path.join(this.assetsDir ?? '', this.assetsRelativeFromUrl(url));
-
     try {
-      return await this.resolveStagedPath(candidate);
+      return await this.resolveStagedPath(this.localCandidate(url));
     } catch {
       return null;
     }
+  };
+
+  // The local path a descriptor asset reference maps to. A `/assets/...` reference is a web-rooted
+  // asset path (what the web builder emits) and maps under assetsDir; a `/...` path WITHOUT the
+  // `/assets/` marker is a real absolute device path, used as-is; a relative path is assets-relative.
+  // Mirrors the Expo and Browser adapters.
+  private readonly localCandidate = (url: string): string => {
+    const isDevicePath = url.startsWith('/') && !url.includes('/assets/');
+
+    return isDevicePath ? url : path.join(this.assetsDir ?? '', this.assetsRelativeFromUrl(url));
   };
 
   // Path after the last `/assets/` segment of a URL (…/assets/pictures/logo.png → pictures/logo.png),
@@ -277,13 +284,6 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     }
 
     return fs.appendFile(targetPath, content);
-  };
-
-  unzip = async (zipPath: string, targetPath: string): Promise<string[]> => {
-    await extract(zipPath, { dir: targetPath });
-    const files = await fs.readdir(targetPath);
-
-    return files.map((file) => path.join(targetPath, file));
   };
 
   fetchAndRead = async (url: string): Promise<string> => {

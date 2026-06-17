@@ -1,5 +1,4 @@
 export type LogParams = Record<string, unknown>;
-
 export type ProjectConfig = {
   buildDir?: string;
   assetsDir?: string;
@@ -17,27 +16,13 @@ export type MusicConfig = {
   name: string;
   url?: string;
 };
+type CodecConfig = { videoCodec?: string; audioCodec?: string };
 
-type CodecConfig = {
-  videoCodec?: string;
-  audioCodec?: string;
-};
+type HardwareConfig = { hwaccel?: string | null; preset?: string };
 
-type HardwareConfig = {
-  hwaccel?: string | null;
-  preset?: string;
-};
+type AudioConfig = { sampleRate?: number; channelLayout?: string };
 
-type AudioConfig = {
-  sampleRate?: number;
-  channelLayout?: string;
-};
-
-type VideoConfig = {
-  orientation?: string;
-  scale?: string;
-  setsar?: string;
-};
+type VideoConfig = { orientation?: string; scale?: string; setsar?: string };
 
 export type ProjectBuildInfos = {
   totalSegments: number;
@@ -54,7 +39,6 @@ export type ProjectBuildInfos = {
   transitions: Array<{ type: string; duration: number }>;
 };
 
-// Descriptor
 export interface TemplateDescriptor {
   meta?: TemplateMeta;
   global?: TemplateDescriptorGlobal;
@@ -74,10 +58,29 @@ interface TemplateDescriptorGlobal {
   transition?: SectionTransition;
   audio?: GlobalAudio;
   music?: MusicConfig;
+  animations?: GlobalAnimation[];
   allowedMusic?: string[];
   allowUploadMusic?: boolean;
   allowedBackgrounds?: string[];
   allowUploadBackground?: boolean;
+}
+
+// A whole-video animation overlay (global.animations) composited over the final joined video.
+export interface GlobalAnimation {
+  url: string;
+  position?: string;
+  scale?: string;
+  opacity?: number;
+  /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
+  rotation?: number;
+  loop?: boolean;
+  /** Finite play count; takes precedence over loop. */
+  loops?: number;
+  /** Seconds the overlay plays before it ends; takes precedence over loops/loop. */
+  duration?: number;
+  /** Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning. */
+  start?: number;
+  persistent?: boolean;
 }
 
 interface SectionTransition {
@@ -231,7 +234,7 @@ interface FramingGuideConfig {
 interface Input {
   name: string;
   url?: string;
-  type?: 'animation';
+  type?: 'animation' | 'image';
   options?: InputOptions;
   filters?: Filter[];
 }
@@ -242,6 +245,16 @@ interface InputOptions {
   scale?: string;
   persistent?: boolean;
   loop?: boolean;
+  /** Finite play count; takes precedence over loop. */
+  loops?: number;
+  /** Seconds the overlay plays before it ends; takes precedence over loops/loop. */
+  duration?: number;
+  /** Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning. */
+  start?: number;
+  /** Overlay alpha, 0–1. 1 (or omitted) keeps the animation fully opaque. */
+  opacity?: number;
+  /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
+  rotation?: number;
 }
 
 export interface Map {
@@ -311,6 +324,10 @@ type MapAnimationOptions = {
   scale: string;
   persistent: boolean;
   loop: boolean;
+  loops?: number;
+  duration?: number;
+  start?: number;
+  opacity?: number;
 };
 
 export type MapAnimationInput = {
@@ -319,7 +336,8 @@ export type MapAnimationInput = {
   type: string;
   extension: string;
   options: MapAnimationOptions;
-  filters: Filter[];
+  // Optional in the schema (InputSchema.filters) — builder-authored inputs omit it.
+  filters?: Filter[];
 };
 
 export type FFMpegInfos = {

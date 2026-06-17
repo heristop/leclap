@@ -574,6 +574,31 @@ describe('TemplateValidator – validateMotion', () => {
   });
 });
 
+describe('TemplateValidator – validateGlobalAnimations', () => {
+  let validator: TemplateValidator;
+
+  beforeEach(() => {
+    validator = new TemplateValidator();
+  });
+
+  it('accepts a whole-video animation with a url', () => {
+    const result = validator.validateTemplate({
+      global: { animations: [{ url: '/assets/animations/glow_border.apng', loop: true, opacity: 0.3 }] },
+      sections: [{ name: 'a', type: 'video' }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('flags a whole-video animation with an empty url', () => {
+    const result = validator.validateTemplate({
+      global: { animations: [{ url: '   ' }] },
+      sections: [{ name: 'a', type: 'video' }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'global_animation_missing_url')).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Schema-level coverage: exercise each schema's accept/reject paths directly.
 // ---------------------------------------------------------------------------

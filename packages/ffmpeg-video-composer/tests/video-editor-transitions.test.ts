@@ -53,6 +53,7 @@ function makeEditor(
     getInfos: vi.fn(async () => infos(5)),
   };
   const musicComposer = { loopMusic: vi.fn(async () => undefined), appendMusic: vi.fn(async () => undefined) };
+  const animationComposer = { appendAnimations: vi.fn(async () => undefined) };
   const logger = makeLogger();
   const emitter = { on: vi.fn(), emit: vi.fn(() => true) };
 
@@ -60,6 +61,7 @@ function makeEditor(
     project as never,
     template as never,
     musicComposer as never,
+    animationComposer as never,
     logger as never,
     ffmpeg as never,
     filesystem as never

@@ -7,8 +7,7 @@ import AbstractFilesystem from './AbstractFilesystem';
  * returns plain paths (what ffmpeg commands need) and converts to URIs only at the FS boundary.
  *
  * Lives in the core (behind AbstractFilesystem) but only loaded by the React-Native entry, so the
- * Node/web builds never resolve expo-file-system. `unzip` (animation ZIP frames) is unsupported
- * until a template needs it.
+ * Node/web builds never resolve expo-file-system.
  */
 const toUri = (p: string): string => (p.startsWith('file://') ? p : `file://${p}`);
 const toPath = (p: string): string => p.replace(/^file:\/\//, '');
@@ -52,7 +51,11 @@ class FilesystemExpoAdapter extends AbstractFilesystem {
   override resolveLocalAsset = async (url: string): Promise<string | null> => {
     if (!this.assetsDir && !url.startsWith('/')) return null;
 
-    const path = url.startsWith('/') ? url : join(this.assetsDir ?? '', assetsRelativeFromUrl(url));
+    // A real absolute device path (no `/assets/` marker) is used as-is; a web `/assets/...` path or a
+    // canonical asset URL both map under assetsDir (e.g. `/assets/animations/x.apng` →
+    // `${assetsDir}/animations/x.apng`).
+    const isDevicePath = url.startsWith('/') && !url.includes('/assets/');
+    const path = isDevicePath ? url : join(this.assetsDir ?? '', assetsRelativeFromUrl(url));
 
     return (await FileSystem.getInfoAsync(toUri(path))).exists ? path : null;
   };
@@ -127,10 +130,6 @@ class FilesystemExpoAdapter extends AbstractFilesystem {
 
   override move = async (sourcePath: string, targetPath: string): Promise<void> =>
     FileSystem.moveAsync({ from: toUri(sourcePath), to: toUri(targetPath) });
-
-  override unzip = async (): Promise<string[]> => {
-    throw new Error('unzip (animation frames) is not supported by the on-device engine yet');
-  };
 
   override fetchAndRead = async (url: string): Promise<string> => {
     const response = await fetch(url);

@@ -45,17 +45,6 @@ function buildProjectConfig() {
   return {
     buildDir,
     assetsDir,
-    fields: {
-      form_1_name: 'Emily Parker',
-      form_1_firstname: 'Emily',
-      form_1_lastname: 'Parker',
-      form_1_job: 'Frontend Developer',
-      form_2_keyword1: 'php',
-      form_2_keyword2: 'javascript',
-      form_2_keyword3: 'typescript',
-      form_2_keyword4: 'caffeine',
-      form_3_keyword1: 'remote',
-    },
   };
 }
 
@@ -89,6 +78,7 @@ function handleCompilationError(error: unknown) {
   console.error(`${pc.red('Error:')} ${error.message}`);
 
   if (error.stack) console.error(error.stack);
+
   process.exit(1);
 }
 

@@ -15,23 +15,28 @@ import { FilterSchema, MapSchema } from './filter.schemas';
 
 export const InputOptionsSchema = z
   .object({
-    fps: z
-      .number()
-      .positive()
-      .optional()
-      .describe('Frames per second at which the animation sequence plays (default 25).'),
+    fps: z.number().positive().optional().describe('Frames per second the animation plays at (default 25).'),
     position: z.string().optional().describe('Overlay position as "x:y" in output pixels (e.g. "0:0" top-left).'),
     scale: z.string().optional().describe('Scale expression applied to the input before compositing, as "w:h".'),
     persistent: z
       .boolean()
       .optional()
-      .describe(
-        'When true, the input is kept alive across section boundaries instead of being re-opened (default false).'
-      ),
-    loop: z
-      .boolean()
+      .describe('When true, freeze the last frame once the overlay ends (default false).'),
+    loop: z.boolean().optional().describe('When true, loop continuously for the section/video (default false).'),
+    loops: z
+      .number()
+      .int()
+      .positive()
       .optional()
-      .describe('When true, the input loops continuously for the duration of the section (default false).'),
+      .describe('Finite number of times the overlay plays. Takes precedence over loop; omit for loop/once.'),
+    duration: z
+      .number()
+      .positive()
+      .optional()
+      .describe('Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.'),
+    start: z.number().positive().optional().describe('Seconds to delay the overlay before it appears (default 0).'),
+    opacity: z.number().min(0).max(1).optional().describe('Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.'),
+    rotation: z.number().optional().describe('Clockwise rotation in degrees applied before compositing.'),
   })
   .strict()
   .describe('Playback and compositing options for an animation input.');
@@ -43,11 +48,17 @@ export const InputSchema = z
       .string()
       .optional()
       .describe('URL or file path of the input asset; may use {{ varName }} template variables.'),
-    type: z.enum(['animation']).optional().describe('Input type; "animation" indicates a frame-sequence zip asset.'),
+    type: z
+      .enum(['animation', 'image'])
+      .optional()
+      .describe(
+        'Input type: "animation" is a single-file animated overlay (.apng/.webp/.gif/.webm); "image" is a ' +
+          'still image held for the section duration. Both composite over the section as a positioned overlay.'
+      ),
     options: InputOptionsSchema.optional().describe('Playback and compositing options for this input.'),
     filters: z.array(FilterSchema).optional().describe('Filter chain applied to this input stream before compositing.'),
   })
-  .describe('An external asset (animation) composited into the section video.');
+  .describe('An external asset (animation or still image) composited into the section video.');
 
 // ── section options ────────────────────────────────────────────────────────────
 
@@ -173,7 +184,10 @@ export type Caption = z.infer<typeof CaptionSchema>;
 export const BaseSectionSchema = z
   .object({
     name: z.string().describe('Unique identifier for the section within the template, used in section references.'),
-    inputs: z.array(InputSchema).optional().describe('Animation inputs composited on top of the section video.'),
+    inputs: z
+      .array(InputSchema)
+      .optional()
+      .describe('Animation and image overlays composited on top of the section video, in array order.'),
     maps: z
       .array(MapSchema)
       .optional()

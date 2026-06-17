@@ -463,13 +463,6 @@ describe('BrowserFilesystemAdapter', () => {
     });
   });
 
-  describe('unzip', () => {
-    it('is unsupported in the browser', async () => {
-      const adapter = new BrowserFilesystemAdapter();
-      await expect(adapter.unzip('/a.zip', '/out')).rejects.toThrow(/ZIP extraction not supported in browser/);
-    });
-  });
-
   describe('isSupported', () => {
     it('returns true when indexedDB is present', () => {
       expect(BrowserFilesystemAdapter.isSupported()).toBe(true);

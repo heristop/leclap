@@ -3,11 +3,11 @@
     "variables": {
       "watermark": "pictures/logo.png",
       "videoOutro": "videos/outro.mp4",
-      "animatedIcon": "animations/animation_icons.zip",
+      "animatedIcon": "animations/animation_icons.apng",
       "colorsList": ["rgb(41 37 36)", "rgb(250 250 249)"],
       "form_1_firstname": "Emily",
       "form_1_lastname": "Parker",
-      "form_1_job": "Frontend Developer",
+      "form_1_job": "Fullstack Developer",
       "form_2_keyword1": "Javascript",
       "form_2_keyword2": "Typescript",
       "form_2_keyword3": "Rust",
@@ -26,7 +26,15 @@
     "audio": {
       "sourceVolume": 1,
       "normalize": "loudnorm"
-    }
+    },
+    "animations": [
+      {
+        "url": "animations/light_leak.apng",
+        "start": 14,
+        "duration": 3,
+        "opacity": 0.35
+      }
+    ]
   },
   "sections": [
     {
@@ -41,7 +49,7 @@
       "inputs": [
         {
           "name": "intertitles_border",
-          "url": "animations/white_border.zip",
+          "url": "animations/rounded_border.apng",
           "type": "animation",
           "options": {
             "fps": 25,

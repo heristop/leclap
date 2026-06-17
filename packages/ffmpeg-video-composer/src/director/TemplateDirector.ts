@@ -9,6 +9,7 @@ import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, LogParams, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
+import { assertSafeArgToken, assertSafeSegmentName } from '../core/argGuard';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 import type Project from '../core/models/Project';
@@ -45,7 +46,6 @@ class TemplateDirector {
 
   private builder: TemplateConcreteBuilder | undefined;
   private stopBuild = false;
-
   private readonly concreteBuilder: TemplateConcreteBuilder;
   private readonly musicComposer: MusicComposer;
   private readonly project: Project;
@@ -66,26 +66,23 @@ class TemplateDirector {
     this.logger = deps.logger;
     this.ffmpegAdapter = deps.ffmpegAdapter;
     this.filesystemAdapter = deps.filesystemAdapter;
-
     this.emitter = this.eventManager.connect();
     this.emitter.on('task-cancelled', () => (this.stopBuild = true));
     this.videoEditor.emitter = this.emitter;
-
     this.logger.info('Director class created');
   }
 
-  config = (projectConfig: ProjectConfig, templateDescriptor: TemplateDescriptor): TemplateDirector => {
+  config = (projectConfig: ProjectConfig, templateDescriptor: TemplateDescriptor): this => {
     this.project.config = projectConfig;
-    // Deep-clone the descriptor: section.filters are mutated in place during builds (sugar/scale
-    // prepend preset filters), so compiling the same descriptor object twice would double-apply them
-    // (Ken Burns twice, contrast squared). JSON round-trip matches the repo's existing deep-clone of
-    // template descriptors (Hermes/WASM-safe — descriptors are plain JSON).
-    const clonedDescriptor = JSON.parse(JSON.stringify(templateDescriptor)) as TemplateDescriptor;
+    // Deep-clone the descriptor: section.filters are mutated in place during builds (sugar/scale prepend
+    // preset filters), so compiling the same descriptor twice would double-apply them (Ken Burns twice,
+    // contrast squared). JSON round-trip matches the repo's deep-clone (Hermes/WASM-safe plain JSON).
+    const clonedDescriptor = structuredClone(templateDescriptor);
     // Expand `{ type:'partial', ref }` sections into real sections here, the single point where the
     // descriptor used for compilation is set. Callers pass the raw descriptor (Node `compile` never
-    // validates; the browser path validates into the template but this assignment would overwrite
-    // it), so without this every partial — logo bumper, flash-card — is dropped downstream by
-    // the rendering-type filter. Idempotent: re-expanding an already-expanded descriptor is a no-op.
+    // validates; the browser path validates into the template but this assignment would overwrite it),
+    // so without this every partial — logo bumper, flash-card — is dropped downstream by the
+    // rendering-type filter. Idempotent: re-expanding an already-expanded descriptor is a no-op.
     const expansion = expandPartialsSafe(clonedDescriptor);
 
     if (!expansion.ok) {
@@ -116,17 +113,15 @@ class TemplateDirector {
   };
 
   // Resolve the output orientation ONCE, here — the single point where the descriptor and the
-  // project config meet. A portrait template swaps the configured W:H so the recorded clip, the
-  // cards, and the final normalize all render to the same vertical scale. This deliberately replaces
-  // the old per-SegmentBuilder swap, which mutated the shared project config on every segment
-  // construction and so alternated portrait/landscape across segments — stretching the recorded clip.
+  // project config meet. A portrait template swaps the configured W:H so the recorded clip, the cards,
+  // and the final normalize all render to the same vertical scale. Replaces the old per-SegmentBuilder
+  // swap, which mutated the shared config per segment and alternated portrait/landscape across them.
   private readonly applyOrientationToScale = (): void => {
     if (this.template.descriptor.global?.orientation !== 'portrait') return;
 
     const videoConfig = this.project.config.videoConfig;
     const parts = videoConfig?.scale?.split(':');
-    const width = parts?.[0];
-    const height = parts?.[1];
+    const [width, height] = [parts?.[0], parts?.[1]];
 
     if (width === undefined || height === undefined || !videoConfig) return;
 
@@ -261,10 +256,9 @@ class TemplateDirector {
 
       const segmentLength = durMap[segment.name] ?? 0;
 
-      // Forward this segment's fine-grained ffmpeg progress (0..1), interpolated
-      // within its share of the total duration. This matches updateProgress's
-      // weighting exactly (frac=1 lands on the same value updateProgress emits at
-      // the boundary), so the bar climbs continuously with no jumps.
+      // Forward this segment's fine-grained ffmpeg progress (0..1), interpolated within its share of
+      // the total duration. Matches updateProgress's weighting exactly (frac=1 lands on the same value
+      // updateProgress emits at the boundary), so the bar climbs continuously with no jumps.
       this.ffmpegAdapter.progressListener = (fraction: number): void => {
         if (totalLength <= 0) {
           return;
@@ -379,16 +373,17 @@ class TemplateDirector {
     if (this.project.config.userVideoPaths) {
       this.logger.info(
         `[fetchSectionInfos] Available userVideoPaths:`,
-        Object.keys(this.project.config.userVideoPaths).reduce<Record<string, boolean>>((obj, key) => {
-          obj[key] = true;
-
-          return obj;
-        }, {})
+        Object.fromEntries(Object.keys(this.project.config.userVideoPaths).map((key) => [key, true]))
       );
     }
 
     const resolvedSource = await this.resolveUserVideoSource(section);
-    const source = resolvedSource ?? `${this.filesystemAdapter.getAssetsDir('videos')}/${section.name}.mp4`;
+    // Guard the section name in the assets-dir fallback (prevents `../` traversal into a probed file)
+    // and reject whitespace/NUL in the probed source token, mirroring the `-i` source guard.
+    const source = assertSafeArgToken(
+      resolvedSource ?? `${this.filesystemAdapter.getAssetsDir('videos')}/${assertSafeSegmentName(section.name)}.mp4`,
+      'source'
+    );
 
     if (!resolvedSource) {
       this.logger.info(`[fetchSectionInfos] Using default assets path for section ${section.name}: ${source}`);
@@ -414,7 +409,7 @@ class TemplateDirector {
   };
 
   append = async (section: Section): Promise<void> => {
-    const file = `${this.filesystemAdapter.getBuildDir()}/${section.name}_output.mp4`;
+    const file = `${this.filesystemAdapter.getBuildDir()}/${assertSafeSegmentName(section.name)}_output.mp4`;
     this.project.buildInfos.videoInputs.push(file);
 
     await this.filesystemAdapter.append(this.project.buildInfos.fileConcatPath, `file ${file}\n`);

@@ -2,6 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import type Segment from '../../core/models/Segment';
 import type { Section, Map, MapAnimationInput } from '@/core/types';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
+import { buildAnimationLegFilters } from '../inputSources';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
 
@@ -59,8 +60,8 @@ class MapManager {
   /**
    * Composites one animation input over the main video as a SINGLE overlay map.
    *
-   * The animation is one `-i` input (an image2 frame sequence or a single
-   * `.webm`/`.gif`/`.apng`/`.webp` file) sitting at stream index `inputIndex`. We overlay
+   * The animation is one `-i` input (a single `.apng`/`.webp`/`.gif`/`.webm` file) sitting at
+   * stream index `inputIndex`. We overlay
    * it onto the main video (`getVideoInputIncrement():v`) and emit a pad named after the input
    * so authored maps can reference it as `@<name>` (resolved by `mapInputsVariables`).
    *
@@ -116,22 +117,25 @@ class MapManager {
       ? this.buildAnimationBackground(input.name, videoStream, videoScale)
       : (this.segment.mapsList.at(-1) ?? videoStream);
 
-    // Scale the animation leg to its declared size before the overlay, so `scale` sizes the
-    // animation itself rather than the already-composited frame (a no-op when applied after).
+    // Prepare the animation leg before the overlay: scale it to its declared size and fade it when
+    // opacity < 1 (shared with the whole-video AnimationComposer so both composite identically).
+    const legFilters = buildAnimationLegFilters(input.options);
+
     let animationLeg = `${inputIndex}:v`;
 
-    if (input.options.scale) {
+    if (legFilters.length > 0) {
       const animationPad = `${input.name}_src`;
-      this.segment.filtersMapList.unshift(`[${inputIndex}:v]scale=${input.options.scale},setsar=1[${animationPad}]`);
+      this.segment.filtersMapList.unshift(`[${inputIndex}:v]${legFilters.join(',')}[${animationPad}]`);
       animationLeg = animationPad;
     }
 
     this.segment.inputsMapCount++;
 
     // The animation overlays on top of the already-filtered background; no section filters here.
+    // `input.filters` is optional in the schema (builder-authored inputs omit it), so default to none.
     this.addMap({
       inputs: [baseStream, animationLeg],
-      filters: [{ type: 'overlay', value: `${position}:eof_action=${eofAction}` }, ...input.filters],
+      filters: [{ type: 'overlay', value: `${position}:eof_action=${eofAction}` }, ...(input.filters ?? [])],
       outputs: [input.name],
       options: { useSectionFilters: false },
     });

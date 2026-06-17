@@ -71,7 +71,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         // Exclude Node.js-only modules that can't be polyfilled
-        'extract-zip',
         'boxen',
         'figlet',
         'gradient-string',

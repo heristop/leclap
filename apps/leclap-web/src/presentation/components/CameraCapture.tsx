@@ -87,7 +87,7 @@ const CameraErrorView = ({ error, onRetry }: ErrorViewProps) => {
       <h2 className="text-xl font-bold font-display text-foreground mb-2">{t('camera.unavailable')}</h2>
       <p className="text-foreground/80 mb-6 text-balance">{error}</p>
       <Button onClick={onRetry} size="lg">
-        <RotateCcw /> {t('tryAgain', { ns: 'common' })}
+        <RotateCcw /> {t('actions.tryAgain', { ns: 'common' })}
       </Button>
     </div>
   );

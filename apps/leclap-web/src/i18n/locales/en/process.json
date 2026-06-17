@@ -48,11 +48,10 @@
       "timeRemaining": "~{{time}} remaining"
     },
     "metrics": {
-      "speed": "Speed",
-      "stage": "Stage",
-      "progress": "Progress",
-      "active": "Active",
-      "idle": "Idle"
+      "private": "Private",
+      "onDevice": "On-device",
+      "elapsed": "Elapsed",
+      "progress": "Progress"
     },
     "bar": {
       "currentStepFallback": "Processing...",

@@ -17,7 +17,7 @@
     "title": "Present yourself",
     "subtitle": "Tell us your name and record a short clip — that's all we need.",
     "nameLabel": "Your name",
-    "namePlaceholder": "e.g. Alex",
+    "namePlaceholder": "e.g. {{name}}",
     "recorded": "Intro recorded",
     "reRecord": "Re-record",
     "record": "Record",
@@ -29,7 +29,9 @@
   },
   "compiling": {
     "title": "Creating your video…",
-    "subtitle": "This runs entirely in your browser — hang tight."
+    "subtitle": "This runs entirely in your browser — hang tight.",
+    "stop": "Stop",
+    "stopAria": "Stop and close"
   },
   "done": {
     "title": "Your first video is ready!",

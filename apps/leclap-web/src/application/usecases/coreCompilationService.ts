@@ -29,10 +29,12 @@ export interface CompilationConfig {
   videoEdits?: Record<string, VideoEdit | undefined>;
   // Music and background selections from the Builder Media step.
   mediaChoices?: MediaChoices;
-  // Optional render-config override. The builder's "Preview render" passes a reduced scale
-  // (480p-equivalent) so authors see a fast draft; production compiles leave it undefined and
-  // fall back to the engine defaults.
+  // Optional render-config override (the builder's "Preview render" path). Left undefined for
+  // production compiles, which fall back to the engine defaults.
   videoConfig?: VideoConfigOverride;
+  // Optional x264 preset (e.g. 'ultrafast'). The preview passes this so the transition/color encode
+  // — which otherwise defaults to the slow 'medium' — keeps the draft fast at native resolution.
+  preset?: string;
 }
 
 export interface CompilationProgress {
@@ -58,12 +60,12 @@ class CoreCompilationService {
     config: CompilationConfig,
     onProgress: (progress: CompilationProgress) => void
   ): Promise<CompilationResult> {
-    const { template, formData, files, videoEdits, mediaChoices, videoConfig } = config;
+    const { template, formData, files, videoEdits, mediaChoices, videoConfig, preset } = config;
 
     try {
       onProgress({
         stage: 'Initializing',
-        percentage: 5,
+        percentage: 3,
         currentStep: 'Initializing',
         totalSteps: 7,
         currentStepIndex: 1,
@@ -78,7 +80,7 @@ class CoreCompilationService {
 
       const userVideoPaths = await this.storeUploadedFiles(editedFiles, clipSectionNames, onProgress);
 
-      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, videoConfig);
+      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, videoConfig, preset);
 
       // Pre-load bundled TTF fonts so drawtext works in WASM: the WASM
       // ffmpeg-core's freetype cannot decode the woff2 that Google Fonts serves
@@ -187,7 +189,7 @@ class CoreCompilationService {
     return applyVideoEdits(files, videoEdits, sectionNames, ({ index, total }) => {
       onProgress({
         stage: 'Editing',
-        percentage: 8,
+        percentage: 5,
         currentStep: `Applying trim/crop to clip ${index + 1} of ${total}`,
         totalSteps: 7,
         currentStepIndex: 1,
@@ -211,7 +213,7 @@ class CoreCompilationService {
   ): Promise<Record<string, string>> {
     onProgress({
       stage: 'Preparing',
-      percentage: 15,
+      percentage: 7,
       currentStep: 'Loading video files into browser storage',
       totalSteps: 7,
       currentStepIndex: 2,
@@ -233,7 +235,7 @@ class CoreCompilationService {
       userVideoPaths[entry.key] = entry.storagePath;
       onProgress({
         stage: 'Preparing',
-        percentage: 15 + ((i + 1) * 20) / files.length,
+        percentage: 7 + ((i + 1) * 5) / files.length,
         currentStep: `Loaded ${entry.file.name} (${this.formatFileSize(entry.file.size)})`,
         totalSteps: 7,
         currentStepIndex: 2,
@@ -247,11 +249,12 @@ class CoreCompilationService {
     userVideoPaths: Record<string, string>,
     formData: Record<string, string>,
     onProgress: (progress: CompilationProgress) => void,
-    videoConfig?: VideoConfigOverride
+    videoConfig?: VideoConfigOverride,
+    preset?: string
   ): Promise<ProjectConfig> {
     onProgress({
       stage: 'Configuring',
-      percentage: 40,
+      percentage: 11,
       currentStep: 'Setting up project configuration',
       totalSteps: 7,
       currentStepIndex: 3,
@@ -260,9 +263,15 @@ class CoreCompilationService {
     const buildDir = '/tmp/build';
     await this.filesystemAdapter.ensureDir(buildDir);
 
-    // Project merges this over the engine defaults, so a partial { scale } override just lowers the
-    // render resolution while orientation/setsar keep their defaults.
-    return { buildDir, userVideoPaths, fields: formData, ...(videoConfig ? { videoConfig } : {}) };
+    // Project merges this over the engine defaults. A `preset` (the preview passes 'ultrafast') routes
+    // into hardwareConfig so the transition/color encode skips the slow default 'medium'.
+    return {
+      buildDir,
+      userVideoPaths,
+      fields: formData,
+      ...(videoConfig ? { videoConfig } : {}),
+      ...(preset ? { hardwareConfig: { preset } } : {}),
+    };
   }
 
   // Apply the user's media choices, then materialize all referenced media into the WASM FS and
@@ -287,7 +296,7 @@ class CoreCompilationService {
   ): TemplateDescriptor {
     onProgress({
       stage: 'Processing',
-      percentage: 50,
+      percentage: 14,
       currentStep: 'Parsing template and applying effects',
       totalSteps: 7,
       currentStepIndex: 4,
@@ -312,20 +321,20 @@ class CoreCompilationService {
   ): Promise<string> {
     onProgress({
       stage: 'Compiling',
-      percentage: 60,
+      percentage: 14,
       currentStep: 'Running video processing pipeline',
       totalSteps: 7,
       currentStepIndex: 5,
     });
 
-    // Map the engine's real-time per-segment progress (0..1) into the 60–85%
-    // band of the UI, so the bar animates during the render rather than sitting
-    // frozen at 60%.
+    // The render is the bulk of the wall-clock time, so it owns most of the bar: map the engine's
+    // real-time whole-template progress (0..1) into the 14–95% band, keeping the bar (and the derived
+    // step dots) moving for the whole render rather than crawling a thin slice of it.
     const outputPath = await compile(projectConfig, templateDescriptor, (fraction) => {
       const clamped = Math.min(Math.max(fraction, 0), 1);
       onProgress({
         stage: 'Compiling',
-        percentage: 60 + Math.round(clamped * 25),
+        percentage: 14 + Math.round(clamped * 81),
         currentStep: renderQuip(clamped),
         totalSteps: 7,
         currentStepIndex: 5,
@@ -338,7 +347,7 @@ class CoreCompilationService {
 
     onProgress({
       stage: 'Compiling',
-      percentage: 85,
+      percentage: 95,
       currentStep: 'Core compilation completed',
       totalSteps: 7,
       currentStepIndex: 5,
@@ -353,7 +362,7 @@ class CoreCompilationService {
   ): Promise<CompilationResult> {
     onProgress({
       stage: 'Finalizing',
-      percentage: 90,
+      percentage: 97,
       currentStep: 'Retrieving processed video',
       totalSteps: 7,
       currentStepIndex: 6,

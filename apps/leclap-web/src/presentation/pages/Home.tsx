@@ -7,16 +7,19 @@ import { HomeShowcase } from '@/presentation/components/HomeShowcase';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
 import { useInView } from '@/hooks/useInView';
+import { useHeroVideoSrc } from '@/hooks/useHeroVideoSrc';
 import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 
 export const Home = () => {
   const { t } = useTranslation('home');
-  // POC: a dimmed background clip behind the hero. Paused for reduced-motion viewers.
+  // Dimmed background clip behind the hero. Paused for reduced-motion viewers.
   const [reduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   // Stop decoding the blurred hero clip once it scrolls off-screen — a full-frame blurred video
   // composited every frame is the page's heaviest scroll cost, and it's invisible past the fold.
   const [heroRef, heroInView] = useInView({ once: false, threshold: 0 });
   const heroVideoRef = useRef<HTMLVideoElement>(null);
+  // The visitor's onboarding-compiled video when they've made one, else the bundled default clip.
+  const heroSrc = useHeroVideoSrc();
 
   useEffect(() => {
     const el = heroVideoRef.current;
@@ -30,7 +33,7 @@ export const Home = () => {
     }
 
     el.play().catch(() => {});
-  }, [heroInView, reduced]);
+  }, [heroInView, reduced, heroSrc]);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
@@ -42,7 +45,7 @@ export const Home = () => {
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
         <video
           ref={heroVideoRef}
-          src="/videos/clapperboard.mp4"
+          src={heroSrc}
           className="pointer-events-none absolute inset-0 z-0 h-full w-full scale-105 object-cover opacity-40 blur-[3px]"
           autoPlay={!reduced}
           loop

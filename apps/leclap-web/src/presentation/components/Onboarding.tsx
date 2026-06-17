@@ -1,20 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { WelcomeStep, CreateStep, CompilingStep, DoneStep, ErrorStep } from '@/presentation/components/OnboardingSteps';
-import { templateService, type Template } from '@/services/templateService';
-import { recordingConfigFromDescriptor } from '@/lib/recordingConfig';
-import {
-  coreCompilationService,
-  type CompilationProgress,
-  type CompilationResult,
-} from '@/application/usecases/coreCompilationService';
-import { logger } from '@/lib/logger';
+import { useOnboardingCompile } from '@/hooks/useOnboardingCompile';
+import { useSampleTemplate } from '@/hooks/useSampleTemplate';
+import { setHeroVideo } from '@/services/heroVideoStore';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-
-type Step = 'welcome' | 'create' | 'compiling' | 'done' | 'error';
 
 // The onboarding makes a first video from a built-in template so newcomers see the whole flow
 // (record → compile → download) in one guided pass. We match the template to how the app is actually
@@ -31,13 +25,11 @@ const PORTRAIT_TEMPLATE_ID = 'portrait-spotlight';
 const pickSampleTemplateId = (): string =>
   window.innerHeight > window.innerWidth ? PORTRAIT_TEMPLATE_ID : LANDSCAPE_TEMPLATE_ID;
 
-const initialProgress: CompilationProgress = {
-  stage: 'Starting',
-  percentage: 0,
-  currentStep: 'Preparing your intro',
-  totalSteps: 7,
-  currentStepIndex: 0,
-};
+// A friendly sample first name shown as the field's *placeholder* (not a prefilled value, so the user
+// never has to clear it). If they skip typing, this same name is used so the title card is never empty.
+const SAMPLE_FIRST_NAMES = ['Alex', 'Sam', 'Mia', 'Noah', 'Léa', 'Liam', 'Zoé', 'Ava', 'Theo', 'Nina'];
+
+const randomFirstName = (): string => SAMPLE_FIRST_NAMES[Math.floor(Math.random() * SAMPLE_FIRST_NAMES.length)];
 
 interface OnboardingProps {
   onDone: () => void;
@@ -45,32 +37,37 @@ interface OnboardingProps {
 
 export const Onboarding = ({ onDone }: OnboardingProps) => {
   const { t } = useTranslation('onboarding');
-  const [step, setStep] = useState<Step>('welcome');
+  const navigate = useNavigate();
   const [name, setName] = useState('');
+  // Picked once when the modal opens: shown as the field's placeholder and used as the title fallback.
+  const [placeholderName] = useState(randomFirstName);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [showCamera, setShowCamera] = useState(false);
   // Chosen once when the modal opens so a mid-flow rotation can't swap the template underfoot.
   const [sampleTemplateId] = useState(pickSampleTemplateId);
-  const [template, setTemplate] = useState<Template | null>(null);
-  const [progress, setProgress] = useState<CompilationProgress>(initialProgress);
-  const [result, setResult] = useState<CompilationResult | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
+  const { template, recordingConfig } = useSampleTemplate(sampleTemplateId);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // The compile flow (step state + start/stop around the in-browser compile) lives in its own hook;
+  // `stop` cancels an in-flight compile and closes the dialog.
+  const { step, setStep, progress, result, errorMessage, start, stop } = useOnboardingCompile({
+    sampleTemplateId,
+    template,
+    onClose: onDone,
+  });
 
   useLockBodyScroll();
 
-  // Load the sample template up front so the camera can read its countdown/duration config.
+  // Personalize the Home hero: once the in-browser compile succeeds, show that video as the hero clip
+  // for this session (fires an event so a Home behind the modal swaps immediately; not persisted).
   useEffect(() => {
-    templateService
-      .getTemplate(sampleTemplateId)
-      .then(setTemplate)
-      .catch((error: unknown) => {
-        logger.error('Onboarding template preload failed:', error);
-      });
-  }, [sampleTemplateId]);
+    if (result) {
+      setHeroVideo(result.blob);
+    }
+  }, [result]);
 
-  const canCreate = name.trim().length > 0 && videoFile !== null;
-  const recordingConfig = recordingConfigFromDescriptor(template?.descriptor);
+  // Typed name, or the placeholder sample if left blank — so a recorded clip is always enough to create.
+  const effectiveName = name.trim() || placeholderName;
+  const canCreate = videoFile !== null;
   // The welcome/create steps are dismissible (skippable); compiling/done/error are not, so a stray
   // backdrop click can't tear down an in-flight compile.
   const dismissible = step === 'welcome' || step === 'create';
@@ -80,42 +77,67 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
     if (dismissible && event.target === event.currentTarget) onDone();
   };
 
-  const handleCreate = async () => {
-    if (!videoFile) return;
-
-    setStep('compiling');
-    setProgress(initialProgress);
-
-    try {
-      const sampleTemplate = template ?? (await templateService.getTemplate(sampleTemplateId));
-
-      if (!sampleTemplate) throw new Error(`Sample template "${sampleTemplateId}" could not be loaded.`);
-
-      // Put the entered name in the first text field; leave the rest blank.
-      const fields = templateService.extractFormFields(sampleTemplate.descriptor);
-      const formData: Record<string, string> = {};
-
-      for (const [index, field] of fields.entries()) {
-        formData[field.name] = index === 0 ? name.trim() : '';
-      }
-
-      const compiled = await coreCompilationService.compileVideo(
-        { template: sampleTemplate, formData, files: [videoFile] },
-        setProgress
-      );
-      setResult(compiled);
-      setStep('done');
-    } catch (error) {
-      logger.error('Onboarding compilation failed:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Something went wrong while creating your video.');
-      setStep('error');
-    }
+  // "Start creating" from the done step: close the dialog and drop the user into the studio.
+  const startCreating = () => {
+    onDone();
+    Promise.resolve(navigate('/studio')).catch(() => {});
   };
 
   const onFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
     if (file) setVideoFile(file);
+  };
+
+  const renderStep = () => {
+    if (step === 'welcome') {
+      return (
+        <WelcomeStep
+          onStart={() => {
+            setStep('create');
+          }}
+          onDone={onDone}
+        />
+      );
+    }
+
+    if (step === 'create') {
+      return (
+        <CreateStep
+          name={name}
+          onNameChange={setName}
+          sampleName={placeholderName}
+          videoFile={videoFile}
+          canCreate={canCreate}
+          fileInputRef={fileInputRef}
+          onOpenCamera={() => {
+            setShowCamera(true);
+          }}
+          onFilePicked={onFilePicked}
+          onCreate={() => {
+            Promise.resolve(start(effectiveName, videoFile)).catch(() => {});
+          }}
+        />
+      );
+    }
+
+    if (step === 'compiling') return <CompilingStep progress={progress} onStop={stop} />;
+
+    if (step === 'done' && result) return <DoneStep result={result} onStartCreating={startCreating} />;
+
+    if (step === 'error') {
+      return (
+        <ErrorStep
+          errorMessage={errorMessage}
+          onRetry={() => {
+            setStep('create');
+          }}
+          onDone={onDone}
+        />
+      );
+    }
+
+    return null;
   };
 
   return createPortal(
@@ -139,60 +161,18 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
         className="relative min-h-full flex items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b"
       >
         <div className="relative w-full max-w-lg bg-surface border border-foreground/10 rounded-2xl p-6 sm:p-8 shadow-2xl rise-in">
-          {dismissible && (
-            <button
-              onClick={onDone}
-              className="tap absolute top-4 right-4 z-10 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-2.5 before:content-['']"
-              aria-label={t('skipAria')}
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={step === 'compiling' ? stop : onDone}
+            className="tap absolute top-4 right-4 z-10 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-2.5 before:content-['']"
+            aria-label={step === 'compiling' ? t('compiling.stopAria') : t('skipAria')}
+          >
+            <X className="w-5 h-5" />
+          </button>
 
           {/* Keyed wrapper so each step re-triggers the entrance animation,
               keeping transitions between steps smooth and on-brand. */}
           <div key={step} className="fade-in">
-            {step === 'welcome' && (
-              <WelcomeStep
-                onStart={() => {
-                  setStep('create');
-                }}
-                onDone={onDone}
-              />
-            )}
-
-            {step === 'create' && (
-              <CreateStep
-                name={name}
-                onNameChange={setName}
-                videoFile={videoFile}
-                canCreate={canCreate}
-                fileInputRef={fileInputRef}
-                onOpenCamera={() => {
-                  setShowCamera(true);
-                }}
-                onFilePicked={onFilePicked}
-                onCreate={() => {
-                  handleCreate().catch((error: unknown) => {
-                    logger.error('Onboarding create handler failed:', error);
-                  });
-                }}
-              />
-            )}
-
-            {step === 'compiling' && <CompilingStep progress={progress} />}
-
-            {step === 'done' && result && <DoneStep result={result} onDone={onDone} />}
-
-            {step === 'error' && (
-              <ErrorStep
-                errorMessage={errorMessage}
-                onRetry={() => {
-                  setStep('create');
-                }}
-                onDone={onDone}
-              />
-            )}
+            {renderStep()}
           </div>
         </div>
       </div>

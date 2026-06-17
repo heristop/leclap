@@ -38,6 +38,7 @@ function baseState(input: EditorSection[] | Partial<EditorState> = {}): EditorSt
     globalVariables: [],
     audio: { ...DEFAULT_AUDIO_MIX },
     defaultTransition: { ...DEFAULT_TRANSITION },
+    globalAnimations: [],
   };
 
   return { ...defaults, ...over };
@@ -87,7 +88,7 @@ describe('templateEditorModel — newSection/newOverlay defaults', () => {
     expect(newSection('color')).toEqual({ kind: 'color', duration: 3, color: '#7C83FD' });
     expect(newSection('form')).toEqual({
       kind: 'form',
-      fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }],
+      fields: [{ name: 'field_1', label: 'Label', maxLength: 40 }],
     });
     expect(newSection('music')).toEqual({ kind: 'music', allowed: [], allowUpload: false });
     expect(newSection('image')).toEqual({ kind: 'image', allowed: [], allowUpload: false, duration: 4 });
@@ -106,6 +107,358 @@ describe('templateEditorModel — newSection/newOverlay defaults', () => {
       boxcolor: '#000000',
       boxOpacity: 0.5,
     });
+  });
+});
+
+// --- animation overlay ---
+
+describe('templateEditorModel — animation overlay', () => {
+  const colorWithAnimation = (animation: {
+    url: string;
+    position?: string;
+    scale?: string;
+    loop?: boolean;
+    persistent?: boolean;
+    opacity?: number;
+    rotation?: number;
+  }): EditorSection => ({
+    ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+    animations: [{ id: 'a', label: 'Border', ...animation }],
+  });
+
+  it('emits one looping, persistent animation input and stays schema-valid', () => {
+    const d = buildDescriptor(baseState([colorWithAnimation({ url: '/assets/animations/rounded_border.apng' })]));
+    const section = d.sections?.find((s) => s.inputs);
+
+    expect(section?.inputs).toEqual([
+      {
+        name: 'animation_0',
+        url: '/assets/animations/rounded_border.apng',
+        type: 'animation',
+        options: { loop: true, persistent: true },
+      },
+    ]);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('passes position/scale through the input options', () => {
+    const d = buildDescriptor(
+      baseState([
+        colorWithAnimation({ url: '/assets/animations/animation_icons.apng', position: '40:40', scale: '160:-1' }),
+      ])
+    );
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true, position: '40:40', scale: '160:-1' });
+  });
+
+  it('passes explicit loop / keep-last-frame choices through the input options', () => {
+    const d = buildDescriptor(
+      baseState([colorWithAnimation({ url: '/assets/animations/shine_sweep.apng', loop: true, persistent: false })])
+    );
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: false });
+  });
+
+  it('round-trips a non-default loop / keep-last-frame back into the editor', () => {
+    const state = baseState([
+      colorWithAnimation({ url: '/assets/animations/corner_brackets.apng', loop: false, persistent: true }),
+    ]);
+    const back = toEditorState(asTemplate(state));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    // Only the non-default (loop:false) is carried; persistent:true is the default and is omitted.
+    // The label is lost across the descriptor; the id is recovered from the input name.
+    expect(color.animations).toEqual([
+      { id: 'animation_0', url: '/assets/animations/corner_brackets.apng', loop: false },
+    ]);
+  });
+
+  it('round-trips url + position + scale back into the editor', () => {
+    const state = baseState([
+      colorWithAnimation({ url: '/assets/animations/white_border.apng', position: '0:10', scale: '720:-1' }),
+    ]);
+    const back = toEditorState(asTemplate(state));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.animations).toEqual([
+      { id: 'animation_0', url: '/assets/animations/white_border.apng', position: '0:10', scale: '720:-1' },
+    ]);
+  });
+
+  it('passes a faded opacity through the input options', () => {
+    const d = buildDescriptor(
+      baseState([colorWithAnimation({ url: '/assets/animations/light_leak.apng', opacity: 0.4 })])
+    );
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true, opacity: 0.4 });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('omits opacity from the input options when fully opaque', () => {
+    const d = buildDescriptor(
+      baseState([colorWithAnimation({ url: '/assets/animations/light_leak.apng', opacity: 1 })])
+    );
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true });
+  });
+
+  it('round-trips a faded opacity back into the editor', () => {
+    const state = baseState([colorWithAnimation({ url: '/assets/animations/light_leak.apng', opacity: 0.4 })]);
+    const back = toEditorState(asTemplate(state));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.animations).toEqual([{ id: 'animation_0', url: '/assets/animations/light_leak.apng', opacity: 0.4 }]);
+  });
+
+  it('passes a nonzero rotation through the input options', () => {
+    const d = buildDescriptor(baseState([colorWithAnimation({ url: '/assets/animations/badge.apng', rotation: 30 })]));
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true, rotation: 30 });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('omits rotation from the input options when upright (0)', () => {
+    const d = buildDescriptor(baseState([colorWithAnimation({ url: '/assets/animations/badge.apng', rotation: 0 })]));
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true });
+  });
+
+  it('round-trips a rotation back into the editor', () => {
+    const state = baseState([colorWithAnimation({ url: '/assets/animations/badge.apng', rotation: 30 })]);
+    const back = toEditorState(asTemplate(state));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.animations).toEqual([{ id: 'animation_0', url: '/assets/animations/badge.apng', rotation: 30 }]);
+  });
+
+  it('emits no inputs when a visual section has no animation', () => {
+    const d = buildDescriptor(baseState([newSection('color')]));
+
+    expect(d.sections?.every((s) => s.inputs === undefined)).toBe(true);
+  });
+});
+
+// --- whole-video (global) animations ---
+
+describe('templateEditorModel — global animations', () => {
+  it('emits state.globalAnimations into global.animations with pruned options', () => {
+    const d = buildDescriptor(
+      baseState({
+        globalAnimations: [
+          { url: '/assets/animations/glow_border.apng', opacity: 0.3 },
+          { url: '/assets/animations/light_leak.apng', position: '10:20', loop: false },
+        ],
+      })
+    );
+
+    expect(d.global?.animations).toEqual([
+      { url: '/assets/animations/glow_border.apng', loop: true, persistent: true, opacity: 0.3 },
+      { url: '/assets/animations/light_leak.apng', loop: false, persistent: true, position: '10:20' },
+    ]);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('omits global.animations when there are none', () => {
+    const d = buildDescriptor(baseState([newSection('video')]));
+
+    expect(d.global?.animations).toBeUndefined();
+  });
+
+  it('round-trips global animations back into the editor (non-default options only)', () => {
+    const state = baseState({
+      globalAnimations: [{ url: '/assets/animations/glow_border.apng', opacity: 0.3 }],
+    });
+    const back = toEditorState(asTemplate(state));
+
+    expect(back.globalAnimations).toEqual([
+      { id: 'global_animation_0', url: '/assets/animations/glow_border.apng', opacity: 0.3 },
+    ]);
+  });
+
+  it('emits exactly one playback extent — duration wins and loop is omitted', () => {
+    const d = buildDescriptor(
+      baseState({
+        globalAnimations: [{ url: '/assets/animations/light_leak.apng', duration: 8, start: 3, opacity: 0.35 }],
+      })
+    );
+
+    expect(d.global?.animations?.[0]).toEqual({
+      url: '/assets/animations/light_leak.apng',
+      duration: 8,
+      persistent: true,
+      start: 3,
+      opacity: 0.35,
+    });
+    expect(d.global?.animations?.[0]).not.toHaveProperty('loop');
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('emits a finite loop count instead of loop', () => {
+    const d = buildDescriptor(baseState({ globalAnimations: [{ url: '/assets/animations/sparkle.apng', loops: 3 }] }));
+
+    expect(d.global?.animations?.[0]).toEqual({ url: '/assets/animations/sparkle.apng', loops: 3, persistent: true });
+  });
+
+  it('round-trips duration + start back into the editor', () => {
+    const state = baseState({
+      globalAnimations: [{ url: '/assets/animations/light_leak.apng', duration: 8, start: 3 }],
+    });
+    const back = toEditorState(asTemplate(state));
+
+    expect(back.globalAnimations).toEqual([
+      { id: 'global_animation_0', url: '/assets/animations/light_leak.apng', duration: 8, start: 3 },
+    ]);
+  });
+
+  it('emits and round-trips a rotation on a whole-video animation', () => {
+    const state = baseState({
+      globalAnimations: [{ url: '/assets/animations/glow_border.apng', rotation: 30 }],
+    });
+    const d = buildDescriptor(state);
+
+    expect(d.global?.animations).toEqual([
+      { url: '/assets/animations/glow_border.apng', loop: true, persistent: true, rotation: 30 },
+    ]);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+
+    expect(back.globalAnimations).toEqual([
+      { id: 'global_animation_0', url: '/assets/animations/glow_border.apng', rotation: 30 },
+    ]);
+  });
+});
+
+// --- image overlays (multiple draggable images) ---
+
+describe('templateEditorModel — image overlays', () => {
+  function videoWith(over: Partial<Extract<EditorSection, { kind: 'video' }>>): EditorState {
+    return baseState([{ ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>), ...over }]);
+  }
+
+  it('emits each image as a type:"image" input named by index, with markers + position/scale', () => {
+    const d = buildDescriptor(
+      videoWith({
+        images: [
+          { id: 'a', choice: { source: 'library', id: 'forest-sea' }, position: '0:0', scale: '1280:-1' },
+          {
+            id: 'b',
+            choice: { source: 'upload', key: 'media-abc', label: 'logo.png' },
+            position: '40:40',
+            scale: '120:-1',
+          },
+        ],
+      })
+    );
+    const video = d.sections?.find((s) => s.type === 'project_video');
+
+    expect(video?.inputs).toEqual([
+      { name: 'image_0', url: 'library://forest-sea', type: 'image', options: { position: '0:0', scale: '1280:-1' } },
+      { name: 'image_1', url: 'media://media-abc', type: 'image', options: { position: '40:40', scale: '120:-1' } },
+    ]);
+  });
+
+  it('composites the animation first, then the images in array order on top', () => {
+    const d = buildDescriptor(
+      videoWith({
+        animations: [{ id: 'x', url: '/assets/animations/border.apng', label: 'b' }],
+        images: [
+          { id: 'a', choice: { source: 'url', url: 'https://x/bg.jpg' } },
+          { id: 'b', choice: { source: 'url', url: 'https://x/logo.png' } },
+        ],
+      })
+    );
+    const video = d.sections?.find((s) => s.type === 'project_video');
+
+    expect(video?.inputs?.map((i) => i.name)).toEqual(['animation_0', 'image_0', 'image_1']);
+    expect(video?.inputs?.find((i) => i.name === 'image_0')?.url).toBe('https://x/bg.jpg');
+  });
+
+  it('passes a nonzero rotation through an image input options, and omits it when upright', () => {
+    const d = buildDescriptor(
+      videoWith({
+        images: [
+          { id: 'a', choice: { source: 'library', id: 'forest-sea' }, rotation: 45 },
+          { id: 'b', choice: { source: 'library', id: 'desert' }, rotation: 0 },
+        ],
+      })
+    );
+    const video = d.sections?.find((s) => s.type === 'project_video');
+
+    expect(video?.inputs).toEqual([
+      { name: 'image_0', url: 'library://forest-sea', type: 'image', options: { rotation: 45 } },
+      { name: 'image_1', url: 'library://desert', type: 'image', options: {} },
+    ]);
+  });
+
+  it('round-trips an image rotation back into the editor', () => {
+    const state = videoWith({
+      images: [{ id: 'a', choice: { source: 'library', id: 'forest-sea' }, rotation: 45 }],
+    });
+    const restored = toEditorState(asTemplate(state));
+    const video = restored.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    expect(video.images).toEqual([{ id: 'image_0', choice: { source: 'library', id: 'forest-sea' }, rotation: 45 }]);
+  });
+
+  it('passes a faded opacity through an image input options', () => {
+    const d = buildDescriptor(
+      videoWith({ images: [{ id: 'a', choice: { source: 'library', id: 'forest-sea' }, opacity: 0.4 }] })
+    );
+    const video = d.sections?.find((s) => s.type === 'project_video');
+
+    expect(video?.inputs).toEqual([
+      { name: 'image_0', url: 'library://forest-sea', type: 'image', options: { opacity: 0.4 } },
+    ]);
+  });
+
+  it('omits opacity from an image input options when fully opaque', () => {
+    const d = buildDescriptor(
+      videoWith({
+        images: [
+          { id: 'a', choice: { source: 'library', id: 'forest-sea' }, opacity: 1 },
+          { id: 'b', choice: { source: 'library', id: 'desert' } },
+        ],
+      })
+    );
+    const video = d.sections?.find((s) => s.type === 'project_video');
+
+    expect(video?.inputs).toEqual([
+      { name: 'image_0', url: 'library://forest-sea', type: 'image', options: {} },
+      { name: 'image_1', url: 'library://desert', type: 'image', options: {} },
+    ]);
+  });
+
+  it('round-trips a faded image opacity back into the editor', () => {
+    const state = videoWith({
+      images: [{ id: 'a', choice: { source: 'library', id: 'forest-sea' }, opacity: 0.4 }],
+    });
+    const restored = toEditorState(asTemplate(state));
+    const video = restored.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    expect(video.images).toEqual([{ id: 'image_0', choice: { source: 'library', id: 'forest-sea' }, opacity: 0.4 }]);
+  });
+
+  it('round-trips image markers back to editor MediaChoices via toEditorState', () => {
+    const state = videoWith({
+      images: [
+        { id: 'a', choice: { source: 'library', id: 'forest-sea' }, position: '10:20' },
+        { id: 'b', choice: { source: 'upload', key: 'media-abc', label: 'logo.png' } },
+      ],
+    });
+    const restored = toEditorState(asTemplate(state));
+    const video = restored.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    expect(video.images).toEqual([
+      { id: 'image_0', choice: { source: 'library', id: 'forest-sea' }, position: '10:20' },
+      { id: 'image_1', choice: { source: 'upload', key: 'media-abc', label: 'media-abc' } },
+    ]);
   });
 });
 
@@ -259,7 +612,7 @@ describe('templateEditorModel — form/video/color', () => {
     expect(sections.map((s) => s.type)).toEqual(['form', 'project_video', 'color_background', 'project_video']);
     expect(sections[1].name).toBe('video_1');
     expect(sections[3].name).toBe('video_2');
-    expect(sections[0].options?.fields).toEqual([{ name: 'firstname', maxLength: 40, label: { en: 'Your name' } }]);
+    expect(sections[0].options?.fields).toEqual([{ name: 'field_1', maxLength: 40, label: { en: 'Label' } }]);
     expect(sections[2].options).toEqual({ duration: 3, backgroundColor: '#7C83FD' });
   });
 });

@@ -90,6 +90,58 @@ export interface VisualCaption {
   caption?: EditorCaption;
 }
 
+// A looping animated overlay (.apng/.webp/.gif/.webm) composited over a visual section — a brand
+// border, falling confetti, an icon flourish. `url` is a library path (/assets/animations/x.apng)
+// or an uploaded blob/data URL; `label` is the library name or uploaded filename, shown in the picker.
+// `position`/`scale` tune the overlay for the template: "x:y" output px and "w:h" pre-composite px
+// (-1 = keep aspect). Both optional — omitted means top-left at the file's native size.
+export interface AnimationOverlay {
+  // Editor-only stable key for list rendering/reorder; never written to the descriptor. Optional so
+  // the picker can emit a transient overlay (url+label) before the list wrapper attaches an id.
+  id?: string;
+  url: string;
+  label?: string;
+  position?: string;
+  scale?: string;
+  // Playback extent — exactly one of these is active (the builder's mode control enforces it):
+  // `loop` (forever) → `-stream_loop -1`; `loops` (finite count) → `-stream_loop N-1`; `duration`
+  // (seconds) → `-stream_loop -1 -t D`. Engine precedence: duration > loops > loop.
+  loop?: boolean;
+  loops?: number;
+  duration?: number;
+  // Seconds to delay the overlay before it appears (via -itsoffset). Default 0 = from the beginning.
+  start?: number;
+  // `persistent` → overlay `eof_action=repeat` (freeze the last frame on end) once the overlay ends.
+  persistent?: boolean;
+  // Overlay alpha, 0–1. Omitted means fully opaque (1).
+  opacity?: number;
+  // Clockwise rotation in degrees applied to the overlay before compositing. Omitted/0 = upright.
+  rotation?: number;
+}
+
+// A positionable still-image layer on a video section — dragged/resized exactly like an
+// AnimationOverlay, but a static image picked from the library or uploaded. The source is a
+// MediaChoice (library / upload / url) so large images stay out of the descriptor (uploads resolve
+// to `media://<key>` and are materialized at compile), unlike animations which inline a data: URL.
+// `position`/`scale` use the same "x:y" output-px / "w:h" pre-composite-px convention as animations.
+// `id` is an editor-only stable key for list rendering/reorder; it is never written to the descriptor.
+export interface ImageOverlay {
+  id: string;
+  choice: MediaChoice;
+  position?: string;
+  scale?: string;
+  // Overlay alpha, 0–1. Omitted means fully opaque (1). Same convention as AnimationOverlay.opacity.
+  opacity?: number;
+  // Clockwise rotation in degrees applied to the image before compositing. Omitted/0 = upright.
+  rotation?: number;
+}
+
+export interface VisualAnimation {
+  // Animated overlays composited over the section, in array order (later entries paint on top).
+  // Author-set; empty/absent means none.
+  animations?: AnimationOverlay[];
+}
+
 export type EditorSection =
   | { kind: 'form'; fields: FormField[] }
   | { kind: 'partial'; ref: string; prefix?: string; variables: { name: string; value: string }[] }
@@ -112,8 +164,12 @@ export type EditorSection =
       grade?: Grade;
       motion?: MotionEffect[];
       framingGuide?: FramingGuide;
+      // Still-image layers dragged/resized on the preview and composited OVER the recorded clip,
+      // in array order (later entries paint on top). Author-set; empty/absent means none.
+      images?: ImageOverlay[];
     } & VisualAudio &
-      VisualCaption)
+      VisualCaption &
+      VisualAnimation)
   | ({
       kind: 'color';
       duration: number;
@@ -124,7 +180,8 @@ export type EditorSection =
       motion?: MotionEffect[];
       layers?: BackgroundLayer[];
     } & VisualAudio &
-      VisualCaption)
+      VisualCaption &
+      VisualAnimation)
   | { kind: 'music'; allowed: string[]; allowUpload: boolean }
   | ({
       kind: 'image';
@@ -136,7 +193,8 @@ export type EditorSection =
       grade?: Grade;
       motion?: MotionEffect[];
     } & VisualAudio &
-      VisualCaption);
+      VisualCaption &
+      VisualAnimation);
 
 export type Orientation = 'landscape' | 'portrait';
 
@@ -174,6 +232,9 @@ export interface EditorState {
   globalVariables: { name: string; value: string }[];
   audio: AudioMix;
   defaultTransition: DefaultTransition;
+  // Whole-video animation overlays (descriptor global.animations) — composited over the final joined
+  // video so they span every section, unlike a section's own animation. Empty means none.
+  globalAnimations: AnimationOverlay[];
 }
 
 /** Minimal shape needed to re-hydrate the editor from a saved template (web Template + expo UserTemplate both satisfy it). */
@@ -218,7 +279,7 @@ export function fontIdFromFile(file: string | undefined): string {
 }
 
 export function newSection(kind: EditorSection['kind']): EditorSection {
-  if (kind === 'form') return { kind: 'form', fields: [{ name: 'firstname', label: 'Your name', maxLength: 40 }] };
+  if (kind === 'form') return { kind: 'form', fields: [{ name: 'field_1', label: 'Label', maxLength: 40 }] };
 
   if (kind === 'partial') return { kind: 'partial', ref: '', variables: [] };
 

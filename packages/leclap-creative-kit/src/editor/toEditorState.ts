@@ -1,15 +1,18 @@
 // Re-hydration: best-effort convert a stored TemplateDescriptor back to an EditorState.
-import type { TemplateDescriptor, Section, PartialSection } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type {
+  TemplateDescriptor,
+  Section,
+  PartialSection,
+  GlobalAnimation,
+} from 'ffmpeg-video-composer/src/core/types.d.ts';
 import {
   DEFAULT_AUDIO_MIX,
   DEFAULT_TRANSITION,
   newSection,
   makeTemplateId,
-  fontIdFromFile,
   type EditorSection,
   type EditorState,
   type EditableTemplate,
-  type TextOverlay,
   type SectionTransition,
   type AudioMix,
   type DefaultTransition,
@@ -19,9 +22,11 @@ import {
   type FramingGuide,
   type SectionAudioFade,
   type EditorCaption,
+  type AnimationOverlay,
+  type ImageOverlay,
+  type MediaChoice,
 } from './model';
-
-type DrawtextValues = NonNullable<NonNullable<Section['filters']>[number]['values']>;
+import { overlayFrom } from './overlayParsing';
 
 function formSectionFrom(s: Section): EditorSection {
   const fields = (s.options?.fields ?? []) as Array<{
@@ -43,12 +48,10 @@ function isPartialSection(s: StoredDescriptorSection): s is PartialSection {
 }
 
 function partialSectionFrom(s: PartialSection): EditorSection {
-  const variables = Object.entries(s.variables ?? {}).map(([name, value]) => ({ name, value }));
-
   return {
     kind: 'partial',
     ref: s.ref ?? '',
-    variables,
+    variables: Object.entries(s.variables ?? {}).map(([name, value]) => ({ name, value })),
     ...(s.prefix ? { prefix: s.prefix } : {}),
   };
 }
@@ -81,14 +84,78 @@ function captionFrom(s: Section): EditorCaption | undefined {
   }) as EditorCaption;
 }
 
-function visualExtrasFrom(s: Section): {
+// Recover the animation overlays from the section's `type: 'animation'` inputs, in stored order. The
+// editor-only `id` is derived from the input name so re-hydration is deterministic.
+function animationsFrom(s: Section): AnimationOverlay[] {
+  return (s.inputs ?? [])
+    .filter((i) => i.type === 'animation' && i.url)
+    .map((input) => {
+      return { id: input.name, url: input.url as string, ...overlayOptionsFrom(input.options ?? {}) };
+    });
+}
+
+// Recover editor-facing overlay options (placement + playback) from a stored animation, carrying
+// only explicit non-defaults. Active extent = whichever of duration / loops / loop:false is set.
+function overlayOptionsFrom(o: Partial<GlobalAnimation>): Omit<AnimationOverlay, 'id' | 'url' | 'label'> {
+  return {
+    ...(o.duration === undefined ? {} : { duration: o.duration }),
+    ...(o.loops === undefined ? {} : { loops: o.loops }),
+    ...(o.loop === false ? { loop: false } : {}),
+    ...(o.position ? { position: o.position } : {}),
+    ...(o.scale ? { scale: o.scale } : {}),
+    ...(o.start ? { start: o.start } : {}),
+    ...(o.persistent === false ? { persistent: false } : {}),
+    ...(o.opacity !== undefined && o.opacity < 1 ? { opacity: o.opacity } : {}),
+    ...(o.rotation ? { rotation: o.rotation } : {}),
+  };
+}
+
+// Reverse markerFromChoice (buildDescriptor): the input url marker → a MediaChoice. `media://` uploads
+// lose their human label across the descriptor, so fall back to the key as the display label.
+function choiceFromMarker(url: string): MediaChoice {
+  if (url.startsWith('library://')) return { source: 'library', id: url.slice('library://'.length) };
+
+  if (url.startsWith('media://')) {
+    const key = url.slice('media://'.length);
+
+    return { source: 'upload', key, label: key };
+  }
+
+  return { source: 'url', url };
+}
+
+// Recover the still-image overlays from the section's `type: 'image'` inputs, in their stored order.
+// The editor-only `id` is derived from the input name so re-hydration is deterministic.
+function imagesFrom(s: Section): ImageOverlay[] {
+  return (s.inputs ?? [])
+    .filter((i) => i.type === 'image' && i.url)
+    .map((input) => {
+      const { position, scale, opacity, rotation } = input.options ?? {};
+
+      // opacity defaults to opaque, so only carry an explicit fade (< 1) back, mirroring animationsFrom.
+      return {
+        id: input.name,
+        choice: choiceFromMarker(input.url as string),
+        ...(position ? { position } : {}),
+        ...(scale ? { scale } : {}),
+        ...(opacity !== undefined && opacity < 1 ? { opacity } : {}),
+        ...(rotation ? { rotation } : {}),
+      };
+    });
+}
+
+type VisualExtras = {
   transitionAfter?: SectionTransition;
   caption?: EditorCaption;
   look?: string;
   grade?: Grade;
   motion?: MotionEffect[];
-} {
+  animations?: AnimationOverlay[];
+};
+
+function visualExtrasFrom(s: Section): VisualExtras {
   const caption = captionFrom(s);
+  const animations = animationsFrom(s);
 
   return {
     ...(s.transition ? { transitionAfter: s.transition } : {}),
@@ -96,6 +163,7 @@ function visualExtrasFrom(s: Section): {
     ...(s.look ? { look: s.look } : {}),
     ...(s.grade ? { grade: s.grade as Grade } : {}),
     ...(s.motion && s.motion.length > 0 ? { motion: s.motion as MotionEffect[] } : {}),
+    ...(animations.length > 0 ? { animations } : {}),
   };
 }
 
@@ -111,98 +179,40 @@ function sectionAudioExtrasFrom(s: Section): { musicVolume?: number; audioFade?:
 }
 
 function colorSectionFrom(s: Section): EditorSection {
-  const layers = s.options?.layers as BackgroundLayer[] | undefined;
+  const layers = (s.options?.layers ?? []) as BackgroundLayer[];
 
   return {
     kind: 'color',
     duration: s.options?.duration ?? 3,
     color: s.options?.backgroundColor ?? '#7C83FD',
-    ...(layers && layers.length > 0 ? { layers } : {}),
+    ...(layers.length > 0 ? { layers } : {}),
     ...sectionAudioExtrasFrom(s),
     ...visualExtrasFrom(s),
   };
 }
 
-// Best-effort recover the [0,1] position fraction from a stored drawtext x/y
-// expression. Matches the `(w-text_w)*<frac>` / `(h-text_h)*<frac>` form this
-// editor writes; the legacy `(…)/2` centered form (or anything unparseable)
-// falls back to 0.5 (centered).
-export function parseFraction(value?: string | number): number {
-  if (typeof value !== 'string') return 0.5;
-
-  const match = /\)\s*\*\s*(\d*\.?\d+)/.exec(value);
-
-  if (!match) return 0.5;
-
-  const fraction = Number(match[1]);
-
-  if (!Number.isFinite(fraction)) return 0.5;
-
-  return Math.min(1, Math.max(0, fraction));
-}
-
-// Drop any `@<opacity>` suffix the descriptor adds to a box color, recovering
-// the bare hex the editor stores.
-function stripOpacity(color: string | undefined): string {
-  return (color ?? '#000000').split('@')[0];
-}
-
-// Recover the [0,1] box opacity from a stored `<hex>@<opacity>` boxcolor,
-// defaulting to 0.5 when the suffix is absent or unparseable.
-function parseOpacity(boxcolor: string | undefined): number {
-  const match = /@(\d*\.?\d+)/.exec(boxcolor ?? '');
-
-  if (!match) return 0.5;
-
-  const value = Number(match[1]);
-
-  if (!Number.isFinite(value)) return 0.5;
-
-  return Math.min(1, Math.max(0, value));
-}
-
-function overlayFrom(dt: { values?: DrawtextValues }): TextOverlay {
-  const v = dt.values ?? {};
-  const boxcolor = v.boxcolor;
-
-  return {
-    text: v.text?.en ?? '',
-    x: parseFraction(v.x),
-    y: parseFraction(v.y),
-    fontsize: Number(v.fontsize ?? 48),
-    fontcolor: v.fontcolor ?? '#ffffff',
-    font: fontIdFromFile(v.fontfile),
-    box: v.box !== undefined,
-    boxcolor: stripOpacity(boxcolor),
-    boxOpacity: parseOpacity(boxcolor),
-  };
-}
-
-// Recover a section description: the default-locale ('en') string, else the first
-// translation present, else undefined (so an absent/empty description stays empty).
+// Recover a section description: 'en' string, else first translation, else undefined.
 function descriptionFrom(s: Section): string | undefined {
-  const translation = s.description;
+  if (!s.description) return undefined;
 
-  if (!translation) return undefined;
-
-  return translation.en ?? Object.values(translation)[0];
+  return s.description.en ?? Object.values(s.description)[0];
 }
 
 function videoSectionFrom(s: Section): EditorSection {
-  const overlays = (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom);
   const framingGuide = s.options?.framingGuide as FramingGuide | undefined;
   const description = descriptionFrom(s);
+  const images = imagesFrom(s);
 
   return {
     kind: 'video',
+    ...(images.length > 0 ? { images } : {}),
     duration: s.options?.duration ?? 8,
     mute: Boolean(s.options?.muteSection),
-    overlays,
+    overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
     ...(description ? { description } : {}),
     countdown: Boolean(s.options?.countdown),
     countdownSeconds: s.options?.countdownDuration ?? 4,
-    // A stored countdown is treated as an explicit author choice, so re-opening a
-    // template never silently re-syncs it to the clip duration.
+    // A stored countdown is an explicit author choice, so re-opening never re-syncs it to clip duration.
     countdownCustomized: true,
     ...(framingGuide ? { framingGuide } : {}),
     ...sectionAudioExtrasFrom(s),
@@ -257,12 +267,20 @@ function audioFrom(global: TemplateDescriptor['global']): AudioMix {
 }
 
 function defaultTransitionFrom(global: TemplateDescriptor['global']): DefaultTransition {
-  const t = global?.transition;
-
   return {
-    type: t?.type ?? DEFAULT_TRANSITION.type,
-    duration: t?.duration ?? DEFAULT_TRANSITION.duration,
+    type: global?.transition?.type ?? DEFAULT_TRANSITION.type,
+    duration: global?.transition?.duration ?? DEFAULT_TRANSITION.duration,
   };
+}
+
+// Recover whole-video overlays from global.animations, carrying only explicit non-default options back
+// (loop/persistent default true; opacity defaults opaque; rotation defaults upright), like animationsFrom.
+function globalAnimationsFrom(global: TemplateDescriptor['global']): AnimationOverlay[] {
+  return (global?.animations ?? []).map((animation, index) => ({
+    id: `global_animation_${index}`,
+    url: animation.url,
+    ...overlayOptionsFrom(animation),
+  }));
 }
 
 // Music has no positional descriptor section — surface it at the top of the list.
@@ -277,7 +295,6 @@ function musicSectionsFrom(global: TemplateDescriptor['global']): EditorSection[
 
 function editorSectionsFrom(descriptor: TemplateDescriptor): EditorSection[] {
   const { global: g, sections: storedSections = [] } = descriptor;
-
   const allowedBackgrounds = g?.allowedBackgrounds ?? [];
   const allowUploadBackground = Boolean(g?.allowUploadBackground);
 
@@ -307,6 +324,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
       globalVariables: [],
       audio: { ...DEFAULT_AUDIO_MIX },
       defaultTransition: { ...DEFAULT_TRANSITION },
+      globalAnimations: [],
     };
   }
 
@@ -319,5 +337,6 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     globalVariables: globalVariablesFrom(template.descriptor.global),
     audio: audioFrom(template.descriptor.global),
     defaultTransition: defaultTransitionFrom(template.descriptor.global),
+    globalAnimations: globalAnimationsFrom(template.descriptor.global),
   };
 }

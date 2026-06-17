@@ -8,3 +8,4 @@ export * from './countdown';
 export * from './buildDescriptor';
 export * from './operations';
 export * from './toEditorState';
+export * from './overlayParsing';

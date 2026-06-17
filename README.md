@@ -24,7 +24,7 @@ Describe a video in one JSON _template_ — sections, filters, music, overlays �
 
 LeClap renders video from a single JSON _template_: the same spec — sections, filters, music, text overlays — runs in the browser via WebAssembly and fully **on-device** on React Native, with no upload and no server required. Its uncontested corner is **deterministic + on-device + agent-callable** video, where generative tools (Sora/Runway) and backend-bound renderers (Remotion/Shotstack) can't reach: the full loop — record a clip from the camera, apply effects, mix music, add transitions, render — runs on the phone (or a browser tab), and an AI agent can author and render a template with no LLM in the output path.
 
-|                                   |                                                                                                                                    |
+| Highlight                         | What it means                                                                                                                      |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                            |
 | 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, deterministic output.                                                 |
@@ -37,7 +37,7 @@ LeClap renders video from a single JSON _template_: the same spec — sections, 
 
 See it in action (unmute for sound):
 
-https://github.com/user-attachments/assets/3d346912-c937-4b48-966e-fd8d7d05f70a
+https://github.com/user-attachments/assets/7edb7990-0dba-43d8-b69b-b357e05e18ba
 
 <p align="center"><img src="https://github.com/heristop/leclap/raw/main/docs/leclap.gif" alt="LeClap mobile app" width="260" /></p>
 

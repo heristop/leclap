@@ -105,4 +105,24 @@ describe('render_remotion_clip handler', () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('Remotion render failed');
   });
+
+  it('rejects a remote serveUrl (would render attacker-hosted JS)', async () => {
+    const result = (await captureHandler(config)({ serveUrl: 'http://evil.example/bundle', compositionId: 'C' })) as {
+      isError?: boolean;
+      content: { text: string }[];
+    };
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('Remote serveUrl is not allowed');
+    expect(bundleMock).not.toHaveBeenCalled();
+  });
+
+  it('allows a loopback serveUrl', async () => {
+    await captureHandler(config)({ serveUrl: 'http://localhost:3000/bundle', compositionId: 'C' });
+
+    expect(bundleMock).not.toHaveBeenCalled();
+    expect(selectCompositionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ serveUrl: 'http://localhost:3000/bundle' })
+    );
+  });
 });

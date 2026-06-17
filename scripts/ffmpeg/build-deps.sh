@@ -34,6 +34,7 @@ abi_to_host() {
 
 OH264_SRC="$WORK_DIR/openh264"
 HB_SRC="$WORK_DIR/harfbuzz-$HARFBUZZ_VERSION"
+LIBVPX_SRC="$WORK_DIR/libvpx-$LIBVPX_VERSION"
 
 fetch_freetype() {
   mkdir -p "$WORK_DIR"
@@ -62,6 +63,15 @@ fetch_harfbuzz() {
       | tar -xJ -C "$WORK_DIR"
   else
     echo "[harfbuzz] source present at $HB_SRC"
+  fi
+}
+
+fetch_libvpx() {
+  if [ ! -f "$LIBVPX_SRC/configure" ]; then
+    echo "[libvpx] cloning v$LIBVPX_VERSION ..."
+    git clone --depth 1 --branch "v$LIBVPX_VERSION" https://chromium.googlesource.com/webm/libvpx "$LIBVPX_SRC"
+  else
+    echo "[libvpx] source present at $LIBVPX_SRC"
   fi
 }
 
@@ -142,6 +152,32 @@ build_openh264_abi() {
   echo "[openh264][$ABI] installed → $PREFIX"
 }
 
+# Cross-build libvpx (static, DECODE-ONLY) — the only path that reads WebM (VP9) alpha overlays; the
+# native FFmpeg vp9 decoder ignores the alpha stream. Uses libvpx's portable `generic-gnu` target (pure
+# C, no nasm/SIMD — libvpx's `*-android-gcc` targets want the legacy gcc/`--sdk-path` toolchain the NDK
+# r27 no longer ships) with the NDK clang supplied via CC/AR/etc; the clang triple does the cross. Installs
+# libvpx.a + vpx.pc into the shared per-abi prefix, already on build-android.sh's PKG_CONFIG_PATH.
+build_libvpx_abi() {
+  local ABI="$1" PREFIX TRIPLE CC
+  PREFIX="$DEPS_DIR/android/$ABI"
+  TRIPLE="$(abi_to_triple "$ABI")"
+  CC="$TOOLCHAIN/bin/${TRIPLE}${ANDROID_API}-clang"
+  echo "[libvpx][$ABI] configure (generic-gnu) ..."
+  ( cd "$LIBVPX_SRC" && make distclean >/dev/null 2>&1 || true
+    CC="$CC" CXX="${CC}++" LD="$CC" AS="$CC" \
+    AR="$TOOLCHAIN/bin/llvm-ar" RANLIB="$TOOLCHAIN/bin/llvm-ranlib" \
+    STRIP="$TOOLCHAIN/bin/llvm-strip" NM="$TOOLCHAIN/bin/llvm-nm" \
+    ./configure --target=generic-gnu --prefix="$PREFIX" \
+      --enable-static --disable-shared --enable-pic --disable-runtime-cpu-detect \
+      --enable-vp8 --enable-vp9 --disable-vp8-encoder --disable-vp9-encoder \
+      --disable-examples --disable-tools --disable-docs --disable-unit-tests \
+      --extra-cflags="-fPIC -O2"
+    make -j"$(sysctl -n hw.ncpu)"
+    make install ) || { echo "[libvpx][$ABI] BUILD FAILED"; exit 1; }
+  [ -f "$PREFIX/lib/libvpx.a" ] || { echo "[libvpx][$ABI] libvpx.a not installed"; exit 1; }
+  echo "[libvpx][$ABI] installed → $PREFIX"
+}
+
 build_abi() {
   local ABI="$1" TRIPLE HOST CC PREFIX
   TRIPLE="$(abi_to_triple "$ABI")"
@@ -167,8 +203,11 @@ build_abi() {
 fetch_freetype
 fetch_openh264
 fetch_harfbuzz
+fetch_libvpx
 ABIS=("$@")
 [ ${#ABIS[@]} -eq 0 ] && read -ra ABIS <<< "$ANDROID_ABIS"
-# Order matters: freetype first, then harfbuzz (needs freetype), then openh264 (independent).
-for abi in "${ABIS[@]}"; do build_abi "$abi"; build_harfbuzz_abi "$abi"; build_openh264_abi "$abi"; done
-echo "[deps] android deps complete (freetype + harfbuzz + openh264): ${ABIS[*]}"
+# Order matters: freetype first, then harfbuzz (needs freetype), then openh264 + libvpx (independent).
+for abi in "${ABIS[@]}"; do
+  build_abi "$abi"; build_harfbuzz_abi "$abi"; build_openh264_abi "$abi"; build_libvpx_abi "$abi"
+done
+echo "[deps] android deps complete (freetype + harfbuzz + openh264 + libvpx): ${ABIS[*]}"

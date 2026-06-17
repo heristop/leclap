@@ -14,6 +14,7 @@ DEPS_DIR="$SCRIPT_DIR/deps"
 FT_DOTTED="$(echo "$FREETYPE_VERSION" | sed 's/^VER-//; s/-/./g')"
 FT_SRC="$WORK_DIR/freetype-$FT_DOTTED"
 HB_SRC="$WORK_DIR/harfbuzz-$HARFBUZZ_VERSION"
+LIBVPX_SRC="$WORK_DIR/libvpx-$LIBVPX_VERSION"
 
 # slice → (sdk, arch, autotools host triple, min-version flag)
 slice_sdk()  { case "$1" in device) echo iphoneos;; sim-arm64|sim-x86_64) echo iphonesimulator;; esac; }
@@ -29,6 +30,10 @@ fetch_freetype() {
 fetch_harfbuzz() {
   [ -f "$HB_SRC/CMakeLists.txt" ] || curl -fsSL \
     "https://github.com/harfbuzz/harfbuzz/releases/download/$HARFBUZZ_VERSION/harfbuzz-$HARFBUZZ_VERSION.tar.xz" | tar -xJ -C "$WORK_DIR"
+}
+fetch_libvpx() {
+  [ -f "$LIBVPX_SRC/configure" ] || git clone --depth 1 --branch "v$LIBVPX_VERSION" \
+    https://chromium.googlesource.com/webm/libvpx "$LIBVPX_SRC"
 }
 
 build_freetype() {
@@ -87,9 +92,35 @@ EOF
   echo "[harfbuzz][ios:$SLICE] installed → $PREFIX"
 }
 
+# Cross-build libvpx (static, DECODE-ONLY) for iOS — reads WebM (VP9) alpha overlays the native vp9
+# decoder can't. Uses libvpx's portable `generic-gnu` target (pure C, no nasm) with the Xcode clang and
+# -arch/-isysroot, so it builds for every slice without libvpx's version-named darwin targets. Installs
+# libvpx.a + vpx.pc into the per-slice prefix build-ios.sh already has on PKG_CONFIG_PATH.
+build_libvpx() {
+  local SLICE="$1" SDK ARCH MIN SYSROOT CC PREFIX
+  SDK="$(slice_sdk "$SLICE")"; ARCH="$(slice_arch "$SLICE")"; MIN="$(slice_min "$SLICE")"
+  SYSROOT="$(xcrun --sdk "$SDK" --show-sdk-path)"; CC="$(xcrun --sdk "$SDK" --find clang)"
+  PREFIX="$DEPS_DIR/ios/$SLICE"
+  echo "[libvpx][ios:$SLICE] configure ($ARCH/$SDK) ..."
+  ( cd "$LIBVPX_SRC" && make distclean >/dev/null 2>&1 || true
+    CC="$CC" CXX="$CC" LD="$CC" AS="$CC" \
+    AR="$(xcrun --sdk "$SDK" --find ar)" RANLIB="$(xcrun --sdk "$SDK" --find ranlib)" \
+    STRIP="$(xcrun --sdk "$SDK" --find strip)" NM="$(xcrun --sdk "$SDK" --find nm)" \
+    ./configure --target=generic-gnu --prefix="$PREFIX" \
+      --enable-static --disable-shared --enable-pic \
+      --enable-vp8 --enable-vp9 --disable-vp8-encoder --disable-vp9-encoder \
+      --disable-examples --disable-tools --disable-docs --disable-unit-tests \
+      --extra-cflags="-arch $ARCH $MIN -isysroot $SYSROOT -fPIC -O2"
+    make -j"$(sysctl -n hw.ncpu)"
+    make install ) || { echo "[libvpx][ios:$SLICE] BUILD FAILED"; exit 1; }
+  [ -f "$PREFIX/lib/libvpx.a" ] || { echo "[libvpx][ios:$SLICE] libvpx.a not installed"; exit 1; }
+  echo "[libvpx][ios:$SLICE] installed → $PREFIX"
+}
+
 fetch_freetype
 fetch_harfbuzz
+fetch_libvpx
 SLICES=("$@")
 [ ${#SLICES[@]} -eq 0 ] && SLICES=(device sim-arm64 sim-x86_64)
-for slice in "${SLICES[@]}"; do build_freetype "$slice"; build_harfbuzz "$slice"; done
-echo "[deps] ios deps complete (freetype + harfbuzz): ${SLICES[*]}"
+for slice in "${SLICES[@]}"; do build_freetype "$slice"; build_harfbuzz "$slice"; build_libvpx "$slice"; done
+echo "[deps] ios deps complete (freetype + harfbuzz + libvpx): ${SLICES[*]}"

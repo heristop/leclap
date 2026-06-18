@@ -2,7 +2,8 @@
 User-agent: *
 Allow: /
 
-# Private template editor — keep it out of the index.
-Disallow: /admin
+# Private/utility routes carry a `noindex` robots meta (set per-route by the app), so they are
+# intentionally NOT disallowed here — a Disallow would block the crawl and the noindex would never
+# be seen. Listed for reference: /templates, /templates/*, /projects, /partials.
 
 Sitemap: https://leclap.pages.dev/sitemap.xml

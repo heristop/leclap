@@ -17,6 +17,18 @@
     "label": "Name",
     "placeholder": "My template"
   },
+  "description": {
+    "label": "Description (optional)",
+    "placeholder": "A short summary"
+  },
+  "variables": {
+    "label": "Global variables",
+    "hint": "Reusable values — insert one with {{ name }} in any text field.",
+    "name": "name",
+    "value": "value",
+    "add": "Add variable",
+    "remove": "Remove variable {{n}}"
+  },
   "orientation": {
     "label": "Orientation",
     "landscape": "Landscape 16:9",
@@ -28,6 +40,14 @@
   },
   "scenes": {
     "add": "Add a scene"
+  },
+  "scene": {
+    "collapse": "Collapse scene",
+    "expand": "Expand scene"
+  },
+  "timeline": {
+    "label": "Scenes overview",
+    "goTo": "Go to scene {{n}}"
   },
   "wizard": {
     "continue": "Continue",
@@ -53,6 +73,8 @@
     "countdown": "Countdown (s)",
     "whatToFilm": "What to film (optional)",
     "whatToFilmPlaceholder": "e.g. Stand centered, look at the camera",
+    "textOverlays": "Text overlays",
+    "addText": "Add text",
     "addTitle": "Add title text",
     "editTitle": "Edit title overlay"
   },

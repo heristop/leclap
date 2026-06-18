@@ -1,0 +1,209 @@
+{
+  "meta": {
+    "name": "Story Reel",
+    "description": "Three quick vertical clips, each captioned and cut together into a snappy social reel."
+  },
+  "global": {
+    "orientation": "portrait",
+    "musicEnabled": true,
+    "music": {
+      "name": "pixelland.mp3"
+    },
+    "allowedMusic": [
+      "pixelland",
+      "monkeys-spinning-monkeys",
+      "fluffing-a-duck",
+      "carefree",
+      "brain-dance",
+      "sneaky-snitch"
+    ],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.3
+    },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.3,
+      "normalize": "loudnorm"
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "Caption each scene"
+      },
+      "description": {
+        "en": ""
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_scene1",
+            "maxLength": 24,
+            "label": {
+              "en": "Scene 1 caption"
+            }
+          },
+          {
+            "name": "form_1_scene2",
+            "maxLength": 24,
+            "label": {
+              "en": "Scene 2 caption"
+            }
+          },
+          {
+            "name": "form_1_scene3",
+            "maxLength": 24,
+            "label": {
+              "en": "Scene 3 caption"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "look": "vivid",
+      "transition": {
+        "type": "smoothup",
+        "duration": 0.4
+      },
+      "caption": {
+        "text": {
+          "en": "{{ form_1_scene1 }}"
+        },
+        "style": "bold",
+        "position": "bottom",
+        "align": "center"
+      },
+      "title": {
+        "en": "Scene 1"
+      },
+      "description": {
+        "en": "Film your first moment — keep it short and punchy"
+      },
+      "options": {
+        "duration": 6,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.15
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "1 / 3" },
+            "fontcolor": "#ffffff",
+            "fontsize": 30,
+            "x": "w-text_w-44",
+            "y": 80,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,0.85))'"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_2",
+      "type": "project_video",
+      "look": "vivid",
+      "transition": {
+        "type": "pixelize",
+        "duration": 0.4
+      },
+      "caption": {
+        "text": {
+          "en": "{{ form_1_scene2 }}"
+        },
+        "style": "bold",
+        "position": "bottom",
+        "align": "center"
+      },
+      "title": {
+        "en": "Scene 2"
+      },
+      "description": {
+        "en": "Film your second moment"
+      },
+      "options": {
+        "duration": 6,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.15
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "2 / 3" },
+            "fontcolor": "#ffffff",
+            "fontsize": 30,
+            "x": "w-text_w-44",
+            "y": 80,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,0.85))'"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_3",
+      "type": "project_video",
+      "look": "vivid",
+      "caption": {
+        "text": {
+          "en": "{{ form_1_scene3 }}"
+        },
+        "style": "bold",
+        "position": "bottom",
+        "align": "center"
+      },
+      "title": {
+        "en": "Scene 3"
+      },
+      "description": {
+        "en": "Film your last moment to wrap the reel"
+      },
+      "options": {
+        "duration": 6,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.15
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "3 / 3" },
+            "fontcolor": "#ffffff",
+            "fontsize": 30,
+            "x": "w-text_w-44",
+            "y": 80,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.0),(t-0.3)/0.7,0.85))'"
+          }
+        }
+      ]
+    },
+    {
+      "type": "partial",
+      "ref": "logo-bumper-portrait"
+    }
+  ]
+}

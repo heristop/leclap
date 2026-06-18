@@ -34,6 +34,12 @@ const destinations: CopyDest[] = [
     dest: resolve(root, 'apps/leclap-expo/assets/backgrounds'),
   },
   {
+    // Served at /assets/backgrounds/<file> — the canonical path bundled templates reference for an
+    // image_background, so it resolves identically on web and on-device (expo maps the /assets/ marker).
+    src: resolve(libDir, 'backgrounds'),
+    dest: resolve(root, 'apps/leclap-web/public/assets/backgrounds'),
+  },
+  {
     src: resolve(libDir, 'fonts'),
     dest: resolve(root, 'apps/leclap-web/public/fonts'),
   },

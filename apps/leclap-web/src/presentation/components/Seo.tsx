@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Production domain (also used in index.html, robots.txt, sitemap.xml).
-const SITE_URL = 'https://leclap.dev';
+const SITE_URL = 'https://leclap.pages.dev';
 
 type SeoProps = {
   /** Page title; rendered as "<title> — LeClap". Omit on the home page for the default. */

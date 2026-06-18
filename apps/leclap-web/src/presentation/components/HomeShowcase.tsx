@@ -94,7 +94,7 @@ export const HomeShowcase = () => {
   };
 
   return (
-    <section className="relative bg-background py-14 sm:py-20 lg:py-28">
+    <section className="relative bg-background py-10 sm:py-16 lg:py-28">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-300">

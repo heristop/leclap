@@ -16,7 +16,7 @@ export const FeaturesSection = () => {
   const { t } = useTranslation('home');
 
   return (
-    <section id="features" className="relative overflow-hidden py-14 sm:py-20 lg:py-24">
+    <section id="features" className="relative overflow-hidden py-10 sm:py-16 lg:py-24">
       {/* Soft, on-brand ambient wash */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-24 right-0 h-80 w-80 rounded-full bg-brand-500/10 blur-[120px]" />

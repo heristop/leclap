@@ -161,7 +161,7 @@ export const PhoneShowcase = () => {
                 className="absolute -right-px top-[7rem] h-14 w-[2px] rounded-r bg-neutral-700"
               />
 
-              <div className="relative aspect-[9/19] overflow-hidden rounded-[2.2rem] bg-black">
+              <div className="relative aspect-[604/1080] overflow-hidden rounded-[2.2rem] bg-black">
                 {/* Shimmer placeholder holds the frame until the video is mounted. */}
                 {!shouldLoad && (
                   <div
@@ -173,7 +173,7 @@ export const PhoneShowcase = () => {
                 {shouldLoad && (
                   <video
                     ref={videoRef}
-                    className="h-full w-full origin-center scale-x-[1.1] scale-y-[1.18] object-cover"
+                    className="h-full w-full object-cover"
                     autoPlay={!reduced}
                     loop
                     muted

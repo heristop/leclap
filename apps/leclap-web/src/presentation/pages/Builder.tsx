@@ -11,6 +11,7 @@ import { SectionHub } from '@/presentation/components/builder';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
+import { findMusicByUrl } from '@/data/mediaCatalog';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
@@ -18,6 +19,26 @@ import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/pr
 import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
+
+// The template's default soundtrack as a library MediaChoice, so the Music step opens pre-selected on
+// the track the template was authored with. Only when music is enabled and the default is one of the
+// offered tracks; otherwise null (leave the step empty).
+const defaultMusicChoice = (template: Template): MediaChoice | null => {
+  const global = template.descriptor.global;
+  const name = global?.music?.name;
+
+  if (!global?.musicEnabled || !name) return null;
+
+  const track = findMusicByUrl(`/musics/${name}`);
+
+  if (!track) return null;
+
+  const allowed = global.allowedMusic;
+
+  if (allowed && allowed.length > 0 && !allowed.includes(track.id)) return null;
+
+  return { source: 'library', id: track.id };
+};
 
 // ── Dynamic, section-driven step model ─────────────────────────────────────────────────────────
 // The wizard walks the template's sections IN ORDER: a step per `form` section and a step per
@@ -484,7 +505,7 @@ const makeWizardActions = (deps: ActionDeps) => {
   const handlers: WizardHandlers = {
     onTemplateSelected: (template) => {
       setSelectedTemplate(template);
-      setModel(EMPTY_MODEL);
+      setModel({ ...EMPTY_MODEL, musicChoice: defaultMusicChoice(template) });
     },
     onFormDataChange: (d) => {
       update({ formData: d });

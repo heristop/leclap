@@ -1,4 +1,4 @@
-import { useState, useId, useRef } from 'react';
+import { useState, useId, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react';
@@ -183,10 +183,25 @@ const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLi
   );
 };
 
+// Only one preview plays at a time across the whole picker: starting a track pauses whichever element
+// was playing. The state of each card is driven by its <audio> play/pause events, so a track stopped
+// from another card flips its own button back automatically.
+let activePreview: HTMLAudioElement | null = null;
+
 const MusicCard = ({ item, selected, onPick }: CardProps) => {
   const { t } = useTranslation('admin');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+
+  // Release the shared slot if this card owned it when it unmounts (e.g. switching the Library tab).
+  useEffect(
+    () => () => {
+      const audio = audioRef.current;
+
+      if (audio && activePreview === audio) activePreview = null;
+    },
+    []
+  );
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -195,15 +210,16 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
       return;
     }
 
-    if (playing) {
+    if (!audio.paused) {
       audio.pause();
-      setPlaying(false);
 
       return;
     }
 
+    if (activePreview && activePreview !== audio) activePreview.pause();
+
+    activePreview = audio;
     audio.play().catch(() => {});
-    setPlaying(true);
   };
 
   return (
@@ -246,8 +262,16 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
         ref={audioRef}
         src={item.url}
         preload="none"
+        onPlay={() => {
+          setPlaying(true);
+        }}
+        onPause={() => {
+          setPlaying(false);
+        }}
         onEnded={() => {
           setPlaying(false);
+
+          if (activePreview === audioRef.current) activePreview = null;
         }}
         className="sr-only"
       />

@@ -35,11 +35,15 @@ LeClap renders video from a single JSON _template_: the same spec — sections, 
 
 ## 🎥 Demo
 
+### Template-driven video
+
 See it in action (unmute for sound):
 
 https://github.com/user-attachments/assets/7edb7990-0dba-43d8-b69b-b357e05e18ba
 
-<p align="center"><img src="https://github.com/heristop/leclap/raw/main/docs/leclap.gif" alt="LeClap mobile app" width="260" /></p>
+### LeClap mobile app
+
+https://github.com/user-attachments/assets/4337ccdc-efa5-4d58-b201-1b50630e8cda
 
 ## 🚀 Quick start
 

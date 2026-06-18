@@ -13,12 +13,12 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 // The onboarding makes a first video from a built-in template so newcomers see the whole flow
 // (record → compile → download) in one guided pass. We match the template to how the app is actually
 // shown — its live viewport shape — rather than the physical device: a viewport taller than it is
-// wide (a phone upright, or a narrow / split / resized desktop window) gets the Portrait Spotlight;
-// anything wider gets the Landscape Spotlight, so the recorded clip fills the frame instead of being
-// letter-boxed. Both wrap the clip in a cinematic intro + outro and grade it; the name typed at the
-// record step lands in the first form field (title card).
-const LANDSCAPE_TEMPLATE_ID = 'landscape-spotlight';
-const PORTRAIT_TEMPLATE_ID = 'portrait-spotlight';
+// wide (a phone upright, or a narrow / split / resized desktop window) gets Big Reveal (a 3·2·1
+// countdown into the recorded clip with confetti + a headline); anything wider gets Spotlight (a
+// cinematic intro + outro wrap), so the recorded clip fills the frame instead of being letter-boxed.
+// Both record one clip; the name typed at the record step lands in the template's first form field.
+const LANDSCAPE_TEMPLATE_ID = 'spotlight';
+const PORTRAIT_TEMPLATE_ID = 'big-reveal';
 
 // Reflect the app's actual viewport (window aspect) — not the device-orientation media query, which
 // is always "landscape" on desktop regardless of how the window is sized.

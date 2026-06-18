@@ -123,8 +123,7 @@ describe('example templates enable the recording countdown', () => {
     everyClipCountsDown('fast-curious');
   });
 
-  it('the landscape & portrait spotlights count down before the clip', () => {
-    everyClipCountsDown('landscape-spotlight');
-    everyClipCountsDown('portrait-spotlight');
+  it('the spotlight counts down before the clip', () => {
+    everyClipCountsDown('spotlight');
   });
 });

@@ -1,0 +1,215 @@
+{
+  "meta": {
+    "name": "Big Reveal",
+    "description": "A 3·2·1 countdown, then your clip bursts in with confetti and a bold headline."
+  },
+  "global": {
+    "orientation": "portrait",
+    "musicEnabled": true,
+    "music": {
+      "name": "beachfront-celebration.mp3"
+    },
+    "allowedMusic": ["beachfront-celebration", "monkeys-spinning-monkeys", "carefree", "pixelland", "brain-dance"],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.3
+    },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.3,
+      "normalize": "loudnorm"
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "What's the news?"
+      },
+      "description": {
+        "en": ""
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_headline",
+            "maxLength": 28,
+            "label": {
+              "en": "Headline"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "countdown",
+      "type": "color_background",
+      "transition": {
+        "type": "fade",
+        "duration": 0.2
+      },
+      "options": {
+        "backgroundColor": "#2b1b52",
+        "duration": 3
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 720,
+            "h": 1280,
+            "c": "#2b1b52@1",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "GET READY"
+            },
+            "fontcolor": "#c7b9f0",
+            "fontsize": 44,
+            "x": "(w-text_w)/2",
+            "y": 360,
+            "fontfile": "Oswald.ttf"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "3"
+            },
+            "fontcolor": "#ffd23f",
+            "fontsize": 300,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0),0,if(lt(t,1),1,0))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "2"
+            },
+            "fontcolor": "#ff6f91",
+            "fontsize": 300,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,1),0,if(lt(t,2),1,0))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "1"
+            },
+            "fontcolor": "#7C83FD",
+            "fontsize": 300,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,2),0,if(lt(t,3),1,0))'"
+          }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "in",
+            "d": "0.4",
+            "color": "#160a2e"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "look": "vivid",
+      "inputs": [
+        {
+          "name": "confetti",
+          "url": "/assets/animations/confetti.apng",
+          "type": "animation",
+          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "720:1280", "opacity": 0.85 }
+        }
+      ],
+      "title": {
+        "en": "Record your reveal"
+      },
+      "description": {
+        "en": "Film your reaction — the headline and confetti drop on top"
+      },
+      "options": {
+        "duration": 6,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.2
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        }
+      ],
+      "maps": [
+        {
+          "inputs": ["@confetti"],
+          "filters": [
+            {
+              "type": "drawbox",
+              "values": {
+                "x": 0,
+                "y": 130,
+                "w": 720,
+                "h": 150,
+                "c": "#160a2e@0.6",
+                "t": "fill"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "{{ form_1_headline }}"
+                },
+                "fontcolor": "#ffd23f",
+                "fontsize": 76,
+                "x": "(w-text_w)/2",
+                "y": 165,
+                "fontfile": "Anton.ttf",
+                "alpha": "'if(lt(t,0.2),0,if(lt(t,0.9),(t-0.2)/0.7,1))'"
+              }
+            },
+            {
+              "type": "fadein",
+              "values": {
+                "color": "#160a2e"
+              }
+            },
+            {
+              "type": "fadeout",
+              "values": {
+                "color": "#160a2e"
+              }
+            }
+          ],
+          "outputs": ["final"]
+        }
+      ]
+    },
+    {
+      "type": "partial",
+      "ref": "logo-bumper-portrait"
+    }
+  ]
+}

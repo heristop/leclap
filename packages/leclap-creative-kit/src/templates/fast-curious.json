@@ -17,6 +17,15 @@
     "music": {
       "name": "point-being.mp3"
     },
+    "allowedMusic": [
+      "point-being",
+      "monkeys-spinning-monkeys",
+      "fluffing-a-duck",
+      "sneaky-snitch",
+      "pixelland",
+      "carefree"
+    ],
+    "allowUploadMusic": true,
     "transition": {
       "type": "fade",
       "duration": 0.2

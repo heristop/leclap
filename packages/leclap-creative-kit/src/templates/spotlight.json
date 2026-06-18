@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "Landscape Spotlight",
+    "name": "Spotlight",
     "description": "Record a clip — graded intro + outro wrap it into a polished video."
   },
   "global": {
@@ -9,6 +9,8 @@
     "music": {
       "name": "arcadia.mp3"
     },
+    "allowedMusic": ["arcadia", "air-prelude", "autumn-day", "americana", "local-forecast-elevator"],
+    "allowUploadMusic": true,
     "transition": {
       "type": "fade",
       "duration": 0.5

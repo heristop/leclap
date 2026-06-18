@@ -18,13 +18,13 @@
     },
     "template": {
       "selected": "Selected Template: {{name}}",
-      "complexity": "Complexity:",
-      "orientation": "Orientation:",
-      "sections": "Sections:",
-      "music": "Music:",
+      "complexity": "Complexity",
+      "orientation": "Orientation",
+      "sections": "Sections",
+      "music": "Music",
       "musicEnabled": "Enabled",
       "musicDisabled": "Disabled",
-      "formData": "Form Data:"
+      "formData": "Your answers"
     },
     "requirements": {
       "title": "Before you can start processing:",

@@ -58,6 +58,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
       size="$4"
       {...animationProps}
       pressStyle={{ scale: 0.97 }}
+      // Gentle fade + rise as each card mounts (and as more enter on scroll), driven by the same
+      // `quick` animation already configured — no scale, so text stays crisp.
+      enterStyle={{ opacity: 0, y: 10 }}
       onPress={() => {
         onPress(template);
       }}

@@ -70,7 +70,7 @@ export const PhoneShowcase = () => {
   }, [playInView, reduced, shouldLoad]);
 
   return (
-    <section className="relative overflow-hidden bg-background py-14 sm:py-20 lg:py-28">
+    <section className="relative overflow-hidden bg-background py-10 sm:py-16 lg:py-28">
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-14">
           {/* Copy — left, intentionally not centered, to break the showcase's symmetry. */}

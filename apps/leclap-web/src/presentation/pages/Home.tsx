@@ -14,7 +14,7 @@ import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 export const Home = () => {
   const { t } = useTranslation('home');
   // Dimmed background clip behind the hero. Paused for reduced-motion viewers.
-  const [reduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const [reduced] = useState(() => globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
   // Stop decoding the blurred hero clip once it scrolls off-screen — a full-frame blurred video
   // composited every frame is the page's heaviest scroll cost, and it's invisible past the fold.
   const [heroRef, heroInView] = useInView({ once: false, threshold: 0 });
@@ -68,22 +68,25 @@ export const Home = () => {
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1
-            className="text-7xl md:text-9xl font-bold mb-6 tracking-tighter fade-in"
+            className="font-display text-6xl sm:text-7xl md:text-9xl font-bold mb-4 sm:mb-6 tracking-tighter fade-in"
             style={{ animationDelay: '0.2s' }}
           >
             <span className="text-gradient-animated">{t('brand', { ns: 'common' })}</span>
           </h1>
 
           <p
-            className="text-2xl md:text-3xl text-gray-300 mb-12 max-w-3xl mx-auto font-light leading-relaxed fade-in"
+            className="text-xl sm:text-2xl md:text-3xl text-gray-300 mb-8 sm:mb-12 max-w-3xl mx-auto font-light leading-relaxed fade-in"
             style={{ animationDelay: '0.4s' }}
           >
             {t('hero.tagline')}
-            <span className="block mt-2 text-lg text-gray-400">{t('hero.subtagline')}</span>
+            <span className="block mt-2 text-base sm:text-lg text-gray-400">{t('hero.subtagline')}</span>
           </p>
 
-          <div className="flex flex-col md:flex-row justify-center gap-6 fade-in" style={{ animationDelay: '0.6s' }}>
-            <Button asChild size="lg" className="group rounded-full glow-brand hover:scale-105">
+          <div
+            className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-6 fade-in"
+            style={{ animationDelay: '0.6s' }}
+          >
+            <Button asChild size="lg" className="group sheen rounded-full glow-brand hover:scale-105">
               <Link to="/studio">
                 {t('hero.startCreating')}
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -95,7 +98,7 @@ export const Home = () => {
               variant="ghost"
               size="lg"
               onClick={() => {
-                window.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
+                globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
               }}
               className="rounded-full"
             >

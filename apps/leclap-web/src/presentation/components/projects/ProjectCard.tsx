@@ -49,7 +49,15 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
   };
 
   return (
-    <Card className="lift group relative h-full overflow-hidden p-0">
+    <Card
+      onMouseMove={(e) => {
+        // Track the pointer for the spotlight glow (cheap: sets CSS vars, no re-render).
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`);
+      }}
+      className="lift spotlight group relative h-full overflow-hidden p-0"
+    >
       <div
         className="relative h-24 overflow-hidden"
         style={poster ? undefined : { backgroundImage: coverGradient(project.templateId) }}

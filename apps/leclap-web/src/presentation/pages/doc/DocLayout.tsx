@@ -3,10 +3,10 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { docNav } from './docNav';
 
 const linkClass = (isActive: boolean): string =>
-  `-ml-px block border-l-2 py-1 pl-4 text-sm transition-colors focus-visible:border-brand-400 focus-visible:text-foreground ${
+  `-ml-px block border-l-2 py-1 pl-4 text-sm transition-all duration-300 ease-[var(--ease-out-expo)] focus-visible:border-brand-400 focus-visible:text-foreground ${
     isActive
-      ? 'border-brand-400 font-medium text-foreground'
-      : 'border-transparent text-gray-400 hover:border-brand-400 hover:text-foreground'
+      ? 'translate-x-0.5 border-brand-400 font-medium text-foreground'
+      : 'border-transparent text-gray-400 hover:translate-x-0.5 hover:border-brand-400/60 hover:text-foreground'
   }`;
 
 // Persistent docs nav. Vertical rail on desktop (sticky); on mobile it sits above the content so every
@@ -79,16 +79,33 @@ export const DocPageHeader = ({
   </header>
 );
 
-export const DocLayout = () => (
-  <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
-    <div className="container mx-auto max-w-6xl px-4 pb-16 pt-24 lg:pt-28">
-      <div className="grid gap-10 lg:grid-cols-[13rem_1fr]">
-        <DocSidebar />
-        <div className="min-w-0">
-          <Outlet />
-          <DocPager />
+export const DocLayout = () => {
+  // Key the content by route so it replays a gentle enter on each doc-page navigation.
+  const { pathname } = useLocation();
+
+  return (
+    // `relative` (not `overflow-hidden`) on the root: an overflow-hidden ancestor would break the
+    // sidebar's `lg:sticky`. The ambient blobs are clipped inside their own absolute wrapper instead.
+    <div className="relative min-h-[calc(100vh-4rem)] bg-background text-foreground">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-brand-500/10 blur-[120px] animate-float" />
+        <div
+          className="absolute bottom-1/4 left-0 h-96 w-96 rounded-full bg-secondary-400/10 blur-[120px] animate-float"
+          style={{ animationDelay: '-3s' }}
+        />
+      </div>
+
+      <div className="relative z-10 container mx-auto max-w-6xl px-4 pb-16 pt-24 lg:pt-28">
+        <div className="grid gap-10 lg:grid-cols-[13rem_1fr]">
+          <DocSidebar />
+          <div className="min-w-0">
+            <div key={pathname} className="fade-in">
+              <Outlet />
+            </div>
+            <DocPager />
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};

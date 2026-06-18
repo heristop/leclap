@@ -203,7 +203,7 @@ body {
   --animate-float: float 6s ease-in-out infinite;
   --animate-glow: glow 2.4s ease-in-out infinite;
   --animate-gradient: gradient-pan 6s ease infinite;
-  /* Cinematic glare gliding across a device screen, then a long pause — a "live screen" cue. */
+  /* Highlight sweep across the phone glass, then a long idle before the next pass. */
   --animate-phone-sheen: phone-sheen 7s var(--ease-out-expo) infinite;
 
   /* Elevation — brand-tinted depth for the bold design system */
@@ -511,6 +511,67 @@ body {
   }
 }
 
+/* Cursor-tracked spotlight: a brand-tinted radial follows the pointer across a card. `--mx/--my` are
+   set on pointer move; only shown on fine pointers (touch would leave :hover stuck), and soft-light
+   blend keeps the tint low enough to stay under the text. Host needs `relative` + a border-radius. */
+@utility spotlight {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: radial-gradient(
+      16rem 16rem at var(--mx, 50%) var(--my, 50%),
+      color-mix(in oklch, var(--color-brand-500) 40%, transparent),
+      transparent 62%
+    );
+    opacity: 0;
+    mix-blend-mode: soft-light;
+    transition: opacity 0.4s var(--ease-smooth);
+    pointer-events: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .spotlight:hover::after {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight::after {
+    transition: none;
+  }
+}
+
+/* A diagonal highlight sweeps across the element once on hover and resets instantly on leave (a
+   gloss/shine pass). Clipped by the host's own border-radius. */
+@utility sheen {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, oklch(1 0 0 / 0.38) 48%, transparent 62%);
+    transform: translateX(-160%);
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    transform: translateX(160%);
+    transition: transform 0.8s var(--ease-out-expo);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen::after {
+    display: none;
+  }
+}
+
 /* Tactile press feedback — gives buttons/cards a native, springy "give". */
 @utility tap {
   touch-action: manipulation;
@@ -548,25 +609,28 @@ body {
   }
 }
 
+/* translateY + opacity only — animating a fractional scale() promotes the element to a GPU layer
+   rasterized at that sub-pixel scale, and mobile WebKit/Blink keeps that blurry raster after the
+   transform settles, leaving text permanently soft. */
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.985);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.96);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -604,7 +668,7 @@ body {
   }
 }
 
-/* A single diagonal highlight sweeps the phone glass, then idles — like light catching a screen. */
+/* A single diagonal highlight sweeps the phone glass, then idles off-screen until the next cycle. */
 @keyframes phone-sheen {
   0% {
     background-position: 140% -40%;
@@ -684,14 +748,14 @@ html.theme-vt::view-transition-new(root) {
 @keyframes vt-out {
   to {
     opacity: 0;
-    transform: translateY(-8px) scale(0.992);
+    transform: translateY(-8px);
   }
 }
 
 @keyframes vt-in {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.992);
+    transform: translateY(12px);
   }
 }
 

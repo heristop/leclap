@@ -122,9 +122,15 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
         onSelect(template);
       }}
       onKeyDown={handleKeyDown}
+      onMouseMove={(e) => {
+        // Track the pointer for the spotlight glow (cheap: sets CSS vars, no React re-render).
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`);
+      }}
       aria-pressed={isSelected}
       className={clsx(
-        'lift group relative h-full w-full overflow-hidden p-0 text-left',
+        'lift spotlight group relative h-full w-full overflow-hidden p-0 text-left',
         isSelected
           ? 'border-brand-500 shadow-lg shadow-brand-500/15 ring-2 ring-brand-500/30'
           : 'border-foreground/10 hover:border-brand-500/40'

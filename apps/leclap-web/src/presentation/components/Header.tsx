@@ -161,23 +161,42 @@ type MobileMenuProps = {
   onClose: () => void;
 };
 
-const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => (
-  <div
-    className={clsx(
-      'md:hidden transition-all duration-300 ease-in-out overflow-hidden',
-      isOpen ? 'max-h-64 opacity-100 mt-4' : 'max-h-0 opacity-0'
-    )}
-  >
-    <nav
-      id="mobile-menu"
-      className="p-4 space-y-2 bg-surface/90 backdrop-blur-xl rounded-2xl border border-foreground/10"
+const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className={clsx(
+        'md:hidden transition-all duration-300 ease-in-out overflow-hidden',
+        isOpen ? 'max-h-[34rem] opacity-100 mt-4' : 'max-h-0 opacity-0'
+      )}
     >
-      {navigationItems.map((item) => (
-        <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
-      ))}
-    </nav>
-  </div>
-);
+      <nav
+        id="mobile-menu"
+        className="p-3 space-y-1 bg-surface/90 backdrop-blur-xl rounded-2xl border border-foreground/10"
+      >
+        {navigationItems.map((item) => (
+          <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
+        ))}
+
+        {/* GitHub is an external, secondary action — separated from the in-app nav by a divider so it
+            reads as "leave the app", and surfaced here because the header's GitHub button is sm-only. */}
+        <div className="mt-2 border-t border-foreground/10 pt-2">
+          <a
+            href="https://github.com/heristop/leclap"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 transition-all duration-200 hover:bg-foreground/5 hover:text-foreground"
+          >
+            <Code2 className="h-4 w-4" />
+            {t('header.github')}
+          </a>
+        </div>
+      </nav>
+    </div>
+  );
+};
 
 export const Header = () => {
   const { t } = useTranslation();

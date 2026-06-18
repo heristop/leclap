@@ -93,7 +93,11 @@ export const Admin = () => {
     <div className="min-h-[calc(100vh-4rem)] bg-background bg-dots text-foreground relative overflow-hidden">
       <Seo title={t('templates.title', { ns: 'seo' })} path="/templates" noindex />
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] animate-float" />
+        <div
+          className="absolute bottom-0 left-1/4 w-96 h-96 bg-secondary-400/10 rounded-full blur-[120px] animate-float"
+          style={{ animationDelay: '-3s' }}
+        />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-16 relative z-10">

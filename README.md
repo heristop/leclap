@@ -35,15 +35,24 @@ LeClap renders video from a single JSON _template_: the same spec — sections, 
 
 ## 🎥 Demo
 
-### Template-driven video
+Two looks at LeClap — a finished clip rendered from a single JSON template, and the mobile app composing one fully **on-device**.
 
-See it in action (unmute for sound):
-
-https://github.com/user-attachments/assets/7edb7990-0dba-43d8-b69b-b357e05e18ba
-
-### LeClap mobile app
-
-https://github.com/user-attachments/assets/4337ccdc-efa5-4d58-b201-1b50630e8cda
+<table>
+  <tr>
+    <td align="center" width="60%" valign="top">
+      <strong>🎬 Template-driven render</strong><br />
+      <sub>one JSON template → a finished clip · <em>unmute for sound</em></sub>
+      <br /><br />
+      <video src="https://github.com/user-attachments/assets/7edb7990-0dba-43d8-b69b-b357e05e18ba" controls muted width="100%"></video>
+    </td>
+    <td align="center" width="40%" valign="top">
+      <strong>📱 On-device on Android</strong><br />
+      <sub>the app: capture → compose → render, on the phone</sub>
+      <br /><br />
+      <video src="https://github.com/user-attachments/assets/4337ccdc-efa5-4d58-b201-1b50630e8cda" controls muted width="260"></video>
+    </td>
+  </tr>
+</table>
 
 ## 🚀 Quick start
 

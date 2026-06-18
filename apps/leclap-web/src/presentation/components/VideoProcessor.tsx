@@ -1,10 +1,24 @@
 import { useState, startTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Play, Square, AlertCircle, CheckCircle2, Loader2, FileText, Users, Lightbulb } from 'lucide-react';
+import {
+  Play,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  FileText,
+  Users,
+  Lightbulb,
+  Gauge,
+  Proportions,
+  Layers,
+  Music,
+  type LucideIcon,
+} from 'lucide-react';
 import clsx from 'clsx';
 import { type Template } from '@/services/templateService';
 import { Button, Card } from '@/presentation/components/ui';
+import { StopButton } from '@/presentation/components/StopButton';
 
 interface VideoProcessorProps {
   isProcessing: boolean;
@@ -111,101 +125,150 @@ function ActionButton({
 }) {
   const { t } = useTranslation('process');
 
+  // While processing, the shared danger StopButton cancels the render; otherwise the primary button
+  // starts it. Stop stays clickable; Start is disabled until the project is ready.
+  if (actuallyProcessing) {
+    return (
+      <div className="flex justify-center">
+        <StopButton
+          size="lg"
+          onClick={onCancelProcessing}
+          label={t('processor.action.stop')}
+          className={clsx(isOptimisticProcessing && 'scale-95')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center">
       <Button
         variant="primary"
         size="lg"
-        // While processing, the same button stops the render; otherwise it starts it.
-        onClick={actuallyProcessing ? onCancelProcessing : onStartProcessing}
-        // Only disabled in the idle "not ready" state — never while processing, so Stop stays clickable.
-        disabled={!actuallyProcessing && !canProcess}
-        aria-label={actuallyProcessing ? t('processor.action.stop') : t('processor.action.start')}
-        className={clsx(
-          'group px-8 py-4',
-          (actuallyProcessing || canProcess) && 'hover:scale-[1.03] active:scale-95',
-          isOptimisticProcessing && 'scale-95'
-        )}
+        onClick={onStartProcessing}
+        disabled={!canProcess}
+        aria-label={t('processor.action.start')}
+        className={clsx('group px-8 py-4', canProcess && 'hover:scale-[1.03] active:scale-95')}
       >
         <span
           className={clsx(
             'p-2 rounded-lg transition-all duration-200 [&_svg]:size-6',
-            actuallyProcessing || canProcess ? 'bg-foreground/20' : 'bg-foreground/5'
+            canProcess ? 'bg-foreground/20' : 'bg-foreground/5'
           )}
         >
-          {actuallyProcessing ? <Square /> : <Play />}
+          <Play />
         </span>
-        <span>{actuallyProcessing ? t('processor.action.stop') : t('processor.action.start')}</span>
+        <span>{t('processor.action.start')}</span>
       </Button>
+    </div>
+  );
+}
+
+// Map each form field name (e.g. "form_1_name") to its descriptor label so the answer review shows
+// "Name", not the raw machine key. Falls back to a de-slugged key when no label is authored.
+function buildFieldLabels(template: Template): Map<string, string> {
+  const labels = new Map<string, string>();
+
+  for (const section of template.descriptor.sections ?? []) {
+    for (const field of section.options?.fields ?? []) {
+      const label = field.label.en ?? Object.values(field.label).find(Boolean);
+
+      if (label) labels.set(field.name, label);
+    }
+  }
+
+  return labels;
+}
+
+const humanizeKey = (key: string): string =>
+  key
+    .replace(/^form_\d+_/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+// One labelled metadata stat (icon + caption on top, value below) for the template's facts. Stacked
+// so short values like "Intermediate" / "Landscape" get the full tile width.
+function MetaItem({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg bg-brand-500/5 px-3 py-2.5 ring-1 ring-brand-500/10">
+      <div className="flex items-center gap-1.5">
+        <Icon className="size-3.5 shrink-0 text-brand-500" aria-hidden="true" />
+        <p className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-brand-800/55 dark:text-brand-200/45">
+          {label}
+        </p>
+      </div>
+      <p className="mt-1 text-sm font-semibold capitalize leading-tight text-brand-900 dark:text-brand-50">
+        {children}
+      </p>
     </div>
   );
 }
 
 function TemplateInfo({ template, formData }: { template: Template; formData: Record<string, string> }) {
   const { t } = useTranslation('process');
+  const fieldLabels = buildFieldLabels(template);
+  const answers = Object.entries(formData).filter(([, value]) => value.trim().length > 0);
+  const musicOn = template.descriptor.global?.musicEnabled ?? false;
 
   return (
-    <Card elevation="flat" className="p-4 bg-brand-500/10 border-brand-500/30 rounded-xl fade-in backdrop-blur-sm">
-      <div className="flex items-start space-x-3">
-        <div className="p-2 bg-brand-500/20 rounded-lg border border-brand-500/20">
-          {template.hasForm ? (
-            <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
-          ) : (
-            <FileText className="w-4 h-4 text-brand-700 dark:text-brand-300" />
-          )}
+    <Card elevation="flat" className="p-5 bg-brand-500/10 border-brand-500/30 rounded-xl fade-in backdrop-blur-sm">
+      <div className="flex items-start gap-3">
+        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-500/20 text-brand-700 ring-1 ring-brand-500/20 dark:text-brand-300">
+          {template.hasForm ? <Users className="size-5" /> : <FileText className="size-5" />}
         </div>
-        <div className="flex-1">
-          <h4 className="text-sm font-medium text-brand-700 dark:text-brand-300 mb-1">
+        <div className="min-w-0 flex-1">
+          <h4 className="font-display text-base font-bold text-brand-900 dark:text-brand-50">
             {t('processor.template.selected', { name: template.name })}
           </h4>
-          <p className="text-xs text-brand-800/70 dark:text-brand-200/70 mb-2">{template.description}</p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.complexity')}</span>
-              <span className="ml-1 font-medium text-brand-700 dark:text-brand-300 capitalize">
-                {template.complexity}
-              </span>
-            </div>
-            <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.orientation')}</span>
-              <span className="ml-1 font-medium text-brand-700 dark:text-brand-300 capitalize">
-                {template.orientation}
-              </span>
-            </div>
-            <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.sections')}</span>
-              <span className="ml-1 font-medium text-brand-700 dark:text-brand-300">
-                {template.descriptor.sections?.length ?? 0}
-              </span>
-            </div>
-            <div>
-              <span className="text-brand-800/70 dark:text-brand-400/70">{t('processor.template.music')}</span>
-              <span className="ml-1 font-medium text-brand-700 dark:text-brand-300">
-                {template.descriptor.global?.musicEnabled
-                  ? t('processor.template.musicEnabled')
-                  : t('processor.template.musicDisabled')}
-              </span>
-            </div>
-          </div>
-          {template.hasForm && Object.keys(formData).length > 0 && (
-            <div className="mt-2 pt-2 border-t border-brand-500/20">
-              <p className="text-xs text-brand-800/70 dark:text-brand-400/70 mb-1">
-                {t('processor.template.formData')}
-              </p>
-              <div className="text-xs text-brand-700 dark:text-brand-300 space-y-1">
-                {Object.entries(formData).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="text-brand-800/70 dark:text-brand-400/70">{key}:</span>
-                    <span className="font-medium truncate ml-2" title={value}>
-                      {value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <p className="mt-0.5 text-sm leading-relaxed text-brand-800/70 dark:text-brand-200/70">
+            {template.description}
+          </p>
         </div>
       </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <MetaItem icon={Gauge} label={t('processor.template.complexity')}>
+          {template.complexity}
+        </MetaItem>
+        <MetaItem icon={Proportions} label={t('processor.template.orientation')}>
+          {template.orientation}
+        </MetaItem>
+        <MetaItem icon={Layers} label={t('processor.template.sections')}>
+          {template.descriptor.sections?.length ?? 0}
+        </MetaItem>
+        <MetaItem icon={Music} label={t('processor.template.music')}>
+          <span className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className={clsx('size-1.5 rounded-full', musicOn ? 'bg-[var(--color-success)]' : 'bg-brand-500/40')}
+            />
+            {musicOn ? t('processor.template.musicEnabled') : t('processor.template.musicDisabled')}
+          </span>
+        </MetaItem>
+      </div>
+
+      {template.hasForm && answers.length > 0 && (
+        <div className="mt-4 border-t border-brand-500/20 pt-4">
+          <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-brand-800/55 dark:text-brand-200/45">
+            {t('processor.template.formData')}
+          </p>
+          <dl className="space-y-1.5">
+            {answers.map(([key, value]) => (
+              <div key={key} className="flex items-baseline justify-between gap-3">
+                <dt className="shrink-0 text-sm text-brand-800/70 dark:text-brand-200/60">
+                  {fieldLabels.get(key) ?? humanizeKey(key)}
+                </dt>
+                <dd
+                  className="min-w-0 truncate text-right text-sm font-semibold text-brand-900 dark:text-brand-50"
+                  title={value}
+                >
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
     </Card>
   );
 }

@@ -300,6 +300,17 @@ body {
   background-image: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-secondary-400) 100%);
 }
 
+/* The danger counterpart of brand-gradient — a rose→red→deeper-red blend (error mixed toward the */
+/* secondary rose) so the Stop control has depth instead of one flat fill.                         */
+@utility danger-gradient {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--color-error) 62%, var(--color-secondary-500)) 0%,
+    var(--color-error) 70%,
+    color-mix(in oklch, var(--color-error) 88%, black) 100%
+  );
+}
+
 @utility brand-gradient-text {
   background-image: var(--grad-text);
   -webkit-background-clip: text;
@@ -327,6 +338,14 @@ body {
 
 @utility glow-brand {
   box-shadow: var(--shadow-glow);
+}
+
+/* Danger-hued depth for the Stop control: a soft drop shadow plus a 1px inner top highlight, so the */
+/* surface reads curved. Parallels glow-brand but tied to the error token.                           */
+@utility glow-danger {
+  box-shadow:
+    0 8px 24px -8px color-mix(in oklch, var(--color-error) 45%, transparent),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.18);
 }
 
 /* Springy lift + brand glow on hover — the signature "pop". */

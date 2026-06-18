@@ -8,13 +8,13 @@ import {
   ArrowRight,
   RotateCcw,
   X,
-  Square,
   Clapperboard,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { VideoPreview } from '@/presentation/components/VideoPreview';
+import { StopButton } from '@/presentation/components/StopButton';
 import { Button, Input } from '@/presentation/components/ui';
 import { useBrowserSupport } from '@/hooks/useBrowserSupport';
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
@@ -224,9 +224,7 @@ export const CompilingStep = ({ progress, onStop }: CompilingStepProps) => {
       <p className="text-gray-300 mb-6 text-sm">{t('compiling.subtitle')}</p>
       <ProgressDisplay progress={progress} />
       <div className="mt-6 flex justify-center">
-        <Button onClick={onStop} variant="danger">
-          <Square /> {t('compiling.stop')}
-        </Button>
+        <StopButton onClick={onStop} label={t('compiling.stop')} />
       </div>
     </div>
   );

@@ -104,7 +104,7 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 
 ## 📚 Documentation
 
-- **[🌐 Descriptor reference (web)](https://leclap.dev/doc)** — the full, schema-driven descriptor reference, one page per topic (sections, transitions, looks, grade, motion, audio, captions, filters, examples, JSON Schema).
+- **[🌐 Descriptor reference (web)](https://leclap.pages.dev/doc)** — the full, schema-driven descriptor reference, one page per topic (sections, transitions, looks, grade, motion, audio, captions, filters, examples, JSON Schema).
 - **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference.
 - **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
 - **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** — how automatic FFmpeg detection works.

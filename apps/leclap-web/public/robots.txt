@@ -1,8 +1,8 @@
-# https://leclap.dev/robots.txt
+# https://leclap.pages.dev/robots.txt
 User-agent: *
 Allow: /
 
 # Private template editor — keep it out of the index.
 Disallow: /admin
 
-Sitemap: https://leclap.dev/sitemap.xml
+Sitemap: https://leclap.pages.dev/sitemap.xml

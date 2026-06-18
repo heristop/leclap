@@ -17,7 +17,7 @@ No backend is required — the compile runs entirely in a Web Worker via `@ffmpe
 - **Routing** — React Router; pages under `src/presentation/pages/` (Home, Builder, Templates, Doc, …).
 - **Assets** — bundled media/fonts are staged from `@leclap/creative-kit` into `public/` on dev/build (git-ignored).
 
-## Deploy — Cloudflare Pages (leclap.dev)
+## Deploy — Cloudflare Pages (leclap.pages.dev)
 
 The app is a static SPA, so deployment is "build, then upload `dist/`". It compiles video with
 FFmpeg WASM, which needs **cross-origin isolation** — `public/_headers` sets the required
@@ -25,7 +25,7 @@ FFmpeg WASM, which needs **cross-origin isolation** — `public/_headers` sets t
 `public/_redirects` adds the SPA fallback. Both are copied into `dist/` by Vite and read by Pages.
 
 ```bash
-# one-time: register leclap.dev in Cloudflare, then authenticate + create the project
+# one-time: register leclap.pages.dev in Cloudflare, then authenticate + create the project
 pnpm dlx wrangler login
 pnpm dlx wrangler pages project create leclap --production-branch main
 
@@ -35,7 +35,7 @@ pnpm dlx wrangler pages deploy apps/leclap-web/dist --project-name=leclap
 ```
 
 Bind the custom domain in the Cloudflare dashboard → Pages → **leclap** → Custom domains
-(`leclap.dev`). `.dev` is HSTS-preloaded (HTTPS-only); Cloudflare provisions TLS automatically.
+(`leclap.pages.dev`). `.dev` is HSTS-preloaded (HTTPS-only); Cloudflare provisions TLS automatically.
 
 **Verify after deploy:** open DevTools on the live URL, confirm the document response carries the
 `Cross-Origin-Opener-Policy`/`Embedder-Policy` headers and `crossOriginIsolated === true`, then run

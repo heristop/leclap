@@ -17,17 +17,17 @@ A template is a Zod-validated JSON descriptor: a `global` block plus an ordered 
 
 The full, schema-driven descriptor reference — generated from the engine's own Zod schema, so it never drifts from what compiles. One page per topic.
 
-- [Overview](https://leclap.dev/doc): the two keys (`global`, `sections[]`), the structured-sugar vs raw-filters layers, how rendering picks cut vs xfade, and project-wide config.
-- [Sections & types](https://leclap.dev/doc/sections): the seven section types (`video`, `project_video`, `form`, `color_background`, `image_background`, `music`, `partial`), base fields, and the full options surface.
-- [Transitions](https://leclap.dev/doc/transitions): every xfade transition name plus `cut`, and the `transition` fields.
-- [Looks](https://leclap.dev/doc/looks): the named colour-grade presets applied via `look`.
-- [Colour grade](https://leclap.dev/doc/grade): manual `grade` controls — brightness, contrast, saturation, gamma, hue, per-range colour balance, blur, curves.
-- [Motion & layers](https://leclap.dev/doc/motion): `motion[]` effects (Ken Burns, rotate, crop, flip), the recording `framingGuide`, and background `layers[]`.
-- [Audio](https://leclap.dev/doc/audio): final-mix volumes, normalisation, ducking, and per-section `audioFade` curves.
-- [Captions](https://leclap.dev/doc/captions): the `caption` sugar with its style, position and alignment options.
-- [Filters & maps](https://leclap.dev/doc/filters): the raw FFmpeg escape hatch — `filters[]`, filter values, and explicit `maps[]`.
-- [Examples](https://leclap.dev/doc/examples): copy-paste descriptors that render with `leclap render`.
-- [JSON Schema](https://leclap.dev/doc/schema): the full machine-readable schema for tooling and validation.
+- [Overview](https://leclap.pages.dev/doc): the two keys (`global`, `sections[]`), the structured-sugar vs raw-filters layers, how rendering picks cut vs xfade, and project-wide config.
+- [Sections & types](https://leclap.pages.dev/doc/sections): the seven section types (`video`, `project_video`, `form`, `color_background`, `image_background`, `music`, `partial`), base fields, and the full options surface.
+- [Transitions](https://leclap.pages.dev/doc/transitions): every xfade transition name plus `cut`, and the `transition` fields.
+- [Looks](https://leclap.pages.dev/doc/looks): the named colour-grade presets applied via `look`.
+- [Colour grade](https://leclap.pages.dev/doc/grade): manual `grade` controls — brightness, contrast, saturation, gamma, hue, per-range colour balance, blur, curves.
+- [Motion & layers](https://leclap.pages.dev/doc/motion): `motion[]` effects (Ken Burns, rotate, crop, flip), the recording `framingGuide`, and background `layers[]`.
+- [Audio](https://leclap.pages.dev/doc/audio): final-mix volumes, normalisation, ducking, and per-section `audioFade` curves.
+- [Captions](https://leclap.pages.dev/doc/captions): the `caption` sugar with its style, position and alignment options.
+- [Filters & maps](https://leclap.pages.dev/doc/filters): the raw FFmpeg escape hatch — `filters[]`, filter values, and explicit `maps[]`.
+- [Examples](https://leclap.pages.dev/doc/examples): copy-paste descriptors that render with `leclap render`.
+- [JSON Schema](https://leclap.pages.dev/doc/schema): the full machine-readable schema for tooling and validation.
 
 ## Packages
 

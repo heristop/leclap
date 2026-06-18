@@ -209,10 +209,15 @@ const CameraStage = ({
 
   // Portrait templates frame the camera as a centered vertical 9:16 box (the recorder crops to
   // match); landscape fills the stage. Overlays live inside the frame so they track its shape.
-  const frameClass = portrait ? 'relative h-full aspect-[9/16] max-w-full overflow-hidden' : 'relative w-full h-full';
+  // The box is height-driven (full stage height, width from the 9:16 aspect, capped to the viewport),
+  // so it fills the surface instead of letterboxing — `min-h-0` on the stage lets the child's `h-full`
+  // resolve under flex on mobile Chrome.
+  const frameClass = portrait
+    ? 'relative mx-auto h-full w-auto max-w-full aspect-[9/16] overflow-hidden'
+    : 'relative w-full h-full';
 
   return (
-    <div className="relative flex-1 flex items-center justify-center overflow-hidden">
+    <div className="relative flex-1 min-h-0 flex items-center justify-center overflow-hidden">
       {mode === 'error' ? (
         <CameraErrorView error={error} onRetry={onRetry} />
       ) : (

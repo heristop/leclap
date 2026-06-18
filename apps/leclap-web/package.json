@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ../../scripts/copy-core-assets.ts && vite",
-    "build": "node ../../scripts/copy-core-assets.ts && vite build",
+    "build": "node ../../scripts/copy-core-assets.ts && vite build && node scripts/seo-prerender.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vp test run",

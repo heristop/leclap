@@ -2,8 +2,8 @@
 // exposes the advanced panels (look, audio, layers, framing, motion) behind disclosures. Every edit
 // goes up via the typed callbacks; the screen applies them through the shared pure ops — this
 // component never mutates EditorState.
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/styles/theme';
@@ -39,23 +39,34 @@ interface SceneCardProps {
   onRemove: () => void;
   onDuplicate: () => void;
   onMove: (dir: -1 | 1) => void;
-  onEditOverlay: () => void;
+  onEditOverlay: (overlayIndex: number) => void;
 }
 
 export const SceneCard = (props: SceneCardProps) => {
   const { index, count, section, t, defaultCountdownSeconds, onChange, onRemove, onDuplicate, onMove, onEditOverlay } =
     props;
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <View testID={`section-${index}`} style={sceneStyles.card}>
       <View style={sceneStyles.cardHeader}>
-        <View style={sceneStyles.cardTitle}>
+        <TouchableOpacity
+          style={sceneStyles.cardTitle}
+          accessibilityRole="button"
+          accessibilityLabel={collapsed ? t('scene.expand') : t('scene.collapse')}
+          accessibilityState={{ expanded: !collapsed }}
+          testID={`section-${index}-collapse`}
+          onPress={() => {
+            setCollapsed((c) => !c);
+          }}
+        >
+          <Ionicons name={collapsed ? 'chevron-forward' : 'chevron-down'} size={16} color={colors.textSecondary} />
           <View style={sceneStyles.numberBadge}>
             <Text style={sceneStyles.numberBadgeText}>{index + 1}</Text>
           </View>
           <Ionicons name={KIND_ICON[section.kind]} size={18} color={colors.primary} />
           <Text style={sceneStyles.cardTitleText}>{SECTION_LABELS[section.kind]}</Text>
-        </View>
+        </TouchableOpacity>
         <View style={sceneStyles.cardActions}>
           <IconBtn
             testID={`section-${index}-up`}
@@ -78,15 +89,19 @@ export const SceneCard = (props: SceneCardProps) => {
         </View>
       </View>
 
-      <SceneBasics
-        index={index}
-        section={section}
-        t={t}
-        defaultCountdownSeconds={defaultCountdownSeconds}
-        onChange={onChange}
-        onEditOverlay={onEditOverlay}
-      />
-      <SceneAdvanced section={section} t={t} onChange={onChange} onLayers={props.onLayers} />
+      {collapsed ? null : (
+        <>
+          <SceneBasics
+            index={index}
+            section={section}
+            t={t}
+            defaultCountdownSeconds={defaultCountdownSeconds}
+            onChange={onChange}
+            onEditOverlay={onEditOverlay}
+          />
+          <SceneAdvanced section={section} t={t} onChange={onChange} onLayers={props.onLayers} />
+        </>
+      )}
     </View>
   );
 };

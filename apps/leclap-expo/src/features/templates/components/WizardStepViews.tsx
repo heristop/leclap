@@ -5,8 +5,11 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography } from '@/src/styles/theme';
+import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { SceneCard } from './SceneCard';
+// Re-exported so the create-template screen imports all scene-step views from one module (keeps its
+// dependency count in check).
+export { SceneTimeline } from './SceneTimeline';
 import { lastVisualIndex } from './wizardSteps';
 import {
   defaultCountdownFor,
@@ -48,6 +51,19 @@ export const InfoStep = ({ state, t, onPatch }: InfoStepProps) => (
       placeholderTextColor={colors.textSecondary}
     />
 
+    <Text style={[styles.label, { marginTop: spacing.l }]}>{t('description.label')}</Text>
+    <TextInput
+      testID="tpl-description"
+      style={[styles.input, styles.inputMultiline]}
+      value={state.description}
+      onChangeText={(description) => {
+        onPatch({ description });
+      }}
+      placeholder={t('description.placeholder')}
+      placeholderTextColor={colors.textSecondary}
+      multiline
+    />
+
     <Text style={[styles.label, { marginTop: spacing.l }]}>{t('orientation.label')}</Text>
     <View style={styles.segment}>
       {(['landscape', 'portrait'] as const).map((o) => (
@@ -72,8 +88,69 @@ export const InfoStep = ({ state, t, onPatch }: InfoStepProps) => (
         </TouchableOpacity>
       ))}
     </View>
+
+    <VariablesEditor state={state} t={t} onPatch={onPatch} />
   </View>
 );
+
+// Reusable {{ name }} → value pairs, inserted into any text field via the variable menu. Mirrors the
+// web GlobalVariablesEditor; edits flow through onPatch so each change is one undoable step.
+const VariablesEditor = ({ state, t, onPatch }: InfoStepProps) => {
+  const { globalVariables } = state;
+
+  const update = (i: number, p: Partial<EditorState['globalVariables'][number]>) => {
+    onPatch({ globalVariables: globalVariables.map((v, idx) => (idx === i ? { ...v, ...p } : v)) });
+  };
+
+  return (
+    <View style={{ marginTop: spacing.l }}>
+      <Text style={styles.label}>{t('variables.label')}</Text>
+      <Text style={styles.hint}>{t('variables.hint')}</Text>
+      {globalVariables.map((variable, i) => (
+        <View key={i} style={styles.varRow}>
+          <TextInput
+            style={[styles.input, styles.varInput]}
+            value={variable.name}
+            onChangeText={(name) => {
+              update(i, { name });
+            }}
+            autoCapitalize="none"
+            placeholder={t('variables.name')}
+            placeholderTextColor={colors.textSecondary}
+          />
+          <TextInput
+            style={[styles.input, styles.varInput]}
+            value={variable.value}
+            onChangeText={(value) => {
+              update(i, { value });
+            }}
+            placeholder={t('variables.value')}
+            placeholderTextColor={colors.textSecondary}
+          />
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('variables.remove', { n: i + 1 })}
+            onPress={() => {
+              onPatch({ globalVariables: globalVariables.filter((_, idx) => idx !== i) });
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      ))}
+      <TouchableOpacity
+        onPress={() => {
+          onPatch({ globalVariables: [...globalVariables, { name: '', value: '' }] });
+        }}
+        style={styles.addInline}
+      >
+        <Ionicons name="add" size={14} color={colors.primary} />
+        <Text style={styles.addInlineText}>{t('variables.add')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 interface ScenesStepProps {
   state: EditorState;
@@ -85,7 +162,9 @@ interface ScenesStepProps {
   onMove: (i: number, dir: -1 | 1) => void;
   onAdd: (kind: EditorSection['kind']) => void;
   onOpenTransition: (i: number) => void;
-  onEditOverlay: (i: number) => void;
+  onEditOverlay: (sectionIndex: number, overlayIndex: number) => void;
+  // Reports each scene card's y within this block so the timeline strip can scroll it into view.
+  onSectionLayout?: (i: number, y: number) => void;
 }
 
 export const ScenesStep = (props: ScenesStepProps) => {
@@ -96,7 +175,12 @@ export const ScenesStep = (props: ScenesStepProps) => {
   return (
     <View>
       {state.sections.map((section, i) => (
-        <View key={i}>
+        <View
+          key={i}
+          onLayout={(e) => {
+            props.onSectionLayout?.(i, e.nativeEvent.layout.y);
+          }}
+        >
           <SceneCard
             index={i}
             count={state.sections.length}
@@ -118,8 +202,8 @@ export const ScenesStep = (props: ScenesStepProps) => {
             onMove={(dir) => {
               onMove(i, dir);
             }}
-            onEditOverlay={() => {
-              onEditOverlay(i);
+            onEditOverlay={(overlayIndex) => {
+              onEditOverlay(i, overlayIndex);
             }}
           />
           {section.kind !== 'music' && i !== lastVisual ? (
@@ -200,6 +284,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
   },
+  inputMultiline: { minHeight: 64, textAlignVertical: 'top' },
+  hint: { ...typography.smallText, color: colors.textSecondary, marginBottom: spacing.s },
+  varRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s, marginBottom: spacing.s },
+  varInput: { flex: 1 },
+  addInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    minHeight: 36,
+    paddingHorizontal: spacing.m,
+    borderRadius: 999,
+    backgroundColor: withAlpha(colors.primary, 0.08),
+  },
+  addInlineText: { ...typography.caption, color: colors.primary, fontWeight: '600' },
   segment: { flexDirection: 'row', gap: spacing.s },
   segmentItem: {
     flex: 1,
@@ -226,7 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.primary,
-    backgroundColor: 'rgba(124,131,253,0.08)',
+    backgroundColor: withAlpha(colors.primary, 0.08),
   },
   addBtnText: { ...typography.caption, color: colors.primary, fontWeight: '600' },
   connector: { flexDirection: 'row', alignItems: 'center', gap: spacing.s, paddingVertical: spacing.xs },

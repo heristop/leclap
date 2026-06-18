@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -11,7 +11,7 @@ import { useUserTemplateStore, type UserTemplate } from '@/src/stores/useUserTem
 import { TransitionSheet } from '@/src/features/templates/components/TransitionSheet';
 import { OverlayPositioner } from '@/src/features/templates/components/OverlayPositioner';
 import { StyleAudioStep } from '@/src/features/templates/components/StyleAudioStep';
-import { InfoStep, ScenesStep } from '@/src/features/templates/components/WizardStepViews';
+import { InfoStep, ScenesStep, SceneTimeline } from '@/src/features/templates/components/WizardStepViews';
 import { useEditorHistory } from '@/src/features/templates/components/useEditorHistory';
 import { exportTemplate, importTemplate } from '@/src/features/templates/components/editorIO';
 import { previewRender } from '@/src/features/templates/components/previewRender';
@@ -77,6 +77,9 @@ function useTemplateWizard(t: TFunction<'editor'>) {
   );
   const [transitionIndex, setTransitionIndex] = useState<number | null>(null);
   const [overlayIndex, setOverlayIndex] = useState<number | null>(null);
+  // Which text overlay within the section's overlays[] is open in the positioner (a section can carry
+  // several). Editing at length appends a fresh overlay first, so the "Add text" affordance reuses this.
+  const [overlayLayer, setOverlayLayer] = useState(0);
 
   const patch = (p: Partial<EditorState>) => {
     setState((s) => ({ ...s, ...p }));
@@ -113,12 +116,16 @@ function useTemplateWizard(t: TFunction<'editor'>) {
     router.back();
   };
 
-  const openOverlay = (i: number) => {
+  const openOverlay = (i: number, layer: number) => {
     const target = state.sections[i];
 
-    if (target.kind === 'video' && target.overlays.length === 0) patchSection(i, { overlays: [newOverlay()] });
+    if (target.kind !== 'video') return;
+
+    // Editing past the end (the "Add text" affordance) appends a fresh overlay to edit.
+    if (layer >= target.overlays.length) patchSection(i, { overlays: [...target.overlays, newOverlay()] });
 
     setOverlayIndex(i);
+    setOverlayLayer(layer);
   };
 
   const transitionSection = transitionIndex === null ? undefined : state.sections[transitionIndex];
@@ -127,7 +134,8 @@ function useTemplateWizard(t: TFunction<'editor'>) {
       ? (transitionSection as VideoSection).transitionAfter
       : undefined;
   const overlaySection = overlayIndex === null ? undefined : state.sections[overlayIndex];
-  const overlay: TextOverlay | undefined = overlaySection?.kind === 'video' ? overlaySection.overlays[0] : undefined;
+  const overlay: TextOverlay | undefined =
+    overlaySection?.kind === 'video' ? overlaySection.overlays[overlayLayer] : undefined;
 
   const io = makeTemplateIO(state, setState, t);
 
@@ -142,6 +150,7 @@ function useTemplateWizard(t: TFunction<'editor'>) {
     overlaySection,
     overlayIndex,
     setOverlayIndex,
+    overlayLayer,
     overlay,
     onSave,
     close,
@@ -169,6 +178,7 @@ export default function CreateTemplateScreen() {
     overlaySection,
     overlayIndex,
     setOverlayIndex,
+    overlayLayer,
     overlay,
     onSave,
     close,
@@ -180,6 +190,15 @@ export default function CreateTemplateScreen() {
     onImport,
     onExport,
   } = useTemplateWizard(t);
+
+  // Timeline → scroll a scene card into view. Each card reports its y within the Scenes block; the block
+  // reports its own offset in the scroll content, so absolute target = block offset + card y.
+  const scrollRef = useRef<ScrollView>(null);
+  const scenesRootY = useRef(0);
+  const sectionYs = useRef<number[]>([]);
+  const scrollToSection = (i: number) => {
+    scrollRef.current?.scrollTo({ y: scenesRootY.current + (sectionYs.current[i] ?? 0), animated: true });
+  };
 
   // Compile the draft on-device with placeholder clips, then open the shared preview screen — the
   // Expo twin of the web "Test render". The button's own spinner covers the wait.
@@ -246,36 +265,46 @@ export default function CreateTemplateScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.sectionHeading}>{t(STEP_TITLE_KEY.info)}</Text>
         <InfoStep state={state} t={t} onPatch={patch} />
 
         <Text style={styles.sectionHeading}>{t(STEP_TITLE_KEY.scenes)}</Text>
-        <ScenesStep
-          state={state}
-          t={t}
-          onPatchSection={patchSection}
-          onLayers={(i, layers) => {
-            setState((s) => patchLayers(s, i, layers));
+        <SceneTimeline state={state} t={t} onSelect={scrollToSection} />
+        <View
+          onLayout={(e) => {
+            scenesRootY.current = e.nativeEvent.layout.y;
           }}
-          onRemove={(i) => {
-            setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
-          }}
-          onDuplicate={(i) => {
-            setState((s) => duplicateSection(s, i));
-            Haptics.selectionAsync().catch(() => {});
-          }}
-          onMove={(i, dir) => {
-            setState((s) => reorderSection(s, i, i + dir));
-            Haptics.selectionAsync().catch(() => {});
-          }}
-          onAdd={(kind) => {
-            setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] }));
-            Haptics.selectionAsync().catch(() => {});
-          }}
-          onOpenTransition={setTransitionIndex}
-          onEditOverlay={openOverlay}
-        />
+        >
+          <ScenesStep
+            state={state}
+            t={t}
+            onSectionLayout={(i, y) => {
+              sectionYs.current[i] = y;
+            }}
+            onPatchSection={patchSection}
+            onLayers={(i, layers) => {
+              setState((s) => patchLayers(s, i, layers));
+            }}
+            onRemove={(i) => {
+              setState((s) => ({ ...s, sections: s.sections.filter((_, idx) => idx !== i) }));
+            }}
+            onDuplicate={(i) => {
+              setState((s) => duplicateSection(s, i));
+              Haptics.selectionAsync().catch(() => {});
+            }}
+            onMove={(i, dir) => {
+              setState((s) => reorderSection(s, i, i + dir));
+              Haptics.selectionAsync().catch(() => {});
+            }}
+            onAdd={(kind) => {
+              setState((s) => ({ ...s, sections: [...s.sections, newSection(kind)] }));
+              Haptics.selectionAsync().catch(() => {});
+            }}
+            onOpenTransition={setTransitionIndex}
+            onEditOverlay={openOverlay}
+          />
+        </View>
 
         <Text style={styles.sectionHeading}>{t(STEP_TITLE_KEY.style)}</Text>
         <StyleAudioStep state={state} t={t} onPatch={patch} />
@@ -330,13 +359,14 @@ export default function CreateTemplateScreen() {
         onChange={(next) => {
           if (overlayIndex === null || !overlaySection || overlaySection.kind !== 'video') return;
 
-          const [, ...rest] = overlaySection.overlays;
-          patchSection(overlayIndex, { overlays: [next, ...rest] });
+          patchSection(overlayIndex, {
+            overlays: overlaySection.overlays.map((o, idx) => (idx === overlayLayer ? next : o)),
+          });
         }}
         onRemove={() => {
           if (overlayIndex === null || !overlaySection || overlaySection.kind !== 'video') return;
 
-          patchSection(overlayIndex, { overlays: overlaySection.overlays.slice(1) });
+          patchSection(overlayIndex, { overlays: overlaySection.overlays.filter((_, idx) => idx !== overlayLayer) });
           setOverlayIndex(null);
         }}
       />

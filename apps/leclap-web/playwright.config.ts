@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // E2E config for the in-browser FFmpeg WASM template-compilation checks.
-// Reuses a running dev server on :5174, or starts one.
+// Reuses a running dev server (default :5174); override with E2E_BASE_URL to point at another port.
+const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:5174';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -9,14 +11,14 @@ export default defineConfig({
   timeout: 20 * 60 * 1000,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL,
     headless: true,
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'pnpm dev',
-    url: 'http://localhost:5174',
+    url: baseURL,
     reuseExistingServer: true,
     timeout: 120 * 1000,
   },

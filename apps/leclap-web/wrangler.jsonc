@@ -2,8 +2,9 @@
   // Cloudflare Workers static-assets deploy for the web SPA. Set the Pages/Workers project's
   // "Root directory" to apps/leclap-web so `wrangler deploy` runs here (not the pnpm workspace root,
   // which trips wrangler's app auto-detection). `directory` is relative to this app → dist/.
-  // public/_headers (COOP/COEP cross-origin isolation) + public/_redirects are copied into dist and
-  // honored by Workers static assets.
+  // public/_headers (COOP/COEP cross-origin isolation) is copied into dist and honored by Workers static
+  // assets. SPA fallback is handled by `not_found_handling` below — no _redirects file (a `/* /index.html`
+  // rewrite is rejected by Workers static-assets validation as a self-referential loop).
   "name": "leclap",
   "compatibility_date": "2026-06-16",
   "assets": {

@@ -48,13 +48,20 @@ const ColorPickerDemo = () => {
 };
 
 export const Design = () => (
-  <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground bg-dots">
+  <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-background text-foreground bg-dots">
     <Seo
       title="Design System"
       description="The LeClap design system — colors, typography, motion and UI components."
       path="/design"
     />
-    <div className="container mx-auto px-4 pt-24 pb-16 max-w-5xl">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute right-1/4 top-0 h-96 w-96 rounded-full bg-brand-500/10 blur-[120px] animate-float" />
+      <div
+        className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-secondary-400/10 blur-[120px] animate-float"
+        style={{ animationDelay: '-3s' }}
+      />
+    </div>
+    <div className="relative z-10 container mx-auto px-4 pt-24 pb-16 max-w-5xl">
       <h1 className="text-[length:var(--text-display-sm)] font-bold font-display text-gradient-animated mb-2">
         Design System
       </h1>

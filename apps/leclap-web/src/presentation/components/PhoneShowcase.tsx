@@ -70,9 +70,9 @@ export const PhoneShowcase = () => {
   }, [playInView, reduced, shouldLoad]);
 
   return (
-    <section className="relative bg-background py-20 sm:py-28">
+    <section className="relative overflow-hidden bg-background py-14 sm:py-20 lg:py-28">
       <div className="mx-auto w-full max-w-6xl px-4">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-14">
+        <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-14">
           {/* Copy — left, intentionally not centered, to break the showcase's symmetry. */}
           <div className="order-2 lg:order-1">
             <Reveal from="up" threshold={0.4} rootMargin="0px 0px -12% 0px">
@@ -117,8 +117,7 @@ export const PhoneShowcase = () => {
             </Reveal>
           </div>
 
-          {/* Phone — right. A restrained device frame; the recording IS a phone screen, so the bezel
-              reads as intentional context rather than decoration. */}
+          {/* Phone — right. The recording is a phone screen capture, so it sits in a device bezel. */}
           <div className="relative order-1 lg:order-2">
             {/* Soft brand aura bleeding out from behind the phone; fades in with it. */}
             <div
@@ -134,7 +133,7 @@ export const PhoneShowcase = () => {
               ref={setFrameRef}
               className={cn(
                 'relative mx-auto w-full max-w-[290px] rounded-[2.8rem] bg-gradient-to-b from-neutral-700 via-neutral-900 to-neutral-950 p-[11px]',
-                'shadow-[0_34px_60px_-22px_rgba(0,0,0,0.6),0_10px_22px_-12px_rgba(0,0,0,0.45)] ring-1 ring-black/60',
+                'shadow-[0_34px_60px_-22px_oklch(0_0_0_/_0.6),0_10px_22px_-12px_oklch(0_0_0_/_0.45)] ring-1 ring-black/60',
                 'transition-all duration-700 ease-[var(--ease-spring)]',
                 'motion-reduce:transition-none motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100',
                 revealed
@@ -142,7 +141,7 @@ export const PhoneShowcase = () => {
                   : 'translate-y-8 scale-[0.97] opacity-0 will-change-[transform,opacity]'
               )}
             >
-              {/* Brushed-metal rim: a hairline inner highlight on the frame edge catches the light. */}
+              {/* Hairline inner highlight along the bezel edge. */}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 rounded-[2.8rem] ring-1 ring-inset ring-white/10"
@@ -187,15 +186,14 @@ export const PhoneShowcase = () => {
                   </video>
                 )}
 
-                {/* Subtle "live screen" wow: a cinematic glare glides across the glass, then idles.
-                    Purely ambient, so it's hidden for reduced-motion viewers. */}
+                {/* Highlight sweep across the glass. Ambient only, so hidden for reduced-motion. */}
                 {shouldLoad && (
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 animate-phone-sheen mix-blend-screen motion-reduce:hidden"
                     style={{
                       background:
-                        'linear-gradient(115deg, transparent 38%, rgba(167,139,250,0.10) 46%, rgba(255,255,255,0.22) 50%, transparent 60%)',
+                        'linear-gradient(115deg, transparent 38%, oklch(0.71 0.16 293 / 0.1) 46%, oklch(1 0 0 / 0.22) 50%, transparent 60%)',
                       backgroundSize: '250% 250%',
                     }}
                   />

@@ -21,7 +21,11 @@ export const PartialsPage = () => {
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-background bg-dots text-foreground">
       <Seo title={t('partials.title')} path="/partials" noindex />
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-brand-500/10 blur-[120px]" />
+        <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-brand-500/10 blur-[120px] animate-float" />
+        <div
+          className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-secondary-400/10 blur-[120px] animate-float"
+          style={{ animationDelay: '-3s' }}
+        />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-24 pb-16">

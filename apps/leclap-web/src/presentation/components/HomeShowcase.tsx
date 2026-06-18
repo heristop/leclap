@@ -94,7 +94,7 @@ export const HomeShowcase = () => {
   };
 
   return (
-    <section className="relative bg-background py-20 sm:py-28">
+    <section className="relative bg-background py-14 sm:py-20 lg:py-28">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-300">
@@ -106,7 +106,7 @@ export const HomeShowcase = () => {
           <p className="mt-4 leading-relaxed text-gray-400">{t('showcase.subtitle')}</p>
         </div>
 
-        <div className="relative mx-auto mt-12 max-w-4xl">
+        <div className="relative mx-auto mt-8 max-w-4xl sm:mt-12">
           {/* Soft brand aura bleeding out from behind the frame; fades in with it. */}
           <div
             aria-hidden="true"
@@ -119,7 +119,7 @@ export const HomeShowcase = () => {
           <div
             ref={setFrameRef}
             className={cn(
-              'relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-foreground/10',
+              'relative aspect-video overflow-hidden rounded-xl bg-black shadow-xl ring-1 ring-foreground/10 sm:rounded-2xl sm:shadow-2xl',
               'transition-all duration-700 ease-[var(--ease-spring)]',
               'motion-reduce:transition-none motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100',
               // will-change only while hidden, then dropped so the frame's compositor layer is freed.
@@ -187,7 +187,7 @@ export const HomeShowcase = () => {
         </div>
 
         {/* CTA cluster: one filled primary + outlined secondaries, from the app's Button variants. */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:mt-10">
           <Button asChild size="lg" className="group rounded-full">
             <Link to="/studio">
               {t('showcase.cta')}

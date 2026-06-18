@@ -26,7 +26,7 @@ interface SceneBasicsProps {
   t: TFunction<'editor'>;
   defaultCountdownSeconds: (duration: number) => number;
   onChange: (p: Partial<EditorSection>) => void;
-  onEditOverlay: () => void;
+  onEditOverlay: (overlayIndex: number) => void;
 }
 
 export const SceneBasics = ({
@@ -38,8 +38,6 @@ export const SceneBasics = ({
   onEditOverlay,
 }: SceneBasicsProps) => {
   if (section.kind === 'video') {
-    const primaryText = section.overlays.length > 0 ? section.overlays[0].text.trim() : '';
-
     return (
       <View>
         <FieldRow label={t('section.duration')}>
@@ -74,18 +72,36 @@ export const SceneBasics = ({
             placeholderTextColor={colors.textSecondary}
           />
         </FieldRow>
+        <Text style={styles.fieldLabel}>{t('section.textOverlays')}</Text>
+        {section.overlays.map((o, oi) => (
+          <TouchableOpacity
+            key={oi}
+            accessibilityRole="button"
+            accessibilityLabel={t('section.editTitle')}
+            testID={`section-${index}-overlay-${oi}`}
+            onPress={() => {
+              onEditOverlay(oi);
+            }}
+            style={styles.overlayBtn}
+          >
+            <Ionicons name="text-outline" size={16} color={colors.primary} />
+            <Text style={styles.overlayBtnText} numberOfLines={1}>
+              {o.text.trim() === '' ? t('overlay.sample') : o.text}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ))}
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={t('section.editTitle')}
+          accessibilityLabel={t('section.addText')}
           testID={`section-${index}-overlay`}
-          onPress={onEditOverlay}
-          style={styles.overlayBtn}
+          onPress={() => {
+            onEditOverlay(section.overlays.length);
+          }}
+          style={styles.addInline}
         >
-          <Ionicons name="text-outline" size={16} color={colors.primary} />
-          <Text style={styles.overlayBtnText} numberOfLines={1}>
-            {primaryText === '' ? t('section.addTitle') : primaryText}
-          </Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+          <Ionicons name="add" size={14} color={colors.primary} />
+          <Text style={styles.addInlineText}>{t('section.addText')}</Text>
         </TouchableOpacity>
         <Toggle
           label={t('section.countdownToggle')}

@@ -38,6 +38,15 @@ export const colors = {
   info: '#2196F3',
 };
 
+// React Native's StyleSheet color parser has no oklch()/color-mix() — only hex, rgb(a), hsl(a), hwb,
+// named colors and PlatformColor. To tint a brand color by opacity, expand a #RRGGBB hex to rgba() so
+// the hue stays sourced from one token (e.g. colors.primary) instead of hardcoded rgb triplets.
+export const withAlpha = (hex: string, alpha: number): string => {
+  const n = parseInt(hex.replace('#', ''), 16);
+
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+};
+
 export const spacing = {
   xs: 4,
   s: 8,

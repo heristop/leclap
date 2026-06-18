@@ -20,10 +20,25 @@ const FIXTURES = [
   { label: 'no-audio', video: `${VIDEO_DIR}/earth-no-audio.mp4` },
 ];
 
-// Form templates need field values; everything else compiles with no form data.
-const FORM_DATA: Record<string, Record<string, string>> = {
-  'sample-advanced': { form_1_firstname: 'Alexandre', form_1_lastname: 'Mogere', form_1_job: 'Engineer' },
-  sample: { form_1_firstname: 'Alexandre', form_1_lastname: 'Mogere', form_1_job: 'Engineer' },
+// Sample values for any form field a bundled template might reference (extra keys are harmless).
+const DEFAULT_FORM: Record<string, string> = {
+  form_1_firstname: 'Alexandre',
+  form_1_lastname: 'Mogere',
+  form_1_name: 'Alexandre',
+  form_1_job: 'Engineer',
+  form_1_title: 'Engineer',
+  form_1_question: 'What drives you',
+  form_1_quote: 'Make it count',
+  form_1_headline: 'We did it',
+  form_1_scene1: 'Morning',
+  form_1_scene2: 'Coffee',
+  form_1_scene3: 'Work',
+  optionA1: 'Tea',
+  optionB1: 'Coffee',
+  optionA2: 'Beach',
+  optionB2: 'Mountains',
+  optionA3: 'Cats',
+  optionB3: 'Dogs',
 };
 
 async function listTemplateIds(page: Page): Promise<string[]> {
@@ -46,13 +61,19 @@ async function compileTemplate(
       const { templateService } = await import('/src/services/templateService.ts');
       const { coreCompilationService } = await import('/src/application/usecases/coreCompilationService.ts');
       const resp = await fetch(sampleVideo);
-      const file = new File([await resp.arrayBuffer()], 'earth.mp4', { type: 'video/mp4' });
+      const buf = await resp.arrayBuffer();
       const withTimeout = <T>(p: Promise<T>, ms: number) =>
         Promise.race([p, new Promise<never>((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), ms))]);
       try {
         const template = await templateService.getTemplate(id);
+        // One clip per project_video section — multi-clip templates need a clip for each.
+        const clipCount = Math.max(
+          1,
+          (template.descriptor.sections ?? []).filter((s: { type?: string }) => s.type === 'project_video').length
+        );
+        const files = Array.from({ length: clipCount }, () => new File([buf], 'earth.mp4', { type: 'video/mp4' }));
         const result = await withTimeout(
-          coreCompilationService.compileVideo({ template, formData, files: [file] }, () => {}),
+          coreCompilationService.compileVideo({ template, formData, files }, () => {}),
           120000
         );
 
@@ -79,7 +100,7 @@ test.describe('All templates compile in FFmpeg WASM', () => {
       for (const id of ids) {
         // Reload between templates to reset the in-memory template cache + FS.
         await page.goto('/studio');
-        results[id] = await compileTemplate(page, id, FORM_DATA[id] ?? {}, fixture.video);
+        results[id] = await compileTemplate(page, id, DEFAULT_FORM, fixture.video);
         console.log(
           `[${fixture.label}] ${results[id].ok ? 'PASS' : 'FAIL'} ${id}` +
             (results[id].ok ? ` (${results[id].size} bytes)` : ` — ${results[id].error}`)

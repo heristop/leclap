@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
 import { HomeShowcase } from '@/presentation/components/HomeShowcase';
+import { PhoneShowcase } from '@/presentation/components/PhoneShowcase';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
 import { useInView } from '@/hooks/useInView';
@@ -107,6 +108,9 @@ export const Home = () => {
 
       {/* Showcase — an actual in-browser render */}
       <HomeShowcase />
+
+      {/* Phone showcase — the on-device Android app */}
+      <PhoneShowcase />
 
       {/* Features Section */}
       <FeaturesSection />

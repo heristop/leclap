@@ -77,12 +77,21 @@ function useRevokeObjectUrl(url: string | null): void {
   }, [url]);
 }
 
+// Round down to the nearest even integer. Android hardware video encoders (H.264 via MediaRecorder)
+// require even width/height and crash on odd ones — so the canvas the recorder captures must be even.
+const even = (n: number): number => Math.max(2, Math.floor(n / 2) * 2);
+
 // Center-crop rectangle of a wxh source for a target aspect ratio (e.g. 9/16 for a portrait
 // template). Matches the live preview's object-cover so the saved file shows the same framing.
-function cropRect(w: number, h: number, targetAspect: number): { sx: number; sy: number; sw: number; sh: number } {
+// sw/sh are forced even so the recorder's canvas dimensions are encoder-safe on mobile.
+export function cropRect(
+  w: number,
+  h: number,
+  targetAspect: number
+): { sx: number; sy: number; sw: number; sh: number } {
   const wide = w / h > targetAspect;
-  const sw = wide ? Math.round(h * targetAspect) : w;
-  const sh = wide ? h : Math.round(w / targetAspect);
+  const sw = even(wide ? h * targetAspect : w);
+  const sh = even(wide ? h : w / targetAspect);
 
   return { sx: Math.round((w - sw) / 2), sy: Math.round((h - sh) / 2), sw, sh };
 }
@@ -114,7 +123,9 @@ function createCanvasStream(
     ctx?.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
     raf = requestAnimationFrame(draw);
   };
-  raf = requestAnimationFrame(draw);
+  // Paint one frame synchronously before capturing, so MediaRecorder never starts on a blank canvas
+  // (some Android builds stall/error when the captured stream has produced no frame yet).
+  draw();
 
   const stream = canvas.captureStream(30);
 
@@ -134,9 +145,28 @@ function createCanvasStream(
   };
 }
 
+// The stream to feed MediaRecorder: a cropped/mirrored canvas when the saved file must differ from the
+// raw track (mirrored front-camera selfie and/or 9:16 portrait crop), otherwise the raw source. `stop`
+// is a no-op for the raw path so callers can always call it.
+function buildRecordStream(
+  source: MediaStream,
+  video: HTMLVideoElement | null,
+  mirror: boolean,
+  portrait: boolean
+): { stream: MediaStream; stop: () => void } {
+  if ((mirror || portrait) && video) return createCanvasStream(video, source, { mirror, portrait });
+
+  return { stream: source, stop: () => {} };
+}
+
+// Shown when MediaRecorder fails to start or errors mid-record (e.g. a codec/encoder the device can't
+// satisfy). Surfaced through the error view instead of letting the throw crash the recorder.
+const RECORD_ERROR = "Couldn't start recording on this device. Try again, or switch camera.";
+
 interface RecorderHandlers {
   onStart: () => void;
   onResult: (objectUrl: string) => void;
+  onError: (message: string) => void;
 }
 
 interface RecorderController {
@@ -170,42 +200,67 @@ function useRecorder(
     };
   }, []);
 
+  // Tear down the canvas loop and surface the error view instead of letting a throw crash the page —
+  // MediaRecorder construction/start can throw (unsupported codec) and the encoder can die mid-record
+  // (onerror), both common on mobile hardware encoders.
+  const failRecording = (): void => {
+    mirrorStopRef.current?.();
+    mirrorStopRef.current = null;
+    handlers.onError(RECORD_ERROR);
+  };
+
+  // Build + configure the recorder (handlers wired) or return null if construction throws.
+  const makeRecorder = (source: MediaStream): MediaRecorder | null => {
+    chunksRef.current = [];
+    const mimeType = pickMimeType();
+
+    // Everything that can throw lives in the try: `canvas.captureStream` (Safari/iOS only ≥16.4) and
+    // the MediaRecorder constructor (unsupported codec). A failure surfaces the error view, not a crash.
+    try {
+      const { stream, stop } = buildRecordStream(source, videoRef.current, mirror, portrait);
+      mirrorStopRef.current = stop;
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.onerror = failRecording;
+      recorder.onstop = () => {
+        const type = mimeType ?? 'video/webm';
+        const blob = new Blob(chunksRef.current, { type });
+        const ext = type.includes('mp4') ? 'mp4' : 'webm';
+        fileRef.current = new File([blob], `recording-${Date.now()}.${ext}`, { type });
+        mirrorStopRef.current?.();
+        mirrorStopRef.current = null;
+        handlers.onResult(URL.createObjectURL(blob));
+      };
+
+      return recorder;
+    } catch {
+      failRecording();
+
+      return null;
+    }
+  };
+
   const startRecording = () => {
     const source = streamRef.current;
 
     if (!source) return;
 
-    chunksRef.current = [];
-    const mimeType = pickMimeType();
+    const recorder = makeRecorder(source);
 
-    // Record through a canvas when the saved file must differ from the raw track: a mirrored
-    // front-camera selfie and/or a 9:16 center-crop for a portrait template. Otherwise (landscape,
-    // back camera) record the raw stream untouched.
-    let recordStream = source;
-
-    if ((mirror || portrait) && videoRef.current) {
-      const processed = createCanvasStream(videoRef.current, source, { mirror, portrait });
-      mirrorStopRef.current = processed.stop;
-      recordStream = processed.stream;
-    }
-
-    const recorder = new MediaRecorder(recordStream, mimeType ? { mimeType } : undefined);
-
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) chunksRef.current.push(event.data);
-    };
-    recorder.onstop = () => {
-      const type = mimeType ?? 'video/webm';
-      const blob = new Blob(chunksRef.current, { type });
-      const ext = type.includes('mp4') ? 'mp4' : 'webm';
-      fileRef.current = new File([blob], `recording-${Date.now()}.${ext}`, { type });
-      mirrorStopRef.current?.();
-      mirrorStopRef.current = null;
-      handlers.onResult(URL.createObjectURL(blob));
-    };
+    if (!recorder) return;
 
     recorderRef.current = recorder;
-    recorder.start();
+
+    try {
+      recorder.start();
+    } catch {
+      failRecording();
+
+      return;
+    }
+
     handlers.onStart();
   };
 
@@ -389,6 +444,10 @@ export function useCameraCapture(
     onResult: (objectUrl) => {
       setPreviewUrl(objectUrl);
       setMode('preview');
+    },
+    onError: (message) => {
+      setError(message);
+      setMode('error');
     },
   });
 

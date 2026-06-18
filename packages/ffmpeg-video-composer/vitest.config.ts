@@ -26,7 +26,9 @@ export default defineConfig({
     pool: 'threads',
     maxWorkers: undefined,
     isolate: true,
-    fileParallelism: true,
+    // End-to-end compile tests share singleton DI state and FFmpeg build artifacts; running test
+    // files concurrently lets renders clobber each other's segments.list/output paths.
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

@@ -16,7 +16,9 @@ function EmptyState() {
 
   return (
     <View style={styles.emptyContainer}>
-      <Ionicons name="videocam-outline" size={64} color={colors.divider} />
+      <View style={styles.emptyIconWrap}>
+        <Ionicons name="videocam-outline" size={40} color={colors.primary} />
+      </View>
       <Text style={styles.emptyTitle}>{t('empty.title')}</Text>
       <Text style={styles.emptyText}>{t('empty.subtitle')}</Text>
     </View>
@@ -233,6 +235,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
+  },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: 'rgba(124,131,253,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.s,
   },
   emptyTitle: {
     ...typography.subtitle,

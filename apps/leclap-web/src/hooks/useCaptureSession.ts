@@ -303,11 +303,10 @@ function deriveForUpload(uploadFile: File | null): DerivedValues {
 
 export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionReturn {
   const [mode, setModeState] = useState<CaptureMode>(config.defaultMode);
-
-  const capturedFileRef = useRef<File | null>(null);
+  const [capturedFile, setCapturedFile] = useState<File | null>(null);
 
   const handleCameraCapture = useCallback((file: File) => {
-    capturedFileRef.current = file;
+    setCapturedFile(file);
   }, []);
 
   // Always call all sub-hooks unconditionally (Rules of Hooks)
@@ -326,7 +325,7 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
     (m: CaptureMode) => {
       if (m === mode) return;
 
-      capturedFileRef.current = null;
+      setCapturedFile(null);
 
       if (m === 'front' && camera.facingMode !== 'user') camera.switchCamera();
 
@@ -339,7 +338,7 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
 
   // Derive unified state from the active sub-controller
   function derivedValues(): DerivedValues {
-    if (isCameraMode) return deriveForCamera(camera, capturedFileRef.current);
+    if (isCameraMode) return deriveForCamera(camera, capturedFile);
 
     if (mode === 'screen') return deriveForScreen(screen);
 
@@ -380,7 +379,7 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
   }, [isCameraMode, camera]);
 
   const retake = useCallback(() => {
-    capturedFileRef.current = null;
+    setCapturedFile(null);
 
     if (isCameraMode) {
       camera.retake();

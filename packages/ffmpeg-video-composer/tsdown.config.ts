@@ -94,6 +94,10 @@ export default defineConfig([
         'picocolors',
         'zod',
       ],
+      // Bundle zod's JS (above) but keep it external in the .d.ts: rolldown-plugin-dts can't bundle
+      // zod v4's CommonJS .d.cts locale files (a wall of warnings). Consumers install zod (a runtime
+      // dependency), so the declarations referencing `import('zod')` resolve fine.
+      dts: { neverBundle: ['zod'] },
     },
     plugins: [
       replace({
@@ -168,6 +172,9 @@ export default defineConfig([
         '@ffmpeg/util',
       ],
       alwaysBundle: ['tsyringe', 'zod'],
+      // Bundle zod's JS but keep it external in the .d.ts (see the browser build note above) so
+      // rolldown-plugin-dts doesn't try to bundle zod v4's CommonJS .d.cts locales.
+      dts: { neverBundle: ['zod'] },
     },
   },
 ]);

@@ -15,6 +15,7 @@ import {
   type EditorSection,
   type EditorState,
 } from '../templateEditorModel';
+import { TestRenderButton } from '../editor/TestRenderButton';
 import { buildEditorTools } from './editorTools';
 import { useEditorSelection } from './useEditorSelection';
 import { EditorShellTitlebar } from './EditorShellTitlebar';
@@ -134,6 +135,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
           onCancel={onCancel}
           onSave={handleSave}
           saveDisabled={guardFails}
+          preview={<TestRenderButton state={state} disabled={state.sections.length === 0} />}
           t={t}
         />
       }

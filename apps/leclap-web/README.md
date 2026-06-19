@@ -1,6 +1,14 @@
 # @leclap/web — LeClap web
 
-React 19 + Vite + Tailwind web app for LeClap. It compiles videos **entirely in the browser** via WebAssembly FFmpeg — no server, no upload (2 GB input limit) — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the mobile app and CLI. Includes the guided builder, the visual template editor, and the first-run onboarding.
+React 19 + Vite + Tailwind web app for LeClap. It compiles videos **entirely in the browser** via WebAssembly FFmpeg — no server, no upload to a server (2 GB local-file limit) — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the mobile app and CLI.
+
+Key features:
+
+- **Guided builder** — step-by-step clip capture and form fill, then one-click compile.
+- **Capture modes** — per-section source selection: front webcam, back webcam, screen capture (`getDisplayMedia`), or local file upload. Controlled by `captureMode` / `allowedCaptureModes` in the template descriptor.
+- **Export panel** — after compile: download the MP4, copy a blob URL, or share via the Web Share API.
+- **Visual template editor** — author and preview templates in-browser (admin route `/admin`).
+- **First-run onboarding** — guided intro for new users.
 
 ## Run
 

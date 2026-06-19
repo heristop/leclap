@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { TFunction } from 'i18next';
 import { ArrowLeft, Undo2, Redo2, Save } from '@/presentation/components/icons';
 
@@ -11,6 +12,8 @@ interface EditorShellTitlebarProps {
   onCancel: () => void;
   onSave: () => void;
   saveDisabled: boolean;
+  // Optional control rendered just before Save — the template editor passes its "Preview render" button.
+  preview?: ReactNode;
   t: TFunction<'admin'>;
 }
 
@@ -49,6 +52,7 @@ export const EditorShellTitlebar = ({
   onCancel,
   onSave,
   saveDisabled,
+  preview,
   t,
 }: EditorShellTitlebarProps) => (
   <header className="flex shrink-0 items-center gap-2 border-b border-foreground/10 bg-surface-2/50 px-3 py-2 sm:gap-3">
@@ -78,6 +82,7 @@ export const EditorShellTitlebar = ({
     <IconButton label={t('editor.toolbar.redo')} disabled={!canRedo} onClick={onRedo}>
       <Redo2 className="size-4" />
     </IconButton>
+    {preview}
     <button
       type="button"
       onClick={onSave}

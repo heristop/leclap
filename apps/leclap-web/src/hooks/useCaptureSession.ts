@@ -23,8 +23,12 @@ export interface CaptureSessionReturn {
   /** Camera modes: triggers countdown then recording. Screen: starts recording. Upload: opens file picker. */
   start: () => void;
   stop: () => void;
-  /** File produced by record/upload; null while idle or recording. */
+  /** File produced by record/upload; null while idle or recording. For camera modes this is only set
+   * once `confirm()` runs — use `previewUrl` to show the recorded clip during the preview state. */
   result: File | null;
+  /** Object URL of the just-recorded/-picked clip, for the preview player (camera blob during preview,
+   * or the selected screen/upload file). Null when there's nothing to preview. */
+  previewUrl: string | null;
   /** Confirm and accept the captured result (calls underlying confirmCapture for camera). */
   confirm: () => void;
   /** Retake / discard current result and go back to ready state. */
@@ -227,6 +231,7 @@ function useUploadCapture(): UploadCaptureController {
     input.style.display = 'none';
     input.addEventListener('change', () => {
       const file = input.files?.[0];
+
       if (file) {
         setFile(file);
         input.value = '';
@@ -358,6 +363,26 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
 
   const derived = derivedValues();
 
+  // The clip to show in the preview player. Camera keeps the recorded blob URL in `camera.previewUrl`
+  // during the preview state (its `result`/capturedFile is only set on confirm); screen/upload already
+  // have the file, so derive a URL from it.
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (isCameraMode || !derived.result) {
+      setResultUrl(null);
+
+      return () => {};
+    }
+
+    const url = URL.createObjectURL(derived.result);
+    setResultUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [isCameraMode, derived.result]);
+  const previewUrl = isCameraMode ? camera.previewUrl : resultUrl;
+
   const start = useCallback(() => {
     if (isCameraMode) {
       camera.startRecording();
@@ -422,6 +447,7 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
     start,
     stop,
     result: derived.result,
+    previewUrl,
     confirm,
     retake,
     openFilePicker,

@@ -452,36 +452,27 @@ export const CameraCapture = ({
     orientation,
   });
 
-  // Produce a temporary object URL so the recorded-clip review video has a src.
-  // Revoke it when the result changes or the component unmounts.
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (session.result && (session.mode === 'front' || session.mode === 'back')) {
-      const url = URL.createObjectURL(session.result);
-      setPreviewUrl(url);
-
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-
-    setPreviewUrl(null);
-
-    return () => {};
-  }, [session.result, session.mode]);
-
   // Keep a stable ref so confirming doesn't depend on the parent re-creating onCapture each render.
   const onCaptureRef = useRef(onCapture);
   onCaptureRef.current = onCapture;
 
-  // "Use this video": hand the recorded clip to the parent and close the preview. The clip is delivered
-  // only on explicit confirm — not the moment the preview opens — so "Retake" discards it cleanly.
+  // "Use this video": confirm finalizes the capture, which populates `session.result`. For camera modes
+  // the result only appears AFTER confirm (the recorded blob lives in `session.previewUrl` until then);
+  // for screen/upload it's already there. So flag the intent, run confirm, and deliver the file to the
+  // parent + close once the result lands. Delivery happens on explicit confirm only, so "Retake"
+  // discards the take cleanly.
+  const [confirmRequested, setConfirmRequested] = useState(false);
   const handleConfirm = () => {
-    if (session.result) onCaptureRef.current(session.result);
-
+    setConfirmRequested(true);
     session.confirm();
-    onClose();
   };
+  useEffect(() => {
+    if (!confirmRequested || !session.result) return;
+
+    setConfirmRequested(false);
+    onCaptureRef.current(session.result);
+    onClose();
+  }, [confirmRequested, session.result, onClose]);
 
   return createPortal(
     // Fullscreen camera: the stage fills the whole viewport edge-to-edge; the top bar and record
@@ -494,7 +485,7 @@ export const CameraCapture = ({
           mode={session.mode}
           error={session.error}
           previewStream={session.previewStream}
-          previewUrl={previewUrl}
+          previewUrl={session.previewUrl}
           orientation={orientation}
           framingGuide={framingGuide}
           description={description}

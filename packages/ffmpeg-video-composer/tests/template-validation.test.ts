@@ -8,6 +8,7 @@ import {
   type TemplateDescriptor,
   type Section,
 } from '@/schemas/template.schemas';
+import { ProjectVideoSectionSchema } from '@/schemas/section.schemas';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -651,6 +652,43 @@ describe('Template Validation', () => {
         options: { audioFade: { in: { duration: 0.5, curve: 'notacurve' } } },
       });
       expect(r.success).toBe(false);
+    });
+  });
+
+  describe('ProjectVideoSectionSchema – capture mode fields', () => {
+    it('accepts a section with captureMode and allowedCaptureModes', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: {
+          captureMode: 'screen',
+          allowedCaptureModes: ['screen', 'upload'],
+        },
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.options?.captureMode).toBe('screen');
+      expect(result.data.options?.allowedCaptureModes).toEqual(['screen', 'upload']);
+    });
+
+    it('accepts a section with no capture fields (backwards compat)', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.options?.captureMode).toBeUndefined();
+      expect(result.data.options?.allowedCaptureModes).toBeUndefined();
+    });
+
+    it('rejects an unknown captureMode value', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: { captureMode: 'webcam' },
+      });
+      expect(result.success).toBe(false);
     });
   });
 

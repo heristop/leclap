@@ -51,10 +51,7 @@ export const InputSchema = z
     type: z
       .enum(['animation', 'image'])
       .optional()
-      .describe(
-        'Input type: "animation" is a single-file animated overlay (.apng/.webp/.gif/.webm); "image" is a ' +
-          'still image held for the section duration. Both composite over the section as a positioned overlay.'
-      ),
+      .describe('"animation" = animated overlay (.apng/.webp/.gif/.webm); "image" = still held for section duration.'),
     options: InputOptionsSchema.optional().describe('Playback and compositing options for this input.'),
     filters: z.array(FilterSchema).optional().describe('Filter chain applied to this input stream before compositing.'),
   })
@@ -220,10 +217,19 @@ export const VideoSectionSchema = BaseSectionSchema.extend({
   options: BaseSectionOptionsSchema.optional().describe('Playback and compositing options for the video section.'),
 }).describe('A section that plays a pre-recorded video clip or a user-uploaded video asset.');
 
+const CaptureModeEnum = z.enum(['front', 'back', 'screen', 'upload']);
+
 export const ProjectVideoSectionSchema = BaseSectionSchema.extend({
   type: z.literal('project_video').describe('Section type: captures a new video clip from the device camera.'),
   options: BaseSectionOptionsSchema.extend({
     framingGuide: FramingGuideSchema.optional().describe('Camera framing guide overlay shown in the recording UI.'),
+    captureMode: CaptureModeEnum.optional().describe(
+      'Default capture mode when the recorder opens (default: front). screen = display capture (web only), upload = file picker.'
+    ),
+    allowedCaptureModes: z
+      .array(CaptureModeEnum)
+      .optional()
+      .describe('Capture modes available to the user. Omit to allow all. Single-element array locks to one mode.'),
   })
     .strict()
     .optional()

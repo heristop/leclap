@@ -67,9 +67,9 @@ interface RushChooserProps {
   onRemoveRush: (file: File) => void;
 }
 
-// The take gallery: a horizontal row of candidate takes for a section. Only worth showing once there
-// is more than one take to choose between. A removal that empties the gallery never reaches here, so
-// the parent re-hides it.
+// The take gallery: a horizontal row of the section's recorded/uploaded takes. Shown as soon as there
+// is one take, so a single recording still has a visible thumbnail to confirm/remove; with several,
+// it's the chooser for the keeper. Hidden only when there are no takes.
 export const RushChooser = ({ rushes, selectedRush, onSelectRush, onRemoveRush }: RushChooserProps) => {
   const { t } = useTranslation('builder');
   // A stable key per File so React keeps each thumb's video element across reorders/removals.
@@ -85,7 +85,7 @@ export const RushChooser = ({ rushes, selectedRush, onSelectRush, onRemoveRush }
     return next;
   };
 
-  if (rushes.length <= 1) return null;
+  if (rushes.length === 0) return null;
 
   return (
     <section aria-label={t('rush.gallery')} className="space-y-2">

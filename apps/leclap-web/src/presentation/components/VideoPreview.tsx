@@ -8,6 +8,11 @@ import { logger } from '@/lib/logger';
 interface VideoPreviewProps {
   url: string;
   duration?: number;
+  // Recorded-clip review (the camera preview) wants the take to start playing on its own and loop;
+  // the export/result players keep the default click-to-play. Muted lets autoplay through unblocked.
+  autoPlay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
 }
 
 const formatDuration = (seconds: number) => {
@@ -57,12 +62,12 @@ const VolumeControl = ({ isMuted, volume, onToggleMute, onChangeVolume, t }: Vol
 
 // Self-contained processed-video player: a tap-anywhere play/pause surface, a custom play overlay,
 // and a controls bar with volume + fullscreen. Shared by the export panel and the onboarding result.
-export const VideoPreview = ({ url, duration }: VideoPreviewProps) => {
+export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, muted = false }: VideoPreviewProps) => {
   const { t } = useTranslation('process');
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(muted);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -150,6 +155,9 @@ export const VideoPreview = ({ url, duration }: VideoPreviewProps) => {
           setIsPlaying(false);
         }}
         controls={false}
+        autoPlay={autoPlay}
+        loop={loop}
+        muted={muted}
         playsInline
         preload="metadata"
       />

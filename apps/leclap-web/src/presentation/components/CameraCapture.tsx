@@ -407,7 +407,7 @@ function BackgroundStage({
         {state === 'preview' && previewUrl && (
           <div className="absolute inset-0 flex items-center justify-center bg-black p-3 sm:p-4">
             <div className="w-full max-w-[min(100%,26rem)]">
-              <VideoPreview url={previewUrl} />
+              <VideoPreview url={previewUrl} autoPlay loop muted />
             </div>
           </div>
         )}

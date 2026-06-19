@@ -83,7 +83,7 @@ const ClipCapture = ({
 
     if (!onAddRush) onFileChange(captured);
   };
-  const showChooser = takes.length > 1 && onSelectRush && onRemoveRush;
+  const showChooser = takes.length > 0 && onSelectRush && onRemoveRush;
   // The recorder appends takes when wired to the gallery, so it stays empty (the gallery owns the
   // take list). Without the gallery it falls back to showing the single selected clip.
   const fallbackFiles = file ? [file] : [];

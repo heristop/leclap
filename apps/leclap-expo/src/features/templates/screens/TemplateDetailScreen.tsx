@@ -573,11 +573,45 @@ function computeAllDone(
   return !hasMediaStep || mediaStepDone;
 }
 
+// The template's authored soundtrack as a library MediaChoice, so the Music step opens pre-selected on
+// the track the template ships with (web parity). Only when music is enabled and the default is one of
+// the offered tracks; otherwise null (leave the step empty).
+const defaultMusicChoice = (template: Template): MediaChoice | null => {
+  const global = template.content.global;
+  const name = global?.music?.name;
+
+  if (!global?.musicEnabled || !name) return null;
+
+  const track = MUSIC_LIBRARY.find((m) => m.file === name);
+
+  if (!track) return null;
+
+  const allowed = global.allowedMusic;
+
+  if (allowed && allowed.length > 0 && !allowed.includes(track.id)) return null;
+
+  return { kind: 'library', id: track.id };
+};
+
 /** Owns the user's media-step state (music/background choices + picker visibility). */
-function useMediaState() {
+function useMediaState(template: Template | undefined) {
   const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
   const [musicChoice, setMusicChoice] = useState<MediaChoice | null>(null);
   const [backgroundChoice, setBackgroundChoice] = useState<MediaChoice | null>(null);
+  const defaultApplied = useRef(false);
+
+  // Pre-select the template's default soundtrack the first time it loads. Applied once, so a later user
+  // change (picking another track or clearing it) is never overwritten.
+  useEffect(() => {
+    if (defaultApplied.current || !template) return;
+
+    defaultApplied.current = true;
+
+    const choice = defaultMusicChoice(template);
+
+    if (choice) setMusicChoice(choice);
+  }, [template]);
+
   const mediaChoices: MediaChoices = {
     music: musicChoice ?? undefined,
     background: backgroundChoice ?? undefined,
@@ -648,7 +682,7 @@ function useTemplateDetail(templateName: string, projectId: string | undefined) 
     setBackgroundChoice,
     mediaChoices,
     mediaStepDone,
-  } = useMediaState();
+  } = useMediaState(template);
 
   useProjectInitialization({
     template,

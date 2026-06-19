@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { X } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 

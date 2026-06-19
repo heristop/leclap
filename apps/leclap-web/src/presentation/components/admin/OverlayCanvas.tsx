@@ -6,7 +6,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Trash2, Plus, Type, ChevronDown } from 'lucide-react';
+import { Trash2, Plus, Type, ChevronDown } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { FONTS, findFont } from '@leclap/creative-kit/fonts';
@@ -21,10 +21,15 @@ import {
   SelectValue,
 } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
-import { newOverlay, type TextOverlay } from './templateEditorModel';
+import { newOverlay, type TextOverlay, type Orientation } from './templateEditorModel';
 import { clampFraction, fontSizeFromPreview, previewFontPx } from './overlayGeometry';
 
-type Orientation = 'landscape' | 'portrait';
+// Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
+const previewAspectClass: Record<Orientation, string> = {
+  portrait: 'mx-auto aspect-[9/16] max-w-[16rem]',
+  square: 'mx-auto aspect-square max-w-[18rem]',
+  landscape: 'aspect-video',
+};
 
 interface OverlayCanvasProps {
   overlays: TextOverlay[];
@@ -211,7 +216,7 @@ const CanvasFrame = ({ orientation, onDeselect, children, ref }: CanvasFrameProp
     className={cn(
       'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
       'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
-      orientation === 'portrait' ? 'mx-auto aspect-[9/16] max-w-[16rem]' : 'aspect-video'
+      previewAspectClass[orientation]
     )}
   >
     {children}

@@ -2,7 +2,7 @@
 import { templateLogger } from '@/lib/logger';
 // The catalog is authored once in @leclap/creative-kit and consumed by web + expo + the MCP catalog.
 // Legacy web-only demo templates were removed.
-import { APP_TEMPLATES } from '@leclap/creative-kit';
+import { APP_TEMPLATES, type TemplateOrientation } from '@leclap/creative-kit';
 
 type Translation = Record<string, string | undefined>;
 type Variables = Record<string, string | string[]>;
@@ -60,7 +60,7 @@ export interface CoreTemplate {
   description: string;
   category: 'sample' | 'video' | 'portrait' | 'advanced' | 'demo';
   complexity: 'simple' | 'intermediate' | 'advanced';
-  orientation: 'landscape' | 'portrait';
+  orientation: TemplateOrientation;
   hasForm: boolean;
   templateDescriptor: TemplateDescriptor;
   previewImage?: string;

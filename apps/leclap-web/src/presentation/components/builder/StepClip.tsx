@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { FileUpload } from '@/presentation/components/FileUpload';
-import { VideoEditor } from '@/features/editor/VideoEditor';
+import { TimelineEditor } from '@/features/editor/TimelineEditor';
 import { Card } from '@/presentation/components/ui';
 import { recordingConfigForSection } from '@/lib/recordingConfig';
 import { resolveTranslation, resolveVariables } from '@/lib/i18nText';
@@ -26,6 +26,9 @@ interface StepClipProps {
   // When false, render only the capture body — no centered header, no outer Card. The hub side sheet
   // supplies its own header/container, so the page chrome would just be a redundant card-in-card.
   chrome?: boolean;
+  // When false, the trim/crop editor is not rendered here — the parent hosts it elsewhere (e.g. the
+  // program monitor area of EditorShell so it has more horizontal space).
+  showEditor?: boolean;
   // Template orientation — drives the camera frame + recording aspect (9:16 portrait, 1:1 square).
   orientation?: TemplateOrientation;
 }
@@ -43,6 +46,7 @@ export const StepClip = ({
   onEditChange,
   vars,
   chrome = true,
+  showEditor = true,
   orientation,
 }: StepClipProps) => {
   const { t, i18n } = useTranslation('builder');
@@ -69,7 +73,9 @@ export const StepClip = ({
         defaultCaptureMode={rec.defaultCaptureMode}
         allowedCaptureModes={rec.allowedCaptureModes}
       />
-      {file && <VideoEditor file={file} label={t('stepClip.editorLabel')} edit={edit} onChange={onEditChange} />}
+      {showEditor && file && (
+        <TimelineEditor file={file} label={t('stepClip.editorLabel')} edit={edit} onChange={onEditChange} />
+      )}
     </>
   );
 

@@ -8,6 +8,7 @@ import { formatElapsed, type CaptureOrientation } from '@/hooks/useCameraCapture
 import { useCaptureSession, type CaptureState } from '@/hooks/useCaptureSession';
 import type { CaptureMode } from '@leclap/creative-kit';
 import { Button } from '@/presentation/components/ui';
+import { VideoPreview } from '@/presentation/components/VideoPreview';
 import { FramingGuideOverlay } from '@/presentation/components/FramingGuideOverlay';
 import type { FramingGuideConfig } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
@@ -402,16 +403,13 @@ function BackgroundStage({
           )}
         />
 
+        {/* Review the recorded clip in the app's custom player (not the browser's default controls). */}
         {state === 'preview' && previewUrl && (
-          <video
-            src={previewUrl}
-            aria-label="Recorded preview"
-            controls
-            autoPlay
-            loop
-            playsInline
-            className="w-full h-full object-contain bg-black"
-          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black p-3 sm:p-4">
+            <div className="w-full max-w-[min(100%,26rem)]">
+              <VideoPreview url={previewUrl} />
+            </div>
+          </div>
         )}
 
         <StageOverlays
@@ -472,17 +470,18 @@ export const CameraCapture = ({
     return () => {};
   }, [session.result, session.mode]);
 
-  // Keep a stable ref so the capture effect doesn't re-run when the parent
-  // recreates onCapture after updating its own state (would cause an infinite loop).
+  // Keep a stable ref so confirming doesn't depend on the parent re-creating onCapture each render.
   const onCaptureRef = useRef(onCapture);
   onCaptureRef.current = onCapture;
 
-  // Deliver the captured file to the parent when the session moves to preview state.
-  useEffect(() => {
-    if (session.state === 'preview' && session.result) {
-      onCaptureRef.current(session.result);
-    }
-  }, [session.state, session.result]);
+  // "Use this video": hand the recorded clip to the parent and close the preview. The clip is delivered
+  // only on explicit confirm — not the moment the preview opens — so "Retake" discards it cleanly.
+  const handleConfirm = () => {
+    if (session.result) onCaptureRef.current(session.result);
+
+    session.confirm();
+    onClose();
+  };
 
   return createPortal(
     // Fullscreen camera: the stage fills the whole viewport edge-to-edge; the top bar and record
@@ -535,7 +534,7 @@ export const CameraCapture = ({
             mode={session.mode}
             onStart={session.start}
             onStop={session.stop}
-            onConfirm={session.confirm}
+            onConfirm={handleConfirm}
             onRetake={session.retake}
           />
         </div>

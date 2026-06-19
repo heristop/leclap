@@ -1,12 +1,24 @@
-import { useState, useEffect, startTransition, type ComponentType, type ReactNode } from 'react';
+import { useState, useEffect, type ComponentType, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Zap, Video, Users, Image, Sparkles, Layers, SearchX } from 'lucide-react';
+import {
+  Check,
+  Zap,
+  Video,
+  Users,
+  Image,
+  Square,
+  Sparkles,
+  Layers,
+  SearchX,
+  type LucideIcon,
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { logger } from '@/lib/logger';
 import { templatePoster } from '@/lib/poster';
 import { SECTION_ICON } from '@/lib/sectionMeta';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
+import { withViewTransition } from '@/lib/viewTransition';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
@@ -72,6 +84,13 @@ const Poster = ({ template, isSelected }: { template: Template; isSelected: bool
   );
 };
 
+// Orientation → meta-chip icon (portrait a tall image, square a 1:1 box, landscape a wide frame).
+const ORIENTATION_ICON: Record<Template['orientation'], LucideIcon> = {
+  portrait: Image,
+  square: Square,
+  landscape: Video,
+};
+
 const CardMetaChips = ({
   template,
   fieldCount,
@@ -82,12 +101,11 @@ const CardMetaChips = ({
   sectionCount: number;
 }) => {
   const { t } = useTranslation('templates');
+  const orientation = template.orientation;
 
   return (
     <div className="flex flex-wrap gap-2">
-      <MetaChip icon={template.orientation === 'portrait' ? Image : Video}>
-        {template.orientation === 'portrait' ? t('orientation.portrait') : t('orientation.landscape')}
-      </MetaChip>
+      <MetaChip icon={ORIENTATION_ICON[orientation]}>{t(`orientation.${orientation}`)}</MetaChip>
       <MetaChip icon={template.hasForm ? Users : Zap}>
         {template.hasForm ? t('fields', { count: fieldCount }) : t('autoProcess')}
       </MetaChip>
@@ -101,6 +119,14 @@ const CardMetaChips = ({
   );
 };
 
+// Mark this card's title as the View Transition's shared element so it morphs into the studio titlebar
+// when the editor opens. Set imperatively at click time so the name is on the DOM before the snapshot.
+const tagTitleForTransition = (card: HTMLElement): void => {
+  const title = card.querySelector<HTMLElement>('[data-vt-title]');
+
+  if (title) title.style.viewTransitionName = 'studio-title';
+};
+
 const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => {
   const { t } = useTranslation('templates');
   const fieldCount = templateService.extractFormFields(template.descriptor).length;
@@ -109,6 +135,7 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
+      tagTitleForTransition(event.currentTarget);
       onSelect(template);
     }
   };
@@ -118,7 +145,8 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
       interactive
       role="button"
       tabIndex={0}
-      onClick={() => {
+      onClick={(e) => {
+        tagTitleForTransition(e.currentTarget);
         onSelect(template);
       }}
       onKeyDown={handleKeyDown}
@@ -144,7 +172,10 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
             <Badge variant="brand">{t('custom')}</Badge>
           </div>
         )}
-        <h3 className="mb-1.5 font-display text-xl font-bold text-foreground transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-300">
+        <h3
+          data-vt-title
+          className="mb-1.5 font-display text-xl font-bold text-foreground transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-300"
+        >
           {template.name}
         </h3>
         <p className="mb-4 text-sm leading-relaxed text-gray-400">{template.description}</p>
@@ -219,7 +250,7 @@ export const TemplateSelector = ({ onTemplateSelected, selectedTemplate }: Templ
   }, [t]);
 
   const handleTemplateSelect = (template: Template) => {
-    startTransition(() => {
+    withViewTransition(() => {
       onTemplateSelected(template);
     });
   };

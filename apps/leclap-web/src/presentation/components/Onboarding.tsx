@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { WelcomeStep, CreateStep, CompilingStep, DoneStep, ErrorStep } from '@/presentation/components/OnboardingSteps';

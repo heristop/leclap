@@ -13,7 +13,7 @@ import {
   Music,
   Image as ImageIcon,
   Braces,
-} from 'lucide-react';
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import {

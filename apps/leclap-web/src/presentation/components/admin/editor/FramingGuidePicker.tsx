@@ -88,6 +88,19 @@ export const FramingGuidePicker = ({ guide, orientation, onChange }: FramingGuid
   );
 };
 
+// The mockup frame shape + max width per orientation (portrait 9:16, square 1:1, landscape 16:9). A wide
+// landscape frame can afford more width; the taller/square frames stay narrower so they don't dominate.
+const MOCKUP_RATIO: Record<Orientation, string> = {
+  landscape: 'aspect-[16/9]',
+  portrait: 'aspect-[9/16]',
+  square: 'aspect-square',
+};
+const MOCKUP_MAX_W: Record<Orientation, string> = {
+  landscape: 'max-w-[8rem]',
+  portrait: 'max-w-[4.5rem]',
+  square: 'max-w-[6rem]',
+};
+
 // A viewfinder mock matching the template orientation, with faint rule-of-thirds guides and the real
 // recording silhouette docked to the chosen spot — same shape, style, and position as the live
 // overlay, so the preview is WYSIWYG. Decorative → aria-hidden.
@@ -103,8 +116,8 @@ const FrameMockup = ({
   orientation: Orientation;
 }) => {
   const { t } = useTranslation('admin');
-  const ratio = orientation === 'landscape' ? 'aspect-[16/9]' : 'aspect-[9/16]';
-  const maxW = orientation === 'landscape' ? 'max-w-[8rem]' : 'max-w-[4.5rem]';
+  const ratio = MOCKUP_RATIO[orientation];
+  const maxW = MOCKUP_MAX_W[orientation];
 
   return (
     <div

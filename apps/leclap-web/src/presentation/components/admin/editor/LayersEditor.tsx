@@ -1,7 +1,7 @@
 // Ordered background-layer stack for color sections, replacing the single color
 // picker. The first layer is the full-bleed base; extra layers sit on top with their
 // own colour/opacity/gradient and a % geometry box. Writes patchLayers(state, i, layers).
-import { Plus } from 'lucide-react';
+import { Plus } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { BackgroundLayer } from '../templateEditorModel';
 import { newBaseLayer, newExtraLayer } from './layerGeometry';

@@ -7,7 +7,7 @@
 import { useState, Fragment, type DragEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Square, Image as ImageIcon, Video as VideoIcon, Scissors, Sparkles } from 'lucide-react';
+import { Square, Image as ImageIcon, Video as VideoIcon, Scissors, Sparkles } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { EditorState } from '../templateEditorModel';
 import { computeTimeline, type TimelineChip, type TimelineKind } from './timelineLayout';

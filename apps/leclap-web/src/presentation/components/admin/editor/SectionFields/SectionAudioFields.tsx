@@ -4,7 +4,7 @@
 // - Audio fade-out: toggle, duration input, and curve select.
 // All changes flow through the parent's onChange (patchSection) — no local state.
 import { useId } from 'react';
-import { Music } from 'lucide-react';
+import { Music } from '@/presentation/components/icons';
 import { Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { EditorSection, SectionAudioFade } from '../../templateEditorModel';

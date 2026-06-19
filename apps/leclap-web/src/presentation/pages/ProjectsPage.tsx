@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FolderOpen, Plus } from 'lucide-react';
+import { FolderOpen, Plus } from '@/presentation/components/icons';
 import { useProjects } from '@/hooks/useProjects';
 import { ProjectCard } from '@/presentation/components/projects/ProjectCard';
 import { EmptyState } from '@/presentation/components/EmptyState';

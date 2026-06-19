@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Copy, Lightbulb } from 'lucide-react';
+import { Check, Copy, Lightbulb } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { Badge, SegmentedControl } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home, Compass } from 'lucide-react';
+import { Home, Compass } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';

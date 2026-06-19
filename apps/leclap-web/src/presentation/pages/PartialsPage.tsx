@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@/presentation/components/icons';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';

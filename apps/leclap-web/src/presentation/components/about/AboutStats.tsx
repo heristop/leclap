@@ -1,4 +1,4 @@
-import { MonitorSmartphone, ShieldCheck, Sparkles } from 'lucide-react';
+import { MonitorSmartphone, ShieldCheck, Sparkles } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 
 const stats = [

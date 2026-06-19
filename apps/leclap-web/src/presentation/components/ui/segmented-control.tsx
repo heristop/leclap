@@ -11,6 +11,8 @@ const TRACK_PAD = 2;
 export interface SegmentedOption {
   value: string;
   label: ReactNode;
+  // For icon-only labels: the accessible name + hover tooltip (the visible label carries no text).
+  ariaLabel?: string;
 }
 
 export interface SegmentedControlProps {
@@ -83,6 +85,8 @@ export const SegmentedControl = ({ value, options, onChange, ariaLabel, classNam
           type="button"
           role="tab"
           aria-selected={value === option.value}
+          aria-label={option.ariaLabel}
+          title={option.ariaLabel}
           onClick={() => {
             onChange(option.value);
           }}

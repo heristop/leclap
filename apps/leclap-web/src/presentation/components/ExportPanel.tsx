@@ -1,6 +1,6 @@
 import { useState, startTransition } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from 'lucide-react';
+import { Download, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { logger } from '@/lib/logger';
 import { Button, Card } from '@/presentation/components/ui';

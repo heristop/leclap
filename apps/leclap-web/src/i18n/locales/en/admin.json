@@ -30,7 +30,8 @@
   },
   "orientationLabel": {
     "landscape": "landscape",
-    "portrait": "portrait"
+    "portrait": "portrait",
+    "square": "square"
   },
   "complexity": {
     "simple": "simple",
@@ -63,7 +64,8 @@
       "namePlaceholder": "My template",
       "orientation": "Orientation",
       "landscape": "Landscape (16:9)",
-      "portrait": "Portrait (9:16)"
+      "portrait": "Portrait (9:16)",
+      "square": "Square (1:1)"
     },
     "advanced": {
       "label": "Advanced settings",
@@ -131,7 +133,27 @@
       "description": "The file is not a valid template descriptor."
     },
     "save": "Save template",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "untitled": "Untitled template"
+  },
+  "shell": {
+    "scenes": "Scenes",
+    "basics": "Basics",
+    "audio": "Audio",
+    "variables": "Variables",
+    "advanced": "Advanced",
+    "tools": "Editor tools",
+    "preview": "Preview",
+    "addScene": "Add scene",
+    "addSceneKind": "Add {{kind}} scene",
+    "duplicateScene": "Duplicate scene",
+    "deleteScene": "Delete scene",
+    "reorderScene": "Drag to reorder scene",
+    "transitionAfter": "Transition after this scene",
+    "nameLabel": "Template name",
+    "monitorEmpty": "Select a scene to edit",
+    "placeholderVariables": "Variable editing moves here in a later phase.",
+    "placeholderAdvanced": "Advanced settings move here in a later phase."
   },
   "media": {
     "source": "Media source",

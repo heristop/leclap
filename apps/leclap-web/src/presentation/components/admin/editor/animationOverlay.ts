@@ -16,6 +16,7 @@ export const PREVIEW_BG_CLASS: Record<PreviewBg, string> = {
 export const FRAME_SIZE: Record<Orientation, { w: number; h: number }> = {
   landscape: { w: 1280, h: 720 },
   portrait: { w: 720, h: 1280 },
+  square: { w: 1080, h: 1080 },
 };
 
 export const clamp = (value: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, value));

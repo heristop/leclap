@@ -5,7 +5,8 @@
   },
   "orientation": {
     "portrait": "Portrait 9:16",
-    "landscape": "Landscape 16:9"
+    "landscape": "Landscape 16:9",
+    "square": "Square 1:1"
   },
   "fields_one": "{{count}} field",
   "fields_other": "{{count}} fields",
@@ -23,7 +24,10 @@
     "placeholder": "Search templates…",
     "all": "All",
     "portrait": "Portrait",
-    "landscape": "Landscape"
+    "landscape": "Landscape",
+    "square": "Square",
+    "orientationLabel": "Filter by orientation",
+    "complexityLabel": "Filter by complexity"
   },
   "empty": {
     "title": "No templates match",

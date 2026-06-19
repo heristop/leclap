@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TemplateEditor } from '@/presentation/components/admin/TemplateEditor';
+import { TemplateEditorShell } from '@/presentation/components/admin/editor-shell/TemplateEditorShell';
 import { userTemplateService } from '@/services/userTemplateService';
 import { Seo } from '@/presentation/components/Seo';
 
@@ -23,7 +23,7 @@ export const TemplateEditorPage = () => {
         path={id ? `/templates/${id}/edit` : '/templates/new'}
         noindex
       />
-      <TemplateEditor initial={initial} onSaved={backToList} onCancel={backToList} />
+      <TemplateEditorShell initial={initial} onSaved={backToList} onCancel={backToList} />
     </>
   );
 };

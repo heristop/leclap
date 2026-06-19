@@ -5,7 +5,7 @@
 // plays in a dialog. The button is disabled while a render runs and guards against double-clicks.
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clapperboard, Download, AlertCircle } from 'lucide-react';
+import { Clapperboard, Download, AlertCircle } from '@/presentation/components/icons';
 import {
   Button,
   Dialog,

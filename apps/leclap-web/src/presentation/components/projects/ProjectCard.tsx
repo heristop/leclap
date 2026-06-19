@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, Copy, Film, Pencil, Play, SquarePen, Trash2 } from 'lucide-react';
+import { Clock, Copy, Film, Pencil, Play, SquarePen, Trash2 } from '@/presentation/components/icons';
 import { coverGradient } from '@/lib/poster';
 import { relativeTime } from '@/lib/relativeTime';
 import { useProjectPoster } from '@/hooks/useProjectPoster';

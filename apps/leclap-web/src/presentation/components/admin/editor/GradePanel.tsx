@@ -3,7 +3,7 @@
 // unchanged fields are pruned so the descriptor never carries no-op defaults.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { Grade } from '../templateEditorModel';
 import { GRADE_DEFAULTS, gradeFilter, pruneGrade, type GradeKey } from './lookFilters';

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Play, Pause, FileVideo, Volume2, VolumeX, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, Pause, FileVideo, Volume2, VolumeX, Maximize2, Minimize2 } from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { logger } from '@/lib/logger';
 

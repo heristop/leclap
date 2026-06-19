@@ -1,7 +1,7 @@
 import { useState, useId, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
-import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from 'lucide-react';
+import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { coverGradient } from '@/lib/poster';
 import { Button, SegmentedControl } from '@/presentation/components/ui';

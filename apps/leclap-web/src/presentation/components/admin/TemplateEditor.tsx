@@ -12,7 +12,7 @@ import {
   Download,
   Upload,
   Settings2,
-} from 'lucide-react';
+} from '@/presentation/components/icons';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
 import { userPartialService } from '@/services/userPartialService';
@@ -565,11 +565,12 @@ interface MetadataFieldsProps {
   patch: (p: Partial<EditorState>) => void;
 }
 
-// Orientation reads better as the shape it produces than as a dropdown label: two tappable cards, each
-// a mini frame drawn in the actual aspect ratio (wide vs tall) with its ratio underneath.
+// Orientation reads better as the shape it produces than as a dropdown label: three tappable cards, each
+// a mini frame drawn in the actual aspect ratio (wide / tall / square) with its ratio underneath.
 const ORIENTATIONS = [
   { value: 'landscape', label: 'Landscape 16:9', ratio: '16:9', frame: 'w-7 h-4' },
   { value: 'portrait', label: 'Portrait 9:16', ratio: '9:16', frame: 'w-4 h-7' },
+  { value: 'square', label: 'Square 1:1', ratio: '1:1', frame: 'w-6 h-6' },
 ] as const;
 
 const OrientationToggle = ({
@@ -579,7 +580,7 @@ const OrientationToggle = ({
   value: EditorState['orientation'];
   onChange: (value: EditorState['orientation']) => void;
 }) => (
-  <div role="radiogroup" aria-label="Orientation" className="grid grid-cols-2 gap-2">
+  <div role="radiogroup" aria-label="Orientation" className="grid grid-cols-3 gap-2">
     {ORIENTATIONS.map((option) => {
       const active = value === option.value;
 

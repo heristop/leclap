@@ -14,7 +14,8 @@
     "close": "Close",
     "reset": "Reset",
     "remove": "Remove",
-    "edit": "Edit"
+    "edit": "Edit",
+    "stop": "Stop"
   },
   "status": {
     "ready": "Ready",

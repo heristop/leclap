@@ -1,4 +1,4 @@
-import { Shield, Zap, Cpu } from 'lucide-react';
+import { Shield, Zap, Cpu } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Reveal } from '@/presentation/components/ui';
 

@@ -1,5 +1,5 @@
 // Field block for a form section: an editable list of {id, label, maxLength} rows.
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { EditorSection } from '../../templateEditorModel';
 

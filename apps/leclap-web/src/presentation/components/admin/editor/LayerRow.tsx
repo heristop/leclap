@@ -1,7 +1,7 @@
 // One row of the LayersEditor: colour + opacity, an optional gradient (second colour +
 // direction), the % geometry box for extra layers, and reorder/remove controls. The
 // base (first) layer is full-bleed, so it shows no geometry and cannot be removed/moved.
-import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Checkbox, ColorPicker } from '@/presentation/components/ui';

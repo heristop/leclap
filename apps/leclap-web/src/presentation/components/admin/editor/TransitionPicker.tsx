@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Scissors, Sparkles } from 'lucide-react';
+import { Scissors, Sparkles } from '@/presentation/components/icons';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 import type { SectionTransition } from '../templateEditorModel';

@@ -1,6 +1,7 @@
 // Re-export from core package for consistency
 export type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { coreTemplateService, type CoreTemplate } from '@/infrastructure/templates/coreTemplateService';
+import type { TemplateOrientation } from '@leclap/creative-kit';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { userTemplateService } from '@/services/userTemplateService';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
@@ -10,7 +11,7 @@ export interface Template {
   id: string;
   name: string;
   description: string;
-  orientation: 'landscape' | 'portrait';
+  orientation: TemplateOrientation;
   hasForm: boolean;
   complexity: 'simple' | 'intermediate' | 'advanced';
   // 'sample' = built-in template; 'user' = created by the user (localStorage).

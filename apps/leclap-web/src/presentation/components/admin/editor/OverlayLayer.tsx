@@ -4,7 +4,7 @@
 // consecutive layers are separated by a hairline rule, not stacked boxes. Shared by ImageOverlayField
 // and AnimationOverlayField.
 import type { ReactNode } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2 } from '@/presentation/components/icons';
 
 interface OverlayLayerProps {
   index: number;

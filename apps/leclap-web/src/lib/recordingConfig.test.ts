@@ -19,6 +19,8 @@ describe('recordingConfigFromDescriptor', () => {
       countdownSeconds: undefined,
       maxDurationSeconds: undefined,
       framingGuide: undefined,
+      defaultCaptureMode: 'front',
+      allowedCaptureModes: ['front', 'back', 'screen', 'upload'],
       orientation: 'landscape',
     });
   });
@@ -32,6 +34,8 @@ describe('recordingConfigFromDescriptor', () => {
       countdownSeconds: undefined,
       maxDurationSeconds: undefined,
       framingGuide: undefined,
+      defaultCaptureMode: 'front',
+      allowedCaptureModes: ['front', 'back', 'screen', 'upload'],
       orientation: 'landscape',
     });
   });

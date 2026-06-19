@@ -1,7 +1,7 @@
 // Field block for a color_background section. Essentials (always visible): duration + the layered
 // background editor (base color / extra layers). Finishing controls (Effects, Section audio) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Film } from 'lucide-react';
+import { Sparkles, Music, Film } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { EditorSection, Orientation } from '../../templateEditorModel';
 import { LayersEditor } from '../LayersEditor';

@@ -9,7 +9,7 @@ import {
   RotateCcw,
   X,
   Clapperboard,
-} from 'lucide-react';
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';

@@ -29,7 +29,30 @@
     "title": "Music & Background",
     "subtitle": "Choose the soundtrack and backdrop for your video",
     "music": "Music",
-    "background": "Background Image"
+    "background": "Background Image",
+    "formatTitle": "Format",
+    "aspect": {
+      "portrait": "Vertical 9:16",
+      "landscape": "Landscape 16:9",
+      "square": "Square 1:1"
+    }
+  },
+  "editor": {
+    "content": "Content",
+    "media": "Media",
+    "format": "Format",
+    "record": "Record",
+    "details": "Details",
+    "tools": "Editor tools",
+    "program": "Program",
+    "preview": "Preview",
+    "approx": "Approximate",
+    "timeline": "Scenes",
+    "ready": "{{done}} of {{total}} ready",
+    "emptyClipTitle": "No clip yet",
+    "emptyClipHint": "Record or upload in the Content panel to see it here.",
+    "emptyFormTitle": "Nothing to preview yet",
+    "emptyFormHint": "Fill in the Content panel and your overlays appear here."
   },
   "stepProcess": {
     "title": "Create Video",
@@ -42,6 +65,19 @@
     "ready": "Ready",
     "initializing": "Initializing...",
     "progress": "Processing Progress"
+  },
+  "compile": {
+    "preparing": "Preparing render",
+    "rendering": "Rendering",
+    "complete": "Render complete",
+    "failed": "Render failed",
+    "stop": "Stop render",
+    "finishing": "Finishing…",
+    "errorTitle": "Render failed",
+    "clips": "Clips",
+    "clipCount_one": "{{count}} clip",
+    "clipCount_other": "{{count}} clips",
+    "project": "Project"
   },
   "stepResult": {
     "title": "Your Video is Ready!",

@@ -2,7 +2,7 @@
 // panels stay focused and every slider/segmented-control looks identical.
 import { useId, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 
 const LABEL_CLS = 'block text-xs font-semibold uppercase tracking-widest text-gray-400';

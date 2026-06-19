@@ -2,7 +2,7 @@
 // optional countdown, and the WYSIWYG text-overlay editor — the title is the main creative act, so
 // it stays one click away. The finishing controls (Effects, Section audio, Camera guide) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Camera, Layers } from 'lucide-react';
+import { Sparkles, Music, Camera, Layers } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';

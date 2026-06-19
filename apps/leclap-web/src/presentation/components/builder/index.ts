@@ -1,2 +1,2 @@
 export { StepClip } from './StepClip';
-export { SectionHub } from './SectionHub';
+export { EditorShell } from './EditorShell';

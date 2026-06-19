@@ -2,7 +2,7 @@
 import { useState, useEffect, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { FileText, User, Type, Hash, Check } from 'lucide-react';
+import { FileText, User, Type, Hash, Check } from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { Input } from '@/presentation/components/ui';

@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
-import { VideoProcessor } from '@/presentation/components/VideoProcessor';
 import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibility';
-import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { ExportPanel } from '@/presentation/components/ExportPanel';
 import { Seo } from '@/presentation/components/Seo';
-import { SectionHub } from '@/presentation/components/builder';
+import { EditorShell } from '@/presentation/components/builder';
+import { CompileMonitor } from '@/presentation/components/builder/CompileMonitor';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
@@ -16,9 +15,8 @@ import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
 import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/projectService';
-import { ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2 } from '@/presentation/components/icons';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
-import { cn } from '@/lib/utils';
 
 // The template's default soundtrack as a library MediaChoice, so the Music step opens pre-selected on
 // the track the template was authored with. Only when music is enabled and the default is one of the
@@ -143,12 +141,9 @@ interface StepProcessProps {
   selectedTemplate: Template | null;
   clipFiles: File[];
   formData: Record<string, string>;
-  isFFmpegReady: boolean;
   isProcessing: boolean;
-  canProcess: boolean;
   progress: ReturnType<typeof useVideoProcessing>['progress'];
   error: string | null;
-  onStartProcessing: () => void;
   onCancelProcessing: () => void;
 }
 
@@ -156,96 +151,23 @@ const StepProcess = ({
   selectedTemplate,
   clipFiles,
   formData,
-  isFFmpegReady,
   isProcessing,
-  canProcess,
   progress,
   error,
-  onStartProcessing,
   onCancelProcessing,
 }: StepProcessProps) => {
-  const { t } = useTranslation('builder');
-  const progressRef = useRef<HTMLDivElement>(null);
-
-  // The progress panel renders below the summary/compile cards, so on a short viewport it lands below
-  // the fold. Pull it into view the moment compilation starts so the user always sees the loading.
-  useEffect(() => {
-    if (isProcessing) progressRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [isProcessing]);
+  if (!selectedTemplate) return null;
 
   return (
-    <div className="fade-in max-w-5xl mx-auto">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold font-display text-foreground mb-2">{t('stepProcess.title')}</h2>
-        <p className="text-gray-400 text-lg">{t('stepProcess.subtitle')}</p>
-      </div>
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card elevation="flat" className="glass-panel-dark p-8 shadow-2xl h-full">
-          <h3 className="text-xl font-semibold mb-6 font-display text-brand-700 dark:text-brand-300 flex items-center">
-            <Sparkles className="w-5 h-5 mr-2" />
-            {t('stepProcess.summary')}
-          </h3>
-          <ul className="space-y-4 text-gray-300">
-            <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
-              <span className="text-gray-400">{t('stepProcess.template')}</span>
-              <span className="font-medium text-foreground truncate">{selectedTemplate?.name}</span>
-            </li>
-            {clipFiles.length > 0 && (
-              <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
-                <span className="text-gray-400">{t('stepProcess.clips')}</span>
-                <span className="font-medium text-foreground">
-                  {t('stepProcess.videoCount', { count: clipFiles.length })}
-                </span>
-              </li>
-            )}
-            <li className="flex justify-between items-center gap-3 p-3 bg-foreground/5 rounded-xl border border-foreground/5">
-              <span className="text-gray-400">{t('stepProcess.engineStatus')}</span>
-              <span
-                className={cn(
-                  'font-medium flex items-center',
-                  isFFmpegReady ? 'text-success-foreground' : 'text-warning'
-                )}
-              >
-                {isFFmpegReady ? (
-                  <>
-                    {t('stepProcess.ready')} <span className="ml-2 w-2 h-2 bg-success rounded-full animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    {t('stepProcess.initializing')} <Loader2 className="ml-2 w-3 h-3 animate-spin" />
-                  </>
-                )}
-              </span>
-            </li>
-          </ul>
-        </Card>
-        <Card elevation="flat" className="glass-panel-dark p-8 shadow-2xl flex flex-col justify-center h-full">
-          <VideoProcessor
-            isProcessing={isProcessing}
-            canProcess={canProcess}
-            onStartProcessing={onStartProcessing}
-            onCancelProcessing={onCancelProcessing}
-            error={error}
-            template={selectedTemplate}
-            formData={formData}
-            uploadedFiles={clipFiles}
-          />
-        </Card>
-      </div>
-      {isProcessing && (
-        <Card
-          ref={progressRef}
-          elevation="flat"
-          className="mt-8 glass-panel-dark p-8 shadow-xl ring-1 ring-brand-500/20 animate-in fade-in slide-in-from-bottom-4 duration-500 motion-reduce:animate-none scroll-mt-24"
-        >
-          <h3 className="text-xl font-semibold mb-4 font-display text-brand-700 dark:text-brand-300 flex items-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            {t('stepProcess.progress')}
-          </h3>
-          <ProgressDisplay progress={progress} />
-        </Card>
-      )}
-    </div>
+    <CompileMonitor
+      template={selectedTemplate}
+      clipFiles={clipFiles}
+      formData={formData}
+      isProcessing={isProcessing}
+      progress={progress}
+      error={error}
+      onCancel={onCancelProcessing}
+    />
   );
 };
 
@@ -314,8 +236,8 @@ interface StepContentProps {
   onReset: () => void;
 }
 
-// Renders the shared phases that live outside the SectionHub: template pick, compile, and result.
-// Per-section input editing belongs to the hub itself, not here.
+// Renders the shared phases that live outside the editor shell: template pick, compile, and result.
+// Per-section input editing belongs to the shell itself, not here.
 const StepContent = (p: StepContentProps) => {
   const { step, selectedTemplate, model } = p;
 
@@ -329,12 +251,9 @@ const StepContent = (p: StepContentProps) => {
         selectedTemplate={selectedTemplate}
         clipFiles={Object.values(model.clipsBySection)}
         formData={model.formData}
-        isFFmpegReady={p.processing.isFFmpegReady}
         isProcessing={p.processing.isProcessing}
-        canProcess={p.processing.canProcess}
         progress={p.processing.progress}
         error={p.processing.error}
-        onStartProcessing={p.onStartProcessing}
         onCancelProcessing={p.onCancelProcessing}
       />
     );
@@ -389,7 +308,7 @@ interface FlowProps {
 const processIndex = (steps: WizardStep[]): number => steps.findIndex((s) => s.kind === 'process');
 const resultIndex = (steps: WizardStep[]): number => steps.findIndex((s) => s.kind === 'result');
 
-// The "all at once" flow: Template → SectionHub → Process → Result. The Process and Result phases
+// The "all at once" flow: Template → EditorShell → Process → Result. The Process and Result phases
 // reuse the linear screens via StepContent so there's a single source of truth for them.
 const HubFlow = (p: FlowProps) => {
   const { selectedTemplate, model, steps, stepIndex, handlers } = p;
@@ -398,51 +317,61 @@ const HubFlow = (p: FlowProps) => {
     return <StepTemplate selectedTemplate={selectedTemplate} onTemplateSelected={handlers.onTemplateSelected} />;
   }
 
+  // One fullscreen editor shell hosts every phase: editing scenes, the compile, and the result. The
+  // compile/result phases reuse the linear StepContent screens, rendered inside the shell's body.
   const onProcess = stepIndex === processIndex(steps);
   const onResult = stepIndex === resultIndex(steps);
+  const derivePhase = (): 'edit' | 'processing' | 'result' => {
+    if (p.processedVideo) return 'result';
 
-  if (onProcess || onResult) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <StepContent
-          step={steps[stepIndex]}
-          selectedTemplate={selectedTemplate}
-          model={model}
-          clipCount={p.clipCount}
-          processedVideo={p.processedVideo}
-          processing={p.processing}
-          onTemplateSelected={handlers.onTemplateSelected}
-          onFormDataChange={handlers.onFormDataChange}
-          onClipChange={handlers.onClipChange}
-          onEditChange={handlers.onEditChange}
-          onMusicChange={handlers.onMusicChange}
-          onBackgroundChange={handlers.onBackgroundChange}
-          onStartProcessing={handlers.onStartProcessing}
-          onCancelProcessing={handlers.onCancelProcessing}
-          onResultBack={handlers.onResultBack}
-          onReset={handlers.onReset}
-        />
-      </div>
+    if (onProcess || onResult || p.processing.isProcessing) return 'processing';
+
+    return 'edit';
+  };
+  const phase = derivePhase();
+
+  const phaseContent =
+    phase === 'edit' ? null : (
+      <StepContent
+        step={steps[onResult || p.processedVideo ? resultIndex(steps) : processIndex(steps)]}
+        selectedTemplate={selectedTemplate}
+        model={model}
+        clipCount={p.clipCount}
+        processedVideo={p.processedVideo}
+        processing={p.processing}
+        onTemplateSelected={handlers.onTemplateSelected}
+        onFormDataChange={handlers.onFormDataChange}
+        onClipChange={handlers.onClipChange}
+        onEditChange={handlers.onEditChange}
+        onMusicChange={handlers.onMusicChange}
+        onBackgroundChange={handlers.onBackgroundChange}
+        onStartProcessing={handlers.onStartProcessing}
+        onCancelProcessing={handlers.onCancelProcessing}
+        onResultBack={handlers.onResultBack}
+        onReset={handlers.onReset}
+      />
     );
-  }
 
   return (
-    <SectionHub
+    <EditorShell
       template={selectedTemplate}
       model={model}
       clipCount={p.clipCount}
-      showMediaRow={templateNeedsMediaStep(selectedTemplate)}
+      showMedia={templateNeedsMediaStep(selectedTemplate)}
       allComplete={p.allComplete}
+      phase={phase}
+      phaseContent={phaseContent}
       onFormDataChange={handlers.onFormDataChange}
       onClipChange={handlers.onClipChange}
       onEditChange={handlers.onEditChange}
       onMusicChange={handlers.onMusicChange}
       onBackgroundChange={handlers.onBackgroundChange}
-      onChangeTemplate={handlers.onReset}
       onCreate={() => {
         p.goTo(processIndex(steps));
         handlers.onStartProcessing();
       }}
+      onCancel={handlers.onCancelProcessing}
+      onExit={handlers.onReset}
     />
   );
 };

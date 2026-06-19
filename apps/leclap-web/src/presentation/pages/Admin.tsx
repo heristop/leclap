@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight, Braces } from 'lucide-react';
+import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight, Braces } from '@/presentation/components/icons';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
 import { Seo } from '@/presentation/components/Seo';

@@ -1,4 +1,4 @@
-import { Square } from 'lucide-react';
+import { Square } from '@/presentation/components/icons';
 import { Button, type ButtonProps } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 

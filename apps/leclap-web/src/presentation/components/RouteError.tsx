@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useRouteError, isRouteErrorResponse } from 'react-router-dom';
-import { Home, RotateCcw } from 'lucide-react';
+import { Home, RotateCcw } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
 

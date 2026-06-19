@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Plus, Save, Trash2 } from 'lucide-react';
+import { AlertCircle, Plus, Save, Trash2 } from '@/presentation/components/icons';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import { userPartialService } from '@/services/userPartialService';
 import { listAvailablePartials, type AvailablePartial } from '@/services/templatePartialService';

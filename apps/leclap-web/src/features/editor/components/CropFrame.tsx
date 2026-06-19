@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Move } from 'lucide-react';
+import { Move } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { VideoCrop } from '@/domain/valueObjects/videoEdits';
 

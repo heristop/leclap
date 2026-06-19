@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from '@/presentation/components/icons';
 import { docNav } from './docNav';
 
 const linkClass = (isActive: boolean): string =>

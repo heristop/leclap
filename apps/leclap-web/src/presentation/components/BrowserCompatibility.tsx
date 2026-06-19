@@ -1,5 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Info, Monitor, Globe, ChevronDown, Lightbulb } from 'lucide-react';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Info,
+  Monitor,
+  Globe,
+  ChevronDown,
+  Lightbulb,
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';

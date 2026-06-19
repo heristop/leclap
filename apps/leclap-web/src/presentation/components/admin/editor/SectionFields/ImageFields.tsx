@@ -1,7 +1,7 @@
 // Field block for an image_background section. Essentials (always visible): duration + the media
 // picker (allowed images + upload). Finishing controls (Effects incl. Ken Burns motion, Section
 // audio) live in collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Film } from 'lucide-react';
+import { Sparkles, Music, Film } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import type { EditorSection, Orientation } from '../../templateEditorModel';

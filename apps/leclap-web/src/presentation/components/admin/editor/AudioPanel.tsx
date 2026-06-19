@@ -5,7 +5,7 @@
 // via SectionAudioFields — they map to EditorSection.musicVolume / .audioFade.
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Waves, Mic } from 'lucide-react';
+import { Waves, Mic } from '@/presentation/components/icons';
 import { Checkbox } from '@/presentation/components/ui';
 import type { AudioMix } from '../templateEditorModel';
 import { SegmentedControl, VolumeSlider, type SegmentOption } from './controls';

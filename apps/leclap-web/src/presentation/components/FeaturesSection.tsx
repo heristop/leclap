@@ -1,4 +1,4 @@
-import { FileCode, Users, Cog, Shield, Zap, Globe } from 'lucide-react';
+import { FileCode, Users, Cog, Shield, Zap, Globe } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Badge, Card, Reveal } from '@/presentation/components/ui';
 

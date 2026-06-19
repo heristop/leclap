@@ -1,4 +1,4 @@
-import { ArrowRight, Shield } from 'lucide-react';
+import { ArrowRight, Shield } from '@/presentation/components/icons';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AboutStats } from '@/presentation/components/about/AboutStats';

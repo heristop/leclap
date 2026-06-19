@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Check } from 'lucide-react';
+import { Upload, X, Check } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { Button, Checkbox, SegmentedControl } from '@/presentation/components/ui';
 import { ANIMATION_LIBRARY, findAnimationByUrl, type AnimationAsset } from '@/data/mediaCatalog';

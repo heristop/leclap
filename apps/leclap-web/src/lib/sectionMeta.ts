@@ -1,4 +1,12 @@
-import { Braces, FileText, Image as ImageIcon, Music, Square, Video, type LucideIcon } from 'lucide-react';
+import {
+  Braces,
+  FileText,
+  Image as ImageIcon,
+  Music,
+  Square,
+  Video,
+  type LucideIcon,
+} from '@/presentation/components/icons';
 
 // Shared section-type metadata, reused by the add-section palette (SceneList), the template
 // poster glyph strip, and anywhere a section needs a consistent icon.

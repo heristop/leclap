@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Code2, ChevronDown } from 'lucide-react';
+import { BookOpen, Code2, ChevronDown } from '@/presentation/components/icons';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
 import { Seo } from '@/presentation/components/Seo';
 import { DocSection, Prose, Code, JsonBlock } from '@/presentation/components/doc/DocBlocks';

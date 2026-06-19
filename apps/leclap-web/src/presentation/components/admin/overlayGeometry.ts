@@ -3,9 +3,10 @@
 // the preview box's own pixel/fraction space, so what the author sees on the frame
 // matches the rendered video (WYSIWYG sizing).
 
-type Orientation = 'landscape' | 'portrait';
+import type { Orientation } from './templateEditorModel';
 
-// The reference video height the absolute `fontsize` is measured against.
+// The reference video height the absolute `fontsize` is measured against (portrait 1920, square 1080,
+// landscape 1080).
 export const refVideoHeight = (orientation: Orientation): number => (orientation === 'portrait' ? 1920 : 1080);
 
 // Preview px shown for a video-px `fontsize`, given the preview box height.

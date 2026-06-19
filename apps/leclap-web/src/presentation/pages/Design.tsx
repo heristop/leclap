@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Play, Download } from 'lucide-react';
+import { Sparkles, Play, Download } from '@/presentation/components/icons';
 import {
   Button,
   Badge,

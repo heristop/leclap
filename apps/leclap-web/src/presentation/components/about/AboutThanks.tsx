@@ -1,4 +1,4 @@
-import { Heart, ArrowUpRight } from 'lucide-react';
+import { Heart, ArrowUpRight } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 
 // A sincere acknowledgment to the FFmpeg project — the engine every clip, filter and

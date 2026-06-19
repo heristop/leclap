@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { Orientation } from '../templateEditorModel';
 import { PREVIEW_BG_CLASS, parsePair, formatPair, type PreviewBg } from './animationOverlay';

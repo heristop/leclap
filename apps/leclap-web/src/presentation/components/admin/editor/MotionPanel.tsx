@@ -4,7 +4,7 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { ZoomIn, ZoomOut, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Sparkles } from 'lucide-react';
+import { ZoomIn, ZoomOut, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Sparkles } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/presentation/components/ui';
 import type { MotionEffect } from '../templateEditorModel';

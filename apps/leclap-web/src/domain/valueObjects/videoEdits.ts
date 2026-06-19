@@ -17,9 +17,21 @@ export interface VideoCrop {
   h: number;
 }
 
+// One slice of the source clip on the timeline: a [start, end] range (source seconds) played at `speed`
+// (1 = normal, <1 slow, >1 fast). Splitting inserts a boundary; deleting removes a slice; the ordered
+// list IS the edited clip. A single untouched slice [0, duration] @1× means "no timeline edit".
+export interface ClipSegment {
+  id: string;
+  start: number;
+  end: number;
+  speed: number;
+}
+
 export interface VideoEdit {
+  // Legacy single trim window — still read for migration; the timeline editor writes `segments` instead.
   trim?: VideoTrim;
   crop?: VideoCrop;
+  segments?: ClipSegment[];
 }
 
 /** A crop is meaningful only when it actually shrinks the frame. */
@@ -30,9 +42,34 @@ export const isCropApplied = (crop?: VideoCrop): boolean =>
 export const isTrimApplied = (trim: VideoTrim | undefined, duration: number): boolean =>
   Boolean(trim && (trim.start > 0.05 || (duration > 0 && trim.end < duration - 0.05)));
 
+// The canonical timeline for a clip: explicit segments win, else a legacy trim becomes one segment, else
+// the whole clip at 1×. Keeps projects saved before the timeline editor working unchanged.
+export const resolveSegments = (edit: VideoEdit | undefined, duration: number): ClipSegment[] => {
+  if (edit?.segments && edit.segments.length > 0) return edit.segments;
+
+  if (edit?.trim && (edit.trim.start > 0 || edit.trim.end > 0)) {
+    return [{ id: 'seg-0', start: edit.trim.start, end: edit.trim.end > 0 ? edit.trim.end : duration, speed: 1 }];
+  }
+
+  return [{ id: 'seg-0', start: 0, end: duration, speed: 1 }];
+};
+
+// A timeline changes the clip when it has more than one segment, any non-1× speed, or trimmed outer edges.
+export const isTimelineApplied = (segments: ClipSegment[], duration: number): boolean => {
+  if (segments.length === 0) return false;
+
+  if (segments.length > 1) return true;
+
+  if (segments.some((s) => Math.abs(s.speed - 1) > 0.001)) return true;
+
+  const first = segments[0];
+
+  return first.start > 0.05 || (duration > 0 && first.end < duration - 0.05);
+};
+
 /** Whether an edit will change the clip at all (so we can skip the ffmpeg pass otherwise). */
 export const isEditApplied = (edit?: VideoEdit, duration = 0): boolean =>
-  Boolean(edit && (isCropApplied(edit.crop) || isTrimApplied(edit.trim, duration)));
+  Boolean(edit && (isCropApplied(edit.crop) || isTrimApplied(edit.trim, duration) || (edit.segments?.length ?? 0) > 0));
 
 // A single ffmpeg.wasm instance for the edit pass, loaded lazily and reused.
 let ffmpegInstance: FFmpeg | null = null;
@@ -83,6 +120,100 @@ function buildEditArgs(inName: string, outName: string, edit: VideoEdit): string
   return args;
 }
 
+// The `crop=…,` prefix shared by the single-pass and timeline graphs (empty when no crop). Width/height
+// are floored to even values (yuv420p / libx264 requirement); offsets stay normalized against iw/ih.
+const cropPrefix = (crop?: VideoCrop): string => {
+  if (!crop || !isCropApplied(crop)) return '';
+
+  return `crop=trunc(iw*${crop.w}/2)*2:trunc(ih*${crop.h}/2)*2:trunc(iw*${crop.x}):trunc(ih*${crop.y}),`;
+};
+
+/**
+ * Build the `-filter_complex` that renders a multi-segment timeline into one clip: each kept segment is
+ * trimmed (`trim`/`atrim`), re-timed for its speed (`setpts`/`atempo`), then the segments are joined with
+ * `concat`. `setpts=(PTS-STARTPTS)/speed` resets each slice's timestamps (required by concat) and divides
+ * them by the speed (2× → half the duration). When the source has no audio track, the audio chains are
+ * dropped and concat runs video-only so it never references a missing `0:a`.
+ */
+export function buildTimelineArgs(
+  inName: string,
+  outName: string,
+  segments: ClipSegment[],
+  crop: VideoCrop | undefined,
+  hasAudio: boolean
+): string[] {
+  const cropPre = cropPrefix(crop);
+  const chains: string[] = [];
+  const concatInputs: string[] = [];
+
+  for (const [k, s] of segments.entries()) {
+    chains.push(`[0:v]${cropPre}trim=start=${s.start}:end=${s.end},setpts=(PTS-STARTPTS)/${s.speed}[v${k}]`);
+    concatInputs.push(`[v${k}]`);
+
+    if (hasAudio) {
+      chains.push(`[0:a]atrim=start=${s.start}:end=${s.end},asetpts=PTS-STARTPTS,atempo=${s.speed}[a${k}]`);
+      concatInputs.push(`[a${k}]`);
+    }
+  }
+
+  const aFlag = hasAudio ? 1 : 0;
+  const outLabels = hasAudio ? '[v][a]' : '[v]';
+  chains.push(`${concatInputs.join('')}concat=n=${segments.length}:v=1:a=${aFlag}${outLabels}`);
+
+  const args = ['-y', '-i', inName, '-filter_complex', chains.join(';'), '-map', '[v]'];
+
+  if (hasAudio) args.push('-map', '[a]');
+
+  args.push('-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p');
+
+  if (hasAudio) args.push('-c:a', 'aac');
+
+  args.push(outName);
+
+  return args;
+}
+
+// ffmpeg.wasm has no ffprobe, so probe by running `-i` with no output: ffmpeg prints the stream dump to
+// the log (then errors because no output file is given). A `Stream … Audio:` line means an audio track.
+async function hasAudioStream(ffmpeg: FFmpeg, inName: string): Promise<boolean> {
+  let log = '';
+  const onLog = (event: { message: string }): void => {
+    log += `${event.message}\n`;
+  };
+
+  ffmpeg.on('log', onLog);
+
+  try {
+    await ffmpeg.exec(['-hide_banner', '-i', inName]);
+  } catch {
+    // Expected: no output file → non-zero exit. The stream info we need is already in the captured log.
+  } finally {
+    ffmpeg.off('log', onLog);
+  }
+
+  return /Stream #\d+:\d+.*: Audio:/.test(log);
+}
+
+// Pick the cheapest pass for a clip's edit: no segments (or one untouched-speed segment) uses the fast
+// -ss/-to path; a real timeline (a split or a speed change) uses the concat filter graph.
+async function buildClipArgs(ffmpeg: FFmpeg, inName: string, outName: string, edit: VideoEdit): Promise<string[]> {
+  const segments = edit.segments;
+
+  if (!segments || segments.length === 0) {
+    return buildEditArgs(inName, outName, edit);
+  }
+
+  const single = segments.length === 1 && Math.abs(segments[0].speed - 1) < 0.001 ? segments[0] : null;
+
+  if (single) {
+    return buildEditArgs(inName, outName, { crop: edit.crop, trim: { start: single.start, end: single.end } });
+  }
+
+  const hasAudio = await hasAudioStream(ffmpeg, inName);
+
+  return buildTimelineArgs(inName, outName, segments, edit.crop, hasAudio);
+}
+
 export interface ApplyEditsProgress {
   index: number;
   total: number;
@@ -115,7 +246,7 @@ async function editClip(ffmpeg: FFmpeg, file: File, edit: VideoEdit, index: numb
 
   try {
     await ffmpeg.writeFile(inName, await fetchFile(file));
-    await ffmpeg.exec(buildEditArgs(inName, outName, edit));
+    await ffmpeg.exec(await buildClipArgs(ffmpeg, inName, outName, edit));
     const data = await ffmpeg.readFile(outName);
 
     return fileFromOutput(data, index);

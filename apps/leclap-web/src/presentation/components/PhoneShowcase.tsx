@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Camera, Sparkles, WifiOff } from 'lucide-react';
+import { ArrowRight, Camera, Sparkles, WifiOff } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { Button, Reveal } from '@/presentation/components/ui';

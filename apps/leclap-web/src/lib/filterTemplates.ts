@@ -1,6 +1,7 @@
 import type { Template } from '@/services/templateService';
 
-export type OrientationFacet = 'all' | 'portrait' | 'landscape';
+// 'all' = no filter; the rest mirror the shared template orientation union.
+export type OrientationFacet = 'all' | Template['orientation'];
 export type ComplexityFacet = 'all' | 'simple' | 'intermediate' | 'advanced';
 
 export interface TemplateFacets {

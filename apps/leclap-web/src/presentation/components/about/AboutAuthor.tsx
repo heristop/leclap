@@ -1,4 +1,4 @@
-import { Globe, Code2, AtSign, Coffee } from 'lucide-react';
+import { Globe, Code2, AtSign, Coffee } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 
 const socials = [

@@ -27,7 +27,7 @@ export interface StoredProject {
   name: string;
   templateId: string;
   templateName: string;
-  orientation: 'landscape' | 'portrait';
+  orientation: Template['orientation'];
   status: ProjectStatus;
   stepIndex: number;
   formData: Record<string, string>;

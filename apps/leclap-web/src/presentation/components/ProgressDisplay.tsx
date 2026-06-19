@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, Cpu, CheckCircle2, AlertCircle, Zap, ShieldCheck, type LucideIcon } from 'lucide-react';
+import {
+  Clock,
+  Cpu,
+  CheckCircle2,
+  AlertCircle,
+  Zap,
+  ShieldCheck,
+  type LucideIcon,
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { Card } from '@/presentation/components/ui';
 

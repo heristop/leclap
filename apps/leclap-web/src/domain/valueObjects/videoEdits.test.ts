@@ -6,6 +6,8 @@ const writeFileMock = vi.fn(async () => {});
 const execMock = vi.fn(async (_args: string[]) => {});
 const readFileMock = vi.fn(async () => new Uint8Array([0, 1, 2, 3]));
 const deleteFileMock = vi.fn(async () => {});
+const onMock = vi.fn();
+const offMock = vi.fn();
 
 vi.mock('@ffmpeg/ffmpeg', () => ({
   FFmpeg: class {
@@ -14,6 +16,8 @@ vi.mock('@ffmpeg/ffmpeg', () => ({
     exec = execMock;
     readFile = readFileMock;
     deleteFile = deleteFileMock;
+    on = onMock;
+    off = offMock;
   },
 }));
 
@@ -27,8 +31,19 @@ import {
   isTrimApplied,
   isEditApplied,
   applyVideoEdits,
+  resolveSegments,
+  isTimelineApplied,
+  buildTimelineArgs,
   type VideoEdit,
+  type ClipSegment,
 } from '@/domain/valueObjects/videoEdits';
+
+const seg = (start: number, end: number, speed = 1, id = `s-${start}-${end}`): ClipSegment => ({
+  id,
+  start,
+  end,
+  speed,
+});
 
 const makeFile = (name = 'clip.mov') => new File([new Blob(['data'])], name, { type: 'video/quicktime' });
 
@@ -76,6 +91,78 @@ describe('isEditApplied', () => {
   it('is true when a crop or a meaningful trim is present', () => {
     expect(isEditApplied({ crop: { x: 0.1, y: 0, w: 1, h: 1 } })).toBe(true);
     expect(isEditApplied({ trim: { start: 2, end: 10 } })).toBe(true);
+  });
+});
+
+describe('resolveSegments', () => {
+  it('returns explicit segments when present', () => {
+    const segments = [seg(0, 3, 2), seg(5, 9, 1)];
+    expect(resolveSegments({ segments }, 10)).toBe(segments);
+  });
+
+  it('migrates a legacy trim into one full-speed segment', () => {
+    expect(resolveSegments({ trim: { start: 2, end: 8 } }, 10)).toEqual([{ id: 'seg-0', start: 2, end: 8, speed: 1 }]);
+  });
+
+  it('falls back to one whole-clip segment when there is no edit', () => {
+    expect(resolveSegments(undefined, 10)).toEqual([{ id: 'seg-0', start: 0, end: 10, speed: 1 }]);
+  });
+
+  it('fills a legacy trim with no end from the clip duration', () => {
+    expect(resolveSegments({ trim: { start: 1, end: 0 } }, 10)).toEqual([{ id: 'seg-0', start: 1, end: 10, speed: 1 }]);
+  });
+});
+
+describe('isTimelineApplied', () => {
+  it('is true with more than one segment', () => {
+    expect(isTimelineApplied([seg(0, 3), seg(3, 6)], 6)).toBe(true);
+  });
+
+  it('is true when any segment is sped up or slowed down', () => {
+    expect(isTimelineApplied([seg(0, 6, 1.5)], 6)).toBe(true);
+  });
+
+  it('is true when the single segment is trimmed', () => {
+    expect(isTimelineApplied([seg(2, 6)], 6)).toBe(true);
+    expect(isTimelineApplied([seg(0, 4)], 6)).toBe(true);
+  });
+
+  it('is false for one untouched full-speed whole-clip segment', () => {
+    expect(isTimelineApplied([seg(0, 6, 1)], 6)).toBe(false);
+  });
+});
+
+describe('buildTimelineArgs', () => {
+  it('builds a trim/setpts + atrim/atempo + concat graph for a multi-segment clip with audio', () => {
+    const args = buildTimelineArgs('in.mp4', 'out.mp4', [seg(0, 3, 2), seg(5, 9, 1)], undefined, true);
+    const fc = args[args.indexOf('-filter_complex') + 1];
+
+    expect(fc).toContain('[0:v]trim=start=0:end=3,setpts=(PTS-STARTPTS)/2[v0]');
+    expect(fc).toContain('[0:a]atrim=start=0:end=3,asetpts=PTS-STARTPTS,atempo=2[a0]');
+    expect(fc).toContain('[0:v]trim=start=5:end=9,setpts=(PTS-STARTPTS)/1[v1]');
+    expect(fc).toContain('[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]');
+    expect(args).toContain('-map');
+    expect(args.slice(args.indexOf('-map'))).toContain('[v]');
+    expect(args).toContain('libx264');
+  });
+
+  it('omits the audio chains and concats video-only when the clip has no audio', () => {
+    const args = buildTimelineArgs('in.mp4', 'out.mp4', [seg(0, 3, 2), seg(5, 9, 1)], undefined, false);
+    const fc = args[args.indexOf('-filter_complex') + 1];
+
+    expect(fc).not.toContain('atrim');
+    expect(fc).not.toContain('atempo');
+    expect(fc).toContain('[v0][v1]concat=n=2:v=1:a=0[v]');
+    expect(args).not.toContain('-c:a');
+  });
+
+  it('prepends the crop filter to each video chain', () => {
+    const args = buildTimelineArgs('in.mp4', 'out.mp4', [seg(0, 3, 1)], { x: 0.1, y: 0.2, w: 0.5, h: 0.6 }, true);
+    const fc = args[args.indexOf('-filter_complex') + 1];
+
+    expect(fc).toContain(
+      '[0:v]crop=trunc(iw*0.5/2)*2:trunc(ih*0.6/2)*2:trunc(iw*0.1):trunc(ih*0.2),trim=start=0:end=3'
+    );
   });
 });
 
@@ -134,6 +221,20 @@ describe('applyVideoEdits', () => {
     expect(result[1]).not.toBe(files[1]);
     expect(result[1].name).toBe('video_2.mp4');
     expect(execMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a multi-segment timeline through a concat filter_complex', async () => {
+    const files = [makeFile('clip.mp4')];
+    const edits: Record<string, VideoEdit> = {
+      s0: { segments: [seg(0, 3, 2), seg(5, 9, 1)] },
+    };
+
+    await applyVideoEdits(files, edits, ['s0']);
+
+    // The audio-probe pass runs first; the render pass carries the filter_complex.
+    const renderArgs = execMock.mock.calls.map((c) => c[0]).find((a) => a.includes('-filter_complex'));
+    expect(renderArgs).toBeTruthy();
+    expect(renderArgs?.[renderArgs.indexOf('-filter_complex') + 1]).toContain('concat=n=2');
   });
 
   it('falls back to the original clip when ffmpeg fails', async () => {

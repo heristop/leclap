@@ -82,7 +82,7 @@ export const ToolDock = <Id extends string>({ items, active, onSelect, ariaLabel
       {activeIndex >= 0 && (
         <span
           aria-hidden="true"
-          className="brand-gradient absolute left-0 hidden w-[3px] rounded-r-full transition-transform duration-300 ease-[var(--ease-spring)] lg:block"
+          className="brand-gradient absolute left-0 hidden w-[3px] rounded-r-full transition-transform duration-300 ease-[var(--ease-spring)] motion-reduce:transition-none lg:block"
           style={{
             height: `${RAIL_SLOT}rem`,
             transform: `translateY(calc(0.75rem + ${activeIndex} * ${RAIL_SLOT}rem))`,

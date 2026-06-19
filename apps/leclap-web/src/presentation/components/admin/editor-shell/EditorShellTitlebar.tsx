@@ -31,7 +31,7 @@ const IconButton = ({
     title={label}
     disabled={disabled}
     onClick={onClick}
-    className="tap grid size-9 place-items-center rounded-lg border border-foreground/10 bg-foreground/5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-40"
+    className="tap grid size-9 shrink-0 place-items-center rounded-lg border border-foreground/10 bg-foreground/5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:pointer-events-none disabled:opacity-40"
   >
     {children}
   </button>
@@ -51,14 +51,15 @@ export const EditorShellTitlebar = ({
   saveDisabled,
   t,
 }: EditorShellTitlebarProps) => (
-  <header className="flex shrink-0 items-center gap-3 border-b border-foreground/10 bg-surface-2/50 px-3 py-2">
+  <header className="flex shrink-0 items-center gap-2 border-b border-foreground/10 bg-surface-2/50 px-3 py-2 sm:gap-3">
     <button
       type="button"
       onClick={onCancel}
-      className="tap group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+      aria-label={t('editor.back')}
+      className="tap group inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 sm:px-3"
     >
-      <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1" />
-      {t('editor.back')}
+      <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1 motion-reduce:transition-none" />
+      <span className="hidden sm:inline">{t('editor.back')}</span>
     </button>
     {/* Inline-editable template name — click to rename right in the titlebar. */}
     <input
@@ -81,10 +82,11 @@ export const EditorShellTitlebar = ({
       type="button"
       onClick={onSave}
       disabled={saveDisabled}
-      className="tap inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+      aria-label={t('editor.save')}
+      className="tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
     >
       <Save className="size-4" />
-      {t('editor.save')}
+      <span className="hidden sm:inline">{t('editor.save')}</span>
     </button>
   </header>
 );

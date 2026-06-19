@@ -36,7 +36,7 @@ const PanelFrame = ({ eyebrow, title, children }: { eyebrow: string; title: stri
       </span>
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
     </header>
-    <div className="panel-swap min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+    <div className="panel-swap min-h-0 flex-1 overflow-y-auto p-4 motion-reduce:animate-none">{children}</div>
   </div>
 );
 

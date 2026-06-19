@@ -161,6 +161,9 @@
     "nameLabel": "Template name",
     "monitorEmpty": "Select a scene to edit"
   },
+  "validation": {
+    "saveFailed": "Could not save the template."
+  },
   "media": {
     "source": "Media source",
     "tab": {
@@ -367,15 +370,6 @@
     "color": "Solid color card with a title",
     "music": "Background track for the whole video",
     "image": "A photo backdrop with motion"
-  },
-  "testRender": {
-    "rendering": "Rendering…",
-    "preview": "Preview render",
-    "ariaLabel": "Render a preview of this template with sample footage",
-    "title": "Preview render",
-    "description": "A fast draft using sample footage — placeholder clips stand in for your video sections.",
-    "failed": "The preview render failed.",
-    "download": "Download draft"
   },
   "timeline": {
     "label": "Timeline",

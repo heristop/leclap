@@ -7,9 +7,10 @@ import type AbstractEventManager from '../platform/AbstractEventManager';
 import type { IEventEmitter } from '../platform/AbstractEventManager';
 import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
-import type { FFMpegInfos, LogParams, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
+import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
-import { assertSafeArgToken, assertSafeSegmentName } from '../core/argGuard';
+import { assertSafeSegmentName } from '../core/argGuard';
+import { fetchSectionInfos } from './sectionInfos';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 import type Project from '../core/models/Project';
@@ -98,15 +99,11 @@ class TemplateDirector {
     this.project.applyDefault();
     this.applyOrientationToScale();
 
-    if (!this.project.config.userVideoPaths) {
-      this.logger.info('TemplateDirector: No userVideoPaths provided in config');
-
-      return this;
-    }
-
+    const paths = this.project.config.userVideoPaths;
     this.logger.info(
-      `TemplateDirector received userVideoPaths with ${Object.keys(this.project.config.userVideoPaths).length} videos for sections:`,
-      { sections: Object.keys(this.project.config.userVideoPaths).join(', ') }
+      paths
+        ? `TemplateDirector received userVideoPaths for sections: ${Object.keys(paths).join(', ')}`
+        : 'TemplateDirector: No userVideoPaths provided in config'
     );
 
     return this;
@@ -345,58 +342,18 @@ class TemplateDirector {
     return this.videoEditor.assembleWithTransitions(segmentFiles, transitions);
   };
 
-  private readonly resolveUserVideoSource = async (section: Section): Promise<string | undefined> => {
-    const userPath = this.project.config.userVideoPaths?.[section.name];
-
-    if (section.type !== 'project_video' || !userPath) {
-      return undefined;
-    }
-
-    this.logger.info(`[fetchSectionInfos] Using section-specific video for ${section.name}: ${userPath}`);
-
-    try {
-      await this.filesystemAdapter.stat(userPath);
-      this.logger.info(`[fetchSectionInfos] Verified file exists: ${userPath}`);
-
-      return userPath;
-    } catch (error) {
-      const logParams: LogParams = error instanceof Error ? { message: error.message, stack: error.stack } : {};
-      this.logger.error(`[fetchSectionInfos] Error accessing section-specific video: ${userPath}`, logParams);
-
-      return undefined;
-    }
-  };
-
-  fetchSectionInfos = async (section: Section): Promise<FFMpegInfos> => {
-    this.logger.info(`[fetchSectionInfos] Processing section ${section.name} (${section.type})`);
-
-    if (this.project.config.userVideoPaths) {
-      this.logger.info(
-        `[fetchSectionInfos] Available userVideoPaths:`,
-        Object.fromEntries(Object.keys(this.project.config.userVideoPaths).map((key) => [key, true]))
-      );
-    }
-
-    const resolvedSource = await this.resolveUserVideoSource(section);
-    // Guard the section name in the assets-dir fallback (prevents `../` traversal into a probed file)
-    // and reject whitespace/NUL in the probed source token, mirroring the `-i` source guard.
-    const source = assertSafeArgToken(
-      resolvedSource ?? `${this.filesystemAdapter.getAssetsDir('videos')}/${assertSafeSegmentName(section.name)}.mp4`,
-      'source'
+  // Resolve a section's clip source and read its media info, falling back to the declared duration when
+  // the probe can't (see sectionInfos.ts). Kept as a method so the director's tests exercise it directly.
+  fetchSectionInfos = (section: Section): Promise<FFMpegInfos> =>
+    fetchSectionInfos(
+      {
+        config: this.project.config,
+        ffmpegAdapter: this.ffmpegAdapter,
+        filesystemAdapter: this.filesystemAdapter,
+        logger: this.logger,
+      },
+      section
     );
-
-    if (!resolvedSource) {
-      this.logger.info(`[fetchSectionInfos] Using default assets path for section ${section.name}: ${source}`);
-    }
-
-    const info = await this.ffmpegAdapter.getInfos(source);
-
-    if (info.duration === null) {
-      throw new Error(`Duration not found for ${section.name}`);
-    }
-
-    return info;
-  };
 
   addToQueue = async (section: Section): Promise<void> => {
     this.builder = this.concreteBuilder;

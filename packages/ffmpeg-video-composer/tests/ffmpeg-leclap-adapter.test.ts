@@ -86,12 +86,16 @@ describe('FFmpegLeclapAdapter', () => {
     expect(infos).toEqual({ duration: 2.4, videoCodec: 'h264', audioCodec: null, sampleRate: null });
   });
 
-  it('getInfos() still throws when the probe output has no JSON object at all', async () => {
+  it('getInfos() degrades to null infos (no throw) when the probe output has no JSON — a clip whose ffprobe output is unparseable (some camera-recorded MP4s) then falls back to the declared duration instead of aborting the compile', async () => {
     const adapter = new FFmpegLeclapAdapter(
       engineWith({ probe: vi.fn().mockResolvedValue({ code: 0, output: 'failed to open file' }) })
     );
 
-    await expect(adapter.getInfos('x.mp4')).rejects.toThrow(/FFprobe output not parseable/);
+    const infos = await adapter.getInfos('x.mp4');
+
+    expect(infos.duration).toBeNull();
+    expect(infos.videoCodec).toBeNull();
+    expect(infos.audioCodec).toBeNull();
   });
 
   it('getInfos() throws on a non-zero probe', async () => {

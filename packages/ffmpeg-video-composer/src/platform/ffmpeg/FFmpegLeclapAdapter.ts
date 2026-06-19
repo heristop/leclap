@@ -142,7 +142,12 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
     try {
       return (JSON.parse(FFmpegLeclapAdapter.extractJsonObject(output)) as { streams?: ProbeStream[] }).streams ?? [];
     } catch (error) {
-      throw new FFmpegError(`FFprobe output not parseable for ${source}`, String(error));
+      // Some camera-recorded MP4s (e.g. react-native-vision-camera output) make ffprobe emit a non-JSON
+      // line instead of the document. Don't abort the whole compile — return no streams so the caller
+      // falls back to the section's declared duration; the render still decodes the clip natively.
+      console.warn(`[FFmpegLeclapAdapter] ffprobe output not parseable for ${source}: ${String(error)}`);
+
+      return [];
     }
   };
 

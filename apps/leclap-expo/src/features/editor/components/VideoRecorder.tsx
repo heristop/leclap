@@ -11,18 +11,21 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { Camera, useCameraDevice, type VideoFile } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, type VideoFile, type CameraDevice } from 'react-native-vision-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { FramingGuideOverlay } from './FramingGuideOverlay';
-import type { FramingGuide } from '@/src/types';
+import type { FramingGuide, Orientation } from '@/src/types';
+import { ASPECT_RATIO } from '@/src/features/templates/orientationMeta';
+import type { CaptureMode } from '@leclap/creative-kit';
 
 interface VideoRecorderProps {
-  orientation: 'portrait' | 'landscape';
-  onVideoRecorded: (videoFile: VideoFile, orientation: 'portrait' | 'landscape') => void;
+  orientation: Orientation;
+  onVideoRecorded: (videoFile: VideoFile, orientation: Orientation) => void;
   existingVideoUri?: string;
   sectionDescription?: string;
   fullscreen?: boolean;
@@ -35,15 +38,26 @@ interface VideoRecorderProps {
   // Fired when the post-stop "finalizing" freeze begins/ends so the host can disable its own chrome
   // (e.g. the Back button), which lives outside this component's stacking context.
   onFinalizingChange?: (finalizing: boolean) => void;
+  // Ordered list of modes the user can switch to. 'screen' is silently filtered at the call site.
+  allowedModes?: CaptureMode[];
 }
 
 // How many seconds before the target duration the end-of-recording warning kicks in.
 const END_WARNING_THRESHOLD = 3;
 
+const DEFAULT_MODES: CaptureMode[] = ['front', 'back'];
+
 // Scrim gradients (brand near-black) that keep the header/description/controls legible over the live
 // camera. `as const` so the colors satisfy LinearGradient's readonly-tuple prop type.
 const TOP_SCRIM_COLORS = ['rgba(11,11,15,0.65)', 'rgba(11,11,15,0)'] as const;
 const BOTTOM_SCRIM_COLORS = ['rgba(11,11,15,0)', 'rgba(11,11,15,0.7)'] as const;
+
+const MODE_LABELS: Record<CaptureMode, string> = {
+  front: 'Front',
+  back: 'Back',
+  upload: 'Upload',
+  screen: 'Screen',
+};
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -52,15 +66,19 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-function getInstructionText(orientation: 'portrait' | 'landscape', t: TFunction<'recording'>): string {
-  return orientation === 'portrait' ? t('instructions.portrait') : t('instructions.landscape');
+function getInstructionText(orientation: Orientation, t: TFunction<'recording'>): string {
+  if (orientation === 'landscape') return t('instructions.landscape');
+
+  if (orientation === 'square') return t('instructions.square');
+
+  return t('instructions.portrait');
 }
 
 function getNextCameraType(current: 'front' | 'back'): 'front' | 'back' {
   return current === 'back' ? 'front' : 'back';
 }
 
-function getPreviewDimensions(orientation: 'portrait' | 'landscape', fullscreen: boolean) {
+function getPreviewDimensions(orientation: Orientation, fullscreen: boolean) {
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
 
@@ -68,11 +86,10 @@ function getPreviewDimensions(orientation: 'portrait' | 'landscape', fullscreen:
     return { width: windowWidth, height: windowHeight };
   }
 
-  if (orientation === 'portrait') {
-    return { width: windowWidth * 0.95, height: windowWidth * 0.95 * (16 / 9) };
-  }
+  // height = width / (w/h) — square stays 1:1, portrait grows tall, landscape stays wide.
+  const width = windowWidth * 0.95;
 
-  return { width: windowWidth * 0.95, height: windowWidth * 0.95 * (9 / 16) };
+  return { width, height: width / ASPECT_RATIO[orientation] };
 }
 
 interface TimerOverlayProps {
@@ -137,6 +154,72 @@ function EndWarningOverlay({
   );
 }
 
+// Renders the finalizing blocker (high-zIndex overlay + spinner) while the clip is being
+// saved. Pulled out so it doesn't add to VideoRecorder's cyclomatic-complexity budget.
+function FinalizingOverlay({ visible, t }: { visible: boolean; t: TFunction<'recording'> }) {
+  if (!visible) return null;
+
+  return (
+    <View style={styles.finalizingOverlay}>
+      <ActivityIndicator size="large" color="white" />
+      <Text style={styles.finalizingText}>{t('processing')}</Text>
+    </View>
+  );
+}
+
+// Renders either the mode-switch pill bar (when multiple modes are allowed) or the legacy
+// flip-camera button (single-mode / no bar). Extracted to keep VideoRecorder lean.
+interface ModeBarOrFlipProps {
+  showModeBar: boolean;
+  allowedModes: CaptureMode[];
+  activeMode: CaptureMode;
+  onModeChange: (m: CaptureMode) => void;
+  isPortrait: boolean;
+  isBusy: boolean;
+  onFlip: () => void;
+}
+function ModeBarOrFlip({
+  showModeBar,
+  allowedModes,
+  activeMode,
+  onModeChange,
+  isPortrait,
+  isBusy,
+  onFlip,
+}: ModeBarOrFlipProps) {
+  if (showModeBar) {
+    return <RNCaptureModeBar modes={allowedModes} active={activeMode} onChange={onModeChange} disabled={isBusy} />;
+  }
+
+  return <FlipButton isPortrait={isPortrait} isRecording={isBusy} onPress={onFlip} />;
+}
+
+// Renders the <Camera> element — a simple pass-through wrapper for square orientation that
+// constrains the live view to a 1:1 frame without burning that ternary into VideoRecorder.
+function CameraBody({
+  cameraRef,
+  device,
+  orientation,
+}: {
+  cameraRef: React.RefObject<Camera | null>;
+  device: CameraDevice;
+  orientation: Orientation;
+}) {
+  if (orientation !== 'square') {
+    return <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio />;
+  }
+
+  const size = Dimensions.get('window').width;
+
+  return (
+    <View style={styles.squareFrameWrap}>
+      <View style={[styles.squareFrame, { width: size, height: size }]}>
+        <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio resizeMode="cover" />
+      </View>
+    </View>
+  );
+}
+
 // Renders the framing guide over the live camera, including WHILE recording — its whole
 // purpose is helping the user hold their framing during the take (matches web behavior).
 // Dedicated component keeps the complexity budget of the VideoRecorder function intact.
@@ -145,7 +228,7 @@ function FramingGuideOverlayWhenLive({
   orientation,
 }: {
   guide: FramingGuide | undefined;
-  orientation: 'portrait' | 'landscape';
+  orientation: Orientation;
 }) {
   if (!guide) return null;
 
@@ -205,6 +288,56 @@ function FlipButton({ isPortrait, isRecording, onPress }: FlipButtonProps) {
     >
       <Ionicons name="camera-reverse-outline" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
     </TouchableOpacity>
+  );
+}
+
+interface RNCaptureModeBarProps {
+  modes: CaptureMode[];
+  active: CaptureMode;
+  onChange: (m: CaptureMode) => void;
+  disabled: boolean;
+}
+
+function RNCaptureModeBar({ modes, active, onChange, disabled }: RNCaptureModeBarProps) {
+  return (
+    <View style={styles.captureModeBar} pointerEvents={disabled ? 'none' : 'auto'}>
+      {modes.map((mode) => (
+        <TouchableOpacity
+          key={mode}
+          style={[styles.captureModepill, active === mode && styles.captureModePillActive]}
+          onPress={() => {
+            onChange(mode);
+          }}
+          disabled={disabled}
+        >
+          <Text style={[styles.captureModePillText, active === mode && styles.captureModePillTextActive]}>
+            {MODE_LABELS[mode]}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+interface UploadPlaceholderProps {
+  onPick: () => Promise<void>;
+}
+
+function UploadPlaceholder({ onPick }: UploadPlaceholderProps) {
+  const handlePress = () => {
+    onPick().catch((error: unknown) => {
+      console.error('pickVideo failed:', error);
+    });
+  };
+
+  return (
+    <View style={styles.uploadPlaceholder}>
+      <Ionicons name="cloud-upload-outline" size={64} color="rgba(255,255,255,0.7)" />
+      <Text style={styles.uploadLabel}>Pick a video from your gallery</Text>
+      <TouchableOpacity style={styles.uploadButton} onPress={handlePress}>
+        <Text style={styles.uploadButtonText}>Choose Video</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -388,14 +521,80 @@ function useWarningPulse(active: boolean): Animated.Value {
   return pulse;
 }
 
+function useDescriptionOverlay() {
+  const [showDescription, setShowDescription] = useState(true);
+
+  return {
+    showDescription,
+    dismiss: () => {
+      setShowDescription(false);
+    },
+  };
+}
+
+function useFinalizingSync(onChange: ((v: boolean) => void) | undefined) {
+  const [isFinalizing, setIsFinalizingState] = useState(false);
+
+  const setIsFinalizing = (v: boolean) => {
+    setIsFinalizingState(v);
+    onChange?.(v);
+  };
+
+  return { isFinalizing, setIsFinalizing };
+}
+
+interface UseCaptureModeParams {
+  allowedModes: CaptureMode[];
+  onVideoRecorded: (videoFile: VideoFile, orientation: Orientation) => void;
+  orientation: Orientation;
+}
+
+function useCaptureMode({ allowedModes, onVideoRecorded, orientation }: UseCaptureModeParams) {
+  const [activeMode, setActiveMode] = useState<CaptureMode>(allowedModes[0] ?? 'back');
+  const [cameraType, setCameraType] = useState<'front' | 'back'>(activeMode === 'front' ? 'front' : 'back');
+
+  const handleModeChange = (mode: CaptureMode) => {
+    setActiveMode(mode);
+
+    if (mode === 'front' || mode === 'back') {
+      setCameraType(mode);
+    }
+  };
+
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'videos',
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    onVideoRecorded({ path: asset.uri } as VideoFile, orientation);
+  };
+
+  return {
+    activeMode,
+    cameraType,
+    handleModeChange,
+    pickVideo,
+    flipCamera: () => {
+      setCameraType(getNextCameraType);
+    },
+    showModeBar: allowedModes.length > 1,
+    isUploadMode: activeMode === 'upload',
+  };
+}
+
 interface RecordingActionsParams {
   cameraRef: React.RefObject<Camera | null>;
   setIsRecording: (v: boolean) => void;
   // Toggled while the native engine finalizes the stopped recording (and the clip is saved/navigated).
   // Drives the blocking overlay so taps during that brief freeze can't start a new take or navigate.
   setIsFinalizing: (v: boolean) => void;
-  onVideoRecorded: (videoFile: VideoFile, orientation: 'portrait' | 'landscape') => void;
-  orientation: 'portrait' | 'landscape';
+  onVideoRecorded: (videoFile: VideoFile, orientation: Orientation) => void;
+  orientation: Orientation;
   device: ReturnType<typeof useCameraDevice>;
 }
 
@@ -567,7 +766,7 @@ interface RecorderFooterProps {
   sectionDescription?: string;
   showDescription: boolean;
   onDismissDescription: () => void;
-  orientation: 'portrait' | 'landscape';
+  orientation: Orientation;
   t: TFunction<'recording'>;
 }
 
@@ -656,25 +855,22 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   maxDurationSeconds,
   framingGuide,
   onFinalizingChange,
+  allowedModes = DEFAULT_MODES,
 }) => {
   const { t } = useTranslation('recording');
   const [isRecording, setIsRecording] = useState(false);
-  const [isFinalizing, setIsFinalizingState] = useState(false);
-  // Keep local state and the host callback in lock-step so the host's Back button disables in the
-  // same render the in-component controls do.
-  const setIsFinalizing = (v: boolean) => {
-    setIsFinalizingState(v);
-    onFinalizingChange?.(v);
-  };
-  const [showDescription, setShowDescription] = useState(true);
-  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
+  const { isFinalizing, setIsFinalizing } = useFinalizingSync(onFinalizingChange);
+  const { showDescription, dismiss: dismissDescription } = useDescriptionOverlay();
+  const { activeMode, cameraType, handleModeChange, pickVideo, flipCamera, showModeBar, isUploadMode } = useCaptureMode(
+    { allowedModes, onVideoRecorded, orientation }
+  );
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice(cameraType);
   const { hasPermission, isCheckingPermissions } = useCameraPermissions();
   const recordingDuration = useRecordingTimer(isRecording);
   const pulseAnim = usePulseAnimation(isRecording);
-  const isPortrait = orientation === 'portrait';
-  const dimensions = getPreviewDimensions(orientation, fullscreen);
+  // Square records with the phone upright, so it shares the portrait chrome layout (timer/flip/controls).
+  const isPortrait = orientation !== 'landscape';
   const { handleRecordPress } = useRecordingActions({
     cameraRef,
     setIsRecording,
@@ -691,7 +887,33 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     maxDurationSeconds,
   });
 
-  const gate = permissionGate({ isCheckingPermissions, hasPermission, device, dimensions, t });
+  const containerStyle = fullscreen ? styles.fullscreenContainer : styles.container;
+
+  if (isUploadMode) {
+    return (
+      <View style={containerStyle}>
+        <StatusBar hidden backgroundColor="transparent" translucent />
+        <UploadPlaceholder onPick={pickVideo} />
+        <ModeBarOrFlip
+          showModeBar={showModeBar}
+          allowedModes={allowedModes}
+          activeMode={activeMode}
+          onModeChange={handleModeChange}
+          isPortrait={isPortrait}
+          isBusy={false}
+          onFlip={flipCamera}
+        />
+      </View>
+    );
+  }
+
+  const gate = permissionGate({
+    isCheckingPermissions,
+    hasPermission,
+    device,
+    dimensions: getPreviewDimensions(orientation, fullscreen),
+    t,
+  });
 
   if (gate) return gate;
 
@@ -699,9 +921,9 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   if (!device) return null;
 
   return (
-    <View style={fullscreen ? styles.fullscreenContainer : styles.container}>
+    <View style={containerStyle}>
       <StatusBar hidden backgroundColor="transparent" translucent />
-      <Camera ref={cameraRef} style={styles.camera} device={device} isActive video audio />
+      <CameraBody cameraRef={cameraRef} device={device} orientation={orientation} />
       {/* Top + bottom scrims keep the header, description and controls legible over any camera frame. */}
       <LinearGradient pointerEvents="none" colors={TOP_SCRIM_COLORS} style={styles.topScrim} />
       <LinearGradient pointerEvents="none" colors={BOTTOM_SCRIM_COLORS} style={styles.bottomScrim} />
@@ -716,6 +938,15 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         countdown={countdown}
         t={t}
       />
+      <ModeBarOrFlip
+        showModeBar={showModeBar}
+        allowedModes={allowedModes}
+        activeMode={activeMode}
+        onModeChange={handleModeChange}
+        isPortrait={isPortrait}
+        isBusy={isRecording || isFinalizing}
+        onFlip={flipCamera}
+      />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
         <TouchableOpacity
           style={[styles.recordButton, isRecording && styles.stopButton]}
@@ -725,33 +956,16 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
           <Animated.View style={[styles.recordIcon, { transform: [{ scale: pulseAnim }] }]} />
         </TouchableOpacity>
       </View>
-      <FlipButton
-        isPortrait={isPortrait}
-        isRecording={isRecording || isFinalizing}
-        onPress={() => {
-          setCameraType(getNextCameraType);
-        }}
-      />
       <RecorderFooter
         isPortrait={isPortrait}
         isRecording={isRecording}
         sectionDescription={sectionDescription}
         showDescription={showDescription}
-        onDismissDescription={() => {
-          setShowDescription(false);
-        }}
+        onDismissDescription={dismissDescription}
         orientation={orientation}
         t={t}
       />
-      {/* Full-screen blocker shown the moment stop is pressed, until the clip finishes finalizing and
-          the screen navigates away. Its high zIndex also covers the host header's Back button, so no
-          action can fire during the freeze. */}
-      {isFinalizing && (
-        <View style={styles.finalizingOverlay}>
-          <ActivityIndicator size="large" color="white" />
-          <Text style={styles.finalizingText}>{t('processing')}</Text>
-        </View>
-      )}
+      <FinalizingOverlay visible={isFinalizing} t={t} />
     </View>
   );
 };
@@ -760,6 +974,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000', position: 'relative' },
   fullscreenContainer: { flex: 1, backgroundColor: '#000', position: 'relative' },
   camera: { width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 },
+  // Centered 1:1 viewfinder for square templates: black bars fill the rest of the screen.
+  squareFrameWrap: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  squareFrame: { overflow: 'hidden', position: 'relative' },
   // Above every other overlay (timer is zIndex 50) so it fully captures touches during the freeze.
   finalizingOverlay: {
     position: 'absolute',
@@ -937,6 +1162,57 @@ const styles = StyleSheet.create({
   },
   permissionTitle: { ...typography.subtitle, color: colors.error, marginVertical: spacing.m },
   permissionText: { ...typography.body, textAlign: 'center', marginTop: spacing.m },
+  captureModeBar: {
+    position: 'absolute',
+    bottom: 140,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.s,
+    zIndex: 10,
+  },
+  captureModepill: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.m,
+    borderRadius: 999,
+    backgroundColor: 'rgba(11,11,15,0.55)',
+  },
+  captureModePillActive: {
+    backgroundColor: 'white',
+  },
+  captureModePillText: {
+    ...typography.button,
+    color: 'white',
+    fontSize: 14,
+  },
+  captureModePillTextActive: {
+    color: colors.text,
+  },
+  uploadPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.l,
+    paddingHorizontal: spacing.xl,
+  },
+  uploadLabel: {
+    ...typography.body,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    fontSize: 18,
+  },
+  uploadButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 999,
+  },
+  uploadButtonText: {
+    ...typography.button,
+    color: 'white',
+  },
 });
 
 export default VideoRecorder;

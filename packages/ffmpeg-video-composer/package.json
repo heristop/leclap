@@ -26,7 +26,7 @@
     "./src/*": "./src/*"
   },
   "scripts": {
-    "postinstall": "pnpm build",
+    "postinstall": "node -e \"require('fs').existsSync('tsdown.config.ts')&&require('child_process').execSync('pnpm build',{stdio:'inherit'})\"",
     "build": "tsdown",
     "prepack": "tsdown",
     "build:watch": "tsdown --watch",

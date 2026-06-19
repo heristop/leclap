@@ -472,12 +472,17 @@ export const CameraCapture = ({
     return () => {};
   }, [session.result, session.mode]);
 
+  // Keep a stable ref so the capture effect doesn't re-run when the parent
+  // recreates onCapture after updating its own state (would cause an infinite loop).
+  const onCaptureRef = useRef(onCapture);
+  onCaptureRef.current = onCapture;
+
   // Deliver the captured file to the parent when the session moves to preview state.
   useEffect(() => {
     if (session.state === 'preview' && session.result) {
-      onCapture(session.result);
+      onCaptureRef.current(session.result);
     }
-  }, [session.state, session.result, onCapture]);
+  }, [session.state, session.result]);
 
   return createPortal(
     // Fullscreen camera: the stage fills the whole viewport edge-to-edge; the top bar and record

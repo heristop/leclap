@@ -207,13 +207,13 @@ const CameraStage = ({
 }: StageProps) => {
   const { t } = useTranslation('media');
 
-  // Portrait templates frame the camera as a centered vertical 9:16 box (the recorder crops to
-  // match); landscape fills the stage. Overlays live inside the frame so they track its shape.
-  // The box is height-driven (full stage height, width from the 9:16 aspect, capped to the viewport),
-  // so it fills the surface instead of letterboxing — `min-h-0` on the stage lets the child's `h-full`
-  // resolve under flex on mobile Chrome.
+  // Portrait templates: on mobile the camera fills the whole stage (full-bleed, no side gutters) and
+  // `object-cover` crops it; from `sm` up it becomes a centered vertical 9:16 box (height-driven — full
+  // stage height, width from the aspect). Landscape fills the stage. The recorder crops to 9:16 from the
+  // camera feed regardless of this frame, so the saved clip is unaffected. Overlays live inside the
+  // frame so they track its shape; `min-h-0` on the stage lets the child's `h-full` resolve under flex.
   const frameClass = portrait
-    ? 'relative mx-auto h-full w-auto max-w-full aspect-[9/16] overflow-hidden'
+    ? 'relative h-full w-full overflow-hidden sm:mx-auto sm:w-auto sm:max-w-full sm:aspect-[9/16]'
     : 'relative w-full h-full';
 
   return (

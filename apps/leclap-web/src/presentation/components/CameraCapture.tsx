@@ -217,7 +217,7 @@ const CameraStage = ({
     : 'relative w-full h-full';
 
   return (
-    <div className="relative flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
       {mode === 'error' ? (
         <CameraErrorView error={error} onRetry={onRetry} />
       ) : (
@@ -361,14 +361,9 @@ export const CameraCapture = ({
   const camera = useCameraCapture(onCapture, onClose, { countdownSeconds, maxDurationSeconds, portrait });
 
   return createPortal(
-    <div className="dark fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col fade-in safe-b">
-      <CameraTopBar
-        mode={camera.mode}
-        elapsed={camera.elapsed}
-        onCancel={camera.cancel}
-        onSwitchCamera={camera.switchCamera}
-      />
-
+    // Fullscreen camera: the stage fills the whole viewport edge-to-edge; the top bar and record
+    // controls float on top with gradient scrims for legibility (native-camera-app style).
+    <div className="dark fixed inset-0 z-[60] bg-black fade-in">
       <CameraStage
         mode={camera.mode}
         error={camera.error}
@@ -384,13 +379,24 @@ export const CameraCapture = ({
         onRetry={camera.startCamera}
       />
 
-      <CameraControls
-        mode={camera.mode}
-        onStartRecording={camera.startRecording}
-        onStopRecording={camera.stopRecording}
-        onConfirm={camera.confirmCapture}
-        onRetake={camera.retake}
-      />
+      <div className="absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/55 to-transparent pb-8">
+        <CameraTopBar
+          mode={camera.mode}
+          elapsed={camera.elapsed}
+          onCancel={camera.cancel}
+          onSwitchCamera={camera.switchCamera}
+        />
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent pt-8 safe-b">
+        <CameraControls
+          mode={camera.mode}
+          onStartRecording={camera.startRecording}
+          onStopRecording={camera.stopRecording}
+          onConfirm={camera.confirmCapture}
+          onRetake={camera.retake}
+        />
+      </div>
     </div>,
     document.body
   );

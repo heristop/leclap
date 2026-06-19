@@ -1,4 +1,4 @@
-export type TemplateOrientation = 'landscape' | 'portrait';
+export type TemplateOrientation = 'landscape' | 'portrait' | 'square';
 
 export type TemplateVariables = Record<string, string | string[]>;
 
@@ -68,3 +68,5 @@ export interface TemplateMeta {
   name?: string;
   description?: string;
 }
+
+export type CaptureMode = 'front' | 'back' | 'screen' | 'upload';

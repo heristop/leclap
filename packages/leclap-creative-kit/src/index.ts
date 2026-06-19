@@ -22,8 +22,13 @@ const titleCase = (id: string): string =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 
-const orientationOf = (d: TemplateDescriptor): TemplateOrientation =>
-  d.global?.orientation === 'portrait' ? 'portrait' : 'landscape';
+const orientationOf = (d: TemplateDescriptor): TemplateOrientation => {
+  if (d.global?.orientation === 'portrait') return 'portrait';
+
+  if (d.global?.orientation === 'square') return 'square';
+
+  return 'landscape';
+};
 
 const hasFormOf = (d: TemplateDescriptor): boolean => (d.sections ?? []).some((s) => s.type === 'form');
 
@@ -66,4 +71,10 @@ export const APP_TEMPLATES_BY_ID: Record<string, AppTemplate | undefined> = Obje
   APP_TEMPLATES.map((t) => [t.id, t])
 );
 
-export type { AppTemplateCategory, TemplateComplexity, TemplateDescriptor } from './types';
+export type {
+  AppTemplateCategory,
+  CaptureMode,
+  TemplateComplexity,
+  TemplateDescriptor,
+  TemplateOrientation,
+} from './types';

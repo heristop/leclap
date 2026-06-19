@@ -190,9 +190,9 @@ describe('TemplateDirector.config', () => {
 
     director.config(config, {});
 
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('received userVideoPaths with 2 videos'), {
-      sections: 'clip1, clip2',
-    });
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.stringContaining('received userVideoPaths for sections: clip1, clip2')
+    );
   });
 
   it('expands `partial` ref sections so they survive compileVideoSegments (not dropped)', () => {

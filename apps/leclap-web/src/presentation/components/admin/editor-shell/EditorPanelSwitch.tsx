@@ -2,6 +2,9 @@ import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionFields } from '../editor/SectionFields';
 import { AudioPanel } from '../editor/AudioPanel';
+import { GlobalVariablesEditor } from '../editor/GlobalVariablesEditor';
+import { WholeVideoAnimations } from '../editor/WholeVideoAnimations';
+import { EditorImportExport } from '../editor/EditorImportExport';
 import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import {
@@ -21,6 +24,7 @@ interface EditorPanelSwitchProps {
   patch: (p: Partial<EditorState>) => void;
   patchSection: (p: Partial<EditorSection>) => void;
   setLayers: (layers: BackgroundLayer[]) => void;
+  onImport: (next: EditorState) => void;
 }
 
 // A panel shell: an eyebrow + title header above a swap-animated body, matching the studio panel chrome.
@@ -51,6 +55,7 @@ export const EditorPanelSwitch = ({
   patch,
   patchSection,
   setLayers,
+  onImport,
 }: EditorPanelSwitchProps) => {
   const { t } = useTranslation('admin');
 
@@ -102,14 +107,17 @@ export const EditorPanelSwitch = ({
   if (activeTool === 'variables') {
     return (
       <PanelFrame eyebrow={t('shell.tools')} title={t('shell.variables')}>
-        <PanelPlaceholder message={t('shell.placeholderVariables')} />
+        <GlobalVariablesEditor state={state} patch={patch} />
       </PanelFrame>
     );
   }
 
   return (
     <PanelFrame eyebrow={t('shell.tools')} title={t('shell.advanced')}>
-      <PanelPlaceholder message={t('shell.placeholderAdvanced')} />
+      <div className="space-y-2">
+        <WholeVideoAnimations state={state} patch={patch} />
+        <EditorImportExport state={state} onImport={onImport} />
+      </div>
     </PanelFrame>
   );
 };

@@ -75,7 +75,7 @@ function sectionTitle(section: EditorSection): string {
 export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEditorShellProps) => {
   const { t } = useTranslation('admin');
   const history = useEditorHistory(toEditorState(initial));
-  const { state, set, undo, redo, canUndo, canRedo } = history;
+  const { state, set, undo, redo, canUndo, canRedo, reset } = history;
   const ops = useEditorSectionOps(set);
   const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition, setLayers } = ops;
   const [localPartials] = useState<StoredPartial[]>(() => userPartialService.list());
@@ -161,6 +161,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
             setLayers={(layers) => {
               setLayers(sel.selectedIndex, layers);
             }}
+            onImport={reset}
           />
           {error && (
             <p

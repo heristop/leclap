@@ -69,7 +69,15 @@
     },
     "advanced": {
       "label": "Advanced settings",
-      "summary": "Audio mix · Variables"
+      "summary": "Audio mix · Variables",
+      "wholeVideo": {
+        "label": "Whole-video animations",
+        "hint": "Overlays that span the entire video, across every section."
+      },
+      "io": {
+        "label": "Import / export",
+        "hint": "Export this template as JSON, or import a descriptor to replace the current one."
+      }
     },
     "variables": {
       "label": "Global variables",
@@ -151,9 +159,7 @@
     "reorderScene": "Drag to reorder scene",
     "transitionAfter": "Transition after this scene",
     "nameLabel": "Template name",
-    "monitorEmpty": "Select a scene to edit",
-    "placeholderVariables": "Variable editing moves here in a later phase.",
-    "placeholderAdvanced": "Advanced settings move here in a later phase."
+    "monitorEmpty": "Select a scene to edit"
   },
   "media": {
     "source": "Media source",

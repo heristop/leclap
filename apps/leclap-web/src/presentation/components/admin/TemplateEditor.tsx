@@ -1,8 +1,6 @@
 import { useState, useId, useRef, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Trash2,
-  Plus,
   ArrowLeft,
   Braces,
   Save,
@@ -39,7 +37,8 @@ import { AudioPanel } from './editor/AudioPanel';
 import { TimelineStrip } from './editor/TimelineStrip';
 import { TestRenderButton } from './editor/TestRenderButton';
 import { SectionDisclosure } from './editor/SectionDisclosure';
-import { AnimationOverlayField } from './editor/AnimationOverlayField';
+import { GlobalVariablesEditor } from './editor/GlobalVariablesEditor';
+import { WholeVideoAnimations } from './editor/WholeVideoAnimations';
 import { FadeIn } from './editor/FadeIn';
 import { SegmentedControl } from './editor/controls';
 import { BuilderModeProvider, useBuilderMode } from './editor/useBuilderMode';
@@ -680,90 +679,3 @@ const AdvancedSettings = ({ state, patch }: MetadataFieldsProps) => (
     <WholeVideoAnimations state={state} patch={patch} />
   </SectionDisclosure>
 );
-
-// Whole-video animation overlays (global.animations) — composited over the FINAL joined video so they
-// span every section continuously, unlike a section's own animation. Reuses the section animation list editor.
-const WholeVideoAnimations = ({ state, patch }: MetadataFieldsProps) => (
-  <div className="mt-4 border-t border-foreground/10 pt-4">
-    <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">Whole-video animations</span>
-    <p className="mt-1 mb-3 text-xs text-gray-500">Overlays that span the entire video, across every section.</p>
-    <AnimationOverlayField
-      value={state.globalAnimations}
-      orientation={state.orientation}
-      onChange={(animations) => {
-        patch({ globalAnimations: animations ?? [] });
-      }}
-    />
-  </div>
-);
-
-// Author-defined template constants. Each row is a {name, value} pair that
-// buildDescriptor merges into global.variables; insertable as {{ name }} in any
-// overlay text.
-const GlobalVariablesEditor = ({ state, patch }: MetadataFieldsProps) => {
-  const { globalVariables } = state;
-
-  const update = (i: number, p: Partial<EditorState['globalVariables'][number]>) => {
-    patch({ globalVariables: globalVariables.map((v, idx) => (idx === i ? { ...v, ...p } : v)) });
-  };
-
-  return (
-    <div>
-      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-        Global variables
-      </span>
-      <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-        Reusable values. Type <span className="font-mono text-brand-600 dark:text-brand-300">#</span> in any text field
-        to insert one.
-      </p>
-      <div className="space-y-2">
-        {globalVariables.map((variable, i) => (
-          <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-brand-600 dark:text-brand-300">
-                #
-              </span>
-              <input
-                aria-label={`Variable ${i + 1} name`}
-                className={`${EDITOR_INPUT_CLASS} pl-7`}
-                value={variable.name}
-                onChange={(e) => {
-                  update(i, { name: e.target.value });
-                }}
-                placeholder="name"
-              />
-            </div>
-            <input
-              aria-label={`Variable ${i + 1} value`}
-              className={EDITOR_INPUT_CLASS}
-              value={variable.value}
-              onChange={(e) => {
-                update(i, { value: e.target.value });
-              }}
-              placeholder="value"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                patch({ globalVariables: globalVariables.filter((_, idx) => idx !== i) });
-              }}
-              aria-label={`Remove variable ${i + 1}`}
-              className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => {
-            patch({ globalVariables: [...globalVariables, { name: '', value: '' }] });
-          }}
-          className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add variable
-        </button>
-      </div>
-    </div>
-  );
-};

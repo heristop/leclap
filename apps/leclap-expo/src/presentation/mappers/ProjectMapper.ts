@@ -1,5 +1,5 @@
 import { Project as DomainProject } from '@/src/domain/entities/Project';
-import type { Project as UIProject, TemplateDescriptor } from '@/src/types';
+import type { Project as UIProject, TemplateDescriptor, Orientation } from '@/src/types';
 import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 import { ProjectStatus } from '@/src/domain/valueObjects/ProjectStatus';
 
@@ -16,7 +16,7 @@ export class ProjectMapper {
       string,
       {
         path: string;
-        orientation: 'portrait' | 'landscape';
+        orientation: Orientation;
         duration?: number;
         fileSize?: number;
         trim?: { start: number; end: number };

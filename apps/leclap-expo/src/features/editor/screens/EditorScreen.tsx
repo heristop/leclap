@@ -19,6 +19,7 @@ import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
 import { compileHybrid } from '@/src/services/compile/compileHybrid';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useRouter } from 'expo-router';
+import { ExportSheet } from '../components/ExportSheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -229,6 +230,42 @@ const SectionContent: React.FC<SectionContentProps> = ({
   );
 };
 
+// ─── Footer ───────────────────────────────────────────────────────────────────
+
+interface EditorFooterProps {
+  allDone: boolean;
+  isCompiling: boolean;
+  outputVideoUri: string | undefined;
+  showExportSheet: boolean;
+  onCompile: () => void;
+  onCloseExport: () => void;
+}
+
+const EditorFooter = ({
+  allDone,
+  isCompiling,
+  outputVideoUri,
+  showExportSheet,
+  onCompile,
+  onCloseExport,
+}: EditorFooterProps) => (
+  <>
+    <View style={st.footer}>
+      <TouchableOpacity
+        style={[st.compileBtn, (!allDone || isCompiling) && st.disabledBtn]}
+        disabled={!allDone || isCompiling}
+        onPress={onCompile}
+      >
+        <Text style={st.compileBtnText}>{isCompiling ? 'Creating Video...' : 'Create My Video'}</Text>
+        {isCompiling ? <ActivityIndicator size="small" color="white" style={st.loader} /> : null}
+      </TouchableOpacity>
+    </View>
+    {outputVideoUri ? (
+      <ExportSheet visible={showExportSheet} videoUri={outputVideoUri} onClose={onCloseExport} />
+    ) : null}
+  </>
+);
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
@@ -237,6 +274,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
   const [activeSection, setActiveSection] = useState<Section | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCompiling, setIsCompiling] = useState(false);
+  const [showExportSheet, setShowExportSheet] = useState(false);
   const currentProject = useProjectStore((state) => state.currentProject);
   const projects = useProjectStore((state) => state.projects);
   const addProject = useProjectStore((state) => state.addProject);
@@ -302,6 +340,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
           status: 'completed' as const,
           updatedAt: new Date().toISOString(),
         });
+        setShowExportSheet(true);
 
         return;
       }
@@ -375,16 +414,16 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
           ))}
         </View>
       </ScrollView>
-      <View style={st.footer}>
-        <TouchableOpacity
-          style={[st.compileBtn, (!allDone || isCompiling) && st.disabledBtn]}
-          disabled={!allDone || isCompiling}
-          onPress={handleCompileVideo}
-        >
-          <Text style={st.compileBtnText}>{isCompiling ? 'Creating Video...' : 'Create My Video'}</Text>
-          {isCompiling ? <ActivityIndicator size="small" color="white" style={st.loader} /> : null}
-        </TouchableOpacity>
-      </View>
+      <EditorFooter
+        allDone={allDone}
+        isCompiling={isCompiling}
+        outputVideoUri={currentProject.outputVideoUri}
+        showExportSheet={showExportSheet}
+        onCompile={handleCompileVideo}
+        onCloseExport={() => {
+          setShowExportSheet(false);
+        }}
+      />
     </SafeAreaView>
   );
 };

@@ -6,7 +6,7 @@ import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import FormSection from '@/src/features/editor/components/FormSection';
-import type { Template, Section, Project, MediaChoice, MediaChoices } from '@/src/types';
+import type { Template, Section, Project, MediaChoice, MediaChoices, Orientation } from '@/src/types';
 import { buildDescriptionVars, resolveTranslation, resolveVariables } from '@/src/utils/i18nText';
 import { colors } from '@/src/styles/theme';
 import { styles } from './TemplateDetailScreen.styles';
@@ -16,6 +16,7 @@ import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
 import { UserMediaPicker } from '@/src/features/templates/components/UserMediaPicker';
 import { needsMediaStep } from '@/src/services/media/mediaStepHelpers';
 import { MUSIC_LIBRARY, findMusic } from '@/src/data/mediaCatalog';
+import { ORIENTATION_ICON } from '@/src/features/templates/orientationMeta';
 
 const EDITABLE_TYPES = ['project_video', 'form', 'music', 'picture'] as const;
 const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -783,16 +784,14 @@ const ErrorState = ({ error, onBack }: ErrorStateProps) => {
   );
 };
 
-type OrientationRowProps = { orientation: string };
+type OrientationRowProps = { orientation: Orientation };
 const OrientationRow = ({ orientation }: OrientationRowProps) => {
   const { t } = useTranslation('detail');
-  const isPortrait = orientation === 'portrait';
-  const icon: keyof typeof Ionicons.glyphMap = isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline';
 
   return (
     <View style={styles.orientationRow}>
-      <Ionicons name={icon} size={24} color={colors.text} />
-      <Text style={styles.orientationText}>{isPortrait ? t('orientation.portrait') : t('orientation.landscape')}</Text>
+      <Ionicons name={ORIENTATION_ICON[orientation]} size={24} color={colors.text} />
+      <Text style={styles.orientationText}>{t(`orientation.${orientation}`)}</Text>
     </View>
   );
 };

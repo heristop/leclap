@@ -23,7 +23,8 @@
   "backToTemplates": "Back to Templates",
   "orientation": {
     "portrait": "Portrait orientation",
-    "landscape": "Landscape orientation"
+    "landscape": "Landscape orientation",
+    "square": "Square orientation"
   },
   "defaultDescription": "Create a video using this template",
   "sectionsTitle": "Sections",

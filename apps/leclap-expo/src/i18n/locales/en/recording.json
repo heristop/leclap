@@ -1,7 +1,8 @@
 {
   "instructions": {
     "portrait": "Hold your device vertically for best results",
-    "landscape": "Hold your device horizontally for best results"
+    "landscape": "Hold your device horizontally for best results",
+    "square": "Hold your device vertically — we'll frame a 1:1 square"
   },
   "countdown": {
     "getReady": "Get ready…",

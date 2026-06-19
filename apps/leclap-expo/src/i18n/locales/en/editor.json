@@ -32,7 +32,8 @@
   "orientation": {
     "label": "Orientation",
     "landscape": "Landscape 16:9",
-    "portrait": "Portrait 9:16"
+    "portrait": "Portrait 9:16",
+    "square": "Square 1:1"
   },
   "sections": {
     "label": "Sections — order top to bottom",

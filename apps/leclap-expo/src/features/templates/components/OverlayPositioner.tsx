@@ -21,6 +21,7 @@ import { FONTS, findFont } from '@leclap/creative-kit/fonts';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Slider, Segmented } from './EditorControls';
 import { newOverlay, type TextOverlay, type Orientation } from '../model/templateEditorModel';
+import { ASPECT_RATIO } from '../orientationMeta';
 
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
@@ -51,7 +52,7 @@ export const OverlayPositioner = ({
   const value = overlay ?? newOverlay();
   const [frame, setFrame] = useState({ width: 0, height: 0 });
   const frameRef = useRef({ width: 0, height: 0 });
-  const aspect = orientation === 'portrait' ? 9 / 16 : 16 / 9;
+  const aspect = ASPECT_RATIO[orientation];
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;

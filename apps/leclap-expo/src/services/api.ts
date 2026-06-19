@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Project } from '@/src/types';
+import type { Project, Orientation } from '@/src/types';
 
 // Local project persistence (AsyncStorage). The app is fully local — there is no compile/template
 // server, so this module only stores the user's projects on-device.
@@ -13,7 +13,7 @@ export type CompileRecordedVideos = Record<
   string,
   {
     path: string;
-    orientation: 'portrait' | 'landscape';
+    orientation: Orientation;
     trim?: { start: number; end: number };
     crop?: { x: number; y: number; w: number; h: number };
   }

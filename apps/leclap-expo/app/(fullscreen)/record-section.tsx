@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/src/features/editor/components/VideoRecorder';
-import type { Section } from '@/src/types';
+import type { Section, Orientation } from '@/src/types';
+import { parseOrientation, toDeviceOrientation } from '@/src/features/templates/orientationMeta';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useOrientation } from '@/src/hooks/useOrientation';
@@ -75,7 +76,7 @@ const buildUpdatedProject = (
   project: NonNullable<ReturnType<typeof useProject>['data']>,
   section: Section,
   video: VideoFile,
-  orientation: 'portrait' | 'landscape'
+  orientation: Orientation
 ) => {
   const isFirstSectionRecorded = Object.keys(project.recordedVideos).length === 0;
 
@@ -103,6 +104,7 @@ const buildUpdatedProject = (
 };
 
 const useOrientationLock = (orientation: 'portrait' | 'landscape') => {
+  // `orientation` here is the DEVICE orientation (square already mapped to portrait by the caller).
   const { lockOrientation, unlockOrientation } = useOrientation();
 
   useEffect(() => {
@@ -149,7 +151,7 @@ interface NavigateAfterRecordingParams {
   section: Section;
   video: VideoFile;
   projectId: string;
-  orientation: 'portrait' | 'landscape';
+  orientation: Orientation;
 }
 
 const navigateAfterRecording = ({
@@ -181,7 +183,14 @@ const navigateAfterRecording = ({
 
   router.push({
     pathname: '/(fullscreen)/preview',
-    params: { projectId, videoUri: video.path, orientation, sectionName: section.name },
+    // The preview shows the RAW clip (recorded with the phone upright for square), so it locks to the
+    // device orientation; the engine crops to 1:1 at compile time from the template's square setting.
+    params: {
+      projectId,
+      videoUri: video.path,
+      orientation: toDeviceOrientation(orientation),
+      sectionName: section.name,
+    },
   });
 };
 
@@ -197,7 +206,7 @@ const RecordSectionScreen = () => {
 
   const projectId = params.projectId;
   const section = safeJsonParse(params.sectionJson) as Section | null;
-  const orientation: 'portrait' | 'landscape' = params.orientation === 'landscape' ? 'landscape' : 'portrait';
+  const orientation: Orientation = parseOrientation(params.orientation);
   const existingVideoPath = params.existingVideoPath;
 
   const { data: project } = useProject(projectId);
@@ -207,7 +216,7 @@ const RecordSectionScreen = () => {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const recordingDuration = useRecordingTimer(isRecording);
 
-  useOrientationLock(orientation);
+  useOrientationLock(toDeviceOrientation(orientation));
 
   if (!projectId || !section) {
     console.error('RecordSectionScreen: Missing projectId or section data');

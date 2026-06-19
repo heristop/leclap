@@ -2,11 +2,19 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { G, Path, Ellipse } from 'react-native-svg';
 import { DEFAULT_FRAMING_OPACITY } from '@/src/features/templates/model/templateEditorModel';
-import type { FramingGuide } from '@/src/types';
+import type { FramingGuide, Orientation } from '@/src/types';
+
+// The silhouette bust height per frame shape: a tall portrait frame gets a larger bust, a square one a
+// medium bust, a wide landscape frame the smallest.
+const BUST_HEIGHT: Record<Orientation, `${number}%`> = {
+  portrait: '74%',
+  square: '66%',
+  landscape: '62%',
+};
 
 interface FramingGuideOverlayProps {
   guide: FramingGuide;
-  orientation: 'portrait' | 'landscape';
+  orientation: Orientation;
 }
 
 // Horizontal alignment of the silhouette within the frame.
@@ -51,8 +59,7 @@ const SilhouetteSvg = ({ opacity, style }: { opacity: number; style: 'bust' | 'o
 
 export const FramingGuideOverlay = ({ guide, orientation }: FramingGuideOverlayProps) => {
   const opacity = guide.opacity ?? DEFAULT_FRAMING_OPACITY;
-  // A tall portrait frame gets a larger bust; a wide landscape frame a smaller one.
-  const height = orientation === 'portrait' ? '74%' : '62%';
+  const height = BUST_HEIGHT[orientation];
 
   return (
     <View

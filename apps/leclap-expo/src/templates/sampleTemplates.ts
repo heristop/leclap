@@ -1,4 +1,4 @@
-import type { TemplateDescriptor } from '@/src/types';
+import type { TemplateDescriptor, Orientation } from '@/src/types';
 import { APP_TEMPLATES } from '@leclap/creative-kit';
 
 /** A template in the local catalog — a bundled @leclap/creative-kit sample, or a user-created one. */
@@ -6,7 +6,7 @@ export interface CatalogTemplate {
   id: string;
   name: string;
   description: string;
-  orientation: 'landscape' | 'portrait';
+  orientation: Orientation;
   descriptor: TemplateDescriptor;
   source: 'sample' | 'user';
 }

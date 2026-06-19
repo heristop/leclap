@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { TemplateDescriptor } from '@/src/types';
+import type { TemplateDescriptor, Orientation } from '@/src/types';
 
 /** A custom template the user composed in the editor, persisted on-device. */
 export interface UserTemplate {
   id: string;
   name: string;
   description: string;
-  orientation: 'landscape' | 'portrait';
+  orientation: Orientation;
   descriptor: TemplateDescriptor;
   source: 'user';
   createdAt: number;

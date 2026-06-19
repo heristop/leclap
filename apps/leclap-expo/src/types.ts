@@ -1,5 +1,11 @@
 // Type definitions for the application
 
+import type { TemplateOrientation } from '@leclap/creative-kit';
+
+// Single source of truth for the orientation union (landscape | portrait | square) lives in
+// @leclap/creative-kit; re-export under the app-local name the screens already use.
+export type Orientation = TemplateOrientation;
+
 export interface Template {
   name: string;
   content: TemplateDescriptor;
@@ -10,7 +16,7 @@ export interface Template {
 export interface TemplateDescriptor {
   global?: {
     variables?: Record<string, string | string[]>;
-    orientation?: 'portrait' | 'landscape';
+    orientation?: Orientation;
     colorsList?: string[];
     musicEnabled?: boolean;
     transition?: {
@@ -89,7 +95,7 @@ export interface Project {
     string,
     {
       path: string;
-      orientation: 'portrait' | 'landscape';
+      orientation: Orientation;
       duration?: number;
       fileSize?: number;
       // User edits chosen on the preview screen. `trim` is in seconds; `crop` is

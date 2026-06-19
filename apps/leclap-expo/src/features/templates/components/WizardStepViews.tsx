@@ -7,6 +7,7 @@ import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { SceneCard } from './SceneCard';
+import { ORIENTATION_ICON, ORIENTATION_ORDER } from '../orientationMeta';
 // Re-exported so the create-template screen imports all scene-step views from one module (keeps its
 // dependency count in check).
 export { SceneTimeline } from './SceneTimeline';
@@ -66,27 +67,25 @@ export const InfoStep = ({ state, t, onPatch }: InfoStepProps) => (
 
     <Text style={[styles.label, { marginTop: spacing.l }]}>{t('orientation.label')}</Text>
     <View style={styles.segment}>
-      {(['landscape', 'portrait'] as const).map((o) => (
-        <TouchableOpacity
-          key={o}
-          testID={`orient-${o}`}
-          onPress={() => {
-            onPatch({ orientation: o });
-          }}
-          style={[styles.segmentItem, state.orientation === o && styles.segmentItemActive]}
-          accessibilityRole="radio"
-          accessibilityState={{ selected: state.orientation === o }}
-        >
-          <Ionicons
-            name={o === 'landscape' ? 'tablet-landscape-outline' : 'phone-portrait-outline'}
-            size={16}
-            color={state.orientation === o ? '#fff' : colors.textSecondary}
-          />
-          <Text style={[styles.segmentText, state.orientation === o && styles.segmentTextActive]}>
-            {o === 'landscape' ? t('orientation.landscape') : t('orientation.portrait')}
-          </Text>
-        </TouchableOpacity>
-      ))}
+      {ORIENTATION_ORDER.map((o) => {
+        const active = state.orientation === o;
+
+        return (
+          <TouchableOpacity
+            key={o}
+            testID={`orient-${o}`}
+            onPress={() => {
+              onPatch({ orientation: o });
+            }}
+            style={[styles.segmentItem, active && styles.segmentItemActive]}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
+          >
+            <Ionicons name={ORIENTATION_ICON[o]} size={16} color={active ? '#fff' : colors.textSecondary} />
+            <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`orientation.${o}`)}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
 
     <VariablesEditor state={state} t={t} onPatch={onPatch} />

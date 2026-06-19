@@ -2,6 +2,7 @@
  * Value Object: VideoMetadata
  * Represents metadata about a recorded video
  */
+import type { Orientation } from '@/src/types';
 
 /** Trim selection in seconds. */
 export interface VideoTrim {
@@ -19,7 +20,7 @@ export interface VideoCrop {
 
 export interface VideoMetadataParams {
   path: string;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: Orientation;
   duration?: number;
   width?: number;
   height?: number;
@@ -30,7 +31,7 @@ export interface VideoMetadataParams {
 
 export class VideoMetadata {
   public readonly path: string;
-  public readonly orientation?: 'portrait' | 'landscape';
+  public readonly orientation?: Orientation;
   public readonly duration?: number;
   public readonly width?: number;
   public readonly height?: number;
@@ -98,7 +99,7 @@ export class VideoMetadata {
 
     return new VideoMetadata({
       path: record.path as string,
-      orientation: record.orientation as 'portrait' | 'landscape' | undefined,
+      orientation: record.orientation as Orientation | undefined,
       duration: record.duration as number | undefined,
       width: record.width as number | undefined,
       height: record.height as number | undefined,

@@ -6,6 +6,7 @@ import { Card, type ColorTokens, type FontTokens, Text, YStack, XStack, View } f
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Template } from '@/src/types';
 import { buildDescriptionVars, resolveVariables } from '@/src/utils/i18nText';
+import { ORIENTATION_ICON } from '@/src/features/templates/orientationMeta';
 import { colors as theme, fonts } from '@/src/styles/theme';
 
 interface TemplateCardProps {
@@ -115,13 +116,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
             paddingVertical="$xs"
             borderRadius={999}
             alignItems="center"
-            accessibilityLabel={orientation === 'portrait' ? 'Portrait video' : 'Landscape video'}
+            accessibilityLabel={t(`orientation.${orientation}`)}
           >
-            <Ionicons
-              name={orientation === 'portrait' ? 'phone-portrait-outline' : 'phone-landscape-outline'}
-              size={14}
-              color="white"
-            />
+            <Ionicons name={ORIENTATION_ICON[orientation]} size={14} color="white" />
           </XStack>
         </View>
 

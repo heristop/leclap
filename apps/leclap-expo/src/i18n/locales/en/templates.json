@@ -1,5 +1,10 @@
 {
   "screenTitle": "Scenarios",
+  "orientation": {
+    "portrait": "Portrait video",
+    "landscape": "Landscape video",
+    "square": "Square video"
+  },
   "subtitle": "Select a scenario to create your video",
   "loadError": "Failed to load templates",
   "loadErrorHint": "Pull to refresh and try again.",

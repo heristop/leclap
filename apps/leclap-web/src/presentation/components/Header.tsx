@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Code2, Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X } from '@/presentation/components/icons';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
 import { LogoMark } from './LogoMark';
+import { SunIcon } from './icons/sun';
+import { MoonIcon } from './icons/moon';
+import { GithubIcon, type GithubIconHandle } from './icons/github';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 
 type ThemeToggleProps = {
@@ -30,7 +33,7 @@ const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
       aria-label={theme === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
       title={t('header.toggleTheme')}
     >
-      {theme === 'dark' ? <Sun /> : <Moon />}
+      {theme === 'dark' ? <SunIcon size={18} /> : <MoonIcon size={18} />}
     </Button>
   );
 };
@@ -189,7 +192,7 @@ const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => {
             onClick={onClose}
             className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 transition-all duration-200 hover:bg-foreground/5 hover:text-foreground"
           >
-            <Code2 className="h-4 w-4" />
+            <GithubIcon size={16} />
             {t('header.github')}
           </a>
         </div>
@@ -204,6 +207,9 @@ export const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
   const location = useLocation();
+  // Drive the GitHub mark's animation from the whole button's hover (group hover), not just the
+  // 16px icon — the icon's imperative handle is made for exactly this.
+  const githubRef = useRef<GithubIconHandle>(null);
 
   const onToggleTheme = (origin: ToggleOrigin) => {
     setThemeState(toggleTheme(origin));
@@ -273,8 +279,14 @@ export const Header = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t('header.viewSource')}
+                onMouseEnter={() => {
+                  githubRef.current?.startAnimation();
+                }}
+                onMouseLeave={() => {
+                  githubRef.current?.stopAnimation();
+                }}
               >
-                <Code2 className="w-4 h-4" />
+                <GithubIcon ref={githubRef} size={16} />
                 <span>{t('header.github')}</span>
               </a>
             </Button>

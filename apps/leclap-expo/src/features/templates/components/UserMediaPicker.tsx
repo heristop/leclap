@@ -1,11 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Modal } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Modal,
+  Animated,
+  Easing,
+} from 'react-native';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useVideoPlayer } from 'expo-video';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, backgroundAsset, type MediaCredit } from '@/src/data/mediaCatalog';
-import { colors, spacing, typography, fonts } from '@/src/styles/theme';
+import {
+  MUSIC_LIBRARY,
+  BACKGROUND_LIBRARY,
+  backgroundAsset,
+  musicAsset,
+  type MediaCredit,
+} from '@/src/data/mediaCatalog';
+import { colors, spacing, typography, fonts, withAlpha } from '@/src/styles/theme';
 import type { MediaChoice, MediaChoices } from '@/src/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -80,37 +98,160 @@ function resolveAllowedBackgrounds(allowedIds: string[] | undefined): MediaCredi
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+// Each track gets a stable hue derived from its id, so the art tiles read as a varied set rather than a
+// wall of identical gray squares. Returns a soft tint for the tile and a saturated tone for the glyph.
+function trackHue(id: string): number {
+  let h = 0;
+
+  for (let i = 0; i < id.length; i += 1) {
+    h = (h * 31 + (id.codePointAt(i) ?? 0)) % 360;
+  }
+
+  return h;
+}
+
+// Three audio bars that breathe while a track previews — the "now playing" signal on the art tile.
+// Animates scaleY only (native-driven), per the transform/opacity-only motion rule.
+function Equalizer({ color }: { color: string }) {
+  const bars = useRef([new Animated.Value(0.35), new Animated.Value(0.8), new Animated.Value(0.5)]).current;
+
+  useEffect(() => {
+    const loops = bars.map((value, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(value, {
+            toValue: 1,
+            duration: 340 + i * 110,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(value, {
+            toValue: 0.3,
+            duration: 340 + i * 110,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ])
+      )
+    );
+
+    for (const loop of loops) {
+      loop.start();
+    }
+
+    return () => {
+      for (const loop of loops) {
+        loop.stop();
+      }
+    };
+  }, [bars]);
+
+  return (
+    <View style={st.equalizer} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {bars.map((value, i) => (
+        <Animated.View key={i} style={[st.equalizerBar, { backgroundColor: color, transform: [{ scaleY: value }] }]} />
+      ))}
+    </View>
+  );
+}
+
 interface MusicCardProps {
   item: MediaCredit;
   selected: boolean;
+  previewing: boolean;
   onPress: () => void;
+  onPreviewChange: (next: boolean) => void;
 }
 
-function MusicCard({ item, selected, onPress }: MusicCardProps) {
+function MusicCard({ item, selected, previewing, onPress, onPreviewChange }: MusicCardProps) {
+  // Bundled track module (a Metro asset id) — only locally-bundled tracks can be previewed on-device.
+  const source = musicAsset(item.id);
+  const player = useVideoPlayer(source ?? null, (p) => {
+    p.loop = false;
+    p.muted = false;
+  });
+  const hue = trackHue(item.id);
+  const tileColor = `hsl(${hue}, 52%, 90%)`;
+  const accentColor = `hsl(${hue}, 58%, 52%)`;
+
+  // Drive the shared single-preview state: only the row that owns it plays. Restart from the top each
+  // time so a re-tap previews from the beginning, matching the web picker.
+  useEffect(() => {
+    if (source === undefined) return;
+
+    if (previewing) {
+      player.currentTime = 0;
+      player.play();
+
+      return;
+    }
+
+    player.pause();
+  }, [previewing, player, source]);
+
+  // Release the shared slot when the track plays through to its end.
+  useEffect(() => {
+    const sub = player.addListener('playToEnd', () => {
+      onPreviewChange(false);
+    });
+
+    return () => {
+      sub.remove();
+    };
+  }, [player, onPreviewChange]);
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.75}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      accessibilityLabel={`${item.title} by ${item.author}`}
-      style={[st.card, selected && st.cardSelected]}
-    >
-      <View style={st.musicArt}>
-        <Ionicons name="musical-notes" size={28} color={selected ? colors.primary : colors.textSecondary} />
-        {selected && (
-          <View style={st.checkBadge}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-          </View>
+    <View style={[st.trackRow, selected && st.trackRowSelected]}>
+      {/* The art tile is the preview control; tapping it plays/pauses without changing selection. */}
+      <TouchableOpacity
+        onPress={() => {
+          onPreviewChange(!previewing);
+        }}
+        disabled={source === undefined}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`${previewing ? 'Pause' : 'Play'} preview of ${item.title}`}
+        style={[st.trackArt, { backgroundColor: tileColor }, previewing && { borderColor: accentColor }]}
+      >
+        {previewing ? (
+          <Equalizer color={accentColor} />
+        ) : (
+          <Ionicons
+            name={source === undefined ? 'musical-notes' : 'play'}
+            size={source === undefined ? 22 : 20}
+            color={accentColor}
+            style={source === undefined ? undefined : st.playGlyph}
+          />
         )}
-      </View>
-      <Text style={st.cardTitle} numberOfLines={1}>
-        {item.title}
-      </Text>
-      <Text style={st.cardAuthor} numberOfLines={1}>
-        {item.author}
-      </Text>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {/* Tapping the body selects the track. */}
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        accessibilityRole="radio"
+        accessibilityState={{ selected }}
+        accessibilityLabel={`${item.title} by ${item.author}`}
+        style={st.trackBody}
+      >
+        <Text style={[st.trackTitle, selected && st.trackTitleSelected]} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={st.trackAuthor} numberOfLines={1}>
+          {item.author}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Visual + larger touch target for selection; the row body already carries the radio semantics. */}
+      <TouchableOpacity
+        onPress={onPress}
+        hitSlop={8}
+        importantForAccessibility="no-hide-descendants"
+        style={[st.trackCheck, selected && st.trackCheckSelected]}
+      >
+        {selected && <Ionicons name="checkmark" size={16} color="#fff" />}
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -196,6 +337,8 @@ interface MusicSectionProps {
 
 function MusicSection({ allowedIds, allowUpload, choice, onChange }: MusicSectionProps) {
   const [uploading, setUploading] = useState(false);
+  // Only one track previews at a time across the section; null means nothing is playing.
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const items = resolveAllowedMusic(allowedIds);
 
   const handleUpload = async () => {
@@ -216,19 +359,23 @@ function MusicSection({ allowedIds, allowUpload, choice, onChange }: MusicSectio
   return (
     <View style={st.section}>
       <Text style={st.sectionLabel}>Music</Text>
+      <Text style={st.sectionHint}>Tap the artwork to preview, the row to choose your soundtrack.</Text>
       {items.length > 0 && (
         <FlatList
           data={items}
           keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={st.row}
           scrollEnabled={false}
+          ItemSeparatorComponent={() => <View style={st.trackSeparator} />}
           renderItem={({ item }) => (
             <MusicCard
               item={item}
               selected={choice?.kind === 'library' && choice.id === item.id}
+              previewing={playingId === item.id}
               onPress={() => {
                 onChange({ kind: 'library', id: item.id });
+              }}
+              onPreviewChange={(next) => {
+                setPlayingId(next ? item.id : null);
               }}
             />
           )}
@@ -400,8 +547,9 @@ const st = StyleSheet.create({
     fontFamily: fonts.poppins.semiBold,
     fontSize: 16,
     color: colors.text,
-    marginBottom: spacing.m,
+    marginBottom: spacing.xs,
   },
+  sectionHint: { ...typography.smallText, color: colors.textSecondary, marginBottom: spacing.m },
   row: { gap: CARD_GAP, marginBottom: CARD_GAP },
   card: {
     flex: 1,
@@ -416,15 +564,49 @@ const st = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: 'rgba(124,131,253,0.06)',
   },
-  musicArt: {
-    height: 72,
-    borderRadius: 8,
-    backgroundColor: colors.background,
+  // ── Music playlist rows ──
+  trackSeparator: { height: spacing.s },
+  trackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: colors.divider,
+    paddingVertical: spacing.s,
+    paddingLeft: spacing.s,
+    paddingRight: spacing.m,
+  },
+  trackRowSelected: {
+    borderColor: colors.primary,
+    backgroundColor: withAlpha(colors.primary, 0.07),
+  },
+  trackArt: {
+    width: 52,
+    height: 52,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.s,
-    position: 'relative',
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
+  playGlyph: { marginLeft: 2 },
+  equalizer: { flexDirection: 'row', alignItems: 'center', height: 22, gap: 3 },
+  equalizerBar: { width: 4, height: 22, borderRadius: 2 },
+  trackBody: { flex: 1, marginLeft: spacing.m, marginRight: spacing.s },
+  trackTitle: { fontFamily: fonts.inter.semiBold, fontSize: 15, fontWeight: '600', color: colors.text },
+  trackTitleSelected: { color: colors.primaryDark },
+  trackAuthor: { ...typography.smallText, color: colors.textSecondary, marginTop: 2 },
+  trackCheck: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: colors.divider,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trackCheckSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
   pictureThumb: {
     height: 72,
     borderRadius: 8,

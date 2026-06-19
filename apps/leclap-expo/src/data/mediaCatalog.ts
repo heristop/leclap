@@ -24,13 +24,20 @@ export { MUSIC_LIBRARY, BACKGROUND_LIBRARY, findMusic, findBackground, type Medi
 
 // prettier-ignore
 export const MUSIC_ASSETS: Record<string, number> = {
-  'air-prelude.mp3':            require('../../assets/musics/air-prelude.mp3'),
-  'americana.mp3':              require('../../assets/musics/americana.mp3'),
-  'anxiety.mp3':                require('../../assets/musics/anxiety.mp3'),
-  'arcadia.mp3':                require('../../assets/musics/arcadia.mp3'),
-  'autumn-day.mp3':             require('../../assets/musics/autumn-day.mp3'),
-  'beachfront-celebration.mp3': require('../../assets/musics/beachfront-celebration.mp3'),
-  'point-being.mp3':            require('../../assets/musics/point-being.mp3'),
+  'air-prelude.mp3':              require('../../assets/musics/air-prelude.mp3'),
+  'americana.mp3':                require('../../assets/musics/americana.mp3'),
+  'anxiety.mp3':                  require('../../assets/musics/anxiety.mp3'),
+  'arcadia.mp3':                  require('../../assets/musics/arcadia.mp3'),
+  'autumn-day.mp3':               require('../../assets/musics/autumn-day.mp3'),
+  'beachfront-celebration.mp3':   require('../../assets/musics/beachfront-celebration.mp3'),
+  'brain-dance.mp3':              require('../../assets/musics/brain-dance.mp3'),
+  'carefree.mp3':                 require('../../assets/musics/carefree.mp3'),
+  'fluffing-a-duck.mp3':          require('../../assets/musics/fluffing-a-duck.mp3'),
+  'local-forecast-elevator.mp3':  require('../../assets/musics/local-forecast-elevator.mp3'),
+  'monkeys-spinning-monkeys.mp3': require('../../assets/musics/monkeys-spinning-monkeys.mp3'),
+  'pixelland.mp3':                require('../../assets/musics/pixelland.mp3'),
+  'point-being.mp3':              require('../../assets/musics/point-being.mp3'),
+  'sneaky-snitch.mp3':            require('../../assets/musics/sneaky-snitch.mp3'),
 };
 
 // prettier-ignore

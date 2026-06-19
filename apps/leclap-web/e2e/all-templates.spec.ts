@@ -74,7 +74,7 @@ async function compileTemplate(
         const files = Array.from({ length: clipCount }, () => new File([buf], 'earth.mp4', { type: 'video/mp4' }));
         const result = await withTimeout(
           coreCompilationService.compileVideo({ template, formData, files }, () => {}),
-          120000
+          300000
         );
 
         return { ok: true, size: result.size };

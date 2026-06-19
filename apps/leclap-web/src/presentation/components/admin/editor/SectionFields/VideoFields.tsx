@@ -95,7 +95,7 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
         </label>
         {section.countdown && (
           <NumberField
-            label={t('video.countdownSeconds')}
+            label={t('video.countdownSeconds', { count: section.countdownSeconds })}
             value={section.countdownSeconds}
             onChange={(countdownSeconds) => {
               onChange({ countdownSeconds, countdownCustomized: true });

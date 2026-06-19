@@ -411,7 +411,8 @@
     "whatToFilmPlaceholder": "e.g. Stand centered, look at the camera, say your name",
     "whatToFilmHint": "Shown to the person filming while they record — a quick prompt, never burned into the video.",
     "countdown": "Countdown before recording",
-    "countdownSeconds": "Countdown (s)"
+    "countdownSeconds_one": "Countdown (second)",
+    "countdownSeconds_other": "Countdown (seconds)"
   },
   "image": {
     "pickImages": "Pick the images viewers can choose from.",

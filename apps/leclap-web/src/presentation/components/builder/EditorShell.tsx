@@ -41,6 +41,9 @@ interface EditorShellProps {
   phaseContent: ReactNode;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
+  onAddRush: (sectionName: string, file: File) => void;
+  onSelectRush: (sectionName: string, file: File) => void;
+  onRemoveRush: (sectionName: string, file: File) => void;
   onEditChange: (sectionName: string, edit: VideoEdit | undefined) => void;
   onMusicChange: (c: MediaChoice | null) => void;
   onBackgroundChange: (c: MediaChoice | null) => void;
@@ -167,6 +170,9 @@ const ToolPanel = (p: ToolPanelProps) => {
       clipCount={p.clipCount}
       onFormDataChange={p.onFormDataChange}
       onClipChange={p.onClipChange}
+      onAddRush={p.onAddRush}
+      onSelectRush={p.onSelectRush}
+      onRemoveRush={p.onRemoveRush}
       onEditChange={p.onEditChange}
     />
   );

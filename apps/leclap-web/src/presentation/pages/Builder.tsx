@@ -14,6 +14,7 @@ import { findMusicByUrl } from '@/data/mediaCatalog';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
+import { addRush, selectRush, removeRush } from '@/lib/rushActions';
 import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/projectService';
 import { ArrowRight, ArrowLeft, Loader2 } from '@/presentation/components/icons';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
@@ -89,6 +90,7 @@ const buildSteps = (template: Template): WizardStep[] => {
 interface BuilderState {
   selectedTemplate: Template | null;
   clipsBySection: Record<string, File>;
+  rushesBySection: Record<string, File[]>;
   formData: Record<string, string>;
   musicChoice: MediaChoice | null;
   backgroundChoice: MediaChoice | null;
@@ -273,6 +275,9 @@ interface WizardHandlers {
   onTemplateSelected: (t: Template) => void;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
+  onAddRush: (sectionName: string, file: File) => void;
+  onSelectRush: (sectionName: string, file: File) => void;
+  onRemoveRush: (sectionName: string, file: File) => void;
   onEditChange: (sectionName: string, edit: VideoEdit | undefined) => void;
   onMusicChange: (c: MediaChoice | null) => void;
   onBackgroundChange: (c: MediaChoice | null) => void;
@@ -363,6 +368,9 @@ const HubFlow = (p: FlowProps) => {
       phaseContent={phaseContent}
       onFormDataChange={handlers.onFormDataChange}
       onClipChange={handlers.onClipChange}
+      onAddRush={handlers.onAddRush}
+      onSelectRush={handlers.onSelectRush}
+      onRemoveRush={handlers.onRemoveRush}
       onEditChange={handlers.onEditChange}
       onMusicChange={handlers.onMusicChange}
       onBackgroundChange={handlers.onBackgroundChange}
@@ -400,16 +408,15 @@ const makeWizardActions = (deps: ActionDeps) => {
   const goTo = (i: number) => {
     update({ stepIndex: Math.min(Math.max(i, 0), steps.length - 1) });
   };
+  // A clip arriving from the recorder/upload is a new take: append it as a rush (auto-selecting the
+  // first). Clearing the clip removes the currently-selected take from the section.
   const setClip = (sectionName: string, file: File | undefined) => {
     setModel((m) => {
-      const clipsBySection = { ...m.clipsBySection };
+      if (file) return { ...m, ...addRush(m, sectionName, file) };
 
-      if (file) clipsBySection[sectionName] = file;
+      if (!Object.hasOwn(m.clipsBySection, sectionName)) return m;
 
-      if (!file) delete clipsBySection[sectionName];
-
-      // The clip changed, so its edit no longer applies.
-      return { ...m, clipsBySection, editsBySection: { ...m.editsBySection, [sectionName]: undefined } };
+      return { ...m, ...removeRush(m, sectionName, m.clipsBySection[sectionName]) };
     });
   };
   const startProcessing = () => {
@@ -440,6 +447,15 @@ const makeWizardActions = (deps: ActionDeps) => {
       update({ formData: d });
     },
     onClipChange: setClip,
+    onAddRush: (sectionName, file) => {
+      setModel((m) => ({ ...m, ...addRush(m, sectionName, file) }));
+    },
+    onSelectRush: (sectionName, file) => {
+      setModel((m) => ({ ...m, ...selectRush(m, sectionName, file) }));
+    },
+    onRemoveRush: (sectionName, file) => {
+      setModel((m) => ({ ...m, ...removeRush(m, sectionName, file) }));
+    },
     onEditChange: (name, edit) => {
       update({ editsBySection: { ...model.editsBySection, [name]: edit } });
     },

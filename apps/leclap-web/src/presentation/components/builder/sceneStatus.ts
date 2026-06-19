@@ -7,6 +7,7 @@ import type { MediaChoice } from '@/presentation/components/admin/templateEditor
 
 export interface SceneModel {
   clipsBySection: Record<string, File>;
+  rushesBySection: Record<string, File[]>;
   editsBySection: Record<string, VideoEdit | undefined>;
   formData: Record<string, string>;
   musicChoice: MediaChoice | null;

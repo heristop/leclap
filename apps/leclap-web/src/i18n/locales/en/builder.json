@@ -92,6 +92,13 @@
     "clipOf": "Clip {{number}} of {{total}}",
     "editorLabel": "Trim & crop"
   },
+  "rush": {
+    "gallery": "Your takes",
+    "take": "Take {{number}}",
+    "use": "Use take {{number}}",
+    "remove": "Remove take {{number}}",
+    "addAnother": "Record another take"
+  },
   "edit": {
     "trim": "Trim",
     "crop": "Crop",

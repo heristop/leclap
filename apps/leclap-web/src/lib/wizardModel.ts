@@ -6,6 +6,8 @@ import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
 // persistence layer can map to/from it without depending on the page module.
 export interface WizardModel {
   clipsBySection: Record<string, File>;
+  // Candidate takes per section; the SELECTED take lives in `clipsBySection`. Not persisted.
+  rushesBySection: Record<string, File[]>;
   editsBySection: Record<string, VideoEdit | undefined>;
   formData: Record<string, string>;
   musicChoice: MediaChoice | null;
@@ -15,6 +17,7 @@ export interface WizardModel {
 
 export const EMPTY_MODEL: WizardModel = {
   clipsBySection: {},
+  rushesBySection: {},
   editsBySection: {},
   formData: {},
   musicChoice: null,

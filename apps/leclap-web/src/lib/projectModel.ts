@@ -81,8 +81,16 @@ export function modelToProject(input: ModelToProjectInput): StoredProject {
 // Pure: rebuild the wizard model from a project. The caller supplies clip `File`s (materialized from
 // the blob store) since bytes are not part of the record.
 export function projectToModel(project: StoredProject, clipFiles: Record<string, File>): WizardModel {
+  // Rushes aren't persisted; seed each saved (selected) clip as the single take so the chooser shows it.
+  const rushesBySection: Record<string, File[]> = {};
+
+  for (const [name, file] of Object.entries(clipFiles)) {
+    rushesBySection[name] = [file];
+  }
+
   return {
     clipsBySection: clipFiles,
+    rushesBySection,
     editsBySection: project.edits,
     formData: project.formData,
     musicChoice: project.musicChoice,

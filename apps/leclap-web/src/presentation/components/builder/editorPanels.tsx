@@ -32,6 +32,9 @@ interface ScenePanelProps {
   clipCount: number;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
+  onAddRush: (sectionName: string, file: File) => void;
+  onSelectRush: (sectionName: string, file: File) => void;
+  onRemoveRush: (sectionName: string, file: File) => void;
   onEditChange: (sectionName: string, edit: VideoEdit | undefined) => void;
 }
 
@@ -44,6 +47,9 @@ export const ScenePanel = ({
   clipCount,
   onFormDataChange,
   onClipChange,
+  onAddRush,
+  onSelectRush,
+  onRemoveRush,
   onEditChange,
 }: ScenePanelProps) => {
   if (section.kind === 'form') {
@@ -75,6 +81,17 @@ export const ScenePanel = ({
       file={model.clipsBySection[section.name]}
       onFileChange={(file) => {
         onClipChange(section.name, file);
+      }}
+      rushes={model.rushesBySection[section.name] ?? []}
+      selectedRush={model.clipsBySection[section.name]}
+      onAddRush={(file) => {
+        onAddRush(section.name, file);
+      }}
+      onSelectRush={(file) => {
+        onSelectRush(section.name, file);
+      }}
+      onRemoveRush={(file) => {
+        onRemoveRush(section.name, file);
       }}
       edit={model.editsBySection[section.name]}
       onEditChange={(edit) => {

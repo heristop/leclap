@@ -1,7 +1,6 @@
 import { useState, useEffect, type ComponentType, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Check,
   Zap,
   Video,
   Users,
@@ -15,10 +14,9 @@ import {
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { logger } from '@/lib/logger';
-import { templatePoster } from '@/lib/poster';
-import { SECTION_ICON } from '@/lib/sectionMeta';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
+import { TemplatePoster } from './TemplatePoster';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
 
@@ -39,49 +37,6 @@ const MetaChip = ({ icon: Icon, children }: { icon: ComponentType<{ className?: 
     {children}
   </span>
 );
-
-// A seeded gradient band previewing the template's shape: a top-left light wash and bottom scrim add
-// depth, with the complexity tag and section glyphs overlaid in frosted chips that stay legible on
-// any gradient hue.
-const Poster = ({ template, isSelected }: { template: Template; isSelected: boolean }) => {
-  const { t } = useTranslation('templates');
-  const poster = templatePoster(template.id, template.descriptor);
-
-  return (
-    <div className="relative h-24 overflow-hidden" style={{ backgroundImage: poster.gradient }}>
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-[radial-gradient(115%_115%_at_0%_0%,rgba(255,255,255,0.32),transparent_55%)]"
-      />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/[0.04] to-transparent" />
-
-      <span className="absolute left-3 top-3 rounded-full bg-black/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white ring-1 ring-white/25 backdrop-blur-sm">
-        {t(`complexity.${template.complexity}`)}
-      </span>
-
-      <div className="absolute inset-x-3 bottom-3 flex items-center gap-1.5">
-        {poster.glyphs.map((kind, index) => {
-          const Glyph = SECTION_ICON[kind];
-
-          return (
-            <span
-              key={index}
-              className="grid h-7 w-7 place-items-center rounded-lg bg-white/20 text-white ring-1 ring-white/25 backdrop-blur-sm"
-            >
-              <Glyph className="h-4 w-4" />
-            </span>
-          );
-        })}
-      </div>
-
-      {isSelected && (
-        <span className="pop-in absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-white text-brand-600 shadow-md">
-          <Check className="h-4 w-4" />
-        </span>
-      )}
-    </div>
-  );
-};
 
 // Orientation → meta-chip icon (portrait a tall image, square a 1:1 box, landscape a wide frame).
 const ORIENTATION_ICON: Record<Template['orientation'], LucideIcon> = {
@@ -163,7 +118,7 @@ const TemplateCard = ({ template, isSelected, onSelect }: TemplateCardProps) => 
           : 'border-foreground/10 hover:border-brand-500/40'
       )}
     >
-      <Poster template={template} isSelected={isSelected} />
+      <TemplatePoster template={template} isSelected={isSelected} />
 
       <div className="p-5">
         {template.source === 'user' && (

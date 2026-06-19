@@ -249,7 +249,7 @@ export function Timeline({
         {/* playhead */}
         <div aria-hidden className="pointer-events-none absolute inset-y-0 z-40" style={{ left: `${playPct}%` }}>
           <div className="absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 rounded-[2px] bg-white shadow" />
-          <div className="absolute inset-y-0 -ml-px w-0.5 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.45)]" />
+          <div className="absolute inset-y-0 -ml-px w-0.5 rounded-full bg-white shadow-[0_0_0_1px_oklch(0_0_0_/_0.45)]" />
         </div>
       </div>
 

@@ -162,6 +162,8 @@ export function useTimelineEditor({ file, edit, onChange }: UseTimelineEditorPar
   const [segments, setSegments] = useState<ClipSegment[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [crop, setCrop] = useState<VideoCrop>(edit?.crop ?? FULL_CROP);
+  const [past, setPast] = useState<ClipSegment[][]>([]);
+  const [future, setFuture] = useState<ClipSegment[][]>([]);
   const containerSize = useElementSize(containerRef);
   const seq = useSequencer(videoRef, segments);
 
@@ -176,7 +178,13 @@ export function useTimelineEditor({ file, edit, onChange }: UseTimelineEditorPar
 
   // Apply the segment edit + crop, but report only a meaningful edit upward (an untouched single
   // full-speed segment + no crop → undefined, so the clip skips the ffmpeg pass).
-  const commit = (nextSegments: ClipSegment[], nextCrop: VideoCrop): void => {
+  // Pass record=false from undo/redo so they manage the history stacks themselves.
+  const commit = (nextSegments: ClipSegment[], nextCrop: VideoCrop, record = true): void => {
+    if (record) {
+      setPast((p) => [...p, segments]);
+      setFuture([]);
+    }
+
     setSegments(nextSegments);
     setCrop(nextCrop);
 
@@ -250,6 +258,47 @@ export function useTimelineEditor({ file, edit, onChange }: UseTimelineEditorPar
     resetCrop: () => {
       commit(segments, FULL_CROP);
     },
+    undo: () => {
+      const prev = past.at(-1);
+
+      if (!prev) return;
+
+      setFuture((f) => [segments, ...f]);
+      setPast((p) => p.slice(0, -1));
+      commit(prev, crop, false);
+      setSelectedId(prev[0]?.id ?? null);
+    },
+    redo: () => {
+      if (future.length === 0) return;
+
+      const next = future[0];
+
+      setPast((p) => [...p, segments]);
+      setFuture((f) => f.slice(1));
+      commit(next, crop, false);
+      setSelectedId(next[0]?.id ?? null);
+    },
+    inverse: () => {
+      const gaps: ClipSegment[] = [];
+      let cursor = 0;
+
+      for (const seg of segments) {
+        if (seg.start - cursor > 0.01) {
+          gaps.push({ id: `inv-${gaps.length}`, start: cursor, end: seg.start, speed: 1 });
+        }
+
+        cursor = seg.end;
+      }
+
+      if (duration - cursor > 0.01) {
+        gaps.push({ id: `inv-${gaps.length}`, start: cursor, end: duration, speed: 1 });
+      }
+
+      if (gaps.length === 0) return;
+
+      commit(gaps, crop);
+      setSelectedId(gaps[0].id);
+    },
     switchMode: (next: Mode) => {
       if (next === 'crop') videoRef.current?.pause();
 
@@ -277,6 +326,8 @@ export function useTimelineEditor({ file, edit, onChange }: UseTimelineEditorPar
     playing: seq.playing,
     containerSize,
     videoRect,
+    canUndo: past.length > 0,
+    canRedo: future.length > 0,
     cropActive: isCropApplied(crop),
     timelineActive: isTimelineApplied(segments, duration),
     seekSource: seq.seekSource,

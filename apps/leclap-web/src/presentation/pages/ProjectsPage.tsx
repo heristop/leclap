@@ -26,11 +26,11 @@ export const ProjectsPage = () => {
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
 
   const openProject = (project: StoredProject) => {
-    Promise.resolve(navigate(`/studio?projectId=${project.id}`)).catch(() => {});
+    Promise.resolve(navigate(`/studio/new?projectId=${project.id}`)).catch(() => {});
   };
 
   const editProject = (project: StoredProject) => {
-    Promise.resolve(navigate(`/studio?projectId=${project.id}&edit=1`)).catch(() => {});
+    Promise.resolve(navigate(`/studio/new?projectId=${project.id}&edit=1`)).catch(() => {});
   };
 
   const duplicateProject = (project: StoredProject) => {

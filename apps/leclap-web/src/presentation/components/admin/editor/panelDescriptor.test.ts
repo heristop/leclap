@@ -33,7 +33,7 @@ function panelDrivenState(): EditorState {
         motion: [{ type: 'kenburns', direction: 'in', intensity: 1.2 }],
         framingGuide: { type: 'silhouette', position: 'center', opacity: 0.4 },
       },
-      { kind: 'color', duration: 3, color: '#7C83FD' },
+      { kind: 'color', duration: 3, color: '#7C83FD', overlays: [] },
     ],
     globalVariables: [],
     audio: { ...DEFAULT_AUDIO_MIX, normalize: 'loudnorm', ducking: true },

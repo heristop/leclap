@@ -25,6 +25,13 @@
     "title": "Choose Your Style",
     "subtitle": "Select a cinematic template to start creating"
   },
+  "studio": {
+    "home": {
+      "kicker": "Studio",
+      "title": "Choose Your Style",
+      "subtitle": "Pick a cinematic template to start creating"
+    }
+  },
   "stepMedia": {
     "title": "Music & Background",
     "subtitle": "Choose the soundtrack and backdrop for your video",
@@ -45,6 +52,7 @@
     "details": "Details",
     "tools": "Editor tools",
     "program": "Program",
+    "viewMode": "Monitor view",
     "preview": "Preview",
     "approx": "Approximate",
     "timeline": "Scenes",

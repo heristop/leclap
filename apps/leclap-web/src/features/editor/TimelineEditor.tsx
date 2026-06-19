@@ -1,4 +1,6 @@
-import { Crop, Scissors, RotateCcw, Play, Pause, Trash2 } from '@/presentation/components/icons';
+import { useEffect, useRef } from 'react';
+import { Crop, Scissors, RotateCcw, Play, Pause, Trash2, Undo2, Redo2 } from '@/presentation/components/icons';
+import { ArrowRightLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/presentation/components/ui';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
@@ -22,6 +24,35 @@ const fmtClock = (seconds: number): string => {
 export function TimelineEditor({ file, label, edit, onChange }: TimelineEditorProps) {
   const e = useTimelineEditor({ file, edit, onChange });
   const canDelete = e.segments.length > 1;
+
+  const undoRef = useRef(e.undo);
+  const redoRef = useRef(e.redo);
+  undoRef.current = e.undo;
+  redoRef.current = e.redo;
+
+  useEffect(() => {
+    const handleKey = (ev: KeyboardEvent) => {
+      const modKey = ev.metaKey || ev.ctrlKey;
+
+      if (!modKey || ev.key.toLowerCase() !== 'z') return;
+
+      ev.preventDefault();
+
+      if (ev.shiftKey) {
+        redoRef.current();
+
+        return;
+      }
+
+      undoRef.current();
+    };
+
+    window.addEventListener('keydown', handleKey);
+
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, []);
 
   return (
     <div className="glass-panel-dark rounded-2xl p-5 shadow-xl">
@@ -88,6 +119,28 @@ export function TimelineEditor({ file, label, edit, onChange }: TimelineEditorPr
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={e.undo}
+                disabled={!e.canUndo}
+                aria-label="Undo"
+                title="Undo (⌘Z)"
+                className="text-gray-400 hover:text-foreground [&_svg]:size-4"
+              >
+                <Undo2 />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={e.redo}
+                disabled={!e.canRedo}
+                aria-label="Redo"
+                title="Redo (⌘⇧Z)"
+                className="text-gray-400 hover:text-foreground [&_svg]:size-4"
+              >
+                <Redo2 />
+              </Button>
               <Button variant="secondary" size="sm" onClick={e.split} className="gap-1.5 [&_svg]:size-4">
                 <Scissors />
                 Split
@@ -126,15 +179,26 @@ export function TimelineEditor({ file, label, edit, onChange }: TimelineEditorPr
               right-click a clip for speed.
             </p>
             {e.timelineActive && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={e.resetTimeline}
-                className="gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
-              >
-                <RotateCcw />
-                Reset
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={e.inverse}
+                  className="gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
+                >
+                  <ArrowRightLeft />
+                  Inverse
+                </Button>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={e.resetTimeline}
+                  className="gap-1.5 px-0 font-medium text-gray-400 no-underline hover:text-foreground hover:no-underline [&_svg]:size-3.5"
+                >
+                  <RotateCcw />
+                  Reset
+                </Button>
+              </div>
             )}
           </div>
         </div>

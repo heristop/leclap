@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TemplateSelector } from '@/presentation/components/TemplateSelector';
-import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibility';
 import { ExportPanel } from '@/presentation/components/ExportPanel';
 import { Seo } from '@/presentation/components/Seo';
 import { EditorShell } from '@/presentation/components/builder';
@@ -119,26 +117,6 @@ const allInputsComplete = (steps: WizardStep[], s: BuilderState): boolean =>
 
 // ── Shared step screens ────────────────────────────────────────────────────────────────────────
 
-const StepTemplate = ({
-  selectedTemplate,
-  onTemplateSelected,
-}: {
-  selectedTemplate: Template | null;
-  onTemplateSelected: (t: Template) => void;
-}) => {
-  const { t } = useTranslation('builder');
-
-  return (
-    <div className="space-y-8 fade-in">
-      <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold font-display text-foreground mb-2">{t('stepTemplate.title')}</h2>
-        <p className="text-gray-400 text-lg">{t('stepTemplate.subtitle')}</p>
-      </div>
-      <TemplateSelector onTemplateSelected={onTemplateSelected} selectedTemplate={selectedTemplate} />
-    </div>
-  );
-};
-
 interface StepProcessProps {
   selectedTemplate: Template | null;
   clipFiles: File[];
@@ -226,7 +204,6 @@ interface StepContentProps {
     progress: ProcessProgress;
     error: string | null;
   };
-  onTemplateSelected: (t: Template) => void;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
   onEditChange: (sectionName: string, edit: VideoEdit | undefined) => void;
@@ -238,14 +215,10 @@ interface StepContentProps {
   onReset: () => void;
 }
 
-// Renders the shared phases that live outside the editor shell: template pick, compile, and result.
-// Per-section input editing belongs to the shell itself, not here.
+// Renders the shared phases that live outside the editor shell: compile and result. Template picking
+// now lives on the studio home (/studio); per-section input editing belongs to the shell itself.
 const StepContent = (p: StepContentProps) => {
   const { step, selectedTemplate, model } = p;
-
-  if (step.kind === 'template') {
-    return <StepTemplate selectedTemplate={selectedTemplate} onTemplateSelected={p.onTemplateSelected} />;
-  }
 
   if (step.kind === 'process') {
     return (
@@ -272,7 +245,6 @@ type ProcessProgress = ReturnType<typeof useVideoProcessing>['progress'];
 
 // Callbacks the flow needs — bundled so the flow component takes one prop instead of a dozen.
 interface WizardHandlers {
-  onTemplateSelected: (t: Template) => void;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
   onAddRush: (sectionName: string, file: File) => void;
@@ -313,13 +285,14 @@ interface FlowProps {
 const processIndex = (steps: WizardStep[]): number => steps.findIndex((s) => s.kind === 'process');
 const resultIndex = (steps: WizardStep[]): number => steps.findIndex((s) => s.kind === 'result');
 
-// The "all at once" flow: Template → EditorShell → Process → Result. The Process and Result phases
-// reuse the linear screens via StepContent so there's a single source of truth for them.
+// The editor flow: EditorShell → Process → Result. The Process and Result phases reuse the linear
+// screens via StepContent so there's a single source of truth for them. The template chooser now
+// lives on the studio home — with nothing selected, the editor has nothing to edit, so bounce there.
 const HubFlow = (p: FlowProps) => {
   const { selectedTemplate, model, steps, stepIndex, handlers } = p;
 
   if (!selectedTemplate) {
-    return <StepTemplate selectedTemplate={selectedTemplate} onTemplateSelected={handlers.onTemplateSelected} />;
+    return <Navigate to="/studio" replace />;
   }
 
   // One fullscreen editor shell hosts every phase: editing scenes, the compile, and the result. The
@@ -344,7 +317,6 @@ const HubFlow = (p: FlowProps) => {
         clipCount={p.clipCount}
         processedVideo={p.processedVideo}
         processing={p.processing}
-        onTemplateSelected={handlers.onTemplateSelected}
         onFormDataChange={handlers.onFormDataChange}
         onClipChange={handlers.onClipChange}
         onEditChange={handlers.onEditChange}
@@ -439,10 +411,6 @@ const makeWizardActions = (deps: ActionDeps) => {
       );
   };
   const handlers: WizardHandlers = {
-    onTemplateSelected: (template) => {
-      setSelectedTemplate(template);
-      setModel({ ...EMPTY_MODEL, musicChoice: defaultMusicChoice(template) });
-    },
     onFormDataChange: (d) => {
       update({ formData: d });
     },
@@ -658,12 +626,66 @@ const useProjectPersistence = (args: PersistenceArgs) => {
   return { hydrating, hydratedResult, resetProject };
 };
 
+interface PreselectArgs {
+  setSelectedTemplate: (template: Template | null) => void;
+  setModel: (model: WizardModel) => void;
+}
+
+// `/studio/new?template=<id>` (no project) opens the editor straight on a template: fetch it and seed
+// the empty model with its default soundtrack — the same effect as picking it in the gallery. The
+// `appliedRef` guards against re-running the apply for an id we've already handled, so the effect
+// can't loop on its own setState (which leaves the param untouched).
+const useTemplatePreselect = ({ setSelectedTemplate, setModel }: PreselectArgs) => {
+  const [searchParams] = useSearchParams();
+  const templateParam = searchParams.get('template');
+  const projectIdParam = searchParams.get('projectId');
+  const appliedRef = useRef<string | null>(null);
+  const [resolving, setResolving] = useState(Boolean(templateParam) && !projectIdParam);
+
+  useEffect(() => {
+    const pending = { cancelled: false };
+    const skip = Boolean(projectIdParam) || !templateParam || appliedRef.current === templateParam;
+
+    if (skip) {
+      setResolving(false);
+    }
+
+    if (!skip && templateParam) {
+      setResolving(true);
+      templateService
+        .getTemplate(templateParam)
+        .then((template) => {
+          if (pending.cancelled) return;
+          appliedRef.current = templateParam;
+
+          if (template) {
+            setSelectedTemplate(template);
+            setModel({ ...EMPTY_MODEL, musicChoice: defaultMusicChoice(template) });
+          }
+
+          setResolving(false);
+        })
+        .catch(() => {
+          if (!pending.cancelled) setResolving(false);
+        });
+    }
+
+    return () => {
+      pending.cancelled = true;
+    };
+  }, [templateParam, projectIdParam, setSelectedTemplate, setModel]);
+
+  return { templateParam, projectIdParam, resolving };
+};
+
 // Owns all wizard state + derived values + actions, so the Builder component is render-only.
 const useBuilderController = () => {
+  const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [model, setModel] = useState<WizardModel>(EMPTY_MODEL);
   const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, isFFmpegReady } =
     useVideoProcessing();
+  const { templateParam, projectIdParam, resolving } = useTemplatePreselect({ setSelectedTemplate, setModel });
   const steps: WizardStep[] = selectedTemplate ? buildSteps(selectedTemplate) : [{ kind: 'template' }];
   const stepIndex = Math.min(model.stepIndex, steps.length - 1);
   const currentStepKind = steps[stepIndex]?.kind;
@@ -696,9 +718,11 @@ const useBuilderController = () => {
 
   const handlers: WizardHandlers = {
     ...actions.handlers,
+    // "Change template" / back: leave the editor and return to the gallery to pick another. The
+    // unmount tears down the session; resetProject still runs so any in-flight project ref is cleared.
     onReset: () => {
-      actions.handlers.onReset();
       resetProject();
+      Promise.resolve(navigate('/studio')).catch(() => {});
     },
   };
 
@@ -724,13 +748,21 @@ const useBuilderController = () => {
     prevStep: actions.prevStep,
   };
 
-  return { isFFmpegReady, hydrating, flowProps };
+  // Nothing to edit (no template/project param and nothing selected) → the chooser lives on /studio.
+  const needsTemplate = !templateParam && !projectIdParam && !selectedTemplate && !resolving && !hydrating;
+
+  return { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate };
 };
 
 export const Builder = () => {
   const { t } = useTranslation('builder');
   const { loadingProgress } = useFFmpeg();
-  const { isFFmpegReady, hydrating, flowProps } = useBuilderController();
+  const { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate } = useBuilderController();
+
+  // No template/project to edit → send the user to the gallery to pick one.
+  if (needsTemplate) {
+    return <Navigate to="/studio" replace />;
+  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden">
@@ -738,7 +770,7 @@ export const Builder = () => {
       <Seo
         title={t('studio.title', { ns: 'seo' })}
         description={t('studio.description', { ns: 'seo' })}
-        path="/studio"
+        path="/studio/new"
       />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/15 rounded-full blur-[120px] animate-float" />
@@ -748,16 +780,13 @@ export const Builder = () => {
         />
       </div>
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 relative z-10">
-        {hydrating ? (
+        {hydrating || resolving ? (
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-gray-400 fade-in">
             <Loader2 className="h-7 w-7 animate-spin text-brand-500 motion-reduce:animate-none" />
             <p className="text-sm font-medium">{t('project.loading')}</p>
           </div>
         ) : (
-          <>
-            {!flowProps.selectedTemplate && <BrowserCompatibility />}
-            <HubFlow {...flowProps} />
-          </>
+          <HubFlow {...flowProps} />
         )}
         {!isFFmpegReady && (
           <Card

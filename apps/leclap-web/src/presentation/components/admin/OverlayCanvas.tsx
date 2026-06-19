@@ -31,11 +31,20 @@ const previewAspectClass: Record<Orientation, string> = {
   landscape: 'aspect-video',
 };
 
+// The frame's backdrop: a background image (e.g. an image_background), a stack of composited CSS
+// layers (the base + extra colour/gradient layers of a color_background, each already carrying its
+// absolute geometry), or neither — in which case a neutral dark frame is shown.
+export interface CanvasBackground {
+  imageUrl?: string;
+  cssLayers?: CSSProperties[];
+}
+
 interface OverlayCanvasProps {
   overlays: TextOverlay[];
   orientation: Orientation;
   variables: string[];
   onChange: (overlays: TextOverlay[]) => void;
+  background?: CanvasBackground;
 }
 
 // 2% keyboard nudge step for a selected, non-editing overlay.
@@ -58,7 +67,7 @@ const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<Text
 // The video frame with every overlay on it, plus a docked toolbar. Owns all
 // direct-manipulation state (selection + inline edit); each mutation builds a new
 // overlays array and calls onChange.
-export const OverlayCanvas = ({ overlays, orientation, variables, onChange }: OverlayCanvasProps) => {
+export const OverlayCanvas = ({ overlays, orientation, variables, onChange, background }: OverlayCanvasProps) => {
   const { t } = useTranslation('admin');
   const frameRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
@@ -139,7 +148,7 @@ export const OverlayCanvas = ({ overlays, orientation, variables, onChange }: Ov
       <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
         {t('overlay.textOverlays')}
       </span>
-      <CanvasFrame ref={frameRef} orientation={orientation} onDeselect={deselect}>
+      <CanvasFrame ref={frameRef} orientation={orientation} onDeselect={deselect} background={background}>
         {overlays.map((overlay, index) => (
           <OverlayBox
             key={index}
@@ -202,26 +211,44 @@ function textWithVariable(current: string, name: string, caret: Caret | null): s
 interface CanvasFrameProps {
   orientation: Orientation;
   onDeselect: () => void;
+  background?: CanvasBackground;
   children: React.ReactNode;
   ref: React.Ref<HTMLDivElement>;
 }
 
-// The aspect-correct preview surface. A pointerdown on the bare frame deselects.
-const CanvasFrame = ({ orientation, onDeselect, children, ref }: CanvasFrameProps) => (
-  <div
-    ref={ref}
-    onPointerDown={(e) => {
-      if (e.target === e.currentTarget) onDeselect();
-    }}
-    className={cn(
-      'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
-      'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
-      previewAspectClass[orientation]
-    )}
-  >
-    {children}
-  </div>
-);
+// The aspect-correct preview surface. A pointerdown on the bare frame deselects. The backdrop is the
+// section's real background (image / color / gradient) when supplied, else a neutral dark frame. The
+// backdrop layers are pointer-transparent so a click still reaches the frame and deselects.
+const CanvasFrame = ({ orientation, onDeselect, background, children, ref }: CanvasFrameProps) => {
+  const hasBackground = Boolean(background?.imageUrl ?? background?.cssLayers?.length);
+
+  return (
+    <div
+      ref={ref}
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) onDeselect();
+      }}
+      className={cn(
+        'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
+        !hasBackground && 'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
+        previewAspectClass[orientation]
+      )}
+    >
+      {background?.cssLayers?.map((style, index) => (
+        <div key={index} aria-hidden className="pointer-events-none" style={style} />
+      ))}
+      {background?.imageUrl && (
+        <img
+          aria-hidden
+          alt=""
+          src={background.imageUrl}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        />
+      )}
+      {children}
+    </div>
+  );
+};
 
 interface OverlayBoxProps {
   overlay: TextOverlay;

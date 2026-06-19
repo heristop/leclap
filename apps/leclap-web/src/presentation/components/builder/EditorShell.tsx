@@ -7,12 +7,14 @@ import {
   Clapperboard,
   Film,
   Layers,
+  Monitor,
   Music,
   Proportions,
+  Scissors,
   Sparkles,
   type LucideIcon,
 } from '@/presentation/components/icons';
-import { Button } from '@/presentation/components/ui';
+import { Button, SegmentedControl } from '@/presentation/components/ui';
 import { ToolDock, ProgramMonitor, type ToolItem } from '@/presentation/components/editor-shell';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
 import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
@@ -212,35 +214,36 @@ const ProgramArea = ({ clipFile, section, editForClip, onEditChange, template, m
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {clipFile && section && (
-        <div className="flex shrink-0 items-center justify-end gap-1 border-b border-foreground/10 px-3 py-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              setEditMode(false);
+        <div className="flex shrink-0 items-center justify-center border-b border-foreground/10 px-3 py-2">
+          <SegmentedControl
+            ariaLabel={t('editor.viewMode')}
+            value={editMode ? 'edit' : 'preview'}
+            onChange={(value) => {
+              setEditMode(value === 'edit');
             }}
-            className={cn(
-              'rounded-md px-3 py-1 text-xs font-semibold transition-colors',
-              editMode
-                ? 'text-muted-foreground hover:text-foreground'
-                : 'bg-brand-500/15 text-brand-600 dark:text-brand-300'
-            )}
-          >
-            {t('editor.preview')}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEditMode(true);
-            }}
-            className={cn(
-              'rounded-md px-3 py-1 text-xs font-semibold transition-colors',
-              editMode
-                ? 'bg-brand-500/15 text-brand-600 dark:text-brand-300'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {t('stepClip.editorLabel')}
-          </button>
+            options={[
+              {
+                value: 'preview',
+                ariaLabel: t('editor.preview'),
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Monitor className="h-3.5 w-3.5" />
+                    {t('editor.preview')}
+                  </span>
+                ),
+              },
+              {
+                value: 'edit',
+                ariaLabel: t('stepClip.editorLabel'),
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Scissors className="h-3.5 w-3.5" />
+                    {t('stepClip.editorLabel')}
+                  </span>
+                ),
+              },
+            ]}
+          />
         </div>
       )}
       <div className="min-h-0 flex-1">

@@ -13,6 +13,7 @@ import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Home } from '@/presentation/pages/Home';
 import { Builder } from '@/presentation/pages/Builder';
+import { StudioHome } from '@/presentation/pages/StudioHome';
 import { About } from '@/presentation/pages/About';
 import { Admin } from '@/presentation/pages/Admin';
 import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
@@ -99,9 +100,10 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />} errorElement={<RouteError />}>
       <Route path="/" element={<Home />} />
-      <Route path="/studio" element={<Builder />} />
+      <Route path="/studio" element={<StudioHome />} />
+      <Route path="/studio/new" element={<Builder />} />
       {/* Legacy path kept so existing bookmarks/links keep working. */}
-      <Route path="/builder" element={<Navigate to="/studio" replace />} />
+      <Route path="/builder" element={<Navigate to="/studio/new" replace />} />
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/templates" element={<Admin />} />
       <Route path="/templates/new" element={<TemplateEditorPage />} />

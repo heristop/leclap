@@ -6,6 +6,31 @@
 import { buildDescriptor, type EditorState, type TemplateDescriptor } from '../templateEditorModel';
 import { templateService, type Template } from '@/services/templateService';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
+import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
+
+// SectionOptions from core omits pictureUrl at the type level; cast locally for image_background access.
+type ImageOptions = { pictureUrl?: string } & Record<string, unknown>;
+
+// An image_background section stores only an `allowedBackgrounds` list (the end user picks one at compile
+// time); a draft has no such pick, so give each unconfigured one a stand-in picture — the first allowed
+// background, else any bundled one. Without it the engine has no image input and aborts with
+// "Invalid input file index". As a bonus the preview shows a real background instead of a placeholder.
+function fillPreviewBackgrounds(descriptor: TemplateDescriptor): TemplateDescriptor {
+  const firstAllowed = descriptor.global?.allowedBackgrounds?.at(0) ?? '';
+  const fallbackUrl = findBackground(firstAllowed)?.url ?? BACKGROUND_LIBRARY.at(0)?.url;
+
+  if (!fallbackUrl) return descriptor;
+
+  const sections = (descriptor.sections ?? []).map((section) => {
+    const opts = (section as { options?: ImageOptions }).options;
+
+    if (section.type !== 'image_background' || opts?.pictureUrl) return section;
+
+    return { ...section, options: { ...opts, pictureUrl: fallbackUrl } };
+  });
+
+  return { ...descriptor, sections } as TemplateDescriptor;
+}
 
 // A draft only needs to show each scene's look, not its full runtime. Capping every section to a few
 // seconds keeps the preview "fast" (its whole point) and — just as important — keeps the multi-segment
@@ -60,7 +85,7 @@ export function previewFormData(state: EditorState): Record<string, string> {
 // A throwaway Template wrapping the freshly-built descriptor, suitable for compileVideo. The id is
 // suffixed so it can never collide with or overwrite the saved template.
 export function previewTemplate(state: EditorState): Template {
-  const descriptor = clampPreviewDurations(buildDescriptor(state));
+  const descriptor = fillPreviewBackgrounds(clampPreviewDurations(buildDescriptor(state)));
 
   return {
     id: `${state.id}-preview`,

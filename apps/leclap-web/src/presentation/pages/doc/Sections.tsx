@@ -9,7 +9,8 @@ import { DocPageHeader } from './DocLayout';
 // a blurb rather than silently disappearing.
 const TYPE_BLURB: Record<string, string> = {
   video: 'A bundled or uploaded video clip.',
-  project_video: 'A clip the end user records or supplies at build time — pair with a framingGuide to guide the shot.',
+  project_video:
+    'A clip the end user records or supplies at build time. Use captureMode / allowedCaptureModes to control the input source (front, back, screen, upload), and framingGuide to overlay a shot composition guide.',
   form: 'A data-collection step whose fields feed later text. Produces no clip of its own.',
   color_background: 'A solid-colour or gradient backdrop, optionally with composited layers.',
   image_background: 'A still-image backdrop.',
@@ -35,7 +36,8 @@ export const DocSections = () => (
         <p>
           The <Code>type</Code> field is the discriminant. There are {sectionTypeValues().length} types — each unlocks
           its own <Code>options</Code> (for example <Code>layers</Code> on <Code>color_background</Code>,{' '}
-          <Code>framingGuide</Code> on <Code>project_video</Code>, <Code>fields</Code> on <Code>form</Code>).
+          <Code>framingGuide</Code> / <Code>captureMode</Code> on <Code>project_video</Code>, <Code>fields</Code> on{' '}
+          <Code>form</Code>).
         </p>
       </Prose>
       <div className="overflow-x-auto rounded-2xl border border-divider bg-surface/60">
@@ -82,6 +84,7 @@ export const DocSections = () => (
         />
       </div>
       <Sample code={snippets.section} title="A minimal section" />
+      <Sample code={snippets.captureMode} title="Capture modes on a project_video section" className="mt-6" />
       <Tip className="mt-8">
         Only the fields tagged <span className="font-semibold text-foreground">required</span> must be present —
         everything else falls back to a schema default, so a minimal section is often just a <Code>type</Code> and its{' '}

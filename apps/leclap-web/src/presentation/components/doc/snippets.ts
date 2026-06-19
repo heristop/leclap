@@ -76,6 +76,16 @@ export const snippets = {
     },
   }),
 
+  captureMode: json({
+    name: 'record',
+    type: 'project_video',
+    options: {
+      duration: 30,
+      captureMode: 'front',
+      allowedCaptureModes: ['front', 'back', 'upload'],
+    },
+  }),
+
   layers: json({
     name: 'card',
     type: 'color_background',

@@ -18,7 +18,6 @@ import { logger } from '@/lib/logger';
 import { templatePoster } from '@/lib/poster';
 import { SECTION_ICON } from '@/lib/sectionMeta';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
-import { withViewTransition } from '@/lib/viewTransition';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
@@ -249,10 +248,11 @@ export const TemplateSelector = ({ onTemplateSelected, selectedTemplate }: Templ
     });
   }, [t]);
 
+  // The consumer (StudioHome) navigates to the editor with react-router's own `viewTransition`, which
+  // drives the title morph. Don't wrap in withViewTransition too — nesting startViewTransition aborts
+  // the navigation.
   const handleTemplateSelect = (template: Template) => {
-    withViewTransition(() => {
-      onTemplateSelected(template);
-    });
+    onTemplateSelected(template);
   };
 
   const resetFacets = () => {

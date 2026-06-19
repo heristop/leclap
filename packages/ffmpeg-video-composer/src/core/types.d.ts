@@ -185,6 +185,8 @@ interface SectionOptions {
   layers?: BackgroundLayer[];
   // project_video extension
   framingGuide?: FramingGuideConfig;
+  captureMode?: string;
+  allowedCaptureModes?: string[];
 }
 
 interface ChannelAdjust {

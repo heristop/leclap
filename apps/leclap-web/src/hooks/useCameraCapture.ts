@@ -1,24 +1,49 @@
 import { useEffect, useRef, useState } from 'react';
+import type { TemplateOrientation } from '@leclap/creative-kit';
 
 export type Mode = 'loading' | 'ready' | 'countdown' | 'recording' | 'preview' | 'error';
 
 // How many seconds before the target duration the "wrap up" warning kicks in.
 const END_WARNING_THRESHOLD = 3;
 
+// The recording orientation mirrors the template orientation union (single source in creative-kit).
+export type CaptureOrientation = TemplateOrientation;
+
 export interface CameraCaptureOptions {
   // When > 0, a 3·2·1 countdown plays before recording actually starts.
   countdownSeconds?: number;
   // The section's target duration; drives the "wrap up" warning in its last seconds.
   maxDurationSeconds?: number;
-  // Portrait template: request and record a 9:16 frame so the clip matches the vertical output.
-  portrait?: boolean;
+  // Template orientation: requests a matching frame and center-crops the saved clip so it matches the
+  // vertical (9:16), square (1:1), or native (landscape) output.
+  orientation?: CaptureOrientation;
+}
+
+// The target aspect ratio (w/h) the saved clip is cropped to, or null to keep the camera's native frame
+// (landscape — no crop). Portrait is 9:16, square is 1:1.
+export function cropAspectFor(orientation: CaptureOrientation | undefined): number | null {
+  if (orientation === 'portrait') return 9 / 16;
+
+  if (orientation === 'square') return 1;
+
+  return null;
+}
+
+// The ideal getUserMedia resolution per orientation (honored on mobile; desktop webcams stay landscape
+// and are center-cropped when recording).
+function idealConstraintsFor(orientation: CaptureOrientation | undefined): MediaTrackConstraints {
+  if (orientation === 'portrait') return { width: { ideal: 720 }, height: { ideal: 1280 } };
+
+  if (orientation === 'square') return { width: { ideal: 1080 }, height: { ideal: 1080 } };
+
+  return { width: { ideal: 1280 }, height: { ideal: 720 } };
 }
 
 export type FacingMode = 'user' | 'environment';
 
 // Prefer an MP4 container when the browser can produce it (best downstream
 // compatibility), otherwise fall back to WebM.
-function pickMimeType(): string | undefined {
+export function pickMimeType(): string | undefined {
   const candidates = ['video/mp4;codecs=h264,aac', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
 
   if (typeof MediaRecorder === 'undefined') return undefined;
@@ -97,16 +122,16 @@ export function cropRect(
 }
 
 // Builds a recordable stream from the live video via a canvas, so the saved file matches the
-// preview: optionally horizontally flipped (front-camera selfie) and/or center-cropped to a 9:16
-// portrait frame for portrait templates. Reuses the original audio track(s).
+// preview: optionally horizontally flipped (front-camera selfie) and/or center-cropped to the target
+// aspect (9:16 portrait, 1:1 square). `aspect` null keeps the native frame. Reuses the original audio.
 function createCanvasStream(
   video: HTMLVideoElement,
   source: MediaStream,
-  opts: { mirror: boolean; portrait: boolean }
+  opts: { mirror: boolean; aspect: number | null }
 ): { stream: MediaStream; stop: () => void } {
   const vw = video.videoWidth || 1280;
   const vh = video.videoHeight || 720;
-  const { sx, sy, sw, sh } = cropRect(vw, vh, opts.portrait ? 9 / 16 : vw / vh);
+  const { sx, sy, sw, sh } = cropRect(vw, vh, opts.aspect ?? vw / vh);
 
   const canvas = document.createElement('canvas');
   canvas.width = sw;
@@ -146,15 +171,15 @@ function createCanvasStream(
 }
 
 // The stream to feed MediaRecorder: a cropped/mirrored canvas when the saved file must differ from the
-// raw track (mirrored front-camera selfie and/or 9:16 portrait crop), otherwise the raw source. `stop`
-// is a no-op for the raw path so callers can always call it.
+// raw track (mirrored front-camera selfie and/or a portrait/square crop), otherwise the raw source.
+// `stop` is a no-op for the raw path so callers can always call it.
 function buildRecordStream(
   source: MediaStream,
   video: HTMLVideoElement | null,
   mirror: boolean,
-  portrait: boolean
+  aspect: number | null
 ): { stream: MediaStream; stop: () => void } {
-  if ((mirror || portrait) && video) return createCanvasStream(video, source, { mirror, portrait });
+  if ((mirror || aspect !== null) && video) return createCanvasStream(video, source, { mirror, aspect });
 
   return { stream: source, stop: () => {} };
 }
@@ -183,7 +208,7 @@ function useRecorder(
   streamRef: React.RefObject<MediaStream | null>,
   videoRef: React.RefObject<HTMLVideoElement | null>,
   mirror: boolean,
-  portrait: boolean,
+  aspect: number | null,
   handlers: RecorderHandlers
 ): RecorderController {
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -217,7 +242,7 @@ function useRecorder(
     // Everything that can throw lives in the try: `canvas.captureStream` (Safari/iOS only ≥16.4) and
     // the MediaRecorder constructor (unsupported codec). A failure surfaces the error view, not a crash.
     try {
-      const { stream, stop } = buildRecordStream(source, videoRef.current, mirror, portrait);
+      const { stream, stop } = buildRecordStream(source, videoRef.current, mirror, aspect);
       mirrorStopRef.current = stop;
       const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       recorder.ondataavailable = (event) => {
@@ -402,11 +427,9 @@ export function useCameraCapture(
       streamRef.current = null;
 
       try {
-        // Ask for a portrait frame on portrait templates (honored on mobile; desktop webcams stay
-        // landscape and get center-cropped to 9:16 when recording).
-        const ideal = options.portrait
-          ? { width: { ideal: 720 }, height: { ideal: 1280 } }
-          : { width: { ideal: 1280 }, height: { ideal: 720 } };
+        // Ask the camera for a frame matching the template orientation (honored on mobile; desktop
+        // webcams stay landscape and get center-cropped to the target aspect when recording).
+        const ideal = idealConstraintsFor(options.orientation);
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode, ...ideal },
           audio: true,
@@ -434,9 +457,9 @@ export function useCameraCapture(
       stopTracks(streamRef.current);
       streamRef.current = null;
     };
-  }, [facingMode, restartToken, options.portrait]);
+  }, [facingMode, restartToken, options.orientation]);
 
-  const recorder = useRecorder(streamRef, videoRef, facingMode === 'user', options.portrait ?? false, {
+  const recorder = useRecorder(streamRef, videoRef, facingMode === 'user', cropAspectFor(options.orientation), {
     onStart: () => {
       setElapsed(0);
       setMode('recording');

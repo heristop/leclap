@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CaptureMode, TemplateOrientation } from '@leclap/creative-kit';
-import { useCameraCapture } from './useCameraCapture';
+import { useCameraCapture, pickMimeType } from './useCameraCapture';
 
 export type CaptureState = 'loading' | 'idle' | 'countdown' | 'recording' | 'preview' | 'error';
 
@@ -43,14 +43,6 @@ export interface CaptureSessionReturn {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function pickMimeType(): string | undefined {
-  const candidates = ['video/mp4;codecs=h264,aac', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
-
-  if (typeof MediaRecorder === 'undefined') return undefined;
-
-  return candidates.find((c) => MediaRecorder.isTypeSupported(c));
-}
 
 function stopTracks(stream: MediaStream | null): void {
   for (const track of stream?.getTracks() ?? []) {
@@ -96,6 +88,9 @@ function useScreenCapture(active: boolean): ScreenCaptureController {
   useEffect(() => {
     if (active) return () => {};
 
+    recorderRef.current?.stop();
+    recorderRef.current = null;
+    chunksRef.current = [];
     stopTracks(streamRef.current);
     setStream(null);
     setState('idle');
@@ -231,7 +226,11 @@ function useUploadCapture(): UploadCaptureController {
     input.accept = 'video/*';
     input.style.display = 'none';
     input.addEventListener('change', () => {
-      setFile(input.files?.[0] ?? null);
+      const file = input.files?.[0];
+      if (file) {
+        setFile(file);
+        input.value = '';
+      }
     });
     document.body.appendChild(input);
     inputRef.current = input;
@@ -309,12 +308,17 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
     setCapturedFile(file);
   }, []);
 
+  const cameraOptions = useMemo(
+    () => ({
+      countdownSeconds: config.countdown,
+      maxDurationSeconds: config.maxDuration,
+      orientation: config.orientation,
+    }),
+    [config.countdown, config.maxDuration, config.orientation]
+  );
+
   // Always call all sub-hooks unconditionally (Rules of Hooks)
-  const camera = useCameraCapture(handleCameraCapture, () => {}, {
-    countdownSeconds: config.countdown,
-    maxDurationSeconds: config.maxDuration,
-    orientation: config.orientation,
-  });
+  const camera = useCameraCapture(handleCameraCapture, () => {}, cameraOptions);
 
   const screen = useScreenCapture(mode === 'screen');
   const upload = useUploadCapture();
@@ -323,17 +327,24 @@ export function useCaptureSession(config: CaptureSessionConfig): CaptureSessionR
 
   const setMode = useCallback(
     (m: CaptureMode) => {
-      if (m === mode) return;
+      setModeState((prev) => {
+        if (m === prev) return prev;
 
-      setCapturedFile(null);
+        setCapturedFile(null);
 
-      if (m === 'front' && camera.facingMode !== 'user') camera.switchCamera();
+        if (m === 'front' && camera.facingMode !== 'user') camera.switchCamera();
 
-      if (m === 'back' && camera.facingMode !== 'environment') camera.switchCamera();
+        if (m === 'back' && camera.facingMode !== 'environment') camera.switchCamera();
 
-      setModeState(m);
+        // Release camera stream when leaving camera modes
+        if ((prev === 'front' || prev === 'back') && m !== 'front' && m !== 'back') {
+          camera.cancel();
+        }
+
+        return m;
+      });
     },
-    [mode, camera]
+    [camera]
   );
 
   // Derive unified state from the active sub-controller

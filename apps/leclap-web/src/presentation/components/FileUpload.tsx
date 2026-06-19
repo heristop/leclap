@@ -1,12 +1,13 @@
 import { useState, startTransition } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
-import { Upload, X, File, AlertCircle, Video as VideoIcon } from 'lucide-react';
+import { Upload, X, File, AlertCircle, Video as VideoIcon } from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { Button, Card, Badge } from '@/presentation/components/ui';
 import type { FramingGuideConfig } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { CaptureMode, TemplateOrientation } from '@leclap/creative-kit';
 
 interface FileUploadProps {
   onFilesUploaded: (files: File[]) => void;
@@ -20,8 +21,12 @@ interface FileUploadProps {
   framingGuide?: FramingGuideConfig;
   // "What to film" hint forwarded to the camera.
   description?: string;
-  // Template orientation — forwarded so the camera frames/records vertical for portrait templates.
-  orientation?: 'portrait' | 'landscape';
+  // Template orientation — forwarded so the camera frames/records to the right aspect (portrait/square).
+  orientation?: TemplateOrientation;
+  // Default camera capture mode when modal opens.
+  defaultCaptureMode?: CaptureMode;
+  // Which capture mode tabs to show.
+  allowedCaptureModes?: CaptureMode[];
 }
 
 function formatFileSize(bytes: number): string {
@@ -207,6 +212,8 @@ export const FileUpload = ({
   framingGuide,
   description,
   orientation,
+  defaultCaptureMode,
+  allowedCaptureModes,
 }: FileUploadProps) => {
   const { t } = useTranslation('media');
   const [dragActive, setDragActive] = useState(false);
@@ -311,6 +318,8 @@ export const FileUpload = ({
           framingGuide={framingGuide}
           description={description}
           orientation={orientation}
+          defaultCaptureMode={defaultCaptureMode}
+          allowedCaptureModes={allowedCaptureModes}
         />
       )}
 

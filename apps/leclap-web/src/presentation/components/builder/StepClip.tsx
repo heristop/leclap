@@ -6,6 +6,7 @@ import { recordingConfigForSection } from '@/lib/recordingConfig';
 import { resolveTranslation, resolveVariables } from '@/lib/i18nText';
 import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { TemplateDescriptor } from '@/services/templateService';
+import type { TemplateOrientation } from '@leclap/creative-kit';
 
 type Section = NonNullable<TemplateDescriptor['sections']>[number];
 
@@ -25,8 +26,8 @@ interface StepClipProps {
   // When false, render only the capture body — no centered header, no outer Card. The hub side sheet
   // supplies its own header/container, so the page chrome would just be a redundant card-in-card.
   chrome?: boolean;
-  // Template orientation — drives a vertical 9:16 camera frame + recording for portrait templates.
-  orientation?: 'portrait' | 'landscape';
+  // Template orientation — drives the camera frame + recording aspect (9:16 portrait, 1:1 square).
+  orientation?: TemplateOrientation;
 }
 
 // One focused screen for a single clip: record-with-camera or upload (max 1 file), wired to THIS
@@ -65,6 +66,8 @@ export const StepClip = ({
         framingGuide={rec.framingGuide}
         description={hint}
         orientation={orientation}
+        defaultCaptureMode={rec.defaultCaptureMode}
+        allowedCaptureModes={rec.allowedCaptureModes}
       />
       {file && <VideoEditor file={file} label={t('stepClip.editorLabel')} edit={edit} onChange={onEditChange} />}
     </>

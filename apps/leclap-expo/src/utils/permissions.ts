@@ -1,4 +1,4 @@
-import { Camera } from 'expo-camera';
+import { Camera } from 'react-native-vision-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { Alert, Linking } from 'react-native';
 import i18n from '@/src/i18n';
@@ -12,13 +12,11 @@ import i18n from '@/src/i18n';
  * @returns {Promise<boolean>} Whether permission was granted
  */
 export const requestCameraPermission = async (): Promise<boolean> => {
-  const { status: existingStatus } = await Camera.getCameraPermissionsAsync();
-
-  if (existingStatus === 'granted') {
+  if (Camera.getCameraPermissionStatus() === 'granted') {
     return true;
   }
 
-  const { status } = await Camera.requestCameraPermissionsAsync();
+  const status = await Camera.requestCameraPermission();
 
   if (status !== 'granted') {
     Alert.alert(i18n.t('permissions.camera.title'), i18n.t('permissions.camera.message'), [
@@ -42,13 +40,11 @@ export const requestCameraPermission = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} Whether permission was granted
  */
 export const requestAudioPermission = async (): Promise<boolean> => {
-  const { status: existingStatus } = await Camera.getMicrophonePermissionsAsync();
-
-  if (existingStatus === 'granted') {
+  if (Camera.getMicrophonePermissionStatus() === 'granted') {
     return true;
   }
 
-  const { status } = await Camera.requestMicrophonePermissionsAsync();
+  const status = await Camera.requestMicrophonePermission();
 
   if (status !== 'granted') {
     Alert.alert(i18n.t('permissions.microphone.title'), i18n.t('permissions.microphone.message'), [

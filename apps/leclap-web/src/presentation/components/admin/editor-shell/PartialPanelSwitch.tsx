@@ -9,8 +9,17 @@ import {
   type BackgroundLayer,
   type EditorSection,
   type EditorState,
+  type TextOverlay,
 } from '../templateEditorModel';
 import type { PartialToolId } from './usePartialEditorState';
+import { OverlayInspector } from './OverlayInspector';
+import type { SectionSelectionState } from './useSectionSelection';
+
+// Sections whose left panel also hosts the text-overlay inspector (they carry `overlays`).
+const hasTextOverlays = (
+  section: EditorSection
+): section is Extract<EditorSection, { kind: 'video' | 'color' | 'image' }> =>
+  section.kind === 'video' || section.kind === 'color' || section.kind === 'image';
 
 interface PartialPanelSwitchProps {
   activeTool: PartialToolId;
@@ -22,6 +31,8 @@ interface PartialPanelSwitchProps {
   patch: (p: Partial<EditorState>) => void;
   patchSection: (p: Partial<EditorSection>) => void;
   setLayers: (layers: BackgroundLayer[]) => void;
+  overlaySelection: SectionSelectionState;
+  onSelectOverlay: (index: number | null) => void;
 }
 
 // A panel shell mirroring EditorPanelSwitch's PanelFrame: eyebrow + title over a swap-animated body.
@@ -53,6 +64,8 @@ export const PartialPanelSwitch = ({
   patch,
   patchSection,
   setLayers,
+  overlaySelection,
+  onSelectOverlay,
 }: PartialPanelSwitchProps) => {
   const { t } = useTranslation('admin');
 
@@ -84,6 +97,19 @@ export const PartialPanelSwitch = ({
           onLayers={setLayers}
           inputCls={EDITOR_INPUT_CLASS}
         />
+        {hasTextOverlays(section) && (
+          <div className="mt-4 border-t border-foreground/10 pt-4">
+            <OverlayInspector
+              overlays={section.overlays}
+              variables={collectVariables(state)}
+              selection={overlaySelection}
+              onSelectText={onSelectOverlay}
+              onChange={(overlays: TextOverlay[]) => {
+                patchSection({ overlays });
+              }}
+            />
+          </div>
+        )}
       </PanelFrame>
     );
   }

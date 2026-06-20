@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { OverlayCanvas } from '../OverlayCanvas';
+import { SectionCanvas } from './SectionCanvas';
 import { PartialPreview } from './PartialPreview';
+import type { SectionSelectionState } from './useSectionSelection';
 import { PreviewSurface } from '../editor/PreviewSurface';
 import { newBaseLayer } from '../editor/layerGeometry';
 import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
 import {
-  collectVariables,
   SECTION_LABELS,
   type BackgroundLayer,
   type EditorSection,
@@ -32,6 +32,10 @@ interface EditorMonitorProps {
   state: EditorState;
   section: EditorSection | null;
   onPatchSection: (partial: Partial<EditorSection>) => void;
+  selection: SectionSelectionState;
+  onSelectText: (index: number | null) => void;
+  onBeginEdit: () => void;
+  onEndEdit: () => void;
 }
 
 // A muted empty state, shown when no section is selected.
@@ -55,9 +59,19 @@ const FallbackPreview = ({ section }: { section: EditorSection }) => (
 );
 
 // The selected section's editable preview, rendered inside ProgramMonitor's children slot. A thin
-// dispatcher: no section → empty state; visual sections → the centered WYSIWYG OverlayCanvas (real
+// dispatcher: no section → empty state; visual sections → the centered WYSIWYG SectionCanvas (real
 // backdrop + draggable text overlays) wired back through patchSection; other kinds → a labelled frame.
-export const EditorMonitor = ({ state, section, onPatchSection }: EditorMonitorProps) => {
+// The center canvas is now the ONLY draggable surface — its text styling controls live in the left
+// OverlayInspector, sharing this `selection`.
+export const EditorMonitor = ({
+  state,
+  section,
+  onPatchSection,
+  selection,
+  onSelectText,
+  onBeginEdit,
+  onEndEdit,
+}: EditorMonitorProps) => {
   const { t } = useTranslation('admin');
 
   if (!section) return <EmptyState label={t('shell.monitorEmpty')} />;
@@ -69,10 +83,9 @@ export const EditorMonitor = ({ state, section, onPatchSection }: EditorMonitorP
   return (
     <div className="h-full overflow-y-auto p-4">
       <div className="mx-auto max-w-2xl">
-        <OverlayCanvas
+        <SectionCanvas
           overlays={section.overlays}
           orientation={state.orientation}
-          variables={collectVariables(state)}
           background={section.kind === 'image' ? { imageUrl: imageSectionUrl(section.allowed) } : undefined}
           layers={
             section.kind === 'color'
@@ -84,6 +97,10 @@ export const EditorMonitor = ({ state, section, onPatchSection }: EditorMonitorP
                 }
               : undefined
           }
+          selection={selection}
+          onSelectText={onSelectText}
+          onBeginEdit={onBeginEdit}
+          onEndEdit={onEndEdit}
           onChange={(overlays: TextOverlay[]) => {
             onPatchSection({ overlays });
           }}

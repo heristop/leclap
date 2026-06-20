@@ -18,6 +18,7 @@ import {
 import { TestRenderButton } from '../editor/TestRenderButton';
 import { buildEditorTools } from './editorTools';
 import { useEditorSelection } from './useEditorSelection';
+import { useSectionSelection } from './useSectionSelection';
 import { EditorShellTitlebar } from './EditorShellTitlebar';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
 import { EditorMonitor } from './EditorMonitor';
@@ -85,6 +86,11 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
 
   // Selection state for the shell (which tool + which scene), clamped to a valid section index.
   const [sel, dispatch] = useEditorSelection({ activeTool: 'scenes', selectedIndex: 0 });
+
+  // The shared text-overlay selection for the current section, threaded to BOTH the center canvas
+  // (draggable surface) and the left inspector (controls) so they act on one element. Keyed by the
+  // section index so switching scenes resets it.
+  const sectionSelection = useSectionSelection(String(sel.selectedIndex));
 
   useEffect(() => {
     dispatch({ type: 'clamp', count: state.sections.length });
@@ -164,6 +170,8 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
               setLayers(sel.selectedIndex, layers);
             }}
             onImport={reset}
+            overlaySelection={sectionSelection.state}
+            onSelectOverlay={sectionSelection.selectText}
           />
           {error && (
             <p
@@ -183,6 +191,10 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
             onPatchSection={(p) => {
               patchSection(sel.selectedIndex, p);
             }}
+            selection={sectionSelection.state}
+            onSelectText={sectionSelection.selectText}
+            onBeginEdit={sectionSelection.beginEdit}
+            onEndEdit={sectionSelection.endEdit}
           />
         </ProgramMonitor>
       }

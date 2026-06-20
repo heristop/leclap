@@ -13,8 +13,18 @@ import {
   type BackgroundLayer,
   type EditorSection,
   type EditorState,
+  type TextOverlay,
 } from '../templateEditorModel';
 import type { EditorToolId } from './editorTools';
+import { OverlayInspector } from './OverlayInspector';
+import type { SectionSelectionState } from './useSectionSelection';
+
+// Sections whose left panel also hosts the text-overlay inspector (they carry `overlays` and render
+// the WYSIWYG canvas in the center monitor).
+const hasTextOverlays = (
+  section: EditorSection
+): section is Extract<EditorSection, { kind: 'video' | 'color' | 'image' }> =>
+  section.kind === 'video' || section.kind === 'color' || section.kind === 'image';
 
 interface EditorPanelSwitchProps {
   activeTool: EditorToolId;
@@ -25,6 +35,8 @@ interface EditorPanelSwitchProps {
   patchSection: (p: Partial<EditorSection>) => void;
   setLayers: (layers: BackgroundLayer[]) => void;
   onImport: (next: EditorState) => void;
+  overlaySelection: SectionSelectionState;
+  onSelectOverlay: (index: number | null) => void;
 }
 
 // A panel shell: an eyebrow + title header above a swap-animated body, matching the studio panel chrome.
@@ -56,6 +68,8 @@ export const EditorPanelSwitch = ({
   patchSection,
   setLayers,
   onImport,
+  overlaySelection,
+  onSelectOverlay,
 }: EditorPanelSwitchProps) => {
   const { t } = useTranslation('admin');
 
@@ -79,6 +93,19 @@ export const EditorPanelSwitch = ({
           onLayers={setLayers}
           inputCls={EDITOR_INPUT_CLASS}
         />
+        {hasTextOverlays(section) && (
+          <div className="mt-4 border-t border-foreground/10 pt-4">
+            <OverlayInspector
+              overlays={section.overlays}
+              variables={collectVariables(state)}
+              selection={overlaySelection}
+              onSelectText={onSelectOverlay}
+              onChange={(overlays: TextOverlay[]) => {
+                patchSection({ overlays });
+              }}
+            />
+          </div>
+        )}
       </PanelFrame>
     );
   }

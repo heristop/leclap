@@ -6,7 +6,6 @@ import { Sparkles, Music, Camera, Layers } from '@/presentation/components/icons
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';
-import { OverlayCanvas } from '../../OverlayCanvas';
 import { VariableTextField } from '../VariableTextField';
 import { FramingGuidePicker } from '../FramingGuidePicker';
 import { SectionDisclosure } from '../SectionDisclosure';
@@ -104,14 +103,6 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
           />
         )}
       </div>
-      <OverlayCanvas
-        overlays={section.overlays}
-        orientation={orientation}
-        variables={variables}
-        onChange={(overlays) => {
-          onChange({ overlays });
-        }}
-      />
       {advanced && (
         <div className="space-y-2">
           <SectionDisclosure

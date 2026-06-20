@@ -8,6 +8,7 @@ import { EditorSceneTimeline } from './EditorSceneTimeline';
 import { PartialTitlebar } from './PartialTitlebar';
 import { PartialPanelSwitch } from './PartialPanelSwitch';
 import { usePartialEditorState } from './usePartialEditorState';
+import { useSectionSelection } from './useSectionSelection';
 
 const EDITABLE_PARTIAL_KINDS: readonly EditorSection['kind'][] = ['video', 'form', 'color', 'image'];
 
@@ -33,6 +34,10 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
   const { t } = useTranslation('admin');
   const editor = usePartialEditorState(initialDraft, t);
   const { draftState, sel, ops, dispatch } = editor;
+
+  // Shared text-overlay selection for the current section, threaded to the center canvas and the left
+  // inspector (the same lift as the template shell). Keyed by section index so it resets on scene swap.
+  const sectionSelection = useSectionSelection(String(sel.selectedIndex));
 
   const tools = [
     { id: 'scenes' as const, icon: Layers, label: t('shell.scenes') },
@@ -85,6 +90,8 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
             setLayers={(layers) => {
               ops.setLayers(sel.selectedIndex, layers);
             }}
+            overlaySelection={sectionSelection.state}
+            onSelectOverlay={sectionSelection.selectText}
           />
           {editor.error && (
             <p
@@ -104,6 +111,10 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
             onPatchSection={(p) => {
               ops.patchSection(sel.selectedIndex, p);
             }}
+            selection={sectionSelection.state}
+            onSelectText={sectionSelection.selectText}
+            onBeginEdit={sectionSelection.beginEdit}
+            onEndEdit={sectionSelection.endEdit}
           />
         </ProgramMonitor>
       }

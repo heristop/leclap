@@ -6,10 +6,9 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import type { AnimationOverlay, ImageOverlay, TextOverlay, Orientation } from '../templateEditorModel';
+import type { AnimationOverlay, ImageOverlay, TextOverlay, Orientation, BackgroundLayer } from '../templateEditorModel';
 import { clampFraction, fontSizeFromPreview } from '../overlayGeometry';
 import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
-import type { CanvasBackground, CanvasLayers } from '../OverlayCanvas';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { OverlayBox } from './sectionCanvasBox';
 import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
@@ -22,6 +21,19 @@ const previewAspectClass: Record<Orientation, string> = {
 };
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
+
+// The frame's backdrop image (e.g. an image_background). When absent and no editable layers are
+// supplied, a neutral dark frame is shown instead.
+export interface CanvasBackground {
+  imageUrl?: string;
+}
+
+// An editable background-layer stack (color_background): the base plus draggable/resizable extra
+// layers, painted behind the text overlays and written back on every gesture.
+export interface CanvasLayers {
+  items: BackgroundLayer[];
+  onChange: (layers: BackgroundLayer[]) => void;
+}
 
 // Geometry patches a media box emits (a subset of the overlay fields).
 type MediaPatch = { position: string } | { scale: string } | { rotation: number };

@@ -28,7 +28,7 @@ Sources of truth (in order of authority):
 {
   "global": {
     "variables": { "video": "https://…/earth.mp4" },
-    "orientation": "landscape", // "landscape" | "portrait"
+    "orientation": "landscape", // "landscape" (1280x720) | "portrait" (720x1280) | "square" (1080x1080)
     "musicEnabled": true,
     "music": { "name": "track.mp3" },
     "transition": { "type": "fade", "duration": 0.4 }, // xfade name | "cut"; duration in SECONDS

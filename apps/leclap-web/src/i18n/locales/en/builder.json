@@ -64,15 +64,15 @@
     "save": {
       "saving": "Saving…",
       "saved": "Saved",
-      "savedAgo": "Saved {{time}} ago",
+      "savedAgo": "Saved {{time}}",
       "failed": "Save failed",
       "time": {
         "justNow": "just now",
-        "minutes": "{{count}}m",
-        "hours": "{{count}}h",
-        "days": "{{count}}d",
-        "weeks": "{{count}}w",
-        "months": "{{count}}mo"
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago",
+        "weeks": "{{count}}w ago",
+        "months": "{{count}}mo ago"
       }
     }
   },

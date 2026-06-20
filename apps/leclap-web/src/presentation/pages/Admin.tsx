@@ -2,7 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Plus, Pencil, Trash2, Copy, Sparkles, FolderOpen, ArrowRight, Braces } from '@/presentation/components/icons';
+import { Plus, Pencil, Trash2, Sparkles, FolderOpen, ArrowRight, Braces } from '@/presentation/components/icons';
+import { CopyIcon } from '@/presentation/components/icons/copy';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
@@ -16,6 +18,24 @@ interface CardProps {
   actions: React.ReactNode;
   t: TFunction<'admin'>;
 }
+
+// "Duplicate & edit" action whose copy icon animates on hover of the whole button (group hover), driven
+// from the button via the icon's imperative handle (the Button suppresses the glyph's own pointer events).
+const DuplicateButton = ({ label, onClick }: { label: string; onClick: () => void }) => {
+  const { ref, hoverProps } = useIconHover();
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={onClick}
+      {...hoverProps}
+      className="min-h-10 flex-1 active:scale-[0.98]"
+    >
+      <CopyIcon ref={ref} /> {label}
+    </Button>
+  );
+};
 
 // The poster-card language, shared with /studio: a seeded gradient band fronts a surface-2 card that
 // lifts and spotlights on hover with a brand ring. The complexity tag lives on the poster, so the
@@ -214,16 +234,12 @@ export const Admin = () => {
                   template={tpl}
                   t={t}
                   actions={
-                    <Button
-                      variant="secondary"
-                      size="sm"
+                    <DuplicateButton
+                      label={t('card.duplicate')}
                       onClick={() => {
                         handleDuplicate(tpl);
                       }}
-                      className="min-h-10 flex-1 active:scale-[0.98]"
-                    >
-                      <Copy /> {t('card.duplicate')}
-                    </Button>
+                    />
                   }
                 />
               </Reveal>

@@ -76,7 +76,7 @@ export const ProjectsPage = () => {
           action={{ label: t('actions.new'), onClick: startNew }}
         />
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {projects.map((project, index) => (
             <Reveal key={project.id} delay={index * 60} className="h-full">
               <ProjectCard

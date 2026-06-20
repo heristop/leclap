@@ -22,6 +22,7 @@
   },
   "actions": {
     "new": "New project",
+    "open": "Open {{name}}",
     "resume": "Resume",
     "view": "View",
     "edit": "Edit build",

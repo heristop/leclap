@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
-import { newOverlay, type TextOverlay, type Orientation } from './templateEditorModel';
+import { newOverlay, type TextOverlay, type Orientation, type BackgroundLayer } from './templateEditorModel';
 import { clampFraction, fontSizeFromPreview, previewFontPx } from './overlayGeometry';
+import { BackgroundLayerBoxes } from './BackgroundLayerBoxes';
 
 // Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
 const previewAspectClass: Record<Orientation, string> = {
@@ -31,12 +32,17 @@ const previewAspectClass: Record<Orientation, string> = {
   landscape: 'aspect-video',
 };
 
-// The frame's backdrop: a background image (e.g. an image_background), a stack of composited CSS
-// layers (the base + extra colour/gradient layers of a color_background, each already carrying its
-// absolute geometry), or neither — in which case a neutral dark frame is shown.
+// The frame's backdrop image (e.g. an image_background). When absent and no editable layers are
+// supplied, a neutral dark frame is shown instead.
 export interface CanvasBackground {
   imageUrl?: string;
-  cssLayers?: CSSProperties[];
+}
+
+// An editable background-layer stack (color_background): the base plus draggable/resizable extra
+// layers, painted behind the text overlays and written back on every gesture.
+export interface CanvasLayers {
+  items: BackgroundLayer[];
+  onChange: (layers: BackgroundLayer[]) => void;
 }
 
 interface OverlayCanvasProps {
@@ -45,6 +51,7 @@ interface OverlayCanvasProps {
   variables: string[];
   onChange: (overlays: TextOverlay[]) => void;
   background?: CanvasBackground;
+  layers?: CanvasLayers;
 }
 
 // 2% keyboard nudge step for a selected, non-editing overlay.
@@ -64,20 +71,70 @@ const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<TextOverlay>): TextOverlay[] =>
   overlays.map((o, i) => (i === index ? { ...o, ...patch } : o));
 
+// Mutually-exclusive selection across the canvas: a text overlay can be active (and optionally being
+// edited inline) or a background layer can be selected, never both. Each entry point clears the other.
+function useCanvasSelection() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedLayer, setSelectedLayer] = useState<number | null>(null);
+
+  return {
+    activeIndex,
+    editingIndex,
+    selectedLayer,
+    select: (index: number) => {
+      setActiveIndex(index);
+      setEditingIndex(null);
+      setSelectedLayer(null);
+    },
+    deselect: () => {
+      setActiveIndex(null);
+      setEditingIndex(null);
+      setSelectedLayer(null);
+    },
+    beginEdit: (index: number) => {
+      setActiveIndex(index);
+      setEditingIndex(index);
+      setSelectedLayer(null);
+    },
+    selectLayer: (index: number) => {
+      setSelectedLayer(index);
+      setActiveIndex(null);
+      setEditingIndex(null);
+    },
+    endEdit: () => {
+      setEditingIndex(null);
+    },
+    clearActive: () => {
+      setActiveIndex(null);
+      setEditingIndex(null);
+    },
+  };
+}
+
 // The video frame with every overlay on it, plus a docked toolbar. Owns all
 // direct-manipulation state (selection + inline edit); each mutation builds a new
 // overlays array and calls onChange.
-export const OverlayCanvas = ({ overlays, orientation, variables, onChange, background }: OverlayCanvasProps) => {
+export const OverlayCanvas = ({
+  overlays,
+  orientation,
+  variables,
+  onChange,
+  background,
+  layers,
+}: OverlayCanvasProps) => {
   const { t } = useTranslation('admin');
   const frameRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
   // Last caret range in the editing textarea, kept across blur so the variable
   // menu (which steals focus) can still insert at the caret of the active box.
   const caretRef = useRef<{ index: number; start: number; end: number } | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const { activeIndex, editingIndex, selectedLayer, select, deselect, beginEdit, selectLayer, endEdit, clearActive } =
+    useCanvasSelection();
 
   const frameRect = (): DOMRect | undefined => frameRef.current?.getBoundingClientRect();
+
+  const hasBackground = Boolean(background?.imageUrl ?? layers?.items.length);
 
   const moveTo = (index: number, clientX: number, clientY: number) => {
     const rect = frameRect();
@@ -99,29 +156,13 @@ export const OverlayCanvas = ({ overlays, orientation, variables, onChange, back
     onChange(withOverlay(overlays, index, { fontsize }));
   };
 
-  const select = (index: number) => {
-    setActiveIndex(index);
-    setEditingIndex(null);
-  };
-
-  const deselect = () => {
-    setActiveIndex(null);
-    setEditingIndex(null);
-  };
-
-  const beginEdit = (index: number) => {
-    setActiveIndex(index);
-    setEditingIndex(index);
-  };
-
   const patchActive = (patch: Partial<TextOverlay>) => {
     if (activeIndex === null) return;
     onChange(withOverlay(overlays, activeIndex, patch));
   };
 
   const removeAt = (index: number) => {
-    setActiveIndex(null);
-    setEditingIndex(null);
+    clearActive();
     onChange(overlays.filter((_, i) => i !== index));
   };
 
@@ -148,7 +189,22 @@ export const OverlayCanvas = ({ overlays, orientation, variables, onChange, back
       <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
         {t('overlay.textOverlays')}
       </span>
-      <CanvasFrame ref={frameRef} orientation={orientation} onDeselect={deselect} background={background}>
+      <CanvasFrame
+        ref={frameRef}
+        orientation={orientation}
+        onDeselect={deselect}
+        imageUrl={background?.imageUrl}
+        hasBackground={hasBackground}
+      >
+        {layers && (
+          <BackgroundLayerBoxes
+            layers={layers.items}
+            onChange={layers.onChange}
+            frameRect={frameRect}
+            selectedIndex={selectedLayer}
+            onSelect={selectLayer}
+          />
+        )}
         {overlays.map((overlay, index) => (
           <OverlayBox
             key={index}
@@ -172,9 +228,7 @@ export const OverlayCanvas = ({ overlays, orientation, variables, onChange, back
             onCaret={(start, end) => {
               caretRef.current = { index, start, end };
             }}
-            onEndEdit={() => {
-              setEditingIndex(null);
-            }}
+            onEndEdit={endEdit}
           />
         ))}
       </CanvasFrame>
@@ -211,44 +265,38 @@ function textWithVariable(current: string, name: string, caret: Caret | null): s
 interface CanvasFrameProps {
   orientation: Orientation;
   onDeselect: () => void;
-  background?: CanvasBackground;
+  imageUrl?: string;
+  hasBackground: boolean;
   children: React.ReactNode;
   ref: React.Ref<HTMLDivElement>;
 }
 
-// The aspect-correct preview surface. A pointerdown on the bare frame deselects. The backdrop is the
-// section's real background (image / color / gradient) when supplied, else a neutral dark frame. The
-// backdrop layers are pointer-transparent so a click still reaches the frame and deselects.
-const CanvasFrame = ({ orientation, onDeselect, background, children, ref }: CanvasFrameProps) => {
-  const hasBackground = Boolean(background?.imageUrl ?? background?.cssLayers?.length);
-
-  return (
-    <div
-      ref={ref}
-      onPointerDown={(e) => {
-        if (e.target === e.currentTarget) onDeselect();
-      }}
-      className={cn(
-        'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
-        !hasBackground && 'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
-        previewAspectClass[orientation]
-      )}
-    >
-      {background?.cssLayers?.map((style, index) => (
-        <div key={index} aria-hidden className="pointer-events-none" style={style} />
-      ))}
-      {background?.imageUrl && (
-        <img
-          aria-hidden
-          alt=""
-          src={background.imageUrl}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
-      )}
-      {children}
-    </div>
-  );
-};
+// The aspect-correct preview surface. A pointerdown on the bare frame deselects. An image backdrop (an
+// image_background) paints full-bleed behind the children; `hasBackground` (an image or editable color
+// layers, both supplied as children) suppresses the neutral dark fallback frame.
+const CanvasFrame = ({ orientation, onDeselect, imageUrl, hasBackground, children, ref }: CanvasFrameProps) => (
+  <div
+    ref={ref}
+    onPointerDown={(e) => {
+      if (e.target === e.currentTarget) onDeselect();
+    }}
+    className={cn(
+      'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
+      !hasBackground && 'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
+      previewAspectClass[orientation]
+    )}
+  >
+    {imageUrl && (
+      <img
+        aria-hidden
+        alt=""
+        src={imageUrl}
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+      />
+    )}
+    {children}
+  </div>
+);
 
 interface OverlayBoxProps {
   overlay: TextOverlay;

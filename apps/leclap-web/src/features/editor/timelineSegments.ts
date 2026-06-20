@@ -7,8 +7,10 @@ export const SPEED_PRESETS = [0.5, 0.75, 1, 1.5, 2] as const;
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 2;
 
-// Shortest slice a split or trim may leave, so the user can't create an unusable sliver.
-const MIN_SEGMENT = 0.3;
+// Shortest slice a split or trim may leave, so the user can't create an unusable sliver. Kept small so
+// brief clips stay splittable: at 0.3s a segment ≤0.6s couldn't be split at all (its valid interval was
+// empty), which blocked splitting a short clip more than once.
+const MIN_SEGMENT = 0.1;
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(Math.max(v, lo), hi);
 
@@ -70,3 +72,27 @@ export const trimEdge = (
 /** Remove a segment, keeping at least one (deleting the last one is a no-op). */
 export const deleteSegment = (segments: ClipSegment[], id: string): ClipSegment[] =>
   segments.length <= 1 ? segments : segments.filter((s) => s.id !== id);
+
+/**
+ * Compute the complement of the kept segments within [0, duration]: returns the gaps that were
+ * previously cut out, each as a new speed-1 segment. Returns an empty array when there are no
+ * gaps (the kept segments already cover the full timeline). Used by the "Inverse" timeline action.
+ */
+export const invertSegments = (segments: ClipSegment[], duration: number): ClipSegment[] => {
+  const gaps: ClipSegment[] = [];
+  let cursor = 0;
+
+  for (const seg of segments) {
+    if (seg.start - cursor > 0.01) {
+      gaps.push({ id: `inv-${gaps.length}`, start: cursor, end: seg.start, speed: 1 });
+    }
+
+    cursor = seg.end;
+  }
+
+  if (duration - cursor > 0.01) {
+    gaps.push({ id: `inv-${gaps.length}`, start: cursor, end: duration, speed: 1 });
+  }
+
+  return gaps;
+};

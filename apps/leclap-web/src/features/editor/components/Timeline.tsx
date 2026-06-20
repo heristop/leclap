@@ -206,9 +206,11 @@ export function Timeline({
               }}
               style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
               className={cn(
-                'group absolute inset-y-1.5 z-20 min-w-0 overflow-visible rounded-lg ring-1 transition-shadow',
+                'group absolute inset-y-1.5 min-w-0 overflow-visible rounded-lg ring-1 transition-shadow',
                 'bg-gradient-to-b from-amber-400 to-amber-500 ring-amber-950/20',
-                selected ? 'ring-2 ring-brand-400 shadow-lg shadow-brand-500/30' : 'hover:ring-amber-300'
+                // The selected block sits above its neighbours so dragging an edge to extend it over an
+                // adjacent segment stays visible (segments are independent source ranges and may overlap).
+                selected ? 'z-30 ring-2 ring-brand-400 shadow-lg shadow-brand-500/30' : 'z-20 hover:ring-amber-300'
               )}
             >
               <div className="pointer-events-none flex h-full items-center justify-center gap-1.5 overflow-hidden px-2">

@@ -13,6 +13,7 @@ import {
   setSpeed as setSegmentSpeed,
   trimEdge,
   deleteSegment,
+  invertSegments,
   segmentOutputDuration,
   timelineOutputDuration,
 } from '@/features/editor/timelineSegments';
@@ -279,20 +280,7 @@ export function useTimelineEditor({ file, edit, onChange }: UseTimelineEditorPar
       setSelectedId(next[0]?.id ?? null);
     },
     inverse: () => {
-      const gaps: ClipSegment[] = [];
-      let cursor = 0;
-
-      for (const seg of segments) {
-        if (seg.start - cursor > 0.01) {
-          gaps.push({ id: `inv-${gaps.length}`, start: cursor, end: seg.start, speed: 1 });
-        }
-
-        cursor = seg.end;
-      }
-
-      if (duration - cursor > 0.01) {
-        gaps.push({ id: `inv-${gaps.length}`, start: cursor, end: duration, speed: 1 });
-      }
+      const gaps = invertSegments(segments, duration);
 
       if (gaps.length === 0) return;
 

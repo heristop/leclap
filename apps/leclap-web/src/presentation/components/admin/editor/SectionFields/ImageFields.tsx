@@ -13,7 +13,6 @@ import { effectsSummary, audioSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { VisualEffects } from './VisualEffects';
-import { toggleId } from './toggleId';
 
 type ImageSection = Extract<EditorSection, { kind: 'image' }>;
 
@@ -43,10 +42,9 @@ export const ImageFields = ({ section, onChange, inputCls }: ImageFieldsProps) =
       <p className="text-xs text-gray-500 dark:text-gray-400">{t('image.pickImages')}</p>
       <MediaPicker
         kind="picture"
-        multiple
-        selectedIds={section.allowed}
-        onToggleId={(id) => {
-          onChange({ allowed: toggleId(section.allowed, id) });
+        selectedId={section.allowed.at(0) ?? null}
+        onSelectId={(id) => {
+          onChange({ allowed: id ? [id] : [] });
         }}
       />
       <label className="flex w-fit items-center gap-2 text-sm text-gray-700 cursor-pointer select-none dark:text-gray-200">

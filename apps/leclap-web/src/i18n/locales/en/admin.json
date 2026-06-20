@@ -461,7 +461,7 @@
     "countdownSeconds_other": "Countdown (seconds)"
   },
   "image": {
-    "pickImages": "Pick the images viewers can choose from.",
+    "pickImages": "Choose a background.",
     "allowUpload": "Allow viewers to upload their own image"
   },
   "musicSection": {

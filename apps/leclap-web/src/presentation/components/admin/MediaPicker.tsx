@@ -21,6 +21,9 @@ export interface MediaPickerProps {
   multiple?: boolean;
   selectedIds?: string[];
   onToggleId?: (id: string) => void;
+  // single-select-by-id (one library item, radio semantics): picking the active item clears it.
+  selectedId?: string | null;
+  onSelectId?: (id: string | null) => void;
   // restrict the library grid to these ids
   allowedIds?: string[];
   // hide the Upload tab when uploads aren't allowed (default: shown)
@@ -54,6 +57,8 @@ export const MediaPicker = ({
   multiple,
   selectedIds,
   onToggleId,
+  selectedId,
+  onSelectId,
   allowedIds,
   allowUpload = true,
 }: MediaPickerProps) => {
@@ -79,6 +84,14 @@ export const MediaPicker = ({
           onToggleId={onToggleId ?? noop}
           allowedIds={allowedIds}
         />
+      </div>
+    );
+  }
+
+  if (onSelectId) {
+    return (
+      <div className={pickerShellClass}>
+        <SingleByIdGrid kind={kind} selectedId={selectedId ?? null} onSelectId={onSelectId} allowedIds={allowedIds} />
       </div>
     );
   }
@@ -178,6 +191,41 @@ const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLi
         }
 
         return <PictureCard key={item.id} item={item} selected={selected} onPick={toggle} />;
+      })}
+    </div>
+  );
+};
+
+interface SingleByIdGridProps {
+  kind: MediaKind;
+  selectedId: string | null;
+  onSelectId: (id: string | null) => void;
+  allowedIds?: string[];
+}
+
+// Radio-style library grid: picking an item replaces the current choice, picking the active item clears it.
+const SingleByIdGrid = ({ kind, selectedId, onSelectId, allowedIds }: SingleByIdGridProps) => {
+  const { t } = useTranslation('admin');
+  const rawItems = kind === 'music' ? MUSIC_LIBRARY : BACKGROUND_LIBRARY;
+  const items = filterByAllowed(rawItems, allowedIds);
+
+  if (items.length === 0) {
+    return <p className="px-1 py-6 text-center text-sm text-gray-400">{t('media.emptyLibrary')}</p>;
+  }
+
+  return (
+    <div role="radiogroup" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {items.map((item) => {
+        const selected = selectedId === item.id;
+        const pick = () => {
+          onSelectId(selected ? null : item.id);
+        };
+
+        if (kind === 'music') {
+          return <MusicCard key={item.id} item={item} selected={selected} onPick={pick} />;
+        }
+
+        return <PictureCard key={item.id} item={item} selected={selected} onPick={pick} />;
       })}
     </div>
   );

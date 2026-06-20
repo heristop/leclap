@@ -226,7 +226,11 @@
     "insertVariable": "Insert variable",
     "insertVariableHint": "Add a form field or global variable first",
     "label": "Text {{index}}",
-    "labelWithText": "Text: {{text}}"
+    "labelWithText": "Text: {{text}}",
+    "list": "Text overlays",
+    "untitled": "Text {{index}}",
+    "empty": "No text yet. Add one to start.",
+    "selectHint": "Select a text on the preview, or pick one below."
   },
   "controls": {
     "reset": "Reset {{label}}",
@@ -332,6 +336,11 @@
     "keepLastFrame": "Keep last frame",
     "dragHint": "Drag to move · corner to resize · arrows to nudge",
     "reset": "Reset to default"
+  },
+  "element": {
+    "resize": "Resize element",
+    "rotate": "Rotate element",
+    "delete": "Delete element"
   },
   "motion": {
     "label": "Motion",

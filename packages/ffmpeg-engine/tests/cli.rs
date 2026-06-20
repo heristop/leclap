@@ -47,9 +47,9 @@ fn run_transcodes_and_probe_reads_it() {
     assert!(r.output.contains("mpeg4"), "probe json: {}", r.output);
 }
 
-/// The crux of the embedded-CLI approach: `ffmpeg_main` is called repeatedly in one process (the
-/// core issues many commands per template). The re-entrancy patch must reset fftools' globals so the
-/// second call doesn't crash on the first call's stale state.
+/// `ffmpeg_main` is called repeatedly in one process (the core issues many commands per template).
+/// The re-entrancy patch must reset fftools' globals so the second call doesn't crash on the first
+/// call's stale state.
 #[test]
 fn run_is_reentrant_across_calls() {
     let a = tmp("leclap_cli_re1.mp4");
@@ -110,6 +110,23 @@ fn drawtext_renders_with_a_system_font() {
     assert!(std::path::Path::new(&out).exists());
 }
 
+/// ffprobe's JSON output is structurally valid: starts with `{`, ends with `}` (after trim), and
+/// contains the `streams` key the core depends on for duration/codec probing.
+#[test]
+fn probe_json_output_is_structured() {
+    let r = probe(s(&[
+        "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=codec_name,width,height",
+        "-of", "json",
+        "tests/fixtures/sample.mp4",
+    ]));
+    assert_eq!(r.code, 0, "ffprobe should succeed; output:\n{}", r.output);
+    let out = r.output.trim();
+    assert!(out.starts_with('{') && out.ends_with('}'), "expected a JSON object; got:\n{out}");
+    assert!(out.contains("\"streams\""), "JSON must contain a streams key; got:\n{out}");
+}
+
 /// `-filter_complex` works in the embedded CLI (the core's overlay/concat commands depend on it).
 #[test]
 fn filter_complex_runs() {
@@ -133,10 +150,11 @@ fn filter_complex_runs() {
 fn drawtext_trailing_multibyte_repro() {
     let out = tmp("leclap_drawtext_repro.mp4");
     let _ = std::fs::remove_file(&out);
-    let font = concat!(env!("CARGO_MANIFEST_DIR"), "/../server/build/fonts/Quicksand.ttf");
-    // The font is a gitignored build artifact (pnpm --filter server build); skip when absent.
+    // Staged by the creative-kit build pipeline into build/fonts/ (gitignored).
+    // Run `pnpm --filter @leclap/web dev` or `node scripts/copy-core-assets.ts` to generate it.
+    let font = concat!(env!("CARGO_MANIFEST_DIR"), "/../../build/fonts/Quicksand.ttf");
     if !std::path::Path::new(font).exists() {
-        eprintln!("{font} not built — skipping drawtext multibyte repro");
+        eprintln!("{font} not found — skipping drawtext multibyte repro");
         return;
     }
     let vf = format!(

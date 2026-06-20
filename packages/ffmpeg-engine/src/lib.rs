@@ -207,4 +207,47 @@ mod tests {
         assert_eq!(r.code, ARGV_ERROR);
         assert!(r.output.contains("argv error"), "output: {}", r.output);
     }
+
+    #[test]
+    fn probe_rejects_interior_nul_with_sentinel() {
+        let r = probe(vec!["-i".to_string(), "bad\0name.mp4".to_string()]);
+        assert_eq!(r.code, ARGV_ERROR);
+        assert!(r.output.contains("NUL"), "output: {}", r.output);
+    }
+
+    // build_argv is the only path where both run and probe can return ARGV_ERROR, so a green
+    // success case proves the function doesn't incorrectly reject valid arguments.
+    #[test]
+    fn build_argv_accepts_typical_args() {
+        let args = vec![
+            "-y".to_string(),
+            "-i".to_string(),
+            "input.mp4".to_string(),
+            "-f".to_string(),
+            "null".to_string(),
+            "-".to_string(),
+        ];
+        let result = build_argv(&args);
+        assert!(result.is_ok(), "valid args should not be rejected: {:?}", result);
+        let cstrings = result.unwrap();
+        assert_eq!(cstrings.len(), args.len());
+    }
+
+    #[test]
+    fn build_argv_rejects_only_the_offending_arg() {
+        // First arg is clean; second has a NUL — the error message names the index.
+        let result = build_argv(&["-i".to_string(), "fi\0le.mp4".to_string()]);
+        assert!(result.is_err());
+        let msg = result.unwrap_err();
+        assert!(msg.contains("argument 1"), "expected index in error: {msg}");
+    }
+
+    #[test]
+    fn argv_error_constant_is_distinct_from_ffmpeg_exit_codes() {
+        // ffmpeg exits 0 (success), 1 (generic error), or 255 (cancelled/SIGTERM).
+        // ARGV_ERROR must not collide with any of them.
+        assert_ne!(ARGV_ERROR, 0);
+        assert_ne!(ARGV_ERROR, 1);
+        assert_ne!(ARGV_ERROR, 255);
+    }
 }

@@ -42,4 +42,17 @@ fn cancel_aborts_an_inflight_run() {
 
     // A run that completed normally exits 0 — non-zero proves the cancel interrupted it.
     assert_ne!(result.code, 0, "cancelled run must not report success");
+    // ffmpeg treats a cooperative cancellation (the patch sets the quit/abort flags the same way
+    // a SIGTERM handler would) as exit code 255 — assert the specific code so we detect any
+    // regression where cancel silently falls back to completing the transcode.
+    assert_eq!(result.code, 255, "ffmpeg should exit 255 on cancel, got {}", result.code);
+}
+
+// cancel() with nothing running is a safe no-op: the flags are reset at the start of every run, so
+// a stale set from a prior cancel is harmless. This test proves the function doesn't panic or
+// deadlock when called outside of a run.
+#[test]
+fn cancel_with_no_run_in_flight_is_a_noop() {
+    // Just calling cancel without a run active should not panic or block.
+    cancel();
 }

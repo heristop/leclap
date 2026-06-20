@@ -172,6 +172,16 @@ describe('TemplateDirector.config', () => {
     expect(project.config.videoConfig?.scale).toBe('1280:720');
   });
 
+  it('forces the output scale to the 1080x1080 square preset for a square template', () => {
+    const { director, project } = makeDirector();
+    const config: ProjectConfig = { videoConfig: { scale: '1280:720' } };
+    const descriptor = { global: { orientation: 'square' }, sections: [] } as TemplateDescriptor;
+
+    director.config(config, descriptor);
+
+    expect(project.config.videoConfig?.scale).toBe('1080:1080');
+  });
+
   it('falls back to default build/assets dirs when not provided', () => {
     const { director, filesystem } = makeDirector();
 

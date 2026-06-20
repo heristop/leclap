@@ -294,7 +294,7 @@ describe('Template Validation', () => {
         global: {
           music: {
             name: 'test',
-            url: '{{ musicUrl }}', // Template variable URLs are now allowed
+            url: '{{ musicUrl }}',
           },
         },
       };
@@ -689,6 +689,53 @@ describe('Template Validation', () => {
         options: { captureMode: 'webcam' },
       });
       expect(result.success).toBe(false);
+    });
+
+    it.each(['front', 'back', 'screen', 'upload'] as const)('accepts captureMode "%s"', (mode) => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: { captureMode: mode },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts allowedCaptureModes listing all four modes', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: { allowedCaptureModes: ['front', 'back', 'screen', 'upload'] },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects an unknown value inside allowedCaptureModes', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: { allowedCaptureModes: ['front', 'tablet'] },
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts an empty allowedCaptureModes array', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: { allowedCaptureModes: [] },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts a single-element allowedCaptureModes (locks to one mode)', () => {
+      const result = ProjectVideoSectionSchema.safeParse({
+        name: 'clip',
+        type: 'project_video',
+        options: { captureMode: 'upload', allowedCaptureModes: ['upload'] },
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.options?.allowedCaptureModes).toEqual(['upload']);
     });
   });
 

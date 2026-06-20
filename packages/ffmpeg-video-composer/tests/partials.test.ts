@@ -59,12 +59,25 @@ describe('expandPartials', () => {
     expect(sections[0]?.name).toBe('logo_bumper');
   });
 
-  it('throws on an unknown partial ref', () => {
+  it('throws on a non-empty unknown partial ref', () => {
     const descriptor = {
       sections: [{ name: 'x', type: 'partial', ref: 'does-not-exist' }],
     } as unknown as TemplateDescriptor;
 
     expect(() => expandPartials(descriptor)).toThrow(/does-not-exist/);
+  });
+
+  it('drops an unconfigured (empty-ref) partial instead of throwing, keeping the other sections', () => {
+    const descriptor = {
+      sections: [
+        { name: 'clip', type: 'video' },
+        { name: 'todo', type: 'partial', ref: '' },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const out = expandPartials(descriptor);
+
+    expect(out.sections).toEqual([{ name: 'clip', type: 'video' }]);
   });
 
   it('returns the descriptor unchanged when there are no partials (idempotent)', () => {

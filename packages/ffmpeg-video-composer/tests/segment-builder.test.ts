@@ -361,8 +361,11 @@ describe('SegmentBuilder.buildFilters / formatFilters', () => {
     await builder.buildFilters();
 
     expect(segment.filtersList.length).toBeGreaterThan(0);
-    // filtersList joined into a -filter_complex string (no maps -> comma-joined)
-    expect(segment.filtersList).toEqual(expect.arrayContaining(['scale=1280:720', 'setsar=1/1']));
+    // forceAspectRatio (the default) COVERS the frame: scale up to fill, then crop the overflow — so a
+    // mismatched source (e.g. a portrait clip in a square template) fills the frame without stretching.
+    expect(segment.filtersList).toEqual(
+      expect.arrayContaining(['scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720', 'setsar=1/1'])
+    );
   });
 
   it('skips scale filters when forceAspectRatio is false and there is no forceOriginalAspectRatio', async () => {

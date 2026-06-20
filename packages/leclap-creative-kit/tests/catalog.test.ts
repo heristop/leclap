@@ -23,7 +23,7 @@ describe('@leclap/creative-kit catalog', () => {
     for (const template of APP_TEMPLATES) {
       expect(template.name, `${template.id} name`).not.toEqual('');
       expect(template.description, `${template.id} description`).not.toEqual('');
-      expect(['landscape', 'portrait']).toContain(template.orientation);
+      expect(['landscape', 'portrait', 'square']).toContain(template.orientation);
       expect(['simple', 'intermediate', 'advanced']).toContain(template.complexity);
     }
   });

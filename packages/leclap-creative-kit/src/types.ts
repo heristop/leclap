@@ -1,4 +1,4 @@
-export type TemplateOrientation = 'landscape' | 'portrait' | 'square';
+export type { Orientation as TemplateOrientation } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 
 export type TemplateVariables = Record<string, string | string[]>;
 
@@ -69,4 +69,4 @@ export interface TemplateMeta {
   description?: string;
 }
 
-export type CaptureMode = 'front' | 'back' | 'screen' | 'upload';
+export type { CaptureMode } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';

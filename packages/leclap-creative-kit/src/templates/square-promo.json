@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "name": "Square Promo",
+    "description": "A 1:1 social ad — record a clip and get a captioned square promo with a headline and your logo."
+  },
+  "global": {
+    "orientation": "square",
+    "variables": {
+      "brand": "YOUR LOGO"
+    },
+    "musicEnabled": true,
+    "music": {
+      "name": "pixelland.mp3"
+    },
+    "allowedMusic": ["pixelland", "monkeys-spinning-monkeys", "carefree", "beachfront-celebration", "arcadia"],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "Your promo"
+      },
+      "description": {
+        "en": "Headline and subtitle shown over your clip"
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_headline",
+            "maxLength": 28,
+            "label": {
+              "en": "Headline"
+            }
+          },
+          {
+            "name": "form_1_subtitle",
+            "maxLength": 48,
+            "label": {
+              "en": "Subtitle"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro",
+      "type": "color_background",
+      "transition": {
+        "type": "fade",
+        "duration": 0.4
+      },
+      "options": {
+        "backgroundColor": "#12183a",
+        "duration": 2.4
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#12183a@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1080, "h": 360, "c": "#1a2350@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ brand }}" },
+            "fontcolor": "#e8eef7",
+            "fontsize": 30,
+            "x": "w-text_w-70",
+            "y": 70,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.2),0,if(lt(t,0.9),(t-0.2)/0.7,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 80, "y": 470, "w": 110, "h": 8, "c": "#7C83FD@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_headline }}" },
+            "fontcolor": "#ffffff",
+            "fontsize": 78,
+            "x": 80,
+            "y": 510,
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.4),0,if(lt(t,1.3),(t-0.4)/0.9,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_subtitle }}" },
+            "fontcolor": "#c9d0e8",
+            "fontsize": 36,
+            "x": 80,
+            "y": 640,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.7),0,if(lt(t,1.6),(t-0.7)/0.9,1))'"
+          }
+        },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.5", "color": "#12183a" }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#12183a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "look": "vivid",
+      "inputs": [
+        {
+          "name": "promo_glow",
+          "url": "/assets/animations/glow_border.apng",
+          "type": "animation",
+          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "1080:1080", "opacity": 0.3 }
+        }
+      ],
+      "title": {
+        "en": "Record your clip"
+      },
+      "description": {
+        "en": "Filmed square — captioned with your headline"
+      },
+      "options": {
+        "duration": 6,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.12
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        }
+      ],
+      "maps": [
+        {
+          "inputs": ["@promo_glow"],
+          "filters": [
+            {
+              "type": "drawbox",
+              "values": { "x": 0, "y": 760, "w": 1080, "h": 320, "c": "#0d1b2a@0.55", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ brand }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 28,
+                "x": "w-text_w-60",
+                "y": 60,
+                "fontfile": "Oswald.ttf"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": { "x": 80, "y": 800, "w": 90, "h": 6, "c": "#7C83FD@1", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_1_headline }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 56,
+                "x": 80,
+                "y": 826,
+                "fontfile": "Anton.ttf"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_1_subtitle }}" },
+                "fontcolor": "#c9d0e8",
+                "fontsize": 30,
+                "x": 80,
+                "y": 912,
+                "fontfile": "Oswald.ttf"
+              }
+            },
+            {
+              "type": "fadein",
+              "values": { "color": "#12183a" }
+            },
+            {
+              "type": "fadeout",
+              "values": { "color": "#12183a" }
+            }
+          ],
+          "outputs": ["final"]
+        }
+      ]
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#12183a",
+        "duration": 2
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#12183a@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 440, "y": 470, "w": 200, "h": 6, "c": "#7C83FD@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ brand }}" },
+            "fontcolor": "#7C83FD",
+            "fontsize": 110,
+            "x": "(w-text_w)/2",
+            "y": 500,
+            "fontfile": "BebasNeue.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.1),(t-0.3)/0.8,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_subtitle }}" },
+            "fontcolor": "#c9d0e8",
+            "fontsize": 32,
+            "x": "(w-text_w)/2",
+            "y": 640,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.4),(t-0.6)/0.8,1))'"
+          }
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.5", "color": "#12183a" }
+        }
+      ]
+    }
+  ]
+}

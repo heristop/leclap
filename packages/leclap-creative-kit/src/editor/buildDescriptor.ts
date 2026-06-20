@@ -117,6 +117,19 @@ function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Secti
   return { name: `image_${index}`, url: markerFromChoice(overlay.choice), type: 'image', options };
 }
 
+// Animations + image overlays composited over a visual section, in z-order: animations first (array
+// order), then images on top (array order). Spread AFTER visualExtras to override its animation-only
+// `inputs`. Shared by video / color / image sections so each composites its overlays identically.
+function overlayInputsFrom(section: {
+  animations?: AnimationOverlay[];
+  images?: ImageOverlay[];
+}): NonNullable<Section['inputs']> {
+  return [
+    ...animationInputsFrom(section.animations),
+    ...(section.images ?? []).map((image, i) => imageInputFrom(image, i)),
+  ];
+}
+
 function visualExtras(section: {
   transitionAfter?: SectionTransition;
   caption?: EditorCaption;
@@ -192,6 +205,9 @@ function partialDescriptorFrom(section: PartialEditorSection, index: number): Pa
 type ColorSection = Extract<EditorSection, { kind: 'color' }>;
 
 function colorDescriptorFrom(section: ColorSection, index: number): Section {
+  const filters = overlayFiltersFrom(section.overlays);
+  const overlayInputs = overlayInputsFrom(section);
+
   return {
     name: `color_${index}`,
     type: 'color_background',
@@ -201,7 +217,9 @@ function colorDescriptorFrom(section: ColorSection, index: number): Section {
       ...(section.layers && section.layers.length > 0 ? { layers: section.layers } : {}),
       ...sectionAudioOptions(section),
     },
+    ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
+    ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
   };
 }
 
@@ -232,16 +250,16 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
   };
 }
 
-function videoDescriptorFrom(section: VideoSection, index: number): Section {
-  const filters = section.overlays.filter((o) => o.text.trim() !== '').map(drawtextFilterFrom);
-  const description = section.description?.trim();
+// Non-empty text overlays → drawtext filters, in author order. Shared by video/color/image sections;
+// tolerant of an absent list (older states / sections built before overlays existed on this kind).
+function overlayFiltersFrom(overlays: TextOverlay[] | undefined): StoredFilter[] {
+  return (overlays ?? []).filter((o) => o.text.trim() !== '').map(drawtextFilterFrom);
+}
 
-  // Animations + image overlays all composite over the clip, in z-order: the animations first (array
-  // order), then the images on top (array order). Overrides visualExtras' animation-only `inputs`.
-  const overlayInputs: NonNullable<Section['inputs']> = [
-    ...animationInputsFrom(section.animations),
-    ...(section.images ?? []).map((image, i) => imageInputFrom(image, i)),
-  ];
+function videoDescriptorFrom(section: VideoSection, index: number): Section {
+  const filters = overlayFiltersFrom(section.overlays);
+  const description = section.description?.trim();
+  const overlayInputs = overlayInputsFrom(section);
 
   return {
     name: `video_${index}`,
@@ -277,11 +295,16 @@ function descriptorFor({ section, index }: IndexedSection): DescriptorSection | 
   if (section.kind === 'video') return videoDescriptorFrom(section, index);
 
   if (section.kind === 'image') {
+    const filters = overlayFiltersFrom(section.overlays);
+    const overlayInputs = overlayInputsFrom(section);
+
     return {
       name: `image_${index}`,
       type: 'image_background',
       options: { duration: section.duration, ...sectionAudioOptions(section) },
+      ...(filters.length > 0 ? { filters } : {}),
       ...visualExtras(section),
+      ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
     };
   }
 

@@ -180,12 +180,15 @@ function sectionAudioExtrasFrom(s: Section): { musicVolume?: number; audioFade?:
 
 function colorSectionFrom(s: Section): EditorSection {
   const layers = (s.options?.layers ?? []) as BackgroundLayer[];
+  const images = imagesFrom(s);
 
   return {
     kind: 'color',
     duration: s.options?.duration ?? 3,
     color: s.options?.backgroundColor ?? '#7C83FD',
     ...(layers.length > 0 ? { layers } : {}),
+    ...(images.length > 0 ? { images } : {}),
+    overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
     ...sectionAudioExtrasFrom(s),
     ...visualExtrasFrom(s),
   };
@@ -230,11 +233,15 @@ function storedSectionToEditor(
   if (s.type === 'color_background') return colorSectionFrom(s);
 
   if (s.type === 'image_background') {
+    const images = imagesFrom(s);
+
     return {
       kind: 'image',
       allowed: allowedBackgrounds,
       allowUpload: allowUploadBackground,
       duration: s.options?.duration ?? 4,
+      ...(images.length > 0 ? { images } : {}),
+      overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
       ...sectionAudioExtrasFrom(s),
       ...visualExtrasFrom(s),
     };

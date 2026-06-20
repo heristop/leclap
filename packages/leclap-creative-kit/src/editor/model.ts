@@ -13,6 +13,7 @@ import type {
   FramingGuideSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { CaptionSchema } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
+import type { Orientation } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import { FONTS, DEFAULT_FONT_ID } from '../fonts';
 
 export type MediaChoice =
@@ -179,6 +180,11 @@ export type EditorSection =
       grade?: Grade;
       motion?: MotionEffect[];
       layers?: BackgroundLayer[];
+      // Draggable/resizable text overlays drawn over the background, same model as video sections.
+      overlays: TextOverlay[];
+      // Still-image layers dragged/resized on the preview and composited OVER the background,
+      // in array order (later entries paint on top). Author-set; empty/absent means none.
+      images?: ImageOverlay[];
     } & VisualAudio &
       VisualCaption &
       VisualAnimation)
@@ -192,11 +198,16 @@ export type EditorSection =
       look?: string;
       grade?: Grade;
       motion?: MotionEffect[];
+      // Draggable/resizable text overlays drawn over the background image, same model as video sections.
+      overlays: TextOverlay[];
+      // Still-image layers dragged/resized on the preview and composited OVER the background image,
+      // in array order (later entries paint on top). Author-set; empty/absent means none.
+      images?: ImageOverlay[];
     } & VisualAudio &
       VisualCaption &
       VisualAnimation);
 
-export type Orientation = 'landscape' | 'portrait';
+export type { Orientation };
 
 // Global audio mix applied across the whole composition: the recorded clips' own audio
 // (sourceVolume) vs the background music (musicVolume), each 0..1. normalize/ducking are
@@ -283,11 +294,11 @@ export function newSection(kind: EditorSection['kind']): EditorSection {
 
   if (kind === 'partial') return { kind: 'partial', ref: '', variables: [] };
 
-  if (kind === 'color') return { kind: 'color', duration: 3, color: '#7C83FD' };
+  if (kind === 'color') return { kind: 'color', duration: 3, color: '#7C83FD', overlays: [] };
 
   if (kind === 'music') return { kind: 'music', allowed: [], allowUpload: false };
 
-  if (kind === 'image') return { kind: 'image', allowed: [], allowUpload: false, duration: 4 };
+  if (kind === 'image') return { kind: 'image', allowed: [], allowUpload: false, duration: 4, overlays: [] };
 
   return { kind: 'video', duration: 8, mute: false, overlays: [], countdown: false, countdownSeconds: 4 };
 }

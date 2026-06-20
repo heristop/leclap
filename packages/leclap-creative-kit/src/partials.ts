@@ -86,17 +86,22 @@ function expandRefSection(
   section: TemplateSection & PartialRefSection,
   registry: Record<string, TemplatePartial | undefined>
 ): TemplateSection[] {
-  const inlineSections = section.sections;
-  const partial = section.ref ? registry[section.ref] : undefined;
+  const ref = section.ref.trim();
+  const partial = ref ? registry[ref] : undefined;
+  const sourceSections = partial?.sections ?? section.sections;
 
-  if (!partial && !inlineSections) {
+  if (!sourceSections) {
+    // An unconfigured partial (no ref picked yet) expands to nothing, so a half-authored template still
+    // previews/compiles; the editor flags the missing ref separately. A NON-empty ref that resolves to
+    // nothing is a real mistake (typo / removed partial), so that still throws.
+    if (!ref) return [];
+
     throw new Error(`Unknown template partial: "${section.ref}"`);
   }
 
   // The partial's own defaults first, then the ref's overrides — so a ref can recolour/retext a
   // partial while unspecified keys keep the partial's built-in values.
   const variables = { ...partial?.variables, ...section.variables };
-  const sourceSections = partial?.sections ?? inlineSections ?? [];
   const applied = Object.keys(variables).length > 0 ? applyVariables(sourceSections, variables) : sourceSections;
   const prefix = section.prefix ?? '';
 

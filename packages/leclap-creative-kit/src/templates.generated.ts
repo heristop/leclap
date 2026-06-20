@@ -6,6 +6,7 @@ import FastCurious from './templates/fast-curious.json';
 import Interview from './templates/interview.json';
 import PhotoBackdrop from './templates/photo-backdrop.json';
 import Spotlight from './templates/spotlight.json';
+import SquarePromo from './templates/square-promo.json';
 import StoryReel from './templates/story-reel.json';
 
 export const TEMPLATE_DESCRIPTORS: Record<string, TemplateDescriptor> = {
@@ -14,5 +15,6 @@ export const TEMPLATE_DESCRIPTORS: Record<string, TemplateDescriptor> = {
   interview: Interview as TemplateDescriptor,
   'photo-backdrop': PhotoBackdrop as TemplateDescriptor,
   spotlight: Spotlight as TemplateDescriptor,
+  'square-promo': SquarePromo as TemplateDescriptor,
   'story-reel': StoryReel as TemplateDescriptor,
 };

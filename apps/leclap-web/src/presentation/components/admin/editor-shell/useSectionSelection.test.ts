@@ -42,4 +42,25 @@ describe('sectionSelectionReducer', () => {
 
     expect(sectionSelectionReducer(editing, { type: 'clear' })).toEqual(initialSectionSelection);
   });
+
+  it('selectElement sets a layer ref and clears editing', () => {
+    const next = sectionSelectionReducer(
+      { element: null, editing: true },
+      { type: 'selectElement', ref: { kind: 'layer', index: 1 } }
+    );
+
+    expect(next).toEqual({ element: { kind: 'layer', index: 1 }, editing: false });
+  });
+
+  it('beginEdit arms editing for a non-text selected element', () => {
+    const selected = sectionSelectionReducer(initialSectionSelection, {
+      type: 'selectElement',
+      ref: { kind: 'image', index: 0 },
+    });
+
+    expect(sectionSelectionReducer(selected, { type: 'beginEdit' })).toEqual({
+      element: { kind: 'image', index: 0 },
+      editing: true,
+    });
+  });
 });

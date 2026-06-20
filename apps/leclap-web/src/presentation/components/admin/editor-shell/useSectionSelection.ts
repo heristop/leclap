@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useReducer } from 'react';
 
-// Which element inside the current section is selected. Phase 1 only models text overlays; the
-// discriminated `kind` leaves room for image/animation/layer selection in a later pass without
-// reshaping callers.
+// Which element inside the current section is selected. `kind` covers every element a section
+// canvas can surface (background color layers, text/image overlays, animations) so a single
+// selection state drives the inspector for all of them.
 export interface ElementRef {
-  kind: 'text';
+  kind: 'text' | 'layer' | 'image' | 'animation';
   index: number;
 }
 
@@ -17,6 +17,7 @@ export interface SectionSelectionState {
 
 export type SectionSelectionAction =
   | { type: 'selectText'; index: number }
+  | { type: 'selectElement'; ref: ElementRef }
   | { type: 'clear' }
   | { type: 'beginEdit' }
   | { type: 'endEdit' };
@@ -31,6 +32,10 @@ export const sectionSelectionReducer = (
 ): SectionSelectionState => {
   if (action.type === 'selectText') {
     return { element: { kind: 'text', index: action.index }, editing: false };
+  }
+
+  if (action.type === 'selectElement') {
+    return { element: action.ref, editing: false };
   }
 
   if (action.type === 'clear') {
@@ -64,6 +69,15 @@ export const useSectionSelection = (sectionKey: string) => {
     dispatch({ type: 'selectText', index });
   }, []);
 
+  const selectElement = useCallback((ref: ElementRef | null) => {
+    if (ref === null) {
+      dispatch({ type: 'clear' });
+
+      return;
+    }
+    dispatch({ type: 'selectElement', ref });
+  }, []);
+
   const clear = useCallback(() => {
     dispatch({ type: 'clear' });
   }, []);
@@ -76,5 +90,5 @@ export const useSectionSelection = (sectionKey: string) => {
     dispatch({ type: 'endEdit' });
   }, []);
 
-  return { state, selectText, clear, beginEdit, endEdit };
+  return { state, selectText, selectElement, clear, beginEdit, endEdit };
 };

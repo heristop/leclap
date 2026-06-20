@@ -340,7 +340,21 @@
   "element": {
     "resize": "Resize element",
     "rotate": "Rotate element",
-    "delete": "Delete element"
+    "delete": "Delete element",
+    "add": "Add",
+    "addBackgroundColor": "Background color",
+    "addBackgroundImage": "Background image",
+    "addText": "Text",
+    "addImageOverlay": "Image / logo",
+    "addAnimation": "Animation",
+    "empty": "Add your first element",
+    "list": "Elements",
+    "selectHint": "Select an element to edit its settings",
+    "text": "Text",
+    "layer": "Background",
+    "image": "Image",
+    "animation": "Animation",
+    "backgroundImage": "Background image"
   },
   "motion": {
     "label": "Motion",

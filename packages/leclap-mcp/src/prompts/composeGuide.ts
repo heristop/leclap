@@ -9,10 +9,13 @@ const argsShape = {
     .string()
     .optional()
     .describe('What to make, e.g. "a 15s premium title card for Emily Parker, Frontend Developer".'),
-  orientation: z.enum(['landscape', 'portrait']).optional().describe('landscape (16:9) or portrait (9:16).'),
+  orientation: z
+    .enum(['landscape', 'portrait', 'square'])
+    .optional()
+    .describe('landscape (16:9), portrait (9:16) or square (1:1).'),
 };
 
-type GuideArgs = { goal?: string; orientation?: 'landscape' | 'portrait' };
+type GuideArgs = { goal?: string; orientation?: 'landscape' | 'portrait' | 'square' };
 
 // On-device FFmpeg ships a fixed filter allowlist (scripts/ffmpeg/common.sh). Authoring against it
 // keeps the output identical across React Native, browser WASM, and the server.
@@ -24,7 +27,8 @@ const BUNDLED_FONTS = 'BebasNeue, Oswald, PlayfairDisplay, Pacifico, Rubik, Robo
 
 function buildText(args: GuideArgs): string {
   const goal = args.goal?.trim() ? args.goal.trim() : 'the video the user describes';
-  const orientation = args.orientation ?? 'the orientation the user wants (landscape 16:9 or portrait 9:16)';
+  const orientation =
+    args.orientation ?? 'the orientation the user wants (landscape 16:9, portrait 9:16 or square 1:1)';
 
   return [
     'You are composing DETERMINISTIC, on-device video with the LeClap engine — the same JSON template',
@@ -58,7 +62,7 @@ function buildText(args: GuideArgs): string {
     '    gradients with `color` + `vignette` or a blurred (`gblur`) scaled image.',
     `  bundled fonts (bare names, no path): ${BUNDLED_FONTS}.`,
     '',
-    'Portrait is 720x1280 (9:16); landscape is 1280x720 (16:9). project_video sections need a user clip',
+    'Portrait is 720x1280 (9:16); landscape is 1280x720 (16:9); square is 1080x1080 (1:1). project_video sections need a user clip',
     'supplied at compose time; color/text-only templates need no upload at all.',
   ].join('\n');
 }

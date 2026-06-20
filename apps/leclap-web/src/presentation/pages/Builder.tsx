@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ExportPanel } from '@/presentation/components/ExportPanel';
@@ -507,6 +507,95 @@ const reflectProjectId =
     return next;
   };
 
+// Prompt before unload while `dirty` (an edit awaiting its debounced/in-flight save). A clean
+// session attaches nothing, so it never prompts. Both calls are needed for cross-browser support.
+const useUnsavedChangesWarning = (dirty: boolean) => {
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      // preventDefault is the spec path; the legacy returnValue assignment keeps Chrome/Safari prompting.
+      e.preventDefault();
+      (e as { returnValue: string }).returnValue = '';
+    };
+
+    if (dirty) window.addEventListener('beforeunload', handler);
+
+    return () => {
+      window.removeEventListener('beforeunload', handler);
+    };
+  }, [dirty]);
+};
+
+interface AutoSaveArgs {
+  selectedTemplate: Template | null;
+  model: WizardModel;
+  currentStepKind: WizardStep['kind'] | undefined;
+  isProcessingRef: RefObject<boolean>;
+  hydratingRef: RefObject<boolean>;
+  skipNextSaveRef: RefObject<boolean>;
+  currentProjectIdRef: RefObject<string | null>;
+  setSearchParams: ReturnType<typeof useSearchParams>[1];
+}
+
+// Debounced draft auto-save (only while editing an input step) plus the unsaved-changes prompt.
+// Extracted from useProjectPersistence to keep that hook within its statement budget.
+const useDraftAutoSave = (args: AutoSaveArgs) => {
+  const { selectedTemplate, model, currentStepKind, isProcessingRef, hydratingRef } = args;
+  const { skipNextSaveRef, currentProjectIdRef, setSearchParams } = args;
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  // Dirty since the last edit but the debounced save hasn't landed — guards the close/refresh window.
+  const [pendingSave, setPendingSave] = useState(false);
+
+  useEffect(() => {
+    const onResultOrProcess = currentStepKind === 'process' || currentStepKind === 'result';
+    const blocked = !selectedTemplate || onResultOrProcess || isProcessingRef.current || hydratingRef.current;
+    let handle: ReturnType<typeof setTimeout> | undefined;
+
+    if (!blocked) {
+      const consume = skipNextSaveRef.current;
+      skipNextSaveRef.current = false;
+
+      if (!consume) {
+        const template = selectedTemplate;
+        setPendingSave(true);
+        handle = setTimeout(() => {
+          setSaveStatus('saving');
+          saveDraft(model, template, currentProjectIdRef.current ?? undefined)
+            .then((saved) => {
+              currentProjectIdRef.current = saved.id;
+              // Reflect the auto-created id into the URL so a refresh resumes THIS draft (not a blank build).
+              setSearchParams(reflectProjectId(saved.id), { replace: true });
+              setSaveStatus('saved');
+              setLastSavedAt(Date.now());
+              setPendingSave(false);
+            })
+            .catch(() => {
+              // Keep pendingSave true — the change is still unsaved.
+              setSaveStatus('error');
+            });
+        }, 600);
+      }
+    }
+
+    return () => {
+      if (handle) clearTimeout(handle);
+    };
+  }, [
+    model,
+    selectedTemplate,
+    currentStepKind,
+    setSearchParams,
+    isProcessingRef,
+    hydratingRef,
+    skipNextSaveRef,
+    currentProjectIdRef,
+  ]);
+
+  useUnsavedChangesWarning(pendingSave || saveStatus === 'saving');
+
+  return { saveStatus, lastSavedAt };
+};
+
 // Owns project persistence for the builder: hydrating from `?projectId`, debounced draft auto-save,
 // and recording the finished render. Split out so useBuilderController stays small.
 const useProjectPersistence = (args: PersistenceArgs) => {
@@ -528,9 +617,6 @@ const useProjectPersistence = (args: PersistenceArgs) => {
   hydratingRef.current = hydrating;
   // A completed project's output, materialized from IndexedDB so the result re-opens without a recompile.
   const [hydratedResult, setHydratedResult] = useState<ProcessedVideo | null>(null);
-  // Auto-save status surfaced in the editor top bar (silent saves otherwise give no feedback).
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     // Read the cancel flag through a function so the linter can't narrow it to a literal (which a
@@ -598,40 +684,17 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     [hydratedResult]
   );
 
-  // Debounced draft auto-save — only while editing an input step (never on the process/result
-  // screens, mid-render, or the no-op save right after hydration).
-  useEffect(() => {
-    const onResultOrProcess = currentStepKind === 'process' || currentStepKind === 'result';
-    const blocked = !selectedTemplate || onResultOrProcess || isProcessingRef.current || hydratingRef.current;
-    let handle: ReturnType<typeof setTimeout> | undefined;
-
-    if (!blocked) {
-      const consume = skipNextSaveRef.current;
-      skipNextSaveRef.current = false;
-
-      if (!consume) {
-        const template = selectedTemplate;
-        handle = setTimeout(() => {
-          setSaveStatus('saving');
-          saveDraft(model, template, currentProjectIdRef.current ?? undefined)
-            .then((saved) => {
-              currentProjectIdRef.current = saved.id;
-              // Reflect the auto-created id into the URL so a refresh resumes THIS draft (not a blank build).
-              setSearchParams(reflectProjectId(saved.id), { replace: true });
-              setSaveStatus('saved');
-              setLastSavedAt(Date.now());
-            })
-            .catch(() => {
-              setSaveStatus('error');
-            });
-        }, 600);
-      }
-    }
-
-    return () => {
-      if (handle) clearTimeout(handle);
-    };
-  }, [model, selectedTemplate, currentStepKind, setSearchParams]);
+  // Debounced draft auto-save (only while editing an input step) plus the unsaved-changes prompt.
+  const { saveStatus, lastSavedAt } = useDraftAutoSave({
+    selectedTemplate,
+    model,
+    currentStepKind,
+    isProcessingRef,
+    hydratingRef,
+    skipNextSaveRef,
+    currentProjectIdRef,
+    setSearchParams,
+  });
 
   // Record a finished render against the current project.
   useEffect(() => {

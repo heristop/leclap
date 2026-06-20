@@ -160,7 +160,15 @@
     "reorderScene": "Drag to reorder scene",
     "transitionAfter": "Transition after this scene",
     "nameLabel": "Template name",
-    "monitorEmpty": "Select a scene to edit"
+    "monitorEmpty": "Select a scene to edit",
+    "partialNameLabel": "Partial id",
+    "partialPicker": "Switch partial",
+    "partialNew": "New partial",
+    "partialDelete": "Delete partial",
+    "partialDescription": "Description",
+    "partialBuiltin": "Built-in",
+    "partialLocal": "Local",
+    "partialSaveFailed": "Could not save the partial."
   },
   "testRender": {
     "rendering": "Rendering…",

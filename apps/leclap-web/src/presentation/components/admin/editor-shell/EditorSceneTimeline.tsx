@@ -18,6 +18,8 @@ interface EditorSceneTimelineProps {
   onTransition: (index: number, transition: SectionTransition | undefined) => void;
   sectionTitle: (section: EditorSection, index: number) => string;
   sectionKindLabel: (section: EditorSection) => string;
+  // Restricts the add-scene menu to these kinds (partials allow only video/form/color/image).
+  addKinds?: readonly SectionKind[];
 }
 
 const VISUAL_KINDS: ReadonlySet<EditorSection['kind']> = new Set(['video', 'color', 'image']);
@@ -41,6 +43,7 @@ export const EditorSceneTimeline = ({
   onTransition,
   sectionTitle,
   sectionKindLabel,
+  addKinds,
 }: EditorSceneTimelineProps) => {
   const { t } = useTranslation('admin');
   const [dragFrom, setDragFrom] = useState<number | null>(null);
@@ -116,7 +119,7 @@ export const EditorSceneTimeline = ({
           )}
         </Fragment>
       ))}
-      <AddSceneMenu onAdd={onAdd} />
+      <AddSceneMenu onAdd={onAdd} kinds={addKinds} />
     </div>
   );
 };

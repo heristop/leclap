@@ -14,10 +14,13 @@ import { OverlayBox } from './sectionCanvasBox';
 import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
 
 // Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
+// Height-driven, aspect-correct sizing: tall formats fill the stage HEIGHT (width derives from the
+// aspect ratio); landscape fills the WIDTH. `max-h-full`/`max-w-full` keep the frame inside the
+// stage, and the parent grid centers it on both axes.
 const previewAspectClass: Record<Orientation, string> = {
-  portrait: 'mx-auto aspect-[9/16] max-w-[16rem]',
-  square: 'mx-auto aspect-square max-w-[18rem]',
-  landscape: 'aspect-video',
+  portrait: 'aspect-[9/16] h-full max-h-full w-auto max-w-full',
+  square: 'aspect-square h-full max-h-full w-auto max-w-full',
+  landscape: 'aspect-video w-full max-w-full h-auto max-h-full',
 };
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
@@ -151,7 +154,7 @@ export const SectionCanvas = ({
         onSelectElement(null);
       }}
       className={cn(
-        'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
+        'relative touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
         !hasBackground && 'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
         previewAspectClass[orientation]
       )}

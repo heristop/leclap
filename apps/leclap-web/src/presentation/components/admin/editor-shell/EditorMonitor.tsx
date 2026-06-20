@@ -81,43 +81,41 @@ export const EditorMonitor = ({
   if (!hasOverlayCanvas(section)) return <FallbackPreview section={section} />;
 
   return (
-    <div className="h-full overflow-y-auto p-4">
-      <div className="mx-auto max-w-2xl">
-        <SectionCanvas
-          overlays={section.overlays}
-          orientation={state.orientation}
-          background={section.kind === 'image' ? { imageUrl: imageSectionUrl(section.allowed) } : undefined}
-          layers={
-            section.kind === 'color'
-              ? {
-                  items: colorLayers(section),
-                  onChange: (layers) => {
-                    onPatchSection({ layers });
-                  },
-                }
-              : undefined
-          }
-          images={section.kind === 'video' ? section.images : undefined}
-          animations={section.animations}
-          selection={selection}
-          onSelectElement={onSelectElement}
-          onBeginEdit={onBeginEdit}
-          onEndEdit={onEndEdit}
-          onChange={(overlays: TextOverlay[]) => {
-            onPatchSection({ overlays });
-          }}
-          onChangeImages={
-            section.kind === 'video'
-              ? (images) => {
-                  onPatchSection({ images });
-                }
-              : undefined
-          }
-          onChangeAnimations={(animations) => {
-            onPatchSection({ animations });
-          }}
-        />
-      </div>
+    <div className="grid h-full place-items-center overflow-auto p-4 sm:p-6">
+      <SectionCanvas
+        overlays={section.overlays}
+        orientation={state.orientation}
+        background={section.kind === 'image' ? { imageUrl: imageSectionUrl(section.allowed) } : undefined}
+        layers={
+          section.kind === 'color'
+            ? {
+                items: colorLayers(section),
+                onChange: (layers) => {
+                  onPatchSection({ layers });
+                },
+              }
+            : undefined
+        }
+        images={section.kind === 'video' ? section.images : undefined}
+        animations={section.animations}
+        selection={selection}
+        onSelectElement={onSelectElement}
+        onBeginEdit={onBeginEdit}
+        onEndEdit={onEndEdit}
+        onChange={(overlays: TextOverlay[]) => {
+          onPatchSection({ overlays });
+        }}
+        onChangeImages={
+          section.kind === 'video'
+            ? (images) => {
+                onPatchSection({ images });
+              }
+            : undefined
+        }
+        onChangeAnimations={(animations) => {
+          onPatchSection({ animations });
+        }}
+      />
     </div>
   );
 };

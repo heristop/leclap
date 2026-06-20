@@ -42,9 +42,9 @@
           }
         },
         "orientation": {
-          "description": "Output video orientation; controls which resolution preset is used (default: landscape).",
+          "description": "Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape).",
           "type": "string",
-          "enum": ["landscape", "portrait"]
+          "enum": ["landscape", "portrait", "square"]
         },
         "colorsList": {
           "description": "Palette of colours offered to the user for customisation, as CSS hex strings.",
@@ -328,7 +328,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -1461,11 +1461,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -1498,7 +1498,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -2631,11 +2631,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   },
                   "framingGuide": {
@@ -2666,6 +2666,19 @@
                     },
                     "required": ["type", "position"],
                     "additionalProperties": false
+                  },
+                  "captureMode": {
+                    "description": "Default capture mode when the recorder opens (default: front). screen = display capture (web only), upload = file picker.",
+                    "type": "string",
+                    "enum": ["front", "back", "screen", "upload"]
+                  },
+                  "allowedCaptureModes": {
+                    "description": "Capture modes available to the user. Omit to allow all. Single-element array locks to one mode.",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["front", "back", "screen", "upload"]
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -2697,7 +2710,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -3830,11 +3843,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -3867,7 +3880,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -5000,11 +5013,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   },
                   "layers": {
@@ -5123,7 +5136,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -6256,11 +6269,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -6293,7 +6306,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -7426,11 +7439,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -7463,7 +7476,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Input type: \"animation\" is a single-file animated overlay (.apng/.webp/.gif/.webm); \"image\" is a still image held for the section duration. Both composite over the section as a positioned overlay.",
+                      "description": "\"animation\" = animated overlay (.apng/.webp/.gif/.webm); \"image\" = still held for section duration.",
                       "type": "string",
                       "enum": ["animation", "image"]
                     },
@@ -8596,11 +8609,11 @@
                     "type": "string"
                   },
                   "forceAspectRatio": {
-                    "description": "When true, the section clip is cropped to match the output aspect ratio (default false).",
+                    "description": "Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).",
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "When true, the section clip is letterboxed to preserve its original aspect ratio (default false).",
+                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },

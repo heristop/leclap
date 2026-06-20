@@ -53,20 +53,20 @@ Optional human-facing metadata embedded in the descriptor, used by template brow
 
 Project-wide defaults and the options a builder/editor exposes to end users. `global` is `strict` — unknown keys are rejected.
 
-| Field                   | Type                                 | Description                                                                                                    |
-| ----------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `variables`             | `Record<string, string \| string[]>` | Named values referenced anywhere via `{{ varName }}`.                                                          |
-| `orientation`           | `'landscape' \| 'portrait'`          | Output orientation → resolution preset (default `landscape`).                                                  |
-| `colorsList`            | `string[]`                           | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                      |
-| `musicEnabled`          | `boolean`                            | Whether background music is enabled (default `true`).                                                          |
-| `music`                 | `{ name: string, url?: string }`     | Default background track. Omit `url` to use an app-managed track.                                              |
-| `animations`            | `GlobalAnimation[]`                  | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)). |
-| `transition`            | `Transition`                         | Default boundary transition between sections (see [Transitions](#transitions)).                                |
-| `audio`                 | `GlobalAudio`                        | Global audio mix (see [Audio](#audio)).                                                                        |
-| `allowedMusic`          | `string[]`                           | Allowlist of music identifiers the user may choose.                                                            |
-| `allowUploadMusic`      | `boolean`                            | Allow the user to upload a custom music file (default `false`).                                                |
-| `allowedBackgrounds`    | `string[]`                           | Allowlist of background identifiers the user may choose.                                                       |
-| `allowUploadBackground` | `boolean`                            | Allow the user to upload a custom background (default `false`).                                                |
+| Field                   | Type                                    | Description                                                                                                                  |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `variables`             | `Record<string, string \| string[]>`    | Named values referenced anywhere via `{{ varName }}`.                                                                        |
+| `orientation`           | `'landscape' \| 'portrait' \| 'square'` | Output orientation → resolution preset: landscape `1280x720`, portrait `720x1280`, square `1080x1080` (default `landscape`). |
+| `colorsList`            | `string[]`                              | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                                    |
+| `musicEnabled`          | `boolean`                               | Whether background music is enabled (default `true`).                                                                        |
+| `music`                 | `{ name: string, url?: string }`        | Default background track. Omit `url` to use an app-managed track.                                                            |
+| `animations`            | `GlobalAnimation[]`                     | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)).               |
+| `transition`            | `Transition`                            | Default boundary transition between sections (see [Transitions](#transitions)).                                              |
+| `audio`                 | `GlobalAudio`                           | Global audio mix (see [Audio](#audio)).                                                                                      |
+| `allowedMusic`          | `string[]`                              | Allowlist of music identifiers the user may choose.                                                                          |
+| `allowUploadMusic`      | `boolean`                               | Allow the user to upload a custom music file (default `false`).                                                              |
+| `allowedBackgrounds`    | `string[]`                              | Allowlist of background identifiers the user may choose.                                                                     |
+| `allowUploadBackground` | `boolean`                               | Allow the user to upload a custom background (default `false`).                                                              |
 
 ## Sections
 
@@ -124,24 +124,26 @@ Expansion happens **before** schema validation and compile, so everything downst
 
 Common options (`BaseSectionOptionsSchema`, `strict`) shared by all sections, plus per-type extras. **All durations are in seconds.**
 
-| Field                                      | Type                | Description                                                                            |
-| ------------------------------------------ | ------------------- | -------------------------------------------------------------------------------------- |
-| `duration`                                 | `number` (s)        | Fixed section duration in **seconds**; overrides clip length.                          |
-| `musicVolume`                              | `number` 0..1       | Per-section music volume override (overrides `global.audio.musicVolume`).              |
-| `audioFade`                                | `{ in?, out? }`     | Section audio fades (see [Audio](#audio)).                                             |
-| `speed`                                    | `number` > 0        | Playback speed multiplier (default 1). Audio uses `atemp`, clamped to `[0.5, 2]`.      |
-| `muteSection`                              | `boolean`           | Silence the source audio of this section (default `false`).                            |
-| `countdown`                                | `boolean`           | Show a countdown overlay before recording (default `false`).                           |
-| `countdownDuration`                        | `number` (s)        | Countdown length in seconds (default 3); only when `countdown`.                        |
-| `upperCase` / `lowerCase`                  | `boolean`           | Force all text in the section to upper/lower case.                                     |
-| `useVideoSection`                          | `string`            | Reuse another `project_video` section's recorded clip by name.                         |
-| `videoUrl`                                 | `string`            | Pre-recorded video asset (`video` section).                                            |
-| `logoUrl` / `backgroundUrl` / `pictureUrl` | `string`            | Asset URLs composited into the section.                                                |
-| `backgroundColor`                          | `string`            | Solid background colour as a CSS hex (e.g. `#000000`).                                 |
-| `forceAspectRatio`                         | `boolean`           | Crop the clip to the output aspect ratio (default `false`).                            |
-| `forceOriginalAspectRatio`                 | `boolean`           | Letterbox to preserve the clip's original aspect ratio (default `false`).              |
-| `layers`                                   | `BackgroundLayer[]` | **`color_background` only** — composited layers (see [Layers](#layers)).               |
-| `framingGuide`                             | `FramingGuide`      | **`project_video` only** — recording-UI overlay (see [Framing guide](#framing-guide)). |
+| Field                                      | Type                                        | Description                                                                                                                                                                   |
+| ------------------------------------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `duration`                                 | `number` (s)                                | Fixed section duration in **seconds**; overrides clip length.                                                                                                                 |
+| `musicVolume`                              | `number` 0..1                               | Per-section music volume override (overrides `global.audio.musicVolume`).                                                                                                     |
+| `audioFade`                                | `{ in?, out? }`                             | Section audio fades (see [Audio](#audio)).                                                                                                                                    |
+| `speed`                                    | `number` > 0                                | Playback speed multiplier (default 1). Audio uses `atemp`, clamped to `[0.5, 2]`.                                                                                             |
+| `muteSection`                              | `boolean`                                   | Silence the source audio of this section (default `false`).                                                                                                                   |
+| `countdown`                                | `boolean`                                   | Show a countdown overlay before recording (default `false`).                                                                                                                  |
+| `countdownDuration`                        | `number` (s)                                | Countdown length in seconds (default 3); only when `countdown`.                                                                                                               |
+| `upperCase` / `lowerCase`                  | `boolean`                                   | Force all text in the section to upper/lower case.                                                                                                                            |
+| `useVideoSection`                          | `string`                                    | Reuse another `project_video` section's recorded clip by name.                                                                                                                |
+| `videoUrl`                                 | `string`                                    | Pre-recorded video asset (`video` section).                                                                                                                                   |
+| `logoUrl` / `backgroundUrl` / `pictureUrl` | `string`                                    | Asset URLs composited into the section.                                                                                                                                       |
+| `backgroundColor`                          | `string`                                    | Solid background colour as a CSS hex (e.g. `#000000`).                                                                                                                        |
+| `forceAspectRatio`                         | `boolean`                                   | Cover-crop the clip to fill the output frame — scales up, crops overflow, never stretches (on by default; `false` skips scaling).                                             |
+| `forceOriginalAspectRatio`                 | `boolean`                                   | Letterbox to preserve the clip's original aspect ratio (bars, no crop). Overrides cover-crop (default `false`).                                                               |
+| `layers`                                   | `BackgroundLayer[]`                         | **`color_background` only** — composited layers (see [Layers](#layers)).                                                                                                      |
+| `framingGuide`                             | `FramingGuide`                              | **`project_video` only** — recording-UI overlay (see [Framing guide](#framing-guide)).                                                                                        |
+| `captureMode`                              | `'front' \| 'back' \| 'screen' \| 'upload'` | **`project_video` only** — default capture mode when the recorder opens (default `'front'`). `screen` = display capture (web only); `upload` = file picker instead of camera. |
+| `allowedCaptureModes`                      | `CaptureMode[]`                             | **`project_video` only** — modes the user may switch between. Omit to allow all; single-element array locks to one mode. `screen` is silently ignored on native/Expo.         |
 
 `form` sections use `options.fields`: `{ name, maxLength, label: Translation }[]`. Each field's `name` becomes a `{{ name }}` variable usable in any filter.
 

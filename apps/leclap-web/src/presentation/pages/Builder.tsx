@@ -494,6 +494,19 @@ const resolveCompletedOpen = async (
   return { stepIndex: resultIndex >= 0 ? resultIndex : result.model.stepIndex, hydrated };
 };
 
+// Functional URL updater that swaps the volatile `?template=` for the durable `?projectId=` once a
+// draft exists. Returned as an updater so the save effect avoids closing over a stale `projectIdParam`.
+const reflectProjectId =
+  (projectId: string) =>
+  (prev: URLSearchParams): URLSearchParams => {
+    if (prev.get('projectId') === projectId) return prev;
+    const next = new URLSearchParams(prev);
+    next.delete('template');
+    next.set('projectId', projectId);
+
+    return next;
+  };
+
 // Owns project persistence for the builder: hydrating from `?projectId`, debounced draft auto-save,
 // and recording the finished render. Split out so useBuilderController stays small.
 const useProjectPersistence = (args: PersistenceArgs) => {
@@ -526,6 +539,14 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     const cancelled = () => run.cancelled;
     // `?edit=1` re-opens a completed project at its inputs (to change & re-render) rather than its result.
     const editParam = searchParams.get('edit') === '1';
+
+    // The URL change we make after our own first save lands back here — don't reload from disk
+    // (it would clobber in-memory state and flash `hydrating`); the live session already owns this id.
+    if (projectIdParam && projectIdParam === currentProjectIdRef.current) {
+      return () => {
+        run.cancelled = true;
+      };
+    }
 
     if (projectIdParam) {
       setHydrating(true);
@@ -595,6 +616,8 @@ const useProjectPersistence = (args: PersistenceArgs) => {
           saveDraft(model, template, currentProjectIdRef.current ?? undefined)
             .then((saved) => {
               currentProjectIdRef.current = saved.id;
+              // Reflect the auto-created id into the URL so a refresh resumes THIS draft (not a blank build).
+              setSearchParams(reflectProjectId(saved.id), { replace: true });
               setSaveStatus('saved');
               setLastSavedAt(Date.now());
             })
@@ -608,7 +631,7 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     return () => {
       if (handle) clearTimeout(handle);
     };
-  }, [model, selectedTemplate, currentStepKind]);
+  }, [model, selectedTemplate, currentStepKind, setSearchParams]);
 
   // Record a finished render against the current project.
   useEffect(() => {

@@ -234,6 +234,10 @@ export const Header = () => {
   // it (home route, not scrolled), force a dark context so the nav stays legible
   // regardless of the active theme.
   const overHero = location.pathname === '/' && !scrolled;
+  // The studio browsing pages (gallery / templates / projects) are always-dark app surfaces that
+  // fill the viewport behind the fixed header. Force a dark header context on them too, so the nav
+  // is legible in light mode (and the header reads as part of the dark app, like the editor).
+  const onDarkSurface = ['/studio', '/templates', '/projects'].includes(location.pathname);
 
   return (
     <header
@@ -245,8 +249,8 @@ export const Header = () => {
       style={{ paddingRight: 'var(--removed-body-scroll-bar-size, 0px)' }}
       className={clsx(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        overHero && 'dark',
-        scrolled ? 'bg-background/80 backdrop-blur-md border-b border-foreground/10 py-2' : 'bg-transparent py-4'
+        (overHero || onDarkSurface) && 'dark',
+        scrolled ? 'bg-background/80 backdrop-blur-md border-b border-divider py-2' : 'bg-transparent py-4'
       )}
     >
       <div className="container mx-auto px-4">

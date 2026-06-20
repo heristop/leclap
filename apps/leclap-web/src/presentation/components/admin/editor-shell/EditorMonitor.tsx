@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { OverlayCanvas } from '../OverlayCanvas';
+import { PartialPreview } from './PartialPreview';
 import { PreviewSurface } from '../editor/PreviewSurface';
 import { newBaseLayer } from '../editor/layerGeometry';
 import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
@@ -60,6 +61,8 @@ export const EditorMonitor = ({ state, section, onPatchSection }: EditorMonitorP
   const { t } = useTranslation('admin');
 
   if (!section) return <EmptyState label={t('shell.monitorEmpty')} />;
+
+  if (section.kind === 'partial') return <PartialPreview section={section} />;
 
   if (!hasOverlayCanvas(section)) return <FallbackPreview section={section} />;
 

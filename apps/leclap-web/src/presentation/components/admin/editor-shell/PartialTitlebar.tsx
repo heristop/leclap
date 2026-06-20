@@ -114,11 +114,11 @@ export const PartialTitlebar = ({
       type="button"
       onClick={onSave}
       disabled={readonly}
-      aria-label={t('editor.save')}
+      aria-label={t('shell.partialSave')}
       className="tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
     >
       <Save className="size-4" />
-      <span className="hidden sm:inline">{t('editor.save')}</span>
+      <span className="hidden sm:inline">{t('shell.partialSave')}</span>
     </button>
   </header>
 );

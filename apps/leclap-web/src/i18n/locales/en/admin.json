@@ -168,7 +168,10 @@
     "partialDescription": "Description",
     "partialBuiltin": "Built-in",
     "partialLocal": "Local",
-    "partialSaveFailed": "Could not save the partial."
+    "partialSaveFailed": "Could not save the partial.",
+    "partialSave": "Save partial",
+    "partialPreviewLabel": "Partial preview",
+    "partialUnset": "No partial selected"
   },
   "testRender": {
     "rendering": "Rendering…",

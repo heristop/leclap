@@ -96,7 +96,7 @@ export const EditorMonitor = ({
               }
             : undefined
         }
-        images={section.kind === 'video' ? section.images : undefined}
+        images={section.images}
         animations={section.animations}
         selection={selection}
         onSelectElement={onSelectElement}
@@ -105,13 +105,9 @@ export const EditorMonitor = ({
         onChange={(overlays: TextOverlay[]) => {
           onPatchSection({ overlays });
         }}
-        onChangeImages={
-          section.kind === 'video'
-            ? (images) => {
-                onPatchSection({ images });
-              }
-            : undefined
-        }
+        onChangeImages={(images) => {
+          onPatchSection({ images });
+        }}
         onChangeAnimations={(animations) => {
           onPatchSection({ animations });
         }}

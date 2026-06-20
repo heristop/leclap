@@ -6,7 +6,7 @@
 // Per-kind array ownership (confirmed against the editor model):
 //   - text overlays (`overlays`):    video, color, image
 //   - background layers (`layers`):  color only
-//   - image overlays (`images`):     video only
+//   - image overlays (`images`):     video, color, image
 //   - animation overlays (`animations`): video, color, image
 //
 // NOTE: a section-level background image is NOT a per-index array element (image/color sections carry
@@ -45,8 +45,8 @@ const FIELD_FOR_KIND: Record<ElementRef['kind'], ArrayField> = {
 // empty), so ownership is keyed by section kind here rather than inferred from a present field.
 const OWNED_KINDS: Record<EditorSection['kind'], ReadonlyArray<ElementRef['kind']>> = {
   video: ['text', 'image', 'animation'],
-  color: ['layer', 'text', 'animation'],
-  image: ['text', 'animation'],
+  color: ['layer', 'text', 'image', 'animation'],
+  image: ['text', 'image', 'animation'],
   music: [],
   form: [],
   partial: [],

@@ -85,13 +85,13 @@ describe('templateEditorModel — newSection/newOverlay defaults', () => {
       countdown: false,
       countdownSeconds: 4,
     });
-    expect(newSection('color')).toEqual({ kind: 'color', duration: 3, color: '#7C83FD' });
+    expect(newSection('color')).toEqual({ kind: 'color', duration: 3, color: '#7C83FD', overlays: [] });
     expect(newSection('form')).toEqual({
       kind: 'form',
       fields: [{ name: 'field_1', label: 'Label', maxLength: 40 }],
     });
     expect(newSection('music')).toEqual({ kind: 'music', allowed: [], allowUpload: false });
-    expect(newSection('image')).toEqual({ kind: 'image', allowed: [], allowUpload: false, duration: 4 });
+    expect(newSection('image')).toEqual({ kind: 'image', allowed: [], allowUpload: false, duration: 4, overlays: [] });
     expect(newSection('partial')).toEqual({ kind: 'partial', ref: '', variables: [] });
   });
 
@@ -241,6 +241,58 @@ describe('templateEditorModel — animation overlay', () => {
     const d = buildDescriptor(baseState([newSection('color')]));
 
     expect(d.sections?.every((s) => s.inputs === undefined)).toBe(true);
+  });
+});
+
+// --- image overlays on color / image sections ---
+
+describe('templateEditorModel — image overlays on color/image sections', () => {
+  const colorWithImage = (): EditorSection => ({
+    ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+    images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' }, position: '20:20' }],
+  });
+
+  const imageWithImage = (): EditorSection => ({
+    ...(newSection('image') as Extract<EditorSection, { kind: 'image' }>),
+    images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' } }],
+  });
+
+  it('composites an image overlay on a color section as a type:image input', () => {
+    const d = buildDescriptor(baseState([colorWithImage()]));
+    const section = d.sections?.find((s) => s.type === 'color_background');
+
+    expect(section?.inputs).toEqual([
+      { name: 'image_0', url: '/logo.png', type: 'image', options: { position: '20:20' } },
+    ]);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('composites an image overlay on an image section as a type:image input', () => {
+    const d = buildDescriptor(baseState([imageWithImage()]));
+    const section = d.sections?.find((s) => s.type === 'image_background');
+
+    expect(section?.inputs).toEqual([{ name: 'image_0', url: '/logo.png', type: 'image', options: {} }]);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('keeps animations alongside image overlays on a color section, animations first', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      animations: [{ id: 'a', url: '/border.apng' }],
+      images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' } }],
+    };
+    const d = buildDescriptor(baseState([section]));
+    const inputs = d.sections?.find((s) => s.type === 'color_background')?.inputs;
+
+    expect(inputs?.map((i) => i.type)).toEqual(['animation', 'image']);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('round-trips a color-section image overlay back into the editor', () => {
+    const back = toEditorState(asTemplate(baseState([colorWithImage()])));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.images).toEqual([{ id: 'image_0', choice: { source: 'url', url: '/logo.png' }, position: '20:20' }]);
   });
 });
 
@@ -565,7 +617,9 @@ describe('templateEditorModel — music section', () => {
 
 describe('templateEditorModel — image section', () => {
   it('emits an image_background descriptor section with its duration + background globals', () => {
-    const d = buildDescriptor(baseState([{ kind: 'image', allowed: [bg1, bg2], allowUpload: true, duration: 6 }]));
+    const d = buildDescriptor(
+      baseState([{ kind: 'image', allowed: [bg1, bg2], allowUpload: true, duration: 6, overlays: [] }])
+    );
 
     const imageSection = d.sections?.find((s) => s.type === 'image_background');
 
@@ -578,8 +632,8 @@ describe('templateEditorModel — image section', () => {
   it('numbers multiple image sections image_1, image_2 and de-duplicates the global union', () => {
     const d = buildDescriptor(
       baseState([
-        { kind: 'image', allowed: [bg1], allowUpload: false, duration: 4 },
-        { kind: 'image', allowed: [bg1, bg2], allowUpload: true, duration: 5 },
+        { kind: 'image', allowed: [bg1], allowUpload: false, duration: 4, overlays: [] },
+        { kind: 'image', allowed: [bg1, bg2], allowUpload: true, duration: 5, overlays: [] },
       ])
     );
 
@@ -763,7 +817,7 @@ describe('templateEditorModel — round-trips', () => {
   });
 
   it('round-trips an image section (descriptor section + duration + globals)', () => {
-    const start = baseState([{ kind: 'image', allowed: [bg1, bg2], allowUpload: true, duration: 7 }]);
+    const start = baseState([{ kind: 'image', allowed: [bg1, bg2], allowUpload: true, duration: 7, overlays: [] }]);
     const back = toEditorState(asTemplate(start));
 
     expect(back.sections.find((s) => s.kind === 'image')).toEqual({
@@ -771,13 +825,14 @@ describe('templateEditorModel — round-trips', () => {
       allowed: [bg1, bg2],
       allowUpload: true,
       duration: 7,
+      overlays: [],
     });
   });
 
   it('reconstructs image sections at their descriptor position, music at the top', () => {
     const start = baseState([
       newSection('video'),
-      { kind: 'image', allowed: [bg1], allowUpload: false, duration: 4 },
+      { kind: 'image', allowed: [bg1], allowUpload: false, duration: 4, overlays: [] },
       { kind: 'music', allowed: [music1], allowUpload: false },
     ]);
     const back = toEditorState(asTemplate(start));

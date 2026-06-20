@@ -29,11 +29,11 @@ describe('addableKinds', () => {
   });
 
   it('orders color kinds', () => {
-    expect(addableKinds(newSection('color'))).toEqual(['layer', 'text', 'animation']);
+    expect(addableKinds(newSection('color'))).toEqual(['layer', 'text', 'image', 'animation']);
   });
 
   it('orders image kinds', () => {
-    expect(addableKinds(newSection('image'))).toEqual(['text', 'animation']);
+    expect(addableKinds(newSection('image'))).toEqual(['text', 'image', 'animation']);
   });
 
   it('returns nothing for music', () => {

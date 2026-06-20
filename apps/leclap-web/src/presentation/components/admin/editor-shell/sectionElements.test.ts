@@ -65,7 +65,7 @@ describe('canAddElement', () => {
     expect(canAddElement(color, 'layer')).toBe(true);
     expect(canAddElement(color, 'text')).toBe(true);
     expect(canAddElement(color, 'animation')).toBe(true);
-    expect(canAddElement(color, 'image')).toBe(false);
+    expect(canAddElement(color, 'image')).toBe(true);
 
     expect(canAddElement(video, 'layer')).toBe(false);
     expect(canAddElement(video, 'text')).toBe(true);
@@ -74,8 +74,8 @@ describe('canAddElement', () => {
 
     expect(canAddElement(image, 'text')).toBe(true);
     expect(canAddElement(image, 'animation')).toBe(true);
+    expect(canAddElement(image, 'image')).toBe(true);
     expect(canAddElement(image, 'layer')).toBe(false);
-    expect(canAddElement(image, 'image')).toBe(false);
 
     expect(canAddElement(music, 'text')).toBe(false);
   });
@@ -103,6 +103,15 @@ describe('addElement', () => {
 
   it('appends an image overlay to a video section', () => {
     const result = addElement(videoSection(), 'image');
+
+    if (!result) throw new Error('expected a patch');
+
+    expect(field(result.patch, 'images')).toHaveLength(1);
+    expect(result.ref).toEqual({ kind: 'image', index: 0 });
+  });
+
+  it('appends an image overlay to a color section', () => {
+    const result = addElement(newSection('color'), 'image');
 
     if (!result) throw new Error('expected a patch');
 

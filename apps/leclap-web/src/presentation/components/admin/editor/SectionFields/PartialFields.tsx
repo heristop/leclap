@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { Plus, Trash2 } from '@/presentation/components/icons';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';
 import { Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { VariableTextField } from '../VariableTextField';
+import { partialVariableNames } from '@/lib/partialVariables';
 
 type PartialSection = Extract<EditorSection, { kind: 'partial' }>;
 
@@ -16,6 +18,23 @@ interface PartialFieldsProps {
 
 export const PartialFields = ({ section, partials, variables, onChange, inputCls }: PartialFieldsProps) => {
   const selected = partials.find((partial) => partial.id === section.ref);
+
+  // When a partial is picked and the author hasn't entered any rows yet, seed the variable NAMES the
+  // partial actually exposes so only values remain to fill. Guarded to fire only while empty — once
+  // seeded, `section.variables.length > 0` so it never clobbers author edits or loops.
+  useEffect(() => {
+    if (!selected || section.variables.length > 0) {
+      return;
+    }
+
+    const names = partialVariableNames(selected);
+
+    if (names.length === 0) {
+      return;
+    }
+
+    onChange({ variables: names.map((name) => ({ name, value: '' })) });
+  }, [section.ref, section.variables.length, selected, onChange]);
 
   const patchVariable = (index: number, patch: Partial<PartialSection['variables'][number]>): void => {
     onChange({

@@ -2,11 +2,21 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Plus, Pencil, Trash2, Sparkles, FolderOpen, ArrowRight, Braces } from '@/presentation/components/icons';
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Sparkles,
+  FolderOpen,
+  ArrowRight,
+  Braces,
+  Scissors,
+} from '@/presentation/components/icons';
 import { CopyIcon } from '@/presentation/components/icons/copy';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
+import { templateToPartial } from '@/lib/templateToPartial';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
 import { TemplatePoster } from '@/presentation/components/TemplatePoster';
 import { Seo } from '@/presentation/components/Seo';
@@ -140,6 +150,24 @@ export const Admin = () => {
     refresh();
   };
 
+  const handleConvertToPartial = (template: Template) => {
+    Promise.resolve(navigate('/partials', { state: { partialDraft: templateToPartial(template) } })).catch(() => {});
+  };
+
+  const convertToPartialButton = (template: Template) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        handleConvertToPartial(template);
+      }}
+      aria-label={t('card.convertToPartial', { name: template.name })}
+      className="min-h-10 min-w-10 text-gray-400 active:scale-[0.98] hover:text-brand-300"
+    >
+      <Scissors />
+    </Button>
+  );
+
   const actions = (
     <>
       <Button asChild variant="ghost" size="sm" className="active:scale-[0.98]">
@@ -198,6 +226,7 @@ export const Admin = () => {
                           <Pencil /> {t('card.edit')}
                         </Link>
                       </Button>
+                      {convertToPartialButton(tpl)}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -234,12 +263,15 @@ export const Admin = () => {
                   template={tpl}
                   t={t}
                   actions={
-                    <DuplicateButton
-                      label={t('card.duplicate')}
-                      onClick={() => {
-                        handleDuplicate(tpl);
-                      }}
-                    />
+                    <>
+                      <DuplicateButton
+                        label={t('card.duplicate')}
+                        onClick={() => {
+                          handleDuplicate(tpl);
+                        }}
+                      />
+                      {convertToPartialButton(tpl)}
+                    </>
                   }
                 />
               </Reveal>

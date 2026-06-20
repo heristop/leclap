@@ -26,7 +26,8 @@
     "form": "form",
     "edit": "Edit",
     "duplicate": "Duplicate & edit",
-    "delete": "Delete {{name}}"
+    "delete": "Delete {{name}}",
+    "convertToPartial": "Convert {{name}} to partial"
   },
   "orientationLabel": {
     "landscape": "landscape",

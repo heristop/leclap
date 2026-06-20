@@ -349,6 +349,8 @@
     "addAnimation": "Animation",
     "empty": "Add your first element",
     "list": "Elements",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
     "selectHint": "Select an element to edit its settings",
     "text": "Text",
     "layer": "Background",

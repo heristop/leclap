@@ -7,6 +7,7 @@ import { userPartialService } from '@/services/userPartialService';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { PreviewSurface } from '../editor/PreviewSurface';
 import type { EditorSection } from '../templateEditorModel';
+import { resolvePartialImageUrl } from './partialPreviewBackground';
 
 type PartialSection = Extract<EditorSection, { kind: 'partial' }>;
 
@@ -196,9 +197,9 @@ const FallbackTile = ({
   types: string[];
   label: string;
 }) => (
-  <div className="grid h-full place-items-center p-4">
-    <div className="relative w-full max-w-md">
-      <PreviewSurface className="aspect-video w-full" />
+  <div className="grid h-full place-items-center p-4 sm:p-6">
+    <div className="relative aspect-video w-full max-w-full">
+      <PreviewSurface className="h-full w-full" />
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-white">
         <span className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-white/60">{label}</span>
         <span className="font-display text-base font-semibold text-white/90">{id}</span>
@@ -218,6 +219,63 @@ const FallbackTile = ({
     </div>
   </div>
 );
+
+// The painted partial backdrop: a stage-filling landscape frame carrying the colour and/or image
+// background, the composed always-on overlays, and the partial-id caption. Partials carry no
+// authored orientation in their options, so the frame stays landscape (aspect-video) and grows to
+// fill the stage like SectionCanvas's landscape frame.
+const PaintedPreview = ({
+  label,
+  id,
+  background,
+  imageUrl,
+  filters,
+}: {
+  label: string;
+  id: string;
+  background: string | undefined;
+  imageUrl: string | undefined;
+  filters: RawFilter[];
+}) => (
+  <div className="grid h-full place-items-center p-4 sm:p-6">
+    <div className="w-full max-w-full">
+      <div
+        className="relative aspect-video w-full overflow-hidden rounded-lg bg-black ring-1 ring-foreground/10"
+        style={{ containerType: 'size', backgroundColor: background ?? '#0b0b0f' }}
+      >
+        {imageUrl ? (
+          <img aria-hidden alt="" src={imageUrl} className="absolute inset-0 h-full w-full object-cover" />
+        ) : null}
+        <Overlays filters={filters} />
+      </div>
+      <span className="mt-2 block text-center text-xs font-medium text-muted-foreground">
+        {label} · {id}
+      </span>
+    </div>
+  </div>
+);
+
+interface PaintPlan {
+  background: string | undefined;
+  imageUrl: string | undefined;
+  filters: RawFilter[];
+}
+
+// Derive what the first visual section paints: its colour, a resolved image backdrop, and the
+// always-on overlays (blink/strobe `enable` timelines dropped for a calm still). Returns undefined
+// when nothing is paintable (no first section, no colour, no image, no overlays) so the caller keeps
+// its labelled fallback.
+const paintPlan = (first: ComposedSection | undefined): PaintPlan | undefined => {
+  if (!first) return undefined;
+
+  const filters = (first.filters ?? []).filter((filter) => filter.values && !('enable' in filter.values));
+  const background = first.options?.backgroundColor;
+  const imageUrl = resolvePartialImageUrl(first.options?.imageUrl);
+
+  if (!background && !imageUrl && filters.length === 0) return undefined;
+
+  return { background, imageUrl, filters };
+};
 
 interface PartialPreviewProps {
   section: PartialSection;
@@ -241,28 +299,21 @@ export const PartialPreview = ({ section }: PartialPreviewProps) => {
   }
 
   const { id, sections, first } = composed;
-  const types = sections.map((candidate) => candidate.type ?? '');
-  const filters = (first?.filters ?? []).filter((filter) => filter.values && !('enable' in filter.values));
-  const background = first?.options?.backgroundColor;
-  const canPaint = Boolean(first) && (Boolean(background) || filters.length > 0);
+  const plan = paintPlan(first);
 
-  if (!canPaint) {
+  if (!plan) {
+    const types = sections.map((candidate) => candidate.type ?? '');
+
     return <FallbackTile id={id} sectionCount={sections.length} types={types} label={label} />;
   }
 
   return (
-    <div className="grid h-full place-items-center p-4">
-      <div className="w-full max-w-md">
-        <div
-          className="relative aspect-video w-full overflow-hidden rounded-lg bg-black ring-1 ring-foreground/10"
-          style={{ containerType: 'size', backgroundColor: background ?? '#0b0b0f' }}
-        >
-          <Overlays filters={filters} />
-        </div>
-        <span className="mt-2 block text-center text-xs font-medium text-muted-foreground">
-          {label} · {id}
-        </span>
-      </div>
-    </div>
+    <PaintedPreview
+      label={label}
+      id={id}
+      background={plan.background}
+      imageUrl={plan.imageUrl}
+      filters={plan.filters}
+    />
   );
 };

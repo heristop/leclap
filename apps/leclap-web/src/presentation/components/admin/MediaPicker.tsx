@@ -8,6 +8,7 @@ import { Button, SegmentedControl } from '@/presentation/components/ui';
 import { browserMediaService } from '@/services/browserMediaService';
 import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/mediaCatalog';
 import type { MediaChoice } from './templateEditorModel';
+import { CANVAS_DND_MIME, type DropPayload } from './editor-shell/canvasDrop';
 
 type MediaKind = 'music' | 'picture';
 type Tab = 'library' | 'upload' | 'url';
@@ -327,9 +328,22 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
   );
 };
 
+// A library picture card is draggable onto the section canvas (its id resolves to a library choice).
+// Music cards are never droppable, so only PictureCard carries the drag payload.
+const picturePayload = (id: string): DropPayload => ({
+  source: 'library',
+  element: 'image',
+  choice: { source: 'library', id },
+});
+
 const PictureCard = ({ item, selected, onPick }: CardProps) => (
   <button
     type="button"
+    draggable
+    onDragStart={(event) => {
+      event.dataTransfer.effectAllowed = 'copy';
+      event.dataTransfer.setData(CANVAS_DND_MIME, JSON.stringify(picturePayload(item.id)));
+    }}
     onClick={onPick}
     aria-pressed={selected}
     className={cn(

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { SectionCanvas } from './SectionCanvas';
 import { PartialPreview } from './PartialPreview';
+import { resolveCanvasDrop, type DropPayload, type DropPoint } from './canvasDrop';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { PreviewSurface } from '../editor/PreviewSurface';
 import { newBaseLayer } from '../editor/layerGeometry';
@@ -80,6 +81,14 @@ export const EditorMonitor = ({
 
   if (!hasOverlayCanvas(section)) return <FallbackPreview section={section} />;
 
+  const onCanvasDrop = (payload: DropPayload, point: DropPoint) => {
+    const result = resolveCanvasDrop(section, selection, payload, point, state.orientation);
+
+    if (!result) return;
+    onPatchSection(result.patch);
+    onSelectElement(result.selectRef);
+  };
+
   return (
     <div className="grid h-full place-items-center overflow-auto p-4 sm:p-6">
       <SectionCanvas
@@ -111,6 +120,7 @@ export const EditorMonitor = ({
         onChangeAnimations={(animations) => {
           onPatchSection({ animations });
         }}
+        onCanvasDrop={onCanvasDrop}
       />
     </div>
   );

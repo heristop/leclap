@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { ElementRef } from './useSectionSelection';
 import type { ElementDescriptor } from './sectionElements';
+import { CANVAS_DND_MIME } from './canvasDrop';
 
 // Shared with AddElementMenu's KIND_ICON so list rows and add-menu items use the same glyph per kind.
 const KIND_ICON: Record<ElementRef['kind'], LucideIcon> = {
@@ -86,7 +87,14 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
   const { ref } = descriptor;
 
   return (
-    <li className="flex items-center gap-1">
+    <li
+      className="flex items-center gap-1"
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.setData(CANVAS_DND_MIME, JSON.stringify({ source: 'element-row', ref }));
+      }}
+    >
       <button
         type="button"
         aria-pressed={active}

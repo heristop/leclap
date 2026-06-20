@@ -12,6 +12,8 @@ import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { OverlayBox } from './sectionCanvasBox';
 import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
+import type { DropPayload, DropPoint } from './canvasDrop';
+import { useCanvasDropTarget } from './useCanvasDropTarget';
 
 // Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
 // Height-driven, aspect-correct sizing: tall formats fill the stage HEIGHT (width derives from the
@@ -63,6 +65,7 @@ interface SectionCanvasProps {
   onChange: (overlays: TextOverlay[]) => void;
   onChangeImages?: (images: ImageOverlay[]) => void;
   onChangeAnimations?: (animations: AnimationOverlay[]) => void;
+  onCanvasDrop?: (payload: DropPayload, point: DropPoint) => void;
 }
 
 // Read the active index for a given element kind from the shared selection (null when another kind,
@@ -84,16 +87,20 @@ export const SectionCanvas = ({
   onChange,
   onChangeImages,
   onChangeAnimations,
+  onCanvasDrop,
 }: SectionCanvasProps) => {
   const { t } = useTranslation('admin');
   const frameRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
-
-  const activeText = activeIndex(selection, 'text');
-  const activeLayer = activeIndex(selection, 'layer');
-  const activeImage = activeIndex(selection, 'image');
-  const activeAnimation = activeIndex(selection, 'animation');
   const frameRect = (): DOMRect | undefined => frameRef.current?.getBoundingClientRect();
+  const drop = useCanvasDropTarget({ frameRect, onCanvasDrop });
+
+  const active = {
+    text: activeIndex(selection, 'text'),
+    layer: activeIndex(selection, 'layer'),
+    image: activeIndex(selection, 'image'),
+    animation: activeIndex(selection, 'animation'),
+  };
   const hasBackground = Boolean(background?.imageUrl ?? layers?.items.length);
   const imageList = images ?? [];
   const animationList = animations ?? [];
@@ -153,9 +160,13 @@ export const SectionCanvas = ({
         if (e.target !== e.currentTarget) return;
         onSelectElement(null);
       }}
+      onDragOver={drop.onDragOver}
+      onDragLeave={drop.onDragLeave}
+      onDrop={drop.onDrop}
       className={cn(
         'relative touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
         !hasBackground && 'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
+        drop.dragOver && 'ring-2 ring-brand-500/60',
         previewAspectClass[orientation]
       )}
     >
@@ -172,7 +183,7 @@ export const SectionCanvas = ({
           layers={layers.items}
           onChange={layers.onChange}
           frameRect={frameRect}
-          selectedIndex={activeLayer}
+          selectedIndex={active.layer}
           onSelect={(index) => {
             onSelectElement({ kind: 'layer', index });
           }}
@@ -184,7 +195,7 @@ export const SectionCanvas = ({
           value={image}
           index={index}
           orientation={orientation}
-          active={index === activeImage}
+          active={index === active.image}
           frameRect={frameRect}
           onPatch={patchImage}
           onSelect={(i) => {
@@ -199,7 +210,7 @@ export const SectionCanvas = ({
           value={animation}
           index={index}
           orientation={orientation}
-          active={index === activeAnimation}
+          active={index === active.animation}
           frameRect={frameRect}
           onPatch={patchAnimation}
           onSelect={(i) => {
@@ -215,8 +226,8 @@ export const SectionCanvas = ({
           index={index}
           t={t}
           orientation={orientation}
-          active={index === activeText}
-          editing={index === activeText && selection.editing}
+          active={index === active.text}
+          editing={index === active.text && selection.editing}
           editRef={editRef}
           frameRect={frameRect}
           onSelect={(i) => {

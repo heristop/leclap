@@ -128,6 +128,26 @@ export function nudgeOverlay(args: NudgeArgs): { position: string } {
   return { position: `${x}:${y}` };
 }
 
+// Centre a box of (width × height) output-px on a frame fraction, returning the descriptor "x:y"
+// origin (top-left) clamped so the centre stays in frame. Used when dropping a library item or moving
+// an element to a cursor point — the cursor lands on the box centre, not its corner.
+export function positionFromFraction(
+  fracX: number,
+  fracY: number,
+  width: number,
+  height: number,
+  orientation: Orientation
+): string {
+  const frame = FRAME_SIZE[orientation];
+  const cursorX = clamp(fracX, 0, 1) * frame.w;
+  const cursorY = clamp(fracY, 0, 1) * frame.h;
+  const bounds = moveBounds(width, height, orientation);
+  const x = clamp(Math.round(cursorX - width / 2), bounds.x[0], bounds.x[1]);
+  const y = clamp(Math.round(cursorY - height / 2), bounds.y[0], bounds.y[1]);
+
+  return `${x}:${y}`;
+}
+
 export interface RotateArgs {
   centerX: number;
   centerY: number;

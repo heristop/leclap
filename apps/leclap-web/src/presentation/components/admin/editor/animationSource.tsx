@@ -2,7 +2,7 @@
 // canvas-less PlacementControls inspector: AnimationSource = the Library / Upload / Url tabbed source picker,
 // and AnimationPlayback = playback extent (forever / loops / seconds) + start offset + keep-last-frame.
 // These are the single source for the animation source/playback UI so both consumers reuse them.
-import { useState } from 'react';
+import { useState, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, Check } from '@/presentation/components/icons';
@@ -12,6 +12,13 @@ import { ANIMATION_LIBRARY, findAnimationByUrl, type AnimationAsset } from '@/da
 import type { AnimationOverlay } from '../templateEditorModel';
 import { PREVIEW_BG_CLASS } from './animationOverlay';
 import { AnimationMedia } from './AnimationMedia';
+import { CANVAS_DND_MIME, type DropPayload } from '../editor-shell/canvasDrop';
+
+// Begin a native drag carrying a serialized drop payload (so the card can be dropped on the canvas).
+const startCanvasDrag = (event: DragEvent, payload: DropPayload) => {
+  event.dataTransfer.effectAllowed = 'copy';
+  event.dataTransfer.setData(CANVAS_DND_MIME, JSON.stringify(payload));
+};
 
 type Tab = 'library' | 'upload' | 'url';
 
@@ -203,6 +210,15 @@ const AnimationLibraryGrid = ({ value, library, onChange }: LibraryGridProps) =>
           type="button"
           role="radio"
           aria-checked={selected}
+          draggable
+          onDragStart={(event) => {
+            startCanvasDrag(event, {
+              source: 'library',
+              element: 'animation',
+              url: animation.url,
+              label: animation.label,
+            });
+          }}
           onClick={() => {
             onChange({ url: animation.url, label: animation.label });
           }}

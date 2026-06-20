@@ -5,6 +5,7 @@ import { ExportPanel } from '@/presentation/components/ExportPanel';
 import { Seo } from '@/presentation/components/Seo';
 import { EditorShell } from '@/presentation/components/builder';
 import { CompileMonitor } from '@/presentation/components/builder/CompileMonitor';
+import type { SaveStatus } from '@/presentation/components/builder/SaveStatusIndicator';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
@@ -279,6 +280,8 @@ interface FlowProps {
   goTo: (i: number) => void;
   nextStep: () => void;
   prevStep: () => void;
+  saveStatus: SaveStatus;
+  lastSavedAt: number | null;
 }
 
 // Index of the process / result steps, used by the hub to reuse the shared screens for those phases.
@@ -338,6 +341,8 @@ const HubFlow = (p: FlowProps) => {
       allComplete={p.allComplete}
       phase={phase}
       phaseContent={phaseContent}
+      saveStatus={p.saveStatus}
+      lastSavedAt={p.lastSavedAt}
       onFormDataChange={handlers.onFormDataChange}
       onClipChange={handlers.onClipChange}
       onAddRush={handlers.onAddRush}
@@ -510,6 +515,9 @@ const useProjectPersistence = (args: PersistenceArgs) => {
   hydratingRef.current = hydrating;
   // A completed project's output, materialized from IndexedDB so the result re-opens without a recompile.
   const [hydratedResult, setHydratedResult] = useState<ProcessedVideo | null>(null);
+  // Auto-save status surfaced in the editor top bar (silent saves otherwise give no feedback).
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     // Read the cancel flag through a function so the linter can't narrow it to a literal (which a
@@ -583,12 +591,15 @@ const useProjectPersistence = (args: PersistenceArgs) => {
       if (!consume) {
         const template = selectedTemplate;
         handle = setTimeout(() => {
+          setSaveStatus('saving');
           saveDraft(model, template, currentProjectIdRef.current ?? undefined)
             .then((saved) => {
               currentProjectIdRef.current = saved.id;
+              setSaveStatus('saved');
+              setLastSavedAt(Date.now());
             })
-            .catch((saveError: unknown) => {
-              console.error('Project auto-save failed', saveError);
+            .catch(() => {
+              setSaveStatus('error');
             });
         }, 600);
       }
@@ -623,7 +634,7 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     if (projectIdParam) setSearchParams({}, { replace: true });
   };
 
-  return { hydrating, hydratedResult, resetProject };
+  return { hydrating, hydratedResult, resetProject, saveStatus, lastSavedAt };
 };
 
 interface PreselectArgs {
@@ -693,7 +704,7 @@ const useBuilderController = () => {
   const builderState: BuilderState = { ...model, selectedTemplate };
   const allComplete = allInputsComplete(steps, builderState);
 
-  const { hydrating, hydratedResult, resetProject } = useProjectPersistence({
+  const { hydrating, hydratedResult, resetProject, saveStatus, lastSavedAt } = useProjectPersistence({
     selectedTemplate,
     model,
     currentStepKind,
@@ -746,6 +757,8 @@ const useBuilderController = () => {
     goTo: actions.goTo,
     nextStep: actions.nextStep,
     prevStep: actions.prevStep,
+    saveStatus,
+    lastSavedAt,
   };
 
   // Nothing to edit (no template/project param and nothing selected) → the chooser lives on /studio.

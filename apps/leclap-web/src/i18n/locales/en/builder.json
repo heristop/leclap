@@ -60,7 +60,21 @@
     "emptyClipTitle": "No clip yet",
     "emptyClipHint": "Record or upload in the Content panel to see it here.",
     "emptyFormTitle": "Nothing to preview yet",
-    "emptyFormHint": "Fill in the Content panel and your overlays appear here."
+    "emptyFormHint": "Fill in the Content panel and your overlays appear here.",
+    "save": {
+      "saving": "Saving…",
+      "saved": "Saved",
+      "savedAgo": "Saved {{time}} ago",
+      "failed": "Save failed",
+      "time": {
+        "justNow": "just now",
+        "minutes": "{{count}}m",
+        "hours": "{{count}}h",
+        "days": "{{count}}d",
+        "weeks": "{{count}}w",
+        "months": "{{count}}mo"
+      }
+    }
   },
   "stepProcess": {
     "title": "Create Video",

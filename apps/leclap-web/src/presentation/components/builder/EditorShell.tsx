@@ -28,6 +28,7 @@ import { sectionKindMeta } from './sectionKind';
 import { ScenePanel, MediaToolPanel, FormatPanel, orientationOf } from './editorPanels';
 import { SectionPreview } from './SectionPreview';
 import { SceneFilmstrip } from './SceneFilmstrip';
+import { SaveStatusIndicator, type SaveStatus } from './SaveStatusIndicator';
 import { TimelineEditor } from '@/features/editor/TimelineEditor';
 
 type Tool = 'content' | 'media' | 'format';
@@ -41,6 +42,8 @@ interface EditorShellProps {
   allComplete: boolean;
   phase: Phase;
   phaseContent: ReactNode;
+  saveStatus: SaveStatus;
+  lastSavedAt: number | null;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
   onAddRush: (sectionName: string, file: File) => void;
@@ -91,6 +94,8 @@ const EditorTopBar = ({
   allComplete,
   done,
   total,
+  saveStatus,
+  lastSavedAt,
   onCreate,
   onExit,
   t,
@@ -100,6 +105,8 @@ const EditorTopBar = ({
   allComplete: boolean;
   done: number;
   total: number;
+  saveStatus: SaveStatus;
+  lastSavedAt: number | null;
   onCreate: () => void;
   onExit: () => void;
   t: TFunction<'builder'>;
@@ -133,6 +140,7 @@ const EditorTopBar = ({
       {template.name}
     </p>
 
+    {phase === 'edit' && <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />}
     {phase === 'edit' && <ReadyMeter done={done} total={total} t={t} />}
     {phase === 'edit' && (
       <Button onClick={onCreate} disabled={!allComplete} className="group rounded-full">
@@ -397,6 +405,8 @@ export const EditorShell = (p: EditorShellProps) => {
         allComplete={p.allComplete}
         done={doneItems}
         total={totalItems}
+        saveStatus={p.saveStatus}
+        lastSavedAt={p.lastSavedAt}
         onCreate={p.onCreate}
         onExit={p.onExit}
         t={t}

@@ -131,11 +131,11 @@ export const BaseSectionOptionsSchema = z
     forceAspectRatio: z
       .boolean()
       .optional()
-      .describe('When true, the section clip is cropped to match the output aspect ratio (default false).'),
+      .describe('Cover-crop the clip to fill the output frame, never stretching (on by default; false skips scaling).'),
     forceOriginalAspectRatio: z
       .boolean()
       .optional()
-      .describe('When true, the section clip is letterboxed to preserve its original aspect ratio (default false).'),
+      .describe('Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).'),
   })
   .strict()
   .describe('Common options shared by all section types; variant-specific options are added via extend.');
@@ -217,19 +217,18 @@ export const VideoSectionSchema = BaseSectionSchema.extend({
   options: BaseSectionOptionsSchema.optional().describe('Playback and compositing options for the video section.'),
 }).describe('A section that plays a pre-recorded video clip or a user-uploaded video asset.');
 
-const CaptureModeEnum = z.enum(['front', 'back', 'screen', 'upload']);
+export const CaptureModeSchema = z.enum(['front', 'back', 'screen', 'upload']);
+export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 
 export const ProjectVideoSectionSchema = BaseSectionSchema.extend({
   type: z.literal('project_video').describe('Section type: captures a new video clip from the device camera.'),
   options: BaseSectionOptionsSchema.extend({
     framingGuide: FramingGuideSchema.optional().describe('Camera framing guide overlay shown in the recording UI.'),
-    captureMode: CaptureModeEnum.optional().describe(
-      'Default capture mode when the recorder opens (default: front). screen = display capture (web only), upload = file picker.'
-    ),
+    captureMode: CaptureModeSchema.optional().describe('Recorder mode: front/back/screen/upload (default: front).'),
     allowedCaptureModes: z
-      .array(CaptureModeEnum)
+      .array(CaptureModeSchema)
       .optional()
-      .describe('Capture modes available to the user. Omit to allow all. Single-element array locks to one mode.'),
+      .describe('Modes available to the user; omit for all four. A single element locks to one mode.'),
   })
     .strict()
     .optional()

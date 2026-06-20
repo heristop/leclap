@@ -9,6 +9,7 @@ import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
+import DefaultConfig from '../core/default.config';
 import { assertSafeSegmentName } from '../core/argGuard';
 import { fetchSectionInfos } from './sectionInfos';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
@@ -110,17 +111,28 @@ class TemplateDirector {
   };
 
   // Resolve the output orientation ONCE, here — the single point where the descriptor and the
-  // project config meet. A portrait template swaps the configured W:H so the recorded clip, the cards,
-  // and the final normalize all render to the same vertical scale. Replaces the old per-SegmentBuilder
-  // swap, which mutated the shared config per segment and alternated portrait/landscape across them.
+  // project config meet. A portrait template swaps the configured W:H, and a square template forces the
+  // 1080x1080 preset, so the recorded clip, the cards, and the final normalize all render to the same
+  // scale. Replaces the old per-SegmentBuilder swap, which mutated the shared config per segment and
+  // alternated orientation across them.
   private readonly applyOrientationToScale = (): void => {
-    if (this.template.descriptor.global?.orientation !== 'portrait') return;
-
+    const orientation = this.template.descriptor.global?.orientation;
     const videoConfig = this.project.config.videoConfig;
-    const parts = videoConfig?.scale?.split(':');
+
+    if (!videoConfig) return;
+
+    if (orientation === 'square') {
+      this.project.config.videoConfig = { ...videoConfig, scale: DefaultConfig.SQUARE_SCALE };
+
+      return;
+    }
+
+    if (orientation !== 'portrait') return;
+
+    const parts = videoConfig.scale?.split(':');
     const [width, height] = [parts?.[0], parts?.[1]];
 
-    if (width === undefined || height === undefined || !videoConfig) return;
+    if (width === undefined || height === undefined) return;
 
     this.project.config.videoConfig = { ...videoConfig, scale: `${height}:${width}` };
   };

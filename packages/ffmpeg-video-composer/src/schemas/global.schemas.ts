@@ -70,15 +70,20 @@ export const GlobalAnimationSchema = z
 
 // ── global config ──────────────────────────────────────────────────────────────
 
+export const OrientationSchema = z
+  .enum(['landscape', 'portrait', 'square'])
+  .describe(
+    'Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape).'
+  );
+
+export type Orientation = z.infer<typeof OrientationSchema>;
+
 export const GlobalConfigSchema = z
   .object({
     variables: VariablesSchema.optional().describe(
       'Template-wide variable definitions referenced via {{ varName }} syntax.'
     ),
-    orientation: z
-      .enum(['landscape', 'portrait'])
-      .optional()
-      .describe('Output video orientation; controls which resolution preset is used (default: landscape).'),
+    orientation: OrientationSchema.optional(),
     colorsList: z
       .array(z.string())
       .optional()

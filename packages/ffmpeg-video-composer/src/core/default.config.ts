@@ -8,6 +8,8 @@ export default class DefaultConfig {
   static readonly CHANNEL_LAYOUT: string = 'stereo';
   static readonly ORIENTATION: string = 'landscape';
   static readonly SCALE: string = '1280:720';
+  // The 1:1 square preset (a fixed resolution, not derived from the 1280/720 family).
+  static readonly SQUARE_SCALE: string = '1080:1080';
   static readonly SETSAR: string = '1/1';
   static readonly CURRENT_LOCALE: string = 'en';
 }

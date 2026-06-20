@@ -409,9 +409,13 @@ class SegmentBuilder {
 
   private readonly prependScaleFilters = (opts: SectionOptions | undefined): void => {
     const baseScale = this.project.config.videoConfig?.scale ?? '';
-    let scaleFilter = baseScale;
+    // Default (forceAspectRatio): COVER — scale up until the frame is filled, then crop the overflow, so
+    // a source whose aspect differs from the output (e.g. a portrait clip in a square template) fills the
+    // frame WITHOUT being stretched. A bare `scale=W:H` would deform it; this preserves the content ratio.
+    let scaleFilter = baseScale ? `${baseScale}:force_original_aspect_ratio=increase,crop=${baseScale}` : baseScale;
 
     if (opts?.forceOriginalAspectRatio) {
+      // CONTAIN — letterbox: keep the whole frame visible with bars instead of cropping.
       scaleFilter = `${baseScale}:force_original_aspect_ratio=decrease,pad=${baseScale}:(ow-iw)/2:(oh-ih)/2`;
     }
 

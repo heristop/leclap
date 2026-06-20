@@ -163,3 +163,7 @@ export type {
   BackgroundLayer,
   FramingGuide,
 } from './schemas/template.schemas';
+export { OrientationSchema } from './schemas/global.schemas';
+export type { Orientation } from './schemas/global.schemas';
+export { CaptureModeSchema } from './schemas/section.schemas';
+export type { CaptureMode } from './schemas/section.schemas';

@@ -1,17 +1,18 @@
 // The center monitor's WYSIWYG surface: the aspect-correct frame, the background (image backdrop or
-// editable color-layer stack), and the draggable/resizable text overlays. Canvas ONLY — every
-// font/size/color/box control lives in the left OverlayInspector. Selection is lifted to the shell
-// via `selection` + the on{SelectText,BeginEdit,EndEdit} handlers, so clicking an overlay here drives
-// the inspector and vice-versa.
-import { useRef, useState } from 'react';
+// editable color-layer stack), and the draggable/resizable overlays (text, image, animation). Canvas
+// ONLY — every font/size/color/box control lives in the left OverlayInspector. ALL selection is lifted
+// to the shell via the `selection` prop + `onSelectElement`, so clicking an overlay here drives the
+// inspector and vice-versa; the canvas keeps no selection state of its own.
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import type { TextOverlay, Orientation } from '../templateEditorModel';
+import type { AnimationOverlay, ImageOverlay, TextOverlay, Orientation } from '../templateEditorModel';
 import { clampFraction, fontSizeFromPreview } from '../overlayGeometry';
 import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
 import type { CanvasBackground, CanvasLayers } from '../OverlayCanvas';
-import type { SectionSelectionState } from './useSectionSelection';
+import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { OverlayBox } from './sectionCanvasBox';
+import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
 
 // Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
 const previewAspectClass: Record<Orientation, string> = {
@@ -22,43 +23,65 @@ const previewAspectClass: Record<Orientation, string> = {
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
+// Geometry patches a media box emits (a subset of the overlay fields).
+type MediaPatch = { position: string } | { scale: string } | { rotation: number };
+
 // Replace one overlay in a fresh array (immutable update for onChange).
 const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<TextOverlay>): TextOverlay[] =>
   overlays.map((o, i) => (i === index ? { ...o, ...patch } : o));
+
+// Merge a media patch into one item of its array (immutable update for image/animation overlays).
+const withMedia = <T extends ImageOverlay | AnimationOverlay>(items: T[], index: number, patch: MediaPatch): T[] =>
+  items.map((o, i) => (i === index ? { ...o, ...patch } : o));
 
 interface SectionCanvasProps {
   overlays: TextOverlay[];
   orientation: Orientation;
   background?: CanvasBackground;
   layers?: CanvasLayers;
+  images?: ImageOverlay[];
+  animations?: AnimationOverlay[];
   selection: SectionSelectionState;
-  onSelectText: (index: number | null) => void;
+  onSelectElement: (ref: ElementRef | null) => void;
   onBeginEdit: () => void;
   onEndEdit: () => void;
   onChange: (overlays: TextOverlay[]) => void;
+  onChangeImages?: (images: ImageOverlay[]) => void;
+  onChangeAnimations?: (animations: AnimationOverlay[]) => void;
 }
+
+// Read the active index for a given element kind from the shared selection (null when another kind,
+// or nothing, is selected).
+const activeIndex = (selection: SectionSelectionState, kind: ElementRef['kind']): number | null =>
+  selection.element?.kind === kind ? selection.element.index : null;
 
 export const SectionCanvas = ({
   overlays,
   orientation,
   background,
   layers,
+  images,
+  animations,
   selection,
-  onSelectText,
+  onSelectElement,
   onBeginEdit,
   onEndEdit,
   onChange,
+  onChangeImages,
+  onChangeAnimations,
 }: SectionCanvasProps) => {
   const { t } = useTranslation('admin');
   const frameRef = useRef<HTMLDivElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
-  // The color-layer stack keeps its own internal selection for now (Phase 1 only lifts text). A layer
-  // selection clears the text selection so the two affordances stay mutually exclusive on the canvas.
-  const [selectedLayer, setSelectedLayer] = useState<number | null>(null);
 
-  const activeText = selection.element?.kind === 'text' ? selection.element.index : null;
+  const activeText = activeIndex(selection, 'text');
+  const activeLayer = activeIndex(selection, 'layer');
+  const activeImage = activeIndex(selection, 'image');
+  const activeAnimation = activeIndex(selection, 'animation');
   const frameRect = (): DOMRect | undefined => frameRef.current?.getBoundingClientRect();
   const hasBackground = Boolean(background?.imageUrl ?? layers?.items.length);
+  const imageList = images ?? [];
+  const animationList = animations ?? [];
 
   const moveTo = (index: number, clientX: number, clientY: number) => {
     const rect = frameRect();
@@ -86,18 +109,26 @@ export const SectionCanvas = ({
   };
 
   const removeAt = (index: number) => {
-    onSelectText(null);
+    onSelectElement(null);
     onChange(overlays.filter((_, i) => i !== index));
   };
 
-  const selectLayer = (index: number) => {
-    onSelectText(null);
-    setSelectedLayer(index);
+  const patchImage = (index: number, patch: MediaPatch) => {
+    onChangeImages?.(withMedia(imageList, index, patch));
   };
 
-  const selectText = (index: number) => {
-    setSelectedLayer(null);
-    onSelectText(index);
+  const removeImage = (index: number) => {
+    onSelectElement(null);
+    onChangeImages?.(imageList.filter((_, i) => i !== index));
+  };
+
+  const patchAnimation = (index: number, patch: MediaPatch) => {
+    onChangeAnimations?.(withMedia(animationList, index, patch));
+  };
+
+  const removeAnimation = (index: number) => {
+    onSelectElement(null);
+    onChangeAnimations?.(animationList.filter((_, i) => i !== index));
   };
 
   return (
@@ -105,8 +136,7 @@ export const SectionCanvas = ({
       ref={frameRef}
       onPointerDown={(e) => {
         if (e.target !== e.currentTarget) return;
-        onSelectText(null);
-        setSelectedLayer(null);
+        onSelectElement(null);
       }}
       className={cn(
         'relative w-full touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
@@ -127,10 +157,42 @@ export const SectionCanvas = ({
           layers={layers.items}
           onChange={layers.onChange}
           frameRect={frameRect}
-          selectedIndex={selectedLayer}
-          onSelect={selectLayer}
+          selectedIndex={activeLayer}
+          onSelect={(index) => {
+            onSelectElement({ kind: 'layer', index });
+          }}
         />
       )}
+      {imageList.map((image, index) => (
+        <ImageOverlayItem
+          key={image.id}
+          value={image}
+          index={index}
+          orientation={orientation}
+          active={index === activeImage}
+          frameRect={frameRect}
+          onPatch={patchImage}
+          onSelect={(i) => {
+            onSelectElement({ kind: 'image', index: i });
+          }}
+          onDelete={removeImage}
+        />
+      ))}
+      {animationList.map((animation, index) => (
+        <AnimationOverlayItem
+          key={animation.id ?? index}
+          value={animation}
+          index={index}
+          orientation={orientation}
+          active={index === activeAnimation}
+          frameRect={frameRect}
+          onPatch={patchAnimation}
+          onSelect={(i) => {
+            onSelectElement({ kind: 'animation', index: i });
+          }}
+          onDelete={removeAnimation}
+        />
+      ))}
       {overlays.map((overlay, index) => (
         <OverlayBox
           key={index}
@@ -142,7 +204,9 @@ export const SectionCanvas = ({
           editing={index === activeText && selection.editing}
           editRef={editRef}
           frameRect={frameRect}
-          onSelect={selectText}
+          onSelect={(i) => {
+            onSelectElement({ kind: 'text', index: i });
+          }}
           onEdit={onBeginEdit}
           onMove={moveTo}
           onResize={resizeTo}

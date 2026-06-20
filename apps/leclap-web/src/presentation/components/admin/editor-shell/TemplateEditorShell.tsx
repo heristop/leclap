@@ -192,7 +192,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
               patchSection(sel.selectedIndex, p);
             }}
             selection={sectionSelection.state}
-            onSelectText={sectionSelection.selectText}
+            onSelectElement={sectionSelection.selectElement}
             onBeginEdit={sectionSelection.beginEdit}
             onEndEdit={sectionSelection.endEdit}
           />

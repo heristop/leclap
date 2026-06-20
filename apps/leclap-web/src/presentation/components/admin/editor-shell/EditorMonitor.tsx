@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { SectionCanvas } from './SectionCanvas';
 import { PartialPreview } from './PartialPreview';
-import type { SectionSelectionState } from './useSectionSelection';
+import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { PreviewSurface } from '../editor/PreviewSurface';
 import { newBaseLayer } from '../editor/layerGeometry';
 import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
@@ -33,7 +33,7 @@ interface EditorMonitorProps {
   section: EditorSection | null;
   onPatchSection: (partial: Partial<EditorSection>) => void;
   selection: SectionSelectionState;
-  onSelectText: (index: number | null) => void;
+  onSelectElement: (ref: ElementRef | null) => void;
   onBeginEdit: () => void;
   onEndEdit: () => void;
 }
@@ -68,7 +68,7 @@ export const EditorMonitor = ({
   section,
   onPatchSection,
   selection,
-  onSelectText,
+  onSelectElement,
   onBeginEdit,
   onEndEdit,
 }: EditorMonitorProps) => {
@@ -97,12 +97,24 @@ export const EditorMonitor = ({
                 }
               : undefined
           }
+          images={section.kind === 'video' ? section.images : undefined}
+          animations={section.animations}
           selection={selection}
-          onSelectText={onSelectText}
+          onSelectElement={onSelectElement}
           onBeginEdit={onBeginEdit}
           onEndEdit={onEndEdit}
           onChange={(overlays: TextOverlay[]) => {
             onPatchSection({ overlays });
+          }}
+          onChangeImages={
+            section.kind === 'video'
+              ? (images) => {
+                  onPatchSection({ images });
+                }
+              : undefined
+          }
+          onChangeAnimations={(animations) => {
+            onPatchSection({ animations });
           }}
         />
       </div>

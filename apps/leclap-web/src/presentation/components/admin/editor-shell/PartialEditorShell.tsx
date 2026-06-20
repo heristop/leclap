@@ -112,7 +112,7 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
               ops.patchSection(sel.selectedIndex, p);
             }}
             selection={sectionSelection.state}
-            onSelectText={sectionSelection.selectText}
+            onSelectElement={sectionSelection.selectElement}
             onBeginEdit={sectionSelection.beginEdit}
             onEndEdit={sectionSelection.endEdit}
           />

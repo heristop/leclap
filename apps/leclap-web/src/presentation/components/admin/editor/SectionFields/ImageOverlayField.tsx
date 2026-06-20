@@ -2,61 +2,12 @@
 // uploaded / pasted, then dragged + resized on the output frame. Reuses MediaPicker for selection and the
 // shared OverlayPlacement panel for placement (Position/Scale/Opacity/Rotation + drag canvas, the same
 // controls as the animation overlay) — the image equivalent of AnimationGallery. Used by VideoFields.
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { findBackground } from '@/data/mediaCatalog';
-import { browserMediaService } from '@/services/browserMediaService';
 import { makeTemplateId, type EditorState, type ImageOverlay, type MediaChoice } from '../../templateEditorModel';
 import { MediaPicker } from '../../MediaPicker';
 import { OverlayLayer } from '../OverlayLayer';
 import { OverlayPlacement } from '../OverlayPlacement';
-
-// Resolve a MediaChoice to a previewable URL for the placement canvas: library → curated url, pasted
-// url → as-is, upload → a transient object URL read back from IndexedDB (revoked when the choice changes).
-function useChoicePreviewUrl(choice: MediaChoice | undefined): string {
-  const [url, setUrl] = useState('');
-
-  useEffect(() => {
-    if (!choice) {
-      setUrl('');
-
-      return () => {};
-    }
-
-    if (choice.source === 'library') {
-      setUrl(findBackground(choice.id)?.url ?? '');
-
-      return () => {};
-    }
-
-    if (choice.source === 'url') {
-      setUrl(choice.url);
-
-      return () => {};
-    }
-
-    let objectUrl = '';
-    let cancelled = false;
-
-    browserMediaService
-      .getBytes(choice.key)
-      .then((bytes) => {
-        if (!bytes || cancelled) return;
-
-        objectUrl = URL.createObjectURL(new Blob([new Uint8Array(bytes)]));
-        setUrl(objectUrl);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [choice]);
-
-  return url;
-}
+import { useChoicePreviewUrl } from '../useChoicePreviewUrl';
 
 interface ImageOverlayRowProps {
   value: ImageOverlay;

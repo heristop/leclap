@@ -2,7 +2,7 @@
 // optional countdown, and the WYSIWYG text-overlay editor — the title is the main creative act, so
 // it stays one click away. The finishing controls (Effects, Section audio, Camera guide) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Camera, Layers } from '@/presentation/components/icons';
+import { Sparkles, Music, Camera } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';
@@ -10,8 +10,7 @@ import { VariableTextField } from '../VariableTextField';
 import { FramingGuidePicker } from '../FramingGuidePicker';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
-import { effectsSummary, audioSummary, framingSummary, overlaysSummary } from '../sectionHints';
-import { OverlaysField } from '../OverlaysField';
+import { effectsSummary, audioSummary, framingSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { VisualEffects } from './VisualEffects';
@@ -118,23 +117,6 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
               }}
               onGrade={(grade) => {
                 onChange({ grade });
-              }}
-            />
-          </SectionDisclosure>
-          <SectionDisclosure
-            label={t('disclosure.overlays')}
-            icon={<Layers className="size-4 shrink-0 text-brand-500" aria-hidden />}
-            summary={overlaysSummary(t, section.animations, section.images)}
-          >
-            <OverlaysField
-              animations={section.animations}
-              images={section.images}
-              orientation={orientation}
-              onAnimationsChange={(animations) => {
-                onChange({ animations });
-              }}
-              onImagesChange={(images) => {
-                onChange({ images });
               }}
             />
           </SectionDisclosure>

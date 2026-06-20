@@ -1,47 +1,36 @@
 // The unified "+ Add" menu for the editor's left panel: a trigger button that opens a popover of the
-// element kinds the selected section actually supports (gated by `canAddElement` plus a section-level
-// background-image intent). Picking an item closes the menu and emits its `ElementKind` to the parent,
-// which decides how to apply it. Sections that own no addable elements (music/form/partial) render
-// nothing. The popover interaction mirrors overlayControls' VariableMenu (outside-click + Escape).
+// element kinds the selected section actually supports (gated by `canAddElement`). Picking an item
+// closes the menu and emits its kind to the parent, which appends the element. Sections that own no
+// addable elements (music/form/partial) render nothing. The popover interaction mirrors
+// overlayControls' VariableMenu (outside-click + Escape).
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Plus, Sparkles, Square, Type, type LucideIcon } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui';
 import type { EditorSection } from '../templateEditorModel';
-import { canAddElement, type ElementKind } from './sectionElements';
+import { canAddElement } from './sectionElements';
+import type { ElementRef } from './useSectionSelection';
 
-// True when the section carries a section-level background image field (color/image sections only).
-export function canAddBackgroundImage(section: EditorSection): boolean {
-  return section.kind === 'color' || section.kind === 'image';
-}
+type AddableKind = ElementRef['kind'];
 
-// Canonical add order, shared by the menu and the next wiring tasks:
-// background layer → background image → text → image overlay → animation.
-const ADD_ORDER: ReadonlyArray<ElementKind> = ['layer', 'background-image', 'text', 'image', 'animation'];
-
-function isAddable(section: EditorSection, kind: ElementKind): boolean {
-  if (kind === 'background-image') return canAddBackgroundImage(section);
-
-  return canAddElement(section, kind);
-}
+// Canonical add order: background layer → text → image overlay → animation.
+const ADD_ORDER: ReadonlyArray<AddableKind> = ['layer', 'text', 'image', 'animation'];
 
 // The element kinds the section supports, in canonical order. Empty for sections with no elements.
-export function addableKinds(section: EditorSection): ElementKind[] {
-  return ADD_ORDER.filter((kind) => isAddable(section, kind));
+export function addableKinds(section: EditorSection): AddableKind[] {
+  return ADD_ORDER.filter((kind) => canAddElement(section, kind));
 }
 
 // Icon + i18n label-key per addable kind.
-const KIND_ICON: Record<ElementKind, LucideIcon> = {
+const KIND_ICON: Record<AddableKind, LucideIcon> = {
   layer: Square,
-  'background-image': Image,
   text: Type,
   image: Image,
   animation: Sparkles,
 };
 
-const KIND_LABEL: Record<ElementKind, string> = {
+const KIND_LABEL: Record<AddableKind, string> = {
   layer: 'element.addBackgroundColor',
-  'background-image': 'element.addBackgroundImage',
   text: 'element.addText',
   image: 'element.addImageOverlay',
   animation: 'element.addAnimation',
@@ -49,7 +38,7 @@ const KIND_LABEL: Record<ElementKind, string> = {
 
 interface AddElementMenuProps {
   section: EditorSection;
-  onAdd: (kind: ElementKind) => void;
+  onAdd: (kind: AddableKind) => void;
 }
 
 export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
@@ -83,7 +72,7 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
 
   if (kinds.length === 0) return null;
 
-  const pick = (kind: ElementKind) => {
+  const pick = (kind: AddableKind) => {
     onAdd(kind);
     setOpen(false);
   };

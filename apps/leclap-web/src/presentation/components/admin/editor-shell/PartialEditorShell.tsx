@@ -87,11 +87,8 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
             patchSection={(p) => {
               ops.patchSection(sel.selectedIndex, p);
             }}
-            setLayers={(layers) => {
-              ops.setLayers(sel.selectedIndex, layers);
-            }}
-            overlaySelection={sectionSelection.state}
-            onSelectOverlay={sectionSelection.selectText}
+            selection={sectionSelection.state}
+            onSelectElement={sectionSelection.selectElement}
           />
           {editor.error && (
             <p

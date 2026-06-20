@@ -28,12 +28,12 @@ describe('addableKinds', () => {
     expect(addableKinds(newSection('video'))).toEqual(['text', 'image', 'animation']);
   });
 
-  it('orders color kinds with background image', () => {
-    expect(addableKinds(newSection('color'))).toEqual(['layer', 'background-image', 'text', 'animation']);
+  it('orders color kinds', () => {
+    expect(addableKinds(newSection('color'))).toEqual(['layer', 'text', 'animation']);
   });
 
-  it('orders image kinds with background image', () => {
-    expect(addableKinds(newSection('image'))).toEqual(['background-image', 'text', 'animation']);
+  it('orders image kinds', () => {
+    expect(addableKinds(newSection('image'))).toEqual(['text', 'animation']);
   });
 
   it('returns nothing for music', () => {

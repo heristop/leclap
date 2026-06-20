@@ -7,24 +7,15 @@ import { WholeVideoAnimations } from '../editor/WholeVideoAnimations';
 import { EditorImportExport } from '../editor/EditorImportExport';
 import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
 import type { AvailablePartial } from '@/services/templatePartialService';
-import {
-  collectVariables,
-  SECTION_LABELS,
-  type BackgroundLayer,
-  type EditorSection,
-  type EditorState,
-  type TextOverlay,
-} from '../templateEditorModel';
+import { collectVariables, SECTION_LABELS, type EditorSection, type EditorState } from '../templateEditorModel';
 import type { EditorToolId } from './editorTools';
-import { OverlayInspector } from './OverlayInspector';
-import type { SectionSelectionState } from './useSectionSelection';
+import { addableKinds } from './AddElementMenu';
+import { ElementBlock } from './ElementBlock';
+import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 
-// Sections whose left panel also hosts the text-overlay inspector (they carry `overlays` and render
-// the WYSIWYG canvas in the center monitor).
-const hasTextOverlays = (
-  section: EditorSection
-): section is Extract<EditorSection, { kind: 'video' | 'color' | 'image' }> =>
-  section.kind === 'video' || section.kind === 'color' || section.kind === 'image';
+// True when the section owns any addable visual element (video/color/image), so the left panel hosts
+// the unified Add menu + element list + inspector below the section-level fields.
+const hasElements = (section: EditorSection): boolean => addableKinds(section).length > 0;
 
 interface EditorPanelSwitchProps {
   activeTool: EditorToolId;
@@ -33,10 +24,9 @@ interface EditorPanelSwitchProps {
   partials: AvailablePartial[];
   patch: (p: Partial<EditorState>) => void;
   patchSection: (p: Partial<EditorSection>) => void;
-  setLayers: (layers: BackgroundLayer[]) => void;
   onImport: (next: EditorState) => void;
-  overlaySelection: SectionSelectionState;
-  onSelectOverlay: (index: number | null) => void;
+  selection: SectionSelectionState;
+  onSelectElement: (ref: ElementRef | null) => void;
 }
 
 // A panel shell: an eyebrow + title header above a swap-animated body, matching the studio panel chrome.
@@ -66,10 +56,9 @@ export const EditorPanelSwitch = ({
   partials,
   patch,
   patchSection,
-  setLayers,
   onImport,
-  overlaySelection,
-  onSelectOverlay,
+  selection,
+  onSelectElement,
 }: EditorPanelSwitchProps) => {
   const { t } = useTranslation('admin');
 
@@ -90,21 +79,16 @@ export const EditorPanelSwitch = ({
           variables={collectVariables(state)}
           partials={partials}
           onChange={patchSection}
-          onLayers={setLayers}
           inputCls={EDITOR_INPUT_CLASS}
         />
-        {hasTextOverlays(section) && (
-          <div className="mt-4 border-t border-foreground/10 pt-4">
-            <OverlayInspector
-              overlays={section.overlays}
-              variables={collectVariables(state)}
-              selection={overlaySelection}
-              onSelectText={onSelectOverlay}
-              onChange={(overlays: TextOverlay[]) => {
-                patchSection({ overlays });
-              }}
-            />
-          </div>
+        {hasElements(section) && (
+          <ElementBlock
+            state={state}
+            section={section}
+            selection={selection}
+            patchSection={patchSection}
+            onSelectElement={onSelectElement}
+          />
         )}
       </PanelFrame>
     );

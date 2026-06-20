@@ -24,8 +24,6 @@ import {
 import { newExtraLayer } from '../editor/layerGeometry';
 import type { ElementRef } from './useSectionSelection';
 
-export type ElementKind = ElementRef['kind'] | 'background-image';
-
 export interface ElementDescriptor {
   ref: ElementRef;
   labelKey: string;

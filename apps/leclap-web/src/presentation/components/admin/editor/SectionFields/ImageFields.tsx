@@ -1,7 +1,7 @@
 // Field block for an image_background section. Essentials (always visible): duration + the media
 // picker (allowed images + upload). Finishing controls (Effects incl. Ken Burns motion, Section
 // audio) live in collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Film } from '@/presentation/components/icons';
+import { Sparkles, Music } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import type { EditorSection, Orientation } from '../../templateEditorModel';
@@ -9,8 +9,7 @@ import { MediaPicker } from '../../MediaPicker';
 import { MotionPanel } from '../MotionPanel';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
-import { effectsSummary, audioSummary, animationSummary } from '../sectionHints';
-import { AnimationOverlayField } from '../AnimationOverlayField';
+import { effectsSummary, audioSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { VisualEffects } from './VisualEffects';
@@ -25,7 +24,7 @@ interface ImageFieldsProps {
   inputCls: string;
 }
 
-export const ImageFields = ({ section, orientation, onChange, inputCls }: ImageFieldsProps) => {
+export const ImageFields = ({ section, onChange, inputCls }: ImageFieldsProps) => {
   const { t } = useTranslation('admin');
   const advanced = useIsAdvanced();
 
@@ -80,19 +79,6 @@ export const ImageFields = ({ section, orientation, onChange, inputCls }: ImageF
               }}
               onGrade={(grade) => {
                 onChange({ grade });
-              }}
-            />
-          </SectionDisclosure>
-          <SectionDisclosure
-            label={t('disclosure.animation')}
-            icon={<Film className="size-4 shrink-0 text-brand-500" aria-hidden />}
-            summary={animationSummary(t, section.animations)}
-          >
-            <AnimationOverlayField
-              value={section.animations}
-              orientation={orientation}
-              onChange={(animations) => {
-                onChange({ animations });
               }}
             />
           </SectionDisclosure>

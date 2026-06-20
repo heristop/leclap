@@ -79,7 +79,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
   const history = useEditorHistory(toEditorState(initial));
   const { state, set, undo, redo, canUndo, canRedo, reset } = history;
   const ops = useEditorSectionOps(set);
-  const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition, setLayers } = ops;
+  const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition } = ops;
   const [localPartials] = useState<StoredPartial[]>(() => userPartialService.list());
   const [error, setError] = useState('');
   const partials = listAvailablePartials(localPartials);
@@ -166,12 +166,9 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
             patchSection={(p) => {
               patchSection(sel.selectedIndex, p);
             }}
-            setLayers={(layers) => {
-              setLayers(sel.selectedIndex, layers);
-            }}
             onImport={reset}
-            overlaySelection={sectionSelection.state}
-            onSelectOverlay={sectionSelection.selectText}
+            selection={sectionSelection.state}
+            onSelectElement={sectionSelection.selectElement}
           />
           {error && (
             <p

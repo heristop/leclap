@@ -1,7 +1,7 @@
-// Per-kind section field dispatcher. Picks the matching field block and threads the
-// section patch through; color sections also receive a dedicated layers setter so the
-// LayersEditor writes through patchLayers in the parent.
-import type { BackgroundLayer, EditorSection, EditorState } from '../../templateEditorModel';
+// Per-kind section field dispatcher. Picks the matching field block and threads the section patch
+// through. Per-element editors (layers, overlays, animations) live in the left panel's element
+// inspector now, so this dispatcher only carries SECTION-LEVEL settings.
+import type { EditorSection, EditorState } from '../../templateEditorModel';
 import { VideoFields } from './VideoFields';
 import { ColorFields } from './ColorFields';
 import { ImageFields } from './ImageFields';
@@ -16,7 +16,6 @@ interface SectionFieldsProps {
   variables: string[];
   partials: AvailablePartial[];
   onChange: (p: Partial<EditorSection>) => void;
-  onLayers: (layers: BackgroundLayer[]) => void;
   inputCls: string;
 }
 
@@ -26,7 +25,6 @@ export const SectionFields = ({
   variables,
   partials,
   onChange,
-  onLayers,
   inputCls,
 }: SectionFieldsProps) => {
   if (section.kind === 'partial') {
@@ -54,15 +52,7 @@ export const SectionFields = ({
   }
 
   if (section.kind === 'color') {
-    return (
-      <ColorFields
-        section={section}
-        orientation={orientation}
-        onChange={onChange}
-        onLayers={onLayers}
-        inputCls={inputCls}
-      />
-    );
+    return <ColorFields section={section} orientation={orientation} onChange={onChange} inputCls={inputCls} />;
   }
 
   if (section.kind === 'image') {

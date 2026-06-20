@@ -3,23 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { SectionFields } from '../editor/SectionFields';
 import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
 import type { AvailablePartial } from '@/services/templatePartialService';
-import {
-  collectVariables,
-  SECTION_LABELS,
-  type BackgroundLayer,
-  type EditorSection,
-  type EditorState,
-  type TextOverlay,
-} from '../templateEditorModel';
+import { collectVariables, SECTION_LABELS, type EditorSection, type EditorState } from '../templateEditorModel';
 import type { PartialToolId } from './usePartialEditorState';
-import { OverlayInspector } from './OverlayInspector';
-import type { SectionSelectionState } from './useSectionSelection';
+import { addableKinds } from './AddElementMenu';
+import { ElementBlock } from './ElementBlock';
+import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 
-// Sections whose left panel also hosts the text-overlay inspector (they carry `overlays`).
-const hasTextOverlays = (
-  section: EditorSection
-): section is Extract<EditorSection, { kind: 'video' | 'color' | 'image' }> =>
-  section.kind === 'video' || section.kind === 'color' || section.kind === 'image';
+// True when the section owns any addable visual element, so the left panel hosts the unified Add menu
+// + element list + inspector below the section-level fields.
+const hasElements = (section: EditorSection): boolean => addableKinds(section).length > 0;
 
 interface PartialPanelSwitchProps {
   activeTool: PartialToolId;
@@ -30,9 +22,8 @@ interface PartialPanelSwitchProps {
   idLocked: boolean;
   patch: (p: Partial<EditorState>) => void;
   patchSection: (p: Partial<EditorSection>) => void;
-  setLayers: (layers: BackgroundLayer[]) => void;
-  overlaySelection: SectionSelectionState;
-  onSelectOverlay: (index: number | null) => void;
+  selection: SectionSelectionState;
+  onSelectElement: (ref: ElementRef | null) => void;
 }
 
 // A panel shell mirroring EditorPanelSwitch's PanelFrame: eyebrow + title over a swap-animated body.
@@ -63,9 +54,8 @@ export const PartialPanelSwitch = ({
   idLocked,
   patch,
   patchSection,
-  setLayers,
-  overlaySelection,
-  onSelectOverlay,
+  selection,
+  onSelectElement,
 }: PartialPanelSwitchProps) => {
   const { t } = useTranslation('admin');
 
@@ -94,21 +84,16 @@ export const PartialPanelSwitch = ({
           variables={collectVariables(state)}
           partials={partials}
           onChange={patchSection}
-          onLayers={setLayers}
           inputCls={EDITOR_INPUT_CLASS}
         />
-        {hasTextOverlays(section) && (
-          <div className="mt-4 border-t border-foreground/10 pt-4">
-            <OverlayInspector
-              overlays={section.overlays}
-              variables={collectVariables(state)}
-              selection={overlaySelection}
-              onSelectText={onSelectOverlay}
-              onChange={(overlays: TextOverlay[]) => {
-                patchSection({ overlays });
-              }}
-            />
-          </div>
+        {hasElements(section) && (
+          <ElementBlock
+            state={state}
+            section={section}
+            selection={selection}
+            patchSection={patchSection}
+            onSelectElement={onSelectElement}
+          />
         )}
       </PanelFrame>
     );

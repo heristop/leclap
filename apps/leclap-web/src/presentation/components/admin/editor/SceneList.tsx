@@ -16,13 +16,7 @@ import {
 } from '@/presentation/components/icons';
 import clsx from 'clsx';
 import type { AvailablePartial } from '@/services/templatePartialService';
-import {
-  SECTION_LABELS,
-  type BackgroundLayer,
-  type EditorSection,
-  type EditorState,
-  type SectionTransition,
-} from '../templateEditorModel';
+import { SECTION_LABELS, type EditorSection, type EditorState, type SectionTransition } from '../templateEditorModel';
 import { TransitionPicker } from './TransitionPicker';
 import { SectionFields } from './SectionFields';
 import { errorsForEditorSection, type SectionValidation, type ValidationError } from './validationMapping';
@@ -48,7 +42,6 @@ interface SceneListProps {
   duplicateSection: (i: number) => void;
   patchSection: (i: number, p: Partial<EditorSection>) => void;
   setTransition: (i: number, transition: SectionTransition | undefined) => void;
-  setLayers: (i: number, layers: BackgroundLayer[]) => void;
   getSectionDomId?: (index: number) => string;
 }
 
@@ -101,7 +94,6 @@ export const SceneList = ({
   duplicateSection,
   patchSection,
   setTransition,
-  setLayers,
   getSectionDomId,
 }: SceneListProps) => {
   // `insertAt` is the gap index (0..n) where the dragged card will land.
@@ -243,7 +235,6 @@ export const SceneList = ({
             removeSection={handleRemove}
             duplicateSection={duplicateSection}
             patchSection={patchSection}
-            setLayers={setLayers}
           />
           {!dragging && hasVisualAfter(sections, i) && (
             <TransitionPicker
@@ -281,7 +272,6 @@ interface SectionCardProps {
   removeSection: (i: number) => void;
   duplicateSection: (i: number) => void;
   patchSection: (i: number, p: Partial<EditorSection>) => void;
-  setLayers: (i: number, layers: BackgroundLayer[]) => void;
 }
 
 const SectionCard = ({
@@ -305,7 +295,6 @@ const SectionCard = ({
   removeSection,
   duplicateSection,
   patchSection,
-  setLayers,
 }: SectionCardProps) => (
   <div
     id={id}
@@ -401,9 +390,6 @@ const SectionCard = ({
         partials={partials}
         onChange={(p) => {
           patchSection(index, p);
-        }}
-        onLayers={(layers) => {
-          setLayers(index, layers);
         }}
         inputCls={EDITOR_INPUT_CLASS}
       />

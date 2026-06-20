@@ -2,6 +2,7 @@ import { templateService, type Template } from '@/services/templateService';
 import { projectStore } from '@/stores/projectStore';
 import { projectBlobStore } from '@/services/projectBlobBackend';
 import { modelToProject, projectToModel, type StoredClip, type StoredProject } from '@/lib/projectModel';
+import { deriveSelectedClips, diffRushes, materializeRushes, withSelectedRushes } from '@/services/projectRushes';
 import type { WizardModel } from '@/lib/wizardModel';
 
 export interface ClipDiff {
@@ -49,43 +50,18 @@ function makeId(): string {
   }
 }
 
-// Keep unchanged clip metadata, write the bytes for new/replaced clips, and assemble the next
-// section → clip map. Split out of saveDraft to keep its branch count down.
-async function materializeClips(
-  prevClips: Record<string, StoredClip>,
-  model: WizardModel,
-  diff: ClipDiff
-): Promise<Record<string, StoredClip>> {
-  const clips: Record<string, StoredClip> = {};
-
-  for (const [section, meta] of Object.entries(prevClips)) {
-    if (pick(model.clipsBySection, section)) clips[section] = meta;
-  }
-
-  const written = await Promise.all(
-    diff.write.map(async (section) => {
-      const file = model.clipsBySection[section];
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const blobKey = await projectBlobStore.put(bytes);
-
-      return [section, { blobKey, name: file.name, type: file.type, size: file.size }] as const;
-    })
-  );
-
-  for (const [section, meta] of written) clips[section] = meta;
-
-  return clips;
-}
-
-// Persist (or update) a draft: write any new clip bytes, prune replaced/removed ones, then save the
-// metadata record. Editing always lands as a `draft` — a prior compiled output is invalidated.
+// Persist (or update) a draft: write any new take bytes, prune replaced/removed ones, then save the
+// metadata record. Every recorded take is persisted; the selected clip shares the matching take's
+// blobKey (no double-write). Editing always lands as a `draft` — a prior compiled output is invalidated.
 export async function saveDraft(model: WizardModel, template: Template, currentId?: string): Promise<StoredProject> {
   const current = currentId ? (projectStore.get(currentId) ?? undefined) : undefined;
-  const prevClips = current?.clips ?? {};
-  const diff = diffClips(prevClips, model.clipsBySection);
-  const clips = await materializeClips(prevClips, model, diff);
+  const prevRushes = current?.rushes ?? {};
+  const effectiveRushes = withSelectedRushes(model);
+  const rushDiff = diffRushes(prevRushes, effectiveRushes);
+  const rushes = await materializeRushes(prevRushes, { ...model, rushesBySection: effectiveRushes }, rushDiff);
+  const clips = deriveSelectedClips(rushes, model);
 
-  const stalePrune = current?.output ? [...diff.prune, current.output.blobKey] : diff.prune;
+  const stalePrune = current?.output ? [...rushDiff.prune, current.output.blobKey] : rushDiff.prune;
   await Promise.all(stalePrune.map((key) => projectBlobStore.delete(key)));
 
   return projectStore.save(
@@ -94,6 +70,7 @@ export async function saveDraft(model: WizardModel, template: Template, currentI
       model,
       template,
       clips,
+      rushes,
       now: Date.now(),
       createdAt: current?.createdAt,
       name: current?.name,
@@ -111,27 +88,49 @@ export function renameProject(id: string, name: string): StoredProject | null {
   return projectStore.save({ ...current, name: name.trim() || current.name, updatedAt: Date.now() });
 }
 
-// Clone a project's clips + answers into a fresh draft (its own blob copies, no carried-over output).
+// Copy one stored take's bytes to a fresh blob key, preserving its metadata. Returns null if the
+// source blob is missing so the caller can drop it.
+async function copyTake(take: StoredClip): Promise<StoredClip | null> {
+  const bytes = await projectBlobStore.get(take.blobKey);
+
+  if (!bytes) return null;
+
+  const blobKey = await projectBlobStore.put(bytes);
+
+  return { ...take, blobKey };
+}
+
+// Copy every take of a project to fresh blobs, returning the new rushes map alongside a lookup from
+// each old blob key to its copy so the selected clips can be re-pointed to the same bytes.
+async function copyRushes(
+  source: StoredProject
+): Promise<{ rushes: Record<string, StoredClip[]>; byOldKey: Map<string, StoredClip> }> {
+  const byOldKey = new Map<string, StoredClip>();
+  const entries = await Promise.all(
+    Object.entries(source.rushes ?? {}).map(async ([section, takes]) => {
+      const copied = await Promise.all(takes.map((take) => copyTake(take)));
+      const kept = takes
+        .map((take, index) => [take, copied[index]] as const)
+        .filter((pair): pair is readonly [StoredClip, StoredClip] => pair[1] !== null);
+
+      for (const [old, fresh] of kept) byOldKey.set(old.blobKey, fresh);
+
+      return [section, kept.map(([, fresh]) => fresh)] as const;
+    })
+  );
+
+  return { rushes: Object.fromEntries(entries), byOldKey };
+}
+
+// Clone a project's takes + answers into a fresh draft (its own blob copies, no carried-over output).
+// The copy's selected clip shares the copied take's blobKey, mirroring the source invariant.
 export async function duplicateProject(id: string): Promise<StoredProject | null> {
   const source = projectStore.get(id);
 
   if (!source) return null;
 
-  const clipEntries = await Promise.all(
-    Object.entries(source.clips).map(async ([section, clip]) => {
-      const bytes = await projectBlobStore.get(clip.blobKey);
-
-      if (!bytes) return null;
-
-      const blobKey = await projectBlobStore.put(bytes);
-
-      return [section, { ...clip, blobKey }] as const;
-    })
-  );
-
-  const clips = Object.fromEntries(
-    clipEntries.filter((entry): entry is readonly [string, StoredClip] => entry !== null)
-  );
+  const { rushes, byOldKey } = await copyRushes(source);
+  const clips = await duplicateClips(source, byOldKey);
   const now = Date.now();
 
   return projectStore.save({
@@ -141,9 +140,27 @@ export async function duplicateProject(id: string): Promise<StoredProject | null
     status: 'draft',
     output: undefined,
     clips,
+    rushes,
     createdAt: now,
     updatedAt: now,
   });
+}
+
+// Re-point each selected clip at its copied take (shared blobKey). Falls back to copying the clip's
+// own bytes for legacy records whose selected clip isn't among the persisted takes.
+async function duplicateClips(
+  source: StoredProject,
+  byOldKey: Map<string, StoredClip>
+): Promise<Record<string, StoredClip>> {
+  const entries = await Promise.all(
+    Object.entries(source.clips).map(async ([section, clip]) => {
+      const shared = byOldKey.get(clip.blobKey) ?? (await copyTake(clip));
+
+      return shared ? ([section, shared] as const) : null;
+    })
+  );
+
+  return Object.fromEntries(entries.filter((entry): entry is readonly [string, StoredClip] => entry !== null));
 }
 
 export type LoadResult =
@@ -171,8 +188,33 @@ export async function loadProject(id: string): Promise<LoadResult> {
   );
 
   const clipFiles = Object.fromEntries(entries.filter((entry): entry is readonly [string, File] => entry !== null));
+  const rushFiles = await materializeRushFiles(project.rushes);
 
-  return { ok: true, project, template, model: projectToModel(project, clipFiles) };
+  return { ok: true, project, template, model: projectToModel(project, clipFiles, rushFiles) };
+}
+
+// Rebuild each take's File from the blob store, skipping any missing blob. Returns undefined for
+// legacy records without persisted rushes so projectToModel falls back to the single-take path.
+async function materializeRushFiles(
+  rushes: Record<string, StoredClip[]> | undefined
+): Promise<Record<string, File[]> | undefined> {
+  if (!rushes) return undefined;
+
+  const entries = await Promise.all(
+    Object.entries(rushes).map(async ([section, takes]) => {
+      const files = await Promise.all(
+        takes.map(async (meta) => {
+          const bytes = await projectBlobStore.get(meta.blobKey);
+
+          return bytes ? new File([new Uint8Array(bytes)], meta.name, { type: meta.type }) : null;
+        })
+      );
+
+      return [section, files.filter((file): file is File => file !== null)] as const;
+    })
+  );
+
+  return Object.fromEntries(entries);
 }
 
 export interface CompiledOutput {
@@ -220,11 +262,13 @@ export async function deleteProject(id: string): Promise<void> {
   const project = projectStore.get(id);
 
   if (project) {
-    const keys = Object.values(project.clips).map((clip) => clip.blobKey);
+    const keys = new Set(Object.values(project.clips).map((clip) => clip.blobKey));
 
-    if (project.output) keys.push(project.output.blobKey);
+    for (const take of Object.values(project.rushes ?? {}).flat()) keys.add(take.blobKey);
 
-    await Promise.all(keys.map((key) => projectBlobStore.delete(key)));
+    if (project.output) keys.add(project.output.blobKey);
+
+    await Promise.all([...keys].map((key) => projectBlobStore.delete(key)));
   }
 
   projectStore.remove(id);

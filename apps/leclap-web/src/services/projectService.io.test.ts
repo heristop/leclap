@@ -180,6 +180,85 @@ describe('projectService IO orchestration', () => {
     if (reloaded.ok) expect(reloaded.model.clipsBySection.video_1).toBeInstanceOf(File);
   });
 
+  it('persists every take and shares the selected clip blobKey (no double-write)', async () => {
+    const takeA = file('take-a.mp4', [1, 2, 3]);
+    const takeB = file('take-b.mp4', [4, 5]);
+    const model = modelWith({
+      clipsBySection: { video_1: takeB },
+      rushesBySection: { video_1: [takeA, takeB] },
+    });
+
+    const saved = await saveDraft(model, TEMPLATE);
+
+    expect(saved.rushes?.video_1).toHaveLength(2);
+    // One blob per distinct take — the selected clip is not written a second time.
+    expect((projectBlobStore.put as Mock).mock.calls).toHaveLength(2);
+    expect(state.blobs.size).toBe(2);
+
+    const rushKeys = saved.rushes!.video_1.map((take) => take.blobKey);
+    expect(rushKeys).toContain(saved.clips.video_1.blobKey);
+    expect(saved.clips.video_1).toMatchObject({ name: 'take-b.mp4', size: 2 });
+  });
+
+  it('round-trips rushes through loadProject (all takes + selected restored)', async () => {
+    const takeA = file('take-a.mp4', [1, 2, 3]);
+    const takeB = file('take-b.mp4', [4, 5]);
+    const saved = await saveDraft(
+      modelWith({ clipsBySection: { video_1: takeB }, rushesBySection: { video_1: [takeA, takeB] } }),
+      TEMPLATE
+    );
+
+    const result = await loadProject(saved.id);
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.model.rushesBySection.video_1).toHaveLength(2);
+      expect(result.model.rushesBySection.video_1.map((f) => f.name)).toEqual(['take-a.mp4', 'take-b.mp4']);
+      expect(result.model.clipsBySection.video_1.name).toBe('take-b.mp4');
+    }
+  });
+
+  it('deletes every rush blob when the project is removed', async () => {
+    const saved = await saveDraft(
+      modelWith({
+        clipsBySection: { video_1: file('b.mp4', [4, 5]) },
+        rushesBySection: { video_1: [file('a.mp4', [1, 2, 3]), file('b.mp4', [4, 5])] },
+      }),
+      TEMPLATE
+    );
+
+    expect(state.blobs.size).toBe(2);
+
+    await deleteProject(saved.id);
+
+    expect(state.blobs.size).toBe(0);
+    expect(projectStore.get(saved.id)).toBeNull();
+  });
+
+  it('duplicates rushes into fresh blobs with a shared selected clip key', async () => {
+    const source = await saveDraft(
+      modelWith({
+        clipsBySection: { video_1: file('b.mp4', [4, 5]) },
+        rushesBySection: { video_1: [file('a.mp4', [1, 2, 3]), file('b.mp4', [4, 5])] },
+      }),
+      TEMPLATE
+    );
+
+    const copy = await duplicateProject(source.id);
+
+    expect(copy?.rushes?.video_1).toHaveLength(2);
+    const copyKeys = copy!.rushes!.video_1.map((t) => t.blobKey);
+    expect(copyKeys).not.toContain(source.rushes!.video_1[0].blobKey);
+    expect(copyKeys).toContain(copy!.clips.video_1.blobKey);
+
+    await deleteProject(source.id);
+    const reloaded = await loadProject(copy!.id);
+    expect(reloaded.ok).toBe(true);
+
+    if (reloaded.ok) expect(reloaded.model.rushesBySection.video_1).toHaveLength(2);
+  });
+
   it('reports template-removed when the project references a missing template', async () => {
     const saved = await saveDraft(modelWith({ clipsBySection: {} }), TEMPLATE);
     vi.mocked(templateService.getAllTemplates).mockResolvedValueOnce([]);

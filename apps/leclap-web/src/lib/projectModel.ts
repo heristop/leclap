@@ -34,6 +34,8 @@ export interface StoredProject {
   musicChoice: MediaChoice | null;
   backgroundChoice: MediaChoice | null;
   clips: Record<string, StoredClip>;
+  // All recorded takes per section. Optional so legacy records without it still load (no migration).
+  rushes?: Record<string, StoredClip[]>;
   edits: Record<string, VideoEdit | undefined>;
   output?: StoredOutput;
   createdAt: number;
@@ -46,6 +48,8 @@ export interface ModelToProjectInput {
   template: Template;
   // Section → clip metadata, computed by the caller after writing bytes to the blob store.
   clips: Record<string, StoredClip>;
+  // Section → all-takes metadata, computed by the caller after writing bytes to the blob store.
+  rushes?: Record<string, StoredClip[]>;
   now: number;
   // Carried over from the existing record so the creation time is stable across saves.
   createdAt?: number;
@@ -57,7 +61,7 @@ export interface ModelToProjectInput {
 
 // Pure: fold the in-memory wizard model + its template into a serializable project record.
 export function modelToProject(input: ModelToProjectInput): StoredProject {
-  const { id, model, template, clips, now, createdAt, name, status = 'draft', output } = input;
+  const { id, model, template, clips, rushes, now, createdAt, name, status = 'draft', output } = input;
 
   return {
     id,
@@ -71,6 +75,7 @@ export function modelToProject(input: ModelToProjectInput): StoredProject {
     musicChoice: model.musicChoice,
     backgroundChoice: model.backgroundChoice,
     clips,
+    rushes,
     edits: model.editsBySection,
     output,
     createdAt: createdAt ?? now,
@@ -78,18 +83,62 @@ export function modelToProject(input: ModelToProjectInput): StoredProject {
   };
 }
 
-// Pure: rebuild the wizard model from a project. The caller supplies clip `File`s (materialized from
-// the blob store) since bytes are not part of the record.
-export function projectToModel(project: StoredProject, clipFiles: Record<string, File>): WizardModel {
-  // Rushes aren't persisted; seed each saved (selected) clip as the single take so the chooser shows it.
-  const rushesBySection: Record<string, File[]> = {};
+// Pick the take whose name + size match the persisted selected clip; fall back to the first take.
+function pickSelected(takes: File[], selected: StoredClip | undefined): File {
+  if (selected === undefined) {
+    return takes[0];
+  }
+  const match = takes.find((take) => take.name === selected.name && take.size === selected.size);
 
-  for (const [name, file] of Object.entries(clipFiles)) {
-    rushesBySection[name] = [file];
+  return match ?? takes[0];
+}
+
+// Pure: rebuild the wizard model from a project. The caller supplies clip `File`s (the selected take)
+// and, when available, every take per section so alternate rushes survive a refresh.
+export function projectToModel(
+  project: StoredProject,
+  clipFiles: Record<string, File>,
+  rushFiles?: Record<string, File[]>
+): WizardModel {
+  const hasRushes = rushFiles !== undefined && Object.keys(rushFiles).length > 0;
+
+  if (!hasRushes) {
+    // Rushes weren't persisted; seed each saved (selected) clip as the single take for the chooser.
+    const rushesBySection: Record<string, File[]> = {};
+
+    for (const [name, file] of Object.entries(clipFiles)) {
+      rushesBySection[name] = [file];
+    }
+
+    return {
+      clipsBySection: clipFiles,
+      rushesBySection,
+      editsBySection: project.edits,
+      formData: project.formData,
+      musicChoice: project.musicChoice,
+      backgroundChoice: project.backgroundChoice,
+      stepIndex: project.stepIndex,
+    };
+  }
+
+  const rushesBySection: Record<string, File[]> = { ...rushFiles };
+  const clipsBySection: Record<string, File> = {};
+
+  for (const [section, takes] of Object.entries(rushFiles)) {
+    clipsBySection[section] = pickSelected(takes, project.clips[section]);
+  }
+
+  // Sections present only in clipFiles keep their selected clip as a defensive single-take rush.
+  for (const [section, file] of Object.entries(clipFiles)) {
+    if (Object.hasOwn(rushesBySection, section)) {
+      continue;
+    }
+    rushesBySection[section] = [file];
+    clipsBySection[section] = file;
   }
 
   return {
-    clipsBySection: clipFiles,
+    clipsBySection,
     rushesBySection,
     editsBySection: project.edits,
     formData: project.formData,

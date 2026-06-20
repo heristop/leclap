@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { modelToProject, projectToModel, type StoredClip } from './projectModel';
+import { modelToProject, projectToModel, type StoredClip, type StoredProject } from './projectModel';
 import { EMPTY_MODEL, type WizardModel } from './wizardModel';
 import type { Template } from '@/services/templateService';
 
@@ -77,5 +77,98 @@ describe('projectToModel', () => {
     expect(model.editsBySection).toEqual({ video_1: { trim: { start: 0, end: 5 } } });
     expect(model.stepIndex).toBe(2);
     expect(model.clipsBySection.video_1).toBe(file);
+  });
+
+  it('seeds the selected clip as the sole take for a legacy project (no rushes)', () => {
+    const project = modelToProject({ id: 'p1', model: baseModel, template, clips, now: 1000 });
+    const a = new File([new Uint8Array([1])], 'clip.mp4', { type: 'video/mp4' });
+
+    const model = projectToModel(project, { video_1: a });
+
+    expect(model.rushesBySection.video_1).toEqual([a]);
+    expect(model.clipsBySection.video_1).toBe(a);
+  });
+});
+
+describe('takes round-trip', () => {
+  const take = (name: string, byte: number): File => new File([new Uint8Array([byte])], name, { type: 'video/webm' });
+
+  it('persists all takes and the selected clip', () => {
+    const a = take('a.webm', 1);
+    const b = take('b.webm', 2);
+    const model: WizardModel = {
+      ...EMPTY_MODEL,
+      clipsBySection: { intro: b },
+      rushesBySection: { intro: [a, b] },
+    };
+    const selected: StoredClip = { blobKey: 'blob-b', name: 'b.webm', type: 'video/webm', size: b.size };
+    const rushes: Record<string, StoredClip[]> = {
+      intro: [
+        { blobKey: 'blob-a', name: 'a.webm', type: 'video/webm', size: a.size },
+        { blobKey: 'blob-b', name: 'b.webm', type: 'video/webm', size: b.size },
+      ],
+    };
+
+    const project = modelToProject({
+      id: 'p1',
+      model,
+      template,
+      clips: { intro: selected },
+      rushes,
+      now: 1000,
+    });
+
+    expect(project.rushes?.intro).toHaveLength(2);
+    expect(project.clips.intro).toEqual(selected);
+  });
+
+  it('restores both takes and the selection from rushFiles', () => {
+    const a = take('a.webm', 1);
+    const b = take('b.webm', 2);
+    const selected: StoredClip = { blobKey: 'blob-b', name: 'b.webm', type: 'video/webm', size: b.size };
+    const project = modelToProject({
+      id: 'p1',
+      model: { ...EMPTY_MODEL, clipsBySection: { intro: b }, rushesBySection: { intro: [a, b] } },
+      template,
+      clips: { intro: selected },
+      rushes: {
+        intro: [
+          { blobKey: 'blob-a', name: 'a.webm', type: 'video/webm', size: a.size },
+          { blobKey: 'blob-b', name: 'b.webm', type: 'video/webm', size: b.size },
+        ],
+      },
+      now: 1000,
+    });
+
+    const model = projectToModel(project, { intro: b }, { intro: [a, b] });
+
+    expect(model.rushesBySection.intro).toHaveLength(2);
+    expect(model.clipsBySection.intro).toBe(b);
+  });
+
+  it('falls back to the first take when the selection matches none', () => {
+    const a = take('a.webm', 1);
+    const b = take('b.webm', 2);
+    const project: StoredProject = {
+      id: 'p1',
+      name: 'Spotlight',
+      templateId: 'tpl-1',
+      templateName: 'Spotlight',
+      orientation: 'portrait',
+      status: 'draft',
+      stepIndex: 0,
+      formData: {},
+      musicChoice: null,
+      backgroundChoice: null,
+      clips: { intro: { blobKey: 'blob-x', name: 'gone.webm', type: 'video/webm', size: 999 } },
+      edits: {},
+      createdAt: 1,
+      updatedAt: 1,
+    };
+
+    const model = projectToModel(project, { intro: a }, { intro: [a, b] });
+
+    expect(model.clipsBySection.intro).toBe(a);
+    expect(model.rushesBySection.intro).toEqual([a, b]);
   });
 });

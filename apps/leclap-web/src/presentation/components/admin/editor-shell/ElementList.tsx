@@ -28,8 +28,11 @@ const KIND_ICON: Record<ElementRef['kind'], LucideIcon> = {
 };
 
 // Two refs point at the same element when both kind and index match.
-const sameRef = (a: ElementRef, b: ElementRef | null): boolean =>
-  b !== null && a.kind === b.kind && a.index === b.index;
+const sameRef = (a: ElementRef, b: ElementRef | null): boolean => {
+  if (b === null) return false;
+
+  return a.kind === b.kind && a.index === b.index;
+};
 
 interface ElementListProps {
   elements: ElementDescriptor[];

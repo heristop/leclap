@@ -46,6 +46,7 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
 
   return (
     <ShellChrome
+      resizeLabel={t('shell.resizePanels')}
       titlebar={
         <PartialTitlebar
           id={draftState.id}

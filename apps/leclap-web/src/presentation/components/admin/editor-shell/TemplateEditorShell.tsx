@@ -128,6 +128,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
 
   return (
     <ShellChrome
+      resizeLabel={t('shell.resizePanels')}
       titlebar={
         <EditorShellTitlebar
           name={state.name}

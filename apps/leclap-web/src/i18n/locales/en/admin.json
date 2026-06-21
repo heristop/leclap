@@ -152,6 +152,7 @@
     "variables": "Variables",
     "advanced": "Advanced",
     "tools": "Editor tools",
+    "resizePanels": "Drag to resize preview and panel",
     "preview": "Preview",
     "addScene": "Add scene",
     "addSceneKind": "Add {{kind}} scene",

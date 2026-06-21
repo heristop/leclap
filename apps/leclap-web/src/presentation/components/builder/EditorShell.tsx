@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -15,7 +15,13 @@ import {
   type LucideIcon,
 } from '@/presentation/components/icons';
 import { Button, SegmentedControl } from '@/presentation/components/ui';
-import { ToolDock, ProgramMonitor, type ToolItem } from '@/presentation/components/editor-shell';
+import {
+  ToolDock,
+  ProgramMonitor,
+  MobileResizeHandle,
+  useMobileSplit,
+  type ToolItem,
+} from '@/presentation/components/editor-shell';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
 import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
@@ -287,12 +293,17 @@ const EditorBody = (p: EditorBodyProps) => {
   const clipFile =
     p.tool === 'content' && p.section?.kind === 'clip' ? p.model.clipsBySection[p.section.name] : undefined;
   const editForClip = p.section ? p.model.editsBySection[p.section.name] : undefined;
+  const { containerRef, monitorHeight, beginResize } = useMobileSplit();
 
   return (
-    // One grid holds all four regions. Mobile (flex-col): monitor → panel → timeline → dock
-    // (the dock is a bottom tab bar, order-last). Desktop: the 5rem·24rem·1fr grid with the
-    // timeline spanning the full second row below dock·panel·monitor.
-    <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[5rem_24rem_1fr] lg:grid-rows-[minmax(0,1fr)_auto]">
+    // One grid holds all regions. Mobile (flex-col): monitor → resize divider → panel → timeline →
+    // dock (the dock is a bottom tab bar, order-last). The monitor's height is the draggable mobile
+    // split (`--monitor-h`); `lg:h-auto` resets it for the desktop grid, where the timeline spans the
+    // full second row below dock·panel·monitor.
+    <div
+      ref={containerRef}
+      className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[5rem_24rem_1fr] lg:grid-rows-[minmax(0,1fr)_auto]"
+    >
       <ToolDock
         items={p.rail.map((r): ToolItem<Tool> => ({ id: r.tool, icon: r.icon, label: r.label }))}
         active={p.tool}
@@ -300,7 +311,7 @@ const EditorBody = (p: EditorBodyProps) => {
         ariaLabel={p.t('editor.tools')}
       />
 
-      <section className="order-2 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 lg:order-none lg:border-r">
+      <section className="order-3 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 lg:order-none lg:border-r">
         {p.panelTitle && (
           <header className="shrink-0 border-b border-foreground/10 px-4 py-3 sm:px-5">
             {p.panelEyebrow && (
@@ -319,7 +330,10 @@ const EditorBody = (p: EditorBodyProps) => {
         </div>
       </section>
 
-      <div className="order-1 max-h-[48vh] min-h-0 sm:max-h-[52vh] lg:order-none lg:max-h-none">
+      <div
+        className="order-1 h-[var(--monitor-h)] min-h-0 shrink-0 lg:order-none lg:h-auto lg:shrink"
+        style={{ '--monitor-h': monitorHeight } as CSSProperties}
+      >
         <ProgramArea
           clipFile={clipFile}
           section={p.section}
@@ -331,7 +345,9 @@ const EditorBody = (p: EditorBodyProps) => {
         />
       </div>
 
-      <footer className="track-lane order-3 flex items-stretch border-t border-foreground/10 lg:order-none lg:col-span-3">
+      <MobileResizeHandle onResize={beginResize} label={p.t('editor.resizePanels')} />
+
+      <footer className="track-lane order-4 flex items-stretch border-t border-foreground/10 lg:order-none lg:col-span-3">
         <div className="hidden w-20 shrink-0 flex-col items-center justify-center gap-1.5 border-r border-foreground/10 bg-surface-2/30 sm:flex">
           <span
             aria-hidden="true"

@@ -160,7 +160,7 @@ function DropZone({
       {...getRootProps()}
       aria-label={t('upload.uploadAria')}
       className={clsx(
-        'tap group relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm',
+        'tap group relative border-2 border-dashed rounded-2xl p-5 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm sm:p-8',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         isDragActive || dragActive
           ? 'border-brand-500 bg-brand-500/10 scale-[1.02] shadow-lg shadow-brand-500/10'

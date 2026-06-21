@@ -61,8 +61,10 @@ function CaptureModeBar({
             onChange(m);
           }}
           className={clsx(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-            active === m ? 'bg-white text-black' : 'text-white/70 hover:text-white hover:bg-white/10'
+            'flex min-w-[4.75rem] items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+            active === m
+              ? 'bg-white font-semibold text-black shadow-sm'
+              : 'text-white/70 hover:bg-white/10 hover:text-white'
           )}
         >
           {MODE_LABELS[m]}
@@ -511,10 +513,12 @@ export const CameraCapture = ({
           }}
         />
 
-        {/* Mode tab bar */}
-        <div className="flex justify-center px-4 pb-2">
-          <CaptureModeBar modes={session.allowedModes} active={session.mode} onChange={session.setMode} />
-        </div>
+        {/* Mode tab bar — only before capture starts; hidden once recording/countdown/review begins. */}
+        {(session.state === 'idle' || session.state === 'loading') && (
+          <div className="flex justify-center px-4 pb-2">
+            <CaptureModeBar modes={session.allowedModes} active={session.mode} onChange={session.setMode} />
+          </div>
+        )}
       </div>
 
       {/* Bottom controls */}

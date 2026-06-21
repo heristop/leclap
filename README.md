@@ -60,7 +60,7 @@ Two looks at LeClap — a finished clip rendered from a single JSON template, an
 
 ```bash
 git clone https://github.com/heristop/leclap.git
-cd ffmpeg-video-composer
+cd leclap
 mise install     # Node 24, pnpm 11, FFmpeg 8.1.1 + Rust
 pnpm install
 ```

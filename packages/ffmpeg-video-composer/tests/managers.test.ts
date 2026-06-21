@@ -872,11 +872,14 @@ describe('MapManager', () => {
       expect(segment.mapsList).toContain('anim');
     });
 
-    it('normalizes the main video leg to the output scale before the overlay (fill, not corner)', () => {
+    it('normalizes the main video leg to the output scale before the overlay (cover, not stretch)', () => {
       const { manager, segment } = build({ section: animationSection() });
       manager.addAnimationOverlay(makeAnimInput(), 2, '1280:720');
-      // the raw video leg is scaled to the output size on its own chain, before the overlay
-      expect(segment.filtersMapList).toContain('[0:v]scale=1280:720,setsar=1[anim_norm]');
+      // the raw video leg is COVER-scaled (fill + crop, aspect-preserving) on its own chain so a clip
+      // whose ratio differs from the output isn't stretched, before the overlay composites onto it
+      expect(segment.filtersMapList).toContain(
+        '[0:v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1[anim_norm]'
+      );
       // the overlay composites the normalized base + the scaled animation, not the raw streams
       const overlay = segment.filtersMapList.at(-1) ?? '';
       expect(overlay).toContain('[anim_norm]');

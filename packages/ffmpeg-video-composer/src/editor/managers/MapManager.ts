@@ -82,10 +82,14 @@ class MapManager {
   private readonly buildAnimationBackground = (name: string, videoStream: string, videoScale: string): string => {
     let baseStream = videoStream;
 
-    // unshift keeps the normalize pad defined before the background map that consumes it.
+    // unshift keeps the normalize pad defined before the background map that consumes it. COVER (scale up
+    // to fill, then crop the overflow) preserves the clip's aspect — a bare `scale=W:H` would stretch a
+    // source whose ratio differs from the output (e.g. a portrait clip under a 1:1 square template).
     if (videoScale) {
       const normalizedPad = `${name}_norm`;
-      this.segment.filtersMapList.unshift(`[${videoStream}]scale=${videoScale},setsar=1[${normalizedPad}]`);
+      this.segment.filtersMapList.unshift(
+        `[${videoStream}]scale=${videoScale}:force_original_aspect_ratio=increase,crop=${videoScale},setsar=1[${normalizedPad}]`
+      );
       baseStream = normalizedPad;
     }
 

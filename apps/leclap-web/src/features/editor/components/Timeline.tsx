@@ -87,26 +87,27 @@ function TrimHandle({
       aria-valuenow={Math.round((side === 'start' ? segment.start : segment.end) * 10) / 10}
       tabIndex={0}
       onPointerDown={onPointerDown}
+      // 44px-wide hit area for comfortable touch dragging; the visible grip stays slim.
       className={cn(
-        'absolute inset-y-0 z-30 flex w-6 cursor-ew-resize touch-none items-center justify-center',
-        side === 'start' ? '-left-3' : '-right-3'
+        'absolute inset-y-0 z-30 flex w-11 cursor-ew-resize touch-none items-center justify-center',
+        side === 'start' ? '-left-[22px]' : '-right-[22px]'
       )}
     >
       <span
         className={cn(
           'pointer-events-none absolute -top-8 whitespace-nowrap rounded-md bg-brand-500 px-1.5 py-0.5 text-[0.65rem] font-semibold tabular-nums text-white shadow-lg transition-all duration-150',
-          dragging ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          dragging ? 'scale-100 opacity-100' : 'scale-90 opacity-0'
         )}
       >
         {fmtClock(side === 'start' ? segment.start : segment.end)}
       </span>
       <span
         className={cn(
-          'flex h-9 w-2.5 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/15 transition-transform',
-          dragging ? 'scale-y-105 ring-2 ring-brand-400' : 'group-hover:scale-y-105'
+          'flex h-10 w-2.5 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/20 transition-transform duration-150',
+          dragging ? 'scale-y-110 ring-2 ring-brand-400' : 'group-hover:scale-y-110'
         )}
       >
-        <span className="h-3.5 w-0.5 rounded-full bg-gray-400" />
+        <span className="h-4 w-0.5 rounded-full bg-gray-400" />
       </span>
     </div>
   );

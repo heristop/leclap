@@ -37,8 +37,8 @@ const DockButton = ({ icon: Icon, label, active, tabIndex, onSelect, buttonRef, 
     aria-current={active}
     tabIndex={tabIndex}
     className={cn(
-      'tap relative z-10 flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 text-[0.65rem] font-medium transition-colors duration-200',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 lg:h-[4.5rem] lg:w-full',
+      'tap relative z-10 flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1 text-[0.65rem] font-medium transition-colors duration-200',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 lg:h-[4.5rem] lg:min-h-0 lg:w-full lg:flex-none lg:py-0',
       active ? 'text-brand-600 dark:text-brand-300' : 'text-muted-foreground hover:text-foreground'
     )}
   >
@@ -56,8 +56,10 @@ const DockButton = ({ icon: Icon, label, active, tabIndex, onSelect, buttonRef, 
 );
 
 // A tool dock as an ARIA toolbar: a brand-gradient indicator slides to the active tool on desktop;
-// Tab reaches it, then arrow keys (either axis) move + activate with a roving tabindex. Horizontal
-// strip on mobile, a vertical icon column on desktop. Generic over the tool id type.
+// Tab reaches it, then arrow keys (either axis) move + activate with a roving tabindex. A bottom
+// tab bar on mobile (equal-width, ≥44px targets, safe-area padded), a vertical icon column on
+// desktop. The active tool reads via the icon pill on mobile and the sliding indicator on desktop.
+// Generic over the tool id type.
 export const ToolDock = <Id extends string>({ items, active, onSelect, ariaLabel }: ToolDockProps<Id>) => {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const activeIndex = items.findIndex((item) => item.id === active);
@@ -77,7 +79,7 @@ export const ToolDock = <Id extends string>({ items, active, onSelect, ariaLabel
       role="toolbar"
       aria-orientation="vertical"
       aria-label={ariaLabel}
-      className="relative order-1 flex gap-1 border-b border-foreground/10 bg-surface-2/50 px-2 py-1.5 lg:order-none lg:flex-col lg:gap-0 lg:border-b-0 lg:border-r lg:py-3"
+      className="relative order-last flex gap-1 border-t border-foreground/10 bg-surface-2/50 px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:order-none lg:flex-col lg:gap-0 lg:border-t-0 lg:border-r lg:py-3 lg:pb-3"
     >
       {activeIndex >= 0 && (
         <span

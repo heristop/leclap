@@ -289,48 +289,49 @@ const EditorBody = (p: EditorBodyProps) => {
   const editForClip = p.section ? p.model.editsBySection[p.section.name] : undefined;
 
   return (
-    <>
-      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[5rem_24rem_1fr]">
-        <ToolDock
-          items={p.rail.map((r): ToolItem<Tool> => ({ id: r.tool, icon: r.icon, label: r.label }))}
-          active={p.tool}
-          onSelect={p.setTool}
-          ariaLabel={p.t('editor.tools')}
-        />
+    // One grid holds all four regions. Mobile (flex-col): monitor → panel → timeline → dock
+    // (the dock is a bottom tab bar, order-last). Desktop: the 5rem·24rem·1fr grid with the
+    // timeline spanning the full second row below dock·panel·monitor.
+    <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[5rem_24rem_1fr] lg:grid-rows-[minmax(0,1fr)_auto]">
+      <ToolDock
+        items={p.rail.map((r): ToolItem<Tool> => ({ id: r.tool, icon: r.icon, label: r.label }))}
+        active={p.tool}
+        onSelect={p.setTool}
+        ariaLabel={p.t('editor.tools')}
+      />
 
-        <section className="order-3 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 lg:order-none lg:border-r">
-          {p.panelTitle && (
-            <header className="shrink-0 border-b border-foreground/10 px-4 py-3 sm:px-5">
-              {p.panelEyebrow && (
-                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-brand-600/70 dark:text-brand-300/60">
-                  {p.panelEyebrow}
-                </p>
-              )}
-              <h2 className="font-display text-lg font-bold text-foreground">{p.panelTitle}</h2>
-            </header>
-          )}
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
-            {/* Keyed by tool + scene so swapping either cross-fades the body instead of hard-cutting. */}
-            <div key={`${p.tool}:${p.section?.name ?? ''}`} className="panel-swap motion-reduce:animate-none">
-              <ToolPanel {...p} />
-            </div>
+      <section className="order-2 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 lg:order-none lg:border-r">
+        {p.panelTitle && (
+          <header className="shrink-0 border-b border-foreground/10 px-4 py-3 sm:px-5">
+            {p.panelEyebrow && (
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-brand-600/70 dark:text-brand-300/60">
+                {p.panelEyebrow}
+              </p>
+            )}
+            <h2 className="font-display text-lg font-bold text-foreground">{p.panelTitle}</h2>
+          </header>
+        )}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+          {/* Keyed by tool + scene so swapping either cross-fades the body instead of hard-cutting. */}
+          <div key={`${p.tool}:${p.section?.name ?? ''}`} className="panel-swap motion-reduce:animate-none">
+            <ToolPanel {...p} />
           </div>
-        </section>
-
-        <div className="order-2 max-h-[42vh] min-h-0 lg:order-none lg:max-h-none">
-          <ProgramArea
-            clipFile={clipFile}
-            section={p.section}
-            editForClip={editForClip}
-            onEditChange={p.onEditChange}
-            template={p.template}
-            model={p.model}
-            t={p.t}
-          />
         </div>
+      </section>
+
+      <div className="order-1 max-h-[48vh] min-h-0 sm:max-h-[52vh] lg:order-none lg:max-h-none">
+        <ProgramArea
+          clipFile={clipFile}
+          section={p.section}
+          editForClip={editForClip}
+          onEditChange={p.onEditChange}
+          template={p.template}
+          model={p.model}
+          t={p.t}
+        />
       </div>
 
-      <footer className="track-lane flex items-stretch border-t border-foreground/10">
+      <footer className="track-lane order-3 flex items-stretch border-t border-foreground/10 lg:order-none lg:col-span-3">
         <div className="hidden w-20 shrink-0 flex-col items-center justify-center gap-1.5 border-r border-foreground/10 bg-surface-2/30 sm:flex">
           <span
             aria-hidden="true"
@@ -354,7 +355,7 @@ const EditorBody = (p: EditorBodyProps) => {
           onSelect={p.onSelectScene}
         />
       </footer>
-    </>
+    </div>
   );
 };
 

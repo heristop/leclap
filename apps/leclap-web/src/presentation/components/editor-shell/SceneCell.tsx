@@ -85,7 +85,7 @@ export const SceneCell = ({
       onClick={onSelect}
       onMouseMove={onPointerMove}
       className={cn(
-        'tap spotlight group relative flex w-32 flex-col gap-1.5 rounded-xl border p-2 text-left transition-all duration-200 ease-[var(--ease-spring)] motion-reduce:transition-none',
+        'tap spotlight group relative flex w-28 flex-col gap-1.5 rounded-xl border p-2 text-left transition-all duration-200 ease-[var(--ease-spring)] motion-reduce:transition-none sm:w-32',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
         active
           ? 'border-brand-500 bg-brand-500/10 ring-1 ring-brand-500/40'

@@ -183,12 +183,12 @@ const navigateAfterRecording = ({
 
   router.push({
     pathname: '/(fullscreen)/preview',
-    // The preview shows the RAW clip (recorded with the phone upright for square), so it locks to the
-    // device orientation; the engine crops to 1:1 at compile time from the template's square setting.
+    // Pass the TEMPLATE orientation (so square stays square): the preview locks the device to portrait
+    // for a square clip but frames the clip 1:1 to match the engine's compile-time center-crop.
     params: {
       projectId,
       videoUri: video.path,
-      orientation: toDeviceOrientation(orientation),
+      orientation,
       sectionName: section.name,
     },
   });

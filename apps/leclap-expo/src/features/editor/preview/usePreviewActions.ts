@@ -10,7 +10,7 @@ interface UsePreviewActionsArgs {
   project: Project | null | undefined;
   projectId: string | undefined;
   sectionName: string | undefined;
-  requiredOrientation: 'portrait' | 'landscape';
+  requiredOrientation: 'portrait' | 'landscape' | 'square';
   saveProjectMutation: ReturnType<typeof useSaveProject>;
   trim: TrimRange;
   crop: NormalizedCrop;

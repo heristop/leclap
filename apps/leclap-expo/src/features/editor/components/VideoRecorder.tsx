@@ -188,7 +188,11 @@ function ModeBarOrFlip({
   onFlip,
 }: ModeBarOrFlipProps) {
   if (showModeBar) {
-    return <RNCaptureModeBar modes={allowedModes} active={activeMode} onChange={onModeChange} disabled={isBusy} />;
+    // Hide the mode toggle entirely while recording/finalizing — switching cameras mid-take isn't
+    // possible, and it keeps the frame clean around the record button.
+    if (isBusy) return null;
+
+    return <RNCaptureModeBar modes={allowedModes} active={activeMode} onChange={onModeChange} disabled={false} />;
   }
 
   return <FlipButton isPortrait={isPortrait} isRecording={isBusy} onPress={onFlip} />;
@@ -301,20 +305,31 @@ interface RNCaptureModeBarProps {
 function RNCaptureModeBar({ modes, active, onChange, disabled }: RNCaptureModeBarProps) {
   return (
     <View style={styles.captureModeBar} pointerEvents={disabled ? 'none' : 'auto'}>
-      {modes.map((mode) => (
-        <TouchableOpacity
-          key={mode}
-          style={[styles.captureModepill, active === mode && styles.captureModePillActive]}
-          onPress={() => {
-            onChange(mode);
-          }}
-          disabled={disabled}
-        >
-          <Text style={[styles.captureModePillText, active === mode && styles.captureModePillTextActive]}>
-            {MODE_LABELS[mode]}
-          </Text>
-        </TouchableOpacity>
-      ))}
+      {/* One translucent track holding equal-width segments — the active segment is the only filled
+          one, so it reads as a single segmented control rather than two floating pills. */}
+      <View style={styles.captureModeTrack}>
+        {modes.map((mode) => {
+          const isActive = active === mode;
+
+          return (
+            <TouchableOpacity
+              key={mode}
+              style={[styles.captureModeSegment, isActive && styles.captureModeSegmentActive]}
+              onPress={() => {
+                onChange(mode);
+              }}
+              disabled={disabled}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={MODE_LABELS[mode]}
+            >
+              <Text style={[styles.captureModeSegmentText, isActive && styles.captureModeSegmentTextActive]}>
+                {MODE_LABELS[mode]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -763,6 +778,9 @@ function useCaptureControls({
 interface RecorderFooterProps {
   isPortrait: boolean;
   isRecording: boolean;
+  // The mode toggle sits just above the record button in portrait; when shown, the hint chip lifts
+  // above it so the two never overlap.
+  hasModeBar: boolean;
   sectionDescription?: string;
   showDescription: boolean;
   onDismissDescription: () => void;
@@ -775,28 +793,33 @@ interface RecorderFooterProps {
 const RecorderFooter = ({
   isPortrait,
   isRecording,
+  hasModeBar,
   sectionDescription,
   showDescription,
   onDismissDescription,
   orientation,
   t,
-}: RecorderFooterProps) => (
-  <>
-    {sectionDescription && showDescription && !isRecording && (
-      <DescriptionOverlay isPortrait={isPortrait} description={sectionDescription} onDismiss={onDismissDescription} />
-    )}
-    {!isRecording && (
-      <View style={[styles.instructionChip, isPortrait ? styles.portraitInstructions : styles.landscapeInstructions]}>
-        <Ionicons
-          name={isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline'}
-          size={13}
-          color="rgba(255,255,255,0.7)"
-        />
-        <Text style={styles.instructionText}>{getInstructionText(orientation, t)}</Text>
-      </View>
-    )}
-  </>
-);
+}: RecorderFooterProps) => {
+  const portraitInstructions = hasModeBar ? styles.portraitInstructionsWithBar : styles.portraitInstructions;
+
+  return (
+    <>
+      {sectionDescription && showDescription && !isRecording && (
+        <DescriptionOverlay isPortrait={isPortrait} description={sectionDescription} onDismiss={onDismissDescription} />
+      )}
+      {!isRecording && (
+        <View style={[styles.instructionChip, isPortrait ? portraitInstructions : styles.landscapeInstructions]}>
+          <Ionicons
+            name={isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline'}
+            size={13}
+            color="rgba(255,255,255,0.7)"
+          />
+          <Text style={styles.instructionText}>{getInstructionText(orientation, t)}</Text>
+        </View>
+      )}
+    </>
+  );
+};
 
 interface PermissionGateProps {
   isCheckingPermissions: boolean;
@@ -959,6 +982,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       <RecorderFooter
         isPortrait={isPortrait}
         isRecording={isRecording}
+        hasModeBar={showModeBar}
         sectionDescription={sectionDescription}
         showDescription={showDescription}
         onDismissDescription={dismissDescription}
@@ -1149,6 +1173,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   portraitInstructions: { bottom: 150 },
+  // Lifted clear of the mode toggle (which sits at bottom 146, ~38pt tall) with an 8pt-rhythm gap.
+  portraitInstructionsWithBar: { bottom: 206 },
   landscapeInstructions: { bottom: 20 },
   errorText: { ...typography.body, color: colors.error, textAlign: 'center' },
   permissionContainer: {
@@ -1162,33 +1188,48 @@ const styles = StyleSheet.create({
   },
   permissionTitle: { ...typography.subtitle, color: colors.error, marginVertical: spacing.m },
   permissionText: { ...typography.body, textAlign: 'center', marginTop: spacing.m },
+  // Centering wrapper for the segmented control; sits just above the record button (which spans
+  // bottom 50–130), with the hint chip lifted above it (portraitInstructionsWithBar).
   captureModeBar: {
     position: 'absolute',
-    bottom: 140,
+    bottom: 146,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.s,
     zIndex: 10,
   },
-  captureModepill: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.m,
+  captureModeTrack: {
+    flexDirection: 'row',
+    padding: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(11,11,15,0.55)',
+    backgroundColor: 'rgba(11,11,15,0.6)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.14)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  captureModePillActive: {
+  captureModeSegment: {
+    minWidth: 88,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  captureModeSegmentActive: {
     backgroundColor: 'white',
   },
-  captureModePillText: {
+  captureModeSegmentText: {
     ...typography.button,
-    color: 'white',
+    color: 'rgba(255,255,255,0.72)',
     fontSize: 14,
   },
-  captureModePillTextActive: {
+  captureModeSegmentTextActive: {
     color: colors.text,
+    fontWeight: '700',
   },
   uploadPlaceholder: {
     flex: 1,

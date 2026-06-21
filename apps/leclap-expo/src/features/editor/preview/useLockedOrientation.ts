@@ -1,25 +1,25 @@
 import { useEffect } from 'react';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
-type RequiredOrientation = 'portrait' | 'landscape';
+type RequiredOrientation = 'portrait' | 'landscape' | 'square';
 
 /**
  * Locks the device to the param-provided orientation while the preview screen
  * is mounted and restores it on unmount. Returns the effective orientation,
- * defaulting to portrait.
+ * defaulting to portrait. A square clip is shot with the phone upright, so the
+ * device locks to portrait while the preview still frames the clip 1:1.
  */
 export function useLockedOrientation(paramOrientation: RequiredOrientation | undefined): RequiredOrientation {
-  const { lockOrientation, unlockOrientation } = useOrientation(paramOrientation);
+  const deviceOrientation = paramOrientation === 'landscape' ? 'landscape' : 'portrait';
+  const { lockOrientation, unlockOrientation } = useOrientation(deviceOrientation);
 
   useEffect(() => {
-    if (paramOrientation) {
-      lockOrientation(paramOrientation).catch(() => null);
-    }
+    lockOrientation(deviceOrientation).catch(() => null);
 
     return () => {
       unlockOrientation().catch(() => null);
     };
-  }, [paramOrientation, lockOrientation, unlockOrientation]);
+  }, [deviceOrientation, lockOrientation, unlockOrientation]);
 
   return paramOrientation ?? 'portrait';
 }

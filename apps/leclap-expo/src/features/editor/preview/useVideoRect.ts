@@ -16,7 +16,7 @@ interface UseVideoRectResult {
  */
 export function useVideoRect(
   srcSize: { width: number; height: number } | null,
-  requiredOrientation: 'portrait' | 'landscape'
+  requiredOrientation: 'portrait' | 'landscape' | 'square'
 ): UseVideoRectResult {
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
@@ -25,7 +25,7 @@ export function useVideoRect(
     setContainerSize({ width, height });
   };
 
-  const fallbackAspect = requiredOrientation === 'portrait' ? 9 / 16 : 16 / 9;
+  const fallbackAspect = { square: 1, portrait: 9 / 16, landscape: 16 / 9 }[requiredOrientation];
   const videoRect = srcSize
     ? computeVideoRect(containerSize, srcSize.width, srcSize.height)
     : computeVideoRect(containerSize, fallbackAspect * 1000, 1000);

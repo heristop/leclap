@@ -45,7 +45,7 @@ export default function PreviewPage() {
   const params = useLocalSearchParams<{
     projectId?: string;
     videoUri?: string;
-    orientation?: 'portrait' | 'landscape';
+    orientation?: 'portrait' | 'landscape' | 'square';
     sectionName?: string;
   }>();
   const router = useRouter();
@@ -102,12 +102,27 @@ export default function PreviewPage() {
       <StatusBar hidden translucent backgroundColor="transparent" />
 
       <View style={styles.videoArea} onLayout={onContainerLayout}>
-        <VideoView
-          style={StyleSheet.absoluteFill}
-          player={player}
-          nativeControls={mode === 'view'}
-          contentFit="contain"
-        />
+        {requiredOrientation === 'square' && mode !== 'crop' ? (
+          // A square template records portrait, then the engine center-crops to 1:1 — so frame the
+          // clip in a 1:1 box with cover here, making the preview match the rendered output.
+          <View style={squareStyles.center}>
+            <View style={squareStyles.frame}>
+              <VideoView
+                style={StyleSheet.absoluteFill}
+                player={player}
+                nativeControls={mode === 'view'}
+                contentFit="cover"
+              />
+            </View>
+          </View>
+        ) : (
+          <VideoView
+            style={StyleSheet.absoluteFill}
+            player={player}
+            nativeControls={mode === 'view'}
+            contentFit="contain"
+          />
+        )}
 
         {mode === 'crop' && containerWidth > 0 && <CropOverlay videoRect={videoRect} crop={crop} onChange={setCrop} />}
       </View>
@@ -149,3 +164,8 @@ export default function PreviewPage() {
     </View>
   );
 }
+
+const squareStyles = StyleSheet.create({
+  center: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center' },
+  frame: { width: '100%', aspectRatio: 1, overflow: 'hidden', backgroundColor: 'black' },
+});

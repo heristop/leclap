@@ -7,9 +7,9 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "local-forecast-elevator.mp3"
+      "name": "lofi-sentimental-jazz.mp3"
     },
-    "allowedMusic": ["local-forecast-elevator", "arcadia", "air-prelude", "autumn-day", "americana"],
+    "allowedMusic": ["lofi-sentimental-jazz", "cafe-jazz", "lofi-chill", "cafe-bossa-nova", "romantic-piano"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

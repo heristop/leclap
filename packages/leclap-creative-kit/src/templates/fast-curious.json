@@ -15,16 +15,9 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "point-being.mp3"
+      "name": "future-bass-energy.mp3"
     },
-    "allowedMusic": [
-      "point-being",
-      "monkeys-spinning-monkeys",
-      "fluffing-a-duck",
-      "sneaky-snitch",
-      "pixelland",
-      "carefree"
-    ],
+    "allowedMusic": ["future-bass-energy", "upbeat-electronic", "lofi-hip-hop", "party-dance", "indie-rock-dreamy"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

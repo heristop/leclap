@@ -7,9 +7,9 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "air-prelude.mp3"
+      "name": "romantic-piano.mp3"
     },
-    "allowedMusic": ["air-prelude", "autumn-day", "arcadia", "local-forecast-elevator", "americana"],
+    "allowedMusic": ["romantic-piano", "cafe-bossa-nova", "lofi-sentimental-jazz", "cafe-jazz", "lofi-chill"],
     "allowUploadMusic": true,
     "transition": {
       "type": "dissolve",

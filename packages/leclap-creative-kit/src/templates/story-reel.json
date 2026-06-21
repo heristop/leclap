@@ -7,16 +7,9 @@
     "orientation": "portrait",
     "musicEnabled": true,
     "music": {
-      "name": "pixelland.mp3"
+      "name": "indie-rock-dreamy.mp3"
     },
-    "allowedMusic": [
-      "pixelland",
-      "monkeys-spinning-monkeys",
-      "fluffing-a-duck",
-      "carefree",
-      "brain-dance",
-      "sneaky-snitch"
-    ],
+    "allowedMusic": ["indie-rock-dreamy", "lofi-chill", "lofi-hip-hop", "cafe-jazz", "romantic-piano"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

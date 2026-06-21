@@ -1,15 +1,15 @@
 {
   "meta": {
     "name": "Big Reveal",
-    "description": "A 3·2·1 countdown, then your clip bursts in with confetti and a bold headline."
+    "description": "A dramatic 3·2·1 countdown with sparkle overlay, then your clip bursts in with confetti, animated headline and a lower-third name card."
   },
   "global": {
     "orientation": "portrait",
     "musicEnabled": true,
     "music": {
-      "name": "beachfront-celebration.mp3"
+      "name": "party-dance.mp3"
     },
-    "allowedMusic": ["beachfront-celebration", "monkeys-spinning-monkeys", "carefree", "pixelland", "brain-dance"],
+    "allowedMusic": ["party-dance", "future-bass-energy", "upbeat-electronic", "lofi-hip-hop", "indie-rock-dreamy"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",
@@ -39,6 +39,13 @@
             "label": {
               "en": "Headline"
             }
+          },
+          {
+            "name": "form_1_name",
+            "maxLength": 20,
+            "label": {
+              "en": "Your name"
+            }
           }
         ]
       }
@@ -47,87 +54,144 @@
       "name": "countdown",
       "type": "color_background",
       "transition": {
-        "type": "fade",
-        "duration": 0.2
+        "type": "circleopen",
+        "duration": 0.4
       },
       "options": {
         "backgroundColor": "#2b1b52",
         "duration": 3
       },
-      "filters": [
+      "inputs": [
         {
-          "type": "drawbox",
-          "values": {
-            "x": 0,
-            "y": 0,
-            "w": 720,
-            "h": 1280,
-            "c": "#2b1b52@1",
-            "t": "fill"
-          }
-        },
+          "name": "sparkle",
+          "url": "/assets/animations/sparkle.apng",
+          "type": "animation",
+          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "720:1280", "opacity": 0.35 }
+        }
+      ],
+      "maps": [
         {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "GET READY"
+          "inputs": ["@sparkle"],
+          "filters": [
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "GET READY"
+                },
+                "fontcolor": "#c7b9f0",
+                "fontsize": 44,
+                "x": "(w-text_w)/2",
+                "y": "'305-40*max(0,(1-t/0.4))'",
+                "fontfile": "Oswald.ttf",
+                "alpha": "'if(lt(t,0.15),0,if(lt(t,0.5),(t-0.15)/0.35,1))'"
+              }
             },
-            "fontcolor": "#c7b9f0",
-            "fontsize": 44,
-            "x": "(w-text_w)/2",
-            "y": 360,
-            "fontfile": "Oswald.ttf"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "3"
+            {
+              "type": "drawbox",
+              "values": {
+                "x": 260,
+                "y": 358,
+                "w": 200,
+                "h": 3,
+                "c": "#ffd23f@0.7",
+                "t": "fill"
+              }
             },
-            "fontcolor": "#ffd23f",
-            "fontsize": 300,
-            "x": "(w-text_w)/2",
-            "y": "(h-text_h)/2",
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,0),0,if(lt(t,1),1,0))'"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "2"
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "3"
+                },
+                "fontcolor": "#ffd23f",
+                "fontsize": 300,
+                "x": "(w-text_w)/2",
+                "y": "(h-text_h)/2",
+                "fontfile": "Anton.ttf",
+                "alpha": "'if(lt(t,0.12),t/0.12,if(lt(t,0.75),1,if(lt(t,1.0),(1.0-t)/0.25,0)))'"
+              }
             },
-            "fontcolor": "#ff6f91",
-            "fontsize": 300,
-            "x": "(w-text_w)/2",
-            "y": "(h-text_h)/2",
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,1),0,if(lt(t,2),1,0))'"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "1"
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "THREE"
+                },
+                "fontcolor": "#c7b9f0",
+                "fontsize": 38,
+                "x": "(w-text_w)/2",
+                "y": 840,
+                "fontfile": "Oswald.ttf",
+                "alpha": "'if(lt(t,0.2),0,if(lt(t,0.45),(t-0.2)/0.25,if(lt(t,0.78),1,if(lt(t,1.0),(1.0-t)/0.22,0))))'"
+              }
             },
-            "fontcolor": "#7C83FD",
-            "fontsize": 300,
-            "x": "(w-text_w)/2",
-            "y": "(h-text_h)/2",
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,2),0,if(lt(t,3),1,0))'"
-          }
-        },
-        {
-          "type": "fade",
-          "values": {
-            "t": "in",
-            "d": "0.4",
-            "color": "#160a2e"
-          }
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "2"
+                },
+                "fontcolor": "#ff6f91",
+                "fontsize": 300,
+                "x": "(w-text_w)/2",
+                "y": "(h-text_h)/2",
+                "fontfile": "Anton.ttf",
+                "alpha": "'if(lt(t,1.0),0,if(lt(t,1.12),(t-1)/0.12,if(lt(t,1.75),1,if(lt(t,2.0),(2.0-t)/0.25,0))))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "TWO"
+                },
+                "fontcolor": "#c7b9f0",
+                "fontsize": 38,
+                "x": "(w-text_w)/2",
+                "y": 840,
+                "fontfile": "Oswald.ttf",
+                "alpha": "'if(lt(t,1.0),0,if(lt(t,1.2),(t-1)/0.2,if(lt(t,1.78),1,if(lt(t,2.0),(2.0-t)/0.22,0))))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "1"
+                },
+                "fontcolor": "#7C83FD",
+                "fontsize": 300,
+                "x": "(w-text_w)/2",
+                "y": "(h-text_h)/2",
+                "fontfile": "Anton.ttf",
+                "alpha": "'if(lt(t,2.0),0,if(lt(t,2.12),(t-2)/0.12,1))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "ONE"
+                },
+                "fontcolor": "#c7b9f0",
+                "fontsize": 38,
+                "x": "(w-text_w)/2",
+                "y": 840,
+                "fontfile": "Oswald.ttf",
+                "alpha": "'if(lt(t,2.0),0,if(lt(t,2.2),(t-2)/0.2,1))'"
+              }
+            },
+            {
+              "type": "fade",
+              "values": {
+                "t": "in",
+                "d": "0.4",
+                "color": "#160a2e"
+              }
+            }
+          ],
+          "outputs": ["countdown_out"]
         }
       ]
     },
@@ -141,13 +205,19 @@
           "url": "/assets/animations/confetti.apng",
           "type": "animation",
           "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "720:1280", "opacity": 0.85 }
+        },
+        {
+          "name": "sparkle",
+          "url": "/assets/animations/sparkle.apng",
+          "type": "animation",
+          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "720:1280", "opacity": 0.55 }
         }
       ],
       "title": {
         "en": "Record your reveal"
       },
       "description": {
-        "en": "Film your reaction — the headline and confetti drop on top"
+        "en": "Film your reaction — the headline and effects drop on top"
       },
       "options": {
         "duration": 6,
@@ -163,17 +233,42 @@
       ],
       "maps": [
         {
-          "inputs": ["@confetti"],
+          "inputs": ["@sparkle"],
           "filters": [
             {
               "type": "drawbox",
               "values": {
                 "x": 0,
-                "y": 130,
+                "y": 108,
                 "w": 720,
-                "h": 150,
-                "c": "#160a2e@0.6",
+                "h": 210,
+                "c": "#160a2e@0.75",
                 "t": "fill"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": {
+                "x": 0,
+                "y": 108,
+                "w": 720,
+                "h": 4,
+                "c": "#ffd23f@0.95",
+                "t": "fill"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "— BREAKING —"
+                },
+                "fontcolor": "#c7b9f0",
+                "fontsize": 28,
+                "x": "(w-text_w)/2",
+                "y": 122,
+                "fontfile": "Oswald.ttf",
+                "alpha": "'if(lt(t,0.1),0,if(lt(t,0.4),(t-0.1)/0.3,0.85))'"
               }
             },
             {
@@ -183,11 +278,72 @@
                   "en": "{{ form_1_headline }}"
                 },
                 "fontcolor": "#ffd23f",
-                "fontsize": 76,
+                "fontsize": 72,
                 "x": "(w-text_w)/2",
-                "y": 165,
+                "y": "'168+28*(1-min(1,max(0,(t-0.15)/0.4)))'",
                 "fontfile": "Anton.ttf",
-                "alpha": "'if(lt(t,0.2),0,if(lt(t,0.9),(t-0.2)/0.7,1))'"
+                "alpha": "'if(lt(t,0.15),0,if(lt(t,0.85),(t-0.15)/0.7,1))'"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": {
+                "x": 260,
+                "y": 262,
+                "w": 200,
+                "h": 2,
+                "c": "#c7b9f0@0.6",
+                "t": "fill"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "{{ form_1_name }}"
+                },
+                "fontcolor": "#e8d4ff",
+                "fontsize": 30,
+                "x": "(w-text_w)/2",
+                "y": 270,
+                "fontfile": "Oswald.ttf",
+                "alpha": "'if(lt(t,0.5),0,if(lt(t,1.0),(t-0.5)/0.5,0.9))'"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": {
+                "x": 0,
+                "y": 1095,
+                "w": 720,
+                "h": 100,
+                "c": "#160a2e@0.65",
+                "t": "fill"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": {
+                "x": 0,
+                "y": 1095,
+                "w": 720,
+                "h": 4,
+                "c": "#7C83FD@0.9",
+                "t": "fill"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "{{ form_1_name }}"
+                },
+                "fontcolor": "#ffffff",
+                "fontsize": 42,
+                "x": "(w-text_w)/2",
+                "y": "'1115+20*(1-min(1,max(0,(t-0.4)/0.5)))'",
+                "fontfile": "BebasNeue.ttf",
+                "alpha": "'if(lt(t,0.4),0,if(lt(t,0.9),(t-0.4)/0.5,0.9))'"
               }
             },
             {

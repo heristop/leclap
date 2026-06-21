@@ -10,9 +10,9 @@
     },
     "musicEnabled": true,
     "music": {
-      "name": "pixelland.mp3"
+      "name": "upbeat-electronic.mp3"
     },
-    "allowedMusic": ["pixelland", "monkeys-spinning-monkeys", "carefree", "beachfront-celebration", "arcadia"],
+    "allowedMusic": ["upbeat-electronic", "future-bass-energy", "party-dance", "lofi-hip-hop", "indie-rock-dreamy"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

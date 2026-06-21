@@ -7,9 +7,9 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "arcadia.mp3"
+      "name": "cafe-jazz.mp3"
     },
-    "allowedMusic": ["arcadia", "air-prelude", "autumn-day", "americana", "local-forecast-elevator"],
+    "allowedMusic": ["cafe-jazz", "cafe-bossa-nova", "indie-rock-dreamy", "romantic-piano", "lofi-sentimental-jazz"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

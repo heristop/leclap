@@ -160,7 +160,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
   const [showCopied, setShowCopied] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const handleDownload = () => {
+  const fallbackDownload = () => {
     setDownloadProgress(0);
     const interval = setInterval(() => {
       setDownloadProgress((prev) => {
@@ -176,7 +176,7 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
 
     const link = document.createElement('a');
     link.href = processedVideo.url;
-    link.download = `processed-video-${Date.now()}.mp4`;
+    link.download = `leclap-video-${Date.now()}.mp4`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -184,6 +184,40 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
     setTimeout(() => {
       setDownloadProgress(0);
     }, 2000);
+  };
+
+  const handleDownload = () => {
+    if (!('showSaveFilePicker' in window)) {
+      fallbackDownload();
+
+      return;
+    }
+
+    // `showSaveFilePicker` isn't in every TS DOM lib version, so the property is typed `unknown`;
+    // assert the call signature (opts typed loosely for the same reason).
+    const showSaveFilePicker = window.showSaveFilePicker as (opts?: unknown) => Promise<FileSystemFileHandle>;
+
+    showSaveFilePicker({
+      suggestedName: `leclap-video-${Date.now()}.mp4`,
+      types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
+    })
+      .then(async (fileHandle) => {
+        setDownloadProgress(10);
+        const writable = await fileHandle.createWritable();
+        setDownloadProgress(40);
+        await writable.write(processedVideo.blob);
+        setDownloadProgress(90);
+        await writable.close();
+        setDownloadProgress(100);
+        setTimeout(() => {
+          setDownloadProgress(0);
+        }, 2000);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          fallbackDownload();
+        }
+      });
   };
 
   const handleCopyLink = () => {

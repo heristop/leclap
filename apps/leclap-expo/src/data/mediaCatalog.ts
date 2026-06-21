@@ -6,7 +6,7 @@
 // a variable. Every catalog file therefore gets its own explicit entry below.
 
 import {
-  MUSIC_LIBRARY,
+  MUSIC_LIBRARY as CORE_MUSIC_LIBRARY,
   BACKGROUND_LIBRARY,
   findMusic,
   findBackground,
@@ -16,7 +16,8 @@ import { ANIMATION_ASSETS } from './animation-assets.generated';
 
 export { ANIMATION_ASSETS };
 
-export { MUSIC_LIBRARY, BACKGROUND_LIBRARY, findMusic, findBackground, type MediaCredit };
+export const MUSIC_LIBRARY: MediaCredit[] = [...CORE_MUSIC_LIBRARY].sort((a, b) => a.title.localeCompare(b.title));
+export { BACKGROUND_LIBRARY, findMusic, findBackground, type MediaCredit };
 
 // Metro asset modules. The `number` type comes from Metro's asset resolver:
 // require('*.mp3') / require('*.jpg') returns an opaque asset id that
@@ -29,15 +30,25 @@ export const MUSIC_ASSETS: Record<string, number> = {
   'anxiety.mp3':                  require('../../assets/musics/anxiety.mp3'),
   'arcadia.mp3':                  require('../../assets/musics/arcadia.mp3'),
   'autumn-day.mp3':               require('../../assets/musics/autumn-day.mp3'),
-  'beachfront-celebration.mp3':   require('../../assets/musics/beachfront-celebration.mp3'),
   'brain-dance.mp3':              require('../../assets/musics/brain-dance.mp3'),
+  'cafe-bossa-nova.mp3':          require('../../assets/musics/cafe-bossa-nova.mp3'),
+  'cafe-jazz.mp3':                require('../../assets/musics/cafe-jazz.mp3'),
   'carefree.mp3':                 require('../../assets/musics/carefree.mp3'),
   'fluffing-a-duck.mp3':          require('../../assets/musics/fluffing-a-duck.mp3'),
+  'future-bass-energy.mp3':       require('../../assets/musics/future-bass-energy.mp3'),
+  'indie-rock-dreamy.mp3':        require('../../assets/musics/indie-rock-dreamy.mp3'),
   'local-forecast-elevator.mp3':  require('../../assets/musics/local-forecast-elevator.mp3'),
+  'lofi-chill.mp3':               require('../../assets/musics/lofi-chill.mp3'),
+  'lofi-hip-hop.mp3':             require('../../assets/musics/lofi-hip-hop.mp3'),
+  'lofi-sentimental-jazz.mp3':    require('../../assets/musics/lofi-sentimental-jazz.mp3'),
   'monkeys-spinning-monkeys.mp3': require('../../assets/musics/monkeys-spinning-monkeys.mp3'),
+  'party-dance.mp3':              require('../../assets/musics/party-dance.mp3'),
   'pixelland.mp3':                require('../../assets/musics/pixelland.mp3'),
   'point-being.mp3':              require('../../assets/musics/point-being.mp3'),
+  'romantic-piano.mp3':           require('../../assets/musics/romantic-piano.mp3'),
   'sneaky-snitch.mp3':            require('../../assets/musics/sneaky-snitch.mp3'),
+  'tropical-cocktail.mp3':        require('../../assets/musics/tropical-cocktail.mp3'),
+  'upbeat-electronic.mp3':        require('../../assets/musics/upbeat-electronic.mp3'),
 };
 
 // prettier-ignore

@@ -12,7 +12,9 @@ export type MediaCredit = CoreMediaCredit & {
 
 export type AnimationAsset = { id: string; label: string; file: string; url: string };
 
-export const MUSIC_LIBRARY: MediaCredit[] = CORE_MUSIC.map((m) => ({ ...m, url: `/musics/${m.file}` }));
+export const MUSIC_LIBRARY: MediaCredit[] = CORE_MUSIC.map((m) => ({ ...m, url: `/musics/${m.file}` })).sort((a, b) =>
+  a.title.localeCompare(b.title)
+);
 export const BACKGROUND_LIBRARY: MediaCredit[] = CORE_BG.map((m) => ({ ...m, url: `/backgrounds/${m.file}` }));
 
 // The list comes from a manifest scripts/copy-core-assets generates from the creative-kit animations

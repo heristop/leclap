@@ -55,6 +55,50 @@ MUSIC (public/musics/)
   License: CC BY 3.0 — https://creativecommons.org/licenses/by/3.0/
   Source: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast%20-%20Elevator.mp3
 
+- Cafe Bossa Nova — rediskasound
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/bossa-nova-cafe-bossa-nova-554525/
+
+- Tropical Cocktail — The_Mountain
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/pop-tropical-cocktail-159121/
+
+- Lo-fi Sentimental Jazz — Sonican
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/lofi-lo-fi-music-loop-sentimental-jazzy-love-473154/
+
+- Lo-fi Chill — AtlasAudio
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/lofi-chill-519566/
+
+- Lo-fi Hip-Hop — leberch
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/lofi-lofi-hip-hop-519408/
+
+- Party Dance — prettyjohn1
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/dance-party-dance-526227/
+
+- Future Bass Energy — BombinSound
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/future-bass-energetic-upbeat-future-bass-version-1-537886/
+
+- Upbeat Electronic — prettyjohn1
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/electro-upbeat-513865/
+
+- Indie Rock Dreamy — alex-morgan
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/rock-indie-rock-dreamy-537459/
+
+- Peaceful Cafe Jazz — alex-morgan
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/beats-peaceful-cafe-jazz-relaxing-coffee-shop-541031/
+
+- Romantic Piano — TolsetMusic
+  License: Pixabay License — https://pixabay.com/service/license-summary/
+  Source: https://pixabay.com/music/beautiful-plays-talking-about-love-romantic-piano-background-music-542958/
+
 Tracks are trimmed to ~75s to keep the bundle small; the composer loops them to
 cover the full video length.
 

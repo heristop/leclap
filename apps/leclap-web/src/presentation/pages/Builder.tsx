@@ -864,7 +864,7 @@ export const Builder = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden">
+    <div className="dark min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden">
       <h1 className="sr-only">{t('srHeading')}</h1>
       <Seo
         title={t('studio.title', { ns: 'seo' })}

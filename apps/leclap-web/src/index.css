@@ -897,11 +897,12 @@ html.theme-vt::view-transition-new(root) {
   transition-delay: 0s !important;
 }
 
-/* Professional, accessible focus ring (keyboard navigation only) */
-:focus-visible {
+/* Professional, accessible focus ring (keyboard navigation only). Controls that carry their own
+   `field-focus-gradient` indicator opt out, so they show a single gradient ring instead of also
+   getting this outer outline — every other focusable keeps the outline for keyboard a11y. */
+:focus-visible:not(.field-focus-gradient) {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
-  border-radius: 0.375rem;
 }
 
 /* Juicy: breathing halo on the active stepper node */

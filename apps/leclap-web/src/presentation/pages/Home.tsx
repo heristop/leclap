@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
 import { HomeShowcase } from '@/presentation/components/HomeShowcase';
-import { PhoneShowcase } from '@/presentation/components/PhoneShowcase';
+import { CreateShowcase } from '@/presentation/components/CreateShowcase';
+import { BuilderShowcase } from '@/presentation/components/BuilderShowcase';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
 import { useInView } from '@/hooks/useInView';
@@ -54,6 +55,7 @@ export const Home = () => {
           playsInline
           preload="metadata"
           aria-hidden="true"
+          tabIndex={-1}
         />
         <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay" />
         {/* Vignette + center-darkening so the footage fades into the stage and the title stays readable. */}
@@ -112,8 +114,13 @@ export const Home = () => {
       {/* Showcase — an actual in-browser render */}
       <HomeShowcase />
 
-      {/* Phone showcase — the on-device Android app */}
-      <PhoneShowcase />
+      {/* Create showcase — the studio video-creation flow (pick a template, add a clip, render) */}
+      <CreateShowcase />
+
+      {/* Builder showcase — a promo of the template builder (landscape on desktop, portrait on phones) */}
+      <BuilderShowcase />
+
+      {/* Mobile section hidden until the iOS/Android app ships on the stores. Re-add <PhoneShowcase />. */}
 
       {/* Features Section */}
       <FeaturesSection />

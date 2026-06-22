@@ -38,6 +38,16 @@ export const HomeShowcase = () => {
   const [reduced, setReduced] = useState(prefersReducedMotion);
   const [muted, setMuted] = useState(true);
   const [volume, setVolume] = useState(DEFAULT_VOLUME);
+  // Store the element AND set `muted` as an attribute the instant it mounts, before the browser
+  // evaluates autoplay eligibility — otherwise some browsers refuse the scroll-triggered play().
+  const setVideoEl = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+
+    if (node) {
+      node.muted = true;
+      node.setAttribute('muted', '');
+    }
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -138,15 +148,19 @@ export const HomeShowcase = () => {
 
             {shouldLoad && (
               <video
-                ref={videoRef}
+                ref={setVideoEl}
                 className="h-full w-full object-cover"
                 autoPlay={!reduced}
                 loop
                 muted={muted}
                 playsInline
                 controls={reduced}
-                preload="metadata"
+                preload="auto"
                 aria-label={t('showcase.videoAria')}
+                onLoadedData={(event) => {
+                  if (reduced || !playInView) return;
+                  event.currentTarget.play().catch(() => {});
+                }}
               >
                 <source src={VIDEO_SRC_WEBM} type="video/webm" />
                 <source src={VIDEO_SRC_MP4} type="video/mp4" />

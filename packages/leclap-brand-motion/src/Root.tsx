@@ -1,9 +1,14 @@
 import { Composition } from 'remotion';
 import { Bumper } from './Bumper';
 import { Kinetic } from './Kinetic';
+import { Marketing } from './Marketing';
+import { WebCreate } from './WebCreate';
 
 const bumperProps = { wordmark: 'LeClap', tagline: 'CINEMATIC VIDEOS, ANYWHERE' };
 const kineticProps = { wordmark: 'LeClap', tagline: 'MOTION, AUTHORED' };
+const marketingProps = { wordmark: 'LeClap', url: 'Free · in your browser · no sign-up' };
+// 23s @ 30fps: 3s bumper + three ~5.6s beats + a CTA (shared shape, see PromoVideo.tsx).
+const PROMO_FRAMES = 690;
 
 // 3s @ 30fps. The marks are centered, so each composition renders cleanly at both aspects.
 // `wordmark`/`tagline` are overridable via inputProps (e.g. the MCP's render_remotion_bumper tool).
@@ -56,6 +61,46 @@ export const RemotionRoot = () => (
       width={1200}
       height={630}
       defaultProps={bumperProps}
+    />
+    {/* Marketing promo for the web template builder — real /templates/new screen-captures in a browser
+        frame with brand captions. Rendered to mp4 via `pnpm --filter @leclap/brand-motion render:marketing`. */}
+    <Composition
+      id="LeClapMarketing"
+      component={Marketing}
+      durationInFrames={PROMO_FRAMES}
+      fps={30}
+      width={1920}
+      height={1080}
+      defaultProps={marketingProps}
+    />
+    <Composition
+      id="LeClapMarketingPortrait"
+      component={Marketing}
+      durationInFrames={PROMO_FRAMES}
+      fps={30}
+      width={1080}
+      height={1920}
+      defaultProps={marketingProps}
+    />
+    {/* Web video-creation promo — real /studio screen-recordings (pick a template, add a clip, render).
+        `pnpm --filter @leclap/brand-motion render:marketing`. */}
+    <Composition
+      id="LeClapWebCreate"
+      component={WebCreate}
+      durationInFrames={PROMO_FRAMES}
+      fps={30}
+      width={1920}
+      height={1080}
+      defaultProps={marketingProps}
+    />
+    <Composition
+      id="LeClapWebCreatePortrait"
+      component={WebCreate}
+      durationInFrames={PROMO_FRAMES}
+      fps={30}
+      width={1080}
+      height={1920}
+      defaultProps={marketingProps}
     />
   </>
 );

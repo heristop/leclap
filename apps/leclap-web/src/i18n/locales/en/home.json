@@ -18,17 +18,33 @@
     "browseTemplates": "Browse templates",
     "readDocs": "Read the docs"
   },
+  "createShowcase": {
+    "eyebrow": "Make a video",
+    "title": "From template to finished video",
+    "subtitle": "Pick a template, drop in your clip, and render a polished video right in your browser — WebAssembly FFmpeg, no upload, no account.",
+    "badge": "Studio · in-browser",
+    "videoAria": "A screen recording of creating a video in the LeClap studio, playing on a loop",
+    "cta": "Start creating"
+  },
+  "builderShowcase": {
+    "eyebrow": "Build it yourself",
+    "title": "Compose a template, visually",
+    "subtitle": "Add scenes, drag text and backgrounds on the canvas, then preview the render live — all in your browser, nothing to install.",
+    "badge": "The template builder",
+    "videoAria": "A screen recording of the LeClap template builder, playing on a loop",
+    "cta": "Open the builder"
+  },
   "phoneShowcase": {
     "eyebrow": "Also on your phone",
     "title": "The whole studio, in your pocket",
-    "subtitle": "LeClap on Android does the same job as the web app — capture, compose and render a finished clip without ever leaving your device.",
+    "subtitle": "LeClap on iPhone and Android does the same job as the web app — capture, compose and render a finished clip without ever leaving your device.",
     "bullets": {
       "capture": "Record straight from the camera, then drop the take into a template.",
       "effects": "Layer effects, music and transitions, previewed live as you tweak.",
       "offline": "Everything renders on-device — no upload, no account, works offline."
     },
-    "badge": "On Android · on-device",
-    "videoAria": "A screen recording of the LeClap Android app composing a video, playing on a loop",
+    "badge": "On iOS & Android · on-device",
+    "videoAria": "A screen recording of the LeClap mobile app composing a video, playing on a loop",
     "cta": "Start creating",
     "secondaryCta": "Read the docs"
   },

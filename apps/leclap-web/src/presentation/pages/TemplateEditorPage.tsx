@@ -23,7 +23,16 @@ export const TemplateEditorPage = () => {
         path={id ? `/templates/${id}/edit` : '/templates/new'}
         noindex
       />
-      <TemplateEditorShell initial={initial} onSaved={backToList} onCancel={backToList} />
+      <TemplateEditorShell
+        initial={initial}
+        onSaved={() => {
+          backToList();
+        }}
+        onCancel={backToList}
+        onSaveAndCompile={(saved) => {
+          Promise.resolve(navigate(`/studio/new?template=${saved.id}`)).catch(() => {});
+        }}
+      />
     </>
   );
 };

@@ -11,8 +11,22 @@ import {
   ArrowRight,
   Braces,
   Scissors,
+  Check,
 } from '@/presentation/components/icons';
+import { cn } from '@/lib/utils';
 import { CopyIcon } from '@/presentation/components/icons/copy';
+import { GithubIcon } from '@/presentation/components/icons/github';
+import {
+  Button,
+  Card,
+  Reveal,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/presentation/components/ui';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
@@ -20,7 +34,6 @@ import { templateToPartial } from '@/lib/templateToPartial';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
 import { TemplatePoster } from '@/presentation/components/TemplatePoster';
 import { Seo } from '@/presentation/components/Seo';
-import { Button, Card, Reveal } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
 
 interface CardProps {
@@ -108,11 +121,17 @@ const SectionHeading = ({
   </h2>
 );
 
+const GITHUB_REPO = 'https://github.com/heristop/leclap';
+const GITHUB_TEMPLATES_PATH = 'packages/leclap-creative-kit/src/templates';
+
 export const Admin = () => {
   const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmConvert, setConfirmConvert] = useState<Template | null>(null);
+  const [shareTemplate, setShareTemplate] = useState<Template | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -154,17 +173,54 @@ export const Admin = () => {
     Promise.resolve(navigate('/partials', { state: { partialDraft: templateToPartial(template) } })).catch(() => {});
   };
 
+  const handleCopyJson = (template: Template) => {
+    const json = JSON.stringify(template.descriptor, null, 2);
+    navigator.clipboard
+      .writeText(json)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => {
+          setCopied(false);
+        }, 2000);
+      })
+      .catch(() => {});
+  };
+
+  const githubNewFileUrl = (template: Template) => {
+    const slug = template.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    return `${GITHUB_REPO}/new/main?filename=${GITHUB_TEMPLATES_PATH}/${slug}.json`;
+  };
+
   const convertToPartialButton = (template: Template) => (
     <Button
       variant="ghost"
       size="sm"
       onClick={() => {
-        handleConvertToPartial(template);
+        setConfirmConvert(template);
       }}
       aria-label={t('card.convertToPartial', { name: template.name })}
       className="min-h-10 min-w-10 text-gray-400 active:scale-[0.98] hover:text-brand-300"
     >
       <Scissors />
+    </Button>
+  );
+
+  const shareButton = (template: Template) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        setCopied(false);
+        setShareTemplate(template);
+      }}
+      aria-label={t('card.share', { name: template.name })}
+      className="min-h-10 min-w-10 text-gray-400 active:scale-[0.98] hover:text-brand-300"
+    >
+      <GithubIcon className="size-4" />
     </Button>
   );
 
@@ -227,6 +283,7 @@ export const Admin = () => {
                         </Link>
                       </Button>
                       {convertToPartialButton(tpl)}
+                      {shareButton(tpl)}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -249,6 +306,7 @@ export const Admin = () => {
 
       <section aria-labelledby="sample-templates" className="scroll-mt-24">
         <SectionHeading id="sample-templates" icon={Sparkles} label={t('page.samples')} />
+
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
@@ -263,21 +321,141 @@ export const Admin = () => {
                   template={tpl}
                   t={t}
                   actions={
-                    <>
-                      <DuplicateButton
-                        label={t('card.duplicate')}
-                        onClick={() => {
-                          handleDuplicate(tpl);
-                        }}
-                      />
-                      {convertToPartialButton(tpl)}
-                    </>
+                    <DuplicateButton
+                      label={t('card.duplicate')}
+                      onClick={() => {
+                        handleDuplicate(tpl);
+                      }}
+                    />
                   }
                 />
               </Reveal>
             ))}
           </div>
         )}
+      </section>
+      {/* Convert-to-partial confirmation */}
+      <Dialog
+        open={confirmConvert !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmConvert(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('card.convertDialog.title')}</DialogTitle>
+            <DialogDescription>
+              {t('card.convertDialog.description', { name: confirmConvert?.name ?? '' })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setConfirmConvert(null);
+              }}
+            >
+              {t('card.convertDialog.cancel')}
+            </Button>
+            <Button
+              onClick={() => {
+                if (confirmConvert) handleConvertToPartial(confirmConvert);
+                setConfirmConvert(null);
+              }}
+            >
+              {t('card.convertDialog.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share on GitHub */}
+      <Dialog
+        open={shareTemplate !== null}
+        onOpenChange={(open) => {
+          if (!open) setShareTemplate(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GithubIcon className="size-5" />
+              {t('card.shareDialog.title')}
+            </DialogTitle>
+            <DialogDescription>{t('card.shareDialog.description')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5">
+            {/* Step 1: Copy JSON */}
+            <div className="flex gap-3">
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-500/20 text-xs font-bold text-brand-300">
+                1
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="text-sm font-medium text-foreground">{t('card.shareDialog.step1')}</p>
+                <pre className="max-h-40 overflow-auto rounded-lg border border-foreground/10 bg-background p-3 text-xs leading-relaxed text-foreground/75">
+                  {shareTemplate ? JSON.stringify(shareTemplate.descriptor, null, 2) : ''}
+                </pre>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    if (shareTemplate) handleCopyJson(shareTemplate);
+                  }}
+                >
+                  {copied && <Check className="size-4 text-green-400" />}
+                  {copied ? t('card.shareDialog.copied') : t('card.shareDialog.copy')}
+                </Button>
+              </div>
+            </div>
+            {/* Step 2: Open GitHub */}
+            <div className="flex gap-3">
+              <span
+                className={cn(
+                  'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300',
+                  copied ? 'bg-brand-500/20 text-brand-300' : 'bg-foreground/[0.08] text-gray-500'
+                )}
+              >
+                2
+              </span>
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="text-sm font-medium text-foreground">{t('card.shareDialog.step2')}</p>
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => {
+                    if (shareTemplate) {
+                      window.open(githubNewFileUrl(shareTemplate), '_blank', 'noopener,noreferrer');
+                    }
+                    setShareTemplate(null);
+                  }}
+                >
+                  <GithubIcon className="size-4" />
+                  {t('card.shareDialog.openGithub')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <section aria-labelledby="contribute-templates" className="mt-14 scroll-mt-24">
+        <a
+          href="https://github.com/heristop/leclap/compare"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-6 rounded-2xl border border-foreground/10 bg-surface/40 px-8 py-6 transition-colors hover:border-brand-500/30 hover:bg-surface/70"
+        >
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-foreground/10 bg-surface text-foreground/60 transition-colors group-hover:border-brand-500/30 group-hover:text-brand-300">
+            <GithubIcon className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-display font-semibold text-foreground group-hover:text-brand-300">
+              {t('page.contribute.title')}
+            </p>
+            <p className="mt-0.5 text-sm text-gray-400">{t('page.contribute.description')}</p>
+          </div>
+          <ArrowRight className="size-4 shrink-0 text-gray-500 transition-transform group-hover:translate-x-1 group-hover:text-brand-300" />
+        </a>
       </section>
     </StudioSurface>
   );

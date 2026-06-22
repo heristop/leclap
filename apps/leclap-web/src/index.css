@@ -389,7 +389,7 @@ body {
 @utility field-focus-gradient {
   &:focus-visible {
     outline: none;
-    border-color: transparent;
+    border-color: oklch(0 0 0 / 0);
     background-image:
       linear-gradient(var(--field-fill, var(--color-surface-2)) 0 0),
       linear-gradient(
@@ -519,7 +519,7 @@ body {
    because the plain `.take-counter-input` border above would otherwise beat the @utility's transparent
    border on focus. */
 .take-counter-input:focus-visible {
-  border-color: transparent;
+  border-color: oklch(0 0 0 / 0);
   box-shadow: none;
 }
 

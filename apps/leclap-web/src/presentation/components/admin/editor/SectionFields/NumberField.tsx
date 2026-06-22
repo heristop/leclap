@@ -1,5 +1,7 @@
-// Shared labelled number input used across the per-kind section field blocks.
-import { useId } from 'react';
+// Shared labelled number input used across the per-kind section field blocks. Delegates to the
+// studio-themed Take Counter (ui/NumberField) while preserving the original prop shape so existing
+// callers (duration / countdown / image / audio fields) keep working unchanged.
+import { NumberField as TakeCounter } from '@/presentation/components/ui/NumberField';
 
 interface NumberFieldProps {
   label: string;
@@ -8,24 +10,6 @@ interface NumberFieldProps {
   inputCls: string;
 }
 
-export const NumberField = ({ label, value, onChange, inputCls }: NumberFieldProps) => {
-  const numberId = useId();
-
-  return (
-    <div>
-      <label htmlFor={numberId} className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
-        {label}
-      </label>
-      <input
-        id={numberId}
-        type="number"
-        min={1}
-        className={inputCls}
-        value={value}
-        onChange={(e) => {
-          onChange(Number(e.target.value));
-        }}
-      />
-    </div>
-  );
-};
+export const NumberField = ({ label, value, onChange, inputCls }: NumberFieldProps) => (
+  <TakeCounter label={label} value={value} onChange={onChange} min={1} inputCls={inputCls} />
+);

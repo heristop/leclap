@@ -441,6 +441,100 @@ body {
   background-size: 100% 100%;
 }
 
+/* "Take Counter" — a studio-themed number field. A recessed slate well holds condensed tabular        */
+/* digits; two faint sprocket ticks sit on the left edge (decorative, drawn via ::before so they're    */
+/* invisible to AT); a muted unit suffix and a vertical ▲▼ stepper stack sit on the right. The whole   */
+/* field is a drag-to-scrub target (cursor swaps to ew-resize). Quick value-slide is `counter-tick`.   */
+@utility take-counter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+  cursor: ew-resize;
+
+  /* sprocket holes — two faint ticks on the left edge, purely decorative */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    transform: translateY(-50%);
+    border-radius: 1px;
+    background-color: color-mix(in oklch, var(--color-foreground) 10%, transparent);
+    box-shadow: 0 -6px 0 color-mix(in oklch, var(--color-foreground) 10%, transparent);
+    pointer-events: none;
+  }
+}
+
+/* Hide native spinners; the ▲▼ buttons + scrub replace them while the input keeps its spinbutton role. */
+.take-counter-input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 1.1rem;
+  border: 1px solid var(--color-divider);
+  border-radius: 0.5rem;
+  color: var(--color-foreground);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 1px 2px color-mix(in oklch, var(--color-foreground) 8%, transparent);
+}
+
+.take-counter-input::-webkit-inner-spin-button,
+.take-counter-input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.take-counter-input.take-counter-tick {
+  animation: counter-tick 0.22s var(--ease-out-expo, ease-out) both;
+}
+
+.take-counter-unit {
+  position: absolute;
+  right: 1.6rem;
+  pointer-events: none;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gray-500, color-mix(in oklch, var(--color-foreground) 45%, transparent));
+}
+
+.take-counter-steps {
+  position: absolute;
+  right: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.take-counter-step {
+  cursor: pointer;
+}
+
+/* Quick, calm slide/fade when the value changes — not a full odometer. Neutralised by the global      */
+/* prefers-reduced-motion rule above; also guarded here so no keyframe is declared as motion-essential. */
+@keyframes counter-tick {
+  from {
+    transform: translateY(-30%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .take-counter-input.take-counter-tick {
+    animation: none;
+  }
+}
+
 /* Contextual-panel content swap: a shorter, gentler rise than the page-level `fade-in` so changing    */
 /* scene/tool reads as the panel re-settling, not a fresh entrance. Keyed remount drives it.           */
 @utility panel-swap {

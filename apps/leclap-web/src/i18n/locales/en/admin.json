@@ -12,7 +12,11 @@
     },
     "samples": "Sample templates",
     "goToBuilder": "Go to Templates",
-    "partials": "Partials"
+    "partials": "Partials",
+    "contribute": {
+      "title": "Contribute a template",
+      "description": "Built something great? Open a pull request on GitHub to share it with the community."
+    }
   },
   "partials": {
     "title": "Partials",
@@ -27,7 +31,24 @@
     "edit": "Edit",
     "duplicate": "Duplicate & edit",
     "delete": "Delete {{name}}",
-    "convertToPartial": "Convert {{name}} to partial"
+    "convertToPartial": "Convert {{name}} to partial",
+    "share": "Share {{name}} on GitHub",
+    "convertDialog": {
+      "title": "Convert to partial?",
+      "description": "\"{{name}}\" will be converted into a reusable partial scene. The original template is not deleted — you can still edit it from the list.",
+      "cancel": "Cancel",
+      "confirm": "Convert to partial"
+    },
+    "shareDialog": {
+      "title": "Contribute on GitHub",
+      "description": "Share this template with the LeClap community in two steps.",
+      "jsonLabel": "Template descriptor",
+      "step1": "Copy the template JSON",
+      "step2": "Open the GitHub editor, paste the JSON, then propose changes — GitHub creates the PR for you.",
+      "copy": "Copy JSON",
+      "copied": "Copied!",
+      "openGithub": "Open GitHub →"
+    }
   },
   "orientationLabel": {
     "landscape": "landscape",
@@ -142,6 +163,7 @@
       "description": "The file is not a valid template descriptor."
     },
     "save": "Save template",
+    "saveAndFilm": "Save & film →",
     "cancel": "Cancel",
     "untitled": "Untitled template"
   },

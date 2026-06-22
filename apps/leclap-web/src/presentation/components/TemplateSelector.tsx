@@ -9,6 +9,7 @@ import {
   Sparkles,
   Layers,
   SearchX,
+  FolderOpen,
   type LucideIcon,
 } from '@/presentation/components/icons';
 import clsx from 'clsx';
@@ -234,6 +235,23 @@ export const TemplateSelector = ({
   }
 
   const shown = filterTemplates(templates, { query, orientation, complexity });
+  const myTemplates = shown.filter((tpl) => tpl.source === 'user');
+  const sampleTemplates = shown.filter((tpl) => tpl.source === 'sample');
+
+  const renderGrid = (items: Template[], baseDelay = 0) => (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {items.map((template, index) => (
+        <Reveal key={template.id} delay={(baseDelay + index) * 70} className="h-full">
+          <TemplateCard
+            template={template}
+            isSelected={selectedTemplate?.id === template.id}
+            onSelect={handleTemplateSelect}
+            query={query}
+          />
+        </Reveal>
+      ))}
+    </div>
+  );
 
   return (
     <div>
@@ -247,7 +265,7 @@ export const TemplateSelector = ({
       />
 
       {onBuildFromScratch && (
-        <Reveal delay={0} className="mb-8">
+        <Reveal delay={0} className="mb-10">
           <button
             type="button"
             onClick={onBuildFromScratch}
@@ -282,17 +300,33 @@ export const TemplateSelector = ({
           action={{ label: t('empty.clear'), onClick: resetFacets }}
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {shown.map((template, index) => (
-            <Reveal key={template.id} delay={index * 70} className="h-full">
-              <TemplateCard
-                template={template}
-                isSelected={selectedTemplate?.id === template.id}
-                onSelect={handleTemplateSelect}
-                query={query}
-              />
-            </Reveal>
-          ))}
+        <div className="space-y-10">
+          {myTemplates.length > 0 && (
+            <section aria-labelledby="studio-my-templates">
+              <h2
+                id="studio-my-templates"
+                className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-300/80"
+              >
+                <FolderOpen className="size-4" />
+                {t('sections.myTemplates')}
+                <span className="text-gray-500">({myTemplates.length})</span>
+              </h2>
+              {renderGrid(myTemplates, 0)}
+            </section>
+          )}
+
+          {sampleTemplates.length > 0 && (
+            <section aria-labelledby="studio-sample-templates">
+              <h2
+                id="studio-sample-templates"
+                className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-300/80"
+              >
+                <Sparkles className="size-4" />
+                {t('sections.sampleTemplates')}
+              </h2>
+              {renderGrid(sampleTemplates, myTemplates.length)}
+            </section>
+          )}
         </div>
       )}
     </div>

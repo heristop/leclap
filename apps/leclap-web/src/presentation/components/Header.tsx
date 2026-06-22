@@ -237,7 +237,10 @@ export const Header = () => {
   // The studio browsing pages (gallery / templates / projects) are always-dark app surfaces that
   // fill the viewport behind the fixed header. Force a dark header context on them too, so the nav
   // is legible in light mode (and the header reads as part of the dark app, like the editor).
-  const onDarkSurface = ['/studio', '/templates', '/projects', '/partials'].includes(location.pathname);
+  const darkSurfaceRoots = ['/studio', '/templates', '/projects', '/partials'];
+  const onDarkSurface = darkSurfaceRoots.some(
+    (root) => location.pathname === root || location.pathname.startsWith(`${root}/`)
+  );
 
   return (
     <header

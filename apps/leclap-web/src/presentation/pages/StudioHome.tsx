@@ -23,6 +23,10 @@ export const StudioHome = () => {
     Promise.resolve(navigate(`/studio/new?template=${template.id}`, { viewTransition: true })).catch(() => {});
   };
 
+  const onBuildFromScratch = () => {
+    Promise.resolve(navigate('/studio/builder')).catch(() => {});
+  };
+
   return (
     <StudioSurface kicker={t('studio.home.kicker')} title={t('studio.home.title')} subtitle={t('studio.home.subtitle')}>
       <Seo
@@ -31,7 +35,11 @@ export const StudioHome = () => {
         path="/studio"
       />
       <BrowserCompatibility />
-      <TemplateSelector selectedTemplate={null} onTemplateSelected={onTemplateSelected} />
+      <TemplateSelector
+        selectedTemplate={null}
+        onTemplateSelected={onTemplateSelected}
+        onBuildFromScratch={onBuildFromScratch}
+      />
     </StudioSurface>
   );
 };

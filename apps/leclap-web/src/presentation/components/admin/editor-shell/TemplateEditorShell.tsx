@@ -6,6 +6,7 @@ import { userTemplateService } from '@/services/userTemplateService';
 import { userPartialService } from '@/services/userPartialService';
 import { listAvailablePartials } from '@/services/templatePartialService';
 import type { StoredPartial } from '@/stores/userPartialStore';
+import type { StoredTemplate } from '@/stores/userTemplateStore';
 import { useEditorHistory } from '@/hooks/useEditorHistory';
 import { useEditorSectionOps } from '../editor/useEditorSectionOps';
 import {
@@ -26,8 +27,11 @@ import { EditorSceneTimeline } from './EditorSceneTimeline';
 
 interface TemplateEditorShellProps {
   initial: Template | null;
-  onSaved: () => void;
+  onSaved: (saved: StoredTemplate) => void;
   onCancel: () => void;
+  // When provided, a "Save & film →" CTA is shown that saves the template and immediately
+  // launches the Builder wizard — skipping the gallery entirely.
+  onSaveAndCompile?: (saved: StoredTemplate) => void;
 }
 
 // Save guard mirroring TemplateEditor's saveGuardError: name + at least one section + media-or-upload.
@@ -74,7 +78,7 @@ function sectionTitle(section: EditorSection): string {
 // The template-authoring editor re-housed inside the studio shell. Reuses the exact same state hooks as
 // the legacy TemplateEditor (useEditorHistory + useEditorSectionOps), composing them into the shared
 // dock·panel·monitor·timeline frame. The legacy TemplateEditor stays in place; this is the new shell.
-export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEditorShellProps) => {
+export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompile }: TemplateEditorShellProps) => {
   const { t } = useTranslation('admin');
   const history = useEditorHistory(toEditorState(initial));
   const { state, set, undo, redo, canUndo, canRedo, reset } = history;
@@ -113,17 +117,25 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
     dispatch({ type: 'selectScene', index: to });
   };
 
-  const handleSave = (): void => {
-    if (saveGuardFails(state)) return;
-
+  const persist = (): StoredTemplate | null => {
+    if (saveGuardFails(state)) return null;
     setError('');
-
     try {
-      userTemplateService.save(toUserTemplate(state));
-      onSaved();
+      return userTemplateService.save(toUserTemplate(state));
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : t('validation.saveFailed'));
+      return null;
     }
+  };
+
+  const handleSave = (): void => {
+    const saved = persist();
+    if (saved) onSaved(saved);
+  };
+
+  const handleSaveAndCompile = (): void => {
+    const saved = persist();
+    if (saved) onSaveAndCompile?.(saved);
   };
 
   return (
@@ -142,6 +154,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel }: TemplateEdit
           onCancel={onCancel}
           onSave={handleSave}
           saveDisabled={guardFails}
+          onSaveAndCompile={onSaveAndCompile ? handleSaveAndCompile : undefined}
           preview={<TestRenderButton state={state} disabled={state.sections.length === 0} />}
           t={t}
         />

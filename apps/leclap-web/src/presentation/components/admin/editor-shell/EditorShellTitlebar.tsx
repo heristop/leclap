@@ -12,6 +12,8 @@ interface EditorShellTitlebarProps {
   onCancel: () => void;
   onSave: () => void;
   saveDisabled: boolean;
+  // When provided, a second "Save & film →" CTA appears that saves and jumps straight to the Builder.
+  onSaveAndCompile?: () => void;
   // Optional control rendered just before Save — the template editor passes its "Preview render" button.
   preview?: ReactNode;
   t: TFunction<'admin'>;
@@ -52,6 +54,7 @@ export const EditorShellTitlebar = ({
   onCancel,
   onSave,
   saveDisabled,
+  onSaveAndCompile,
   preview,
   t,
 }: EditorShellTitlebarProps) => (
@@ -83,12 +86,27 @@ export const EditorShellTitlebar = ({
       <Redo2 className="size-4" />
     </IconButton>
     {preview}
+    {onSaveAndCompile && (
+      <button
+        type="button"
+        onClick={onSaveAndCompile}
+        disabled={saveDisabled}
+        className="tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
+      >
+        <span className="hidden sm:inline">{t('editor.saveAndFilm')}</span>
+        <span className="sm:hidden">▶</span>
+      </button>
+    )}
     <button
       type="button"
       onClick={onSave}
       disabled={saveDisabled}
       aria-label={t('editor.save')}
-      className="tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
+      className={
+        onSaveAndCompile
+          ? 'tap inline-flex shrink-0 items-center gap-1.5 rounded-full border border-foreground/20 bg-surface px-3 py-1.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4'
+          : 'tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4'
+      }
     >
       <Save className="size-4" />
       <span className="hidden sm:inline">{t('editor.save')}</span>

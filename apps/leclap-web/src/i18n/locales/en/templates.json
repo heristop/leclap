@@ -15,6 +15,14 @@
   "sections_other": "{{count}} sections",
   "music": "Music",
   "custom": "Custom",
+  "sections": {
+    "myTemplates": "My templates",
+    "sampleTemplates": "Template library"
+  },
+  "buildFromScratch": {
+    "label": "Build from scratch",
+    "description": "Design your own template — pick sections, music, and effects."
+  },
   "complexity": {
     "simple": "simple",
     "intermediate": "intermediate",

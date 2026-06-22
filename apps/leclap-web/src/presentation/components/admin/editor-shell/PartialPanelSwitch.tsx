@@ -29,8 +29,8 @@ interface PartialPanelSwitchProps {
 // A panel shell mirroring EditorPanelSwitch's PanelFrame: eyebrow + title over a swap-animated body.
 const PanelFrame = ({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) => (
   <div className="flex min-h-0 flex-1 flex-col">
-    <header className="border-b border-foreground/10 px-4 py-3">
-      <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-brand-600/70 dark:text-brand-300/60">
+    <header className="border-b border-brand-500/20 bg-brand-500/10 px-4 py-3">
+      <span className="block text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-brand-600 dark:text-brand-300">
         {eyebrow}
       </span>
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>

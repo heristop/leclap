@@ -193,12 +193,24 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
     } catch (error) {
       detach();
 
+      // ffmpeg.exec() rejects with an empty/opaque error, so the real cause lives in the captured log
+      // stream (a missing filter/encoder/font surfaces there, not on the thrown error).
       throw new FFmpegError(
         'FFmpeg WebAssembly command failed',
-        error instanceof Error ? error.message : 'Unknown error'
+        FFmpegWasmAdapter.describeFailure(errorMessages, recentLog, error)
       );
     }
   };
+
+  // The real failure, not the benign trailing "Aborted()": prefer a captured non-abort error line, else
+  // the tail of the ffmpeg log, else the thrown message — first non-empty wins.
+  private static describeFailure(errorMessages: string[], recentLog: string[], error: unknown): string {
+    const realError = errorMessages.find((m) => !m.includes('Aborted()') && !m.toLowerCase().includes('abort'));
+    const thrown = error instanceof Error ? error.message : '';
+    const detail = [realError, recentLog.slice(-6).join(' / '), thrown].find((m) => m !== undefined && m !== '');
+
+    return detail ?? 'Unknown error';
+  }
 
   /**
    * Collect every file path the command references that must exist in MEMFS:

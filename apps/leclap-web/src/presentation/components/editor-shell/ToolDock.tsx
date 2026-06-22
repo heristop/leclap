@@ -39,14 +39,14 @@ const DockButton = ({ icon: Icon, label, active, tabIndex, onSelect, buttonRef, 
     className={cn(
       'tap relative z-10 flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1 text-[0.65rem] font-medium transition-colors duration-200',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 lg:h-[4.5rem] lg:min-h-0 lg:w-full lg:flex-none lg:py-0',
-      active ? 'text-brand-600 dark:text-brand-300' : 'text-muted-foreground hover:text-foreground'
+      active ? 'text-brand-600 dark:text-brand-300' : 'text-foreground/50 hover:text-foreground/80'
     )}
   >
     <span
       aria-hidden="true"
       className={cn(
         'grid size-9 place-items-center rounded-xl transition-all duration-200 ease-[var(--ease-spring)]',
-        active ? 'bg-brand-500/15 ring-1 ring-brand-500/30' : 'bg-foreground/[0.06]'
+        active ? 'bg-brand-500/20 ring-1 ring-brand-500/40' : 'bg-foreground/[0.07]'
       )}
     >
       <Icon className="size-[1.15rem]" />
@@ -79,7 +79,7 @@ export const ToolDock = <Id extends string>({ items, active, onSelect, ariaLabel
       role="toolbar"
       aria-orientation="vertical"
       aria-label={ariaLabel}
-      className="relative order-last flex gap-1 border-t border-foreground/10 bg-surface-2/50 px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:order-none lg:flex-col lg:gap-0 lg:border-t-0 lg:border-r lg:py-3 lg:pb-3"
+      className="relative order-last flex gap-1 border-t border-foreground/10 bg-surface-2 px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:order-none lg:flex-col lg:gap-0 lg:border-t-0 lg:border-r lg:py-3 lg:pb-3"
     >
       {activeIndex >= 0 && (
         <span

@@ -35,7 +35,7 @@ const DialogContent = React.forwardRef<
       {/* Grid-center the panel on whole pixels instead of `translate(-50%,-50%)`: a percentage translate
           lands the box on a half-pixel at some viewport widths / zoom / DPR, which blurs antialiased text.
           `pointer-events-none` lets outside clicks fall through to the overlay so Radix still closes. */}
-      <div className="pointer-events-none fixed inset-0 z-[59] grid place-items-center overflow-y-auto p-4">
+      <div className="dark pointer-events-none fixed inset-0 z-[59] grid place-items-center overflow-y-auto p-4">
         <DialogPrimitive.Content
           ref={ref}
           className={cn(

@@ -20,8 +20,8 @@ export const ProjectActions = ({ project, onOpen, onEdit, onDuplicate, onDelete 
 
   return (
     <div className="flex items-center gap-1.5">
-      <Button size="sm" className="flex-1" onClick={onOpen}>
-        <Play className="size-4 fill-current" />
+      <Button size="sm" className="group/view flex-1" onClick={onOpen}>
+        <Play className="size-4 fill-current transition-transform duration-200 group-hover/view:translate-x-0.5 group-hover/view:scale-110" />
         {completed ? t('actions.view') : t('actions.resume')}
       </Button>
       {completed && (

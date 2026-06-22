@@ -468,6 +468,37 @@ body {
   }
 }
 
+/* Compact variant — tight inline rows / axis pairs: drop the sprocket ticks, shrink padding so the    */
+/* digits, unit suffix, and ▲▼ stack sit in a smaller well (drag-to-scrub + focus ring kept).          */
+.take-counter-compact {
+  cursor: ew-resize;
+}
+
+.take-counter-compact::before {
+  display: none;
+}
+
+.take-counter-compact .take-counter-input {
+  padding: 0.3rem 1.9rem 0.3rem 0.55rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.take-counter-compact .take-counter-unit {
+  right: 1.1rem;
+  font-size: 0.6rem;
+}
+
+.take-counter-compact .take-counter-steps {
+  right: 0.3rem;
+}
+
+.take-counter-compact .take-counter-step {
+  height: 0.7rem;
+  width: 0.9rem;
+  font-size: 7px;
+}
+
 /* Hide native spinners; the ▲▼ buttons + scrub replace them while the input keeps its spinbutton role. */
 .take-counter-input {
   appearance: textfield;

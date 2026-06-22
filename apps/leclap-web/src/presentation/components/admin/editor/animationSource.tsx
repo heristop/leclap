@@ -8,6 +8,7 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, X, Check } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { Button, Checkbox, SegmentedControl } from '@/presentation/components/ui';
+import { NumberField } from '@/presentation/components/ui/NumberField';
 import { ANIMATION_LIBRARY, findAnimationByUrl, type AnimationAsset } from '@/data/mediaCatalog';
 import type { AnimationOverlay } from '../templateEditorModel';
 import { PREVIEW_BG_CLASS } from './animationOverlay';
@@ -121,6 +122,7 @@ export const AnimationPlayback = ({ value, patch }: PlaybackProps) => {
           value={value.duration ?? 3}
           min={0.1}
           step={0.5}
+          unit="s"
           onChange={(n) => {
             patch({ duration: n });
           }}
@@ -131,6 +133,7 @@ export const AnimationPlayback = ({ value, patch }: PlaybackProps) => {
         value={value.start ?? 0}
         min={0}
         step={0.5}
+        unit="s"
         onChange={(n) => {
           patch({ start: n > 0 ? n : undefined });
         }}
@@ -153,27 +156,29 @@ const NumberRow = ({
   value,
   min,
   step = 1,
+  unit,
   onChange,
 }: {
   label: string;
   value: number;
   min: number;
   step?: number;
+  unit?: string;
   onChange: (value: number) => void;
 }) => (
-  <label className="flex items-center justify-between gap-2">
+  <div className="flex items-center justify-between gap-2">
     <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">{label}</span>
-    <input
-      type="number"
+    <NumberField
+      aria-label={label}
+      value={value}
       min={min}
       step={step}
-      value={value}
-      onChange={(e) => {
-        onChange(Number(e.target.value));
-      }}
-      className="field-focus-gradient w-24 rounded-lg border border-foreground/15 bg-surface-inset px-2 py-1 text-sm text-foreground [--field-fill:var(--color-surface-inset)] focus:outline-none"
+      unit={unit}
+      compact
+      className="w-28"
+      onChange={onChange}
     />
-  </label>
+  </div>
 );
 
 const AnimationTabs = ({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) => {

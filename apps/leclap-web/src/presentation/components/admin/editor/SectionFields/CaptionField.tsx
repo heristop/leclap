@@ -25,6 +25,9 @@ import {
 } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
 import { SectionDisclosure } from '../SectionDisclosure';
+import { NumberField } from '@/presentation/components/ui/NumberField';
+
+const DEFAULT_FONTSIZE = 48;
 
 type Caption = NonNullable<VisualCaption['caption']>;
 
@@ -167,23 +170,19 @@ const CaptionAdvanced = ({
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-            {t('caption.fontsize')}
-          </span>
-          <input
-            type="number"
-            min={8}
-            max={300}
-            value={caption.fontsize ?? ''}
-            placeholder={t('caption.fontsizeDefault')}
-            onChange={(e) => {
-              const raw = e.target.value.trim();
-              onChange(nextCaption(caption, { fontsize: raw === '' ? undefined : Number(raw) }));
-            }}
-            className="w-full rounded-lg border border-foreground/10 bg-surface px-2.5 py-1.5 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-          />
-        </div>
+        <NumberField
+          label={t('caption.fontsize')}
+          value={caption.fontsize ?? DEFAULT_FONTSIZE}
+          min={8}
+          max={300}
+          step={1}
+          unit="px"
+          compact
+          className="w-full"
+          onChange={(fontsize) => {
+            onChange(nextCaption(caption, { fontsize }));
+          }}
+        />
       </div>
       <div>
         <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">

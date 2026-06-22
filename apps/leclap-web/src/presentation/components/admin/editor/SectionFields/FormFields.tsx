@@ -1,6 +1,7 @@
 // Field block for a form section: an editable list of {id, label, maxLength} rows.
 import { Plus, Trash2 } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
+import { NumberField } from '@/presentation/components/ui/NumberField';
 import type { EditorSection } from '../../templateEditorModel';
 
 type FormSection = Extract<EditorSection, { kind: 'form' }>;
@@ -66,21 +67,18 @@ const FieldRow = ({ field, index, inputCls, onPatch, onRemove }: FieldRowProps) 
             {t('form.maxLength')}
           </span>
         )}
-        <div className="relative">
-          <input
-            aria-label={t('form.maxLength')}
-            type="number"
-            min={1}
-            className="field-focus-gradient w-20 px-2.5 py-2 pr-10 rounded-lg bg-surface-inset border border-foreground/15 text-foreground text-center text-sm tabular-nums transition-colors hover:border-foreground/25 [--field-fill:var(--color-surface-inset)] focus:outline-none"
-            value={field.maxLength}
-            onChange={(e) => {
-              onPatch({ maxLength: Number(e.target.value) });
-            }}
-          />
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.65rem] font-medium text-gray-500">
-            ch
-          </span>
-        </div>
+        <NumberField
+          aria-label={t('form.maxLength')}
+          value={field.maxLength}
+          min={1}
+          step={1}
+          unit="ch"
+          compact
+          className="w-24"
+          onChange={(maxLength) => {
+            onPatch({ maxLength });
+          }}
+        />
       </div>
 
       <div className={index === 0 ? 'mt-[1.35rem]' : ''}>

@@ -21,6 +21,7 @@ interface NumberFieldProps {
   id?: string;
   className?: string;
   inputCls?: string;
+  compact?: boolean;
 }
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
@@ -163,6 +164,7 @@ export const NumberField = ({
   id,
   className,
   inputCls,
+  compact = false,
   'aria-label': ariaLabel,
 }: NumberFieldProps) => {
   const autoId = useId();
@@ -191,7 +193,11 @@ export const NumberField = ({
   return (
     <div className={className}>
       <FieldLabel htmlFor={fieldId} label={label} />
-      <div className="take-counter" data-scrubbing={scrub.scrubbing} onPointerDown={scrub.onPointerDown}>
+      <div
+        className={cn('take-counter', compact && 'take-counter-compact')}
+        data-scrubbing={scrub.scrubbing}
+        onPointerDown={scrub.onPointerDown}
+      >
         <input
           ref={inputRef}
           id={fieldId}

@@ -6,6 +6,7 @@
 import { useId } from 'react';
 import { Music } from '@/presentation/components/icons';
 import { Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
+import { NumberField } from '@/presentation/components/ui/NumberField';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { EditorSection, SectionAudioFade } from '../../templateEditorModel';
 import { VolumeSlider } from '../controls';
@@ -21,7 +22,7 @@ interface SectionAudioFieldsProps {
 // Format a 0..1 volume to a percent string for display.
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
-export const SectionAudioFields = ({ section, onChange, inputCls }: SectionAudioFieldsProps) => {
+export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProps) => {
   const fadeInCheckId = useId();
   const fadeOutCheckId = useId();
 
@@ -104,7 +105,6 @@ export const SectionAudioFields = ({ section, onChange, inputCls }: SectionAudio
             label="Fade in"
             duration={fade.in.duration}
             curve={fade.in.curve}
-            inputCls={inputCls}
             onDuration={(duration) => {
               const current = fade.in;
               patchFade({ in: { duration, curve: current?.curve } });
@@ -137,7 +137,6 @@ export const SectionAudioFields = ({ section, onChange, inputCls }: SectionAudio
             label="Fade out"
             duration={fade.out.duration}
             curve={fade.out.curve}
-            inputCls={inputCls}
             onDuration={(duration) => {
               const current = fade.out;
               patchFade({ out: { duration, curve: current?.curve } });
@@ -157,37 +156,31 @@ interface FadeSideFieldsProps {
   label: string;
   duration: number;
   curve?: string;
-  inputCls: string;
   onDuration: (v: number) => void;
   onCurve: (v: string) => void;
 }
 
-const FadeSideFields = ({ label, duration, curve, inputCls, onDuration, onCurve }: FadeSideFieldsProps) => {
+const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSideFieldsProps) => {
   const durId = useId();
   const curveId = useId();
 
   return (
     <div className="grid gap-2 sm:grid-cols-2 pl-6">
-      <div>
-        <label htmlFor={durId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-          Duration (s)
-        </label>
-        <input
-          id={durId}
-          type="number"
-          min={0.05}
-          max={10}
-          step={0.05}
-          value={duration}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-
-            if (v > 0) onDuration(v);
-          }}
-          className={inputCls}
-          aria-label={`${label} duration in seconds`}
-        />
-      </div>
+      <NumberField
+        id={durId}
+        label="Duration"
+        aria-label={`${label} duration in seconds`}
+        value={duration}
+        min={0}
+        max={10}
+        step={0.1}
+        unit="s"
+        compact
+        className="w-full"
+        onChange={(v) => {
+          if (v > 0) onDuration(v);
+        }}
+      />
       <div>
         <label htmlFor={curveId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
           Curve

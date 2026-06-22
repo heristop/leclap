@@ -35,7 +35,9 @@ export const RouteError = () => {
       </div>
 
       <div className="relative text-center max-w-md fade-in">
-        <p className="text-7xl font-bold font-display brand-gradient-text mb-2">{status ?? 'Oops'}</p>
+        <p className="mb-2 pb-[0.08em] font-display text-7xl font-bold leading-tight brand-gradient-text">
+          {status ?? 'Oops'}
+        </p>
         <h1 className="text-2xl font-bold font-display text-foreground mb-2">Something went wrong</h1>
         <p className="text-gray-300 mb-2">An unexpected error interrupted this page.</p>
         <p className="mb-8 mx-auto max-w-prose break-words text-sm text-gray-500">{detail}</p>

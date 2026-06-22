@@ -380,6 +380,49 @@ body {
   }
 }
 
+/* Animated gradient focus ring — a single panning lavender→pink→accent ring, masked to a 2px band on a
+   focus-within wrapper, that REPLACES the default border+ring so a focused input shows exactly ONE
+   indicator. The wrapped control should drop its own focus border (border-transparent) so only this
+   ring reads. Honours prefers-reduced-motion (ring stays, panning stops). */
+@utility focus-gradient-ring {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(
+      120deg,
+      var(--color-brand-400),
+      var(--color-secondary-400) 45%,
+      var(--color-accent-400),
+      var(--color-brand-400)
+    );
+    background-size: 220% auto;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out-expo);
+    pointer-events: none;
+  }
+
+  &:focus-within::before {
+    opacity: 1;
+    animation: gradient-pan 6s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:focus-within::before {
+      animation: none;
+    }
+  }
+}
+
 /* Subtle dotted texture for hero backdrops (theme-aware via divider token). */
 @utility bg-dots {
   background-image: radial-gradient(var(--color-divider) 1px, transparent 1px);

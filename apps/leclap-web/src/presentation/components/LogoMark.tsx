@@ -1,16 +1,25 @@
-import { useRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+
+export interface LogoMarkHandle {
+  clap: () => void;
+}
 
 // The LeClap mark, inlined so the clapper top can clap on hover. Mirrors public/favicon.svg;
 // hovering the disc fires the SMIL `animateTransform` (open → slam shut → settle open).
-export const LogoMark = ({ className }: { className?: string }) => {
-  const clap = useRef<SVGAnimateTransformElement>(null);
+// Exposes `clap()` imperatively so a parent (e.g. the header link) can trigger it from its own hover.
+export const LogoMark = forwardRef<LogoMarkHandle, { className?: string }>(({ className }, ref) => {
+  const animRef = useRef<SVGAnimateTransformElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    clap: () => animRef.current?.beginElement(),
+  }));
 
   return (
     <svg
       viewBox="0 0 600 600"
       aria-hidden="true"
       className={className}
-      onMouseEnter={() => clap.current?.beginElement()}
+      onMouseEnter={() => animRef.current?.beginElement()}
     >
       <defs>
         <linearGradient id="lcg" x1="110" y1="90" x2="490" y2="510" gradientUnits="userSpaceOnUse">
@@ -66,7 +75,7 @@ export const LogoMark = ({ className }: { className?: string }) => {
         />
         <g transform="rotate(-25 140 250)">
           <animateTransform
-            ref={clap}
+            ref={animRef}
             attributeName="transform"
             type="rotate"
             values="-25 140 250; 4 140 250; -30 140 250; -25 140 250"
@@ -104,4 +113,6 @@ export const LogoMark = ({ className }: { className?: string }) => {
       </g>
     </svg>
   );
-};
+});
+
+LogoMark.displayName = 'LogoMark';

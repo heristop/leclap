@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
-import { LogoMark } from './LogoMark';
+import { LogoMark, type LogoMarkHandle } from './LogoMark';
 import { SunIcon } from './icons/sun';
 import { MoonIcon } from './icons/moon';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
@@ -210,6 +210,7 @@ export const Header = () => {
   // Drive the GitHub mark's animation from the whole button's hover (group hover), not just the
   // 16px icon — the icon's imperative handle is made for exactly this.
   const githubRef = useRef<GithubIconHandle>(null);
+  const logoRef = useRef<LogoMarkHandle>(null);
 
   const onToggleTheme = (origin: ToggleOrigin) => {
     setThemeState(toggleTheme(origin));
@@ -259,8 +260,16 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" viewTransition className="flex items-center space-x-3 group">
-            <LogoMark className="tap w-10 h-10 cursor-pointer [filter:drop-shadow(0_6px_14px_rgba(91,97,214,0.35))] group-hover:-rotate-6 group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" />
+          <Link
+            to="/"
+            viewTransition
+            className="flex items-center space-x-3 group"
+            onMouseEnter={() => logoRef.current?.clap()}
+          >
+            <LogoMark
+              ref={logoRef}
+              className="tap w-10 h-10 cursor-pointer [filter:drop-shadow(0_6px_14px_rgba(91,97,214,0.35))] group-hover:-rotate-6 group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            />
             <div>
               <h1 className="text-xl font-bold text-foreground tracking-tight">{t('brand')}</h1>
             </div>

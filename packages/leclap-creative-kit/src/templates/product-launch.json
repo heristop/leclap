@@ -1,0 +1,302 @@
+{
+  "meta": {
+    "name": "Product Launch",
+    "description": "A vertical product reveal — record your product in action and get a promo with its name, pitch and price as a lower third, framed by an animated focus reticle."
+  },
+  "global": {
+    "orientation": "portrait",
+    "variables": {
+      "brand": "YOUR BRAND"
+    },
+    "musicEnabled": true,
+    "music": {
+      "name": "upbeat-electronic.mp3"
+    },
+    "allowedMusic": ["upbeat-electronic", "future-bass-energy", "the-builder", "indie-rock-dreamy", "arcadia"],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.28
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "Your product"
+      },
+      "description": {
+        "en": "The name, one-line pitch and price shown over your clip"
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_name",
+            "maxLength": 16,
+            "label": {
+              "en": "Product name"
+            }
+          },
+          {
+            "name": "form_1_tagline",
+            "maxLength": 40,
+            "label": {
+              "en": "One-line pitch"
+            }
+          },
+          {
+            "name": "form_1_price",
+            "maxLength": 12,
+            "label": {
+              "en": "Price or offer"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro",
+      "type": "color_background",
+      "transition": {
+        "type": "smoothup",
+        "duration": 0.5
+      },
+      "options": {
+        "backgroundColor": "#0b0e24",
+        "duration": 2.8
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 720, "h": 1280, "c": "#0b0e24@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 14, "h": 1280, "c": "#7C83FF@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "INTRODUCING" },
+            "fontcolor": "#8f99e6",
+            "fontsize": 30,
+            "x": "'if(lt(t,0.5),64-(1-t/0.5)*260,64)'",
+            "y": 600,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.2),0,if(lt(t,0.7),(t-0.2)/0.5,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_name }}" },
+            "fontcolor": "#ffffff",
+            "fontsize": 104,
+            "x": "'if(lt(t,0.6),64-(1-t/0.6)*520,64)'",
+            "y": 652,
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.35),0,if(lt(t,0.95),(t-0.35)/0.6,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 66, "y": 800, "w": 96, "h": 8, "c": "#7C83FF@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_tagline }}" },
+            "fontcolor": "#c9d0f5",
+            "fontsize": 34,
+            "x": 66,
+            "y": 836,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.8),0,if(lt(t,1.5),(t-0.8)/0.7,1))'"
+          }
+        },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.5", "color": "#0b0e24" }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#0b0e24"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "look": "vivid",
+      "inputs": [
+        {
+          "name": "reticle",
+          "url": "/assets/animations/spec_orbit.apng",
+          "type": "animation",
+          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "720:1280", "opacity": 0.55 }
+        }
+      ],
+      "title": {
+        "en": "Show your product"
+      },
+      "description": {
+        "en": "Film it in action — the focus reticle locks on while the price slides in"
+      },
+      "options": {
+        "duration": 8,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.14
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        }
+      ],
+      "maps": [
+        {
+          "inputs": ["@reticle"],
+          "filters": [
+            {
+              "type": "drawbox",
+              "values": { "x": 0, "y": 1000, "w": 720, "h": 280, "c": "#080a1c@0.6", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ brand }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 26,
+                "x": "w-text_w-54",
+                "y": 58,
+                "fontfile": "Oswald.ttf"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": { "x": 60, "y": 1038, "w": 84, "h": 6, "c": "#7C83FF@1", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_1_name }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 60,
+                "x": 60,
+                "y": 1060,
+                "fontfile": "Anton.ttf"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_1_tagline }}" },
+                "fontcolor": "#c9d0f5",
+                "fontsize": 30,
+                "x": 60,
+                "y": 1150,
+                "fontfile": "Oswald.ttf"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": { "x": 510, "y": 1044, "w": 170, "h": 70, "c": "#7C83FF@1", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_1_price }}" },
+                "fontcolor": "#080a1c",
+                "fontsize": 38,
+                "x": 530,
+                "y": 1060,
+                "fontfile": "Anton.ttf"
+              }
+            },
+            {
+              "type": "fadein",
+              "values": { "color": "#0b0e24" }
+            },
+            {
+              "type": "fadeout",
+              "values": { "color": "#0b0e24" }
+            }
+          ],
+          "outputs": ["final"]
+        }
+      ]
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#0b0e24",
+        "duration": 2.4
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 720, "h": 1280, "c": "#0b0e24@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "AVAILABLE NOW" },
+            "fontcolor": "#ffffff",
+            "fontsize": 70,
+            "x": "(w-text_w)/2",
+            "y": "'if(lt(t,0.6),560-(1-t/0.6)*40,560)'",
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.25),0,if(lt(t,0.85),(t-0.25)/0.6,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 260, "y": 668, "w": 200, "h": 6, "c": "#7C83FF@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_price }}" },
+            "fontcolor": "#8f99e6",
+            "fontsize": 40,
+            "x": "(w-text_w)/2",
+            "y": 700,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.4),(t-0.6)/0.8,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ brand }}" },
+            "fontcolor": "#7C83FF",
+            "fontsize": 30,
+            "x": "(w-text_w)/2",
+            "y": 772,
+            "fontfile": "Oswald.ttf",
+            "alpha": "'if(lt(t,0.9),0,if(lt(t,1.6),(t-0.9)/0.7,1))'"
+          }
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.5", "color": "#0b0e24" }
+        }
+      ]
+    }
+  ]
+}

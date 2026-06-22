@@ -68,7 +68,7 @@
           "values": {
             "text": { "en": "{{ optionA }}" },
             "fontcolor": "{{ colorB }}",
-            "fontsize": 150,
+            "fontsize": 130,
             "x": "(640-text_w)/2",
             "y": "(h-text_h)/2",
             "fontfile": "BebasNeue.ttf",
@@ -80,7 +80,7 @@
           "values": {
             "text": { "en": "{{ optionB }}" },
             "fontcolor": "{{ colorA }}",
-            "fontsize": 150,
+            "fontsize": 130,
             "x": "640 + (640-text_w)/2",
             "y": "(h-text_h)/2",
             "fontfile": "BebasNeue.ttf",
@@ -92,7 +92,7 @@
           "values": {
             "text": { "en": "{{ optionA }}" },
             "fontcolor": "{{ colorA }}",
-            "fontsize": 150,
+            "fontsize": 130,
             "x": "(640-text_w)/2",
             "y": "(h-text_h)/2",
             "fontfile": "BebasNeue.ttf",
@@ -104,7 +104,7 @@
           "values": {
             "text": { "en": "{{ optionB }}" },
             "fontcolor": "{{ colorB }}",
-            "fontsize": 150,
+            "fontsize": 130,
             "x": "640 + (640-text_w)/2",
             "y": "(h-text_h)/2",
             "fontfile": "BebasNeue.ttf",

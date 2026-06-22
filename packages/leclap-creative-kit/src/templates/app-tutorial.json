@@ -1,0 +1,284 @@
+{
+  "meta": {
+    "name": "App Tutorial",
+    "description": "A square how-to for your app — record a screen walkthrough and get a captioned tutorial with a step pill and a clean title card."
+  },
+  "global": {
+    "orientation": "square",
+    "variables": {
+      "brand": "YOUR APP"
+    },
+    "musicEnabled": true,
+    "music": {
+      "name": "the-builder.mp3"
+    },
+    "allowedMusic": ["the-builder", "lofi-hip-hop", "point-being", "upbeat-electronic", "lofi-chill"],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.22
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "Your tutorial"
+      },
+      "description": {
+        "en": "What you're teaching and the step shown over your screen recording"
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_topic",
+            "maxLength": 22,
+            "label": {
+              "en": "What you'll show"
+            }
+          },
+          {
+            "name": "form_1_step",
+            "maxLength": 38,
+            "label": {
+              "en": "Step caption"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro",
+      "type": "color_background",
+      "transition": {
+        "type": "fade",
+        "duration": 0.4
+      },
+      "options": {
+        "backgroundColor": "#0f1419",
+        "duration": 2.6
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#0f1419@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1080, "h": 360, "c": "#141b22@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ brand }}" },
+            "fontcolor": "#5eead4",
+            "fontsize": 28,
+            "x": "w-text_w-60",
+            "y": 64,
+            "fontfile": "Rubik.ttf",
+            "alpha": "'if(lt(t,0.2),0,if(lt(t,0.9),(t-0.2)/0.7,1))'"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 80, "y": 470, "w": 110, "h": 8, "c": "#2dd4bf@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "HOW TO" },
+            "fontcolor": "#5eead4",
+            "fontsize": 32,
+            "x": 82,
+            "y": 500,
+            "fontfile": "RobotoMono.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1),(t-0.3)/0.7,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ form_1_topic }}" },
+            "fontcolor": "#ffffff",
+            "fontsize": 84,
+            "x": "'if(lt(t,0.6),84-(1-t/0.6)*560,84)'",
+            "y": 548,
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.35),0,if(lt(t,0.95),(t-0.35)/0.6,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "a quick walkthrough" },
+            "fontcolor": "#9fb0bd",
+            "fontsize": 34,
+            "x": 82,
+            "y": 686,
+            "fontfile": "Rubik.ttf",
+            "alpha": "'if(lt(t,0.7),0,if(lt(t,1.6),(t-0.7)/0.9,1))'"
+          }
+        },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.5", "color": "#0f1419" }
+        },
+        {
+          "type": "fade",
+          "values": {
+            "t": "out",
+            "d": "{{ transitionDuration }}",
+            "st": "{{ transitionStartTime }}",
+            "color": "#0f1419"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "look": "cool",
+      "inputs": [
+        {
+          "name": "tutorial_frame",
+          "url": "/assets/animations/tap_pulse.apng",
+          "type": "animation",
+          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "1080:1080", "opacity": 0.9 }
+        }
+      ],
+      "title": {
+        "en": "Record your screen"
+      },
+      "description": {
+        "en": "Walk through the app — the step caption appears along the bottom"
+      },
+      "options": {
+        "duration": 10,
+        "forceAspectRatio": true,
+        "countdown": true,
+        "countdownDuration": 2,
+        "musicVolume": 0.1
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        }
+      ],
+      "maps": [
+        {
+          "inputs": ["@tutorial_frame"],
+          "filters": [
+            {
+              "type": "drawbox",
+              "values": { "x": 80, "y": 64, "w": 132, "h": 56, "c": "#2dd4bf@1", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "STEP" },
+                "fontcolor": "#0f1419",
+                "fontsize": 28,
+                "x": 102,
+                "y": 78,
+                "fontfile": "RobotoMono.ttf"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ brand }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 26,
+                "x": "w-text_w-60",
+                "y": 78,
+                "fontfile": "Rubik.ttf"
+              }
+            },
+            {
+              "type": "drawbox",
+              "values": { "x": 0, "y": 902, "w": 1080, "h": 178, "c": "#0a0f14@0.62", "t": "fill" }
+            },
+            {
+              "type": "drawbox",
+              "values": { "x": 80, "y": 940, "w": 72, "h": 6, "c": "#2dd4bf@1", "t": "fill" }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_1_step }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 42,
+                "x": 80,
+                "y": 968,
+                "fontfile": "Rubik.ttf"
+              }
+            },
+            {
+              "type": "fadein",
+              "values": { "color": "#0f1419" }
+            },
+            {
+              "type": "fadeout",
+              "values": { "color": "#0f1419" }
+            }
+          ],
+          "outputs": ["final"]
+        }
+      ]
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#0f1419",
+        "duration": 2.2
+      },
+      "filters": [
+        {
+          "type": "drawbox",
+          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#0f1419@1", "t": "fill" }
+        },
+        {
+          "type": "drawbox",
+          "values": { "x": 440, "y": 470, "w": 200, "h": 6, "c": "#2dd4bf@1", "t": "fill" }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "YOU'RE ALL SET" },
+            "fontcolor": "#ffffff",
+            "fontsize": 78,
+            "x": "(w-text_w)/2",
+            "y": 500,
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.1),(t-0.3)/0.8,1))'"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": { "en": "{{ brand }}" },
+            "fontcolor": "#5eead4",
+            "fontsize": 40,
+            "x": "(w-text_w)/2",
+            "y": 638,
+            "fontfile": "Rubik.ttf",
+            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.4),(t-0.6)/0.8,1))'"
+          }
+        },
+        {
+          "type": "fade",
+          "values": { "t": "in", "d": "0.5", "color": "#0f1419" }
+        }
+      ]
+    }
+  ]
+}

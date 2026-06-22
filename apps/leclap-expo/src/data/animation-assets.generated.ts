@@ -11,5 +11,7 @@ export const ANIMATION_ASSETS: Record<string, number> = {
   'rounded_border.apng': require('../../assets/animations/rounded_border.apng'),
   'shine_sweep.apng': require('../../assets/animations/shine_sweep.apng'),
   'sparkle.apng': require('../../assets/animations/sparkle.apng'),
+  'spec_orbit.apng': require('../../assets/animations/spec_orbit.apng'),
+  'tap_pulse.apng': require('../../assets/animations/tap_pulse.apng'),
   'white_border.apng': require('../../assets/animations/white_border.apng'),
 };

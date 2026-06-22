@@ -11,5 +11,7 @@ export const ANIMATION_FILES: string[] = [
   'rounded_border.apng',
   'shine_sweep.apng',
   'sparkle.apng',
+  'spec_orbit.apng',
+  'tap_pulse.apng',
   'white_border.apng',
 ];

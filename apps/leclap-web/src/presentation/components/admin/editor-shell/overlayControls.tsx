@@ -5,6 +5,7 @@ import { useId, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { Trash2, Type, ChevronDown } from '@/presentation/components/icons';
 import { FONTS } from '@leclap/creative-kit/fonts';
+import { rangeFill } from '../editor/controls';
 import {
   Button,
   Checkbox,
@@ -59,7 +60,8 @@ export const SelectedControls = ({
             onChange={(e) => {
               onPatch({ fontsize: Number(e.target.value) });
             }}
-            className="h-2 w-full cursor-pointer accent-brand-500"
+            style={rangeFill(overlay.fontsize, 8, 300)}
+            className="studio-range"
           />
         </div>
         <VariableMenu variables={variables} t={t} onInsert={onInsertVariable} />
@@ -145,7 +147,8 @@ const BoxControls = ({
               onChange={(e) => {
                 onPatch({ boxOpacity: Number(e.target.value) });
               }}
-              className="h-2 w-full cursor-pointer accent-brand-500"
+              style={rangeFill(overlay.boxOpacity, 0, 1)}
+              className="studio-range"
             />
           </div>
         </div>

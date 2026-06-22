@@ -1,11 +1,20 @@
 // Small, on-brand form primitives shared by the builder panels. Kept here so the
 // panels stay focused and every slider/segmented-control looks identical.
-import { useId, type ReactNode } from 'react';
+import { useId, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RotateCcw, Volume2, VolumeX } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 
 const LABEL_CLS = 'block text-xs font-semibold uppercase tracking-widest text-gray-400';
+
+// The filled portion of a studio-range track, as a percent of its [min,max] span (clamped). Fed to the
+// CSS `--range-pct` var so the gradient fill tracks the value cross-browser.
+export const rangeFill = (value: number, min: number, max: number): CSSProperties => {
+  const span = max - min;
+  const pct = span > 0 ? ((value - min) / span) * 100 : 0;
+
+  return { '--range-pct': `${Math.min(100, Math.max(0, pct))}%` } as CSSProperties;
+};
 
 interface RangeSliderProps {
   label: string;
@@ -58,7 +67,8 @@ export const RangeSlider = ({ label, value, min, max, step = 0.01, format, reset
         onChange={(e) => {
           onChange(Number(e.target.value));
         }}
-        className="h-2 w-full cursor-pointer accent-brand-500"
+        style={rangeFill(value, min, max)}
+        className="studio-range"
       />
     </div>
   );
@@ -153,7 +163,8 @@ export const VolumeSlider = ({ label, value, onChange }: VolumeSliderProps) => {
         onChange={(e) => {
           onChange(Number(e.target.value));
         }}
-        className="h-2 w-full cursor-pointer accent-brand-500"
+        style={rangeFill(value, 0, 1)}
+        className="studio-range"
         aria-label={t('controls.volume', { label })}
       />
     </label>

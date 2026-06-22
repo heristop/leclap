@@ -75,7 +75,7 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
 
               if (event.key === 'Escape') cancelRename();
             }}
-            className="mb-1.5 w-full rounded-md border border-brand-500/50 bg-surface-inset px-2 py-1 font-display text-base font-bold text-foreground focus-visible:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+            className="field-focus-gradient mb-1.5 w-full rounded-md border border-brand-500/50 bg-surface-inset px-2 py-1 font-display text-base font-bold text-foreground [--field-fill:var(--color-surface-inset)] focus-visible:outline-none"
           />
         ) : (
           <div className="mb-1 flex items-center gap-1.5">

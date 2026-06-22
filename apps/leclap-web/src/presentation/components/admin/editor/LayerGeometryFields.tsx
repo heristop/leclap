@@ -57,7 +57,7 @@ const PercentField = ({ label, value, onChange }: { label: string; value: number
           onChange={(e) => {
             onChange(Math.min(100, Math.max(0, Number(e.target.value))));
           }}
-          className="w-full rounded-lg border border-foreground/15 bg-surface-inset py-1.5 pl-2 pr-6 text-sm text-foreground transition-all focus-visible:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+          className="field-focus-gradient w-full rounded-lg border border-foreground/15 bg-surface-inset py-1.5 pl-2 pr-6 text-sm text-foreground transition-colors [--field-fill:var(--color-surface-inset)] focus-visible:outline-none"
         />
         <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
       </div>

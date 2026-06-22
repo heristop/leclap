@@ -47,8 +47,8 @@ export const TemplateSearchBar = ({
 
   return (
     <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="focus-gradient-ring relative w-full rounded-lg lg:max-w-xs">
-        <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <div className="relative w-full lg:max-w-xs">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           type="search"
           value={query}
@@ -57,7 +57,7 @@ export const TemplateSearchBar = ({
           }}
           placeholder={t('search.placeholder')}
           aria-label={t('search.placeholder')}
-          className="w-full rounded-lg border border-divider bg-surface-2 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-gray-500 transition-colors focus-visible:border-transparent focus-visible:outline-none"
+          className="field-focus-gradient w-full rounded-lg border border-divider bg-surface-2 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-gray-500 transition-colors"
         />
       </div>
       <div className="flex flex-wrap gap-2">

@@ -71,7 +71,7 @@ const FieldRow = ({ field, index, inputCls, onPatch, onRemove }: FieldRowProps) 
             aria-label={t('form.maxLength')}
             type="number"
             min={1}
-            className="w-20 px-2.5 py-2 pr-10 rounded-lg bg-surface-inset border border-foreground/15 text-foreground text-center text-sm tabular-nums transition-colors hover:border-foreground/25 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/40"
+            className="field-focus-gradient w-20 px-2.5 py-2 pr-10 rounded-lg bg-surface-inset border border-foreground/15 text-foreground text-center text-sm tabular-nums transition-colors hover:border-foreground/25 [--field-fill:var(--color-surface-inset)] focus:outline-none"
             value={field.maxLength}
             onChange={(e) => {
               onPatch({ maxLength: Number(e.target.value) });

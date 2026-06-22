@@ -82,7 +82,7 @@ interface FieldInputProps {
 const FieldInput = ({ field, value, hasError, placeholder, fieldId, errorId, onChange }: FieldInputProps) => {
   const fieldType = getFieldType(field);
   const errorClass = hasError
-    ? 'border-[var(--color-error)]/50 bg-[var(--color-error)]/10 focus-visible:border-[var(--color-error)] focus-visible:ring-[var(--color-error)]/30'
+    ? 'border-[var(--color-error)]/50 bg-[var(--color-error)]/10 focus-visible:border-[var(--color-error)] focus-visible:outline-none'
     : '';
 
   if (fieldType === 'textarea') {
@@ -100,8 +100,8 @@ const FieldInput = ({ field, value, hasError, placeholder, fieldId, errorId, onC
         aria-invalid={hasError}
         aria-describedby={hasError ? errorId : undefined}
         className={clsx(
-          'w-full rounded-lg bg-surface-2 border border-divider px-3 py-2 text-foreground placeholder:text-gray-500 transition-all focus-visible:outline-none focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/30 resize-none',
-          errorClass
+          'w-full resize-none rounded-lg border px-3 py-2 text-foreground placeholder:text-gray-500 transition-colors focus-visible:outline-none',
+          hasError ? errorClass : 'field-focus-gradient border-divider bg-surface-2'
         )}
       />
     );

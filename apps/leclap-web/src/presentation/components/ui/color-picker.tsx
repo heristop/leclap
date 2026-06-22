@@ -67,7 +67,7 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commit((e.target as HTMLInputElement).value);
               }}
-              className="w-full rounded-lg border border-divider bg-surface-2 py-2 pl-7 pr-3 font-mono text-sm uppercase text-foreground transition-all focus-visible:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+              className="field-focus-gradient w-full rounded-lg border border-divider bg-surface-2 py-2 pl-7 pr-3 font-mono text-sm uppercase text-foreground transition-colors focus-visible:outline-none"
             />
           </div>
         </div>

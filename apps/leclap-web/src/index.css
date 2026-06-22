@@ -380,44 +380,35 @@ body {
   }
 }
 
-/* Animated gradient focus ring — a single panning lavender→pink→accent ring, masked to a 2px band on a
-   focus-within wrapper, that REPLACES the default border+ring so a focused input shows exactly ONE
-   indicator. The wrapped control should drop its own focus border (border-transparent) so only this
-   ring reads. Honours prefers-reduced-motion (ring stays, panning stops). */
-@utility focus-gradient-ring {
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(
-      120deg,
-      var(--color-brand-400),
-      var(--color-secondary-400) 45%,
-      var(--color-accent-400),
-      var(--color-brand-400)
-    );
-    background-size: 220% auto;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.2s var(--ease-out-expo);
-    pointer-events: none;
-  }
-
-  &:focus-within::before {
-    opacity: 1;
+/* Single animated gradient focus border, painted directly ON the control via the padding-box/border-box
+   background-clip trick — so even a bare <input>/<textarea>/<select> shows exactly ONE gradient ring on
+   focus (no wrapper, no ::before, no separate box-shadow ring). Replaces the old border-brand + ring-2
+   double indicator. The interior keeps its own fill via --field-fill (default surface-2); set it to the
+   control's actual background where that differs. Honours prefers-reduced-motion (gradient stays, panning
+   stops). Use alongside a normal `border` on the control — the gradient inherits its width. */
+@utility field-focus-gradient {
+  &:focus-visible {
+    outline: none;
+    border-color: transparent;
+    background-image:
+      linear-gradient(var(--field-fill, var(--color-surface-2)) 0 0),
+      linear-gradient(
+        120deg,
+        var(--color-brand-400),
+        var(--color-secondary-400) 45%,
+        var(--color-accent-400),
+        var(--color-brand-400)
+      );
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size:
+      100% 100%,
+      220% auto;
     animation: gradient-pan 6s linear infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    &:focus-within::before {
+    &:focus-visible {
       animation: none;
     }
   }

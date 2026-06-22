@@ -463,7 +463,7 @@ const UrlPane = ({
           const next = e.target.value.trim();
           onChange(next === '' ? null : { source: 'url', url: next });
         }}
-        className="w-full rounded-lg border border-foreground/10 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-gray-500 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+        className="field-focus-gradient w-full rounded-lg border border-foreground/10 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-gray-500 transition-colors [--field-fill:var(--color-surface)] focus:outline-none"
       />
       <span className="mt-1 block text-xs text-gray-500">{t('media.urlHint')}</span>
     </div>

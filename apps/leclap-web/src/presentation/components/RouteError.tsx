@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { Link, useRouteError, isRouteErrorResponse } from 'react-router-dom';
-import { Home, RotateCcw } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
+import { RotateCCWIcon } from '@/presentation/components/icons/rotate-ccw';
+import { HomeIcon } from '@/presentation/components/icons/home';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 
 // Route-level error boundary (wired via the root route's `errorElement`). React Router renders this
 // instead of its default "Unexpected Application Error!" screen whenever a route render throws.
@@ -20,6 +22,8 @@ function errorDetail(error: unknown): string {
 
 export const RouteError = () => {
   const error = useRouteError();
+  const { ref: reloadRef, hoverProps: reloadHoverProps } = useIconHover();
+  const { ref: homeRef, hoverProps: homeHoverProps } = useIconHover();
 
   useEffect(() => {
     logger.error('Route render error', error);
@@ -47,12 +51,13 @@ export const RouteError = () => {
             onClick={() => {
               window.location.reload();
             }}
+            {...reloadHoverProps}
           >
-            <RotateCcw /> Reload
+            <RotateCCWIcon ref={reloadRef} size={18} /> Reload
           </Button>
-          <Button asChild variant="secondary" size="lg">
+          <Button asChild variant="secondary" size="lg" {...homeHoverProps}>
             <Link to="/">
-              <Home /> Home
+              <HomeIcon ref={homeRef} size={18} /> Home
             </Link>
           </Button>
         </div>

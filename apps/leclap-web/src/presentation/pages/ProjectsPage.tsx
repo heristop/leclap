@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FolderOpen, Plus } from '@/presentation/components/icons';
+import { FolderOpen } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { useProjects } from '@/hooks/useProjects';
 import { ProjectCard } from '@/presentation/components/projects/ProjectCard';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
@@ -25,6 +27,7 @@ export const ProjectsPage = () => {
   const navigate = useNavigate();
   const { projects, remove, rename, duplicate } = useProjects();
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   const openProject = (project: StoredProject) => {
     Promise.resolve(navigate(`/studio/new?projectId=${project.id}`)).catch(() => {});
@@ -61,8 +64,8 @@ export const ProjectsPage = () => {
       title={t('title')}
       subtitle={t('subtitle')}
       actions={
-        <Button onClick={startNew} className="active:scale-[0.98]">
-          <Plus className="size-4" /> {t('actions.new')}
+        <Button onClick={startNew} className="active:scale-[0.98]" {...plusHoverProps}>
+          <PlusIcon ref={plusRef} size={16} /> {t('actions.new')}
         </Button>
       }
     >

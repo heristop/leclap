@@ -1,4 +1,4 @@
-import { Search } from '@/presentation/components/icons';
+import { SearchIcon } from '@/presentation/components/icons/search';
 import { useTranslation } from 'react-i18next';
 import { SegmentedControl } from '@/presentation/components/ui';
 import type { ComplexityFacet, OrientationFacet } from '@/lib/filterTemplates';
@@ -48,7 +48,7 @@ export const TemplateSearchBar = ({
   return (
     <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="relative w-full lg:max-w-xs">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <SearchIcon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="search"
           value={query}

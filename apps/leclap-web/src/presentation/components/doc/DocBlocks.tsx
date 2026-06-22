@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Check, Copy, Lightbulb } from '@/presentation/components/icons';
+import { Check, Lightbulb } from '@/presentation/components/icons';
+import { CopyIcon } from '@/presentation/components/icons/copy';
 import { cn } from '@/lib/utils';
 import { Badge, SegmentedControl } from '@/presentation/components/ui';
 import { logger } from '@/lib/logger';
@@ -49,7 +50,7 @@ export const CommandPill = ({ command, label }: { command: string; label?: strin
             : 'text-[oklch(0.68_0.01_280)] group-hover:bg-white/10 group-hover:text-[oklch(0.95_0.005_280)]'
         )}
       >
-        {copied ? <Check className="h-4 w-4 pop-in" /> : <Copy className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 pop-in" /> : <CopyIcon size={16} />}
         {label && <span className="sr-only">{label}</span>}
       </span>
     </button>

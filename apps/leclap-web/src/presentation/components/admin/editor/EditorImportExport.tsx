@@ -4,7 +4,8 @@
 // are surfaced inline (the shell has no separate error dialog for this panel).
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Upload } from '@/presentation/components/icons';
+import { DownloadIcon } from '@/presentation/components/icons/download';
+import { UploadIcon } from '@/presentation/components/icons/upload';
 import type { EditorState } from '../templateEditorModel';
 import { exportDescriptorJson, exportFilename, importDescriptorJson } from './templateIO';
 
@@ -66,7 +67,7 @@ export const EditorImportExport = ({ state, onImport }: EditorImportExportProps)
           onClick={exportJson}
           className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
         >
-          <Download className="h-3.5 w-3.5" /> {t('editor.toolbar.export')}
+          <DownloadIcon size={14} /> {t('editor.toolbar.export')}
         </button>
         <button
           type="button"
@@ -75,7 +76,7 @@ export const EditorImportExport = ({ state, onImport }: EditorImportExportProps)
           }}
           className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
         >
-          <Upload className="h-3.5 w-3.5" /> {t('editor.toolbar.import')}
+          <UploadIcon size={14} /> {t('editor.toolbar.import')}
         </button>
         <input
           ref={fileRef}

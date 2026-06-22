@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Menu, X } from '@/presentation/components/icons';
+import { MenuIcon } from './icons/menu';
+import { XIcon } from './icons/x';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -319,7 +320,7 @@ export const Header = () => {
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
             >
-              {isMenuOpen ? <X /> : <Menu />}
+              {isMenuOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
             </Button>
           </div>
         </div>

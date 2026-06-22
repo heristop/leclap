@@ -1,6 +1,7 @@
 import { useState, startTransition } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
-import { Upload, X, File, AlertCircle, Video as VideoIcon } from '@/presentation/components/icons';
+import { X, File, AlertCircle, Video as VideoIcon } from '@/presentation/components/icons';
+import { UploadIcon } from '@/presentation/components/icons/upload';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -179,7 +180,7 @@ function DropZone({
               : 'bg-surface text-gray-400 shadow-black/20 group-hover:scale-105 group-hover:text-brand-700 dark:group-hover:text-brand-300'
           )}
         >
-          <Upload className="w-8 h-8" />
+          <UploadIcon size={32} />
         </div>
 
         <div>

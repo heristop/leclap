@@ -1,6 +1,9 @@
 import { useState, startTransition } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Share2, Copy, Check, FileVideo, HardDrive, CheckCircle2 } from '@/presentation/components/icons';
+import { Share2, Check, FileVideo, HardDrive, CheckCircle2 } from '@/presentation/components/icons';
+import { DownloadIcon } from '@/presentation/components/icons/download';
+import { CopyIcon } from '@/presentation/components/icons/copy';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { logger } from '@/lib/logger';
 import { Button, Card } from '@/presentation/components/ui';
@@ -69,6 +72,8 @@ const ActionButtons = ({
   onShare,
 }: ActionButtonsProps) => {
   const { t } = useTranslation('process');
+  const { ref: dlRef, hoverProps: dlHoverProps } = useIconHover();
+  const { ref: copyRef, hoverProps: copyHoverProps } = useIconHover();
 
   return (
     <div className="space-y-3">
@@ -81,9 +86,10 @@ const ActionButtons = ({
           'w-full text-white hover:shadow-success/20 hover:scale-[1.02] focus-visible:ring-success/30',
           downloadProgress > 0 && downloadProgress < 100 && 'cursor-wait opacity-75'
         )}
+        {...dlHoverProps}
       >
         <span className="p-2 bg-foreground/20 rounded-lg [&_svg]:size-6">
-          <Download />
+          <DownloadIcon ref={dlRef} size={24} />
         </span>
         <span>
           {downloadProgress > 0 && downloadProgress < 100
@@ -108,6 +114,7 @@ const ActionButtons = ({
             'px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20',
             showCopied && 'border-success/50 text-success-foreground bg-success/10'
           )}
+          {...copyHoverProps}
         >
           {showCopied ? (
             <>
@@ -116,7 +123,7 @@ const ActionButtons = ({
             </>
           ) : (
             <>
-              <Copy className="!size-4" />
+              <CopyIcon ref={copyRef} size={16} />
               <span>{t('export.actions.copyLink')}</span>
             </>
           )}

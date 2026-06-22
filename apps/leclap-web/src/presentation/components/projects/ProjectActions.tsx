@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Copy, Play, SquarePen, Trash2 } from '@/presentation/components/icons';
+import { Trash2 } from '@/presentation/components/icons';
+import { PlayIcon } from '@/presentation/components/icons/play';
+import { CopyIcon } from '@/presentation/components/icons/copy';
+import { SquarePenIcon } from '@/presentation/components/icons/square-pen';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Button } from '@/presentation/components/ui';
 import type { StoredProject } from '@/lib/projectModel';
 
@@ -17,11 +21,14 @@ interface ProjectActionsProps {
 export const ProjectActions = ({ project, onOpen, onEdit, onDuplicate, onDelete }: ProjectActionsProps) => {
   const { t } = useTranslation('projects');
   const completed = project.status === 'completed';
+  const { ref: playRef, hoverProps } = useIconHover();
+  const { ref: copyRef, hoverProps: copyHoverProps } = useIconHover();
+  const { ref: editRef, hoverProps: editHoverProps } = useIconHover();
 
   return (
     <div className="flex items-center gap-1.5">
-      <Button size="sm" className="group/view flex-1" onClick={onOpen}>
-        <Play className="size-4 fill-current transition-transform duration-200 group-hover/view:translate-x-0.5 group-hover/view:scale-110" />
+      <Button size="sm" className="flex-1" onClick={onOpen} {...hoverProps}>
+        <PlayIcon ref={playRef} size={16} className="[&_polygon]:fill-current" />
         {completed ? t('actions.view') : t('actions.resume')}
       </Button>
       {completed && (
@@ -32,8 +39,9 @@ export const ProjectActions = ({ project, onOpen, onEdit, onDuplicate, onDelete 
           title={t('actions.edit')}
           className="text-muted-foreground hover:text-foreground"
           onClick={onEdit}
+          {...editHoverProps}
         >
-          <SquarePen className="size-4" />
+          <SquarePenIcon ref={editRef} size={16} />
         </Button>
       )}
       <Button
@@ -43,8 +51,9 @@ export const ProjectActions = ({ project, onOpen, onEdit, onDuplicate, onDelete 
         title={t('actions.duplicate')}
         className="text-muted-foreground hover:text-foreground"
         onClick={onDuplicate}
+        {...copyHoverProps}
       >
-        <Copy className="size-4" />
+        <CopyIcon ref={copyRef} size={16} />
       </Button>
       <Button
         variant="ghost"

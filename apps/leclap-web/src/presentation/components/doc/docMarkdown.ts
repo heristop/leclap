@@ -127,10 +127,19 @@ const preText = (pre: HTMLElement): string => {
     .join('\n');
 };
 
+// A field cell stacks the name and its description in one <td>; join such block pieces with a dash
+// so they don't run together ("name — description" rather than "namedescription").
+const cellText = (cell: HTMLElement): string => {
+  const parts = [...cell.children].map((child) => collapse(child.textContent)).filter(Boolean);
+  const text = parts.length > 1 ? parts.join(' — ') : collapse(cell.textContent);
+
+  return text.replace(/\|/g, String.raw`\|`);
+};
+
 const tableMd = (table: HTMLElement): string => {
   const headers = [...table.querySelectorAll('thead th')].map((th) => collapse(th.textContent));
   const bodyRows = [...table.querySelectorAll('tbody tr')].map((tr) =>
-    [...tr.querySelectorAll('td')].map((td) => collapse(td.textContent).replace(/\|/g, String.raw`\|`))
+    [...tr.querySelectorAll('td')].map((td) => cellText(td))
   );
 
   if (headers.length === 0 && bodyRows.length === 0) return '';
@@ -158,7 +167,8 @@ const blockMd = (el: HTMLElement): string | null => {
     return text ? `${'#'.repeat(Number(tag[1]))} ${text}` : '';
   }
 
-  if (tag === 'p') return inlineMd(el).trim();
+  // Decorative uppercase eyebrows/kickers restate the heading that follows — drop them.
+  if (tag === 'p') return el.className.includes('uppercase') ? '' : inlineMd(el).trim();
 
   if (tag === 'pre') return `\`\`\`json\n${preText(el)}\n\`\`\``;
 

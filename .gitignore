@@ -48,3 +48,6 @@ form-banner-*.png
 apps/leclap-expo/modules/leclap-ffmpeg/android/src/main/jniLibs/
 apps/leclap-expo/modules/leclap-ffmpeg/ios/libleclap_ffmpeg_core.a
 apps/leclap-expo/modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework/
+
+# Brainstorming/plan docs kept locally only, never tracked.
+docs/superpowers/

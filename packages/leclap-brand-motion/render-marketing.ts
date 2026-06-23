@@ -14,8 +14,8 @@ const videosDir = path.resolve(here, '../../apps/leclap-web/public/videos');
 
 // Remotion's H.264 output is tagged bt470bg with full-range (yuvj420p) pixels. Real Chrome's hardware VP9/
 // H.264 decoder renders that as a frozen first frame (headless's software decoder tolerates it), so the
-// promos never autoplayed on the home page. Re-encode every output to a clean, limited-range bt709 / yuv420p
-// profile — matching the proven-good drink-and-coffee clip — so the clips decode and autoplay everywhere.
+// promos never autoplayed on the home page. Re-encode every output to a limited-range bt709 / yuv420p
+// profile — the tagging drink-and-coffee already carries — so the clips decode and autoplay everywhere.
 const COLOR_FILTER =
   'scale=in_range=full:out_range=tv,format=yuv420p,setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
 const COLOR_FLAGS = ['-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-color_range', 'tv'];

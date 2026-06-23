@@ -193,6 +193,10 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
     } catch (error) {
       detach();
 
+      // The "no output produced" failure (above) is already a precise FFmpegError — re-throw it as-is
+      // rather than re-wrapping it in the generic message below.
+      if (error instanceof FFmpegError) throw error;
+
       // ffmpeg.exec() rejects with an empty/opaque error, so the real cause lives in the captured log
       // stream (a missing filter/encoder/font surfaces there, not on the thrown error).
       throw new FFmpegError(

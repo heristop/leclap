@@ -1,5 +1,5 @@
-// Small monochrome marks for the Copy-page menu rows. lucide has no brand logos, so these are simple,
-// recognisable glyphs drawn in `currentColor` to match the muted icon treatment of the surrounding UI.
+// Monochrome marks for the Copy-page menu rows. lucide has no brand logos, so these are hand-drawn
+// glyphs in `currentColor` to match the muted icon treatment of the surrounding UI.
 
 type MarkProps = { className?: string };
 
@@ -18,7 +18,7 @@ export const MarkdownMark = ({ className }: MarkProps) => (
   </svg>
 );
 
-// OpenAI flower, simplified to a single interlocked outline.
+// OpenAI flower, as a single interlocked outline.
 export const ChatGptMark = ({ className }: MarkProps) => (
   <svg
     className={className}

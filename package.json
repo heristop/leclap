@@ -12,6 +12,9 @@
     "compile": "node packages/ffmpeg-video-composer/compile.ts",
     "diagnose": "node packages/ffmpeg-video-composer/diagnose.ts",
     "build": "pnpm -r build",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm --filter ffmpeg-video-composer --filter @leclap/cli --filter @leclap/mcp build && changeset publish",
     "build:exe": "pnpm --filter @leclap/cli run build:exe",
     "build:exe:all": "pnpm --filter @leclap/cli run build:exe:all",
     "lint": "vp lint",
@@ -39,6 +42,7 @@
     "mcp:dev": "pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/mcp build && node packages/leclap-mcp/dist/index.js"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@resvg/resvg-js": "^2.6.2",
     "@swc/core": "^1.15.41",
     "@types/node": "^25.9.3",

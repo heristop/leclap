@@ -143,24 +143,3 @@ jobs:
           PKG_CONFIG_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib/pkgconfig
           DYLD_FALLBACK_LIBRARY_PATH: ${{ github.workspace }}/scripts/ffmpeg/dist/host/lib
         run: cargo test --release -- --test-threads=1
-
-  # publish:
-  #   needs: build-and-test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Set up toolchain (mise)
-  #       uses: jdx/mise-action@v4
-  #
-  #     - name: Install Dependencies
-  #       run: pnpm i
-  #
-  #     - name: Build
-  #       run: pnpm build
-  #
-  #     - name: Publish
-  #       run: npm publish
-  #       env:
-  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

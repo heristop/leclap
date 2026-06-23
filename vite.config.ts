@@ -2,7 +2,7 @@ import { defineConfig } from 'vite-plus';
 
 // Unified Vite+ lint configuration for the whole monorepo.
 // Replaces the per-package .oxlintrc.json files and runs via `vp lint`.
-// The local JS plugin (./oxlint-plugin-local.ts) is loaded through
+// The local JS plugin (./scripts/oxlint-plugin-local.ts) is loaded through
 // lint.jsPlugins and exposes the `local/*` rules.
 export default defineConfig({
   fmt: {
@@ -29,7 +29,7 @@ export default defineConfig({
   },
   lint: {
     plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
-    jsPlugins: ['./oxlint-plugin-local.ts'],
+    jsPlugins: ['./scripts/oxlint-plugin-local.ts'],
     ignorePatterns: [
       'dist/**',
       '**/dist/**',

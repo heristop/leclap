@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from '@/presentation/components/icons';
+import { CopyPageButton } from '@/presentation/components/doc/CopyPageButton';
 import { docNav } from './docNav';
 
 const linkClass = (isActive: boolean): string =>
@@ -82,6 +84,8 @@ export const DocPageHeader = ({
 export const DocLayout = () => {
   // Key the content by route so it replays a gentle enter on each doc-page navigation.
   const { pathname } = useLocation();
+  // The rendered doc content, handed to the Copy-page button to serialise into Markdown.
+  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
     // `relative` (not `overflow-hidden`) on the root: an overflow-hidden ancestor would break the
@@ -99,7 +103,10 @@ export const DocLayout = () => {
         <div className="grid gap-10 lg:grid-cols-[13rem_1fr]">
           <DocSidebar />
           <div className="min-w-0">
-            <div key={pathname} className="fade-in">
+            <div className="mb-4 flex justify-end">
+              <CopyPageButton contentRef={contentRef} />
+            </div>
+            <div key={pathname} ref={contentRef} className="fade-in">
               <Outlet />
             </div>
             <DocPager />

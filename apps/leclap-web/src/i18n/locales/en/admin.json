@@ -15,7 +15,7 @@
     "partials": "Partials",
     "contribute": {
       "title": "Contribute a template",
-      "description": "Built something great? Open a pull request on GitHub to share it with the community."
+      "description": "Built something great? Share it with the LeClap community on GitHub."
     }
   },
   "partials": {
@@ -44,7 +44,7 @@
       "description": "Share this template with the LeClap community in two steps.",
       "jsonLabel": "Template descriptor",
       "step1": "Copy the template JSON",
-      "step2": "Open the GitHub editor, paste the JSON, then propose changes — GitHub creates the PR for you.",
+      "step2": "Open the repo on GitHub, create a new branch, paste the JSON as a new template file, then open a pull request.",
       "copy": "Copy JSON",
       "copied": "Copied!",
       "openGithub": "Open GitHub →"

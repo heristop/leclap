@@ -205,6 +205,8 @@ body {
   --animate-gradient: gradient-pan 6s ease infinite;
   /* Highlight sweep across the phone glass, then a long idle before the next pass. */
   --animate-phone-sheen: phone-sheen 7s var(--ease-out-expo) infinite;
+  /* Magnetic stretch the editor tool-dock indicator plays as it springs to a new tool. */
+  --animate-dock-stretch: dock-stretch 0.32s var(--ease-spring);
 
   /* Elevation — brand-tinted depth for the bold design system */
   --shadow-md: 0 8px 24px -8px oklch(0 0 0 / 0.35);
@@ -879,6 +881,19 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* The active-tool rail indicator stretches vertically mid-travel, then settles — the same magnetic
+   feel as the segmented-control thumb. transform-origin (set inline per travel direction) makes it
+   reach toward the destination. */
+@keyframes dock-stretch {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(1.28);
   }
 }
 

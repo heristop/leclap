@@ -69,3 +69,36 @@ Use scopes that match the package/app (`core`, `expo`, `web`, `engine`, `mcp`). 
 4. Open a PR using the [pull request template](./.github/pull_request_template.md), describing the change, the testing done, and any docs updated.
 
 Pre-commit hooks (vite-plus staged checks) run `vp fmt` and `vp lint` on staged files automatically.
+
+## Releasing
+
+Releases are managed with [Changesets](https://github.com/changesets/changesets). Only the three published packages are versioned independently: `ffmpeg-video-composer`, `@leclap/cli`, and `@leclap/mcp` (the apps and shared kits are private and skipped).
+
+When a PR changes a published package, add a changeset describing the bump:
+
+```bash
+pnpm changeset        # pick package(s), bump (patch/minor/major), write a summary
+```
+
+Commit the generated `.changeset/*.md` file with your PR. The summary becomes the changelog entry, so write it for consumers.
+
+On merge to `main`, the [Release workflow](./.github/workflows/release.yml) takes over:
+
+1. With pending changesets, it opens/updates a **"Version Packages"** PR that bumps versions and writes each package's `CHANGELOG.md`.
+2. Merging that PR publishes the bumped packages to npm and creates GitHub releases.
+
+Publishing requires an `NPM_TOKEN` repository secret.
+
+### Prereleases (beta)
+
+`ffmpeg-video-composer` is in a `2.0.0` beta cycle. To cut beta releases, enter prerelease mode once and commit the marker:
+
+```bash
+pnpm changeset pre enter beta   # creates .changeset/pre.json — commit it
+```
+
+While in pre mode every managed package versions as `-beta.N`. Before the first stable `2.0.0`, leave pre mode:
+
+```bash
+pnpm changeset pre exit         # commit the removal
+```

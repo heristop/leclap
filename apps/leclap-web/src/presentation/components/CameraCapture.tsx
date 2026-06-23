@@ -1,6 +1,8 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
-import { SwitchCamera, X, Check, RotateCcw, Loader2, CameraOff, TimerReset } from '@/presentation/components/icons';
+import { X, Check, RotateCcw, Loader2, CameraOff, TimerReset } from '@/presentation/components/icons';
+import { SwitchCameraIcon } from '@/presentation/components/icons/switch-camera';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -101,6 +103,7 @@ const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBar
   const isCameraMode = mode === 'front' || mode === 'back';
   const showSwitch = isCameraMode && (state === 'idle' || state === 'loading');
   const showSpacer = state === 'preview' || state === 'error';
+  const { ref: switchRef, hoverProps: switchHoverProps } = useIconHover();
 
   return (
     <div className="flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
@@ -128,8 +131,9 @@ const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBar
           onClick={onSwitchCamera}
           className="rounded-full bg-foreground/10 text-foreground hover:bg-foreground/20"
           aria-label={t('camera.switchAria')}
+          {...switchHoverProps}
         >
-          <SwitchCamera />
+          <SwitchCameraIcon ref={switchRef} size={16} />
         </Button>
       )}
 

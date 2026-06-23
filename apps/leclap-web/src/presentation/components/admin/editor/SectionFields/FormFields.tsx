@@ -1,6 +1,8 @@
 // Field block for a form section: an editable list of {id, label, maxLength} rows.
-import { Plus, Trash2 } from '@/presentation/components/icons';
+import { Trash2 } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useTranslation } from 'react-i18next';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import type { EditorSection } from '../../templateEditorModel';
 
@@ -97,6 +99,7 @@ const FieldRow = ({ field, index, inputCls, onPatch, onRemove }: FieldRowProps) 
 
 export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => {
   const { t } = useTranslation('admin');
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   const patchField = (index: number, patch: Partial<FormField>) => {
     onChange({ fields: section.fields.map((f, i) => (i === index ? { ...f, ...patch } : f)) });
@@ -131,8 +134,9 @@ export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => 
             });
           }}
           className="tap inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-dashed border-foreground/20 text-gray-500 hover:border-brand-500/50 hover:text-brand-400 hover:bg-brand-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-all"
+          {...plusHoverProps}
         >
-          <Plus className="w-3 h-3" />
+          <PlusIcon ref={plusRef} size={12} />
           {t('form.addField')}
         </button>
       </div>

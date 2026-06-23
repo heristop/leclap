@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Home, Compass } from '@/presentation/components/icons';
+import { Home } from '@/presentation/components/icons';
+import { CompassIcon } from '@/presentation/components/icons/compass';
 import { useTranslation } from 'react-i18next';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 
 export const NotFound = () => {
   const { t } = useTranslation('shell');
+  const { ref: compassRef, hoverProps: compassHoverProps } = useIconHover();
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground relative overflow-hidden flex items-center justify-center px-4">
@@ -28,9 +31,9 @@ export const NotFound = () => {
               <Home /> {t('notFound.home')}
             </Link>
           </Button>
-          <Button asChild variant="secondary" size="lg">
+          <Button asChild variant="secondary" size="lg" {...compassHoverProps}>
             <Link to="/studio">
-              <Compass /> {t('notFound.openBuilder')}
+              <CompassIcon ref={compassRef} size={16} /> {t('notFound.openBuilder')}
             </Link>
           </Button>
         </div>

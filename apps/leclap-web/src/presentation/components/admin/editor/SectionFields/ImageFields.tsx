@@ -1,7 +1,8 @@
 // Field block for an image_background section. Essentials (always visible): duration + the media
 // picker (allowed images + upload). Finishing controls (Effects incl. Ken Burns motion, Section
 // audio) live in collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music } from '@/presentation/components/icons';
+import { Music } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import type { EditorSection, Orientation } from '../../templateEditorModel';
@@ -60,7 +61,7 @@ export const ImageFields = ({ section, onChange, inputCls }: ImageFieldsProps) =
         <div className="space-y-2">
           <SectionDisclosure
             label={t('disclosure.effects')}
-            icon={<Sparkles className="size-4 shrink-0 text-brand-500" aria-hidden />}
+            icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
             summary={effectsSummary(t, section.look, section.motion)}
           >
             <MotionPanel

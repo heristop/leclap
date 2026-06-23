@@ -1,18 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Sparkles,
-  FolderOpen,
-  ArrowRight,
-  Braces,
-  Scissors,
-  Check,
-} from '@/presentation/components/icons';
+import { Pencil, Trash2, ArrowRight, Braces, Scissors, Check } from '@/presentation/components/icons';
+import { ArrowRightIcon } from '@/presentation/components/icons/arrow-right';
+import { PlusIcon } from '@/presentation/components/icons/plus';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { FolderOpenIcon } from '@/presentation/components/icons/folder-open';
 import { cn } from '@/lib/utils';
 import { CopyIcon } from '@/presentation/components/icons/copy';
 import { GithubIcon } from '@/presentation/components/icons/github';
@@ -122,39 +116,14 @@ const SectionHeading = ({
 );
 
 const GITHUB_REPO = 'https://github.com/heristop/leclap';
-const GITHUB_TEMPLATES_PATH = 'packages/leclap-creative-kit/src/templates';
 
-export const Admin = () => {
-  const { t } = useTranslation('admin');
-  const navigate = useNavigate();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [confirmConvert, setConfirmConvert] = useState<Template | null>(null);
-  const [shareTemplate, setShareTemplate] = useState<Template | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const refresh = useCallback(() => {
-    setLoading(true);
-    templateService
-      .getAllTemplates()
-      .then((all) => {
-        setTemplates(all);
-      })
-      .catch((error: unknown) => {
-        logger.error('Failed to load templates', error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  const samples = templates.filter((entry) => entry.source === 'sample');
-  const mine = templates.filter((entry) => entry.source === 'user');
-
+// Per-card row actions (duplicate / delete / convert-to-partial / copy JSON), grouped into a hook to
+// keep them out of the page component. State + navigation are passed in.
+const useTemplateRowActions = (
+  navigate: ReturnType<typeof useNavigate>,
+  refresh: () => void,
+  setCopied: Dispatch<SetStateAction<boolean>>
+) => {
   const handleDuplicate = (template: Template) => {
     try {
       const copy = userTemplateService.duplicate(template);
@@ -186,14 +155,49 @@ export const Admin = () => {
       .catch(() => {});
   };
 
-  const githubNewFileUrl = (template: Template) => {
-    const slug = template.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+  return { handleDuplicate, handleDelete, handleConvertToPartial, handleCopyJson };
+};
 
-    return `${GITHUB_REPO}/new/main?filename=${GITHUB_TEMPLATES_PATH}/${slug}.json`;
-  };
+export const Admin = () => {
+  const { t } = useTranslation('admin');
+  const navigate = useNavigate();
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmConvert, setConfirmConvert] = useState<Template | null>(null);
+  const [shareTemplate, setShareTemplate] = useState<Template | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const refresh = useCallback(() => {
+    setLoading(true);
+    templateService
+      .getAllTemplates()
+      .then((all) => {
+        setTemplates(all);
+      })
+      .catch((error: unknown) => {
+        logger.error('Failed to load templates', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const samples = templates.filter((entry) => entry.source === 'sample');
+  const mine = templates.filter((entry) => entry.source === 'user');
+  const { ref: createRef, hoverProps: createHoverProps } = useIconHover();
+  const { ref: emptyCreateRef, hoverProps: emptyCreateHoverProps } = useIconHover();
+  const { ref: goToRef, hoverProps: goToHoverProps } = useIconHover();
+  const { ref: contributeGithubRef, hoverProps: contributeHoverProps } = useIconHover();
+
+  const { handleDuplicate, handleDelete, handleConvertToPartial, handleCopyJson } = useTemplateRowActions(
+    navigate,
+    refresh,
+    setCopied
+  );
 
   const convertToPartialButton = (template: Template) => (
     <Button
@@ -232,13 +236,13 @@ export const Admin = () => {
         </Link>
       </Button>
       <Button asChild variant="outline" size="sm" className="active:scale-[0.98]">
-        <Link to="/studio">
-          {t('page.goToBuilder')} <ArrowRight className="size-4" />
+        <Link to="/studio" {...goToHoverProps}>
+          {t('page.goToBuilder')} <ArrowRightIcon ref={goToRef} size={16} />
         </Link>
       </Button>
-      <Button asChild className="active:scale-[0.98]">
+      <Button asChild className="active:scale-[0.98]" {...createHoverProps}>
         <Link to="/templates/new">
-          <Plus /> {t('page.create')}
+          <PlusIcon ref={createRef} size={16} /> {t('page.create')}
         </Link>
       </Button>
     </>
@@ -251,20 +255,20 @@ export const Admin = () => {
       <section aria-labelledby="my-templates" className="mb-14 scroll-mt-24">
         <SectionHeading
           id="my-templates"
-          icon={FolderOpen}
+          icon={FolderOpenIcon}
           label={t('page.myTemplates')}
           count={mine.length > 0 ? t('page.count', { count: mine.length }) : undefined}
         />
         {mine.length === 0 ? (
           <div className="fade-in mx-auto max-w-md rounded-2xl border border-dashed border-brand-500/30 bg-brand-500/[0.06] p-10 text-center motion-reduce:animate-none">
             <span className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl bg-brand-500/15 text-brand-300">
-              <FolderOpen className="size-6" />
+              <FolderOpenIcon size={24} />
             </span>
             <p className="mb-1 font-medium text-foreground">{t('page.empty.title')}</p>
             <p className="mb-5 text-sm text-gray-400">{t('page.empty.subtitle')}</p>
-            <Button asChild className="mx-auto active:scale-[0.98]">
+            <Button asChild className="mx-auto active:scale-[0.98]" {...emptyCreateHoverProps}>
               <Link to="/templates/new">
-                <Plus /> {t('page.empty.create')}
+                <PlusIcon ref={emptyCreateRef} size={16} /> {t('page.empty.create')}
               </Link>
             </Button>
           </div>
@@ -305,7 +309,7 @@ export const Admin = () => {
       </section>
 
       <section aria-labelledby="sample-templates" className="scroll-mt-24">
-        <SectionHeading id="sample-templates" icon={Sparkles} label={t('page.samples')} />
+        <SectionHeading id="sample-templates" icon={SparklesIcon} label={t('page.samples')} />
 
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -423,9 +427,7 @@ export const Admin = () => {
                 <Button
                   className="w-full gap-2"
                   onClick={() => {
-                    if (shareTemplate) {
-                      window.open(githubNewFileUrl(shareTemplate), '_blank', 'noopener,noreferrer');
-                    }
+                    window.open(GITHUB_REPO, '_blank', 'noopener,noreferrer');
                     setShareTemplate(null);
                   }}
                 >
@@ -440,13 +442,14 @@ export const Admin = () => {
 
       <section aria-labelledby="contribute-templates" className="mt-14 scroll-mt-24">
         <a
-          href="https://github.com/heristop/leclap/compare"
+          href="https://github.com/heristop/leclap"
           target="_blank"
           rel="noopener noreferrer"
           className="group flex items-center gap-6 rounded-2xl border border-foreground/10 bg-surface/40 px-8 py-6 transition-colors hover:border-brand-500/30 hover:bg-surface/70"
+          {...contributeHoverProps}
         >
           <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-foreground/10 bg-surface text-foreground/60 transition-colors group-hover:border-brand-500/30 group-hover:text-brand-300">
-            <GithubIcon className="size-5" />
+            <GithubIcon ref={contributeGithubRef} className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-display font-semibold text-foreground group-hover:text-brand-300">

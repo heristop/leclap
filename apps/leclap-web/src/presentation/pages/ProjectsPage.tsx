@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FolderOpen } from '@/presentation/components/icons';
+import { FolderOpenIcon } from '@/presentation/components/icons/folder-open';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { useProjects } from '@/hooks/useProjects';
@@ -73,7 +73,7 @@ export const ProjectsPage = () => {
 
       {projects.length === 0 ? (
         <EmptyState
-          icon={FolderOpen}
+          icon={FolderOpenIcon}
           title={t('empty.title')}
           hint={t('empty.hint')}
           action={{ label: t('actions.new'), onClick: startNew }}

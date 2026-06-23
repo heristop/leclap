@@ -3,9 +3,7 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ExportPanel } from '@/presentation/components/ExportPanel';
 import { Seo } from '@/presentation/components/Seo';
-import { EditorShell } from '@/presentation/components/builder';
-import { CompileMonitor } from '@/presentation/components/builder/CompileMonitor';
-import type { SaveStatus } from '@/presentation/components/builder/SaveStatusIndicator';
+import { EditorShell, CompileMonitor, type SaveStatus } from '@/presentation/components/builder';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
@@ -15,7 +13,10 @@ import type { MediaChoice } from '@/presentation/components/admin/templateEditor
 import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
 import { addRush, selectRush, removeRush } from '@/lib/rushActions';
 import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/projectService';
-import { ArrowRight, ArrowLeft, Loader2 } from '@/presentation/components/icons';
+import { Loader2 } from '@/presentation/components/icons';
+import { ArrowLeftIcon } from '@/presentation/components/icons/arrow-left';
+import { ArrowRightIcon } from '@/presentation/components/icons/arrow-right';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Button, Card, Reveal } from '@/presentation/components/ui';
 
 // The template's default soundtrack as a library MediaChoice, so the Music step opens pre-selected on
@@ -162,6 +163,8 @@ const StepResult = ({
   onReset: () => void;
 }) => {
   const { t } = useTranslation('builder');
+  const { ref: backRef, hoverProps: backHoverProps } = useIconHover();
+  const { ref: resetRef, hoverProps: resetHoverProps } = useIconHover();
 
   return (
     <div className="fade-in text-center max-w-4xl mx-auto">
@@ -176,14 +179,15 @@ const StepResult = ({
             <Button
               variant="ghost"
               onClick={onBack}
-              className="group w-full sm:w-auto px-6 py-3 rounded-full bg-foreground/5 hover:bg-foreground/10"
+              className="w-full sm:w-auto px-6 py-3 rounded-full bg-foreground/5 hover:bg-foreground/10"
+              {...backHoverProps}
             >
-              <ArrowLeft className="transition-transform duration-300 group-hover:-translate-x-1" />
+              <ArrowLeftIcon ref={backRef} size={18} />
               <span>{t('actions.back', { ns: 'common' })}</span>
             </Button>
-            <Button variant="link" onClick={onReset} className="group w-full sm:w-auto px-6 py-3">
+            <Button variant="link" onClick={onReset} className="w-full sm:w-auto px-6 py-3" {...resetHoverProps}>
               <span>{t('stepResult.createAnother')}</span>
-              <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRightIcon ref={resetRef} size={18} />
             </Button>
           </div>
         </Card>

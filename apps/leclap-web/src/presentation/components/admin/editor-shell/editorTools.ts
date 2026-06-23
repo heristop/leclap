@@ -1,22 +1,26 @@
-import { Layers, FileText, Music, Braces, SlidersHorizontal, type LucideIcon } from '@/presentation/components/icons';
+import type { ComponentType } from 'react';
+import { Music, Braces } from '@/presentation/components/icons';
+import { LayersIcon } from '@/presentation/components/icons/layers';
+import { FileTextIcon } from '@/presentation/components/icons/file-text';
+import { SlidersHorizontalIcon } from '@/presentation/components/icons/sliders-horizontal';
 
 export type EditorToolId = 'scenes' | 'basics' | 'audio' | 'variables' | 'advanced';
 
 export interface EditorTool {
   id: EditorToolId;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   labelKey: string; // i18n key under the `admin` namespace
 }
 
 const BASE: EditorTool[] = [
-  { id: 'scenes', icon: Layers, labelKey: 'shell.scenes' },
-  { id: 'basics', icon: FileText, labelKey: 'shell.basics' },
+  { id: 'scenes', icon: LayersIcon, labelKey: 'shell.scenes' },
+  { id: 'basics', icon: FileTextIcon, labelKey: 'shell.basics' },
   { id: 'audio', icon: Music, labelKey: 'shell.audio' },
 ];
 
 const ADVANCED: EditorTool[] = [
   { id: 'variables', icon: Braces, labelKey: 'shell.variables' },
-  { id: 'advanced', icon: SlidersHorizontal, labelKey: 'shell.advanced' },
+  { id: 'advanced', icon: SlidersHorizontalIcon, labelKey: 'shell.advanced' },
 ];
 
 // The dock's tools. scenes + basics + audio are always present; variables and the advanced panel

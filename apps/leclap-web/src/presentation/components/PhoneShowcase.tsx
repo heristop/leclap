@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Camera, Sparkles, WifiOff } from '@/presentation/components/icons';
+import { ArrowRight, Camera, WifiOff } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { Button, Reveal } from '@/presentation/components/ui';
@@ -18,7 +19,7 @@ const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: r
 
 const BULLETS = [
   { key: 'capture', Icon: Camera },
-  { key: 'effects', Icon: Sparkles },
+  { key: 'effects', Icon: SparklesIcon },
   { key: 'offline', Icon: WifiOff },
 ] as const;
 

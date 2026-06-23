@@ -120,21 +120,25 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   const persist = (): StoredTemplate | null => {
     if (saveGuardFails(state)) return null;
     setError('');
+
     try {
       return userTemplateService.save(toUserTemplate(state));
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : t('validation.saveFailed'));
+
       return null;
     }
   };
 
   const handleSave = (): void => {
     const saved = persist();
+
     if (saved) onSaved(saved);
   };
 
   const handleSaveAndCompile = (): void => {
     const saved = persist();
+
     if (saved) onSaveAndCompile?.(saved);
   };
 

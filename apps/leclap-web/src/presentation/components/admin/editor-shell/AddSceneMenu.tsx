@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import {
   SECTION_CATEGORY,
   SECTION_ICON,
@@ -31,6 +32,7 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
   const [anchor, setAnchor] = useState<{ left: number; bottom: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   useEffect(() => {
     const onPointerDown = (e: PointerEvent): void => {
@@ -88,9 +90,10 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
         aria-expanded={open}
         onClick={toggle}
         className="tap grid h-full w-32 place-items-center gap-1.5 rounded-xl border border-dashed border-foreground/20 bg-surface/30 p-2 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-muted-foreground transition-colors hover:border-brand-500/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+        {...plusHoverProps}
       >
         <span aria-hidden="true" className="grid size-9 place-items-center rounded-xl bg-foreground/[0.06]">
-          <Plus className="size-[1.15rem]" />
+          <PlusIcon ref={plusRef} size={18} />
         </span>
         {t('shell.addScene')}
       </button>

@@ -1,18 +1,66 @@
-import { Globe, Code2, AtSign, Coffee } from '@/presentation/components/icons';
+import { forwardRef, type ForwardRefExoticComponent, type RefAttributes } from 'react';
+import { Globe, Code2 } from '@/presentation/components/icons';
+import { AtSignIcon } from '@/presentation/components/icons/at-sign';
+import { CoffeeIcon } from '@/presentation/components/icons/coffee';
+import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
 import { useTranslation } from 'react-i18next';
 
-const socials = [
-  { id: 'website', icon: Globe, href: 'https://heristop.github.io', accent: false },
-  { id: 'github', icon: Code2, href: 'https://github.com/heristop', accent: false },
-  { id: 'twitter', icon: AtSign, href: 'https://twitter.com/heristop', accent: false },
-  { id: 'coffee', icon: Coffee, href: 'https://www.buymeacoffee.com/heristop', accent: true },
-] as const;
+type AnimIcon = ForwardRefExoticComponent<{ className?: string } & RefAttributes<AnimatedIconHandle>>;
+
+// Globe and Code2 have no animated variant; these shims accept (and ignore) the handle ref so they sit
+// in the same typed list as the animated icons without throwing when useIconHover reaches their handle.
+const GlobeIcon = forwardRef<AnimatedIconHandle, { className?: string }>(({ className }, _ref) => (
+  <Globe className={className} />
+));
+GlobeIcon.displayName = 'GlobeIcon';
+
+const Code2Icon = forwardRef<AnimatedIconHandle, { className?: string }>(({ className }, _ref) => (
+  <Code2 className={className} />
+));
+Code2Icon.displayName = 'Code2Icon';
+
+const socials: { id: string; Icon: AnimIcon; href: string; accent: boolean }[] = [
+  { id: 'website', Icon: GlobeIcon, href: 'https://heristop.github.io', accent: false },
+  { id: 'github', Icon: Code2Icon, href: 'https://github.com/heristop', accent: false },
+  { id: 'twitter', Icon: AtSignIcon as unknown as AnimIcon, href: 'https://twitter.com/heristop', accent: false },
+  {
+    id: 'coffee',
+    Icon: CoffeeIcon as unknown as AnimIcon,
+    href: 'https://www.buymeacoffee.com/heristop',
+    accent: true,
+  },
+];
 
 const PILL_BASE =
   'inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border tap transition-colors duration-300 cursor-pointer';
 // Neutral ghost pill for the profile links; a warm amber tint marks the support action.
 const PILL_NEUTRAL = 'text-gray-400 hover:text-foreground bg-foreground/5 hover:bg-foreground/10 border-foreground/10';
 const PILL_ACCENT = 'text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20';
+
+interface SocialPillProps {
+  id: string;
+  Icon: AnimIcon;
+  href: string;
+  accent: boolean;
+}
+
+const SocialPill = ({ id, Icon, href, accent }: SocialPillProps) => {
+  const { t } = useTranslation('about');
+  const { ref, hoverProps } = useIconHover();
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${PILL_BASE} ${accent ? PILL_ACCENT : PILL_NEUTRAL}`}
+      {...hoverProps}
+    >
+      <Icon className="w-4 h-4" ref={ref} />
+      {t(`author.social.${id}`)}
+    </a>
+  );
+};
 
 export const AboutAuthor = () => {
   const { t } = useTranslation('about');
@@ -37,17 +85,8 @@ export const AboutAuthor = () => {
           <p className="text-gray-300 mb-6 leading-relaxed">{t('author.bio')}</p>
 
           <div className="flex flex-wrap justify-center md:justify-start gap-3">
-            {socials.map(({ id, icon: Icon, href, accent }) => (
-              <a
-                key={id}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${PILL_BASE} ${accent ? PILL_ACCENT : PILL_NEUTRAL}`}
-              >
-                <Icon className="w-4 h-4" />
-                {t(`author.social.${id}`)}
-              </a>
+            {socials.map(({ id, Icon, href, accent }) => (
+              <SocialPill key={id} id={id} Icon={Icon} href={href} accent={accent} />
             ))}
           </div>
         </div>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Sparkles, Play, Download } from '@/presentation/components/icons';
+import { Download } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { PlayIcon } from '@/presentation/components/icons/play';
 import {
   Button,
   Badge,
@@ -94,10 +96,10 @@ export const Design = () => (
           <Button size="sm">Small</Button>
           <Button size="md">Medium</Button>
           <Button size="lg">
-            <Sparkles /> Large
+            <SparklesIcon size={16} /> Large
           </Button>
           <Button size="icon" aria-label="Play">
-            <Play />
+            <PlayIcon size={16} />
           </Button>
           <Button disabled>Disabled</Button>
           <Button asChild variant="secondary">

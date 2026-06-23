@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BookOpen, Code2, ChevronDown } from '@/presentation/components/icons';
+import { BookOpen, Code2 } from '@/presentation/components/icons';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
 import { Seo } from '@/presentation/components/Seo';
 import { DocSection, Prose, Code, JsonBlock } from '@/presentation/components/doc/DocBlocks';
@@ -24,7 +25,7 @@ const RawSchema = () => {
         <span className="text-sm font-medium text-foreground">
           Generated JSON Schema <span className="text-gray-500">({json.length.toLocaleString()} chars)</span>
         </span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDownIcon size={16} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open ? (
         <div className="border-t border-divider p-4">

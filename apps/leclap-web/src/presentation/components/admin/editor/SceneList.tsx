@@ -3,17 +3,18 @@ import {
   GripVertical,
   Trash2,
   Copy,
-  ArrowDown,
   AlertCircle,
-  ChevronDown,
-  ChevronRight,
   Video as VideoIcon,
   Square,
-  FileText,
   Music,
   Image as ImageIcon,
   Braces,
 } from '@/presentation/components/icons';
+import { ArrowDownIcon } from '@/presentation/components/icons/arrow-down';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { ChevronRightIcon } from '@/presentation/components/icons/chevron-right';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
+import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import clsx from 'clsx';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import { SECTION_LABELS, type EditorSection, type EditorState, type SectionTransition } from '../templateEditorModel';
@@ -105,6 +106,7 @@ export const SceneList = ({
   const [collapsed, setCollapsed] = useState<Set<number>>(() => new Set());
   const dragging = dragIndex !== null;
   const allCollapsed = sections.length > 0 && collapsed.size === sections.length;
+  const { ref: toggleAllChevronRef, hoverProps: toggleAllChevronHoverProps } = useIconHover();
 
   const toggleCollapsed = (i: number) => {
     setCollapsed((prev) => {
@@ -184,7 +186,7 @@ export const SceneList = ({
       <div className="overflow-hidden">
         <div className="my-2 grid h-16 place-items-center rounded-xl border-2 border-dashed border-brand-500/60 bg-brand-500/[0.08]">
           <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-300">
-            <ArrowDown className="w-4 h-4 animate-bounce" /> Drop here
+            <ArrowDownIcon size={16} className="animate-bounce" /> Drop here
           </span>
         </div>
       </div>
@@ -200,8 +202,13 @@ export const SceneList = ({
             onClick={toggleAll}
             aria-pressed={allCollapsed}
             className="tap inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-gray-500 transition-colors hover:bg-foreground/5 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97]"
+            {...toggleAllChevronHoverProps}
           >
-            {allCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+            {allCollapsed ? (
+              <ChevronDownIcon ref={toggleAllChevronRef} size={14} />
+            ) : (
+              <ChevronRightIcon ref={toggleAllChevronRef} size={14} />
+            )}
             {allCollapsed ? 'Expand all' : 'Collapse all'}
           </button>
         </div>
@@ -295,116 +302,121 @@ const SectionCard = ({
   removeSection,
   duplicateSection,
   patchSection,
-}: SectionCardProps) => (
-  <div
-    id={id}
-    tabIndex={-1}
-    draggable={armed}
-    onDragStart={(e) => {
-      setDragIndex(index);
-      e.dataTransfer.effectAllowed = 'move';
-    }}
-    onDragOver={(e) => {
-      onItemDragOver(index, e);
-    }}
-    onDrop={() => {
-      commit(insertAt ?? index);
-    }}
-    onDragEnd={() => {
-      setDragIndex(null);
-      setInsertAt(null);
-      setArmedIndex(null);
-    }}
-    className={clsx(
-      'relative my-2 rounded-xl border bg-surface-2 p-3 transition-all duration-200 ease-[var(--ease-out-expo)] scroll-mt-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
-      dragging &&
-        'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20',
-      !dragging && errors.length > 0 && 'border-[var(--color-error)]/60 ring-1 ring-[var(--color-error)]/30',
-      !dragging && errors.length === 0 && 'border-foreground/10'
-    )}
-  >
-    <div className={clsx('flex items-center gap-2', collapsed ? 'mb-0' : 'mb-2')}>
-      <button
-        type="button"
-        className="cursor-grab rounded-md text-gray-500 transition-all hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:cursor-grabbing active:scale-125"
-        aria-label="Drag to reorder"
-        onPointerDown={() => {
-          setArmedIndex(index);
-        }}
-        onPointerUp={() => {
-          setArmedIndex(null);
-        }}
-      >
-        <GripVertical className="w-5 h-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          toggleCollapsed(index);
-        }}
-        aria-expanded={!collapsed}
-        aria-label={collapsed ? 'Expand section' : 'Collapse section'}
-        className="rounded-md text-gray-500 transition-colors hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-      </button>
-      <span
-        className="grid size-5 shrink-0 place-items-center rounded-full bg-brand-500/15 text-[11px] font-bold tabular-nums text-brand-700 dark:text-brand-300"
-        aria-hidden
-      >
-        {index + 1}
-      </span>
-      <SectionIcon kind={section.kind} />
-      <span className="shrink-0 text-sm font-semibold text-foreground">{SECTION_LABELS[section.kind]}</span>
-      {collapsed && (
-        <span className="min-w-0 truncate text-xs text-gray-500 dark:text-gray-400">{sectionSummary(section)}</span>
+}: SectionCardProps) => {
+  const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
+
+  return (
+    <div
+      id={id}
+      tabIndex={-1}
+      draggable={armed}
+      onDragStart={(e) => {
+        setDragIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+      onDragOver={(e) => {
+        onItemDragOver(index, e);
+      }}
+      onDrop={() => {
+        commit(insertAt ?? index);
+      }}
+      onDragEnd={() => {
+        setDragIndex(null);
+        setInsertAt(null);
+        setArmedIndex(null);
+      }}
+      className={clsx(
+        'relative my-2 rounded-xl border bg-surface-2 p-3 transition-all duration-200 ease-[var(--ease-out-expo)] scroll-mt-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+        dragging &&
+          'scale-[0.98] rotate-[0.5deg] cursor-grabbing border-dashed border-brand-500/50 opacity-50 shadow-lg shadow-brand-500/20',
+        !dragging && errors.length > 0 && 'border-[var(--color-error)]/60 ring-1 ring-[var(--color-error)]/30',
+        !dragging && errors.length === 0 && 'border-foreground/10'
       )}
-      <div className="ml-auto flex items-center gap-0.5">
+    >
+      <div className={clsx('flex items-center gap-2', collapsed ? 'mb-0' : 'mb-2')}>
         <button
           type="button"
-          onClick={() => {
-            duplicateSection(index);
+          className="cursor-grab rounded-md text-gray-500 transition-all hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:cursor-grabbing active:scale-125"
+          aria-label="Drag to reorder"
+          onPointerDown={() => {
+            setArmedIndex(index);
           }}
-          aria-label="Duplicate section"
-          className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-foreground/5 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90 dark:hover:text-brand-300"
+          onPointerUp={() => {
+            setArmedIndex(null);
+          }}
         >
-          <Copy className="w-4 h-4" />
+          <GripVertical className="w-5 h-5" />
         </button>
         <button
           type="button"
           onClick={() => {
-            removeSection(index);
+            toggleCollapsed(index);
           }}
-          aria-label="Remove section"
-          className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-foreground/5 hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Expand section' : 'Collapse section'}
+          className="rounded-md text-gray-500 transition-colors hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90"
+          {...chevronHoverProps}
         >
-          <Trash2 className="w-4 h-4" />
+          {collapsed ? <ChevronRightIcon ref={chevronRef} size={16} /> : <ChevronDownIcon ref={chevronRef} size={16} />}
         </button>
+        <span
+          className="grid size-5 shrink-0 place-items-center rounded-full bg-brand-500/15 text-[11px] font-bold tabular-nums text-brand-700 dark:text-brand-300"
+          aria-hidden
+        >
+          {index + 1}
+        </span>
+        <SectionIcon kind={section.kind} />
+        <span className="shrink-0 text-sm font-semibold text-foreground">{SECTION_LABELS[section.kind]}</span>
+        {collapsed && (
+          <span className="min-w-0 truncate text-xs text-gray-500 dark:text-gray-400">{sectionSummary(section)}</span>
+        )}
+        <div className="ml-auto flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              duplicateSection(index);
+            }}
+            aria-label="Duplicate section"
+            className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-foreground/5 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-90 dark:hover:text-brand-300"
+          >
+            <Copy className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              removeSection(index);
+            }}
+            aria-label="Remove section"
+            className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-foreground/5 hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+      {!collapsed && (
+        <SectionFields
+          section={section}
+          orientation={orientation}
+          variables={variables}
+          partials={partials}
+          onChange={(p) => {
+            patchSection(index, p);
+          }}
+          inputCls={EDITOR_INPUT_CLASS}
+        />
+      )}
+      {errors.length > 0 && (
+        <ul className="mt-2 space-y-1 rounded-lg bg-[var(--color-error)]/10 px-3 py-2 text-xs font-medium text-[var(--color-error)]">
+          {errors.map((e, i) => (
+            <li key={i} className="flex items-start gap-1.5">
+              <AlertCircle className="mt-px size-3.5 shrink-0" /> {e.message}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
-    {!collapsed && (
-      <SectionFields
-        section={section}
-        orientation={orientation}
-        variables={variables}
-        partials={partials}
-        onChange={(p) => {
-          patchSection(index, p);
-        }}
-        inputCls={EDITOR_INPUT_CLASS}
-      />
-    )}
-    {errors.length > 0 && (
-      <ul className="mt-2 space-y-1 rounded-lg bg-[var(--color-error)]/10 px-3 py-2 text-xs font-medium text-[var(--color-error)]">
-        {errors.map((e, i) => (
-          <li key={i} className="flex items-start gap-1.5">
-            <AlertCircle className="mt-px size-3.5 shrink-0" /> {e.message}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
+  );
+};
 
 const DEFAULT_SECTION_BUTTONS: readonly EditorSection['kind'][] = [
   'video',
@@ -514,7 +526,7 @@ function sectionSummary(section: EditorSection): string {
 }
 
 const SectionIcon = ({ kind }: { kind: EditorSection['kind'] }) => {
-  if (kind === 'form') return <FileText className="w-4 h-4 text-brand-700 dark:text-brand-300" />;
+  if (kind === 'form') return <FileTextIcon size={16} className="text-brand-700 dark:text-brand-300" />;
 
   if (kind === 'color') return <Square className="w-4 h-4 text-secondary-700 dark:text-secondary-300" />;
 

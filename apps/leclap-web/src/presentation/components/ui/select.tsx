@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check, ChevronDown } from '@/presentation/components/icons';
+import { Check } from '@/presentation/components/icons';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { cn } from '@/lib/utils';
 
 // shadcn-style Select over Radix — custom on-brand dropdown (replaces the native
@@ -23,7 +24,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-60" />
+      <ChevronDownIcon size={16} className="opacity-60" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));

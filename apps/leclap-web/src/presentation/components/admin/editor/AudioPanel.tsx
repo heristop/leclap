@@ -5,7 +5,8 @@
 // via SectionAudioFields — they map to EditorSection.musicVolume / .audioFade.
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Waves, Mic } from '@/presentation/components/icons';
+import { WavesIcon } from '@/presentation/components/icons/waves';
+import { MicIcon } from '@/presentation/components/icons/mic';
 import { Checkbox } from '@/presentation/components/ui';
 import type { AudioMix } from '../templateEditorModel';
 import { SegmentedControl, VolumeSlider, type SegmentOption } from './controls';
@@ -62,7 +63,7 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
         />
         <div>
           <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
-            <Waves className="size-3.5" /> {t('audio.normalize')}
+            <WavesIcon size={14} /> {t('audio.normalize')}
           </span>
           <SegmentedControl value={audio.normalize ?? 'off'} options={normalizeOptions} onChange={setNormalize} />
         </div>
@@ -77,7 +78,7 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
               set({ ducking: c === true });
             }}
           />
-          <Mic className="size-3.5 text-brand-500" /> {t('audio.ducking')}
+          <MicIcon size={14} className="text-brand-500" /> {t('audio.ducking')}
         </label>
       </div>
     </div>

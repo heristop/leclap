@@ -2,7 +2,9 @@
 import { useState, useEffect, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { FileText, User, Type, Hash, Check } from '@/presentation/components/icons';
+import { Type, Hash, Check } from '@/presentation/components/icons';
+import { FileTextIcon } from '@/presentation/components/icons/file-text';
+import { UserIcon } from '@/presentation/components/icons/user';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { Input } from '@/presentation/components/ui';
@@ -24,7 +26,7 @@ interface TemplateFormProps {
 }
 
 const getFieldIcon = (fieldName: string) => {
-  if (fieldName.includes('name')) return User;
+  if (fieldName.includes('name')) return UserIcon;
 
   if (fieldName.includes('keyword')) return Hash;
 
@@ -191,7 +193,7 @@ const FormValidationSummary = ({ isValid, fields, formData }: FormValidationSumm
             isValid ? 'bg-green-600 shadow-green-500/20' : 'bg-yellow-600 shadow-yellow-500/20'
           )}
         >
-          <FileText className="w-4 h-4 text-white" />
+          <FileTextIcon size={16} className="text-white" />
         </div>
         <div>
           <h4
@@ -283,7 +285,7 @@ const FormHeader = () => {
   return (
     <div className="text-center">
       <div className="brand-gradient rise-in p-3 rounded-2xl inline-block mb-4 shadow-lg shadow-brand-500/25">
-        <FileText className="w-6 h-6 text-white" />
+        <FileTextIcon size={24} className="text-white" />
       </div>
       <h3 className="text-xl font-bold text-foreground mb-2 font-display">{t('form.header.title')}</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400">{t('form.header.subtitle')}</p>
@@ -333,7 +335,7 @@ export const TemplateForm = ({ template, onFormDataChange, formData, sectionName
       <div className="fade-in p-6 bg-brand-500/[0.06] border border-brand-500/30 dark:bg-brand-500/10 rounded-xl">
         <div className="flex items-center space-x-3">
           <div className="brand-gradient p-2 rounded-lg shadow-lg shadow-brand-500/20">
-            <FileText className="w-5 h-5 text-white" />
+            <FileTextIcon size={20} className="text-white" />
           </div>
           <div>
             <h4 className="font-semibold text-brand-700 dark:text-brand-200">{t('form.noForm.title')}</h4>

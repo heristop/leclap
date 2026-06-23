@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Play, Pause, FileVideo, Volume2, VolumeX, Maximize2, Minimize2 } from '@/presentation/components/icons';
+import { FileVideo, Volume2, VolumeX, Minimize2 } from '@/presentation/components/icons';
+import { PlayIcon } from '@/presentation/components/icons/play';
+import { PauseIcon } from '@/presentation/components/icons/pause';
+import { Maximize2Icon } from '@/presentation/components/icons/maximize-2';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { logger } from '@/lib/logger';
 
@@ -60,6 +64,37 @@ const VolumeControl = ({ isMuted, volume, onToggleMute, onChangeVolume, t }: Vol
   </div>
 );
 
+interface PlayOverlayProps {
+  isPlaying: boolean;
+  onPlayPause: () => void;
+  t: TFunction<'process'>;
+}
+
+// The centered tap target: a play affordance that fades to a hover-only pause once the clip is running.
+const PlayOverlay = ({ isPlaying, onPlayPause, t }: PlayOverlayProps) => {
+  const { ref: playRef, hoverProps: playHoverProps } = useIconHover();
+  const { ref: pauseRef, hoverProps: pauseHoverProps } = useIconHover();
+
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      <button
+        type="button"
+        onClick={onPlayPause}
+        aria-label={isPlaying ? t('export.preview.pause') : t('export.preview.play')}
+        className={clsx(
+          'pointer-events-auto grid h-16 w-16 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-sm',
+          'transition-all duration-200 ease-out hover:scale-105 hover:bg-black/60',
+          'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 [&_svg]:size-7',
+          isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+        )}
+        {...(isPlaying ? pauseHoverProps : playHoverProps)}
+      >
+        {isPlaying ? <PauseIcon ref={pauseRef} size={28} /> : <PlayIcon ref={playRef} size={28} className="ml-0.5" />}
+      </button>
+    </div>
+  );
+};
+
 // Self-contained processed-video player: a tap-anywhere play/pause surface, a custom play overlay,
 // and a controls bar with volume + fullscreen. Shared by the export panel and the onboarding result.
 export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, muted = false }: VideoPreviewProps) => {
@@ -70,6 +105,7 @@ export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, mu
   const [isMuted, setIsMuted] = useState(muted);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { ref: maximizeRef, hoverProps: maximizeHoverProps } = useIconHover();
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -162,21 +198,7 @@ export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, mu
         preload="metadata"
       />
 
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <button
-          type="button"
-          onClick={handlePlayPause}
-          aria-label={isPlaying ? t('export.preview.pause') : t('export.preview.play')}
-          className={clsx(
-            'pointer-events-auto grid h-16 w-16 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-sm',
-            'transition-all duration-200 ease-out hover:scale-105 hover:bg-black/60',
-            'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 [&_svg]:size-7',
-            isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
-          )}
-        >
-          {isPlaying ? <Pause /> : <Play className="ml-0.5" />}
-        </button>
-      </div>
+      <PlayOverlay isPlaying={isPlaying} onPlayPause={handlePlayPause} t={t} />
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-4 pt-12">
         <div className="flex items-center justify-between gap-3 text-sm text-white">
@@ -200,8 +222,9 @@ export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, mu
               onClick={toggleFullscreen}
               aria-label={isFullscreen ? t('export.preview.exitFullscreen') : t('export.preview.enterFullscreen')}
               className={ICON_BUTTON}
+              {...maximizeHoverProps}
             >
-              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+              {isFullscreen ? <Minimize2 /> : <Maximize2Icon ref={maximizeRef} size={16} />}
             </button>
           </div>
         </div>

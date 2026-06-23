@@ -2,7 +2,9 @@
 // global.variables; insertable as {{ name }} in any overlay text. Extracted from TemplateEditor so both
 // the legacy editor and the studio shell's Variables panel render the exact same authoring UI.
 import { useTranslation } from 'react-i18next';
-import { Trash2, Plus } from '@/presentation/components/icons';
+import { Trash2 } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { EditorState } from '../templateEditorModel';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
 
@@ -14,6 +16,7 @@ interface GlobalVariablesEditorProps {
 export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorProps) => {
   const { t } = useTranslation('admin');
   const { globalVariables } = state;
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   const update = (i: number, p: Partial<EditorState['globalVariables'][number]>) => {
     patch({ globalVariables: globalVariables.map((v, idx) => (idx === i ? { ...v, ...p } : v)) });
@@ -69,8 +72,9 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
             patch({ globalVariables: [...globalVariables, { name: '', value: '' }] });
           }}
           className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
+          {...plusHoverProps}
         >
-          <Plus className="h-3.5 w-3.5" /> {t('editor.variables.add')}
+          <PlusIcon ref={plusRef} size={14} /> {t('editor.variables.add')}
         </button>
       </div>
     </div>

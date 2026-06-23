@@ -1,8 +1,11 @@
 // One row of the LayersEditor: colour + opacity, an optional gradient (second colour +
 // direction), the % geometry box for extra layers, and reorder/remove controls. The
 // base (first) layer is full-bleed, so it shows no geometry and cannot be removed/moved.
-import { Trash2, ChevronUp, ChevronDown } from '@/presentation/components/icons';
+import { Trash2 } from '@/presentation/components/icons';
+import { ChevronUpIcon } from '@/presentation/components/icons/chevron-up';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { useTranslation } from 'react-i18next';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { TFunction } from 'i18next';
 import { Checkbox, ColorPicker } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
@@ -46,6 +49,8 @@ export const LayerRow = ({
 }: LayerRowProps) => {
   const { t } = useTranslation('admin');
   const layerName = isBase ? t('layer.base') : t('layer.name', { index });
+  const { ref: chevronUpRef, hoverProps: chevronUpHoverProps } = useIconHover();
+  const { ref: chevronDownRef, hoverProps: chevronDownHoverProps } = useIconHover();
 
   return (
     <div className="rounded-xl border border-foreground/10 bg-surface p-2.5">
@@ -60,8 +65,9 @@ export const LayerRow = ({
               onMove(-1);
             }}
             className={moveBtn(canMoveUp)}
+            {...chevronUpHoverProps}
           >
-            <ChevronUp className="h-4 w-4" />
+            <ChevronUpIcon ref={chevronUpRef} size={16} />
           </button>
           <button
             type="button"
@@ -71,8 +77,9 @@ export const LayerRow = ({
               onMove(1);
             }}
             className={moveBtn(canMoveDown)}
+            {...chevronDownHoverProps}
           >
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDownIcon ref={chevronDownRef} size={16} />
           </button>
           {!isBase && (
             <button

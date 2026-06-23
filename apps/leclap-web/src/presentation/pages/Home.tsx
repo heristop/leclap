@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Play } from '@/presentation/components/icons';
+import { ArrowRight } from '@/presentation/components/icons';
+import { PlayIcon } from '@/presentation/components/icons/play';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
@@ -16,6 +18,7 @@ export const Home = () => {
   const { t } = useTranslation('home');
   // Dimmed background clip behind the hero. Paused for reduced-motion viewers.
   const [reduced] = useState(() => globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const { ref: playRef, hoverProps: playHoverProps } = useIconHover();
   // Stop decoding the blurred hero clip once it scrolls off-screen — a full-frame blurred video
   // composited every frame is the page's heaviest scroll cost, and it's invisible past the fold.
   const [heroRef, heroInView] = useInView({ once: false, threshold: 0 });
@@ -103,8 +106,9 @@ export const Home = () => {
                 globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
               }}
               className="rounded-full"
+              {...playHoverProps}
             >
-              <Play />
+              <PlayIcon ref={playRef} size={16} />
               {t('hero.seeHow')}
             </Button>
           </div>

@@ -126,7 +126,7 @@ const EditorTopBar = ({
       }}
       className="tap inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 motion-reduce:transition-none"
     >
-      <ChevronLeft className="h-4 w-4" />
+      <ChevronLeft size={16} />
       <span className="hidden sm:inline">{t('hub.changeTemplate')}</span>
     </button>
 
@@ -150,7 +150,7 @@ const EditorTopBar = ({
     {phase === 'edit' && <ReadyMeter done={done} total={total} t={t} />}
     {phase === 'edit' && (
       <Button onClick={onCreate} disabled={!allComplete} className="group rounded-full">
-        <Sparkles /> {t('hub.createCta')}
+        <Sparkles size={16} /> {t('hub.createCta')}
       </Button>
     )}
   </header>
@@ -353,7 +353,7 @@ const EditorBody = (p: EditorBodyProps) => {
             aria-hidden="true"
             className="grid size-8 place-items-center rounded-lg bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20"
           >
-            <Layers className="size-[1.05rem]" />
+            <Layers size={17} />
           </span>
           <span className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             {p.t('editor.timeline')}

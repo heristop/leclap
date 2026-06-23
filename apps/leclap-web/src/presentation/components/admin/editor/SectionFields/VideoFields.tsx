@@ -2,7 +2,8 @@
 // optional countdown, and the WYSIWYG text-overlay editor — the title is the main creative act, so
 // it stays one click away. The finishing controls (Effects, Section audio, Camera guide) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music, Camera } from '@/presentation/components/icons';
+import { Music, Camera } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';
@@ -106,7 +107,7 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
         <div className="space-y-2">
           <SectionDisclosure
             label={t('disclosure.effects')}
-            icon={<Sparkles className="size-4 shrink-0 text-brand-500" aria-hidden />}
+            icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
             summary={effectsSummary(t, section.look)}
           >
             <VisualEffects

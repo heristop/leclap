@@ -1,7 +1,8 @@
 // Field block for a color_background section. Essentials (always visible): duration. The per-element
 // editors (background layers, animations) now live in the left panel's element inspector; finishing
 // controls (Effects, Section audio) live in collapsed disclosures that only appear in Advanced mode.
-import { Sparkles, Music } from '@/presentation/components/icons';
+import { Music } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { useTranslation } from 'react-i18next';
 import type { EditorSection, Orientation } from '../../templateEditorModel';
 import { SectionDisclosure } from '../SectionDisclosure';
@@ -40,7 +41,7 @@ export const ColorFields = ({ section, onChange, inputCls }: ColorFieldsProps) =
         <div className="space-y-2">
           <SectionDisclosure
             label={t('disclosure.effects')}
-            icon={<Sparkles className="size-4 shrink-0 text-brand-500" aria-hidden />}
+            icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
             summary={effectsSummary(t, section.look)}
           >
             <VisualEffects

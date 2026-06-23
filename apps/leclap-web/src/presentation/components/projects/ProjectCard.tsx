@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, Film, Pencil, Play } from '@/presentation/components/icons';
+import { Film, Pencil } from '@/presentation/components/icons';
+import { ClockIcon } from '@/presentation/components/icons/clock';
+import { PlayIcon } from '@/presentation/components/icons/play';
 import { relativeTime } from '@/lib/relativeTime';
 import { useProjectPoster } from '@/hooks/useProjectPoster';
 import { Card } from '@/presentation/components/ui';
@@ -97,13 +99,13 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
 
         <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
-            <Clock className="size-3.5" />
+            <ClockIcon size={14} />
             {t(`time.${elapsed.key}`, { count: elapsed.count })}
           </span>
           <span aria-hidden>·</span>
           {completed && project.output?.duration ? (
             <span className="inline-flex items-center gap-1.5">
-              <Play className="size-3.5" />
+              <PlayIcon size={14} />
               {formatDuration(project.output.duration)}
             </span>
           ) : (

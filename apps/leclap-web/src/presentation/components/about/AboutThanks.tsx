@@ -1,4 +1,5 @@
-import { Heart, ArrowUpRight } from '@/presentation/components/icons';
+import { HeartIcon } from '@/presentation/components/icons/heart';
+import { ArrowUpRightIcon } from '@/presentation/components/icons/arrow-up-right';
 import { useTranslation } from 'react-i18next';
 
 // A sincere acknowledgment to the FFmpeg project — the engine every clip, filter and
@@ -9,10 +10,10 @@ export const AboutThanks = () => {
 
   return (
     <section className="mt-16 relative overflow-hidden rounded-2xl glass-panel-dark p-8 md:p-12">
-      <Heart
+      <HeartIcon
         aria-hidden="true"
-        strokeWidth={1}
-        className="pointer-events-none absolute -right-8 -bottom-10 w-52 h-52 rotate-12 text-secondary-500/10"
+        size={208}
+        className="pointer-events-none absolute -right-8 -bottom-10 rotate-12 text-secondary-500/10"
       />
 
       <div className="relative max-w-2xl">
@@ -33,7 +34,10 @@ export const AboutThanks = () => {
           className="group mt-6 inline-flex items-center gap-2 text-sm font-medium text-brand-600 dark:text-brand-300 cursor-pointer"
         >
           {t('thanks.link')}
-          <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRightIcon
+            size={16}
+            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
         </a>
       </div>
     </section>

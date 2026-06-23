@@ -3,8 +3,10 @@
 // box controls. Selection is shared with the canvas via `selection` + `onSelectText`, so picking a row
 // here highlights it on the preview and selecting on the preview reveals its controls here.
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Type } from '@/presentation/components/icons';
+import { Trash2, Type } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
 import { cn } from '@/lib/utils';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { newOverlay, type TextOverlay } from '../templateEditorModel';
 import type { SectionSelectionState } from './useSectionSelection';
 import { SelectedControls } from './overlayControls';
@@ -24,6 +26,7 @@ const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<Text
 export const OverlayInspector = ({ overlays, variables, selection, onSelectText, onChange }: OverlayInspectorProps) => {
   const { t } = useTranslation('admin');
   const activeIndex = selection.element?.kind === 'text' ? selection.element.index : null;
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   const addText = () => {
     const index = overlays.length;
@@ -57,8 +60,9 @@ export const OverlayInspector = ({ overlays, variables, selection, onSelectText,
           type="button"
           onClick={addText}
           className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
+          {...plusHoverProps}
         >
-          <Plus className="h-3.5 w-3.5" /> {t('overlay.addText')}
+          <PlusIcon ref={plusRef} size={14} /> {t('overlay.addText')}
         </button>
       </div>
       <OverlayList

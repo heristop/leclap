@@ -1,10 +1,14 @@
 // Ken Burns control for image sections: a direction picker (zoom in/out + pan
 // left/right/up/down) and an intensity slider, with a live CSS keyframe preview that
 // animates the chosen move. Writes section.motion = [{type:'kenburns',direction,intensity}].
-import { useId } from 'react';
+import { useId, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { ZoomIn, ZoomOut, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Sparkles } from '@/presentation/components/icons';
+import { ZoomIn, ZoomOut, ArrowLeft, ArrowRight } from '@/presentation/components/icons';
+import { ArrowUpIcon } from '@/presentation/components/icons/arrow-up';
+import { ArrowDownIcon } from '@/presentation/components/icons/arrow-down';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/presentation/components/ui';
 import type { MotionEffect } from '../templateEditorModel';
@@ -13,13 +17,13 @@ import { RangeSlider } from './controls';
 
 type Direction = 'in' | 'out' | 'left' | 'right' | 'up' | 'down';
 
-const DIRECTIONS: Array<{ value: Direction; icon: typeof ZoomIn; titleKey: string }> = [
+const DIRECTIONS: Array<{ value: Direction; icon: ComponentType<{ className?: string }>; titleKey: string }> = [
   { value: 'in', icon: ZoomIn, titleKey: 'motion.zoomIn' },
   { value: 'out', icon: ZoomOut, titleKey: 'motion.zoomOut' },
   { value: 'left', icon: ArrowLeft, titleKey: 'motion.panLeft' },
   { value: 'right', icon: ArrowRight, titleKey: 'motion.panRight' },
-  { value: 'up', icon: ArrowUp, titleKey: 'motion.panUp' },
-  { value: 'down', icon: ArrowDown, titleKey: 'motion.panDown' },
+  { value: 'up', icon: ArrowUpIcon, titleKey: 'motion.panUp' },
+  { value: 'down', icon: ArrowDownIcon, titleKey: 'motion.panDown' },
 ];
 
 const DEFAULT_INTENSITY = 1.15;
@@ -112,8 +116,47 @@ const ToggleRow = ({ enabled, t, onToggle }: { enabled: boolean; t: TFunction<'a
           onToggle();
         }}
       />
-      <Sparkles className="size-3.5 text-brand-500" /> {t('motion.kenBurns')}
+      <SparklesIcon size={14} className="text-brand-500" /> {t('motion.kenBurns')}
     </label>
+  );
+};
+
+const DirectionButton = ({
+  dir,
+  icon: Icon,
+  titleKey,
+  active,
+  t,
+  onChange,
+}: {
+  dir: Direction;
+  icon: ComponentType<{ className?: string }>;
+  titleKey: string;
+  active: boolean;
+  t: TFunction<'admin'>;
+  onChange: (d: Direction) => void;
+}) => {
+  const { hoverProps } = useIconHover();
+
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      title={t(titleKey)}
+      onClick={() => {
+        onChange(dir);
+      }}
+      className={cn(
+        'tap grid aspect-square place-items-center rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+        active
+          ? 'border-brand-500 bg-brand-500/15 text-brand-600 dark:text-brand-300'
+          : 'border-foreground/10 text-gray-500 hover:border-brand-500/40 hover:text-foreground'
+      )}
+      {...hoverProps}
+    >
+      <Icon className="h-4 w-4" />
+    </button>
   );
 };
 
@@ -127,25 +170,16 @@ const DirectionGrid = ({
   onChange: (d: Direction) => void;
 }) => (
   <div role="radiogroup" aria-label={t('motion.direction')} className="grid grid-cols-6 gap-1.5">
-    {DIRECTIONS.map(({ value: dir, icon: Icon, titleKey }) => (
-      <button
+    {DIRECTIONS.map(({ value: dir, icon, titleKey }) => (
+      <DirectionButton
         key={dir}
-        type="button"
-        role="radio"
-        aria-checked={value === dir}
-        title={t(titleKey)}
-        onClick={() => {
-          onChange(dir);
-        }}
-        className={cn(
-          'tap grid aspect-square place-items-center rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
-          value === dir
-            ? 'border-brand-500 bg-brand-500/15 text-brand-600 dark:text-brand-300'
-            : 'border-foreground/10 text-gray-500 hover:border-brand-500/40 hover:text-foreground'
-        )}
-      >
-        <Icon className="h-4 w-4" />
-      </button>
+        dir={dir}
+        icon={icon}
+        titleKey={titleKey}
+        active={value === dir}
+        t={t}
+        onChange={onChange}
+      />
     ))}
   </div>
 );

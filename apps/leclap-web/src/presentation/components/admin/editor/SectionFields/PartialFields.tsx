@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
-import { Plus, Trash2 } from '@/presentation/components/icons';
+import { Trash2 } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';
 import { Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
@@ -18,6 +20,7 @@ interface PartialFieldsProps {
 
 export const PartialFields = ({ section, partials, variables, onChange, inputCls }: PartialFieldsProps) => {
   const selected = partials.find((partial) => partial.id === section.ref);
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   // When a partial is picked and the author hasn't entered any rows yet, seed the variable NAMES the
   // partial actually exposes so only values remain to fill. Guarded to fire only while empty — once
@@ -147,8 +150,9 @@ export const PartialFields = ({ section, partials, variables, onChange, inputCls
               onChange({ variables: [...section.variables, { name: '', value: '' }] });
             }}
             className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
+            {...plusHoverProps}
           >
-            <Plus className="h-3.5 w-3.5" /> Add variable
+            <PlusIcon ref={plusRef} size={14} /> Add variable
           </button>
         </div>
       </div>

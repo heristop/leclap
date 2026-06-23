@@ -3,7 +3,9 @@
 // unchanged fields are pruned so the descriptor never carries no-op defaults.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, SlidersHorizontal } from '@/presentation/components/icons';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { SlidersHorizontalIcon } from '@/presentation/components/icons/sliders-horizontal';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import type { Grade } from '../templateEditorModel';
 import { GRADE_DEFAULTS, gradeFilter, pruneGrade, type GradeKey } from './lookFilters';
@@ -35,6 +37,8 @@ export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
   const { t } = useTranslation('admin');
   const [open, setOpen] = useState(false);
   const active = grade !== undefined && Object.keys(grade).length > 0;
+  const { ref: slidersRef, hoverProps: slidersHoverProps } = useIconHover();
+  const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
 
   const setField = (key: GradeKey, value: number) => {
     onChange(pruneGrade({ ...grade, [key]: value }));
@@ -49,10 +53,22 @@ export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
         }}
         aria-expanded={open}
         className="tap flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+        onMouseEnter={() => {
+          slidersHoverProps.onMouseEnter();
+          chevronHoverProps.onMouseEnter();
+        }}
+        onMouseLeave={() => {
+          slidersHoverProps.onMouseLeave();
+          chevronHoverProps.onMouseLeave();
+        }}
       >
-        <SlidersHorizontal className="h-3.5 w-3.5" /> {t('grade.fineTune')}
+        <SlidersHorizontalIcon ref={slidersRef} size={14} /> {t('grade.fineTune')}
         {active && <span className="h-1.5 w-1.5 rounded-full bg-brand-500" aria-label={t('grade.customised')} />}
-        <ChevronDown className={cn('ml-auto h-4 w-4 transition-transform', open && 'rotate-180')} />
+        <ChevronDownIcon
+          ref={chevronRef}
+          size={16}
+          className={cn('ml-auto transition-transform', open && 'rotate-180')}
+        />
       </button>
       {open && (
         <div className="grid gap-4 px-3 pb-3 sm:grid-cols-[1fr_8rem]">

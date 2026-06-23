@@ -3,10 +3,13 @@
 // closes the menu and emits its kind to the parent, which appends the element. Sections that own no
 // addable elements (music/form/partial) render nothing. The popover interaction mirrors
 // overlayControls' VariableMenu (outside-click + Escape).
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Plus, Sparkles, Square, Type, type LucideIcon } from '@/presentation/components/icons';
+import { Image, Square, Type } from '@/presentation/components/icons';
+import { PlusIcon } from '@/presentation/components/icons/plus';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { Button } from '@/presentation/components/ui';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { EditorSection } from '../templateEditorModel';
 import { canAddElement } from './sectionElements';
 import type { ElementRef } from './useSectionSelection';
@@ -22,11 +25,11 @@ export function addableKinds(section: EditorSection): AddableKind[] {
 }
 
 // Icon + i18n label-key per addable kind.
-const KIND_ICON: Record<AddableKind, LucideIcon> = {
+const KIND_ICON: Record<AddableKind, ComponentType<{ className?: string }>> = {
   layer: Square,
   text: Type,
   image: Image,
-  animation: Sparkles,
+  animation: SparklesIcon,
 };
 
 const KIND_LABEL: Record<AddableKind, string> = {
@@ -46,6 +49,7 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const kinds = addableKinds(section);
+  const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
   useEffect(() => {
     const onPointer = (event: MouseEvent) => {
@@ -89,8 +93,9 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
         onClick={() => {
           setOpen((v) => !v);
         }}
+        {...plusHoverProps}
       >
-        <Plus className="h-3.5 w-3.5" /> {t('element.add')}
+        <PlusIcon ref={plusRef} size={14} /> {t('element.add')}
       </Button>
       {open && (
         <div

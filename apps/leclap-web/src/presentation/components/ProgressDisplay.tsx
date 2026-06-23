@@ -1,14 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Clock,
-  Cpu,
-  CheckCircle2,
-  AlertCircle,
-  Zap,
-  ShieldCheck,
-  type LucideIcon,
-} from '@/presentation/components/icons';
+import { CheckCircle2, AlertCircle } from '@/presentation/components/icons';
+import { ClockIcon } from '@/presentation/components/icons/clock';
+import { CpuIcon } from '@/presentation/components/icons/cpu';
+import { ZapIcon } from '@/presentation/components/icons/zap';
+import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
 import clsx from 'clsx';
 import { Card } from '@/presentation/components/ui';
 
@@ -42,7 +38,7 @@ const getStageIcon = (percentage: number) => {
 
   if (percentage === 0) return AlertCircle;
 
-  return Cpu;
+  return CpuIcon;
 };
 
 const getProgressColor = (percentage: number): string => {
@@ -126,7 +122,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
 };
 
 interface MetricProps {
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   value: string;
 }
@@ -153,9 +149,9 @@ const PerformanceMetrics = ({ percentage, elapsedMs }: PerformanceMetricsProps) 
 
   return (
     <div className="grid grid-cols-3 gap-4 p-4 bg-surface/40 rounded-xl border border-foreground/5">
-      <Metric icon={ShieldCheck} label={t('progress.metrics.private')} value={t('progress.metrics.onDevice')} />
-      <Metric icon={Clock} label={t('progress.metrics.elapsed')} value={formatTime(elapsedMs)} />
-      <Metric icon={Zap} label={t('progress.metrics.progress')} value={`${Math.round(percentage)}%`} />
+      <Metric icon={ShieldCheckIcon} label={t('progress.metrics.private')} value={t('progress.metrics.onDevice')} />
+      <Metric icon={ClockIcon} label={t('progress.metrics.elapsed')} value={formatTime(elapsedMs)} />
+      <Metric icon={ZapIcon} label={t('progress.metrics.progress')} value={`${Math.round(percentage)}%`} />
     </div>
   );
 };
@@ -208,7 +204,7 @@ const ProgressHeader = ({
 
       {estimatedTimeRemaining !== undefined && estimatedTimeRemaining > 0 && (
         <div className="flex items-center space-x-2 text-sm text-gray-400">
-          <Clock className="w-4 h-4" />
+          <ClockIcon size={16} />
           <span>{t('progress.header.timeRemaining', { time: formatTime(estimatedTimeRemaining) })}</span>
         </div>
       )}

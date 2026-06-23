@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Scissors, Trash2, Gauge } from '@/presentation/components/icons';
+import { Scissors, Trash2 } from '@/presentation/components/icons';
+import { GaugeIcon } from '@/presentation/components/icons/gauge';
 import { cn } from '@/lib/utils';
 import type { ClipSegment } from '@/domain/valueObjects/videoEdits';
 import { SPEED_PRESETS } from '@/features/editor/timelineSegments';
@@ -52,7 +53,7 @@ export function SegmentMenu({ x, y, segment, canDelete, onSetSpeed, onSplit, onD
         className="absolute w-44 overflow-hidden rounded-xl border border-foreground/10 bg-surface p-1 shadow-2xl shadow-black/40 fade-in"
       >
         <div className="flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-gray-400">
-          <Gauge className="h-3.5 w-3.5" />
+          <GaugeIcon size={14} />
           Speed
         </div>
         <div className="grid grid-cols-5 gap-0.5 px-1 pb-1.5">

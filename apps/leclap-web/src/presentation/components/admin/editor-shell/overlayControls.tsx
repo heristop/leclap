@@ -3,7 +3,9 @@
 // — these render in the left OverlayInspector and patch the overlay through `onPatch`.
 import { useId, useState } from 'react';
 import type { TFunction } from 'i18next';
-import { Trash2, Type, ChevronDown } from '@/presentation/components/icons';
+import { Trash2, Type } from '@/presentation/components/icons';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import { rangeFill } from '../editor/controls';
 import {
@@ -199,11 +201,12 @@ const VariableMenu = ({
 }) => {
   const [open, setOpen] = useState(false);
   const disabled = variables.length === 0;
+  const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
 
   if (disabled) {
     return (
       <Button type="button" variant="secondary" size="sm" disabled title={t('overlay.insertVariableHint')}>
-        {t('overlay.insertVariable')} <ChevronDown className="h-3.5 w-3.5" />
+        {t('overlay.insertVariable')} <ChevronDownIcon size={14} />
       </Button>
     );
   }
@@ -222,8 +225,9 @@ const VariableMenu = ({
         onBlur={() => {
           setOpen(false);
         }}
+        {...chevronHoverProps}
       >
-        {t('overlay.insertVariable')} <ChevronDown className="h-3.5 w-3.5" />
+        {t('overlay.insertVariable')} <ChevronDownIcon ref={chevronRef} size={14} />
       </Button>
       {open && (
         <div

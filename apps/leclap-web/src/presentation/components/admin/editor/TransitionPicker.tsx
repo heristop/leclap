@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Scissors, Sparkles } from '@/presentation/components/icons';
+import { Scissors } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 import type { SectionTransition } from '../templateEditorModel';
@@ -44,7 +45,7 @@ export const TransitionPicker = ({ transition, onChange }: TransitionPickerProps
         }}
         className="tap relative z-10 inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-surface-2 px-3 py-1 text-xs font-semibold text-gray-500 shadow-sm transition-all hover:-translate-y-px hover:border-brand-500/40 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:hover:text-brand-300"
       >
-        {isCut ? <Scissors className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5 text-brand-500" />}
+        {isCut ? <Scissors className="h-3.5 w-3.5" /> : <SparklesIcon size={14} className="text-brand-500" />}
         {transitionLabel(isCut ? 'cut' : transition.type, duration, t)}
       </button>
 

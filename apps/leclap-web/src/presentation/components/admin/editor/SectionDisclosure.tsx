@@ -4,7 +4,8 @@
 // (0fr → 1fr) — not height — and the revealed body fades in through FadeIn (the alpha apparition).
 // While collapsed, a summary chip on the header tells the author what's configured without expanding.
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDown } from '@/presentation/components/icons';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { FadeIn } from './FadeIn';
 
@@ -21,6 +22,7 @@ interface SectionDisclosureProps {
 export const SectionDisclosure = ({ label, icon, summary, children }: SectionDisclosureProps) => {
   const [open, setOpen] = useState(false);
   const bodyId = useId();
+  const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
 
   return (
     <div className="rounded-xl border border-foreground/10 bg-surface">
@@ -32,11 +34,14 @@ export const SectionDisclosure = ({ label, icon, summary, children }: SectionDis
         aria-expanded={open}
         aria-controls={bodyId}
         className="tap flex min-h-10 w-full items-center gap-2 rounded-xl px-3 py-2 text-left transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+        {...chevronHoverProps}
       >
-        <ChevronDown
+        <ChevronDownIcon
+          ref={chevronRef}
           aria-hidden
+          size={16}
           className={cn(
-            'size-4 shrink-0 text-gray-500 transition-transform duration-200 ease-[var(--ease-out-expo)]',
+            'shrink-0 text-gray-500 transition-transform duration-200 ease-[var(--ease-out-expo)]',
             open ? 'rotate-0' : '-rotate-90'
           )}
         />

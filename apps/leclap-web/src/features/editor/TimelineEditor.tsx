@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Crop, Scissors, RotateCcw, Play, Pause, Trash2, Undo2, Redo2 } from '@/presentation/components/icons';
+import { Crop, Scissors, RotateCcw, Trash2, Undo2, Redo2 } from '@/presentation/components/icons';
+import { PlayIcon } from '@/presentation/components/icons/play';
+import { PauseIcon } from '@/presentation/components/icons/pause';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { ArrowRightLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/presentation/components/ui';
@@ -24,6 +27,8 @@ const fmtClock = (seconds: number): string => {
 export function TimelineEditor({ file, label, edit, onChange }: TimelineEditorProps) {
   const e = useTimelineEditor({ file, edit, onChange });
   const canDelete = e.segments.length > 1;
+  const { ref: playRef, hoverProps: playHoverProps } = useIconHover();
+  const { ref: pauseRef, hoverProps: pauseHoverProps } = useIconHover();
 
   const undoRef = useRef(e.undo);
   const redoRef = useRef(e.redo);
@@ -111,8 +116,13 @@ export function TimelineEditor({ file, label, edit, onChange }: TimelineEditorPr
                 onClick={e.togglePlay}
                 aria-label={e.playing ? 'Pause' : 'Play'}
                 className="rounded-full [&_svg]:size-4"
+                {...(e.playing ? pauseHoverProps : playHoverProps)}
               >
-                {e.playing ? <Pause /> : <Play className="translate-x-px" />}
+                {e.playing ? (
+                  <PauseIcon ref={pauseRef} size={16} />
+                ) : (
+                  <PlayIcon ref={playRef} size={16} className="translate-x-px" />
+                )}
               </Button>
               <span className="text-sm tabular-nums text-gray-300">
                 {fmtClock(e.outputPosition)} <span className="text-gray-500">/ {fmtClock(e.outputDuration)}</span>

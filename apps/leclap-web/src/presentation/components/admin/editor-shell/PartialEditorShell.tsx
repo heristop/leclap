@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Layers, FileText } from '@/presentation/components/icons';
+import { LayersIcon } from '@/presentation/components/icons/layers';
+import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import { ShellChrome, ToolDock, ProgramMonitor } from '@/presentation/components/editor-shell';
 import { SECTION_LABELS, type EditorSection } from '../templateEditorModel';
@@ -40,8 +41,8 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
   const sectionSelection = useSectionSelection(String(sel.selectedIndex));
 
   const tools = [
-    { id: 'scenes' as const, icon: Layers, label: t('shell.scenes') },
-    { id: 'basics' as const, icon: FileText, label: t('shell.basics') },
+    { id: 'scenes' as const, icon: LayersIcon, label: t('shell.scenes') },
+    { id: 'basics' as const, icon: FileTextIcon, label: t('shell.basics') },
   ];
 
   return (

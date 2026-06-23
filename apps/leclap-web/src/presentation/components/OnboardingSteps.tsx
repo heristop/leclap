@@ -1,8 +1,6 @@
 import type { RefObject } from 'react';
 import {
-  Sparkles,
   Video as VideoIcon,
-  Upload,
   Check,
   Download,
   ArrowRight,
@@ -10,6 +8,9 @@ import {
   X,
   Clapperboard,
 } from '@/presentation/components/icons';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { UploadIcon } from '@/presentation/components/icons/upload';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
@@ -21,7 +22,7 @@ import type { CompilationProgress, CompilationResult } from '@/application/useca
 
 const WELCOME_FEATURES = [
   { id: 'record', icon: VideoIcon },
-  { id: 'template', icon: Sparkles },
+  { id: 'template', icon: SparklesIcon },
   { id: 'download', icon: Download },
 ] as const;
 
@@ -136,6 +137,8 @@ export const CreateStep = ({
   onCreate,
 }: CreateStepProps) => {
   const { t } = useTranslation('onboarding');
+  const { hoverProps: recordHoverProps } = useIconHover();
+  const { ref: uploadRef, hoverProps: uploadHoverProps } = useIconHover();
 
   return (
     <div>
@@ -175,6 +178,7 @@ export const CreateStep = ({
             onClick={onOpenCamera}
             aria-label={t('create.recordAria')}
             className="tap group/tile flex min-h-[5.5rem] flex-col items-center justify-center gap-2 rounded-xl border border-brand-500/30 bg-brand-500/10 text-brand-700 dark:text-brand-200 transition-[transform,background-color,box-shadow,border-color] duration-300 ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:border-brand-500/50 hover:bg-brand-500/20 hover:shadow-[var(--shadow-glow)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30"
+            {...recordHoverProps}
           >
             <VideoIcon className="w-6 h-6 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/tile:scale-110" />
             <span className="text-sm font-semibold">{t('create.record')}</span>
@@ -183,8 +187,12 @@ export const CreateStep = ({
             onClick={() => fileInputRef.current?.click()}
             aria-label={t('create.uploadAria')}
             className="tap group/tile flex min-h-[5.5rem] flex-col items-center justify-center gap-2 rounded-xl border border-foreground/10 bg-foreground/5 text-gray-300 transition-[transform,background-color,box-shadow,border-color] duration-300 ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30"
+            {...uploadHoverProps}
           >
-            <Upload className="w-6 h-6 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/tile:scale-110" />
+            <UploadIcon
+              ref={uploadRef}
+              className="w-6 h-6 transition-transform duration-300 ease-[var(--ease-spring)] group-hover/tile:scale-110"
+            />
             <span className="text-sm font-semibold">{t('create.upload')}</span>
           </button>
           {/* Visually hidden via `sr-only`, NOT `display:none`: WebKit/Safari refuses to open the OS
@@ -204,7 +212,7 @@ export const CreateStep = ({
       )}
 
       <Button onClick={onCreate} disabled={!canCreate} variant="primary" size="lg" className="w-full text-base">
-        <Sparkles /> {t('create.create')}
+        <SparklesIcon size={16} /> {t('create.create')}
       </Button>
     </div>
   );

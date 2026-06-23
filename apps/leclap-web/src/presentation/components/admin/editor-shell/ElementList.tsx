@@ -3,29 +3,24 @@
 // Each row mirrors the canvas selection ring (aria-pressed), and carries move-up / move-down / delete
 // controls. This generalizes OverlayInspector's text-only list to descriptor-driven rows, reusing the
 // same kind→icon mapping as AddElementMenu so the list and the add menu stay in agreement.
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ChevronDown,
-  ChevronUp,
-  Image,
-  Sparkles,
-  Square,
-  Trash2,
-  Type,
-  type LucideIcon,
-} from '@/presentation/components/icons';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
+import { Image, Square, Trash2, Type } from '@/presentation/components/icons';
+import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { ChevronUpIcon } from '@/presentation/components/icons/chevron-up';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { cn } from '@/lib/utils';
 import type { ElementRef } from './useSectionSelection';
 import type { ElementDescriptor } from './sectionElements';
 import { CANVAS_DND_MIME } from './canvasDrop';
 
 // Shared with AddElementMenu's KIND_ICON so list rows and add-menu items use the same glyph per kind.
-const KIND_ICON: Record<ElementRef['kind'], LucideIcon> = {
+const KIND_ICON: Record<ElementRef['kind'], ComponentType<{ className?: string }>> = {
   layer: Square,
   text: Type,
   image: Image,
-  animation: Sparkles,
+  animation: SparklesIcon,
 };
 
 // Two refs point at the same element when both kind and index match.
@@ -85,6 +80,8 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
   const { t } = useTranslation('admin');
   const Icon = KIND_ICON[descriptor.kind];
   const { ref } = descriptor;
+  const { ref: chevronUpRef, hoverProps: chevronUpHoverProps } = useIconHover();
+  const { ref: chevronDownRef, hoverProps: chevronDownHoverProps } = useIconHover();
 
   return (
     <li
@@ -115,8 +112,9 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
         onClick={() => {
           onMove(ref, -1);
         }}
+        hoverProps={chevronUpHoverProps}
       >
-        <ChevronUp className="h-3.5 w-3.5" />
+        <ChevronUpIcon ref={chevronUpRef} size={14} />
       </IconButton>
       <IconButton
         label={t('element.moveDown')}
@@ -124,8 +122,9 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
         onClick={() => {
           onMove(ref, 1);
         }}
+        hoverProps={chevronDownHoverProps}
       >
-        <ChevronDown className="h-3.5 w-3.5" />
+        <ChevronDownIcon ref={chevronDownRef} size={14} />
       </IconButton>
       <IconButton
         label={t('element.delete')}
@@ -145,10 +144,11 @@ interface IconButtonProps {
   disabled?: boolean;
   danger?: boolean;
   onClick: () => void;
+  hoverProps?: { onMouseEnter: () => void; onMouseLeave: () => void };
   children: ReactNode;
 }
 
-const IconButton = ({ label, disabled, danger, onClick, children }: IconButtonProps) => (
+const IconButton = ({ label, disabled, danger, onClick, hoverProps, children }: IconButtonProps) => (
   <button
     type="button"
     aria-label={label}
@@ -160,6 +160,7 @@ const IconButton = ({ label, disabled, danger, onClick, children }: IconButtonPr
         ? 'hover:bg-foreground/5 hover:text-[var(--color-error)] focus-visible:ring-[var(--color-error)]/40'
         : 'hover:bg-foreground/5 hover:text-foreground focus-visible:ring-brand-500/40'
     )}
+    {...hoverProps}
   >
     {children}
   </button>

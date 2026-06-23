@@ -1,7 +1,10 @@
 import { useState, useId, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
-import { Upload, Music, Image as ImageIcon, Play, Pause, Check, X } from '@/presentation/components/icons';
+import { Upload, Music, Image as ImageIcon, Check, X } from '@/presentation/components/icons';
+import { PlayIcon } from '@/presentation/components/icons/play';
+import { PauseIcon } from '@/presentation/components/icons/pause';
+import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { coverGradient } from '@/lib/poster';
 import { Button, SegmentedControl } from '@/presentation/components/ui';
@@ -241,6 +244,8 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
   const { t } = useTranslation('admin');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const { ref: playRef, hoverProps: playHoverProps } = useIconHover();
+  const { ref: pauseRef, hoverProps: pauseHoverProps } = useIconHover();
 
   // Release the shared slot if this card owned it when it unmounts (e.g. switching the Library tab).
   useEffect(
@@ -304,8 +309,13 @@ const MusicCard = ({ item, selected, onPick }: CardProps) => {
         onClick={toggle}
         aria-label={playing ? t('media.pause', { title: item.title }) : t('media.play', { title: item.title })}
         className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white backdrop-blur transition hover:scale-105 hover:bg-brand-600"
+        {...(playing ? pauseHoverProps : playHoverProps)}
       >
-        {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 translate-x-px" />}
+        {playing ? (
+          <PauseIcon ref={pauseRef} size={16} />
+        ) : (
+          <PlayIcon ref={playRef} size={16} className="translate-x-px" />
+        )}
       </button>
       <audio
         ref={audioRef}

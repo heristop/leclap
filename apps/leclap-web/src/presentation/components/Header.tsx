@@ -9,6 +9,7 @@ import { LogoMark, type LogoMarkHandle } from './LogoMark';
 import { SunIcon } from './icons/sun';
 import { MoonIcon } from './icons/moon';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
+import { useIconHover } from './icons/useIconHover';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 
 type ThemeToggleProps = {
@@ -19,6 +20,7 @@ type ThemeToggleProps = {
 
 const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
   const { t } = useTranslation();
+  const { ref, hoverProps } = useIconHover();
 
   return (
     <Button
@@ -33,8 +35,9 @@ const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
       )}
       aria-label={theme === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
       title={t('header.toggleTheme')}
+      {...hoverProps}
     >
-      {theme === 'dark' ? <SunIcon size={18} /> : <MoonIcon size={18} />}
+      {theme === 'dark' ? <SunIcon ref={ref} size={18} /> : <MoonIcon ref={ref} size={18} />}
     </Button>
   );
 };

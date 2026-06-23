@@ -1,17 +1,12 @@
-import { useState, useEffect, type ComponentType, type ReactNode } from 'react';
+import { useState, useEffect, forwardRef, type ComponentType, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Zap,
-  Video,
-  Users,
-  Image,
-  Square,
-  Sparkles,
-  Layers,
-  SearchX,
-  FolderOpen,
-  type LucideIcon,
-} from '@/presentation/components/icons';
+import { Video, Image, Square, SearchX, type LucideIcon } from '@/presentation/components/icons';
+import { type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
+import { ZapIcon } from '@/presentation/components/icons/zap';
+import { UsersIcon } from '@/presentation/components/icons/users';
+import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { LayersIcon } from '@/presentation/components/icons/layers';
+import { FolderOpenIcon } from '@/presentation/components/icons/folder-open';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { logger } from '@/lib/logger';
@@ -21,6 +16,13 @@ import { TemplatePoster } from './TemplatePoster';
 import { HighlightMatch } from './HighlightMatch';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
+
+// SearchX has no animated variant; this shim accepts (and ignores) the handle ref so it satisfies
+// EmptyState's animated-icon prop type without throwing when the hover handler reaches for its handle.
+const SearchXIcon = forwardRef<AnimatedIconHandle, { className?: string }>(({ className }, _ref) => (
+  <SearchX className={className} />
+));
+SearchXIcon.displayName = 'SearchXIcon';
 
 interface TemplateSelectorProps {
   onTemplateSelected: (template: Template) => void;
@@ -64,13 +66,13 @@ const CardMetaChips = ({
   return (
     <div className="flex flex-wrap gap-2">
       <MetaChip icon={ORIENTATION_ICON[orientation]}>{t(`orientation.${orientation}`)}</MetaChip>
-      <MetaChip icon={template.hasForm ? Users : Zap}>
+      <MetaChip icon={template.hasForm ? UsersIcon : ZapIcon}>
         {template.hasForm ? t('fields', { count: fieldCount }) : t('autoProcess')}
       </MetaChip>
-      <MetaChip icon={Layers}>{t('sections', { count: sectionCount })}</MetaChip>
+      <MetaChip icon={LayersIcon}>{t('sections', { count: sectionCount })}</MetaChip>
       {template.descriptor.global?.musicEnabled && (
         <Badge variant="secondary" className="normal-case tracking-normal">
-          <Sparkles className="w-3.5 h-3.5" /> {t('music')}
+          <SparklesIcon size={14} /> {t('music')}
         </Badge>
       )}
     </div>
@@ -294,7 +296,7 @@ export const TemplateSelector = ({
 
       {shown.length === 0 ? (
         <EmptyState
-          icon={SearchX}
+          icon={SearchXIcon}
           title={t('empty.title')}
           hint={t('empty.hint')}
           action={{ label: t('empty.clear'), onClick: resetFacets }}
@@ -307,7 +309,7 @@ export const TemplateSelector = ({
                 id="studio-my-templates"
                 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-300/80"
               >
-                <FolderOpen className="size-4" />
+                <FolderOpenIcon size={16} />
                 {t('sections.myTemplates')}
                 <span className="text-gray-500">({myTemplates.length})</span>
               </h2>
@@ -321,7 +323,7 @@ export const TemplateSelector = ({
                 id="studio-sample-templates"
                 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-300/80"
               >
-                <Sparkles className="size-4" />
+                <SparklesIcon size={16} />
                 {t('sections.sampleTemplates')}
               </h2>
               {renderGrid(sampleTemplates, myTemplates.length)}

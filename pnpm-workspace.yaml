@@ -31,6 +31,8 @@ minimumReleaseAgeExclude:
   - expo-symbols@56.0.6
   - expo@56.0.9
   - caniuse-lite@1.0.30001797
+  - '@vitejs/plugin-react@6.0.3'
+  - vite@8.1.0
 
 onlyBuiltDependencies:
   - '@swc/core'

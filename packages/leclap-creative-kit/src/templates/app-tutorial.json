@@ -21,7 +21,16 @@
     "audio": {
       "sourceVolume": 1,
       "musicVolume": 0.22
-    }
+    },
+    "overlays": [
+      {
+        "text": { "en": "{{ brand }}" },
+        "position": "top-right",
+        "color": "#5eead4",
+        "size": 28,
+        "reveal": "fade"
+      }
+    ]
   },
   "sections": [
     {
@@ -59,88 +68,17 @@
         "type": "fade",
         "duration": 0.4
       },
+      "titleCard": {
+        "kicker": { "en": "HOW TO" },
+        "headline": { "en": "{{ form_1_topic }}" },
+        "subtitle": { "en": "a quick walkthrough" },
+        "accent": "#2dd4bf",
+        "reveal": "slide-left"
+      },
       "options": {
         "backgroundColor": "#0f1419",
         "duration": 2.6
-      },
-      "filters": [
-        {
-          "type": "drawbox",
-          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#0f1419@1", "t": "fill" }
-        },
-        {
-          "type": "drawbox",
-          "values": { "x": 0, "y": 0, "w": 1080, "h": 360, "c": "#141b22@1", "t": "fill" }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "{{ brand }}" },
-            "fontcolor": "#5eead4",
-            "fontsize": 28,
-            "x": "w-text_w-60",
-            "y": 64,
-            "fontfile": "Rubik.ttf",
-            "alpha": "'if(lt(t,0.2),0,if(lt(t,0.9),(t-0.2)/0.7,1))'"
-          }
-        },
-        {
-          "type": "drawbox",
-          "values": { "x": 80, "y": 470, "w": 110, "h": 8, "c": "#2dd4bf@1", "t": "fill" }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "HOW TO" },
-            "fontcolor": "#5eead4",
-            "fontsize": 32,
-            "x": 82,
-            "y": 500,
-            "fontfile": "RobotoMono.ttf",
-            "alpha": "'if(lt(t,0.3),0,if(lt(t,1),(t-0.3)/0.7,1))'"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "{{ form_1_topic }}" },
-            "fontcolor": "#ffffff",
-            "fontsize": 84,
-            "x": "'if(lt(t,0.6),84-(1-t/0.6)*560,84)'",
-            "y": 548,
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,0.35),0,if(lt(t,0.95),(t-0.35)/0.6,1))'"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "a quick walkthrough" },
-            "fontcolor": "#9fb0bd",
-            "fontsize": 34,
-            "x": 82,
-            "y": 686,
-            "fontfile": "Rubik.ttf",
-            "alpha": "'if(lt(t,0.7),0,if(lt(t,1.6),(t-0.7)/0.9,1))'"
-          }
-        },
-        {
-          "type": "vignette"
-        },
-        {
-          "type": "fade",
-          "values": { "t": "in", "d": "0.5", "color": "#0f1419" }
-        },
-        {
-          "type": "fade",
-          "values": {
-            "t": "out",
-            "d": "{{ transitionDuration }}",
-            "st": "{{ transitionStartTime }}",
-            "color": "#0f1419"
-          }
-        }
-      ]
+      }
     },
     {
       "name": "video_1",
@@ -154,6 +92,12 @@
           "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "1080:1080", "opacity": 0.9 }
         }
       ],
+      "lowerThird": {
+        "title": { "en": "{{ form_1_step }}" },
+        "badge": { "en": "STEP" },
+        "accent": "#2dd4bf",
+        "reveal": "rise"
+      },
       "title": {
         "en": "Record your screen"
       },
@@ -171,114 +115,23 @@
         {
           "type": "vignette"
         }
-      ],
-      "maps": [
-        {
-          "inputs": ["@tutorial_frame"],
-          "filters": [
-            {
-              "type": "drawbox",
-              "values": { "x": 80, "y": 64, "w": 132, "h": 56, "c": "#2dd4bf@1", "t": "fill" }
-            },
-            {
-              "type": "drawtext",
-              "values": {
-                "text": { "en": "STEP" },
-                "fontcolor": "#0f1419",
-                "fontsize": 28,
-                "x": 102,
-                "y": 78,
-                "fontfile": "RobotoMono.ttf"
-              }
-            },
-            {
-              "type": "drawtext",
-              "values": {
-                "text": { "en": "{{ brand }}" },
-                "fontcolor": "#ffffff",
-                "fontsize": 26,
-                "x": "w-text_w-60",
-                "y": 78,
-                "fontfile": "Rubik.ttf"
-              }
-            },
-            {
-              "type": "drawbox",
-              "values": { "x": 0, "y": 902, "w": 1080, "h": 178, "c": "#0a0f14@0.62", "t": "fill" }
-            },
-            {
-              "type": "drawbox",
-              "values": { "x": 80, "y": 940, "w": 72, "h": 6, "c": "#2dd4bf@1", "t": "fill" }
-            },
-            {
-              "type": "drawtext",
-              "values": {
-                "text": { "en": "{{ form_1_step }}" },
-                "fontcolor": "#ffffff",
-                "fontsize": 42,
-                "x": 80,
-                "y": 968,
-                "fontfile": "Rubik.ttf"
-              }
-            },
-            {
-              "type": "fadein",
-              "values": { "color": "#0f1419" }
-            },
-            {
-              "type": "fadeout",
-              "values": { "color": "#0f1419" }
-            }
-          ],
-          "outputs": ["final"]
-        }
       ]
     },
     {
       "name": "outro",
       "type": "color_background",
+      "titleCard": {
+        "headline": { "en": "YOU'RE ALL SET" },
+        "subtitle": { "en": "{{ brand }}" },
+        "accent": "#2dd4bf",
+        "align": "center",
+        "reveal": "rise",
+        "fade": { "out": false }
+      },
       "options": {
         "backgroundColor": "#0f1419",
         "duration": 2.2
-      },
-      "filters": [
-        {
-          "type": "drawbox",
-          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#0f1419@1", "t": "fill" }
-        },
-        {
-          "type": "drawbox",
-          "values": { "x": 440, "y": 470, "w": 200, "h": 6, "c": "#2dd4bf@1", "t": "fill" }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "YOU'RE ALL SET" },
-            "fontcolor": "#ffffff",
-            "fontsize": 78,
-            "x": "(w-text_w)/2",
-            "y": 500,
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,0.3),0,if(lt(t,1.1),(t-0.3)/0.8,1))'"
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": { "en": "{{ brand }}" },
-            "fontcolor": "#5eead4",
-            "fontsize": 40,
-            "x": "(w-text_w)/2",
-            "y": 638,
-            "fontfile": "Rubik.ttf",
-            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.4),(t-0.6)/0.8,1))'"
-          }
-        },
-        {
-          "type": "fade",
-          "values": { "t": "in", "d": "0.5", "color": "#0f1419" }
-        }
-      ]
+      }
     }
   ]
 }

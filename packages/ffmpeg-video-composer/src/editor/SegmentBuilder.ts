@@ -1,7 +1,7 @@
 import { injectable, inject, container } from 'tsyringe';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
-import type { MapAnimationInput, Section, SectionOptions } from '@/core/types';
+import type { Filter, MapAnimationInput, Section, SectionOptions } from '@/core/types';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type Segment from '../core/models/Segment';
@@ -11,12 +11,11 @@ import type MapManager from '../editor/managers/MapManager';
 import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/argGuard';
-import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters } from './presets/looks';
-import { captionToFilters } from './presets/captions';
+import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
 import { buildSingleFileAnimationSource, buildSingleFileImageSource, buildGradientSource } from './inputSources';
 import { buildAudioFadeArg } from './audioFade';
 import { resolveVideoCodec, isHardwareCodec, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
-import type { Grade, MotionEffect, BackgroundLayer } from '../schemas/template.schemas';
+import type { BackgroundLayer } from '../schemas/template.schemas';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -352,7 +351,7 @@ class SegmentBuilder {
 
     const opts = this.section.options;
 
-    this.injectSugarFilters(opts);
+    const overlaySugar = this.injectSugarFilters(opts);
 
     // Force ratio (opts?.forceAspectRatio !== false is true when opts is undefined,
     // so the RHS opts.forceOriginalAspectRatio is only reached when opts is defined).
@@ -371,15 +370,42 @@ class SegmentBuilder {
       this.segment.inputsMapCount++;
     }
 
+    // When the section composites an overlay graph (animation/gradient maps), the linear filtersList
+    // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
+    // instead, drawing on top of the overlay rather than being dropped.
+    this.appendOverlayChain(overlaySugar);
+
     this.formatFilters();
   };
 
   /**
-   * Prepends structured-sugar filters to the section's authored filter list in the
-   * deterministic order: layers → motion → grade → look → caption → authored filters.
-   * Called before prependScaleFilters so scale/sar remain first in the chain.
+   * Chains overlay-class sugar (text) onto the final composited pad when the section has an overlay
+   * graph. No-op when there is no map (the text was already placed in the linear chain). Routing here
+   * — rather than as section filters — keeps the text visible above animation/gradient overlays.
    */
-  private readonly injectSugarFilters = (opts: SectionOptions | undefined): void => {
+  private readonly appendOverlayChain = (overlayFilters: Filter[]): void => {
+    const lastPad = this.segment.mapsList.at(-1);
+
+    if (overlayFilters.length === 0 || lastPad === undefined) {
+      return;
+    }
+
+    const compiled = overlayFilters.map((filter) => this.filterManager.addFilter(filter)).join(',');
+    const outPad = `${this.section.name}_text`;
+
+    this.segment.filtersMapList.push(`[${lastPad}]${compiled}[${outPad}]`);
+    this.segment.mapsList.push(outPad);
+  };
+
+  /**
+   * Prepends structured-sugar filters to the section's authored filter list, in the order fixed by
+   * the SUGAR_COMPILERS registry. Background-class sugar (layers/motion/grade/look) always prepends to
+   * the linear chain. Overlay-class sugar (caption/lowerThird text) prepends too WHEN there is no
+   * overlay graph; when an animation/gradient graph already exists, it is returned for the caller to
+   * chain onto the final map (so it draws on top). Called before prependScaleFilters so scale/sar
+   * remain first in the chain.
+   */
+  private readonly injectSugarFilters = (opts: SectionOptions | undefined): Filter[] => {
     const scale = this.project.config.videoConfig?.scale ?? '1280:720';
     // Real footage drives zoompan one output frame per input frame (no time-stretch) and calibrates
     // the Ken Burns curve over the clip's true length. project_video clips are usually shorter than
@@ -390,14 +416,20 @@ class SegmentBuilder {
     const duration = probedDuration ?? opts?.duration ?? 0;
     const ctx = { duration, scale, fps: 30, isVideo };
 
-    this.section.filters = [
-      ...layersToFilters(opts?.layers as BackgroundLayer[] | undefined),
-      ...motionToFilters(this.section.motion as MotionEffect[] | undefined, ctx),
-      ...gradeToFilters(this.section.grade as Grade | undefined),
-      ...lookToFilters(this.section.look),
-      ...captionToFilters(this.section.caption),
-      ...(this.section.filters ?? []),
-    ];
+    const sectionSugar = compileSugarLayers(this.section, ctx);
+    // Global decorations (the whole-video sugar siblings) are fanned out onto this section here, reusing
+    // the same layer routing and the section's own text formatting — author once in `global`, applied to
+    // every section. NOTE: like all background sugar, global look/grade still bakes only into the linear
+    // chain, so on a section with an animation overlay graph it is bypassed (a pre-existing limitation).
+    const globalSugar = compileGlobalDecorations(this.template.descriptor.global, this.section.name, ctx);
+
+    const background = [...sectionSugar.background, ...globalSugar.background];
+    const overlay = [...sectionSugar.overlay, ...globalSugar.overlay];
+    const hasOverlayGraph = this.segment.filtersMapList.length > 0;
+
+    this.section.filters = [...background, ...(hasOverlayGraph ? [] : overlay), ...(this.section.filters ?? [])];
+
+    return hasOverlayGraph ? overlay : [];
   };
 
   /**

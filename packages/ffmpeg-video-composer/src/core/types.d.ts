@@ -31,6 +31,9 @@ export type ProjectBuildInfos = {
   currentProgress: number;
   currentIncrement: number;
   durations: Record<string, number>;
+  // Per project_video section: whether its source clip has an audio stream. Probed once by the
+  // director; false lets the segment add a silent track so transition acrossfade always has audio.
+  sourceHasAudio: Record<string, boolean>;
   videoInputs: string[];
   musicInputs: string[];
   musicFilters: string[];
@@ -50,7 +53,7 @@ interface TemplateMeta {
   description?: string;
 }
 
-interface TemplateDescriptorGlobal {
+export interface TemplateDescriptorGlobal {
   variables?: Variables;
   orientation?: string;
   colorsList?: string[];
@@ -59,10 +62,25 @@ interface TemplateDescriptorGlobal {
   audio?: GlobalAudio;
   music?: MusicConfig;
   animations?: GlobalAnimation[];
+  overlays?: GlobalTextOverlay[];
+  look?: string;
+  grade?: GradeConfig;
   allowedMusic?: string[];
   allowUploadMusic?: boolean;
   allowedBackgrounds?: string[];
   allowUploadBackground?: boolean;
+}
+
+// A whole-video text overlay (global.overlays) composited onto every section (or a named subset).
+export interface GlobalTextOverlay {
+  text: Translation;
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top' | 'bottom' | 'center';
+  font?: string;
+  size?: number;
+  color?: string;
+  opacity?: number;
+  reveal?: Reveal;
+  sections?: string[];
 }
 
 // A whole-video animation overlay (global.animations) composited over the final joined video.
@@ -108,6 +126,27 @@ export interface Variables {
 
 type DescriptorSection = Section | PartialSection;
 
+export interface TitleCard {
+  kicker?: Translation;
+  headline?: Translation;
+  subtitle?: Translation;
+  accent?: string;
+  align?: 'left' | 'center';
+  background?: string;
+  reveal?: Reveal;
+  fade?: { in?: boolean; out?: boolean };
+}
+
+export interface LowerThird {
+  title?: Translation;
+  subtitle?: Translation;
+  accent?: string;
+  boxOpacity?: number;
+  position?: 'bottom' | 'top';
+  badge?: Translation;
+  reveal?: Reveal;
+}
+
 export interface Section {
   name: string;
   type: string;
@@ -119,6 +158,8 @@ export interface Section {
   description?: Translation;
   transition?: SectionTransition;
   caption?: Caption;
+  titleCard?: TitleCard;
+  lowerThird?: LowerThird;
   look?: string;
   grade?: GradeConfig;
   motion?: MotionEffect[];
@@ -144,6 +185,9 @@ export interface PartialSection {
   variables?: Record<string, string>;
 }
 
+export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
+export type Reveal = RevealType | { type: RevealType; delay?: number; duration?: number; distance?: number };
+
 export interface Caption {
   text: Record<string, string>;
   style?: 'bar' | 'subtle' | 'bold';
@@ -155,6 +199,7 @@ export interface Caption {
   box?: boolean;
   boxColor?: string;
   boxOpacity?: number;
+  reveal?: Reveal;
 }
 
 interface AudioFade {
@@ -296,6 +341,7 @@ interface FilterValues {
   boxcolor?: string;
   boxborderw?: number | string;
 }
+
 
 interface Translation {
   [key: string]: string | undefined;

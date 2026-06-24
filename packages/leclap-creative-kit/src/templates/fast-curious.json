@@ -55,14 +55,21 @@
       "type": "partial",
       "ref": "flash-card",
       "prefix": "q1_",
-      "variables": { "optionA": "{{ optionA1 }}", "optionB": "{{ optionB1 }}" }
+      "variables": {
+        "optionA": "{{ optionA1 }}",
+        "optionB": "{{ optionB1 }}"
+      }
     },
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "vivid",
-      "title": { "en": "Answer #1" },
-      "description": { "en": "{{ optionA1 }} or {{ optionB1 }}? — film your answer" },
+      "look": "vivid-pop",
+      "title": {
+        "en": "Answer #1"
+      },
+      "description": {
+        "en": "{{ optionA1 }} or {{ optionB1 }}? — film your answer"
+      },
       "options": {
         "duration": 20,
         "forceAspectRatio": true,
@@ -71,13 +78,37 @@
         "musicVolume": 0.1
       },
       "filters": [
-        { "type": "vignette" },
-        { "type": "drawbox", "values": { "x": 0, "y": 600, "w": 1280, "h": 120, "c": "#141416@0.55", "t": "fill" } },
-        { "type": "drawbox", "values": { "x": 80, "y": 628, "w": 90, "h": 5, "c": "#ff2e4d@1", "t": "fill" } },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 600,
+            "w": 1280,
+            "h": 120,
+            "c": "#141416@0.55",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 80,
+            "y": 628,
+            "w": 90,
+            "h": 5,
+            "c": "#ff2e4d@1",
+            "t": "fill"
+          }
+        },
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ optionA1 }} or {{ optionB1 }}?" },
+            "text": {
+              "en": "{{ optionA1 }} or {{ optionB1 }}?"
+            },
             "fontcolor": "#f5f5f0",
             "fontsize": 44,
             "x": 80,
@@ -85,22 +116,39 @@
             "fontfile": "BebasNeue.ttf"
           }
         },
-        { "type": "fadein", "values": { "color": "#141416" } },
-        { "type": "fadeout", "values": { "color": "#141416" } }
+        {
+          "type": "fadein",
+          "values": {
+            "color": "#141416"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "#141416"
+          }
+        }
       ]
     },
     {
       "type": "partial",
       "ref": "flash-card",
       "prefix": "q2_",
-      "variables": { "optionA": "{{ optionA2 }}", "optionB": "{{ optionB2 }}" }
+      "variables": {
+        "optionA": "{{ optionA2 }}",
+        "optionB": "{{ optionB2 }}"
+      }
     },
     {
       "name": "video_2",
       "type": "project_video",
-      "look": "vivid",
-      "title": { "en": "Answer #2" },
-      "description": { "en": "{{ optionA2 }} or {{ optionB2 }}? — film your answer" },
+      "look": "vivid-pop",
+      "title": {
+        "en": "Answer #2"
+      },
+      "description": {
+        "en": "{{ optionA2 }} or {{ optionB2 }}? — film your answer"
+      },
       "options": {
         "duration": 20,
         "forceAspectRatio": true,
@@ -109,13 +157,37 @@
         "musicVolume": 0.1
       },
       "filters": [
-        { "type": "vignette" },
-        { "type": "drawbox", "values": { "x": 0, "y": 600, "w": 1280, "h": 120, "c": "#141416@0.55", "t": "fill" } },
-        { "type": "drawbox", "values": { "x": 80, "y": 628, "w": 90, "h": 5, "c": "#ff2e4d@1", "t": "fill" } },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 600,
+            "w": 1280,
+            "h": 120,
+            "c": "#141416@0.55",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 80,
+            "y": 628,
+            "w": 90,
+            "h": 5,
+            "c": "#ff2e4d@1",
+            "t": "fill"
+          }
+        },
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ optionA2 }} or {{ optionB2 }}?" },
+            "text": {
+              "en": "{{ optionA2 }} or {{ optionB2 }}?"
+            },
             "fontcolor": "#f5f5f0",
             "fontsize": 44,
             "x": 80,
@@ -123,22 +195,39 @@
             "fontfile": "BebasNeue.ttf"
           }
         },
-        { "type": "fadein", "values": { "color": "#141416" } },
-        { "type": "fadeout", "values": { "color": "#141416" } }
+        {
+          "type": "fadein",
+          "values": {
+            "color": "#141416"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "#141416"
+          }
+        }
       ]
     },
     {
       "type": "partial",
       "ref": "flash-card",
       "prefix": "q3_",
-      "variables": { "optionA": "{{ optionA3 }}", "optionB": "{{ optionB3 }}" }
+      "variables": {
+        "optionA": "{{ optionA3 }}",
+        "optionB": "{{ optionB3 }}"
+      }
     },
     {
       "name": "video_3",
       "type": "project_video",
-      "look": "vivid",
-      "title": { "en": "Answer #3" },
-      "description": { "en": "{{ optionA3 }} or {{ optionB3 }}? — film your answer" },
+      "look": "vivid-pop",
+      "title": {
+        "en": "Answer #3"
+      },
+      "description": {
+        "en": "{{ optionA3 }} or {{ optionB3 }}? — film your answer"
+      },
       "options": {
         "duration": 20,
         "forceAspectRatio": true,
@@ -147,13 +236,37 @@
         "musicVolume": 0.1
       },
       "filters": [
-        { "type": "vignette" },
-        { "type": "drawbox", "values": { "x": 0, "y": 600, "w": 1280, "h": 120, "c": "#141416@0.55", "t": "fill" } },
-        { "type": "drawbox", "values": { "x": 80, "y": 628, "w": 90, "h": 5, "c": "#ff2e4d@1", "t": "fill" } },
+        {
+          "type": "vignette"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 600,
+            "w": 1280,
+            "h": 120,
+            "c": "#141416@0.55",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 80,
+            "y": 628,
+            "w": 90,
+            "h": 5,
+            "c": "#ff2e4d@1",
+            "t": "fill"
+          }
+        },
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ optionA3 }} or {{ optionB3 }}?" },
+            "text": {
+              "en": "{{ optionA3 }} or {{ optionB3 }}?"
+            },
             "fontcolor": "#f5f5f0",
             "fontsize": 44,
             "x": 80,
@@ -161,8 +274,18 @@
             "fontfile": "BebasNeue.ttf"
           }
         },
-        { "type": "fadein", "values": { "color": "#141416" } },
-        { "type": "fadeout", "values": { "color": "#141416" } }
+        {
+          "type": "fadein",
+          "values": {
+            "color": "#141416"
+          }
+        },
+        {
+          "type": "fadeout",
+          "values": {
+            "color": "#141416"
+          }
+        }
       ]
     },
     {

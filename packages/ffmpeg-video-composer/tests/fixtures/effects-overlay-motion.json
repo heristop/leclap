@@ -1,0 +1,33 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "motion_intro",
+      "type": "color_background",
+      "options": { "backgroundColor": "#101418", "duration": 2 },
+      "inputs": [
+        {
+          "name": "badge",
+          "url": "animations/pulse_ring.apng",
+          "type": "animation",
+          "options": {
+            "fps": 25,
+            "position": "500:300",
+            "scale": "280:140",
+            "persistent": true,
+            "motion": "slide-left"
+          }
+        },
+        {
+          "name": "label",
+          "url": "animations/corner_brackets.apng",
+          "type": "animation",
+          "options": { "fps": 25, "position": "0:0", "scale": "1280:720", "persistent": true, "motion": "fade" }
+        }
+      ]
+    }
+  ]
+}

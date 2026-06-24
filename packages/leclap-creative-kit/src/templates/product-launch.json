@@ -24,7 +24,9 @@
     },
     "overlays": [
       {
-        "text": { "en": "{{ brand }}" },
+        "text": {
+          "en": "{{ brand }}"
+        },
         "position": "top-right",
         "color": "#ffffff",
         "size": 26,
@@ -76,11 +78,21 @@
         "duration": 0.5
       },
       "titleCard": {
-        "kicker": { "en": "INTRODUCING" },
-        "headline": { "en": "{{ form_1_name }}" },
-        "subtitle": { "en": "{{ form_1_tagline }}" },
+        "kicker": {
+          "en": "INTRODUCING"
+        },
+        "headline": {
+          "en": "{{ form_1_name }}"
+        },
+        "subtitle": {
+          "en": "{{ form_1_tagline }}"
+        },
         "accent": "#7C83FF",
-        "reveal": "slide-left"
+        "reveal": "slide-left",
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
       },
       "options": {
         "backgroundColor": "#0b0e24",
@@ -90,21 +102,37 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "vivid",
+      "look": "vivid-pop",
       "inputs": [
         {
           "name": "reticle",
           "url": "/assets/animations/spec_orbit.apng",
           "type": "animation",
-          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "720:1280", "opacity": 0.55 }
+          "options": {
+            "loop": true,
+            "persistent": true,
+            "position": "0:0",
+            "scale": "720:1280",
+            "opacity": 0.55
+          }
         }
       ],
       "lowerThird": {
-        "title": { "en": "{{ form_1_name }}" },
-        "subtitle": { "en": "{{ form_1_tagline }}" },
-        "badge": { "en": "{{ form_1_price }}" },
+        "title": {
+          "en": "{{ form_1_name }}"
+        },
+        "subtitle": {
+          "en": "{{ form_1_tagline }}"
+        },
+        "badge": {
+          "en": "{{ form_1_price }}"
+        },
         "accent": "#7C83FF",
-        "reveal": "rise"
+        "reveal": "rise",
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
       },
       "title": {
         "en": "Show your product"
@@ -129,12 +157,22 @@
       "name": "outro",
       "type": "color_background",
       "titleCard": {
-        "headline": { "en": "AVAILABLE NOW" },
-        "subtitle": { "en": "{{ form_1_price }}" },
+        "headline": {
+          "en": "AVAILABLE NOW"
+        },
+        "subtitle": {
+          "en": "{{ form_1_price }}"
+        },
         "accent": "#7C83FF",
         "align": "center",
         "reveal": "rise",
-        "fade": { "out": false }
+        "fade": {
+          "out": false
+        },
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
       },
       "options": {
         "backgroundColor": "#0b0e24",

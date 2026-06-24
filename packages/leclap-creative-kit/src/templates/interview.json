@@ -180,14 +180,17 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "cinematic",
+      "look": "teal-orange",
       "caption": {
         "text": {
           "en": "{{ form_1_question }}"
         },
         "style": "bar",
         "position": "top",
-        "align": "center"
+        "align": "center",
+        "effect": {
+          "shadow": true
+        }
       },
       "title": {
         "en": "Answer the question"

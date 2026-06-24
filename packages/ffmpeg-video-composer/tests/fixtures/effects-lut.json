@@ -1,0 +1,21 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "look": "teal-orange"
+  },
+  "sections": [
+    {
+      "name": "graded_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 }
+    },
+    {
+      "name": "mono_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "look": "mono-film"
+    }
+  ]
+}

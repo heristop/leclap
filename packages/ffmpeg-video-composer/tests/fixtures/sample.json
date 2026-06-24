@@ -1,0 +1,67 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "look": "teal-orange",
+    "overlays": [
+      {
+        "text": { "en": "LeClap" },
+        "position": "bottom-right",
+        "effect": { "shadow": true, "outline": true }
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "title",
+      "type": "color_background",
+      "options": { "backgroundColor": "#0d1b2a", "duration": 2 },
+      "titleCard": {
+        "kicker": { "en": "Kitchen Sink" },
+        "headline": { "en": "Every New Effect" },
+        "subtitle": { "en": "shadow · outline · LUT · key · motion" },
+        "accent": "#7C83FF",
+        "reveal": "rise",
+        "effect": { "shadow": true, "outline": { "width": 3 } }
+      }
+    },
+    {
+      "name": "graded",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "look": "warm-film",
+      "lowerThird": {
+        "title": { "en": "Warm Film LUT" },
+        "subtitle": { "en": "lut3d-backed look" },
+        "accent": "#FF6B6B",
+        "badge": { "en": "01" },
+        "effect": { "shadow": true, "outline": true }
+      }
+    },
+    {
+      "name": "keyed",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "chromaKey": { "color": "#000000", "similarity": 0.18, "blend": 0.0, "background": "#10243f" },
+      "caption": {
+        "text": { "en": "Background removed" },
+        "style": "bold",
+        "effect": { "shadow": true }
+      }
+    },
+    {
+      "name": "motion",
+      "type": "color_background",
+      "options": { "backgroundColor": "#101418", "duration": 2 },
+      "inputs": [
+        {
+          "name": "reticle",
+          "url": "animations/pulse_ring.apng",
+          "type": "animation",
+          "options": { "fps": 25, "position": "500:290", "scale": "280:140", "persistent": true, "motion": "rise" }
+        }
+      ]
+    }
+  ]
+}

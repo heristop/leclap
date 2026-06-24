@@ -1,0 +1,48 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "overlays": [
+      {
+        "text": { "en": "LeClap" },
+        "position": "top-right",
+        "effect": { "shadow": true, "outline": true }
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "intro_card",
+      "type": "color_background",
+      "options": { "backgroundColor": "#0d1b2a", "duration": 2 },
+      "titleCard": {
+        "kicker": { "en": "Episode 1" },
+        "headline": { "en": "Shadow & Outline" },
+        "subtitle": { "en": "Readable on any background" },
+        "accent": "#7C83FF",
+        "reveal": "rise",
+        "effect": {
+          "shadow": { "color": "#000000@0.7", "dx": 3, "dy": 3 },
+          "outline": { "color": "#000000", "width": 3 }
+        }
+      }
+    },
+    {
+      "name": "clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "caption": {
+        "text": { "en": "Captions stay legible" },
+        "style": "bold",
+        "effect": { "shadow": true, "outline": { "width": 2 } }
+      },
+      "lowerThird": {
+        "title": { "en": "Jane Doe" },
+        "subtitle": { "en": "Creative Director" },
+        "accent": "#FF6B6B",
+        "effect": { "shadow": true }
+      }
+    }
+  ]
+}

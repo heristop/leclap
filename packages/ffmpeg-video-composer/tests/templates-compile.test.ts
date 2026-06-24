@@ -14,7 +14,9 @@ const repoRoot = path.resolve(here, '../../..');
 const libDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 const templatesDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/templates');
 const videosDir = path.resolve(libDir, 'videos');
-const buildDir = path.resolve(repoRoot, 'build');
+// A per-file build dir so this suite never shares build/output.mp4 with the other parallel real-compile
+// suites (a sibling's end-of-run cleanup would otherwise delete this file's output mid-render — a race).
+const buildDir = path.resolve(repoRoot, 'build/templates-compile');
 
 // Sample values for any form field a template might reference (extra keys are harmless).
 const FIELDS: Record<string, string> = {

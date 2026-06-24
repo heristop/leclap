@@ -1,0 +1,14 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@leclap/expo": "2.0.0",
+    "@leclap/web": "1.0.0",
+    "ffmpeg-video-composer": "2.0.0-beta.2",
+    "@leclap/brand-motion": "0.0.0",
+    "@leclap/cli": "0.1.0",
+    "@leclap/creative-kit": "0.0.0",
+    "@leclap/mcp": "0.1.0"
+  },
+  "changesets": []
+}

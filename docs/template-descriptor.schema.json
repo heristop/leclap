@@ -353,6 +353,62 @@
                   }
                 ]
               },
+              "effect": {
+                "description": "Drop shadow / outline for legibility over every section.",
+                "type": "object",
+                "properties": {
+                  "shadow": {
+                    "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "color": {
+                            "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                            "type": "string"
+                          },
+                          "dx": {
+                            "description": "Horizontal shadow offset in pixels (default 2).",
+                            "type": "number"
+                          },
+                          "dy": {
+                            "description": "Vertical shadow offset in pixels (default 2).",
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "outline": {
+                    "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "color": {
+                            "description": "Outline colour token (default #000000).",
+                            "type": "string"
+                          },
+                          "width": {
+                            "description": "Outline width in pixels (default 2).",
+                            "type": "number",
+                            "minimum": 0
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
               "sections": {
                 "description": "Section names this overlay appears on; omit for every section.",
                 "type": "array",
@@ -369,7 +425,20 @@
         "look": {
           "description": "Colour-grade preset applied across every section (whole-video look).",
           "type": "string",
-          "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+          "enum": [
+            "cinematic",
+            "warm",
+            "cool",
+            "vintage",
+            "noir",
+            "vivid",
+            "dreamy",
+            "teal-orange",
+            "warm-film",
+            "mono-film",
+            "noir-film",
+            "vivid-pop"
+          ]
         },
         "grade": {
           "description": "Fine-grained colour grade applied across every section.",
@@ -606,6 +675,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -722,6 +828,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -891,6 +1038,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -1049,6 +1237,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -1275,6 +1504,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -1365,6 +1650,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -1372,7 +1713,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -1623,6 +1977,34 @@
                   ],
                   "description": "Motion or geometric effect applied to the section video."
                 }
+              },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
               },
               "type": {
                 "type": "string",
@@ -1902,6 +2284,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -2018,6 +2437,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -2187,6 +2647,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -2345,6 +2846,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -2571,6 +3113,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -2661,6 +3259,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -2668,7 +3322,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -2919,6 +3586,34 @@
                   ],
                   "description": "Motion or geometric effect applied to the section video."
                 }
+              },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
               },
               "type": {
                 "type": "string",
@@ -3240,6 +3935,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -3356,6 +4088,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -3525,6 +4298,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -3683,6 +4497,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -3909,6 +4764,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -3999,6 +4910,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -4006,7 +4973,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -4257,6 +5237,34 @@
                   ],
                   "description": "Motion or geometric effect applied to the section video."
                 }
+              },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
               },
               "type": {
                 "type": "string",
@@ -4536,6 +5544,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -4652,6 +5697,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -4821,6 +5907,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -4979,6 +6106,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -5205,6 +6373,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -5295,6 +6519,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -5302,7 +6582,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -5554,6 +6847,34 @@
                   "description": "Motion or geometric effect applied to the section video."
                 }
               },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
+              },
               "type": {
                 "type": "string",
                 "const": "color_background",
@@ -5642,6 +6963,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to every line for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "fade": {
                     "description": "Auto fade-in / fade-out behaviour for the card.",
@@ -6020,6 +7397,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -6136,6 +7550,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -6305,6 +7760,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -6463,6 +7959,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -6689,6 +8226,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -6779,6 +8372,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -6786,7 +8435,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -7037,6 +8699,34 @@
                   ],
                   "description": "Motion or geometric effect applied to the section video."
                 }
+              },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
               },
               "type": {
                 "type": "string",
@@ -7316,6 +9006,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -7432,6 +9159,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -7601,6 +9369,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -7759,6 +9568,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -7985,6 +9835,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -8075,6 +9981,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -8082,7 +10044,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -8333,6 +10308,34 @@
                   ],
                   "description": "Motion or geometric effect applied to the section video."
                 }
+              },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
               },
               "type": {
                 "type": "string",
@@ -8612,6 +10615,43 @@
                         "rotation": {
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
+                        },
+                        "motion": {
+                          "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false
@@ -8728,6 +10768,47 @@
                               "fontfile": {
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
+                              },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
                               },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
@@ -8897,6 +10978,47 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "shadowcolor": {
+                                "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                                "type": "string"
+                              },
+                              "shadowx": {
+                                "description": "drawtext drop-shadow horizontal offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "shadowy": {
+                                "description": "drawtext drop-shadow vertical offset in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "bordercolor": {
+                                "description": "drawtext outline colour token, e.g. \"#000000\".",
+                                "type": "string"
+                              },
+                              "borderw": {
+                                "description": "drawtext outline width in pixels.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "alpha": {
                                 "description": "Alpha (opacity) expression passed to the filter.",
                                 "type": "string"
@@ -9055,6 +11177,47 @@
                         "fontfile": {
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
+                        },
+                        "shadowcolor": {
+                          "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
+                          "type": "string"
+                        },
+                        "shadowx": {
+                          "description": "drawtext drop-shadow horizontal offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "shadowy": {
+                          "description": "drawtext drop-shadow vertical offset in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "bordercolor": {
+                          "description": "drawtext outline colour token, e.g. \"#000000\".",
+                          "type": "string"
+                        },
+                        "borderw": {
+                          "description": "drawtext outline width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         "alpha": {
                           "description": "Alpha (opacity) expression passed to the filter.",
@@ -9281,6 +11444,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline for legibility over busy footage.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": ["text"],
@@ -9371,6 +11590,62 @@
                         "description": "Animated entrance for sugar text, with optional timing overrides."
                       }
                     ]
+                  },
+                  "effect": {
+                    "description": "Drop shadow / outline applied to the title + subtitle for legibility.",
+                    "type": "object",
+                    "properties": {
+                      "shadow": {
+                        "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                                "type": "string"
+                              },
+                              "dx": {
+                                "description": "Horizontal shadow offset in pixels (default 2).",
+                                "type": "number"
+                              },
+                              "dy": {
+                                "description": "Vertical shadow offset in pixels (default 2).",
+                                "type": "number"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "outline": {
+                        "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "description": "Outline colour token (default #000000).",
+                                "type": "string"
+                              },
+                              "width": {
+                                "description": "Outline width in pixels (default 2).",
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "additionalProperties": false
@@ -9378,7 +11653,20 @@
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
-                "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+                "enum": [
+                  "cinematic",
+                  "warm",
+                  "cool",
+                  "vintage",
+                  "noir",
+                  "vivid",
+                  "dreamy",
+                  "teal-orange",
+                  "warm-film",
+                  "mono-film",
+                  "noir-film",
+                  "vivid-pop"
+                ]
               },
               "grade": {
                 "description": "Fine-grained colour-grade settings applied to the section video.",
@@ -9629,6 +11917,34 @@
                   ],
                   "description": "Motion or geometric effect applied to the section video."
                 }
+              },
+              "chromaKey": {
+                "description": "Background removal: key out a solid screen colour and composite over a solid background.",
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Screen colour to remove as a CSS hex string, e.g. \"#00FF00\" for a green screen."
+                  },
+                  "similarity": {
+                    "description": "How close a pixel must be to the key colour to be removed, 0.01..1 (default 0.3).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 1
+                  },
+                  "blend": {
+                    "description": "Softness of the keyed edge, 0..1 (default 0.1).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "background": {
+                    "description": "Solid colour composited behind the keyed clip (default: the section backgroundColor, else black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["color"],
+                "additionalProperties": false
               },
               "type": {
                 "type": "string",

@@ -15,12 +15,18 @@ export interface AnimatedIconHandle {
 export function useIconHover() {
   const ref = useRef<AnimatedIconHandle>(null);
 
+  // A ref can land on an icon that doesn't implement the animated handle — a plain lucide glyph forwards
+  // its ref to the SVG element, which has no start/stopAnimation — so guard before invoking.
   const hoverProps = {
     onMouseEnter: () => {
-      ref.current?.startAnimation();
+      const handle = ref.current;
+
+      if (typeof handle?.startAnimation === 'function') handle.startAnimation();
     },
     onMouseLeave: () => {
-      ref.current?.stopAnimation();
+      const handle = ref.current;
+
+      if (typeof handle?.stopAnimation === 'function') handle.stopAnimation();
     },
   };
 

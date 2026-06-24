@@ -10,6 +10,18 @@ class ProjectVideo extends SegmentBuilder {
     return this.section.options?.muteSection === true ? 1 : 0;
   }
 
+  // True when the source clip carries no audio of its own (a video-only upload). The director probes
+  // this; when set, configure() appends a silent track so the segment always has an audio stream —
+  // otherwise the transition assembly's acrossfade later aborts on a missing `[k:a]`.
+  private sourceHasNoAudio(): boolean {
+    const muted = this.section.options?.muteSection ?? false;
+    // Indexed access is `boolean` per the type, but an unprobed section (e.g. a reused clip) is absent
+    // at runtime — only an explicit `false` means "probed, no audio", so widen to distinguish it.
+    const hasAudio = this.project.buildInfos.sourceHasAudio[this.section.name] as boolean | undefined;
+
+    return !muted && hasAudio === false;
+  }
+
   override configure = (): void => {
     this.command = ' -y ';
 
@@ -39,11 +51,19 @@ class ProjectVideo extends SegmentBuilder {
       duration = ` -t ${this.section.options?.duration} `;
     }
 
+    // A video-only source has no audio, so map a silent track instead. The blank input is APPENDED
+    // after the source + asset inputs (it must NOT shift the video to input 1 — animation/overlay maps
+    // reference the source as `[0:v]`). `-shortest` trims the infinite anullsrc to the video length.
+    const noSourceAudio = this.sourceHasNoAudio();
+    const silentInput = noSourceAudio ? this.addBlankAudio() : '';
+    // Source video is input 0, asset inputs follow, the appended silent leg is the last input.
+    const audioMap = noSourceAudio ? `-map ${this.sources.length + 1}:a` : '-map 0:a?';
+
     this.command +=
-      ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
+      ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ${silentInput} ` +
       ` -r 30 ${duration} ` +
       ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} -movflags +faststart -shortest ` +
-      ` ${this.filters} -map 0:a? ${this.buildAudioFadeArg()}${this.destination} `;
+      ` ${this.filters} ${audioMap} ${this.buildAudioFadeArg()}${this.destination} `;
   };
 }
 

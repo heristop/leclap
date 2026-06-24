@@ -129,6 +129,7 @@ describe('Project', () => {
       currentProgress: 0,
       currentIncrement: 0,
       durations: {},
+      sourceHasAudio: {},
       videoInputs: [],
       musicInputs: [],
       musicFilters: [],

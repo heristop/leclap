@@ -8,7 +8,8 @@ import type Project from '../core/models/Project';
 import type { Section } from '@/core/types';
 import type MusicComposer from './MusicComposer';
 import type AnimationComposer from './AnimationComposer';
-import { buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
+import { getPerfTimer } from '../utils/perf-timer';
+import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 
 /** A boundary transition between two adjacent segments — `type` is an xfade name or `cut`. */
 type Transition = { type: string; duration: number };
@@ -232,13 +233,14 @@ class VideoEditor {
 
     const encoderArgs = buildVideoEncoderArgs(this.project.config);
     const pixFmtArg = buildPixFmtArg(this.project.config);
+    const colorArgs = buildColorMetadataArgs();
 
     return (
       ' -y ' +
       inputs +
       silentInputs.join('') +
       ` -filter_complex "${filterComplex}" ` +
-      ` -map "[vout]" -map "[aout]" -r 30 ${encoderArgs} ${pixFmtArg} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
+      ` -map "[vout]" -map "[aout]" -r 30 ${encoderArgs} ${pixFmtArg} ${colorArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
     );
   }
 
@@ -382,9 +384,11 @@ class VideoEditor {
   }
 
   finalize = async (segments: Section[]): Promise<void> => {
+    const timer = getPerfTimer();
+
     try {
-      await this.overlayAnimations();
-      await this.mixMusic(segments);
+      await timer.span('final:animations', () => this.overlayAnimations());
+      await timer.span('final:music', () => this.mixMusic(segments));
       await this.emitFinalize();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';

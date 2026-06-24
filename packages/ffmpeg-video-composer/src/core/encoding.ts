@@ -44,6 +44,32 @@ export function buildPixFmtArg(config: ProjectConfig): string {
 }
 
 /**
+ * Rec.709 limited-range colour-metadata **output flags** for re-encoded output. They set the encoder's
+ * matrix + range, the two fields that actually decide how a browser converts YUV→RGB; a source tagged
+ * `bt470bg`/full-range (`yuvj420p`) otherwise decodes frozen or wrong-coloured in real Chrome (the
+ * malformed-tag decode bug). Appended on the **re-encode** paths (segment encodes + the final
+ * transition/animation passes) — never the stream-copy concat, which inherits the tagged segments.
+ *
+ * Output flags alone do **not** rewrite a source's `color_primaries`/`color_trc` (those leak through
+ * from the input frames), so they are a floor; `buildColorMetadataFilter` does the full override.
+ */
+export function buildColorMetadataArgs(): string {
+  return '-colorspace bt709 -color_primaries bt709 -color_trc bt709 -color_range tv';
+}
+
+/**
+ * The `setparams` filter that **forces** every colour field — matrix, primaries, transfer and range —
+ * to Rec.709 / limited-range on the frames themselves. Unlike the output flags above this overrides a
+ * malformed source (`bt470bg`/full-range) rather than inheriting it, and is encoder-agnostic (works on
+ * libx264, libopenh264, mpeg4, the WASM core). `setparams` is pixel-neutral metadata, so it can sit
+ * anywhere in the chain; the engine appends it as the final node of each segment's video filtergraph,
+ * and downstream passes (concat-copy, xfade, overlay) inherit the corrected tags.
+ */
+export function buildColorMetadataFilter(): string {
+  return 'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
+}
+
+/**
  * Full `-c:v …` args for re-encoded clips. Defaults to the software (libx264-style) settings used
  * by the server/web. When a hardware encoder (h264_mediacodec / h264_videotoolbox on device) is
  * selected, the libx264-only flags (crf/tune/profile/preset) are dropped — those encoders reject

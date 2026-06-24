@@ -17,6 +17,12 @@ const LOOK_FILTERS: Partial<Record<string, string>> = {
   noir: 'grayscale(1) contrast(1.3) brightness(0.95)',
   vivid: 'saturate(1.7) contrast(1.08)',
   dreamy: 'blur(1.2px) brightness(1.12) saturate(1.15)',
+  // LUT-backed looks (lut3d) — CSS stand-ins for their .cube grades.
+  'teal-orange': 'contrast(1.12) saturate(1.2) sepia(0.12) hue-rotate(-6deg)',
+  'warm-film': 'sepia(0.3) saturate(1.12) brightness(1.04) contrast(1.05)',
+  'mono-film': 'grayscale(1) contrast(1.06)',
+  'noir-film': 'grayscale(1) contrast(1.38) brightness(0.94)',
+  'vivid-pop': 'saturate(1.75) contrast(1.12)',
 };
 
 // The CSS filter for a look name, or 'none' for an unknown/cleared look.

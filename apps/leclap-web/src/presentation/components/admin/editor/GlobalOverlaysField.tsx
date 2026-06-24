@@ -15,6 +15,7 @@ import {
 } from '@/presentation/components/ui';
 import { Plus, X } from '@/presentation/components/icons';
 import { RevealControl } from './RevealControl';
+import { TextEffectControl } from './TextEffectControl';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
 
 type Position = NonNullable<GlobalTextOverlay['position']>;
@@ -143,6 +144,12 @@ const OverlayRow = ({
         reveal={overlay.reveal}
         onChange={(reveal) => {
           onChange({ ...overlay, reveal });
+        }}
+      />
+      <TextEffectControl
+        effect={overlay.effect}
+        onChange={(effect) => {
+          onChange({ ...overlay, effect });
         }}
       />
     </div>

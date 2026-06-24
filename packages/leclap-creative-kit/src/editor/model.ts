@@ -12,6 +12,8 @@ import type {
   BackgroundLayerSchema,
   FramingGuideSchema,
   RevealSchema,
+  TextEffectSchema,
+  ChromaKeySchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type {
   CaptionSchema,
@@ -38,6 +40,8 @@ export type CaptionAlign = NonNullable<DescriptorCaption['align']>;
 // Text-sugar feature types, inferred from the core schemas so the editor stores the exact descriptor
 // shape and build/import is a pass-through (the same approach as Grade/MotionEffect above).
 export type Reveal = z.infer<typeof RevealSchema>;
+export type TextEffect = z.infer<typeof TextEffectSchema>;
+export type ChromaKey = z.infer<typeof ChromaKeySchema>;
 export type TitleCard = z.infer<typeof TitleCardSchema>;
 export type LowerThird = z.infer<typeof LowerThirdSchema>;
 export type GlobalTextOverlay = z.infer<typeof GlobalTextOverlaySchema>;
@@ -98,6 +102,8 @@ export interface EditorCaption {
   boxOpacity?: number;
   // Animated entrance for the caption (fade/rise/slide); stored as the descriptor shape.
   reveal?: Reveal;
+  // Drop shadow / outline for legibility; stored as the descriptor shape (pass-through).
+  effect?: TextEffect;
 }
 
 export interface VisualCaption {
@@ -131,6 +137,8 @@ export interface AnimationOverlay {
   opacity?: number;
   // Clockwise rotation in degrees applied to the overlay before compositing. Omitted/0 = upright.
   rotation?: number;
+  // Animated entrance for the overlay (rise/slide/fade), reusing the reveal vocabulary; pass-through.
+  motion?: Reveal;
 }
 
 // A positionable still-image layer on a video section — dragged/resized exactly like an
@@ -177,6 +185,8 @@ export type EditorSection =
       look?: string;
       grade?: Grade;
       motion?: MotionEffect[];
+      // Background removal: key out a solid screen colour and composite over a solid colour (descriptor shape).
+      chromaKey?: ChromaKey;
       // Structured lower-third band composited over the recorded clip (descriptor shape, passed through).
       lowerThird?: LowerThird;
       framingGuide?: FramingGuide;

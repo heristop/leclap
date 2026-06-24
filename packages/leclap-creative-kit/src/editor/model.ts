@@ -11,9 +11,14 @@ import type {
   MotionEffectSchema,
   BackgroundLayerSchema,
   FramingGuideSchema,
+  RevealSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
-import type { CaptionSchema } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { Orientation } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
+import type {
+  CaptionSchema,
+  TitleCardSchema,
+  LowerThirdSchema,
+} from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
+import type { Orientation, GlobalTextOverlaySchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import { FONTS, DEFAULT_FONT_ID } from '../fonts';
 
 export type MediaChoice =
@@ -30,6 +35,12 @@ export type DescriptorCaption = z.infer<typeof CaptionSchema>;
 export type CaptionPosition = NonNullable<DescriptorCaption['position']>;
 export type CaptionStyle = NonNullable<DescriptorCaption['style']>;
 export type CaptionAlign = NonNullable<DescriptorCaption['align']>;
+// Text-sugar feature types, inferred from the core schemas so the editor stores the exact descriptor
+// shape and build/import is a pass-through (the same approach as Grade/MotionEffect above).
+export type Reveal = z.infer<typeof RevealSchema>;
+export type TitleCard = z.infer<typeof TitleCardSchema>;
+export type LowerThird = z.infer<typeof LowerThirdSchema>;
+export type GlobalTextOverlay = z.infer<typeof GlobalTextOverlaySchema>;
 
 // --- Editor-friendly section model (flattened; compiled to a descriptor on save) ---
 export type FormField = { name: string; label: string; maxLength: number };
@@ -85,6 +96,8 @@ export interface EditorCaption {
   box?: boolean;
   boxColor?: string;
   boxOpacity?: number;
+  // Animated entrance for the caption (fade/rise/slide); stored as the descriptor shape.
+  reveal?: Reveal;
 }
 
 export interface VisualCaption {
@@ -164,6 +177,8 @@ export type EditorSection =
       look?: string;
       grade?: Grade;
       motion?: MotionEffect[];
+      // Structured lower-third band composited over the recorded clip (descriptor shape, passed through).
+      lowerThird?: LowerThird;
       framingGuide?: FramingGuide;
       // Still-image layers dragged/resized on the preview and composited OVER the recorded clip,
       // in array order (later entries paint on top). Author-set; empty/absent means none.
@@ -179,6 +194,8 @@ export type EditorSection =
       look?: string;
       grade?: Grade;
       motion?: MotionEffect[];
+      // Structured title card (kicker/headline/subtitle) drawn on the background (descriptor shape).
+      titleCard?: TitleCard;
       layers?: BackgroundLayer[];
       // Draggable/resizable text overlays drawn over the background, same model as video sections.
       overlays: TextOverlay[];
@@ -246,6 +263,12 @@ export interface EditorState {
   // Whole-video animation overlays (descriptor global.animations) — composited over the final joined
   // video so they span every section, unlike a section's own animation. Empty means none.
   globalAnimations: AnimationOverlay[];
+  // Whole-video TEXT overlays (descriptor global.overlays) — e.g. a brand watermark authored once and
+  // composited onto every section (or a named subset). Empty means none.
+  globalOverlays: GlobalTextOverlay[];
+  // Whole-video colour grade applied across every section (descriptor global.look / global.grade).
+  globalLook?: string;
+  globalGrade?: Grade;
 }
 
 /** Minimal shape needed to re-hydrate the editor from a saved template (web Template + expo UserTemplate both satisfy it). */

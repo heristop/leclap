@@ -4,6 +4,7 @@ import { SectionFields } from '../editor/SectionFields';
 import { AudioPanel } from '../editor/AudioPanel';
 import { GlobalVariablesEditor } from '../editor/GlobalVariablesEditor';
 import { WholeVideoAnimations } from '../editor/WholeVideoAnimations';
+import { GlobalOverlaysField } from '../editor/GlobalOverlaysField';
 import { EditorImportExport } from '../editor/EditorImportExport';
 import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
 import type { AvailablePartial } from '@/services/templatePartialService';
@@ -127,6 +128,7 @@ export const EditorPanelSwitch = ({
     <PanelFrame eyebrow={t('shell.tools')} title={t('shell.advanced')}>
       <div className="space-y-2">
         <WholeVideoAnimations state={state} patch={patch} />
+        <GlobalOverlaysField overlays={state.globalOverlays} patch={patch} />
         <EditorImportExport state={state} onImport={onImport} />
       </div>
     </PanelFrame>

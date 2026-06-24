@@ -25,6 +25,9 @@ import {
   type AnimationOverlay,
   type ImageOverlay,
   type MediaChoice,
+  type TitleCard,
+  type LowerThird,
+  type GlobalTextOverlay,
 } from './model';
 import { overlayFrom } from './overlayParsing';
 
@@ -81,6 +84,7 @@ function captionFrom(s: Section): EditorCaption | undefined {
     box: caption.box,
     boxColor: caption.boxColor,
     boxOpacity: caption.boxOpacity,
+    reveal: caption.reveal,
   }) as EditorCaption;
 }
 
@@ -188,6 +192,7 @@ function colorSectionFrom(s: Section): EditorSection {
     color: s.options?.backgroundColor ?? '#7C83FD',
     ...(layers.length > 0 ? { layers } : {}),
     ...(images.length > 0 ? { images } : {}),
+    ...(s.titleCard ? { titleCard: s.titleCard as TitleCard } : {}),
     overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
     ...sectionAudioExtrasFrom(s),
     ...visualExtrasFrom(s),
@@ -201,8 +206,18 @@ function descriptionFrom(s: Section): string | undefined {
   return s.description.en ?? Object.values(s.description)[0];
 }
 
-function videoSectionFrom(s: Section): EditorSection {
+// The video-only extras (framing guide + lower third), only present when stored — extracted so
+// videoSectionFrom stays within the complexity budget.
+function videoExtrasFrom(s: Section): { framingGuide?: FramingGuide; lowerThird?: LowerThird } {
   const framingGuide = s.options?.framingGuide as FramingGuide | undefined;
+
+  return {
+    ...(framingGuide ? { framingGuide } : {}),
+    ...(s.lowerThird ? { lowerThird: s.lowerThird as LowerThird } : {}),
+  };
+}
+
+function videoSectionFrom(s: Section): EditorSection {
   const description = descriptionFrom(s);
   const images = imagesFrom(s);
 
@@ -217,7 +232,7 @@ function videoSectionFrom(s: Section): EditorSection {
     countdownSeconds: s.options?.countdownDuration ?? 4,
     // A stored countdown is an explicit author choice, so re-opening never re-syncs it to clip duration.
     countdownCustomized: true,
-    ...(framingGuide ? { framingGuide } : {}),
+    ...videoExtrasFrom(s),
     ...sectionAudioExtrasFrom(s),
     ...visualExtrasFrom(s),
   };
@@ -290,6 +305,11 @@ function globalAnimationsFrom(global: TemplateDescriptor['global']): AnimationOv
   }));
 }
 
+// Recover whole-video text overlays (global.overlays) — stored in the descriptor shape, so they map back unchanged.
+function globalOverlaysFrom(global: TemplateDescriptor['global']): GlobalTextOverlay[] {
+  return (global?.overlays ?? []) as GlobalTextOverlay[];
+}
+
 // Music has no positional descriptor section — surface it at the top of the list.
 function musicSectionsFrom(global: TemplateDescriptor['global']): EditorSection[] {
   const allowed = global?.allowedMusic ?? [];
@@ -332,8 +352,11 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
       audio: { ...DEFAULT_AUDIO_MIX },
       defaultTransition: { ...DEFAULT_TRANSITION },
       globalAnimations: [],
+      globalOverlays: [],
     };
   }
+
+  const global = template.descriptor.global;
 
   return {
     id: template.id,
@@ -341,9 +364,12 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     description: template.description,
     orientation: template.orientation,
     sections: editorSectionsFrom(template.descriptor),
-    globalVariables: globalVariablesFrom(template.descriptor.global),
-    audio: audioFrom(template.descriptor.global),
-    defaultTransition: defaultTransitionFrom(template.descriptor.global),
-    globalAnimations: globalAnimationsFrom(template.descriptor.global),
+    globalVariables: globalVariablesFrom(global),
+    audio: audioFrom(global),
+    defaultTransition: defaultTransitionFrom(global),
+    globalAnimations: globalAnimationsFrom(global),
+    globalOverlays: globalOverlaysFrom(global),
+    ...(global?.look ? { globalLook: global.look } : {}),
+    ...(global?.grade ? { globalGrade: global.grade as EditorState['globalGrade'] } : {}),
   };
 }

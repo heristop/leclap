@@ -2,7 +2,7 @@
 // optional countdown, and the WYSIWYG text-overlay editor — the title is the main creative act, so
 // it stays one click away. The finishing controls (Effects, Section audio, Camera guide) live in
 // collapsed disclosures that only appear in Advanced mode.
-import { Music, Camera } from '@/presentation/components/icons';
+import { Music, Camera, Type } from '@/presentation/components/icons';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
@@ -14,6 +14,7 @@ import { useIsAdvanced } from '../useBuilderMode';
 import { effectsSummary, audioSummary, framingSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
+import { LowerThirdField } from './LowerThirdField';
 import { VisualEffects } from './VisualEffects';
 
 type VideoSection = Extract<EditorSection, { kind: 'video' }>;
@@ -103,6 +104,19 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
           />
         )}
       </div>
+      <SectionDisclosure
+        label={t('disclosure.lowerThird')}
+        icon={<Type className="size-4 shrink-0 text-brand-500" aria-hidden />}
+        summary={section.lowerThird?.title?.en ?? section.lowerThird?.badge?.en ?? t('lowerThird.summaryEmpty')}
+      >
+        <LowerThirdField
+          lowerThird={section.lowerThird}
+          onChange={(lowerThird) => {
+            onChange({ lowerThird });
+          }}
+          inputCls={inputCls}
+        />
+      </SectionDisclosure>
       {advanced && (
         <div className="space-y-2">
           <SectionDisclosure

@@ -24,7 +24,9 @@
     },
     "overlays": [
       {
-        "text": { "en": "{{ brand }}" },
+        "text": {
+          "en": "{{ brand }}"
+        },
         "position": "top-right",
         "color": "#5eead4",
         "size": 28,
@@ -69,11 +71,21 @@
         "duration": 0.4
       },
       "titleCard": {
-        "kicker": { "en": "HOW TO" },
-        "headline": { "en": "{{ form_1_topic }}" },
-        "subtitle": { "en": "a quick walkthrough" },
+        "kicker": {
+          "en": "HOW TO"
+        },
+        "headline": {
+          "en": "{{ form_1_topic }}"
+        },
+        "subtitle": {
+          "en": "a quick walkthrough"
+        },
         "accent": "#2dd4bf",
-        "reveal": "slide-left"
+        "reveal": "slide-left",
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
       },
       "options": {
         "backgroundColor": "#0f1419",
@@ -89,14 +101,28 @@
           "name": "tutorial_frame",
           "url": "/assets/animations/tap_pulse.apng",
           "type": "animation",
-          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "1080:1080", "opacity": 0.9 }
+          "options": {
+            "loop": true,
+            "persistent": true,
+            "position": "0:0",
+            "scale": "1080:1080",
+            "opacity": 0.9
+          }
         }
       ],
       "lowerThird": {
-        "title": { "en": "{{ form_1_step }}" },
-        "badge": { "en": "STEP" },
+        "title": {
+          "en": "{{ form_1_step }}"
+        },
+        "badge": {
+          "en": "STEP"
+        },
         "accent": "#2dd4bf",
-        "reveal": "rise"
+        "reveal": "rise",
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
       },
       "title": {
         "en": "Record your screen"
@@ -121,12 +147,22 @@
       "name": "outro",
       "type": "color_background",
       "titleCard": {
-        "headline": { "en": "YOU'RE ALL SET" },
-        "subtitle": { "en": "{{ brand }}" },
+        "headline": {
+          "en": "YOU'RE ALL SET"
+        },
+        "subtitle": {
+          "en": "{{ brand }}"
+        },
         "accent": "#2dd4bf",
         "align": "center",
         "reveal": "rise",
-        "fade": { "out": false }
+        "fade": {
+          "out": false
+        },
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
       },
       "options": {
         "backgroundColor": "#0f1419",

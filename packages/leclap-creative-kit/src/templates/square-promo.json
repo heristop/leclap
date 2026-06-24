@@ -65,16 +65,32 @@
       "filters": [
         {
           "type": "drawbox",
-          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#12183a@1", "t": "fill" }
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "c": "#12183a@1",
+            "t": "fill"
+          }
         },
         {
           "type": "drawbox",
-          "values": { "x": 0, "y": 0, "w": 1080, "h": 360, "c": "#1a2350@1", "t": "fill" }
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 360,
+            "c": "#1a2350@1",
+            "t": "fill"
+          }
         },
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ brand }}" },
+            "text": {
+              "en": "{{ brand }}"
+            },
             "fontcolor": "#e8eef7",
             "fontsize": 30,
             "x": "w-text_w-70",
@@ -85,12 +101,21 @@
         },
         {
           "type": "drawbox",
-          "values": { "x": 80, "y": 470, "w": 110, "h": 8, "c": "#7C83FD@1", "t": "fill" }
+          "values": {
+            "x": 80,
+            "y": 470,
+            "w": 110,
+            "h": 8,
+            "c": "#7C83FD@1",
+            "t": "fill"
+          }
         },
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ form_1_headline }}" },
+            "text": {
+              "en": "{{ form_1_headline }}"
+            },
             "fontcolor": "#ffffff",
             "fontsize": 78,
             "x": 80,
@@ -102,7 +127,9 @@
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ form_1_subtitle }}" },
+            "text": {
+              "en": "{{ form_1_subtitle }}"
+            },
             "fontcolor": "#c9d0e8",
             "fontsize": 36,
             "x": 80,
@@ -116,7 +143,11 @@
         },
         {
           "type": "fade",
-          "values": { "t": "in", "d": "0.5", "color": "#12183a" }
+          "values": {
+            "t": "in",
+            "d": "0.5",
+            "color": "#12183a"
+          }
         },
         {
           "type": "fade",
@@ -132,13 +163,19 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "vivid",
+      "look": "vivid-pop",
       "inputs": [
         {
           "name": "promo_glow",
           "url": "/assets/animations/glow_border.apng",
           "type": "animation",
-          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "1080:1080", "opacity": 0.3 }
+          "options": {
+            "loop": true,
+            "persistent": true,
+            "position": "0:0",
+            "scale": "1080:1080",
+            "opacity": 0.3
+          }
         }
       ],
       "title": {
@@ -165,12 +202,21 @@
           "filters": [
             {
               "type": "drawbox",
-              "values": { "x": 0, "y": 760, "w": 1080, "h": 320, "c": "#0d1b2a@0.55", "t": "fill" }
+              "values": {
+                "x": 0,
+                "y": 760,
+                "w": 1080,
+                "h": 320,
+                "c": "#0d1b2a@0.55",
+                "t": "fill"
+              }
             },
             {
               "type": "drawtext",
               "values": {
-                "text": { "en": "{{ brand }}" },
+                "text": {
+                  "en": "{{ brand }}"
+                },
                 "fontcolor": "#ffffff",
                 "fontsize": 28,
                 "x": "w-text_w-60",
@@ -180,12 +226,21 @@
             },
             {
               "type": "drawbox",
-              "values": { "x": 80, "y": 800, "w": 90, "h": 6, "c": "#7C83FD@1", "t": "fill" }
+              "values": {
+                "x": 80,
+                "y": 800,
+                "w": 90,
+                "h": 6,
+                "c": "#7C83FD@1",
+                "t": "fill"
+              }
             },
             {
               "type": "drawtext",
               "values": {
-                "text": { "en": "{{ form_1_headline }}" },
+                "text": {
+                  "en": "{{ form_1_headline }}"
+                },
                 "fontcolor": "#ffffff",
                 "fontsize": 56,
                 "x": 80,
@@ -196,7 +251,9 @@
             {
               "type": "drawtext",
               "values": {
-                "text": { "en": "{{ form_1_subtitle }}" },
+                "text": {
+                  "en": "{{ form_1_subtitle }}"
+                },
                 "fontcolor": "#c9d0e8",
                 "fontsize": 30,
                 "x": 80,
@@ -206,11 +263,15 @@
             },
             {
               "type": "fadein",
-              "values": { "color": "#12183a" }
+              "values": {
+                "color": "#12183a"
+              }
             },
             {
               "type": "fadeout",
-              "values": { "color": "#12183a" }
+              "values": {
+                "color": "#12183a"
+              }
             }
           ],
           "outputs": ["final"]
@@ -227,16 +288,32 @@
       "filters": [
         {
           "type": "drawbox",
-          "values": { "x": 0, "y": 0, "w": 1080, "h": 1080, "c": "#12183a@1", "t": "fill" }
+          "values": {
+            "x": 0,
+            "y": 0,
+            "w": 1080,
+            "h": 1080,
+            "c": "#12183a@1",
+            "t": "fill"
+          }
         },
         {
           "type": "drawbox",
-          "values": { "x": 440, "y": 470, "w": 200, "h": 6, "c": "#7C83FD@1", "t": "fill" }
+          "values": {
+            "x": 440,
+            "y": 470,
+            "w": 200,
+            "h": 6,
+            "c": "#7C83FD@1",
+            "t": "fill"
+          }
         },
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ brand }}" },
+            "text": {
+              "en": "{{ brand }}"
+            },
             "fontcolor": "#7C83FD",
             "fontsize": 110,
             "x": "(w-text_w)/2",
@@ -248,7 +325,9 @@
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "{{ form_1_subtitle }}" },
+            "text": {
+              "en": "{{ form_1_subtitle }}"
+            },
             "fontcolor": "#c9d0e8",
             "fontsize": 32,
             "x": "(w-text_w)/2",
@@ -259,7 +338,11 @@
         },
         {
           "type": "fade",
-          "values": { "t": "in", "d": "0.5", "color": "#12183a" }
+          "values": {
+            "t": "in",
+            "d": "0.5",
+            "color": "#12183a"
+          }
         }
       ]
     }

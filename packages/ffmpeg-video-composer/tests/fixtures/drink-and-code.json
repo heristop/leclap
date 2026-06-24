@@ -202,7 +202,7 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "warm",
+      "look": "warm-film",
       "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
       "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.1 }],
       "transition": { "type": "pixelize", "duration": 0.4 },
@@ -224,7 +224,8 @@
             "fps": 3.333,
             "position": "600:200",
             "scale": "1280:720",
-            "persistent": false
+            "persistent": false,
+            "motion": "rise"
           },
           "filters": []
         }
@@ -343,7 +344,7 @@
     {
       "name": "video_2",
       "type": "project_video",
-      "look": "warm",
+      "look": "warm-film",
       "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
       "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.1 }],
       "transition": { "type": "coverleft", "duration": 0.5 },
@@ -468,7 +469,7 @@
     {
       "name": "video_3",
       "type": "project_video",
-      "look": "warm",
+      "look": "warm-film",
       "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
       "transition": { "type": "circleclose", "duration": 0.7 },
       "title": {
@@ -527,7 +528,7 @@
     {
       "name": "outro",
       "type": "video",
-      "look": "warm",
+      "look": "warm-film",
       "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
       "options": {
         "videoUrl": "{{ videoOutro }}",
@@ -558,6 +559,11 @@
             "x": "(w-text_w)/2",
             "y": "(h-text_h)/1.4",
             "fontfile": "Rubik+Marker+Hatch.ttf",
+            "shadowcolor": "{{ color1 }}@0.6",
+            "shadowx": 3,
+            "shadowy": 3,
+            "bordercolor": "{{ color1 }}",
+            "borderw": 2,
             "alpha": "'if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,if(lt(t,5),1,if(lt(t,7),(1-(t-6))/1,0))))'"
           }
         }

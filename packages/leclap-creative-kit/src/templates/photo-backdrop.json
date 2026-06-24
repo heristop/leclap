@@ -65,7 +65,10 @@
         },
         "style": "subtle",
         "position": "center",
-        "align": "center"
+        "align": "center",
+        "effect": {
+          "shadow": true
+        }
       },
       "options": {
         "pictureUrl": "/assets/backgrounds/golden-hour.jpg",
@@ -97,7 +100,7 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "warm",
+      "look": "warm-film",
       "title": {
         "en": "Record your clip"
       },

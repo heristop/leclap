@@ -1,0 +1,15 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "keyed_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "chromaKey": { "color": "#000000", "similarity": 0.18, "blend": 0.0, "background": "#c81e1e" }
+    }
+  ]
+}

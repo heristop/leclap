@@ -9,7 +9,9 @@ import { compile, FFmpegNodeAdapter } from '@/index';
 // the same whether invoked from the repo root or from the core package.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
-const buildDir = path.resolve(repoRoot, 'build');
+// A per-file build dir so the parallel real-compile suites never share build/output.mp4 (compile's
+// end-of-run cleanup would otherwise delete a sibling file's output mid-probe — a flaky race).
+const buildDir = path.resolve(repoRoot, 'build/director');
 const assetsDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 
 // Project Configuration

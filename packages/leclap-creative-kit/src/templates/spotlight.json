@@ -150,13 +150,19 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "cinematic",
+      "look": "teal-orange",
       "inputs": [
         {
           "name": "spotlight_glow",
           "url": "/assets/animations/glow_border.apng",
           "type": "animation",
-          "options": { "loop": true, "persistent": true, "position": "0:0", "scale": "1280:600", "opacity": 0.3 }
+          "options": {
+            "loop": true,
+            "persistent": true,
+            "position": "0:0",
+            "scale": "1280:600",
+            "opacity": 0.3
+          }
         }
       ],
       "title": {

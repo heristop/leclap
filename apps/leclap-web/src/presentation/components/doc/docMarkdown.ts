@@ -54,7 +54,10 @@ export function mcpInstallUrl(editor: McpEditor): string {
 // Interactive / non-content nodes (the Copy-page toolbar, copy pills, PM switchers, scripts).
 const SKIP_TAGS = new Set(['button', 'script', 'style']);
 
-const collapse = (text: string): string => text.replace(/\s+/g, ' ').trim();
+// `Node.textContent` is typed `string | null`; normalise it to a plain string in one place. Routing the
+// null through an explicitly-typed param also keeps both tsc and the lint's nullability view in agreement.
+const textOf = (value: string | null): string => value ?? '';
+const collapse = (text: string | null): string => textOf(text).replace(/\s+/g, ' ').trim();
 
 const resolveHref = (href: string | null): string => {
   if (!href) return '';
@@ -116,7 +119,7 @@ const headingText = (el: HTMLElement): string => collapse(el.textContent).replac
 const preText = (pre: HTMLElement): string => {
   const rows = pre.querySelectorAll('code > div');
 
-  if (rows.length === 0) return pre.textContent;
+  if (rows.length === 0) return textOf(pre.textContent);
 
   return [...rows]
     .map((row) => {

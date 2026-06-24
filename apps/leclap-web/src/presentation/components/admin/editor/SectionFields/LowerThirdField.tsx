@@ -7,6 +7,7 @@ import type { LowerThird } from '../../templateEditorModel';
 import { ColorPicker } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
 import { RevealControl } from '../RevealControl';
+import { TextEffectControl } from '../TextEffectControl';
 
 const DEFAULT_ACCENT = '#7C83FF';
 const DEFAULT_BAND_OPACITY = 0.6;
@@ -119,6 +120,12 @@ export const LowerThirdField = ({ lowerThird, onChange, inputCls }: LowerThirdFi
             reveal={band.reveal}
             onChange={(reveal) => {
               patch({ reveal });
+            }}
+          />
+          <TextEffectControl
+            effect={band.effect}
+            onChange={(effect) => {
+              patch({ effect });
             }}
           />
         </>

@@ -28,6 +28,7 @@ import {
   type TitleCard,
   type LowerThird,
   type GlobalTextOverlay,
+  type ChromaKey,
 } from './model';
 import { overlayFrom } from './overlayParsing';
 
@@ -85,6 +86,7 @@ function captionFrom(s: Section): EditorCaption | undefined {
     boxColor: caption.boxColor,
     boxOpacity: caption.boxOpacity,
     reveal: caption.reveal,
+    effect: caption.effect,
   }) as EditorCaption;
 }
 
@@ -111,6 +113,7 @@ function overlayOptionsFrom(o: Partial<GlobalAnimation>): Omit<AnimationOverlay,
     ...(o.persistent === false ? { persistent: false } : {}),
     ...(o.opacity !== undefined && o.opacity < 1 ? { opacity: o.opacity } : {}),
     ...(o.rotation ? { rotation: o.rotation } : {}),
+    ...(o.motion ? { motion: o.motion } : {}),
   };
 }
 
@@ -208,12 +211,13 @@ function descriptionFrom(s: Section): string | undefined {
 
 // The video-only extras (framing guide + lower third), only present when stored — extracted so
 // videoSectionFrom stays within the complexity budget.
-function videoExtrasFrom(s: Section): { framingGuide?: FramingGuide; lowerThird?: LowerThird } {
+function videoExtrasFrom(s: Section): { framingGuide?: FramingGuide; lowerThird?: LowerThird; chromaKey?: ChromaKey } {
   const framingGuide = s.options?.framingGuide as FramingGuide | undefined;
 
   return {
     ...(framingGuide ? { framingGuide } : {}),
     ...(s.lowerThird ? { lowerThird: s.lowerThird as LowerThird } : {}),
+    ...(s.chromaKey ? { chromaKey: s.chromaKey as ChromaKey } : {}),
   };
 }
 

@@ -245,6 +245,76 @@ describe('templateEditorModel — animation overlay', () => {
   });
 });
 
+// --- ffmpeg-feature sugar: text effect, chroma key, overlay motion ---
+
+describe('templateEditorModel — ffmpeg-feature sugar round-trips', () => {
+  type VideoSection = Extract<EditorSection, { kind: 'video' }>;
+  type ColorSection = Extract<EditorSection, { kind: 'color' }>;
+  const video = (over: Partial<VideoSection>): EditorSection => ({
+    ...(newSection('video') as VideoSection),
+    ...over,
+  });
+
+  it('emits and round-trips a caption text effect (shadow + outline)', () => {
+    const state = baseState([video({ caption: { text: 'Hi', effect: { shadow: true, outline: { width: 3 } } } })]);
+    const d = buildDescriptor(state);
+    const section = d.sections?.find((s) => s.caption);
+
+    expect(section?.caption?.effect).toEqual({ shadow: true, outline: { width: 3 } });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.caption?.effect).toEqual({ shadow: true, outline: { width: 3 } });
+  });
+
+  it('emits and round-trips a video chroma key', () => {
+    const chromaKey = { color: '#00FF00', similarity: 0.25, blend: 0.05, background: '#10243f' };
+    const state = baseState([video({ chromaKey })]);
+    const d = buildDescriptor(state);
+    const section = d.sections?.find((s) => (s as { chromaKey?: unknown }).chromaKey) as
+      | { chromaKey?: unknown }
+      | undefined;
+
+    expect(section?.chromaKey).toEqual(chromaKey);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.chromaKey).toEqual(chromaKey);
+  });
+
+  it('emits and round-trips an animation overlay motion', () => {
+    const color: EditorSection = {
+      ...(newSection('color') as ColorSection),
+      animations: [{ id: 'a', url: '/assets/animations/pulse_ring.apng', motion: 'slide-left' }],
+    };
+    const d = buildDescriptor(baseState([color]));
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toMatchObject({ motion: 'slide-left' });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(baseState([color])));
+    const recovered = back.sections.find((s) => s.kind === 'color') as ColorSection;
+    expect(recovered.animations?.[0]).toMatchObject({ motion: 'slide-left' });
+  });
+
+  it('emits a title card effect on a color section', () => {
+    const color: EditorSection = {
+      ...(newSection('color') as ColorSection),
+      titleCard: { headline: { en: 'Hi' }, effect: { shadow: true, outline: true } },
+    };
+    const d = buildDescriptor(baseState([color]));
+    const section = d.sections?.find((s) => (s as { titleCard?: unknown }).titleCard) as
+      | { titleCard?: { effect?: unknown } }
+      | undefined;
+
+    expect(section?.titleCard?.effect).toEqual({ shadow: true, outline: true });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+});
+
 // --- image overlays on color / image sections ---
 
 describe('templateEditorModel — image overlays on color/image sections', () => {

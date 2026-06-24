@@ -20,6 +20,12 @@ const LOOK_SWATCHES: Record<(typeof LOOK_PRESETS)[number], [string, string]> = {
   noir: ['#2b2b2b', '#0a0a0a'],
   vivid: ['#ff3d77', '#ffd23f'],
   dreamy: ['#c8a2ff', '#ffc8e6'],
+  // LUT-backed looks (lut3d) — swatches approximating their .cube grades.
+  'teal-orange': ['#0e3a52', '#e08a4c'],
+  'warm-film': ['#e8a26a', '#b5703e'],
+  'mono-film': ['#9a9a9a', '#2c2c2c'],
+  'noir-film': ['#3a3a3a', '#050505'],
+  'vivid-pop': ['#ff2e74', '#ffd23f'],
 };
 
 const OPTIONS: LookOption[] = [

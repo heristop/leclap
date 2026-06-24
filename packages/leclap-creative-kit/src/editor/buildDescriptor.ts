@@ -10,6 +10,7 @@ import type {
   AudioMix,
   Grade,
   MotionEffect,
+  ChromaKey,
   EditorCaption,
   AnimationOverlay,
   ImageOverlay,
@@ -44,6 +45,7 @@ function captionDescriptorFrom(caption: EditorCaption | undefined): Section['cap
     boxColor: caption.boxColor,
     boxOpacity: caption.boxOpacity,
     reveal: caption.reveal,
+    effect: caption.effect,
   }) as Section['caption'];
 }
 
@@ -58,9 +60,8 @@ function animationExtent(a: AnimationOverlay) {
 }
 
 // Placement/playback options shared by a section animation input and a whole-video global animation:
-// the playback extent (duration | loops | loop), persistent=eof_action=repeat (holds past its own EOF),
-// start delays the overlay; position/scale pass through when set; opacity only when it fades (< 1) and
-// rotation only when nonzero so opaque/upright overlays stay clean.
+// extent (duration | loops | loop), persistent, start, position/scale; opacity only when it fades (< 1),
+// rotation only when nonzero, motion when set — so opaque/upright/static overlays stay clean.
 function animationOptions(animation: AnimationOverlay) {
   return {
     ...animationExtent(animation),
@@ -70,6 +71,7 @@ function animationOptions(animation: AnimationOverlay) {
     ...(animation.scale ? { scale: animation.scale } : {}),
     ...(animation.opacity !== undefined && animation.opacity < 1 ? { opacity: animation.opacity } : {}),
     ...(animation.rotation ? { rotation: animation.rotation } : {}),
+    ...(animation.motion ? { motion: animation.motion } : {}),
   };
 }
 
@@ -92,9 +94,8 @@ function animationInputsFrom(animations: AnimationOverlay[] | undefined): NonNul
   return (animations ?? []).filter((a) => a.url).map((a, i) => animationInputFrom(a, i));
 }
 
-// A MediaChoice → the marker url the descriptor carries: library → `library://<id>` (the web resolves
-// it to /backgrounds/<file>), upload → `media://<key>` (materialized into the engine FS at compile),
-// url → the pasted url as-is.
+// A MediaChoice → the marker url the descriptor carries: library → `library://<id>`, upload →
+// `media://<key>` (materialized into the engine FS at compile), url → the pasted url as-is.
 function markerFromChoice(choice: MediaChoice): string {
   if (choice.source === 'library') return `library://${choice.id}`;
 
@@ -103,10 +104,8 @@ function markerFromChoice(choice: MediaChoice): string {
   return choice.url;
 }
 
-// A still-image overlay → a `type: 'image'` input composited over the section via the same overlay
-// path as animations. Named `image_<i>` by its array position. position/scale pass through when set;
-// opacity only when it actually fades the overlay (< 1) so opaque overlays stay clean; rotation only
-// when nonzero (0/undefined = upright).
+// A still-image overlay → a `type: 'image'` input composited via the same overlay path as animations.
+// Named `image_<i>` by array position. position/scale/opacity(<1)/rotation(≠0) pass through when set.
 function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Section['inputs']>[number] {
   const options = {
     ...(overlay.position ? { position: overlay.position } : {}),
@@ -137,6 +136,7 @@ function visualExtras(section: {
   look?: string;
   grade?: Grade;
   motion?: MotionEffect[];
+  chromaKey?: ChromaKey;
   animations?: AnimationOverlay[];
 }): Partial<Section> {
   const caption = captionDescriptorFrom(section.caption);
@@ -148,6 +148,7 @@ function visualExtras(section: {
     ...(section.look ? { look: section.look } : {}),
     ...(section.grade ? { grade: section.grade } : {}),
     ...(section.motion && section.motion.length > 0 ? { motion: section.motion } : {}),
+    ...(section.chromaKey ? { chromaKey: section.chromaKey } : {}),
     ...(animationInputs.length > 0 ? { inputs: animationInputs } : {}),
   };
 }

@@ -7,6 +7,7 @@ import type { TitleCard } from '../../templateEditorModel';
 import { ColorPicker } from '@/presentation/components/ui';
 import { SegmentedControl, type SegmentOption } from '../controls';
 import { RevealControl } from '../RevealControl';
+import { TextEffectControl } from '../TextEffectControl';
 
 const DEFAULT_ACCENT = '#7C83FF';
 type Align = NonNullable<TitleCard['align']>;
@@ -108,6 +109,12 @@ export const TitleCardField = ({ titleCard, onChange, inputCls }: TitleCardField
             reveal={card.reveal}
             onChange={(reveal) => {
               patch({ reveal });
+            }}
+          />
+          <TextEffectControl
+            effect={card.effect}
+            onChange={(effect) => {
+              patch({ effect });
             }}
           />
         </>

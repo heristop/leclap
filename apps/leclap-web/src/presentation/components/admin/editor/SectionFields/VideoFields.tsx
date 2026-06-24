@@ -15,6 +15,7 @@ import { effectsSummary, audioSummary, framingSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { LowerThirdField } from './LowerThirdField';
+import { ChromaKeyField } from './ChromaKeyField';
 import { VisualEffects } from './VisualEffects';
 
 type VideoSection = Extract<EditorSection, { kind: 'video' }>;
@@ -132,6 +133,18 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
               }}
               onGrade={(grade) => {
                 onChange({ grade });
+              }}
+            />
+          </SectionDisclosure>
+          <SectionDisclosure
+            label={t('disclosure.chromaKey')}
+            icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
+            summary={section.chromaKey ? t('chromaKey.summaryOn') : t('chromaKey.summaryOff')}
+          >
+            <ChromaKeyField
+              chromaKey={section.chromaKey}
+              onChange={(chromaKey) => {
+                onChange({ chromaKey });
               }}
             />
           </SectionDisclosure>

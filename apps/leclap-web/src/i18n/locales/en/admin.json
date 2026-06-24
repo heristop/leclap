@@ -401,7 +401,8 @@
     "images": "Images",
     "overlays": "Overlays",
     "titleCard": "Title card",
-    "lowerThird": "Lower third"
+    "lowerThird": "Lower third",
+    "chromaKey": "Background removal"
   },
   "overlays": {
     "kind": "Overlay type",
@@ -514,6 +515,22 @@
     "duration": "Duration",
     "distance": "Distance",
     "summaryDefault": "default timing"
+  },
+  "textEffect": {
+    "label": "Legibility",
+    "shadow": "Drop shadow",
+    "shadowColor": "Shadow colour",
+    "outline": "Outline",
+    "outlineColor": "Outline colour"
+  },
+  "chromaKey": {
+    "hint": "Key out a solid screen colour (green/blue screen) and composite the clip over a flat colour.",
+    "enable": "Remove background",
+    "keyColor": "Screen colour",
+    "background": "Background colour",
+    "similarity": "Strength",
+    "summaryOn": "on",
+    "summaryOff": "off"
   },
   "titleCard": {
     "kicker": "Kicker",

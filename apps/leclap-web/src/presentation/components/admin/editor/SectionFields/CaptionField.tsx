@@ -25,6 +25,7 @@ import {
 } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
 import { SectionDisclosure } from '../SectionDisclosure';
+import { TextEffectControl } from '../TextEffectControl';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 
 const DEFAULT_FONTSIZE = 48;
@@ -197,6 +198,12 @@ const CaptionAdvanced = ({
         />
       </div>
       <CaptionBoxControls caption={caption} onChange={onChange} />
+      <TextEffectControl
+        effect={caption.effect}
+        onChange={(effect) => {
+          onChange(nextCaption(caption, { effect }));
+        }}
+      />
     </SectionDisclosure>
   );
 };

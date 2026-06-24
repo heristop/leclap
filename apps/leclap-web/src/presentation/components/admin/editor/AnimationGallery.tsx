@@ -7,6 +7,7 @@
 import { type AnimationAsset } from '@/data/mediaCatalog';
 import type { AnimationOverlay, Orientation } from '../templateEditorModel';
 import { OverlayPlacement } from './OverlayPlacement';
+import { RevealControl } from './RevealControl';
 import { AnimationSource, AnimationPlayback } from './animationSource';
 
 interface AnimationGalleryProps {
@@ -31,6 +32,13 @@ export const AnimationGallery = ({ value, orientation, onChange, library }: Anim
           <OverlayPlacement orientation={orientation} url={value.url} value={value} onChange={patch} />
           {/* Playback-only — these don't apply to a still image, so they stay out of OverlayPlacement. */}
           <AnimationPlayback value={value} patch={patch} />
+          {/* Animated entrance (rise/slide/fade) for the overlay — reuses the reveal vocabulary. */}
+          <RevealControl
+            reveal={value.motion}
+            onChange={(motion) => {
+              patch({ motion });
+            }}
+          />
         </div>
       ) : null}
     </div>

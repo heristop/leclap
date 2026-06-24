@@ -5,6 +5,7 @@ import type { FFMpegInfos } from '../../core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parseCommand';
+import { getPerfTimer } from '../../utils/perf-timer';
 
 const execFileAsync = promisify(execFile);
 
@@ -23,7 +24,7 @@ interface FFProbeData {
 class FFmpegNodeAdapter extends AbstractFFmpeg {
   execute = async (command: string): Promise<{ rc: number }> => {
     try {
-      await execFileAsync('ffmpeg', parseCommand(command));
+      await getPerfTimer().span('ffmpeg:execute', () => execFileAsync('ffmpeg', parseCommand(command)));
 
       return { rc: 0 };
     } catch (error) {
@@ -35,14 +36,9 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
 
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     try {
-      const { stdout } = await execFileAsync('ffprobe', [
-        '-v',
-        'quiet',
-        '-print_format',
-        'json',
-        '-show_streams',
-        source,
-      ]);
+      const { stdout } = await getPerfTimer().span('ffmpeg:getInfos', () =>
+        execFileAsync('ffprobe', ['-v', 'quiet', '-print_format', 'json', '-show_streams', source])
+      );
 
       const info: FFProbeData = JSON.parse(stdout);
 

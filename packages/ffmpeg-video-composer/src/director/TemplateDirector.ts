@@ -12,6 +12,7 @@ import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import DefaultConfig from '../core/default.config';
 import { assertSafeSegmentName } from '../core/argGuard';
 import { fetchSectionInfos } from './sectionInfos';
+import { getPerfTimer } from '../utils/perf-timer';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 import type Project from '../core/models/Project';
@@ -139,7 +140,7 @@ class TemplateDirector {
 
   construct = async (): Promise<string | null> => {
     try {
-      await this.init();
+      await getPerfTimer().span('director:init', () => this.init());
 
       const finalPath = await this.compileVideoSegments();
 
@@ -176,16 +177,18 @@ class TemplateDirector {
       return null;
     }
 
+    const timer = getPerfTimer();
+
     this.buildTransitions(videoSegments);
-    await this.calculateTotalLength(videoSegments);
+    await timer.span('director:calculateTotalLength', () => this.calculateTotalLength(videoSegments));
 
     this.logger.info(`[TemplateDirection] Length: ${this.project.buildInfos.totalLength}`);
     this.project.buildInfos.totalSegments = videoSegments.length;
 
-    await this.processVideoSegments(videoSegments);
+    await timer.span('director:render', () => this.processVideoSegments(videoSegments));
 
     if (!this.stopBuild) {
-      return await this.finalizeCompilation(videoSegments);
+      return await timer.span('director:finalize', () => this.finalizeCompilation(videoSegments));
     }
 
     return null;
@@ -324,7 +327,9 @@ class TemplateDirector {
     const transitions = this.project.buildInfos.transitions;
     const hasTransition = transitions.some((transition) => transition.type !== 'cut');
 
-    const finalPath = await this.assembleFinalVideo(hasTransition, transitions);
+    const finalPath = await getPerfTimer().span('final:assemble', () =>
+      this.assembleFinalVideo(hasTransition, transitions)
+    );
 
     // No-music path: normalize the assembled output in place before finalize() fires the `finalize`
     // event and runs project.clean() (which resets finalVideo). No-op unless global.audio.normalize

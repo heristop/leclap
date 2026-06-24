@@ -1,3 +1,4 @@
+import { findFont } from '@leclap/creative-kit/fonts';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 
@@ -108,6 +109,48 @@ export function validateGlobalAnimations(template: TemplateDescriptor): Validati
       };
     })
     .filter((error): error is ValidationError => error !== null);
+}
+
+// unknown_font: a sugar `font` (caption / whole-video overlay) that won't resolve — neither a bundled
+// font id nor a `.ttf` filename — so the renderer would silently fall back to the default. Surfacing it
+// catches typos (e.g. "Oswlad"). A `{{ var }}` is resolved at runtime, so it is left alone.
+function isResolvableFont(font: string): boolean {
+  return font.includes('{{') || font.endsWith('.ttf') || findFont(font) !== undefined;
+}
+
+const KNOWN_FONTS_HINT = 'known ids: rubik, oswald, bebas, … — or a .ttf filename';
+
+export function validateFonts(template: TemplateDescriptor): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const sections = template.sections ?? [];
+
+  for (let index = 0; index < sections.length; index++) {
+    const font = sections[index].caption?.font;
+
+    if (font && !isResolvableFont(font)) {
+      errors.push({
+        path: `sections[${index}].caption.font`,
+        message: `Section "${sections[index].name}": unknown caption font "${font}" (${KNOWN_FONTS_HINT})`,
+        code: 'unknown_font',
+      });
+    }
+  }
+
+  const overlays = template.global?.overlays ?? [];
+
+  for (let index = 0; index < overlays.length; index++) {
+    const font = overlays[index].font;
+
+    if (font && !isResolvableFont(font)) {
+      errors.push({
+        path: `global.overlays[${index}].font`,
+        message: `Whole-video overlay ${index}: unknown font "${font}" (${KNOWN_FONTS_HINT})`,
+        code: 'unknown_font',
+      });
+    }
+  }
+
+  return errors;
 }
 
 export function validateMotion(template: TemplateDescriptor): ValidationError[] {

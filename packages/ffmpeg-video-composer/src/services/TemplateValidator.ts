@@ -9,6 +9,7 @@ import {
   validateTransitions,
   validateMotion,
   validateGlobalAnimations,
+  validateFonts,
   type ValidationError,
 } from './templateValidationRules';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
@@ -201,8 +202,9 @@ export class TemplateValidator {
         const transitionErrors = validateTransitions(template);
         const motionErrors = validateMotion(template);
         const animationErrors = validateGlobalAnimations(template);
+        const fontErrors = validateFonts(template);
 
-        const allErrors = [...sectionErrors, ...transitionErrors, ...motionErrors, ...animationErrors];
+        const allErrors = [...sectionErrors, ...transitionErrors, ...motionErrors, ...animationErrors, ...fontErrors];
 
         if (allErrors.length > 0) {
           return {

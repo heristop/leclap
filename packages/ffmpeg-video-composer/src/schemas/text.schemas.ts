@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { RevealSchema } from './effects.schemas';
+import { RevealSchema, TextEffectSchema } from './effects.schemas';
 import { TranslationSchema } from './global.schemas';
 
 // Author-facing text sugar — caption, title card and lower third. Each lowers to drawtext/drawbox/fade
@@ -37,6 +37,7 @@ export const CaptionSchema = z
     boxColor: z.string().optional().describe('Box colour as a CSS hex string when the box is on.'),
     boxOpacity: z.number().min(0).max(1).optional().describe('Box opacity 0..1 when the box is on.'),
     reveal: RevealSchema.optional().describe('Animated entrance for the caption (fade/rise/slide); default none.'),
+    effect: TextEffectSchema.optional().describe('Drop shadow / outline for legibility over busy footage.'),
   })
   .strict()
   .describe('A styled lower-third / overlay caption rendered as a drawtext filter.');
@@ -57,6 +58,7 @@ export const TitleCardSchema = z
     align: z.enum(['left', 'center']).optional().describe('Horizontal alignment of the card (default left).'),
     background: z.string().optional().describe('Fade colour; defaults to the section background colour.'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered top-to-bottom (default "rise").'),
+    effect: TextEffectSchema.optional().describe('Drop shadow / outline applied to every line for legibility.'),
     fade: z
       .object({
         in: z.boolean().optional().describe('Auto fade-in over the card (default true).'),
@@ -78,10 +80,18 @@ export const LowerThirdSchema = z
     title: TranslationSchema.optional().describe('Main line of the lower third.'),
     subtitle: TranslationSchema.optional().describe('Supporting line below the title.'),
     accent: z.string().optional().describe('Accent colour: draws an accent bar and the badge background.'),
-    boxOpacity: z.number().min(0).max(1).optional().describe('Legibility band opacity 0..1 (default 0.6; 0 = no band).'),
+    boxOpacity: z
+      .number()
+      .min(0)
+      .max(1)
+      .optional()
+      .describe('Legibility band opacity 0..1 (default 0.6; 0 = no band).'),
     position: z.enum(['bottom', 'top']).optional().describe('Vertical anchor of the band (default bottom).'),
     badge: TranslationSchema.optional().describe('Optional right-aligned pill (price, step number, badge).'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered (default "rise").'),
+    effect: TextEffectSchema.optional().describe(
+      'Drop shadow / outline applied to the title + subtitle for legibility.'
+    ),
   })
   .strict()
   .describe('A title/subtitle lower-third band composited over a clip.');

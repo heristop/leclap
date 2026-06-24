@@ -99,7 +99,10 @@ function offset(base: string | number, sign: '+' | '-', distance: number, rampEx
  *
  * `base` is the text's resting position; motion expressions ease from the offset back to it.
  */
-export function revealToExpr(input: RevealInput | undefined, base: { x: string | number; y: string | number }): RevealExprs {
+export function revealToExpr(
+  input: RevealInput | undefined,
+  base: { x: string | number; y: string | number }
+): RevealExprs {
   if (input === undefined) {
     return {};
   }
@@ -159,6 +162,47 @@ export function applyReveal(
 
   if (exprs.y) {
     values.y = exprs.y;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// text effect — drop shadow + outline for legibility on any background
+// ---------------------------------------------------------------------------
+//
+// `drawtext` carries a drop shadow (`shadowx`/`shadowy`/`shadowcolor`) and an outline
+// (`borderw`/`bordercolor`), both core libfreetype, present on every backend. A `TextEffect` lowers to
+// those keys so authored sugar text stays readable over busy footage without hand-writing the options.
+// (HarfBuzz `text_shaping` is deliberately not exposed — it is off on the host and WASM builds; shadow
+// and outline cover legibility everywhere.)
+
+export type TextEffect = {
+  /** Drop shadow. `true` = `#000000@0.6` offset 2,2; or customise colour / dx / dy. */
+  shadow?: boolean | { color?: string; dx?: number; dy?: number };
+  /** Outline. `true` = `#000000` width 2; or customise colour / width. */
+  outline?: boolean | { color?: string; width?: number };
+};
+
+const SHADOW_DEFAULTS = { color: '#000000@0.6', dx: 2, dy: 2 };
+const OUTLINE_DEFAULTS = { color: '#000000', width: 2 };
+
+// Merges a text effect's shadow/outline drawtext keys onto a values object (mutating it). Shared by
+// every text sugar so the wiring lives in one place — same shape as `applyReveal`.
+export function applyTextEffect(values: Record<string, unknown>, effect: TextEffect | undefined): void {
+  if (!effect) {
+    return;
+  }
+
+  if (effect.shadow) {
+    const shadow = effect.shadow === true ? SHADOW_DEFAULTS : { ...SHADOW_DEFAULTS, ...effect.shadow };
+    values.shadowcolor = shadow.color;
+    values.shadowx = shadow.dx;
+    values.shadowy = shadow.dy;
+  }
+
+  if (effect.outline) {
+    const outline = effect.outline === true ? OUTLINE_DEFAULTS : { ...OUTLINE_DEFAULTS, ...effect.outline };
+    values.bordercolor = outline.color;
+    values.borderw = outline.width;
   }
 }
 

@@ -5,6 +5,7 @@ import type { Media, MapAnimationInput, SectionOptions } from '@/core/types';
 import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type VariableManager from './VariableManager';
+import { cubeFor } from '../presets/lut-library';
 
 // The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
 // but it is used at runtime as a string-keyed cache of staged media paths.
@@ -36,6 +37,7 @@ class AssetManager {
   async setUpPaths(): Promise<void> {
     this.segment.assetsDir = await this.filesystemAdapter.getBuildPath('assets');
     this.segment.fontsDir = await this.filesystemAdapter.getBuildPath('fonts');
+    this.segment.lutsDir = await this.filesystemAdapter.getBuildPath('luts');
   }
 
   prepareAssets = (): void => {
@@ -159,6 +161,34 @@ class AssetManager {
         const path = await this.filesystemAdapter.fetch(fontUrl);
 
         await this.filesystemAdapter.move(path, targetPath);
+      })
+    );
+  };
+
+  // Stage every LUT referenced by a lut3d look (collected into tempLuts by the FormatterManager).
+  // The `.cube` text is generated on the fly and written to the build FS — uniform on Node, Expo and
+  // the browser/WASM virtual FS — so there are no bundled binary assets to ship per platform.
+  fetchLuts = async (): Promise<void> => {
+    await Promise.all(
+      this.segment.tempLuts.map(async (name) => {
+        const targetPath = `${this.segment.lutsDir}/${name}.cube`;
+
+        if (await this.filesystemAdapter.stat(targetPath)) {
+          this.logger.info(`[${this.segment.currentSection?.name}][LUT] cached ${name}.cube`);
+
+          return;
+        }
+
+        const cube = cubeFor(name);
+
+        if (!cube) {
+          this.logger.error(`[${this.segment.currentSection?.name}][LUT] unknown LUT ${name}`);
+
+          return;
+        }
+
+        await this.filesystemAdapter.writeFile(targetPath, new TextEncoder().encode(cube));
+        this.logger.info(`[${this.segment.currentSection?.name}][LUT] staged ${name}.cube`);
       })
     );
   };

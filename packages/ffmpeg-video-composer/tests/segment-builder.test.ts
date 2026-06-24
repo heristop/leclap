@@ -26,6 +26,7 @@ function makeManagers(logger = makeLogger(), filesystem = makeFilesystem()) {
       setUpPaths: vi.fn(async () => undefined),
       fetchAssets: vi.fn(async () => undefined),
       fetchFonts: vi.fn(async () => undefined),
+      fetchLuts: vi.fn(async () => undefined),
       fetchCachedMedia: vi.fn((media: { name: string }, frame = 0) => `/cache/${media.name}_${frame}.png`),
     },
     variableManager: {},
@@ -647,8 +648,9 @@ describe('SegmentBuilder structured-sugar injection', () => {
     await builder.buildFilters();
 
     const types = (segment.filtersList as string[]).map((s) => s.split('=')[0]);
-    // Only the authored filter should be present (no drawbox, no zoompan, etc.)
-    expect(types).toEqual(['hflip']);
+    // The authored filter, then the always-on Rec.709 colour-normalisation tag — but no sugar filters
+    // (no drawbox, no zoompan, etc.). setparams is colour metadata, not structured sugar.
+    expect(types).toEqual(['hflip', 'setparams']);
   });
 });
 

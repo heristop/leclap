@@ -30,6 +30,14 @@ const LOOK_TABLE: Record<string, LookEntry> = {
     { type: 'gblur', value: 'sigma=0.8' },
     { type: 'eq', value: 'brightness=0.04:saturation=1.1' },
   ],
+  // LUT-backed cinema looks. The value is the LUT *name*; the FormatterManager stages its generated
+  // `.cube` and rewrites it to a `lut3d=file='…'`. A single 3D LUT is a bigger, cleaner grade than the
+  // eq/curves stacks above and runs on every backend (lut3d is a standard LGPL filter).
+  'teal-orange': [{ type: 'lut3d', value: 'teal-orange' }],
+  'warm-film': [{ type: 'lut3d', value: 'warm-film' }],
+  'mono-film': [{ type: 'lut3d', value: 'mono' }],
+  'noir-film': [{ type: 'lut3d', value: 'noir' }],
+  'vivid-pop': [{ type: 'lut3d', value: 'vivid' }],
 };
 
 /**

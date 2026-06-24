@@ -1,6 +1,6 @@
 import type { Filter } from '@/core/types';
 import type { Caption } from '../../schemas/section.schemas';
-import { applyReveal, hasText, resolveFontFile } from './text';
+import { applyReveal, applyTextEffect, hasText, resolveFontFile } from './text';
 
 // ---------------------------------------------------------------------------
 // captionToFilters
@@ -114,6 +114,8 @@ export function captionToFilters(caption?: Caption): Filter[] {
     fontcolor: caption.color ?? preset.fontcolor,
     ...resolveBox(caption, preset),
   };
+
+  applyTextEffect(values, caption.effect);
 
   // An optional reveal overrides x/y with kinetic expressions and adds the alpha fade-in.
   applyReveal(values, caption.reveal, { x, y });

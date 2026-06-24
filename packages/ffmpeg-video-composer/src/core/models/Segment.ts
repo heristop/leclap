@@ -11,6 +11,8 @@ class Segment {
   public assetsDir = '';
   public fontsDir = '';
   public tempFonts: string[] = [];
+  public lutsDir = '';
+  public tempLuts: string[] = [];
   public inputsAsset: string[] = [];
   public inputsMapCount = 0;
 }

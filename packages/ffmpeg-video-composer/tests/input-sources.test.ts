@@ -1,5 +1,37 @@
 import { describe, it, expect } from 'vitest';
-import { buildAnimationLegFilters, buildSingleFileAnimationSource } from '@/editor/inputSources';
+import { buildAnimationLegFilters, buildSingleFileAnimationSource, overlayMotionExpr } from '@/editor/inputSources';
+
+// overlayMotionExpr maps a reveal intent to overlay-filter (W,H,w,h,t) coordinates. These assert the
+// exact expressions so a regression in the entrance math is caught.
+describe('overlayMotionExpr', () => {
+  const RAMP = 'if(lt(t,0.3),0,if(lt(t,0.9),(t-0.3)/0.6,1))';
+
+  it('returns nothing for undefined or "none"', () => {
+    expect(overlayMotionExpr(undefined, '0:0')).toEqual({});
+    expect(overlayMotionExpr('none', '0:0')).toEqual({});
+  });
+
+  it('rise lifts y from below the base position', () => {
+    expect(overlayMotionExpr('rise', '40:200')).toEqual({ x: '40', y: `(200)+(1-(${RAMP}))*60` });
+  });
+
+  it('slide-left enters from the right of the base x', () => {
+    expect(overlayMotionExpr('slide-left', '40:200')).toEqual({ x: `(40)+(1-(${RAMP}))*60`, y: '200' });
+  });
+
+  it('slide-right enters from the left of the base x', () => {
+    expect(overlayMotionExpr('slide-right', '40:200')).toEqual({ x: `(40)-(1-(${RAMP}))*60`, y: '200' });
+  });
+
+  it('fade emits an alpha fade-in leg filter, no position change', () => {
+    expect(overlayMotionExpr('fade', '40:200')).toEqual({ legFilter: 'fade=t=in:st=0.3:d=0.6:alpha=1' });
+  });
+
+  it('honours custom timing/distance overrides', () => {
+    const expr = overlayMotionExpr({ type: 'rise', delay: 0.5, duration: 1, distance: 100 }, '0:0');
+    expect(expr.y).toBe('(0)+(1-(if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,1))))*100');
+  });
+});
 
 // The animation-leg filter chain shared by the per-section overlay (MapManager.addAnimationOverlay)
 // and the whole-video overlay pass (AnimationComposer) — scale the leg, then fade it when opacity < 1.

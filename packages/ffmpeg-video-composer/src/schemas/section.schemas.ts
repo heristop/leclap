@@ -2,10 +2,12 @@ import { z } from 'zod';
 import {
   AudioFadeSchema,
   BackgroundLayerSchema,
+  ChromaKeySchema,
   FramingGuideSchema,
   GradeSchema,
   LOOK_PRESETS,
   MotionEffectSchema,
+  RevealSchema,
   TransitionSchema,
 } from './effects.schemas';
 import { TranslationSchema, GlobalConfigSchema } from './global.schemas';
@@ -48,6 +50,9 @@ export const InputOptionsSchema = z
     start: z.number().positive().optional().describe('Seconds to delay the overlay before it appears (default 0).'),
     opacity: z.number().min(0).max(1).optional().describe('Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.'),
     rotation: z.number().optional().describe('Clockwise rotation in degrees applied before compositing.'),
+    motion: RevealSchema.optional().describe(
+      'Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.'
+    ),
   })
   .strict()
   .describe('Playback and compositing options for an animation input.');
@@ -183,6 +188,9 @@ export const BaseSectionSchema = z
       .array(MotionEffectSchema)
       .optional()
       .describe('Ordered list of motion and geometric effects applied to the section video.'),
+    chromaKey: ChromaKeySchema.optional().describe(
+      'Background removal: key out a solid screen colour and composite over a solid background.'
+    ),
   })
   .describe('Base fields shared by all section variants.');
 

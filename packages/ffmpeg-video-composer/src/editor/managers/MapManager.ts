@@ -1,8 +1,8 @@
 import { inject, injectable } from 'tsyringe';
 import type Segment from '../../core/models/Segment';
-import type { Section, Map, MapAnimationInput } from '@/core/types';
+import type { Section, Map, MapAnimationInput, ChromaKey } from '@/core/types';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
-import { buildAnimationLegFilters } from '../inputSources';
+import { buildAnimationLegFilters, overlayMotionExpr } from '../inputSources';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
 
@@ -125,6 +125,18 @@ class MapManager {
     // opacity < 1 (shared with the whole-video AnimationComposer so both composite identically).
     const legFilters = buildAnimationLegFilters(input.options);
 
+    // An optional `motion` animates the entrance: slide/rise emit overlay x/y time-expressions; fade
+    // adds an alpha fade-in to the overlay leg (needs an rgba frame first).
+    const motion = overlayMotionExpr(input.options.motion, position);
+
+    if (motion.legFilter) {
+      if (!legFilters.includes('format=rgba')) {
+        legFilters.push('format=rgba');
+      }
+
+      legFilters.push(motion.legFilter);
+    }
+
     let animationLeg = `${inputIndex}:v`;
 
     if (legFilters.length > 0) {
@@ -135,11 +147,18 @@ class MapManager {
 
     this.segment.inputsMapCount++;
 
+    // Moving entrances use the named, single-quoted overlay form so the comma-bearing time expressions
+    // are not mis-parsed as extra filter options; otherwise the static positional "x:y" form.
+    const overlayValue =
+      motion.x || motion.y
+        ? `x='${motion.x}':y='${motion.y}':eof_action=${eofAction}`
+        : `${position}:eof_action=${eofAction}`;
+
     // The animation overlays on top of the already-filtered background; no section filters here.
     // `input.filters` is optional in the schema (builder-authored inputs omit it), so default to none.
     this.addMap({
       inputs: [baseStream, animationLeg],
-      filters: [{ type: 'overlay', value: `${position}:eof_action=${eofAction}` }, ...(input.filters ?? [])],
+      filters: [{ type: 'overlay', value: overlayValue }, ...(input.filters ?? [])],
       outputs: [input.name],
       options: { useSectionFilters: false },
     });
@@ -187,6 +206,43 @@ class MapManager {
         useSectionFilters,
       },
     });
+  };
+
+  /**
+   * Removes a solid screen colour from the section clip and composites it over a solid background —
+   * a green/blue-screen key. The graph is INVERTED relative to addAnimationOverlay (the background is
+   * the base, the clip the overlay), but it needs NO extra `-i` input: the clip is `split`, one leg is
+   * painted a flat colour by `drawbox` to become the background, the other is keyed and overlaid back.
+   * Because no input is added, stream indices never shift (unlike the no-audio anullsrc fix).
+   *
+   * v1 is solid-background only (no simultaneous animation overlay or background image). The graph is a
+   * single self-contained filter_complex from the video stream to `[ck_out]`, which becomes the final
+   * mapped pad; the section's own scale chain is folded in so the clip is sized to the output first.
+   *
+   * `videoInputIndex` is the segment's authoritative clip stream (VideoSegment shifts it to 1 when it
+   * prepends blank audio) — NOT getVideoInputIncrement, which disagrees for video+videoUrl sections.
+   */
+  addChromakeyComposite = (chromaKey: ChromaKey, videoInputIndex: number, videoScale = ''): void => {
+    const videoStream = `${videoInputIndex}:v`;
+    const color = this.formattersManager.formatColor(chromaKey.color);
+    const similarity = chromaKey.similarity ?? 0.3;
+    const blend = chromaKey.blend ?? 0.1;
+    const background = this.formattersManager.formatColor(
+      chromaKey.background ?? this.currentSection.options?.backgroundColor ?? 'black'
+    );
+
+    const scaleChain = videoScale
+      ? `scale=${videoScale}:force_original_aspect_ratio=increase,crop=${videoScale},setsar=1,`
+      : '';
+
+    this.segment.filtersMapList.push(
+      `[${videoStream}]${scaleChain}split[ck_a][ck_b];` +
+        `[ck_a]drawbox=x=0:y=0:w=iw:h=ih:color=${background}@1:t=fill[ck_bg];` +
+        `[ck_b]colorkey=${color}:${similarity}:${blend},format=rgba[ck_keyed];` +
+        `[ck_bg][ck_keyed]overlay=0:0[ck_out]`
+    );
+    this.segment.mapsList.push('ck_out');
+    this.segment.inputsMapCount++;
   };
 
   getVideoInputIncrement = (): number => {

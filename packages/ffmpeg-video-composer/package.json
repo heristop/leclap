@@ -32,6 +32,7 @@
     "compile": "node compile.ts",
     "diagnose": "node diagnose.ts",
     "generate:schema": "tsx scripts/generate-schema-json.ts",
+    "bench": "tsx scripts/bench.ts",
     "typecheck": "tsc --noEmit",
     "test": "vp test run",
     "test:coverage": "vp test run --coverage",

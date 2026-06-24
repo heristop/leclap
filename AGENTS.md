@@ -38,16 +38,17 @@ The user-facing CLI is `@leclap/cli` (`leclap render|init|diagnose`). The `compi
 
 Run from the repo root unless noted. Tooling is **vite-plus (`vp`)**.
 
-| Task                | Command                                                           |
-| ------------------- | ----------------------------------------------------------------- |
-| Lint (oxlint)       | `pnpm lint`                                                       |
-| Format              | `pnpm fmt` / check only: `pnpm fmt:check`                         |
-| All checks          | `pnpm check`                                                      |
-| Test (vitest)       | `pnpm test` · UI: `pnpm test:ui` · coverage: `pnpm test:coverage` |
-| Build (tsdown)      | `pnpm build`                                                      |
-| Typecheck a package | `pnpm --filter <pkg> exec tsc --noEmit`                           |
-| Run Expo app        | `pnpm app:expo` (also `app:ios` / `app:android`)                  |
-| Run web app         | `pnpm app:web`                                                    |
+| Task                | Command                                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| Lint (oxlint)       | `pnpm lint`                                                             |
+| Format              | `pnpm fmt` / check only: `pnpm fmt:check`                               |
+| All checks          | `pnpm check`                                                            |
+| Test (vitest)       | `pnpm test` · UI: `pnpm test:ui` · coverage: `pnpm test:coverage`       |
+| Build (tsdown)      | `pnpm build`                                                            |
+| Typecheck a package | `pnpm --filter <pkg> exec tsc --noEmit`                                 |
+| Perf bench          | `pnpm --filter ffmpeg-video-composer bench` (see `docs/performance.md`) |
+| Run Expo app        | `pnpm app:expo` (also `app:ios` / `app:android`)                        |
+| Run web app         | `pnpm app:web`                                                          |
 
 ## Architecture & patterns
 

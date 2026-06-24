@@ -8,6 +8,8 @@ import Segment from './core/models/Segment';
 import type AbstractFilesystem from './platform/filesystem/AbstractFilesystem';
 import type AbstractLogger from './platform/logging/AbstractLogger';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
+import { getPerfTimer, resetPerfTimer } from './utils/perf-timer';
+import { formatPerfReport } from './utils/perf-report';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -91,11 +93,45 @@ export async function loadConfig(configPath: string): Promise<TemplateDescriptor
   }
 }
 
+// Log the per-run perf table and persist it next to the build output. No-op when FVC_PERF is
+// disabled (the timer reports totalMs 0). Never throws — perf reporting must not break a compile.
+async function emitPerfReport(
+  logger: AbstractLogger,
+  buildDir: string,
+  templateDescriptor: TemplateDescriptor
+): Promise<void> {
+  const report = getPerfTimer().report();
+  if (report.totalMs <= 0) {
+    return;
+  }
+
+  logger.info(`\n${formatPerfReport(report)}`);
+
+  try {
+    const fileSystem = container.resolve<AbstractFilesystem>('filesystemAdapter');
+    const data = new TextEncoder().encode(JSON.stringify(report, null, 2));
+    // FVC_PERF_OUT lets a caller (the bench harness) pin an exact output path per run so reports
+    // don't collide across fixtures that share a meta.name; otherwise name it from the descriptor.
+    const explicit = process.env.FVC_PERF_OUT;
+    if (explicit) {
+      await fileSystem.writeFile(explicit, data);
+      return;
+    }
+    const buildPath = await fileSystem.getBuildPath(buildDir);
+    const name = (templateDescriptor.meta?.name ?? 'run').replace(/[^a-z0-9_-]+/gi, '_');
+    await fileSystem.writeFile(`${buildPath}/perf-${name}.json`, data);
+  } catch (error) {
+    logger.info(`perf report write skipped: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 export async function compile(
   projectConfig: ProjectConfig,
   templateDescriptor: TemplateDescriptor
 ): Promise<string | null> {
   await initializePlatform();
+
+  const timer = resetPerfTimer();
 
   try {
     if (!projectConfig.buildDir) {
@@ -110,7 +146,11 @@ export async function compile(
 
     const director = container.resolve(TemplateDirector).config(projectConfig, templateDescriptor);
 
-    return await director.construct();
+    const output = await timer.span('compile:total', () => director.construct());
+
+    await emitPerfReport(logger, projectConfig.buildDir, templateDescriptor);
+
+    return output;
   } catch (error) {
     if (!(error instanceof Error)) {
       console.error('Unknown compilation error');

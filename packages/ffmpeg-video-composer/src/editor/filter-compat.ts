@@ -10,10 +10,27 @@ import { eqValueToLutyuv } from './presets/looks';
 export type EngineCapabilities = {
   /** GPL filters available (eq, vignette, geq, …). False on the on-device LGPL engine. */
   gpl: boolean;
+  /** `lut3d` colour-LUT filter available (a standard LGPL filter; present on every normal build). */
+  lut3d: boolean;
+  /** `colorkey` chroma-key filter available (standard LGPL filter). */
+  colorkey: boolean;
+  /** drawtext `text_shaping` (HarfBuzz) available. Off by default — the WASM 6.x core may lack HarfBuzz. */
+  textShaping: boolean;
 };
 
+// lut3d/colorkey are standard default-enabled filters present on every backend (host GPL, on-device
+// LGPL, the 6.x WASM core), so they're advertised as available everywhere; the web e2e confirms the
+// WASM core and these flags can be flipped if a filter ever turns out absent (the FILTER_COMPAT rules
+// below then drop the effect with a warning rather than aborting the render). text_shaping needs
+// HarfBuzz, which the host build and the WASM 6.x core do not reliably bundle, so it stays off — the
+// shadow/outline typography below covers legibility on every backend without it.
 export function engineCapabilities(config: ProjectConfig): EngineCapabilities {
-  return { gpl: !usesLgplEngine(config) };
+  return {
+    gpl: !usesLgplEngine(config),
+    lut3d: true,
+    colorkey: true,
+    textShaping: false,
+  };
 }
 
 /**

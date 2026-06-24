@@ -80,6 +80,7 @@ export interface GlobalTextOverlay {
   color?: string;
   opacity?: number;
   reveal?: Reveal;
+  effect?: TextEffect;
   sections?: string[];
 }
 
@@ -99,6 +100,8 @@ export interface GlobalAnimation {
   /** Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning. */
   start?: number;
   persistent?: boolean;
+  /** Animated entrance (rise/slide/fade); applied by the per-section overlay path, ignored whole-video. */
+  motion?: Reveal;
 }
 
 interface SectionTransition {
@@ -163,6 +166,14 @@ export interface Section {
   look?: string;
   grade?: GradeConfig;
   motion?: MotionEffect[];
+  chromaKey?: ChromaKey;
+}
+
+export interface ChromaKey {
+  color: string;
+  similarity?: number;
+  blend?: number;
+  background?: string;
 }
 
 export interface PartialSection {
@@ -188,6 +199,11 @@ export interface PartialSection {
 export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
 export type Reveal = RevealType | { type: RevealType; delay?: number; duration?: number; distance?: number };
 
+export type TextEffect = {
+  shadow?: boolean | { color?: string; dx?: number; dy?: number };
+  outline?: boolean | { color?: string; width?: number };
+};
+
 export interface Caption {
   text: Record<string, string>;
   style?: 'bar' | 'subtle' | 'bold';
@@ -200,6 +216,7 @@ export interface Caption {
   boxColor?: string;
   boxOpacity?: number;
   reveal?: Reveal;
+  effect?: TextEffect;
 }
 
 interface AudioFade {
@@ -302,6 +319,8 @@ interface InputOptions {
   opacity?: number;
   /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
   rotation?: number;
+  /** Animated entrance for the overlay (rise/slide/fade), reusing the reveal vocabulary. */
+  motion?: Reveal;
 }
 
 export interface Map {
@@ -342,7 +361,6 @@ interface FilterValues {
   boxborderw?: number | string;
 }
 
-
 interface Translation {
   [key: string]: string | undefined;
 }
@@ -376,6 +394,7 @@ type MapAnimationOptions = {
   duration?: number;
   start?: number;
   opacity?: number;
+  motion?: Reveal;
 };
 
 export type MapAnimationInput = {

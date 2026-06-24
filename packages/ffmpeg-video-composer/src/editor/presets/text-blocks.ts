@@ -1,8 +1,10 @@
 import type { Filter, GlobalTextOverlay } from '@/core/types';
 import {
   type RevealInput,
+  type TextEffect,
   type Translation,
   applyReveal,
+  applyTextEffect,
   hasText,
   resolveFontFile,
   staggered,
@@ -32,7 +34,7 @@ type LineSpec = {
 };
 
 // Pushes one styled, optionally-revealed drawtext line when it has text; returns the next stagger index.
-function pushLine(filters: Filter[], spec: LineSpec, reveal: RevealInput, index: number): number {
+function pushLine(filters: Filter[], spec: LineSpec, reveal: RevealInput, index: number, effect?: TextEffect): number {
   if (!hasText(spec.text)) {
     return index;
   }
@@ -46,6 +48,7 @@ function pushLine(filters: Filter[], spec: LineSpec, reveal: RevealInput, index:
     fontcolor: spec.color,
   };
 
+  applyTextEffect(values, effect);
   applyReveal(values, staggered(reveal, index), { x: spec.x, y: spec.y });
   filters.push({ type: 'drawtext', values: values as Filter['values'] });
 
@@ -53,7 +56,10 @@ function pushLine(filters: Filter[], spec: LineSpec, reveal: RevealInput, index:
 }
 
 // A solid accent bar (drawbox), or nothing when no accent colour is set.
-function accentBar(accent: string | undefined, geom: { x: string | number; y: number; w: number; h: number }): Filter[] {
+function accentBar(
+  accent: string | undefined,
+  geom: { x: string | number; y: number; w: number; h: number }
+): Filter[] {
   if (!accent) {
     return [];
   }
@@ -80,6 +86,8 @@ export type TitleCard = {
   background?: string;
   /** Entrance for the lines, staggered top-to-bottom (default "rise"). */
   reveal?: RevealInput;
+  /** Drop shadow / outline applied to every line for legibility. */
+  effect?: TextEffect;
   /** Auto fade-in / fade-out over the card (both default on). */
   fade?: { in?: boolean; out?: boolean };
 };
@@ -120,19 +128,45 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
   const margin = round(w * 0.06);
   const reveal = titleCard.reveal ?? 'rise';
   const accent = titleCard.accent;
+  const effect = titleCard.effect;
   const x = align === 'center' ? '(w-text_w)/2' : String(margin);
 
   const filters: Filter[] = [];
   let index = 0;
 
-  index = pushLine(filters, { text: titleCard.kicker, x, y: round(h * 0.4), font: 'Oswald.ttf', size: round(h * 0.026), color: accent ?? '#ffffff' }, reveal, index);
-  index = pushLine(filters, { text: titleCard.headline, x, y: round(h * 0.452), font: 'Anton.ttf', size: round(h * 0.085), color: '#ffffff' }, reveal, index);
+  index = pushLine(
+    filters,
+    {
+      text: titleCard.kicker,
+      x,
+      y: round(h * 0.4),
+      font: 'Oswald.ttf',
+      size: round(h * 0.026),
+      color: accent ?? '#ffffff',
+    },
+    reveal,
+    index,
+    effect
+  );
+  index = pushLine(
+    filters,
+    { text: titleCard.headline, x, y: round(h * 0.452), font: 'Anton.ttf', size: round(h * 0.085), color: '#ffffff' },
+    reveal,
+    index,
+    effect
+  );
 
   const barW = round(w * 0.13);
   const barX = align === 'center' ? `(w-${barW})/2` : margin;
   filters.push(...accentBar(accent, { x: barX, y: round(h * 0.585), w: barW, h: Math.max(4, round(h * 0.006)) }));
 
-  pushLine(filters, { text: titleCard.subtitle, x, y: round(h * 0.63), font: 'Oswald.ttf', size: round(h * 0.03), color: '#cfd3de' }, reveal, index);
+  pushLine(
+    filters,
+    { text: titleCard.subtitle, x, y: round(h * 0.63), font: 'Oswald.ttf', size: round(h * 0.03), color: '#cfd3de' },
+    reveal,
+    index,
+    effect
+  );
 
   const fadeColor = titleCard.background ?? ctx.backgroundColor ?? DEFAULT_FADE_COLOR;
   filters.push(...titleCardFades(titleCard.fade, fadeColor));
@@ -162,6 +196,8 @@ export type LowerThird = {
   badge?: Translation;
   /** Entrance for the lines (default "rise"). */
   reveal?: RevealInput;
+  /** Drop shadow / outline applied to the title + subtitle for legibility. */
+  effect?: TextEffect;
 };
 
 export type LowerThirdContext = {
@@ -179,7 +215,12 @@ function band(boxOpacity: number | undefined, y: number, h: number): Filter[] {
   return [{ type: 'drawbox', values: { x: 0, y, w: 'iw', h, c: `${BAND_COLOR}@${opacity}`, t: 'fill' } }];
 }
 
-function badgePill(text: Translation | undefined, accent: string | undefined, geom: { x: string; y: number; size: number; border: number }, reveal: RevealInput): Filter[] {
+function badgePill(
+  text: Translation | undefined,
+  accent: string | undefined,
+  geom: { x: string; y: number; size: number; border: number },
+  reveal: RevealInput
+): Filter[] {
   if (!hasText(text)) {
     return [];
   }
@@ -215,19 +256,53 @@ export function lowerThirdToFilters(lowerThird: LowerThird | undefined, ctx: Low
   const margin = round(w * 0.06);
   const reveal = lowerThird.reveal ?? 'rise';
   const accent = lowerThird.accent;
+  const effect = lowerThird.effect;
   const bandH = round(h * 0.2);
   const bandY = lowerThird.position === 'top' ? 0 : h - bandH;
   const x = String(margin);
 
   const filters: Filter[] = [];
   filters.push(...band(lowerThird.boxOpacity, bandY, bandH));
-  filters.push(...accentBar(accent, { x: margin, y: bandY + round(h * 0.04), w: round(w * 0.1), h: Math.max(4, round(h * 0.006)) }));
+  filters.push(
+    ...accentBar(accent, { x: margin, y: bandY + round(h * 0.04), w: round(w * 0.1), h: Math.max(4, round(h * 0.006)) })
+  );
 
   let index = 0;
-  index = pushLine(filters, { text: lowerThird.title, x, y: bandY + round(h * 0.055), font: 'Anton.ttf', size: round(h * 0.05), color: '#ffffff' }, reveal, index);
-  index = pushLine(filters, { text: lowerThird.subtitle, x, y: bandY + round(h * 0.125), font: 'Oswald.ttf', size: round(h * 0.028), color: '#c9d0f5' }, reveal, index);
+  index = pushLine(
+    filters,
+    {
+      text: lowerThird.title,
+      x,
+      y: bandY + round(h * 0.055),
+      font: 'Anton.ttf',
+      size: round(h * 0.05),
+      color: '#ffffff',
+    },
+    reveal,
+    index,
+    effect
+  );
+  index = pushLine(
+    filters,
+    {
+      text: lowerThird.subtitle,
+      x,
+      y: bandY + round(h * 0.125),
+      font: 'Oswald.ttf',
+      size: round(h * 0.028),
+      color: '#c9d0f5',
+    },
+    reveal,
+    index,
+    effect
+  );
 
-  const badgeGeom = { x: `w-text_w-${margin}`, y: bandY + round(h * 0.055), size: round(h * 0.04), border: Math.max(8, round(h * 0.014)) };
+  const badgeGeom = {
+    x: `w-text_w-${margin}`,
+    y: bandY + round(h * 0.055),
+    size: round(h * 0.04),
+    border: Math.max(8, round(h * 0.014)),
+  };
   filters.push(...badgePill(lowerThird.badge, accent, badgeGeom, staggered('fade', index)));
 
   return filters;
@@ -277,6 +352,8 @@ export function globalTextOverlayToFilters(overlay: GlobalTextOverlay, ctx: Glob
     fontsize: overlay.size ?? round(h * 0.03),
     fontcolor: overlay.color ?? '#ffffff',
   };
+
+  applyTextEffect(values, overlay.effect);
 
   if (overlay.reveal) {
     applyReveal(values, overlay.reveal, pos);

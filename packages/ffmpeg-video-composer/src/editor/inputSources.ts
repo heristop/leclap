@@ -86,6 +86,69 @@ export function buildAnimationLegFilters(options: { scale?: string; rotation?: n
   return legFilters;
 }
 
+// ---------------------------------------------------------------------------
+// overlay motion — an animated entrance for a composited overlay
+// ---------------------------------------------------------------------------
+//
+// Reuses the `reveal` vocabulary (rise / slide / fade) but emits OVERLAY-filter coordinates (W,H,w,h,t)
+// — NOT the drawtext text_w coords `revealToExpr` produces. slide/rise become `overlay` x/y time
+// expressions easing from an offset back to the base position; fade reuses an alpha fade-in on the
+// overlay leg (the opacity path) instead of moving the overlay.
+
+type OverlayMotionInput = string | { type: string; delay?: number; duration?: number; distance?: number };
+
+export type OverlayMotion = {
+  /** Overlay x expression (already incorporates the base x); paired with `y` for slide/rise. */
+  x?: string;
+  /** Overlay y expression (already incorporates the base y). */
+  y?: string;
+  /** A leg filter (alpha fade-in) for the `fade` motion, applied to the overlay source before compositing. */
+  legFilter?: string;
+};
+
+const MOTION_DELAY = 0.3;
+const MOTION_DURATION = 0.6;
+const MOTION_DISTANCE = 60;
+
+const trimNum = (value: number): string => Number(value.toFixed(4)).toString();
+
+/**
+ * Translates an overlay `motion` intent into overlay-filter expressions, given the static `position`
+ * ("x:y"). Returns {} for no/none motion (the overlay sits at its static position).
+ */
+export function overlayMotionExpr(motion: OverlayMotionInput | undefined, position: string): OverlayMotion {
+  if (!motion) {
+    return {};
+  }
+
+  const intent = typeof motion === 'string' ? { type: motion } : motion;
+
+  if (intent.type === 'none') {
+    return {};
+  }
+
+  const delay = intent.delay ?? MOTION_DELAY;
+  const duration = intent.duration ?? MOTION_DURATION;
+  const distance = intent.distance ?? MOTION_DISTANCE;
+  const [bx = '0', by = '0'] = position.split(':');
+  const ramp = `if(lt(t,${trimNum(delay)}),0,if(lt(t,${trimNum(delay + duration)}),(t-${trimNum(delay)})/${trimNum(duration)},1))`;
+
+  if (intent.type === 'fade') {
+    return { legFilter: `fade=t=in:st=${trimNum(delay)}:d=${trimNum(duration)}:alpha=1` };
+  }
+
+  if (intent.type === 'rise') {
+    return { x: bx, y: `(${by})+(1-(${ramp}))*${distance}` };
+  }
+
+  if (intent.type === 'slide-left') {
+    return { x: `(${bx})+(1-(${ramp}))*${distance}`, y: by };
+  }
+
+  // slide-right enters from the left.
+  return { x: `(${bx})-(1-(${ramp}))*${distance}`, y: by };
+}
+
 /**
  * Still-image overlay source (`.jpg`/`.png`/`.webp`): `-loop 1 -i <path>` — the image2 demuxer holds
  * the single frame as a stream so it composites over the section for its whole duration (bounded by

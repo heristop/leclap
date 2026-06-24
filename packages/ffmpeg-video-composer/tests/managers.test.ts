@@ -46,6 +46,8 @@ function createSegment(currentSection?: Section) {
     assetsDir: '',
     fontsDir: '',
     tempFonts: [] as string[],
+    lutsDir: '',
+    tempLuts: [] as string[],
     inputsAsset: [] as string[],
     inputsMapCount: 0,
   };
@@ -185,6 +187,26 @@ describe('FormatterManager', () => {
       const { manager } = build({ section: { name: 's', type: 'video', options: { speed: 4 } } });
       // 1/4 = 0.25 -> clamped to 0.5
       expect(manager.formatMultipleTypesValue({ type: 'atempo' } as Filter)).toBe('atempo=0.5');
+    });
+
+    it('lut3d rewrites the LUT name to a staged .cube path and registers it for staging', () => {
+      const { manager, segment } = build({ section: { name: 's', type: 'video' } });
+      segment.lutsDir = '/build/luts';
+
+      const result = manager.formatMultipleTypesValue({ type: 'lut3d', value: 'teal-orange' } as Filter);
+
+      expect(result).toBe("lut3d=file='/build/luts/teal-orange.cube'");
+      expect(segment.tempLuts).toEqual(['teal-orange']);
+    });
+
+    it('lut3d registers each distinct LUT only once', () => {
+      const { manager, segment } = build({ section: { name: 's', type: 'video' } });
+      segment.lutsDir = '/build/luts';
+
+      manager.formatMultipleTypesValue({ type: 'lut3d', value: 'mono' } as Filter);
+      manager.formatMultipleTypesValue({ type: 'lut3d', value: 'mono' } as Filter);
+
+      expect(segment.tempLuts).toEqual(['mono']);
     });
 
     it('atempo defaults speed to 1 when unset', () => {
@@ -689,7 +711,10 @@ describe('MapManager', () => {
       assets: { fonts: {}, musics: {}, inputs: opts.inputsCache ?? {} },
     });
     const segment = createSegment(opts.section);
-    const formatters = {};
+    const formatters = {
+      // Identity colour formatter (the real one resolves {{ colorN }} and falls back to a default).
+      formatColor: vi.fn((c: string) => c),
+    };
     const filterManager = {
       addFilter: vi.fn((f: Filter) => `F(${f.type})`),
     };
@@ -745,6 +770,37 @@ describe('MapManager', () => {
       });
       manager.addMap({ inputs: ['0:v'], outputs: ['o'] } as FilterMap);
       expect(filterManager.addFilter).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('addChromakeyComposite', () => {
+    it('builds a split → drawbox(bg) → colorkey → overlay graph from the given video index, no new input', () => {
+      const { manager, segment } = build({
+        section: { name: 's', type: 'video', options: { backgroundColor: '#222222' } },
+      });
+
+      manager.addChromakeyComposite({ color: '#00FF00', similarity: 0.2, blend: 0.05 }, 1, '1280:720');
+
+      expect(segment.mapsList).toEqual(['ck_out']);
+      const graph = segment.filtersMapList[0];
+      // keys the clip at [1:v] (NOT [0:v] — the blank-audio input), paints the section bg, overlays back
+      expect(graph).toContain(
+        '[1:v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,split[ck_a][ck_b]'
+      );
+      expect(graph).toContain('drawbox=x=0:y=0:w=iw:h=ih:color=#222222@1:t=fill[ck_bg]');
+      expect(graph).toContain('colorkey=#00FF00:0.2:0.05,format=rgba[ck_keyed]');
+      expect(graph).toContain('[ck_bg][ck_keyed]overlay=0:0[ck_out]');
+    });
+
+    it('falls back to default similarity/blend and a black background', () => {
+      const { manager, segment } = build({ section: { name: 's', type: 'video' } });
+
+      manager.addChromakeyComposite({ color: '#0000FF' }, 0);
+
+      const graph = segment.filtersMapList[0];
+      expect(graph).toContain('[0:v]split[ck_a][ck_b]'); // no scale chain when videoScale omitted
+      expect(graph).toContain('color=black@1:t=fill');
+      expect(graph).toContain('colorkey=#0000FF:0.3:0.1,format=rgba');
     });
   });
 
@@ -936,6 +992,30 @@ describe('MapManager', () => {
       const { manager, segment } = build({ section: animationSection() });
       manager.addAnimationOverlay(makeAnimInput({ scale: '640:360' }), 2);
       expect(segment.filtersMapList).toContain('[2:v]scale=640:360,setsar=1[anim_src]');
+    });
+
+    const overlayFilterValue = (filterManager: { addFilter: ReturnType<typeof vi.fn> }): string => {
+      const calls = filterManager.addFilter.mock.calls.map((c) => c[0] as Filter);
+      const call = calls.find((f) => f.type === 'overlay');
+
+      return call ? (call.value as string) : '';
+    };
+
+    it('motion=slide-left emits a named-form overlay with an x time-expression', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ position: '40:200', motion: 'slide-left' }), 2);
+      expect(overlayFilterValue(filterManager)).toBe(
+        "x='(40)+(1-(if(lt(t,0.3),0,if(lt(t,0.9),(t-0.3)/0.6,1))))*60':y='200':eof_action=pass"
+      );
+    });
+
+    it('motion=fade adds an alpha fade-in to the overlay leg, keeping the static position', () => {
+      const { manager, segment, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ position: '40:200', motion: 'fade' }), 2);
+      const legChain = segment.filtersMapList.find((c) => c.includes('[anim_src]')) ?? '';
+      expect(legChain).toContain('format=rgba');
+      expect(legChain).toContain('fade=t=in:st=0.3:d=0.6:alpha=1');
+      expect(overlayFilterValue(filterManager)).toBe('40:200:eof_action=pass');
     });
 
     it('uses the raw animation stream when no scale is set (no pre-scale chain)', () => {

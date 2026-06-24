@@ -54,6 +54,8 @@ function build(
     assetsDir: '/assets',
     fontsDir: '/fonts',
     tempFonts: [] as string[],
+    lutsDir: '/luts',
+    tempLuts: [] as string[],
     inputsMapCount: 0,
     mapsList: [] as string[],
   };
@@ -70,12 +72,13 @@ beforeEach(() => {
 });
 
 describe('AssetManager.setUpPaths', () => {
-  it('resolves the assets and fonts directories', async () => {
+  it('resolves the assets, fonts and luts directories', async () => {
     const { manager, segment, fs } = build();
     await manager.setUpPaths();
     expect(segment.assetsDir).toBe('/build/assets');
     expect(segment.fontsDir).toBe('/build/fonts');
-    expect(fs.getBuildPath).toHaveBeenCalledTimes(2);
+    expect(segment.lutsDir).toBe('/build/luts');
+    expect(fs.getBuildPath).toHaveBeenCalledTimes(3);
   });
 });
 

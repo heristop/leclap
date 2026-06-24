@@ -33,6 +33,11 @@ export const FilterValuesSchema = z
       .optional()
       .describe('Font size in pixels or as an FFmpeg expression passed to the drawtext filter.'),
     fontfile: z.string().optional().describe('Path or URL to the font file used by the drawtext filter.'),
+    shadowcolor: z.string().optional().describe('drawtext drop-shadow colour token, e.g. "#000000@0.6".'),
+    shadowx: z.union([z.number(), z.string()]).optional().describe('drawtext drop-shadow horizontal offset in pixels.'),
+    shadowy: z.union([z.number(), z.string()]).optional().describe('drawtext drop-shadow vertical offset in pixels.'),
+    bordercolor: z.string().optional().describe('drawtext outline colour token, e.g. "#000000".'),
+    borderw: z.union([z.number(), z.string()]).optional().describe('drawtext outline width in pixels.'),
     alpha: z.string().optional().describe('Alpha (opacity) expression passed to the filter.'),
     d: z.string().optional().describe('Duration parameter passed to the FFmpeg filter in seconds.'),
     st: z.string().optional().describe('Start time parameter passed to the FFmpeg filter in seconds.'),

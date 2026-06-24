@@ -1,7 +1,41 @@
 import { describe, it, expect } from 'vitest';
-import { revealToExpr } from '@/editor/presets/text';
+import { revealToExpr, applyTextEffect } from '@/editor/presets/text';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from '@/editor/presets/text-blocks';
 import type { Filter } from '@/core/types';
+
+// applyTextEffect lowers a shadow/outline intent to the exact drawtext keys. These assert the precise
+// keys + defaults so a regression in the typography mapping is caught.
+describe('applyTextEffect', () => {
+  it('is a no-op when no effect is given', () => {
+    const values: Record<string, unknown> = { text: 'hi' };
+    applyTextEffect(values, undefined);
+    expect(values).toEqual({ text: 'hi' });
+  });
+
+  it('shadow=true emits the default soft-black drop shadow', () => {
+    const values: Record<string, unknown> = {};
+    applyTextEffect(values, { shadow: true });
+    expect(values).toEqual({ shadowcolor: '#000000@0.6', shadowx: 2, shadowy: 2 });
+  });
+
+  it('outline=true emits a 2px black border', () => {
+    const values: Record<string, unknown> = {};
+    applyTextEffect(values, { outline: true });
+    expect(values).toEqual({ bordercolor: '#000000', borderw: 2 });
+  });
+
+  it('object form overrides only the given fields, keeping defaults', () => {
+    const values: Record<string, unknown> = {};
+    applyTextEffect(values, { shadow: { dx: 5 }, outline: { color: '#FF0000', width: 4 } });
+    expect(values).toMatchObject({
+      shadowcolor: '#000000@0.6',
+      shadowx: 5,
+      shadowy: 2,
+      bordercolor: '#FF0000',
+      borderw: 4,
+    });
+  });
+});
 
 // The reveal helper generates the exact drawtext alpha/x/y expressions authors used to hand-write.
 // These assert the precise strings so a regression in the timing math is caught.
@@ -86,7 +120,13 @@ describe('titleCardToFilters', () => {
 
   it('full card staggers the lines and draws an accent bar; fades can be disabled', () => {
     const filters = titleCardToFilters(
-      { kicker: { en: 'ON THE RECORD' }, headline: { en: 'Ada' }, subtitle: { en: 'Engineer' }, accent: '#7C83FD', fade: { out: false } },
+      {
+        kicker: { en: 'ON THE RECORD' },
+        headline: { en: 'Ada' },
+        subtitle: { en: 'Engineer' },
+        accent: '#7C83FD',
+        fade: { out: false },
+      },
       ctx
     );
 
@@ -103,10 +143,37 @@ describe('titleCardToFilters', () => {
   });
 
   it('center align centers text and the accent bar', () => {
-    const filters = titleCardToFilters({ headline: { en: 'Hi' }, accent: '#fff', align: 'center', reveal: 'none' }, ctx);
+    const filters = titleCardToFilters(
+      { headline: { en: 'Hi' }, accent: '#fff', align: 'center', reveal: 'none' },
+      ctx
+    );
 
     expect((filters[0].values as Record<string, unknown>).x).toBe('(w-text_w)/2');
     expect((filters[1].values as Record<string, unknown>).x).toBe('(w-166)/2');
+  });
+
+  it('effect lowers shadow + outline onto every drawtext line', () => {
+    const filters = titleCardToFilters(
+      {
+        kicker: { en: 'Ep 1' },
+        headline: { en: 'Hi' },
+        reveal: 'none',
+        effect: { shadow: true, outline: { width: 3 } },
+      },
+      ctx
+    );
+    const lines = filters.filter((f) => f.type === 'drawtext');
+
+    expect(lines.length).toBe(2);
+    for (const line of lines) {
+      expect(line.values as Record<string, unknown>).toMatchObject({
+        shadowcolor: '#000000@0.6',
+        shadowx: 2,
+        shadowy: 2,
+        bordercolor: '#000000',
+        borderw: 3,
+      });
+    }
   });
 });
 
@@ -149,7 +216,14 @@ describe('globalTextOverlayToFilters', () => {
     expect(globalTextOverlayToFilters({ text: { en: 'BRAND' } }, ctx)).toEqual([
       {
         type: 'drawtext',
-        values: { text: { en: 'BRAND' }, x: 'w-text_w-64', y: '36', fontfile: 'Oswald.ttf', fontsize: 22, fontcolor: '#ffffff' },
+        values: {
+          text: { en: 'BRAND' },
+          x: 'w-text_w-64',
+          y: '36',
+          fontfile: 'Oswald.ttf',
+          fontsize: 22,
+          fontcolor: '#ffffff',
+        },
       },
     ]);
   });

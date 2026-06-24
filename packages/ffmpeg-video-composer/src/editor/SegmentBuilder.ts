@@ -14,7 +14,15 @@ import { assertSafeArgToken } from '@/core/argGuard';
 import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
 import { buildSingleFileAnimationSource, buildSingleFileImageSource, buildGradientSource } from './inputSources';
 import { buildAudioFadeArg } from './audioFade';
-import { resolveVideoCodec, isHardwareCodec, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
+import { getPerfTimer } from '../utils/perf-timer';
+import {
+  resolveVideoCodec,
+  isHardwareCodec,
+  buildPixFmtArg,
+  buildVideoEncoderArgs,
+  buildColorMetadataArgs,
+  buildColorMetadataFilter,
+} from '@/core/encoding';
 import type { BackgroundLayer } from '../schemas/template.schemas';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
@@ -79,6 +87,11 @@ class SegmentBuilder {
     return buildVideoEncoderArgs(this.project.config);
   }
 
+  /** Rec.709/limited-range colour tags for re-encoded segments — see `buildColorMetadataArgs`. */
+  protected colorMetadataArgs(): string {
+    return buildColorMetadataArgs();
+  }
+
   // Unwrapped references kept as protected fields so subclasses can access them.
   protected readonly assetManager: AssetManager;
   protected readonly variableManager: VariableManager;
@@ -117,6 +130,7 @@ class SegmentBuilder {
     this.segment.filtersMapList = [];
     this.segment.mapsList = [];
     this.segment.tempFonts = [];
+    this.segment.tempLuts = [];
     this.segment.inputsAsset = [];
     this.segment.inputsMapCount = 0;
 
@@ -162,21 +176,28 @@ class SegmentBuilder {
   };
 
   private readonly buildSegment = async (): Promise<boolean> => {
+    const timer = getPerfTimer();
+
     try {
-      await this.assetManager.fetchAssets();
+      await timer.span('segment:assets', () => this.assetManager.fetchAssets());
       this.logger.info(`[${this.section.name}][Assets] fetched`);
 
-      await this.buildMaps();
+      await timer.span('segment:maps', () => this.buildMaps());
       this.logger.info(`[${this.section.name}][Maps] built`);
 
-      await this.buildFilters();
+      await timer.span('segment:filters', () => this.buildFilters());
       this.logger.info(`[${this.section.name}][Filters] built`);
 
-      this.buildInputs();
+      await timer.span('segment:inputs', async () => {
+        this.buildInputs();
+      });
       this.logger.info(`[${this.section.name}][Inputs] built`);
 
-      await this.assetManager.fetchFonts();
+      await timer.span('segment:fonts', () => this.assetManager.fetchFonts());
       this.logger.info(`[${this.section.name}][Fonts] fetched`);
+
+      await timer.span('segment:luts', () => this.assetManager.fetchLuts());
+      this.logger.info(`[${this.section.name}][LUTs] fetched`);
 
       return true;
     } catch (error) {
@@ -370,6 +391,14 @@ class SegmentBuilder {
       this.segment.inputsMapCount++;
     }
 
+    // Chroma-key composite: keys the section's screen colour out and paints a solid background behind
+    // the clip. It builds its own split/overlay graph (no extra input), so the final mapped pad is
+    // ck_out and the section's authored chain folds in via the overlay path below.
+    if (this.section.chromaKey) {
+      const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
+      this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale);
+    }
+
     // When the section composites an overlay graph (animation/gradient maps), the linear filtersList
     // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
     // instead, drawing on top of the overlay rather than being dropped.
@@ -468,10 +497,31 @@ class SegmentBuilder {
     return 0;
   }
 
+  // Force Rec.709/limited-range on the segment's final video frames so a malformed source
+  // (bt470bg/full-range, the frozen-in-Chrome decode bug) is corrected here; downstream concat-copy,
+  // xfade and overlay passes inherit the clean tag. setparams is pixel-neutral metadata, so it is the
+  // last node of the chain — appended to the linear `-vf` list, or as a node off the complex graph's
+  // final video pad. (The output `-color*` flags are a matrix/range floor for the no-filter case.)
+  private readonly appendColorMetadataFilter = (): void => {
+    const tag = buildColorMetadataFilter();
+
+    if (this.segment.filtersMapList.length > 0 && this.segment.mapsList.length > 0) {
+      const finalPad = this.segment.mapsList.at(-1);
+      this.segment.filtersMapList.push(`[${finalPad}]${tag}[ctag]`);
+      this.segment.mapsList.push('ctag');
+
+      return;
+    }
+
+    this.segment.filtersList.push(tag);
+  };
+
   private readonly formatFilters = (): void => {
     if (this.segment.filtersList.length === 0) {
       return;
     }
+
+    this.appendColorMetadataFilter();
 
     if (this.segment.filtersMapList.length > 0) {
       // Multi-pad graph (overlays/animations) → complex filtergraph; its video output is mapped via the

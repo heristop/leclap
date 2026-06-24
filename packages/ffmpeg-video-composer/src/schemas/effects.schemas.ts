@@ -84,7 +84,21 @@ export const AFADE_CURVES = [
   'nofade',
 ] as const;
 
-export const LOOK_PRESETS = ['cinematic', 'warm', 'cool', 'vintage', 'noir', 'vivid', 'dreamy'] as const;
+export const LOOK_PRESETS = [
+  'cinematic',
+  'warm',
+  'cool',
+  'vintage',
+  'noir',
+  'vivid',
+  'dreamy',
+  // LUT-backed cinema looks (lut3d + a generated .cube) — a stronger grade than the eq/curves presets.
+  'teal-orange',
+  'warm-film',
+  'mono-film',
+  'noir-film',
+  'vivid-pop',
+] as const;
 
 // ── reveal (animated text entrance) ──────────────────────────────────────────────
 
@@ -105,6 +119,10 @@ export const RevealObjectSchema = z
 export const RevealSchema = z
   .union([z.enum(REVEAL_TYPES), RevealObjectSchema])
   .describe('Animated text entrance: a bare type ("rise") or an object with timing overrides.');
+
+// Text-legibility (shadow/outline) and chroma-key sugar live in their own file to keep this one under
+// the max-lines budget; re-exported here so importers keep a single `effects.schemas` entry point.
+export { TextEffectSchema, ChromaKeySchema } from './text-media.schemas';
 
 // ── transition ─────────────────────────────────────────────────────────────────
 

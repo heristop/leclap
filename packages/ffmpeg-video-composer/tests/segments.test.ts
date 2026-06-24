@@ -31,6 +31,7 @@ function buildSegment(SegmentCtor: SegmentClass, overrides: BuildOverrides = {})
       videoConfig: { scale: '1280:720', setsar: '1/1' },
       ...overrides.projectConfig,
     },
+    buildInfos: { sourceHasAudio: {} },
   };
   const template: any = {
     descriptor: { global: overrides.templateDescriptor ?? {} },

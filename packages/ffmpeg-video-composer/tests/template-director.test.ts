@@ -42,6 +42,7 @@ function makeProject() {
       currentProgress: 0,
       currentIncrement: 0,
       durations: {} as Record<string, number>,
+      sourceHasAudio: {} as Record<string, boolean>,
       videoInputs: [] as string[],
       musicInputs: [] as string[],
       musicFilters: [] as string[],

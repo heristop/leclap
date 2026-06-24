@@ -12,6 +12,7 @@ function buildProjectVideoSegment(options: SectionOptions) {
       hardwareConfig: { preset: 'medium' },
       videoConfig: { scale: '1280:720' },
     },
+    buildInfos: { sourceHasAudio: {} },
   };
   const template: any = { descriptor: { global: {} }, assets: { fonts: {} } };
   const segment: any = {};
@@ -63,5 +64,32 @@ describe('ProjectVideoSegment command assembly', () => {
 
     expect(command).toContain('-i /tmp/video_1.mp4');
     expect(command).toContain('/tmp/out.mp4');
+  });
+
+  it('appends a silent track when the source clip has no audio (so transition acrossfade has a [k:a])', () => {
+    // The director probes the source and records no audio; the segment appends an anullsrc leg as the
+    // LAST input and maps it as the audio — the source video stays at input 0 so animation/overlay maps
+    // that reference `[0:v]` are unaffected. With no asset inputs the silent leg is input 1.
+    const seg = buildProjectVideoSegment({ duration: 5 });
+    seg.project.buildInfos = { sourceHasAudio: { main: false } };
+
+    seg.configure();
+    const command: string = seg.getCommand();
+
+    expect(command).toContain('anullsrc');
+    expect(command).toContain('-map 1:a');
+    expect(command).not.toMatch(/-map 0:a\??/); // the source's own audio is not mapped
+    expect(seg.videoInputIndex()).toBe(0); // video stays at input 0
+  });
+
+  it('does NOT add a silent track when the source has audio (maps the source audio optionally)', () => {
+    const seg = buildProjectVideoSegment({ duration: 5 });
+    seg.project.buildInfos = { sourceHasAudio: { main: true } };
+
+    seg.configure();
+    const command: string = seg.getCommand();
+
+    expect(command).not.toContain('anullsrc');
+    expect(command).toContain('-map 0:a?');
   });
 });

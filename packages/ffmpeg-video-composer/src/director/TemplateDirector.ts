@@ -248,6 +248,10 @@ class TemplateDirector {
       throw new Error('No section info found');
     }
 
+    // Record whether the source clip carries audio so ProjectVideoSegment can add a silent track for a
+    // video-only upload — otherwise the transition acrossfade later references a missing `[k:a]`.
+    this.project.buildInfos.sourceHasAudio[segment.name] = sectionInfos.audioCodec !== null;
+
     return sectionInfos.duration;
   };
 

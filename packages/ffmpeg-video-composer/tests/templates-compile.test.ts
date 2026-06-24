@@ -73,3 +73,38 @@ describe('all templates compile (Node smoke)', () => {
     }, 180000);
   }
 });
+
+// Regression guard for the video-only (no-audio) upload abort: a project_video clip with no audio
+// track used to make the transition assembly's `acrossfade` reference a missing `[k:a]` and abort
+// ("Stream specifier ':a' matches no streams"). The director now records the source's missing audio
+// and the project_video segment appends a silent track. Covers a portrait + a landscape template that
+// both transition (acrossfade) and one that composites an animation overlay (the regression site).
+describe('templates compile with a video-only (no-audio) clip', () => {
+  const noAudioClip = path.resolve(videosDir, 'earth-no-audio.mp4');
+
+  for (const id of ['big-reveal', 'photo-backdrop']) {
+    it(`compiles ${id} when the recorded clip has no audio`, async () => {
+      const raw = JSON.parse(fs.readFileSync(path.resolve(templatesDir, `${id}.json`), 'utf8')) as TemplateDescriptor;
+      const sections = (raw.sections ?? []).filter((s) => s.type !== 'partial');
+      const portrait = raw.global?.orientation === 'portrait';
+
+      const userVideoPaths: Record<string, string> = {};
+      for (const s of sections) {
+        if (s.type === 'project_video') userVideoPaths[s.name] = noAudioClip;
+      }
+
+      const projectConfig = {
+        buildDir,
+        assetsDir: libDir,
+        currentLocale: 'en',
+        audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
+        videoConfig: { orientation: portrait ? 'portrait' : 'landscape', scale: portrait ? '720:1280' : '1280:720' },
+        fields: FIELDS,
+        userVideoPaths,
+      } as unknown as ProjectConfig;
+
+      const out = await compile(projectConfig, { ...raw, sections });
+      expect(out, `${id} should compile with a no-audio clip`).not.toBeNull();
+    }, 180000);
+  }
+});

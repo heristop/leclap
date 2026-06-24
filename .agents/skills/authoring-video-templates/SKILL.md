@@ -19,7 +19,7 @@ Sources of truth (in order of authority):
 
 ## Two layers: structured sugar vs. raw filters
 
-- **Structured sugar** (prefer this): `transition`, `look`, `grade`, `motion`, `audio`, `layers`, animation `inputs`. Editor-friendly camelCase intents that compile to ordinary, on-device-safe FFmpeg filters.
+- **Structured sugar** (prefer this): `transition`, `look`, `grade`, `motion`, `audio`, `layers`, animation `inputs`, and text sugar (`caption`, `titleCard`, `lowerThird`, `reveal`, `global.overlays`/`look`/`grade`). Editor-friendly camelCase intents that compile to ordinary, on-device-safe FFmpeg filters.
 - **Raw filters** (escape hatch): `filters[]`, `inputs[].filters`, `maps[]` — passed to FFmpeg verbatim. Their `values` keys stay FFmpeg-native (`x/y/w/h/c/t/fontcolor/fontsize/fontfile/alpha/d/st/color/box/boxcolor/boxborderw`), **not** camelCase, by design.
 
 ## Structure
@@ -69,6 +69,8 @@ Segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `Segment
 - **Layers** — `color_background` `options.layers[]`: solid/opacity/gradient boxes composited over the base colour.
 - **Framing guide** — `project_video` `options.framingGuide` (`silhouette`): a **recording-UI overlay only**, never rendered into the video.
 - **Animation inputs** — one input per animation: an `image2` PNG-sequence ZIP **or** a single `.apng`/`.webp`/`.gif`/`.webm`. `options.loop` → `stream_loop`, `options.persistent` → `eof_action=repeat`.
+- **Text sugar** — prefer these over hand-positioned `drawtext`: `caption` (styled overlay), section `titleCard` on `color_background` (kicker/headline/subtitle/accent/fade — collapses ~80-line intros), section `lowerThird` on any visual section (title/subtitle/badge band, composites above animations), and `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`, bare string or `{type,delay,duration,distance}`) on any of them. Sized from the output scale, so they render in any orientation.
+- **Global decorations** — authored once in `global`, applied to every section (sibling of `global.animations`): `global.overlays[]` (whole-video text/brand watermark, with `position` anchor + optional `sections` subset), `global.look` / `global.grade` (whole-video colour). Removes per-section `{{ brand }}` repetition.
 
 ## Variables, filters, maps
 
@@ -79,7 +81,7 @@ Segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `Segment
 
 ## Validating
 
-Validate with `TemplateValidator` (zod + cross-field rules). zod reports the exact path/field on failure. Cross-field rules reject: a non-`cut` transition on the last rendering section (`dangling_transition`); an effective transition duration ≥ the smaller adjacent declared `duration` (`transition_too_long`); `kenburns` outside `image_background` (`motion_unsupported_section`). After editing any `.json`, run `pnpm fmt`.
+Validate with `TemplateValidator` (zod + cross-field rules). zod reports the exact path/field on failure. Cross-field rules reject: a non-`cut` transition on the last rendering section (`dangling_transition`); an effective transition duration ≥ the smaller adjacent declared `duration` (`transition_too_long`); `kenburns` outside `image_background`/video (`motion_unsupported_section`); a whole-video animation with no url (`global_animation_missing_url`); and a `caption`/`global.overlays` `font` that is neither a bundled id nor a `.ttf` (`unknown_font` — catches typos that would otherwise silently fall back to the default). After editing any `.json`, run `pnpm fmt`.
 
 ## Common mistakes
 

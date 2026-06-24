@@ -15,7 +15,7 @@ This is the template descriptor reference. Upgrading an older template? See [Mig
 
 A descriptor has two layers, and you can mix them freely:
 
-- **Structured sugar** — the editor-friendly, LLM-clear layer. `transition`, `look`, `grade`, `motion`, `audio`, `layers`, and animation `inputs` are high-level intents. They compile down to ordinary FFmpeg filters for you (`xfade`/`acrossfade`, `eq`/`colorbalance`/`curves`, `zoompan`/`rotate`/`crop`/`hflip`/`vflip`, `loudnorm`/`sidechaincompress`/`afade`, `drawbox`/gradients). Prefer this layer — it is portable, validated, and on-device-safe.
+- **Structured sugar** — the editor-friendly, LLM-clear layer. `transition`, `look`, `grade`, `motion`, `audio`, `layers`, animation `inputs`, and the text sugar (`caption`, `titleCard`, `lowerThird`, `reveal`, and whole-video `global.overlays`/`look`/`grade`) are high-level intents. They compile down to ordinary FFmpeg filters for you (`xfade`/`acrossfade`, `eq`/`colorbalance`/`curves`, `zoompan`/`rotate`/`crop`/`hflip`/`vflip`, `loudnorm`/`sidechaincompress`/`afade`, `drawbox`/`drawtext`/`fade`/gradients). Prefer this layer — it is portable, validated, and on-device-safe. A title card or lower-third replaces ~80 lines of hand-positioned `drawtext` + `alpha` expressions with a few fields.
 - **Raw filters (escape hatch)** — `filters[]`, `inputs[].filters`, and `maps[]` pass FFmpeg filter names and arguments through **verbatim**. This is the power-user layer for anything the sugar doesn't cover.
 
 Because `filters[]` is a raw pass-through, its `values` keys stay **FFmpeg-native by design** — `x`, `y`, `w`, `h`, `c`, `t`, `fontcolor`, `fontsize`, `fontfile`, `alpha`, `d`, `st`, `color`, `box`, `boxcolor`, `boxborderw`. They are _not_ camelCased. The structured-sugar fields, in contrast, use editor-friendly camelCase names (`sourceVolume`, `musicVolume`, `colorBalance`, `curvesPreset`). Keep the two mental models separate: sugar = friendly keys, raw filters = FFmpeg keys.
@@ -53,20 +53,23 @@ Optional human-facing metadata embedded in the descriptor, used by template brow
 
 Project-wide defaults and the options a builder/editor exposes to end users. `global` is `strict` — unknown keys are rejected.
 
-| Field                   | Type                                    | Description                                                                                                                  |
-| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `variables`             | `Record<string, string \| string[]>`    | Named values referenced anywhere via `{{ varName }}`.                                                                        |
-| `orientation`           | `'landscape' \| 'portrait' \| 'square'` | Output orientation → resolution preset: landscape `1280x720`, portrait `720x1280`, square `1080x1080` (default `landscape`). |
-| `colorsList`            | `string[]`                              | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                                    |
-| `musicEnabled`          | `boolean`                               | Whether background music is enabled (default `true`).                                                                        |
-| `music`                 | `{ name: string, url?: string }`        | Default background track. Omit `url` to use an app-managed track.                                                            |
-| `animations`            | `GlobalAnimation[]`                     | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)).               |
-| `transition`            | `Transition`                            | Default boundary transition between sections (see [Transitions](#transitions)).                                              |
-| `audio`                 | `GlobalAudio`                           | Global audio mix (see [Audio](#audio)).                                                                                      |
-| `allowedMusic`          | `string[]`                              | Allowlist of music identifiers the user may choose.                                                                          |
-| `allowUploadMusic`      | `boolean`                               | Allow the user to upload a custom music file (default `false`).                                                              |
-| `allowedBackgrounds`    | `string[]`                              | Allowlist of background identifiers the user may choose.                                                                     |
-| `allowUploadBackground` | `boolean`                               | Allow the user to upload a custom background (default `false`).                                                              |
+| Field                   | Type                                    | Description                                                                                                                          |
+| ----------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `variables`             | `Record<string, string \| string[]>`    | Named values referenced anywhere via `{{ varName }}`.                                                                                |
+| `orientation`           | `'landscape' \| 'portrait' \| 'square'` | Output orientation → resolution preset: landscape `1280x720`, portrait `720x1280`, square `1080x1080` (default `landscape`).         |
+| `colorsList`            | `string[]`                              | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                                            |
+| `musicEnabled`          | `boolean`                               | Whether background music is enabled (default `true`).                                                                                |
+| `music`                 | `{ name: string, url?: string }`        | Default background track. Omit `url` to use an app-managed track.                                                                    |
+| `animations`            | `GlobalAnimation[]`                     | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)).                       |
+| `overlays`              | `GlobalTextOverlay[]`                   | Whole-video TEXT overlays — a brand watermark authored once, drawn on every section (see [Global decorations](#global-decorations)). |
+| `look`                  | look preset                             | Colour-grade preset applied across every section (whole-video look).                                                                 |
+| `grade`                 | `Grade`                                 | Fine-grained colour grade applied across every section.                                                                              |
+| `transition`            | `Transition`                            | Default boundary transition between sections (see [Transitions](#transitions)).                                                      |
+| `audio`                 | `GlobalAudio`                           | Global audio mix (see [Audio](#audio)).                                                                                              |
+| `allowedMusic`          | `string[]`                              | Allowlist of music identifiers the user may choose.                                                                                  |
+| `allowUploadMusic`      | `boolean`                               | Allow the user to upload a custom music file (default `false`).                                                                      |
+| `allowedBackgrounds`    | `string[]`                              | Allowlist of background identifiers the user may choose.                                                                             |
+| `allowUploadBackground` | `boolean`                               | Allow the user to upload a custom background (default `false`).                                                                      |
 
 ## Sections
 
@@ -119,6 +122,9 @@ Expansion happens **before** schema validation and compile, so everything downst
 | `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                                  |
 | `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                                                      |
 | `caption`     | `Caption`        | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)).               |
+| `lowerThird`  | `LowerThird`     | Structured title/subtitle band over the clip (see [Lower thirds](#lower-thirds)). On visual sections.            |
+
+`color_background` sections also accept a section-level `titleCard` (see [Title cards](#title-cards)).
 
 ### Options
 
@@ -279,6 +285,91 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 | `align`                           | enum          | Horizontal alignment (default `center`).                                    |
 | `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex). |
 | `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).        |
+| `reveal`                          | `Reveal`      | Animated entrance (see [Reveal](#reveal)).                                  |
+
+## Reveal
+
+Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes an optional `reveal` — an animated entrance that the engine lowers into the `drawtext` `alpha`/`x`/`y` `t`-expressions you used to hand-write. Author it as a bare string or an object with timing:
+
+```jsonc
+"reveal": "rise"
+"reveal": { "type": "slide-left", "delay": 0.3, "duration": 0.6, "distance": 60 }
+```
+
+| Type          | Effect                                               |
+| ------------- | ---------------------------------------------------- |
+| `none`        | No entrance (static).                                |
+| `fade`        | Fades in over `duration`.                            |
+| `rise`        | Rises up into place from `distance` px below + fade. |
+| `slide-left`  | Enters from the right (+fade).                       |
+| `slide-right` | Enters from the left (+fade).                        |
+
+`delay` (s, default 0.3), `duration` (s, default 0.6), `distance` (px, default 60, rise/slide only). In `titleCard`/`lowerThird` the lines are staggered top-to-bottom automatically.
+
+## Title cards
+
+A `color_background` section takes a section-level `titleCard` that collapses the kicker / headline / accent bar / subtitle / fade boilerplate into one block. Positions and sizes are derived from the output scale, so one card renders correctly in any orientation.
+
+```jsonc
+{
+  "name": "intro",
+  "type": "color_background",
+  "options": { "backgroundColor": "#0d1b2a", "duration": 2.6 },
+  "titleCard": {
+    "kicker": { "en": "ON THE RECORD" },
+    "headline": { "en": "{{ form_1_name }}" },
+    "subtitle": { "en": "{{ form_1_title }}" },
+    "accent": "#7C83FD",
+    "reveal": "rise",
+  },
+}
+```
+
+| Field                          | Type             | Description                                                                            |
+| ------------------------------ | ---------------- | -------------------------------------------------------------------------------------- |
+| `kicker`/`headline`/`subtitle` | `Translation`    | The three lines (all optional; emit only what has text).                               |
+| `accent`                       | hex              | Draws an underline bar and tints the kicker.                                           |
+| `align`                        | `left`\|`center` | Horizontal alignment (default `left`).                                                 |
+| `background`                   | hex              | Fade colour (defaults to the section background).                                      |
+| `reveal`                       | `Reveal`         | Staggered entrance for the lines (default `rise`).                                     |
+| `fade`                         | `{ in?, out? }`  | Auto fade-in / fade-out over the card (both default on; set `out: false` on an outro). |
+
+## Lower thirds
+
+Any visual section takes a `lowerThird` — a title/subtitle band over the clip with an optional right-aligned badge. It composites **on top** of any animation overlay (no `maps`/`@name` ceremony needed). `accent` and `boxOpacity` are separate fields so you never write `{{ var }}@alpha` by hand.
+
+```jsonc
+"lowerThird": {
+  "title": { "en": "{{ form_1_name }}" },
+  "subtitle": { "en": "{{ form_1_tagline }}" },
+  "badge": { "en": "{{ form_1_price }}" },
+  "accent": "#7C83FF", "reveal": "rise"
+}
+```
+
+| Field              | Type            | Description                                           |
+| ------------------ | --------------- | ----------------------------------------------------- |
+| `title`/`subtitle` | `Translation`   | The two lines (optional).                             |
+| `badge`            | `Translation`   | Optional right-aligned pill (a price, a step number). |
+| `accent`           | hex             | Accent bar + badge background.                        |
+| `boxOpacity`       | 0..1            | Legibility band opacity (default 0.6; `0` = no band). |
+| `position`         | `bottom`\|`top` | Vertical anchor (default `bottom`).                   |
+| `reveal`           | `Reveal`        | Staggered entrance (default `rise`).                  |
+
+## Global decorations
+
+Whole-video text/colour, the sibling of `global.animations`: authored once in `global`, applied to every section (or a named subset). A brand watermark authored once instead of re-drawn per section.
+
+```jsonc
+"global": {
+  "overlays": [
+    { "text": { "en": "{{ brand }}" }, "position": "top-right", "color": "#ffffff", "reveal": "fade" }
+  ],
+  "look": "cinematic"
+}
+```
+
+`global.overlays[]` — each: `text` (Translation), `position` (`top-left`/`top-right`/`bottom-left`/`bottom-right`/`top`/`bottom`/`center`, default `top-right`), `font`/`size`/`color`/`opacity`, `reveal`, and `sections?` (array of section names to limit it to). `global.look` / `global.grade` apply a whole-video colour grade. (`global.grade` is bypassed on a section that already has an animation-overlay graph — apply per-section `grade` there instead.)
 
 ## Overlay inputs (animations & images)
 
@@ -521,7 +612,7 @@ A complete, valid descriptor exercising the structured-sugar layer: a layered ti
 
 ## Validating
 
-Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
+Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. Cross-field rules also flag: a whole-video animation with no url (`global_animation_missing_url`) and a `caption`/`global.overlays` `font` that is neither a bundled id nor a `.ttf` filename (`unknown_font` — a typo would otherwise silently fall back to the default font). After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
 
 ## Migrating older templates
 

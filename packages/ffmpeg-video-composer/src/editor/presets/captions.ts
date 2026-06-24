@@ -1,6 +1,6 @@
 import type { Filter } from '@/core/types';
 import type { Caption } from '../../schemas/section.schemas';
-import { findFont } from '@leclap/creative-kit/fonts';
+import { applyReveal, hasText, resolveFontFile } from './text';
 
 // ---------------------------------------------------------------------------
 // captionToFilters
@@ -66,26 +66,6 @@ const DEFAULT_BOX_COLOR = '#000000';
 const DEFAULT_BOX_OPACITY = 0.8;
 const DEFAULT_BOX_BORDER = 18;
 
-// True when the caption has at least one non-blank translation value.
-function hasText(text: Caption['text']): boolean {
-  return Object.values(text).some((value) => typeof value === 'string' && value.trim() !== '');
-}
-
-// Resolve the caption `font` override to a drawtext fontfile. A known font id maps
-// through the bundled registry; a raw .ttf passes through unchanged (mirrors the
-// editor's findFont contract); anything else falls back to the preset's fontfile.
-function resolveFontFile(font: string | undefined, presetFile: string): string {
-  if (!font) return presetFile;
-
-  const entry = findFont(font);
-
-  if (entry) return entry.file;
-
-  if (font.endsWith('.ttf')) return font;
-
-  return presetFile;
-}
-
 // Resolve the box drawtext values, layering caption overrides over the preset. Returns the empty
 // object when the box is off (preset default unless the caption explicitly toggles it). An explicit
 // boxColor/boxOpacity override (or a preset with no box) builds a fresh `#rrggbb@opacity` token;
@@ -134,6 +114,9 @@ export function captionToFilters(caption?: Caption): Filter[] {
     fontcolor: caption.color ?? preset.fontcolor,
     ...resolveBox(caption, preset),
   };
+
+  // An optional reveal overrides x/y with kinetic expressions and adds the alpha fade-in.
+  applyReveal(values, caption.reveal, { x, y });
 
   return [
     {

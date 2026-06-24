@@ -3,8 +3,7 @@ import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type Project from '../../core/models/Project';
 import type { Filter } from '@/core/types';
-import { usesLgplEngine } from '../../core/encoding';
-import { eqValueToLutyuv } from '../presets/looks';
+import { applyFilterCompat, engineCapabilities } from '../filter-compat';
 import type FormatterManager from './FormatterManager';
 
 @injectable()
@@ -29,10 +28,9 @@ class FilterManager {
       resolvedFilter = this.remapFadeTypeShortcuts(resolvedFilter);
     }
 
-    // The on-device LGPL engine lacks the GPL `eq` filter — rewrite it to an equivalent lutyuv LUT.
-    if (resolvedFilter.type === 'eq' && resolvedFilter.value && usesLgplEngine(this.project.config)) {
-      resolvedFilter = { ...resolvedFilter, type: 'lutyuv', value: eqValueToLutyuv(String(resolvedFilter.value)) };
-    }
+    // Platform filter-compat: rewrite filters the active engine can't run (e.g. the on-device LGPL
+    // engine lacks GPL `eq` → lutyuv). A null result would mean "drop", which no current rule does.
+    resolvedFilter = applyFilterCompat(resolvedFilter, engineCapabilities(this.project.config)) ?? resolvedFilter;
 
     if (resolvedFilter.value) {
       // Process single value filter

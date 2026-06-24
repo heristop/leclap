@@ -228,6 +228,27 @@ describe('captionToFilters', () => {
     ]);
   });
 
+  // --- reveal --------------------------------------------------------------
+
+  it('reveal "fade": adds an alpha ramp, leaves x/y as placement', () => {
+    const [f] = captionToFilters({ text: { en: 'Hi' }, align: 'left', reveal: 'fade' });
+    const values = f.values as Record<string, unknown>;
+    expect(values.alpha).toBe(`'if(lt(t,0.3),0,if(lt(t,0.9),(t-0.3)/0.6,1))'`);
+    expect(values.x).toBe('80');
+  });
+
+  it('reveal "slide-left": overrides x with a kinetic expression off the placement', () => {
+    const [f] = captionToFilters({ text: { en: 'Hi' }, align: 'left', reveal: 'slide-left' });
+    const values = f.values as Record<string, unknown>;
+    expect(values.x).toBe(`'(80)+(1-(if(lt(t,0.3),0,if(lt(t,0.9),(t-0.3)/0.6,1))))*60'`);
+    expect(values.alpha).toBe(`'if(lt(t,0.3),0,if(lt(t,0.9),(t-0.3)/0.6,1))'`);
+  });
+
+  it('no reveal: no alpha emitted', () => {
+    const [f] = captionToFilters({ text: { en: 'Hi' } });
+    expect((f.values as Record<string, unknown>).alpha).toBeUndefined();
+  });
+
   // --- purity & i18n -------------------------------------------------------
 
   it('preserves all translations on values.text (no pre-resolution)', () => {

@@ -1,9 +1,38 @@
 import { z } from 'zod';
-import { TransitionSchema, GlobalAudioSchema } from './effects.schemas';
+import { TransitionSchema, GlobalAudioSchema, GradeSchema, LOOK_PRESETS, RevealSchema } from './effects.schemas';
 
 export const TranslationSchema = z
   .record(z.string(), z.string())
   .describe('Locale-keyed map of translated strings, e.g. { en: "Hello", fr: "Bonjour" }.');
+
+// A whole-video text overlay (e.g. a brand watermark) authored once in global and composited onto
+// every section — the text sibling of global.animations. Lowered by the global-decorations preset.
+export const GLOBAL_TEXT_POSITIONS = [
+  'top-left',
+  'top-right',
+  'bottom-left',
+  'bottom-right',
+  'top',
+  'bottom',
+  'center',
+] as const;
+
+export const GlobalTextOverlaySchema = z
+  .object({
+    text: TranslationSchema.describe('Localised text drawn over every section (e.g. a brand name).'),
+    position: z.enum(GLOBAL_TEXT_POSITIONS).optional().describe('Anchor for the text (default top-right).'),
+    font: z.string().optional().describe('Font id or .ttf filename (default Oswald).'),
+    size: z.number().positive().optional().describe('Font size in px; default derived from the output height.'),
+    color: z.string().optional().describe('Text colour as a CSS hex string (default white).'),
+    opacity: z.number().min(0).max(1).optional().describe('Static text alpha 0..1 when no reveal is set (default 1).'),
+    reveal: RevealSchema.optional().describe('Animated entrance for the text (default none).'),
+    sections: z
+      .array(z.string())
+      .optional()
+      .describe('Section names this overlay appears on; omit for every section.'),
+  })
+  .strict()
+  .describe('A whole-video text overlay composited onto every section (or a named subset).');
 
 export const MusicConfigSchema = z
   .object({
@@ -101,6 +130,12 @@ export const GlobalConfigSchema = z
       .array(GlobalAnimationSchema)
       .optional()
       .describe('Whole-video animation overlays composited over the final joined video, spanning all sections.'),
+    overlays: z
+      .array(GlobalTextOverlaySchema)
+      .optional()
+      .describe('Whole-video text overlays (e.g. a brand watermark) composited onto every section.'),
+    look: z.enum(LOOK_PRESETS).optional().describe('Colour-grade preset applied across every section (whole-video look).'),
+    grade: GradeSchema.optional().describe('Fine-grained colour grade applied across every section.'),
     allowedMusic: z
       .array(z.string())
       .optional()

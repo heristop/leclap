@@ -10,6 +10,17 @@ import {
 } from './effects.schemas';
 import { TranslationSchema, GlobalConfigSchema } from './global.schemas';
 import { FilterSchema, MapSchema } from './filter.schemas';
+import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas';
+
+export {
+  CAPTION_STYLES,
+  CAPTION_POSITIONS,
+  CAPTION_ALIGNS,
+  CaptionSchema,
+  TitleCardSchema,
+  LowerThirdSchema,
+  type Caption,
+} from './text.schemas';
 
 // ── input ──────────────────────────────────────────────────────────────────────
 
@@ -140,42 +151,6 @@ export const BaseSectionOptionsSchema = z
   .strict()
   .describe('Common options shared by all section types; variant-specific options are added via extend.');
 
-// ── caption ────────────────────────────────────────────────────────────────────
-
-export const CAPTION_STYLES = ['bar', 'subtle', 'bold'] as const;
-export const CAPTION_POSITIONS = ['top', 'center', 'bottom', 'lower-third'] as const;
-export const CAPTION_ALIGNS = ['left', 'center', 'right'] as const;
-
-// A styled lower-third / overlay caption. The `style` preset sets the base look; the optional
-// fields override it. Consumed by the caption preset (editor/presets/captions.ts), which turns this
-// into a single drawtext filter.
-export const CaptionSchema = z
-  .object({
-    text: TranslationSchema.describe('Localised caption text; the active locale is resolved downstream.'),
-    style: z.enum(CAPTION_STYLES).optional().describe('Visual preset for the caption (default "bar").'),
-    position: z
-      .enum(CAPTION_POSITIONS)
-      .optional()
-      .describe('Vertical placement of the caption (default "lower-third").'),
-    align: z.enum(CAPTION_ALIGNS).optional().describe('Horizontal alignment of the caption (default "center").'),
-    font: z
-      .string()
-      .optional()
-      .describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
-    fontsize: z.number().positive().optional().describe('Font size in px; overrides the preset size.'),
-    color: z.string().optional().describe('Text colour as a CSS hex string; overrides the preset colour.'),
-    box: z
-      .boolean()
-      .optional()
-      .describe('When true, draws a background box behind the text (preset default otherwise).'),
-    boxColor: z.string().optional().describe('Box colour as a CSS hex string when the box is on.'),
-    boxOpacity: z.number().min(0).max(1).optional().describe('Box opacity 0..1 when the box is on.'),
-  })
-  .strict()
-  .describe('A styled lower-third / overlay caption rendered as a drawtext filter.');
-
-export type Caption = z.infer<typeof CaptionSchema>;
-
 // ── base section ───────────────────────────────────────────────────────────────
 
 export const BaseSectionSchema = z
@@ -198,6 +173,7 @@ export const BaseSectionSchema = z
       'Transition applied after this section; overrides global.transition.'
     ),
     caption: CaptionSchema.optional().describe('Styled on-screen caption rendered as a drawtext filter.'),
+    lowerThird: LowerThirdSchema.optional().describe('Title/subtitle band composited over the section clip.'),
     look: z
       .enum(LOOK_PRESETS)
       .optional()
@@ -247,6 +223,7 @@ export const FormSectionSchema = BaseSectionSchema.extend({
 
 export const ColorBackgroundSectionSchema = BaseSectionSchema.extend({
   type: z.literal('color_background').describe('Section type: renders a solid or layered colour background.'),
+  titleCard: TitleCardSchema.optional().describe('Structured title card (kicker/headline/subtitle) for this section.'),
   options: BaseSectionOptionsSchema.extend({
     backgroundColor: z.string().optional().describe('Primary background colour as a CSS hex string (e.g. "#000000").'),
     layers: z

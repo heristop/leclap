@@ -43,6 +43,7 @@ function captionDescriptorFrom(caption: EditorCaption | undefined): Section['cap
     box: caption.box,
     boxColor: caption.boxColor,
     boxOpacity: caption.boxOpacity,
+    reveal: caption.reveal,
   }) as Section['caption'];
 }
 
@@ -217,6 +218,7 @@ function colorDescriptorFrom(section: ColorSection, index: number): Section {
       ...(section.layers && section.layers.length > 0 ? { layers: section.layers } : {}),
       ...sectionAudioOptions(section),
     },
+    ...(section.titleCard ? { titleCard: section.titleCard as Section['titleCard'] } : {}),
     ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
     ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -274,6 +276,7 @@ function videoDescriptorFrom(section: VideoSection, index: number): Section {
     // Recording instructions for the filmer, keyed under the app's default locale.
     // A blank/whitespace-only description emits nothing.
     ...(description ? { description: { [DEFAULT_LOCALE]: description } } : {}),
+    ...(section.lowerThird ? { lowerThird: section.lowerThird as Section['lowerThird'] } : {}),
     ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
     ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -358,6 +361,18 @@ function authorVariables(globalVariables: EditorState['globalVariables']): Recor
   return Object.fromEntries(globalVariables.filter((v) => v.name.trim() !== '').map((v) => [v.name, v.value]));
 }
 
+type GlobalOverlay = NonNullable<NonNullable<TemplateDescriptor['global']>['overlays']>[number];
+
+// Whole-video text overlays, dropping any blank row the builder leaves behind so the descriptor only
+// carries real overlays. Emits nothing when none remain.
+function globalOverlaysField(
+  overlays: EditorState['globalOverlays']
+): Partial<NonNullable<TemplateDescriptor['global']>> {
+  const kept = overlays.filter((o) => Object.values(o.text).some((value) => value.trim() !== ''));
+
+  return kept.length > 0 ? { overlays: kept as GlobalOverlay[] } : {};
+}
+
 // editor audio mix -> global.audio, dropping normalize/ducking unless set/enabled.
 function audioGlobal(audio: AudioMix): NonNullable<NonNullable<TemplateDescriptor['global']>['audio']> {
   return {
@@ -377,6 +392,10 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     // Audio mix: source (recorded clip) volume and background-music volume, each 0..1 (0 = muted).
     audio: audioGlobal(state.audio),
     ...(state.globalAnimations.length > 0 ? { animations: state.globalAnimations.map(globalAnimationFrom) } : {}),
+    // Whole-video text overlays (brand watermark, etc.) authored once and composited onto every section.
+    ...globalOverlaysField(state.globalOverlays),
+    ...(state.globalLook ? { look: state.globalLook } : {}),
+    ...(state.globalGrade ? { grade: state.globalGrade } : {}),
     ...mediaGlobals(state.sections),
   };
 

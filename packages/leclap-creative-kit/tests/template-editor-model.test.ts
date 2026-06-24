@@ -39,6 +39,7 @@ function baseState(input: EditorSection[] | Partial<EditorState> = {}): EditorSt
     audio: { ...DEFAULT_AUDIO_MIX },
     defaultTransition: { ...DEFAULT_TRANSITION },
     globalAnimations: [],
+    globalOverlays: [],
   };
 
   return { ...defaults, ...over };
@@ -331,6 +332,79 @@ describe('templateEditorModel — global animations', () => {
     expect(back.globalAnimations).toEqual([
       { id: 'global_animation_0', url: '/assets/animations/glow_border.apng', opacity: 0.3 },
     ]);
+  });
+
+  it('emits and round-trips global text overlays + look/grade, and stays schema-valid', () => {
+    const state = baseState({
+      globalOverlays: [{ text: { en: '{{ brand }}' }, position: 'top-right', reveal: 'fade' }],
+      globalLook: 'cinematic',
+      globalGrade: { saturation: 1.1 },
+    });
+    const d = buildDescriptor(state);
+
+    expect(d.global?.overlays).toEqual([{ text: { en: '{{ brand }}' }, position: 'top-right', reveal: 'fade' }]);
+    expect(d.global?.look).toBe('cinematic');
+    expect(d.global?.grade).toEqual({ saturation: 1.1 });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    expect(back.globalOverlays).toEqual(state.globalOverlays);
+    expect(back.globalLook).toBe('cinematic');
+    expect(back.globalGrade).toEqual({ saturation: 1.1 });
+  });
+});
+
+describe('templateEditorModel — text sugar (titleCard / lowerThird / caption reveal)', () => {
+  it('round-trips a titleCard on a color section', () => {
+    const titleCard = {
+      kicker: { en: 'HELLO' },
+      headline: { en: 'World' },
+      accent: '#7C83FF',
+      reveal: 'rise' as const,
+    };
+    const color: EditorSection = { ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>), titleCard };
+    const d = buildDescriptor(baseState([color]));
+
+    const colorOut = d.sections?.find((s) => s.type === 'color_background') as Record<string, unknown> | undefined;
+    expect(colorOut?.titleCard).toEqual(titleCard);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(baseState([color])));
+    const restored = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+    expect(restored.titleCard).toEqual(titleCard);
+  });
+
+  it('round-trips a lowerThird on a video section', () => {
+    const lowerThird = { title: { en: 'Aurora' }, badge: { en: '$199' }, accent: '#7C83FF' };
+    const video: EditorSection = {
+      ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>),
+      overlays: [],
+      lowerThird,
+    };
+    const d = buildDescriptor(baseState([video]));
+
+    const videoOut = d.sections?.find((s) => s.type === 'project_video') as Record<string, unknown> | undefined;
+    expect(videoOut?.lowerThird).toEqual(lowerThird);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(baseState([video])));
+    const restored = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+    expect(restored.lowerThird).toEqual(lowerThird);
+  });
+
+  it('emits and round-trips a caption reveal', () => {
+    const video: EditorSection = {
+      ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>),
+      overlays: [],
+      caption: { text: 'Hi', reveal: 'slide-left' },
+    };
+    const d = buildDescriptor(baseState([video]));
+
+    expect(d.sections?.find((s) => s.type === 'project_video')?.caption?.reveal).toBe('slide-left');
+
+    const back = toEditorState(asTemplate(baseState([video])));
+    const restored = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+    expect(restored.caption?.reveal).toBe('slide-left');
   });
 
   it('emits exactly one playback extent — duration wins and loop is omitted', () => {

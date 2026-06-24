@@ -17,6 +17,7 @@ function baseState(over: Partial<EditorState> = {}): EditorState {
     audio: { ...DEFAULT_AUDIO_MIX },
     defaultTransition: { type: 'cut', duration: 0.5 },
     globalAnimations: [],
+    globalOverlays: [],
     ...over,
   };
 }

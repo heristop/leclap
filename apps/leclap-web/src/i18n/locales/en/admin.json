@@ -399,7 +399,9 @@
     "animation": "Animation",
     "cameraGuide": "Camera guide",
     "images": "Images",
-    "overlays": "Overlays"
+    "overlays": "Overlays",
+    "titleCard": "Title card",
+    "lowerThird": "Lower third"
   },
   "overlays": {
     "kind": "Overlay type",
@@ -499,5 +501,68 @@
     "maxLength": "Max length",
     "removeField": "Remove field",
     "addField": "Add field"
+  },
+  "reveal": {
+    "label": "Entrance",
+    "none": "None",
+    "fade": "Fade",
+    "rise": "Rise",
+    "slide-left": "Slide in",
+    "slide-right": "Slide out",
+    "advanced": "Timing",
+    "delay": "Delay",
+    "duration": "Duration",
+    "distance": "Distance",
+    "summaryDefault": "default timing"
+  },
+  "titleCard": {
+    "kicker": "Kicker",
+    "kickerPlaceholder": "e.g. INTRODUCING",
+    "headline": "Headline",
+    "headlinePlaceholder": "e.g. {{ form_1_name }}",
+    "subtitle": "Subtitle",
+    "subtitlePlaceholder": "e.g. {{ form_1_tagline }}",
+    "accent": "Accent colour",
+    "align": "Alignment",
+    "alignLeft": "Left",
+    "alignCenter": "Center",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "summaryEmpty": "no text",
+    "hint": "A clean kicker / headline / subtitle card — sized to the orientation."
+  },
+  "lowerThird": {
+    "title": "Title",
+    "titlePlaceholder": "e.g. {{ form_1_name }}",
+    "subtitle": "Subtitle",
+    "subtitlePlaceholder": "e.g. one-line pitch",
+    "badge": "Badge",
+    "badgePlaceholder": "e.g. {{ form_1_price }}",
+    "accent": "Accent colour",
+    "band": "Band opacity",
+    "position": "Position",
+    "bottom": "Bottom",
+    "top": "Top",
+    "summaryEmpty": "no text",
+    "hint": "A title / subtitle band over the clip, with an optional badge."
+  },
+  "globalOverlay": {
+    "label": "Whole-video text",
+    "hint": "Text drawn on every section — e.g. a brand watermark, authored once.",
+    "add": "Add watermark",
+    "text": "Text",
+    "textPlaceholder": "e.g. {{ brand }}",
+    "position": "Position",
+    "color": "Colour",
+    "remove": "Remove",
+    "pos": {
+      "top-left": "Top left",
+      "top-right": "Top right",
+      "bottom-left": "Bottom left",
+      "bottom-right": "Bottom right",
+      "top": "Top",
+      "bottom": "Bottom",
+      "center": "Center"
+    }
   }
 }

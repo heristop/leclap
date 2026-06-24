@@ -1,7 +1,7 @@
 // Field block for a color_background section. Essentials (always visible): duration. The per-element
 // editors (background layers, animations) now live in the left panel's element inspector; finishing
 // controls (Effects, Section audio) live in collapsed disclosures that only appear in Advanced mode.
-import { Music } from '@/presentation/components/icons';
+import { Music, Type } from '@/presentation/components/icons';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { useTranslation } from 'react-i18next';
 import type { EditorSection, Orientation } from '../../templateEditorModel';
@@ -10,6 +10,7 @@ import { useIsAdvanced } from '../useBuilderMode';
 import { effectsSummary, audioSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
+import { TitleCardField } from './TitleCardField';
 import { VisualEffects } from './VisualEffects';
 
 type ColorSection = Extract<EditorSection, { kind: 'color' }>;
@@ -37,6 +38,19 @@ export const ColorFields = ({ section, onChange, inputCls }: ColorFieldsProps) =
           inputCls={inputCls}
         />
       </div>
+      <SectionDisclosure
+        label={t('disclosure.titleCard')}
+        icon={<Type className="size-4 shrink-0 text-brand-500" aria-hidden />}
+        summary={section.titleCard?.headline?.en ?? section.titleCard?.kicker?.en ?? t('titleCard.summaryEmpty')}
+      >
+        <TitleCardField
+          titleCard={section.titleCard}
+          onChange={(titleCard) => {
+            onChange({ titleCard });
+          }}
+          inputCls={inputCls}
+        />
+      </SectionDisclosure>
       {advanced && (
         <div className="space-y-2">
           <SectionDisclosure

@@ -42,9 +42,9 @@
           }
         },
         "orientation": {
-          "description": "Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape).",
           "type": "string",
-          "enum": ["landscape", "portrait", "square"]
+          "enum": ["landscape", "portrait", "square"],
+          "description": "Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape)."
         },
         "colorsList": {
           "description": "Palette of colours offered to the user for customisation, as CSS hex strings.",
@@ -275,6 +275,230 @@
             "additionalProperties": false,
             "description": "A single whole-video animation overlay composited over the final joined video."
           }
+        },
+        "overlays": {
+          "description": "Whole-video text overlays (e.g. a brand watermark) composited onto every section.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Localised text drawn over every section (e.g. a brand name)."
+              },
+              "position": {
+                "description": "Anchor for the text (default top-right).",
+                "type": "string",
+                "enum": ["top-left", "top-right", "bottom-left", "bottom-right", "top", "bottom", "center"]
+              },
+              "font": {
+                "description": "Font id or .ttf filename (default Oswald).",
+                "type": "string"
+              },
+              "size": {
+                "description": "Font size in px; default derived from the output height.",
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "color": {
+                "description": "Text colour as a CSS hex string (default white).",
+                "type": "string"
+              },
+              "opacity": {
+                "description": "Static text alpha 0..1 when no reveal is set (default 1).",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "reveal": {
+                "description": "Animated entrance for the text (default none).",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                        "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                      },
+                      "delay": {
+                        "description": "Seconds before the entrance starts (default 0.3).",
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "duration": {
+                        "description": "Seconds the entrance takes (default 0.6).",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "distance": {
+                        "description": "Pixels the text travels for rise/slide (default 60).",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    },
+                    "required": ["type"],
+                    "additionalProperties": false,
+                    "description": "Animated entrance for sugar text, with optional timing overrides."
+                  }
+                ]
+              },
+              "sections": {
+                "description": "Section names this overlay appears on; omit for every section.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["text"],
+            "additionalProperties": false,
+            "description": "A whole-video text overlay composited onto every section (or a named subset)."
+          }
+        },
+        "look": {
+          "description": "Colour-grade preset applied across every section (whole-video look).",
+          "type": "string",
+          "enum": ["cinematic", "warm", "cool", "vintage", "noir", "vivid", "dreamy"]
+        },
+        "grade": {
+          "description": "Fine-grained colour grade applied across every section.",
+          "type": "object",
+          "properties": {
+            "brightness": {
+              "description": "Brightness offset, -1..1 (default 0).",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "contrast": {
+              "description": "Contrast multiplier, 0..2 (default 1).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
+            },
+            "saturation": {
+              "description": "Saturation multiplier, 0..3 (default 1).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "gamma": {
+              "description": "Gamma correction exponent, 0.1..3 (default 1).",
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 3
+            },
+            "hue": {
+              "description": "Hue rotation in degrees, -180..180 (default 0).",
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "colorBalance": {
+              "description": "Per-range colour balance correction.",
+              "type": "object",
+              "properties": {
+                "shadows": {
+                  "description": "RGB adjustment applied to shadow tones.",
+                  "type": "object",
+                  "properties": {
+                    "r": {
+                      "description": "Red channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "g": {
+                      "description": "Green channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "b": {
+                      "description": "Blue channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "midtones": {
+                  "description": "RGB adjustment applied to midtone tones.",
+                  "type": "object",
+                  "properties": {
+                    "r": {
+                      "description": "Red channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "g": {
+                      "description": "Green channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "b": {
+                      "description": "Blue channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "highlights": {
+                  "description": "RGB adjustment applied to highlight tones.",
+                  "type": "object",
+                  "properties": {
+                    "r": {
+                      "description": "Red channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "g": {
+                      "description": "Green channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    },
+                    "b": {
+                      "description": "Blue channel adjustment, -1..1.",
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "blur": {
+              "description": "Gaussian blur radius in pixels, 0..20 (default 0).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 20
+            },
+            "curvesPreset": {
+              "description": "Named curves preset key applied on top of other grade settings.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         },
         "allowedMusic": {
           "description": "Allowlist of music track identifiers the user may choose from.",
@@ -1014,9 +1238,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -1465,7 +1815,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -2184,9 +2534,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -2635,7 +3111,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   },
                   "framingGuide": {
@@ -2668,12 +3144,12 @@
                     "additionalProperties": false
                   },
                   "captureMode": {
-                    "description": "Default capture mode when the recorder opens (default: front). screen = display capture (web only), upload = file picker.",
+                    "description": "Recorder mode: front/back/screen/upload (default: front).",
                     "type": "string",
                     "enum": ["front", "back", "screen", "upload"]
                   },
                   "allowedCaptureModes": {
-                    "description": "Capture modes available to the user. Omit to allow all. Single-element array locks to one mode.",
+                    "description": "Modes available to the user; omit for all four. A single element locks to one mode.",
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -3396,9 +3872,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -3847,7 +4449,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -4566,9 +5168,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -4831,6 +5559,108 @@
                 "const": "color_background",
                 "description": "Section type: renders a solid or layered colour background."
               },
+              "titleCard": {
+                "description": "Structured title card (kicker/headline/subtitle) for this section.",
+                "type": "object",
+                "properties": {
+                  "kicker": {
+                    "description": "Small eyebrow label above the headline.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "headline": {
+                    "description": "Main headline, rendered large.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the headline.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an underline bar and tints the kicker.",
+                    "type": "string"
+                  },
+                  "align": {
+                    "description": "Horizontal alignment of the card (default left).",
+                    "type": "string",
+                    "enum": ["left", "center"]
+                  },
+                  "background": {
+                    "description": "Fade colour; defaults to the section background colour.",
+                    "type": "string"
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered top-to-bottom (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  },
+                  "fade": {
+                    "description": "Auto fade-in / fade-out behaviour for the card.",
+                    "type": "object",
+                    "properties": {
+                      "in": {
+                        "description": "Auto fade-in over the card (default true).",
+                        "type": "boolean"
+                      },
+                      "out": {
+                        "description": "Auto fade-out over the card (default true).",
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
               "options": {
                 "description": "Background and layer options for the color_background section.",
                 "type": "object",
@@ -5017,7 +5847,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   },
                   "layers": {
@@ -5822,9 +6652,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -6273,7 +7229,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -6992,9 +7948,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -7443,7 +8525,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },
@@ -8162,9 +9244,135 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "reveal": {
+                    "description": "Animated entrance for the caption (fade/rise/slide); default none.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
                   }
                 },
                 "required": ["text"],
+                "additionalProperties": false
+              },
+              "lowerThird": {
+                "description": "Title/subtitle band composited over the section clip.",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Main line of the lower third.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "subtitle": {
+                    "description": "Supporting line below the title.",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "accent": {
+                    "description": "Accent colour: draws an accent bar and the badge background.",
+                    "type": "string"
+                  },
+                  "boxOpacity": {
+                    "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "position": {
+                    "description": "Vertical anchor of the band (default bottom).",
+                    "type": "string",
+                    "enum": ["bottom", "top"]
+                  },
+                  "badge": {
+                    "description": "Optional right-aligned pill (price, step number, badge).",
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "reveal": {
+                    "description": "Entrance for the lines, staggered (default \"rise\").",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                            "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                          },
+                          "delay": {
+                            "description": "Seconds before the entrance starts (default 0.3).",
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "duration": {
+                            "description": "Seconds the entrance takes (default 0.6).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "distance": {
+                            "description": "Pixels the text travels for rise/slide (default 60).",
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": ["type"],
+                        "additionalProperties": false,
+                        "description": "Animated entrance for sugar text, with optional timing overrides."
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": false
               },
               "look": {
@@ -8613,7 +9821,7 @@
                     "type": "boolean"
                   },
                   "forceOriginalAspectRatio": {
-                    "description": "Letterbox the clip to keep its original aspect ratio (bars, no crop); overrides cover-crop (default false).",
+                    "description": "Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).",
                     "type": "boolean"
                   }
                 },

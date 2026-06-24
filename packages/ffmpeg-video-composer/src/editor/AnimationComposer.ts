@@ -1,6 +1,6 @@
 import { inject, injectable, registry, type DependencyContainer } from 'tsyringe';
 import type { GlobalAnimation } from '@/core/types';
-import { buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
+import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 import { buildSingleFileAnimationSource, buildAnimationLegFilters } from './inputSources';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
@@ -158,12 +158,13 @@ class AnimationComposer {
     const filterComplex = this.buildFilterComplex(staged);
     const encoderArgs = buildVideoEncoderArgs(this.project.config);
     const pixFmtArg = buildPixFmtArg(this.project.config);
+    const colorArgs = buildColorMetadataArgs();
     const audioMap = hasAudio ? ' -map 0:a -c:a copy ' : ' ';
 
     return (
       ` -y -i ${temp} ${sources} ` +
       ` -filter_complex "${filterComplex}" ` +
-      ` -map "[vout]"${audioMap}${encoderArgs} ${pixFmtArg} -movflags +faststart ${finalVideo} `
+      ` -map "[vout]"${audioMap}${encoderArgs} ${pixFmtArg} ${colorArgs} -movflags +faststart ${finalVideo} `
     );
   }
 

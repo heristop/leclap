@@ -1,26 +1,29 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
 import { assertSafeArgToken } from '@/core/argGuard';
-import { buildVideoEncoderArgs, buildPixFmtArg, usesLgplEngine } from '@/core/encoding';
+import { buildColorMetadataArgs, buildVideoEncoderArgs, buildPixFmtArg, usesLgplEngine } from '@/core/encoding';
 import type { ProjectConfig } from '@/core/types';
 
 // Encoder args for a re-encoded video segment (bumper / videoUrl / useVideoSection). Routes through
 // the shared codec resolution so the on-device LGPL engine uses libopenh264 — NOT libx264 (GPL),
 // which `typeof window !== 'undefined'` wrongly selected on React Native (Hermes defines `window`).
 function videoSegmentEncoding(config: ProjectConfig): string {
+  // Tag every re-encoded segment Rec.709/limited-range; the stream-copy concat inherits it.
+  const colorArgs = buildColorMetadataArgs();
+
   if (usesLgplEngine(config)) {
-    return `${buildVideoEncoderArgs(config)} -c:a aac -ac 2 ${buildPixFmtArg(config)} -movflags +faststart`;
+    return `${buildVideoEncoderArgs(config)} -c:a aac -ac 2 ${buildPixFmtArg(config)} ${colorArgs} -movflags +faststart`;
   }
 
   // Browser WASM: a lighter encode to stay within the in-memory FS budget.
   if (typeof window !== 'undefined') {
-    return '-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast -movflags +faststart';
+    return `-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast ${colorArgs} -movflags +faststart`;
   }
 
   // Node / server: high-quality software encode.
   const preset = config.hardwareConfig?.preset ?? 'medium';
 
-  return `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high -movflags +faststart -preset ${preset}`;
+  return `-c:v h264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -b:v 12M -profile:v high ${colorArgs} -movflags +faststart -preset ${preset}`;
 }
 
 @injectable()

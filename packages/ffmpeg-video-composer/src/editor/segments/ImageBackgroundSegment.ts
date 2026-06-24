@@ -13,7 +13,7 @@ class ImageBackground extends SegmentBuilder {
       ` -y ${this.addBlankAudio()} ` +
       ` -loop 1 ${this.hwaccelArg} ${this.sources.join(' ')} -t ${this.section.options?.duration} ` +
       ' -r 30 ' +
-      ` -shortest ${this.pixFmtArg()} -c:v ${this.videoCodec()} -c:a aac -ac 2 ` +
+      ` -shortest ${this.pixFmtArg()} ${this.colorMetadataArgs()} -c:v ${this.videoCodec()} -c:a aac -ac 2 ` +
       ` ${this.filters} -map 0:a? ${this.buildAudioFadeArg()}${this.destination} `;
   };
 }

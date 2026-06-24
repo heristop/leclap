@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildVideoEncoderArgs, usesLgplEngine } from '@/core/encoding';
+import {
+  buildColorMetadataArgs,
+  buildColorMetadataFilter,
+  buildVideoEncoderArgs,
+  usesLgplEngine,
+} from '@/core/encoding';
 import type { ProjectConfig } from '@/core/types';
 
 const config = (videoCodec: string): ProjectConfig =>
@@ -21,6 +26,27 @@ describe('buildVideoEncoderArgs', () => {
 
   it('drops libx264-only flags for hardware encoders', () => {
     expect(buildVideoEncoderArgs(config('h264_videotoolbox'))).toBe('-c:v h264_videotoolbox -b:v 8M');
+  });
+});
+
+describe('buildColorMetadataArgs', () => {
+  // Re-encoded output must be tagged Rec.709 / limited-range so browsers decode it with the right
+  // matrix — untagged H.264 from some sources is read as bt470bg/full-range and renders frozen or
+  // mis-coloured in real Chrome (the malformed-tag decode bug). The filtergraph already converts to
+  // yuv420p; these flags tag the colour metadata to match.
+  it('tags Rec.709 limited-range colour metadata', () => {
+    expect(buildColorMetadataArgs()).toBe('-colorspace bt709 -color_primaries bt709 -color_trc bt709 -color_range tv');
+  });
+});
+
+describe('buildColorMetadataFilter', () => {
+  // The output flags above only set matrix + range; a malformed source's primaries/transfer leak
+  // through. The setparams filter forces all four fields on the frames, encoder-agnostically, so the
+  // segment overrides a bt470bg/full-range source to a clean Rec.709 tag that downstream passes inherit.
+  it('forces all four colour fields to Rec.709 via setparams', () => {
+    expect(buildColorMetadataFilter()).toBe(
+      'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709'
+    );
   });
 });
 

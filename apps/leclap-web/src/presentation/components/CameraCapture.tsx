@@ -206,10 +206,10 @@ const EndWarningOverlay = () => {
   );
 };
 
-// Muted "what to film" caption pinned to the bottom of the live preview — the author's
-// recording instructions. Hidden on the recorded-clip review, and while the end-warning shows.
+// Muted "what to film" caption for the author's framing instructions, floated above the record control
+// so it never sits under the button. Shown only before capture (idle/countdown), gone once recording starts.
 const RecordingHint = ({ text }: { text: string }) => (
-  <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-4 fade-in">
+  <div className="pointer-events-none absolute inset-x-0 bottom-28 z-10 flex justify-center px-4 fade-in">
     <p className="max-w-md rounded-2xl bg-black/55 px-4 py-2 text-center text-sm font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm text-balance">
       {text}
     </p>
@@ -224,15 +224,16 @@ interface StageOverlaysProps {
   description?: string;
 }
 
-// The stacked live-preview overlays, ordered so only one foreground beat shows at a time:
-// the end-warning takes over from the "what to film" hint, the countdown sits on top.
+// The stacked live-preview overlays. The "what to film" hint only guides framing before capture, so it
+// clears once recording starts — recording shows just the live feed and the record control (plus the
+// end-warning beat near the duration cap, and the countdown on top before that).
 const StageOverlays = ({ state, countdownValue, endingSoon, framingGuide, description }: StageOverlaysProps) => {
-  const livePreview = state !== 'preview' && state !== 'loading';
+  const framingPhase = state === 'idle' || state === 'countdown';
 
   return (
     <>
       {framingGuide && state !== 'preview' && <FramingGuideOverlay guide={framingGuide} />}
-      {description && livePreview && !endingSoon && <RecordingHint text={description} />}
+      {description && framingPhase && <RecordingHint text={description} />}
       {endingSoon && <EndWarningOverlay />}
       {state === 'countdown' && <CountdownOverlay value={countdownValue} />}
     </>

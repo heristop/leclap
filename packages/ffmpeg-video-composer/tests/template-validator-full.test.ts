@@ -599,6 +599,40 @@ describe('TemplateValidator – validateGlobalAnimations', () => {
   });
 });
 
+describe('TemplateValidator – validateFonts', () => {
+  let validator: TemplateValidator;
+
+  beforeEach(() => {
+    validator = new TemplateValidator();
+  });
+
+  it('accepts a bundled font id, a .ttf filename and a variable', () => {
+    for (const font of ['oswald', 'Custom.ttf', '{{ brandFont }}']) {
+      const result = validator.validateTemplate({
+        sections: [{ name: 'a', type: 'video', caption: { text: { en: 'Hi' }, font } }],
+      });
+      expect(result.success, `font "${font}" should be accepted`).toBe(true);
+    }
+  });
+
+  it('flags an unknown caption font (a typo)', () => {
+    const result = validator.validateTemplate({
+      sections: [{ name: 'a', type: 'video', caption: { text: { en: 'Hi' }, font: 'Oswlad' } }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'unknown_font')).toBe(true);
+  });
+
+  it('flags an unknown whole-video overlay font', () => {
+    const result = validator.validateTemplate({
+      global: { overlays: [{ text: { en: 'BRAND' }, font: 'NopeSans' }] },
+      sections: [{ name: 'a', type: 'video' }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'unknown_font')).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Schema-level coverage: exercise each schema's accept/reject paths directly.
 // ---------------------------------------------------------------------------

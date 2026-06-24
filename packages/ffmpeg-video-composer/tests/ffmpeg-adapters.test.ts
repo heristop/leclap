@@ -463,6 +463,34 @@ describe('FFmpegWasmAdapter', () => {
     expect(() => ffmpeg.__emit('progress', { time: 0 })).not.toThrow();
   });
 
+  it('progress listener gets a clamped 0..1 fraction from elapsed time, not ffmpeg-core progress', async () => {
+    const { adapter, ffmpeg } = await makeReadyWasm();
+    const fractions: number[] = [];
+    adapter.progressListener = (fraction: number) => fractions.push(fraction);
+    adapter.expectedDurationSeconds = 10;
+
+    // `time` is microseconds elapsed; ffmpeg-core's own `progress` ratio is garbage for inputs without a
+    // known duration (huge negative), so it must be ignored.
+    ffmpeg.__emit('progress', { time: 5_000_000 }); // 5s / 10s
+    ffmpeg.__emit('progress', { time: 50_000_000 }); // past the end -> clamp to 1
+    ffmpeg.__emit('progress', { progress: -626939, time: 6_000_000 }); // bogus progress ignored
+
+    expect(fractions).toEqual([0.5, 1, 0.6]);
+  });
+
+  it('progress listener is not called without a positive expected duration', async () => {
+    const { adapter, ffmpeg } = await makeReadyWasm();
+    const fractions: number[] = [];
+    adapter.progressListener = (fraction: number) => fractions.push(fraction);
+
+    adapter.expectedDurationSeconds = undefined;
+    ffmpeg.__emit('progress', { time: 6_000_000 });
+    adapter.expectedDurationSeconds = 0;
+    ffmpeg.__emit('progress', { time: 6_000_000 });
+
+    expect(fractions).toEqual([]);
+  });
+
   it('waitForReady() resolves immediately once loaded', async () => {
     const { adapter } = await makeReadyWasm();
     await expect(adapter.waitForReady()).resolves.toBeUndefined();

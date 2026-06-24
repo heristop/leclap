@@ -48,10 +48,16 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
         console.log('[FFmpegWasm]', message);
       });
 
-      this.ffmpeg.on('progress', ({ progress, time }) => {
-        const pct = progress === undefined ? 0 : Math.round(progress * 100);
-        console.log('[FFmpegWasm] Progress:', pct, '% | Time:', time);
-        this.progressListener?.(progress ?? 0);
+      // ffmpeg-core's own `progress` ratio is unreliable — for the per-segment compile passes the input has
+      // no parseable Duration, so it comes back as garbage (huge negative). Derive the 0..1 fraction from the
+      // reliable elapsed `time` (microseconds) over the director-supplied expected duration instead, the same
+      // way the on-device CLI adapter does (FFmpegLeclapAdapter.pollProgress).
+      this.ffmpeg.on('progress', ({ time }) => {
+        const duration = this.expectedDurationSeconds;
+
+        if (!this.progressListener || duration === undefined || duration <= 0 || time === undefined) return;
+
+        this.progressListener(Math.min(1, Math.max(0, time / 1_000_000 / duration)));
       });
 
       const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';

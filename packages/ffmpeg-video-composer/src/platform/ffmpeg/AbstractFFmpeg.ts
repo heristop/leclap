@@ -37,6 +37,16 @@ abstract class AbstractFFmpeg {
    */
   expectedDurationSeconds?: number;
 
+  /**
+   * Whether the adapter can run several `execute()` calls concurrently. True only for adapters that
+   * spawn an independent OS process per call (the Node and static CLI adapters). The WASM core and
+   * the on-device engine drive a single shared instance, so they keep the `false` default and the
+   * director renders their segments serially.
+   */
+  get supportsConcurrentExecute(): boolean {
+    return false;
+  }
+
   abstract execute(command: string): Promise<{ rc: number }>;
 
   abstract getInfos(source: string): Promise<FFMpegInfos>;

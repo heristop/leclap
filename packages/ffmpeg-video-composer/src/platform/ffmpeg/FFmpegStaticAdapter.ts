@@ -32,6 +32,11 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
     this.initializePaths();
   }
 
+  // Each execute() spawns an independent ffmpeg-static process, so renders can overlap.
+  override get supportsConcurrentExecute(): boolean {
+    return true;
+  }
+
   private initializePaths(): void {
     try {
       const ffmpegStatic = requireModule('ffmpeg-static') as string | null;

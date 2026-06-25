@@ -42,9 +42,13 @@ function buildProjectConfig() {
   const buildDir = path.resolve(cwd, 'build');
   const assetsDir = path.resolve(scriptDir, '../leclap-creative-kit/src/library');
 
+  // FVC_RENDER_CONCURRENCY overrides the parallel-render width (1 disables; useful for benching).
+  const concurrency = process.env.FVC_RENDER_CONCURRENCY;
+
   return {
     buildDir,
     assetsDir,
+    hardwareConfig: concurrency ? { maxRenderConcurrency: Number(concurrency) } : undefined,
   };
 }
 

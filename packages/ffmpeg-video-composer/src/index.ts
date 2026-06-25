@@ -10,6 +10,8 @@ import type AbstractLogger from './platform/logging/AbstractLogger';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
 import { getPerfTimer, resetPerfTimer } from './utils/perf-timer';
 import { formatPerfReport } from './utils/perf-report';
+import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
+import { selectVideoCodec } from './platform/ffmpeg/select-video-codec';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -128,6 +130,32 @@ async function emitPerfReport(
   }
 }
 
+// Opt-in hardware H.264 encoder selection on the Node path (set FVC_HWENCODE=1). Default is OFF:
+// benchmarks showed videotoolbox is SLOWER than libx264 ultrafast on short multi-segment renders
+// (per-segment hardware-session setup) and only ~5% faster on heavy single encodes, so auto-on
+// regresses the common case (see docs/perf-findings.md). When enabled and the ffmpeg build exposes a
+// platform hw encoder, inject a COMPLETE codecConfig block (videoCodec + audioCodec) so
+// Project.applyDefault's wholesale-replace semantic never drops audioCodec. An explicit
+// codecConfig.videoCodec always wins. Never throws. Node-only; browser/reactnative untouched.
+async function autoSelectHardwareEncoder(projectConfig: ProjectConfig, logger: AbstractLogger): Promise<void> {
+  if (projectConfig.codecConfig?.videoCodec || !process.env.FVC_HWENCODE) {
+    return;
+  }
+
+  try {
+    const selected = selectVideoCodec(await FFmpegDetector.listEncoders(), process.platform);
+
+    if (!selected) {
+      return;
+    }
+
+    projectConfig.codecConfig = { videoCodec: selected, audioCodec: projectConfig.codecConfig?.audioCodec ?? '' };
+    logger.info(`[Encoder] auto-selected hardware encoder ${selected}`);
+  } catch (error) {
+    logger.info(`[Encoder] hardware encoder probe skipped: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 export async function compile(
   projectConfig: ProjectConfig,
   templateDescriptor: TemplateDescriptor
@@ -146,6 +174,8 @@ export async function compile(
       hasUserVideoPaths: Boolean(projectConfig.userVideoPaths),
       videoPaths: projectConfig.userVideoPaths ? Object.keys(projectConfig.userVideoPaths) : 'none',
     });
+
+    await autoSelectHardwareEncoder(projectConfig, logger);
 
     const director = container.resolve(TemplateDirector).config(projectConfig, templateDescriptor);
 

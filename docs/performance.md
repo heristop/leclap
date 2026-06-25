@@ -77,6 +77,15 @@ FVC_PERF=1 node --cpu-prof --cpu-prof-dir=build/prof \
 
 For flamegraphs, add `0x` as a devDependency **only if** the data justifies deeper digging — it is intentionally not committed by default.
 
+## Parallel segment rendering
+
+On Node (and ffmpeg-static), segments render concurrently by default — `hardwareConfig.maxRenderConcurrency`
+(default 3, capped by segment count) controls the width; set it to `1` to force the serial path.
+Build always runs serially (it mutates shared state); only the ffmpeg processes overlap. WASM and
+on-device adapters drive a single engine and always render serially. For benching, the dev CLI honors
+`FVC_RENDER_CONCURRENCY` (e.g. `FVC_RENDER_CONCURRENCY=1 pnpm bench fast-and-curious`). Measured
+~40% faster total compile / ~50% faster render on a 3-segment template — see `docs/perf-findings.md`.
+
 ## Turning measurements into work
 
 See `docs/perf-findings.md` for the ranked backlog. The rule: optimize in descending order of measured wall-time share; weight serial→parallel restructuring by segment count (payoff scales with the number of segments). Kill any candidate whose measured cost is below the noise floor.

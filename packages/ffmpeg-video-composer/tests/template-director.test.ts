@@ -72,9 +72,10 @@ function makeDeps() {
   const filesystem = makeFilesystem();
   const template = { descriptor: {} as TemplateDescriptor, assets: {} };
 
+  const segmentHandle = { getCommand: () => '-y out.mp4', destination: '/build/seg_output.mp4' };
   const concreteBuilder = {
-    buildPart: vi.fn(async () => true),
-    renderPart: vi.fn(async () => undefined),
+    build: vi.fn(async (_section: Section, _projectConfig: ProjectConfig) => ({ segment: segmentHandle, ok: true })),
+    render: vi.fn(async (_segment: unknown, _section: Section) => undefined),
   };
   const musicComposer = {
     loadMusic: vi.fn(async () => undefined),
@@ -84,6 +85,7 @@ function makeDeps() {
     normalizeAudio: vi.fn(async () => undefined),
   };
   const ffmpeg = {
+    supportsConcurrentExecute: false,
     execute: vi.fn(async () => ({ rc: 0 })),
     getInfos: vi.fn(
       async (): Promise<FFMpegInfos> => ({ duration: 5, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 44100 })
@@ -363,7 +365,7 @@ describe('TemplateDirector.processSingleVideoSegment', () => {
 
   it('returns false and fires an error when the builder throws', async () => {
     const { director, concreteBuilder, emitter, filesystem } = makeDirector();
-    concreteBuilder.buildPart.mockRejectedValue(new Error('build failed'));
+    concreteBuilder.build.mockRejectedValue(new Error('build failed'));
 
     const result = await director.processSingleVideoSegment({ name: 'clip', type: 'video' });
 
@@ -381,11 +383,116 @@ describe('TemplateDirector.addToQueue / append', () => {
 
     await director.addToQueue(section);
 
-    expect(concreteBuilder.buildPart).toHaveBeenCalledWith(section, project.config);
-    expect(concreteBuilder.renderPart).toHaveBeenCalled();
+    expect(concreteBuilder.build).toHaveBeenCalledWith(section, project.config);
+    expect(concreteBuilder.render).toHaveBeenCalled();
     expect(musicComposer.prepareMusicTrack).toHaveBeenCalledWith(section);
     expect(filesystem.append).toHaveBeenCalledWith('/build/segments.list', 'file /build/clip_output.mp4\n');
     expect(project.buildInfos.videoInputs).toContain('/build/clip_output.mp4');
+  });
+});
+
+describe('TemplateDirector.processVideoSegments concurrency', () => {
+  const sections: Section[] = [
+    { name: 'a', type: 'video', options: { duration: 2 } },
+    { name: 'b', type: 'video', options: { duration: 2 } },
+    { name: 'c', type: 'video', options: { duration: 2 } },
+  ];
+
+  function seedDurations(project: ReturnType<typeof makeProject>) {
+    project.buildInfos.totalLength = 6;
+    project.buildInfos.durations = { a: 2, b: 2, c: 2 };
+  }
+
+  it('renders serially when the adapter does not support concurrent execute', async () => {
+    const { director, project, ffmpeg, logger } = makeDirector();
+    ffmpeg.supportsConcurrentExecute = false;
+    project.config.hardwareConfig = { maxRenderConcurrency: 4 };
+    seedDurations(project);
+
+    await director.processVideoSegments(sections);
+
+    expect(logger.info).toHaveBeenCalledWith('[TemplateDirection] Render concurrency: 1');
+  });
+
+  it('builds every segment before rendering and appends in input order under concurrency', async () => {
+    const { director, project, ffmpeg, concreteBuilder, filesystem } = makeDirector();
+    ffmpeg.supportsConcurrentExecute = true;
+    project.config.hardwareConfig = { maxRenderConcurrency: 2 };
+    seedDurations(project);
+
+    const events: string[] = [];
+    concreteBuilder.build.mockImplementation(async (section: Section) => {
+      events.push(`build:${section.name}`);
+
+      return { segment: { getCommand: () => '', destination: `/build/${section.name}.mp4` }, ok: true };
+    });
+    // Make 'a' render slowest so completion order differs from input order.
+    concreteBuilder.render.mockImplementation(async (_segment: unknown, section: Section) => {
+      await new Promise((resolve) => setTimeout(resolve, section.name === 'a' ? 15 : 1));
+      events.push(`render:${section.name}`);
+    });
+
+    await director.processVideoSegments(sections);
+
+    const firstRender = events.findIndex((e) => e.startsWith('render:'));
+    expect(events.slice(0, firstRender)).toEqual(['build:a', 'build:b', 'build:c']);
+    expect(project.buildInfos.videoInputs).toEqual([
+      '/build/a_output.mp4',
+      '/build/b_output.mp4',
+      '/build/c_output.mp4',
+    ]);
+    expect(filesystem.append.mock.calls.map((c: unknown[]) => c[1])).toEqual([
+      'file /build/a_output.mp4\n',
+      'file /build/b_output.mp4\n',
+      'file /build/c_output.mp4\n',
+    ]);
+  });
+
+  it('does not render when a build fails (the pool never starts)', async () => {
+    const { director, project, ffmpeg, concreteBuilder } = makeDirector();
+    ffmpeg.supportsConcurrentExecute = true;
+    project.config.hardwareConfig = { maxRenderConcurrency: 3 };
+    seedDurations(project);
+
+    concreteBuilder.build.mockImplementation(async (section: Section) => {
+      if (section.name === 'b') {
+        throw new Error('build boom');
+      }
+
+      return { segment: { getCommand: () => '', destination: `/build/${section.name}.mp4` }, ok: true };
+    });
+
+    await expect(director.processVideoSegments(sections)).rejects.toThrow('build boom');
+    expect(concreteBuilder.render).not.toHaveBeenCalled();
+  });
+
+  it('falls back to serial rendering when segments share an output path', async () => {
+    const { director, project, ffmpeg, logger } = makeDirector();
+    ffmpeg.supportsConcurrentExecute = true;
+    project.config.hardwareConfig = { maxRenderConcurrency: 3 };
+    seedDurations(project);
+    // The default build mock returns the same handle (same destination) for every section, so the
+    // duplicate-output guard must engage and render serially rather than overwrite concurrently.
+
+    await director.processVideoSegments(sections);
+
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Duplicate segment output paths'));
+    expect(project.buildInfos.videoInputs).toEqual([
+      '/build/a_output.mp4',
+      '/build/b_output.mp4',
+      '/build/c_output.mp4',
+    ]);
+  });
+
+  it('reaches full progress after a concurrent render', async () => {
+    const { director, project, ffmpeg } = makeDirector();
+    ffmpeg.supportsConcurrentExecute = true;
+    project.config.hardwareConfig = { maxRenderConcurrency: 3 };
+    seedDurations(project);
+
+    await director.processVideoSegments(sections);
+
+    expect(project.progress).toBeCloseTo(1);
   });
 });
 

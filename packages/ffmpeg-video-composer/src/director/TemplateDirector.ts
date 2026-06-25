@@ -13,11 +13,8 @@ import DefaultConfig from '../core/default.config';
 import { assertSafeSegmentName } from '../core/argGuard';
 import { fetchSectionInfos } from './sectionInfos';
 import { getPerfTimer } from '../utils/perf-timer';
-import {
-  renderSegmentsConcurrently,
-  renderSegmentsSerially,
-  resolveRenderConcurrency,
-} from './render-segments-concurrently';
+import { renderSegments } from './render-segments-concurrently';
+import { runFinalize } from './finalize-concat-fold';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 import type Project from '../core/models/Project';
@@ -262,26 +259,25 @@ class TemplateDirector {
     return sectionInfos.duration;
   };
 
-  processVideoSegments = async (segments: Section[]): Promise<void> => {
-    const concurrency = resolveRenderConcurrency(
-      this.ffmpegAdapter.supportsConcurrentExecute,
-      this.project.config.hardwareConfig?.maxRenderConcurrency,
-      segments.length
-    );
-    this.logger.info(`[TemplateDirection] Render concurrency: ${concurrency}`);
-
-    if (concurrency === 1) {
-      await this.processVideoSegmentsSerial(segments);
-
-      return;
-    }
-
-    // Parallel path (Node/static adapters): build serially, render through a bounded pool, append in
-    // original order — see renderSegmentsConcurrently.
-    await renderSegmentsConcurrently({
+  // Render all segments: serially when concurrency resolves to 1 (single-engine adapters / opt-out),
+  // else build serially + render through a bounded pool — see renderSegments.
+  processVideoSegments = (segments: Section[]): Promise<void> =>
+    renderSegments({
       segments,
-      concurrency,
+      logger: this.logger,
       isStopped: () => this.stopBuild,
+      supportsConcurrentExecute: this.ffmpegAdapter.supportsConcurrentExecute,
+      maxRenderConcurrency: this.project.config.hardwareConfig?.maxRenderConcurrency,
+      totalLength: this.project.buildInfos.totalLength,
+      durations: this.project.buildInfos.durations,
+      // Adapters that read raw elapsed time from FFmpeg (the on-device CLI's `-progress`) use the
+      // expected duration to produce the 0..1 fraction forwarded to the listener.
+      setSegmentProgress: (listener, expectedSeconds) => {
+        this.ffmpegAdapter.progressListener = listener;
+        this.ffmpegAdapter.expectedDurationSeconds = expectedSeconds;
+      },
+      emitProgress: (fraction) => this.emitter.emit('compilation-progress', fraction),
+      processSegment: (section) => this.processSingleVideoSegment(section),
       build: async (section) => (await this.concreteBuilder.build(section, this.project.config)).segment,
       render: (segment, section) => this.concreteBuilder.render(segment, section),
       afterRender: (section) => {
@@ -292,24 +288,6 @@ class TemplateDirector {
         this.musicComposer.prepareMusicTrack(section);
         await this.append(section);
       },
-      logger: this.logger,
-    });
-  };
-
-  private readonly processVideoSegmentsSerial = (segments: Section[]): Promise<void> =>
-    renderSegmentsSerially({
-      segments,
-      totalLength: this.project.buildInfos.totalLength,
-      durations: this.project.buildInfos.durations,
-      isStopped: () => this.stopBuild,
-      // Adapters that read raw elapsed time from FFmpeg (the on-device CLI's `-progress`) use the
-      // expected duration to produce the 0..1 fraction forwarded to the listener.
-      setSegmentProgress: (listener, expectedSeconds) => {
-        this.ffmpegAdapter.progressListener = listener;
-        this.ffmpegAdapter.expectedDurationSeconds = expectedSeconds;
-      },
-      emitProgress: (fraction) => this.emitter.emit('compilation-progress', fraction),
-      processSegment: (section) => this.processSingleVideoSegment(section),
     });
 
   processSingleVideoSegment = async (segment: Section): Promise<boolean> => {
@@ -340,41 +318,44 @@ class TemplateDirector {
   finalizeCompilation = async (segments: Section[]): Promise<string | null> => {
     const transitions = this.project.buildInfos.transitions;
     const hasTransition = transitions.some((transition) => transition.type !== 'cut');
+    const global = this.template.descriptor.global;
+    const buildDir = this.filesystemAdapter.getBuildDir() ?? 'build';
 
-    const finalPath = await getPerfTimer().span('final:assemble', () =>
-      this.assembleFinalVideo(hasTransition, transitions)
-    );
+    return runFinalize({
+      segments,
+      hasTransition,
+      hasAnimations: (global?.animations?.length ?? 0) > 0,
+      musicEnabled: Boolean(global?.musicEnabled),
+      musicWillRun: Boolean(global?.musicEnabled) && Boolean(this.project.buildInfos.musicPath),
+      normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),
+      disableFold: Boolean(process.env.FVC_DISABLE_CONCAT_FOLD),
+      finalPath: `${buildDir}/output.mp4`,
+      listPath: this.project.buildInfos.fileConcatPath,
+      setFinalVideo: (path) => {
+        this.project.finalVideo = path;
+      },
+      getFinalVideo: () => this.project.finalVideo,
+      // Assemble: plain concat (stream-copy) when no boundary needs a cross-dissolve, else xfade.
+      // `.concat` is read via a bound ref so the call site isn't mistaken for Array.prototype.concat.
+      assemble: () =>
+        getPerfTimer().span('final:assemble', () => {
+          if (hasTransition) {
+            return this.videoEditor.assembleWithTransitions(this.project.buildInfos.videoInputs, transitions);
+          }
 
-    // No-music path: normalize the assembled output in place before finalize() fires the `finalize`
-    // event and runs project.clean() (which resets finalVideo). No-op unless global.audio.normalize
-    // is set. When music IS enabled, normalization is handled inside the music mix instead.
-    if (!this.template.descriptor.global?.musicEnabled) {
-      await this.musicComposer.normalizeAudio(this.project.finalVideo);
-    }
+          const concatVideo = this.videoEditor.concat.bind(this.videoEditor);
 
-    // Music windows already account for the xfade-shortened timeline (buildInfos.transitions), so the
-    // existing music flow (loopMusic + appendMusic) runs unchanged inside finalize after assembly.
-    await this.videoEditor.finalize(segments);
+          return concatVideo();
+        }),
+      normalizeAudio: (finalVideo, source) => {
+        if (source) {
+          return getPerfTimer().span('final:normalize', () => this.musicComposer.normalizeAudio(finalVideo, source));
+        }
 
-    return finalPath;
-  };
-
-  private readonly assembleFinalVideo = async (
-    hasTransition: boolean,
-    transitions: Array<{ type: string; duration: number }>
-  ): Promise<string> => {
-    if (!hasTransition) {
-      const concatSegments = this.videoEditor.concat.bind(this.videoEditor);
-
-      return concatSegments();
-    }
-
-    // segmentFiles are the per-section rendered outputs, in order — the same files appended to the
-    // concat list (collected in append()). The transitions arg includes cut entries (rendered as
-    // 1ms fades); length must equal segmentFiles.length - 1.
-    const segmentFiles = this.project.buildInfos.videoInputs;
-
-    return this.videoEditor.assembleWithTransitions(segmentFiles, transitions);
+        return this.musicComposer.normalizeAudio(finalVideo);
+      },
+      finalize: (segs, source) => this.videoEditor.finalize(segs, source),
+    });
   };
 
   // Resolve a section's clip source and read its media info, falling back to the declared duration when

@@ -9,7 +9,7 @@ import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type VariableManager from './managers/VariableManager';
 
-type StagedAnimation = { path: string; anim: GlobalAnimation };
+export type StagedAnimation = { path: string; anim: GlobalAnimation };
 
 type AnimationComposerDeps = {
   project: Project;
@@ -142,6 +142,15 @@ class AnimationComposer {
     await this.filesystemAdapter.unlink(temp);
   };
 
+  // The `-i` source args for the staged animations (loop/offset/duration flags), bounded by
+  // maxDuration so an over-long loop can't lengthen the output. Shared by the standalone overlay
+  // command and the fused transition+overlay assembly (VideoEditor).
+  buildOverlaySources(staged: StagedAnimation[], maxDuration?: number): string {
+    return staged
+      .map(({ anim, path }) => buildSingleFileAnimationSource({ url: anim.url, options: anim }, path, { maxDuration }))
+      .join(' ');
+  }
+
   private buildCommand(
     temp: string,
     staged: StagedAnimation[],
@@ -149,11 +158,7 @@ class AnimationComposer {
     hasAudio: boolean,
     baseDuration?: number
   ): string {
-    const sources = staged
-      .map(({ anim, path }) =>
-        buildSingleFileAnimationSource({ url: anim.url, options: anim }, path, { maxDuration: baseDuration })
-      )
-      .join(' ');
+    const sources = this.buildOverlaySources(staged, baseDuration);
 
     const filterComplex = this.buildFilterComplex(staged);
     const encoderArgs = buildVideoEncoderArgs(this.project.config);
@@ -175,38 +180,79 @@ class AnimationComposer {
    * non-looping overlay ends.
    */
   private buildFilterComplex(staged: StagedAnimation[]): string {
+    return this.buildOverlayGraph(staged, {});
+  }
+
+  /**
+   * Build the overlay filtergraph: each animation's leg (scale/rotate/opacity) overlaid over a running
+   * base. Parameterized so it works both standalone (base `[0:v]`, the joined video as input 0) and
+   * fused into the transition assembly (base = the xfade output label, animation inputs offset past
+   * the segment inputs, a distinct chain prefix to avoid colliding with the xfade's `[v{k}]` labels).
+   * Defaults reproduce the standalone command byte-for-byte.
+   */
+  buildOverlayGraph(
+    staged: StagedAnimation[],
+    opts: { baseLabel?: string; firstInputIndex?: number; chainPrefix?: string; outLabel?: string }
+  ): string {
+    const firstInputIndex = opts.firstInputIndex ?? 1;
+    const chainPrefix = opts.chainPrefix ?? 'v';
+    const outLabel = opts.outLabel ?? '[vout]';
+
     const legs: string[] = [];
     const overlays: string[] = [];
-    let base = '[0:v]';
+    let base = opts.baseLabel ?? '[0:v]';
 
     for (const [k, { anim }] of staged.entries()) {
-      const inputIndex = k + 1;
-      const legFilters = buildAnimationLegFilters({
-        scale: anim.scale,
-        rotation: anim.rotation,
-        opacity: anim.opacity,
-      });
-      let legRef = `[${inputIndex}:v]`;
+      const legRef = this.appendOverlayLeg(anim, firstInputIndex + k, k, legs);
+      const out = k === staged.length - 1 ? outLabel : `[${chainPrefix}${k}]`;
 
-      if (legFilters.length > 0) {
-        const pad = `[anim${k}]`;
-        legs.push(`[${inputIndex}:v]${legFilters.join(',')}${pad}`);
-        legRef = pad;
-      }
-
-      const position = anim.position ?? '0:0';
-      const eofAction = anim.persistent ? 'repeat' : 'pass';
-      // shortest only bounds the legacy infinite `loop:true` case; duration/loops sources are already
-      // finite (via -t / -stream_loop N), so the output is bounded by the base video without it.
-      const infiniteLoop = anim.loop === true && anim.loops === undefined && anim.duration === undefined;
-      const shortest = infiniteLoop ? ':shortest=1' : '';
-      const out = k === staged.length - 1 ? '[vout]' : `[v${k}]`;
-
-      overlays.push(`${base}${legRef}overlay=${position}:eof_action=${eofAction}${shortest}${out}`);
-      base = `[v${k}]`;
+      overlays.push(`${base}${legRef}overlay=${anim.position ?? '0:0'}:eof_action=${this.overlayEof(anim)}${out}`);
+      base = `[${chainPrefix}${k}]`;
     }
 
     return [...legs, ...overlays].join(';');
+  }
+
+  // Push the per-animation leg (scale/rotate/opacity) when any filter applies and return the label the
+  // overlay should consume — the padded leg output, or the raw input stream when no leg filters apply.
+  private appendOverlayLeg(anim: GlobalAnimation, inputIndex: number, k: number, legs: string[]): string {
+    const legFilters = buildAnimationLegFilters({ scale: anim.scale, rotation: anim.rotation, opacity: anim.opacity });
+
+    if (legFilters.length === 0) {
+      return `[${inputIndex}:v]`;
+    }
+
+    const pad = `[anim${k}]`;
+    legs.push(`[${inputIndex}:v]${legFilters.join(',')}${pad}`);
+
+    return pad;
+  }
+
+  // eof_action + optional `:shortest=1`. shortest only bounds the legacy infinite `loop:true` case;
+  // duration/loops sources are already finite (via -t / -stream_loop N).
+  private overlayEof(anim: GlobalAnimation): string {
+    const eofAction = anim.persistent ? 'repeat' : 'pass';
+    const infiniteLoop = anim.loop === true && anim.loops === undefined && anim.duration === undefined;
+
+    return infiniteLoop ? `${eofAction}:shortest=1` : eofAction;
+  }
+
+  // Fused transition+overlay assembly: the `-i` sources + the overlay graph chaining off the xfade
+  // output (`[vfx]`), with animation inputs offset past the segment inputs and an `ov` chain prefix so
+  // the labels never collide with the xfade `[v{k}]` chain. Used by VideoEditor.assembleWithTransitions.
+  buildFusedOverlay(
+    staged: StagedAnimation[],
+    opts: { inputOffset: number; maxDuration: number }
+  ): { sources: string; graph: string } {
+    return {
+      sources: this.buildOverlaySources(staged, opts.maxDuration),
+      graph: this.buildOverlayGraph(staged, {
+        baseLabel: '[vfx]',
+        firstInputIndex: opts.inputOffset,
+        chainPrefix: 'ov',
+        outLabel: '[vout]',
+      }),
+    };
   }
 }
 

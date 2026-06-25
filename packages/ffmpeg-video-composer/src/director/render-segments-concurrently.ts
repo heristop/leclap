@@ -71,7 +71,6 @@ export const renderSegmentsSerially = async (ctx: SerialRenderContext): Promise<
 
 export interface ParallelRenderContext {
   segments: Section[];
-  concurrency: number;
   isStopped: () => boolean;
   build: (section: Section) => Promise<SegmentBuilder>;
   render: (segment: SegmentBuilder, section: Section) => Promise<void>;
@@ -82,6 +81,31 @@ export interface ParallelRenderContext {
   logger: AbstractLogger;
 }
 
+// Superset context for the single render entry point: carries both the serial and the parallel
+// fields so the director builds one object and `renderSegments` dispatches by effective width.
+export interface RenderSegmentsContext extends SerialRenderContext, ParallelRenderContext {
+  supportsConcurrentExecute: boolean;
+  maxRenderConcurrency: number | undefined;
+}
+
+// Single render entry: resolve the effective concurrency, then run serially (1) or via the pool.
+export const renderSegments = async (ctx: RenderSegmentsContext): Promise<void> => {
+  const concurrency = resolveRenderConcurrency(
+    ctx.supportsConcurrentExecute,
+    ctx.maxRenderConcurrency,
+    ctx.segments.length
+  );
+  ctx.logger.info(`[TemplateDirection] Render concurrency: ${concurrency}`);
+
+  if (concurrency === 1) {
+    await renderSegmentsSerially(ctx);
+
+    return;
+  }
+
+  await renderSegmentsConcurrently(ctx, concurrency);
+};
+
 /**
  * Render segments with bounded concurrency. Build runs serially first (it mutates the shared
  * `Segment` DI singleton, so it must not overlap), capturing each segment's ffmpeg command +
@@ -89,7 +113,7 @@ export interface ParallelRenderContext {
  * original segment order. Falls back to serial rendering when two segments resolve to the same
  * output path (duplicate section names) — concurrent writes to one file corrupt it.
  */
-export const renderSegmentsConcurrently = async (ctx: ParallelRenderContext): Promise<void> => {
+export const renderSegmentsConcurrently = async (ctx: ParallelRenderContext, concurrency: number): Promise<void> => {
   const built = await ctx.segments.reduce(async (chain, section) => {
     const acc = await chain;
 
@@ -103,13 +127,13 @@ export const renderSegmentsConcurrently = async (ctx: ParallelRenderContext): Pr
   }, Promise.resolve<Built[]>([]));
 
   const destinations = built.map((b) => b.segment.destination);
-  const concurrency = new Set(destinations).size === destinations.length ? ctx.concurrency : 1;
+  const effective = new Set(destinations).size === destinations.length ? concurrency : 1;
 
-  if (concurrency !== ctx.concurrency) {
+  if (effective !== concurrency) {
     ctx.logger.warn('[TemplateDirection] Duplicate segment output paths detected; rendering serially');
   }
 
-  await runWithConcurrency(built, concurrency, async ({ segment, section }) => {
+  await runWithConcurrency(built, effective, async ({ segment, section }) => {
     if (ctx.isStopped()) {
       return;
     }

@@ -152,4 +152,24 @@ describe('reorderElement', () => {
 
     expect(patch).toEqual({});
   });
+
+  it('insert-moves across multiple positions (drag-and-drop), shifting the rest', () => {
+    const base = newSection('color');
+
+    if (base.kind !== 'color') throw new Error('expected color section');
+    const section: EditorSection = {
+      ...base,
+      overlays: [
+        { ...newOverlay(), text: 'a' },
+        { ...newOverlay(), text: 'b' },
+        { ...newOverlay(), text: 'c' },
+      ],
+    };
+
+    // Drag 'a' (index 0) to index 2: a proper move yields [b, c, a] — a swap would wrongly give [c, b, a].
+    const patch = reorderElement(section, { kind: 'text', index: 0 }, 2);
+    const overlays = field<{ text: string }>(patch, 'overlays');
+
+    expect(overlays?.map((o) => o.text)).toEqual(['b', 'c', 'a']);
+  });
 });

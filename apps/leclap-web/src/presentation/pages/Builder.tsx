@@ -724,7 +724,14 @@ const useProjectPersistence = (args: PersistenceArgs) => {
     if (projectIdParam) setSearchParams({}, { replace: true });
   };
 
-  return { hydrating, hydratedResult, resetProject, saveStatus, lastSavedAt };
+  // Clear only the hydrated (saved-project) result without tearing down the project id / URL, so
+  // "Back" from the result screen returns to editing the SAME draft.
+  const clearHydratedResult = () => {
+    savedOutputRef.current = null;
+    setHydratedResult(null);
+  };
+
+  return { hydrating, hydratedResult, resetProject, clearHydratedResult, saveStatus, lastSavedAt };
 };
 
 interface PreselectArgs {
@@ -784,7 +791,7 @@ const useBuilderController = () => {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [model, setModel] = useState<WizardModel>(EMPTY_MODEL);
-  const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, isFFmpegReady } =
+  const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, clearResults, isFFmpegReady } =
     useVideoProcessing();
   const { templateParam, projectIdParam, resolving } = useTemplatePreselect({ setSelectedTemplate, setModel });
   const steps: WizardStep[] = selectedTemplate ? buildSteps(selectedTemplate) : [{ kind: 'template' }];
@@ -794,7 +801,7 @@ const useBuilderController = () => {
   const builderState: BuilderState = { ...model, selectedTemplate };
   const allComplete = allInputsComplete(steps, builderState);
 
-  const { hydrating, hydratedResult, resetProject, saveStatus, lastSavedAt } = useProjectPersistence({
+  const { hydrating, hydratedResult, resetProject, clearHydratedResult, saveStatus, lastSavedAt } = useProjectPersistence({
     selectedTemplate,
     model,
     currentStepKind,
@@ -819,6 +826,16 @@ const useBuilderController = () => {
 
   const handlers: WizardHandlers = {
     ...actions.handlers,
+    // "Back" from the result screen: the result view is rendered whenever a processed video exists
+    // (regardless of stepIndex), so clear BOTH the fresh-process result and any hydrated one — else the
+    // guard keeps re-showing the result and Back appears to do nothing — then return to the last input
+    // step to keep editing the same draft.
+    onResultBack: () => {
+      clearResults();
+      clearHydratedResult();
+      const backTo = Math.max(0, processIndex(steps) - 1);
+      setModel((m) => ({ ...m, stepIndex: backTo }));
+    },
     // "Change template" / back: leave the editor and return to the gallery to pick another. The
     // unmount tears down the session; resetProject still runs so any in-flight project ref is cleared.
     onReset: () => {

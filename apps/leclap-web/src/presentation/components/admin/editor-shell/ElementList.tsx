@@ -3,7 +3,7 @@
 // Each row mirrors the canvas selection ring (aria-pressed), and carries move-up / move-down / delete
 // controls. This generalizes OverlayInspector's text-only list to descriptor-driven rows, reusing the
 // same kind→icon mapping as AddElementMenu so the list and the add menu stay in agreement.
-import type { ComponentType, ReactNode } from 'react';
+import { useState, type ComponentType, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Image, Square, Trash2, Type } from '@/presentation/components/icons';
@@ -30,6 +30,20 @@ const sameRef = (a: ElementRef, b: ElementRef | null): boolean => {
   return a.kind === b.kind && a.index === b.index;
 };
 
+// Decode a dragged element-row payload (the same JSON the canvas drop reads), or null when the drag
+// is not a reorderable element row.
+function parseElementRowDrag(raw: string): { ref: ElementRef } | null {
+  try {
+    const payload = JSON.parse(raw) as { source?: string; ref?: ElementRef };
+
+    if (payload.source === 'element-row' && payload.ref) return { ref: payload.ref };
+  } catch {
+    // Not a JSON element-row payload — ignore.
+  }
+
+  return null;
+}
+
 interface ElementListProps {
   elements: ElementDescriptor[];
   activeRef: ElementRef | null;
@@ -41,6 +55,16 @@ interface ElementListProps {
 export const ElementList = ({ elements, activeRef, onSelect, onDelete, onMove }: ElementListProps) => {
   const { t } = useTranslation('admin');
 
+  // Reorder is scoped per kind (text / image / animation / layer each live in their own array, and the
+  // engine composites the kinds in a fixed order), so the move arrows must reflect each element's
+  // position WITHIN its kind — not its index in the flattened list — or they read as enabled while
+  // doing nothing (e.g. a lone text above a lone image).
+  const countByKind = elements.reduce<Partial<Record<ElementRef['kind'], number>>>((acc, { kind }) => {
+    acc[kind] = (acc[kind] ?? 0) + 1;
+
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-2">
       <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">{t('element.list')}</span>
@@ -48,13 +72,13 @@ export const ElementList = ({ elements, activeRef, onSelect, onDelete, onMove }:
         <p className="text-xs text-gray-500 dark:text-gray-400">{t('element.empty')}</p>
       ) : (
         <ul className="space-y-1">
-          {elements.map((descriptor, index) => (
+          {elements.map((descriptor) => (
             <Row
               key={`${descriptor.kind}:${descriptor.ref.index}`}
               descriptor={descriptor}
               active={sameRef(descriptor.ref, activeRef)}
-              first={index === 0}
-              last={index === elements.length - 1}
+              first={descriptor.ref.index === 0}
+              last={descriptor.ref.index === (countByKind[descriptor.kind] ?? 1) - 1}
               onSelect={onSelect}
               onDelete={onDelete}
               onMove={onMove}
@@ -82,15 +106,43 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
   const { ref } = descriptor;
   const { ref: chevronUpRef, hoverProps: chevronUpHoverProps } = useIconHover();
   const { ref: chevronDownRef, hoverProps: chevronDownHoverProps } = useIconHover();
+  const [dropTarget, setDropTarget] = useState(false);
+
+  // A row dragged onto ANOTHER row reorders the list (same kind only — kinds live in separate arrays).
+  // The same draggable also feeds the canvas (effectAllowed copyMove), so dropping on the canvas still
+  // adds the element; dropping on a row moves it.
+  const onRowDrop = (event: React.DragEvent<HTMLLIElement>): void => {
+    setDropTarget(false);
+    const raw = event.dataTransfer.getData(CANVAS_DND_MIME);
+
+    if (!raw) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const payload = parseElementRowDrag(raw);
+
+    if (!payload || payload.ref.kind !== ref.kind) return;
+    onMove(payload.ref, ref.index - payload.ref.index);
+  };
 
   return (
     <li
-      className="flex items-center gap-1"
+      className={cn('flex items-center gap-1 rounded-lg', dropTarget && 'ring-2 ring-brand-500/50')}
       draggable
       onDragStart={(event) => {
-        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.effectAllowed = 'copyMove';
         event.dataTransfer.setData(CANVAS_DND_MIME, JSON.stringify({ source: 'element-row', ref }));
       }}
+      onDragOver={(event) => {
+        if (!event.dataTransfer.types.includes(CANVAS_DND_MIME)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        setDropTarget(true);
+      }}
+      onDragLeave={() => {
+        setDropTarget(false);
+      }}
+      onDrop={onRowDrop}
     >
       <button
         type="button"
@@ -104,7 +156,10 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
         )}
       >
         <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden />
-        <span className="truncate">{t(descriptor.labelKey, descriptor.labelParams)}</span>
+        <span className="shrink-0">{t(descriptor.labelKey, descriptor.labelParams)}</span>
+        {descriptor.previewText && (
+          <span className="truncate text-gray-400 dark:text-gray-500">{descriptor.previewText}</span>
+        )}
       </button>
       <IconButton
         label={t('element.moveUp')}

@@ -8,14 +8,20 @@ import type Project from '../core/models/Project';
 import type { Section } from '@/core/types';
 import type MusicComposer from './MusicComposer';
 import type AnimationComposer from './AnimationComposer';
+import type { StagedAnimation } from './AnimationComposer';
 import { getPerfTimer } from '../utils/perf-timer';
+import type { VideoSource } from './video-input';
 import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
-
-/** A boundary transition between two adjacent segments — `type` is an xfade name or `cut`. */
-type Transition = { type: string; duration: number };
-
-/** Per-segment probe result the assembly graph is built from. */
-type SegmentProbe = { duration: number; hasAudio: boolean };
+import {
+  buildAudioGraph,
+  buildNormalizeGraph,
+  buildVideoGraph,
+  computeOffsets,
+  effectiveDurations as computeEffectiveDurations,
+  round,
+  type SegmentProbe,
+  type Transition,
+} from './transition-graph';
 
 @injectable()
 class VideoEditor {
@@ -154,7 +160,13 @@ class VideoEditor {
       this.project.finalVideo = finalOutputPath;
 
       const probes = await this.probeSegments(segmentFiles);
-      const command = this.buildTransitionsCommand(segmentFiles, transitions, probes, finalOutputPath);
+      const command = this.buildTransitionsCommand(
+        segmentFiles,
+        transitions,
+        probes,
+        finalOutputPath,
+        await this.stageOverlaysForFusion()
+      );
 
       this.logger.debug(`[Transitions][Command] ffmpeg ${command}`);
       const result = await this.ffmpegAdapter.execute(command);
@@ -174,6 +186,17 @@ class VideoEditor {
       throw error;
     }
   };
+
+  // Stage whole-video animations so xfade + overlay fuse into one re-encode (the separate overlay pass
+  // in finalize then skips). Empty when none declared, or when FVC_DISABLE_FUSION forces the two-pass
+  // path (bench/debug A/B — overlayAnimations re-runs in that case).
+  private async stageOverlaysForFusion(): Promise<StagedAnimation[]> {
+    if (!this.template.descriptor.global?.animations?.length || process.env.FVC_DISABLE_FUSION) {
+      return [];
+    }
+
+    return this.animationComposer.loadAnimations();
+  }
 
   private async probeSegments(segmentFiles: string[]): Promise<SegmentProbe[]> {
     const infos = await Promise.all(
@@ -206,7 +229,8 @@ class VideoEditor {
     segmentFiles: string[],
     transitions: Transition[],
     probes: SegmentProbe[],
-    finalOutputPath: string
+    finalOutputPath: string,
+    staged: StagedAnimation[] = []
   ): string {
     const sampleRate = this.project.config.audioConfig?.sampleRate ?? 48000;
     const inputs = segmentFiles.map((file) => ` -i ${file} `).join('');
@@ -225,122 +249,40 @@ class VideoEditor {
       return index;
     });
 
-    const effectiveDurations = this.effectiveDurations(transitions, probes);
-    const offsets = this.computeOffsets(probes, effectiveDurations);
-    const normalizeGraph = this.buildNormalizeGraph(segmentFiles.length);
-    const videoGraph = this.buildVideoGraph(transitions, offsets, effectiveDurations);
-    const audioGraph = this.buildAudioGraph(transitions, audioInputIndex, effectiveDurations);
-    const filterComplex = `${normalizeGraph};${videoGraph};${audioGraph}`;
+    const effectiveDurations = computeEffectiveDurations(transitions, probes);
+    const offsets = computeOffsets(probes, effectiveDurations);
+    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const normalizeGraph = buildNormalizeGraph(segmentFiles.length, scale);
+    const audioGraph = buildAudioGraph(transitions, audioInputIndex, effectiveDurations);
 
-    const encoderArgs = buildVideoEncoderArgs(this.project.config);
-    const pixFmtArg = buildPixFmtArg(this.project.config);
-    const colorArgs = buildColorMetadataArgs();
+    // Fused path: when the template has whole-video animation overlays, weave the overlay graph onto
+    // the xfade output (`[vfx]`) so transitions + overlays re-encode in ONE pass instead of two
+    // (buildFusedOverlay offsets the animation inputs past the segments + uses a distinct `ov` chain).
+    const fuse = staged.length > 0;
+    const assembledDuration = round(this.sum(probes.map((p) => p.duration)) - this.sum(effectiveDurations));
+    const overlay = fuse
+      ? this.animationComposer.buildFusedOverlay(staged, {
+          inputOffset: segmentFiles.length + silentInputs.length,
+          maxDuration: assembledDuration,
+        })
+      : { sources: '', graph: '' };
+
+    const videoGraph = buildVideoGraph(transitions, offsets, effectiveDurations, fuse ? '[vfx]' : '[vout]');
+    const filterComplex = [normalizeGraph, videoGraph, overlay.graph, audioGraph].filter(Boolean).join(';');
+    const outputArgs = `${buildVideoEncoderArgs(this.project.config)} ${buildPixFmtArg(this.project.config)} ${buildColorMetadataArgs()}`;
 
     return (
       ' -y ' +
       inputs +
       silentInputs.join('') +
+      (overlay.sources ? ` ${overlay.sources} ` : '') +
       ` -filter_complex "${filterComplex}" ` +
-      ` -map "[vout]" -map "[aout]" -r 30 ${encoderArgs} ${pixFmtArg} ${colorArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
+      ` -map "[vout]" -map "[aout]" -r 30 ${outputArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
     );
   }
 
-  /**
-   * xfade requires all inputs to share one resolution/SAR, and segments can disagree
-   * (forceAspectRatio sections, mixed sources). Scale-and-pad every segment to the project
-   * scale before the xfade chain. `videoConfig.scale` is already orientation-swapped by the
-   * segment pass, so it is the final output size.
-   */
-  private buildNormalizeGraph(segmentCount: number): string {
-    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
-    const links: string[] = [];
-
-    for (let k = 0; k < segmentCount; k++) {
-      links.push(
-        `[${k}:v]scale=${scale}:force_original_aspect_ratio=decrease,pad=${scale}:(ow-iw)/2:(oh-ih)/2,setsar=1[vs${k}]`
-      );
-    }
-
-    return links.join(';');
-  }
-
-  /**
-   * offset_k = (Σ_{i≤k} d_i) − (Σ_{i≤k} effTr_i) for the k-th boundary (1-indexed over boundaries).
-   * The cumulative subtraction of prior transition durations keeps every clip starting where the
-   * previous cross-dissolve ends, so later boundaries don't drift. Uses the per-boundary *effective*
-   * (capped) transition durations so a transition that meets/exceeds its clip never drives an offset
-   * to zero (which would overlap the whole timeline into a single clip).
-   */
-  private computeOffsets(probes: SegmentProbe[], effectiveDurations: number[]): number[] {
-    const offsets: number[] = [];
-    let durationSum = 0;
-    let transitionSum = 0;
-
-    for (let k = 0; k < effectiveDurations.length; k++) {
-      durationSum += probes[k].duration;
-      transitionSum += effectiveDurations[k];
-      offsets.push(this.round(durationSum - transitionSum));
-    }
-
-    return offsets;
-  }
-
-  /**
-   * Per-boundary transition duration actually fed to xfade/acrossfade. A `cut` is a near-zero fade so
-   * the graph stays uniform. Every other transition is capped to at most HALF the shorter adjacent
-   * segment: an xfade overlaps both neighbours, so a transition as long as (or longer than) a clip
-   * collapses the cumulative offset to ≤0 and the whole timeline folds into one clip
-   * (the xfade-short-segment-collapse). Capping to half guarantees each clip keeps ≥50% non-overlap,
-   * so offsets stay strictly increasing and the output keeps a realistic duration. Authored
-   * transitions on normal (multi-second) clips sit well under the cap and pass through unchanged.
-   */
-  private effectiveDurations(transitions: Transition[], probes: SegmentProbe[]): number[] {
-    return transitions.map((transition, k) => {
-      if (transition.type === 'cut') return 0.001;
-
-      const shorterAdjacent = Math.min(probes[k].duration, probes[k + 1].duration);
-
-      return this.round(Math.min(transition.duration, shorterAdjacent / 2));
-    });
-  }
-
-  private transitionName(transition: Transition): string {
-    return transition.type === 'cut' ? 'fade' : transition.type;
-  }
-
-  // FFmpeg accepts decimals; trim float noise (4.499999) to keep commands clean and assertable.
-  private round(value: number): number {
-    return Math.round(value * 1000) / 1000;
-  }
-
-  private buildVideoGraph(transitions: Transition[], offsets: number[], effectiveDurations: number[]): string {
-    const links: string[] = [];
-
-    for (let k = 0; k < transitions.length; k++) {
-      const left = k === 0 ? '[vs0]' : `[v${k - 1}]`;
-      const right = `[vs${k + 1}]`;
-      const out = k === transitions.length - 1 ? '[vout]' : `[v${k}]`;
-      const name = this.transitionName(transitions[k]);
-      const duration = effectiveDurations[k];
-
-      links.push(`${left}${right}xfade=transition=${name}:duration=${duration}:offset=${offsets[k]}${out}`);
-    }
-
-    return links.join(';');
-  }
-
-  private buildAudioGraph(transitions: Transition[], audioInputIndex: number[], effectiveDurations: number[]): string {
-    const links: string[] = [];
-
-    for (let k = 0; k < transitions.length; k++) {
-      const left = k === 0 ? `[${audioInputIndex[0]}:a]` : `[a${k - 1}]`;
-      const right = `[${audioInputIndex[k + 1]}:a]`;
-      const out = k === transitions.length - 1 ? '[aout]' : `[a${k}]`;
-
-      links.push(`${left}${right}acrossfade=d=${effectiveDurations[k]}:c1=tri:c2=tri${out}`);
-    }
-
-    return links.join(';');
+  private sum(values: number[]): number {
+    return values.reduce((total, v) => total + v, 0);
   }
 
   private async cleanupConcatFile(): Promise<void> {
@@ -360,6 +302,16 @@ class VideoEditor {
   // re-encoding it once; music (below) then stream-copies that overlaid video. Runs only when the
   // template declares overlays and a final video exists.
   private async overlayAnimations(): Promise<void> {
+    // When the timeline has transitions, assembleWithTransitions already fused the overlays into the
+    // xfade re-encode — running a second overlay pass here would double-apply them. Only overlay
+    // standalone when there are no transitions (the plain-concat assembly path), or when fusion was
+    // forced off (FVC_DISABLE_FUSION) so assembly skipped it and this pass must run.
+    const hasTransition = this.project.buildInfos.transitions.some((t) => t.type !== 'cut');
+
+    if (hasTransition && !process.env.FVC_DISABLE_FUSION) {
+      return;
+    }
+
     if (this.template.descriptor.global?.animations?.length && this.project.finalVideo) {
       await this.animationComposer.appendAnimations(this.project.finalVideo);
     }
@@ -368,7 +320,7 @@ class VideoEditor {
   // Music is mixed only when the template enables it AND a track actually resolved (buildInfos.
   // musicPath is empty when none is selected). Without a track there's nothing to loop or append —
   // the concat output is already the final video. Probing an empty path would otherwise fail.
-  private async mixMusic(segments: Section[]): Promise<void> {
+  private async mixMusic(segments: Section[], videoSource?: VideoSource): Promise<void> {
     if (
       !this.template.descriptor.global?.musicEnabled ||
       !this.project.buildInfos.musicPath ||
@@ -378,7 +330,7 @@ class VideoEditor {
     }
 
     await this.musicComposer.loopMusic();
-    await this.musicComposer.appendMusic(segments, this.project.finalVideo);
+    await this.musicComposer.appendMusic(segments, this.project.finalVideo, videoSource);
   }
 
   private async emitFinalize(): Promise<void> {
@@ -400,12 +352,12 @@ class VideoEditor {
     this.template.clean();
   }
 
-  finalize = async (segments: Section[]): Promise<void> => {
+  finalize = async (segments: Section[], videoSource?: VideoSource): Promise<void> => {
     const timer = getPerfTimer();
 
     try {
       await timer.span('final:animations', () => this.overlayAnimations());
-      await timer.span('final:music', () => this.mixMusic(segments));
+      await timer.span('final:music', () => this.mixMusic(segments, videoSource));
       await this.emitFinalize();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';

@@ -7,6 +7,7 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type AbstractMusic from '../platform/ffmpeg/AbstractMusic';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
+import { resolveVideoInput, type VideoSource } from './video-input';
 
 type MusicFilterOptions = {
   baseFilter: string;
@@ -19,7 +20,7 @@ type MusicFilterOptions = {
 };
 
 type AppendMusicOptions = {
-  temp: string;
+  videoInputArgs: string;
   segments: Section[];
   finalVideo: string;
   audioVolumeLevel: number;
@@ -324,7 +325,7 @@ class MusicComposer {
   }
 
   private buildAppendMusicCommand(opts: AppendMusicOptions): string {
-    const { temp, segments, finalVideo, audioVolumeLevel, reduceNoiseConfig, sampleRate, hasSegmentAudio } = opts;
+    const { segments, finalVideo, audioVolumeLevel, reduceNoiseConfig, sampleRate, hasSegmentAudio } = opts;
     const channelConfig = `aformat=sample_fmts=fltp:sample_rates=${sampleRate}:channel_layouts=stereo`;
     const filterComplex = this.buildFilterComplex(
       segments,
@@ -334,7 +335,7 @@ class MusicComposer {
       hasSegmentAudio
     );
 
-    let command = ` -y -i ${temp} -i ${this.project.buildInfos.musicPath} `;
+    let command = ` -y ${opts.videoInputArgs} -i ${this.project.buildInfos.musicPath} `;
     command += ` -filter_complex "${filterComplex}" `;
     // +faststart so the music-mixed final output previews in a browser <video> (moov to the front),
     // matching the concat/single-file paths.
@@ -346,22 +347,22 @@ class MusicComposer {
   /**
    * Mix background music with video audio
    */
-  appendMusic = async (segments: Section[], finalVideo: string): Promise<void> => {
-    const time = Date.now();
-    const temp = `${this.filesystemAdapter.getTempDir()}/tmp_video_${time}.mp4`;
+  appendMusic = async (segments: Section[], finalVideo: string, videoSource?: VideoSource): Promise<void> => {
+    const source: VideoSource = videoSource ?? { kind: 'file', path: finalVideo };
     const reduceNoiseConfig = 'afftdn=nr=20:nf=-20';
 
     const audioVolumeLevel = this.template.descriptor.global?.audio?.sourceVolume ?? 1;
     const sampleRate = this.project.config.audioConfig?.sampleRate;
 
-    await this.filesystemAdapter.move(finalVideo, temp);
+    const resolved = await resolveVideoInput(source, this.filesystemAdapter, 'tmp_video');
+    const { videoInputArgs, probeTarget, tempToClean } = resolved;
 
-    // The concat output may have no audio stream (e.g. a video-only upload);
-    // probe it so the filtergraph below doesn't reference a missing `[0:a]`.
-    const hasSegmentAudio = (await this.ffmpegAdapter.getInfos(temp)).audioCodec !== null;
+    // Probe for an audio stream (a video-only upload has none) so the filtergraph doesn't reference a
+    // missing `[0:a]`. For concat, probeTarget is the first segment — uniform streams match the whole.
+    const hasSegmentAudio = (await this.ffmpegAdapter.getInfos(probeTarget)).audioCodec !== null;
 
     const command = this.buildAppendMusicCommand({
-      temp,
+      videoInputArgs,
       segments,
       finalVideo,
       audioVolumeLevel,
@@ -378,18 +379,25 @@ class MusicComposer {
       throw new Error('Error on music add');
     }
 
-    await this.filesystemAdapter.unlink(temp);
+    if (tempToClean) {
+      await this.filesystemAdapter.unlink(tempToClean);
+    }
   };
 
+  // True when the template requests loudnorm/dynaudnorm — lets the director decide whether a
+  // normalize pass will run (and thus whether the concat can fold into it) without duplicating the
+  // descriptor logic.
+  hasNormalization = (): boolean => this.buildNormalizeSuffix() !== '';
+
   /**
-   * Apply audio normalization to a final video when music is disabled.
-   * Task 9 (TemplateDirector) should call this after the concat step when
+   * Apply audio normalization to a final video when music is disabled. Called after assembly when
    * global.audio.normalize is set and music is not enabled.
    *
-   * Runs a single-pass normalize filter (loudnorm or dynaudnorm) via `-af`,
-   * copies the video stream, and replaces the output file in place.
+   * Runs a single-pass normalize filter (loudnorm or dynaudnorm) via `-af`, copies the video stream,
+   * and writes finalVideo. A concat `videoSource` lets it consume the segment list directly (folding
+   * the standalone concat into this pass); the default file source preserves the move-in-place flow.
    */
-  normalizeAudio = async (finalVideo: string): Promise<void> => {
+  normalizeAudio = async (finalVideo: string, videoSource?: VideoSource): Promise<void> => {
     const normalizeSuffix = this.buildNormalizeSuffix();
 
     if (!normalizeSuffix) {
@@ -398,12 +406,10 @@ class MusicComposer {
 
     // Strip the leading comma so it can be used as a standalone -af value.
     const afFilter = normalizeSuffix.slice(1);
-    const time = Date.now();
-    const temp = `${this.filesystemAdapter.getTempDir()}/tmp_normalize_${time}.mp4`;
+    const source = videoSource ?? { kind: 'file' as const, path: finalVideo };
+    const { videoInputArgs, tempToClean } = await resolveVideoInput(source, this.filesystemAdapter, 'tmp_normalize');
 
-    await this.filesystemAdapter.move(finalVideo, temp);
-
-    const command = ` -y -i ${temp} -af "${afFilter}" -c:v copy -movflags +faststart ${finalVideo} `;
+    const command = ` -y ${videoInputArgs} -af "${afFilter}" -c:v copy -movflags +faststart ${finalVideo} `;
 
     this.logger.debug(`[Music][Normalize] ffmpeg ${command}`);
     const result = await this.ffmpegAdapter.execute(command);
@@ -413,7 +419,9 @@ class MusicComposer {
       throw new Error('Error on audio normalization');
     }
 
-    await this.filesystemAdapter.unlink(temp);
+    if (tempToClean) {
+      await this.filesystemAdapter.unlink(tempToClean);
+    }
   };
 
   /**

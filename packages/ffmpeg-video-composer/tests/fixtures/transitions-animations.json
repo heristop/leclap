@@ -1,0 +1,83 @@
+{
+  "global": {
+    "variables": {
+      "colorsList": ["#101010", "#fafafa"]
+    },
+    "music": {
+      "name": "point-being.mp3"
+    },
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.5
+    },
+    "animations": [
+      {
+        "url": "animations/light_leak.apng",
+        "start": 0,
+        "duration": 6,
+        "opacity": 0.35
+      }
+    ],
+    "audio": {
+      "normalize": "loudnorm",
+      "sourceVolume": 1,
+      "musicVolume": 0.5
+    }
+  },
+  "sections": [
+    {
+      "name": "intro_layers",
+      "type": "color_background",
+      "transition": {
+        "type": "wipeleft",
+        "duration": 0.3
+      },
+      "options": {
+        "backgroundColor": "{{ color1 }}",
+        "duration": 4,
+        "musicVolume": 0.5,
+        "layers": [
+          {
+            "color": "{{ color2 }}",
+            "opacity": 0.15
+          }
+        ]
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "transitions"
+            },
+            "fontcolor": "{{ color2 }}",
+            "fontsize": 96,
+            "x": "(w-text_w)/2",
+            "y": "(h-text_h)/2",
+            "fontfile": "Rubik.ttf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mid_card",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "{{ color2 }}",
+        "duration": 4,
+        "musicVolume": 0.5
+      }
+    },
+    {
+      "name": "outro_card",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "{{ color1 }}",
+        "duration": 4,
+        "musicVolume": 0.5
+      }
+    }
+  ]
+}

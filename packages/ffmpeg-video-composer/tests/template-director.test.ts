@@ -83,6 +83,7 @@ function makeDeps() {
     loopMusic: vi.fn(async () => undefined),
     appendMusic: vi.fn(async () => undefined),
     normalizeAudio: vi.fn(async () => undefined),
+    hasNormalization: vi.fn(() => false),
   };
   const ffmpeg = {
     supportsConcurrentExecute: false,
@@ -270,7 +271,7 @@ describe('TemplateDirector.compileVideoSegments', () => {
     expect(project.buildInfos.totalSegments).toBe(2);
     expect(project.buildInfos.totalLength).toBe(6);
     expect(videoEditor.concat).toHaveBeenCalled();
-    expect(videoEditor.finalize).toHaveBeenCalledWith(sections);
+    expect(videoEditor.finalize).toHaveBeenCalledWith(sections, undefined);
   });
 });
 
@@ -643,6 +644,119 @@ describe('TemplateDirector.finalizeCompilation path selection', () => {
     await director.compileVideoSegments();
 
     expect(musicComposer.normalizeAudio).not.toHaveBeenCalled();
+  });
+});
+
+describe('TemplateDirector.finalizeCompilation concat fold', () => {
+  const cut = [{ type: 'cut', duration: 0 }];
+
+  it('folds concat into the music pass (no transitions/animations, music on)', async () => {
+    const { director, project, template, videoEditor, musicComposer } = makeDirector();
+    template.descriptor = { global: { musicEnabled: true }, sections: [] } as never;
+    project.buildInfos.musicPath = '/m/track.mp3';
+    project.buildInfos.fileConcatPath = '/build/segments.list';
+    project.buildInfos.transitions = cut;
+
+    await director.finalizeCompilation([
+      { name: 'a', type: 'video' },
+      { name: 'b', type: 'video' },
+    ] as never);
+
+    expect(videoEditor.concat).not.toHaveBeenCalled();
+    expect(videoEditor.assembleWithTransitions).not.toHaveBeenCalled();
+    expect(videoEditor.finalize).toHaveBeenCalledWith(expect.anything(), {
+      kind: 'concat',
+      listPath: '/build/segments.list',
+    });
+    expect(musicComposer.normalizeAudio).not.toHaveBeenCalled();
+    expect(project.finalVideo).toBe('/build/output.mp4');
+  });
+
+  it('does NOT fold when a transition is present', async () => {
+    const { director, template, videoEditor, project } = makeDirector();
+    template.descriptor = { global: { musicEnabled: true }, sections: [] } as never;
+    project.buildInfos.musicPath = '/m/track.mp3';
+    project.buildInfos.videoInputs = ['/build/a_output.mp4', '/build/b_output.mp4'];
+    project.buildInfos.transitions = [{ type: 'fade', duration: 1 }];
+
+    await director.finalizeCompilation([
+      { name: 'a', type: 'video' },
+      { name: 'b', type: 'video' },
+    ] as never);
+
+    expect(videoEditor.assembleWithTransitions).toHaveBeenCalled();
+    expect(videoEditor.finalize).toHaveBeenCalledWith(expect.anything(), undefined);
+  });
+
+  it('does NOT fold when global.animations are present (concat then finalize)', async () => {
+    const { director, template, videoEditor, project } = makeDirector();
+    template.descriptor = { global: { musicEnabled: true, animations: [{ url: 'x' }] }, sections: [] } as never;
+    project.buildInfos.musicPath = '/m/track.mp3';
+    project.buildInfos.transitions = cut;
+
+    await director.finalizeCompilation([{ name: 'a', type: 'video' }] as never);
+
+    expect(videoEditor.concat).toHaveBeenCalled();
+    expect(videoEditor.finalize).toHaveBeenCalledWith(expect.anything(), undefined);
+  });
+
+  it('folds on a virtual-filesystem (WASM) adapter too', async () => {
+    // Platform-agnostic: FFmpegWasmAdapter.execute bridges the concat segments + music into MEMFS,
+    // so the director must not special-case WASM.
+    const { director, template, videoEditor, project, ffmpeg } = makeDirector();
+    (ffmpeg as Record<string, unknown>).usesVirtualFilesystem = true;
+    template.descriptor = { global: { musicEnabled: true }, sections: [] } as never;
+    project.buildInfos.musicPath = '/m/track.mp3';
+    project.buildInfos.fileConcatPath = '/build/segments.list';
+    project.buildInfos.transitions = cut;
+
+    await director.finalizeCompilation([{ name: 'a', type: 'video' }] as never);
+
+    expect(videoEditor.concat).not.toHaveBeenCalled();
+    expect(videoEditor.finalize).toHaveBeenCalledWith(expect.anything(), {
+      kind: 'concat',
+      listPath: '/build/segments.list',
+    });
+  });
+
+  it('folds concat into normalize on the no-music + normalize path', async () => {
+    const { director, template, videoEditor, musicComposer, project } = makeDirector();
+    musicComposer.hasNormalization.mockReturnValue(true);
+    template.descriptor = { global: { audio: { normalize: 'loudnorm' } }, sections: [] } as never;
+    project.buildInfos.fileConcatPath = '/build/segments.list';
+    project.buildInfos.transitions = cut;
+
+    await director.finalizeCompilation([{ name: 'a', type: 'video' }] as never);
+
+    expect(videoEditor.concat).not.toHaveBeenCalled();
+    expect(musicComposer.normalizeAudio).toHaveBeenCalledWith('/build/output.mp4', {
+      kind: 'concat',
+      listPath: '/build/segments.list',
+    });
+    // finalize still runs for the finalize event + cleanup, with no folded source
+    expect(videoEditor.finalize).toHaveBeenCalledWith(expect.anything(), undefined);
+  });
+
+  it('does NOT fold when FVC_DISABLE_CONCAT_FOLD is set (bench/debug escape hatch)', async () => {
+    const prev = process.env.FVC_DISABLE_CONCAT_FOLD;
+    process.env.FVC_DISABLE_CONCAT_FOLD = '1';
+    const { director, template, videoEditor, project } = makeDirector();
+    template.descriptor = { global: { musicEnabled: true }, sections: [] } as never;
+    project.buildInfos.musicPath = '/m/track.mp3';
+    project.buildInfos.fileConcatPath = '/build/segments.list';
+    project.buildInfos.transitions = cut;
+
+    await director.finalizeCompilation([{ name: 'a', type: 'video' }] as never);
+
+    expect(videoEditor.concat).toHaveBeenCalled();
+    expect(videoEditor.finalize).toHaveBeenCalledWith(expect.anything(), undefined);
+
+    if (prev === undefined) {
+      delete process.env.FVC_DISABLE_CONCAT_FOLD;
+      return;
+    }
+
+    process.env.FVC_DISABLE_CONCAT_FOLD = prev;
   });
 });
 

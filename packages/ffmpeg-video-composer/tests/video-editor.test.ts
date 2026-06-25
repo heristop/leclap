@@ -11,7 +11,11 @@ function makeProject() {
   return {
     finalVideo: '',
     errors: [] as string[],
-    buildInfos: { fileConcatPath: '/build/segments.list', musicPath: '' },
+    buildInfos: {
+      fileConcatPath: '/build/segments.list',
+      musicPath: '',
+      transitions: [] as Array<{ type: string; duration: number }>,
+    },
     clean: vi.fn(),
   };
 }
@@ -202,7 +206,8 @@ describe('VideoEditor.finalize', () => {
     await editor.finalize(segments);
 
     expect(musicComposer.loopMusic).toHaveBeenCalled();
-    expect(musicComposer.appendMusic).toHaveBeenCalledWith(segments, '/build/output.mp4');
+    // finalize forwards an optional video source to appendMusic; undefined here (non-folded path).
+    expect(musicComposer.appendMusic).toHaveBeenCalledWith(segments, '/build/output.mp4', undefined);
     expect(emitter.emit).toHaveBeenCalledWith('finalize', {
       video_source: '/build/output.mp4',
       template_assets: template.assets,

@@ -8,6 +8,8 @@ import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import { rangeFill } from '../editor/controls';
+import { RevealControl } from '../editor/RevealControl';
+import { ExitControl } from '../editor/ExitControl';
 import {
   Button,
   Checkbox,
@@ -91,6 +93,20 @@ export const SelectedControls = ({
         </div>
         <BoxControls overlay={overlay} t={t} onPatch={onPatch} />
       </div>
+      {/* Animated entrance (rise/slide/fade) for the text — same reveal vocabulary as the other layers. */}
+      <RevealControl
+        reveal={overlay.reveal}
+        onChange={(reveal) => {
+          onPatch({ reveal });
+        }}
+      />
+      {/* Animated exit after a delay, timed against the section duration. */}
+      <ExitControl
+        exit={overlay.exit}
+        onChange={(exit) => {
+          onPatch({ exit });
+        }}
+      />
     </div>
   );
 };

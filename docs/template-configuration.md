@@ -184,7 +184,10 @@ Quoted from `XFADE_TRANSITIONS` in [`effects.schemas.ts`](../packages/ffmpeg-vid
 
 ## Looks & grade
 
-`look` is a one-word colour-grade preset: `cinematic`, `warm`, `cool`, `vintage`, `noir`, `vivid`, `dreamy` (`LOOK_PRESETS`).
+`look` is a one-word colour-grade preset (`LOOK_PRESETS`). Two families:
+
+- **`eq`/`curves` looks** (a stack of ordinary filters): `cinematic`, `warm`, `cool`, `vintage`, `noir`, `vivid`, `dreamy`.
+- **LUT-backed cinema looks** (a single `lut3d` + a bundled `.cube` file — a stronger, cleaner grade than the filter stacks): `teal-orange`, `warm-film`, `mono-film`, `noir-film`, `vivid-pop`. The engine stages the referenced `.cube` the same way it stages fonts, and `lut3d` is a standard LGPL filter that runs on every backend (host, on-device, WASM). A backend without `lut3d` drops the look with a warning rather than aborting (the clip renders ungraded).
 
 `grade` is the fine-grained equivalent and stacks on top of `look`. All fields optional:
 
@@ -269,6 +272,23 @@ Looks and grades compile to ordinary FFmpeg filters (`eq`, `colorbalance`, `curv
 
 `type` is always `silhouette`; `position` is `left` | `center` | `right`; `opacity` 0..1 (default 0.5).
 
+## Chroma key
+
+A visual section (`project_video`, `image`, `color_background`) may declare a `chromaKey` block to **key out a solid screen colour** (green/blue screen) and composite the clip over a flat background colour. The section inverts internally to a colour base + a keyed-clip overlay (`colorkey` → `format=rgba` → `overlay`).
+
+```jsonc
+{ "color": "#00b140", "similarity": 0.3, "blend": 0.1, "background": "#101418" }
+```
+
+| Field        | Type            | Description                                                            |
+| ------------ | --------------- | --------------------------------------------------------------------- |
+| `color`      | hex (required)  | The screen colour to remove.                                          |
+| `similarity` | `number` 0.01..1 | How close a pixel must be to `color` to be keyed (default ~0.3).      |
+| `blend`      | `number` 0..1   | Edge softness between kept and keyed pixels (default 0).               |
+| `background` | hex             | Flat colour composited behind the keyed clip (default the section's `backgroundColor`). |
+
+`colorkey` is LGPL and present on every backend; a backend without it drops the key with a warning (the clip renders un-keyed) rather than aborting. v1 keys over a **solid colour only** (no simultaneous background image / animation overlay on the same section).
+
 ## Captions
 
 A section's `caption` field renders a styled lower-third / overlay as a `drawtext` filter — burned into the video (unlike the framing guide). A `style` preset sets the base look; the other fields override it.
@@ -286,6 +306,21 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 | `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex). |
 | `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).        |
 | `reveal`                          | `Reveal`      | Animated entrance (see [Reveal](#reveal)).                                  |
+| `effect`                          | `TextEffect`  | Drop shadow / outline for legibility (see [Text legibility](#text-legibility)). |
+
+## Text legibility
+
+Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes an optional `effect` — a drop shadow and/or an outline that the engine lowers onto the `drawtext` (`shadowx`/`shadowy`/`shadowcolor` and `borderw`/`bordercolor`). Both are core libfreetype, present on every backend, so text stays readable over busy footage without hand-writing the options.
+
+```jsonc
+"effect": { "shadow": true, "outline": true }
+"effect": { "shadow": { "color": "#000000@0.6", "dx": 2, "dy": 2 }, "outline": { "color": "#101010", "width": 3 } }
+```
+
+| Field     | Shorthand                  | Object form                                  |
+| --------- | -------------------------- | -------------------------------------------- |
+| `shadow`  | `true` → `#000000@0.6` @ 2,2 | `{ color?, dx?, dy? }` (px offsets)          |
+| `outline` | `true` → `#000000` width 2   | `{ color?, width? }` (px)                    |
 
 ## Reveal
 
@@ -305,6 +340,17 @@ Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes
 | `slide-right` | Enters from the left (+fade).                        |
 
 `delay` (s, default 0.3), `duration` (s, default 0.6), `distance` (px, default 60, rise/slide only). In `titleCard`/`lowerThird` the lines are staggered top-to-bottom automatically.
+
+## Exit
+
+A positioned text overlay (a `drawtext` filter on a section, as the builder emits) also takes an optional `exit` — an animated **departure** that the engine bakes alongside the entrance onto the same `drawtext` (the combined alpha is `enterFade × exitFade`, and the position eases from any entrance offset out to the exit offset). Same vocabulary as `reveal`; author it as a bare string or an object with timing:
+
+```jsonc
+"exit": "fade"
+"exit": { "type": "slide-left", "after": 2.5, "duration": 0.6, "distance": 60 }
+```
+
+The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The one extra field is **`after`** — seconds from the section start when the exit begins; omit it and the engine times the exit to **end at the section's end**. `duration` (s, default 0.6) and `distance` (px, default 60, rise/slide only) behave as for `reveal`.
 
 ## Title cards
 
@@ -394,6 +440,8 @@ An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 w
     "duration": 8, // OR seconds the overlay plays → -t 8 (overrides loops/loop)
     "start": 3, // delay before it appears, seconds → -itsoffset 3 (default 0)
     "persistent": true, // → eof_action=repeat (holds last frame past EOF)
+    "rotation": 0, // clockwise degrees applied before compositing (default upright)
+    "motion": "rise", // animated entrance, reuses the Reveal vocabulary (see below)
   },
   "filters": [
     /* optional raw chain on this input before compositing */
@@ -402,6 +450,8 @@ An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 w
 ```
 
 **Playback extent** — set exactly one of `loop` (forever), `loops` (a finite play count), or `duration` (seconds); precedence is `duration` > `loops` > `loop`. `start` delays the overlay (`-itsoffset`, default 0). `persistent` maps to `eof_action=repeat` (freeze the last frame once the overlay ends, instead of letting the video show through). `opacity` < 1 fades the leg via `colorchannelmixer=aa`. Reference an input by `@name` from a `maps[]` entry.
+
+**Motion** — `options.motion` gives the overlay an animated entrance, reusing the [Reveal](#reveal) vocabulary (`fade`/`rise`/`slide-left`/`slide-right`, or an object with `delay`/`duration`/`distance`). It compiles to time-expressions on the `overlay` `x`/`y` (and the leg's fade for `fade`), so a logo or animation can slide / rise / fade into place. Available on both `animation` and `image` inputs.
 
 ### `type: "image"`
 
@@ -415,11 +465,14 @@ A still picture (PNG/JPG/WebP) composited over the section — a backdrop, water
   "options": {
     "position": "40:40", // overlay "x:y" in output px
     "scale": "160:-1", // pre-composite scale "w:h" (-1 keeps aspect)
+    "opacity": 0.9, // 0..1, default 1
+    "rotation": 0, // clockwise degrees (default upright)
+    "motion": "slide-left", // animated entrance — same Reveal vocabulary as an animation overlay
   },
 }
 ```
 
-In the template builder, each image is picked from the bundled library or uploaded, then **dragged to position and resized** on the preview frame — exactly like an animation overlay.
+In the template builder, each image is picked from the bundled library or uploaded, then **dragged to position and resized** on the preview frame — exactly like an animation overlay. It takes the same `opacity`/`rotation`/`motion` options too.
 
 ## Whole-video animations
 

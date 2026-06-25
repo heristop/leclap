@@ -44,18 +44,36 @@ describe('ElementList', () => {
     expect(html.match(new RegExp(`aria-label="${admin.element.delete}"`, 'g'))).toHaveLength(3);
   });
 
-  it('disables move-up on the first row and move-down on the last row', () => {
-    const html = render(elements, null);
-    // React SSR renders the whole opening tag; a disabled button carries a boolean `disabled=""`.
-    const upMatches = [...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveUp}"[^>]*>`, 'g'))];
-    const downMatches = [...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveDown}"[^>]*>`, 'g'))];
+  // Reorder is scoped per kind (each kind lives in its own array), so the move arrows reflect an
+  // element's position WITHIN its kind, not the flattened list.
+  const ups = (html: string) => [...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveUp}"[^>]*>`, 'g'))];
+  const downs = (html: string) =>
+    [...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveDown}"[^>]*>`, 'g'))];
 
-    expect(upMatches).toHaveLength(3);
-    expect(downMatches).toHaveLength(3);
-    expect(upMatches[0][0]).toContain('disabled=""');
-    expect(upMatches[1][0]).not.toContain('disabled=""');
-    expect(downMatches[2][0]).toContain('disabled=""');
+  it('disables move-up on the first and move-down on the last element of a kind', () => {
+    const texts: ElementDescriptor[] = [0, 1, 2].map((index) => ({
+      ref: { kind: 'text', index },
+      kind: 'text',
+      labelKey: 'element.text',
+      labelParams: { n: index + 1 },
+    }));
+    const html = render(texts, null);
+    // React SSR renders the whole opening tag; a disabled button carries a boolean `disabled=""`.
+    const upMatches = ups(html);
+    const downMatches = downs(html);
+
+    expect(upMatches[0][0]).toContain('disabled=""'); // first text → can't move up
+    expect(upMatches[1][0]).not.toContain('disabled=""'); // middle → both enabled
     expect(downMatches[1][0]).not.toContain('disabled=""');
+    expect(downMatches[2][0]).toContain('disabled=""'); // last text → can't move down
+  });
+
+  it('disables both arrows for an element that is alone in its kind (no cross-kind reorder)', () => {
+    // The mixed list has one element per kind, so none can move within its kind.
+    const html = render(elements, null);
+
+    expect(ups(html).every((m) => m[0].includes('disabled=""'))).toBe(true);
+    expect(downs(html).every((m) => m[0].includes('disabled=""'))).toBe(true);
   });
 
   it('renders the empty state for an empty list', () => {

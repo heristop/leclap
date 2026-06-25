@@ -6,6 +6,7 @@
 import { buildDescriptor, type EditorState, type TemplateDescriptor } from '../templateEditorModel';
 import { templateService, type Template } from '@/services/templateService';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
+import { resolveLibraryInputMarkers } from '@/application/usecases/applyMediaChoices';
 import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
 
 // SectionOptions from core omits pictureUrl at the type level; cast locally for image_background access.
@@ -33,9 +34,9 @@ function fillPreviewBackgrounds(descriptor: TemplateDescriptor): TemplateDescrip
 }
 
 // A draft only needs to show each scene's look, not its full runtime. Capping every section to a few
-// seconds keeps the preview "fast" (its whole point) and — just as important — keeps the multi-segment
-// transition assembly light enough for the in-browser WASM encoder, which `Aborted()`s when a long
-// template (e.g. 3×20s clips + flash cards + bumper) is re-encoded through a big xfade filtergraph.
+// seconds also keeps the multi-segment transition assembly light enough for the in-browser WASM encoder,
+// which `Aborted()`s when a long template (e.g. 3×20s clips + flash cards + bumper) is re-encoded
+// through a big xfade filtergraph.
 export const PREVIEW_MAX_SECTION_SECONDS = 3;
 
 // Clamp `options.duration` on every section so the draft renders short clips. Runs on the built
@@ -85,7 +86,12 @@ export function previewFormData(state: EditorState): Record<string, string> {
 // A throwaway Template wrapping the freshly-built descriptor, suitable for compileVideo. The id is
 // suffixed so it can never collide with or overwrite the saved template.
 export function previewTemplate(state: EditorState): Template {
-  const descriptor = fillPreviewBackgrounds(clampPreviewDurations(buildDescriptor(state)));
+  const built = buildDescriptor(state);
+  // Resolve `library://<id>` image-overlay markers to their `/backgrounds/<file>` urls — same as the
+  // Save & film path. Without this the engine can't fetch the overlay and the segment aborts in WASM
+  // with "Output file not found" (a draft with an author-added library image element).
+  resolveLibraryInputMarkers(built);
+  const descriptor = fillPreviewBackgrounds(clampPreviewDurations(built));
 
   return {
     id: `${state.id}-preview`,

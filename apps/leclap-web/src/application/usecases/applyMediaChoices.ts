@@ -59,8 +59,9 @@ function applyBackgroundChoice(descriptor: TemplateDescriptor, choice: MediaChoi
 
 // Author-set image-overlay inputs (a video section's background/logo) carry a `library://<id>`
 // marker; resolve it to the curated `/backgrounds/<file>` url. `media://` uploads are left for
-// materializeTemplateMedia; pasted urls pass through untouched.
-function resolveLibraryInputMarkers(descriptor: TemplateDescriptor): void {
+// materializeTemplateMedia; pasted urls pass through untouched. Exported so the builder's preview
+// render resolves the same markers (the engine can't fetch a raw `library://` url → segment aborts).
+export function resolveLibraryInputMarkers(descriptor: TemplateDescriptor): void {
   for (const section of descriptor.sections ?? []) {
     for (const input of section.inputs ?? []) {
       if (input.url?.startsWith('library://')) {

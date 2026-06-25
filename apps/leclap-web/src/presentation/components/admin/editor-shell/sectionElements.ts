@@ -29,6 +29,9 @@ export interface ElementDescriptor {
   labelKey: string;
   labelParams?: Record<string, string | number>;
   kind: ElementRef['kind'];
+  // A short content preview (the overlay text, a logo/animation filename) shown next to the kind label
+  // so rows are distinguishable and a reorder is visible. Absent when the element has no content yet.
+  previewText?: string;
 }
 
 type ArrayField = 'layers' | 'overlays' | 'images' | 'animations';
@@ -71,16 +74,52 @@ export function canAddElement(section: EditorSection, kind: ElementRef['kind']):
   return OWNED_KINDS[section.kind].includes(kind);
 }
 
+// The basename of a URL/path (drop directories + query), so an image/animation row reads as its file.
+function fileLabel(url: string | undefined): string | undefined {
+  const trimmed = (url ?? '').split(/[?#]/)[0].replace(/\/+$/, '');
+  const base = trimmed.split('/').pop();
+
+  return base ? decodeURIComponent(base) : undefined;
+}
+
+// A label for a picked media choice — the url/upload filename, or the library asset id.
+function mediaChoiceLabel(choice: ImageOverlay['choice']): string | undefined {
+  if (choice.source === 'url') return fileLabel(choice.url);
+
+  if (choice.source === 'upload') return choice.label;
+
+  return choice.id;
+}
+
+// A short, identity-bearing content preview for an element row — the overlay text or the asset
+// filename — truncated. Undefined when the element has no content to show yet.
+function elementPreview(element: unknown, kind: ElementRef['kind']): string | undefined {
+  const raw = ((): string | undefined => {
+    if (kind === 'text') return (element as TextOverlay).text.trim() || undefined;
+
+    if (kind === 'image') return mediaChoiceLabel((element as ImageOverlay).choice);
+
+    if (kind === 'animation') return fileLabel((element as AnimationOverlay).url);
+
+    return undefined;
+  })();
+
+  if (!raw) return undefined;
+
+  return raw.length > 24 ? `${raw.slice(0, 24)}…` : raw;
+}
+
 function descriptorsFor(section: EditorSection, kind: ElementRef['kind']): ElementDescriptor[] {
   const list = sectionArray(section, kind);
 
   if (!list) return [];
 
-  return list.map((_, index) => ({
+  return list.map((element, index) => ({
     ref: { kind, index },
     kind,
     labelKey: `element.${kind}`,
     labelParams: { n: index + 1 },
+    previewText: elementPreview(element, kind),
   }));
 }
 
@@ -141,8 +180,11 @@ export function reorderElement(section: EditorSection, ref: ElementRef, delta: n
 
   if (to < 0 || to >= list.length) return {};
 
+  // Insert-move (not swap) so a multi-position drag lands the element at `to` and shifts the rest —
+  // for an adjacent ±1 step (the arrow buttons) this is identical to a swap.
   const next = [...list];
-  [next[ref.index], next[to]] = [next[to], next[ref.index]];
+  const [moved] = next.splice(ref.index, 1);
+  next.splice(to, 0, moved);
   const field = FIELD_FOR_KIND[ref.kind];
 
   return { [field]: next } as Partial<EditorSection>;

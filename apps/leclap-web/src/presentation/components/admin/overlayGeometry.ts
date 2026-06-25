@@ -20,3 +20,9 @@ export const fontSizeFromPreview = (draggedH: number, previewH: number, orientat
 
 // Clamp a pointer offset within the box to a [0, 1] fraction.
 export const clampFraction = (value: number, size: number): number => Math.min(1, Math.max(0, value / size));
+
+// Proportional radial resize: the new video-px `fontsize` for a corner-handle drag, scaling the
+// grab-time font size by how much the pointer's distance from the box centre has changed. Clamped to
+// the same authoring range as `fontSizeFromPreview`.
+export const fontSizeFromResize = (startFontsize: number, startDist: number, currentDist: number): number =>
+  Math.min(300, Math.max(8, Math.round(startFontsize * (currentDist / (startDist || 1)))));

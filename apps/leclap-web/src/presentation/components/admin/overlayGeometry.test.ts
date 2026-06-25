@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { refVideoHeight, previewFontPx, fontSizeFromPreview, clampFraction } from './overlayGeometry';
+import {
+  refVideoHeight,
+  previewFontPx,
+  fontSizeFromPreview,
+  clampFraction,
+  fontSizeFromResize,
+} from './overlayGeometry';
 
 describe('overlayGeometry — refVideoHeight', () => {
   it('uses 1080 for landscape and 1920 for portrait', () => {
@@ -36,6 +42,30 @@ describe('overlayGeometry — fontSizeFromPreview', () => {
 
       expect(fontSizeFromPreview(preview, 540, 'landscape')).toBe(fontsize);
     }
+  });
+});
+
+describe('overlayGeometry — fontSizeFromResize', () => {
+  it('grows the font when the pointer is dragged outward from the centre', () => {
+    // Doubling the radial distance doubles the font size.
+    expect(fontSizeFromResize(48, 100, 200)).toBe(96);
+  });
+
+  it('shrinks the font when the pointer is dragged toward the centre', () => {
+    expect(fontSizeFromResize(48, 200, 100)).toBe(24);
+  });
+
+  it('keeps the font unchanged when the distance is unchanged', () => {
+    expect(fontSizeFromResize(48, 150, 150)).toBe(48);
+  });
+
+  it('clamps to the [8, 300] authoring range', () => {
+    expect(fontSizeFromResize(48, 100, 1)).toBe(8);
+    expect(fontSizeFromResize(48, 100, 100_000)).toBe(300);
+  });
+
+  it('treats a zero grab distance as 1 to avoid dividing by zero', () => {
+    expect(fontSizeFromResize(48, 0, 48)).toBe(300);
   });
 });
 

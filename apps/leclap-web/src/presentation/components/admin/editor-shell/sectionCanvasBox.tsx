@@ -37,7 +37,8 @@ interface OverlayBoxProps {
   onSelect: (index: number) => void;
   onEdit: () => void;
   onMove: (index: number, clientX: number, clientY: number) => void;
-  onResize: (index: number, clientY: number) => void;
+  onResizeStart: (index: number, clientX: number, clientY: number) => void;
+  onResize: (index: number, clientX: number, clientY: number) => void;
   onNudge: (index: number, dx: number, dy: number) => void;
   onDelete: (index: number) => void;
   onCommitText: (text: string) => void;
@@ -48,6 +49,9 @@ interface OverlayBoxProps {
 export const OverlayBox = (props: OverlayBoxProps) => {
   const { overlay, index, t, orientation, active, editing, frameRect } = props;
   const modeRef = useRef<'move' | 'resize' | null>(null);
+  // Capture the pointer on the stable box element (not the tiny resize handle, which re-renders on
+  // every fontsize change mid-drag and would lose the capture — making resize "do nothing").
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const onBodyPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (editing) return;
@@ -62,7 +66,7 @@ export const OverlayBox = (props: OverlayBoxProps) => {
     e.stopPropagation();
 
     if (modeRef.current === 'resize') {
-      props.onResize(index, e.clientY);
+      props.onResize(index, e.clientX, e.clientY);
 
       return;
     }
@@ -79,7 +83,8 @@ export const OverlayBox = (props: OverlayBoxProps) => {
     e.stopPropagation();
     props.onSelect(index);
     modeRef.current = 'resize';
-    e.currentTarget.setPointerCapture(e.pointerId);
+    props.onResizeStart(index, e.clientX, e.clientY);
+    bodyRef.current?.setPointerCapture(e.pointerId);
   };
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -90,6 +95,7 @@ export const OverlayBox = (props: OverlayBoxProps) => {
 
   return (
     <div
+      ref={bodyRef}
       role="button"
       tabIndex={0}
       aria-label={overlayLabel(overlay, index, t)}
@@ -171,12 +177,14 @@ const BoxContent = ({ overlay, editing, t, editRef, onCommitText, onCaret, onEnd
     );
   }
 
-  // Empty, not editing: a fixed-size hint chip (independent of the overlay's own font size, which can
-  // scale to a couple of pixels in the preview) so a placed-but-blank overlay reads as a clear target.
+  // Empty, not editing: a hint chip that PREVIEWS the overlay's own typography — it inherits the box's
+  // font face and scales with its font size (clamped to a legible floor) — so changing the font or
+  // dragging the resize handles gives visible feedback even before any text is typed, while a tiny
+  // placed-but-blank overlay stays a grabbable target.
   if (overlay.text.trim() === '') {
     return (
-      <span className="pointer-events-none flex items-center gap-1 whitespace-nowrap text-[11px] leading-none font-medium tracking-normal normal-case opacity-60 [font-family:var(--font-sans)]">
-        <Type className="h-3 w-3" aria-hidden />
+      <span className="pointer-events-none flex items-center gap-1 whitespace-nowrap text-[max(0.5em,11px)] leading-none font-medium tracking-normal normal-case opacity-60">
+        <Type className="h-[1em] w-[1em]" aria-hidden />
         {t('overlay.doubleClickToEdit')}
       </span>
     );

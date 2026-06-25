@@ -34,3 +34,20 @@ describe('previewTemplate — image_background stand-in', () => {
     expect(pictureUrlOf(state([imageSectionWith([])]))).toMatch(/^\/backgrounds\/.+\.jpg$/);
   });
 });
+
+// Regression: a video section with an author-added library image overlay reached the engine as a raw
+// `library://<id>` url it could not fetch, aborting the segment in WASM ("Output file not found"). The
+// preview must resolve the marker to the curated `/backgrounds/<file>` url, like the Save & film path.
+describe('previewTemplate — library image-overlay markers', () => {
+  function videoWithLibraryImage(id: string): EditorSection {
+    return { ...newSection('video'), images: [{ id: 'img1', choice: { source: 'library', id } }] } as EditorSection;
+  }
+
+  it('resolves a library:// image-overlay marker to its /backgrounds url', () => {
+    const descriptor = previewTemplate(state([videoWithLibraryImage('forest-sea')])).descriptor;
+    const input = (descriptor.sections ?? []).flatMap((s) => s.inputs ?? []).find((i) => i.type === 'image');
+
+    expect(input?.url).toBe('/backgrounds/forest-sea.jpg');
+    expect(input?.url?.startsWith('library://')).toBe(false);
+  });
+});

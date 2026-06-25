@@ -7,7 +7,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { AnimationOverlay, ImageOverlay, TextOverlay, Orientation, BackgroundLayer } from '../templateEditorModel';
-import { clampFraction, fontSizeFromPreview } from '../overlayGeometry';
+import { clampFraction, fontSizeFromResize } from '../overlayGeometry';
 import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { OverlayBox } from './sectionCanvasBox';
@@ -46,6 +46,12 @@ type MediaPatch = { position: string } | { scale: string } | { rotation: number 
 // Replace one overlay in a fresh array (immutable update for onChange).
 const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<TextOverlay>): TextOverlay[] =>
   overlays.map((o, i) => (i === index ? { ...o, ...patch } : o));
+
+// The overlay's centre in client pixels, from its [0,1] fractions and the frame rect.
+const overlayCenter = (overlay: TextOverlay, rect: DOMRect): { cx: number; cy: number } => ({
+  cx: rect.left + overlay.x * rect.width,
+  cy: rect.top + overlay.y * rect.height,
+});
 
 // Merge a media patch into one item of its array (immutable update for image/animation overlays).
 const withMedia = <T extends ImageOverlay | AnimationOverlay>(items: T[], index: number, patch: MediaPatch): T[] =>
@@ -114,14 +120,30 @@ export const SectionCanvas = ({
     onChange(withOverlay(overlays, index, { x, y }));
   };
 
-  const resizeTo = (index: number, clientY: number) => {
+  // Corner-handle resize. The previous version mapped fontsize to the pointer's VERTICAL distance from
+  // the box centre, so dragging a corner of a one-line box horizontally (the natural gesture) did
+  // nothing. Scale proportionally instead: record the pointer's radial distance from the centre at
+  // grab time, then grow/shrink the font by the ratio as it's dragged in any direction.
+  const resizeStartRef = useRef<{ dist: number; fontsize: number } | null>(null);
+
+  const resizeStart = (index: number, clientX: number, clientY: number) => {
     const rect = frameRect();
 
     if (!rect) return;
     const overlay = overlays[index];
-    const centerY = rect.top + overlay.y * rect.height;
-    const halfHeightPx = Math.abs(clientY - centerY);
-    const fontsize = fontSizeFromPreview(halfHeightPx * 2, rect.height, orientation);
+    const { cx, cy } = overlayCenter(overlay, rect);
+    resizeStartRef.current = { dist: Math.hypot(clientX - cx, clientY - cy) || 1, fontsize: overlay.fontsize };
+  };
+
+  const resizeTo = (index: number, clientX: number, clientY: number) => {
+    const rect = frameRect();
+    const start = resizeStartRef.current;
+
+    if (!rect || !start) return;
+    const overlay = overlays[index];
+    const { cx, cy } = overlayCenter(overlay, rect);
+    const dist = Math.hypot(clientX - cx, clientY - cy);
+    const fontsize = fontSizeFromResize(start.fontsize, start.dist, dist);
     onChange(withOverlay(overlays, index, { fontsize }));
   };
 
@@ -235,6 +257,7 @@ export const SectionCanvas = ({
           }}
           onEdit={onBeginEdit}
           onMove={moveTo}
+          onResizeStart={resizeStart}
           onResize={resizeTo}
           onNudge={nudge}
           onDelete={removeAt}

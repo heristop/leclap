@@ -12,6 +12,7 @@ import type {
   BackgroundLayerSchema,
   FramingGuideSchema,
   RevealSchema,
+  ExitSchema,
   TextEffectSchema,
   ChromaKeySchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
@@ -40,6 +41,7 @@ export type CaptionAlign = NonNullable<DescriptorCaption['align']>;
 // Text-sugar feature types, inferred from the core schemas so the editor stores the exact descriptor
 // shape and build/import is a pass-through (the same approach as Grade/MotionEffect above).
 export type Reveal = z.infer<typeof RevealSchema>;
+export type Exit = z.infer<typeof ExitSchema>;
 export type TextEffect = z.infer<typeof TextEffectSchema>;
 export type ChromaKey = z.infer<typeof ChromaKeySchema>;
 export type TitleCard = z.infer<typeof TitleCardSchema>;
@@ -62,6 +64,11 @@ export interface TextOverlay {
   box: boolean;
   boxcolor: string;
   boxOpacity: number;
+  // Animated entrance (rise/slide/fade); the engine bakes it onto the drawtext at compile.
+  reveal?: Reveal;
+  // Animated exit (rise/slide/fade out) after a delay, timed against the section duration; the engine
+  // bakes it alongside the entrance at compile.
+  exit?: Exit;
 }
 
 // A transition emitted after a visual section (maps to section.transition).
@@ -156,6 +163,8 @@ export interface ImageOverlay {
   opacity?: number;
   // Clockwise rotation in degrees applied to the image before compositing. Omitted/0 = upright.
   rotation?: number;
+  // Animated entrance for the image (rise/slide/fade), reusing the reveal vocabulary; pass-through.
+  motion?: Reveal;
 }
 
 export interface VisualAnimation {

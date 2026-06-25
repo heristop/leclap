@@ -31,6 +31,7 @@ import {
   type ChromaKey,
 } from './model';
 import { overlayFrom } from './overlayParsing';
+import { pruneEmpty } from './prune';
 
 function formSectionFrom(s: Section): EditorSection {
   const fields = (s.options?.fields ?? []) as Array<{
@@ -58,12 +59,6 @@ function partialSectionFrom(s: PartialSection): EditorSection {
     variables: Object.entries(s.variables ?? {}).map(([name, value]) => ({ name, value })),
     ...(s.prefix ? { prefix: s.prefix } : {}),
   };
-}
-
-// Drop keys that are undefined or empty-string so a re-hydrated caption only carries fields the
-// stored section actually set, while keeping meaningful 0 / false values (e.g. fontsize 0, box false).
-function pruneEmpty<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== '')) as Partial<T>;
 }
 
 // Recover an editor caption from a stored section's `caption`, resolving its localized text.
@@ -137,7 +132,7 @@ function imagesFrom(s: Section): ImageOverlay[] {
   return (s.inputs ?? [])
     .filter((i) => i.type === 'image' && i.url)
     .map((input) => {
-      const { position, scale, opacity, rotation } = input.options ?? {};
+      const { position, scale, opacity, rotation, motion } = input.options ?? {};
 
       // opacity defaults to opaque, so only carry an explicit fade (< 1) back, mirroring animationsFrom.
       return {
@@ -147,6 +142,7 @@ function imagesFrom(s: Section): ImageOverlay[] {
         ...(scale ? { scale } : {}),
         ...(opacity !== undefined && opacity < 1 ? { opacity } : {}),
         ...(rotation ? { rotation } : {}),
+        ...(motion ? { motion } : {}),
       };
     });
 }
@@ -209,8 +205,7 @@ function descriptionFrom(s: Section): string | undefined {
   return s.description.en ?? Object.values(s.description)[0];
 }
 
-// The video-only extras (framing guide + lower third), only present when stored — extracted so
-// videoSectionFrom stays within the complexity budget.
+// Video-only extras (framing guide + lower third), absent when not stored.
 function videoExtrasFrom(s: Section): { framingGuide?: FramingGuide; lowerThird?: LowerThird; chromaKey?: ChromaKey } {
   const framingGuide = s.options?.framingGuide as FramingGuide | undefined;
 

@@ -31,6 +31,35 @@
   },
   "sections": [
     {
+      "name": "intro",
+      "type": "color_background",
+      "transition": {
+        "type": "fade",
+        "duration": 0.4
+      },
+      "titleCard": {
+        "kicker": {
+          "en": "FAST & CURIOUS"
+        },
+        "headline": {
+          "en": "Meet {{ form_1_firstname }}"
+        },
+        "subtitle": {
+          "en": "this or that — in 60 seconds"
+        },
+        "accent": "#ff2e4d",
+        "reveal": "rise",
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
+      },
+      "options": {
+        "backgroundColor": "#141416",
+        "duration": 3.5
+      }
+    },
+    {
       "name": "form_1",
       "type": "form",
       "title": {
@@ -287,6 +316,32 @@
           }
         }
       ]
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "titleCard": {
+        "headline": {
+          "en": "Thank you for watching!"
+        },
+        "subtitle": {
+          "en": "hit follow for more"
+        },
+        "accent": "#ff2e4d",
+        "align": "center",
+        "reveal": "rise",
+        "fade": {
+          "out": false
+        },
+        "effect": {
+          "shadow": true,
+          "outline": true
+        }
+      },
+      "options": {
+        "backgroundColor": "#141416",
+        "duration": 4
+      }
     },
     {
       "type": "partial",

@@ -516,6 +516,11 @@
     "distance": "Distance",
     "summaryDefault": "default timing"
   },
+  "exit": {
+    "label": "Exit",
+    "after": "Starts after",
+    "summaryDefault": "ends at section end"
+  },
   "textEffect": {
     "label": "Legibility",
     "shadow": "Drop shadow",

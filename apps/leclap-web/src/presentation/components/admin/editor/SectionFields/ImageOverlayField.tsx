@@ -7,6 +7,7 @@ import { makeTemplateId, type EditorState, type ImageOverlay, type MediaChoice }
 import { MediaPicker } from '../../MediaPicker';
 import { OverlayLayer } from '../OverlayLayer';
 import { OverlayPlacement } from '../OverlayPlacement';
+import { RevealControl } from '../RevealControl';
 import { useChoicePreviewUrl } from '../useChoicePreviewUrl';
 
 interface ImageOverlayRowProps {
@@ -44,14 +45,23 @@ const ImageOverlayRow = ({ value, index, orientation, onChange, onRemove }: Imag
           }}
         />
         {previewUrl !== '' && (
-          <OverlayPlacement
-            orientation={orientation}
-            url={previewUrl}
-            value={value}
-            onChange={(patch) => {
-              onChange({ ...value, ...patch });
-            }}
-          />
+          <>
+            <OverlayPlacement
+              orientation={orientation}
+              url={previewUrl}
+              value={value}
+              onChange={(patch) => {
+                onChange({ ...value, ...patch });
+              }}
+            />
+            {/* Animated entrance (rise/slide/fade) for the image — reuses the reveal vocabulary. */}
+            <RevealControl
+              reveal={value.motion}
+              onChange={(motion) => {
+                onChange({ ...value, motion });
+              }}
+            />
+          </>
         )}
       </div>
     </OverlayLayer>

@@ -365,6 +365,19 @@ describe('templateEditorModel — image overlays on color/image sections', () =>
 
     expect(color.images).toEqual([{ id: 'image_0', choice: { source: 'url', url: '/logo.png' }, position: '20:20' }]);
   });
+
+  it('emits and round-trips an image overlay entrance motion', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' }, motion: 'slide-left' }],
+    };
+    const input = buildDescriptor(baseState([section])).sections?.find((s) => s.inputs)?.inputs?.[0];
+    expect(input?.options).toMatchObject({ motion: 'slide-left' });
+
+    const back = toEditorState(asTemplate(baseState([section])));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+    expect(color.images?.[0]).toMatchObject({ motion: 'slide-left' });
+  });
 });
 
 // --- whole-video (global) animations ---
@@ -876,6 +889,28 @@ describe('templateEditorModel — video overlays → drawtext filters', () => {
     const allEmpty = buildDescriptor(baseState([videoSection([overlay({ text: '' }), overlay({ text: '  ' })])]));
 
     expect(allEmpty.sections?.find((s) => s.type === 'project_video')?.filters).toBeUndefined();
+  });
+
+  it('emits and round-trips a text-overlay entrance reveal and timed exit', () => {
+    const animated = overlay({
+      text: 'Bye',
+      reveal: 'rise' as const,
+      exit: { type: 'fade', after: 2.5 },
+    });
+    const d = buildDescriptor(baseState([videoSection([animated])]));
+    const filter = (d.sections?.find((s) => s.type === 'project_video')?.filters ?? [])[0];
+
+    expect(filter.reveal).toBe('rise');
+    expect(filter.exit).toEqual({ type: 'fade', after: 2.5 });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(baseState([videoSection([animated])])));
+    const recovered = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+    expect(recovered.overlays[0]).toMatchObject({
+      text: 'Bye',
+      reveal: 'rise',
+      exit: { type: 'fade', after: 2.5 },
+    });
   });
 });
 

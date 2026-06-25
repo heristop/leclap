@@ -34,7 +34,11 @@ function parseOpacity(boxcolor: string | undefined): number {
   return Math.min(1, Math.max(0, value));
 }
 
-export function overlayFrom(dt: { values?: DrawtextValues }): TextOverlay {
+export function overlayFrom(dt: {
+  values?: DrawtextValues;
+  reveal?: TextOverlay['reveal'];
+  exit?: TextOverlay['exit'];
+}): TextOverlay {
   const v = dt.values ?? {};
 
   return {
@@ -47,5 +51,7 @@ export function overlayFrom(dt: { values?: DrawtextValues }): TextOverlay {
     box: v.box !== undefined,
     boxcolor: (v.boxcolor ?? '#000000').split('@')[0],
     boxOpacity: parseOpacity(v.boxcolor),
+    ...(dt.reveal ? { reveal: dt.reveal } : {}),
+    ...(dt.exit ? { exit: dt.exit } : {}),
   };
 }

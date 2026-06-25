@@ -1,11 +1,9 @@
 // Pure: editor state -> core TemplateDescriptor. All helpers are file-local.
 import type { TemplateDescriptor, Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
-import { findFont } from '../fonts';
 import type {
   EditorSection,
   EditorState,
   FormField,
-  TextOverlay,
   SectionTransition,
   AudioMix,
   Grade,
@@ -16,16 +14,12 @@ import type {
   ImageOverlay,
   MediaChoice,
 } from './model';
+import { pruneEmpty } from './prune';
+import { overlayFiltersFrom } from './overlayFilters';
 
 // Default authoring locale for Translation fields the editor emits (section descriptions,
 // overlay/form text all key under 'en'). Single source so future i18n has one place to change.
 const DEFAULT_LOCALE = 'en';
-
-// Drop keys that are undefined or empty-string so the descriptor only carries fields the author
-// actually set, while keeping meaningful 0 / false values (e.g. fontsize 0, box false).
-function pruneEmpty<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== '')) as Partial<T>;
-}
 
 // Common visual-section passthrough fields (transition + grading + motion), only emitted when set.
 function captionDescriptorFrom(caption: EditorCaption | undefined): Section['caption'] | undefined {
@@ -112,6 +106,7 @@ function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Secti
     ...(overlay.scale ? { scale: overlay.scale } : {}),
     ...(overlay.opacity !== undefined && overlay.opacity < 1 ? { opacity: overlay.opacity } : {}),
     ...(overlay.rotation ? { rotation: overlay.rotation } : {}),
+    ...(overlay.motion ? { motion: overlay.motion } : {}),
   };
 
   return { name: `image_${index}`, url: markerFromChoice(overlay.choice), type: 'image', options };
@@ -226,38 +221,7 @@ function colorDescriptorFrom(section: ColorSection, index: number): Section {
   };
 }
 
-// Round a fraction to 3 decimals, clamped to [0, 1] — keeps drawtext expressions tidy.
-function roundFraction(value: number): number {
-  const clamped = Math.min(1, Math.max(0, value));
-
-  return Math.round(clamped * 1000) / 1000;
-}
-
 type VideoSection = Extract<EditorSection, { kind: 'video' }>;
-type StoredFilter = NonNullable<Section['filters']>[number];
-
-// A drawtext filter for one overlay. Box keys are only added when the overlay
-// opts into a background box; boxcolor carries the author-set opacity suffix.
-function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
-  return {
-    type: 'drawtext',
-    values: {
-      text: { en: overlay.text },
-      fontsize: overlay.fontsize,
-      fontcolor: overlay.fontcolor,
-      fontfile: findFont(overlay.font)?.file ?? 'Rubik.ttf',
-      x: `(w-text_w)*${roundFraction(overlay.x)}`,
-      y: `(h-text_h)*${roundFraction(overlay.y)}`,
-      ...(overlay.box ? { box: 1, boxcolor: `${overlay.boxcolor}@${overlay.boxOpacity}`, boxborderw: 12 } : {}),
-    },
-  };
-}
-
-// Non-empty text overlays → drawtext filters, in author order. Shared by video/color/image sections;
-// tolerant of an absent list (older states / sections built before overlays existed on this kind).
-function overlayFiltersFrom(overlays: TextOverlay[] | undefined): StoredFilter[] {
-  return (overlays ?? []).filter((o) => o.text.trim() !== '').map(drawtextFilterFrom);
-}
 
 function videoDescriptorFrom(section: VideoSection, index: number): Section {
   const filters = overlayFiltersFrom(section.overlays);

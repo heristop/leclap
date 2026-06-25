@@ -225,10 +225,11 @@ class VideoEditor {
       return index;
     });
 
-    const offsets = this.computeOffsets(probes, transitions);
+    const effectiveDurations = this.effectiveDurations(transitions, probes);
+    const offsets = this.computeOffsets(probes, effectiveDurations);
     const normalizeGraph = this.buildNormalizeGraph(segmentFiles.length);
-    const videoGraph = this.buildVideoGraph(transitions, offsets);
-    const audioGraph = this.buildAudioGraph(transitions, audioInputIndex);
+    const videoGraph = this.buildVideoGraph(transitions, offsets, effectiveDurations);
+    const audioGraph = this.buildAudioGraph(transitions, audioInputIndex, effectiveDurations);
     const filterComplex = `${normalizeGraph};${videoGraph};${audioGraph}`;
 
     const encoderArgs = buildVideoEncoderArgs(this.project.config);
@@ -264,27 +265,43 @@ class VideoEditor {
   }
 
   /**
-   * offset_k = (Σ_{i≤k} d_i) − (Σ_{i≤k} tr_i) for the k-th boundary (1-indexed over boundaries).
+   * offset_k = (Σ_{i≤k} d_i) − (Σ_{i≤k} effTr_i) for the k-th boundary (1-indexed over boundaries).
    * The cumulative subtraction of prior transition durations keeps every clip starting where the
-   * previous cross-dissolve ends, so later boundaries don't drift.
+   * previous cross-dissolve ends, so later boundaries don't drift. Uses the per-boundary *effective*
+   * (capped) transition durations so a transition that meets/exceeds its clip never drives an offset
+   * to zero (which would overlap the whole timeline into a single clip).
    */
-  private computeOffsets(probes: SegmentProbe[], transitions: Transition[]): number[] {
+  private computeOffsets(probes: SegmentProbe[], effectiveDurations: number[]): number[] {
     const offsets: number[] = [];
     let durationSum = 0;
     let transitionSum = 0;
 
-    for (let k = 0; k < transitions.length; k++) {
+    for (let k = 0; k < effectiveDurations.length; k++) {
       durationSum += probes[k].duration;
-      transitionSum += this.effectiveDuration(transitions[k]);
+      transitionSum += effectiveDurations[k];
       offsets.push(this.round(durationSum - transitionSum));
     }
 
     return offsets;
   }
 
-  // A `cut` boundary is rendered as a near-zero fade so the graph stays uniform (one xfade per boundary).
-  private effectiveDuration(transition: Transition): number {
-    return transition.type === 'cut' ? 0.001 : transition.duration;
+  /**
+   * Per-boundary transition duration actually fed to xfade/acrossfade. A `cut` is a near-zero fade so
+   * the graph stays uniform. Every other transition is capped to at most HALF the shorter adjacent
+   * segment: an xfade overlaps both neighbours, so a transition as long as (or longer than) a clip
+   * collapses the cumulative offset to ≤0 and the whole timeline folds into one clip
+   * (the xfade-short-segment-collapse). Capping to half guarantees each clip keeps ≥50% non-overlap,
+   * so offsets stay strictly increasing and the output keeps a realistic duration. Authored
+   * transitions on normal (multi-second) clips sit well under the cap and pass through unchanged.
+   */
+  private effectiveDurations(transitions: Transition[], probes: SegmentProbe[]): number[] {
+    return transitions.map((transition, k) => {
+      if (transition.type === 'cut') return 0.001;
+
+      const shorterAdjacent = Math.min(probes[k].duration, probes[k + 1].duration);
+
+      return this.round(Math.min(transition.duration, shorterAdjacent / 2));
+    });
   }
 
   private transitionName(transition: Transition): string {
@@ -296,7 +313,7 @@ class VideoEditor {
     return Math.round(value * 1000) / 1000;
   }
 
-  private buildVideoGraph(transitions: Transition[], offsets: number[]): string {
+  private buildVideoGraph(transitions: Transition[], offsets: number[], effectiveDurations: number[]): string {
     const links: string[] = [];
 
     for (let k = 0; k < transitions.length; k++) {
@@ -304,7 +321,7 @@ class VideoEditor {
       const right = `[vs${k + 1}]`;
       const out = k === transitions.length - 1 ? '[vout]' : `[v${k}]`;
       const name = this.transitionName(transitions[k]);
-      const duration = this.effectiveDuration(transitions[k]);
+      const duration = effectiveDurations[k];
 
       links.push(`${left}${right}xfade=transition=${name}:duration=${duration}:offset=${offsets[k]}${out}`);
     }
@@ -312,7 +329,7 @@ class VideoEditor {
     return links.join(';');
   }
 
-  private buildAudioGraph(transitions: Transition[], audioInputIndex: number[]): string {
+  private buildAudioGraph(transitions: Transition[], audioInputIndex: number[], effectiveDurations: number[]): string {
     const links: string[] = [];
 
     for (let k = 0; k < transitions.length; k++) {
@@ -320,7 +337,7 @@ class VideoEditor {
       const right = `[${audioInputIndex[k + 1]}:a]`;
       const out = k === transitions.length - 1 ? '[aout]' : `[a${k}]`;
 
-      links.push(`${left}${right}acrossfade=d=${this.effectiveDuration(transitions[k])}:c1=tri:c2=tri${out}`);
+      links.push(`${left}${right}acrossfade=d=${effectiveDurations[k]}:c1=tri:c2=tri${out}`);
     }
 
     return links.join(';');

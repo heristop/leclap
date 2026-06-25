@@ -132,6 +132,56 @@ describe('VideoEditor.assembleWithTransitions', () => {
     expect(command).not.toContain('[1:a]');
   });
 
+  it('caps a transition to half the shorter adjacent segment so short clips do not collapse', async () => {
+    // Three 0.5s clips with authored 0.5s fades. Naively offset_k = Σd − Σtr would be 0 for every
+    // boundary (the whole timeline overlaps into one clip — the xfade-short-segment-collapse). The
+    // transition must be capped to ≤ half the shorter adjacent segment (0.25s) so offsets stay
+    // strictly increasing and the draft keeps a watchable duration.
+    const ffmpeg = {
+      execute: vi.fn(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => infos(0.5)),
+    };
+    const { editor, ffmpeg: f } = makeEditor({ ffmpeg });
+
+    await editor.assembleWithTransitions(
+      ['/build/s0.mp4', '/build/s1.mp4', '/build/s2.mp4'],
+      [
+        { type: 'fade', duration: 0.5 },
+        { type: 'fade', duration: 0.5 },
+      ]
+    );
+
+    const command = f.execute.mock.calls[0][0] as string;
+    // Capped to 0.25s, with strictly-increasing offsets (0.25, then 0.5) — never offset=0.
+    expect(command).toContain('xfade=transition=fade:duration=0.25:offset=0.25');
+    expect(command).toContain('xfade=transition=fade:duration=0.25:offset=0.5');
+    expect(command).not.toContain('offset=0[');
+    expect(command).toContain('acrossfade=d=0.25:c1=tri:c2=tri');
+  });
+
+  it('leaves a transition shorter than half the adjacent segments untouched', async () => {
+    // 5s/4s/6s clips with 0.5s/0.4s transitions: half the shorter adjacent (2s, 2s) far exceeds the
+    // authored durations, so they pass through unchanged (same as the cumulative-offset baseline).
+    const durations = [5, 4, 6];
+    const ffmpeg = {
+      execute: vi.fn(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async (src: string) => infos(durations[Number(src.match(/(\d)/)?.[1] ?? 0)])),
+    };
+    const { editor, ffmpeg: f } = makeEditor({ ffmpeg });
+
+    await editor.assembleWithTransitions(
+      ['/build/s0.mp4', '/build/s1.mp4', '/build/s2.mp4'],
+      [
+        { type: 'wipeleft', duration: 0.5 },
+        { type: 'dissolve', duration: 0.4 },
+      ]
+    );
+
+    const command = f.execute.mock.calls[0][0] as string;
+    expect(command).toContain('xfade=transition=wipeleft:duration=0.5:offset=4.5');
+    expect(command).toContain('xfade=transition=dissolve:duration=0.4:offset=8.1');
+  });
+
   it('renders a cut boundary as a near-zero fade', async () => {
     const { editor, ffmpeg } = makeEditor();
 

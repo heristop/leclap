@@ -22,6 +22,11 @@ interface FFProbeData {
 
 @injectable()
 class FFmpegNodeAdapter extends AbstractFFmpeg {
+  // Each execute() spawns an independent ffmpeg child process, so renders can overlap.
+  override get supportsConcurrentExecute(): boolean {
+    return true;
+  }
+
   execute = async (command: string): Promise<{ rc: number }> => {
     try {
       await getPerfTimer().span('ffmpeg:execute', () => execFileAsync('ffmpeg', parseCommand(command)));

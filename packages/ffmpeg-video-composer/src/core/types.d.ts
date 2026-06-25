@@ -36,7 +36,9 @@ export type MusicConfig = {
 };
 type CodecConfig = { videoCodec?: string; audioCodec?: string };
 
-type HardwareConfig = { hwaccel?: string | null; preset?: string };
+// `maxRenderConcurrency`: max segments rendered in parallel on adapters that support it (Node/static
+// child processes). Defaults to 3 (capped by segment count); set to 1 to force the serial path.
+type HardwareConfig = { hwaccel?: string | null; preset?: string; maxRenderConcurrency?: number };
 
 type AudioConfig = { sampleRate?: number; channelLayout?: string };
 

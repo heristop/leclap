@@ -13,6 +13,11 @@ import DefaultConfig from '../core/default.config';
 import { assertSafeSegmentName } from '../core/argGuard';
 import { fetchSectionInfos } from './sectionInfos';
 import { getPerfTimer } from '../utils/perf-timer';
+import {
+  renderSegmentsConcurrently,
+  renderSegmentsSerially,
+  resolveRenderConcurrency,
+} from './render-segments-concurrently';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
 import type Project from '../core/models/Project';
@@ -47,7 +52,6 @@ type DirectorDeps = {
 class TemplateDirector {
   private readonly emitter: IEventEmitter;
 
-  private builder: TemplateConcreteBuilder | undefined;
   private stopBuild = false;
   private readonly concreteBuilder: TemplateConcreteBuilder;
   private readonly musicComposer: MusicComposer;
@@ -259,44 +263,54 @@ class TemplateDirector {
   };
 
   processVideoSegments = async (segments: Section[]): Promise<void> => {
-    const { totalLength } = this.project.buildInfos;
-    const durMap = this.project.buildInfos.durations;
-    let accumulated = 0;
+    const concurrency = resolveRenderConcurrency(
+      this.ffmpegAdapter.supportsConcurrentExecute,
+      this.project.config.hardwareConfig?.maxRenderConcurrency,
+      segments.length
+    );
+    this.logger.info(`[TemplateDirection] Render concurrency: ${concurrency}`);
 
-    await segments.reduce(async (chain, segment) => {
-      await chain;
+    if (concurrency === 1) {
+      await this.processVideoSegmentsSerial(segments);
 
-      if (this.stopBuild) {
-        return;
-      }
+      return;
+    }
 
-      const segmentLength = durMap[segment.name] ?? 0;
-
-      // Forward this segment's fine-grained ffmpeg progress (0..1), interpolated within its share of
-      // the total duration. Matches updateProgress's weighting exactly (frac=1 lands on the same value
-      // updateProgress emits at the boundary), so the bar climbs continuously with no jumps.
-      this.ffmpegAdapter.progressListener = (fraction: number): void => {
-        if (totalLength <= 0) {
-          return;
-        }
-
-        const frac = Math.min(Math.max(fraction, 0), 1);
-        this.emitter.emit('compilation-progress', Math.min(1, (accumulated + frac * segmentLength) / totalLength));
-      };
-      // Adapters that read raw elapsed time from FFmpeg (the on-device CLI's `-progress`) normalise
-      // against this to produce the 0..1 fraction above.
-      this.ffmpegAdapter.expectedDurationSeconds = segmentLength;
-
-      try {
-        await this.processSingleVideoSegment(segment);
-      } finally {
-        this.ffmpegAdapter.progressListener = undefined;
-        this.ffmpegAdapter.expectedDurationSeconds = undefined;
-      }
-
-      accumulated += segmentLength;
-    }, Promise.resolve());
+    // Parallel path (Node/static adapters): build serially, render through a bounded pool, append in
+    // original order — see renderSegmentsConcurrently.
+    await renderSegmentsConcurrently({
+      segments,
+      concurrency,
+      isStopped: () => this.stopBuild,
+      build: async (section) => (await this.concreteBuilder.build(section, this.project.config)).segment,
+      render: (segment, section) => this.concreteBuilder.render(segment, section),
+      afterRender: (section) => {
+        this.updateProgress(section);
+        this.logger.info(`[${section.name}][Editing] finalized (${Math.round(this.project.progress * 100)}%)`);
+      },
+      finalizeSegment: async (section) => {
+        this.musicComposer.prepareMusicTrack(section);
+        await this.append(section);
+      },
+      logger: this.logger,
+    });
   };
+
+  private readonly processVideoSegmentsSerial = (segments: Section[]): Promise<void> =>
+    renderSegmentsSerially({
+      segments,
+      totalLength: this.project.buildInfos.totalLength,
+      durations: this.project.buildInfos.durations,
+      isStopped: () => this.stopBuild,
+      // Adapters that read raw elapsed time from FFmpeg (the on-device CLI's `-progress`) use the
+      // expected duration to produce the 0..1 fraction forwarded to the listener.
+      setSegmentProgress: (listener, expectedSeconds) => {
+        this.ffmpegAdapter.progressListener = listener;
+        this.ffmpegAdapter.expectedDurationSeconds = expectedSeconds;
+      },
+      emitProgress: (fraction) => this.emitter.emit('compilation-progress', fraction),
+      processSegment: (section) => this.processSingleVideoSegment(section),
+    });
 
   processSingleVideoSegment = async (segment: Section): Promise<boolean> => {
     try {
@@ -377,10 +391,9 @@ class TemplateDirector {
     );
 
   addToQueue = async (section: Section): Promise<void> => {
-    this.builder = this.concreteBuilder;
+    const { segment } = await this.concreteBuilder.build(section, this.project.config);
 
-    await this.builder.buildPart(section, this.project.config);
-    await this.builder.renderPart();
+    await this.concreteBuilder.render(segment, section);
 
     this.musicComposer.prepareMusicTrack(section);
     await this.append(section);

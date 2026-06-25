@@ -25,7 +25,25 @@ from how ffmpeg work is _scheduled_, not from optimizing TS.
 
 ## Ranked backlog
 
-### 1. Bounded-parallel segment render — CANDIDATE (highest payoff)
+### 1. Bounded-parallel segment render — DONE (default-on, Node/static)
+
+**Implemented.** Segments now build serially (the shared `Segment` DI singleton forbids concurrent
+builds) then render through a bounded pool, capped by `hardwareConfig.maxRenderConcurrency`
+(default 3, capped by segment count), honored only by adapters that spawn independent processes
+(`supportsConcurrentExecute` — Node/static; WASM/on-device stay serial). Segments that resolve to
+the same output path (duplicate section names) fall back to serial to avoid concurrent writes.
+
+Measured on `fast-and-curious` (3 segments, median of 2, Apple Silicon, ffmpeg 8.1.1):
+
+|                                    | total  | director:render | ffmpeg share |
+| ---------------------------------- | ------ | --------------- | ------------ |
+| serial (`maxRenderConcurrency: 1`) | 902 ms | 528 ms          | 97.4%        |
+| parallel (default 3)               | 545 ms | 263 ms          | 80.2%        |
+
+≈ **40% faster total, ≈50% faster render phase**. Gain scales with segment count and shrinks on
+core-saturated machines (each ffmpeg is already multi-threaded). Full e2e suite stays green.
+
+#### Original analysis
 
 `director:render` is the serial per-segment loop (`TemplateDirector.ts:263`). It runs one ffmpeg
 process at a time:

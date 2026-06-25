@@ -2,16 +2,16 @@
 // Every animation overlay in the creative-kit library, served from /public/assets/animations. Re-run
 // the copy step (it runs on web build/start) after adding a file to the library to refresh this list.
 export const ANIMATION_FILES: string[] = [
-  'animation_icons.apng',
-  'confetti.apng',
-  'corner_brackets.apng',
-  'glow_border.apng',
-  'light_leak.apng',
-  'pulse_ring.apng',
-  'rounded_border.apng',
-  'shine_sweep.apng',
-  'sparkle.apng',
-  'spec_orbit.apng',
-  'tap_pulse.apng',
-  'white_border.apng',
+  "animation_icons.apng",
+  "confetti.apng",
+  "corner_brackets.apng",
+  "glow_border.apng",
+  "light_leak.apng",
+  "pulse_ring.apng",
+  "rounded_border.apng",
+  "shine_sweep.apng",
+  "sparkle.apng",
+  "spec_orbit.apng",
+  "tap_pulse.apng",
+  "white_border.apng"
 ];

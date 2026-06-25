@@ -40,7 +40,10 @@
     {
       "name": "intro_1",
       "type": "video",
-      "transition": { "type": "smoothup", "duration": 0.6 },
+      "transition": {
+        "type": "smoothup",
+        "duration": 0.6
+      },
       "options": {
         "useVideoSection": "video_1",
         "duration": 6,
@@ -203,9 +206,22 @@
       "name": "video_1",
       "type": "project_video",
       "look": "warm-film",
-      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
-      "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.1 }],
-      "transition": { "type": "pixelize", "duration": 0.4 },
+      "grade": {
+        "contrast": 1.1,
+        "saturation": 1.2,
+        "gamma": 0.96
+      },
+      "motion": [
+        {
+          "type": "kenburns",
+          "direction": "in",
+          "intensity": 1.1
+        }
+      ],
+      "transition": {
+        "type": "pixelize",
+        "duration": 0.4
+      },
       "title": {
         "en": "Tell us a little bit about you"
       },
@@ -241,14 +257,18 @@
             "text": {
               "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
             },
-            "fontcolor": "{{ color2 }}",
-            "fontsize": 40,
-            "x": "(w-tw-40)",
+            "fontcolor": "#ffffff",
+            "fontsize": 46,
+            "x": "'(w-tw-40)+(1-(if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))))*70'",
             "y": "(h-th-220)",
-            "fontfile": "Rubik.ttf",
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1,
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.55",
-            "boxborderw": 16
+            "boxcolor": "#0a0f14@0.72",
+            "boxborderw": 18
           }
         },
         {
@@ -257,14 +277,18 @@
             "text": {
               "en": "{{ form_1_job }}"
             },
-            "fontcolor": "{{ color2 }}",
+            "fontcolor": "#E0884C",
             "fontsize": 30,
-            "x": "(w-tw-40)",
+            "x": "'(w-tw-40)+(1-(if(lt(t,0.6),0,if(lt(t,1.3),(t-0.6)/0.7,1))))*70'",
             "y": "(h-th-160)",
-            "fontfile": "Rubik.ttf",
+            "fontfile": "Oswald.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.65",
-            "boxborderw": 14
+            "boxcolor": "#0a0f14@0.64",
+            "boxborderw": 12,
+            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.3),(t-0.6)/0.7,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1
           }
         },
         {
@@ -345,9 +369,22 @@
       "name": "video_2",
       "type": "project_video",
       "look": "warm-film",
-      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
-      "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.1 }],
-      "transition": { "type": "coverleft", "duration": 0.5 },
+      "grade": {
+        "contrast": 1.1,
+        "saturation": 1.2,
+        "gamma": 0.96
+      },
+      "motion": [
+        {
+          "type": "kenburns",
+          "direction": "in",
+          "intensity": 1.1
+        }
+      ],
+      "transition": {
+        "type": "coverleft",
+        "duration": 0.5
+      },
       "title": {
         "en": "Make your speech"
       },
@@ -365,14 +402,18 @@
             "text": {
               "en": "Languages"
             },
-            "fontcolor": "{{ color1 }}",
-            "fontsize": 34,
-            "x": "w-text_w-12",
+            "fontcolor": "#E0884C",
+            "fontsize": 44,
+            "x": "'(w-text_w-12)+(1-(if(lt(t,0.3),0,if(lt(t,0.85),(t-0.3)/0.55,1))))*60'",
             "y": 60,
-            "fontfile": "Rubik+Doodle+Shadow.ttf",
+            "fontfile": "Anton.ttf",
+            "alpha": "'if(lt(t,0.3),0,if(lt(t,0.85),(t-0.3)/0.55,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1,
             "box": 1,
-            "boxcolor": "{{ color2 }}@0.75",
-            "boxborderw": 12
+            "boxcolor": "#0a0f14@0.72",
+            "boxborderw": 16
           }
         },
         {
@@ -382,14 +423,18 @@
               "fr": "{{ form_2_keyword1 }}",
               "en": "{{ form_2_keyword1 }}"
             },
-            "fontcolor": "{{ color2 }}",
-            "fontsize": 30,
-            "x": "w-text_w-12",
+            "fontcolor": "#ffffff",
+            "fontsize": 32,
+            "x": "'(w-text_w-12)+(1-(if(lt(t,0.48),0,if(lt(t,1.03),(t-0.48)/0.55,1))))*60'",
             "y": 160,
-            "fontfile": "Rubik+Doodle+Shadow.ttf",
+            "fontfile": "Oswald.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.75",
-            "boxborderw": 12
+            "boxcolor": "#0a0f14@0.64",
+            "boxborderw": 12,
+            "alpha": "'if(lt(t,0.48),0,if(lt(t,1.03),(t-0.48)/0.55,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1
           }
         },
         {
@@ -399,14 +444,18 @@
               "fr": "{{ form_2_keyword2 }}",
               "en": "{{ form_2_keyword2 }}"
             },
-            "fontcolor": "{{ color2 }}",
-            "fontsize": 30,
-            "x": "w-text_w-12",
+            "fontcolor": "#ffffff",
+            "fontsize": 32,
+            "x": "'(w-text_w-12)+(1-(if(lt(t,0.66),0,if(lt(t,1.21),(t-0.66)/0.55,1))))*60'",
             "y": 240,
-            "fontfile": "Rubik+Doodle+Shadow.ttf",
+            "fontfile": "Oswald.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.75",
-            "boxborderw": 12
+            "boxcolor": "#0a0f14@0.64",
+            "boxborderw": 12,
+            "alpha": "'if(lt(t,0.66),0,if(lt(t,1.21),(t-0.66)/0.55,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1
           }
         },
         {
@@ -415,14 +464,18 @@
             "text": {
               "en": "{{ form_2_keyword3 }}"
             },
-            "fontcolor": "{{ color2 }}",
-            "fontsize": 30,
-            "x": "w-text_w-12",
+            "fontcolor": "#ffffff",
+            "fontsize": 32,
+            "x": "'(w-text_w-12)+(1-(if(lt(t,0.84),0,if(lt(t,1.39),(t-0.84)/0.55,1))))*60'",
             "y": 320,
-            "fontfile": "Rubik+Doodle+Shadow.ttf",
+            "fontfile": "Oswald.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.75",
-            "boxborderw": 12
+            "boxcolor": "#0a0f14@0.64",
+            "boxborderw": 12,
+            "alpha": "'if(lt(t,0.84),0,if(lt(t,1.39),(t-0.84)/0.55,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1
           }
         },
         {
@@ -431,14 +484,18 @@
             "text": {
               "en": "{{ form_2_keyword4 }}"
             },
-            "fontcolor": "{{ color2 }}",
-            "fontsize": 30,
-            "x": "w-text_w-12",
+            "fontcolor": "#ffffff",
+            "fontsize": 32,
+            "x": "'(w-text_w-12)+(1-(if(lt(t,1.02),0,if(lt(t,1.57),(t-1.02)/0.55,1))))*60'",
             "y": 400,
-            "fontfile": "Rubik+Doodle+Shadow.ttf",
+            "fontfile": "Oswald.ttf",
             "box": 1,
-            "boxcolor": "{{ color1 }}@0.75",
-            "boxborderw": 12
+            "boxcolor": "#0a0f14@0.64",
+            "boxborderw": 12,
+            "alpha": "'if(lt(t,1.02),0,if(lt(t,1.57),(t-1.02)/0.55,1))'",
+            "shadowcolor": "#000000@0.5",
+            "shadowx": 1,
+            "shadowy": 1
           }
         },
         {
@@ -470,8 +527,15 @@
       "name": "video_3",
       "type": "project_video",
       "look": "warm-film",
-      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
-      "transition": { "type": "circleclose", "duration": 0.7 },
+      "grade": {
+        "contrast": 1.1,
+        "saturation": 1.2,
+        "gamma": 0.96
+      },
+      "transition": {
+        "type": "circleclose",
+        "duration": 0.7
+      },
       "title": {
         "en": "Show the work environment"
       },
@@ -529,7 +593,11 @@
       "name": "outro",
       "type": "video",
       "look": "warm-film",
-      "grade": { "contrast": 1.1, "saturation": 1.2, "gamma": 0.96 },
+      "grade": {
+        "contrast": 1.1,
+        "saturation": 1.2,
+        "gamma": 0.96
+      },
       "options": {
         "videoUrl": "{{ videoOutro }}",
         "duration": 5,

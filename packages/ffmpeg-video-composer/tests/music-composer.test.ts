@@ -41,6 +41,7 @@ function makeFilesystem() {
     getTempDir: vi.fn(() => '/tmp'),
     stat: vi.fn(async () => false),
     fetch: vi.fn(async () => '/downloads/track.mp3'),
+    read: vi.fn(async () => "file '/build/intro_output.mp4'\nfile '/build/clip_output.mp4'"),
     move: vi.fn(async () => undefined),
     unlink: vi.fn(async () => undefined),
     // Default to "not bundled" so the URL-download path is still exercised by existing tests.
@@ -289,6 +290,49 @@ describe('MusicComposer.appendMusic', () => {
     expect(cmd).toContain('-map 0:v -map "[final]"');
   });
 
+  it('consumes the concat demuxer and stream-copies video when given a concat source', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, filesystem, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4', { kind: 'concat', listPath: '/build/segments.list' });
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-f concat -safe 0 -auto_convert 1 -i /build/segments.list');
+    expect(cmd).toContain('-c:v copy');
+    expect(cmd).toContain('-map 0:v -map "[final]"');
+    expect(cmd).toContain('+faststart /build/output.mp4');
+    // probed the first listed segment for audio, not the not-yet-existing final output
+    expect(ffmpeg.getInfos).toHaveBeenCalledWith('/build/intro_output.mp4');
+    // folded path never moves the final output aside
+    expect(filesystem.move).not.toHaveBeenCalled();
+    expect(filesystem.unlink).not.toHaveBeenCalled();
+  });
+
+  it('still moves and reads a file source by default (unchanged behavior)', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, filesystem, ffmpeg });
+
+    await composer.appendMusic(segments1, '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-i /tmp/tmp_video_');
+    expect(cmd).not.toContain('-f concat');
+    expect(filesystem.move).toHaveBeenCalled();
+    expect(filesystem.unlink).toHaveBeenCalled();
+  });
+
   it('throws when the music mixing ffmpeg command fails (rc 1)', async () => {
     const project = makeProject();
     project.buildInfos.musicPath = '/cache/musics/song.mp3';
@@ -302,6 +346,68 @@ describe('MusicComposer.appendMusic', () => {
     await expect(composer.appendMusic(segments1, '/build/output.mp4')).rejects.toThrow('Error on music add');
     // temp file is not unlinked when the command failed
     expect(filesystem.unlink).not.toHaveBeenCalled();
+  });
+});
+
+describe('MusicComposer.normalizeAudio / hasNormalization', () => {
+  it('normalizes audio off a concat source while stream-copying video (no move)', async () => {
+    const project = makeProject();
+    const template = makeTemplate({ global: { audio: { normalize: 'loudnorm' } } });
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, filesystem, ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4', { kind: 'concat', listPath: '/build/segments.list' });
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-f concat -safe 0 -auto_convert 1 -i /build/segments.list');
+    expect(cmd).toContain('-af "loudnorm=I=-16:TP=-1.5:LRA=11"');
+    expect(cmd).toContain('-c:v copy');
+    expect(cmd).toContain('+faststart /build/output.mp4');
+    expect(filesystem.move).not.toHaveBeenCalled();
+  });
+
+  it('moves and reads a file source by default (unchanged behavior)', async () => {
+    const project = makeProject();
+    const template = makeTemplate({ global: { audio: { normalize: 'dynaudnorm' } } });
+    const filesystem = makeFilesystem();
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, template, filesystem, ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-i /tmp/tmp_normalize_');
+    expect(cmd).not.toContain('-f concat');
+    expect(filesystem.move).toHaveBeenCalled();
+    expect(filesystem.unlink).toHaveBeenCalled();
+  });
+
+  it('is a no-op when no normalization is configured', async () => {
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4', { kind: 'concat', listPath: '/build/segments.list' });
+
+    expect(ffmpeg.execute).not.toHaveBeenCalled();
+  });
+
+  it('hasNormalization reflects the descriptor', () => {
+    expect(
+      makeComposer({
+        template: makeTemplate({ global: { audio: { normalize: 'loudnorm' } } }),
+      }).composer.hasNormalization()
+    ).toBe(true);
+    expect(makeComposer({}).composer.hasNormalization()).toBe(false);
   });
 });
 

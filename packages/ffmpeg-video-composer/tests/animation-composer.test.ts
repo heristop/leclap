@@ -54,6 +54,38 @@ function setup(animations: GlobalAnimation[], opts: { hasAudio?: boolean } = {})
 
 const GLOW = '/assets/animations/glow_border.apng';
 
+describe('AnimationComposer.buildOverlayGraph (fusion params)', () => {
+  it('uses a custom base label, input offset and chain prefix without colliding with xfade labels', () => {
+    const { composer } = setup([]);
+    const staged = [
+      { path: '/a.apng', anim: { url: 'a', duration: 6 } },
+      { path: '/b.apng', anim: { url: 'b', duration: 6, position: '10:20' } },
+    ];
+
+    const graph = composer.buildOverlayGraph(staged as never, {
+      baseLabel: '[vfx]',
+      firstInputIndex: 4,
+      chainPrefix: 'ov',
+      outLabel: '[vout]',
+    });
+
+    // base is the xfade output; animation inputs start at index 4; chain uses `ov` not `v`.
+    expect(graph).toContain('[vfx][4:v]overlay=0:0:eof_action=pass[ov0]');
+    expect(graph).toContain('[ov0][5:v]overlay=10:20:eof_action=pass[vout]');
+    // must NOT reuse the xfade chain label `[v0]` or hijack `[vout]` mid-chain
+    expect(graph).not.toContain('[v0]');
+  });
+
+  it('defaults reproduce the standalone graph ([0:v] base, input 1, `v` chain)', () => {
+    const { composer } = setup([]);
+    const staged = [{ path: '/a.apng', anim: { url: 'a', loop: true } }];
+
+    expect(composer.buildOverlayGraph(staged as never, {})).toBe(
+      '[0:v][1:v]overlay=0:0:eof_action=pass:shortest=1[vout]'
+    );
+  });
+});
+
 describe('AnimationComposer.appendAnimations', () => {
   it('no-ops when there are no global animations', async () => {
     const { composer, ffmpegAdapter, moves } = setup([]);

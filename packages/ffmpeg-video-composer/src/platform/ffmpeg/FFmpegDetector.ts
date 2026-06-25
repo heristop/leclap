@@ -69,6 +69,40 @@ export class FFmpegDetector {
   }
 
   /**
+   * Parse the `ffmpeg -encoders` listing into encoder names. Each encoder line is six flag chars
+   * (e.g. `V....D`) followed by the name; header/separator lines (`Encoders:`, ` ------`, the flag
+   * legend) don't match. Pure — split out so it's unit-testable without spawning ffmpeg.
+   */
+  static parseEncoders(stdout: string): string[] {
+    const names: string[] = [];
+
+    for (const line of stdout.split('\n')) {
+      const match = line.match(/^\s[A-Z.]{6}\s+(\S+)/);
+
+      // Skip the flag legend (` V..... = Video`), whose second token is `=`, not an encoder name.
+      if (match && match[1] !== '=') {
+        names.push(match[1]);
+      }
+    }
+
+    return names;
+  }
+
+  /**
+   * List the video/audio encoders the system ffmpeg supports (`ffmpeg -hide_banner -encoders`).
+   * Returns an empty array when ffmpeg can't be run. Used to auto-select a hardware H.264 encoder.
+   */
+  static async listEncoders(): Promise<string[]> {
+    try {
+      const { stdout } = await execFileAsync('ffmpeg', ['-hide_banner', '-encoders']);
+
+      return this.parseEncoders(stdout);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
    * Check if system FFmpeg is available
    */
   static async detectSystemFFmpeg(): Promise<FFmpegDetectionResult> {

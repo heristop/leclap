@@ -165,6 +165,106 @@ export function applyReveal(
   }
 }
 
+// An exit animation — fade out (and optionally slide/rise out) starting `after` seconds in (default:
+// timed so it ends at the section's end). Same vocabulary as a reveal; a bare type or the full object.
+export type Exit = { type: RevealType; after?: number; duration?: number; distance?: number };
+export type ExitInput = RevealType | Exit;
+
+function normalizeExit(input: ExitInput): Exit {
+  if (typeof input === 'string') {
+    return { type: input };
+  }
+
+  return input;
+}
+
+// One animation phase's contribution: its alpha factor and an optional kinetic x/y offset term (already
+// signed, to be concatenated onto the running base expression).
+type PhaseTerm = { alpha: string; xTerm?: string; yTerm?: string };
+
+// The entrance phase: alpha ramps 0→1 and any offset eases from `distance` back to 0 (the `1-ramp`).
+function enterTerm(enter: Reveal): PhaseTerm {
+  const r = ramp(enter.delay ?? DEFAULT_DELAY, enter.duration ?? DEFAULT_DURATION);
+  const dist = num(enter.distance ?? DEFAULT_DISTANCE);
+  const ease = `(1-(${r}))*${dist}`;
+  const alpha = `(${r})`;
+
+  if (enter.type === 'rise') return { alpha, yTerm: `+${ease}` };
+
+  if (enter.type === 'slide-left') return { alpha, xTerm: `+${ease}` };
+
+  if (enter.type === 'slide-right') return { alpha, xTerm: `-${ease}` };
+
+  return { alpha };
+}
+
+// The exit phase: alpha fades 1→0 and any offset eases from 0 out to `distance` (the bare `ramp`). The
+// exit is timed to end at the section end when `after` is omitted.
+function exitTerm(ex: Exit, duration: number): PhaseTerm {
+  const exDur = ex.duration ?? DEFAULT_DURATION;
+  const r = ramp(ex.after ?? Math.max(0, duration - exDur), exDur);
+  const dist = num(ex.distance ?? DEFAULT_DISTANCE);
+  const ease = `(${r})*${dist}`;
+  const alpha = `(1-(${r}))`;
+
+  if (ex.type === 'rise') return { alpha, yTerm: `-${ease}` };
+
+  if (ex.type === 'slide-left') return { alpha, xTerm: `-${ease}` };
+
+  if (ex.type === 'slide-right') return { alpha, xTerm: `+${ease}` };
+
+  return { alpha };
+}
+
+/**
+ * Combined entrance + exit for a drawtext: `alpha = enterFade * exitFade`, and the position eases out
+ * from any entrance offset to the exit offset. Mutates `values`. `duration` is the section length, used
+ * to time an exit that ends at the section's end when `after` is omitted.
+ */
+export function applyAnimation(
+  values: Record<string, unknown>,
+  reveal: RevealInput | undefined,
+  exit: ExitInput | undefined,
+  base: { x: string | number; y: string | number },
+  duration: number
+): void {
+  const enter = reveal === undefined ? undefined : normalize(reveal);
+  const ex = exit === undefined ? undefined : normalizeExit(exit);
+
+  const phases: PhaseTerm[] = [];
+
+  if (enter && enter.type !== 'none') phases.push(enterTerm(enter));
+
+  if (ex && ex.type !== 'none') phases.push(exitTerm(ex, duration));
+
+  if (phases.length === 0) return;
+
+  values.alpha = `'${phases.map((phase) => phase.alpha).join('*')}'`;
+
+  const position = assemblePosition(phases, base);
+
+  if (position.x) values.x = position.x;
+
+  if (position.y) values.y = position.y;
+}
+
+// Concatenate every phase's kinetic x/y term onto the base expression, single-quoting the result (the
+// expressions contain commas). Each axis is emitted only when at least one phase moves it.
+function assemblePosition(
+  phases: PhaseTerm[],
+  base: { x: string | number; y: string | number }
+): { x?: string; y?: string } {
+  const xTerms = phases.flatMap((phase) => (phase.xTerm ? [phase.xTerm] : []));
+  const yTerms = phases.flatMap((phase) => (phase.yTerm ? [phase.yTerm] : []));
+  const position: { x?: string; y?: string } = {};
+
+  if (xTerms.length > 0) position.x = `'(${base.x})${xTerms.join('')}'`;
+
+  if (yTerms.length > 0) position.y = `'(${base.y})${yTerms.join('')}'`;
+
+  return position;
+}
+
 // ---------------------------------------------------------------------------
 // text effect — drop shadow + outline for legibility on any background
 // ---------------------------------------------------------------------------

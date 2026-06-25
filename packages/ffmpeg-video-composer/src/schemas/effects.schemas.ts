@@ -100,28 +100,10 @@ export const LOOK_PRESETS = [
   'vivid-pop',
 ] as const;
 
-// ── reveal (animated text entrance) ──────────────────────────────────────────────
-
-export const REVEAL_TYPES = ['none', 'fade', 'rise', 'slide-left', 'slide-right'] as const;
-
-// An animated entrance for sugar text. Authored as the bare type ("rise") or the full object with
-// timing. The reveal preset (editor/presets/text.ts) lowers it to drawtext alpha/x/y expressions.
-export const RevealObjectSchema = z
-  .object({
-    type: z.enum(REVEAL_TYPES).describe('Entrance style: none, fade, rise (up from below), slide-left, slide-right.'),
-    delay: z.number().min(0).optional().describe('Seconds before the entrance starts (default 0.3).'),
-    duration: z.number().positive().optional().describe('Seconds the entrance takes (default 0.6).'),
-    distance: z.number().positive().optional().describe('Pixels the text travels for rise/slide (default 60).'),
-  })
-  .strict()
-  .describe('Animated entrance for sugar text, with optional timing overrides.');
-
-export const RevealSchema = z
-  .union([z.enum(REVEAL_TYPES), RevealObjectSchema])
-  .describe('Animated text entrance: a bare type ("rise") or an object with timing overrides.');
-
-// Text-legibility (shadow/outline) and chroma-key sugar live in their own file to keep this one under
-// the max-lines budget; re-exported here so importers keep a single `effects.schemas` entry point.
+// Reveal/exit (animated text entrance + exit) and the text-legibility (shadow/outline) + chroma-key
+// sugar live in their own files to keep this one under the max-lines budget; all are re-exported here
+// so importers keep a single `effects.schemas` entry point.
+export { REVEAL_TYPES, RevealObjectSchema, RevealSchema, ExitObjectSchema, ExitSchema } from './reveal.schemas';
 export { TextEffectSchema, ChromaKeySchema } from './text-media.schemas';
 
 // ── transition ─────────────────────────────────────────────────────────────────

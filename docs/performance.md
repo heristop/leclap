@@ -86,6 +86,36 @@ on-device adapters drive a single engine and always render serially. For benchin
 `FVC_RENDER_CONCURRENCY` (e.g. `FVC_RENDER_CONCURRENCY=1 pnpm bench fast-and-curious`). Measured
 ~40% faster total compile / ~50% faster render on a 3-segment template — see `docs/perf-findings.md`.
 
+## Folded concat pass
+
+When a template has no transitions and no animations, the standalone concat-copy pass is skipped:
+the following audio pass (`appendMusic` or `normalizeAudio`) consumes the concat demuxer directly,
+stream-copying video and touching only audio in one invocation. This is automatic on every platform
+(Node, ffmpeg-static, React Native/on-device, and WASM — whose adapter bridges the concat segments +
+music into MEMFS). It removes one full read/write of the assembled video; the saving is I/O-bound
+(stream copy), so it's small on short native renders and proportionally larger on long-form output
+and on WASM/on-device. Templates with transitions or animations keep the standard assemble path.
+Set `FVC_DISABLE_CONCAT_FOLD=1` to force the two-pass path (bench/debug A/B). See `docs/perf-findings.md`
+finding #2 and the measured A/B at the top of that doc.
+
+## Fused transition + animation pass
+
+When a template has **both** transitions and whole-video animations, the xfade assembly and the
+animation overlay are composed into a single `-filter_complex` (one re-encode instead of two) — the
+overlay chains off the xfade output. Automatic; `overlayAnimations` skips so it isn't applied twice.
+Saves ~one full re-encode of the timeline (`director:finalize` −12% on the test fixture). Templates
+with only transitions, only animations, or neither are unchanged. Set `FVC_DISABLE_FUSION=1` for the
+two-pass path (bench/debug). See `docs/perf-findings.md` finding #4.
+
+## Hardware encoder (opt-in)
+
+Set `FVC_HWENCODE=1` (Node path) to auto-select a platform hardware H.264 encoder
+(`h264_videotoolbox` on macOS, `h264_mediacodec` on Android) when the ffmpeg build exposes one;
+or set `codecConfig.videoCodec` explicitly. It is **off by default** because benchmarks show
+hardware encode is slower than libx264 `ultrafast` on short multi-segment renders (per-segment
+session-setup overhead) and only ~5% faster on a single heavy encode — see `docs/perf-findings.md`.
+On-device builds already use hardware/LGPL encoders, so this only affects host/Node renders.
+
 ## Turning measurements into work
 
 See `docs/perf-findings.md` for the ranked backlog. The rule: optimize in descending order of measured wall-time share; weight serial→parallel restructuring by segment count (payoff scales with the number of segments). Kill any candidate whose measured cost is below the noise floor.

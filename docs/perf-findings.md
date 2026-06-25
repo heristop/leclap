@@ -4,6 +4,91 @@ Generated from `pnpm bench` measurements on the `feat/ffmpeg-effects` branch (Ap
 ffmpeg 8.1.1). Reproduce with `pnpm --filter ffmpeg-video-composer bench` and
 `FVC_PERF=1 pnpm compile <fixture>`. See `docs/performance.md` for the tooling.
 
+## Measured benchmarks (A/B)
+
+Median of 5 runs (1 warmup discarded), Apple Silicon (`J4MPHVYFP0`), ffmpeg 8.1.1. No Rust changes —
+both wins are in the TypeScript orchestration layer. FFmpeg remains 78–98% of wall time.
+
+### 1. Parallel segment render — `fast-and-curious` (3 segments)
+
+Toggle: `FVC_RENDER_CONCURRENCY=1` (serial) vs `=3` (default).
+
+| phase                         | serial (1)  | parallel (3)     | delta      |
+| ----------------------------- | ----------- | ---------------- | ---------- |
+| `compile:total`               | 853 ms      | 563 ms           | **−34%**   |
+| `director:render`             | 518 ms      | 259 ms           | **−50%**   |
+| `ffmpeg:execute` (concurrent) | 789 ms (4×) | 395 ms (2× wall) | overlapped |
+
+The render phase halves; total drops a third. Gain scales with segment count and shrinks on a
+core-saturated machine (each ffmpeg is already multi-threaded).
+
+### 2. Hardware encoder (videotoolbox) — opt-in, NOT default
+
+Toggle: default (libx264 `ultrafast`) vs `FVC_HWENCODE=1` (auto-selects `h264_videotoolbox` on macOS).
+
+| fixture                               | libx264 | videotoolbox | verdict         |
+| ------------------------------------- | ------- | ------------ | --------------- |
+| `fast-and-curious` (3 short segments) | 614 ms  | 1034 ms      | **+68% slower** |
+| `picture` (1 heavy encode)            | 1711 ms | 1626 ms      | ~5% faster      |
+
+Hardware encode has per-invocation session-setup overhead, so it **loses on short multi-segment
+renders** (the common case — each segment pays the setup) and only marginally wins on a single heavy
+encode. Conclusion: **keep it opt-in** (`FVC_HWENCODE=1`, or set `codecConfig.videoCodec` explicitly)
+rather than auto-on. The detection infra ships regardless: `FFmpegDetector.listEncoders()` +
+`selectVideoCodec(available, platform)` (videotoolbox/mediacodec/libx264). On-device already uses
+hardware/LGPL encoders, so this only concerns the host/Node path.
+
+### 3. Concat fold — `concat-music-cuts` (3 segments, music, cuts)
+
+Toggle: `FVC_DISABLE_CONCAT_FOLD=1` (two-pass) vs default (folded).
+
+| phase                          | unfolded | folded   | delta                      |
+| ------------------------------ | -------- | -------- | -------------------------- |
+| `final:assemble` (concat copy) | 69 ms    | — (gone) | eliminated                 |
+| `director:finalize`            | 363 ms   | 300 ms   | **−17%**                   |
+| `compile:total`                | 1339 ms  | 1182 ms  | −12% (within render noise) |
+
+The fold removes the standalone concat-copy pass entirely (here ~69 ms). It's a **stream-copy**, so
+the saving is I/O-bound — small on short native clips, proportional to output size on long-form, and
+larger on WASM/on-device (one fewer full MEMFS write+read + engine invocation). Treat the total-time
+delta as noisy on this short fixture; the reliable figure is the eliminated `final:assemble` pass.
+
+### 4. Finalize fusion (xfade + overlay) — DONE
+
+**Implemented.** When a template has both transitions and whole-video animations, `assembleWithTransitions`
+now weaves the overlay graph onto the xfade output (`[vfx]` → overlay → `[vout]`) in one
+`-filter_complex`, so the two video re-encodes collapse to one; `overlayAnimations` skips (it would
+double-apply). Animation `-i` inputs are appended after the segment+silent inputs (legs reference
+`[inputOffset+k:v]`) with a distinct `ov` chain prefix to avoid colliding with the xfade `[v{k}]`
+labels; animation `-t` bounds come from an analytically-computed assembled duration (no file probe).
+The audio/music pass is untouched (`-c:v copy`). Toggle `FVC_DISABLE_FUSION=1` for the two-pass path.
+
+A/B on `transitions-animations.json` (3 sections, fade, one `light_leak.apng`, music+loudnorm),
+median of runs, `FVC_PERF=1`:
+
+| phase                                          | unfused | fused    | delta           |
+| ---------------------------------------------- | ------- | -------- | --------------- |
+| `final:assemble` (xfade [+overlay when fused]) | 537 ms  | 1463 ms  | absorbs overlay |
+| `final:animations` (overlay re-encode)         | 1203 ms | — (gone) | eliminated      |
+| `director:finalize`                            | 2479 ms | 2172 ms  | **−12%**        |
+
+Two video re-encodes (537 + 1203 = 1740 ms) become one (1463 ms) — ~280 ms of redundant
+re-encode removed, `director:finalize` −12%. `compile:total` is render-noise-dominated on this
+fixture (segment renders dwarf the delta), so finalize is the reliable measure. Applies only to
+templates with transitions **and** animations; all other paths unchanged. Full e2e suite green.
+
+### 5. Cross-segment remote-asset prefetch — WON'T DO (no measurable headroom)
+
+Gate (static analysis of `AssetManager`): the per-segment fetches are already parallel internally
+(`Promise.all` over assets/fonts/LUTs), and across segments the cost is already near-zero because:
+media assets are **cached cross-segment** in the template singleton (`AssetManager.ts:207-209` — a
+repeated `videoUrl` isn't re-downloaded), fonts are **bundled-first** then disk-cached
+(`resolveBundledFont` → `copy`), and **LUTs are generated locally** (`cubeFor`), never fetched. No
+remote (`https://`) fixtures exist, and a real network benchmark here is flaky/unrepresentative. So
+the only workload with headroom is many segments each pulling a _distinct_ remote video — not the
+common case. Recorded as won't-do; revisit (the up-front parallel prefetch in the plan, Task C2) only
+if a real remote-heavy template shows `segment:assets`/`segment:fonts` as a meaningful share.
+
 ## Headline: FFmpeg dominates; the TS layer is noise
 
 Measured `ffmpeg share` of total compile time:
@@ -77,12 +162,35 @@ serial path — zero risk unless opted in), honored only by the Node adapter. Me
 `BENCH_RUNS=5` on `fast-and-curious` and `concat-videos-with-music`. Note the expected gain is
 bounded: each ffmpeg is already multi-threaded, so on a core-saturated machine overlap buys little.
 
-### 2. `director:finalize` / `final:assemble` — INVESTIGATE (situational)
+### 2. Fold the concat pass into the audio pass — DONE (all platforms)
 
-For `concat-videos-with-music`, `director:finalize` = 720 ms (59.6%), dominated by
-`final:assemble` (436 ms) — a second full re-encode pass (concat / xfade + audio mix). This is
-ffmpeg time, not TS. Potential win only if the assembly re-encode can be avoided (stream copy where
-no transition/normalization is needed) — a correctness-sensitive change, separate investigation.
+**Implemented.** Audit finding: post-render video is already stream-copied everywhere valid
+(`concat`, `appendMusic`, `normalizeAudio` all use `-c:v copy`); the only full re-encodes are xfade
+transitions and animation overlays, which are mandatory frame compositing. The remaining waste was a
+**separate concat-copy pass**: concat wrote the whole assembled video (`-c copy`), then the next
+audio pass moved it aside, re-read it, and rewrote it just to touch audio. When there are no
+transitions and no animations, the director now skips the standalone concat and feeds the concat
+demuxer (`-f concat … -i <list>`) straight into the single audio pass, which stream-copies video and
+mixes/normalizes audio in one invocation (`appendMusic`/`normalizeAudio` accept a `VideoSource`).
+The music filtergraph's `[0:a]`/`[1:a]` indices are unchanged.
+
+**All platforms** (Node, ffmpeg-static, React Native/on-device, WASM): the fold is one ffmpeg
+invocation; `FFmpegWasmAdapter.execute` already bridges concat-list segments + the music input into
+MEMFS generically, so no virtual-FS gate is needed. (WASM e2e is env-blocked here; WASM correctness
+rests on the adapter's bridging tests + the shared command builder.)
+
+**Honest sizing (corrected):** the concat pass is **stream-copy**, not a re-encode — it's I/O-bound.
+Measured on `concat-music-cuts` (3×4s, music, cuts): the standalone concat-copy ran **~60 ms**, and
+folding it away makes `director:finalize` collapse to just `final:music` (~296 ms) with no separate
+`final:assemble`. So the native wall-clock win is **modest and proportional to output size**
+(tens of ms on short clips, more on long-form). It is **proportionally larger on WASM/on-device**,
+where it removes a full extra MEMFS write+read of the assembled video and one engine invocation.
+Beyond speed, it's a structural simplification (one fewer pass / temp file).
+
+> Note: an earlier draft mis-attributed a ~1 s `final:assemble` to the concat copy — that figure was
+> the **xfade re-encode** in a transitions fixture (`concat-videos-with-music` carries a global fade),
+> which this fold deliberately does **not** touch. Transition/animation re-encodes remain the large,
+> unavoidable finalize costs; fusing them into a single filtergraph is a separate, higher-risk lever.
 
 ### 3. Overlap independent per-segment fetches — WON'T DO (below noise floor)
 

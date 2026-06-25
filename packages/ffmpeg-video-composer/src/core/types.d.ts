@@ -1,3 +1,21 @@
+// Text-sugar descriptor types (title card / lower third / caption) + the reveal/exit/text-effect
+// vocabulary + chroma-key live in a sibling to keep this file under the max-lines budget; re-exported
+// so `@/core/types` stays the single entry point.
+export type {
+  RevealType,
+  Reveal,
+  Exit,
+  TextEffect,
+  TitleCard,
+  LowerThird,
+  ChromaKey,
+  Caption,
+} from './descriptor-text';
+import type { Reveal, Exit, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
+// Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
+export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer } from './descriptor-visual';
+import type { GradeConfig, MotionEffect, BackgroundLayer } from './descriptor-visual';
+
 export type LogParams = Record<string, unknown>;
 export type ProjectConfig = {
   buildDir?: string;
@@ -129,27 +147,6 @@ export interface Variables {
 
 type DescriptorSection = Section | PartialSection;
 
-export interface TitleCard {
-  kicker?: Translation;
-  headline?: Translation;
-  subtitle?: Translation;
-  accent?: string;
-  align?: 'left' | 'center';
-  background?: string;
-  reveal?: Reveal;
-  fade?: { in?: boolean; out?: boolean };
-}
-
-export interface LowerThird {
-  title?: Translation;
-  subtitle?: Translation;
-  accent?: string;
-  boxOpacity?: number;
-  position?: 'bottom' | 'top';
-  badge?: Translation;
-  reveal?: Reveal;
-}
-
 export interface Section {
   name: string;
   type: string;
@@ -167,13 +164,6 @@ export interface Section {
   grade?: GradeConfig;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
-}
-
-export interface ChromaKey {
-  color: string;
-  similarity?: number;
-  blend?: number;
-  background?: string;
 }
 
 export interface PartialSection {
@@ -196,35 +186,12 @@ export interface PartialSection {
   variables?: Record<string, string>;
 }
 
-export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
-export type Reveal = RevealType | { type: RevealType; delay?: number; duration?: number; distance?: number };
-
-export type TextEffect = {
-  shadow?: boolean | { color?: string; dx?: number; dy?: number };
-  outline?: boolean | { color?: string; width?: number };
-};
-
-export interface Caption {
-  text: Record<string, string>;
-  style?: 'bar' | 'subtle' | 'bold';
-  position?: 'top' | 'center' | 'bottom' | 'lower-third';
-  align?: 'left' | 'center' | 'right';
-  font?: string;
-  fontsize?: number;
-  color?: string;
-  box?: boolean;
-  boxColor?: string;
-  boxOpacity?: number;
-  reveal?: Reveal;
-  effect?: TextEffect;
-}
-
 interface AudioFade {
   duration: number;
   curve?: string;
 }
 
-interface SectionOptions {
+export interface SectionOptions {
   upperCase?: boolean;
   lowerCase?: boolean;
   useVideoSection?: string;
@@ -251,44 +218,7 @@ interface SectionOptions {
   allowedCaptureModes?: string[];
 }
 
-interface ChannelAdjust {
-  r?: number;
-  g?: number;
-  b?: number;
-}
-
-interface GradeConfig {
-  brightness?: number;
-  contrast?: number;
-  saturation?: number;
-  gamma?: number;
-  hue?: number;
-  colorBalance?: {
-    shadows?: ChannelAdjust;
-    midtones?: ChannelAdjust;
-    highlights?: ChannelAdjust;
-  };
-  blur?: number;
-  curvesPreset?: string;
-}
-
-type MotionEffect =
-  | { type: 'kenburns'; direction?: 'in' | 'out' | 'left' | 'right' | 'up' | 'down'; intensity?: number }
-  | { type: 'rotate'; angle: number }
-  | { type: 'crop'; w: number | string; h: number | string; x?: number | string; y?: number | string }
-  | { type: 'flip'; axis: 'horizontal' | 'vertical' };
-
-interface BackgroundLayer {
-  color?: string;
-  opacity?: number;
-  x?: number | string;
-  y?: number | string;
-  w?: number | string;
-  h?: number | string;
-  gradient?: { from: string; to: string; direction?: 'horizontal' | 'vertical' | 'diagonal' };
-}
-
-interface FramingGuideConfig {
+export interface FramingGuideConfig {
   type: 'silhouette';
   position: 'left' | 'center' | 'right';
   opacity?: number;
@@ -339,9 +269,14 @@ export interface Filter {
   value?: string | number;
   values?: FilterValues;
   range?: string;
+  // Animated entrance for a `drawtext` filter: the engine bakes it into alpha + kinetic x/y
+  // expressions (from the filter's base x/y) at compile, the same reveal vocabulary the text sugar uses.
+  reveal?: Reveal;
+  // Animated exit (fade/slide out after a time) baked alongside the entrance onto the same drawtext.
+  exit?: Exit;
 }
 
-interface FilterValues {
+export interface FilterValues {
   h?: number | string;
   w?: number | string;
   x?: number | string;

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TranslationSchema } from './global.schemas';
+import { RevealSchema, ExitSchema } from './effects.schemas';
 
 // ── filter schemas ─────────────────────────────────────────────────────────────
 
@@ -58,6 +59,8 @@ export const FilterSchema = z
       .describe('Single scalar parameter for simple filters that accept one value.'),
     values: FilterValuesSchema.optional().describe('Structured parameters for multi-argument filters.'),
     range: z.string().optional().describe('Time range over which the filter is active, as "start:end" in seconds.'),
+    reveal: RevealSchema.optional().describe('Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.'),
+    exit: ExitSchema.optional().describe('Animated exit for a drawtext filter; baked alongside the entrance at compile.'),
   })
   .describe('A single FFmpeg filter applied to the section or input stream.');
 

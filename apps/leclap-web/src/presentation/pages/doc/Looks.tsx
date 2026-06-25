@@ -32,6 +32,17 @@ export const DocLooks = () => (
         </p>
       </Prose>
       <ChipList items={LOOK_PRESETS} />
+      <Prose className="mt-5">
+        <p>
+          The first group (<Code>cinematic</Code>, <Code>warm</Code>, <Code>cool</Code>, <Code>vintage</Code>,{' '}
+          <Code>noir</Code>, <Code>vivid</Code>, <Code>dreamy</Code>) are <Code>eq</Code>/<Code>curves</Code> stacks. The{' '}
+          <Code>-film</Code> / <Code>-pop</Code> looks (<Code>teal-orange</Code>, <Code>warm-film</Code>,{' '}
+          <Code>mono-film</Code>, <Code>noir-film</Code>, <Code>vivid-pop</Code>) are <strong>LUT-backed</strong> — a
+          single <Code>lut3d</Code> with a bundled <Code>.cube</Code> file, a stronger and cleaner grade. They run on
+          every backend; a backend without <Code>lut3d</Code> drops the look with a warning rather than failing the
+          render.
+        </p>
+      </Prose>
       <Sample code={snippets.look} title="Applying a look" />
       <Tip className="mt-6">
         Start from a <Code>look</Code> preset, then nudge with manual <Code>grade</Code> values — they layer on top of

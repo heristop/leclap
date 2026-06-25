@@ -101,6 +101,7 @@ async function emitPerfReport(
   templateDescriptor: TemplateDescriptor
 ): Promise<void> {
   const report = getPerfTimer().report();
+
   if (report.totalMs <= 0) {
     return;
   }
@@ -113,8 +114,10 @@ async function emitPerfReport(
     // FVC_PERF_OUT lets a caller (the bench harness) pin an exact output path per run so reports
     // don't collide across fixtures that share a meta.name; otherwise name it from the descriptor.
     const explicit = process.env.FVC_PERF_OUT;
+
     if (explicit) {
       await fileSystem.writeFile(explicit, data);
+
       return;
     }
     const buildPath = await fileSystem.getBuildPath(buildDir);

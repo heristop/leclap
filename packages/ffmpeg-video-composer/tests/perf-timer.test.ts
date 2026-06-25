@@ -56,6 +56,27 @@ describe('PerfTimer', () => {
     process.env.FVC_PERF = prev;
   });
 
+  // Regression guard: the timer is constructed unconditionally in TemplateDirector (even in the
+  // browser, where the timer is disabled). The clock must not touch `process.hrtime` — that is
+  // undefined in the browser and previously crashed EVERY browser/WASM compilation with
+  // "Cannot read properties of undefined (reading 'bigint')". `performance.now()` works in both.
+  it('constructs, times and reports without process.hrtime (browser-safe clock)', async () => {
+    const orig = (process as unknown as { hrtime?: unknown }).hrtime;
+    (process as unknown as { hrtime?: unknown }).hrtime = undefined;
+
+    try {
+      const t = new PerfTimer(true);
+      const result = await t.span('work', async () => 'ok');
+
+      expect(result).toBe('ok');
+      expect(t.report().totalMs).toBeGreaterThanOrEqual(0);
+      // createPerfTimer must also not throw when reading the opt-in flag.
+      expect(() => createPerfTimer()).not.toThrow();
+    } finally {
+      (process as unknown as { hrtime?: unknown }).hrtime = orig;
+    }
+  });
+
   it('getPerfTimer returns a stable instance and resetPerfTimer replaces it', () => {
     const prev = process.env.FVC_PERF;
     process.env.FVC_PERF = '1';

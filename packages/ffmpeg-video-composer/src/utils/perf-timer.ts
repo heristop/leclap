@@ -9,7 +9,14 @@ export interface PerfReport {
   spans: PerfSpan[];
 }
 
-const nowMs = (): number => Number(process.hrtime.bigint()) / 1_000_000;
+// `performance.now()` is a monotonic high-resolution clock available in browsers and Node 16+; fall
+// back to `process.hrtime` only on older Node. Must NOT touch `process.hrtime` in the browser — it is
+// undefined there, and the timer is constructed unconditionally (the `createdAt` initialiser runs even
+// when disabled), so a browser-unsafe clock crashes every browser/WASM compilation.
+const nowMs = (): number =>
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Number(process.hrtime.bigint()) / 1_000_000;
 
 /**
  * Lightweight, allocation-free-when-disabled phase timer. Records named spans using the
@@ -78,7 +85,9 @@ export class PerfTimer {
 }
 
 export const createPerfTimer = (): PerfTimer => {
-  const flag = process.env.FVC_PERF;
+  // `process` is absent in the browser; guard so reading the opt-in flag never throws there. The timer
+  // simply stays disabled when no env is available.
+  const flag = typeof process === 'undefined' ? undefined : process.env.FVC_PERF;
 
   return new PerfTimer(Boolean(flag) && flag !== '0');
 };

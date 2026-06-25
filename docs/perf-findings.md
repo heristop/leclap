@@ -36,11 +36,28 @@ process at a time:
 Rendering 2–3 segments concurrently could cut `director:render` substantially on multi-core
 machines, and the payoff grows with segment count. This is the only finding with meaningful upside.
 
-**Risks / before doing:** confirm output identity (segment files are independent, but the concat
-list order must be preserved); verify progress reporting (`TemplateDirector.ts:275-285`) still
-aggregates correctly under concurrency; cap concurrency (CPU/memory — each ffmpeg is already
-multi-threaded, so 2–3 is likely the sweet spot, not N). Measure with `BENCH_RUNS=5` on
-`fast-and-curious` and `concat-videos-with-music`.
+**Architectural constraint (confirmed by code inspection — not a simple loop change):**
+three pieces of shared mutable state make a naive `Promise`-pool over `processSingleVideoSegment`
+unsafe (it would corrupt output silently):
+
+1. `Segment` is a **DI singleton** — `container.registerInstance('segment', new Segment())`
+   (`index.ts:68`). Every `SegmentBuilder` and every manager (asset/map/filter/formatter) reads and
+   mutates this one instance via `hydrate()`. **The build phase must stay serial.**
+2. `TemplateConcreteBuilder` is resolved once and reused; it stores `this.segment`/`this.section`
+   per call (`TemplateConcreteBuilder.ts:22-23`), so concurrent `buildPart`/`renderPart` clobber.
+3. The ffmpeg adapter carries per-call `progressListener`/`expectedDurationSeconds`
+   (`AbstractFFmpeg.ts:31,38`), set per segment in the loop (`TemplateDirector.ts:275-285`).
+
+**Therefore the only safe parallelization is to decouple build from render:** build each segment
+serially (cheap — sub-ms — and capture its final ffmpeg command string + destination), then run the
+`ffmpegAdapter.execute()` calls through a bounded pool, then append to the concat list in segment
+order. This is **Node-only**: the WASM and on-device adapters drive a single FFmpeg engine over a
+shared virtual filesystem and cannot run concurrent executes.
+
+**Recommended shape:** a `maxRenderConcurrency` knob defaulting to **1** (byte-identical to today's
+serial path — zero risk unless opted in), honored only by the Node adapter. Measure with
+`BENCH_RUNS=5` on `fast-and-curious` and `concat-videos-with-music`. Note the expected gain is
+bounded: each ffmpeg is already multi-threaded, so on a core-saturated machine overlap buys little.
 
 ### 2. `director:finalize` / `final:assemble` — INVESTIGATE (situational)
 

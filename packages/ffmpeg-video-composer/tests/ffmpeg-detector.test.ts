@@ -36,6 +36,40 @@ describe('FFmpegDetector', () => {
     });
   });
 
+  describe('parseEncoders', () => {
+    it('extracts encoder names from `ffmpeg -encoders` output', () => {
+      const sample = [
+        'Encoders:',
+        ' V..... = Video',
+        ' ------',
+        ' V....D libx264              libx264 H.264 / AVC / MPEG-4 AVC',
+        ' V....D h264_videotoolbox    VideoToolbox H.264 Encoder',
+        ' A..... aac                  AAC (Advanced Audio Coding)',
+      ].join('\n');
+
+      const encoders = FFmpegDetector.parseEncoders(sample);
+
+      expect(encoders).toContain('libx264');
+      expect(encoders).toContain('h264_videotoolbox');
+      expect(encoders).toContain('aac');
+      // header / separator lines are not encoders
+      expect(encoders).not.toContain('=');
+      expect(encoders).not.toContain('Encoders:');
+    });
+
+    it('returns an empty array for empty output', () => {
+      expect(FFmpegDetector.parseEncoders('')).toEqual([]);
+    });
+  });
+
+  describe('listEncoders', () => {
+    it('returns a non-empty encoder list from the available ffmpeg (libx264 present)', async () => {
+      const encoders = await FFmpegDetector.listEncoders();
+      expect(Array.isArray(encoders)).toBe(true);
+      expect(encoders).toContain('libx264');
+    });
+  });
+
   describe('getInstallationInstructions', () => {
     it('should return installation instructions', () => {
       const instructions = FFmpegDetector.getInstallationInstructions();

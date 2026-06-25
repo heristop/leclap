@@ -111,3 +111,20 @@ describe('FFmpegNodeAdapter — shell injection hardening', () => {
     expect(execFileCalls[0].args).toEqual(['-v', 'quiet', '-print_format', 'json', '-show_streams', source]);
   });
 });
+
+describe('supportsConcurrentExecute capability', () => {
+  it('is true for the Node adapter (independent child process per execute)', () => {
+    expect(new FFmpegNodeAdapter().supportsConcurrentExecute).toBe(true);
+  });
+
+  it('defaults to false on the abstract base (single-engine adapters keep serial renders)', async () => {
+    const { default: AbstractFFmpeg } = await import('@/platform/ffmpeg/AbstractFFmpeg');
+
+    class SingleEngineAdapter extends AbstractFFmpeg {
+      execute = async () => ({ rc: 0 });
+      getInfos = async () => ({ duration: null, videoCodec: null, audioCodec: null, sampleRate: null });
+    }
+
+    expect(new SingleEngineAdapter().supportsConcurrentExecute).toBe(false);
+  });
+});

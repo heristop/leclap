@@ -18,7 +18,7 @@ vi.mock('@/platform/ffmpeg/FFmpegWasmAdapter', () => {
   return { default: MockFFmpegWasmAdapter };
 });
 
-// Mock SegmentFactory so buildPart() returns a controllable stub segment
+// Mock SegmentFactory so build() returns a controllable stub segment
 // (avoids needing the full tsyringe container of managers/segment classes).
 const segmentStub = {
   destination: '/build/seg_output.mp4',
@@ -94,25 +94,25 @@ beforeEach(() => {
   segmentStub.initResult = true;
 });
 
-describe('TemplateConcreteBuilder.buildPart', () => {
+describe('TemplateConcreteBuilder.build', () => {
   it('creates a segment via the factory and returns the init result', async () => {
     const { builder } = makeBuilder({});
     const config: ProjectConfig = { buildDir: '/build' };
 
-    const result = await builder.buildPart(baseSection, config);
+    const { ok } = await builder.build(baseSection, config);
 
-    expect(result).toBe(true);
+    expect(ok).toBe(true);
     expect(createMock).toHaveBeenCalledWith(baseSection);
     expect(segmentStub.init).toHaveBeenCalled();
   });
 
-  it('returns false when the segment fails to init', async () => {
+  it('returns ok=false when the segment fails to init', async () => {
     segmentStub.initResult = false;
     const { builder } = makeBuilder({});
 
-    const result = await builder.buildPart(baseSection, { buildDir: '/build' });
+    const { ok } = await builder.build(baseSection, { buildDir: '/build' });
 
-    expect(result).toBe(false);
+    expect(ok).toBe(false);
   });
 
   it('assigns the projectConfig to the project when the section is project_video', async () => {
@@ -123,19 +123,19 @@ describe('TemplateConcreteBuilder.buildPart', () => {
     const projectFromSegment = { config: {} as ProjectConfig };
     segmentStub.getProject.mockReturnValueOnce(projectFromSegment);
 
-    await builder.buildPart(projectVideoSection, config);
+    await builder.build(projectVideoSection, config);
 
     expect(projectFromSegment.config).toBe(config);
   });
 });
 
-describe('TemplateConcreteBuilder.renderPart (native adapter)', () => {
+describe('TemplateConcreteBuilder.render (native adapter)', () => {
   it('does nothing harmful when no command is present but still executes', async () => {
     segmentStub.command = '';
     const { builder, logger, ffmpeg } = makeBuilder({});
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(logger.info).toHaveBeenCalledWith('[intro][RenderPart] No command available');
     expect(ffmpeg.execute).toHaveBeenCalledWith('');
@@ -149,8 +149,8 @@ describe('TemplateConcreteBuilder.renderPart (native adapter)', () => {
       filesystem,
     });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(filesystem.stat).toHaveBeenCalledWith('/build/seg_output.mp4');
     expect(project.errors).toHaveLength(0);
@@ -165,8 +165,8 @@ describe('TemplateConcreteBuilder.renderPart (native adapter)', () => {
       filesystem,
     });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('[intro][RenderPart] output file not found'));
     expect(project.errors).toContain('intro');
@@ -177,14 +177,14 @@ describe('TemplateConcreteBuilder.renderPart (native adapter)', () => {
       ffmpeg: { execute: vi.fn(async () => ({ rc: 1 })) },
     });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(project.errors).toContain('intro');
   });
 });
 
-describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
+describe('TemplateConcreteBuilder.render (WASM adapter)', () => {
   function makeWasmAdapter() {
     const wasm = new FFmpegWasmAdapter({} as never) as unknown as {
       execute: ReturnType<typeof vi.fn>;
@@ -208,8 +208,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     filesystem.stat.mockResolvedValue(true);
     const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(filesystem.stat).toHaveBeenCalledWith('/build/seg_output.mp4');
     expect(wasm.readFile).not.toHaveBeenCalled();
@@ -232,8 +232,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     filesystem.stat.mockResolvedValue(false);
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     // input files were written to WASM memory
     expect(wasm.writeFile).toHaveBeenCalledWith('a.png', expect.any(Uint8Array));
@@ -256,8 +256,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     const { builder, logger } = makeBuilder({ ffmpeg: wasm as never });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(logger.info).toHaveBeenCalledWith('[intro][WASM] No input assets to load');
     expect(wasm.writeFile).not.toHaveBeenCalled();
@@ -278,8 +278,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     const { builder, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('[intro][WASM] Warning: Large file'));
   });
@@ -293,9 +293,9 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     const { builder, logger } = makeBuilder({ ffmpeg: wasm as never });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
 
-    await expect(builder.renderPart()).rejects.toThrow('Failed to write input file asset_a');
+    await expect(builder.render(segment, baseSection)).rejects.toThrow('Failed to write input file asset_a');
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining('[intro][WASM] Failed to write input file asset_a')
     );
@@ -324,8 +324,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     filesystem.stat.mockResolvedValue(false);
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(wasm.listDir).toHaveBeenCalledWith('/tmp');
     expect(filesystem.writeFile).toHaveBeenCalledWith('seg_output.mp4', expect.any(Uint8Array));
@@ -356,8 +356,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     filesystem.stat.mockResolvedValue(false);
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(filesystem.writeFile).toHaveBeenCalledWith('seg_output.mp4', expect.any(Uint8Array));
     expect(wasm.deleteFile).toHaveBeenCalledWith('seg_output.mp4');
@@ -381,9 +381,9 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     filesystem.stat.mockResolvedValue(false);
     const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
 
-    await expect(builder.renderPart()).rejects.toThrow('Failed to read output file from FFmpeg');
+    await expect(builder.render(segment, baseSection)).rejects.toThrow('Failed to read output file from FFmpeg');
     expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('[intro][RenderPart] Could not check /tmp'));
     expect(project.errors).toContain('intro');
   });
@@ -400,9 +400,9 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
     filesystem.stat.mockResolvedValue(false);
     const { builder, project, logger } = makeBuilder({ ffmpeg: wasm as never, filesystem });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
 
-    await expect(builder.renderPart()).rejects.toThrow('Failed to read output file from FFmpeg');
+    await expect(builder.render(segment, baseSection)).rejects.toThrow('Failed to read output file from FFmpeg');
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Output file not found in WASM'));
     expect(project.errors).toContain('intro');
   });
@@ -415,8 +415,8 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never });
 
-    await builder.buildPart(baseSection, { buildDir: '/build' });
-    await builder.renderPart();
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
+    await builder.render(segment, baseSection);
 
     expect(project.errors).toContain('intro');
     // No output transfer attempted on failure
@@ -426,7 +426,7 @@ describe('TemplateConcreteBuilder.renderPart (WASM adapter)', () => {
 
 // The WASM-specific helpers each begin with an early-return guard:
 //   if (!(this.ffmpegAdapter instanceof FFmpegWasmAdapter)) return ...;
-// With a NATIVE (non-wasm) adapter, renderPart never routes into these methods,
+// With a NATIVE (non-wasm) adapter, render never routes into these methods,
 // so the guard's early `return` is otherwise never exercised. Invoking the
 // private helpers directly with a plain (non-wasm) adapter covers the guard.
 describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', () => {
@@ -444,11 +444,13 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
   it('writeInputFilesToWasm returns early and writes nothing', async () => {
     const ffmpeg = makeNativeAdapter();
     const { builder } = makeBuilder({ ffmpeg: ffmpeg as never });
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    const { segment } = await builder.build(baseSection, { buildDir: '/build' });
     // ensure there WOULD be assets to write if the guard did not short-circuit
     segmentStub.inputsAsset = { asset_a: '/assets/a.png' };
 
-    await (builder as unknown as { writeInputFilesToWasm: () => Promise<void> }).writeInputFilesToWasm();
+    await (
+      builder as unknown as { writeInputFilesToWasm: (s: unknown, sec: Section) => Promise<void> }
+    ).writeInputFilesToWasm(segment, baseSection);
 
     expect(ffmpeg.writeFile).not.toHaveBeenCalled();
   });
@@ -456,12 +458,11 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
   it('writeAssetToWasm returns early and reads/writes nothing', async () => {
     const ffmpeg = makeNativeAdapter();
     const { builder, filesystem } = makeBuilder({ ffmpeg: ffmpeg as never });
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    await builder.build(baseSection, { buildDir: '/build' });
 
-    await (builder as unknown as { writeAssetToWasm: (k: string, p: string) => Promise<void> }).writeAssetToWasm(
-      'asset_a',
-      '/assets/a.png'
-    );
+    await (
+      builder as unknown as { writeAssetToWasm: (k: string, p: string, sec: Section) => Promise<void> }
+    ).writeAssetToWasm('asset_a', '/assets/a.png', baseSection);
 
     expect(filesystem.readFile).not.toHaveBeenCalled();
     expect(ffmpeg.writeFile).not.toHaveBeenCalled();
@@ -470,13 +471,13 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
   it('searchWasmTmpDir returns a null result for a native adapter', async () => {
     const ffmpeg = makeNativeAdapter();
     const { builder } = makeBuilder({ ffmpeg: ffmpeg as never });
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    await builder.build(baseSection, { buildDir: '/build' });
 
     const result = await (
       builder as unknown as {
-        searchWasmTmpDir: (f: string) => Promise<{ data: unknown; fileLocation: unknown }>;
+        searchWasmTmpDir: (f: string, sec: Section) => Promise<{ data: unknown; fileLocation: unknown }>;
       }
-    ).searchWasmTmpDir('seg_output.mp4');
+    ).searchWasmTmpDir('seg_output.mp4', baseSection);
 
     expect(result).toEqual({ data: null, fileLocation: null });
     expect(ffmpeg.listDir).not.toHaveBeenCalled();
@@ -485,13 +486,13 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
   it('searchWasmDirectories returns a null result for a native adapter', async () => {
     const ffmpeg = makeNativeAdapter();
     const { builder } = makeBuilder({ ffmpeg: ffmpeg as never });
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    await builder.build(baseSection, { buildDir: '/build' });
 
     const result = await (
       builder as unknown as {
-        searchWasmDirectories: (f: string) => Promise<{ data: unknown; fileLocation: unknown }>;
+        searchWasmDirectories: (f: string, sec: Section) => Promise<{ data: unknown; fileLocation: unknown }>;
       }
-    ).searchWasmDirectories('seg_output.mp4');
+    ).searchWasmDirectories('seg_output.mp4', baseSection);
 
     expect(result).toEqual({ data: null, fileLocation: null });
     expect(ffmpeg.listDir).not.toHaveBeenCalled();
@@ -500,13 +501,13 @@ describe('TemplateConcreteBuilder WASM-guard early returns (native adapter)', ()
   it('findWasmOutputFile returns a null result for a native adapter', async () => {
     const ffmpeg = makeNativeAdapter();
     const { builder } = makeBuilder({ ffmpeg: ffmpeg as never });
-    await builder.buildPart(baseSection, { buildDir: '/build' });
+    await builder.build(baseSection, { buildDir: '/build' });
 
     const result = await (
       builder as unknown as {
-        findWasmOutputFile: (f: string) => Promise<{ data: unknown; fileLocation: unknown }>;
+        findWasmOutputFile: (f: string, sec: Section) => Promise<{ data: unknown; fileLocation: unknown }>;
       }
-    ).findWasmOutputFile('seg_output.mp4');
+    ).findWasmOutputFile('seg_output.mp4', baseSection);
 
     expect(result).toEqual({ data: null, fileLocation: null });
     expect(ffmpeg.readFile).not.toHaveBeenCalled();

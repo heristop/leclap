@@ -43,7 +43,7 @@ Two looks at LeClap — a finished clip rendered from a single JSON template, an
       <strong>🎬 Template-driven render</strong><br />
       <sub>one JSON template → a finished clip · <em>unmute for sound</em></sub>
       <br /><br />
-      <video src="https://github.com/user-attachments/assets/7edb7990-0dba-43d8-b69b-b357e05e18ba" controls muted width="100%"></video>
+      <video src="https://github.com/user-attachments/assets/19f59a73-d35a-470d-9c42-3945ba51e5ba" controls muted width="100%"></video>
     </td>
     <td align="center" width="40%" valign="top">
       <strong>📱 On-device on Android</strong><br />

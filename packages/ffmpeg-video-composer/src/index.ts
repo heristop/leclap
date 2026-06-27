@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import PlatformBridge from './platform/PlatformBridge';
 import TemplateDirector from './director/TemplateDirector';
+import VideoEditor from './editor/VideoEditor';
 import Project from './core/models/Project';
 import Template from './core/models/Template';
 import Segment from './core/models/Segment';
@@ -42,17 +43,15 @@ async function registerManagers(): Promise<void> {
 }
 
 async function registerEditorClasses(): Promise<void> {
-  const VideoEditor = (await import('./editor/VideoEditor')).default;
   const MusicComposer = (await import('./editor/MusicComposer')).default;
   const AnimationComposer = (await import('./editor/AnimationComposer')).default;
   const TemplateConcreteBuilder = (await import('./director/TemplateConcreteBuilder')).default;
-  const TemplateDirectorClass = (await import('./director/TemplateDirector')).default;
 
   container.register('VideoEditor', { useClass: VideoEditor });
   container.register('MusicComposer', { useClass: MusicComposer });
   container.register('AnimationComposer', { useClass: AnimationComposer });
   container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
-  container.register('TemplateDirector', { useClass: TemplateDirectorClass });
+  container.register('TemplateDirector', { useClass: TemplateDirector });
 }
 
 async function initializePlatform(): Promise<void> {
@@ -200,7 +199,7 @@ export async function compile(
 }
 
 export { TemplateDirector };
-export { default as VideoEditor } from './editor/VideoEditor';
+export { VideoEditor };
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
 export { default as FFmpegWasmAdapter } from './platform/ffmpeg/FFmpegWasmAdapter';
 export { default as FilesystemNodeAdapter } from './platform/filesystem/FilesystemNodeAdapter';

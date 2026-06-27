@@ -1,8 +1,10 @@
 name: Release
 
-# Changesets-driven release. On every push to main this either:
-#   1. opens/updates a "Version Packages" PR (when unreleased changesets exist), or
-#   2. publishes the bumped packages to npm + creates GitHub releases (when that PR is merged).
+# Changesets-driven release.
+#   - On every push to main: open/update the "Version Packages" PR (bumps versions +
+#     changelogs). This NEVER publishes.
+#   - Publishing is manual: trigger "Run workflow" (workflow_dispatch) to publish the
+#     bumped packages to npm + create GitHub releases.
 # See .changeset/ for the workflow and CONTRIBUTING for how to add a changeset.
 on:
   push:
@@ -18,8 +20,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  release:
-    name: Version or Publish
+  version:
+    name: Version Packages PR
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -40,13 +43,42 @@ jobs:
       - name: Install Dependencies
         run: pnpm i
 
-      - name: Create Release Pull Request or Publish
+      - name: Create or Update Version Packages PR
         uses: changesets/action@v1
         with:
           version: pnpm version-packages
-          publish: pnpm release
           commit: 'chore: version packages'
           title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    name: Publish to npm
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Changesets needs full history to diff against the base branch and tag releases.
+          fetch-depth: 0
+
+      # The bundled creative-kit media (templates/music) is embedded into the published
+      # package at build time and lives in Git LFS; pull it before building.
+      - name: Fetch bundled media (Git LFS)
+        run: git lfs pull --include="packages/leclap-creative-kit/src/library/"
+
+      # Toolchain pinned in mise.toml (Node, pnpm).
+      - name: Set up toolchain (mise)
+        uses: jdx/mise-action@v4
+
+      - name: Install Dependencies
+        run: pnpm i
+
+      - name: Publish Packages
+        uses: changesets/action@v1
+        with:
+          publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

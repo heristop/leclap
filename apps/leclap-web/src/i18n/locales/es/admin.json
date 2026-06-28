@@ -1,0 +1,604 @@
+{
+  "addScene": {
+    "title": "Añadir una escena",
+    "category": {
+      "clip": "Clips y elementos visuales",
+      "input": "Entrada",
+      "data": "Datos"
+    }
+  },
+  "page": {
+    "heading": "Editor",
+    "subtitle": "Usa un ejemplo o crea la tuya — se guarda en este navegador.",
+    "create": "Crear plantilla",
+    "myTemplates": "Mis plantillas",
+    "count": "({{count}})",
+    "empty": {
+      "title": "Aún no has creado ninguna plantilla.",
+      "subtitle": "Empieza desde cero o duplica un ejemplo de abajo.",
+      "create": "Crea tu primera plantilla"
+    },
+    "samples": "Plantillas de ejemplo",
+    "goToBuilder": "Ir a Plantillas",
+    "partials": "Fragmentos",
+    "contribute": {
+      "title": "Contribuye con una plantilla",
+      "description": "¿Has creado algo genial? Compártelo con la comunidad de LeClap en GitHub."
+    }
+  },
+  "partials": {
+    "title": "Fragmentos",
+    "subtitle": "Crea fragmentos de escena reutilizables con los mismos controles visuales que las plantillas.",
+    "back": "Plantillas"
+  },
+  "card": {
+    "noDescription": "Sin descripción",
+    "section_one": "{{count}} sección",
+    "section_other": "{{count}} secciones",
+    "form": "formulario",
+    "edit": "Editar",
+    "duplicate": "Duplicar y editar",
+    "delete": "Eliminar {{name}}",
+    "convertToPartial": "Convertir {{name}} en fragmento",
+    "share": "Compartir {{name}} en GitHub",
+    "convertDialog": {
+      "title": "¿Convertir en fragmento?",
+      "description": "«{{name}}» se convertirá en un fragmento de escena reutilizable. La plantilla original no se elimina: puedes seguir editándola desde la lista.",
+      "cancel": "Cancelar",
+      "confirm": "Convertir en fragmento"
+    },
+    "shareDialog": {
+      "title": "Contribuir en GitHub",
+      "description": "Comparte esta plantilla con la comunidad de LeClap en dos pasos.",
+      "jsonLabel": "Descriptor de la plantilla",
+      "step1": "Copia el JSON de la plantilla",
+      "step2": "Abre el repositorio en GitHub, crea una nueva rama, pega el JSON como un nuevo archivo de plantilla y abre un pull request.",
+      "copy": "Copiar JSON",
+      "copied": "¡Copiado!",
+      "openGithub": "Abrir GitHub →"
+    }
+  },
+  "orientationLabel": {
+    "landscape": "horizontal",
+    "portrait": "vertical",
+    "square": "cuadrado"
+  },
+  "complexity": {
+    "simple": "simple",
+    "intermediate": "intermedio",
+    "advanced": "avanzado"
+  },
+  "seo": {
+    "edit": "Editar plantilla",
+    "create": "Crear una plantilla"
+  },
+  "editor": {
+    "title": {
+      "edit": "Editar plantilla",
+      "create": "Crear una plantilla"
+    },
+    "subtitle": "Crea tus escenas de arriba abajo y luego guarda: aparecerá en el editor como plantilla personalizada.",
+    "back": "Plantillas",
+    "mode": {
+      "simple": "Simple",
+      "advanced": "Avanzado"
+    },
+    "toolbar": {
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "export": "Exportar el JSON de la plantilla",
+      "import": "Importar el JSON de la plantilla"
+    },
+    "basics": {
+      "name": "Nombre",
+      "namePlaceholder": "Mi plantilla",
+      "orientation": "Orientación",
+      "landscape": "Horizontal (16:9)",
+      "portrait": "Vertical (9:16)",
+      "square": "Cuadrado (1:1)"
+    },
+    "advanced": {
+      "label": "Ajustes avanzados",
+      "summary": "Mezcla de audio · Variables",
+      "wholeVideo": {
+        "label": "Animaciones de todo el vídeo",
+        "hint": "Superposiciones que abarcan todo el vídeo, en cada sección."
+      },
+      "io": {
+        "label": "Importar / exportar",
+        "hint": "Exporta esta plantilla como JSON o importa un descriptor para reemplazar el actual."
+      }
+    },
+    "variables": {
+      "label": "Variables globales",
+      "hint": "Valores reutilizables que puedes insertar como {{token}} en cualquier texto.",
+      "name": "Nombre de la variable {{index}}",
+      "value": "Valor de la variable {{index}}",
+      "remove": "Quitar la variable {{index}}",
+      "namePlaceholder": "nombre",
+      "valuePlaceholder": "valor",
+      "add": "Añadir variable"
+    },
+    "scenes": {
+      "label": "Escenas",
+      "hint": "Cada escena se reproduce en orden, de arriba abajo: arrastra el tirador para reordenar.",
+      "empty": "Aún no hay escenas: añade la primera abajo.",
+      "expandAll": "Expandir todo",
+      "collapseAll": "Contraer todo",
+      "dropHere": "Suelta aquí"
+    },
+    "addScene": {
+      "label": "Añadir una escena"
+    },
+    "sectionLabel": {
+      "video": "Tu vídeo",
+      "form": "Campos del formulario",
+      "color": "Fondo de color",
+      "music": "Música de fondo",
+      "image": "Imagen de fondo"
+    },
+    "card": {
+      "dragToReorder": "Arrastra para reordenar",
+      "expand": "Expandir sección",
+      "collapse": "Contraer sección",
+      "duplicate": "Duplicar sección",
+      "remove": "Quitar sección"
+    },
+    "summary": {
+      "seconds": "{{count}} s",
+      "muted": "silenciado",
+      "overlay_one": "{{count}} superposición",
+      "overlay_other": "{{count}} superposiciones",
+      "countdown": "cuenta atrás {{count}} s",
+      "field_one": "{{count}} campo",
+      "field_other": "{{count}} campos",
+      "track_one": "{{count}} pista",
+      "track_other": "{{count}} pistas",
+      "image_one": "{{count}} imagen",
+      "image_other": "{{count}} imágenes",
+      "upload": "subir"
+    },
+    "validation": {
+      "name": "Ponle un nombre a tu plantilla.",
+      "atLeastOneSection": "Añade al menos una sección.",
+      "mediaOrUpload": "Elige al menos una opción para la sección {{label}}, o permite subidas.",
+      "fixErrors": "Corrige los errores de sección marcados antes de guardar.",
+      "saveFailed": "No se pudo guardar la plantilla."
+    },
+    "globalBanner": "Esta plantilla tiene problemas:",
+    "importError": {
+      "title": "No se pudo importar",
+      "description": "El archivo no es un descriptor de plantilla válido."
+    },
+    "save": "Guardar plantilla",
+    "saveAndFilm": "Guardar y grabar →",
+    "cancel": "Cancelar",
+    "untitled": "Plantilla sin título"
+  },
+  "shell": {
+    "scenes": "Escenas",
+    "basics": "Básicos",
+    "audio": "Audio",
+    "variables": "Variables",
+    "advanced": "Avanzado",
+    "tools": "Herramientas de edición",
+    "resizePanels": "Arrastra para redimensionar la vista previa y el panel",
+    "preview": "Vista previa",
+    "addScene": "Añadir escena",
+    "addSceneKind": "Añadir escena de {{kind}}",
+    "duplicateScene": "Duplicar escena",
+    "deleteScene": "Eliminar escena",
+    "reorderScene": "Arrastra para reordenar la escena",
+    "transitionAfter": "Transición después de esta escena",
+    "nameLabel": "Nombre de la plantilla",
+    "monitorEmpty": "Selecciona una escena para editar",
+    "partialNameLabel": "Id del fragmento",
+    "partialPicker": "Cambiar de fragmento",
+    "partialNew": "Nuevo fragmento",
+    "partialDelete": "Eliminar fragmento",
+    "partialDescription": "Descripción",
+    "partialBuiltin": "Integrado",
+    "partialLocal": "Local",
+    "partialSaveFailed": "No se pudo guardar el fragmento.",
+    "partialSave": "Guardar fragmento",
+    "partialPreviewLabel": "Vista previa del fragmento",
+    "partialUnset": "Ningún fragmento seleccionado"
+  },
+  "testRender": {
+    "rendering": "Renderizando…",
+    "preview": "Renderizar vista previa",
+    "ariaLabel": "Renderiza una vista previa de esta plantilla con material de ejemplo",
+    "title": "Renderizar vista previa",
+    "description": "Un borrador rápido con material de ejemplo: clips de marcador de posición sustituyen a tus secciones de vídeo.",
+    "failed": "Falló el render de la vista previa.",
+    "download": "Descargar borrador"
+  },
+  "validation": {
+    "saveFailed": "No se pudo guardar la plantilla."
+  },
+  "media": {
+    "source": "Origen multimedia",
+    "tab": {
+      "library": "biblioteca",
+      "upload": "subir",
+      "url": "url"
+    },
+    "urlLabel": "URL del recurso",
+    "urlPlaceholder": "https://ejemplo.com/media.mp4",
+    "urlHint": "Pega un enlace directo: se obtiene al compilar, no se almacena en el dispositivo.",
+    "emptyLibrary": "Aún no hay nada aquí: sube el tuyo en su lugar.",
+    "emptyMultiLibrary": "Aún no hay nada en la biblioteca.",
+    "play": "Reproducir {{title}}",
+    "pause": "Pausar {{title}}",
+    "uploadMusic": "Subir un archivo de música",
+    "uploadImage": "Subir una imagen de fondo",
+    "dropTrack": "Suelta una pista o haz clic para explorar",
+    "dropImage": "Suelta una imagen o haz clic para explorar",
+    "musicFormats": "MP3, WAV, M4A · almacenado en este dispositivo",
+    "imageFormats": "JPG, PNG, WebP · almacenado en este dispositivo",
+    "uploaded": "Subido · almacenado en este dispositivo",
+    "removeUpload": "Quitar el archivo subido"
+  },
+  "overlay": {
+    "textOverlays": "Superposiciones de texto",
+    "doubleClickToEdit": "Haz doble clic para editar",
+    "textPlaceholder": "Añade tu texto",
+    "editText": "Editar el texto de la superposición",
+    "selectOrAdd": "Selecciona un texto — o añade uno abajo.",
+    "addText": "Añadir texto",
+    "size": "Tamaño — {{size}} px",
+    "deleteText": "Eliminar texto",
+    "color": "Color",
+    "textColor": "Color del texto",
+    "box": "Caja",
+    "boxColor": "Color de la caja",
+    "boxOpacity": "Opacidad de la caja — {{percent}} %",
+    "font": "Fuente",
+    "insertVariable": "Insertar variable",
+    "insertVariableHint": "Añade primero un campo de formulario o una variable global",
+    "label": "Texto {{index}}",
+    "labelWithText": "Texto: {{text}}",
+    "list": "Superposiciones de texto",
+    "untitled": "Texto {{index}}",
+    "empty": "Aún no hay texto. Añade uno para empezar.",
+    "selectHint": "Selecciona un texto en la vista previa o elige uno abajo."
+  },
+  "controls": {
+    "reset": "Restablecer {{label}}",
+    "muted": "Silenciado",
+    "volume": "Volumen de {{label}}"
+  },
+  "audio": {
+    "label": "Audio",
+    "hint": "Equilibra tu clip grabado con la música y luego añade los toques finales.",
+    "yourVideo": "Tu vídeo",
+    "music": "Música",
+    "normalize": "Normalizar el volumen",
+    "normalizeOff": "Desactivado",
+    "normalizeLoudnorm": "Loudnorm",
+    "normalizeDynamic": "Dinámico",
+    "ducking": "Bajar la música cuando alguien habla"
+  },
+  "sectionAudio": {
+    "label": "Audio de la sección",
+    "musicVolume": "Volumen de la música",
+    "musicVolumeGlobal": "Volumen de la música (global)",
+    "resetToGlobal": "Restablecer al global ({{percent}})",
+    "fadeIn": "Fundido de entrada",
+    "fadeOut": "Fundido de salida",
+    "duration": "Duración (s)",
+    "fadeDuration": "Duración de {{side}} en segundos",
+    "curve": "Curva",
+    "fadeCurve": "Curva de {{side}}"
+  },
+  "framing": {
+    "label": "Guía de encuadre",
+    "hint": "Una silueta que se muestra al grabar para ayudar a encuadrar la toma: nunca se renderiza en el vídeo.",
+    "none": "Ninguna",
+    "left": "Izquierda",
+    "center": "Centro",
+    "right": "Derecha",
+    "opacity": "Opacidad",
+    "styleBust": "Busto",
+    "styleOutline": "Contorno",
+    "mirrorNote": "Reflejada en la cámara frontal, como un espejo.",
+    "noGuide": "Sin guía"
+  },
+  "grade": {
+    "fineTune": "Ajuste fino",
+    "customised": "personalizado",
+    "brightness": "Brillo",
+    "contrast": "Contraste",
+    "saturation": "Saturación",
+    "gamma": "Gamma",
+    "hue": "Tono",
+    "blur": "Desenfoque"
+  },
+  "layer": {
+    "background": "Fondo",
+    "position": "Posición (% del cuadro)",
+    "axis": {
+      "x": "X",
+      "y": "Y",
+      "w": "An",
+      "h": "Al"
+    },
+    "base": "Base",
+    "name": "Capa {{index}}",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "remove": "Quitar capa",
+    "color": "Color de {{name}}",
+    "opacity": "Opacidad",
+    "gradient": "Degradado",
+    "gradientStart": "Inicio del degradado",
+    "gradientEnd": "Fin del degradado",
+    "direction": "Dirección",
+    "add": "Añadir capa"
+  },
+  "look": {
+    "label": "Look",
+    "preset": "Preajuste de look",
+    "none": "Ninguno"
+  },
+  "animation": {
+    "label": "Animación",
+    "preset": "Superposición de animación",
+    "none": "Ninguna",
+    "upload": "Subir",
+    "uploadHint": "Sube un archivo .apng o .webm",
+    "uploaded": "Subido",
+    "dropAnimation": "Suelta una animación o haz clic para explorar",
+    "animationFormats": "APNG, WebM · se mantiene incrustada en la plantilla",
+    "removeUpload": "Quitar la animación subida",
+    "invalidType": "Elige un archivo .apng o .webm.",
+    "previewBg": "Fondo de la vista previa",
+    "bgChecker": "Cuadrícula",
+    "bgDark": "Oscuro",
+    "bgLight": "Claro",
+    "position": "Posición",
+    "scale": "Escala",
+    "scaleHint": "px · −1 mantiene la proporción",
+    "positionHint": "px desde la esquina superior izquierda",
+    "opacity": "Opacidad",
+    "rotation": "Rotación",
+    "loop": "Bucle",
+    "playback": "Reproducción",
+    "forever": "Para siempre",
+    "loopsTab": "Bucles",
+    "secondsTab": "Segundos",
+    "loopsLabel": "Número de bucles",
+    "secondsLabel": "Duración (s)",
+    "startLabel": "Empezar en (s)",
+    "keepLastFrame": "Mantener el último fotograma",
+    "dragHint": "Arrastra para mover · esquina para redimensionar · flechas para ajustar",
+    "reset": "Restablecer a los valores predeterminados"
+  },
+  "element": {
+    "resize": "Redimensionar elemento",
+    "rotate": "Rotar elemento",
+    "delete": "Eliminar elemento",
+    "add": "Añadir",
+    "addBackgroundColor": "Color de fondo",
+    "addBackgroundImage": "Imagen de fondo",
+    "addText": "Texto",
+    "addImageOverlay": "Imagen / logotipo",
+    "addAnimation": "Animación",
+    "empty": "Añade tu primer elemento",
+    "list": "Elementos",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "selectHint": "Selecciona un elemento para editar sus ajustes",
+    "text": "Texto",
+    "layer": "Fondo",
+    "image": "Imagen",
+    "animation": "Animación",
+    "backgroundImage": "Imagen de fondo"
+  },
+  "motion": {
+    "label": "Movimiento",
+    "direction": "Dirección del movimiento",
+    "kenBurns": "Movimiento Ken Burns",
+    "intensity": "Intensidad",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "panLeft": "Desplazar a la izquierda",
+    "panRight": "Desplazar a la derecha",
+    "panUp": "Desplazar hacia arriba",
+    "panDown": "Desplazar hacia abajo"
+  },
+  "disclosure": {
+    "effects": "Efectos",
+    "audio": "Audio",
+    "animation": "Animación",
+    "cameraGuide": "Guía de cámara",
+    "images": "Imágenes",
+    "overlays": "Superposiciones",
+    "titleCard": "Tarjeta de título",
+    "lowerThird": "Rótulo inferior",
+    "chromaKey": "Eliminación de fondo"
+  },
+  "overlays": {
+    "kind": "Tipo de superposición",
+    "animation": "Animación",
+    "image": "Imagen",
+    "count_one": "{{count}} superposición",
+    "count_other": "{{count}} superposiciones"
+  },
+  "imageOverlay": {
+    "add": "Añadir una imagen",
+    "label": "Imagen",
+    "remove": "Quitar imagen",
+    "count_one": "{{count}} imagen",
+    "count_other": "{{count}} imágenes"
+  },
+  "animationOverlay": {
+    "add": "Añadir una animación",
+    "label": "Animación",
+    "remove": "Quitar animación",
+    "count_one": "{{count}} animación",
+    "count_other": "{{count}} animaciones"
+  },
+  "summaryChip": {
+    "none": "Ninguno",
+    "on": "Activado",
+    "default": "Predeterminado",
+    "off": "Desactivado",
+    "kenBurns": "Ken Burns",
+    "customVolume": "Volumen personalizado",
+    "fadeIn": "Fundido de entrada",
+    "fadeOut": "Fundido de salida",
+    "fadeInOut": "Fundido de entrada/salida"
+  },
+  "hint": {
+    "video": "Grábate con la cámara",
+    "form": "Pide al espectador un texto para superponer",
+    "color": "Tarjeta de color sólido con un título",
+    "music": "Pista de fondo para todo el vídeo",
+    "image": "Un fondo de foto con movimiento"
+  },
+  "timeline": {
+    "label": "Línea de tiempo",
+    "ariaLabel": "Línea de tiempo visual de las secciones",
+    "hint": "Haz clic en un bloque para saltar a su sección. Arrastra, o enfoca y pulsa Alt + ← / → para reordenar.",
+    "kind": {
+      "color": "Fondo de color",
+      "image": "Fondo de imagen",
+      "video": "Tu vídeo"
+    },
+    "chip": "{{kind}}, bloque {{position}} de {{count}}"
+  },
+  "transition": {
+    "title": "Transición",
+    "description": "Cómo se funde esta sección con la siguiente.",
+    "duration": "Duración",
+    "none": "Sin transición",
+    "cut": "Corte",
+    "label": "{{name}} · {{duration}} s",
+    "group": {
+      "Fades": "Fundidos",
+      "Wipes": "Barridos",
+      "Slides": "Deslizamientos",
+      "Circles": "Círculos",
+      "Slices": "Cortes",
+      "Covers": "Cubiertas",
+      "Reveals": "Revelados"
+    }
+  },
+  "variables": {
+    "global": "Global",
+    "local": "Local",
+    "insertHint": "Escribe # para insertar una variable"
+  },
+  "video": {
+    "duration": "Duración (s)",
+    "muteAudio": "Silenciar el audio",
+    "whatToFilm": "Qué grabar",
+    "whatToFilmPlaceholder": "p. ej. Ponte en el centro, mira a la cámara, di tu nombre",
+    "whatToFilmHint": "Se muestra a quien graba mientras filma: una indicación rápida, nunca incrustada en el vídeo.",
+    "countdown": "Cuenta atrás antes de grabar",
+    "countdownSeconds_one": "Cuenta atrás (segundo)",
+    "countdownSeconds_other": "Cuenta atrás (segundos)"
+  },
+  "image": {
+    "pickImages": "Elige un fondo.",
+    "allowUpload": "Permitir que los espectadores suban su propia imagen"
+  },
+  "musicSection": {
+    "pickTracks": "Elige las pistas entre las que pueden elegir los espectadores.",
+    "allowUpload": "Permitir que los espectadores suban su propia pista"
+  },
+  "form": {
+    "fieldId": "ID del campo",
+    "fieldIdPlaceholder": "id del campo",
+    "fieldLabel": "Etiqueta del campo",
+    "fieldLabelPlaceholder": "Etiqueta",
+    "maxLength": "Longitud máxima",
+    "removeField": "Quitar campo",
+    "addField": "Añadir campo"
+  },
+  "reveal": {
+    "label": "Entrada",
+    "none": "Ninguna",
+    "fade": "Fundido",
+    "rise": "Ascenso",
+    "slide-left": "Deslizar hacia dentro",
+    "slide-right": "Deslizar hacia fuera",
+    "advanced": "Tiempos",
+    "delay": "Retardo",
+    "duration": "Duración",
+    "distance": "Distancia",
+    "summaryDefault": "tiempos predeterminados"
+  },
+  "exit": {
+    "label": "Salida",
+    "after": "Empieza después de",
+    "summaryDefault": "termina al final de la sección"
+  },
+  "textEffect": {
+    "label": "Legibilidad",
+    "shadow": "Sombra paralela",
+    "shadowColor": "Color de la sombra",
+    "outline": "Contorno",
+    "outlineColor": "Color del contorno"
+  },
+  "chromaKey": {
+    "hint": "Elimina un color de pantalla sólido (croma verde/azul) y compón el clip sobre un color plano.",
+    "enable": "Eliminar el fondo",
+    "keyColor": "Color de pantalla",
+    "background": "Color de fondo",
+    "similarity": "Intensidad",
+    "summaryOn": "activado",
+    "summaryOff": "desactivado"
+  },
+  "titleCard": {
+    "kicker": "Antetítulo",
+    "kickerPlaceholder": "p. ej. PRESENTAMOS",
+    "headline": "Titular",
+    "headlinePlaceholder": "p. ej. {{ form_1_name }}",
+    "subtitle": "Subtítulo",
+    "subtitlePlaceholder": "p. ej. {{ form_1_tagline }}",
+    "accent": "Color de acento",
+    "align": "Alineación",
+    "alignLeft": "Izquierda",
+    "alignCenter": "Centro",
+    "fadeIn": "Fundido de entrada",
+    "fadeOut": "Fundido de salida",
+    "summaryEmpty": "sin texto",
+    "hint": "Una tarjeta limpia de antetítulo / titular / subtítulo, ajustada a la orientación."
+  },
+  "lowerThird": {
+    "title": "Título",
+    "titlePlaceholder": "p. ej. {{ form_1_name }}",
+    "subtitle": "Subtítulo",
+    "subtitlePlaceholder": "p. ej. presentación de una línea",
+    "badge": "Insignia",
+    "badgePlaceholder": "p. ej. {{ form_1_price }}",
+    "accent": "Color de acento",
+    "band": "Opacidad de la banda",
+    "position": "Posición",
+    "bottom": "Abajo",
+    "top": "Arriba",
+    "summaryEmpty": "sin texto",
+    "hint": "Una banda de título / subtítulo sobre el clip, con una insignia opcional."
+  },
+  "globalOverlay": {
+    "label": "Texto en todo el vídeo",
+    "hint": "Texto dibujado en cada sección: p. ej. una marca de agua de marca, creada una sola vez.",
+    "add": "Añadir marca de agua",
+    "text": "Texto",
+    "textPlaceholder": "p. ej. {{ brand }}",
+    "position": "Posición",
+    "color": "Color",
+    "remove": "Quitar",
+    "pos": {
+      "top-left": "Arriba a la izquierda",
+      "top-right": "Arriba a la derecha",
+      "bottom-left": "Abajo a la izquierda",
+      "bottom-right": "Abajo a la derecha",
+      "top": "Arriba",
+      "bottom": "Abajo",
+      "center": "Centro"
+    }
+  }
+}

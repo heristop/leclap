@@ -1,0 +1,43 @@
+{
+  "kicker": "Tu trabajo",
+  "title": "Proyectos",
+  "subtitle": "Cada creación se guarda aquí automáticamente: retoma un borrador donde lo dejaste o vuelve a abrir un vídeo terminado.",
+  "seo": {
+    "title": "Proyectos",
+    "description": "Tus proyectos de vídeo de LeClap guardados: retoma borradores y vuelve a abrir vídeos terminados."
+  },
+  "status": {
+    "draft": "Borrador",
+    "completed": "Completado"
+  },
+  "clips_one": "{{count}} clip",
+  "clips_other": "{{count}} clips",
+  "time": {
+    "justNow": "ahora mismo",
+    "minutes": "hace {{count}} min",
+    "hours": "hace {{count}} h",
+    "days": "hace {{count}} d",
+    "weeks": "hace {{count}} sem",
+    "months": "hace {{count}} mes"
+  },
+  "actions": {
+    "new": "Nuevo proyecto",
+    "open": "Abrir {{name}}",
+    "resume": "Retomar",
+    "view": "Ver",
+    "edit": "Editar creación",
+    "rename": "Renombrar proyecto",
+    "duplicate": "Duplicar proyecto",
+    "delete": "Eliminar proyecto"
+  },
+  "empty": {
+    "title": "Aún no hay proyectos",
+    "hint": "Empieza una creación y se guardará aquí para que puedas volver a ella cuando quieras."
+  },
+  "delete": {
+    "title": "¿Eliminar este proyecto?",
+    "message": "«{{name}}» y sus clips guardados se eliminarán de forma permanente. Esto no se puede deshacer.",
+    "cancel": "Cancelar",
+    "confirm": "Eliminar"
+  }
+}

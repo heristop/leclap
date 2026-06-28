@@ -1,0 +1,11 @@
+{
+  "notFound": {
+    "title": "Página no encontrada",
+    "message": "La página que buscas no existe o se ha movido.",
+    "home": "Inicio",
+    "openBuilder": "Abrir Plantillas",
+    "seoTitle": "Página no encontrada"
+  },
+  "stepperProgress": "Progreso",
+  "stepperStep": "Paso {{current}} de {{total}}"
+}

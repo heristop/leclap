@@ -1,0 +1,48 @@
+{
+  "hero": {
+    "badge": "Confidentialité d’abord · Dans ton navigateur",
+    "title": "À propos de LeClap",
+    "tagline": "Un compositeur vidéo cinématographique qui tourne 100 % dans ton navigateur. Compose à partir de vrais modèles, lance le rendu avec FFmpeg compilé en WebAssembly, puis télécharge — sans serveur, sans envoi, sans limite."
+  },
+  "cta": {
+    "prompt": "Prêt à composer ta première vidéo ?",
+    "start": "Créer ma vidéo"
+  },
+  "stats": {
+    "browser": "Tourne dans ton navigateur",
+    "uploads": "Fichiers envoyés",
+    "projects": "Projets, toujours gratuits"
+  },
+  "pillars": {
+    "private": {
+      "title": "Privé par conception",
+      "description": "Tes clips ne quittent jamais ton appareil. Aucun envoi, aucun compte, aucun serveur dans la boucle."
+    },
+    "ffmpeg": {
+      "title": "Du vrai FFmpeg, en local",
+      "description": "Le même moteur FFmpeg que la bibliothèque principale, compilé en WebAssembly et exécuté sur ta machine."
+    },
+    "templates": {
+      "title": "Piloté par les modèles",
+      "description": "Compose à partir de vrais modèles JSON — filtres, incrustations, transitions et mixage audio inclus."
+    }
+  },
+  "author": {
+    "name": "Alexandre Mogère",
+    "handle": "@heristop",
+    "bio": "Ingénieur software basé à Paris, je crée des outils au service des créateurs et j’écris sur le code et l’IA chez Zazen Code.",
+    "avatarAlt": "Alexandre Mogère",
+    "social": {
+      "website": "Site web",
+      "github": "GitHub",
+      "twitter": "Twitter",
+      "coffee": "Offre-moi un café"
+    }
+  },
+  "thanks": {
+    "kicker": "Avec gratitude",
+    "lead": "Rien de tout ça ne se rendrait sans FFmpeg.",
+    "body": "Chaque clip, chaque filtre et chaque transition produits par LeClap reposent sur FFmpeg — des décennies d’ingénierie multimédia open source, maintenues vivantes par une communauté de bénévoles du monde entier.",
+    "link": "Soutenir le projet FFmpeg"
+  }
+}

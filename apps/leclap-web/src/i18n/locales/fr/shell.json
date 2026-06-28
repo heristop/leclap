@@ -1,0 +1,11 @@
+{
+  "notFound": {
+    "title": "Page introuvable",
+    "message": "La page que tu cherches n’existe pas ou a été déplacée.",
+    "home": "Accueil",
+    "openBuilder": "Ouvrir les modèles",
+    "seoTitle": "Page introuvable"
+  },
+  "stepperProgress": "Progression",
+  "stepperStep": "Étape {{current}} sur {{total}}"
+}

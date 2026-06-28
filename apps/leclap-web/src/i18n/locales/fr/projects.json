@@ -1,0 +1,43 @@
+{
+  "kicker": "Tes créations",
+  "title": "Projets",
+  "subtitle": "Chaque création est enregistrée ici automatiquement — reprends un brouillon là où tu l’as laissé, ou rouvre une vidéo terminée.",
+  "seo": {
+    "title": "Projets",
+    "description": "Tes projets vidéo LeClap enregistrés — reprends tes brouillons et rouvre tes vidéos terminées."
+  },
+  "status": {
+    "draft": "Brouillon",
+    "completed": "Terminé"
+  },
+  "clips_one": "{{count}} clip",
+  "clips_other": "{{count}} clips",
+  "time": {
+    "justNow": "à l’instant",
+    "minutes": "il y a {{count}} min",
+    "hours": "il y a {{count}} h",
+    "days": "il y a {{count}} j",
+    "weeks": "il y a {{count}} sem",
+    "months": "il y a {{count}} mois"
+  },
+  "actions": {
+    "new": "Nouveau projet",
+    "open": "Ouvrir {{name}}",
+    "resume": "Reprendre",
+    "view": "Voir",
+    "edit": "Modifier",
+    "rename": "Renommer le projet",
+    "duplicate": "Dupliquer le projet",
+    "delete": "Supprimer le projet"
+  },
+  "empty": {
+    "title": "Aucun projet pour l’instant",
+    "hint": "Lance une création : elle sera enregistrée ici pour que tu puisses y revenir quand tu veux."
+  },
+  "delete": {
+    "title": "Supprimer ce projet ?",
+    "message": "« {{name}} » et ses clips enregistrés seront définitivement supprimés. Action irréversible.",
+    "cancel": "Annuler",
+    "confirm": "Supprimer"
+  }
+}

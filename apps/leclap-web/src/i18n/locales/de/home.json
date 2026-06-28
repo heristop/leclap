@@ -1,0 +1,88 @@
+{
+  "hero": {
+    "tagline": "Der cinematische Video-Composer, der komplett in deinem Browser läuft.",
+    "subtagline": "Angetrieben von WebAssembly & FFmpeg. Keine Server. Keine Grenzen.",
+    "startCreating": "Jetzt loslegen",
+    "seeHow": "So funktioniert's"
+  },
+  "showcase": {
+    "eyebrow": "In Aktion sehen",
+    "title": "Komplett in deinem Browser erstellt",
+    "subtitle": "Kein Upload, kein Server – dieser Clip wurde direkt auf dem Gerät aus einer Vorlage mit Übergängen und Musik komponiert und dann mit WebAssembly FFmpeg gerendert.",
+    "badge": "Beispiel-Render · im Browser",
+    "videoAria": "Ein Beispielvideo, erstellt in LeClap, läuft in Schleife",
+    "mute": "Stummschalten",
+    "unmute": "Ton an",
+    "volume": "Lautstärke",
+    "cta": "Mach dein eigenes",
+    "browseTemplates": "Vorlagen durchstöbern",
+    "readDocs": "Docs lesen"
+  },
+  "createShowcase": {
+    "eyebrow": "Ein Video machen",
+    "title": "Von der Vorlage zum fertigen Video",
+    "subtitle": "Wähle eine Vorlage, lege deinen Clip ein und rendere ein poliertes Video direkt im Browser – WebAssembly FFmpeg, kein Upload, kein Account.",
+    "badge": "Studio · im Browser",
+    "videoAria": "Eine Bildschirmaufnahme der Videoerstellung im LeClap Studio, läuft in Schleife",
+    "cta": "Jetzt loslegen"
+  },
+  "builderShowcase": {
+    "eyebrow": "Selbst bauen",
+    "title": "Eine Vorlage gestalten, visuell",
+    "subtitle": "Füge Szenen hinzu, ziehe Text und Hintergründe auf die Leinwand und sieh den Render live in der Vorschau – alles im Browser, nichts zu installieren.",
+    "badge": "Der Vorlagen-Builder",
+    "videoAria": "Eine Bildschirmaufnahme des LeClap Vorlagen-Builders, läuft in Schleife",
+    "cta": "Builder öffnen"
+  },
+  "phoneShowcase": {
+    "eyebrow": "Auch auf deinem Handy",
+    "title": "Das ganze Studio in deiner Hosentasche",
+    "subtitle": "LeClap auf iPhone und Android macht dasselbe wie die Web-App – aufnehmen, komponieren und einen fertigen Clip rendern, ohne dein Gerät je zu verlassen.",
+    "bullets": {
+      "capture": "Direkt mit der Kamera aufnehmen und die Aufnahme in eine Vorlage einlegen.",
+      "effects": "Effekte, Musik und Übergänge übereinanderlegen, live in der Vorschau während du tüftelst.",
+      "offline": "Alles rendert auf dem Gerät – kein Upload, kein Account, funktioniert offline."
+    },
+    "badge": "Auf iOS & Android · auf dem Gerät",
+    "videoAria": "Eine Bildschirmaufnahme der LeClap Mobile-App beim Komponieren eines Videos, läuft in Schleife",
+    "cta": "Jetzt loslegen",
+    "secondaryCta": "Docs lesen"
+  },
+  "features": {
+    "badge": "Alles, clientseitig",
+    "title": "Ein echter Video-Composer, im Browser",
+    "subtitle": "FFmpeg in Produktionsqualität, echte Vorlagen und Live-Formulare – komplett auf deinem Gerät.",
+    "items": {
+      "templates": {
+        "title": "Echte JSON-Vorlagen",
+        "highlight": "Produktionsreif",
+        "description": "Nutze echte Vorlagendateien aus dem Core-Paket mit komplexen FFmpeg-Konfigurationen, Filtern und Effekten."
+      },
+      "forms": {
+        "title": "Interaktive Formulare",
+        "highlight": "Dynamisch",
+        "description": "Dynamische Formularerstellung aus Vorlagendefinitionen mit Echtzeit-Validierung und Verarbeitung deiner Eingaben."
+      },
+      "processing": {
+        "title": "Fortschrittliche Verarbeitung",
+        "highlight": "Professionell",
+        "description": "Komplette FFmpeg-Pipeline mit Videofiltern, Text-Overlays, Übergängen und Audio-Mixing."
+      },
+      "privacy": {
+        "title": "Vollständige Privatsphäre",
+        "highlight": "Privat",
+        "description": "Alles läuft lokal in deinem Browser. Deine Dateien verlassen nie dein Gerät und berühren keinen Server."
+      },
+      "wasm": {
+        "title": "Mit WebAssembly",
+        "highlight": "Schnell",
+        "description": "Blitzschnelle Videoverarbeitung mit WebAssembly FFmpeg für nahezu native Performance."
+      },
+      "crossPlatform": {
+        "title": "Plattformübergreifend",
+        "highlight": "Universell",
+        "description": "Läuft in jedem modernen Browser auf Desktop, Handy und Tablet. Keine Installation nötig."
+      }
+    }
+  }
+}

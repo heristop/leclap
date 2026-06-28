@@ -1,0 +1,43 @@
+{
+  "kicker": "Deine Arbeit",
+  "title": "Projekte",
+  "subtitle": "Jeder Build wird hier automatisch gespeichert – mach an einem Entwurf weiter, wo du aufgehört hast, oder öffne ein fertiges Video erneut.",
+  "seo": {
+    "title": "Projekte",
+    "description": "Deine gespeicherten LeClap-Videoprojekte – Entwürfe fortsetzen und fertige Videos erneut öffnen."
+  },
+  "status": {
+    "draft": "Entwurf",
+    "completed": "Fertig"
+  },
+  "clips_one": "{{count}} Clip",
+  "clips_other": "{{count}} Clips",
+  "time": {
+    "justNow": "gerade eben",
+    "minutes": "vor {{count}} Min.",
+    "hours": "vor {{count}} Std.",
+    "days": "vor {{count}} T.",
+    "weeks": "vor {{count}} Wo.",
+    "months": "vor {{count}} Mon."
+  },
+  "actions": {
+    "new": "Neues Projekt",
+    "open": "{{name}} öffnen",
+    "resume": "Fortsetzen",
+    "view": "Ansehen",
+    "edit": "Build bearbeiten",
+    "rename": "Projekt umbenennen",
+    "duplicate": "Projekt duplizieren",
+    "delete": "Projekt löschen"
+  },
+  "empty": {
+    "title": "Noch keine Projekte",
+    "hint": "Starte einen Build und er wird hier gespeichert, damit du jederzeit zurückkehren kannst."
+  },
+  "delete": {
+    "title": "Dieses Projekt löschen?",
+    "message": "„{{name}}“ und seine gespeicherten Clips werden dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
+    "cancel": "Abbrechen",
+    "confirm": "Löschen"
+  }
+}

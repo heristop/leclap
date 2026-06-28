@@ -1,0 +1,17 @@
+{
+  "default": {
+    "title": "LeClap — Compositor de vídeo cinematográfico en tu navegador",
+    "description": "Crea vídeos cinematográficos a partir de plantillas directamente en tu navegador. LeClap funciona del lado del cliente con WebAssembly y FFmpeg: sin subir nada, sin servidores, sin límites."
+  },
+  "studio": {
+    "title": "Studio",
+    "description": "Elige una plantilla y compón tu vídeo directamente en el navegador: recorta, encuadra, añade música y exporta con FFmpeg en el dispositivo. Sin subir nada, sin servidores."
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "LeClap es un compositor de vídeo cinematográfico abierto y basado en el navegador, con la potencia de WebAssembly y FFmpeg. Descubre qué es y quién lo creó."
+  },
+  "templates": {
+    "title": "Editor"
+  }
+}

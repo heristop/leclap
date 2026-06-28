@@ -1,0 +1,47 @@
+{
+  "welcome": {
+    "title": "Willkommen bei",
+    "subtitle": "Lass uns dein erstes Video in unter einer Minute machen – nimm ein kurzes Intro auf und wir machen einen polierten Clip daraus.",
+    "features": {
+      "record": "Nimm ein kurzes Intro mit deiner Kamera auf",
+      "template": "Wir wenden eine cinematische Beispielvorlage an",
+      "download": "Lade dein fertiges Video herunter"
+    },
+    "start": "Mein Intro erstellen",
+    "checking": "Browser wird geprüft …",
+    "unsupported": "Browser kann hier nicht aufnehmen",
+    "unsupportedHint": "Nutze Chrome, Edge oder Firefox am Desktop, um dein Intro aufzunehmen.",
+    "skip": "Vorerst überspringen"
+  },
+  "create": {
+    "title": "Stell dich vor",
+    "subtitle": "Sag uns deinen Namen und nimm einen kurzen Clip auf – mehr brauchen wir nicht.",
+    "nameLabel": "Dein Name",
+    "namePlaceholder": "z. B. {{name}}",
+    "recorded": "Intro aufgenommen",
+    "reRecord": "Neu aufnehmen",
+    "record": "Aufnehmen",
+    "upload": "Hochladen",
+    "recordAria": "Ein Intro mit deiner Kamera aufnehmen",
+    "uploadAria": "Ein Intro-Video hochladen",
+    "uploadInputAria": "Intro-Video hochladen",
+    "create": "Mein Video erstellen"
+  },
+  "compiling": {
+    "title": "Dein Video wird erstellt …",
+    "subtitle": "Das läuft komplett in deinem Browser – einen Moment Geduld.",
+    "stop": "Stoppen",
+    "stopAria": "Stoppen und schließen"
+  },
+  "done": {
+    "title": "Dein erstes Video ist fertig!",
+    "videoAria": "Dein erstelltes Video",
+    "startCreating": "Jetzt loslegen"
+  },
+  "error": {
+    "title": "Das hat nicht geklappt",
+    "fallback": "Beim Erstellen deines Videos ist etwas schiefgelaufen.",
+    "continueToBuilder": "Weiter zu den Vorlagen"
+  },
+  "skipAria": "Onboarding überspringen"
+}

@@ -1,0 +1,155 @@
+{
+  "srHeading": "Vorlagen — erstelle dein Video aus einer cinematischen Vorlage",
+  "loadingEngine": "Engine wird geladen",
+  "project": {
+    "loading": "Dein Projekt wird geladen …"
+  },
+  "chip": {
+    "template": "Vorlage"
+  },
+  "steps": {
+    "template": "Vorlage",
+    "details": "Details",
+    "clip": "Clip {{number}}",
+    "yourClip": "Dein Clip",
+    "music": "Musik",
+    "create": "Erstellen",
+    "done": "Fertig"
+  },
+  "modeToggle": {
+    "ariaLabel": "Builder-Layout",
+    "linear": "Schritt für Schritt",
+    "hub": "Alles auf einmal"
+  },
+  "stepTemplate": {
+    "title": "Wähle deinen Stil",
+    "subtitle": "Wähle eine cinematische Vorlage, um loszulegen"
+  },
+  "studio": {
+    "home": {
+      "kicker": "Studio",
+      "title": "Wähle deinen Stil",
+      "subtitle": "Wähle eine cinematische Vorlage, um loszulegen"
+    }
+  },
+  "stepMedia": {
+    "title": "Musik & Hintergrund",
+    "subtitle": "Wähle Soundtrack und Hintergrund für dein Video",
+    "music": "Musik",
+    "background": "Hintergrundbild",
+    "formatTitle": "Format",
+    "aspect": {
+      "portrait": "Vertikal 9:16",
+      "landscape": "Querformat 16:9",
+      "square": "Quadratisch 1:1"
+    }
+  },
+  "editor": {
+    "content": "Inhalt",
+    "media": "Medien",
+    "format": "Format",
+    "record": "Aufnehmen",
+    "details": "Details",
+    "tools": "Editor-Werkzeuge",
+    "resizePanels": "Ziehen, um Vorschau und Panel anzupassen",
+    "program": "Programm",
+    "viewMode": "Monitoransicht",
+    "preview": "Vorschau",
+    "approx": "Ungefähr",
+    "timeline": "Szenen",
+    "ready": "{{done}} von {{total}} bereit",
+    "emptyClipTitle": "Noch kein Clip",
+    "emptyClipHint": "Nimm im Inhalts-Panel auf oder lade etwas hoch, um es hier zu sehen.",
+    "emptyFormTitle": "Noch nichts zum Vorschauen",
+    "emptyFormHint": "Fülle das Inhalts-Panel aus und deine Overlays erscheinen hier.",
+    "save": {
+      "saving": "Speichern …",
+      "saved": "Gespeichert",
+      "savedAgo": "Gespeichert {{time}}",
+      "failed": "Speichern fehlgeschlagen",
+      "time": {
+        "justNow": "gerade eben",
+        "minutes": "vor {{count}} Min.",
+        "hours": "vor {{count}} Std.",
+        "days": "vor {{count}} T.",
+        "weeks": "vor {{count}} Wo.",
+        "months": "vor {{count}} Mon."
+      }
+    }
+  },
+  "stepProcess": {
+    "title": "Video erstellen",
+    "subtitle": "Wir sind bereit, dein Meisterwerk zu bauen",
+    "summary": "Projektübersicht",
+    "template": "Vorlage",
+    "clips": "Clips",
+    "videoCount": "{{count}} Video(s)",
+    "engineStatus": "Engine-Status",
+    "ready": "Bereit",
+    "initializing": "Initialisierung …",
+    "progress": "Verarbeitungsfortschritt"
+  },
+  "compile": {
+    "preparing": "Render wird vorbereitet",
+    "rendering": "Rendering",
+    "complete": "Render abgeschlossen",
+    "failed": "Render fehlgeschlagen",
+    "stop": "Render stoppen",
+    "finishing": "Wird abgeschlossen …",
+    "errorTitle": "Render fehlgeschlagen",
+    "clips": "Clips",
+    "clipCount_one": "{{count}} Clip",
+    "clipCount_other": "{{count}} Clips",
+    "project": "Projekt"
+  },
+  "stepResult": {
+    "title": "Dein Video ist fertig!",
+    "subtitle": "Lade deine Kreation herunter und teile sie",
+    "createAnother": "Noch ein Video erstellen"
+  },
+  "stepForm": {
+    "defaultTitle": "Deine Angaben",
+    "subtitle": "Fülle die Angaben für diesen Teil aus"
+  },
+  "stepClip": {
+    "clipOf": "Clip {{number}} von {{total}}",
+    "editorLabel": "Schneiden & zuschneiden"
+  },
+  "rush": {
+    "gallery": "Deine Aufnahmen",
+    "take": "Aufnahme {{number}}",
+    "use": "Aufnahme {{number}} verwenden",
+    "remove": "Aufnahme {{number}} entfernen",
+    "addAnother": "Weitere Aufnahme machen"
+  },
+  "edit": {
+    "trim": "Schneiden",
+    "crop": "Zuschneiden",
+    "videoAriaLabel": "Video wird bearbeitet",
+    "resetTrim": "Schnitt zurücksetzen",
+    "resetCrop": "Zuschnitt zurücksetzen",
+    "cropHint": "Ziehe den Rahmen oder seine Ecken, um zuzuschneiden."
+  },
+  "hub": {
+    "subtitle": "Fülle jeden Teil aus und erstelle dann dein Video",
+    "next": "Als Nächstes",
+    "changeTemplate": "Vorlage wechseln",
+    "prevSection": "Vorheriger Abschnitt",
+    "nextSection": "Nächster Abschnitt",
+    "completed_one": "{{done}} von {{count}} Abschnitt fertig",
+    "completed_other": "{{done}} von {{count}} Abschnitten fertig",
+    "createCta": "Mein Video erstellen",
+    "ready": "Alles bereit — fertig zum Rendern",
+    "remaining_one": "Schließe noch {{count}} Abschnitt ab, um weiterzumachen",
+    "remaining_other": "Schließe noch {{count}} Abschnitte ab, um weiterzumachen",
+    "yourDetails": "Deine Angaben",
+    "recordClip": "Nimm deinen Clip auf",
+    "section": "Abschnitt",
+    "mediaHeading": "Musik & Hintergrund",
+    "mediaSubtitle": "Wähle Soundtrack und Hintergrund",
+    "mediaSubtitleShort": "Wähle Soundtrack und Hintergrund",
+    "selectionSaved": "Auswahl gespeichert",
+    "clipOf": "Clip {{number}} von {{total}}",
+    "recordOrUpload": "Nimm deinen Clip auf oder lade ihn hoch"
+  }
+}

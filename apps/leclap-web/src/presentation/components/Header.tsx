@@ -5,12 +5,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
+import { BottomSheet } from '@/presentation/components/ui/BottomSheet';
 import { LogoMark, type LogoMarkHandle } from './LogoMark';
 import { SunIcon } from './icons/sun';
 import { MoonIcon } from './icons/moon';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
+import { GlobeIcon } from './icons/globe';
 import { useIconHover } from './icons/useIconHover';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
+import { getLanguage, localePath, LANGUAGES, type Language } from '../../lib/language';
 
 type ThemeToggleProps = {
   theme: Theme;
@@ -39,6 +42,131 @@ const ThemeToggle = ({ theme, onToggle, className }: ThemeToggleProps) => {
     >
       {theme === 'dark' ? <SunIcon ref={ref} size={18} /> : <MoonIcon ref={ref} size={18} />}
     </Button>
+  );
+};
+
+type LanguagePickerProps = {
+  language: Language;
+  onSelect: (language: Language) => void;
+  className?: string;
+};
+
+// Globe-triggered popover listing the supported languages by their endonym. Styled to sit in the
+// header's action cluster (same rounded-full ghost pill as the theme/GitHub buttons), with the
+// dropdown borrowing the surface/divider tokens and brand highlight used across the app's menus.
+const LanguagePicker = ({ language, onSelect, className }: LanguagePickerProps) => {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Dismiss on outside click or Escape; return focus to the trigger when keyboard-closed.
+  useEffect(() => {
+    if (!open) {
+      return () => {};
+    }
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const choose = (code: Language) => {
+    onSelect(code);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  const active = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
+  const { ref: globeRef, hoverProps } = useIconHover();
+
+  const items = LANGUAGES.map(({ code, nativeName }) => {
+    const isActive = code === language;
+
+    return (
+      <button
+        key={code}
+        type="button"
+        role="menuitemradio"
+        aria-checked={isActive}
+        onClick={() => {
+          choose(code);
+        }}
+        className={clsx(
+          'tap flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left text-sm transition-colors sm:py-2',
+          isActive
+            ? 'bg-brand-500/15 font-semibold text-foreground'
+            : 'text-gray-400 hover:bg-foreground/5 hover:text-foreground'
+        )}
+      >
+        <span>{nativeName}</span>
+        <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500">{code}</span>
+      </button>
+    );
+  });
+
+  return (
+    <div ref={rootRef} className={clsx('relative', className)}>
+      <Button
+        ref={triggerRef}
+        variant="ghost"
+        size="icon"
+        onClick={() => {
+          setOpen((v) => !v);
+        }}
+        className="gap-1.5 rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 hover:border-foreground/10"
+        aria-label={t('header.changeLanguage')}
+        title={t('header.changeLanguage')}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        {...hoverProps}
+      >
+        <GlobeIcon ref={globeRef} size={18} />
+        <span className="text-[0.7rem] font-semibold uppercase tracking-wide">{active.code}</span>
+      </Button>
+
+      {/* Anchored popover on sm+ (hidden on mobile, which uses the bottom sheet below). */}
+      <div
+        role="menu"
+        aria-label={t('header.changeLanguage')}
+        className={clsx(
+          'absolute right-0 top-[calc(100%+0.5rem)] z-50 hidden w-44 origin-top-right rounded-2xl border border-foreground/10 bg-surface/95 p-1.5 shadow-[var(--shadow-lg)] backdrop-blur-xl transition duration-200 ease-[var(--ease-out-expo)] sm:block',
+          open ? 'pointer-events-auto scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
+        )}
+      >
+        {items}
+      </div>
+
+      {/* Drag-to-close bottom sheet on mobile. */}
+      <BottomSheet
+        open={open}
+        onClose={() => {
+          setOpen(false);
+        }}
+        hideClassName="sm:hidden"
+        role="menu"
+        ariaLabel={t('header.changeLanguage')}
+        panelClassName="p-2"
+      >
+        {items}
+      </BottomSheet>
+    </div>
   );
 };
 
@@ -172,36 +300,34 @@ const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => {
   const { t } = useTranslation();
 
   return (
-    <div
-      className={clsx(
-        'md:hidden transition-all duration-300 ease-in-out overflow-hidden',
-        isOpen ? 'max-h-[34rem] opacity-100 mt-4' : 'max-h-0 opacity-0'
-      )}
+    <BottomSheet
+      open={isOpen}
+      onClose={onClose}
+      hideClassName="md:hidden"
+      role="menu"
+      ariaLabel={t('header.toggleMenu')}
+      panelClassName="space-y-1"
+      id="mobile-menu"
     >
-      <nav
-        id="mobile-menu"
-        className="p-3 space-y-1 bg-surface/90 backdrop-blur-xl rounded-2xl border border-foreground/10"
-      >
-        {navigationItems.map((item) => (
-          <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
-        ))}
+      {navigationItems.map((item) => (
+        <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
+      ))}
 
-        {/* GitHub is an external, secondary action — separated from the in-app nav by a divider so it
-            reads as "leave the app", and surfaced here because the header's GitHub button is sm-only. */}
-        <div className="mt-2 border-t border-foreground/10 pt-2">
-          <a
-            href="https://github.com/heristop/leclap"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 transition-all duration-200 hover:bg-foreground/5 hover:text-foreground"
-          >
-            <GithubIcon size={16} />
-            {t('header.github')}
-          </a>
-        </div>
-      </nav>
-    </div>
+      {/* GitHub is an external, secondary action — separated from the in-app nav by a divider so it
+          reads as "leave the app", and surfaced here because the header's GitHub button is sm-only. */}
+      <div className="mt-2 border-t border-foreground/10 pt-2">
+        <a
+          href="https://github.com/heristop/leclap"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onClose}
+          className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 transition-all duration-200 hover:bg-foreground/5 hover:text-foreground"
+        >
+          <GithubIcon size={16} />
+          {t('header.github')}
+        </a>
+      </div>
+    </BottomSheet>
   );
 };
 
@@ -210,6 +336,9 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
+  // Language is fixed for the lifetime of the page — switching it is a full navigation to the
+  // locale-prefixed URL, which reloads with the new language resolved from the path.
+  const language = getLanguage();
   const location = useLocation();
   // Drive the GitHub mark's animation from the whole button's hover (group hover), not just the
   // 16px icon — the icon's imperative handle is made for exactly this.
@@ -218,6 +347,16 @@ export const Header = () => {
 
   const onToggleTheme = (origin: ToggleOrigin) => {
     setThemeState(toggleTheme(origin));
+  };
+
+  const onSelectLanguage = (next: Language) => {
+    if (next === language) {
+      return;
+    }
+    // Full navigation (not client-side) so the app re-boots under the new locale prefix: the router
+    // basename, i18n language and prerendered <head> all derive from the URL.
+    const { pathname, search, hash } = window.location;
+    window.location.assign(`${localePath(next, pathname)}${search}${hash}`);
   };
 
   // While the user is still on the system default, mirror live OS color-scheme changes into the
@@ -284,6 +423,9 @@ export const Header = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
+            {/* Language Picker */}
+            <LanguagePicker language={language} onSelect={onSelectLanguage} />
+
             {/* Theme Toggle */}
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />
 

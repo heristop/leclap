@@ -16,6 +16,16 @@
     "uploadedFiles": "Uploaded Files:"
   },
   "camera": {
+    "modes": {
+      "front": "Front",
+      "back": "Back",
+      "screen": "Screen",
+      "upload": "Upload"
+    },
+    "errors": {
+      "screenDenied": "Screen sharing was denied or cancelled.",
+      "screenFailed": "Couldn’t start screen recording on this device."
+    },
     "getReady": "Get ready…",
     "recordingIn": "Recording in {{value}}",
     "wrapUp": "Wrap up — {{remaining}}s left",

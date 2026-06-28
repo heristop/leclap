@@ -1,16 +1,20 @@
-// Post-build SEO step. The app is a client-rendered SPA: per-route <title>, description, canonical
-// and OG/Twitter tags are set by src/presentation/components/Seo.tsx in a useEffect — i.e. only after
-// JavaScript runs. Crawlers that don't execute JS (Bing, most social unfurlers, many AI bots) would
-// otherwise see the home page's meta on every route.
+// Post-build SEO step. The app is a client-rendered SPA: per-route <title>, description, canonical,
+// hreflang and OG/Twitter tags are set by src/presentation/components/Seo.tsx in a useEffect — i.e.
+// only after JavaScript runs. Crawlers that don't execute JS (Bing, most social unfurlers, many AI
+// bots) would otherwise see the home page's English meta on every route.
 //
-// This script runs after `vite build`. From a single ROUTES manifest it:
-//   1. writes a static dist/<route>/index.html for every indexable route, with the route's head meta
-//      baked in (so non-JS crawlers get the right title/description/canonical/OG per URL); and
-//   2. generates dist/sitemap.xml from the same manifest — so the sitemap can never drift from the
-//      routes, and noindex/private pages are never listed.
+// This script runs after `vite build`. From route manifests it:
+//   1. writes a static <route>/index.html for every indexable route with the route's head meta baked
+//      in (title/description/canonical/OG per URL, and the correct <html lang>); and
+//   2. for the localized marketing routes, writes one file PER LANGUAGE under its URL prefix
+//      (English at the root, others under /<lng>) — each with a self-referencing canonical and a full
+//      set of reciprocal hreflang alternates (every language + x-default → English). This is the
+//      duplicate-content-safe multilingual setup Google expects: distinct URLs tied by hreflang.
+//   3. generates dist/sitemap.xml from the same manifests, with xhtml:link alternates on the
+//      localized URLs — so the sitemap can never drift from the routes, and noindex pages are absent.
 //
-// The body still hydrates via React for real users; only the <head> is pre-baked. Run from the app
-// dir: `node scripts/seo-prerender.ts` (wired into the `build` script).
+// The body still hydrates via React; only the <head> is pre-baked. Keep SITE_URL / LOCALES / the
+// localized-route set in sync with src/presentation/components/Seo.tsx and src/lib/language.ts.
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -19,32 +23,47 @@ import { fileURLToPath } from 'node:url';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(scriptDir, '..');
 const distDir = path.join(appDir, 'dist');
+const localesDir = path.join(appDir, 'src/i18n/locales');
 const SITE_URL = 'https://leclap.pages.dev';
 
-// Marketing-route copy lives in the seo locale so it stays in sync with the runtime <Seo> defaults.
-const seo = JSON.parse(await readFile(path.join(appDir, 'src/i18n/locales/en/seo.json'), 'utf8'));
+const LOCALES = ['en', 'fr', 'de', 'es', 'it'] as const;
+type Locale = (typeof LOCALES)[number];
+const OG_LOCALE: Record<Locale, string> = {
+  en: 'en_US',
+  fr: 'fr_FR',
+  de: 'de_DE',
+  es: 'es_ES',
+  it: 'it_IT',
+};
 
-type Route = {
+// Marketing-route copy lives in each locale's seo bundle so it stays in sync with the runtime <Seo>.
+const seoByLocale = Object.fromEntries(
+  await Promise.all(
+    LOCALES.map(async (l) => [l, JSON.parse(await readFile(path.join(localesDir, l, 'seo.json'), 'utf8'))] as const)
+  )
+) as Record<Locale, { default: SeoEntry; studio: SeoEntry; about: SeoEntry }>;
+
+type SeoEntry = { title: string; description: string };
+
+// Routes that are fully translated and published as a URL per language (hreflang alternates).
+// `seoKey` selects the per-locale copy; `titleVerbatim` uses the bundle title as-is (home only).
+type MarketingRoute = {
   path: string;
-  /** `null` → use the home default title verbatim; otherwise rendered as "<title> — LeClap". */
-  title: string | null;
-  description: string;
+  seoKey: 'default' | 'studio' | 'about';
+  titleVerbatim?: boolean;
   priority: string;
   changefreq: string;
 };
+const MARKETING_ROUTES: MarketingRoute[] = [
+  { path: '/', seoKey: 'default', titleVerbatim: true, priority: '1.0', changefreq: 'weekly' },
+  { path: '/studio', seoKey: 'studio', priority: '0.9', changefreq: 'weekly' },
+  { path: '/about', seoKey: 'about', priority: '0.5', changefreq: 'monthly' },
+];
 
-// The indexable routes. `title: null` → use the home default verbatim; otherwise the runtime renders
-// "<title> — LeClap", mirrored here. Private/noindex routes (/templates, /projects, /partials) and
-// redirects (/admin, /builder) are intentionally absent — they get neither a prerender nor a sitemap entry.
-const ROUTES: Route[] = [
-  { path: '/', title: null, description: seo.default.description, priority: '1.0', changefreq: 'weekly' },
-  {
-    path: '/studio',
-    title: seo.studio.title,
-    description: seo.studio.description,
-    priority: '0.9',
-    changefreq: 'weekly',
-  },
+// English-only routes (developer reference + design system). Single canonical URL at the root, no
+// hreflang — their body content isn't translated, so a localized wrapper would be near-duplicate.
+type DocRoute = { path: string; title: string; description: string; priority: string; changefreq: string };
+const DOC_ROUTES: DocRoute[] = [
   {
     path: '/doc',
     title: 'Template descriptor — overview',
@@ -147,26 +166,30 @@ const ROUTES: Route[] = [
     priority: '0.6',
     changefreq: 'monthly',
   },
-  {
-    path: '/about',
-    title: seo.about.title,
-    description: seo.about.description,
-    priority: '0.5',
-    changefreq: 'monthly',
-  },
 ];
-
-const fullTitle = (route: Route) => (route.title === null ? seo.default.title : `${route.title} — LeClap`);
 
 const escapeAttr = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/** Absolute URL for `path` in `lng` — English at the root, other languages under a /<lng> prefix. */
+const localeUrl = (lng: Locale, routePath: string) =>
+  lng === 'en' ? `${SITE_URL}${routePath}` : `${SITE_URL}/${lng}${routePath === '/' ? '' : routePath}`;
+
+type HeadSpec = {
+  lang: Locale;
+  title: string;
+  description: string;
+  canonical: string;
+  /** Marketing routes only: emit reciprocal hreflang for these languages + x-default. */
+  alternates: boolean;
+  routePath: string;
+};
+
 // Swap a head tag's value in place, tolerant of the multi-line attribute formatting Vite preserves.
-// Each helper takes (m, p1, p2) and rebuilds around the new value so literal `$` in copy is safe.
-function patchHead(html: string, route: Route) {
-  const title = escapeAttr(fullTitle(route));
-  const desc = escapeAttr(route.description);
-  const url = escapeAttr(`${SITE_URL}${route.path}`);
+function patchHead(html: string, spec: HeadSpec) {
+  const title = escapeAttr(spec.title);
+  const desc = escapeAttr(spec.description);
+  const url = escapeAttr(spec.canonical);
 
   const setMeta = (input: string, attr: string, key: string, value: string) =>
     input.replace(
@@ -174,29 +197,95 @@ function patchHead(html: string, route: Route) {
       (_m: string, p1: string, p2: string) => p1 + value + p2
     );
 
-  let out = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
-  out = setMeta(out, 'name', 'description', desc);
-  out = setMeta(out, 'property', 'og:title', title);
-  out = setMeta(out, 'property', 'og:description', desc);
-  out = setMeta(out, 'property', 'og:url', url);
-  out = setMeta(out, 'name', 'twitter:title', title);
-  out = setMeta(out, 'name', 'twitter:description', desc);
+  const metas: Array<['name' | 'property', string, string]> = [
+    ['name', 'description', desc],
+    ['property', 'og:title', title],
+    ['property', 'og:description', desc],
+    ['property', 'og:url', url],
+    ['property', 'og:locale', OG_LOCALE[spec.lang]],
+    ['name', 'twitter:title', title],
+    ['name', 'twitter:description', desc],
+  ];
+
+  let out = html.replace(/<html lang="[^"]*">/, `<html lang="${spec.lang}">`);
+  out = out.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
+
+  for (const [attr, key, value] of metas) {
+    out = setMeta(out, attr, key, value);
+  }
+
   out = out.replace(
     /(<link\s+rel="canonical"\s+href=")[^"]*(")/,
     (_m: string, p1: string, p2: string) => p1 + url + p2
   );
 
-  return out;
+  // Inject the hreflang alternates (+ og:locale:alternate) before </head>. og:locale itself is
+  // patched in place above so the template's existing tag isn't duplicated.
+  const lines: string[] = [];
+
+  if (spec.alternates) {
+    for (const lng of LOCALES) {
+      lines.push(`    <link rel="alternate" hreflang="${lng}" href="${escapeAttr(localeUrl(lng, spec.routePath))}" />`);
+
+      if (lng !== spec.lang) {
+        lines.push(`    <meta property="og:locale:alternate" content="${OG_LOCALE[lng]}" />`);
+      }
+    }
+    lines.push(
+      `    <link rel="alternate" hreflang="x-default" href="${escapeAttr(localeUrl('en', spec.routePath))}" />`
+    );
+  }
+
+  if (lines.length === 0) {
+    return out;
+  }
+
+  return out.replace('</head>', `${lines.join('\n')}\n  </head>`);
 }
 
+const marketingTitle = (route: MarketingRoute, lng: Locale) => {
+  const entry = seoByLocale[lng][route.seoKey];
+
+  return route.titleVerbatim ? entry.title : `${entry.title} — LeClap`;
+};
+
+// Where a (route, locale) pair's index.html is written. English keeps the root tree; others nest
+// under /<lng>. The English home is dist/index.html itself.
+const fileFor = (routePath: string, lng: Locale) => {
+  const prefix = lng === 'en' ? '' : `/${lng}`;
+  const rel = `${prefix}${routePath === '/' ? '' : routePath}`.replace(/^\//, '');
+
+  return path.join(distDir, rel, 'index.html');
+};
+
 function buildSitemap(lastmod: string) {
-  const entries = ROUTES.map(
+  const xhtml = (routePath: string) =>
+    [
+      ...LOCALES.map((lng) => ({ hreflang: lng as string, href: localeUrl(lng, routePath) })),
+      { hreflang: 'x-default', href: localeUrl('en', routePath) },
+    ]
+      .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${a.href}" />`)
+      .join('\n');
+
+  const marketing = MARKETING_ROUTES.flatMap((r) =>
+    LOCALES.map(
+      (lng) =>
+        `  <url>\n    <loc>${localeUrl(lng, r.path)}</loc>\n    <lastmod>${lastmod}</lastmod>\n` +
+        `    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n${xhtml(r.path)}\n  </url>`
+    )
+  );
+
+  const docs = DOC_ROUTES.map(
     (r) =>
       `  <url>\n    <loc>${SITE_URL}${r.path}</loc>\n    <lastmod>${lastmod}</lastmod>\n` +
       `    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
-  ).join('\n');
+  );
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`;
+  return (
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
+    `${[...marketing, ...docs].join('\n')}\n</urlset>\n`
+  );
 }
 
 const template = await readFile(path.join(distDir, 'index.html'), 'utf8');
@@ -206,21 +295,49 @@ if (!template.includes(SITE_URL)) {
   throw new Error(`dist/index.html does not reference ${SITE_URL} — rebuild before prerendering.`);
 }
 
-// dist/index.html is already the home page; prerender every other route into its own directory.
-const prerenderRoutes = ROUTES.filter((route) => route.path !== '/');
+async function writeFileFor(routePath: string, lng: Locale, spec: HeadSpec) {
+  const file = fileFor(routePath, lng);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, patchHead(template, spec));
+}
 
-async function writeRoute(route: Route) {
-  const dir = path.join(distDir, route.path.replace(/^\//, ''));
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, 'index.html'), patchHead(template, route));
+const jobs: Promise<void>[] = [];
+
+for (const route of MARKETING_ROUTES) {
+  for (const lng of LOCALES) {
+    jobs.push(
+      writeFileFor(route.path, lng, {
+        lang: lng,
+        title: marketingTitle(route, lng),
+        description: seoByLocale[lng][route.seoKey].description,
+        canonical: localeUrl(lng, route.path),
+        alternates: true,
+        routePath: route.path,
+      })
+    );
+  }
+}
+
+for (const route of DOC_ROUTES) {
+  jobs.push(
+    writeFileFor(route.path, 'en', {
+      lang: 'en',
+      title: `${route.title} — LeClap`,
+      description: route.description,
+      canonical: `${SITE_URL}${route.path}`,
+      alternates: false,
+      routePath: route.path,
+    })
+  );
 }
 
 const lastmod = new Date().toISOString().slice(0, 10);
-await Promise.all([
-  ...prerenderRoutes.map(writeRoute),
-  writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap(lastmod)),
-]);
+jobs.push(writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap(lastmod)));
+await Promise.all(jobs);
 
+const localizedFiles = MARKETING_ROUTES.length * LOCALES.length;
+const sitemapUrls = MARKETING_ROUTES.length * LOCALES.length + DOC_ROUTES.length;
 console.log(
-  `seo-prerender: ${prerenderRoutes.length} routes prerendered, sitemap.xml written (${ROUTES.length} urls).`
+  `seo-prerender: ${localizedFiles} localized + ${DOC_ROUTES.length} doc pages written, ` +
+    `sitemap.xml (${sitemapUrls} urls with hreflang alternates).`
 );

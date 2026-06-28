@@ -1,0 +1,45 @@
+{
+  "upload": {
+    "dropActive": "Dateien hier ablegen",
+    "dropIdle": "Videodateien hierher ziehen & ablegen",
+    "browse": "oder klicken, um Dateien zu durchsuchen ({{count}} übrig)",
+    "formats": "Unterstützt MP4, AVI, MOV, MKV, WebM • Max. {{size}} MB pro Datei",
+    "filesBadge": "{{count}}/{{max}} Dateien",
+    "uploadAria": "Videodateien hochladen",
+    "removeAria": "{{name}} entfernen",
+    "errorsTitle": "Upload-Fehler:",
+    "errorTooLarge": "{{name}} ist zu groß (max. {{size}} MB)",
+    "errorInvalidType": "{{name}} ist keine gültige Videodatei",
+    "errorTooMany": "Zu viele Dateien. Maximal {{max}} Dateien erlaubt",
+    "or": "oder",
+    "recordWithCamera": "Mit Kamera aufnehmen",
+    "uploadedFiles": "Hochgeladene Dateien:"
+  },
+  "camera": {
+    "modes": {
+      "front": "Vorne",
+      "back": "Hinten",
+      "screen": "Bildschirm",
+      "upload": "Hochladen"
+    },
+    "errors": {
+      "screenDenied": "Die Bildschirmfreigabe wurde abgelehnt oder abgebrochen.",
+      "screenFailed": "Bildschirmaufnahme konnte auf diesem Gerät nicht gestartet werden."
+    },
+    "getReady": "Mach dich bereit …",
+    "recordingIn": "Aufnahme in {{value}}",
+    "wrapUp": "Mach zum Schluss — noch {{remaining}} s",
+    "timesUp": "Zeit ist um",
+    "unavailable": "Kamera nicht verfügbar",
+    "startRecording": "Aufnahme starten",
+    "stopRecording": "Aufnahme stoppen",
+    "cancelCountdown": "Countdown abbrechen",
+    "retake": "Neu aufnehmen",
+    "useVideo": "Video verwenden",
+    "closeAria": "Kamera schließen",
+    "switchAria": "Kamera wechseln",
+    "livePreviewAria": "Live-Kameravorschau",
+    "recordedPreviewAria": "Vorschau der Aufnahme",
+    "starting": "Kamera wird gestartet …"
+  }
+}

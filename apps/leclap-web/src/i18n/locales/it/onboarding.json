@@ -1,0 +1,47 @@
+{
+  "welcome": {
+    "title": "Benvenuto su",
+    "subtitle": "Creiamo il tuo primo video in meno di un minuto — registra una breve intro e la trasformeremo in una clip curata.",
+    "features": {
+      "record": "Registra una breve intro con la fotocamera",
+      "template": "Applichiamo un modello di esempio cinematografico",
+      "download": "Scarica il tuo video finito"
+    },
+    "start": "Crea la mia intro",
+    "checking": "Controllo il tuo browser…",
+    "unsupported": "Qui il browser non può registrare",
+    "unsupportedHint": "Usa Chrome, Edge o Firefox su desktop per registrare la tua intro.",
+    "skip": "Salta per ora"
+  },
+  "create": {
+    "title": "Presentati",
+    "subtitle": "Dicci il tuo nome e registra una breve clip — è tutto ciò che serve.",
+    "nameLabel": "Il tuo nome",
+    "namePlaceholder": "es. {{name}}",
+    "recorded": "Intro registrata",
+    "reRecord": "Registra di nuovo",
+    "record": "Registra",
+    "upload": "Carica",
+    "recordAria": "Registra un’intro con la fotocamera",
+    "uploadAria": "Carica un video di intro",
+    "uploadInputAria": "Carica il video di intro",
+    "create": "Crea il mio video"
+  },
+  "compiling": {
+    "title": "Sto creando il tuo video…",
+    "subtitle": "Tutto avviene nel tuo browser — un attimo di pazienza.",
+    "stop": "Ferma",
+    "stopAria": "Ferma e chiudi"
+  },
+  "done": {
+    "title": "Il tuo primo video è pronto!",
+    "videoAria": "Il video che hai creato",
+    "startCreating": "Inizia a creare"
+  },
+  "error": {
+    "title": "Non ha funzionato",
+    "fallback": "Qualcosa è andato storto durante la creazione del tuo video.",
+    "continueToBuilder": "Vai ai Modelli"
+  },
+  "skipAria": "Salta l’onboarding"
+}

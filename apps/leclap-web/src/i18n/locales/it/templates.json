@@ -1,0 +1,79 @@
+{
+  "error": {
+    "title": "Impossibile caricare i modelli",
+    "message": "Impossibile caricare i modelli. Riprova."
+  },
+  "orientation": {
+    "portrait": "Verticale 9:16",
+    "landscape": "Orizzontale 16:9",
+    "square": "Quadrato 1:1"
+  },
+  "fields_one": "{{count}} campo",
+  "fields_other": "{{count}} campi",
+  "autoProcess": "Elaborazione automatica",
+  "sections_one": "{{count}} sezione",
+  "sections_other": "{{count}} sezioni",
+  "music": "Musica",
+  "custom": "Personalizzato",
+  "sections": {
+    "myTemplates": "I miei modelli",
+    "sampleTemplates": "Libreria di modelli"
+  },
+  "buildFromScratch": {
+    "label": "Crea da zero",
+    "description": "Progetta il tuo modello — scegli sezioni, musica ed effetti."
+  },
+  "complexity": {
+    "simple": "semplice",
+    "intermediate": "intermedio",
+    "advanced": "avanzato"
+  },
+  "search": {
+    "placeholder": "Cerca modelli…",
+    "all": "Tutti",
+    "portrait": "Verticale",
+    "landscape": "Orizzontale",
+    "square": "Quadrato",
+    "orientationLabel": "Filtra per orientamento",
+    "complexityLabel": "Filtra per complessità"
+  },
+  "empty": {
+    "title": "Nessun modello corrisponde",
+    "hint": "Prova una ricerca diversa o azzera i filtri.",
+    "clear": "Azzera i filtri"
+  },
+  "form": {
+    "header": {
+      "title": "Configurazione del modello",
+      "subtitle": "Compila le informazioni richieste per personalizzare il tuo video"
+    },
+    "status": {
+      "required": "Campo obbligatorio",
+      "completed": "Campo completato",
+      "maxChars": "Massimo {{count}} caratteri consentiti",
+      "remaining": "{{count}} rimasti",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "obbligatorio",
+      "fieldRequired": "Questo campo è obbligatorio",
+      "maxCharsLabel": "(max {{count}} caratteri)"
+    },
+    "placeholder": {
+      "firstName": "Inserisci il tuo nome",
+      "lastName": "Inserisci il tuo cognome",
+      "job": "La tua qualifica",
+      "keyword": "Inserisci una parola chiave",
+      "description": "Inserisci una descrizione...",
+      "generic": "Inserisci {{label}}"
+    },
+    "validation": {
+      "completeTitle": "Form completo!",
+      "completeMessage": "Tutti i campi obbligatori sono compilati. Pronto a procedere.",
+      "incompleteTitle": "Form incompleto",
+      "incompleteMessage": "Compila {{count}} campo/i rimanente/i."
+    },
+    "noForm": {
+      "title": "Nessun form richiesto",
+      "message": "Questo modello non richiede alcun input personalizzato. Puoi procedere direttamente all’elaborazione."
+    }
+  }
+}

@@ -1,0 +1,604 @@
+{
+  "addScene": {
+    "title": "Szene hinzufügen",
+    "category": {
+      "clip": "Clips & Visuals",
+      "input": "Eingabe",
+      "data": "Daten"
+    }
+  },
+  "page": {
+    "heading": "Builder",
+    "subtitle": "Nutze ein Beispiel oder gestalte dein eigenes – in diesem Browser gespeichert.",
+    "create": "Vorlage erstellen",
+    "myTemplates": "Meine Vorlagen",
+    "count": "({{count}})",
+    "empty": {
+      "title": "Du hast noch keine Vorlagen erstellt.",
+      "subtitle": "Fang bei null an oder dupliziere unten ein Beispiel.",
+      "create": "Erstelle deine erste Vorlage"
+    },
+    "samples": "Beispielvorlagen",
+    "goToBuilder": "Zu den Vorlagen",
+    "partials": "Partials",
+    "contribute": {
+      "title": "Eine Vorlage beitragen",
+      "description": "Etwas Großartiges gebaut? Teile es mit der LeClap-Community auf GitHub."
+    }
+  },
+  "partials": {
+    "title": "Partials",
+    "subtitle": "Baue wiederverwendbare Szenenfragmente mit denselben visuellen Reglern wie Vorlagen.",
+    "back": "Vorlagen"
+  },
+  "card": {
+    "noDescription": "Keine Beschreibung",
+    "section_one": "{{count}} Abschnitt",
+    "section_other": "{{count}} Abschnitte",
+    "form": "Formular",
+    "edit": "Bearbeiten",
+    "duplicate": "Duplizieren & bearbeiten",
+    "delete": "{{name}} löschen",
+    "convertToPartial": "{{name}} in Partial umwandeln",
+    "share": "{{name}} auf GitHub teilen",
+    "convertDialog": {
+      "title": "In Partial umwandeln?",
+      "description": "„{{name}}“ wird in eine wiederverwendbare Partial-Szene umgewandelt. Die ursprüngliche Vorlage wird nicht gelöscht – du kannst sie weiterhin aus der Liste bearbeiten.",
+      "cancel": "Abbrechen",
+      "confirm": "In Partial umwandeln"
+    },
+    "shareDialog": {
+      "title": "Auf GitHub beitragen",
+      "description": "Teile diese Vorlage in zwei Schritten mit der LeClap-Community.",
+      "jsonLabel": "Vorlagen-Deskriptor",
+      "step1": "Kopiere das Vorlagen-JSON",
+      "step2": "Öffne das Repo auf GitHub, erstelle einen neuen Branch, füge das JSON als neue Vorlagendatei ein und öffne dann einen Pull Request.",
+      "copy": "JSON kopieren",
+      "copied": "Kopiert!",
+      "openGithub": "GitHub öffnen →"
+    }
+  },
+  "orientationLabel": {
+    "landscape": "Querformat",
+    "portrait": "Hochformat",
+    "square": "Quadratisch"
+  },
+  "complexity": {
+    "simple": "einfach",
+    "intermediate": "mittel",
+    "advanced": "fortgeschritten"
+  },
+  "seo": {
+    "edit": "Vorlage bearbeiten",
+    "create": "Eine Vorlage erstellen"
+  },
+  "editor": {
+    "title": {
+      "edit": "Vorlage bearbeiten",
+      "create": "Eine Vorlage erstellen"
+    },
+    "subtitle": "Baue deine Szenen von oben nach unten und speichere – sie erscheint im Builder als Custom-Vorlage.",
+    "back": "Vorlagen",
+    "mode": {
+      "simple": "Einfach",
+      "advanced": "Fortgeschritten"
+    },
+    "toolbar": {
+      "undo": "Rückgängig",
+      "redo": "Wiederherstellen",
+      "export": "Vorlagen-JSON exportieren",
+      "import": "Vorlagen-JSON importieren"
+    },
+    "basics": {
+      "name": "Name",
+      "namePlaceholder": "Meine Vorlage",
+      "orientation": "Ausrichtung",
+      "landscape": "Querformat (16:9)",
+      "portrait": "Hochformat (9:16)",
+      "square": "Quadratisch (1:1)"
+    },
+    "advanced": {
+      "label": "Erweiterte Einstellungen",
+      "summary": "Audio-Mix · Variablen",
+      "wholeVideo": {
+        "label": "Animationen über das ganze Video",
+        "hint": "Overlays, die sich über das gesamte Video erstrecken, über alle Abschnitte hinweg."
+      },
+      "io": {
+        "label": "Import / Export",
+        "hint": "Exportiere diese Vorlage als JSON oder importiere einen Deskriptor, um die aktuelle zu ersetzen."
+      }
+    },
+    "variables": {
+      "label": "Globale Variablen",
+      "hint": "Wiederverwendbare Werte, die du als {{token}} in jeden Text einfügen kannst.",
+      "name": "Name von Variable {{index}}",
+      "value": "Wert von Variable {{index}}",
+      "remove": "Variable {{index}} entfernen",
+      "namePlaceholder": "Name",
+      "valuePlaceholder": "Wert",
+      "add": "Variable hinzufügen"
+    },
+    "scenes": {
+      "label": "Szenen",
+      "hint": "Jede Szene läuft der Reihe nach, von oben nach unten – ziehe am Griff, um umzuordnen.",
+      "empty": "Noch keine Szenen – füge unten deine erste hinzu.",
+      "expandAll": "Alle ausklappen",
+      "collapseAll": "Alle einklappen",
+      "dropHere": "Hier ablegen"
+    },
+    "addScene": {
+      "label": "Szene hinzufügen"
+    },
+    "sectionLabel": {
+      "video": "Dein Video",
+      "form": "Formularfelder",
+      "color": "Farbhintergrund",
+      "music": "Hintergrundmusik",
+      "image": "Hintergrundbild"
+    },
+    "card": {
+      "dragToReorder": "Ziehen zum Umordnen",
+      "expand": "Abschnitt ausklappen",
+      "collapse": "Abschnitt einklappen",
+      "duplicate": "Abschnitt duplizieren",
+      "remove": "Abschnitt entfernen"
+    },
+    "summary": {
+      "seconds": "{{count}} s",
+      "muted": "stumm",
+      "overlay_one": "{{count}} Overlay",
+      "overlay_other": "{{count}} Overlays",
+      "countdown": "Countdown {{count}} s",
+      "field_one": "{{count}} Feld",
+      "field_other": "{{count}} Felder",
+      "track_one": "{{count}} Track",
+      "track_other": "{{count}} Tracks",
+      "image_one": "{{count}} Bild",
+      "image_other": "{{count}} Bilder",
+      "upload": "Upload"
+    },
+    "validation": {
+      "name": "Gib deiner Vorlage einen Namen.",
+      "atLeastOneSection": "Füge mindestens einen Abschnitt hinzu.",
+      "mediaOrUpload": "Wähle mindestens eine Option für den Abschnitt {{label}} oder erlaube Uploads.",
+      "fixErrors": "Behebe die markierten Abschnittsfehler vor dem Speichern.",
+      "saveFailed": "Die Vorlage konnte nicht gespeichert werden."
+    },
+    "globalBanner": "Diese Vorlage hat Probleme:",
+    "importError": {
+      "title": "Import nicht möglich",
+      "description": "Die Datei ist kein gültiger Vorlagen-Deskriptor."
+    },
+    "save": "Vorlage speichern",
+    "saveAndFilm": "Speichern & filmen →",
+    "cancel": "Abbrechen",
+    "untitled": "Unbenannte Vorlage"
+  },
+  "shell": {
+    "scenes": "Szenen",
+    "basics": "Grundlagen",
+    "audio": "Audio",
+    "variables": "Variablen",
+    "advanced": "Erweitert",
+    "tools": "Editor-Werkzeuge",
+    "resizePanels": "Ziehen, um Vorschau und Panel anzupassen",
+    "preview": "Vorschau",
+    "addScene": "Szene hinzufügen",
+    "addSceneKind": "{{kind}}-Szene hinzufügen",
+    "duplicateScene": "Szene duplizieren",
+    "deleteScene": "Szene löschen",
+    "reorderScene": "Ziehen, um Szene umzuordnen",
+    "transitionAfter": "Übergang nach dieser Szene",
+    "nameLabel": "Vorlagenname",
+    "monitorEmpty": "Wähle eine Szene zum Bearbeiten",
+    "partialNameLabel": "Partial-ID",
+    "partialPicker": "Partial wechseln",
+    "partialNew": "Neues Partial",
+    "partialDelete": "Partial löschen",
+    "partialDescription": "Beschreibung",
+    "partialBuiltin": "Eingebaut",
+    "partialLocal": "Lokal",
+    "partialSaveFailed": "Das Partial konnte nicht gespeichert werden.",
+    "partialSave": "Partial speichern",
+    "partialPreviewLabel": "Partial-Vorschau",
+    "partialUnset": "Kein Partial ausgewählt"
+  },
+  "testRender": {
+    "rendering": "Rendering …",
+    "preview": "Vorschau-Render",
+    "ariaLabel": "Rendere eine Vorschau dieser Vorlage mit Beispielmaterial",
+    "title": "Vorschau-Render",
+    "description": "Ein schneller Entwurf mit Beispielmaterial – Platzhalter-Clips stehen für deine Videoabschnitte.",
+    "failed": "Der Vorschau-Render ist fehlgeschlagen.",
+    "download": "Entwurf herunterladen"
+  },
+  "validation": {
+    "saveFailed": "Die Vorlage konnte nicht gespeichert werden."
+  },
+  "media": {
+    "source": "Medienquelle",
+    "tab": {
+      "library": "Bibliothek",
+      "upload": "Upload",
+      "url": "URL"
+    },
+    "urlLabel": "Asset-URL",
+    "urlPlaceholder": "https://example.com/media.mp4",
+    "urlHint": "Füge einen direkten Link ein – wird beim Kompilieren geladen, nicht auf dem Gerät gespeichert.",
+    "emptyLibrary": "Noch nichts hier – lade stattdessen dein eigenes hoch.",
+    "emptyMultiLibrary": "Noch nichts in der Bibliothek.",
+    "play": "{{title}} abspielen",
+    "pause": "{{title}} pausieren",
+    "uploadMusic": "Eine Musikdatei hochladen",
+    "uploadImage": "Ein Hintergrundbild hochladen",
+    "dropTrack": "Track ablegen oder klicken zum Durchsuchen",
+    "dropImage": "Bild ablegen oder klicken zum Durchsuchen",
+    "musicFormats": "MP3, WAV, M4A · auf diesem Gerät gespeichert",
+    "imageFormats": "JPG, PNG, WebP · auf diesem Gerät gespeichert",
+    "uploaded": "Hochgeladen · auf diesem Gerät gespeichert",
+    "removeUpload": "Hochgeladene Datei entfernen"
+  },
+  "overlay": {
+    "textOverlays": "Text-Overlays",
+    "doubleClickToEdit": "Doppelklick zum Bearbeiten",
+    "textPlaceholder": "Füge deinen Text hinzu",
+    "editText": "Overlay-Text bearbeiten",
+    "selectOrAdd": "Wähle einen Text – oder füge unten einen hinzu.",
+    "addText": "Text hinzufügen",
+    "size": "Größe — {{size}} px",
+    "deleteText": "Text löschen",
+    "color": "Farbe",
+    "textColor": "Textfarbe",
+    "box": "Box",
+    "boxColor": "Box-Farbe",
+    "boxOpacity": "Box-Deckkraft — {{percent}} %",
+    "font": "Schrift",
+    "insertVariable": "Variable einfügen",
+    "insertVariableHint": "Füge zuerst ein Formularfeld oder eine globale Variable hinzu",
+    "label": "Text {{index}}",
+    "labelWithText": "Text: {{text}}",
+    "list": "Text-Overlays",
+    "untitled": "Text {{index}}",
+    "empty": "Noch kein Text. Füge einen hinzu, um zu starten.",
+    "selectHint": "Wähle einen Text in der Vorschau oder unten aus."
+  },
+  "controls": {
+    "reset": "{{label}} zurücksetzen",
+    "muted": "Stumm",
+    "volume": "{{label}}-Lautstärke"
+  },
+  "audio": {
+    "label": "Audio",
+    "hint": "Balanciere deinen aufgenommenen Clip gegen die Musik und füge dann den letzten Schliff hinzu.",
+    "yourVideo": "Dein Video",
+    "music": "Musik",
+    "normalize": "Lautheit normalisieren",
+    "normalizeOff": "Aus",
+    "normalizeLoudnorm": "Loudnorm",
+    "normalizeDynamic": "Dynamisch",
+    "ducking": "Musik leiser, wenn jemand spricht"
+  },
+  "sectionAudio": {
+    "label": "Abschnitts-Audio",
+    "musicVolume": "Musiklautstärke",
+    "musicVolumeGlobal": "Musiklautstärke (global)",
+    "resetToGlobal": "Auf global zurücksetzen ({{percent}})",
+    "fadeIn": "Einblenden",
+    "fadeOut": "Ausblenden",
+    "duration": "Dauer (s)",
+    "fadeDuration": "{{side}}-Dauer in Sekunden",
+    "curve": "Kurve",
+    "fadeCurve": "{{side}}-Kurve"
+  },
+  "framing": {
+    "label": "Bildausschnitt-Hilfe",
+    "hint": "Eine Silhouette, die beim Aufnehmen angezeigt wird, um das Bild zu rahmen – wird nie ins Video gerendert.",
+    "none": "Keine",
+    "left": "Links",
+    "center": "Mitte",
+    "right": "Rechts",
+    "opacity": "Deckkraft",
+    "styleBust": "Büste",
+    "styleOutline": "Umriss",
+    "mirrorNote": "Auf der Frontkamera gespiegelt, wie ein Spiegel.",
+    "noGuide": "Keine Hilfe"
+  },
+  "grade": {
+    "fineTune": "Feinabstimmung",
+    "customised": "angepasst",
+    "brightness": "Helligkeit",
+    "contrast": "Kontrast",
+    "saturation": "Sättigung",
+    "gamma": "Gamma",
+    "hue": "Farbton",
+    "blur": "Weichzeichnen"
+  },
+  "layer": {
+    "background": "Hintergrund",
+    "position": "Position (% des Frames)",
+    "axis": {
+      "x": "X",
+      "y": "Y",
+      "w": "B",
+      "h": "H"
+    },
+    "base": "Basis",
+    "name": "Ebene {{index}}",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "remove": "Ebene entfernen",
+    "color": "{{name}}-Farbe",
+    "opacity": "Deckkraft",
+    "gradient": "Verlauf",
+    "gradientStart": "Verlaufsstart",
+    "gradientEnd": "Verlaufsende",
+    "direction": "Richtung",
+    "add": "Ebene hinzufügen"
+  },
+  "look": {
+    "label": "Look",
+    "preset": "Look-Preset",
+    "none": "Keiner"
+  },
+  "animation": {
+    "label": "Animation",
+    "preset": "Animations-Overlay",
+    "none": "Keine",
+    "upload": "Hochladen",
+    "uploadHint": ".apng oder .webm hochladen",
+    "uploaded": "Hochgeladen",
+    "dropAnimation": "Animation ablegen oder klicken zum Durchsuchen",
+    "animationFormats": "APNG, WebM · inline in der Vorlage gehalten",
+    "removeUpload": "Hochgeladene Animation entfernen",
+    "invalidType": "Bitte wähle eine .apng- oder .webm-Datei.",
+    "previewBg": "Vorschau-Hintergrund",
+    "bgChecker": "Schachbrett",
+    "bgDark": "Dunkel",
+    "bgLight": "Hell",
+    "position": "Position",
+    "scale": "Skalierung",
+    "scaleHint": "px · −1 behält das Seitenverhältnis",
+    "positionHint": "px von oben links",
+    "opacity": "Deckkraft",
+    "rotation": "Drehung",
+    "loop": "Schleife",
+    "playback": "Wiedergabe",
+    "forever": "Endlos",
+    "loopsTab": "Schleifen",
+    "secondsTab": "Sekunden",
+    "loopsLabel": "Anzahl der Schleifen",
+    "secondsLabel": "Dauer (s)",
+    "startLabel": "Start bei (s)",
+    "keepLastFrame": "Letztes Bild behalten",
+    "dragHint": "Ziehen zum Bewegen · Ecke zum Skalieren · Pfeile zum Justieren",
+    "reset": "Auf Standard zurücksetzen"
+  },
+  "element": {
+    "resize": "Element skalieren",
+    "rotate": "Element drehen",
+    "delete": "Element löschen",
+    "add": "Hinzufügen",
+    "addBackgroundColor": "Hintergrundfarbe",
+    "addBackgroundImage": "Hintergrundbild",
+    "addText": "Text",
+    "addImageOverlay": "Bild / Logo",
+    "addAnimation": "Animation",
+    "empty": "Füge dein erstes Element hinzu",
+    "list": "Elemente",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "selectHint": "Wähle ein Element, um seine Einstellungen zu bearbeiten",
+    "text": "Text",
+    "layer": "Hintergrund",
+    "image": "Bild",
+    "animation": "Animation",
+    "backgroundImage": "Hintergrundbild"
+  },
+  "motion": {
+    "label": "Bewegung",
+    "direction": "Bewegungsrichtung",
+    "kenBurns": "Ken Burns-Bewegung",
+    "intensity": "Intensität",
+    "zoomIn": "Heranzoomen",
+    "zoomOut": "Herauszoomen",
+    "panLeft": "Nach links schwenken",
+    "panRight": "Nach rechts schwenken",
+    "panUp": "Nach oben schwenken",
+    "panDown": "Nach unten schwenken"
+  },
+  "disclosure": {
+    "effects": "Effekte",
+    "audio": "Audio",
+    "animation": "Animation",
+    "cameraGuide": "Kamera-Hilfe",
+    "images": "Bilder",
+    "overlays": "Overlays",
+    "titleCard": "Titelkarte",
+    "lowerThird": "Bauchbinde",
+    "chromaKey": "Hintergrund entfernen"
+  },
+  "overlays": {
+    "kind": "Overlay-Typ",
+    "animation": "Animation",
+    "image": "Bild",
+    "count_one": "{{count}} Overlay",
+    "count_other": "{{count}} Overlays"
+  },
+  "imageOverlay": {
+    "add": "Ein Bild hinzufügen",
+    "label": "Bild",
+    "remove": "Bild entfernen",
+    "count_one": "{{count}} Bild",
+    "count_other": "{{count}} Bilder"
+  },
+  "animationOverlay": {
+    "add": "Eine Animation hinzufügen",
+    "label": "Animation",
+    "remove": "Animation entfernen",
+    "count_one": "{{count}} Animation",
+    "count_other": "{{count}} Animationen"
+  },
+  "summaryChip": {
+    "none": "Keine",
+    "on": "An",
+    "default": "Standard",
+    "off": "Aus",
+    "kenBurns": "Ken Burns",
+    "customVolume": "Eigene Lautstärke",
+    "fadeIn": "Einblenden",
+    "fadeOut": "Ausblenden",
+    "fadeInOut": "Ein-/Ausblenden"
+  },
+  "hint": {
+    "video": "Nimm dich mit der Kamera auf",
+    "form": "Frage den Zuschauer nach Text zum Einblenden",
+    "color": "Einfarbige Karte mit Titel",
+    "music": "Hintergrundtrack für das ganze Video",
+    "image": "Ein Foto-Hintergrund mit Bewegung"
+  },
+  "timeline": {
+    "label": "Timeline",
+    "ariaLabel": "Visuelle Abschnitts-Timeline",
+    "hint": "Klicke auf einen Block, um zu seinem Abschnitt zu springen. Ziehen, oder fokussieren und Alt + ← / → drücken zum Umordnen.",
+    "kind": {
+      "color": "Farbhintergrund",
+      "image": "Bildhintergrund",
+      "video": "Dein Video"
+    },
+    "chip": "{{kind}}, Block {{position}} von {{count}}"
+  },
+  "transition": {
+    "title": "Übergang",
+    "description": "Wie dieser Abschnitt in den nächsten übergeht.",
+    "duration": "Dauer",
+    "none": "Kein Übergang",
+    "cut": "Schnitt",
+    "label": "{{name}} · {{duration}} s",
+    "group": {
+      "Fades": "Blenden",
+      "Wipes": "Wischer",
+      "Slides": "Slides",
+      "Circles": "Kreise",
+      "Slices": "Schnitte",
+      "Covers": "Cover",
+      "Reveals": "Reveals"
+    }
+  },
+  "variables": {
+    "global": "Global",
+    "local": "Lokal",
+    "insertHint": "Tippe #, um eine Variable einzufügen"
+  },
+  "video": {
+    "duration": "Dauer (s)",
+    "muteAudio": "Audio stummschalten",
+    "whatToFilm": "Was gefilmt wird",
+    "whatToFilmPlaceholder": "z. B. Mittig stehen, in die Kamera schauen, deinen Namen sagen",
+    "whatToFilmHint": "Wird der filmenden Person beim Aufnehmen gezeigt – ein kurzer Hinweis, nie ins Video eingebrannt.",
+    "countdown": "Countdown vor der Aufnahme",
+    "countdownSeconds_one": "Countdown (Sekunde)",
+    "countdownSeconds_other": "Countdown (Sekunden)"
+  },
+  "image": {
+    "pickImages": "Wähle einen Hintergrund.",
+    "allowUpload": "Zuschauern erlauben, ihr eigenes Bild hochzuladen"
+  },
+  "musicSection": {
+    "pickTracks": "Wähle die Tracks, aus denen Zuschauer wählen können.",
+    "allowUpload": "Zuschauern erlauben, ihren eigenen Track hochzuladen"
+  },
+  "form": {
+    "fieldId": "Feld-ID",
+    "fieldIdPlaceholder": "Feld-ID",
+    "fieldLabel": "Feldbezeichnung",
+    "fieldLabelPlaceholder": "Bezeichnung",
+    "maxLength": "Maximale Länge",
+    "removeField": "Feld entfernen",
+    "addField": "Feld hinzufügen"
+  },
+  "reveal": {
+    "label": "Eingang",
+    "none": "Keiner",
+    "fade": "Einblenden",
+    "rise": "Aufsteigen",
+    "slide-left": "Hereinschieben",
+    "slide-right": "Hinausschieben",
+    "advanced": "Timing",
+    "delay": "Verzögerung",
+    "duration": "Dauer",
+    "distance": "Distanz",
+    "summaryDefault": "Standard-Timing"
+  },
+  "exit": {
+    "label": "Ausgang",
+    "after": "Startet nach",
+    "summaryDefault": "endet am Abschnittsende"
+  },
+  "textEffect": {
+    "label": "Lesbarkeit",
+    "shadow": "Schlagschatten",
+    "shadowColor": "Schattenfarbe",
+    "outline": "Umriss",
+    "outlineColor": "Umrissfarbe"
+  },
+  "chromaKey": {
+    "hint": "Entferne eine einfarbige Bildschirmfarbe (Green-/Bluescreen) und setze den Clip über eine flache Farbe.",
+    "enable": "Hintergrund entfernen",
+    "keyColor": "Bildschirmfarbe",
+    "background": "Hintergrundfarbe",
+    "similarity": "Stärke",
+    "summaryOn": "an",
+    "summaryOff": "aus"
+  },
+  "titleCard": {
+    "kicker": "Kicker",
+    "kickerPlaceholder": "z. B. NEU VORGESTELLT",
+    "headline": "Überschrift",
+    "headlinePlaceholder": "z. B. {{ form_1_name }}",
+    "subtitle": "Untertitel",
+    "subtitlePlaceholder": "z. B. {{ form_1_tagline }}",
+    "accent": "Akzentfarbe",
+    "align": "Ausrichtung",
+    "alignLeft": "Links",
+    "alignCenter": "Mitte",
+    "fadeIn": "Einblenden",
+    "fadeOut": "Ausblenden",
+    "summaryEmpty": "kein Text",
+    "hint": "Eine saubere Kicker- / Überschrift- / Untertitel-Karte – an die Ausrichtung angepasst."
+  },
+  "lowerThird": {
+    "title": "Titel",
+    "titlePlaceholder": "z. B. {{ form_1_name }}",
+    "subtitle": "Untertitel",
+    "subtitlePlaceholder": "z. B. einzeiliger Pitch",
+    "badge": "Badge",
+    "badgePlaceholder": "z. B. {{ form_1_price }}",
+    "accent": "Akzentfarbe",
+    "band": "Band-Deckkraft",
+    "position": "Position",
+    "bottom": "Unten",
+    "top": "Oben",
+    "summaryEmpty": "kein Text",
+    "hint": "Ein Titel- / Untertitel-Band über dem Clip, mit optionalem Badge."
+  },
+  "globalOverlay": {
+    "label": "Text über das ganze Video",
+    "hint": "Text, der auf jedem Abschnitt gezeichnet wird – z. B. ein Marken-Wasserzeichen, einmal angelegt.",
+    "add": "Wasserzeichen hinzufügen",
+    "text": "Text",
+    "textPlaceholder": "z. B. {{ brand }}",
+    "position": "Position",
+    "color": "Farbe",
+    "remove": "Entfernen",
+    "pos": {
+      "top-left": "Oben links",
+      "top-right": "Oben rechts",
+      "bottom-left": "Unten links",
+      "bottom-right": "Unten rechts",
+      "top": "Oben",
+      "bottom": "Unten",
+      "center": "Mitte"
+    }
+  }
+}

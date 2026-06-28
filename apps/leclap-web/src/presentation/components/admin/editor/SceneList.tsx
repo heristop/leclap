@@ -1,4 +1,5 @@
 import { useState, Fragment, type DragEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   GripVertical,
   Trash2,
@@ -429,11 +430,6 @@ const DEFAULT_SECTION_BUTTONS: readonly EditorSection['kind'][] = [
 
 // Group the six section types under category labels instead of one flat list of buttons.
 const CATEGORY_ORDER: readonly SectionCategory[] = ['clip', 'input', 'data'];
-const CATEGORY_LABELS: Record<SectionCategory, string> = {
-  clip: 'Clips & visuals',
-  input: 'Input',
-  data: 'Data',
-};
 
 const AddSectionButton = ({
   kind,
@@ -465,31 +461,35 @@ export const AddSectionButtons = ({
 }: {
   addSection: (kind: EditorSection['kind']) => void;
   kinds?: readonly EditorSection['kind'][];
-}) => (
-  <div className="mb-6 space-y-4">
-    <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-      Add a scene
-    </span>
-    {CATEGORY_ORDER.map((category) => {
-      const inCategory = kinds.filter((kind) => SECTION_CATEGORY[kind] === category);
+}) => {
+  const { t } = useTranslation('admin');
 
-      if (inCategory.length === 0) return null;
+  return (
+    <div className="mb-6 space-y-4">
+      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+        {t('addScene.title')}
+      </span>
+      {CATEGORY_ORDER.map((category) => {
+        const inCategory = kinds.filter((kind) => SECTION_CATEGORY[kind] === category);
 
-      return (
-        <div key={category} className="space-y-2">
-          <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            {CATEGORY_LABELS[category]}
-          </span>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {inCategory.map((kind) => (
-              <AddSectionButton key={kind} kind={kind} onAdd={addSection} />
-            ))}
+        if (inCategory.length === 0) return null;
+
+        return (
+          <div key={category} className="space-y-2">
+            <span className="block text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              {t(`addScene.category.${category}`)}
+            </span>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {inCategory.map((kind) => (
+                <AddSectionButton key={kind} kind={kind} onAdd={addSection} />
+              ))}
+            </div>
           </div>
-        </div>
-      );
-    })}
-  </div>
-);
+        );
+      })}
+    </div>
+  );
+};
 
 const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`;
 

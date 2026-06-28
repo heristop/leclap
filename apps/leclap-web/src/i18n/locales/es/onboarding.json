@@ -1,0 +1,47 @@
+{
+  "welcome": {
+    "title": "Te damos la bienvenida a",
+    "subtitle": "Hagamos tu primer vídeo en menos de un minuto: graba una breve presentación y la convertiremos en un clip pulido.",
+    "features": {
+      "record": "Graba una breve presentación con tu cámara",
+      "template": "Aplicamos una plantilla cinematográfica de ejemplo",
+      "download": "Descarga tu vídeo terminado"
+    },
+    "start": "Crear mi presentación",
+    "checking": "Comprobando tu navegador…",
+    "unsupported": "El navegador no puede grabar aquí",
+    "unsupportedHint": "Usa Chrome, Edge o Firefox en el escritorio para grabar tu presentación.",
+    "skip": "Omitir por ahora"
+  },
+  "create": {
+    "title": "Preséntate",
+    "subtitle": "Dinos tu nombre y graba un clip corto: eso es todo lo que necesitamos.",
+    "nameLabel": "Tu nombre",
+    "namePlaceholder": "p. ej. {{name}}",
+    "recorded": "Presentación grabada",
+    "reRecord": "Volver a grabar",
+    "record": "Grabar",
+    "upload": "Subir",
+    "recordAria": "Grabar una presentación con tu cámara",
+    "uploadAria": "Subir un vídeo de presentación",
+    "uploadInputAria": "Subir vídeo de presentación",
+    "create": "Crear mi vídeo"
+  },
+  "compiling": {
+    "title": "Creando tu vídeo…",
+    "subtitle": "Esto funciona enteramente en tu navegador, aguanta un momento.",
+    "stop": "Detener",
+    "stopAria": "Detener y cerrar"
+  },
+  "done": {
+    "title": "¡Tu primer vídeo está listo!",
+    "videoAria": "Tu vídeo creado",
+    "startCreating": "Empezar a crear"
+  },
+  "error": {
+    "title": "Eso no funcionó",
+    "fallback": "Algo salió mal al crear tu vídeo.",
+    "continueToBuilder": "Continuar a Plantillas"
+  },
+  "skipAria": "Omitir la introducción"
+}

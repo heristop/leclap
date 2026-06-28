@@ -1,0 +1,45 @@
+{
+  "upload": {
+    "dropActive": "Rilascia qui i file",
+    "dropIdle": "Trascina qui i file video",
+    "browse": "oppure clicca per sfogliare i file ({{count}} rimasti)",
+    "formats": "Supporta MP4, AVI, MOV, MKV, WebM • Max {{size}}MB per file",
+    "filesBadge": "{{count}}/{{max}} file",
+    "uploadAria": "Carica file video",
+    "removeAria": "Rimuovi {{name}}",
+    "errorsTitle": "Errori di caricamento:",
+    "errorTooLarge": "{{name}} è troppo grande (max {{size}}MB)",
+    "errorInvalidType": "{{name}} non è un file video valido",
+    "errorTooMany": "Troppi file. Massimo {{max}} file consentiti",
+    "or": "oppure",
+    "recordWithCamera": "Registra con la fotocamera",
+    "uploadedFiles": "File caricati:"
+  },
+  "camera": {
+    "modes": {
+      "front": "Frontale",
+      "back": "Posteriore",
+      "screen": "Schermo",
+      "upload": "Carica"
+    },
+    "errors": {
+      "screenDenied": "La condivisione dello schermo è stata negata o annullata.",
+      "screenFailed": "Impossibile avviare la registrazione dello schermo su questo dispositivo."
+    },
+    "getReady": "Preparati…",
+    "recordingIn": "Registrazione tra {{value}}",
+    "wrapUp": "Concludi — {{remaining}}s rimasti",
+    "timesUp": "Tempo scaduto",
+    "unavailable": "Fotocamera non disponibile",
+    "startRecording": "Avvia registrazione",
+    "stopRecording": "Ferma registrazione",
+    "cancelCountdown": "Annulla il conto alla rovescia",
+    "retake": "Rifai",
+    "useVideo": "Usa il video",
+    "closeAria": "Chiudi la fotocamera",
+    "switchAria": "Cambia fotocamera",
+    "livePreviewAria": "Anteprima dal vivo della fotocamera",
+    "recordedPreviewAria": "Anteprima del video registrato",
+    "starting": "Avvio fotocamera…"
+  }
+}

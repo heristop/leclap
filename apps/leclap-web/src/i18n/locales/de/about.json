@@ -1,0 +1,48 @@
+{
+  "hero": {
+    "badge": "Privatsphäre zuerst · In deinem Browser",
+    "title": "Über LeClap",
+    "tagline": "Ein cinematischer Video-Composer, der komplett in deinem Browser läuft. Komponiere aus echten Vorlagen, rendere mit FFmpeg, zu WebAssembly kompiliert, und lade herunter – keine Server, keine Uploads, keine Grenzen."
+  },
+  "cta": {
+    "prompt": "Bereit, dein erstes Video zu komponieren?",
+    "start": "Jetzt loslegen"
+  },
+  "stats": {
+    "browser": "Läuft in deinem Browser",
+    "uploads": "Hochgeladene Dateien",
+    "projects": "Projekte, immer kostenlos"
+  },
+  "pillars": {
+    "private": {
+      "title": "Privat by design",
+      "description": "Deine Clips verlassen nie dein Gerät. Kein Upload, kein Account, kein Server dazwischen."
+    },
+    "ffmpeg": {
+      "title": "Echtes FFmpeg, lokal",
+      "description": "Dieselbe FFmpeg-Engine, die die Core-Bibliothek nutzt, zu WebAssembly kompiliert und auf deinem Rechner ausgeführt."
+    },
+    "templates": {
+      "title": "Vorlagengesteuert",
+      "description": "Komponiere aus echten JSON-Vorlagen – Filter, Overlays, Übergänge und Audio-Mixing inklusive."
+    }
+  },
+  "author": {
+    "name": "Alexandre Mogère",
+    "handle": "@heristop",
+    "bio": "Webentwickler aus Paris, der Tools baut, die Creator stärken, und auf Zazen Code über Coding & KI schreibt.",
+    "avatarAlt": "Alexandre Mogère",
+    "social": {
+      "website": "Website",
+      "github": "GitHub",
+      "twitter": "Twitter",
+      "coffee": "Spendier mir einen Kaffee"
+    }
+  },
+  "thanks": {
+    "kicker": "Mit Dankbarkeit",
+    "lead": "Nichts davon rendert ohne FFmpeg.",
+    "body": "Jeder Clip, jeder Filter und jeder Übergang, den LeClap erzeugt, läuft auf FFmpeg – Jahrzehnte an Open-Source-Multimedia-Engineering, am Leben gehalten von einer weltweiten Community von Freiwilligen.",
+    "link": "Unterstütze das FFmpeg-Projekt"
+  }
+}

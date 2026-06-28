@@ -1,0 +1,17 @@
+{
+  "default": {
+    "title": "LeClap — Compositeur vidéo cinématographique dans ton navigateur",
+    "description": "Crée des vidéos cinématographiques à partir de modèles, directement dans ton navigateur. LeClap tourne côté client avec WebAssembly et FFmpeg — sans envoi, sans serveur, sans limite."
+  },
+  "studio": {
+    "title": "Studio",
+    "description": "Choisis un modèle et compose ta vidéo directement dans le navigateur — découpe, recadre, ajoute de la musique et exporte avec FFmpeg sur l’appareil. Sans envoi, sans serveur."
+  },
+  "about": {
+    "title": "À propos",
+    "description": "LeClap est un compositeur vidéo cinématographique ouvert, dans le navigateur, propulsé par WebAssembly et FFmpeg. Découvre ce que c’est et qui l’a créé."
+  },
+  "templates": {
+    "title": "Éditeur"
+  }
+}

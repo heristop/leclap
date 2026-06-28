@@ -1,0 +1,88 @@
+{
+  "hero": {
+    "tagline": "Il compositore di video cinematografici che gira interamente nel tuo browser.",
+    "subtagline": "Con la potenza di WebAssembly e FFmpeg. Niente server. Nessun limite.",
+    "startCreating": "Inizia a creare",
+    "seeHow": "Scopri come funziona"
+  },
+  "showcase": {
+    "eyebrow": "Guardalo in azione",
+    "title": "Creato interamente nel tuo browser",
+    "subtitle": "Niente upload, niente server — questa clip è stata composta sul dispositivo da un modello con transizioni e musica, poi renderizzata con FFmpeg WebAssembly.",
+    "badge": "Render di esempio · nel browser",
+    "videoAria": "Un video di esempio composto in LeClap, riprodotto in loop",
+    "mute": "Disattiva audio",
+    "unmute": "Attiva audio",
+    "volume": "Volume",
+    "cta": "Crea il tuo",
+    "browseTemplates": "Esplora i modelli",
+    "readDocs": "Leggi la documentazione"
+  },
+  "createShowcase": {
+    "eyebrow": "Crea un video",
+    "title": "Dal modello al video finito",
+    "subtitle": "Scegli un modello, inserisci la tua clip e renderizza un video curato direttamente nel browser — FFmpeg WebAssembly, niente upload, niente account.",
+    "badge": "Studio · nel browser",
+    "videoAria": "Una registrazione dello schermo della creazione di un video nello studio LeClap, riprodotta in loop",
+    "cta": "Inizia a creare"
+  },
+  "builderShowcase": {
+    "eyebrow": "Costruiscilo tu",
+    "title": "Componi un modello, visivamente",
+    "subtitle": "Aggiungi scene, trascina testo e sfondi sul canvas, poi guarda l’anteprima del render in tempo reale — tutto nel browser, niente da installare.",
+    "badge": "Il builder dei modelli",
+    "videoAria": "Una registrazione dello schermo del builder dei modelli LeClap, riprodotta in loop",
+    "cta": "Apri il builder"
+  },
+  "phoneShowcase": {
+    "eyebrow": "Anche sul tuo telefono",
+    "title": "Tutto lo studio, in tasca",
+    "subtitle": "LeClap su iPhone e Android fa lo stesso lavoro dell’app web — registra, componi e renderizza una clip finita senza mai uscire dal tuo dispositivo.",
+    "bullets": {
+      "capture": "Registra direttamente dalla fotocamera, poi inserisci la ripresa in un modello.",
+      "effects": "Sovrapponi effetti, musica e transizioni, con anteprima in tempo reale mentre ritocchi.",
+      "offline": "Tutto viene renderizzato sul dispositivo — niente upload, niente account, funziona offline."
+    },
+    "badge": "Su iOS e Android · sul dispositivo",
+    "videoAria": "Una registrazione dello schermo dell’app mobile LeClap mentre compone un video, riprodotta in loop",
+    "cta": "Inizia a creare",
+    "secondaryCta": "Leggi la documentazione"
+  },
+  "features": {
+    "badge": "Tutto, lato client",
+    "title": "Un vero compositore di video, nel browser",
+    "subtitle": "FFmpeg di livello professionale, modelli reali e form dal vivo — tutto in esecuzione sul tuo dispositivo.",
+    "items": {
+      "templates": {
+        "title": "Modelli JSON reali",
+        "highlight": "Pronti per la produzione",
+        "description": "Usa veri file di modello dal pacchetto core con configurazioni FFmpeg, filtri ed effetti complessi."
+      },
+      "forms": {
+        "title": "Form interattivi",
+        "highlight": "Dinamici",
+        "description": "Generazione dinamica dei form dalle definizioni del modello, con validazione in tempo reale ed elaborazione dell’input."
+      },
+      "processing": {
+        "title": "Elaborazione avanzata",
+        "highlight": "Professionale",
+        "description": "Pipeline FFmpeg completa con filtri video, overlay di testo, transizioni e mixaggio audio."
+      },
+      "privacy": {
+        "title": "Privacy totale",
+        "highlight": "Privato",
+        "description": "Tutta l’elaborazione avviene in locale nel tuo browser. I tuoi file non lasciano mai il dispositivo né toccano alcun server."
+      },
+      "wasm": {
+        "title": "Con WebAssembly",
+        "highlight": "Veloce",
+        "description": "Elaborazione video fulminea grazie a FFmpeg WebAssembly, con prestazioni quasi native."
+      },
+      "crossPlatform": {
+        "title": "Multipiattaforma",
+        "highlight": "Universale",
+        "description": "Funziona in qualsiasi browser moderno su desktop, mobile e tablet. Nessuna installazione richiesta."
+      }
+    }
+  }
+}

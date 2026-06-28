@@ -1,0 +1,54 @@
+{
+  "brand": "LeClap",
+  "actions": {
+    "back": "Atrás",
+    "next": "Siguiente",
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "retry": "Reintentar",
+    "tryAgain": "Intentar de nuevo",
+    "download": "Descargar",
+    "share": "Compartir",
+    "done": "Listo",
+    "close": "Cerrar",
+    "reset": "Restablecer",
+    "remove": "Quitar",
+    "edit": "Editar",
+    "stop": "Detener"
+  },
+  "status": {
+    "ready": "Listo",
+    "loading": "Cargando",
+    "processing": "Procesando",
+    "idle": "Inactivo",
+    "active": "Activo"
+  },
+  "nav": {
+    "home": "Inicio",
+    "studio": "Studio",
+    "projects": "Proyectos",
+    "templates": "Plantillas",
+    "docs": "Docs",
+    "about": "Acerca de",
+    "primaryLabel": "Principal"
+  },
+  "header": {
+    "switchToLight": "Cambiar a tema claro",
+    "switchToDark": "Cambiar a tema oscuro",
+    "toggleTheme": "Alternar claro / oscuro",
+    "changeLanguage": "Cambiar idioma",
+    "viewSource": "Ver el código fuente en GitHub",
+    "github": "GitHub",
+    "toggleMenu": "Alternar menú"
+  },
+  "skipToContent": "Saltar al contenido principal",
+  "footer": "Todo el procesamiento ocurre localmente en tu navegador: tus archivos nunca salen de tu dispositivo",
+  "routeError": {
+    "heading": "Algo salió mal",
+    "fallbackStatus": "Vaya",
+    "message": "Un error inesperado interrumpió esta página.",
+    "unexpected": "Ocurrió un error inesperado.",
+    "reload": "Recargar"
+  }
+}

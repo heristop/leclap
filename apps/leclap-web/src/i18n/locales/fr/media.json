@@ -1,0 +1,45 @@
+{
+  "upload": {
+    "dropActive": "Dépose les fichiers ici",
+    "dropIdle": "Glisse-dépose tes vidéos ici",
+    "browse": "ou clique pour parcourir tes fichiers ({{count}} restant)",
+    "formats": "MP4, AVI, MOV, MKV, WebM • {{size}} Mo max par fichier",
+    "filesBadge": "{{count}}/{{max}} fichiers",
+    "uploadAria": "Importer des fichiers vidéo",
+    "removeAria": "Supprimer {{name}}",
+    "errorsTitle": "Erreurs d’import :",
+    "errorTooLarge": "{{name}} est trop lourd ({{size}} Mo max)",
+    "errorInvalidType": "{{name}} n’est pas un fichier vidéo valide",
+    "errorTooMany": "Trop de fichiers. {{max}} au maximum",
+    "or": "ou",
+    "recordWithCamera": "Filmer avec la caméra",
+    "uploadedFiles": "Fichiers importés :"
+  },
+  "camera": {
+    "modes": {
+      "front": "Avant",
+      "back": "Arrière",
+      "screen": "Écran",
+      "upload": "Importer"
+    },
+    "errors": {
+      "screenDenied": "Le partage d’écran a été refusé ou annulé.",
+      "screenFailed": "Impossible de démarrer l’enregistrement d’écran sur cet appareil."
+    },
+    "getReady": "C’est parti…",
+    "recordingIn": "Ça tourne dans {{value}}",
+    "wrapUp": "On conclut — encore {{remaining}} s",
+    "timesUp": "Temps écoulé",
+    "unavailable": "Caméra indisponible",
+    "startRecording": "Lancer l’enregistrement",
+    "stopRecording": "Arrêter l’enregistrement",
+    "cancelCountdown": "Annuler le compte à rebours",
+    "retake": "Refaire une prise",
+    "useVideo": "Utiliser cette vidéo",
+    "closeAria": "Fermer la caméra",
+    "switchAria": "Changer de caméra",
+    "livePreviewAria": "Aperçu en direct de la caméra",
+    "recordedPreviewAria": "Aperçu de la vidéo enregistrée",
+    "starting": "Démarrage de la caméra…"
+  }
+}

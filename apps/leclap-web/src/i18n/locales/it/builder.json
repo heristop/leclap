@@ -1,0 +1,155 @@
+{
+  "srHeading": "Modelli — crea il tuo video da un modello cinematografico",
+  "loadingEngine": "Caricamento del motore",
+  "project": {
+    "loading": "Caricamento del tuo progetto…"
+  },
+  "chip": {
+    "template": "Modello"
+  },
+  "steps": {
+    "template": "Modello",
+    "details": "Dettagli",
+    "clip": "Clip {{number}}",
+    "yourClip": "La tua clip",
+    "music": "Musica",
+    "create": "Crea",
+    "done": "Fatto"
+  },
+  "modeToggle": {
+    "ariaLabel": "Layout del builder",
+    "linear": "Passo dopo passo",
+    "hub": "Tutto insieme"
+  },
+  "stepTemplate": {
+    "title": "Scegli il tuo stile",
+    "subtitle": "Seleziona un modello cinematografico per iniziare a creare"
+  },
+  "studio": {
+    "home": {
+      "kicker": "Studio",
+      "title": "Scegli il tuo stile",
+      "subtitle": "Scegli un modello cinematografico per iniziare a creare"
+    }
+  },
+  "stepMedia": {
+    "title": "Musica e sfondo",
+    "subtitle": "Scegli la colonna sonora e lo sfondo per il tuo video",
+    "music": "Musica",
+    "background": "Immagine di sfondo",
+    "formatTitle": "Formato",
+    "aspect": {
+      "portrait": "Verticale 9:16",
+      "landscape": "Orizzontale 16:9",
+      "square": "Quadrato 1:1"
+    }
+  },
+  "editor": {
+    "content": "Contenuto",
+    "media": "Media",
+    "format": "Formato",
+    "record": "Registra",
+    "details": "Dettagli",
+    "tools": "Strumenti dell’editor",
+    "resizePanels": "Trascina per ridimensionare anteprima e pannello",
+    "program": "Programma",
+    "viewMode": "Vista monitor",
+    "preview": "Anteprima",
+    "approx": "Approssimativo",
+    "timeline": "Scene",
+    "ready": "{{done}} di {{total}} pronte",
+    "emptyClipTitle": "Ancora nessuna clip",
+    "emptyClipHint": "Registra o carica nel pannello Contenuto per vederla qui.",
+    "emptyFormTitle": "Niente da visualizzare in anteprima",
+    "emptyFormHint": "Compila il pannello Contenuto e i tuoi overlay appariranno qui.",
+    "save": {
+      "saving": "Salvataggio…",
+      "saved": "Salvato",
+      "savedAgo": "Salvato {{time}}",
+      "failed": "Salvataggio non riuscito",
+      "time": {
+        "justNow": "proprio ora",
+        "minutes": "{{count}}m fa",
+        "hours": "{{count}}h fa",
+        "days": "{{count}}g fa",
+        "weeks": "{{count}}sett. fa",
+        "months": "{{count}}mesi fa"
+      }
+    }
+  },
+  "stepProcess": {
+    "title": "Crea il video",
+    "subtitle": "Siamo pronti a costruire il tuo capolavoro",
+    "summary": "Riepilogo del progetto",
+    "template": "Modello",
+    "clips": "Clip",
+    "videoCount": "{{count}} video",
+    "engineStatus": "Stato del motore",
+    "ready": "Pronto",
+    "initializing": "Inizializzazione...",
+    "progress": "Avanzamento dell’elaborazione"
+  },
+  "compile": {
+    "preparing": "Preparazione del render",
+    "rendering": "Rendering",
+    "complete": "Render completato",
+    "failed": "Render non riuscito",
+    "stop": "Ferma il render",
+    "finishing": "Sto finendo…",
+    "errorTitle": "Render non riuscito",
+    "clips": "Clip",
+    "clipCount_one": "{{count}} clip",
+    "clipCount_other": "{{count}} clip",
+    "project": "Progetto"
+  },
+  "stepResult": {
+    "title": "Il tuo video è pronto!",
+    "subtitle": "Scarica e condividi la tua creazione",
+    "createAnother": "Crea un altro video"
+  },
+  "stepForm": {
+    "defaultTitle": "I tuoi dettagli",
+    "subtitle": "Compila i dettagli per questa parte"
+  },
+  "stepClip": {
+    "clipOf": "Clip {{number}} di {{total}}",
+    "editorLabel": "Taglia e ritaglia"
+  },
+  "rush": {
+    "gallery": "Le tue riprese",
+    "take": "Ripresa {{number}}",
+    "use": "Usa la ripresa {{number}}",
+    "remove": "Rimuovi la ripresa {{number}}",
+    "addAnother": "Registra un’altra ripresa"
+  },
+  "edit": {
+    "trim": "Taglia",
+    "crop": "Ritaglia",
+    "videoAriaLabel": "Video in modifica",
+    "resetTrim": "Reimposta il taglio",
+    "resetCrop": "Reimposta il ritaglio",
+    "cropHint": "Trascina il riquadro o i suoi angoli per ritagliare."
+  },
+  "hub": {
+    "subtitle": "Compila ogni parte, poi crea il tuo video",
+    "next": "Prossimo",
+    "changeTemplate": "Cambia modello",
+    "prevSection": "Sezione precedente",
+    "nextSection": "Sezione successiva",
+    "completed_one": "{{done}} di {{count}} sezione completata",
+    "completed_other": "{{done}} di {{count}} sezioni completate",
+    "createCta": "Crea il mio video",
+    "ready": "Tutto pronto — pronto per il render",
+    "remaining_one": "Completa {{count}} sezione in più per continuare",
+    "remaining_other": "Completa {{count}} sezioni in più per continuare",
+    "yourDetails": "I tuoi dettagli",
+    "recordClip": "Registra la tua clip",
+    "section": "Sezione",
+    "mediaHeading": "Musica e sfondo",
+    "mediaSubtitle": "Scegli la colonna sonora e lo sfondo",
+    "mediaSubtitleShort": "Scegli colonna sonora e sfondo",
+    "selectionSaved": "Selezione salvata",
+    "clipOf": "Clip {{number}} di {{total}}",
+    "recordOrUpload": "Registra o carica la tua clip"
+  }
+}

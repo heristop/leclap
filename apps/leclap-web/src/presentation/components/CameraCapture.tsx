@@ -36,13 +36,6 @@ interface CameraCaptureProps {
 
 // ── Mode tab bar ──────────────────────────────────────────────────────────────
 
-const MODE_LABELS: Record<CaptureMode, string> = {
-  front: 'Front',
-  back: 'Back',
-  screen: 'Screen',
-  upload: 'Upload',
-};
-
 function CaptureModeBar({
   modes,
   active,
@@ -52,6 +45,8 @@ function CaptureModeBar({
   active: CaptureMode;
   onChange: (m: CaptureMode) => void;
 }) {
+  const { t } = useTranslation('media');
+
   if (modes.length <= 1) return null;
 
   return (
@@ -69,7 +64,7 @@ function CaptureModeBar({
               : 'text-white/70 hover:bg-white/10 hover:text-white'
           )}
         >
-          {MODE_LABELS[m]}
+          {t(`camera.modes.${m}`)}
         </button>
       ))}
     </div>

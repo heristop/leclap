@@ -37,10 +37,18 @@
     "switchToLight": "Switch to light theme",
     "switchToDark": "Switch to dark theme",
     "toggleTheme": "Toggle light / dark",
+    "changeLanguage": "Change language",
     "viewSource": "View source code on GitHub",
     "github": "GitHub",
     "toggleMenu": "Toggle menu"
   },
   "skipToContent": "Skip to main content",
-  "footer": "All processing happens locally in your browser - your files never leave your device"
+  "footer": "All processing happens locally in your browser - your files never leave your device",
+  "routeError": {
+    "heading": "Something went wrong",
+    "fallbackStatus": "Oops",
+    "message": "An unexpected error interrupted this page.",
+    "unexpected": "An unexpected error occurred.",
+    "reload": "Reload"
+  }
 }

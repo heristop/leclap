@@ -1,0 +1,47 @@
+{
+  "welcome": {
+    "title": "Bienvenue sur",
+    "subtitle": "Réalisons ta première vidéo en moins d’une minute — filme une courte intro et on en fait un clip soigné.",
+    "features": {
+      "record": "Filme une courte intro avec ta caméra",
+      "template": "On applique un modèle d’exemple cinématographique",
+      "download": "Télécharge ta vidéo finie"
+    },
+    "start": "Créer mon intro",
+    "checking": "Vérification de ton navigateur…",
+    "unsupported": "Impossible de filmer ici",
+    "unsupportedHint": "Utilise Chrome, Edge ou Firefox sur ordinateur pour filmer ton intro.",
+    "skip": "Plus tard"
+  },
+  "create": {
+    "title": "Présente-toi",
+    "subtitle": "Donne-nous ton nom et filme un court clip — c’est tout ce qu’il faut.",
+    "nameLabel": "Ton nom",
+    "namePlaceholder": "ex. {{name}}",
+    "recorded": "Intro filmée",
+    "reRecord": "Refilmer",
+    "record": "Filmer",
+    "upload": "Importer",
+    "recordAria": "Filmer une intro avec ta caméra",
+    "uploadAria": "Importer une vidéo d’intro",
+    "uploadInputAria": "Importer la vidéo d’intro",
+    "create": "Créer ma vidéo"
+  },
+  "compiling": {
+    "title": "Création de ta vidéo…",
+    "subtitle": "Tout se passe dans ton navigateur — encore un instant.",
+    "stop": "Arrêter",
+    "stopAria": "Arrêter et fermer"
+  },
+  "done": {
+    "title": "Ta première vidéo est prête !",
+    "videoAria": "Ta vidéo créée",
+    "startCreating": "Créer ma vidéo"
+  },
+  "error": {
+    "title": "Ça n’a pas marché",
+    "fallback": "Une erreur est survenue pendant la création de ta vidéo.",
+    "continueToBuilder": "Continuer vers les modèles"
+  },
+  "skipAria": "Passer l’intro"
+}

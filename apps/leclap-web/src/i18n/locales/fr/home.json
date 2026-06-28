@@ -1,0 +1,88 @@
+{
+  "hero": {
+    "tagline": "Le compositeur vidéo cinématographique qui tourne 100 % dans ton navigateur.",
+    "subtagline": "Propulsé par WebAssembly et FFmpeg. Sans serveur, sans limite.",
+    "startCreating": "Créer ma vidéo",
+    "seeHow": "Voir comment ça marche"
+  },
+  "showcase": {
+    "eyebrow": "En action",
+    "title": "100 % dans ton navigateur",
+    "subtitle": "Aucun envoi, aucun serveur — ce clip a été composé sur l’appareil à partir d’un modèle, avec transitions et musique, puis rendu par WebAssembly FFmpeg.",
+    "badge": "Rendu d’exemple · dans le navigateur",
+    "videoAria": "Une vidéo d’exemple composée dans LeClap, lue en boucle",
+    "mute": "Couper le son",
+    "unmute": "Activer le son",
+    "volume": "Volume",
+    "cta": "Crée la tienne",
+    "browseTemplates": "Parcourir les modèles",
+    "readDocs": "Lire la doc"
+  },
+  "createShowcase": {
+    "eyebrow": "Faire une vidéo",
+    "title": "Du modèle à la vidéo finie",
+    "subtitle": "Choisis un modèle, glisse ton clip et lance le rendu d’une vidéo soignée, directement dans ton navigateur — WebAssembly FFmpeg, sans envoi, sans compte.",
+    "badge": "Studio · dans le navigateur",
+    "videoAria": "Un enregistrement d’écran de la création d’une vidéo dans le Studio LeClap, lu en boucle",
+    "cta": "Créer ma vidéo"
+  },
+  "builderShowcase": {
+    "eyebrow": "À toi de jouer",
+    "title": "Composez un modèle, visuellement",
+    "subtitle": "Ajoute des scènes, dépose textes et arrière-plans sur le canevas, puis prévisualise le rendu en direct — le tout dans ton navigateur, rien à installer.",
+    "badge": "L’éditeur de modèles",
+    "videoAria": "Un enregistrement d’écran de l’éditeur de modèles LeClap, lu en boucle",
+    "cta": "Ouvrir l’éditeur"
+  },
+  "phoneShowcase": {
+    "eyebrow": "Et aussi sur mobile",
+    "title": "Tout le Studio, dans ta poche",
+    "subtitle": "Sur iPhone et Android, LeClap fait exactement le même travail que la version web — filme, compose et lance le rendu d’un clip fini sans jamais quitter ton appareil.",
+    "bullets": {
+      "capture": "Filme directement depuis la caméra, puis glisse la prise dans un modèle.",
+      "effects": "Empile effets, musique et transitions, avec un aperçu en direct au fil de tes réglages.",
+      "offline": "Tout se rend sur l’appareil — sans envoi, sans compte, même hors ligne."
+    },
+    "badge": "Sur iOS et Android · sur l’appareil",
+    "videoAria": "Un enregistrement d’écran de l’application mobile LeClap en train de composer une vidéo, lu en boucle",
+    "cta": "Créer ma vidéo",
+    "secondaryCta": "Lire la doc"
+  },
+  "features": {
+    "badge": "Tout, côté client",
+    "title": "Un vrai compositeur vidéo, dans le navigateur",
+    "subtitle": "FFmpeg de qualité pro, de vrais modèles et des formulaires en direct — le tout sur ton appareil.",
+    "items": {
+      "templates": {
+        "title": "De vrais modèles JSON",
+        "highlight": "Prêt pour la prod",
+        "description": "Partez de vrais fichiers de modèle issus du paquet principal, avec configurations FFmpeg poussées, filtres et effets."
+      },
+      "forms": {
+        "title": "Formulaires interactifs",
+        "highlight": "Dynamique",
+        "description": "Des formulaires générés à la volée depuis les modèles, avec validation en temps réel et prise en compte de tes saisies."
+      },
+      "processing": {
+        "title": "Traitement avancé",
+        "highlight": "Professionnel",
+        "description": "Un pipeline FFmpeg complet : filtres vidéo, incrustations de texte, transitions et mixage audio."
+      },
+      "privacy": {
+        "title": "Confidentialité totale",
+        "highlight": "Privé",
+        "description": "Tout se passe en local, dans ton navigateur. Tes fichiers ne quittent jamais ton appareil et ne touchent aucun serveur."
+      },
+      "wasm": {
+        "title": "Propulsé par WebAssembly",
+        "highlight": "Rapide",
+        "description": "Un traitement vidéo ultra-rapide grâce à WebAssembly FFmpeg, pour des performances quasi natives."
+      },
+      "crossPlatform": {
+        "title": "Multiplateforme",
+        "highlight": "Universel",
+        "description": "Fonctionne dans tout navigateur moderne, sur ordinateur, mobile et tablette. Aucune installation."
+      }
+    }
+  }
+}

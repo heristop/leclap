@@ -1,0 +1,43 @@
+{
+  "title": "Browser-Kompatibilität",
+  "checks": {
+    "wasm": {
+      "name": "WebAssembly",
+      "description": "Erforderlich für die FFmpeg-Verarbeitung"
+    },
+    "sab": {
+      "name": "SharedArrayBuffer",
+      "description": "Erforderlich für die Multithread-Verarbeitung"
+    },
+    "coi": {
+      "name": "Cross-Origin Isolation",
+      "description": "Erforderlich für SharedArrayBuffer-Unterstützung"
+    },
+    "fileApi": {
+      "name": "File API",
+      "description": "Erforderlich für Datei-Uploads"
+    },
+    "workers": {
+      "name": "Web Workers",
+      "description": "Ermöglicht Verarbeitung im Hintergrund"
+    },
+    "camera": {
+      "name": "Kamerazugriff"
+    },
+    "engine": {
+      "name": "Video-Engine im Browser"
+    },
+    "fileHandling": {
+      "name": "Dateiverarbeitung"
+    }
+  },
+  "required": "Erforderlich",
+  "statusOk": "Alles startklar — bereit, lokal zu rendern",
+  "statusLimited": "Manche Funktionen könnten eingeschränkt sein",
+  "recommendations": "Empfehlungen",
+  "updateBrowser": "Bitte aktualisiere auf {{browser}} {{version}}+ für optimale Performance",
+  "recommendBrowsers": "Für beste Performance nutze Chrome 88+, Firefox 79+ oder Safari 14+",
+  "recommendFeatures": "Stelle sicher, dass dein Browser WebAssembly und SharedArrayBuffer unterstützt",
+  "recommendHttps": "Manche Funktionen erfordern aus Sicherheitsgründen HTTPS oder localhost",
+  "featuresSupported": "{{count}}/{{total}} Funktionen unterstützt"
+}

@@ -6,6 +6,7 @@ import {
   type CompilationResult,
 } from '@/application/usecases/coreCompilationService';
 import { logger } from '@/lib/logger';
+import i18n from '@/i18n';
 
 export type OnboardingStep = 'welcome' | 'create' | 'compiling' | 'done' | 'error';
 
@@ -65,7 +66,7 @@ export function useOnboardingCompile(opts: {
       if (wasCancelled()) return;
 
       logger.error('Onboarding compilation failed:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Something went wrong while creating your video.');
+      setErrorMessage(error instanceof Error ? error.message : i18n.t('onboarding:error.fallback'));
       setStep('error');
     }
   };

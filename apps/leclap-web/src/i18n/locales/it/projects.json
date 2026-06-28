@@ -1,0 +1,43 @@
+{
+  "kicker": "I tuoi lavori",
+  "title": "Progetti",
+  "subtitle": "Ogni creazione viene salvata qui automaticamente — riprendi una bozza da dove l’avevi lasciata, o riapri un video finito.",
+  "seo": {
+    "title": "Progetti",
+    "description": "I tuoi progetti video LeClap salvati — riprendi le bozze e riapri i video finiti."
+  },
+  "status": {
+    "draft": "Bozza",
+    "completed": "Completato"
+  },
+  "clips_one": "{{count}} clip",
+  "clips_other": "{{count}} clip",
+  "time": {
+    "justNow": "proprio ora",
+    "minutes": "{{count}}m fa",
+    "hours": "{{count}}h fa",
+    "days": "{{count}}g fa",
+    "weeks": "{{count}}sett. fa",
+    "months": "{{count}}mesi fa"
+  },
+  "actions": {
+    "new": "Nuovo progetto",
+    "open": "Apri {{name}}",
+    "resume": "Riprendi",
+    "view": "Visualizza",
+    "edit": "Modifica creazione",
+    "rename": "Rinomina progetto",
+    "duplicate": "Duplica progetto",
+    "delete": "Elimina progetto"
+  },
+  "empty": {
+    "title": "Ancora nessun progetto",
+    "hint": "Inizia una creazione e verrà salvata qui, così potrai riprenderla quando vuoi."
+  },
+  "delete": {
+    "title": "Eliminare questo progetto?",
+    "message": "“{{name}}” e le sue clip salvate verranno rimossi definitivamente. L’operazione non può essere annullata.",
+    "cancel": "Annulla",
+    "confirm": "Elimina"
+  }
+}

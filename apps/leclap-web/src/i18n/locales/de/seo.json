@@ -1,0 +1,17 @@
+{
+  "default": {
+    "title": "LeClap — Cinematischer Video-Composer in deinem Browser",
+    "description": "Erstelle cinematische Videos aus Vorlagen direkt in deinem Browser. LeClap läuft clientseitig mit WebAssembly und FFmpeg – keine Uploads, keine Server, keine Grenzen."
+  },
+  "studio": {
+    "title": "Studio",
+    "description": "Wähle eine Vorlage und komponiere dein Video direkt im Browser – schneiden, zuschneiden, Musik hinzufügen und mit FFmpeg auf dem Gerät exportieren. Keine Uploads, keine Server."
+  },
+  "about": {
+    "title": "Über uns",
+    "description": "LeClap ist ein offener, browserbasierter cinematischer Video-Composer, angetrieben von WebAssembly und FFmpeg. Erfahre, was es ist und wer es gebaut hat."
+  },
+  "templates": {
+    "title": "Builder"
+  }
+}

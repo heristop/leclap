@@ -40,6 +40,21 @@ import { NotFound } from '@/presentation/pages/NotFound';
 import { RouteError } from '@/presentation/components/RouteError';
 import { Onboarding } from '@/presentation/components/Onboarding';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { LOCALE_PREFIXES } from '@/lib/language';
+
+// Non-English languages are served under a path prefix (/fr, /de, …). Mounting the router under a
+// matching basename lets every existing route work unchanged within the active locale — `/fr/studio`
+// resolves to the Studio route. English has no prefix (basename undefined). The locale is read from
+// the URL once at load; switching language is a full navigation to the new prefix (see LanguagePicker).
+function detectBasename(): string | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  const segment = window.location.pathname.split('/')[1];
+
+  return LOCALE_PREFIXES.includes(segment as never) ? `/${segment}` : undefined;
+}
 
 // The shared chrome (skip link, header, footer, onboarding) wraps every route via <Outlet />.
 // <ScrollRestoration /> gives native scroll behavior: top on forward navigations, restored position
@@ -131,7 +146,8 @@ const router = createBrowserRouter(
       <Route path="/about" element={<About />} />
       <Route path="*" element={<NotFound />} />
     </Route>
-  )
+  ),
+  { basename: detectBasename() }
 );
 
 function App() {

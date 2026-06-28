@@ -1,0 +1,79 @@
+{
+  "error": {
+    "title": "No se pudieron cargar las plantillas",
+    "message": "No se pudieron cargar las plantillas. Inténtalo de nuevo."
+  },
+  "orientation": {
+    "portrait": "Vertical 9:16",
+    "landscape": "Horizontal 16:9",
+    "square": "Cuadrado 1:1"
+  },
+  "fields_one": "{{count}} campo",
+  "fields_other": "{{count}} campos",
+  "autoProcess": "Procesar automáticamente",
+  "sections_one": "{{count}} sección",
+  "sections_other": "{{count}} secciones",
+  "music": "Música",
+  "custom": "Personalizada",
+  "sections": {
+    "myTemplates": "Mis plantillas",
+    "sampleTemplates": "Biblioteca de plantillas"
+  },
+  "buildFromScratch": {
+    "label": "Crear desde cero",
+    "description": "Diseña tu propia plantilla: elige secciones, música y efectos."
+  },
+  "complexity": {
+    "simple": "simple",
+    "intermediate": "intermedio",
+    "advanced": "avanzado"
+  },
+  "search": {
+    "placeholder": "Buscar plantillas…",
+    "all": "Todas",
+    "portrait": "Vertical",
+    "landscape": "Horizontal",
+    "square": "Cuadrado",
+    "orientationLabel": "Filtrar por orientación",
+    "complexityLabel": "Filtrar por complejidad"
+  },
+  "empty": {
+    "title": "Ninguna plantilla coincide",
+    "hint": "Prueba con otra búsqueda o borra los filtros.",
+    "clear": "Borrar filtros"
+  },
+  "form": {
+    "header": {
+      "title": "Configuración de la plantilla",
+      "subtitle": "Rellena la información necesaria para personalizar tu vídeo"
+    },
+    "status": {
+      "required": "Campo obligatorio",
+      "completed": "Campo completado",
+      "maxChars": "Se permiten como máximo {{count}} caracteres",
+      "remaining": "{{count}} restantes",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "obligatorio",
+      "fieldRequired": "Este campo es obligatorio",
+      "maxCharsLabel": "(máx. {{count}} caracteres)"
+    },
+    "placeholder": {
+      "firstName": "Escribe tu nombre",
+      "lastName": "Escribe tus apellidos",
+      "job": "Tu puesto de trabajo",
+      "keyword": "Escribe una palabra clave",
+      "description": "Escribe una descripción...",
+      "generic": "Escribe {{label}}"
+    },
+    "validation": {
+      "completeTitle": "¡Formulario completo!",
+      "completeMessage": "Todos los campos obligatorios están rellenos. Listo para continuar.",
+      "incompleteTitle": "Formulario incompleto",
+      "incompleteMessage": "Rellena {{count}} campo(s) restante(s)."
+    },
+    "noForm": {
+      "title": "No se requiere formulario",
+      "message": "Esta plantilla no requiere ninguna entrada personalizada. Puedes pasar directamente al procesamiento."
+    }
+  }
+}

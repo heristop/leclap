@@ -1,0 +1,45 @@
+{
+  "upload": {
+    "dropActive": "Suelta los archivos aquí",
+    "dropIdle": "Arrastra y suelta archivos de vídeo aquí",
+    "browse": "o haz clic para explorar archivos ({{count}} restantes)",
+    "formats": "Admite MP4, AVI, MOV, MKV, WebM • Máx. {{size}} MB por archivo",
+    "filesBadge": "{{count}}/{{max}} archivos",
+    "uploadAria": "Subir archivos de vídeo",
+    "removeAria": "Quitar {{name}}",
+    "errorsTitle": "Errores al subir:",
+    "errorTooLarge": "{{name}} es demasiado grande (máx. {{size}} MB)",
+    "errorInvalidType": "{{name}} no es un archivo de vídeo válido",
+    "errorTooMany": "Demasiados archivos. Se permiten como máximo {{max}} archivos",
+    "or": "o",
+    "recordWithCamera": "Grabar con la cámara",
+    "uploadedFiles": "Archivos subidos:"
+  },
+  "camera": {
+    "modes": {
+      "front": "Frontal",
+      "back": "Trasera",
+      "screen": "Pantalla",
+      "upload": "Subir"
+    },
+    "errors": {
+      "screenDenied": "Se denegó o canceló la compartición de pantalla.",
+      "screenFailed": "No se pudo iniciar la grabación de pantalla en este dispositivo."
+    },
+    "getReady": "Prepárate…",
+    "recordingIn": "Grabando en {{value}}",
+    "wrapUp": "Termina — quedan {{remaining}} s",
+    "timesUp": "Se acabó el tiempo",
+    "unavailable": "Cámara no disponible",
+    "startRecording": "Empezar a grabar",
+    "stopRecording": "Detener la grabación",
+    "cancelCountdown": "Cancelar la cuenta atrás",
+    "retake": "Repetir toma",
+    "useVideo": "Usar vídeo",
+    "closeAria": "Cerrar la cámara",
+    "switchAria": "Cambiar de cámara",
+    "livePreviewAria": "Vista previa en vivo de la cámara",
+    "recordedPreviewAria": "Vista previa del vídeo grabado",
+    "starting": "Iniciando la cámara…"
+  }
+}

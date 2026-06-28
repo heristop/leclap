@@ -1,0 +1,54 @@
+{
+  "brand": "LeClap",
+  "actions": {
+    "back": "Retour",
+    "next": "Suivant",
+    "continue": "Continuer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "retry": "Réessayer",
+    "tryAgain": "Réessayer",
+    "download": "Télécharger",
+    "share": "Partager",
+    "done": "Terminé",
+    "close": "Fermer",
+    "reset": "Réinitialiser",
+    "remove": "Supprimer",
+    "edit": "Modifier",
+    "stop": "Arrêter"
+  },
+  "status": {
+    "ready": "Prêt",
+    "loading": "Chargement",
+    "processing": "Traitement",
+    "idle": "En veille",
+    "active": "Actif"
+  },
+  "nav": {
+    "home": "Accueil",
+    "studio": "Studio",
+    "projects": "Projets",
+    "templates": "Modèles",
+    "docs": "Docs",
+    "about": "À propos",
+    "primaryLabel": "Principal"
+  },
+  "header": {
+    "switchToLight": "Passer en thème clair",
+    "switchToDark": "Passer en thème sombre",
+    "toggleTheme": "Clair / sombre",
+    "changeLanguage": "Changer de langue",
+    "viewSource": "Voir le code source sur GitHub",
+    "github": "GitHub",
+    "toggleMenu": "Ouvrir le menu"
+  },
+  "skipToContent": "Aller au contenu principal",
+  "footer": "Tout se passe en local, dans ton navigateur — tes fichiers ne quittent jamais ton appareil",
+  "routeError": {
+    "heading": "Quelque chose a coincé",
+    "fallbackStatus": "Oups",
+    "message": "Une erreur inattendue a interrompu cette page.",
+    "unexpected": "Une erreur inattendue s’est produite.",
+    "reload": "Recharger"
+  }
+}

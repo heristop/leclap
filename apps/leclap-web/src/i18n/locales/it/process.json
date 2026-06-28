@@ -1,0 +1,100 @@
+{
+  "processor": {
+    "status": {
+      "processingTitle": "Elaborazione del video...",
+      "processingDescription": "Attendi mentre elaboriamo il tuo video",
+      "readyTitle": "Pronto per l’elaborazione",
+      "readyDescription": "Tutti i requisiti sono soddisfatti. Puoi avviare l’elaborazione.",
+      "setupTitle": "Configurazione richiesta",
+      "setupDescription": "Seleziona un modello e carica i file video"
+    },
+    "error": {
+      "title": "Errore di elaborazione"
+    },
+    "action": {
+      "start": "Avvia elaborazione",
+      "processing": "Elaborazione...",
+      "stop": "Ferma"
+    },
+    "template": {
+      "selected": "Modello selezionato: {{name}}",
+      "complexity": "Complessità",
+      "orientation": "Orientamento",
+      "sections": "Sezioni",
+      "music": "Musica",
+      "musicEnabled": "Attiva",
+      "musicDisabled": "Disattiva",
+      "formData": "Le tue risposte"
+    },
+    "requirements": {
+      "title": "Prima di poter avviare l’elaborazione:",
+      "engineReady": "Motore di elaborazione video pronto",
+      "selectTemplate": "Seleziona un modello",
+      "fillForm": "Compila il form del modello",
+      "uploadFile": "Carica almeno un file video"
+    },
+    "tips": {
+      "title": "Consigli per l’elaborazione",
+      "keepTabActive": "Tieni attiva questa scheda durante l’elaborazione",
+      "largerFiles": "I file più grandi richiederanno più tempo per l’elaborazione",
+      "monitorProgress": "Puoi monitorare l’avanzamento in tempo reale",
+      "inBrowser": "L’elaborazione avviene interamente nel tuo browser"
+    }
+  },
+  "progress": {
+    "header": {
+      "title": "Elaborazione del video",
+      "step": "Passo {{current}} di {{total}}",
+      "timeRemaining": "~{{time}} rimanenti"
+    },
+    "metrics": {
+      "private": "Privato",
+      "onDevice": "Sul dispositivo",
+      "elapsed": "Trascorso",
+      "progress": "Avanzamento"
+    },
+    "bar": {
+      "currentStepFallback": "Elaborazione...",
+      "ariaLabel": "Avanzamento dell’elaborazione video"
+    },
+    "complete": {
+      "title": "Elaborazione completata!",
+      "description": "Il tuo video è stato elaborato ed è pronto per il download."
+    }
+  },
+  "export": {
+    "preview": {
+      "videoAriaLabel": "Anteprima del video elaborato",
+      "label": "Video elaborato",
+      "pause": "Metti in pausa il video",
+      "play": "Riproduci il video",
+      "mute": "Disattiva audio",
+      "unmute": "Attiva audio",
+      "volume": "Volume",
+      "exitFullscreen": "Esci da schermo intero",
+      "enterFullscreen": "Schermo intero"
+    },
+    "info": {
+      "fileSize": "Dimensione del file",
+      "format": "Formato"
+    },
+    "actions": {
+      "downloading": "Download... {{progress}}%",
+      "download": "Scarica il video",
+      "copied": "Copiato!",
+      "copyLink": "Copia il link",
+      "share": "Condividi"
+    },
+    "success": {
+      "title": "Elaborazione del video completata!",
+      "processed": "Il tuo video è stato elaborato",
+      "local": "Tutta l’elaborazione è avvenuta in locale nel tuo browser",
+      "noData": "Nessun dato è stato inviato a server esterni",
+      "downloadShare": "Ora puoi scaricare e condividere il tuo video"
+    },
+    "share": {
+      "title": "Video elaborato",
+      "text": "Guarda questo video che ho creato con FFmpeg Video Composer!"
+    }
+  }
+}

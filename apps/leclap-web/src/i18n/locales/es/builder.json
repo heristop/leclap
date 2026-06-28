@@ -1,0 +1,155 @@
+{
+  "srHeading": "Plantillas — crea tu vídeo a partir de una plantilla cinematográfica",
+  "loadingEngine": "Cargando el motor",
+  "project": {
+    "loading": "Cargando tu proyecto…"
+  },
+  "chip": {
+    "template": "Plantilla"
+  },
+  "steps": {
+    "template": "Plantilla",
+    "details": "Detalles",
+    "clip": "Clip {{number}}",
+    "yourClip": "Tu clip",
+    "music": "Música",
+    "create": "Crear",
+    "done": "Listo"
+  },
+  "modeToggle": {
+    "ariaLabel": "Diseño del editor",
+    "linear": "Paso a paso",
+    "hub": "Todo a la vez"
+  },
+  "stepTemplate": {
+    "title": "Elige tu estilo",
+    "subtitle": "Selecciona una plantilla cinematográfica para empezar a crear"
+  },
+  "studio": {
+    "home": {
+      "kicker": "Studio",
+      "title": "Elige tu estilo",
+      "subtitle": "Elige una plantilla cinematográfica para empezar a crear"
+    }
+  },
+  "stepMedia": {
+    "title": "Música y fondo",
+    "subtitle": "Elige la banda sonora y el fondo de tu vídeo",
+    "music": "Música",
+    "background": "Imagen de fondo",
+    "formatTitle": "Formato",
+    "aspect": {
+      "portrait": "Vertical 9:16",
+      "landscape": "Horizontal 16:9",
+      "square": "Cuadrado 1:1"
+    }
+  },
+  "editor": {
+    "content": "Contenido",
+    "media": "Multimedia",
+    "format": "Formato",
+    "record": "Grabar",
+    "details": "Detalles",
+    "tools": "Herramientas de edición",
+    "resizePanels": "Arrastra para redimensionar la vista previa y el panel",
+    "program": "Programa",
+    "viewMode": "Vista del monitor",
+    "preview": "Vista previa",
+    "approx": "Aproximado",
+    "timeline": "Escenas",
+    "ready": "{{done}} de {{total}} listos",
+    "emptyClipTitle": "Aún no hay clip",
+    "emptyClipHint": "Graba o sube algo en el panel de Contenido para verlo aquí.",
+    "emptyFormTitle": "Nada que previsualizar todavía",
+    "emptyFormHint": "Rellena el panel de Contenido y tus superposiciones aparecerán aquí.",
+    "save": {
+      "saving": "Guardando…",
+      "saved": "Guardado",
+      "savedAgo": "Guardado {{time}}",
+      "failed": "Error al guardar",
+      "time": {
+        "justNow": "ahora mismo",
+        "minutes": "hace {{count}} min",
+        "hours": "hace {{count}} h",
+        "days": "hace {{count}} d",
+        "weeks": "hace {{count}} sem",
+        "months": "hace {{count}} mes"
+      }
+    }
+  },
+  "stepProcess": {
+    "title": "Crear vídeo",
+    "subtitle": "Estamos listos para crear tu obra maestra",
+    "summary": "Resumen del proyecto",
+    "template": "Plantilla",
+    "clips": "Clips",
+    "videoCount": "{{count}} vídeo(s)",
+    "engineStatus": "Estado del motor",
+    "ready": "Listo",
+    "initializing": "Inicializando...",
+    "progress": "Progreso del procesamiento"
+  },
+  "compile": {
+    "preparing": "Preparando el render",
+    "rendering": "Renderizando",
+    "complete": "Render completado",
+    "failed": "Error en el render",
+    "stop": "Detener el render",
+    "finishing": "Finalizando…",
+    "errorTitle": "Error en el render",
+    "clips": "Clips",
+    "clipCount_one": "{{count}} clip",
+    "clipCount_other": "{{count}} clips",
+    "project": "Proyecto"
+  },
+  "stepResult": {
+    "title": "¡Tu vídeo está listo!",
+    "subtitle": "Descarga y comparte tu creación",
+    "createAnother": "Crear otro vídeo"
+  },
+  "stepForm": {
+    "defaultTitle": "Tus datos",
+    "subtitle": "Rellena los datos de esta parte"
+  },
+  "stepClip": {
+    "clipOf": "Clip {{number}} de {{total}}",
+    "editorLabel": "Recortar y encuadrar"
+  },
+  "rush": {
+    "gallery": "Tus tomas",
+    "take": "Toma {{number}}",
+    "use": "Usar la toma {{number}}",
+    "remove": "Quitar la toma {{number}}",
+    "addAnother": "Grabar otra toma"
+  },
+  "edit": {
+    "trim": "Recortar",
+    "crop": "Encuadrar",
+    "videoAriaLabel": "Vídeo en edición",
+    "resetTrim": "Restablecer recorte",
+    "resetCrop": "Restablecer encuadre",
+    "cropHint": "Arrastra el marco o sus esquinas para encuadrar."
+  },
+  "hub": {
+    "subtitle": "Rellena cada parte y luego crea tu vídeo",
+    "next": "A continuación",
+    "changeTemplate": "Cambiar de plantilla",
+    "prevSection": "Sección anterior",
+    "nextSection": "Sección siguiente",
+    "completed_one": "{{done}} de {{count}} sección completada",
+    "completed_other": "{{done}} de {{count}} secciones completadas",
+    "createCta": "Crear mi vídeo",
+    "ready": "Todo listo — preparado para renderizar",
+    "remaining_one": "Completa {{count}} sección más para continuar",
+    "remaining_other": "Completa {{count}} secciones más para continuar",
+    "yourDetails": "Tus datos",
+    "recordClip": "Graba tu clip",
+    "section": "Sección",
+    "mediaHeading": "Música y fondo",
+    "mediaSubtitle": "Elige la banda sonora y el fondo",
+    "mediaSubtitleShort": "Elige banda sonora y fondo",
+    "selectionSaved": "Selección guardada",
+    "clipOf": "Clip {{number}} de {{total}}",
+    "recordOrUpload": "Graba o sube tu clip"
+  }
+}

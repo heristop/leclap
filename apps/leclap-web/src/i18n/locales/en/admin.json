@@ -1,4 +1,12 @@
 {
+  "addScene": {
+    "title": "Add a scene",
+    "category": {
+      "clip": "Clips & visuals",
+      "input": "Input",
+      "data": "Data"
+    }
+  },
   "page": {
     "heading": "Builder",
     "subtitle": "Use a sample or craft your own — saved in this browser.",
@@ -309,6 +317,12 @@
   "layer": {
     "background": "Background",
     "position": "Position (% of frame)",
+    "axis": {
+      "x": "X",
+      "y": "Y",
+      "w": "W",
+      "h": "H"
+    },
     "base": "Base",
     "name": "Layer {{index}}",
     "moveUp": "Move up",

@@ -1,0 +1,88 @@
+{
+  "hero": {
+    "tagline": "El compositor de vídeo cinematográfico que funciona enteramente en tu navegador.",
+    "subtagline": "Con la potencia de WebAssembly y FFmpeg. Sin servidores. Sin límites.",
+    "startCreating": "Empezar a crear",
+    "seeHow": "Mira cómo funciona"
+  },
+  "showcase": {
+    "eyebrow": "Míralo en acción",
+    "title": "Hecho enteramente en tu navegador",
+    "subtitle": "Sin subir nada, sin servidor: este clip se compuso en el dispositivo a partir de una plantilla con transiciones y música, y luego se renderizó con FFmpeg en WebAssembly.",
+    "badge": "Render de ejemplo · en el navegador",
+    "videoAria": "Un vídeo de ejemplo compuesto en LeClap, reproduciéndose en bucle",
+    "mute": "Silenciar",
+    "unmute": "Activar sonido",
+    "volume": "Volumen",
+    "cta": "Crea el tuyo",
+    "browseTemplates": "Explorar plantillas",
+    "readDocs": "Leer la documentación"
+  },
+  "createShowcase": {
+    "eyebrow": "Haz un vídeo",
+    "title": "De la plantilla al vídeo terminado",
+    "subtitle": "Elige una plantilla, coloca tu clip y renderiza un vídeo pulido directamente en tu navegador: FFmpeg en WebAssembly, sin subir nada, sin cuenta.",
+    "badge": "Studio · en el navegador",
+    "videoAria": "Una grabación de pantalla de la creación de un vídeo en el Studio de LeClap, reproduciéndose en bucle",
+    "cta": "Empezar a crear"
+  },
+  "builderShowcase": {
+    "eyebrow": "Constrúyelo tú mismo",
+    "title": "Compón una plantilla, visualmente",
+    "subtitle": "Añade escenas, arrastra texto y fondos en el lienzo y previsualiza el render en vivo: todo en tu navegador, sin instalar nada.",
+    "badge": "El editor de plantillas",
+    "videoAria": "Una grabación de pantalla del editor de plantillas de LeClap, reproduciéndose en bucle",
+    "cta": "Abrir el editor"
+  },
+  "phoneShowcase": {
+    "eyebrow": "También en tu teléfono",
+    "title": "Todo el Studio, en tu bolsillo",
+    "subtitle": "LeClap en iPhone y Android hace lo mismo que la app web: graba, compón y renderiza un clip terminado sin que nada salga de tu dispositivo.",
+    "bullets": {
+      "capture": "Graba directamente desde la cámara y coloca la toma en una plantilla.",
+      "effects": "Superpón efectos, música y transiciones, con vista previa en vivo mientras los ajustas.",
+      "offline": "Todo se renderiza en el dispositivo: sin subir nada, sin cuenta, funciona sin conexión."
+    },
+    "badge": "En iOS y Android · en el dispositivo",
+    "videoAria": "Una grabación de pantalla de la app móvil de LeClap componiendo un vídeo, reproduciéndose en bucle",
+    "cta": "Empezar a crear",
+    "secondaryCta": "Leer la documentación"
+  },
+  "features": {
+    "badge": "Todo, del lado del cliente",
+    "title": "Un compositor de vídeo de verdad, en el navegador",
+    "subtitle": "FFmpeg de nivel profesional, plantillas reales y formularios en vivo: funcionando enteramente en tu dispositivo.",
+    "items": {
+      "templates": {
+        "title": "Plantillas JSON reales",
+        "highlight": "Listas para producción",
+        "description": "Usa archivos de plantilla reales del paquete principal con configuraciones, filtros y efectos complejos de FFmpeg."
+      },
+      "forms": {
+        "title": "Formularios interactivos",
+        "highlight": "Dinámicos",
+        "description": "Generación dinámica de formularios a partir de las definiciones de plantilla, con validación en tiempo real y procesamiento de los datos del usuario."
+      },
+      "processing": {
+        "title": "Procesamiento avanzado",
+        "highlight": "Profesional",
+        "description": "Flujo completo de FFmpeg con filtros de vídeo, superposiciones de texto, transiciones y mezcla de audio."
+      },
+      "privacy": {
+        "title": "Privacidad total",
+        "highlight": "Privado",
+        "description": "Todo el procesamiento ocurre localmente en tu navegador. Tus archivos nunca salen de tu dispositivo ni pasan por ningún servidor."
+      },
+      "wasm": {
+        "title": "Con la potencia de WebAssembly",
+        "highlight": "Rápido",
+        "description": "Procesamiento de vídeo ultrarrápido con FFmpeg en WebAssembly para un rendimiento casi nativo."
+      },
+      "crossPlatform": {
+        "title": "Multiplataforma",
+        "highlight": "Universal",
+        "description": "Funciona en cualquier navegador moderno en escritorio, móvil y tablet. Sin instalación."
+      }
+    }
+  }
+}

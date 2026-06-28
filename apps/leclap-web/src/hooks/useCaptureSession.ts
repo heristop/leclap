@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CaptureMode, TemplateOrientation } from '@leclap/creative-kit';
+import i18n from '@/i18n';
 import { useCameraCapture, pickMimeType } from './useCameraCapture';
 
 export type CaptureState = 'loading' | 'idle' | 'countdown' | 'recording' | 'preview' | 'error';
@@ -125,7 +126,7 @@ function useScreenCapture(active: boolean): ScreenCaptureController {
         setState('idle');
       } catch {
         if (!cancelled) {
-          setError('Screen sharing was denied or cancelled.');
+          setError(i18n.t('media:camera.errors.screenDenied'));
           setState('error');
         }
       }
@@ -162,7 +163,7 @@ function useScreenCapture(active: boolean): ScreenCaptureController {
     try {
       recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
     } catch {
-      setError("Couldn't start screen recording on this device.");
+      setError(i18n.t('media:camera.errors.screenFailed'));
       setState('error');
 
       return;
@@ -173,7 +174,7 @@ function useScreenCapture(active: boolean): ScreenCaptureController {
     };
 
     recorder.onerror = () => {
-      setError("Couldn't start screen recording on this device.");
+      setError(i18n.t('media:camera.errors.screenFailed'));
       setState('error');
     };
 
@@ -188,7 +189,7 @@ function useScreenCapture(active: boolean): ScreenCaptureController {
     try {
       recorder.start();
     } catch {
-      setError("Couldn't start screen recording on this device.");
+      setError(i18n.t('media:camera.errors.screenFailed'));
       setState('error');
 
       return;

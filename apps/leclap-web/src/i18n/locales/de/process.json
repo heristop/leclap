@@ -1,0 +1,100 @@
+{
+  "processor": {
+    "status": {
+      "processingTitle": "Video wird verarbeitet …",
+      "processingDescription": "Bitte warte, während wir dein Video verarbeiten",
+      "readyTitle": "Bereit zur Verarbeitung",
+      "readyDescription": "Alle Voraussetzungen erfüllt. Du kannst die Verarbeitung starten.",
+      "setupTitle": "Einrichtung erforderlich",
+      "setupDescription": "Bitte wähle eine Vorlage und lade Videodateien hoch"
+    },
+    "error": {
+      "title": "Verarbeitungsfehler"
+    },
+    "action": {
+      "start": "Verarbeitung starten",
+      "processing": "Verarbeitung …",
+      "stop": "Stoppen"
+    },
+    "template": {
+      "selected": "Gewählte Vorlage: {{name}}",
+      "complexity": "Komplexität",
+      "orientation": "Ausrichtung",
+      "sections": "Abschnitte",
+      "music": "Musik",
+      "musicEnabled": "Aktiviert",
+      "musicDisabled": "Deaktiviert",
+      "formData": "Deine Antworten"
+    },
+    "requirements": {
+      "title": "Bevor du die Verarbeitung starten kannst:",
+      "engineReady": "Video-Engine bereit",
+      "selectTemplate": "Eine Vorlage wählen",
+      "fillForm": "Vorlagenformular ausfüllen",
+      "uploadFile": "Mindestens eine Videodatei hochladen"
+    },
+    "tips": {
+      "title": "Tipps zur Verarbeitung",
+      "keepTabActive": "Halte diesen Tab während der Verarbeitung aktiv",
+      "largerFiles": "Größere Dateien brauchen länger zur Verarbeitung",
+      "monitorProgress": "Du kannst den Fortschritt in Echtzeit verfolgen",
+      "inBrowser": "Die Verarbeitung läuft komplett in deinem Browser"
+    }
+  },
+  "progress": {
+    "header": {
+      "title": "Video wird verarbeitet",
+      "step": "Schritt {{current}} von {{total}}",
+      "timeRemaining": "noch ~{{time}}"
+    },
+    "metrics": {
+      "private": "Privat",
+      "onDevice": "Auf dem Gerät",
+      "elapsed": "Vergangen",
+      "progress": "Fortschritt"
+    },
+    "bar": {
+      "currentStepFallback": "Verarbeitung …",
+      "ariaLabel": "Fortschritt der Videoverarbeitung"
+    },
+    "complete": {
+      "title": "Verarbeitung abgeschlossen!",
+      "description": "Dein Video wurde verarbeitet und ist bereit zum Herunterladen."
+    }
+  },
+  "export": {
+    "preview": {
+      "videoAriaLabel": "Vorschau des verarbeiteten Videos",
+      "label": "Verarbeitetes Video",
+      "pause": "Video pausieren",
+      "play": "Video abspielen",
+      "mute": "Stummschalten",
+      "unmute": "Ton an",
+      "volume": "Lautstärke",
+      "exitFullscreen": "Vollbild verlassen",
+      "enterFullscreen": "Vollbild starten"
+    },
+    "info": {
+      "fileSize": "Dateigröße",
+      "format": "Format"
+    },
+    "actions": {
+      "downloading": "Wird heruntergeladen … {{progress}} %",
+      "download": "Video herunterladen",
+      "copied": "Kopiert!",
+      "copyLink": "Link kopieren",
+      "share": "Teilen"
+    },
+    "success": {
+      "title": "Videoverarbeitung abgeschlossen!",
+      "processed": "Dein Video wurde verarbeitet",
+      "local": "Alles wurde lokal in deinem Browser verarbeitet",
+      "noData": "Es wurden keine Daten an externe Server gesendet",
+      "downloadShare": "Du kannst dein Video jetzt herunterladen und teilen"
+    },
+    "share": {
+      "title": "Verarbeitetes Video",
+      "text": "Schau dir dieses Video an, das ich mit dem FFmpeg Video Composer erstellt habe!"
+    }
+  }
+}

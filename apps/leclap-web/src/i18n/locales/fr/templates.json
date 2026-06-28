@@ -1,0 +1,79 @@
+{
+  "error": {
+    "title": "Impossible de charger les modèles",
+    "message": "Impossible de charger les modèles. Réessaie."
+  },
+  "orientation": {
+    "portrait": "Portrait 9:16",
+    "landscape": "Paysage 16:9",
+    "square": "Carré 1:1"
+  },
+  "fields_one": "{{count}} champ",
+  "fields_other": "{{count}} champs",
+  "autoProcess": "Traitement auto",
+  "sections_one": "{{count}} section",
+  "sections_other": "{{count}} sections",
+  "music": "Musique",
+  "custom": "Perso",
+  "sections": {
+    "myTemplates": "Mes modèles",
+    "sampleTemplates": "Bibliothèque de modèles"
+  },
+  "buildFromScratch": {
+    "label": "Partir de zéro",
+    "description": "Conçois ton propre modèle — choisis les sections, la musique et les effets."
+  },
+  "complexity": {
+    "simple": "simple",
+    "intermediate": "intermédiaire",
+    "advanced": "avancé"
+  },
+  "search": {
+    "placeholder": "Rechercher un modèle…",
+    "all": "Tous",
+    "portrait": "Portrait",
+    "landscape": "Paysage",
+    "square": "Carré",
+    "orientationLabel": "Filtrer par orientation",
+    "complexityLabel": "Filtrer par complexité"
+  },
+  "empty": {
+    "title": "Aucun modèle ne correspond",
+    "hint": "Essayez une autre recherche ou effacez les filtres.",
+    "clear": "Effacer les filtres"
+  },
+  "form": {
+    "header": {
+      "title": "Configuration du modèle",
+      "subtitle": "Renseigne les informations requises pour personnaliser ta vidéo"
+    },
+    "status": {
+      "required": "Champ requis",
+      "completed": "Champ complété",
+      "maxChars": "{{count}} caractères maximum",
+      "remaining": "{{count}} restant(s)",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "requis",
+      "fieldRequired": "Ce champ est requis",
+      "maxCharsLabel": "({{count}} car. max)"
+    },
+    "placeholder": {
+      "firstName": "Ton prénom",
+      "lastName": "Ton nom",
+      "job": "Ton intitulé de poste",
+      "keyword": "Un mot-clé",
+      "description": "Une description...",
+      "generic": "{{label}}"
+    },
+    "validation": {
+      "completeTitle": "Formulaire complété !",
+      "completeMessage": "Tous les champs requis sont remplis. Tu peux continuer.",
+      "incompleteTitle": "Formulaire incomplet",
+      "incompleteMessage": "Il reste {{count}} champ(s) à remplir."
+    },
+    "noForm": {
+      "title": "Aucun formulaire nécessaire",
+      "message": "Ce modèle ne demande aucune saisie. Tu peux passer directement au traitement."
+    }
+  }
+}

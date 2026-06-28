@@ -1,0 +1,54 @@
+{
+  "brand": "LeClap",
+  "actions": {
+    "back": "Zurück",
+    "next": "Weiter",
+    "continue": "Weiter",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "retry": "Erneut versuchen",
+    "tryAgain": "Nochmal versuchen",
+    "download": "Herunterladen",
+    "share": "Teilen",
+    "done": "Fertig",
+    "close": "Schließen",
+    "reset": "Zurücksetzen",
+    "remove": "Entfernen",
+    "edit": "Bearbeiten",
+    "stop": "Stoppen"
+  },
+  "status": {
+    "ready": "Bereit",
+    "loading": "Lädt",
+    "processing": "Verarbeitung",
+    "idle": "Inaktiv",
+    "active": "Aktiv"
+  },
+  "nav": {
+    "home": "Start",
+    "studio": "Studio",
+    "projects": "Projekte",
+    "templates": "Vorlagen",
+    "docs": "Docs",
+    "about": "Über uns",
+    "primaryLabel": "Primär"
+  },
+  "header": {
+    "switchToLight": "Zum hellen Design wechseln",
+    "switchToDark": "Zum dunklen Design wechseln",
+    "toggleTheme": "Hell / Dunkel umschalten",
+    "changeLanguage": "Sprache ändern",
+    "viewSource": "Quellcode auf GitHub ansehen",
+    "github": "GitHub",
+    "toggleMenu": "Menü umschalten"
+  },
+  "skipToContent": "Zum Hauptinhalt springen",
+  "footer": "Alles läuft lokal in deinem Browser – deine Dateien verlassen nie dein Gerät",
+  "routeError": {
+    "heading": "Etwas ist schiefgelaufen",
+    "fallbackStatus": "Hoppla",
+    "message": "Ein unerwarteter Fehler hat diese Seite unterbrochen.",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
+    "reload": "Neu laden"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "brand": "LeClap",
+  "actions": {
+    "back": "Indietro",
+    "next": "Avanti",
+    "continue": "Continua",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "retry": "Riprova",
+    "tryAgain": "Riprova",
+    "download": "Scarica",
+    "share": "Condividi",
+    "done": "Fatto",
+    "close": "Chiudi",
+    "reset": "Reimposta",
+    "remove": "Rimuovi",
+    "edit": "Modifica",
+    "stop": "Ferma"
+  },
+  "status": {
+    "ready": "Pronto",
+    "loading": "Caricamento",
+    "processing": "Elaborazione",
+    "idle": "Inattivo",
+    "active": "Attivo"
+  },
+  "nav": {
+    "home": "Home",
+    "studio": "Studio",
+    "projects": "Progetti",
+    "templates": "Modelli",
+    "docs": "Documentazione",
+    "about": "Chi siamo",
+    "primaryLabel": "Principale"
+  },
+  "header": {
+    "switchToLight": "Passa al tema chiaro",
+    "switchToDark": "Passa al tema scuro",
+    "toggleTheme": "Chiaro / scuro",
+    "changeLanguage": "Cambia lingua",
+    "viewSource": "Vedi il codice sorgente su GitHub",
+    "github": "GitHub",
+    "toggleMenu": "Apri/chiudi menu"
+  },
+  "skipToContent": "Vai al contenuto principale",
+  "footer": "Tutta l’elaborazione avviene in locale nel tuo browser - i tuoi file non lasciano mai il dispositivo",
+  "routeError": {
+    "heading": "Qualcosa è andato storto",
+    "fallbackStatus": "Ops",
+    "message": "Un errore imprevisto ha interrotto questa pagina.",
+    "unexpected": "Si è verificato un errore imprevisto.",
+    "reload": "Ricarica"
+  }
+}

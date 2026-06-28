@@ -1,0 +1,11 @@
+{
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "message": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "home": "Start",
+    "openBuilder": "Vorlagen öffnen",
+    "seoTitle": "Seite nicht gefunden"
+  },
+  "stepperProgress": "Fortschritt",
+  "stepperStep": "Schritt {{current}} von {{total}}"
+}

@@ -1,0 +1,155 @@
+{
+  "srHeading": "Modèles — crée ta vidéo à partir d’un modèle cinématographique",
+  "loadingEngine": "Chargement du moteur",
+  "project": {
+    "loading": "Chargement de ton projet…"
+  },
+  "chip": {
+    "template": "Modèle"
+  },
+  "steps": {
+    "template": "Modèle",
+    "details": "Détails",
+    "clip": "Clip {{number}}",
+    "yourClip": "Ton clip",
+    "music": "Musique",
+    "create": "Créer",
+    "done": "Terminé"
+  },
+  "modeToggle": {
+    "ariaLabel": "Disposition de l’éditeur",
+    "linear": "Étape par étape",
+    "hub": "Tout en un"
+  },
+  "stepTemplate": {
+    "title": "Choisis ton style",
+    "subtitle": "Sélectionne un modèle cinématographique pour démarrer"
+  },
+  "studio": {
+    "home": {
+      "kicker": "Studio",
+      "title": "Choisis ton style",
+      "subtitle": "Choisis un modèle cinématographique pour démarrer"
+    }
+  },
+  "stepMedia": {
+    "title": "Musique et arrière-plan",
+    "subtitle": "Choisis la bande-son et le décor de ta vidéo",
+    "music": "Musique",
+    "background": "Image d’arrière-plan",
+    "formatTitle": "Format",
+    "aspect": {
+      "portrait": "Vertical 9:16",
+      "landscape": "Paysage 16:9",
+      "square": "Carré 1:1"
+    }
+  },
+  "editor": {
+    "content": "Contenu",
+    "media": "Média",
+    "format": "Format",
+    "record": "Filmer",
+    "details": "Détails",
+    "tools": "Outils d’édition",
+    "resizePanels": "Glisse pour redimensionner l’aperçu et le panneau",
+    "program": "Programme",
+    "viewMode": "Vue moniteur",
+    "preview": "Aperçu",
+    "approx": "Approximatif",
+    "timeline": "Scènes",
+    "ready": "{{done}} sur {{total}} prêt(s)",
+    "emptyClipTitle": "Pas encore de clip",
+    "emptyClipHint": "Filme ou importe dans le panneau Contenu pour le voir ici.",
+    "emptyFormTitle": "Rien à prévisualiser pour l’instant",
+    "emptyFormHint": "Remplis le panneau Contenu et tes incrustations apparaissent ici.",
+    "save": {
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "savedAgo": "Enregistré {{time}}",
+      "failed": "Échec de l’enregistrement",
+      "time": {
+        "justNow": "à l’instant",
+        "minutes": "il y a {{count}} min",
+        "hours": "il y a {{count}} h",
+        "days": "il y a {{count}} j",
+        "weeks": "il y a {{count}} sem",
+        "months": "il y a {{count}} mois"
+      }
+    }
+  },
+  "stepProcess": {
+    "title": "Créer la vidéo",
+    "subtitle": "Tout est prêt pour composer ton chef-d’œuvre",
+    "summary": "Résumé du projet",
+    "template": "Modèle",
+    "clips": "Clips",
+    "videoCount": "{{count}} vidéo(s)",
+    "engineStatus": "État du moteur",
+    "ready": "Prêt",
+    "initializing": "Initialisation...",
+    "progress": "Progression du traitement"
+  },
+  "compile": {
+    "preparing": "Préparation du rendu",
+    "rendering": "Rendu en cours",
+    "complete": "Rendu terminé",
+    "failed": "Échec du rendu",
+    "stop": "Arrêter le rendu",
+    "finishing": "Finalisation…",
+    "errorTitle": "Échec du rendu",
+    "clips": "Clips",
+    "clipCount_one": "{{count}} clip",
+    "clipCount_other": "{{count}} clips",
+    "project": "Projet"
+  },
+  "stepResult": {
+    "title": "Ta vidéo est prête !",
+    "subtitle": "Télécharge et partage ta création",
+    "createAnother": "Créer une autre vidéo"
+  },
+  "stepForm": {
+    "defaultTitle": "Tes informations",
+    "subtitle": "Renseigne les informations de cette partie"
+  },
+  "stepClip": {
+    "clipOf": "Clip {{number}} sur {{total}}",
+    "editorLabel": "Rogner et recadrer"
+  },
+  "rush": {
+    "gallery": "Tes prises",
+    "take": "Prise {{number}}",
+    "use": "Utiliser la prise {{number}}",
+    "remove": "Supprimer la prise {{number}}",
+    "addAnother": "Filmer une autre prise"
+  },
+  "edit": {
+    "trim": "Rogner",
+    "crop": "Recadrer",
+    "videoAriaLabel": "Vidéo en cours d’édition",
+    "resetTrim": "Réinitialiser le rognage",
+    "resetCrop": "Réinitialiser le recadrage",
+    "cropHint": "Glisse le cadre ou ses coins pour recadrer."
+  },
+  "hub": {
+    "subtitle": "Remplis chaque partie, puis crée ta vidéo",
+    "next": "À suivre",
+    "changeTemplate": "Changer de modèle",
+    "prevSection": "Section précédente",
+    "nextSection": "Section suivante",
+    "completed_one": "{{done}} sur {{count}} section complétée",
+    "completed_other": "{{done}} sur {{count}} sections complétées",
+    "createCta": "Créer ma vidéo",
+    "ready": "Tout est prêt — on peut lancer le rendu",
+    "remaining_one": "Encore {{count}} section à compléter pour continuer",
+    "remaining_other": "Encore {{count}} sections à compléter pour continuer",
+    "yourDetails": "Tes informations",
+    "recordClip": "Filme ton clip",
+    "section": "Section",
+    "mediaHeading": "Musique et arrière-plan",
+    "mediaSubtitle": "Choisis la bande-son et le décor",
+    "mediaSubtitleShort": "Choisis la bande-son et le décor",
+    "selectionSaved": "Sélection enregistrée",
+    "clipOf": "Clip {{number}} sur {{total}}",
+    "recordOrUpload": "Filme ou importe ton clip"
+  }
+}

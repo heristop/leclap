@@ -1,0 +1,79 @@
+{
+  "error": {
+    "title": "Vorlagen konnten nicht geladen werden",
+    "message": "Vorlagen konnten nicht geladen werden. Bitte versuche es erneut."
+  },
+  "orientation": {
+    "portrait": "Hochformat 9:16",
+    "landscape": "Querformat 16:9",
+    "square": "Quadratisch 1:1"
+  },
+  "fields_one": "{{count}} Feld",
+  "fields_other": "{{count}} Felder",
+  "autoProcess": "Auto-Verarbeitung",
+  "sections_one": "{{count}} Abschnitt",
+  "sections_other": "{{count}} Abschnitte",
+  "music": "Musik",
+  "custom": "Custom",
+  "sections": {
+    "myTemplates": "Meine Vorlagen",
+    "sampleTemplates": "Vorlagenbibliothek"
+  },
+  "buildFromScratch": {
+    "label": "Von Grund auf bauen",
+    "description": "Gestalte deine eigene Vorlage – wähle Abschnitte, Musik und Effekte."
+  },
+  "complexity": {
+    "simple": "einfach",
+    "intermediate": "mittel",
+    "advanced": "fortgeschritten"
+  },
+  "search": {
+    "placeholder": "Vorlagen suchen …",
+    "all": "Alle",
+    "portrait": "Hochformat",
+    "landscape": "Querformat",
+    "square": "Quadratisch",
+    "orientationLabel": "Nach Ausrichtung filtern",
+    "complexityLabel": "Nach Komplexität filtern"
+  },
+  "empty": {
+    "title": "Keine passende Vorlage",
+    "hint": "Versuche eine andere Suche oder setze die Filter zurück.",
+    "clear": "Filter zurücksetzen"
+  },
+  "form": {
+    "header": {
+      "title": "Vorlagenkonfiguration",
+      "subtitle": "Fülle die nötigen Angaben aus, um dein Video zu personalisieren"
+    },
+    "status": {
+      "required": "Pflichtfeld",
+      "completed": "Feld ausgefüllt",
+      "maxChars": "Maximal {{count}} Zeichen erlaubt",
+      "remaining": "{{count}} übrig",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "erforderlich",
+      "fieldRequired": "Dieses Feld ist erforderlich",
+      "maxCharsLabel": "(max. {{count}} Zeichen)"
+    },
+    "placeholder": {
+      "firstName": "Gib deinen Vornamen ein",
+      "lastName": "Gib deinen Nachnamen ein",
+      "job": "Deine Berufsbezeichnung",
+      "keyword": "Gib ein Stichwort ein",
+      "description": "Beschreibung eingeben …",
+      "generic": "{{label}} eingeben"
+    },
+    "validation": {
+      "completeTitle": "Formular vollständig!",
+      "completeMessage": "Alle Pflichtfelder sind ausgefüllt. Bereit weiterzumachen.",
+      "incompleteTitle": "Formular unvollständig",
+      "incompleteMessage": "Bitte fülle noch {{count}} Feld(er) aus."
+    },
+    "noForm": {
+      "title": "Kein Formular nötig",
+      "message": "Diese Vorlage erfordert keine eigenen Eingaben. Du kannst direkt zur Verarbeitung weitergehen."
+    }
+  }
+}

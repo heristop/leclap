@@ -41,12 +41,18 @@ const SelectContent = React.forwardRef<
       className={cn(
         'relative z-[60] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-divider bg-surface shadow-[var(--shadow-lg)]',
         position === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
+        // On phones, break out of the anchored popper and dock to the bottom as a full-width sheet —
+        // easier to reach and read than a tiny dropdown. `!` overrides Radix's inline popper styles.
+        'max-sm:!fixed max-sm:!inset-x-2 max-sm:!bottom-2 max-sm:!top-auto max-sm:!w-auto max-sm:!min-w-0 max-sm:!max-h-[60vh] max-sm:!transform-none max-sm:rounded-2xl',
         className
       )}
       {...props}
     >
       <SelectPrimitive.Viewport
-        className={cn('p-1', position === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)]')}
+        className={cn(
+          'p-1 max-sm:p-1.5',
+          position === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)] max-sm:min-w-0'
+        )}
       >
         {children}
       </SelectPrimitive.Viewport>
@@ -62,7 +68,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-foreground outline-none data-[highlighted]:bg-brand-500/15 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-foreground outline-none data-[highlighted]:bg-brand-500/15 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 max-sm:py-3',
       className
     )}
     {...props}

@@ -45,8 +45,11 @@ export const MUSIC_ASSETS: Record<string, number> = {
   'party-dance.mp3':              require('../../assets/musics/party-dance.mp3'),
   'pixelland.mp3':                require('../../assets/musics/pixelland.mp3'),
   'point-being.mp3':              require('../../assets/musics/point-being.mp3'),
+  'pop.mp3':                      require('../../assets/musics/pop.mp3'),
   'romantic-piano.mp3':           require('../../assets/musics/romantic-piano.mp3'),
+  'silence-1-min.mp3':            require('../../assets/musics/silence-1-min.mp3'),
   'sneaky-snitch.mp3':            require('../../assets/musics/sneaky-snitch.mp3'),
+  'the-builder.mp3':              require('../../assets/musics/the-builder.mp3'),
   'tropical-cocktail.mp3':        require('../../assets/musics/tropical-cocktail.mp3'),
   'upbeat-electronic.mp3':        require('../../assets/musics/upbeat-electronic.mp3'),
 };

@@ -1,16 +1,26 @@
 import { inject, injectable } from 'tsyringe';
 import { promises as fs, createWriteStream } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import http from 'node:http';
+import https from 'node:https';
 import os from 'node:os';
 import path from 'node:path';
 import axios, { type AxiosResponse, type ResponseType } from 'axios';
 import AbstractFilesystem from './AbstractFilesystem';
 import { assertSafeRemoteUrl } from './urlGuard';
+import { catalogAssetUrl } from '../../core/asset-source';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 
 // Cap on redirect hops the guarded follower will chase before giving up. Bounds
 // redirect loops and long chains; legitimate media/font URLs resolve in 0-1 hops.
 const MAX_REDIRECT_HOPS = 5;
+
+// Close each download connection when its response ends. Node 19+ defaults the global agent to
+// keepAlive:true, which pools these sockets open ~25s after a render and keeps the event loop alive —
+// the CLI/MCP process appears to hang well after the output is printed. One-shot media fetches gain
+// nothing from connection reuse, so opt out explicitly.
+const httpAgent = new http.Agent({ keepAlive: false });
+const httpsAgent = new https.Agent({ keepAlive: false });
 
 // Follow HTTP redirects manually so the async SSRF guard runs on *every* hop, not
 // just the first URL. axios' built-in redirect handling (maxRedirects > 0) would
@@ -37,6 +47,8 @@ const requestWithGuardedRedirects = async (
     url,
     responseType,
     maxRedirects: 0,
+    httpAgent,
+    httpsAgent,
     // Accept 3xx as a non-error response so we can read Location and re-validate the
     // next hop ourselves; without this axios rejects 3xx when maxRedirects is 0.
     validateStatus: (status) => (status >= 200 && status < 300) || (status >= 300 && status < 400),
@@ -112,22 +124,42 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     throw new Error(`Refusing to read a file outside the staged media directories: ${url}`);
   };
 
+  // Decide how fetch() satisfies a reference. Returns null when it was served from a local staged copy
+  // (already written to `dest`), otherwise the remote URL to download. An http(s) URL passes through; a
+  // reference with no staged copy is resolved against the public asset library when it's a bare
+  // catalog-relative path (videos/…, pictures/…), while absolute/schemed paths re-raise the staging
+  // rejection (never silently remapped to a remote).
+  private readonly resolveFetchUrl = async (url: string, dest: string): Promise<string | null> => {
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+
+    const local = await this.resolveStagedPath(this.localCandidate(url)).catch(() => null);
+
+    if (local) {
+      await fs.copyFile(local, dest);
+
+      return null;
+    }
+
+    if (url.startsWith('/') || url.includes('://')) {
+      await this.resolveStagedPath(this.localCandidate(url));
+    }
+
+    return catalogAssetUrl(url);
+  };
+
   override fetch = async (url: string): Promise<string> => {
     const dest = path.join(this.tempDir, path.basename(url));
+    const remote = await this.resolveFetchUrl(url, dest);
 
-    if (!/^https?:\/\//i.test(url)) {
-      // Local staged media — a real device path or a path that maps under assetsDir (relative, or a
-      // web-rooted `/assets/...` path). resolveStagedPath rejects anything resolving outside the
-      // staged dirs (path traversal).
-      const real = await this.resolveStagedPath(this.localCandidate(url));
-      await fs.copyFile(real, dest);
-
+    if (remote === null) {
       return dest;
     }
 
     // SSRF guard: reject non-http(s) schemes and private/reserved destinations
     // (cloud metadata, loopback, RFC1918, ...) — re-checked on every redirect hop.
-    const response = await requestWithGuardedRedirects(url, 'stream');
+    const response = await requestWithGuardedRedirects(remote, 'stream');
 
     const writer = createWriteStream(dest);
 
@@ -249,16 +281,29 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     this.resolveBundledAsset('musics', musicFile);
 
   override move = async (sourcePath: string, targetPath: string): Promise<void> => {
-    if (
-      await fs
-        .access(sourcePath)
-        .then(() => true)
-        .catch(() => false)
-    ) {
-      return fs.rename(sourcePath, targetPath);
+    const exists = await fs
+      .access(sourcePath)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!exists) {
+      throw new Error(`${sourcePath} not found`);
     }
 
-    throw new Error(`${sourcePath} not found`);
+    // Stage into a not-yet-existing dir (e.g. a fresh assets/videos/) and tolerate a cross-device
+    // rename (tempDir on a different volume than the target): mkdir -p, then rename, then copy+unlink.
+    await fs.mkdir(path.dirname(targetPath), { recursive: true });
+
+    try {
+      await fs.rename(sourcePath, targetPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EXDEV') {
+        throw error;
+      }
+
+      await fs.copyFile(sourcePath, targetPath);
+      await fs.unlink(sourcePath);
+    }
   };
 
   override unlink = (filePath: string): Promise<void> => {

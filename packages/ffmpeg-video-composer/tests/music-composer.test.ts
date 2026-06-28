@@ -146,13 +146,37 @@ describe('MusicComposer.loadMusic', () => {
     expect(project.buildInfos.musicPath).toBe('/build/assets/cool-track.mp3');
   });
 
-  it('throws when music is configured without a URL and is not cached', async () => {
-    const project = makeProject({ music: { name: 'orphan.mp3' } });
+  it('fetches a named track from the asset source (GitHub LFS raw) when not cached, bundled, or given a url', async () => {
+    const project = makeProject({ music: { name: 'orphan' } });
     const filesystem = makeFilesystem();
     filesystem.stat.mockResolvedValue(false);
     const { composer } = makeComposer({ project, filesystem });
 
-    await expect(composer.loadMusic()).rejects.toThrow('Music URL is not provided.');
+    await composer.loadMusic();
+
+    // `github.com/<o>/<r>/raw/…` resolves Git-LFS objects to the real binary; `raw.githubusercontent`
+    // would serve the LFS pointer text instead.
+    expect(filesystem.fetch).toHaveBeenCalledWith(
+      'https://github.com/heristop/leclap/raw/main/packages/leclap-creative-kit/src/library/musics/orphan.mp3'
+    );
+    expect(project.buildInfos.musicPath).toBe('/build/assets/orphan.mp3');
+  });
+
+  it('treats a relative music url as a name hint and fetches it by name from the asset source', async () => {
+    // Catalog templates carry `{ name, url: 'musics/<file>.mp3' }` — the url is an assets-dir hint, not
+    // a fetchable URL. When the file is not local, fetch by name from the canonical remote, never the
+    // relative path (which would `realpath`-crash on the Node adapter).
+    const project = makeProject({ music: { name: 'point-being', url: 'musics/point-being.mp3' } });
+    const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
+    const { composer } = makeComposer({ project, filesystem });
+
+    await composer.loadMusic();
+
+    expect(filesystem.fetch).toHaveBeenCalledWith(
+      'https://github.com/heristop/leclap/raw/main/packages/leclap-creative-kit/src/library/musics/point-being.mp3'
+    );
+    expect(filesystem.fetch).not.toHaveBeenCalledWith('musics/point-being.mp3');
   });
 
   it('uses a bundled track by name (no URL, no download) when one ships with the package', async () => {

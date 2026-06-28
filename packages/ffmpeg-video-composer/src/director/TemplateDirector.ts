@@ -16,7 +16,7 @@ import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
-import { expandPartialsSafe } from '@leclap/creative-kit/partials';
+import { expandPartialsSafe } from '@/core/partials';
 import type Project from '../core/models/Project';
 import type Template from '../core/models/Template';
 import type TemplateConcreteBuilder from './TemplateConcreteBuilder';
@@ -74,6 +74,13 @@ class TemplateDirector {
     this.emitter.on('task-cancelled', () => (this.stopBuild = true));
     this.videoEditor.emitter = this.emitter;
     this.logger.info('Director class created');
+  }
+
+  // The emitter this director publishes `compilation-progress` / `task-stopped` on. Exposed so the Node
+  // `compile()` can subscribe to the SAME emitter — the Node EventManager hands out a fresh emitter on
+  // every `connect()`, so a caller cannot reconnect to reach this one.
+  get events(): IEventEmitter {
+    return this.emitter;
   }
 
   config = (projectConfig: ProjectConfig, templateDescriptor: TemplateDescriptor): this => {

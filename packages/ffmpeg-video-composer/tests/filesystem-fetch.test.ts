@@ -127,6 +127,20 @@ describe('FilesystemNodeAdapter.fetch SSRF guard', () => {
     expect(mockedAxios).toHaveBeenCalledTimes(1);
     expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({ maxRedirects: 0, responseType: 'stream' });
   });
+
+  it('issues the request with keep-alive disabled so sockets do not linger after a render', async () => {
+    await makeAdapter().fetch('https://cdn.example.com/clip.mp4');
+
+    // Node 19+ defaults the global agent to keepAlive:true, which pools the download socket open ~25s
+    // after a render and blocks the CLI/MCP process from exiting. These one-shot fetches pass explicit
+    // agents that close the connection when the response ends.
+    const cfg = mockedAxios.mock.calls[0]?.[0] as {
+      httpAgent?: { keepAlive?: boolean };
+      httpsAgent?: { keepAlive?: boolean };
+    };
+    expect(cfg.httpAgent?.keepAlive).toBe(false);
+    expect(cfg.httpsAgent?.keepAlive).toBe(false);
+  });
 });
 
 describe('FilesystemNodeAdapter.fetch guarded redirects', () => {
@@ -202,6 +216,51 @@ describe('FilesystemNodeAdapter.fetch local staged path', () => {
 
     await fs.rm(stageDir, { recursive: true, force: true });
     await fs.unlink(dest).catch(() => undefined);
+  });
+});
+
+describe('FilesystemNodeAdapter.fetch catalog-relative fallback', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedAxios.mockResolvedValue(ok(Readable.from(['clip bytes'])));
+    mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+  });
+
+  it('resolves a bare catalog-relative path with no local copy against the public library and downloads it', async () => {
+    // A descriptor references `videos/outro.mp4` (no scheme, no leading slash). With no assetsDir staged
+    // copy, the Node adapter must fetch it from the public asset library rather than realpath-crashing.
+    const dest = await makeAdapter().fetch('videos/outro.mp4');
+
+    expect(mockedLookup).toHaveBeenCalledWith('github.com', { all: true });
+    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({
+      url: 'https://github.com/heristop/leclap/raw/main/packages/leclap-creative-kit/src/library/videos/outro.mp4',
+    });
+    expect(dest).toBe(path.join(os.tmpdir(), 'outro.mp4'));
+    expect(await fs.readFile(dest, 'utf-8')).toBe('clip bytes');
+
+    await fs.unlink(dest).catch(() => undefined);
+  });
+
+  it('prefers a locally staged copy over the remote library when one is present', async () => {
+    const stageDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vp-cat-'));
+    await fs.mkdir(path.join(stageDir, 'videos'), { recursive: true });
+    await fs.writeFile(path.join(stageDir, 'videos', 'outro.mp4'), 'local clip');
+
+    const adapter = makeAdapter();
+    adapter.setAssetsDir(stageDir);
+
+    const dest = await adapter.fetch('videos/outro.mp4');
+
+    expect(mockedAxios).not.toHaveBeenCalled();
+    expect(await fs.readFile(dest, 'utf-8')).toBe('local clip');
+
+    await fs.rm(stageDir, { recursive: true, force: true });
+    await fs.unlink(dest).catch(() => undefined);
+  });
+
+  it('never remaps an absolute device path to the remote library (still rejected when unstaged)', async () => {
+    await expect(makeAdapter().fetch('/etc/passwd')).rejects.toThrow();
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 });
 
@@ -282,5 +341,19 @@ describe('FilesystemNodeAdapter.move', () => {
     const missing = path.join(os.tmpdir(), `vp-nosrc-${process.pid}.bin`);
 
     await expect(makeAdapter().move(missing, path.join(os.tmpdir(), 'dst.bin'))).rejects.toThrow(/not found/);
+  });
+
+  it('creates the target parent directory when staging into a not-yet-existing subdir', async () => {
+    const base = await fs.mkdtemp(path.join(os.tmpdir(), 'vp-move-'));
+    const src = path.join(base, 'src.bin');
+    await fs.writeFile(src, 'staged clip');
+    // `videos/` does not exist yet — move must mkdir -p the destination dir before renaming.
+    const target = path.join(base, 'assets', 'videos', 'video_1.mp4');
+
+    await makeAdapter().move(src, target);
+
+    expect(await fs.readFile(target, 'utf-8')).toBe('staged clip');
+
+    await fs.rm(base, { recursive: true, force: true });
   });
 });

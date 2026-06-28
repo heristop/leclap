@@ -1,4 +1,4 @@
-import { findFont } from '@leclap/creative-kit/fonts';
+import { findFont } from '@/core/fonts';
 
 export type Translation = Record<string, string | undefined>;
 

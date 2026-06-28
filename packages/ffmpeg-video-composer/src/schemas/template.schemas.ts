@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TemplateDescriptorSchema, type SectionSchema, type InputSchema } from './section.schemas';
+import type { TemplatePartialSchema } from './partial.schemas';
 import type { FilterSchema, MapSchema } from './filter.schemas';
 import type { GlobalConfigSchema, VariablesSchema, TranslationSchema, MusicConfigSchema } from './global.schemas';
 import type {
@@ -15,6 +16,7 @@ export * from './effects.schemas';
 export * from './global.schemas';
 export * from './filter.schemas';
 export * from './section.schemas';
+export * from './partial.schemas';
 
 // ── JSON Schema export ─────────────────────────────────────────────────────────
 
@@ -24,6 +26,7 @@ export const templateDescriptorJsonSchema = z.toJSONSchema(TemplateDescriptorSch
 
 export type TemplateDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 export type Section = z.infer<typeof SectionSchema>;
+export type TemplatePartial = z.infer<typeof TemplatePartialSchema>;
 export type Filter = z.infer<typeof FilterSchema>;
 export type Map = z.infer<typeof MapSchema>;
 export type Input = z.infer<typeof InputSchema>;

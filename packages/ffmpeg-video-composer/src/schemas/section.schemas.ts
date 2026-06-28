@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TemplatePartialSchema } from './partial.schemas';
 import {
   AudioFadeSchema,
   BackgroundLayerSchema,
@@ -310,6 +311,10 @@ export const TemplateDescriptorSchema = z
       .array(SectionSchema)
       .optional()
       .describe('Ordered list of sections that make up the video composition timeline.'),
+    partials: z
+      .array(TemplatePartialSchema)
+      .optional()
+      .describe('Reusable partials referenced by `{ type: "partial", ref }` sections; expanded before compilation.'),
   })
   .describe(
     'Root descriptor of a video composition template; all fields are optional so partial descriptors can be validated incrementally.'

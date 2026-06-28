@@ -15,13 +15,6 @@ export default defineConfig([
     outDir: 'dist',
     target: 'es2024',
     platform: 'node',
-    // Ship the bundled .ttf fonts inside the package so Node/server/MCP renders resolve drawtext
-    // fonts locally (FilesystemNodeAdapter.resolveBundledFont looks in dist/fonts) instead of
-    // downloading them from Google Fonts. dist is already in package.json "files".
-    copy: [
-      { from: '../leclap-creative-kit/src/library/fonts/*.ttf', to: 'dist/fonts' },
-      { from: '../leclap-creative-kit/src/library/musics/*.mp3', to: 'dist/musics' },
-    ],
     deps: {
       onlyBundle: false,
       neverBundle: [
@@ -36,12 +29,7 @@ export default defineConfig([
         'crypto',
         'readline',
         'tty',
-        'boxen',
-        'figlet',
-        'gradient-string',
-        'cli-spinners',
         'pino',
-        'pino-pretty',
         'ffmpeg-static',
       ],
     },
@@ -75,12 +63,7 @@ export default defineConfig([
         'crypto',
         'readline',
         'tty',
-        'boxen',
-        'figlet',
-        'gradient-string',
-        'cli-spinners',
         'pino',
-        'pino-pretty',
         'ffmpeg-static',
         'zlib',
         'yauzl',
@@ -161,12 +144,7 @@ export default defineConfig([
         'events',
         'stream',
         'crypto',
-        'boxen',
-        'figlet',
-        'gradient-string',
-        'cli-spinners',
         'pino',
-        'pino-pretty',
         'ffmpeg-static',
         '@ffmpeg/ffmpeg',
         '@ffmpeg/util',

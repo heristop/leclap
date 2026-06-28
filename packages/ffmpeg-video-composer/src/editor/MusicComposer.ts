@@ -8,6 +8,7 @@ import type AbstractMusic from '../platform/ffmpeg/AbstractMusic';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import { resolveVideoInput, type VideoSource } from './video-input';
+import { musicAssetUrl } from '@/core/asset-source';
 
 type MusicFilterOptions = {
   baseFilter: string;
@@ -111,15 +112,18 @@ class MusicComposer {
       return bundled;
     }
 
-    if (music.url) {
-      this.logger.info(`[Music] Fetching ${music.url}`);
-      const destination = `${this.buildAssetsDir}/${formattedName}.mp3`;
-      await this.downloadAndSaveMusic(music.url, destination);
+    // A catalog track is fetched by name from the asset source (GitHub by default, see asset-source.ts)
+    // rather than bundling the ~104 MB library. Only an ABSOLUTE http(s) `url` is a real download
+    // source; a relative `url` (e.g. `musics/point-being.mp3`, the catalog templates' assets-dir hint)
+    // is not fetchable — treat it as a name and resolve via the asset source, or the Node adapter would
+    // `realpath`-crash trying to read it as a local file.
+    const isRemoteUrl = /^https?:\/\//i.test(music.url ?? '');
+    const url = isRemoteUrl ? (music.url as string) : musicAssetUrl(`${formattedName}.mp3`);
+    this.logger.info(`[Music] Fetching ${url}`);
+    const destination = `${this.buildAssetsDir}/${formattedName}.mp3`;
+    await this.downloadAndSaveMusic(url, destination);
 
-      return destination;
-    }
-
-    throw new Error('Music URL is not provided.');
+    return destination;
   }
 
   // Resolve a bundled music file from the local assets dir. Tries the configured (display) name first,

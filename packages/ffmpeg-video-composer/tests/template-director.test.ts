@@ -214,6 +214,12 @@ describe('TemplateDirector.config', () => {
     // `compileVideoSegments` keeps only real rendering types; a `type:'partial'` section reaching it
     // unexpanded is silently filtered out — which is exactly how the flash-card partial went missing.
     const descriptor: TemplateDescriptor = {
+      partials: [
+        {
+          id: 'flash-card',
+          sections: [{ name: 'flash', type: 'color_background', title: { en: '{{ optionA }} vs {{ optionB }}' } }],
+        },
+      ],
       sections: [
         {
           type: 'partial',

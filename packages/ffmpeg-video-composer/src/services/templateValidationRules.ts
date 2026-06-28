@@ -1,4 +1,4 @@
-import { findFont } from '@leclap/creative-kit/fonts';
+import { findFont } from '@/core/fonts';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 

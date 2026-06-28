@@ -12,7 +12,7 @@ import {
   validateFonts,
   type ValidationError,
 } from './templateValidationRules';
-import { expandPartialsSafe } from '@leclap/creative-kit/partials';
+import { expandPartialsSafe } from '@/core/partials';
 
 export type { ValidationError } from './templateValidationRules';
 

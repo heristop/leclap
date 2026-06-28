@@ -182,6 +182,10 @@ describe('FilesystemNodeAdapter', () => {
         url: 'http://example.com/video.mp4',
         responseType: 'stream',
         maxRedirects: 0,
+        // Non-keep-alive agents so the download socket closes when the response ends (see
+        // filesystem-fetch.test.ts) and the process can exit instead of lingering ~25s.
+        httpAgent: expect.objectContaining({ keepAlive: false }),
+        httpsAgent: expect.objectContaining({ keepAlive: false }),
         validateStatus: expect.any(Function),
       });
       expect(dataStream.pipe).toHaveBeenCalledWith(writer);

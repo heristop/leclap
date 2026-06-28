@@ -6,6 +6,8 @@ import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type VariableManager from './VariableManager';
 import { cubeFor } from '../presets/lut-library';
+import { findFontByFile } from '@/core/fonts';
+import { fontAssetUrl } from '@/core/asset-source';
 
 // The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
 // but it is used at runtime as a string-keyed cache of staged media paths.
@@ -118,52 +120,66 @@ class AssetManager {
   };
 
   fetchFonts = async (): Promise<void> => {
-    await Promise.all(
-      this.segment.tempFonts.map(async (fontFile) => {
-        const fontFamily = fontFile.split('-')[0].split('.')[0];
-        const targetPath = `${this.segment.fontsDir}/${fontFile}`;
-
-        // Reuse an already-downloaded font instead of re-fetching it. This keeps the
-        // same font family from being requested once per section, which is what gets
-        // Google Fonts to rate-limit (and intermittently break the drawtext filter).
-        if (await this.filesystemAdapter.stat(targetPath)) {
-          this.logger.info(`[${this.segment.currentSection?.name}][Font] cached ${fontFile}`);
-
-          return;
-        }
-
-        // Prefer the font shipped with the package over a network fetch — premium templates use
-        // bundled fonts whose single-token family names Google Fonts can't resolve, and this keeps
-        // Node/server/MCP renders working offline. Falls through to the download when not bundled.
-        const bundled = await this.filesystemAdapter.resolveBundledFont(fontFile);
-
-        if (bundled) {
-          await this.filesystemAdapter.copy(bundled, targetPath);
-          this.logger.info(`[${this.segment.currentSection?.name}][Font] bundled ${fontFile}`);
-
-          return;
-        }
-
-        const url = `https://fonts.googleapis.com/css?family=${fontFamily}`;
-        this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${url}`);
-
-        const cssContent = await this.filesystemAdapter.fetchAndRead(url);
-        const fontUrl = this.extractFontUrlFromCSS(cssContent);
-
-        if (!fontUrl) {
-          this.logger.info(`[${this.segment.currentSection?.name}][Font] no font url found in CSS for ${fontFamily}`);
-
-          return;
-        }
-
-        this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${fontUrl}`);
-
-        const path = await this.filesystemAdapter.fetch(fontUrl);
-
-        await this.filesystemAdapter.move(path, targetPath);
-      })
-    );
+    await Promise.all(this.segment.tempFonts.map((fontFile) => this.stageFont(fontFile)));
   };
+
+  private async stageFont(fontFile: string): Promise<void> {
+    const targetPath = `${this.segment.fontsDir}/${fontFile}`;
+
+    // Reuse an already-downloaded font instead of re-fetching it. This keeps the same font family
+    // from being requested once per section, which is what gets Google Fonts to rate-limit.
+    if (await this.filesystemAdapter.stat(targetPath)) {
+      this.logger.info(`[${this.segment.currentSection?.name}][Font] cached ${fontFile}`);
+
+      return;
+    }
+
+    // Prefer a font shipped/staged alongside the package (resolved locally on Node) over a network
+    // fetch, so renders work offline when assets are pre-staged. Falls through when not present.
+    const bundled = await this.filesystemAdapter.resolveBundledFont(fontFile);
+
+    if (bundled) {
+      await this.filesystemAdapter.copy(bundled, targetPath);
+      this.logger.info(`[${this.segment.currentSection?.name}][Font] bundled ${fontFile}`);
+
+      return;
+    }
+
+    // Catalog fonts (premium single-token families Google Fonts can't resolve) are fetched by file
+    // name from the asset source (GitHub by default, see asset-source.ts) instead of being bundled.
+    if (findFontByFile(fontFile)) {
+      const assetUrl = fontAssetUrl(fontFile);
+      this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${assetUrl}`);
+
+      const downloaded = await this.filesystemAdapter.fetch(assetUrl);
+      await this.filesystemAdapter.move(downloaded, targetPath);
+
+      return;
+    }
+
+    await this.fetchGoogleFont(fontFile, targetPath);
+  }
+
+  // Fall back to Google Fonts for standard families (a single-segment `family` derived from the file).
+  private async fetchGoogleFont(fontFile: string, targetPath: string): Promise<void> {
+    const fontFamily = fontFile.split('-')[0].split('.')[0];
+    const url = `https://fonts.googleapis.com/css?family=${fontFamily}`;
+    this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${url}`);
+
+    const cssContent = await this.filesystemAdapter.fetchAndRead(url);
+    const fontUrl = this.extractFontUrlFromCSS(cssContent);
+
+    if (!fontUrl) {
+      this.logger.info(`[${this.segment.currentSection?.name}][Font] no font url found in CSS for ${fontFamily}`);
+
+      return;
+    }
+
+    this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${fontUrl}`);
+
+    const path = await this.filesystemAdapter.fetch(fontUrl);
+    await this.filesystemAdapter.move(path, targetPath);
+  }
 
   // Stage every LUT referenced by a lut3d look (collected into tempLuts by the FormatterManager).
   // The `.cube` text is generated on the fly and written to the build FS — uniform on Node, Expo and

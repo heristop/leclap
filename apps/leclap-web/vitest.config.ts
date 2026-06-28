@@ -15,6 +15,10 @@ const projectDir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
+      // Mirror vite.config.ts: the core package uses `@/core/...` internally, so a runtime value
+      // import (e.g. `@/core/fonts`, `@/core/partials`) pulled into a test must resolve to the core
+      // src, not this app's src. Must precede the general `@`.
+      '@/core': path.resolve(projectDir, '../../packages/ffmpeg-video-composer/src/core'),
       '@': path.resolve(projectDir, 'src'),
     },
   },

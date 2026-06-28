@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { sampleVideo } from './fixtures';
 
 // The edit pre-pass loads ffmpeg-core from a CDN; headless Chromium's default cache can't write it
 // (net::ERR_CACHE_WRITE_FAILURE), so point it at a writable on-disk cache.
@@ -10,8 +11,7 @@ test.use({ launchOptions: { args: ['--disk-cache-dir=/tmp/leclap-pw-cache', '--d
 //
 // Needs the dev server up:  pnpm --filter @leclap/web dev   (default :5174; override with E2E_BASE_URL)
 
-const SAMPLE =
-  '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/leclap-creative-kit/src/library/videos/earth.mp4';
+const SAMPLE = sampleVideo('earth.mp4');
 
 test('timeline edit cuts and re-times a clip to the expected duration', async ({ page }) => {
   test.setTimeout(5 * 60 * 1000);

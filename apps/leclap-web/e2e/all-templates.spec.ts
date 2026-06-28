@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { sampleVideo } from './fixtures';
 
 // End-to-end WASM compilation check for every template, against BOTH a
 // fixture WITH an audio track and a video-only fixture WITHOUT one.
@@ -12,12 +13,9 @@ import { test, expect, type Page } from '@playwright/test';
 // Run with the dev server up:  pnpm --filter @leclap/web dev   (port 5174)
 // then:                        pnpm --filter @leclap/web test:e2e
 
-const VIDEO_DIR =
-  '/@fs/Users/alexandre_mogere/Workspace/ffmpeg-video-composer/packages/leclap-creative-kit/src/library/videos';
-
 const FIXTURES = [
-  { label: 'with-audio', video: `${VIDEO_DIR}/earth.mp4` },
-  { label: 'no-audio', video: `${VIDEO_DIR}/earth-no-audio.mp4` },
+  { label: 'with-audio', video: sampleVideo('earth.mp4') },
+  { label: 'no-audio', video: sampleVideo('earth-no-audio.mp4') },
 ];
 
 // Sample values for any form field a bundled template might reference (extra keys are harmless).

@@ -28,7 +28,7 @@ export const About = () => {
               <Shield className="w-3.5 h-3.5" />
               {t('hero.badge')}
             </Badge>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 brand-gradient-text font-display tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 pb-[0.1em] leading-tight brand-gradient-text font-display tracking-tight">
               {t('hero.title')}
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">{t('hero.tagline')}</p>

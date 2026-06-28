@@ -34,6 +34,31 @@ const resolveUserVideoSource = async (deps: SectionInfosDeps, section: Section):
   }
 };
 
+// A project_video section with no user recording falls back to the bundled catalog demo clip. When
+// that clip isn't already staged under the assets dir, fetch it (the filesystem adapter resolves the
+// catalog-relative path to the public library) and move it onto the assets-dir source path that both
+// the probe and the segment's `-i` read. Best-effort: a failed stage leaves the probe to fall back to
+// the declared duration rather than aborting the render.
+const stageDemoClip = async (deps: SectionInfosDeps, section: Section, source: string): Promise<void> => {
+  if (section.type !== 'project_video') {
+    return;
+  }
+
+  try {
+    if (await deps.filesystemAdapter.stat(source)) {
+      return;
+    }
+
+    const downloaded = await deps.filesystemAdapter.fetch(`videos/${assertSafeSegmentName(section.name)}.mp4`);
+    await deps.filesystemAdapter.move(downloaded, source);
+    deps.logger.info(`[fetchSectionInfos] Staged catalog demo clip for ${section.name}: ${source}`);
+  } catch (error) {
+    deps.logger.warn(`[fetchSectionInfos] Could not stage demo clip for ${section.name}`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 // Probe the clip, tolerating two failures by falling back to the section's declared `options.duration`:
 // a probe that throws (a clip the WASM build can't demux — some browser/MediaRecorder MP4s) and a clip
 // that advertises no duration. The render still runs; the section is trimmed to that length anyway.
@@ -82,6 +107,7 @@ export const fetchSectionInfos = async (deps: SectionInfosDeps, section: Section
 
   if (!resolvedSource) {
     deps.logger.info(`[fetchSectionInfos] Using default assets path for section ${section.name}: ${source}`);
+    await stageDemoClip(deps, section, source);
   }
 
   return probeWithFallback(deps, section, source);

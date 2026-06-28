@@ -1,11 +1,48 @@
 import { defineCommand } from 'citty';
 import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
 import { success, fail, step, hint } from '../ui.js';
+import { wordmark } from '../theme.js';
 import { confirm } from '../prompt.js';
 
-const REMOTION_VERSION = '^4.0.477';
+export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
+
+// Detect the package manager the user invoked us with. Every PM sets `npm_config_user_agent`
+// (`<pm>/<version> …`) when it runs a binary — including `npx` / `pnpm dlx` / `yarn dlx` / `bunx` —
+// so its first token is a reliable preference signal. Defaults to npm.
+export function detectPackageManager(ua = process.env.npm_config_user_agent): PackageManager {
+  const id = (ua ?? '').split('/')[0];
+
+  return id === 'pnpm' || id === 'yarn' || id === 'bun' ? id : 'npm';
+}
+
+const INSTALL_CMD: Record<PackageManager, string> = {
+  npm: 'npm install',
+  pnpm: 'pnpm install',
+  yarn: 'yarn',
+  bun: 'bun install',
+};
+
+const RUN_CMD: Record<PackageManager, string> = {
+  npm: 'npm run render',
+  pnpm: 'pnpm render',
+  yarn: 'yarn render',
+  bun: 'bun run render',
+};
+
+// This cli's own version, read from the package.json next to the bundled entry (same pattern as
+// src/index.ts). Used to pin `@leclap/cli` in the scaffold so a starter tracks the cli that made it.
+function resolveCliVersion(): string | undefined {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version?: string };
+
+    return pkg.version;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface StarterOptions {
   /** Add a `.mcp.json` wiring `@leclap/mcp` so an agent can author + render in this project. */
@@ -14,6 +51,10 @@ export interface StarterOptions {
   remotion?: boolean;
   /** Absolute project dir — baked into `.mcp.json` env paths. Defaults to the project name. */
   projectDir?: string;
+  /** This cli's own version, pinned as `^<version>` for `@leclap/cli`. Defaults to `latest`. */
+  cliVersion?: string;
+  /** Package manager to render install/run hints for. Defaults to npm. */
+  packageManager?: PackageManager;
 }
 
 // A title card that renders with no external media — `BebasNeue.ttf` resolves from the engine's
@@ -54,19 +95,26 @@ function starterTemplate(withIntro: boolean) {
 }
 
 function packageJson(projectName: string, opts: StarterOptions) {
-  const devDependencies: Record<string, string> = { '@leclap/cli': '^0.1.0' };
+  // Pin `@leclap/cli` to the scaffolding cli's own version. A caret on a known semver is required —
+  // a bare `^0.1.0` excludes 0.2.0 (0.x carets only allow patch bumps), which left starters stuck on
+  // the first release. `latest` is the fallback when the version isn't known (direct helper calls).
+  const cliRange = opts.cliVersion ? `^${opts.cliVersion}` : 'latest';
+  const devDependencies: Record<string, string> = { '@leclap/cli': cliRange };
 
   // The MCP is a local devDep only when Remotion is set up — render_remotion_clip dynamically imports
   // @remotion/* (the MCP's optional peer deps), which resolve only from the local install. Without
-  // Remotion the MCP runs zero-install via `npx -y` (see mcpConfig), so it needs no entry here.
+  // Remotion the MCP runs zero-install via `npx -y` (see mcpConfig), so it needs no entry here. Tracked
+  // at `latest` since the cli can't know the MCP's published version.
   if (opts.mcp && opts.remotion) {
-    devDependencies['@leclap/mcp'] = '^0.1.0';
+    devDependencies['@leclap/mcp'] = 'latest';
   }
 
   if (opts.remotion) {
-    devDependencies['@remotion/bundler'] = REMOTION_VERSION;
-    devDependencies['@remotion/renderer'] = REMOTION_VERSION;
-    devDependencies.remotion = REMOTION_VERSION;
+    // `latest` so the starter isn't pinned to a fast-moving Remotion release that goes stale; React is
+    // held at the major Remotion's peer range expects, so a floating React can't drift past it.
+    devDependencies['@remotion/bundler'] = 'latest';
+    devDependencies['@remotion/renderer'] = 'latest';
+    devDependencies.remotion = 'latest';
     devDependencies.react = '^19.0.0';
     devDependencies['react-dom'] = '^19.0.0';
   }
@@ -77,6 +125,9 @@ function packageJson(projectName: string, opts: StarterOptions) {
     type: 'module',
     scripts: { render: 'leclap render template.json' },
     devDependencies,
+    // pnpm 10+ skips dependency build scripts unless allow-listed; without this `ffmpeg-static` never
+    // unpacks its binary and renders fail. Ignored by npm / yarn / bun.
+    pnpm: { onlyBuiltDependencies: ['esbuild', 'ffmpeg-static'] },
   };
 }
 
@@ -170,6 +221,10 @@ registerRoot(RemotionRoot);
 }
 
 function readme(projectName: string, opts: StarterOptions): string {
+  const pm = opts.packageManager ?? 'npm';
+  const install = INSTALL_CMD[pm];
+  const run = RUN_CMD[pm];
+
   const mcpSection = opts.mcp
     ? `
 
@@ -181,9 +236,9 @@ Point your agent client (Claude Code, Cursor, …) at it, then ask the agent to 
           ? ` For an animated intro, the agent calls \`render_remotion_clip { compositionId: "Intro" }\`
 (rendered from \`remotion/\`) and passes the clip to \`compose_video\` via \`userVideoPaths.intro\`.
 
-Run \`npm install\` first: with Remotion the MCP runs from the **local** install so it can resolve your
+Run \`${install}\` first: with Remotion the MCP runs from the **local** install so it can resolve your
 \`@remotion/*\` and render \`remotion/\`.`
-          : ` The MCP runs zero-install via \`npx\` — no \`npm install\` needed for it.`
+          : ` The MCP runs zero-install via \`npx\` — no \`${install}\` needed for it.`
       }
 
 > The \`.mcp.json\` env paths are absolute (this machine). Regenerate or edit them if you move the project.`
@@ -203,8 +258,8 @@ Install deps, then the MCP renders it to a clip that \`template.json\`'s \`intro
 A LeClap video project. Edit \`template.json\`, drop any media into \`assets/\`, then render:
 
 \`\`\`bash
-npm install
-npx @leclap/cli render template.json
+${install}
+${run}
 \`\`\`
 ${mcpSection}${remotionSection}
 
@@ -248,6 +303,21 @@ async function resolveChoice(flag: boolean | undefined, yes: boolean | undefined
   return confirm(message, true);
 }
 
+// Print the post-scaffold "Next steps" using the detected package manager's install + run commands.
+function printNextSteps(name: string, pm: PackageManager, mcp: boolean): void {
+  console.log(`\n${success(`Created ${pc.bold(name)}`)}\n`);
+  console.log(hint('Next steps'));
+  console.log(step(`cd ${name}`));
+  console.log(step(INSTALL_CMD[pm]));
+  console.log(step(RUN_CMD[pm]));
+
+  if (mcp) {
+    console.log(step('point your agent client at .mcp.json, then ask it to compose a video'));
+  }
+
+  console.log('');
+}
+
 export const init = defineCommand({
   meta: { name: 'init', description: 'Scaffold a starter LeClap project' },
   args: {
@@ -265,6 +335,8 @@ export const init = defineCommand({
     const name = args.name || 'my-leclap-video';
     const dir = path.resolve(process.cwd(), name);
 
+    process.stdout.write(wordmark());
+
     try {
       const entries = await fs.readdir(dir);
 
@@ -279,7 +351,14 @@ export const init = defineCommand({
     const mcp = await resolveChoice(args.mcp, args.yes, 'Set up the LeClap MCP server for AI-agent authoring?');
     const remotion = await resolveChoice(args.remotion, args.yes, 'Add a Remotion starter for animated intros?');
 
-    const files = starterFiles(path.basename(dir), { mcp, remotion, projectDir: dir });
+    const packageManager = detectPackageManager();
+    const files = starterFiles(path.basename(dir), {
+      mcp,
+      remotion,
+      projectDir: dir,
+      cliVersion: resolveCliVersion(),
+      packageManager,
+    });
 
     await Promise.all(
       Object.entries(files).map(async ([relative, contents]) => {
@@ -289,16 +368,6 @@ export const init = defineCommand({
       })
     );
 
-    console.log(`\n${success(`Created ${pc.cyan(name)}`)}\n`);
-    console.log(hint('Next steps'));
-    console.log(step(`cd ${name}`));
-    console.log(step('npm install'));
-    console.log(step('leclap render template.json'));
-
-    if (mcp) {
-      console.log(step('point your agent client at .mcp.json, then ask it to compose a video'));
-    }
-
-    console.log('');
+    printNextSteps(name, packageManager, mcp);
   },
 });

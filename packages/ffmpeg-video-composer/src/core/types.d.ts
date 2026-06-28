@@ -11,12 +11,21 @@ export type {
   ChromaKey,
   Caption,
 } from './descriptor-text';
-import type { Reveal, Exit, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
+import type { Reveal, Exit, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer } from './descriptor-visual';
 
 export type LogParams = Record<string, unknown>;
+
+// Optional progress/log sink a host (e.g. the `leclap` CLI) can pass to the Node `compile()` so it can
+// render live progress and capture the engine's per-segment/ffmpeg logs, mirroring `compileBrowser`'s
+// `onProgress`. `onProgress` receives the 0..1 compilation fraction; `onLog` receives every engine log
+// line (all levels) regardless of the Pino stdout level, so the host can tee detail to a file.
+export type CompileReporter = {
+  onProgress?: (fraction: number) => void;
+  onLog?: (line: { level: 'debug' | 'info' | 'warn' | 'error'; message: string }) => void;
+};
 export type ProjectConfig = {
   buildDir?: string;
   assetsDir?: string;

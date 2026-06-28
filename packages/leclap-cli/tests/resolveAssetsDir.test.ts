@@ -3,20 +3,13 @@ import { describe, it, expect } from 'vitest';
 import { resolveAssetsDir } from '../src/resolveAssetsDir';
 
 describe('resolveAssetsDir', () => {
-  const cwd = '/work/project';
-  const moduleDir = '/repo/packages/leclap-cli/dist';
-  const localAssets = path.resolve(cwd, 'assets');
-  const demo = path.resolve(moduleDir, '../../leclap-creative-kit/src/library');
+  it('resolves the caller cwd/assets', () => {
+    const cwd = '/work/project';
 
-  it('prefers the caller cwd/assets when it exists', () => {
-    expect(resolveAssetsDir(cwd, moduleDir, (p) => p === localAssets)).toBe(localAssets);
+    expect(resolveAssetsDir(cwd)).toBe(path.resolve(cwd, 'assets'));
   });
 
-  it('falls back to the bundled creative-kit demo assets when cwd/assets is absent', () => {
-    expect(resolveAssetsDir(cwd, moduleDir, (p) => p === demo)).toBe(demo);
-  });
-
-  it('returns cwd/assets when neither exists', () => {
-    expect(resolveAssetsDir(cwd, moduleDir, () => false)).toBe(localAssets);
+  it('does not reach into any sibling workspace package (no creative-kit)', () => {
+    expect(resolveAssetsDir('/repo/packages/leclap-cli')).not.toContain('leclap-creative-kit');
   });
 });

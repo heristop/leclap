@@ -7,7 +7,7 @@ export const success = (text: string): string => `${pc.green('✓')} ${text}`;
 
 export const fail = (text: string): string => `${pc.red('✗')} ${text}`;
 
-export const step = (text: string): string => `  ${pc.cyan('›')} ${text}`;
+export const step = (text: string): string => `  ${pc.dim('›')} ${text}`;
 
 export const hint = (text: string): string => pc.dim(text);
 

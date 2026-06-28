@@ -195,8 +195,14 @@ class PlatformBridge {
     throw new Error('FFmpeg setup required. Please follow the installation instructions above.');
   }
 
-  // Returns false in CI, test, and non-TTY contexts so interactive UI is suppressed.
+  // Returns false in CI, test, and non-TTY contexts so interactive UI is suppressed. Also false when a
+  // host owns the terminal (the `leclap` CLI sets LECLAP_CLI_UI=1) so the engine stays silent and the
+  // host renders its own branded banner/detection without a duplicate, mis-ordered engine banner.
   private shouldShowInteractiveSetup(): boolean {
+    if (process.env.LECLAP_CLI_UI === '1') {
+      return false;
+    }
+
     if (process.env.CI || process.env.NODE_ENV === 'test') {
       return false;
     }

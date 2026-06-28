@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import pc from 'picocolors';
 import { success, fail, step, hint } from '../ui.js';
+import { wordmark } from '../theme.js';
 import { confirm } from '../prompt.js';
 
 const REMOTION_VERSION = '^4.0.477';
@@ -265,6 +266,8 @@ export const init = defineCommand({
     const name = args.name || 'my-leclap-video';
     const dir = path.resolve(process.cwd(), name);
 
+    process.stdout.write(wordmark());
+
     try {
       const entries = await fs.readdir(dir);
 
@@ -289,7 +292,7 @@ export const init = defineCommand({
       })
     );
 
-    console.log(`\n${success(`Created ${pc.cyan(name)}`)}\n`);
+    console.log(`\n${success(`Created ${pc.bold(name)}`)}\n`);
     console.log(hint('Next steps'));
     console.log(step(`cd ${name}`));
     console.log(step('npm install'));

@@ -8,7 +8,9 @@ import Template from './core/models/Template';
 import Segment from './core/models/Segment';
 import type AbstractFilesystem from './platform/filesystem/AbstractFilesystem';
 import type AbstractLogger from './platform/logging/AbstractLogger';
-import type { ProjectConfig, TemplateDescriptor } from './core/types';
+import TeeLogAdapter from './platform/logging/TeeLogAdapter';
+import { attachCompilationListeners } from './platform/compilation-listeners';
+import type { CompileReporter, ProjectConfig, TemplateDescriptor } from './core/types';
 import { getPerfTimer, resetPerfTimer } from './utils/perf-timer';
 import { formatPerfReport } from './utils/perf-report';
 import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
@@ -155,20 +157,63 @@ async function autoSelectHardwareEncoder(projectConfig: ProjectConfig, logger: A
   }
 }
 
+// When a reporter wants log lines, swap the registered logger for a tee that forwards every line to
+// `onLog` while still delegating to the base logger, and return a restore() so the original singleton
+// is reinstated afterwards (the container is shared across compilations in the same process). No-op
+// when there's nothing to forward, so the default path keeps the plain logger.
+function installReporterLogger(reporter?: CompileReporter): { logger: AbstractLogger; restore: () => void } {
+  const base = container.resolve<AbstractLogger>('logger');
+
+  if (!reporter?.onLog) {
+    return { logger: base, restore: () => {} };
+  }
+
+  const tee = new TeeLogAdapter(base, reporter.onLog);
+  container.registerInstance('logger', tee);
+
+  return { logger: tee, restore: () => container.registerInstance('logger', base) };
+}
+
+// Resolve the director, run the construction span, and emit the perf report, detaching the progress
+// listeners once the compile settles.
+async function runConstruction(
+  projectConfig: ProjectConfig,
+  templateDescriptor: TemplateDescriptor,
+  logger: AbstractLogger,
+  timer: ReturnType<typeof resetPerfTimer>,
+  reporter?: CompileReporter
+): Promise<string | null> {
+  const director = container.resolve(TemplateDirector).config(projectConfig, templateDescriptor);
+  // Subscribe to the director's OWN emitter (the Node EventManager hands out a fresh emitter per
+  // connect(), so reconnecting would miss its events) and detach once the compile settles.
+  const listeners = attachCompilationListeners(director.events, reporter?.onProgress);
+
+  try {
+    const output = await timer.span('compile:total', () => director.construct());
+
+    await emitPerfReport(logger, projectConfig.buildDir ?? '', templateDescriptor);
+
+    return output;
+  } finally {
+    listeners.detach();
+  }
+}
+
 export async function compile(
   projectConfig: ProjectConfig,
-  templateDescriptor: TemplateDescriptor
+  templateDescriptor: TemplateDescriptor,
+  reporter?: CompileReporter
 ): Promise<string | null> {
   await initializePlatform();
 
   const timer = resetPerfTimer();
+  const { logger, restore: restoreLogger } = installReporterLogger(reporter);
 
   try {
     if (!projectConfig.buildDir) {
       throw new Error('buildDir is required in projectConfig');
     }
 
-    const logger = container.resolve<AbstractLogger>('logger');
     logger.info('Starting compilation', {
       hasUserVideoPaths: Boolean(projectConfig.userVideoPaths),
       videoPaths: projectConfig.userVideoPaths ? Object.keys(projectConfig.userVideoPaths) : 'none',
@@ -176,13 +221,7 @@ export async function compile(
 
     await autoSelectHardwareEncoder(projectConfig, logger);
 
-    const director = container.resolve(TemplateDirector).config(projectConfig, templateDescriptor);
-
-    const output = await timer.span('compile:total', () => director.construct());
-
-    await emitPerfReport(logger, projectConfig.buildDir, templateDescriptor);
-
-    return output;
+    return await runConstruction(projectConfig, templateDescriptor, logger, timer, reporter);
   } catch (error) {
     if (!(error instanceof Error)) {
       console.error('Unknown compilation error');
@@ -195,6 +234,8 @@ export async function compile(
     if (error.stack) console.error('Stack:', error.stack);
 
     return null;
+  } finally {
+    restoreLogger();
   }
 }
 
@@ -208,10 +249,21 @@ export { default as AbstractFFmpeg } from './platform/ffmpeg/AbstractFFmpeg';
 export { default as AbstractFilesystem } from './platform/filesystem/AbstractFilesystem';
 export { default as AbstractLogger } from './platform/logging/AbstractLogger';
 export { default as AbstractMusic } from './platform/ffmpeg/AbstractMusic';
-export { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
+export { FFmpegDetector, FFmpegAvailability } from './platform/ffmpeg/FFmpegDetector';
+export type { FFmpegDetectionResult } from './platform/ffmpeg/FFmpegDetector';
 export { Terminal } from './utils/terminal';
 export { container };
-export type { ProjectConfig, TemplateDescriptor } from './core/types';
+export { FONTS, findFont, findFontByFile, DEFAULT_FONT_ID, type FontEntry } from './core/fonts';
+export { assetBaseUrl, fontAssetUrl, musicAssetUrl } from './core/asset-source';
+export {
+  expandPartials,
+  expandPartialsSafe,
+  expandPartialsWithRegistry,
+  partialsById,
+  type PartialExpansion,
+} from './core/partials';
+export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
+export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {
   TemplateDescriptorSchema,
   templateDescriptorJsonSchema,

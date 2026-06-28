@@ -47,11 +47,13 @@ vi.mock('@/platform/PlatformBridge', () => {
   return { default: MockPlatformBridge };
 });
 
-// A dependency-free director the tsyringe container can instantiate directly.
+// A dependency-free director the tsyringe container can instantiate directly. Exposes the same
+// `events` emitter the real director publishes progress on, so compile() can subscribe to it.
 vi.mock('@/director/TemplateDirector', () => {
   class MockTemplateDirector {
     config = configFn;
     construct = construct;
+    events = { on: vi.fn(), off: vi.fn() };
   }
 
   return { default: MockTemplateDirector };

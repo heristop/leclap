@@ -19,6 +19,7 @@ import MusicComposer from './editor/MusicComposer';
 import AnimationComposer from './editor/AnimationComposer';
 import Project from './core/models/Project';
 import Template from './core/models/Template';
+import { attachCompilationListeners } from './platform/compilation-listeners';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
 
 class BrowserLogger extends AbstractLogger {
@@ -193,40 +194,6 @@ function prepareDirector(ctx: CompilationContext): TemplateDirector {
   container.registerInstance('segment', new Segment());
 
   return resolveDirector(ctx);
-}
-
-interface CompilationListeners {
-  // Reads any error captured from a `task-stopped` event during compilation.
-  getError: () => unknown;
-  // Removes the listeners from the singleton emitter.
-  detach: () => void;
-}
-
-function attachCompilationListeners(
-  emitter: ReturnType<BrowserEventManager['connect']>,
-  onProgress?: (progress: number) => void
-): CompilationListeners {
-  let compilationError: unknown = null;
-  const onStopped = (err: unknown): void => {
-    compilationError = err;
-  };
-  // Forward the director's per-segment progress (0..1) to the caller so the UI
-  // can animate in real time instead of sitting frozen between coarse stages.
-  const onProgressEvent = (fraction: unknown): void => {
-    onProgress?.(typeof fraction === 'number' ? fraction : 0);
-  };
-  emitter.on('task-stopped', onStopped);
-  emitter.on('compilation-progress', onProgressEvent);
-
-  return {
-    getError: () => compilationError,
-    // The event manager is a singleton; remove our listeners so they don't
-    // accumulate (and double-fire) across successive compilations.
-    detach: () => {
-      emitter.off?.('task-stopped', onStopped);
-      emitter.off?.('compilation-progress', onProgressEvent);
-    },
-  };
 }
 
 async function runCompilation(

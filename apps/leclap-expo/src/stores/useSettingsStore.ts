@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { zustandMmkvStorage } from '@/src/services/mmkv';
 
 /**
  * How the section builder walks the template, matching the web app's two interchangeable shapes:
@@ -27,7 +27,7 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: 'leclap.settings',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => zustandMmkvStorage),
       partialize: (state) => ({ wizardMode: state.wizardMode }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

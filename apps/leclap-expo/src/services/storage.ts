@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from './mmkv';
 import type { Template } from '@/src/types';
 import type { CompileRecordedVideos } from '@/src/services/api';
 
@@ -28,7 +28,7 @@ export interface CompilationQueueItem {
 }
 
 /**
- * Cache templates to AsyncStorage for offline access
+ * Cache templates to local storage (MMKV) for offline access
  */
 export const cacheTemplates = async (templates: Template[]): Promise<void> => {
   try {
@@ -38,8 +38,8 @@ export const cacheTemplates = async (templates: Template[]): Promise<void> => {
     };
 
     await Promise.all([
-      AsyncStorage.setItem(TEMPLATES_CACHE_KEY, JSON.stringify(templates)),
-      AsyncStorage.setItem(TEMPLATES_METADATA_KEY, JSON.stringify(metadata)),
+      appStorage.setItem(TEMPLATES_CACHE_KEY, JSON.stringify(templates)),
+      appStorage.setItem(TEMPLATES_METADATA_KEY, JSON.stringify(metadata)),
     ]);
   } catch (error) {
     console.error('Error caching templates:', error);
@@ -49,11 +49,11 @@ export const cacheTemplates = async (templates: Template[]): Promise<void> => {
 };
 
 /**
- * Get cached templates from AsyncStorage
+ * Get cached templates from local storage (MMKV)
  */
 export const getCachedTemplates = async (): Promise<Template[] | null> => {
   try {
-    const cachedData = await AsyncStorage.getItem(TEMPLATES_CACHE_KEY);
+    const cachedData = await appStorage.getItem(TEMPLATES_CACHE_KEY);
 
     return cachedData ? JSON.parse(cachedData) : null;
   } catch (error) {
@@ -68,7 +68,7 @@ export const getCachedTemplates = async (): Promise<Template[] | null> => {
  */
 export const getTemplatesCacheMetadata = async (): Promise<TemplatesCacheMetadata | null> => {
   try {
-    const metadata = await AsyncStorage.getItem(TEMPLATES_METADATA_KEY);
+    const metadata = await appStorage.getItem(TEMPLATES_METADATA_KEY);
 
     return metadata ? JSON.parse(metadata) : null;
   } catch (error) {
@@ -116,7 +116,7 @@ export const addToCompilationQueue = async (
     const existingQueue = await getCompilationQueue();
     const updatedQueue = [...existingQueue, queueItem];
 
-    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
+    await appStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
 
     return queueItem.id;
   } catch (error) {
@@ -131,7 +131,7 @@ export const addToCompilationQueue = async (
  */
 export const getCompilationQueue = async (): Promise<CompilationQueueItem[]> => {
   try {
-    const queueData = await AsyncStorage.getItem(COMPILATION_QUEUE_KEY);
+    const queueData = await appStorage.getItem(COMPILATION_QUEUE_KEY);
 
     return queueData ? JSON.parse(queueData) : [];
   } catch (error) {
@@ -157,7 +157,7 @@ export const updateCompilationQueueItem = async (
     }
 
     queue[itemIndex] = { ...queue[itemIndex], ...updates };
-    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(queue));
+    await appStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(queue));
   } catch (error) {
     console.error('Error updating compilation queue item:', error);
 
@@ -172,7 +172,7 @@ export const removeFromCompilationQueue = async (itemId: string): Promise<void> 
   try {
     const queue = await getCompilationQueue();
     const updatedQueue = queue.filter((item) => item.id !== itemId);
-    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
+    await appStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(updatedQueue));
   } catch (error) {
     console.error('Error removing from compilation queue:', error);
 
@@ -237,7 +237,7 @@ export const reconcileStuckCompilations = async (maxRetries: number = DEFAULT_MA
       return resetIds;
     }
 
-    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(reconciledQueue));
+    await appStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(reconciledQueue));
 
     return resetIds;
   } catch (error) {
@@ -266,7 +266,7 @@ export const cleanupCompilationQueue = async (): Promise<void> => {
       return true; // Keep non-completed items
     });
 
-    await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(filteredQueue));
+    await appStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(filteredQueue));
   } catch (error) {
     console.error('Error cleaning up compilation queue:', error);
   }

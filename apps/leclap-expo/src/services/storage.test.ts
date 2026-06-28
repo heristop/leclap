@@ -1,44 +1,45 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { reconcileStuckCompilations, getCompilationQueue, type CompilationQueueItem } from './storage';
+import { storage, appStorage } from './mmkv';
 
 // The app's type program uses vitest globals (declarations.d.ts), but this colocated test executes
 // under jest (ts-jest, transpile-only), so the jest runtime value is typed locally — same pattern
 // as CoreCompilationService.test.ts.
-type MockFn = ((...args: never[]) => unknown) & {
-  mock: { calls: unknown[][] };
-};
-
 declare const jest: {
   mock(moduleName: string, factory: () => unknown): void;
-  fn<T extends (...args: never[]) => unknown>(impl?: T): MockFn;
   clearAllMocks(): void;
 };
 
-jest.mock('@react-native-async-storage/async-storage', () => {
-  let store: Record<string, string> = {};
+// MMKV is a native module that can't load under ts-jest/node, so back it with an in-memory store —
+// the same reason the previous AsyncStorage mock existed. `storage`/`appStorage` (from ./mmkv) run
+// against this instance, so the queue helpers under test exercise the real persistence code path.
+jest.mock('react-native-mmkv', () => {
+  class MMKV {
+    private store: Record<string, string> = {};
 
-  return {
-    getItem: jest.fn((key: string) => Promise.resolve(store[key] ?? null)),
-    setItem: jest.fn((key: string, value: string) => {
-      store[key] = value;
+    getString(key: string): string | undefined {
+      return this.store[key];
+    }
 
-      return Promise.resolve();
-    }),
-    removeItem: jest.fn((key: string) => {
-      delete store[key];
+    set(key: string, value: string): void {
+      this.store[key] = value;
+    }
 
-      return Promise.resolve();
-    }),
-    __reset: () => {
-      store = {};
-    },
-  };
+    delete(key: string): void {
+      delete this.store[key];
+    }
+
+    clearAll(): void {
+      this.store = {};
+    }
+  }
+
+  return { MMKV };
 });
 
 const COMPILATION_QUEUE_KEY = 'le_clap_compilation_queue';
 
 const seedQueue = async (items: CompilationQueueItem[]): Promise<void> => {
-  await AsyncStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(items));
+  await appStorage.setItem(COMPILATION_QUEUE_KEY, JSON.stringify(items));
 };
 
 const makeItem = (overrides: Partial<CompilationQueueItem>): CompilationQueueItem => ({
@@ -54,7 +55,7 @@ const makeItem = (overrides: Partial<CompilationQueueItem>): CompilationQueueIte
 
 describe('reconcileStuckCompilations', () => {
   beforeEach(() => {
-    (AsyncStorage as unknown as { __reset: () => void }).__reset();
+    storage.clearAll();
     jest.clearAllMocks();
   });
 

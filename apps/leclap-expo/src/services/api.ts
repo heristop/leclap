@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from './mmkv';
 import type { Project, Orientation } from '@/src/types';
 
-// Local project persistence (AsyncStorage). The app is fully local — there is no compile/template
+// Local project persistence (MMKV). The app is fully local — there is no compile/template
 // server, so this module only stores the user's projects on-device.
 const PROJECTS_STORAGE_KEY = 'le_clap_projects';
 
@@ -22,7 +22,7 @@ export type CompileRecordedVideos = Record<
 /** Saves a project to local storage (insert or replace by id). */
 export const saveProject = async (project: Project): Promise<void> => {
   try {
-    const projectsJson = await AsyncStorage.getItem(PROJECTS_STORAGE_KEY);
+    const projectsJson = await appStorage.getItem(PROJECTS_STORAGE_KEY);
     const projects: Project[] = projectsJson ? JSON.parse(projectsJson) : [];
 
     const existingIndex = projects.findIndex((p) => p.id === project.id);
@@ -35,7 +35,7 @@ export const saveProject = async (project: Project): Promise<void> => {
       projects.push(project);
     }
 
-    await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+    await appStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
   } catch (error) {
     console.error('Error saving project:', error);
 
@@ -46,7 +46,7 @@ export const saveProject = async (project: Project): Promise<void> => {
 /** Gets all projects from local storage. */
 export const getProjects = async (): Promise<Project[]> => {
   try {
-    const projectsJson = await AsyncStorage.getItem(PROJECTS_STORAGE_KEY);
+    const projectsJson = await appStorage.getItem(PROJECTS_STORAGE_KEY);
 
     return projectsJson ? JSON.parse(projectsJson) : [];
   } catch (error) {
@@ -74,7 +74,7 @@ export const deleteProject = async (projectId: string): Promise<void> => {
   try {
     const projects = await getProjects();
     const updatedProjects = projects.filter((p) => p.id !== projectId);
-    await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
+    await appStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
   } catch (error) {
     console.error(`Error deleting project ${projectId}:`, error);
 
@@ -85,7 +85,7 @@ export const deleteProject = async (projectId: string): Promise<void> => {
 /** Deletes all projects from local storage. */
 export const deleteAllProjects = async (): Promise<void> => {
   try {
-    await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([]));
+    await appStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([]));
   } catch (error) {
     console.error('Error deleting all projects:', error);
 

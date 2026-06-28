@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from '@/src/services/mmkv';
 import { Project } from '@/src/domain/entities/Project';
 import type { IProjectRepository } from '@/src/domain/repositories/IProjectRepository';
 
@@ -7,7 +7,7 @@ const PROJECTS_STORAGE_KEY = 'le_clap_projects';
 export class ProjectRepository implements IProjectRepository {
   private async getStoredProjects(): Promise<Project[]> {
     try {
-      const stored = await AsyncStorage.getItem(PROJECTS_STORAGE_KEY);
+      const stored = await appStorage.getItem(PROJECTS_STORAGE_KEY);
 
       if (!stored) return [];
 
@@ -24,7 +24,7 @@ export class ProjectRepository implements IProjectRepository {
   private async storeProjects(projects: Project[]): Promise<void> {
     try {
       const projectsData = projects.map((project) => project.toJSON());
-      await AsyncStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
+      await appStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projectsData));
     } catch (error) {
       console.error('Error storing projects:', error);
 
@@ -78,6 +78,6 @@ export class ProjectRepository implements IProjectRepository {
   }
 
   async deleteAll(): Promise<void> {
-    await AsyncStorage.removeItem(PROJECTS_STORAGE_KEY);
+    await appStorage.removeItem(PROJECTS_STORAGE_KEY);
   }
 }

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { zustandMmkvStorage } from '@/src/services/mmkv';
 import type { Project } from '@/src/types';
 
 interface ProjectStore {
@@ -82,7 +82,7 @@ export const useProjectStore = create<ProjectStore>()(
     }),
     {
       name: 'project-store',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => zustandMmkvStorage),
       partialize: (state) => ({
         projects: state.projects,
         // Don't persist currentProject, isLoading, or hasHydrated

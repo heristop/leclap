@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { zustandMmkvStorage } from '@/src/services/mmkv';
 import type { TemplateDescriptor, Orientation } from '@/src/types';
 
 /** A custom template the user composed in the editor, persisted on-device. */
@@ -82,7 +82,7 @@ export const useUserTemplateStore = create<UserTemplateStore>()(
     }),
     {
       name: 'leclap.user-templates',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => zustandMmkvStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

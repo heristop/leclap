@@ -1,5 +1,5 @@
 import { Asset } from 'expo-asset';
-import { compileHybrid, type HybridResult } from '@/src/services/compile/compileHybrid';
+import { compileOnDevice, type CompileVideoResult } from '@/src/services/compile/compileOnDevice';
 import type { TemplateDescriptor } from '@/src/types';
 import type { CompileRecordedVideos } from '@/src/services/api';
 import { buildDescriptor, type EditorState } from '../model/templateEditorModel';
@@ -8,7 +8,7 @@ import { buildDescriptor, type EditorState } from '../model/templateEditorModel'
 // slot (the Expo twin of the web TestRenderButton), then return the engine result. The caller injects
 // the bundled placeholder module (a static `import` on its side) so this module stays free of binary
 // asset imports — keeping it jest-parseable and testable with a stub.
-export async function previewRender(state: EditorState, placeholderClip: number): Promise<HybridResult> {
+export async function previewRender(state: EditorState, placeholderClip: number): Promise<CompileVideoResult> {
   const descriptor = buildDescriptor(state) as unknown as TemplateDescriptor;
   const asset = await Asset.fromModule(placeholderClip).downloadAsync();
   const path = asset.localUri ?? asset.uri;
@@ -21,5 +21,5 @@ export async function previewRender(state: EditorState, placeholderClip: number)
     }
   }
 
-  return compileHybrid(descriptor, recordedVideos);
+  return compileOnDevice(descriptor, recordedVideos);
 }

@@ -15,6 +15,7 @@ import {
 import { I18nextProvider } from 'react-i18next';
 import { QueryProvider } from '@/src/providers/QueryProvider';
 import { OfflineProvider } from '@/src/providers/OfflineProvider';
+import { CompileProgressOverlay } from '@/src/components/compile/CompileProgressOverlay';
 import AnimatedSplashScreen from '@/src/components/SplashScreen';
 import i18n from '@/src/i18n';
 import config from '../tamagui.config';
@@ -72,6 +73,8 @@ export default function RootLayout() {
               <Stack.Screen name="(fullscreen)" />
               <Stack.Screen name="+not-found" />
             </Stack>
+            {/* Global on-device compile experience — overlays any screen while a render is in flight. */}
+            <CompileProgressOverlay />
           </OfflineProvider>
         </QueryProvider>
       </I18nextProvider>

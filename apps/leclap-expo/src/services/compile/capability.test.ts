@@ -6,7 +6,7 @@ const oneClip: CompileRecordedVideos = { video_1: { path: '/clip.mp4', orientati
 
 // The reused core turns the descriptor into the SAME ffmpeg commands on Node, web and on-device, so
 // capability is fully permissive — including animation `maps[]`, now single-file overlays (the old
-// ZIP-frame unzip that routed them away is gone). compileHybrid surfaces any real on-device error.
+// ZIP-frame unzip that routed them away is gone). compileOnDevice surfaces any real on-device error.
 describe('describeOnDeviceCapability', () => {
   it('allows a single project_video clip', () => {
     const d: TemplateDescriptor = { sections: [{ name: 'video_1', type: 'project_video' }] };

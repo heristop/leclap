@@ -13,7 +13,7 @@ export interface Capability {
  * core supports: multi-section concat, color/title cards, drawtext, multiple clips, music, and
  * animation `maps[]` — now single-file APNG/WebM overlays composited through the shared filtergraph
  * (the old ZIP-frame path that needed unzip is gone). So capability is fully permissive; the gate
- * stays as a hook for any genuine future on-device limitation, and `compileHybrid` surfaces a real
+ * stays as a hook for any genuine future on-device limitation, and `compileOnDevice` surfaces a real
  * engine error rather than pre-emptively refusing a template the core can render.
  */
 export function describeOnDeviceCapability(

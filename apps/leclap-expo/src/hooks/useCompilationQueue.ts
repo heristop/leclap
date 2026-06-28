@@ -9,7 +9,8 @@ import {
   reconcileStuckCompilations,
 } from '@/src/services/storage';
 import { type CompileRecordedVideos } from '@/src/services/api';
-import { compileHybrid } from '@/src/services/compile/compileHybrid';
+import { compileOnDevice } from '@/src/services/compile/compileOnDevice';
+import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 import { isFFmpegAvailable } from '@/src/services/compile/ffmpegAvailability';
 import { hasInternetConnection, waitForConnection } from '@/src/services/network';
 import type { MediaChoices } from '@/src/types';
@@ -33,7 +34,7 @@ async function processQueueItem(item: PendingItem, maxRetries: number): Promise<
       lastRetryAt: new Date().toISOString(),
     });
 
-    const result = await compileHybrid(item.templateDescriptor, item.recordedVideos);
+    const result = await compileOnDevice(item.templateDescriptor, item.recordedVideos);
 
     if (result.success) {
       await updateCompilationQueueItem(item.id, {
@@ -137,10 +138,23 @@ export const useQueueVideoCompilation = () => {
       mediaChoices?: MediaChoices;
     }) => {
       // The app is fully local: the video renders on the phone right now and is never queued. Surface
-      // success or failure inline (the caller shows the result or the error).
-      const result = await compileHybrid(templateDescriptor, recordedVideos, { mediaChoices });
+      // success or failure inline (the caller shows the result or the error). Drive the global progress
+      // overlay from the engine's live `compilation-progress` events.
+      const progress = useCompileProgressStore.getState();
+      progress.start();
 
-      return { immediate: true, result };
+      try {
+        const result = await compileOnDevice(templateDescriptor, recordedVideos, {
+          mediaChoices,
+          onProgress: ({ ratio, stage }) => {
+            useCompileProgressStore.getState().update(ratio, stage);
+          },
+        });
+
+        return { immediate: true, result };
+      } finally {
+        progress.finish();
+      }
     },
     onSuccess: () => {
       invalidateQueueKeys(queryClient);
@@ -201,7 +215,7 @@ export const useRetryQueueItem = () => {
       });
 
       try {
-        const result = await compileHybrid(item.templateDescriptor, item.recordedVideos);
+        const result = await compileOnDevice(item.templateDescriptor, item.recordedVideos);
 
         if (result.success) {
           await updateCompilationQueueItem(itemId, {

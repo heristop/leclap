@@ -16,7 +16,7 @@ import type { Template, Section, Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { findInCatalog } from '@/src/templates/catalog';
 import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
-import { compileHybrid } from '@/src/services/compile/compileHybrid';
+import { compileOnDevice } from '@/src/services/compile/compileOnDevice';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useRouter } from 'expo-router';
 import { ExportSheet } from '../components/ExportSheet';
@@ -328,7 +328,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
     if (!currentProject || !template) return;
     setIsCompiling(true);
     const doCompile = async () => {
-      const result = await compileHybrid(
+      const result = await compileOnDevice(
         applyFormData(template.content, currentProject.formData),
         currentProject.recordedVideos
       );

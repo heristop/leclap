@@ -1,5 +1,5 @@
 import { previewRender } from './previewRender';
-import { compileHybrid } from '@/src/services/compile/compileHybrid';
+import { compileOnDevice } from '@/src/services/compile/compileOnDevice';
 import { newSection, toEditorState } from '../model/templateEditorModel';
 
 // Runs under jest (ts-jest), but the app's type program uses vitest globals, so the jest runtime
@@ -20,11 +20,11 @@ jest.mock('expo-asset', () => ({
   },
 }));
 
-jest.mock('@/src/services/compile/compileHybrid', () => ({ compileHybrid: jest.fn() }));
+jest.mock('@/src/services/compile/compileOnDevice', () => ({ compileOnDevice: jest.fn() }));
 
 describe('previewRender', () => {
   it('fills every project_video section with the placeholder clip, then compiles on-device', async () => {
-    const mockedCompile = compileHybrid as unknown as MockFn;
+    const mockedCompile = compileOnDevice as unknown as MockFn;
     mockedCompile.mockResolvedValue({ success: true, outputUri: 'file:///out.mp4' });
 
     const state = { ...toEditorState(null), name: 'Draft', sections: [newSection('video')] };

@@ -1,6 +1,6 @@
 {
   "name": "@leclap/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "LeClap CLI — compile videos from JSON templates with ffmpeg-video-composer",
   "author": "heristop",
   "license": "MIT",

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-29
+
+### Added
+
+- `compile()` accepts an optional `CompileReporter` (`onProgress(fraction)` +
+  `onLog(line)`) for live compilation progress and forwarded engine logs; the
+  Node and browser entries share the same listener wiring.
+- Partial-expansion mechanism and font registry now ship in the engine
+  (`findFont`, `expandPartials`/`expandPartialsSafe`, exported from the entry),
+  with a `TemplatePartialSchema` and an optional `partials` field on the root
+  descriptor schema. Partials travel with the descriptor (`descriptor.partials`).
+- Asset-source helpers (`assetBaseUrl`/`fontAssetUrl`/`musicAssetUrl`/
+  `catalogAssetUrl`) resolving catalog media to the public repository.
+
+### Changed
+
+- Fonts and music are no longer bundled in the package — `dist/fonts` and
+  `dist/musics` (~106 MB) are gone, dropping the install size to ~1 MB. Catalog
+  fonts (by registry id), tracks referenced by name, and catalog media
+  (`videos/…`, `pictures/…`) are fetched on demand from the public LeClap
+  repository; the base URL is overridable via `FVC_ASSET_BASE_URL`. Standard font
+  families still fall back to Google Fonts, and an explicit music `url` is used
+  as-is.
+- The package no longer depends on the private `@leclap/creative-kit`; a catalog
+  supplies its shared partials by merging them into `descriptor.partials` before
+  compiling.
+
+### Fixed
+
+- Generated type declarations: the `TextEffect` type is no longer emitted as a
+  dangling `TextEffect$1` alias, so `dist/index.d.ts` typechecks cleanly for
+  consumers (previously `error TS2552`).
+
+### Removed
+
+- Dropped unused `boxen`, `cli-spinners`, `figlet`, `gradient-string`, and
+  `pino-pretty` dependencies (CLI cosmetics that moved to `@leclap/cli`).
+
 ## [2.0.0] - 2026-06-27
 
 Stable release of the 2.0.0 line (consolidates the `2.0.0-beta.*` prereleases).

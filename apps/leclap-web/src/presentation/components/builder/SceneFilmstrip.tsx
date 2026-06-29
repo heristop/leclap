@@ -63,6 +63,7 @@ const Cell = ({
     <SceneCell
       index={index}
       role="tab"
+      compact
       title={title}
       eyebrow={t(labelKey)}
       icon={Icon}

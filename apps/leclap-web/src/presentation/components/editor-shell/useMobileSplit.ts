@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 const STORAGE_KEY = 'leclap.studio.splitPx';
 const MIN_MONITOR = 160; // px — the preview never collapses below this
 const MIN_REST = 240; // px — keep room for the panel + timeline + dock below the divider
-const DEFAULT_VH = 48; // initial monitor height before the user drags
+const DEFAULT_VH = 38; // initial monitor height before the user drags — leaves more room for the panel below
 
 const readStored = (): number | null => {
   try {

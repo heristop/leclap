@@ -39,13 +39,21 @@ const DEFAULT_FORM: Record<string, string> = {
   optionB3: 'Dogs',
 };
 
+type CompileResult = { ok: boolean; size: number; error?: string };
+
+// App modules live OUTSIDE this Playwright spec — they're loaded in-page from the running Vite dev
+// server by their server-absolute URL. Routing the path through a variable keeps it a runtime value
+// (not a static import the bundler/linter would try to resolve from the spec's own directory).
+const SERVICE = '/src/services/templateService.ts';
+const COMPILE = '/src/application/usecases/coreCompilationService.ts';
+
 async function listTemplateIds(page: Page): Promise<string[]> {
-  return page.evaluate(async () => {
-    const { templateService } = await import('/src/services/templateService.ts');
+  return page.evaluate(async (servicePath) => {
+    const { templateService } = await import(/* @vite-ignore */ servicePath);
     const templates = await templateService.getAllTemplates();
 
     return templates.map((t: { id: string }) => t.id);
-  });
+  }, SERVICE);
 }
 
 async function compileTemplate(
@@ -53,69 +61,77 @@ async function compileTemplate(
   id: string,
   formData: Record<string, string>,
   sampleVideo: string
-): Promise<{ ok: boolean; size: number; error?: string }> {
-  return page.evaluate(
-    async ({ id, formData, sampleVideo }) => {
-      const { templateService } = await import('/src/services/templateService.ts');
-      const { coreCompilationService } = await import('/src/application/usecases/coreCompilationService.ts');
-      const resp = await fetch(sampleVideo);
-      const buf = await resp.arrayBuffer();
-      const withTimeout = <T>(p: Promise<T>, ms: number) =>
-        Promise.race([p, new Promise<never>((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), ms))]);
-      try {
-        const template = await templateService.getTemplate(id);
-        // One clip per project_video section — multi-clip templates need a clip for each.
-        const clipCount = Math.max(
-          1,
-          (template.descriptor.sections ?? []).filter((s: { type?: string }) => s.type === 'project_video').length
-        );
-        const files = Array.from({ length: clipCount }, () => new File([buf], 'earth.mp4', { type: 'video/mp4' }));
-        const result = await withTimeout(
-          coreCompilationService.compileVideo({ template, formData, files }, () => {}),
-          300000
-        );
+): Promise<CompileResult> {
+  return page.evaluate(runCompileInPage, { id, formData, sampleVideo, servicePath: SERVICE, compilePath: COMPILE });
+}
 
-        return { ok: true, size: result.size };
-      } catch (e) {
-        return { ok: false, size: 0, error: String((e as Error)?.message ?? e) };
-      }
-    },
-    { id, formData, sampleVideo }
-  );
+// Serialized into the page: loads the app's services, builds one clip per project_video section, and
+// compiles the template through the real WASM pipeline (capped by a timeout). Kept flat (no deep
+// callback nesting) and self-contained so Playwright can stringify it.
+async function runCompileInPage(args: {
+  id: string;
+  formData: Record<string, string>;
+  sampleVideo: string;
+  servicePath: string;
+  compilePath: string;
+}): Promise<CompileResult> {
+  const { templateService } = await import(/* @vite-ignore */ args.servicePath);
+  const { coreCompilationService } = await import(/* @vite-ignore */ args.compilePath);
+  const buf = await (await fetch(args.sampleVideo)).arrayBuffer();
+  // setTimeout's 3rd arg is passed to the callback, so reject(err) needs no inner closure.
+  const timeout = new Promise<never>((_, reject) => setTimeout(reject, 300_000, new Error('TIMEOUT')));
+
+  try {
+    const template = await templateService.getTemplate(args.id);
+    const sections = (template.descriptor.sections ?? []) as Array<{ type?: string }>;
+    const clipCount = Math.max(1, sections.filter((s) => s.type === 'project_video').length);
+    const files: File[] = [];
+
+    for (let i = 0; i < clipCount; i += 1) files.push(new File([buf], 'earth.mp4', { type: 'video/mp4' }));
+
+    const noop = () => {};
+    const compiled = coreCompilationService.compileVideo({ template, formData: args.formData, files }, noop);
+    const result = await Promise.race([compiled, timeout]);
+
+    return { ok: true, size: result.size };
+  } catch (e) {
+    return { ok: false, size: 0, error: String((e as Error)?.message ?? e) };
+  }
+}
+
+// Compile every template against one fixture, logging each result; returns id→outcome.
+async function compileAll(page: Page, label: string, video: string): Promise<Record<string, CompileResult>> {
+  await page.goto('/studio');
+
+  const ids = await listTemplateIds(page);
+  expect(ids.length).toBeGreaterThan(0);
+
+  const results: Record<string, CompileResult> = {};
+
+  for (const id of ids) {
+    // Reload between templates to reset the in-memory template cache + FS.
+    await page.goto('/studio');
+
+    const r = await compileTemplate(page, id, DEFAULT_FORM, video);
+    results[id] = r;
+    console.log(`[${label}] ${r.ok ? 'PASS' : 'FAIL'} ${id}` + (r.ok ? ` (${r.size} bytes)` : ` — ${r.error}`));
+  }
+
+  return results;
 }
 
 test.describe('All templates compile in FFmpeg WASM', () => {
   for (const fixture of FIXTURES) {
     test(`every template produces a non-empty MP4 (${fixture.label})`, async ({ page }) => {
       test.setTimeout(20 * 60 * 1000);
-      await page.goto('/studio');
 
-      const ids = await listTemplateIds(page);
-      expect(ids.length).toBeGreaterThan(0);
+      const results = await compileAll(page, fixture.label, fixture.video);
+      const entries = Object.entries(results);
+      const failed = entries.filter(([, r]) => !r.ok);
+      const detail = failed.map(([id, r]) => `${id} (${r.error})`).join('; ');
 
-      const results: Record<string, { ok: boolean; size: number; error?: string }> = {};
-
-      for (const id of ids) {
-        // Reload between templates to reset the in-memory template cache + FS.
-        await page.goto('/studio');
-        results[id] = await compileTemplate(page, id, DEFAULT_FORM, fixture.video);
-        console.log(
-          `[${fixture.label}] ${results[id].ok ? 'PASS' : 'FAIL'} ${id}` +
-            (results[id].ok ? ` (${results[id].size} bytes)` : ` — ${results[id].error}`)
-        );
-      }
-
-      const failed = Object.entries(results).filter(([, r]) => !r.ok);
-      expect(
-        failed,
-        `[${fixture.label}] templates that failed to compile in WASM: ${failed
-          .map(([id, r]) => `${id} (${r.error})`)
-          .join('; ')}`
-      ).toEqual([]);
-
-      for (const [, r] of Object.entries(results)) {
-        expect(r.size).toBeGreaterThan(1000);
-      }
+      expect(failed, `[${fixture.label}] templates that failed to compile in WASM: ${detail}`).toEqual([]);
+      expect(entries.every(([, r]) => r.size > 1000)).toBe(true);
     });
   }
 });

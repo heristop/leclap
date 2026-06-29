@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty';
 import fs from 'node:fs/promises';
-import { writeFileSync, statSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
 import {
@@ -10,113 +10,186 @@ import {
   FFmpegAvailability,
   type CompileReporter,
   type ProjectConfig,
-  type TemplateDescriptor,
 } from 'ffmpeg-video-composer';
-import { resolveAssetsDir } from '../resolveAssetsDir.js';
 import { setEngineLogLevel } from '../log.js';
 import { LiveRenderer } from '../render-progress.js';
-import { success, fail, hint, step } from '../ui.js';
+import { buildProjectConfig, type RenderFlags } from '../render-args.js';
+import { summaryLine, safeSize } from '../render-format.js';
+import { watchPaths } from '../watch.js';
+import { fail, hint, step } from '../ui.js';
 import { wordmark, statusRow, ok, bad, dot } from '../theme.js';
 
-function buildProjectConfig(cwd: string): ProjectConfig & { buildDir: string } {
-  const buildDir = path.resolve(cwd, 'build');
-  const assetsDir = resolveAssetsDir(cwd);
-
-  return { buildDir, assetsDir, fields: {} };
+// Everything a render pass needs, assembled once from the CLI flags.
+interface RenderOptions {
+  templatePath: string;
+  projectConfig: ProjectConfig & { buildDir: string };
+  outputAbs?: string;
+  quiet: boolean;
+  json: boolean;
+  verbose: boolean;
+  watch: boolean;
 }
 
-async function validateAndLoadTemplate(templatePath: string): Promise<TemplateDescriptor> {
+// citty hands a repeatable string flag back as a single string, an array, or undefined — normalize to
+// a string[] without stringifying non-strings (avoids `[object Object]` surprises).
+function toList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string');
+
+  if (typeof value === 'string') return [value];
+
+  return [];
+}
+
+async function ensureTemplateExists(templatePath: string): Promise<void> {
   try {
     await fs.access(templatePath);
   } catch {
     console.error(fail(`Template not found: ${pc.bold(templatePath)}`));
     process.exit(1);
   }
-
-  return loadConfig(templatePath);
 }
 
-function reportError(error: unknown): never {
-  const err = error instanceof Error ? error : new Error(String(error));
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message.trim();
 
-  console.error(`\n${fail(err.message.trim())}`);
+  if (typeof error === 'string') return error.trim();
 
-  if (err.message.includes('FFmpeg') || err.message.includes('ffmpeg')) {
+  return JSON.stringify(error);
+}
+
+function printErrorHints(message: string): void {
+  console.error(`\n${fail(message)}`);
+
+  if (message.includes('FFmpeg') || message.includes('ffmpeg')) {
     console.error(hint('  try'));
     console.error(step('leclap diagnose'));
     console.error(step('npm i ffmpeg-static  (bundled fallback)'));
     console.error(step('macOS: brew install ffmpeg  ·  Linux: sudo apt install ffmpeg'));
   }
-
-  process.exit(1);
 }
 
-// Human-readable byte size, e.g. 1.4 MB. Best-effort; a stat failure yields an empty string so the
-// summary still renders.
-function prettySize(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let value = bytes;
-  let unit = 0;
+// Copy the engine's `build/output.mp4` to the user's `--output` path (engine output naming is fixed;
+// per-render placement is the CLI's concern). Returns the path the summary should report.
+async function finalizeOutput(result: string, outputAbs: string | undefined): Promise<string> {
+  if (!outputAbs) return result;
 
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
+  await fs.mkdir(path.dirname(outputAbs), { recursive: true });
+  await fs.copyFile(result, outputAbs);
 
-  return `${value >= 10 || unit === 0 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
+  return outputAbs;
 }
 
-// The one-line render result: a cwd-relative output path (the absolute path is long and noisy) with the
-// file size and elapsed time as a dim trailing aside.
-function summaryLine(outputPath: string, startedAt: number, cwd: string): string {
-  const seconds = ((Date.now() - startedAt) / 1000).toFixed(1);
-  const rel = path.relative(cwd, outputPath) || outputPath;
+// Re-load the template (so watch picks up edits), compile, and place the output. Throws on failure.
+async function compileOnce(opts: RenderOptions, reporter?: CompileReporter): Promise<string> {
+  const template = await loadConfig(opts.templatePath);
+  const result = await compile(opts.projectConfig, template, reporter);
 
-  let size = '';
+  if (!result) throw new Error('Compilation failed to produce output');
 
-  try {
-    size = `${prettySize(statSync(outputPath).size)}  ${dot}  `;
-  } catch {
-    // Stat is decorative; omit the size if the file can't be measured.
-  }
-
-  return success(`Rendered ${pc.dim('→')} ${pc.bold(rel)}  ${pc.dim(`${size}${seconds}s`)}`);
+  return finalizeOutput(result, opts.outputAbs);
 }
 
 export const render = defineCommand({
   meta: { name: 'render', description: 'Compile a video from a template JSON' },
   args: {
     template: { type: 'positional', description: 'Path to a template JSON file', required: true },
+    output: { type: 'string', alias: 'o', description: 'Copy the rendered video to this path' },
+    field: { type: 'string', description: 'Set a template variable: --field key=value (repeatable)' },
+    video: { type: 'string', description: 'Map a project_video section to a file: --video section=path (repeatable)' },
+    locale: { type: 'string', description: 'Locale for translated text (e.g. en, fr)' },
+    orientation: { type: 'string', description: 'Override orientation: landscape | portrait | square' },
+    assets: { type: 'string', description: 'Assets directory (default ./assets)' },
+    build: { type: 'string', description: 'Build/output directory (default ./build)' },
+    watch: { type: 'boolean', description: 'Re-render when the template or its assets change', default: false },
+    quiet: { type: 'boolean', alias: 'q', description: 'Print only the final result', default: false },
+    json: { type: 'boolean', description: 'Emit a machine-readable JSON result', default: false },
     verbose: { type: 'boolean', description: 'Stream the underlying engine logs', default: false },
   },
   async run({ args }) {
-    // --verbose streams the engine's own logs straight to stdout (no capture, no live region).
-    // Otherwise the CLI owns the terminal: the engine stays silent on stdout and we tee its logs into a
-    // file + a live progress region via the reporter.
-    setEngineLogLevel(args.verbose ? 'info' : 'silent');
-    // Take the terminal from the engine: it would otherwise print its own (mis-ordered) welcome banner
-    // and detection rows during compile(). We render a single branded header here instead.
+    const json = args.json;
+    const quiet = args.quiet || json;
+    const verbose = args.verbose && !json;
+
+    // --verbose streams the engine's own logs to stdout; otherwise the CLI owns the terminal (engine
+    // silent, logs teed to a file + live region). JSON mode is always silent.
+    setEngineLogLevel(verbose ? 'info' : 'silent');
     process.env.LECLAP_CLI_UI = '1';
 
-    const template = await validateAndLoadTemplate(args.template);
-    const projectConfig = buildProjectConfig(process.cwd());
-    await fs.mkdir(projectConfig.buildDir, { recursive: true });
+    await ensureTemplateExists(args.template);
 
-    await printHeader(projectConfig, process.cwd());
+    const flags: RenderFlags = {
+      field: toList(args.field),
+      video: toList(args.video),
+      locale: args.locale,
+      orientation: args.orientation,
+      assets: args.assets,
+      build: args.build,
+    };
 
-    if (args.verbose) {
-      await renderVerbose(projectConfig, template, args.template);
+    const opts = buildOptions(args.template, flags, { quiet, json, verbose, watch: args.watch, output: args.output });
 
-      return;
-    }
+    await fs.mkdir(opts.projectConfig.buildDir, { recursive: true });
 
-    await renderWithReporter(projectConfig, template, args.template);
+    await dispatch(opts);
   },
 });
 
+interface ModeFlags {
+  quiet: boolean;
+  json: boolean;
+  verbose: boolean;
+  watch: boolean;
+  output?: string;
+}
+
+// Assemble RenderOptions; surfaces a bad `--field`/`--video` value as a clean error + exit.
+function buildOptions(templatePath: string, flags: RenderFlags, mode: ModeFlags): RenderOptions {
+  try {
+    return {
+      templatePath,
+      projectConfig: buildProjectConfig(process.cwd(), flags),
+      outputAbs: mode.output ? path.resolve(process.cwd(), mode.output) : undefined,
+      quiet: mode.quiet,
+      json: mode.json,
+      verbose: mode.verbose,
+      watch: mode.watch,
+    };
+  } catch (error) {
+    console.error(fail(errorMessage(error)));
+
+    return process.exit(1);
+  }
+}
+
+async function dispatch(opts: RenderOptions): Promise<void> {
+  if (opts.json) {
+    await renderJson(opts);
+
+    return;
+  }
+
+  if (!opts.quiet) {
+    await printHeader(opts.projectConfig, process.cwd());
+  }
+
+  // --watch ignores non-interactive sessions (nothing to repaint); fall through to a single render.
+  if (opts.watch && process.stdout.isTTY) {
+    await renderWatch(opts);
+
+    return;
+  }
+
+  if (opts.verbose) {
+    await renderVerbose(opts);
+
+    return;
+  }
+
+  await renderWithReporter(opts);
+}
+
 // The branded header: the LeClap wordmark over an aligned status block (which ffmpeg backs the render,
-// and where its assets come from). Detection is best-effort — a failure here is surfaced properly by
-// compile() below, so we never block the render on it.
+// and where its assets come from). Detection is best-effort — a real failure is surfaced by compile().
 async function printHeader(projectConfig: ProjectConfig & { buildDir: string }, cwd: string): Promise<void> {
   process.stdout.write(wordmark());
 
@@ -142,42 +215,49 @@ function prettyAssets(dir: string | undefined, cwd: string): string {
   return rel === '' ? '.' : rel;
 }
 
-async function renderVerbose(
-  projectConfig: ProjectConfig & { buildDir: string },
-  template: TemplateDescriptor,
-  templatePath: string
-): Promise<void> {
-  console.log(`Rendering ${pc.bold(path.basename(templatePath))}…`);
+// JSON mode: one machine-readable object, no colour/progress. Exit 1 on failure.
+async function renderJson(opts: RenderOptions): Promise<void> {
   const startedAt = Date.now();
 
   try {
-    const result = await compile(projectConfig, template);
-
-    if (!result) throw new Error('Compilation failed to produce output');
-    console.log(summaryLine(result, startedAt, process.cwd()));
+    const output = await compileOnce(opts);
+    const result = { ok: true, output, bytes: safeSize(output), durationMs: Date.now() - startedAt };
+    process.stdout.write(`${JSON.stringify(result)}\n`);
   } catch (error) {
-    reportError(error);
+    process.stdout.write(`${JSON.stringify({ ok: false, error: errorMessage(error) })}\n`);
+    process.exit(1);
   }
 }
 
-async function renderWithReporter(
-  projectConfig: ProjectConfig & { buildDir: string },
-  template: TemplateDescriptor,
-  templatePath: string
-): Promise<void> {
-  const label = `Rendering ${pc.bold(path.basename(templatePath))}…`;
-  const logPath = path.join(projectConfig.buildDir, 'render.log');
-  const logRel = path.relative(process.cwd(), logPath);
-  const interactive = process.stdout.isTTY;
+async function renderVerbose(opts: RenderOptions): Promise<void> {
+  console.log(`Rendering ${pc.bold(path.basename(opts.templatePath))}…`);
+  const startedAt = Date.now();
 
+  try {
+    const output = await compileOnce(opts);
+    console.log(summaryLine(output, startedAt, process.cwd(), Date.now()));
+  } catch (error) {
+    printErrorHints(errorMessage(error));
+    process.exit(1);
+  }
+}
+
+interface ReporterBundle {
+  reporter: CompileReporter;
+  flushLog: () => void;
+  logRel: string;
+}
+
+// Build the log-teeing reporter + live region for a non-verbose render.
+function makeReporter(opts: RenderOptions, live: LiveRenderer | null): ReporterBundle {
+  const logPath = path.join(opts.projectConfig.buildDir, 'render.log');
   const logLines: string[] = [];
-  const live = interactive ? new LiveRenderer(label) : null;
 
   const reporter: CompileReporter = {
     onProgress: (fraction) => live?.update(fraction),
     onLog: ({ level, message }) => {
       logLines.push(`${level.padEnd(5)} ${message}`);
-      // The live tail shows meaningful steps; debug (ffmpeg command dumps) goes to the file only.
+
       if (level !== 'debug') live?.pushLog(message);
     },
   };
@@ -190,55 +270,101 @@ async function renderWithReporter(
     }
   };
 
-  if (live) live.start();
-
-  if (!live) console.log(label);
-
-  await executeRender({ projectConfig, template, reporter, flushLog, live, logRel });
+  return { reporter, flushLog, logRel: path.relative(process.cwd(), logPath) };
 }
 
-interface RenderExecution {
-  projectConfig: ProjectConfig & { buildDir: string };
-  template: TemplateDescriptor;
-  reporter: CompileReporter;
-  flushLog: () => void;
-  live: LiveRenderer | null;
-  logRel: string;
-}
-
-// Run the compile and render its outcome (live finish or plain log lines), always flushing the log
-// file first.
-async function executeRender({
-  projectConfig,
-  template,
-  reporter,
-  flushLog,
-  live,
-  logRel,
-}: RenderExecution): Promise<void> {
+async function renderWithReporter(opts: RenderOptions): Promise<void> {
+  const label = `Rendering ${pc.bold(path.basename(opts.templatePath))}…`;
+  const live = process.stdout.isTTY && !opts.quiet ? new LiveRenderer(label) : null;
+  const { reporter, flushLog, logRel } = makeReporter(opts, live);
   const startedAt = Date.now();
 
+  if (live) live.start();
+
+  if (!live && !opts.quiet) console.log(label);
+
   try {
-    const result = await compile(projectConfig, template, reporter);
-
-    if (!result) throw new Error('Compilation failed to produce output');
-
+    const output = await compileOnce(opts, reporter);
     flushLog();
-    const summary = summaryLine(result, startedAt, process.cwd());
-    const hintLine = hint(`  full log → ${logRel}`);
+    finishSuccess(output, startedAt, live, opts.quiet ? null : logRel);
+  } catch (error) {
+    flushLog();
+    live?.finishError();
 
-    if (live) {
-      live.finishSuccess(`${summary}\n${hintLine}`);
+    if (!opts.quiet) console.error(hint(`  full log → ${logRel}`));
+
+    printErrorHints(errorMessage(error));
+    process.exit(1);
+  }
+}
+
+// Print the success summary, optionally with the log-path hint, via the live region when present.
+function finishSuccess(output: string, startedAt: number, live: LiveRenderer | null, logRel: string | null): void {
+  const summary = summaryLine(output, startedAt, process.cwd(), Date.now());
+  const block = logRel ? `${summary}\n${hint(`  full log → ${logRel}`)}` : summary;
+
+  if (live) {
+    live.finishSuccess(block);
+
+    return;
+  }
+
+  console.log(block);
+}
+
+// --watch: render once, then re-render on template/asset changes until Ctrl-C. A failed pass is
+// reported but never exits, so the loop survives typos while you edit.
+async function renderWatch(opts: RenderOptions): Promise<void> {
+  let busy = false;
+  let queued = false;
+
+  const pass = async (): Promise<void> => {
+    if (busy) {
+      queued = true;
 
       return;
     }
 
-    console.log(summary);
-    console.log(hintLine);
+    busy = true;
+
+    try {
+      await watchPass(opts);
+    } finally {
+      busy = false;
+
+      if (queued) {
+        queued = false;
+        pass().catch(() => {});
+      }
+    }
+  };
+
+  await pass();
+
+  const targets = [opts.templatePath, opts.projectConfig.assetsDir].filter((p): p is string => Boolean(p));
+  watchPaths(targets, () => {
+    pass().catch(() => {});
+  });
+
+  console.log(hint(`  watching ${pc.bold(path.basename(opts.templatePath))} + assets — ctrl-c to stop`));
+}
+
+// A single watch render: live region, but errors are printed and swallowed (the watcher keeps running).
+async function watchPass(opts: RenderOptions): Promise<void> {
+  const label = `Rendering ${pc.bold(path.basename(opts.templatePath))}…`;
+  const live = process.stdout.isTTY ? new LiveRenderer(label) : null;
+  const { reporter, flushLog } = makeReporter(opts, live);
+  const startedAt = Date.now();
+
+  if (live) live.start();
+
+  try {
+    const output = await compileOnce(opts, reporter);
+    flushLog();
+    finishSuccess(output, startedAt, live, null);
   } catch (error) {
     flushLog();
     live?.finishError();
-    console.error(hint(`  full log → ${logRel}`));
-    reportError(error);
+    console.error(fail(errorMessage(error)));
   }
 }

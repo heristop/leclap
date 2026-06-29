@@ -9,12 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `leclap validate <template.json>` — validates a template against the engine schema
+  and semantic rules without rendering; path-pointed errors, exit 1 on failure,
+  `--json` for a machine-readable result.
+- `leclap render` input flags: `-o, --output` (copy the result to a path), repeatable
+  `--field key=value` (template variables / form fields) and `--video section=path`
+  (project_video inputs), `--locale`, `--orientation`, and `--assets` / `--build`
+  directory overrides. Previously only fully-static templates could be rendered.
+- `leclap render --watch` re-renders on template/asset changes until Ctrl-C; a failed
+  pass is reported but never stops the watcher.
+- `leclap render --json` (machine-readable `{ ok, output, bytes, durationMs }`) and
+  `-q, --quiet` (final summary only) for CI/scripting.
 - Live render progress: an in-place region with a spinner, progress bar, percent,
   elapsed time, and a streaming tail of the latest engine/ffmpeg log lines
   (driven by the engine's new `CompileReporter`); collapses to a one-line summary
   on success and leaves the failing context on screen on error.
-- A cohesive "marquee / clapperboard" terminal theme (single warm amber accent;
-  status colour reserved for meaning).
+- A cohesive "marquee / clapperboard" terminal theme, with the wordmark title in a
+  lavender → pink gradient mirroring the web `brand-gradient` (per-glyph on truecolor
+  terminals, single-hue fallback elsewhere); status colour reserved for meaning.
 
 ### Changed
 

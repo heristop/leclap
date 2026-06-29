@@ -154,7 +154,8 @@ function mcpConfig(projectDir: string, remotion: boolean) {
 // accent bar, and a fading tagline. The MCP renders composition "Intro" to a clip via render_remotion_clip.
 function remotionFiles(projectName: string): Record<string, string> {
   // A single-quoted TS string literal, to match the generated files' quote style.
-  const wm = `'${projectName.replace(/\\/g, String.raw`\\`).replace(/'/g, String.raw`\'`)}'`;
+  const escaped = projectName.replaceAll('\\', String.raw`\\`).replaceAll("'", String.raw`\'`);
+  const wm = `'${escaped}'`;
   const intro = `import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 
 const BG = '#0d1b2a';
@@ -225,21 +226,21 @@ function readme(projectName: string, opts: StarterOptions): string {
   const install = INSTALL_CMD[pm];
   const run = RUN_CMD[pm];
 
+  const mcpRunNote = opts.remotion
+    ? ` For an animated intro, the agent calls \`render_remotion_clip { compositionId: "Intro" }\`
+(rendered from \`remotion/\`) and passes the clip to \`compose_video\` via \`userVideoPaths.intro\`.
+
+Run \`${install}\` first: with Remotion the MCP runs from the **local** install so it can resolve your
+\`@remotion/*\` and render \`remotion/\`.`
+    : ` The MCP runs zero-install via \`npx\` — no \`${install}\` needed for it.`;
+
   const mcpSection = opts.mcp
     ? `
 
 ## Author with an AI agent (MCP)
 
 This project ships an \`.mcp.json\` wiring [\`@leclap/mcp\`](https://github.com/heristop/leclap).
-Point your agent client (Claude Code, Cursor, …) at it, then ask the agent to author and \`compose_video\`.${
-        opts.remotion
-          ? ` For an animated intro, the agent calls \`render_remotion_clip { compositionId: "Intro" }\`
-(rendered from \`remotion/\`) and passes the clip to \`compose_video\` via \`userVideoPaths.intro\`.
-
-Run \`${install}\` first: with Remotion the MCP runs from the **local** install so it can resolve your
-\`@remotion/*\` and render \`remotion/\`.`
-          : ` The MCP runs zero-install via \`npx\` — no \`${install}\` needed for it.`
-      }
+Point your agent client (Claude Code, Cursor, …) at it, then ask the agent to author and \`compose_video\`.${mcpRunNote}
 
 > The \`.mcp.json\` env paths are absolute (this machine). Regenerate or edit them if you move the project.`
     : '';
@@ -305,7 +306,8 @@ async function resolveChoice(flag: boolean | undefined, yes: boolean | undefined
 
 // Print the post-scaffold "Next steps" using the detected package manager's install + run commands.
 function printNextSteps(name: string, pm: PackageManager, mcp: boolean): void {
-  console.log(`\n${success(`Created ${pc.bold(name)}`)}\n`);
+  const created = success(`Created ${pc.bold(name)}`);
+  console.log(`\n${created}\n`);
   console.log(hint('Next steps'));
   console.log(step(`cd ${name}`));
   console.log(step(INSTALL_CMD[pm]));

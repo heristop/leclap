@@ -52,7 +52,15 @@ export const SectionFields = ({
   }
 
   if (section.kind === 'color') {
-    return <ColorFields section={section} orientation={orientation} onChange={onChange} inputCls={inputCls} />;
+    return (
+      <ColorFields
+        section={section}
+        orientation={orientation}
+        variables={variables}
+        onChange={onChange}
+        inputCls={inputCls}
+      />
+    );
   }
 
   if (section.kind === 'image') {

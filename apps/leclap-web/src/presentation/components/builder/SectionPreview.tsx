@@ -6,6 +6,7 @@ import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import type { Template, InputSection } from '@/services/templateService';
 import { resolveTranslation, resolveVariables, buildDescriptionVars } from '@/lib/i18nText';
+import { displayFromTokens } from '@/lib/variableSyntax';
 import { cn } from '@/lib/utils';
 import { aspectClass, orientationOf, type Orientation } from './editorPanels';
 import { useObjectUrl } from './useObjectUrl';
@@ -77,7 +78,7 @@ type Vars = Record<string, string | string[]>;
 const OverlayText = ({ values, refW, refH, vars }: { values: DrawValues; refW: number; refH: number; vars: Vars }) => {
   const x = axisPct(values.x, refW);
   const y = axisPct(values.y, refH);
-  const text = resolveVariables(values.text?.en ?? '', vars);
+  const text = displayFromTokens(resolveVariables(values.text?.en ?? '', vars));
 
   if (!text) return null;
 
@@ -166,7 +167,9 @@ const Placeholder = ({
   const isClip = kind === 'clip';
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15 p-6 text-center">
+    // relative z-10 keeps the empty-state guidance above the template's <Overlays> (which paint after
+    // it) — otherwise a centred drawbox/drawtext crosses the text and reads as a cropped title.
+    <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15 p-6 text-center">
       <span className="grid size-12 place-items-center rounded-2xl bg-white/10 text-white/70 ring-1 ring-white/15">
         <Icon className="size-6" />
       </span>
@@ -196,7 +199,7 @@ const previewData = (
   return {
     filters: (descriptor?.filters ?? []) as Array<{ type: string; values?: DrawValues }>,
     vars: buildDescriptionVars(template.descriptor.global?.variables, formData),
-    title: section ? (resolveTranslation(section.title, lang) ?? fallback) : fallback,
+    title: section ? displayFromTokens(resolveTranslation(section.title, lang) ?? fallback) : fallback,
     Icon: section?.kind === 'clip' ? Video : FileTextIcon,
   };
 };

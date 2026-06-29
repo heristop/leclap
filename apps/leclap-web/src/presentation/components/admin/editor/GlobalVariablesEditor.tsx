@@ -7,6 +7,7 @@ import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { EditorState } from '../templateEditorModel';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
+import { FieldGroupHeader } from './FieldGroupHeader';
 
 interface GlobalVariablesEditorProps {
   state: EditorState;
@@ -24,10 +25,7 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
 
   return (
     <div>
-      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-        {t('editor.variables.label')}
-      </span>
-      <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{t('editor.variables.hint')}</p>
+      <FieldGroupHeader label={t('editor.variables.label')} hint={t('editor.variables.hint')} />
       <div className="space-y-2">
         {globalVariables.map((variable, i) => (
           <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">

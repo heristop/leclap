@@ -128,7 +128,7 @@ export const EditorPanelSwitch = ({
     <PanelFrame eyebrow={t('shell.tools')} title={t('shell.advanced')}>
       <div className="space-y-2">
         <WholeVideoAnimations state={state} patch={patch} />
-        <GlobalOverlaysField overlays={state.globalOverlays} patch={patch} />
+        <GlobalOverlaysField overlays={state.globalOverlays} variables={collectVariables(state)} patch={patch} />
         <EditorImportExport state={state} onImport={onImport} />
       </div>
     </PanelFrame>

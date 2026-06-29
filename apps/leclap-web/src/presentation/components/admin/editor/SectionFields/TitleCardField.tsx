@@ -8,6 +8,7 @@ import { ColorPicker } from '@/presentation/components/ui';
 import { SegmentedControl, type SegmentOption } from '../controls';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
+import { VariableTextField } from '../VariableTextField';
 
 const DEFAULT_ACCENT = '#7C83FF';
 type Align = NonNullable<TitleCard['align']>;
@@ -34,10 +35,11 @@ function setLine(value: string): TitleCard['headline'] | undefined {
 interface TitleCardFieldProps {
   titleCard: TitleCard | undefined;
   onChange: (titleCard: TitleCard | undefined) => void;
+  variables: string[];
   inputCls: string;
 }
 
-export const TitleCardField = ({ titleCard, onChange, inputCls }: TitleCardFieldProps) => {
+export const TitleCardField = ({ titleCard, onChange, variables, inputCls }: TitleCardFieldProps) => {
   const { t } = useTranslation('admin');
   const card = titleCard;
   const align = card?.align ?? 'left';
@@ -58,6 +60,7 @@ export const TitleCardField = ({ titleCard, onChange, inputCls }: TitleCardField
         label={t('titleCard.kicker')}
         placeholder={t('titleCard.kickerPlaceholder')}
         value={lineText(card?.kicker)}
+        variables={variables}
         inputCls={inputCls}
         onChange={(v) => {
           patch({ kicker: setLine(v) });
@@ -67,6 +70,7 @@ export const TitleCardField = ({ titleCard, onChange, inputCls }: TitleCardField
         label={t('titleCard.headline')}
         placeholder={t('titleCard.headlinePlaceholder')}
         value={lineText(card?.headline)}
+        variables={variables}
         inputCls={inputCls}
         onChange={(v) => {
           patch({ headline: setLine(v) });
@@ -76,6 +80,7 @@ export const TitleCardField = ({ titleCard, onChange, inputCls }: TitleCardField
         label={t('titleCard.subtitle')}
         placeholder={t('titleCard.subtitlePlaceholder')}
         value={lineText(card?.subtitle)}
+        variables={variables}
         inputCls={inputCls}
         onChange={(v) => {
           patch({ subtitle: setLine(v) });
@@ -123,30 +128,32 @@ export const TitleCardField = ({ titleCard, onChange, inputCls }: TitleCardField
   );
 };
 
-// One labelled text line — shared by kicker / headline / subtitle.
+// One labelled text line — shared by kicker / headline / subtitle. Backed by VariableTextField so
+// typing `#` opens the in-scope variable autocomplete and stores the canonical `{{ name }}` token.
 const Line = ({
   label,
   placeholder,
   value,
+  variables,
   inputCls,
   onChange,
 }: {
   label: string;
   placeholder: string;
   value: string;
+  variables: string[];
   inputCls: string;
   onChange: (value: string) => void;
 }) => (
   <label className="block">
     <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">{label}</span>
-    <input
-      type="text"
+    <VariableTextField
       value={value}
+      onChange={onChange}
+      variables={variables.map((name) => ({ name, scope: 'global' as const }))}
       placeholder={placeholder}
       className={inputCls}
-      onChange={(e) => {
-        onChange(e.target.value);
-      }}
+      aria-label={label}
     />
   </label>
 );

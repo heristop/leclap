@@ -4,6 +4,7 @@ import type { TFunction } from 'i18next';
 import type { Template, InputSection } from '@/services/templateService';
 import { SceneCell } from '@/presentation/components/editor-shell';
 import { resolveTranslation } from '@/lib/i18nText';
+import { displayFromTokens } from '@/lib/variableSyntax';
 import { sectionComplete, nextCue, type SceneModel } from './sceneStatus';
 import { sectionKindMeta } from './sectionKind';
 import { useObjectUrl } from './useObjectUrl';
@@ -56,7 +57,7 @@ const Cell = ({
   const url = useObjectUrl(clip);
   const [duration, setDuration] = useState<number | null>(null);
   const done = sectionComplete(template, section, model);
-  const title = resolveTranslation(section.title, i18n.language) ?? t('hub.section');
+  const title = displayFromTokens(resolveTranslation(section.title, i18n.language) ?? t('hub.section'));
   const { Icon, labelKey } = sectionKindMeta(section);
 
   return (

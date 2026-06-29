@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { findHashQuery, insertVariableAtHash, filterVariables, type HashQuery } from './variableInsert';
+import { findHashQuery, filterVariables, type HashQuery } from './variableInsert';
+import { displayFromTokens, tokensFromDisplay } from '@/lib/variableSyntax';
 
 export interface VariableOption {
   name: string;
@@ -49,6 +50,13 @@ export function VariableTextField({
   });
 
   const names = variables.map((v) => v.name);
+  // The field works in display space: the descriptor's `{{ name }}` is shown as `#name`, and edits are
+  // converted back to `{{ name }}` for known variables on the way out (literal `#`s are left alone).
+  const display = displayFromTokens(value);
+  const known = new Set(names);
+  const emit = (text: string) => {
+    onChange(tokensFromDisplay(text, known));
+  };
   const matches = query ? new Set(filterVariables(names, query.query)) : new Set<string>();
   // Local variables first, then global; this order drives both the rendered list and keyboard nav.
   const options = query
@@ -70,10 +78,11 @@ export function VariableTextField({
       return;
     }
 
-    const caret = el.selectionStart ?? value.length;
-    const next = insertVariableAtHash(value, query.start, caret, name);
-    pendingCaret.current = next.caret;
-    onChange(next.text);
+    const caret = el.selectionStart ?? display.length;
+    const inserted = `#${name}`;
+    const next = `${display.slice(0, query.start)}${inserted}${display.slice(caret)}`;
+    pendingCaret.current = query.start + inserted.length;
+    emit(next);
     setQuery(null);
   };
 
@@ -111,12 +120,12 @@ export function VariableTextField({
 
   const shared = {
     ref: ref as never,
-    value,
+    value: display,
     placeholder,
     className,
     'aria-label': ariaLabel,
     onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      onChange(event.target.value);
+      emit(event.target.value);
       syncQuery(event.target);
     },
     onClick: (event: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => {

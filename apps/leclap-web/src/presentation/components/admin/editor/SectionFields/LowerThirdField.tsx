@@ -8,6 +8,7 @@ import { ColorPicker } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
+import { VariableTextField } from '../VariableTextField';
 
 const DEFAULT_ACCENT = '#7C83FF';
 const DEFAULT_BAND_OPACITY = 0.6;
@@ -34,10 +35,11 @@ function setLine(value: string): LowerThird['title'] | undefined {
 interface LowerThirdFieldProps {
   lowerThird: LowerThird | undefined;
   onChange: (lowerThird: LowerThird | undefined) => void;
+  variables: string[];
   inputCls: string;
 }
 
-export const LowerThirdField = ({ lowerThird, onChange, inputCls }: LowerThirdFieldProps) => {
+export const LowerThirdField = ({ lowerThird, onChange, variables, inputCls }: LowerThirdFieldProps) => {
   const { t } = useTranslation('admin');
   const band = lowerThird;
   const position = band?.position ?? 'bottom';
@@ -58,6 +60,7 @@ export const LowerThirdField = ({ lowerThird, onChange, inputCls }: LowerThirdFi
         label={t('lowerThird.title')}
         placeholder={t('lowerThird.titlePlaceholder')}
         value={lineText(band?.title)}
+        variables={variables}
         inputCls={inputCls}
         onChange={(v) => {
           patch({ title: setLine(v) });
@@ -67,6 +70,7 @@ export const LowerThirdField = ({ lowerThird, onChange, inputCls }: LowerThirdFi
         label={t('lowerThird.subtitle')}
         placeholder={t('lowerThird.subtitlePlaceholder')}
         value={lineText(band?.subtitle)}
+        variables={variables}
         inputCls={inputCls}
         onChange={(v) => {
           patch({ subtitle: setLine(v) });
@@ -76,6 +80,7 @@ export const LowerThirdField = ({ lowerThird, onChange, inputCls }: LowerThirdFi
         label={t('lowerThird.badge')}
         placeholder={t('lowerThird.badgePlaceholder')}
         value={lineText(band?.badge)}
+        variables={variables}
         inputCls={inputCls}
         onChange={(v) => {
           patch({ badge: setLine(v) });
@@ -134,29 +139,32 @@ export const LowerThirdField = ({ lowerThird, onChange, inputCls }: LowerThirdFi
   );
 };
 
+// Backed by VariableTextField so typing `#` opens the in-scope variable autocomplete and stores the
+// canonical `{{ name }}` token.
 const Line = ({
   label,
   placeholder,
   value,
+  variables,
   inputCls,
   onChange,
 }: {
   label: string;
   placeholder: string;
   value: string;
+  variables: string[];
   inputCls: string;
   onChange: (value: string) => void;
 }) => (
   <label className="block">
     <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">{label}</span>
-    <input
-      type="text"
+    <VariableTextField
       value={value}
+      onChange={onChange}
+      variables={variables.map((name) => ({ name, scope: 'global' as const }))}
       placeholder={placeholder}
       className={inputCls}
-      onChange={(e) => {
-        onChange(e.target.value);
-      }}
+      aria-label={label}
     />
   </label>
 );

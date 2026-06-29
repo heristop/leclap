@@ -6,6 +6,7 @@ import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';
 import { Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { VariableTextField } from '../VariableTextField';
+import { FieldGroupHeader } from '../FieldGroupHeader';
 import { partialVariableNames } from '@/lib/partialVariables';
 
 type PartialSection = Extract<EditorSection, { kind: 'partial' }>;
@@ -104,12 +105,7 @@ export const PartialFields = ({ section, partials, variables, onChange, inputCls
       )}
 
       <div>
-        <span className="block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-          Variables
-        </span>
-        <p className="mb-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          Map each variable name to the value the partial should use.
-        </p>
+        <FieldGroupHeader label="Variables" hint="Map each variable name to the value the partial should use." />
         <div className="space-y-2">
           {section.variables.map((variable, i) => (
             <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">

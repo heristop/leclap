@@ -10,6 +10,7 @@ import {
 import type { TFunction } from 'i18next';
 import { Type } from '@/presentation/components/icons';
 import { findFont } from '@leclap/creative-kit/fonts';
+import { displayFromTokens } from '@/lib/variableSyntax';
 import { cn } from '@/lib/utils';
 import type { TextOverlay, Orientation } from '../templateEditorModel';
 import { previewFontPx } from '../overlayGeometry';
@@ -190,7 +191,7 @@ const BoxContent = ({ overlay, editing, t, editRef, onCommitText, onCaret, onEnd
     );
   }
 
-  return <span>{overlay.text}</span>;
+  return <span>{displayFromTokens(overlay.text)}</span>;
 };
 
 // Four corner resize handles. Each shares one pointerdown that arms a resize.

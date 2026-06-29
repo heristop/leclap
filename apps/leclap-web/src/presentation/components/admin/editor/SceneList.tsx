@@ -25,6 +25,7 @@ import { errorsForEditorSection, type SectionValidation, type ValidationError } 
 import { SECTION_HINTS } from './sectionHints';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
 import { SECTION_CATEGORY, type SectionCategory } from '@/lib/sectionMeta';
+import { displayFromTokens } from '@/lib/variableSyntax';
 
 const VISUAL_KINDS: ReadonlySet<EditorSection['kind']> = new Set(['video', 'color', 'image']);
 
@@ -369,7 +370,9 @@ const SectionCard = ({
         <SectionIcon kind={section.kind} />
         <span className="shrink-0 text-sm font-semibold text-foreground">{SECTION_LABELS[section.kind]}</span>
         {collapsed && (
-          <span className="min-w-0 truncate text-xs text-gray-500 dark:text-gray-400">{sectionSummary(section)}</span>
+          <span className="min-w-0 truncate text-xs text-gray-500 dark:text-gray-400">
+            {displayFromTokens(sectionSummary(section))}
+          </span>
         )}
         <div className="ml-auto flex items-center gap-0.5">
           <button

@@ -55,7 +55,12 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
   return (
     <div className="space-y-3 pl-7">
       <div className="grid gap-3 sm:grid-cols-2">
-        <NumberField label={t('video.duration')} value={section.duration} onChange={setDuration} inputCls={inputCls} />
+        <NumberField
+          label={t('video.duration', { count: section.duration })}
+          value={section.duration}
+          onChange={setDuration}
+          inputCls={inputCls}
+        />
         <label className="mt-6 flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
           <Checkbox
             checked={section.mute}
@@ -115,6 +120,7 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
           onChange={(lowerThird) => {
             onChange({ lowerThird });
           }}
+          variables={variables}
           inputCls={inputCls}
         />
       </SectionDisclosure>

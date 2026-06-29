@@ -118,7 +118,7 @@ export const AnimationPlayback = ({ value, patch }: PlaybackProps) => {
       ) : null}
       {mode === 'seconds' ? (
         <NumberRow
-          label={t('animation.secondsLabel')}
+          label={t('animation.secondsLabel', { count: value.duration ?? 3 })}
           value={value.duration ?? 3}
           min={0.1}
           step={0.5}

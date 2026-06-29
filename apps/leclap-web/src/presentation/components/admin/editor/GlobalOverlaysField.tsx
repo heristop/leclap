@@ -16,6 +16,7 @@ import {
 import { Plus, X } from '@/presentation/components/icons';
 import { RevealControl } from './RevealControl';
 import { TextEffectControl } from './TextEffectControl';
+import { VariableTextField } from './VariableTextField';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
 
 type Position = NonNullable<GlobalTextOverlay['position']>;
@@ -23,10 +24,11 @@ const DEFAULT_COLOR = '#ffffff';
 
 interface GlobalOverlaysFieldProps {
   overlays: GlobalTextOverlay[];
+  variables: string[];
   patch: (p: Partial<EditorState>) => void;
 }
 
-export const GlobalOverlaysField = ({ overlays, patch }: GlobalOverlaysFieldProps) => {
+export const GlobalOverlaysField = ({ overlays, variables, patch }: GlobalOverlaysFieldProps) => {
   const { t } = useTranslation('admin');
 
   const replace = (index: number, next: GlobalTextOverlay) => {
@@ -53,6 +55,7 @@ export const GlobalOverlaysField = ({ overlays, patch }: GlobalOverlaysFieldProp
           <OverlayRow
             key={index}
             overlay={overlay}
+            variables={variables}
             onChange={(next) => {
               replace(index, next);
             }}
@@ -72,10 +75,12 @@ export const GlobalOverlaysField = ({ overlays, patch }: GlobalOverlaysFieldProp
 
 const OverlayRow = ({
   overlay,
+  variables,
   onChange,
   onRemove,
 }: {
   overlay: GlobalTextOverlay;
+  variables: string[];
   onChange: (next: GlobalTextOverlay) => void;
   onRemove: () => void;
 }) => {
@@ -85,16 +90,18 @@ const OverlayRow = ({
   return (
     <div className="rounded-xl border border-foreground/10 bg-surface p-3 space-y-3">
       <div className="flex items-start gap-2">
-        <input
-          type="text"
-          value={overlay.text.en}
-          placeholder={t('globalOverlay.textPlaceholder')}
-          aria-label={t('globalOverlay.text')}
-          className={EDITOR_INPUT_CLASS}
-          onChange={(e) => {
-            onChange({ ...overlay, text: { en: e.target.value } });
-          }}
-        />
+        <div className="flex-1">
+          <VariableTextField
+            value={overlay.text.en}
+            onChange={(text) => {
+              onChange({ ...overlay, text: { en: text } });
+            }}
+            variables={variables.map((name) => ({ name, scope: 'global' as const }))}
+            placeholder={t('globalOverlay.textPlaceholder')}
+            aria-label={t('globalOverlay.text')}
+            className={EDITOR_INPUT_CLASS}
+          />
+        </div>
         <button
           type="button"
           aria-label={t('globalOverlay.remove')}

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Music, Braces } from '@/presentation/components/icons';
+import { Music, Hash } from '@/presentation/components/icons';
 import { LayersIcon } from '@/presentation/components/icons/layers';
 import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import { SlidersHorizontalIcon } from '@/presentation/components/icons/sliders-horizontal';
@@ -19,7 +19,7 @@ const BASE: EditorTool[] = [
 ];
 
 const ADVANCED: EditorTool[] = [
-  { id: 'variables', icon: Braces, labelKey: 'shell.variables' },
+  { id: 'variables', icon: Hash, labelKey: 'shell.variables' },
   { id: 'advanced', icon: SlidersHorizontalIcon, labelKey: 'shell.advanced' },
 ];
 

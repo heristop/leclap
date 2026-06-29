@@ -32,7 +32,7 @@ export const ImageFields = ({ section, onChange, inputCls }: ImageFieldsProps) =
     <div className="space-y-3 pl-7">
       <div className="sm:w-40">
         <NumberField
-          label={t('video.duration')}
+          label={t('video.duration', { count: section.duration })}
           value={section.duration}
           onChange={(duration) => {
             onChange({ duration });

@@ -48,7 +48,9 @@ describe('EditorPanelSwitch', () => {
 
     expect(html).toContain(`aria-label="${admin.element.add}"`);
     expect(html).toContain(admin.element.list);
-    expect(html).toContain(admin.video.duration);
+    // The duration label is pluralized (Duration (second) / (seconds)); assert the shared stem so the
+    // test holds whatever the default count resolves to.
+    expect(html).toContain(admin.video.duration_other.split(' (')[0]);
   });
 
   it('drops the old per-element LayersEditor from the section fields', () => {

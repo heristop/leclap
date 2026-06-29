@@ -18,11 +18,12 @@ type ColorSection = Extract<EditorSection, { kind: 'color' }>;
 interface ColorFieldsProps {
   section: ColorSection;
   orientation: Orientation;
+  variables: string[];
   onChange: (p: Partial<EditorSection>) => void;
   inputCls: string;
 }
 
-export const ColorFields = ({ section, onChange, inputCls }: ColorFieldsProps) => {
+export const ColorFields = ({ section, variables, onChange, inputCls }: ColorFieldsProps) => {
   const { t } = useTranslation('admin');
   const advanced = useIsAdvanced();
 
@@ -30,7 +31,7 @@ export const ColorFields = ({ section, onChange, inputCls }: ColorFieldsProps) =
     <div className="space-y-3 pl-7">
       <div className="sm:w-40">
         <NumberField
-          label={t('video.duration')}
+          label={t('video.duration', { count: section.duration })}
           value={section.duration}
           onChange={(duration) => {
             onChange({ duration });
@@ -48,6 +49,7 @@ export const ColorFields = ({ section, onChange, inputCls }: ColorFieldsProps) =
           onChange={(titleCard) => {
             onChange({ titleCard });
           }}
+          variables={variables}
           inputCls={inputCls}
         />
       </SectionDisclosure>

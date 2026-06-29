@@ -44,6 +44,12 @@
   },
   "skipToContent": "Zum Hauptinhalt springen",
   "footer": "Alles läuft lokal in deinem Browser – deine Dateien verlassen nie dein Gerät",
+  "footerNav": {
+    "label": "Rechtliche Links",
+    "legal": "Impressum",
+    "privacy": "Datenschutz",
+    "license": "MIT-Lizenz"
+  },
   "routeError": {
     "heading": "Etwas ist schiefgelaufen",
     "fallbackStatus": "Hoppla",

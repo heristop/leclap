@@ -14,12 +14,16 @@ import browser from './browser.json';
 import admin from './admin.json';
 import shell from './shell.json';
 import projects from './projects.json';
+import legal from './legal.json';
+import privacy from './privacy.json';
 
 export const en = {
   common,
   home,
   about,
   seo,
+  legal,
+  privacy,
   onboarding,
   media,
   builder,

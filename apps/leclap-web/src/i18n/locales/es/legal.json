@@ -1,0 +1,24 @@
+{
+  "badge": "Transparencia",
+  "title": "Aviso legal",
+  "intro": "LeClap es un proyecto gratuito y de código abierto. En esta página se indica quién publica y aloja el sitio.",
+  "sections": {
+    "publisher": {
+      "heading": "Editor",
+      "body": "LeClap está publicado por Alexandre Mogère (@heristop), un desarrollador independiente con sede en Paris, Francia."
+    },
+    "hosting": {
+      "heading": "Alojamiento",
+      "body": "El sitio se sirve como archivos estáticos a través de Cloudflare Pages (Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, USA)."
+    },
+    "contact": {
+      "heading": "Contacto",
+      "body": "Las preguntas y los reportes se gestionan a través del repositorio del proyecto en GitHub en github.com/heristop/leclap."
+    },
+    "ip": {
+      "heading": "Propiedad intelectual",
+      "body": "El código fuente de LeClap es de código abierto bajo la licencia de su repositorio. FFmpeg se utiliza bajo su propia licencia. Las marcas comerciales y cualquier contenido que importes siguen siendo propiedad de sus respectivos titulares."
+    }
+  },
+  "updated": "Última actualización: junio de 2026"
+}

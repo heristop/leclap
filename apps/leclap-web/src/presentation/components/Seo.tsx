@@ -9,7 +9,7 @@ const SITE_URL = 'https://leclap.pages.dev';
 // (English at the root, others under /<lng>). Only these carry hreflang alternates. Everything else
 // (the English-only /doc reference, /design, …) canonicalizes to its English root URL so a localized
 // chrome wrapper around English content is never indexed as a separate, near-duplicate page.
-const LOCALIZED_PATHS = new Set(['/', '/studio', '/about']);
+const LOCALIZED_PATHS = new Set(['/', '/studio', '/about', '/legal', '/privacy']);
 
 // BCP-47-ish locales for Open Graph (og:locale wants xx_XX).
 const OG_LOCALE: Record<Language, string> = {

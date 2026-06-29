@@ -44,6 +44,12 @@
   },
   "skipToContent": "Aller au contenu principal",
   "footer": "Tout se passe en local, dans ton navigateur — tes fichiers ne quittent jamais ton appareil",
+  "footerNav": {
+    "label": "Liens légaux",
+    "legal": "Mentions légales",
+    "privacy": "Confidentialité",
+    "license": "Sous licence MIT"
+  },
   "routeError": {
     "heading": "Quelque chose a coincé",
     "fallbackStatus": "Oups",

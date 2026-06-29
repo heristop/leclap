@@ -44,6 +44,12 @@
   },
   "skipToContent": "Saltar al contenido principal",
   "footer": "Todo el procesamiento ocurre localmente en tu navegador: tus archivos nunca salen de tu dispositivo",
+  "footerNav": {
+    "label": "Enlaces legales",
+    "legal": "Aviso legal",
+    "privacy": "Privacidad",
+    "license": "Licencia MIT"
+  },
   "routeError": {
     "heading": "Algo salió mal",
     "fallbackStatus": "Vaya",

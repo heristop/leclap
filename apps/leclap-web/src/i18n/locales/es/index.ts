@@ -14,6 +14,8 @@ import browser from './browser.json';
 import admin from './admin.json';
 import shell from './shell.json';
 import projects from './projects.json';
+import legal from './legal.json';
+import privacy from './privacy.json';
 import type { Resources } from '../en';
 
 type LocaleShape<T> = { [K in keyof T]: T[K] extends string ? string : LocaleShape<T[K]> };
@@ -32,4 +34,6 @@ export const es = {
   admin,
   shell,
   projects,
+  legal,
+  privacy,
 } satisfies LocaleShape<Resources>;

@@ -13,5 +13,13 @@
   },
   "templates": {
     "title": "Éditeur"
+  },
+  "legal": {
+    "title": "Mentions légales",
+    "description": "Qui édite et héberge LeClap — le compositeur vidéo cinématographique ouvert, dans le navigateur."
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "description": "LeClap traite tes médias sur ton appareil. Aucun envoi, aucun compte, aucun suivi — voici exactement comment ta vie privée est protégée."
   }
 }

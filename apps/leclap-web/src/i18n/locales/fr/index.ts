@@ -17,6 +17,8 @@ import browser from './browser.json';
 import admin from './admin.json';
 import shell from './shell.json';
 import projects from './projects.json';
+import legal from './legal.json';
+import privacy from './privacy.json';
 import type { Resources } from '../en';
 
 // Recursively replace string-literal leaves with `string` so French values may differ from
@@ -37,4 +39,6 @@ export const fr = {
   admin,
   shell,
   projects,
+  legal,
+  privacy,
 } satisfies LocaleShape<Resources>;

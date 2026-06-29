@@ -6,6 +6,7 @@ import {
   Route,
   Navigate,
   Outlet,
+  Link,
   ScrollRestoration,
 } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +16,7 @@ import { Home } from '@/presentation/pages/Home';
 import { Builder } from '@/presentation/pages/Builder';
 import { StudioHome } from '@/presentation/pages/StudioHome';
 import { StudioTemplateBuilderPage } from '@/presentation/pages/StudioTemplateBuilderPage';
-import { About } from '@/presentation/pages/About';
+import { About, Legal, Privacy } from '@/presentation/pages/static-pages';
 import { Admin } from '@/presentation/pages/Admin';
 import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
 import { PartialsPage } from '@/presentation/pages/PartialsPage';
@@ -100,8 +101,29 @@ function RootLayout() {
 
         {/* Footer */}
         <footer className="bg-surface text-foreground py-8 mt-auto border-t border-foreground/5">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-sm text-gray-400">{t('footer')}</p>
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:gap-6 sm:text-left">
+              <p className="max-w-md text-sm text-gray-400">{t('footer')}</p>
+              <nav
+                aria-label={t('footerNav.label')}
+                className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm"
+              >
+                <Link to="/legal" className="text-gray-400 transition-colors hover:text-foreground">
+                  {t('footerNav.legal')}
+                </Link>
+                <Link to="/privacy" className="text-gray-400 transition-colors hover:text-foreground">
+                  {t('footerNav.privacy')}
+                </Link>
+                <a
+                  href="https://github.com/heristop/leclap/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-gray-400 transition-colors hover:text-foreground"
+                >
+                  {t('footerNav.license')}
+                </a>
+              </nav>
+            </div>
           </div>
         </footer>
       </div>
@@ -144,6 +166,8 @@ const router = createBrowserRouter(
         <Route path="schema" element={<DocSchema />} />
       </Route>
       <Route path="/about" element={<About />} />
+      <Route path="/legal" element={<Legal />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<NotFound />} />
     </Route>
   ),

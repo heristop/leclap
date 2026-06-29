@@ -41,7 +41,7 @@ const seoByLocale = Object.fromEntries(
   await Promise.all(
     LOCALES.map(async (l) => [l, JSON.parse(await readFile(path.join(localesDir, l, 'seo.json'), 'utf8'))] as const)
   )
-) as Record<Locale, { default: SeoEntry; studio: SeoEntry; about: SeoEntry }>;
+) as Record<Locale, { default: SeoEntry; studio: SeoEntry; about: SeoEntry; legal: SeoEntry; privacy: SeoEntry }>;
 
 type SeoEntry = { title: string; description: string };
 
@@ -49,7 +49,7 @@ type SeoEntry = { title: string; description: string };
 // `seoKey` selects the per-locale copy; `titleVerbatim` uses the bundle title as-is (home only).
 type MarketingRoute = {
   path: string;
-  seoKey: 'default' | 'studio' | 'about';
+  seoKey: 'default' | 'studio' | 'about' | 'legal' | 'privacy';
   titleVerbatim?: boolean;
   priority: string;
   changefreq: string;
@@ -58,6 +58,8 @@ const MARKETING_ROUTES: MarketingRoute[] = [
   { path: '/', seoKey: 'default', titleVerbatim: true, priority: '1.0', changefreq: 'weekly' },
   { path: '/studio', seoKey: 'studio', priority: '0.9', changefreq: 'weekly' },
   { path: '/about', seoKey: 'about', priority: '0.5', changefreq: 'monthly' },
+  { path: '/legal', seoKey: 'legal', priority: '0.2', changefreq: 'yearly' },
+  { path: '/privacy', seoKey: 'privacy', priority: '0.2', changefreq: 'yearly' },
 ];
 
 // English-only routes (developer reference + design system). Single canonical URL at the root, no

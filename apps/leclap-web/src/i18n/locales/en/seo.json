@@ -13,5 +13,13 @@
   },
   "templates": {
     "title": "Builder"
+  },
+  "legal": {
+    "title": "Legal Notice",
+    "description": "Who publishes and hosts LeClap — the open, browser-based cinematic video composer."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "description": "LeClap processes your media on your device. No uploads, no accounts, no tracking — here is exactly how your privacy is handled."
   }
 }

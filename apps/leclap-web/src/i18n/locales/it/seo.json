@@ -13,5 +13,13 @@
   },
   "templates": {
     "title": "Builder"
+  },
+  "legal": {
+    "title": "Note legali",
+    "description": "Chi pubblica e ospita LeClap — il compositore di video cinematografici aperto e basato sul browser."
+  },
+  "privacy": {
+    "title": "Informativa sulla privacy",
+    "description": "LeClap elabora i tuoi contenuti sul tuo dispositivo. Niente upload, niente account, nessun tracciamento — ecco esattamente come viene gestita la tua privacy."
   }
 }

@@ -1,0 +1,28 @@
+{
+  "badge": "Datenschutz zuerst",
+  "title": "Datenschutzerklärung",
+  "intro": "LeClap läuft vollständig in deinem Browser. Die Fotos und Videos, die du auswählst oder aufnimmst, werden auf deinem Gerät verarbeitet und niemals auf einen Server hochgeladen.",
+  "sections": {
+    "local": {
+      "heading": "Verarbeitung auf dem Gerät",
+      "body": "Jeder Schritt – Zuschneiden, Effekte, Musik und der finale Render – läuft lokal mit WebAssembly und FFmpeg. Deine Medien bleiben auf deinem Gerät und werden nirgendwohin gesendet."
+    },
+    "data": {
+      "heading": "Daten, die wir erfassen",
+      "body": "Keine. LeClap hat kein Kontosystem und keinen Backend-Server. Es erfasst keine personenbezogenen Daten und enthält keine Analyse- oder Tracking-Funktionen."
+    },
+    "storage": {
+      "heading": "Browser-Speicher",
+      "body": "LeClap nutzt den lokalen Speicher deines Browsers nur, um sich Einstellungen wie Design und Sprache zu merken und deine laufenden Projekte auf deinem Gerät zu behalten. Du kannst ihn jederzeit über deine Browser-Einstellungen löschen."
+    },
+    "thirdParty": {
+      "heading": "Ressourcen von Drittanbietern",
+      "body": "Einige Inhalte – Schriftarten, der FFmpeg-Kern und Beispielmedien – werden von öffentlichen CDNs und GitHub geladen. Diese Anfragen erreichen die Anbieter direkt und unterliegen deren eigenen Richtlinien; es werden keine personenbezogenen Daten daran angehängt."
+    },
+    "contact": {
+      "heading": "Fragen",
+      "body": "Bei Fragen zu dieser Erklärung wende dich über das Projekt auf GitHub unter github.com/heristop/leclap an uns."
+    }
+  },
+  "updated": "Zuletzt aktualisiert: Juni 2026"
+}

@@ -103,7 +103,7 @@ export const SegmentedControl = <T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="flex gap-1 rounded-xl border border-foreground/10 bg-surface p-1"
+      className="flex flex-wrap gap-1 rounded-xl border border-foreground/10 bg-surface p-1"
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -119,7 +119,7 @@ export const SegmentedControl = <T extends string>({
               onChange(option.value);
             }}
             className={cn(
-              'tap flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+              'tap flex flex-[1_0_auto] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
               active ? 'brand-gradient text-white shadow-sm shadow-brand-500/20' : 'text-gray-500 hover:text-foreground'
             )}
           >

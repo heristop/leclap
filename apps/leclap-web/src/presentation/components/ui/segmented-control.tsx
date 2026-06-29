@@ -64,7 +64,10 @@ export const SegmentedControl = ({ value, options, onChange, ariaLabel, classNam
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={cn('relative inline-flex rounded-lg bg-foreground/5 p-0.5 text-sm', classNames?.track)}
+      className={cn(
+        'relative inline-flex max-w-full overflow-x-auto rounded-lg bg-foreground/5 p-0.5 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+        classNames?.track
+      )}
     >
       {thumb && (
         <span
@@ -91,7 +94,7 @@ export const SegmentedControl = ({ value, options, onChange, ariaLabel, classNam
             onChange(option.value);
           }}
           className={cn(
-            'tap relative z-10 rounded-md px-3 py-1.5 font-medium transition-colors',
+            'tap relative z-10 shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition-colors',
             value === option.value
               ? cn('text-foreground', classNames?.active)
               : cn('text-gray-400 hover:text-foreground', classNames?.inactive),

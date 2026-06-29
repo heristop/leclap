@@ -113,14 +113,15 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
       <Button
         type="button"
         variant="secondary"
+        size="sm"
         onClick={() => {
           runRender().catch(() => {});
         }}
         disabled={disabled || rendering}
-        className="min-h-11"
+        className="h-9 shrink-0 rounded-full px-4"
         aria-label={t('testRender.ariaLabel')}
       >
-        <Clapperboard className="h-5 w-5" /> {rendering ? t('testRender.rendering') : t('testRender.preview')}
+        <Clapperboard className="size-4" /> {rendering ? t('testRender.rendering') : t('testRender.preview')}
       </Button>
 
       <Dialog open={open} onOpenChange={onOpenChange}>

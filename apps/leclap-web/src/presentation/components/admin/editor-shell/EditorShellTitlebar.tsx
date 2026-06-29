@@ -58,12 +58,12 @@ export const EditorShellTitlebar = ({
   preview,
   t,
 }: EditorShellTitlebarProps) => (
-  <header className="flex shrink-0 items-center gap-2 border-b border-foreground/10 bg-surface-2/50 px-3 py-2 sm:gap-3">
+  <header className="flex shrink-0 items-center gap-2 border-b border-foreground/10 bg-surface-2/50 px-4 py-2 sm:gap-3 sm:px-6">
     <button
       type="button"
       onClick={onCancel}
       aria-label={t('editor.back')}
-      className="tap group inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 sm:px-3"
+      className="tap group inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 sm:px-3"
     >
       <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1 motion-reduce:transition-none" />
       <span className="hidden sm:inline">{t('editor.back')}</span>
@@ -77,6 +77,8 @@ export const EditorShellTitlebar = ({
       }}
       placeholder={t('editor.untitled')}
       aria-label={t('shell.nameLabel')}
+      // Morph target for the templates-list → editor View Transition: the card title grows into this input.
+      style={{ viewTransitionName: 'studio-title' }}
       className="-mx-1.5 min-w-0 flex-1 truncate rounded-md bg-transparent px-1.5 py-0.5 font-display text-base font-bold text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 hover:bg-foreground/5 focus:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-brand-500/40"
     />
     <IconButton label={t('editor.toolbar.undo')} disabled={!canUndo} onClick={onUndo}>
@@ -91,7 +93,7 @@ export const EditorShellTitlebar = ({
         type="button"
         onClick={onSaveAndCompile}
         disabled={saveDisabled}
-        className="tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
+        className="tap inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
       >
         <span className="hidden sm:inline">{t('editor.saveAndFilm')}</span>
         <span className="sm:hidden">▶</span>
@@ -104,8 +106,8 @@ export const EditorShellTitlebar = ({
       aria-label={t('editor.save')}
       className={
         onSaveAndCompile
-          ? 'tap inline-flex shrink-0 items-center gap-1.5 rounded-full border border-foreground/20 bg-surface px-3 py-1.5 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4'
-          : 'tap inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4'
+          ? 'tap inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-foreground/20 bg-surface px-3 text-sm font-semibold text-foreground transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4'
+          : 'tap inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4'
       }
     >
       <Save className="size-4" />

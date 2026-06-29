@@ -1,4 +1,4 @@
-// Field block for a form section: an editable list of {id, label, maxLength} rows.
+// Field block for a form section: a column header over an editable list of {id, label, maxLength} rows.
 import { Trash2 } from '@/presentation/components/icons';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useTranslation } from 'react-i18next';
@@ -15,84 +15,78 @@ interface FormFieldsProps {
   inputCls: string;
 }
 
+// id | label | max-length | delete — one template shared by the header and every row so the columns
+// line up. The max-length column is narrow (just a 2-digit counter) and the delete column is icon-sized.
+const COLS = 'grid grid-cols-[1fr_1fr_5rem_1.75rem] gap-2';
+const COL_LABEL = 'self-end px-1 text-[0.65rem] font-semibold uppercase leading-tight tracking-wider text-gray-500';
+// One height for all three controls so the row reads as a single aligned set.
+const FIELD_H = 'h-10';
+
+const FieldHeader = () => {
+  const { t } = useTranslation('admin');
+
+  return (
+    <div className={`${COLS} items-end px-2`}>
+      <span className={COL_LABEL}>{t('form.fieldId')}</span>
+      <span className={COL_LABEL}>{t('form.fieldLabel')}</span>
+      <span className={COL_LABEL}>{t('form.maxLength')}</span>
+      <span aria-hidden />
+    </div>
+  );
+};
+
 interface FieldRowProps {
   field: FormField;
-  index: number;
   inputCls: string;
   onPatch: (patch: Partial<FormField>) => void;
   onRemove: () => void;
 }
 
-const FieldRow = ({ field, index, inputCls, onPatch, onRemove }: FieldRowProps) => {
+const FieldRow = ({ field, inputCls, onPatch, onRemove }: FieldRowProps) => {
   const { t } = useTranslation('admin');
 
   return (
-    <div className="group grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-center rounded-xl p-2 -mx-2 transition-colors hover:bg-foreground/[0.03]">
-      <div className="flex flex-col gap-0.5">
-        {index === 0 && (
-          <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 px-1 mb-0.5">
-            {t('form.fieldId')}
-          </span>
-        )}
-        <input
-          aria-label={t('form.fieldId')}
-          className={`${inputCls} font-mono text-[0.82rem]`}
-          value={field.name}
-          onChange={(e) => {
-            onPatch({ name: e.target.value });
-          }}
-          placeholder={t('form.fieldIdPlaceholder')}
-          spellCheck={false}
-        />
-      </div>
-
-      <div className="flex flex-col gap-0.5">
-        {index === 0 && (
-          <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 px-1 mb-0.5">
-            {t('form.fieldLabel')}
-          </span>
-        )}
-        <input
-          aria-label={t('form.fieldLabel')}
-          className={inputCls}
-          value={field.label}
-          onChange={(e) => {
-            onPatch({ label: e.target.value });
-          }}
-          placeholder={t('form.fieldLabelPlaceholder')}
-        />
-      </div>
-
-      <div className="flex flex-col gap-0.5">
-        {index === 0 && (
-          <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-500 px-1 mb-0.5">
-            {t('form.maxLength')}
-          </span>
-        )}
-        <NumberField
-          aria-label={t('form.maxLength')}
-          value={field.maxLength}
-          min={1}
-          step={1}
-          unit="ch"
-          compact
-          className="w-24"
-          onChange={(maxLength) => {
-            onPatch({ maxLength });
-          }}
-        />
-      </div>
-
-      <div className={index === 0 ? 'mt-[1.35rem]' : ''}>
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={t('form.removeField')}
-          className="tap rounded-lg p-1.5 text-gray-600 opacity-0 group-hover:opacity-100 hover:text-[var(--color-error)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 transition-all"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      </div>
+    <div className={`group ${COLS} -mx-2 items-center rounded-xl p-2 transition-colors hover:bg-foreground/[0.03]`}>
+      <input
+        aria-label={t('form.fieldId')}
+        className={`${inputCls} ${FIELD_H} font-mono text-[0.82rem]`}
+        value={field.name}
+        onChange={(e) => {
+          onPatch({ name: e.target.value });
+        }}
+        placeholder={t('form.fieldIdPlaceholder')}
+        spellCheck={false}
+      />
+      <input
+        aria-label={t('form.fieldLabel')}
+        className={`${inputCls} ${FIELD_H}`}
+        value={field.label}
+        onChange={(e) => {
+          onPatch({ label: e.target.value });
+        }}
+        placeholder={t('form.fieldLabelPlaceholder')}
+      />
+      <NumberField
+        aria-label={t('form.maxLength')}
+        value={field.maxLength}
+        min={1}
+        step={1}
+        unit="ch"
+        compact
+        className="w-full"
+        inputCls={FIELD_H}
+        onChange={(maxLength) => {
+          onPatch({ maxLength });
+        }}
+      />
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={t('form.removeField')}
+        className="tap grid size-7 place-items-center rounded-lg text-gray-600 opacity-0 transition-all hover:text-[var(--color-error)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 group-hover:opacity-100 active:scale-90"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 };
@@ -106,21 +100,24 @@ export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => 
   };
 
   return (
-    <div className="space-y-0.5 pl-7">
-      {section.fields.map((field, fi) => (
-        <FieldRow
-          key={fi}
-          field={field}
-          index={fi}
-          inputCls={inputCls}
-          onPatch={(patch) => {
-            patchField(fi, patch);
-          }}
-          onRemove={() => {
-            onChange({ fields: section.fields.filter((_, i) => i !== fi) });
-          }}
-        />
-      ))}
+    <div className="space-y-1.5 pl-7">
+      <FieldHeader />
+
+      <div className="space-y-0.5">
+        {section.fields.map((field, fi) => (
+          <FieldRow
+            key={fi}
+            field={field}
+            inputCls={inputCls}
+            onPatch={(patch) => {
+              patchField(fi, patch);
+            }}
+            onRemove={() => {
+              onChange({ fields: section.fields.filter((_, i) => i !== fi) });
+            }}
+          />
+        ))}
+      </div>
 
       <div className="pt-1">
         <button
@@ -133,7 +130,7 @@ export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => 
               ],
             });
           }}
-          className="tap inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-dashed border-foreground/20 text-gray-500 hover:border-brand-500/50 hover:text-brand-400 hover:bg-brand-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-all"
+          className="tap inline-flex items-center gap-1.5 rounded-lg border border-dashed border-foreground/20 px-3 py-1.5 text-xs text-gray-500 transition-all hover:border-brand-500/50 hover:bg-brand-500/5 hover:text-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97]"
           {...plusHoverProps}
         >
           <PlusIcon ref={plusRef} size={12} />

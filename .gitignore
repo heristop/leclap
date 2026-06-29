@@ -2,9 +2,10 @@
 .vscode/
 .idea/
 build
-# @leclap/cli demo-clip + media download cache when a render runs from the repo root
-# (root-anchored so it never touches the tracked apps/leclap-expo/assets).
-/assets
+# @leclap/cli demo-clip + media download cache (any `assets/` dir), except the apps'
+# own asset directories (e.g. apps/leclap-expo/assets), which are tracked.
+assets/
+!apps/**/assets/
 coverage
 node_modules
 dist

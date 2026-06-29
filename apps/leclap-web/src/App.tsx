@@ -1,47 +1,46 @@
-import { useEffect } from 'react';
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  RouterProvider,
-  Route,
-  Navigate,
-  Outlet,
-  Link,
-  ScrollRestoration,
-} from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { haptic } from '@/lib/haptics';
-import { Header } from '@/presentation/components/Header';
+import { lazy } from 'react';
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from 'react-router-dom';
+import { RootLayout } from '@/presentation/components/RootLayout';
 import { Home } from '@/presentation/pages/Home';
-import { Builder } from '@/presentation/pages/Builder';
-import { StudioHome } from '@/presentation/pages/StudioHome';
-import { StudioTemplateBuilderPage } from '@/presentation/pages/StudioTemplateBuilderPage';
-import { About, Legal, Privacy } from '@/presentation/pages/static-pages';
-import { Admin } from '@/presentation/pages/Admin';
-import { TemplateEditorPage } from '@/presentation/pages/TemplateEditorPage';
-import { PartialsPage } from '@/presentation/pages/PartialsPage';
-import { ProjectsPage } from '@/presentation/pages/ProjectsPage';
-import { Design } from '@/presentation/pages/Design';
-import {
-  DocLayout,
-  DocOverview,
-  DocSections,
-  DocTransitions,
-  DocLooks,
-  DocGrade,
-  DocMotion,
-  DocAudio,
-  DocCaptions,
-  DocAnimations,
-  DocFilters,
-  DocExamples,
-  DocSchema,
-} from '@/presentation/pages/doc';
-import { NotFound } from '@/presentation/pages/NotFound';
 import { RouteError } from '@/presentation/components/RouteError';
-import { Onboarding } from '@/presentation/components/Onboarding';
-import { useOnboarding } from '@/hooks/useOnboarding';
 import { LOCALE_PREFIXES } from '@/lib/language';
+
+// Home stays in the entry chunk — it's the landing page and LCP-critical, so a lazy round-trip would
+// only add a fallback flash. Every other route is code-split into its own chunk so the heavy surfaces
+// (the editor, the builder, the admin, and the FFmpeg WASM they pull in) never weigh down first paint.
+// `lazyPage` adapts our named page exports to the default export React.lazy expects.
+const lazyPage = (factory: () => Promise<Record<string, unknown>>, name: string) =>
+  lazy(() => factory().then((module) => ({ default: module[name] as React.ComponentType })));
+
+const StudioHome = lazyPage(() => import('@/presentation/pages/StudioHome'), 'StudioHome');
+const Builder = lazyPage(() => import('@/presentation/pages/Builder'), 'Builder');
+const StudioTemplateBuilderPage = lazyPage(
+  () => import('@/presentation/pages/StudioTemplateBuilderPage'),
+  'StudioTemplateBuilderPage'
+);
+const ProjectsPage = lazyPage(() => import('@/presentation/pages/ProjectsPage'), 'ProjectsPage');
+const Admin = lazyPage(() => import('@/presentation/pages/Admin'), 'Admin');
+const TemplateEditorPage = lazyPage(() => import('@/presentation/pages/TemplateEditorPage'), 'TemplateEditorPage');
+const PartialsPage = lazyPage(() => import('@/presentation/pages/PartialsPage'), 'PartialsPage');
+const Design = lazyPage(() => import('@/presentation/pages/Design'), 'Design');
+const About = lazyPage(() => import('@/presentation/pages/static-pages'), 'About');
+const Legal = lazyPage(() => import('@/presentation/pages/static-pages'), 'Legal');
+const Privacy = lazyPage(() => import('@/presentation/pages/static-pages'), 'Privacy');
+const NotFound = lazyPage(() => import('@/presentation/pages/NotFound'), 'NotFound');
+
+const DocLayout = lazyPage(() => import('@/presentation/pages/doc'), 'DocLayout');
+const DocOverview = lazyPage(() => import('@/presentation/pages/doc'), 'DocOverview');
+const DocSections = lazyPage(() => import('@/presentation/pages/doc'), 'DocSections');
+const DocTransitions = lazyPage(() => import('@/presentation/pages/doc'), 'DocTransitions');
+const DocLooks = lazyPage(() => import('@/presentation/pages/doc'), 'DocLooks');
+const DocGrade = lazyPage(() => import('@/presentation/pages/doc'), 'DocGrade');
+const DocMotion = lazyPage(() => import('@/presentation/pages/doc'), 'DocMotion');
+const DocAudio = lazyPage(() => import('@/presentation/pages/doc'), 'DocAudio');
+const DocCaptions = lazyPage(() => import('@/presentation/pages/doc'), 'DocCaptions');
+const DocAnimations = lazyPage(() => import('@/presentation/pages/doc'), 'DocAnimations');
+const DocFilters = lazyPage(() => import('@/presentation/pages/doc'), 'DocFilters');
+const DocExamples = lazyPage(() => import('@/presentation/pages/doc'), 'DocExamples');
+const DocSchema = lazyPage(() => import('@/presentation/pages/doc'), 'DocSchema');
 
 // Non-English languages are served under a path prefix (/fr, /de, …). Mounting the router under a
 // matching basename lets every existing route work unchanged within the active locale — `/fr/studio`
@@ -55,83 +54,6 @@ function detectBasename(): string | undefined {
   const segment = window.location.pathname.split('/')[1];
 
   return LOCALE_PREFIXES.includes(segment as never) ? `/${segment}` : undefined;
-}
-
-// The shared chrome (skip link, header, footer, onboarding) wraps every route via <Outlet />.
-// <ScrollRestoration /> gives native scroll behavior: top on forward navigations, restored position
-// on back/forward — the browser default that client-side routing otherwise loses.
-function RootLayout() {
-  const { t } = useTranslation();
-  const { show, dismiss } = useOnboarding();
-
-  // App-wide tactile feedback: a subtle haptic on every press of an interactive
-  // element gives the web app a native, responsive feel (web-haptics).
-  useEffect(() => {
-    const onPointerDown = (event: PointerEvent) => {
-      const el = event.target as Element | null;
-
-      if (el?.closest('button, a, [role="button"], input[type="range"], .tap')) {
-        haptic('selection');
-      }
-    };
-    document.addEventListener('pointerdown', onPointerDown, { passive: true });
-
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-    };
-  }, []);
-
-  return (
-    <>
-      <ScrollRestoration />
-      <div className="flex min-h-screen flex-col bg-background">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-brand-600 focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/80"
-        >
-          {t('skipToContent')}
-        </a>
-        <Header />
-
-        {/* tabIndex={-1} so the skip link can move keyboard focus here, not just scroll — without it
-            focus stays on the link and the next Tab falls back into the header nav. */}
-        <main id="main-content" tabIndex={-1} className="outline-none">
-          <Outlet />
-        </main>
-
-        {/* Footer */}
-        <footer className="bg-surface text-foreground py-8 mt-auto border-t border-foreground/5">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:gap-6 sm:text-left">
-              <p className="max-w-md text-sm text-gray-400">{t('footer')}</p>
-              <nav
-                aria-label={t('footerNav.label')}
-                className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm"
-              >
-                <Link to="/legal" className="text-gray-400 transition-colors hover:text-foreground">
-                  {t('footerNav.legal')}
-                </Link>
-                <Link to="/privacy" className="text-gray-400 transition-colors hover:text-foreground">
-                  {t('footerNav.privacy')}
-                </Link>
-                <a
-                  href="https://github.com/heristop/leclap/blob/main/LICENSE"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-gray-400 transition-colors hover:text-foreground"
-                >
-                  {t('footerNav.license')}
-                </a>
-              </nav>
-            </div>
-          </div>
-        </footer>
-      </div>
-
-      {/* First-visit guided intro (record → compile a sample → download). */}
-      {show && <Onboarding onDone={dismiss} />}
-    </>
-  );
 }
 
 const router = createBrowserRouter(

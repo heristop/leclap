@@ -8,7 +8,7 @@
   "showcase": {
     "eyebrow": "Míralo en acción",
     "title": "Hecho enteramente en tu navegador",
-    "subtitle": "Sin subir nada, sin servidor: este clip se compuso en el dispositivo a partir de una plantilla con transiciones y música, y luego se renderizó con FFmpeg en WebAssembly.",
+    "subtitle": "Sin subir nada, sin servidor: este clip se compuso en el dispositivo a partir de una plantilla con transiciones, música, efectos, texto y animaciones, y luego se renderizó con FFmpeg en WebAssembly.",
     "badge": "Render de ejemplo · en el navegador",
     "videoAria": "Un vídeo de ejemplo compuesto en LeClap, reproduciéndose en bucle",
     "mute": "Silenciar",

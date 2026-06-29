@@ -25,11 +25,42 @@ export const Home = () => {
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   // The visitor's onboarding-compiled video when they've made one, else the bundled default clip.
   const heroSrc = useHeroVideoSrc();
+  // Defer mounting the blurred hero clip until the browser is idle after first paint, so its fetch +
+  // full-frame decode never competes with the LCP image on load. requestIdleCallback where available,
+  // a short timeout as fallback.
+  const [stageReady, setStageReady] = useState(false);
+  useEffect(() => {
+    // Typed as optional because older Safari lacks requestIdleCallback; fall back to a short timeout.
+    const requestIdle = globalThis.requestIdleCallback as
+      | ((callback: () => void, options?: { timeout: number }) => number)
+      | undefined;
+
+    if (requestIdle) {
+      const id = requestIdle(
+        () => {
+          setStageReady(true);
+        },
+        { timeout: 1500 }
+      );
+
+      return () => {
+        globalThis.cancelIdleCallback(id);
+      };
+    }
+
+    const id = globalThis.setTimeout(() => {
+      setStageReady(true);
+    }, 600);
+
+    return () => {
+      globalThis.clearTimeout(id);
+    };
+  }, []);
 
   useEffect(() => {
     const el = heroVideoRef.current;
 
-    if (!el || reduced) return;
+    if (!el || reduced || !stageReady) return;
 
     if (!heroInView) {
       el.pause();
@@ -38,7 +69,37 @@ export const Home = () => {
     }
 
     el.play().catch(() => {});
-  }, [heroInView, reduced, heroSrc]);
+  }, [heroInView, reduced, heroSrc, stageReady]);
+
+  // Hero parallax: the background stage drifts down at a fraction of scroll speed so the layered
+  // footage reads as depth behind the copy. Writes a transform off the render path via rAF; the
+  // layer is over-sized (inset -8rem) so the drift never reveals an edge. Disabled for reduced motion.
+  const stageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const el = stageRef.current;
+
+        if (!el) {
+          return;
+        }
+
+        el.style.transform = `translate3d(0, ${(globalThis.scrollY * 0.12).toFixed(1)}px, 0)`;
+      });
+    };
+
+    if (!reduced) {
+      onScroll();
+      globalThis.addEventListener('scroll', onScroll, { passive: true });
+    }
+
+    return () => {
+      globalThis.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [reduced]);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
@@ -46,22 +107,32 @@ export const Home = () => {
       {/* Hero Section — always-dark "stage": force dark tokens regardless of theme */}
       <div ref={heroRef} className="dark relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Cinematic stage: a base gradient, a dimmed/blurred background clip, the image overlay, then
-            a vignette that grounds the footage and keeps the hero copy legible. */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
-        <video
-          ref={heroVideoRef}
-          src={heroSrc}
-          className="pointer-events-none absolute inset-0 z-0 h-full w-full scale-105 object-cover opacity-40 blur-[3px]"
-          autoPlay={!reduced}
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay" />
-        {/* Vignette + center-darkening so the footage fades into the stage and the title stays readable. */}
+            a vignette that grounds the footage and keeps the hero copy legible. The whole stage is
+            over-sized (-inset-32) and parallax-drifted via stageRef so scroll reveals depth without
+            exposing an edge. */}
+        <div ref={stageRef} aria-hidden="true" className="absolute -inset-32 z-0 will-change-transform">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
+          {stageReady && (
+            <video
+              ref={heroVideoRef}
+              src={heroSrc}
+              className="pointer-events-none absolute inset-0 h-full w-full scale-105 object-cover opacity-40 blur-[3px]"
+              autoPlay={!reduced}
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          )}
+          {/* Decorative clapperboard texture at 20% opacity under a blend — self-hosted as an optimized
+              WebP (68 KB, see public/images) so the LCP element loads from origin with no external
+              DNS/TLS round-trip. Credit: Unsplash (see LICENSE › Third-party assets). */}
+          <div className="absolute inset-0 bg-[url('/images/hero-texture.webp')] bg-cover bg-center opacity-20 mix-blend-overlay" />
+        </div>
+        {/* Vignette + edge-fade stay pinned to the hero bounds (not parallaxed) so the hero still
+            blends cleanly into the next section regardless of scroll. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_15%,rgba(8,8,14,0.72))]"

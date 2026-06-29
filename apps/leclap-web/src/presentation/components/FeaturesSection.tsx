@@ -38,12 +38,8 @@ const FeatureCard = ({ id, Icon }: FeatureCardProps) => {
     <Card
       elevation="flat"
       gradientBorder
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
-        e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`);
-      }}
-      className="group spotlight relative h-full bg-surface/40 p-6 transition-all duration-300 hover:border-brand-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10"
+      glow
+      className="group relative h-full bg-surface/40 p-6 transition-[border-color,box-shadow] duration-300 hover:border-brand-500/40 hover:shadow-xl hover:shadow-brand-500/10"
       {...hoverProps}
     >
       <div className="flex items-center gap-4 mb-4">
@@ -69,9 +65,11 @@ export const FeaturesSection = () => {
 
   return (
     <section id="features" className="relative overflow-hidden py-10 sm:py-16 lg:py-24">
+      {/* Living brand glow — two aurora blobs drift on opposite phases so the band feels lit, not flat.
+          animate-aurora freezes under the global reduced-motion reset. */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute -top-24 right-0 h-80 w-80 rounded-full bg-brand-500/10 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 h-80 w-80 rounded-full bg-secondary-500/10 blur-[120px]" />
+        <div className="animate-aurora absolute -top-24 right-0 h-80 w-80 rounded-full bg-brand-500/10 blur-[120px]" />
+        <div className="animate-aurora absolute bottom-0 left-0 h-80 w-80 rounded-full bg-secondary-500/10 blur-[120px] [animation-delay:-9s]" />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4">
@@ -87,7 +85,7 @@ export const FeaturesSection = () => {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map(({ id, Icon }, index) => (
-            <Reveal key={id} delay={index * 80} className="h-full" rootMargin="0px" threshold={0.2}>
+            <Reveal key={id} delay={index * 80} scale className="h-full" rootMargin="0px" threshold={0.2}>
               <FeatureCard id={id} Icon={Icon} />
             </Reveal>
           ))}

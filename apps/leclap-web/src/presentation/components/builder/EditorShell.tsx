@@ -117,7 +117,7 @@ const EditorTopBar = ({
   onExit: () => void;
   t: TFunction<'builder'>;
 }) => (
-  <header className="flex items-center gap-2.5 border-b border-foreground/10 bg-surface-2/70 px-3 py-2.5 shadow-[inset_0_1px_0_0_oklch(1_0_0/0.04)] backdrop-blur-md sm:px-4">
+  <header className="flex items-center gap-2.5 border-b border-foreground/10 bg-surface-2/70 px-4 py-2.5 shadow-[inset_0_1px_0_0_oklch(1_0_0/0.04)] backdrop-blur-md sm:px-6">
     {/* Back affordance as a subtle pill — harmonized with the hub's "Change template" wording. */}
     <button
       type="button"

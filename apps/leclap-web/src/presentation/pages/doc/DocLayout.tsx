@@ -19,7 +19,7 @@ const DocSidebar = () => (
     <ul className="space-y-1 border-l border-divider">
       {docNav.map((item) => (
         <li key={item.to}>
-          <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass(isActive)}>
+          <NavLink to={item.to} end={item.end} viewTransition className={({ isActive }) => linkClass(isActive)}>
             {item.label}
           </NavLink>
         </li>
@@ -43,6 +43,7 @@ const DocPager = () => {
       {prev ? (
         <NavLink
           to={prev.to}
+          viewTransition
           className="inline-flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" /> {prev.label}
@@ -53,6 +54,7 @@ const DocPager = () => {
       {next ? (
         <NavLink
           to={next.to}
+          viewTransition
           className="inline-flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-foreground"
         >
           {next.label} <ArrowRight className="h-4 w-4" />

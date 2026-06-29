@@ -8,7 +8,7 @@
   "showcase": {
     "eyebrow": "En action",
     "title": "100 % dans ton navigateur",
-    "subtitle": "Aucun envoi, aucun serveur — ce clip a été composé sur l’appareil à partir d’un modèle, avec transitions et musique, puis rendu par WebAssembly FFmpeg.",
+    "subtitle": "Aucun envoi, aucun serveur — ce clip a été composé sur l’appareil à partir d’un modèle, avec transitions, musique, effets, texte et animations, puis rendu par WebAssembly FFmpeg.",
     "badge": "Rendu d’exemple · dans le navigateur",
     "videoAria": "Une vidéo d’exemple composée dans LeClap, lue en boucle",
     "mute": "Couper le son",

@@ -4,6 +4,7 @@ import { ArrowRight } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { Button } from '@/presentation/components/ui';
+import { perforationStyle } from '@/lib/film-strip';
 
 // A muted ambient loop of a Remotion promo (landscape 16:9 + portrait 9:16 cuts), shown on the home page.
 // The orientation is responsive — landscape on desktop, portrait on phones — and only the matching cut is
@@ -241,6 +242,28 @@ export const ResponsivePromoShowcase = ({
 
                 <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
                   {badge}
+                </span>
+
+                {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the
+                    footer motif), each on a slim dark gradient so the holes stay legible over bright
+                    video. Drift freezes under the global reduced-motion reset. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-linear-to-b from-black/55 to-transparent"
+                >
+                  <span
+                    className="animate-film-drift absolute inset-0"
+                    style={{ ...perforationStyle, backgroundPosition: 'left top' }}
+                  />
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-linear-to-t from-black/55 to-transparent"
+                >
+                  <span
+                    className="animate-film-drift absolute inset-0"
+                    style={{ ...perforationStyle, backgroundPosition: 'left bottom' }}
+                  />
                 </span>
               </div>
             </div>

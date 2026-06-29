@@ -5,6 +5,7 @@ import { CpuIcon } from '@/presentation/components/icons/cpu';
 import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
 import { useTranslation } from 'react-i18next';
 import { Reveal } from '@/presentation/components/ui';
+import { usePointerGlow } from '@/hooks/usePointerGlow';
 
 type AnimIcon = ForwardRefExoticComponent<{ className?: string } & RefAttributes<AnimatedIconHandle>>;
 
@@ -29,9 +30,17 @@ interface PillarCardProps {
 const PillarCard = ({ id, Icon }: PillarCardProps) => {
   const { t } = useTranslation('about');
   const { ref, hoverProps } = useIconHover();
+  const { ref: glowRef, glowProps } = usePointerGlow<HTMLDivElement>();
 
   return (
-    <div className="group glass-panel-dark rounded-2xl p-6 lift h-full" {...hoverProps}>
+    // Magnetic surface: leans toward the cursor (pointer-tilt) with a pointer-tracked glow (spotlight),
+    // replacing the old `lift` — both drive transform, so they can't coexist.
+    <div
+      ref={glowRef}
+      className="group spotlight pointer-tilt glass-panel-dark h-full rounded-2xl p-6 transition-shadow duration-300 hover:shadow-xl hover:shadow-brand-500/10"
+      {...glowProps}
+      {...hoverProps}
+    >
       <div className="inline-flex p-3 mb-4 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-300 group-hover:bg-brand-500/20 transition-colors duration-300">
         <Icon className="w-6 h-6" ref={ref} />
       </div>
@@ -46,7 +55,7 @@ const PillarCard = ({ id, Icon }: PillarCardProps) => {
 export const AboutPillars = () => (
   <div className="grid gap-5 sm:grid-cols-3 mb-16">
     {pillars.map(({ id, Icon }, index) => (
-      <Reveal key={id} delay={index * 80}>
+      <Reveal key={id} delay={index * 80} scale>
         <PillarCard id={id} Icon={Icon} />
       </Reveal>
     ))}

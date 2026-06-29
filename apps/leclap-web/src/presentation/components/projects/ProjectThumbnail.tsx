@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Film } from '@/presentation/components/icons';
+import { Clapperboard } from '@/presentation/components/icons';
 import { PlayIcon } from '@/presentation/components/icons/play';
 import type { StoredProject } from '@/lib/projectModel';
 
@@ -47,13 +47,20 @@ export const ProjectThumbnail = ({ project, poster, onOpen }: ProjectThumbnailPr
           </span>
         </>
       ) : (
+        // Draft: a calm film-stage tile with a single branded focal point — a clapperboard in a soft,
+        // glowing brand tile that reads "your project, ready to shoot" instead of an empty frame. The
+        // glow + tile lift gently on hover to signal the whole tile opens the editor.
         <span aria-hidden className="studio-stage absolute inset-0 grid place-items-center">
-          <Film className="size-10 text-muted-foreground/50" />
+          <span className="pointer-events-none absolute size-28 rounded-full bg-brand-500/15 blur-2xl transition-opacity duration-300 group-hover/thumb:bg-brand-500/25" />
+          <span className="relative grid size-14 place-items-center rounded-2xl bg-brand-500/10 text-brand-300 ring-1 ring-brand-500/20 transition-all duration-300 group-hover/thumb:scale-110 group-hover/thumb:bg-brand-500/15 motion-reduce:transition-none">
+            <Clapperboard className="size-7" />
+          </span>
         </span>
       )}
 
+      {/* Status chip with a colour-coded dot — green = rendered, amber = still a draft. */}
       <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wide text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
-        {completed && <span aria-hidden className="size-1.5 rounded-full bg-success" />}
+        <span aria-hidden className={`size-1.5 rounded-full ${completed ? 'bg-success' : 'bg-warning'}`} />
         {statusLabel}
       </span>
     </button>

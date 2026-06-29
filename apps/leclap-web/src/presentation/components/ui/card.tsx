@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import { usePointerGlow } from '@/hooks/usePointerGlow';
 
 const cardVariants = cva('bg-surface border border-divider rounded-2xl', {
   variants: {
@@ -19,16 +20,52 @@ const cardVariants = cva('bg-surface border border-divider rounded-2xl', {
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
   gradientBorder?: boolean;
+  /** Magnetic/spotlight surface: leans toward the cursor with a pointer-tracked lavender glow. */
+  glow?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, elevation, interactive, gradientBorder, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(cardVariants({ elevation, interactive }), gradientBorder && 'gradient-border', className)}
-      {...props}
-    />
-  )
+  ({ className, elevation, interactive, gradientBorder, glow, ...props }, ref) => {
+    // glow opts the surface into the magnetic/spotlight motion language (usePointerGlow + utilities).
+    const { ref: glowRef, glowProps } = usePointerGlow<HTMLDivElement>();
+
+    // When glow is on, the pointer hook owns the element ref; fan it out to the forwarded ref too.
+    const setRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        if (glow) {
+          glowRef.current = node;
+        }
+
+        if (typeof ref === 'function') {
+          ref(node);
+
+          return;
+        }
+
+        if (ref) {
+          ref.current = node;
+        }
+      },
+      [glow, glowRef, ref]
+    );
+
+    return (
+      <div
+        ref={setRef}
+        className={cn(
+          // glow's tilt owns the transform, so it can't coexist with interactive's hover-lift —
+          // swap that lift for a non-transform cursor + glow-shadow when both are set.
+          cardVariants({ elevation, interactive: glow ? false : interactive }),
+          gradientBorder && 'gradient-border',
+          glow && 'spotlight pointer-tilt',
+          glow && interactive && 'cursor-pointer transition-shadow duration-300 hover:shadow-[var(--shadow-glow)]',
+          className
+        )}
+        {...(glow ? glowProps : {})}
+        {...props}
+      />
+    );
+  }
 );
 Card.displayName = 'Card';
 

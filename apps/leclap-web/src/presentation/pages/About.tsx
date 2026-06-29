@@ -14,10 +14,11 @@ export const About = () => {
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden pt-24 pb-20">
       <Seo title={t('about.title', { ns: 'seo' })} description={t('about.description', { ns: 'seo' })} path="/about" />
-      {/* Ambient background */}
+      {/* Ambient background — living brand aurora that slowly drifts (replaces the old synchronized
+          pulse). Frozen under the global reduced-motion reset. */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="animate-aurora absolute top-0 left-1/4 h-96 w-96 rounded-full bg-brand-500/10 blur-[120px]" />
+        <div className="animate-aurora absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-secondary-500/10 blur-[120px] [animation-delay:-9s]" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">

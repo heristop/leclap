@@ -54,11 +54,21 @@ const DuplicateButton = ({ label, onClick }: { label: string; onClick: () => voi
   );
 };
 
+// Mark this card's title as the View Transition's shared element so it morphs into the editor titlebar
+// when the template editor opens. Called from the edit link's click: walk up to the card, then tag its
+// title — set imperatively at click time so the name is on the DOM before the snapshot.
+const tagTitleForTransition = (link: HTMLElement): void => {
+  const title = link.closest('[data-vt-card]')?.querySelector<HTMLElement>('[data-vt-title]');
+
+  if (title) title.style.viewTransitionName = 'studio-title';
+};
+
 // The poster-card language, shared with /studio: a seeded gradient band fronts a surface-2 card that
 // lifts and spotlights on hover with a brand ring. The complexity tag lives on the poster, so the
 // body carries the name, description and a compact meta line.
 const TemplateCard = ({ template, actions, t }: CardProps) => (
   <Card
+    data-vt-card
     onMouseMove={(e) => {
       const rect = e.currentTarget.getBoundingClientRect();
       e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
@@ -69,7 +79,10 @@ const TemplateCard = ({ template, actions, t }: CardProps) => (
     <TemplatePoster template={template} />
 
     <div className="flex flex-1 flex-col p-5">
-      <h3 className="mb-1.5 font-display text-lg font-bold text-foreground transition-colors group-hover:text-brand-300">
+      <h3
+        data-vt-title
+        className="mb-1.5 font-display text-lg font-bold text-foreground transition-colors group-hover:text-brand-300"
+      >
         {template.name}
       </h3>
       <p className="mb-4 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-gray-400">
@@ -277,7 +290,18 @@ export const Admin = () => {
                   actions={
                     <>
                       <Button asChild variant="secondary" size="sm" className="min-h-10 flex-1 active:scale-[0.98]">
-                        <Link to={`/templates/${tpl.id}/edit`}>
+                        <Link
+                          to={`/templates/${tpl.id}/edit`}
+                          viewTransition
+                          onMouseEnter={() => {
+                            // Warm the lazy editor chunk so the destination renders synchronously inside the
+                            // transition — a Suspense fallback would be the snapshot, leaving no title to morph into.
+                            import('@/presentation/pages/TemplateEditorPage').catch(() => {});
+                          }}
+                          onClick={(event) => {
+                            tagTitleForTransition(event.currentTarget);
+                          }}
+                        >
                           <Pencil /> {t('card.edit')}
                         </Link>
                       </Button>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Film, Pencil } from '@/presentation/components/icons';
 import { ClockIcon } from '@/presentation/components/icons/clock';
@@ -39,6 +39,20 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
 
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(project.name);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // Tag the project title as the View Transition's shared element so it morphs into the builder titlebar
+  // when the project opens. Set imperatively right before navigating so the name is on the DOM before the
+  // snapshot, then defer to the page's open/edit handler (which awaits the chunk and navigates).
+  const handleOpen = () => {
+    if (titleRef.current) titleRef.current.style.viewTransitionName = 'studio-title';
+    onOpen(project);
+  };
+
+  const handleEdit = () => {
+    if (titleRef.current) titleRef.current.style.viewTransitionName = 'studio-title';
+    onEdit(project);
+  };
 
   const commitRename = () => {
     setRenaming(false);
@@ -53,14 +67,8 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
   };
 
   return (
-    <Card className="lift spotlight group/card relative flex h-full flex-col overflow-hidden p-0">
-      <ProjectThumbnail
-        project={project}
-        poster={poster}
-        onOpen={() => {
-          onOpen(project);
-        }}
-      />
+    <Card glow className="group/card relative flex h-full flex-col overflow-hidden p-0">
+      <ProjectThumbnail project={project} poster={poster} onOpen={handleOpen} />
 
       <div className="flex flex-1 flex-col p-4">
         {renaming ? (
@@ -81,7 +89,9 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
           />
         ) : (
           <div className="mb-1 flex items-center gap-1.5">
-            <h3 className="truncate font-display text-base font-bold text-foreground">{project.name}</h3>
+            <h3 ref={titleRef} data-vt-title className="truncate font-display text-base font-bold text-foreground">
+              {project.name}
+            </h3>
             <button
               type="button"
               aria-label={t('actions.rename')}
@@ -119,12 +129,8 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
         <div className="mt-auto transition-opacity duration-200 sm:opacity-0 sm:group-hover/card:opacity-100 sm:group-focus-within/card:opacity-100 motion-reduce:transition-none">
           <ProjectActions
             project={project}
-            onOpen={() => {
-              onOpen(project);
-            }}
-            onEdit={() => {
-              onEdit(project);
-            }}
+            onOpen={handleOpen}
+            onEdit={handleEdit}
             onDuplicate={() => {
               onDuplicate(project);
             }}

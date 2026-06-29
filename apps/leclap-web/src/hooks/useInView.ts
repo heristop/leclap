@@ -13,7 +13,7 @@ interface UseInViewOptions {
  * Observe an element and report when it scrolls into the viewport, via IntersectionObserver.
  * Falls back to immediately in-view when IntersectionObserver is unavailable.
  */
-export function useInView<T extends HTMLElement = HTMLDivElement>({
+export function useInView<T extends Element = HTMLDivElement>({
   threshold = 0.1,
   once = true,
   // Positive bottom margin grows the observer root downward, so an element reveals a bit before it

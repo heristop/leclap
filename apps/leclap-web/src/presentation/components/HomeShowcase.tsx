@@ -5,6 +5,7 @@ import { ArrowRight, Volume2, VolumeX } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { Button } from '@/presentation/components/ui';
+import { perforationStyle } from '@/lib/film-strip';
 
 // The clip is an actual LeClap render (1280x720), shipped under public/videos. It plays as a
 // muted ambient loop to show the product's output up front; a corner control lets viewers unmute.
@@ -117,11 +118,13 @@ export const HomeShowcase = () => {
         </div>
 
         <div className="relative mx-auto mt-8 max-w-4xl sm:mt-12">
-          {/* Soft brand aura bleeding out from behind the frame; fades in with it. */}
+          {/* Projector glow — a soft brand aura behind the frame that fades in with it, then slowly
+              drifts/breathes (animate-aurora) so the frame reads as lit by a projector. Frozen under
+              the global reduced-motion reset. */}
           <div
             aria-hidden="true"
             className={cn(
-              'pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl transition-opacity duration-1000',
+              'animate-aurora pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl transition-opacity duration-1000',
               'bg-gradient-to-tr from-brand-500/20 via-secondary-500/10 to-accent-400/20',
               revealed ? 'opacity-100' : 'opacity-0'
             )}
@@ -169,6 +172,27 @@ export const HomeShowcase = () => {
 
             <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
               {t('showcase.badge')}
+            </span>
+
+            {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the footer
+                motif), each on a slim dark gradient so the holes stay legible over bright video. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-black/55 to-transparent"
+            >
+              <span
+                className="animate-film-drift absolute inset-0"
+                style={{ ...perforationStyle, backgroundPosition: 'left top' }}
+              />
+            </span>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-black/55 to-transparent"
+            >
+              <span
+                className="animate-film-drift absolute inset-0"
+                style={{ ...perforationStyle, backgroundPosition: 'left bottom' }}
+              />
             </span>
 
             {/* Sound control — muted by default; the slider reveals on hover/focus. Hidden when the

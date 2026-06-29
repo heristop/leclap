@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ExportPanel } from '@/presentation/components/ExportPanel';
 import { Seo } from '@/presentation/components/Seo';
 import { EditorShell, CompileMonitor, type SaveStatus } from '@/presentation/components/builder';
+import { EditorLoadingShell } from '@/presentation/components/builder/editor-loading-shell';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection } from '@/services/templateService';
@@ -540,6 +541,16 @@ interface AutoSaveArgs {
   setSearchParams: ReturnType<typeof useSearchParams>[1];
 }
 
+// A draft is worth persisting only once it carries real user input — a recorded/uploaded clip, an
+// entered form field, or a video edit. A freshly-opened template (which already carries its default
+// soundtrack) is otherwise empty and must NOT spawn a stored project, or the library fills with blank
+// "0 clips" drafts the user never actually started.
+const modelHasContent = (model: WizardModel): boolean =>
+  Object.keys(model.clipsBySection).length > 0 ||
+  Object.values(model.rushesBySection).some((takes) => takes.length > 0) ||
+  Object.values(model.formData).some((value) => value.trim() !== '') ||
+  Object.values(model.editsBySection).some(Boolean);
+
 // Debounced draft auto-save (only while editing an input step) plus the unsaved-changes prompt.
 // Extracted from useProjectPersistence to keep that hook within its statement budget.
 const useDraftAutoSave = (args: AutoSaveArgs) => {
@@ -552,7 +563,13 @@ const useDraftAutoSave = (args: AutoSaveArgs) => {
 
   useEffect(() => {
     const onResultOrProcess = currentStepKind === 'process' || currentStepKind === 'result';
-    const blocked = !selectedTemplate || onResultOrProcess || isProcessingRef.current || hydratingRef.current;
+    // Don't auto-save an empty draft — only persist once the project has real content (see above).
+    const blocked =
+      !selectedTemplate ||
+      onResultOrProcess ||
+      isProcessingRef.current ||
+      hydratingRef.current ||
+      !modelHasContent(model);
     let handle: ReturnType<typeof setTimeout> | undefined;
 
     if (!blocked) {
@@ -737,18 +754,25 @@ const useProjectPersistence = (args: PersistenceArgs) => {
 interface PreselectArgs {
   setSelectedTemplate: (template: Template | null) => void;
   setModel: (model: WizardModel) => void;
+  // The template handed in via nav state (gallery click). When present we already have it synchronously,
+  // so the editor renders its titlebar in the first frame — letting the card-title View Transition land —
+  // and the async fetch below is skipped.
+  presetId: string | null;
 }
 
 // `/studio/new?template=<id>` (no project) opens the editor straight on a template: fetch it and seed
 // the empty model with its default soundtrack — the same effect as picking it in the gallery. The
 // `appliedRef` guards against re-running the apply for an id we've already handled, so the effect
 // can't loop on its own setState (which leaves the param untouched).
-const useTemplatePreselect = ({ setSelectedTemplate, setModel }: PreselectArgs) => {
+const useTemplatePreselect = ({ setSelectedTemplate, setModel, presetId }: PreselectArgs) => {
   const [searchParams] = useSearchParams();
   const templateParam = searchParams.get('template');
   const projectIdParam = searchParams.get('projectId');
-  const appliedRef = useRef<string | null>(null);
-  const [resolving, setResolving] = useState(Boolean(templateParam) && !projectIdParam);
+  // A nav-state template for the current param is already applied, so seed appliedRef and never resolve.
+  const appliedRef = useRef<string | null>(presetId && presetId === templateParam ? templateParam : null);
+  const [resolving, setResolving] = useState(
+    Boolean(templateParam) && !projectIdParam && appliedRef.current !== templateParam
+  );
 
   useEffect(() => {
     const pending = { cancelled: false };
@@ -786,14 +810,38 @@ const useTemplatePreselect = ({ setSelectedTemplate, setModel }: PreselectArgs) 
   return { templateParam, projectIdParam, resolving };
 };
 
+// The template a gallery click hands over through router nav state (so the editor renders synchronously
+// and the card-title View Transition has a target). Null for direct loads / refreshes, which re-fetch.
+const navStateTemplate = (state: unknown): Template | null =>
+  (state as { template?: Template } | null)?.template ?? null;
+
+// A project open (/projects) can't hand over a full template synchronously — it hydrates async from
+// `?projectId`. So it passes only the project NAME through nav state, letting the loading branch render
+// a `studio-title` target that the project-card title morphs into. Kept distinct from the `template`
+// key above so it never seeds builder state.
+const navStateProjectTitle = (state: unknown): string | null =>
+  (state as { projectTitle?: string } | null)?.projectTitle ?? null;
+
+// Seed the wizard model on a preselected template with its default soundtrack, matching gallery pick.
+const initialModelFor = (template: Template | null): WizardModel =>
+  template ? { ...EMPTY_MODEL, musicChoice: defaultMusicChoice(template) } : EMPTY_MODEL;
+
+const templateId = (template: Template | null): string | null => template?.id ?? null;
+
 // Owns all wizard state + derived values + actions, so the Builder component is render-only.
 const useBuilderController = () => {
   const navigate = useNavigate();
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [model, setModel] = useState<WizardModel>(EMPTY_MODEL);
+  const location = useLocation();
+  const presetTemplate = navStateTemplate(location.state);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(presetTemplate);
+  const [model, setModel] = useState<WizardModel>(() => initialModelFor(presetTemplate));
   const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, clearResults, isFFmpegReady } =
     useVideoProcessing();
-  const { templateParam, projectIdParam, resolving } = useTemplatePreselect({ setSelectedTemplate, setModel });
+  const { templateParam, projectIdParam, resolving } = useTemplatePreselect({
+    setSelectedTemplate,
+    setModel,
+    presetId: templateId(presetTemplate),
+  });
   const steps: WizardStep[] = selectedTemplate ? buildSteps(selectedTemplate) : [{ kind: 'template' }];
   const stepIndex = Math.min(model.stepIndex, steps.length - 1);
   const currentStepKind = steps[stepIndex]?.kind;
@@ -801,15 +849,16 @@ const useBuilderController = () => {
   const builderState: BuilderState = { ...model, selectedTemplate };
   const allComplete = allInputsComplete(steps, builderState);
 
-  const { hydrating, hydratedResult, resetProject, clearHydratedResult, saveStatus, lastSavedAt } = useProjectPersistence({
-    selectedTemplate,
-    model,
-    currentStepKind,
-    isProcessing,
-    processedVideo,
-    setSelectedTemplate,
-    setModel,
-  });
+  const { hydrating, hydratedResult, resetProject, clearHydratedResult, saveStatus, lastSavedAt } =
+    useProjectPersistence({
+      selectedTemplate,
+      model,
+      currentStepKind,
+      isProcessing,
+      processedVideo,
+      setSelectedTemplate,
+      setModel,
+    });
 
   const actions = makeWizardActions({
     model,
@@ -871,13 +920,16 @@ const useBuilderController = () => {
   // Nothing to edit (no template/project param and nothing selected) → the chooser lives on /studio.
   const needsTemplate = !templateParam && !projectIdParam && !selectedTemplate && !resolving && !hydrating;
 
-  return { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate };
+  // Title hint a project open passes through nav state — the morph target while the project hydrates.
+  const projectTitle = navStateProjectTitle(location.state);
+
+  return { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate, projectTitle };
 };
 
 export const Builder = () => {
   const { t } = useTranslation('builder');
   const { loadingProgress } = useFFmpeg();
-  const { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate } = useBuilderController();
+  const { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate, projectTitle } = useBuilderController();
 
   // No template/project to edit → send the user to the gallery to pick one.
   if (needsTemplate) {
@@ -901,10 +953,18 @@ export const Builder = () => {
       </div>
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-24 relative z-10">
         {hydrating || resolving ? (
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-gray-400 fade-in">
-            <Loader2 className="h-7 w-7 animate-spin text-brand-500 motion-reduce:animate-none" />
-            <p className="text-sm font-medium">{t('project.loading')}</p>
-          </div>
+          <>
+            {/* A project open carries its title via nav state: render the editor-shaped loading shell so
+                the `studio-title` morph from the card lands in the title's FINAL position (the real
+                EditorShell then mounts in the identical spot — no jump). */}
+            {projectTitle && <EditorLoadingShell title={projectTitle} />}
+            {!projectTitle && (
+              <div className="fade-in flex min-h-[40vh] flex-col items-center justify-center gap-3 text-gray-400">
+                <Loader2 className="h-7 w-7 animate-spin text-brand-500 motion-reduce:animate-none" />
+                <p className="text-sm font-medium">{t('project.loading')}</p>
+              </div>
+            )}
+          </>
         ) : (
           <HubFlow {...flowProps} />
         )}

@@ -29,12 +29,31 @@ export const ProjectsPage = () => {
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
   const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
 
+  // Open/edit navigate into the builder with a View Transition. We await the lazy Builder chunk so its
+  // loading branch renders synchronously inside the transition (a Suspense fallback would be the snapshot,
+  // leaving no title to morph into), and pass the project name through nav state so that loading branch
+  // can show a `studio-title` target the card title morphs into. The project itself still hydrates from
+  // `?projectId` — nav state carries only the title hint, never a template (which would seed builder state).
   const openProject = (project: StoredProject) => {
-    Promise.resolve(navigate(`/studio/new?projectId=${project.id}`)).catch(() => {});
+    import('@/presentation/pages/Builder')
+      .then(() =>
+        navigate(`/studio/new?projectId=${project.id}`, {
+          viewTransition: true,
+          state: { projectTitle: project.name },
+        })
+      )
+      .catch(() => {});
   };
 
   const editProject = (project: StoredProject) => {
-    Promise.resolve(navigate(`/studio/new?projectId=${project.id}&edit=1`)).catch(() => {});
+    import('@/presentation/pages/Builder')
+      .then(() =>
+        navigate(`/studio/new?projectId=${project.id}&edit=1`, {
+          viewTransition: true,
+          state: { projectTitle: project.name },
+        })
+      )
+      .catch(() => {});
   };
 
   const duplicateProject = (project: StoredProject) => {

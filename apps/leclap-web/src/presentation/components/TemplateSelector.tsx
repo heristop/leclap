@@ -79,7 +79,7 @@ const CardMetaChips = ({
   );
 };
 
-// Mark this card's title as the View Transition's shared element so it morphs into the studio titlebar
+// Mark this card's title as the View Transition's shared element so it morphs into the editor titlebar
 // when the editor opens. Set imperatively at click time so the name is on the DOM before the snapshot.
 const tagTitleForTransition = (card: HTMLElement): void => {
   const title = card.querySelector<HTMLElement>('[data-vt-title]');
@@ -103,22 +103,17 @@ const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardPro
   return (
     <Card
       interactive
+      glow
       role="button"
       tabIndex={0}
-      onClick={(e) => {
-        tagTitleForTransition(e.currentTarget);
+      onClick={(event) => {
+        tagTitleForTransition(event.currentTarget);
         onSelect(template);
       }}
       onKeyDown={handleKeyDown}
-      onMouseMove={(e) => {
-        // Track the pointer for the spotlight glow (cheap: sets CSS vars, no React re-render).
-        const rect = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
-        e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`);
-      }}
       aria-pressed={isSelected}
       className={clsx(
-        'lift spotlight group relative h-full w-full overflow-hidden p-0 text-left',
+        'group relative h-full w-full overflow-hidden p-0 text-left',
         isSelected
           ? 'border-brand-500 shadow-lg shadow-brand-500/15 ring-2 ring-brand-500/30'
           : 'border-foreground/10 hover:border-brand-500/40'

@@ -8,7 +8,7 @@
   "showcase": {
     "eyebrow": "See it in action",
     "title": "Made entirely in your browser",
-    "subtitle": "No upload, no server — this clip was composed on-device from a template with transitions and music, then rendered by WebAssembly FFmpeg.",
+    "subtitle": "No upload, no server — this clip was composed on-device from a template with transitions, music, effects, text and animations, then rendered by WebAssembly FFmpeg.",
     "badge": "Sample render · in-browser",
     "videoAria": "A sample video composed in LeClap, playing on a loop",
     "mute": "Mute",

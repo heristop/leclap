@@ -53,10 +53,29 @@
     <meta name="twitter:image" content="https://leclap.pages.dev/og-image.jpg" />
     <meta name="twitter:image:alt" content="LeClap — cinematic video composer running in the browser" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Fonts: Oswald is the primary UI face and is self-hosted (see @font-face in index.css), so we
+         preload it on the critical path instead of pulling a render-blocking Google Fonts stylesheet —
+         which also avoids an external request the COEP: require-corp policy would otherwise gate. -->
+    <link rel="preload" href="/fonts/Oswald.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- The hero's full-bleed clapperboard texture is the LCP element, but only on the home route. A
+         static <link rel="preload"> in this shared shell would fetch it on every page and log a
+         "preloaded but unused" warning off-home — so inject it from an inline head script only when the
+         path is a home root (root or a locale prefix). Still in <head> and synchronous, so on home it
+         races ahead of the CSS that references the background. -->
+    <script>
+      (function () {
+        var p = location.pathname.replace(/\/$/, '') || '/';
+        var homeRoots = ['/', '/fr', '/de', '/es', '/it'];
+        if (homeRoots.indexOf(p) === -1) return;
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.setAttribute('fetchpriority', 'high');
+        link.href = '/images/hero-texture.webp';
+        document.head.appendChild(link);
+      })();
+    </script>
 
     <!-- Structured data: the web app itself -->
     <script type="application/ld+json">

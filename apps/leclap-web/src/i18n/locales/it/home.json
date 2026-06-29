@@ -8,7 +8,7 @@
   "showcase": {
     "eyebrow": "Guardalo in azione",
     "title": "Creato interamente nel tuo browser",
-    "subtitle": "Niente upload, niente server — questa clip è stata composta sul dispositivo da un modello con transizioni e musica, poi renderizzata con FFmpeg WebAssembly.",
+    "subtitle": "Niente upload, niente server — questa clip è stata composta sul dispositivo da un modello con transizioni, musica, effetti, testo e animazioni, poi renderizzata con FFmpeg WebAssembly.",
     "badge": "Render di esempio · nel browser",
     "videoAria": "Un video di esempio composto in LeClap, riprodotto in loop",
     "mute": "Disattiva audio",

@@ -29,9 +29,13 @@
   src: url('/fonts/Rubik.ttf') format('truetype');
   font-display: swap;
 }
+/* Oswald is the UI face (used on every page), so it gets a woff2 (70 KB vs the 168 KB TTF) for the
+   browser; the TTF stays as a fallback and is what the WASM drawtext pipeline loads by path. */
 @font-face {
   font-family: 'Oswald';
-  src: url('/fonts/Oswald.ttf') format('truetype');
+  src:
+    url('/fonts/Oswald.woff2') format('woff2'),
+    url('/fonts/Oswald.ttf') format('truetype');
   font-display: swap;
 }
 @font-face {
@@ -203,6 +207,10 @@ body {
   --animate-float: float 6s ease-in-out infinite;
   --animate-glow: glow 2.4s ease-in-out infinite;
   --animate-gradient: gradient-pan 6s ease infinite;
+  /* Footer film-strip: sprocket holes drift one tile (28px) per cycle — film through a projector. */
+  --animate-film-drift: film-drift 6s linear infinite;
+  /* Living brand glow behind sections — slow, low-opacity aurora drift. */
+  --animate-aurora: aurora-drift 18s ease-in-out infinite;
   /* Highlight sweep across the phone glass, then a long idle before the next pass. */
   --animate-phone-sheen: phone-sheen 7s var(--ease-out-expo) infinite;
   /* Magnetic stretch the editor tool-dock indicator plays as it springs to a new tool. */
@@ -822,6 +830,46 @@ body {
   }
 }
 
+/* Magnetic 3D lean — the surface tilts a few degrees toward the cursor. Driven by --tilt-x/--tilt-y
+   from usePointerGlow; settles flat on leave. perspective keeps the rotation reading as depth, not skew. */
+@utility pointer-tilt {
+  transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.4s var(--ease-out-expo);
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pointer-tilt {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Playhead-scrubber link: a brand underline wipes in from the left on hover/focus, like a timeline
+   scrubber. Extracted from the footer so nav links, tabs and inline links share one hover language. */
+@utility playhead-link {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -0.2rem;
+    height: 1.5px;
+    border-radius: 1px;
+    background-color: var(--color-brand-500);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s var(--ease-out-expo);
+    pointer-events: none;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    transform: scaleX(1);
+  }
+}
+
 /* Tactile press feedback — gives buttons/cards a native, springy "give". */
 @utility tap {
   touch-action: manipulation;
@@ -939,6 +987,26 @@ body {
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+@keyframes film-drift {
+  to {
+    background-position-x: 28px;
+  }
+}
+
+/* Living brand glow — a low-opacity aurora that drifts and breathes behind a section so the surface
+   feels lit rather than static. translate + scale only (GPU-cheap); frozen under reduced-motion. */
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-4%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-4%, 0, 0) scale(1);
   }
 }
 

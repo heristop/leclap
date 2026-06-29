@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-06-29
+
+### Added
+
+- `TemplateValidator` (plus `ValidationResult` / `ValidationError` types) is now
+  exported from the entry, so consumers can validate a descriptor without compiling.
+
 ## [2.1.0] - 2026-06-29
 
 ### Added
@@ -20,8 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   descriptor schema. Partials travel with the descriptor (`descriptor.partials`).
 - Asset-source helpers (`assetBaseUrl`/`fontAssetUrl`/`musicAssetUrl`/
   `catalogAssetUrl`) resolving catalog media to the public repository.
-- `TemplateValidator` (plus `ValidationResult` / `ValidationError` types) is now
-  exported from the entry, so consumers can validate a descriptor without compiling.
 
 ### Changed
 

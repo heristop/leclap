@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # The library/sample media (creative-kit videos/music, bundled Expo assets, and the
       # ffmpeg-engine probe fixture the MCP probe_media test ffprobes) lives in Git LFS; the default
@@ -81,7 +81,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # cli.rs renders from tests/fixtures/sample.mp4, which is stored in Git LFS; the default
       # checkout leaves a pointer file that ffmpeg can't decode. Pull just that fixture dir.
@@ -101,7 +101,7 @@ jobs:
       # on every run. Keyed on the version pins + build scripts; the generated .pc prefixes are
       # absolute, so the cache only restores correctly to the same (stable per-repo) workspace path.
       - name: Cache host FFmpeg build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             scripts/ffmpeg/.work
@@ -109,7 +109,7 @@ jobs:
           key: ffmpeg-host-${{ runner.os }}-${{ hashFiles('scripts/ffmpeg/versions.env', 'scripts/ffmpeg/common.sh', 'scripts/ffmpeg/build-host.sh', 'scripts/ffmpeg/patch-fftools.sh') }}
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry

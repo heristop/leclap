@@ -24,7 +24,8 @@
     "contribute": {
       "title": "Contribuisci con un modello",
       "description": "Hai creato qualcosa di bello? Condividilo con la community di LeClap su GitHub."
-    }
+    },
+    "partialsHint": "Blocchi riutilizzabili di intro, outro e overlay che puoi aggiungere a qualsiasi modello."
   },
   "partials": {
     "title": "Partial",

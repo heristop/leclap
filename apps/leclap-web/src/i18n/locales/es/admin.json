@@ -24,7 +24,8 @@
     "contribute": {
       "title": "Contribuye con una plantilla",
       "description": "¿Has creado algo genial? Compártelo con la comunidad de LeClap en GitHub."
-    }
+    },
+    "partialsHint": "Bloques reutilizables de intro, outro y superposición que puedes añadir a cualquier plantilla."
   },
   "partials": {
     "title": "Fragmentos",

@@ -230,11 +230,6 @@ export const Admin = () => {
 
   const actions = (
     <>
-      <Button asChild variant="ghost" size="sm" className="active:scale-[0.98]">
-        <Link to="/partials">
-          <Braces /> {t('page.partials')}
-        </Link>
-      </Button>
       <Button asChild variant="outline" size="sm" className="active:scale-[0.98]">
         <Link to="/studio" {...goToHoverProps}>
           {t('page.goToBuilder')} <ArrowRightIcon ref={goToRef} size={16} />
@@ -338,6 +333,26 @@ export const Admin = () => {
           </div>
         )}
       </section>
+
+      <section aria-labelledby="partials-section" className="mt-14 scroll-mt-24">
+        <SectionHeading id="partials-section" icon={Braces} label={t('page.partials')} />
+        <Link
+          to="/partials"
+          className="group flex items-center gap-6 rounded-2xl border border-foreground/10 bg-surface/40 px-8 py-6 transition-colors hover:border-brand-500/30 hover:bg-surface/70"
+        >
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-foreground/10 bg-surface text-foreground/60 transition-colors group-hover:border-brand-500/30 group-hover:text-brand-300">
+            <Braces className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-display font-semibold text-foreground group-hover:text-brand-300">
+              {t('page.partials')}
+            </p>
+            <p className="mt-0.5 text-sm text-gray-400">{t('page.partialsHint')}</p>
+          </div>
+          <ArrowRight className="size-4 shrink-0 text-gray-500 transition-transform group-hover:translate-x-1 group-hover:text-brand-300" />
+        </Link>
+      </section>
+
       {/* Convert-to-partial confirmation */}
       <Dialog
         open={confirmConvert !== null}

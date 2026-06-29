@@ -24,7 +24,8 @@
     "contribute": {
       "title": "Proposer un modèle",
       "description": "Tu as créé une pépite ? Partage-la avec la communauté LeClap sur GitHub."
-    }
+    },
+    "partialsHint": "Des blocs d’intro, d’outro et d’incrustation réutilisables que tu peux ajouter à n’importe quel modèle."
   },
   "partials": {
     "title": "Fragments",

@@ -24,7 +24,8 @@
     "contribute": {
       "title": "Eine Vorlage beitragen",
       "description": "Etwas Großartiges gebaut? Teile es mit der LeClap-Community auf GitHub."
-    }
+    },
+    "partialsHint": "Wiederverwendbare Intro-, Outro- und Overlay-Blöcke, die du in jede Vorlage einfügen kannst."
   },
   "partials": {
     "title": "Partials",

@@ -24,7 +24,8 @@
     "contribute": {
       "title": "Contribute a template",
       "description": "Built something great? Share it with the LeClap community on GitHub."
-    }
+    },
+    "partialsHint": "Reusable intro, outro and overlay blocks you can drop into any template."
   },
   "partials": {
     "title": "Partials",

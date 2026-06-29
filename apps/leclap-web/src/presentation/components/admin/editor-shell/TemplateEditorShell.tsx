@@ -18,7 +18,7 @@ import {
 } from '../templateEditorModel';
 import { TestRenderButton } from '../editor/TestRenderButton';
 import { buildEditorTools } from './editorTools';
-import { useEditorSelection } from './useEditorSelection';
+import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { useSectionSelection } from './useSectionSelection';
 import { EditorShellTitlebar } from './EditorShellTitlebar';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
@@ -110,11 +110,11 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
     dispatch({ type: 'selectScene', index: state.sections.length });
   };
 
-  // Reorder keeps the moved section selected: it lands at `to` (the original `reorder` semantics shift
-  // intervening indices), so re-point the selection at `to` after the op.
+  // Reorder keeps the section you were viewing selected (the preview must NOT jump to the dragged card):
+  // re-point the selection at wherever that section lands after the move.
   const reorderScenes = (from: number, to: number): void => {
     reorder(from, to);
-    dispatch({ type: 'selectScene', index: to });
+    dispatch({ type: 'selectScene', index: indexAfterReorder(sel.selectedIndex, from, to) });
   };
 
   const persist = (): StoredTemplate | null => {

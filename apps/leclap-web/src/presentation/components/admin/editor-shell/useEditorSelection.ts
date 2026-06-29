@@ -28,3 +28,15 @@ export const editorSelectionReducer = (state: SelectionState, action: SelectionA
 };
 
 export const useEditorSelection = (initial: SelectionState) => useReducer(editorSelectionReducer, initial);
+
+// Where the section currently at `selected` lands after moving `from`→`to`. Used so reordering a card
+// keeps the section you're viewing selected — the preview must not jump to the dragged card.
+export const indexAfterReorder = (selected: number, from: number, to: number): number => {
+  if (selected === from) return to;
+
+  if (from < selected && selected <= to) return selected - 1;
+
+  if (to <= selected && selected < from) return selected + 1;
+
+  return selected;
+};

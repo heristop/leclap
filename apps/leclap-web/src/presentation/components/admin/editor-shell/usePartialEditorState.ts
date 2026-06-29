@@ -8,7 +8,7 @@ import type { StoredPartial } from '@/stores/userPartialStore';
 import type { EditorSection, EditorState } from '../templateEditorModel';
 import { draftStateFromPartial } from '../editor/partialDraft';
 import { useEditorSectionOps } from '../editor/useEditorSectionOps';
-import { useEditorSelection } from './useEditorSelection';
+import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { defaultPartialDraft, persistDraft, removePartial } from './partialPersistence';
 
 // Partials only expose the scenes + basics tools (no media/format/variables/advanced).
@@ -55,7 +55,7 @@ export function usePartialEditorState(initialDraft: TemplatePartial | null, t: T
 
   const reorderScenes = (from: number, to: number): void => {
     ops.reorder(from, to);
-    dispatch({ type: 'selectScene', index: to });
+    dispatch({ type: 'selectScene', index: indexAfterReorder(sel.selectedIndex, from, to) });
   };
 
   const saveDraft = (): void => {

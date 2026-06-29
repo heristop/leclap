@@ -30,8 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Targets `ffmpeg-video-composer` 2.1.0: fonts, music, and catalog media are
-  fetched on demand from the public repository (nothing bundled).
+- Requires `ffmpeg-video-composer` 2.1.1 (the `validate` command uses its exported
+  `TemplateValidator`); fonts, music, and catalog media are fetched on demand from
+  the public repository (nothing bundled).
 - `leclap init` now detects the package manager (npm / pnpm / yarn / bun) and
   prints matching install/run steps, pins `@leclap/cli` to the current version
   (a bare `^0.1.0` excluded `0.2.0`), tracks `@leclap/mcp` and Remotion at

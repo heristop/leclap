@@ -1,8 +1,10 @@
 // Per-clip trim/crop selected by the user before compilation. Trim is in seconds, crop is
 // normalized to the source frame (0..1) so it is resolution-independent. The web app applies these
 // client-side via ffmpeg.wasm before the in-browser compile.
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+// `@ffmpeg/*` is imported dynamically (type-only here) so the heavy WASM lib code-splits into its own
+// chunk instead of the entry bundle — matching the engine's FFmpegWasmAdapter (a static import would
+// pull it back into the main chunk and make that dynamic import ineffective).
+import type { FFmpeg } from '@ffmpeg/ffmpeg';
 import { compilationLogger } from '@/lib/logger';
 
 export interface VideoTrim {
@@ -81,6 +83,7 @@ async function getEditFFmpeg(): Promise<FFmpeg> {
   }
 
   loadPromise ??= (async () => {
+    const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import('@ffmpeg/ffmpeg'), import('@ffmpeg/util')]);
     const ffmpeg = new FFmpeg();
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
     const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
@@ -245,6 +248,7 @@ async function editClip(ffmpeg: FFmpeg, file: File, edit: VideoEdit, index: numb
   const outName = `edit_out_${index}.mp4`;
 
   try {
+    const { fetchFile } = await import('@ffmpeg/util');
     await ffmpeg.writeFile(inName, await fetchFile(file));
     await ffmpeg.exec(await buildClipArgs(ffmpeg, inName, outName, edit));
     const data = await ffmpeg.readFile(outName);

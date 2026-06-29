@@ -175,7 +175,11 @@ class TemplateDirector {
   };
 
   compileVideoSegments = async (): Promise<string | null> => {
-    const allSections = (this.template.descriptor.sections ?? []) as unknown as Section[];
+    // Guard a malformed non-array `sections` (the Node compile path doesn't validate): `?? []` only
+    // covers null/undefined, so a truthy non-array would crash `.filter()` before the empty-list check.
+    const allSections = (Array.isArray(this.template.descriptor.sections)
+      ? this.template.descriptor.sections
+      : []) as unknown as Section[];
     const videoSegmentTypes = new Set(['video', 'project_video', 'image_background', 'color_background']);
     const videoSegments = allSections.filter((section) => videoSegmentTypes.has(section.type));
 

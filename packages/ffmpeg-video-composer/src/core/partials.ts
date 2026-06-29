@@ -85,7 +85,9 @@ export function expandPartialsWithRegistry(
   descriptor: TemplateDescriptor,
   partials: TemplatePartial[] = descriptor.partials ?? []
 ): TemplateDescriptor {
-  const sections = descriptor.sections ?? [];
+  // Guard against a malformed non-array `sections` (the Node compile path doesn't validate): `?? []`
+  // only covers null/undefined, so a truthy non-array would otherwise crash `.some()`/the loop below.
+  const sections = Array.isArray(descriptor.sections) ? descriptor.sections : [];
 
   if (!sections.some(isPartialRef)) {
     return descriptor;

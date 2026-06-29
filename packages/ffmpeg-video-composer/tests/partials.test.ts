@@ -45,6 +45,18 @@ describe('expandPartials (engine mechanism)', () => {
     expect(() => expandPartials(descriptor)).toThrow(/does-not-exist/);
   });
 
+  it('tolerates a malformed non-array `sections` without throwing (returns it unchanged)', () => {
+    // A descriptor whose `sections` is a non-array (e.g. a string) must not crash `.some()` — the
+    // engine's lenient compile() path normalizes it to "no sections" downstream rather than throwing.
+    const stringSections = { sections: 'nope' } as unknown as Descriptor;
+    expect(() => expandPartials(stringSections)).not.toThrow();
+    expect(expandPartials(stringSections)).toBe(stringSections);
+
+    const noSections = {} as Descriptor;
+    expect(() => expandPartials(noSections)).not.toThrow();
+    expect(expandPartials(noSections)).toBe(noSections);
+  });
+
   it('drops an unconfigured (empty-ref) partial instead of throwing, keeping the other sections', () => {
     const descriptor = withPartials(
       [],

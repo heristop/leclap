@@ -263,6 +263,15 @@ describe('TemplateDirector.compileVideoSegments', () => {
     expect(await director.compileVideoSegments()).toBeNull();
   });
 
+  it('returns null without throwing when `sections` is a malformed non-array', async () => {
+    // A malformed descriptor (e.g. `sections: 'nope'`) must not crash `allSections.filter` — it
+    // normalizes to "no sections" and resolves null, so an invalid template is rejected cleanly.
+    const { director, template } = makeDirector();
+    template.descriptor = { sections: 'nope' } as never;
+
+    await expect(director.compileVideoSegments()).resolves.toBeNull();
+  });
+
   it('processes video segments and finalizes the compilation', async () => {
     const { director, template, videoEditor, project } = makeDirector();
     const sections: Section[] = [

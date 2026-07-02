@@ -13,12 +13,17 @@ export const useVideoCompilation = () => {
       templateDescriptor: TemplateDescriptor;
       recordedVideos: CompileRecordedVideos;
     }) => {
-      // Drive the global CompileProgressOverlay from the engine's live progress events.
+      // Drive the global CompileProgressOverlay from the engine's live progress events, and let the
+      // overlay's Cancel button abort the in-flight render cooperatively.
+      const controller = new AbortController();
       const progress = useCompileProgressStore.getState();
-      progress.start();
+      progress.start(() => {
+        controller.abort();
+      });
 
       try {
         return await compileOnDevice(templateDescriptor, recordedVideos, {
+          signal: controller.signal,
           onProgress: ({ ratio, stage }) => {
             useCompileProgressStore.getState().update(ratio, stage);
           },

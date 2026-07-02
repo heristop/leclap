@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { Image, Modal, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MotiView, MotiText, AnimatePresence } from 'moti';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 import { colors, fonts, withAlpha } from '@/src/styles/theme';
+import { gradients, gradientDir } from '@/src/styles/gradients';
+import { motion } from '@/src/styles/motion';
 
 const logo = require('../../../assets/images/logo.png');
 
@@ -27,11 +29,13 @@ export function CompileProgressOverlay() {
   const visible = useCompileProgressStore((s) => s.visible);
   const ratio = useCompileProgressStore((s) => s.ratio);
   const stage = useCompileProgressStore((s) => s.stage);
+  const cancelling = useCompileProgressStore((s) => s.cancelling);
+  const requestCancel = useCompileProgressStore((s) => s.requestCancel);
 
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withTiming(ratio, { duration: 360 });
+    progress.value = withTiming(ratio, { duration: motion.duration.ring });
   }, [ratio, progress]);
 
   const arcProps = useAnimatedProps(() => ({
@@ -42,26 +46,21 @@ export function CompileProgressOverlay() {
 
   return (
     <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => {}}>
-      <LinearGradient
-        colors={['#0B1020', '#12183A', '#1B2350']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.fill}
-      >
+      <LinearGradient colors={[...gradients.monitor]} {...gradientDir.diagonal} style={styles.fill}>
         <MotiView
           from={{ opacity: 0, scale: 0.94, translateY: 8 }}
           animate={{ opacity: 1, scale: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 380 }}
+          transition={{ type: 'timing', duration: motion.duration.slow }}
           style={styles.center}
         >
-          <Text style={styles.heading}>Creating your video</Text>
+          <Text style={styles.heading}>Rendering your program</Text>
 
           <View style={styles.ringWrap}>
             {/* Soft pulsing halo behind the logo for life. */}
             <MotiView
               from={{ opacity: 0.18, scale: 0.9 }}
               animate={{ opacity: 0.42, scale: 1.18 }}
-              transition={{ loop: true, repeatReverse: true, type: 'timing', duration: 1900 }}
+              transition={{ loop: true, repeatReverse: true, type: 'timing', duration: motion.duration.halo }}
               style={styles.halo}
             />
 
@@ -97,7 +96,7 @@ export function CompileProgressOverlay() {
             <MotiView
               from={{ scale: 0.96 }}
               animate={{ scale: 1.05 }}
-              transition={{ loop: true, repeatReverse: true, type: 'timing', duration: 1500 }}
+              transition={{ loop: true, repeatReverse: true, type: 'timing', duration: motion.duration.breath }}
               style={styles.logoWrap}
             >
               <Image source={logo} style={styles.logo} resizeMode="contain" />
@@ -113,7 +112,7 @@ export function CompileProgressOverlay() {
                 from={{ opacity: 0, translateY: 7 }}
                 animate={{ opacity: 1, translateY: 0 }}
                 exit={{ opacity: 0, translateY: -7 }}
-                transition={{ type: 'timing', duration: 280 }}
+                transition={{ type: 'timing', duration: motion.duration.base }}
                 style={styles.quip}
               >
                 {stage || 'Warming up the projector…'}
@@ -125,6 +124,23 @@ export function CompileProgressOverlay() {
             <View style={styles.badgeDot} />
             <Text style={styles.badgeText}>Rendering privately on your device</Text>
           </View>
+
+          {/* The overlay is non-dismissible via back — Cancel is the explicit exit. */}
+          <Pressable
+            onPress={requestCancel}
+            disabled={cancelling}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel compilation"
+            accessibilityState={{ disabled: cancelling, busy: cancelling }}
+            hitSlop={12}
+            style={({ pressed }) => [
+              styles.cancel,
+              cancelling && styles.cancelDisabled,
+              pressed && !cancelling && styles.cancelPressed,
+            ]}
+          >
+            <Text style={styles.cancelText}>{cancelling ? 'Cancelling…' : 'Cancel'}</Text>
+          </Pressable>
         </MotiView>
       </LinearGradient>
     </Modal>
@@ -155,10 +171,11 @@ const styles = StyleSheet.create({
   logo: { width: 96, height: 96 },
   percent: {
     fontFamily: fonts.poppins.bold,
-    fontSize: 52,
-    letterSpacing: 1,
+    fontSize: 56,
+    letterSpacing: 0.5,
     color: '#FFFFFF',
     marginTop: 36,
+    fontVariant: ['tabular-nums'],
   },
   quipSlot: { height: 26, marginTop: 6, alignItems: 'center', justifyContent: 'center' },
   quip: {
@@ -186,6 +203,24 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     letterSpacing: 0.3,
     color: withAlpha('#FFFFFF', 0.66),
+  },
+  cancel: {
+    marginTop: 20,
+    paddingHorizontal: 26,
+    paddingVertical: 11,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: withAlpha('#FFFFFF', 0.24),
+    backgroundColor: withAlpha('#FFFFFF', 0.04),
+  },
+  cancelPressed: { backgroundColor: withAlpha('#FFFFFF', 0.1) },
+  cancelDisabled: { opacity: 0.45 },
+  cancelText: {
+    fontFamily: fonts.poppins.medium,
+    fontSize: 13,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: withAlpha('#FFFFFF', 0.82),
   },
 });
 

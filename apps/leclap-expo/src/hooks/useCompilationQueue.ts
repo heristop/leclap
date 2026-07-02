@@ -139,19 +139,24 @@ export const useQueueVideoCompilation = () => {
     }) => {
       // The app is fully local: the video renders on the phone right now and is never queued. Surface
       // success or failure inline (the caller shows the result or the error). Drive the global progress
-      // overlay from the engine's live `compilation-progress` events.
+      // overlay from the engine's live `compilation-progress` events, and let the overlay's Cancel
+      // button abort the in-flight render cooperatively.
+      const controller = new AbortController();
       const progress = useCompileProgressStore.getState();
-      progress.start();
+      progress.start(() => {
+        controller.abort();
+      });
 
       try {
         const result = await compileOnDevice(templateDescriptor, recordedVideos, {
           mediaChoices,
+          signal: controller.signal,
           onProgress: ({ ratio, stage }) => {
             useCompileProgressStore.getState().update(ratio, stage);
           },
         });
 
-        return { immediate: true, result };
+        return { immediate: true, result, cancelled: controller.signal.aborted };
       } finally {
         progress.finish();
       }

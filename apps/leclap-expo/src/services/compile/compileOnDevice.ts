@@ -18,6 +18,8 @@ export interface CompileVideoOptions {
   mediaChoices?: MediaChoices;
   /** Live progress (0..1 ratio + stage label) forwarded from the engine to the progress UI. */
   onProgress?: (progress: CompileProgress) => void;
+  /** Abort an in-flight compilation; the engine cancels cooperatively and resolves to a failed result. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -45,6 +47,6 @@ export async function compileOnDevice(
 
   return new CoreCompilationService().compile(
     { descriptor, clips: recordedVideos },
-    { onProgress: options.onProgress }
+    { onProgress: options.onProgress, signal: options.signal }
   );
 }

@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Button } from '@/presentation/components/ui';
+import { SnakeBorder } from '@/presentation/components/kinetic';
 import { BottomSheet } from '@/presentation/components/ui/BottomSheet';
 import { LogoMark, type LogoMarkHandle } from './LogoMark';
 import { SunIcon } from './icons/sun';
@@ -190,14 +191,17 @@ type NavLinkProps = {
   onClick?: () => void;
 };
 
+// Brand-tinted focus ring shared by the header's link-based controls (Buttons carry their own).
+const NAV_FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50';
+
 const getNavLinkClass = (mobile: boolean | undefined, isActive: boolean): string => {
   if (mobile) {
-    const base = 'block px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200';
+    const base = 'tap relative block px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200';
     const state = isActive
       ? 'text-foreground bg-brand-500/20 border border-brand-500/25'
       : 'text-gray-400 hover:text-foreground hover:bg-foreground/5';
 
-    return clsx(base, state);
+    return clsx(base, state, NAV_FOCUS);
   }
 
   const base = 'px-4 py-2 text-sm font-medium rounded-full transition-all duration-200';
@@ -205,7 +209,7 @@ const getNavLinkClass = (mobile: boolean | undefined, isActive: boolean): string
     ? 'text-foreground bg-foreground/10'
     : 'text-gray-400 hover:text-foreground hover:bg-foreground/5';
 
-  return clsx(base, state);
+  return clsx(base, state, NAV_FOCUS);
 };
 
 const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => {
@@ -213,6 +217,7 @@ const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => {
 
   return (
     <Link to={item.href} viewTransition className={getNavLinkClass(mobile, isActive)} onClick={onClick}>
+      {isActive && <SnakeBorder />}
       {t(item.labelKey)}
     </Link>
   );
@@ -279,9 +284,12 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
             }}
             className={clsx(
               'relative z-10 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200',
+              NAV_FOCUS,
               isActive ? 'text-foreground' : 'text-gray-400 hover:text-foreground'
             )}
           >
+            {/* On menu change the newly-active item mounts a fresh snake border → it traces once. */}
+            {isActive && <SnakeBorder />}
             {t(item.labelKey)}
           </Link>
         );
@@ -406,7 +414,7 @@ export const Header = () => {
           <Link
             to="/"
             viewTransition
-            className="flex items-center space-x-3 group"
+            className="group flex items-center space-x-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
             onMouseEnter={() => logoRef.current?.clap()}
           >
             <LogoMark

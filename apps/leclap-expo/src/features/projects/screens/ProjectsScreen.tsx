@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/src/types';
-import { colors, spacing, typography } from '@/src/styles/theme';
+import { colors, spacing, typography, fonts } from '@/src/styles/theme';
+import { elevation } from '@/src/styles/elevation';
+import { KineticHeading } from '@/src/components/kinetic/kinetic-heading';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import SwipeableProjectItem from '@/src/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/src/components/ui/dialog/ConfirmDialog';
 import { useProjectStore } from '@/src/stores/useProjectStore';
@@ -121,17 +124,22 @@ export default function ProjectsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
-        <Text style={styles.screenTitle}>{t('title')}</Text>
+        <Text style={styles.kicker}>{t('kicker')}</Text>
+        <View style={styles.titleWrap}>
+          <KineticHeading text={t('title')} level="displayM" />
+        </View>
 
-        <TouchableOpacity
+        <PressableScale
           style={styles.createNewButton}
+          haptic="medium"
           onPress={() => {
             router.push('/(app)');
           }}
+          accessibilityLabel={t('createNew')}
         >
           <Ionicons name="add-circle" size={22} color="white" />
           <Text style={styles.createNewButtonText}>{t('createNew')}</Text>
-        </TouchableOpacity>
+        </PressableScale>
 
         <FlatList
           data={projects}
@@ -188,8 +196,17 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
-  screenTitle: {
-    ...typography.title,
+  kicker: {
+    fontFamily: fonts.poppins.semiBold,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: colors.primary,
+    marginHorizontal: spacing.m,
+    marginTop: spacing.s,
+    marginBottom: spacing.xs,
+  },
+  titleWrap: {
     marginHorizontal: spacing.m,
     marginBottom: spacing.m,
   },
@@ -197,22 +214,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.s,
     backgroundColor: colors.primary,
     paddingVertical: spacing.m,
     marginHorizontal: spacing.m,
     marginBottom: spacing.m,
-    borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    borderRadius: 14,
+    ...elevation.raised,
+    shadowOpacity: 0.3,
   },
   createNewButtonText: {
     ...typography.body,
     color: 'white',
     fontWeight: '600',
-    marginLeft: spacing.s,
     fontSize: 16,
   },
   list: {
@@ -230,11 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     margin: spacing.m,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    ...elevation.card,
   },
   emptyIconWrap: {
     width: 72,

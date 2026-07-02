@@ -84,6 +84,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         onRefresh={() => {
           refetch().catch(console.error);
         }}
+        kicker={t('kicker')}
         screenTitle={t('screenTitle')}
         subtitle={t('subtitle')}
       />

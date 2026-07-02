@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, View, TextInput, RefreshControl, Text } from 'react-native';
 import type { Template } from '@/src/types';
 import TemplateCard from './TemplateCard';
-import { colors, spacing, typography } from '@/src/styles/theme';
+import { colors, spacing, typography, fonts } from '@/src/styles/theme';
+import { KineticHeading } from '@/src/components/kinetic/kinetic-heading';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ interface TemplateListProps {
   onSelectTemplate: (template: Template) => void;
   isOffline?: boolean;
   onRefresh?: () => Promise<void> | void;
+  kicker?: string;
   screenTitle?: string;
   subtitle?: string;
 }
@@ -21,6 +23,7 @@ const TemplateList: React.FC<TemplateListProps> = ({
   onSelectTemplate,
   isOffline = false,
   onRefresh,
+  kicker,
   screenTitle,
   subtitle,
 }) => {
@@ -74,8 +77,13 @@ const TemplateList: React.FC<TemplateListProps> = ({
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      {screenTitle && <Text style={styles.screenTitle}>{screenTitle}</Text>}
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      {kicker ? <Text style={styles.kicker}>{kicker}</Text> : null}
+      {screenTitle ? (
+        <View style={styles.titleWrap}>
+          <KineticHeading text={screenTitle} level="displayM" />
+        </View>
+      ) : null}
+      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
@@ -129,11 +137,19 @@ const TemplateList: React.FC<TemplateListProps> = ({
 
 const styles = StyleSheet.create({
   headerContainer: {
-    paddingTop: spacing.s,
+    paddingTop: spacing.m,
   },
-  screenTitle: {
-    ...typography.title,
-    margin: spacing.m,
+  kicker: {
+    fontFamily: fonts.poppins.semiBold,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: colors.primary,
+    marginHorizontal: spacing.m,
+    marginBottom: spacing.xs,
+  },
+  titleWrap: {
+    marginHorizontal: spacing.m,
     marginBottom: spacing.s,
   },
   subtitle: {
@@ -146,10 +162,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: spacing.m,
     paddingHorizontal: spacing.m,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.divider,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
   },
   searchIcon: {
     marginRight: spacing.s,

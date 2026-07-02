@@ -1,5 +1,6 @@
 // Must load before any tsyringe-decorated class in the reused ffmpeg-video-composer core.
 import 'reflect-metadata';
+import { LogBox } from 'react-native';
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
@@ -19,6 +20,11 @@ import { CompileProgressOverlay } from '@/src/components/compile/CompileProgress
 import AnimatedSplashScreen from '@/src/components/SplashScreen';
 import i18n from '@/src/i18n';
 import config from '../tamagui.config';
+
+// A dependency's bundled code wildcard-imports `react-native`, which enumerates the module and touches
+// RN's deprecated `SafeAreaView` getter — emitting a dev-only warnOnce we can't fix in our own code
+// (all our SafeAreaViews already come from react-native-safe-area-context). Silence just that one line.
+LogBox.ignoreLogs([/SafeAreaView has been deprecated/]);
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});

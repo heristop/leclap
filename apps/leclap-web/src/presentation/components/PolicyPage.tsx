@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowRight, type LucideIcon } from '@/presentation/components/icons';
 import { Seo } from '@/presentation/components/Seo';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { Card, Reveal } from '@/presentation/components/ui';
 
 export type PolicySection = { Icon: LucideIcon; heading: string; body: string };
@@ -40,7 +41,12 @@ export const PolicyPage = ({
   return (
     <>
       <Seo title={seoTitle} description={seoDescription} path={path} />
-      <StudioSurface kicker={badge} title={title} subtitle={intro}>
+      <StudioSurface
+        kicker={badge}
+        title={title}
+        subtitle={intro}
+        titleSlot={<KineticHeading text={title} as="h1" level="m" className="overflow-x-clip" />}
+      >
         <div className="mx-auto max-w-3xl">
           <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-surface-2/60 px-3 py-1 text-xs text-muted-foreground">
             {updated}

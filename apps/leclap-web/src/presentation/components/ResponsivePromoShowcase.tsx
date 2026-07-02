@@ -4,6 +4,7 @@ import { ArrowRight } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { Button } from '@/presentation/components/ui';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { perforationStyle } from '@/lib/film-strip';
 
 // A muted ambient loop of a Remotion promo (landscape 16:9 + portrait 9:16 cuts), shown on the home page.
@@ -161,9 +162,8 @@ export const ResponsivePromoShowcase = ({
               />
               {eyebrow}
             </p>
-            <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-balance text-foreground sm:text-4xl lg:text-[2.6rem] lg:leading-[1.12]">
-              {title}
-            </h2>
+            <KineticHeading text={title} as="h2" level="l" align="responsive" revealOnView className="mt-4" />
+
             <p className="mt-3.5 text-pretty text-gray-400 sm:text-lg">{subtitle}</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start">
               <Button asChild size="lg" className="group rounded-full">

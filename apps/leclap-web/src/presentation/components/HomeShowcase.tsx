@@ -5,6 +5,7 @@ import { ArrowRight, Volume2, VolumeX } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { Button } from '@/presentation/components/ui';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { perforationStyle } from '@/lib/film-strip';
 
 // The clip is an actual LeClap render (1280x720), shipped under public/videos. It plays as a
@@ -111,9 +112,14 @@ export const HomeShowcase = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-300">
             {t('showcase.eyebrow')}
           </p>
-          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground text-balance sm:text-4xl">
-            {t('showcase.title')}
-          </h2>
+          <KineticHeading
+            text={t('showcase.title')}
+            as="h2"
+            level="m"
+            align="center"
+            revealOnView
+            className="mt-3 text-balance"
+          />
           <p className="mt-4 leading-relaxed text-gray-400">{t('showcase.subtitle')}</p>
         </div>
 

@@ -22,7 +22,7 @@ export const NotFound = () => {
       </div>
 
       <div className="relative text-center max-w-md fade-in">
-        <p className="text-8xl font-bold font-display brand-gradient-text mb-2">404</p>
+        <p className="text-8xl font-bold font-display leading-[1.1] pb-[0.05em] brand-gradient-text mb-2">404</p>
         <h1 className="text-2xl font-bold font-display text-foreground mb-2">{t('notFound.title')}</h1>
         <p className="text-gray-300 mb-8">{t('notFound.message')}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

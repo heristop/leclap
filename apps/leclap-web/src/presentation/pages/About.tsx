@@ -6,6 +6,7 @@ import { AboutPillars } from '@/presentation/components/about/AboutPillars';
 import { AboutAuthor } from '@/presentation/components/about/AboutAuthor';
 import { AboutThanks } from '@/presentation/components/about/AboutThanks';
 import { Seo } from '@/presentation/components/Seo';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { Badge, Button, Reveal } from '@/presentation/components/ui';
 
 export const About = () => {
@@ -29,9 +30,11 @@ export const About = () => {
               <Shield className="w-3.5 h-3.5" />
               {t('hero.badge')}
             </Badge>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 pb-[0.1em] leading-tight brand-gradient-text font-display tracking-tight">
-              {t('hero.title')}
-            </h1>
+            {/* Oversized Oswald hero in near-black ink — the kinetic word-by-word reveal, with the
+                gradient reserved for fills/edges (the badge, aurora) rather than the display type. */}
+            <div className="mb-6 overflow-x-clip">
+              <KineticHeading text={t('hero.title')} as="h1" level="hero" align="center" />
+            </div>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">{t('hero.tagline')}</p>
           </header>
 

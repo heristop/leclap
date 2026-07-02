@@ -8,6 +8,7 @@ import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
 import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
 import { useTranslation } from 'react-i18next';
 import { Badge, Card, Reveal } from '@/presentation/components/ui';
+import { KineticHeading } from '@/presentation/components/kinetic';
 
 type AnimIcon = React.ForwardRefExoticComponent<{ className?: string } & React.RefAttributes<AnimatedIconHandle>>;
 
@@ -77,9 +78,7 @@ export const FeaturesSection = () => {
           <Badge variant="brand" className="tracking-[0.18em]">
             {t('features.badge')}
           </Badge>
-          <h2 className="mt-3 text-3xl md:text-4xl font-bold font-display text-foreground tracking-tight">
-            {t('features.title')}
-          </h2>
+          <KineticHeading text={t('features.title')} as="h2" level="m" revealOnView className="mt-3" />
           <p className="mt-3 text-lg text-gray-400 leading-relaxed">{t('features.subtitle')}</p>
         </Reveal>
 

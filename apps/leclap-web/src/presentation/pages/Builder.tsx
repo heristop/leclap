@@ -170,7 +170,9 @@ const StepResult = ({
   return (
     <div className="fade-in text-center max-w-4xl mx-auto">
       <div className="mb-12">
-        <h2 className="text-5xl font-bold font-display brand-gradient-text mb-4">{t('stepResult.title')}</h2>
+        <h2 className="text-5xl font-bold font-display brand-gradient-text leading-[1.15] pb-1 mb-4">
+          {t('stepResult.title')}
+        </h2>
         <p className="text-gray-300 text-lg">{t('stepResult.subtitle')}</p>
       </div>
       <Reveal>

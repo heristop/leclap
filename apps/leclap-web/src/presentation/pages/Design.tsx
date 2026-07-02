@@ -64,7 +64,7 @@ export const Design = () => (
       />
     </div>
     <div className="relative z-10 container mx-auto px-4 pt-24 pb-16 max-w-5xl">
-      <h1 className="text-[length:var(--text-display-sm)] font-bold font-display text-gradient-animated mb-2">
+      <h1 className="text-[length:var(--text-display-sm)] font-bold font-display leading-[1.15] pb-[0.06em] text-gradient-animated mb-2">
         Design System
       </h1>
       <p className="text-gray-300 mb-12">

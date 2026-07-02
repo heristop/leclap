@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from '@/presentation/components/icons';
 import { CopyPageButton } from '@/presentation/components/doc/CopyPageButton';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { docNav } from './docNav';
 
 const linkClass = (isActive: boolean): string =>
@@ -78,7 +79,7 @@ export const DocPageHeader = ({
 }) => (
   <header className="mb-8">
     <p className="mb-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-brand-500/90">{kicker}</p>
-    <h1 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{title}</h1>
+    <KineticHeading text={title} as="h1" level="m" />
     {children ? <div className="mt-3 max-w-[68ch] text-base leading-7 text-gray-300">{children}</div> : null}
   </header>
 );

@@ -10,6 +10,7 @@ import { CreateShowcase } from '@/presentation/components/CreateShowcase';
 import { BuilderShowcase } from '@/presentation/components/BuilderShowcase';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { useInView } from '@/hooks/useInView';
 import { useHeroVideoSrc } from '@/hooks/useHeroVideoSrc';
 import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
@@ -144,19 +145,29 @@ export const Home = () => {
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1
-            className="font-display text-6xl sm:text-7xl md:text-9xl font-bold mb-4 sm:mb-6 tracking-tighter fade-in"
+            className="font-display text-6xl sm:text-7xl md:text-9xl font-bold mb-4 sm:mb-6 tracking-tighter leading-[1.1] pb-[0.06em] fade-in"
             style={{ animationDelay: '0.2s' }}
           >
             <span className="text-gradient-animated">{t('brand', { ns: 'common' })}</span>
           </h1>
 
-          <p
-            className="text-xl sm:text-2xl md:text-3xl text-gray-300 mb-8 sm:mb-12 max-w-3xl mx-auto font-light leading-relaxed fade-in"
-            style={{ animationDelay: '0.4s' }}
-          >
-            {t('hero.tagline')}
-            <span className="block mt-2 text-base sm:text-lg text-gray-400">{t('hero.subtagline')}</span>
-          </p>
+          {/* Tagline in the kinetic language — the words rise in word-by-word, the signature editorial
+              entrance. Kept light + muted so the oversized brand wordmark stays the hero's focal point. */}
+          <div className="mb-8 sm:mb-12 max-w-3xl mx-auto">
+            <KineticHeading
+              text={t('hero.tagline')}
+              level="m"
+              as="p"
+              align="center"
+              className="font-light tracking-normal text-gray-300"
+            />
+            <p
+              className="mt-3 text-base sm:text-lg text-gray-400 leading-relaxed fade-in"
+              style={{ animationDelay: '0.7s' }}
+            >
+              {t('hero.subtagline')}
+            </p>
+          </div>
 
           <div
             className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-6 fade-in"

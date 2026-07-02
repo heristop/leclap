@@ -17,7 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, spacing, typography } from '@/src/styles/theme';
+import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
+import { gradients, gradientDir } from '@/src/styles/gradients';
 import { FramingGuideOverlay } from './FramingGuideOverlay';
 import type { FramingGuide, Orientation } from '@/src/types';
 import { ASPECT_RATIO } from '@/src/features/templates/orientationMeta';
@@ -237,6 +238,19 @@ function FramingGuideOverlayWhenLive({
   if (!guide) return null;
 
   return <FramingGuideOverlay guide={guide} orientation={orientation} />;
+}
+
+// Program-monitor registration brackets framing the safe area, so every capture reads like a video
+// deck's viewfinder. Purely decorative (non-interactive), sits above the scrims.
+function CaptureBrackets() {
+  return (
+    <View pointerEvents="none" style={styles.brackets}>
+      <View style={[styles.bracket, styles.bracketTL]} />
+      <View style={[styles.bracket, styles.bracketTR]} />
+      <View style={[styles.bracket, styles.bracketBL]} />
+      <View style={[styles.bracket, styles.bracketBR]} />
+    </View>
+  );
 }
 
 interface CountdownState {
@@ -950,6 +964,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       {/* Top + bottom scrims keep the header, description and controls legible over any camera frame. */}
       <LinearGradient pointerEvents="none" colors={TOP_SCRIM_COLORS} style={styles.topScrim} />
       <LinearGradient pointerEvents="none" colors={BOTTOM_SCRIM_COLORS} style={styles.bottomScrim} />
+      <CaptureBrackets />
       <FramingGuideOverlayWhenLive guide={framingGuide} orientation={orientation} />
       <CaptureOverlays
         isPortrait={isPortrait}
@@ -972,11 +987,18 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
         <TouchableOpacity
-          style={[styles.recordButton, isRecording && styles.stopButton]}
+          style={styles.recordButton}
           onPress={onRecordButtonPress}
           disabled={isFinalizing}
+          accessibilityRole="button"
         >
-          <Animated.View style={[styles.recordIcon, { transform: [{ scale: pulseAnim }] }]} />
+          {/* Signature lavender→pink ring; the core morphs from a red disc to a stop square while recording. */}
+          <LinearGradient colors={[...gradients.brand]} {...gradientDir.diagonal} style={styles.recordRing} />
+          <View style={styles.recordCore}>
+            <Animated.View
+              style={[isRecording ? styles.stopIcon : styles.recordIcon, { transform: [{ scale: pulseAnim }] }]}
+            />
+          </View>
         </TouchableOpacity>
       </View>
       <RecorderFooter
@@ -1093,18 +1115,29 @@ const styles = StyleSheet.create({
   portraitControls: { bottom: 50, left: 0, right: 0 },
   landscapeControls: { bottom: 0, top: 0, right: 50, justifyContent: 'center' },
   recordButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    width: 82,
+    height: 82,
+    borderRadius: 41,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#fff',
   },
-  stopButton: { backgroundColor: 'rgba(255, 100, 100, 0.3)', borderColor: colors.error },
-  recordIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.error },
-  stopIcon: { width: 32, height: 32, backgroundColor: colors.error, borderRadius: 4 },
+  recordRing: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 41 },
+  recordCore: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recordIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.error },
+  stopIcon: { width: 30, height: 30, backgroundColor: colors.error, borderRadius: 8 },
+  brackets: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2, margin: 18 },
+  bracket: { position: 'absolute', width: 26, height: 26, borderColor: withAlpha('#FFFFFF', 0.55) },
+  bracketTL: { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 8 },
+  bracketTR: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
+  bracketBL: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
+  bracketBR: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
   flipCameraButton: {
     position: 'absolute',
     width: 50,

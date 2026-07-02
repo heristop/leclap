@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VideoView } from 'expo-video';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, fonts, withAlpha } from '@/src/styles/theme';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import CropOverlay from '@/src/features/editor/components/CropOverlay';
 import { buildErrorMessage, isCropApplied, isTrimApplied } from '@/src/features/editor/preview/previewHelpers';
@@ -125,6 +128,14 @@ export default function PreviewPage() {
         )}
 
         {mode === 'crop' && containerWidth > 0 && <CropOverlay videoRect={videoRect} crop={crop} onChange={setCrop} />}
+
+        {mode === 'view' && (
+          <PreviewMonitorFrame
+            onClose={() => {
+              router.back();
+            }}
+          />
+        )}
       </View>
 
       {mode === 'view' && (
@@ -165,7 +176,65 @@ export default function PreviewPage() {
   );
 }
 
+// Program-monitor framing over the finished render: registration brackets + a PROGRAM tally, plus an
+// explicit close affordance. Brackets/tally are non-interactive so the native video controls stay
+// usable; only the close button captures touches. Shown in `view` mode only (not trim/crop).
+function PreviewMonitorFrame({ onClose }: { onClose: () => void }) {
+  return (
+    <>
+      <View pointerEvents="none" style={monitorStyles.frame}>
+        <View style={[monitorStyles.bracket, monitorStyles.tl]} />
+        <View style={[monitorStyles.bracket, monitorStyles.tr]} />
+        <View style={[monitorStyles.bracket, monitorStyles.bl]} />
+        <View style={[monitorStyles.bracket, monitorStyles.br]} />
+        <View style={monitorStyles.chip}>
+          <View style={monitorStyles.chipDot} />
+          <Text style={monitorStyles.chipText}>PROGRAM</Text>
+        </View>
+      </View>
+      <PressableScale style={monitorStyles.close} onPress={onClose} accessibilityLabel="Close preview">
+        <Ionicons name="chevron-down" size={26} color="#FFFFFF" />
+      </PressableScale>
+    </>
+  );
+}
+
 const squareStyles = StyleSheet.create({
   center: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center' },
   frame: { width: '100%', aspectRatio: 1, overflow: 'hidden', backgroundColor: 'black' },
+});
+
+const monitorStyles = StyleSheet.create({
+  frame: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, margin: 20, zIndex: 3 },
+  bracket: { position: 'absolute', width: 26, height: 26, borderColor: withAlpha('#FFFFFF', 0.5) },
+  tl: { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 8 },
+  tr: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
+  bl: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
+  br: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
+  chip: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  chipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.error },
+  chipText: { fontFamily: fonts.poppins.semiBold, fontSize: 10, letterSpacing: 1.5, color: '#FFFFFF' },
+  close: {
+    position: 'absolute',
+    top: 52,
+    left: 20,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 4,
+  },
 });

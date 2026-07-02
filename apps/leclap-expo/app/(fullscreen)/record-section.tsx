@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Alert } from 'react-native';
+import { MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +9,8 @@ import type { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/src/features/editor/components/VideoRecorder';
 import type { Section, Orientation } from '@/src/types';
 import { parseOrientation, toDeviceOrientation } from '@/src/features/templates/orientationMeta';
-import { colors, spacing, typography } from '@/src/styles/theme';
+import { colors, spacing, fonts, typography, withAlpha } from '@/src/styles/theme';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useOrientation } from '@/src/hooks/useOrientation';
 
@@ -37,37 +39,57 @@ interface RecordSectionHeaderProps {
   // Back is also blocked while the stopped clip finalizes, so navigation can't fire mid-save.
   backDisabled: boolean;
   recordingDuration: number;
+  shotIndex?: number;
+  shotTotal: number;
   onBack: () => void;
   t: TFunction<'recording'>;
 }
+
+const pad = (n: number): string => String(n).padStart(2, '0');
 
 const RecordSectionHeader = ({
   section,
   isRecording,
   backDisabled,
   recordingDuration,
+  shotIndex,
+  shotTotal,
   onBack,
   t,
 }: RecordSectionHeaderProps) => (
   <View style={styles.headerBar}>
-    <TouchableOpacity style={styles.headerButton} onPress={onBack} disabled={backDisabled}>
-      <Ionicons name="arrow-back" size={24} color={backDisabled ? 'rgba(255,255,255,0.5)' : 'white'} />
-      <Text style={[styles.headerButtonText, backDisabled && { color: 'rgba(255,255,255,0.5)' }]}>
-        {t('actions.back', { ns: 'common' })}
-      </Text>
-    </TouchableOpacity>
+    <PressableScale
+      style={styles.headerBack}
+      onPress={onBack}
+      disabled={backDisabled}
+      accessibilityLabel={t('actions.back', { ns: 'common' })}
+    >
+      <Ionicons name="chevron-back" size={26} color={backDisabled ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} />
+    </PressableScale>
 
     <View style={styles.headerTitleContainer}>
+      {shotIndex ? (
+        <Text style={styles.shotBadge}>
+          {t('shot', { defaultValue: 'SHOT' })} {pad(shotIndex)} / {pad(shotTotal)}
+        </Text>
+      ) : null}
       <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
         {section.title?.en ?? section.name}
       </Text>
     </View>
 
-    {isRecording && (
+    {isRecording ? (
       <View style={styles.timerContainer}>
+        <MotiView
+          from={{ opacity: 0.4 }}
+          animate={{ opacity: 1 }}
+          transition={{ loop: true, repeatReverse: true, type: 'timing', duration: 700 }}
+          style={styles.recordingIndicator}
+        />
         <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
-        <View style={styles.recordingIndicator} />
       </View>
+    ) : (
+      <View style={styles.headerBack} />
     )}
   </View>
 );
@@ -194,6 +216,17 @@ const navigateAfterRecording = ({
   });
 };
 
+// "SHOT n / total" position of this section within the template, for the capture header badge.
+const shotPosition = (
+  project: ReturnType<typeof useProject>['data'],
+  sectionName: string
+): { shotIndex?: number; shotTotal: number } => {
+  const sections = project?.templateContent.sections ?? [];
+  const index = sections.findIndex((s: Section) => s.name === sectionName);
+
+  return { shotIndex: index >= 0 ? index + 1 : undefined, shotTotal: sections.length };
+};
+
 const RecordSectionScreen = () => {
   const router = useRouter();
   const { t } = useTranslation('recording');
@@ -250,6 +283,8 @@ const RecordSectionScreen = () => {
     }
   };
 
+  const position = shotPosition(project, section.name);
+
   return (
     <View style={styles.fullscreenContainer}>
       <StatusBar hidden />
@@ -259,6 +294,8 @@ const RecordSectionScreen = () => {
         isRecording={isRecording}
         backDisabled={isRecording || isFinalizing}
         recordingDuration={recordingDuration}
+        shotIndex={position.shotIndex}
+        shotTotal={position.shotTotal}
         onBack={() => {
           router.back();
         }}
@@ -302,46 +339,54 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15,
   },
-  headerButton: {
-    flexDirection: 'row',
+  headerBack: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  headerButtonText: {
-    color: 'white',
-    marginLeft: spacing.xs,
-    ...typography.body,
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   headerTitleContainer: {
     flex: 1,
     alignItems: 'center',
     marginHorizontal: 10,
   },
+  shotBadge: {
+    color: withAlpha('#FFFFFF', 0.72),
+    fontFamily: fonts.poppins.semiBold,
+    fontSize: 11,
+    letterSpacing: 2,
+    marginBottom: 2,
+  },
   headerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: fonts.poppins.semiBold,
+    fontSize: 17,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.s,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.xs,
-    borderRadius: 16,
+    borderRadius: 999,
     zIndex: 6,
   },
   timerText: {
-    color: 'white',
-    fontSize: 16,
-    marginRight: spacing.s,
+    color: '#FFFFFF',
+    fontFamily: fonts.poppins.medium,
+    fontSize: 15,
+    letterSpacing: 0.5,
+    fontVariant: ['tabular-nums'],
   },
   recordingIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
     backgroundColor: colors.error,
   },
   errorContainer: {

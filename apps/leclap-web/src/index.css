@@ -211,6 +211,9 @@ body {
   --animate-film-drift: film-drift 6s linear infinite;
   /* Living brand glow behind sections — slow, low-opacity aurora drift. */
   --animate-aurora: aurora-drift 18s ease-in-out infinite;
+  /* Program-monitor scanline: a faint CRT raster that drifts one tile down per cycle so a framed
+     preview reads as a live video surface. Frozen (settles to static lines) under reduced-motion. */
+  --animate-scanline: scanline-drift 5.5s linear infinite;
   /* Highlight sweep across the phone glass, then a long idle before the next pass. */
   --animate-phone-sheen: phone-sheen 7s var(--ease-out-expo) infinite;
   /* Magnetic stretch the editor tool-dock indicator plays as it springs to a new tool. */
@@ -224,6 +227,26 @@ body {
   /* Expressive display type scale */
   --text-display: clamp(2.5rem, 1.8rem + 3.5vw, 4.5rem);
   --text-display-sm: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
+
+  /* Kinetic Editorial — oversized display ramp (web port of the Expo displayHero…displayS scale).
+     Used by the KineticHeading primitive; layered alongside the existing --text-display tokens. */
+  --text-display-hero: clamp(3rem, 1.9rem + 5.2vw, 4.5rem);
+  --text-display-xl: clamp(2.5rem, 1.7rem + 3.6vw, 3.5rem);
+  --text-display-l: clamp(2rem, 1.5rem + 2.4vw, 2.75rem);
+  --text-display-m: clamp(1.65rem, 1.35rem + 1.4vw, 2.125rem);
+  --text-display-s: clamp(1.4rem, 1.25rem + 0.9vw, 1.75rem);
+
+  /* Kinetic Editorial — shared motion durations (seconds), aligned to the Expo motion vocabulary.
+     Mirrored for the JS primitives in components/kinetic/motion.ts. */
+  --dur-fast: 0.2s;
+  --dur-base: 0.28s;
+  --dur-slow: 0.38s;
+  --dur-ring: 0.36s;
+
+  /* Kinetic Editorial — brand-tinted elevation (soft lavender lift, never the generic pure-#000
+     Material drop). Web port of the Expo elevation.card / .raised shadows. */
+  --shadow-card: 0 6px 14px -6px oklch(0.663 0.178 277.9 / 0.22);
+  --shadow-raised: 0 12px 28px -10px oklch(0.663 0.178 277.9 / 0.3);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -387,6 +410,62 @@ body {
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
+  }
+}
+
+/* An animated gradient "snake": a short comet of brand→pink light that races once around a rounded
+   border and fades. Overlay it inside a `relative`, rounded host (radius inherits) and REMOUNT it
+   (changing `key`) to replay — used to punctuate a menu/selection change. Driven by animating a
+   registered custom angle so the conic sweep interpolates smoothly. Hidden under reduced-motion (a
+   frozen half-lit comet would read as a rendering bug, not intent). */
+@property --snake-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes snake-trace {
+  0% {
+    --snake-angle: 0deg;
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.4;
+  }
+  94% {
+    opacity: 0.4;
+  }
+  100% {
+    --snake-angle: 360deg;
+    opacity: 0;
+  }
+}
+
+@utility snake-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--snake-angle),
+    transparent 0 48%,
+    var(--color-brand-500) 72%,
+    var(--color-secondary-400) 92%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  /* Linear so the comet walks the full round at a steady, readable pace (not front-loaded). */
+  animation: snake-trace 0.45s linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snake-border {
+    display: none;
   }
 }
 
@@ -769,6 +848,24 @@ body {
   }
 }
 
+/* Kinetic Editorial — brand-tinted resting elevation: a soft lavender lift + a hairline ring, the
+   web port of the Expo `elevation.card` (never the generic pure-black Material drop shadow). */
+@utility elevation-card {
+  box-shadow: var(--shadow-card);
+  border: 1px solid color-mix(in oklch, var(--color-foreground) 6%, transparent);
+}
+
+/* A floating surface: sheets, CTAs, anything meant to sit above the page. */
+@utility elevation-raised {
+  box-shadow: var(--shadow-raised);
+  border: 1px solid color-mix(in oklch, var(--color-foreground) 6%, transparent);
+}
+
+/* Signature hairline — a 1px separator at the foreground hue (6%), for flush rows and card edges. */
+@utility hairline {
+  border: 1px solid color-mix(in oklch, var(--color-foreground) 6%, transparent);
+}
+
 /* Cursor-tracked spotlight: a brand-tinted radial follows the pointer across a card. `--mx/--my` are
    set on pointer move; only shown on fine pointers (touch would leave :hover stuck), and soft-light
    blend keeps the tint low enough to stay under the text. Host needs `relative` + a border-radius. */
@@ -1007,6 +1104,15 @@ body {
   }
   100% {
     transform: translate3d(-4%, 0, 0) scale(1);
+  }
+}
+
+/* Program-monitor scanline drift — the raster crawls down exactly one tile (4px) so the loop is
+   seamless. background-position only (compositor-cheap); the global reduced-motion reset freezes it
+   to a static CRT grille. */
+@keyframes scanline-drift {
+  to {
+    background-position-y: 4px;
   }
 }
 

@@ -29,6 +29,8 @@
   "defaultDescription": "Create a video using this template",
   "sectionsTitle": "Sections",
   "progress": "{{done}} of {{total}} sections completed",
+  "shotsLeft_one": "{{count}} shot left",
+  "shotsLeft_other": "{{count}} shots left",
   "mode": {
     "linear": "Step-by-step",
     "hub": "All at once"

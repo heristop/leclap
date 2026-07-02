@@ -12,7 +12,7 @@ import { templateService, type Template } from '@/services/templateService';
 import { logger } from '@/lib/logger';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
-import { FilmstripEdge, GradientMeter, PressableScale, ProgramMonitor } from '@/presentation/components/kinetic';
+import { GradientMeter, PressableScale, ProgramMonitor } from '@/presentation/components/kinetic';
 import { TemplatePoster } from './TemplatePoster';
 import { HighlightMatch } from './HighlightMatch';
 import { TemplateSearchBar } from './TemplateSearchBar';
@@ -133,11 +133,7 @@ const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardPro
         <TemplatePoster template={template} isSelected={isSelected} />
       </ProgramMonitor>
 
-      {/* Film spine on the card's right edge — sits in the body's right padding gutter, so the whole
-          card reads as a strip of film without colliding with the poster chips or the copy. */}
-      <FilmstripEdge className="pointer-events-none absolute inset-y-0 right-0" width={14} />
-
-      <div className="p-5 pr-7">
+      <div className="p-5">
         {template.source === 'user' && (
           <div className="mb-2">
             <Badge variant="brand">{t('custom')}</Badge>

@@ -16,9 +16,10 @@ export const Footer = () => {
   const logoRef = useRef<LogoMarkHandle>(null);
   const githubRef = useRef<GithubIconHandle>(null);
 
-  // Playhead-scrubber hover shared with nav/links across the app.
+  // Film-credits / marquee treatment: condensed Oswald, uppercase, wide tracking — with the shared
+  // playhead-scrubber underline on hover, so the links read as end-of-reel credits.
   const linkClass =
-    'playhead-link rounded text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
+    'playhead-link rounded font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-divider bg-surface">
@@ -56,16 +57,19 @@ export const Footer = () => {
             <span className="text-xl font-bold tracking-tight text-foreground">{t('brand')}</span>
           </Link>
 
-          <nav
-            aria-label={t('footerNav.label')}
-            className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm sm:justify-end"
-          >
+          <nav aria-label={t('footerNav.label')} className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:justify-end">
             <Link to="/legal" viewTransition className={linkClass}>
               {t('footerNav.legal')}
             </Link>
+            <span aria-hidden="true" className="text-brand-500/40">
+              •
+            </span>
             <Link to="/privacy" viewTransition className={linkClass}>
               {t('footerNav.privacy')}
             </Link>
+            <span aria-hidden="true" className="text-brand-500/40">
+              •
+            </span>
             <a href={`${REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer noopener" className={linkClass}>
               {t('footerNav.license')}
             </a>
@@ -76,15 +80,21 @@ export const Footer = () => {
             rather than wrapping inside a narrow brand column. The green dot mirrors the compile
             overlay's "on-device" badge. */}
         <p className="mt-4 flex items-start gap-2.5 text-sm leading-relaxed text-muted-foreground">
-          <span
-            aria-hidden="true"
-            className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[var(--color-success)] shadow-[0_0_0_3px_color-mix(in_oklch,var(--color-success)_22%,transparent)]"
-          />
+          {/* On-device status light: a solid dot with a slow recording-light ping, so the privacy
+              promise reads as "live, on your device". The ping stills under reduced-motion. */}
+          <span aria-hidden="true" className="relative mt-1.5 flex h-2 w-2 shrink-0 items-center justify-center">
+            <span className="tally-ping absolute h-2 w-2 rounded-full bg-[var(--color-success)]" />
+            <span className="relative h-2 w-2 rounded-full bg-[var(--color-success)] shadow-[0_0_0_3px_color-mix(in_oklch,var(--color-success)_22%,transparent)]" />
+          </span>
           {t('footer')}
         </p>
 
-        {/* Meta row: copyright + source. Divider tuned for both themes. */}
-        <div className="mt-8 flex items-center justify-between gap-4 border-t border-divider/70 pt-5 text-xs text-muted-foreground">
+        {/* Meta row: copyright + source, over a lavender→pink scrubber hairline (a timeline edge). */}
+        <div
+          aria-hidden="true"
+          className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-brand-500/40 to-transparent"
+        />
+        <div className="mt-5 flex items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>
             © {new Date().getFullYear()} {t('brand')}
           </p>

@@ -1,0 +1,12 @@
+{
+  "actions": {
+    "back": "Indietro",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "done": "Fatto",
+    "retry": "Riprova",
+    "reset": "Reimposta",
+    "ok": "OK",
+    "tryAgain": "Riprova"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "button": {
+    "create": "Crear mi vídeo",
+    "addingToQueue": "Añadiendo a la cola...",
+    "creating": "Creando vídeo..."
+  },
+  "preview": "Vista previa",
+  "media": {
+    "title": "Música y fondo",
+    "description": "Elige banda sonora y fondo",
+    "saved": "Selección guardada",
+    "accessibilityLabel": "Selección de música y fondo"
+  },
+  "music": {
+    "comingSoon": "La selección de música llegará pronto",
+    "useDefault": "Usar música predeterminada",
+    "pick": "Elige una pista para esta sección.",
+    "defaultOption": "Banda sonora predeterminada",
+    "done": "Listo"
+  },
+  "loading": "Cargando plantilla...",
+  "notFound": "Plantilla o proyecto no encontrado",
+  "backToTemplates": "Volver a las plantillas",
+  "orientation": {
+    "portrait": "Orientación vertical",
+    "landscape": "Orientación horizontal",
+    "square": "Orientación cuadrada"
+  },
+  "defaultDescription": "Crea un vídeo con esta plantilla",
+  "sectionsTitle": "Secciones",
+  "progress": "{{done}} de {{total}} secciones completadas",
+  "shotsLeft_one": "queda {{count}} toma",
+  "shotsLeft_other": "quedan {{count}} tomas",
+  "mode": {
+    "linear": "Paso a paso",
+    "hub": "Todo a la vez"
+  },
+  "step": {
+    "indicator": "Sección {{index}} de {{total}}",
+    "completed": "Completada",
+    "notCompleted": "Aún sin completar",
+    "edit": "Editar — {{cta}}",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previousAccessibility": "Sección anterior",
+    "nextAccessibility": "Sección siguiente"
+  },
+  "linearCopy": {
+    "mediaTitle": "Música y fondo",
+    "mediaDescription": "Elige la banda sonora y el fondo de tu vídeo.",
+    "mediaCta": "Elegir música y fondo",
+    "sectionFallbackDescription": "Completa esta sección para continuar.",
+    "recordCta": "Grabar clip",
+    "formCta": "Rellenar datos",
+    "openCta": "Abrir sección"
+  },
+  "alerts": {
+    "incompleteForm": {
+      "title": "Formulario incompleto",
+      "message": "Rellena todos los campos obligatorios"
+    },
+    "error": {
+      "title": "Error",
+      "message": "No se pudo previsualizar el vídeo."
+    },
+    "unsupported": {
+      "title": "No compatible",
+      "message": "Este tipo de sección aún no se puede editar."
+    },
+    "addedToQueue": {
+      "title": "Añadido a la cola",
+      "message": "El servidor no está disponible ahora mismo — tu vídeo se renderizará automáticamente cuando vuelva."
+    },
+    "compilationFailed": {
+      "title": "Compilación fallida",
+      "fallback": "Ocurrió un error durante la compilación del vídeo."
+    },
+    "compilationError": {
+      "title": "Error de compilación",
+      "message": "Ocurrió un error inesperado: {{error}}",
+      "unknownError": "Error desconocido"
+    }
+  }
+}

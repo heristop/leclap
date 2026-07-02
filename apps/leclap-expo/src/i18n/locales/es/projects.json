@@ -1,0 +1,20 @@
+{
+  "kicker": "Tus creaciones",
+  "title": "Mis vídeos",
+  "createNew": "Crear nuevo vídeo",
+  "empty": {
+    "title": "Aún no hay vídeos",
+    "subtitle": "Empieza creando un nuevo vídeo desde la pestaña Escenarios"
+  },
+  "deleteAll": {
+    "title": "Eliminar todos los proyectos",
+    "message": "¿Seguro que quieres eliminar todos tus vídeos? Esta acción no se puede deshacer.",
+    "confirm": "Eliminar todos"
+  },
+  "alerts": {
+    "deleteAllError": {
+      "title": "Error",
+      "message": "No se pudieron eliminar todos los proyectos. Inténtalo de nuevo."
+    }
+  }
+}

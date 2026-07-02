@@ -1,0 +1,33 @@
+{
+  "instructions": {
+    "portrait": "Tiens ton appareil à la verticale pour un meilleur rendu",
+    "landscape": "Tiens ton appareil à l’horizontale pour un meilleur rendu",
+    "square": "Tiens ton appareil à la verticale — on cadrera un carré 1:1"
+  },
+  "countdown": {
+    "getReady": "Prépare-toi…",
+    "accessibility": "Enregistrement dans {{value}}"
+  },
+  "endWarning": {
+    "wrapUp": "On termine — {{remaining}}s restantes",
+    "timesUp": "C’est terminé"
+  },
+  "permissions": {
+    "checking": "Vérification des autorisations caméra...",
+    "title": "Autorisation caméra requise",
+    "message": "Autorise l’accès à la caméra et au micro pour enregistrer une vidéo."
+  },
+  "noDevice": "Aucune caméra disponible",
+  "alerts": {
+    "loadError": {
+      "title": "Erreur",
+      "message": "Impossible de charger l’écran d’enregistrement. Données manquantes."
+    },
+    "saveError": {
+      "title": "Erreur",
+      "message": "Échec de l’enregistrement de la vidéo. Réessaie."
+    }
+  },
+  "loadingError": "Erreur lors du chargement de l’écran d’enregistrement.",
+  "processing": "Traitement…"
+}

@@ -1,0 +1,20 @@
+{
+  "kicker": "Vos créations",
+  "title": "Mes vidéos",
+  "createNew": "Créer une nouvelle vidéo",
+  "empty": {
+    "title": "Aucune vidéo pour l’instant",
+    "subtitle": "Commence par créer une vidéo depuis l’onglet Scénarios"
+  },
+  "deleteAll": {
+    "title": "Supprimer tous les projets",
+    "message": "Tu es sûr de vouloir supprimer toutes tes vidéos ? Cette action est irréversible.",
+    "confirm": "Tout supprimer"
+  },
+  "alerts": {
+    "deleteAllError": {
+      "title": "Erreur",
+      "message": "Échec de la suppression des projets. Réessaie."
+    }
+  }
+}

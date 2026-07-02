@@ -1,0 +1,33 @@
+{
+  "instructions": {
+    "portrait": "Tieni il dispositivo in verticale per un risultato migliore",
+    "landscape": "Tieni il dispositivo in orizzontale per un risultato migliore",
+    "square": "Tieni il dispositivo in verticale — inquadreremo un quadrato 1:1"
+  },
+  "countdown": {
+    "getReady": "Preparati…",
+    "accessibility": "Registrazione tra {{value}}"
+  },
+  "endWarning": {
+    "wrapUp": "Concludi — restano {{remaining}}s",
+    "timesUp": "Tempo scaduto"
+  },
+  "permissions": {
+    "checking": "Verifica dei permessi della fotocamera...",
+    "title": "Permesso fotocamera richiesto",
+    "message": "Concedi i permessi per fotocamera e microfono per registrare il video."
+  },
+  "noDevice": "Nessuna fotocamera disponibile",
+  "alerts": {
+    "loadError": {
+      "title": "Errore",
+      "message": "Impossibile caricare la schermata di registrazione. Dati mancanti."
+    },
+    "saveError": {
+      "title": "Errore",
+      "message": "Impossibile salvare il video registrato. Riprova."
+    }
+  },
+  "loadingError": "Errore nel caricamento della schermata di registrazione.",
+  "processing": "Elaborazione…"
+}

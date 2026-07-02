@@ -1,0 +1,278 @@
+{
+  "header": {
+    "create": "Crear una plantilla",
+    "edit": "Editar plantilla",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "import": "Importar JSON de plantilla",
+    "export": "Exportar JSON de plantilla"
+  },
+  "importError": {
+    "title": "No se pudo importar",
+    "description": "Ese archivo no es un descriptor de plantilla válido."
+  },
+  "name": {
+    "label": "Nombre",
+    "placeholder": "Mi plantilla"
+  },
+  "description": {
+    "label": "Descripción (opcional)",
+    "placeholder": "Un breve resumen"
+  },
+  "variables": {
+    "label": "Variables globales",
+    "hint": "Valores reutilizables — inserta uno con {{ name }} en cualquier campo de texto.",
+    "name": "nombre",
+    "value": "valor",
+    "add": "Añadir variable",
+    "remove": "Eliminar variable {{n}}"
+  },
+  "orientation": {
+    "label": "Orientación",
+    "landscape": "Horizontal 16:9",
+    "portrait": "Vertical 9:16",
+    "square": "Cuadrado 1:1"
+  },
+  "sections": {
+    "label": "Secciones — orden de arriba a abajo",
+    "add": "Añadir una sección"
+  },
+  "scenes": {
+    "add": "Añadir una escena"
+  },
+  "scene": {
+    "collapse": "Contraer escena",
+    "expand": "Expandir escena"
+  },
+  "timeline": {
+    "label": "Resumen de escenas",
+    "goTo": "Ir a la escena {{n}}"
+  },
+  "wizard": {
+    "continue": "Continuar",
+    "info": {
+      "title": "Nombra tu plantilla",
+      "subtitle": "Un nombre claro y la forma de la pantalla."
+    },
+    "scenes": {
+      "title": "Crea las escenas",
+      "subtitle": "Añade escenas, define transiciones y ajusta cada una."
+    },
+    "style": {
+      "title": "Estilo y audio",
+      "subtitle": "Una transición predeterminada y cómo se mezcla el audio."
+    }
+  },
+  "section": {
+    "duration": "Duración (s)",
+    "mute": "Silenciar audio",
+    "overlayText": "Texto superpuesto (opcional)",
+    "overlayPlaceholder": "admite {{token}}",
+    "countdownToggle": "Cuenta atrás antes de grabar",
+    "countdown": "Cuenta atrás (s)",
+    "whatToFilm": "Qué grabar (opcional)",
+    "whatToFilmPlaceholder": "p. ej. Ponte en el centro, mira a la cámara",
+    "textOverlays": "Textos superpuestos",
+    "addText": "Añadir texto",
+    "addTitle": "Añadir texto de título",
+    "editTitle": "Editar superposición de título"
+  },
+  "color": {
+    "label": "Color (hex)",
+    "placeholder": "#7C83FD"
+  },
+  "field": {
+    "label": "Etiqueta del campo {{n}}",
+    "placeholder": "Tu nombre",
+    "add": "Añadir campo"
+  },
+  "enterField": "Introduce {{label}}",
+  "music": {
+    "pick": "Elige las pistas que podrán escoger los espectadores.",
+    "allowUpload": "Permitir que los espectadores suban su propia pista"
+  },
+  "image": {
+    "pick": "Elige las imágenes que podrán escoger los espectadores.",
+    "allowUpload": "Permitir que los espectadores suban su propia imagen",
+    "label": "Imagen",
+    "none": "Ninguna",
+    "position": "Posición (px)",
+    "scale": "Escala (px, -1 = automático)",
+    "rotation": "Rotación (°)",
+    "add": "Añadir una imagen",
+    "layer": "Imagen {{number}}",
+    "remove": "Eliminar imagen"
+  },
+  "advanced": {
+    "look": "Aspecto",
+    "fineTune": "Ajuste fino",
+    "caption": "Rótulo",
+    "audio": "Audio",
+    "cameraGuide": "Guía de cámara",
+    "layers": "Capas",
+    "motion": "Movimiento"
+  },
+  "grade": {
+    "brightness": "Brillo",
+    "contrast": "Contraste",
+    "saturation": "Saturación",
+    "gamma": "Gamma",
+    "hue": "Tono",
+    "blur": "Desenfoque"
+  },
+  "caption": {
+    "placeholder": "Título en pantalla (opcional)",
+    "hint": "Un título breve incrustado en el vídeo.",
+    "positionLabel": "Posición",
+    "styleLabel": "Estilo",
+    "position": {
+      "top": "Arriba",
+      "center": "Centro",
+      "bottom": "Abajo",
+      "lower-third": "Tercio inferior"
+    },
+    "style": {
+      "bar": "Barra",
+      "subtle": "Sutil",
+      "bold": "Negrita"
+    }
+  },
+  "partial": {
+    "pick": "Elige un parcial",
+    "variables": "Variables"
+  },
+  "transition": {
+    "title": "Transición",
+    "help": "Cómo se funde esta escena con la siguiente.",
+    "cut": "Corte",
+    "cutOption": "Corte — cambio directo",
+    "duration": "Duración"
+  },
+  "look": {
+    "label": "Aspecto",
+    "none": "Ninguno"
+  },
+  "overlay": {
+    "title": "Posicionar texto",
+    "hint": "Arrastra el texto para colocarlo.",
+    "placeholder": "admite {{token}}",
+    "sample": "Tu texto",
+    "remove": "Eliminar superposición",
+    "size": "Tamaño",
+    "font": "Fuente",
+    "insertVariable": "Insertar variable",
+    "colour": "Color",
+    "box": "Caja de fondo",
+    "boxOn": "Caja",
+    "boxOff": "Sin caja"
+  },
+  "audio": {
+    "musicVolume": "Volumen de la música",
+    "musicVolumeGlobal": "Volumen de la música (global)",
+    "resetGlobal": "Restablecer al volumen global de la música",
+    "fadeIn": "Fundido de entrada",
+    "fadeOut": "Fundido de salida",
+    "duration": "Duración",
+    "curve": "Curva",
+    "sourceVolume": "Volumen de voz / fuente",
+    "musicVolumeGlobalLabel": "Volumen de la música de fondo",
+    "normalize": "Sonoridad",
+    "normalizeOff": "Desactivado",
+    "normalizeLoudnorm": "EBU",
+    "normalizeDynaudnorm": "Dinámico",
+    "ducking": "Bajar la música bajo la voz"
+  },
+  "layers": {
+    "label": "Capas",
+    "base": "Base",
+    "layerN": "Capa {{n}}",
+    "remove": "Eliminar capa {{n}}",
+    "add": "Añadir capa",
+    "opacity": "Opacidad",
+    "fill": "Relleno",
+    "solid": "Sólido",
+    "gradient": "Degradado",
+    "direction": "Dirección",
+    "vertical": "Vertical",
+    "horizontal": "Horizontal",
+    "diagonal": "Diagonal"
+  },
+  "framing": {
+    "help": "Un contorno tenue del cuerpo mostrado en la cámara para ayudar con el encuadre.",
+    "silhouette": "Silueta",
+    "off": "Desactivado",
+    "left": "Izquierda",
+    "center": "Centro",
+    "right": "Derecha",
+    "style": "Estilo",
+    "styleBust": "Busto",
+    "styleOutline": "Contorno",
+    "opacity": "Opacidad"
+  },
+  "motion": {
+    "kenburns": "Movimiento Ken Burns",
+    "on": "Activado",
+    "off": "Desactivado",
+    "direction": "Dirección",
+    "in": "Acercar",
+    "out": "Alejar",
+    "left": "Izquierda",
+    "right": "Derecha",
+    "up": "Arriba",
+    "down": "Abajo",
+    "intensity": "Intensidad"
+  },
+  "style": {
+    "defaultTransition": "Transición predeterminada",
+    "defaultTransitionHelp": "Se usa entre escenas que no definen la suya propia.",
+    "globalAudio": "Mezcla de audio",
+    "wholeVideoAnimations": "Animaciones de todo el vídeo",
+    "wholeVideoAnimationsHelp": "Superposiciones que abarcan todo el vídeo, a través de cada escena."
+  },
+  "save": "Guardar plantilla",
+  "preview": "Vista previa",
+  "previewError": {
+    "title": "Vista previa fallida",
+    "description": "No se pudo renderizar una vista previa de esta plantilla."
+  },
+  "alerts": {
+    "nameRequired": {
+      "title": "Nombre obligatorio",
+      "message": "Ponle un nombre a tu plantilla."
+    },
+    "addSection": {
+      "title": "Añade una sección",
+      "message": "Una plantilla necesita al menos una sección."
+    },
+    "almostThere": "Ya casi está",
+    "needName": "Ponle un nombre a tu plantilla.",
+    "needScene": "Añade al menos una escena."
+  },
+  "animation": {
+    "label": "Animación",
+    "none": "Ninguna",
+    "loop": "Bucle",
+    "playback": "Reproducción",
+    "forever": "Para siempre",
+    "loopsTab": "Bucles",
+    "secondsTab": "Segundos",
+    "loopsLabel": "Número de bucles",
+    "secondsLabel": "Duración (s)",
+    "startLabel": "Empezar en (s)",
+    "keepLastFrame": "Mantener el último fotograma",
+    "position": "Posición (px)",
+    "scale": "Escala (px, -1 = automático)",
+    "opacity": "Opacidad",
+    "rotation": "Rotación (°)",
+    "add": "Añadir una animación",
+    "layer": "Animación {{number}}",
+    "remove": "Eliminar animación"
+  },
+  "overlays": {
+    "kind": "Superposiciones",
+    "animation": "Animación",
+    "image": "Imagen"
+  }
+}

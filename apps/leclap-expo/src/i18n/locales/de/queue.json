@@ -1,0 +1,133 @@
+{
+  "status": {
+    "waiting": "Wartet",
+    "rendering": "Wird gerendert",
+    "failed": "Fehlgeschlagen",
+    "ready": "Fertig"
+  },
+  "relativeTime": {
+    "justNow": "gerade eben",
+    "minAgo_one": "vor {{count}} Min.",
+    "minAgo_other": "vor {{count}} Min.",
+    "hourAgo_one": "vor {{count}} Std.",
+    "hourAgo_other": "vor {{count}} Std."
+  },
+  "screen": {
+    "title": "Kompilierungen",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Auswahl aufheben",
+    "videoAccessibility": "Video, {{status}}, hinzugefügt {{time}}",
+    "yourVideo": "Dein Video",
+    "retried": "{{count}}× wiederholt"
+  },
+  "filters": {
+    "all": "Alle",
+    "pending": "Ausstehend",
+    "processing": "In Bearbeitung",
+    "failed": "Fehlgeschlagen",
+    "completed": "Abgeschlossen"
+  },
+  "actionBar": {
+    "processAll": "Alle verarbeiten",
+    "processing": "Wird verarbeitet...",
+    "cleanup": "Aufräumen",
+    "cleaning": "Wird aufgeräumt..."
+  },
+  "processingBanner": {
+    "rendering_one": "1 Video wird gerendert",
+    "rendering_other": "{{count}} Videos werden gerendert",
+    "waiting": " · {{count}} warten"
+  },
+  "empty": {
+    "title": "Noch keine Videos",
+    "text": "Nimm ein paar Clips auf und sie erscheinen hier, sobald sie zusammengesetzt werden.",
+    "cta": "Video erstellen",
+    "filteredTitle": "Nichts {{status}}",
+    "filteredText": "Zurzeit passen keine Videos zu diesem Filter.",
+    "showAll": "Alle anzeigen"
+  },
+  "batchModal": {
+    "selected_one": "{{count}} Element ausgewählt",
+    "selected_other": "{{count}} Elemente ausgewählt",
+    "retry": "Wiederholen",
+    "remove": "Entfernen"
+  },
+  "offline": {
+    "title": "Du bist offline",
+    "retryMessage": "Verbinde dich mit dem Internet, um diese Videos erneut zu versuchen.",
+    "compileMessage": "Verbinde dich mit dem Internet, um mit dem Kompilieren zu beginnen."
+  },
+  "couldntCompile": {
+    "title": "Kompilieren nicht möglich",
+    "fallback": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+  },
+  "alerts": {
+    "retry": {
+      "title": "Videos wiederholen",
+      "message_one": "{{count}} ausgewähltes Video erneut kompilieren?",
+      "message_other": "{{count}} ausgewählte Videos erneut kompilieren?",
+      "confirm": "Alle wiederholen"
+    },
+    "remove": {
+      "title": "Videos entfernen",
+      "message_one": "{{count}} Video aus der Warteschlange entfernen?",
+      "message_other": "{{count}} Videos aus der Warteschlange entfernen?",
+      "confirm": "Alle entfernen"
+    },
+    "cleanup": {
+      "title": "Fertige löschen",
+      "message": "Videos entfernen, die vor mehr als 7 Tagen fertiggestellt wurden?",
+      "confirm": "Aufräumen"
+    }
+  },
+  "header": {
+    "empty": "Keine Videos in der Warteschlange",
+    "queued_one": "{{count}} Video in der Warteschlange",
+    "queued_other": "{{count}} Videos in der Warteschlange",
+    "willProcessOnline": "📴 Wird verarbeitet, wenn online",
+    "processingWhenPossible": "🌐 Wird verarbeitet, sobald möglich",
+    "offlineBadge": "Offline"
+  },
+  "card": {
+    "project": "Projekt: {{id}}...",
+    "added": "Hinzugefügt {{time}}"
+  },
+  "itemStatus": {
+    "failed_one": "❌ Fehlgeschlagen ({{count}} Versuch)",
+    "failed_other": "❌ Fehlgeschlagen ({{count}} Versuche)",
+    "processing": "⚙️ Wird verarbeitet...",
+    "pending": "⏳ Ausstehend"
+  },
+  "actions": {
+    "retry": "Wiederholen",
+    "remove": "Entfernen"
+  },
+  "showMore_one": "👆 Tippen, um {{count}} weiteres Element anzuzeigen",
+  "showMore_other": "👆 Tippen, um {{count}} weitere Elemente anzuzeigen",
+  "footer": {
+    "offline": "📱 Offline: Videos werden automatisch verarbeitet, sobald eine Verbindung besteht",
+    "online": "🌐 Online: Warteschlange wird im Hintergrund verarbeitet"
+  },
+  "itemAlerts": {
+    "noInternet": {
+      "title": "🌐 Keine Internetverbindung",
+      "message": "Bitte verbinde dich mit dem Internet, um die Videokompilierung zu wiederholen."
+    },
+    "retryFailed": {
+      "title": "❌ Wiederholung fehlgeschlagen",
+      "fallback": "Kompilierung erneut fehlgeschlagen."
+    },
+    "success": {
+      "title": "✅ Erfolg!",
+      "message": "Videokompilierung erfolgreich abgeschlossen!",
+      "confirm": "Super!"
+    },
+    "retryError": {
+      "title": "⚠️ Fehler bei der Wiederholung"
+    },
+    "remove": {
+      "title": "🗑️ Aus Warteschlange entfernen",
+      "message": "Möchtest du diese Kompilierung wirklich aus der Warteschlange entfernen?"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "kicker": "Le tue creazioni",
+  "title": "I miei video",
+  "createNew": "Crea nuovo video",
+  "empty": {
+    "title": "Ancora nessun video",
+    "subtitle": "Inizia creando un nuovo video dalla scheda Scenari"
+  },
+  "deleteAll": {
+    "title": "Elimina tutti i progetti",
+    "message": "Vuoi davvero eliminare tutti i tuoi video? Questa azione non può essere annullata.",
+    "confirm": "Elimina tutto"
+  },
+  "alerts": {
+    "deleteAllError": {
+      "title": "Errore",
+      "message": "Impossibile eliminare tutti i progetti. Riprova."
+    }
+  }
+}

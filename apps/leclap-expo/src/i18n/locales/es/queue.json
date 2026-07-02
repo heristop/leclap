@@ -1,0 +1,133 @@
+{
+  "status": {
+    "waiting": "En espera",
+    "rendering": "Renderizando",
+    "failed": "Fallido",
+    "ready": "Listo"
+  },
+  "relativeTime": {
+    "justNow": "ahora mismo",
+    "minAgo_one": "hace {{count}} min",
+    "minAgo_other": "hace {{count}} min",
+    "hourAgo_one": "hace {{count}} h",
+    "hourAgo_other": "hace {{count}} h"
+  },
+  "screen": {
+    "title": "Compilaciones",
+    "selectAll": "Seleccionar todo",
+    "deselectAll": "Deseleccionar todo",
+    "videoAccessibility": "Vídeo, {{status}}, añadido {{time}}",
+    "yourVideo": "Tu vídeo",
+    "retried": "Reintentado {{count}}×"
+  },
+  "filters": {
+    "all": "Todos",
+    "pending": "Pendientes",
+    "processing": "Procesando",
+    "failed": "Fallidos",
+    "completed": "Completados"
+  },
+  "actionBar": {
+    "processAll": "Procesar todo",
+    "processing": "Procesando...",
+    "cleanup": "Limpiar",
+    "cleaning": "Limpiando..."
+  },
+  "processingBanner": {
+    "rendering_one": "1 vídeo renderizando",
+    "rendering_other": "{{count}} vídeos renderizando",
+    "waiting": " · {{count}} en espera"
+  },
+  "empty": {
+    "title": "Aún no hay vídeos",
+    "text": "Graba unos clips y aparecerán aquí a medida que se montan.",
+    "cta": "Crear un vídeo",
+    "filteredTitle": "Nada {{status}}",
+    "filteredText": "Ningún vídeo coincide con este filtro ahora mismo.",
+    "showAll": "Mostrar todo"
+  },
+  "batchModal": {
+    "selected_one": "{{count}} elemento seleccionado",
+    "selected_other": "{{count}} elementos seleccionados",
+    "retry": "Reintentar",
+    "remove": "Eliminar"
+  },
+  "offline": {
+    "title": "Estás sin conexión",
+    "retryMessage": "Conéctate a internet para reintentar estos vídeos.",
+    "compileMessage": "Conéctate a internet para empezar a compilar."
+  },
+  "couldntCompile": {
+    "title": "No se pudo compilar",
+    "fallback": "Algo salió mal. Inténtalo de nuevo."
+  },
+  "alerts": {
+    "retry": {
+      "title": "Reintentar vídeos",
+      "message_one": "¿Volver a compilar {{count}} vídeo seleccionado?",
+      "message_other": "¿Volver a compilar {{count}} vídeos seleccionados?",
+      "confirm": "Reintentar todos"
+    },
+    "remove": {
+      "title": "Eliminar vídeos",
+      "message_one": "¿Eliminar {{count}} vídeo de la cola?",
+      "message_other": "¿Eliminar {{count}} vídeos de la cola?",
+      "confirm": "Eliminar todos"
+    },
+    "cleanup": {
+      "title": "Borrar terminados",
+      "message": "¿Eliminar los vídeos que terminaron hace más de 7 días?",
+      "confirm": "Limpiar"
+    }
+  },
+  "header": {
+    "empty": "No hay vídeos en la cola",
+    "queued_one": "{{count}} vídeo en cola",
+    "queued_other": "{{count}} vídeos en cola",
+    "willProcessOnline": "📴 Se procesará al estar en línea",
+    "processingWhenPossible": "🌐 Procesando cuando sea posible",
+    "offlineBadge": "Sin conexión"
+  },
+  "card": {
+    "project": "Proyecto: {{id}}...",
+    "added": "Añadido {{time}}"
+  },
+  "itemStatus": {
+    "failed_one": "❌ Fallido ({{count}} reintento)",
+    "failed_other": "❌ Fallido ({{count}} reintentos)",
+    "processing": "⚙️ Procesando...",
+    "pending": "⏳ Pendiente"
+  },
+  "actions": {
+    "retry": "Reintentar",
+    "remove": "Eliminar"
+  },
+  "showMore_one": "👆 Toca para mostrar {{count}} elemento más",
+  "showMore_other": "👆 Toca para mostrar {{count}} elementos más",
+  "footer": {
+    "offline": "📱 Sin conexión: los vídeos se procesarán automáticamente al conectarte",
+    "online": "🌐 En línea: procesando la cola en segundo plano"
+  },
+  "itemAlerts": {
+    "noInternet": {
+      "title": "🌐 Sin conexión a internet",
+      "message": "Conéctate a internet para reintentar la compilación del vídeo."
+    },
+    "retryFailed": {
+      "title": "❌ Reintento fallido",
+      "fallback": "La compilación falló de nuevo."
+    },
+    "success": {
+      "title": "✅ ¡Listo!",
+      "message": "¡La compilación del vídeo se completó correctamente!",
+      "confirm": "¡Genial!"
+    },
+    "retryError": {
+      "title": "⚠️ Error al reintentar"
+    },
+    "remove": {
+      "title": "🗑️ Eliminar de la cola",
+      "message": "¿Seguro que quieres eliminar esta compilación de la cola?"
+    }
+  }
+}

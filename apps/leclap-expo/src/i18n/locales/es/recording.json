@@ -1,0 +1,33 @@
+{
+  "instructions": {
+    "portrait": "Sujeta el dispositivo en vertical para mejores resultados",
+    "landscape": "Sujeta el dispositivo en horizontal para mejores resultados",
+    "square": "Sujeta el dispositivo en vertical — encuadraremos un cuadrado 1:1"
+  },
+  "countdown": {
+    "getReady": "Prepárate…",
+    "accessibility": "Grabando en {{value}}"
+  },
+  "endWarning": {
+    "wrapUp": "Termina — quedan {{remaining}}s",
+    "timesUp": "Se acabó el tiempo"
+  },
+  "permissions": {
+    "checking": "Comprobando permisos de cámara...",
+    "title": "Se requiere permiso de cámara",
+    "message": "Concede permisos de cámara y micrófono para grabar vídeo."
+  },
+  "noDevice": "No hay ninguna cámara disponible",
+  "alerts": {
+    "loadError": {
+      "title": "Error",
+      "message": "No se pudo cargar la pantalla de grabación. Faltan datos."
+    },
+    "saveError": {
+      "title": "Error",
+      "message": "No se pudo guardar el vídeo grabado. Inténtalo de nuevo."
+    }
+  },
+  "loadingError": "Error al cargar la pantalla de grabación.",
+  "processing": "Procesando…"
+}

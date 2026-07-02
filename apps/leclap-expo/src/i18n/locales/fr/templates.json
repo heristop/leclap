@@ -1,0 +1,22 @@
+{
+  "kicker": "Créer",
+  "screenTitle": "Scénarios",
+  "orientation": {
+    "portrait": "Vidéo portrait",
+    "landscape": "Vidéo paysage",
+    "square": "Vidéo carrée"
+  },
+  "subtitle": "Choisis un scénario pour créer ta vidéo",
+  "loadError": "Échec du chargement des templates",
+  "loadErrorHint": "Tire pour rafraîchir et réessaie.",
+  "createTemplate": "Créer un template",
+  "cardDefaultDescription": "Crée une vidéo à partir de ce template",
+  "custom": "Personnalisé",
+  "search": {
+    "placeholder": "Rechercher des templates..."
+  },
+  "refresh": {
+    "syncWhenOnline": "Tire pour synchroniser une fois en ligne",
+    "pullToRefresh": "Tire pour rafraîchir"
+  }
+}

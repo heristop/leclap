@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "title": "Se requiere permiso de cámara",
+    "message": "Necesitamos acceso a la cámara para grabar vídeos. Concede el permiso en los ajustes de tu dispositivo."
+  },
+  "microphone": {
+    "title": "Se requiere permiso de micrófono",
+    "message": "Necesitamos acceso al micrófono para grabar el audio de tus vídeos. Concede el permiso en los ajustes de tu dispositivo."
+  },
+  "mediaLibrary": {
+    "title": "Se requiere permiso de galería multimedia",
+    "message": "Necesitamos acceso a tu galería multimedia para guardar vídeos. Concede el permiso en los ajustes de tu dispositivo."
+  },
+  "openSettings": "Abrir ajustes"
+}

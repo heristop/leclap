@@ -1,0 +1,84 @@
+{
+  "button": {
+    "create": "Mein Video erstellen",
+    "addingToQueue": "Wird zur Warteschlange hinzugefügt...",
+    "creating": "Video wird erstellt..."
+  },
+  "preview": "Vorschau",
+  "media": {
+    "title": "Musik & Hintergrund",
+    "description": "Wähle Soundtrack und Hintergrund",
+    "saved": "Auswahl gespeichert",
+    "accessibilityLabel": "Auswahl von Musik und Hintergrund"
+  },
+  "music": {
+    "comingSoon": "Musikauswahl kommt bald",
+    "useDefault": "Standardmusik verwenden",
+    "pick": "Wähle einen Track für diesen Abschnitt.",
+    "defaultOption": "Standard-Soundtrack",
+    "done": "Fertig"
+  },
+  "loading": "Vorlage wird geladen...",
+  "notFound": "Vorlage oder Projekt nicht gefunden",
+  "backToTemplates": "Zurück zu den Vorlagen",
+  "orientation": {
+    "portrait": "Hochformat-Ausrichtung",
+    "landscape": "Querformat-Ausrichtung",
+    "square": "Quadratische Ausrichtung"
+  },
+  "defaultDescription": "Erstelle ein Video mit dieser Vorlage",
+  "sectionsTitle": "Abschnitte",
+  "progress": "{{done}} von {{total}} Abschnitten abgeschlossen",
+  "shotsLeft_one": "Noch {{count}} Aufnahme",
+  "shotsLeft_other": "Noch {{count}} Aufnahmen",
+  "mode": {
+    "linear": "Schritt für Schritt",
+    "hub": "Alles auf einmal"
+  },
+  "step": {
+    "indicator": "Abschnitt {{index}} von {{total}}",
+    "completed": "Abgeschlossen",
+    "notCompleted": "Noch nicht abgeschlossen",
+    "edit": "Bearbeiten — {{cta}}",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previousAccessibility": "Vorheriger Abschnitt",
+    "nextAccessibility": "Nächster Abschnitt"
+  },
+  "linearCopy": {
+    "mediaTitle": "Musik & Hintergrund",
+    "mediaDescription": "Wähle den Soundtrack und den Hintergrund für dein Video.",
+    "mediaCta": "Musik & Hintergrund wählen",
+    "sectionFallbackDescription": "Schließe diesen Abschnitt ab, um fortzufahren.",
+    "recordCta": "Clip aufnehmen",
+    "formCta": "Details ausfüllen",
+    "openCta": "Abschnitt öffnen"
+  },
+  "alerts": {
+    "incompleteForm": {
+      "title": "Unvollständiges Formular",
+      "message": "Bitte fülle alle erforderlichen Felder aus"
+    },
+    "error": {
+      "title": "Fehler",
+      "message": "Video konnte nicht in der Vorschau angezeigt werden."
+    },
+    "unsupported": {
+      "title": "Nicht unterstützt",
+      "message": "Dieser Abschnittstyp ist noch nicht bearbeitbar."
+    },
+    "addedToQueue": {
+      "title": "Zur Warteschlange hinzugefügt",
+      "message": "Der Server ist gerade nicht erreichbar — dein Video wird automatisch gerendert, sobald er wieder da ist."
+    },
+    "compilationFailed": {
+      "title": "Kompilierung fehlgeschlagen",
+      "fallback": "Bei der Videokompilierung ist ein Fehler aufgetreten."
+    },
+    "compilationError": {
+      "title": "Kompilierungsfehler",
+      "message": "Ein unerwarteter Fehler ist aufgetreten: {{error}}",
+      "unknownError": "Unbekannter Fehler"
+    }
+  }
+}

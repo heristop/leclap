@@ -1,0 +1,133 @@
+{
+  "status": {
+    "waiting": "En attente",
+    "rendering": "Rendu en cours",
+    "failed": "Échec",
+    "ready": "Prêt"
+  },
+  "relativeTime": {
+    "justNow": "à l’instant",
+    "minAgo_one": "il y a {{count}} min",
+    "minAgo_other": "il y a {{count}} min",
+    "hourAgo_one": "il y a {{count}} h",
+    "hourAgo_other": "il y a {{count}} h"
+  },
+  "screen": {
+    "title": "Compilations",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "videoAccessibility": "Vidéo, {{status}}, ajoutée {{time}}",
+    "yourVideo": "Ta vidéo",
+    "retried": "Réessayée {{count}}×"
+  },
+  "filters": {
+    "all": "Toutes",
+    "pending": "En attente",
+    "processing": "En cours",
+    "failed": "Échec",
+    "completed": "Terminées"
+  },
+  "actionBar": {
+    "processAll": "Tout traiter",
+    "processing": "Traitement...",
+    "cleanup": "Nettoyer",
+    "cleaning": "Nettoyage..."
+  },
+  "processingBanner": {
+    "rendering_one": "1 vidéo en cours de rendu",
+    "rendering_other": "{{count}} vidéos en cours de rendu",
+    "waiting": " · {{count}} en attente"
+  },
+  "empty": {
+    "title": "Aucune vidéo pour l’instant",
+    "text": "Enregistre quelques clips et ils apparaîtront ici au fur et à mesure du montage.",
+    "cta": "Créer une vidéo",
+    "filteredTitle": "Rien en {{status}}",
+    "filteredText": "Aucune vidéo ne correspond à ce filtre pour l’instant.",
+    "showAll": "Tout afficher"
+  },
+  "batchModal": {
+    "selected_one": "{{count}} élément sélectionné",
+    "selected_other": "{{count}} éléments sélectionnés",
+    "retry": "Réessayer",
+    "remove": "Retirer"
+  },
+  "offline": {
+    "title": "Tu es hors ligne",
+    "retryMessage": "Connecte-toi à Internet pour réessayer ces vidéos.",
+    "compileMessage": "Connecte-toi à Internet pour lancer la compilation."
+  },
+  "couldntCompile": {
+    "title": "Compilation impossible",
+    "fallback": "Un problème est survenu. Réessaie."
+  },
+  "alerts": {
+    "retry": {
+      "title": "Réessayer les vidéos",
+      "message_one": "Réessayer de compiler {{count}} vidéo sélectionnée ?",
+      "message_other": "Réessayer de compiler {{count}} vidéos sélectionnées ?",
+      "confirm": "Tout réessayer"
+    },
+    "remove": {
+      "title": "Retirer les vidéos",
+      "message_one": "Retirer {{count}} vidéo de la file ?",
+      "message_other": "Retirer {{count}} vidéos de la file ?",
+      "confirm": "Tout retirer"
+    },
+    "cleanup": {
+      "title": "Effacer les terminées",
+      "message": "Retirer les vidéos terminées il y a plus de 7 jours ?",
+      "confirm": "Nettoyer"
+    }
+  },
+  "header": {
+    "empty": "Aucune vidéo dans la file",
+    "queued_one": "{{count}} vidéo en file",
+    "queued_other": "{{count}} vidéos en file",
+    "willProcessOnline": "📴 Sera traitée une fois en ligne",
+    "processingWhenPossible": "🌐 Traitement dès que possible",
+    "offlineBadge": "Hors ligne"
+  },
+  "card": {
+    "project": "Projet : {{id}}...",
+    "added": "Ajoutée {{time}}"
+  },
+  "itemStatus": {
+    "failed_one": "❌ Échec ({{count}} tentative)",
+    "failed_other": "❌ Échec ({{count}} tentatives)",
+    "processing": "⚙️ Traitement...",
+    "pending": "⏳ En attente"
+  },
+  "actions": {
+    "retry": "Réessayer",
+    "remove": "Retirer"
+  },
+  "showMore_one": "👆 Touche pour afficher {{count}} élément de plus",
+  "showMore_other": "👆 Touche pour afficher {{count}} éléments de plus",
+  "footer": {
+    "offline": "📱 Hors ligne : les vidéos seront traitées automatiquement une fois connecté",
+    "online": "🌐 En ligne : traitement de la file en arrière-plan"
+  },
+  "itemAlerts": {
+    "noInternet": {
+      "title": "🌐 Pas de connexion Internet",
+      "message": "Connecte-toi à Internet pour réessayer la compilation."
+    },
+    "retryFailed": {
+      "title": "❌ Nouvelle tentative échouée",
+      "fallback": "La compilation a de nouveau échoué."
+    },
+    "success": {
+      "title": "✅ C’est fait !",
+      "message": "La compilation de la vidéo a réussi !",
+      "confirm": "Super !"
+    },
+    "retryError": {
+      "title": "⚠️ Erreur lors de la nouvelle tentative"
+    },
+    "remove": {
+      "title": "🗑️ Retirer de la file",
+      "message": "Tu es sûr de vouloir retirer cette compilation de la file ?"
+    }
+  }
+}

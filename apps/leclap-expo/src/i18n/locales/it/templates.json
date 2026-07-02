@@ -1,0 +1,22 @@
+{
+  "kicker": "Crea",
+  "screenTitle": "Scenari",
+  "orientation": {
+    "portrait": "Video verticale",
+    "landscape": "Video orizzontale",
+    "square": "Video quadrato"
+  },
+  "subtitle": "Scegli uno scenario per creare il tuo video",
+  "loadError": "Impossibile caricare i template",
+  "loadErrorHint": "Trascina per aggiornare e riprova.",
+  "createTemplate": "Crea un template",
+  "cardDefaultDescription": "Crea un video usando questo template",
+  "custom": "Personalizzato",
+  "search": {
+    "placeholder": "Cerca template..."
+  },
+  "refresh": {
+    "syncWhenOnline": "Trascina per sincronizzare quando sei online",
+    "pullToRefresh": "Trascina per aggiornare"
+  }
+}

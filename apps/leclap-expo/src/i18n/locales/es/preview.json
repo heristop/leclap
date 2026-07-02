@@ -1,0 +1,16 @@
+{
+  "loading": "Cargando vista previa...",
+  "notAvailable": "El vídeo no está disponible para la vista previa.",
+  "toolbar": {
+    "saveAndClose": "Guardar y cerrar vista previa",
+    "trim": "Recortar",
+    "crop": "Encuadrar",
+    "retake": "Volver a grabar"
+  },
+  "trim": {
+    "title": "Recortar clip"
+  },
+  "crop": {
+    "title": "Arrastra el marco para encuadrar"
+  }
+}

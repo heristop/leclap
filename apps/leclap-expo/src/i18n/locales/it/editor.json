@@ -1,0 +1,278 @@
+{
+  "header": {
+    "create": "Crea un template",
+    "edit": "Modifica template",
+    "close": "Chiudi",
+    "back": "Indietro",
+    "undo": "Annulla",
+    "redo": "Ripeti",
+    "import": "Importa JSON del template",
+    "export": "Esporta JSON del template"
+  },
+  "importError": {
+    "title": "Impossibile importare",
+    "description": "Quel file non è un descrittore di template valido."
+  },
+  "name": {
+    "label": "Nome",
+    "placeholder": "Il mio template"
+  },
+  "description": {
+    "label": "Descrizione (facoltativa)",
+    "placeholder": "Un breve riepilogo"
+  },
+  "variables": {
+    "label": "Variabili globali",
+    "hint": "Valori riutilizzabili — inseriscine uno con {{ name }} in qualsiasi campo di testo.",
+    "name": "nome",
+    "value": "valore",
+    "add": "Aggiungi variabile",
+    "remove": "Rimuovi variabile {{n}}"
+  },
+  "orientation": {
+    "label": "Orientamento",
+    "landscape": "Orizzontale 16:9",
+    "portrait": "Verticale 9:16",
+    "square": "Quadrato 1:1"
+  },
+  "sections": {
+    "label": "Sezioni — ordine dall'alto in basso",
+    "add": "Aggiungi una sezione"
+  },
+  "scenes": {
+    "add": "Aggiungi una scena"
+  },
+  "scene": {
+    "collapse": "Comprimi scena",
+    "expand": "Espandi scena"
+  },
+  "timeline": {
+    "label": "Panoramica delle scene",
+    "goTo": "Vai alla scena {{n}}"
+  },
+  "wizard": {
+    "continue": "Continua",
+    "info": {
+      "title": "Dai un nome al template",
+      "subtitle": "Un nome chiaro e la forma dello schermo."
+    },
+    "scenes": {
+      "title": "Costruisci le scene",
+      "subtitle": "Aggiungi scene, imposta le transizioni, perfeziona ognuna."
+    },
+    "style": {
+      "title": "Stile e audio",
+      "subtitle": "Una transizione predefinita e come si mescola l'audio."
+    }
+  },
+  "section": {
+    "duration": "Durata (s)",
+    "mute": "Disattiva audio",
+    "overlayText": "Testo in sovrimpressione (facoltativo)",
+    "overlayPlaceholder": "supporta {{token}}",
+    "countdownToggle": "Conto alla rovescia prima di registrare",
+    "countdown": "Conto alla rovescia (s)",
+    "whatToFilm": "Cosa filmare (facoltativo)",
+    "whatToFilmPlaceholder": "es. Mettiti al centro, guarda in camera",
+    "textOverlays": "Testi in sovrimpressione",
+    "addText": "Aggiungi testo",
+    "addTitle": "Aggiungi titolo",
+    "editTitle": "Modifica titolo in sovrimpressione"
+  },
+  "color": {
+    "label": "Colore (hex)",
+    "placeholder": "#7C83FD"
+  },
+  "field": {
+    "label": "Etichetta campo {{n}}",
+    "placeholder": "Il tuo nome",
+    "add": "Aggiungi campo"
+  },
+  "enterField": "Inserisci {{label}}",
+  "music": {
+    "pick": "Scegli i brani tra cui gli spettatori possono selezionare.",
+    "allowUpload": "Permetti agli spettatori di caricare il proprio brano"
+  },
+  "image": {
+    "pick": "Scegli le immagini tra cui gli spettatori possono selezionare.",
+    "allowUpload": "Permetti agli spettatori di caricare la propria immagine",
+    "label": "Immagine",
+    "none": "Nessuna",
+    "position": "Posizione (px)",
+    "scale": "Scala (px, -1 = auto)",
+    "rotation": "Rotazione (°)",
+    "add": "Aggiungi un'immagine",
+    "layer": "Immagine {{number}}",
+    "remove": "Rimuovi immagine"
+  },
+  "advanced": {
+    "look": "Look",
+    "fineTune": "Regola",
+    "caption": "Didascalia",
+    "audio": "Audio",
+    "cameraGuide": "Guida camera",
+    "layers": "Livelli",
+    "motion": "Movimento"
+  },
+  "grade": {
+    "brightness": "Luminosità",
+    "contrast": "Contrasto",
+    "saturation": "Saturazione",
+    "gamma": "Gamma",
+    "hue": "Tonalità",
+    "blur": "Sfocatura"
+  },
+  "caption": {
+    "placeholder": "Titolo a schermo (facoltativo)",
+    "hint": "Un breve titolo impresso nel video.",
+    "positionLabel": "Posizione",
+    "styleLabel": "Stile",
+    "position": {
+      "top": "In alto",
+      "center": "Al centro",
+      "bottom": "In basso",
+      "lower-third": "Terzo inferiore"
+    },
+    "style": {
+      "bar": "Barra",
+      "subtle": "Discreto",
+      "bold": "Marcato"
+    }
+  },
+  "partial": {
+    "pick": "Scegli un partial",
+    "variables": "Variabili"
+  },
+  "transition": {
+    "title": "Transizione",
+    "help": "Come questa scena si fonde con la successiva.",
+    "cut": "Stacco",
+    "cutOption": "Stacco — passaggio netto",
+    "duration": "Durata"
+  },
+  "look": {
+    "label": "Look",
+    "none": "Nessuno"
+  },
+  "overlay": {
+    "title": "Posiziona il testo",
+    "hint": "Trascina il testo per posizionarlo.",
+    "placeholder": "supporta {{token}}",
+    "sample": "Il tuo testo",
+    "remove": "Rimuovi sovrimpressione",
+    "size": "Dimensione",
+    "font": "Font",
+    "insertVariable": "Inserisci variabile",
+    "colour": "Colore",
+    "box": "Riquadro di sfondo",
+    "boxOn": "Riquadro",
+    "boxOff": "Nessun riquadro"
+  },
+  "audio": {
+    "musicVolume": "Volume musica",
+    "musicVolumeGlobal": "Volume musica (globale)",
+    "resetGlobal": "Ripristina al volume musica globale",
+    "fadeIn": "Dissolvenza in entrata",
+    "fadeOut": "Dissolvenza in uscita",
+    "duration": "Durata",
+    "curve": "Curva",
+    "sourceVolume": "Volume voce / sorgente",
+    "musicVolumeGlobalLabel": "Volume musica di sottofondo",
+    "normalize": "Volume",
+    "normalizeOff": "Off",
+    "normalizeLoudnorm": "EBU",
+    "normalizeDynaudnorm": "Dinamico",
+    "ducking": "Abbassa la musica sotto la voce"
+  },
+  "layers": {
+    "label": "Livelli",
+    "base": "Base",
+    "layerN": "Livello {{n}}",
+    "remove": "Rimuovi livello {{n}}",
+    "add": "Aggiungi livello",
+    "opacity": "Opacità",
+    "fill": "Riempimento",
+    "solid": "Tinta unita",
+    "gradient": "Sfumatura",
+    "direction": "Direzione",
+    "vertical": "Verticale",
+    "horizontal": "Orizzontale",
+    "diagonal": "Diagonale"
+  },
+  "framing": {
+    "help": "Una sagoma del corpo leggera mostrata nella camera per aiutare l'inquadratura.",
+    "silhouette": "Sagoma",
+    "off": "Off",
+    "left": "Sinistra",
+    "center": "Centro",
+    "right": "Destra",
+    "style": "Stile",
+    "styleBust": "Busto",
+    "styleOutline": "Contorno",
+    "opacity": "Opacità"
+  },
+  "motion": {
+    "kenburns": "Movimento Ken Burns",
+    "on": "On",
+    "off": "Off",
+    "direction": "Direzione",
+    "in": "Avvicinamento",
+    "out": "Allontanamento",
+    "left": "Sinistra",
+    "right": "Destra",
+    "up": "Su",
+    "down": "Giù",
+    "intensity": "Intensità"
+  },
+  "style": {
+    "defaultTransition": "Transizione predefinita",
+    "defaultTransitionHelp": "Usata tra le scene che non ne impostano una propria.",
+    "globalAudio": "Mix audio",
+    "wholeVideoAnimations": "Animazioni per l'intero video",
+    "wholeVideoAnimationsHelp": "Sovrimpressioni che coprono tutto il video, in ogni scena."
+  },
+  "save": "Salva template",
+  "preview": "Anteprima",
+  "previewError": {
+    "title": "Anteprima non riuscita",
+    "description": "Impossibile generare un'anteprima di questo template."
+  },
+  "alerts": {
+    "nameRequired": {
+      "title": "Nome obbligatorio",
+      "message": "Dai un nome al tuo template."
+    },
+    "addSection": {
+      "title": "Aggiungi una sezione",
+      "message": "Un template deve avere almeno una sezione."
+    },
+    "almostThere": "Ci siamo quasi",
+    "needName": "Dai un nome al tuo template.",
+    "needScene": "Aggiungi almeno una scena."
+  },
+  "animation": {
+    "label": "Animazione",
+    "none": "Nessuna",
+    "loop": "Loop",
+    "playback": "Riproduzione",
+    "forever": "Per sempre",
+    "loopsTab": "Loop",
+    "secondsTab": "Secondi",
+    "loopsLabel": "Numero di loop",
+    "secondsLabel": "Durata (s)",
+    "startLabel": "Inizia a (s)",
+    "keepLastFrame": "Mantieni l'ultimo fotogramma",
+    "position": "Posizione (px)",
+    "scale": "Scala (px, -1 = auto)",
+    "opacity": "Opacità",
+    "rotation": "Rotazione (°)",
+    "add": "Aggiungi un'animazione",
+    "layer": "Animazione {{number}}",
+    "remove": "Rimuovi animazione"
+  },
+  "overlays": {
+    "kind": "Sovrimpressioni",
+    "animation": "Animazione",
+    "image": "Immagine"
+  }
+}

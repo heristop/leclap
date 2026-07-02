@@ -1,0 +1,278 @@
+{
+  "header": {
+    "create": "Vorlage erstellen",
+    "edit": "Vorlage bearbeiten",
+    "close": "Schließen",
+    "back": "Zurück",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "import": "Vorlagen-JSON importieren",
+    "export": "Vorlagen-JSON exportieren"
+  },
+  "importError": {
+    "title": "Import nicht möglich",
+    "description": "Diese Datei ist kein gültiger Vorlagen-Deskriptor."
+  },
+  "name": {
+    "label": "Name",
+    "placeholder": "Meine Vorlage"
+  },
+  "description": {
+    "label": "Beschreibung (optional)",
+    "placeholder": "Eine kurze Zusammenfassung"
+  },
+  "variables": {
+    "label": "Globale Variablen",
+    "hint": "Wiederverwendbare Werte — füge eine mit {{ name }} in jedem Textfeld ein.",
+    "name": "Name",
+    "value": "Wert",
+    "add": "Variable hinzufügen",
+    "remove": "Variable {{n}} entfernen"
+  },
+  "orientation": {
+    "label": "Ausrichtung",
+    "landscape": "Querformat 16:9",
+    "portrait": "Hochformat 9:16",
+    "square": "Quadrat 1:1"
+  },
+  "sections": {
+    "label": "Abschnitte — Reihenfolge von oben nach unten",
+    "add": "Abschnitt hinzufügen"
+  },
+  "scenes": {
+    "add": "Szene hinzufügen"
+  },
+  "scene": {
+    "collapse": "Szene einklappen",
+    "expand": "Szene ausklappen"
+  },
+  "timeline": {
+    "label": "Szenenübersicht",
+    "goTo": "Zu Szene {{n}} gehen"
+  },
+  "wizard": {
+    "continue": "Weiter",
+    "info": {
+      "title": "Benenne deine Vorlage",
+      "subtitle": "Ein klarer Name und das Bildschirmformat."
+    },
+    "scenes": {
+      "title": "Baue die Szenen",
+      "subtitle": "Szenen hinzufügen, Übergänge festlegen, jede einzeln feinabstimmen."
+    },
+    "style": {
+      "title": "Stil & Audio",
+      "subtitle": "Ein Standardübergang und wie das Audio gemischt wird."
+    }
+  },
+  "section": {
+    "duration": "Dauer (s)",
+    "mute": "Audio stummschalten",
+    "overlayText": "Overlay-Text (optional)",
+    "overlayPlaceholder": "unterstützt {{token}}",
+    "countdownToggle": "Countdown vor der Aufnahme",
+    "countdown": "Countdown (s)",
+    "whatToFilm": "Was gefilmt werden soll (optional)",
+    "whatToFilmPlaceholder": "z. B. Zentriert stehen, in die Kamera schauen",
+    "textOverlays": "Text-Overlays",
+    "addText": "Text hinzufügen",
+    "addTitle": "Titeltext hinzufügen",
+    "editTitle": "Titel-Overlay bearbeiten"
+  },
+  "color": {
+    "label": "Farbe (Hex)",
+    "placeholder": "#7C83FD"
+  },
+  "field": {
+    "label": "Bezeichnung von Feld {{n}}",
+    "placeholder": "Dein Name",
+    "add": "Feld hinzufügen"
+  },
+  "enterField": "{{label}} eingeben",
+  "music": {
+    "pick": "Wähle die Tracks, aus denen Zuschauer wählen können.",
+    "allowUpload": "Zuschauern erlauben, einen eigenen Track hochzuladen"
+  },
+  "image": {
+    "pick": "Wähle die Bilder, aus denen Zuschauer wählen können.",
+    "allowUpload": "Zuschauern erlauben, ein eigenes Bild hochzuladen",
+    "label": "Bild",
+    "none": "Keins",
+    "position": "Position (px)",
+    "scale": "Skalierung (px, -1 = automatisch)",
+    "rotation": "Drehung (°)",
+    "add": "Bild hinzufügen",
+    "layer": "Bild {{number}}",
+    "remove": "Bild entfernen"
+  },
+  "advanced": {
+    "look": "Look",
+    "fineTune": "Feinabstimmung",
+    "caption": "Untertitel",
+    "audio": "Audio",
+    "cameraGuide": "Kamerahilfe",
+    "layers": "Ebenen",
+    "motion": "Bewegung"
+  },
+  "grade": {
+    "brightness": "Helligkeit",
+    "contrast": "Kontrast",
+    "saturation": "Sättigung",
+    "gamma": "Gamma",
+    "hue": "Farbton",
+    "blur": "Unschärfe"
+  },
+  "caption": {
+    "placeholder": "Titel auf dem Bildschirm (optional)",
+    "hint": "Ein kurzer Titel, der ins Video eingebrannt wird.",
+    "positionLabel": "Position",
+    "styleLabel": "Stil",
+    "position": {
+      "top": "Oben",
+      "center": "Mitte",
+      "bottom": "Unten",
+      "lower-third": "Unteres Drittel"
+    },
+    "style": {
+      "bar": "Balken",
+      "subtle": "Dezent",
+      "bold": "Fett"
+    }
+  },
+  "partial": {
+    "pick": "Wähle ein Partial",
+    "variables": "Variablen"
+  },
+  "transition": {
+    "title": "Übergang",
+    "help": "Wie diese Szene in die nächste übergeht.",
+    "cut": "Schnitt",
+    "cutOption": "Schnitt — harter Wechsel",
+    "duration": "Dauer"
+  },
+  "look": {
+    "label": "Look",
+    "none": "Keiner"
+  },
+  "overlay": {
+    "title": "Text positionieren",
+    "hint": "Ziehe den Text, um ihn zu positionieren.",
+    "placeholder": "unterstützt {{token}}",
+    "sample": "Dein Text",
+    "remove": "Overlay entfernen",
+    "size": "Größe",
+    "font": "Schriftart",
+    "insertVariable": "Variable einfügen",
+    "colour": "Farbe",
+    "box": "Hintergrundbox",
+    "boxOn": "Box",
+    "boxOff": "Keine Box"
+  },
+  "audio": {
+    "musicVolume": "Musiklautstärke",
+    "musicVolumeGlobal": "Musiklautstärke (global)",
+    "resetGlobal": "Auf globale Musiklautstärke zurücksetzen",
+    "fadeIn": "Einblenden",
+    "fadeOut": "Ausblenden",
+    "duration": "Dauer",
+    "curve": "Kurve",
+    "sourceVolume": "Stimm-/Quelllautstärke",
+    "musicVolumeGlobalLabel": "Hintergrundmusiklautstärke",
+    "normalize": "Lautheit",
+    "normalizeOff": "Aus",
+    "normalizeLoudnorm": "EBU",
+    "normalizeDynaudnorm": "Dynamisch",
+    "ducking": "Musik unter der Stimme absenken"
+  },
+  "layers": {
+    "label": "Ebenen",
+    "base": "Basis",
+    "layerN": "Ebene {{n}}",
+    "remove": "Ebene {{n}} entfernen",
+    "add": "Ebene hinzufügen",
+    "opacity": "Deckkraft",
+    "fill": "Füllung",
+    "solid": "Einfarbig",
+    "gradient": "Verlauf",
+    "direction": "Richtung",
+    "vertical": "Vertikal",
+    "horizontal": "Horizontal",
+    "diagonal": "Diagonal"
+  },
+  "framing": {
+    "help": "Eine schwache Körperkontur in der Kamera als Hilfe für die Bildkomposition.",
+    "silhouette": "Silhouette",
+    "off": "Aus",
+    "left": "Links",
+    "center": "Mitte",
+    "right": "Rechts",
+    "style": "Stil",
+    "styleBust": "Brustbild",
+    "styleOutline": "Umriss",
+    "opacity": "Deckkraft"
+  },
+  "motion": {
+    "kenburns": "Ken-Burns-Bewegung",
+    "on": "An",
+    "off": "Aus",
+    "direction": "Richtung",
+    "in": "Hinein",
+    "out": "Heraus",
+    "left": "Links",
+    "right": "Rechts",
+    "up": "Hoch",
+    "down": "Runter",
+    "intensity": "Intensität"
+  },
+  "style": {
+    "defaultTransition": "Standardübergang",
+    "defaultTransitionHelp": "Wird zwischen Szenen verwendet, die keinen eigenen festlegen.",
+    "globalAudio": "Audiomischung",
+    "wholeVideoAnimations": "Animationen für das ganze Video",
+    "wholeVideoAnimationsHelp": "Overlays, die sich über das gesamte Video und alle Szenen erstrecken."
+  },
+  "save": "Vorlage speichern",
+  "preview": "Vorschau",
+  "previewError": {
+    "title": "Vorschau fehlgeschlagen",
+    "description": "Es konnte keine Vorschau dieser Vorlage gerendert werden."
+  },
+  "alerts": {
+    "nameRequired": {
+      "title": "Name erforderlich",
+      "message": "Gib deiner Vorlage einen Namen."
+    },
+    "addSection": {
+      "title": "Abschnitt hinzufügen",
+      "message": "Eine Vorlage benötigt mindestens einen Abschnitt."
+    },
+    "almostThere": "Fast geschafft",
+    "needName": "Gib deiner Vorlage einen Namen.",
+    "needScene": "Füge mindestens eine Szene hinzu."
+  },
+  "animation": {
+    "label": "Animation",
+    "none": "Keine",
+    "loop": "Schleife",
+    "playback": "Wiedergabe",
+    "forever": "Endlos",
+    "loopsTab": "Schleifen",
+    "secondsTab": "Sekunden",
+    "loopsLabel": "Anzahl der Schleifen",
+    "secondsLabel": "Dauer (s)",
+    "startLabel": "Start bei (s)",
+    "keepLastFrame": "Letztes Bild behalten",
+    "position": "Position (px)",
+    "scale": "Skalierung (px, -1 = automatisch)",
+    "opacity": "Deckkraft",
+    "rotation": "Drehung (°)",
+    "add": "Animation hinzufügen",
+    "layer": "Animation {{number}}",
+    "remove": "Animation entfernen"
+  },
+  "overlays": {
+    "kind": "Overlays",
+    "animation": "Animation",
+    "image": "Bild"
+  }
+}

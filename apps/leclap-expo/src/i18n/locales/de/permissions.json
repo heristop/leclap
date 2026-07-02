@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "title": "Kameraberechtigung erforderlich",
+    "message": "Wir benötigen Kamerazugriff, um Videos aufzunehmen. Bitte erteile die Berechtigung in deinen Geräteeinstellungen."
+  },
+  "microphone": {
+    "title": "Mikrofonberechtigung erforderlich",
+    "message": "Wir benötigen Mikrofonzugriff, um Ton in deinen Videos aufzunehmen. Bitte erteile die Berechtigung in deinen Geräteeinstellungen."
+  },
+  "mediaLibrary": {
+    "title": "Berechtigung für Mediathek erforderlich",
+    "message": "Wir benötigen Zugriff auf deine Mediathek, um Videos zu speichern. Bitte erteile die Berechtigung in deinen Geräteeinstellungen."
+  },
+  "openSettings": "Einstellungen öffnen"
+}

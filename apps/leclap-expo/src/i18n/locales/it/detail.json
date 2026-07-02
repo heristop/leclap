@@ -1,0 +1,84 @@
+{
+  "button": {
+    "create": "Crea il mio video",
+    "addingToQueue": "Aggiunta alla coda...",
+    "creating": "Creazione del video..."
+  },
+  "preview": "Anteprima",
+  "media": {
+    "title": "Musica e sfondo",
+    "description": "Scegli colonna sonora e sfondo",
+    "saved": "Selezione salvata",
+    "accessibilityLabel": "Selezione di musica e sfondo"
+  },
+  "music": {
+    "comingSoon": "Selezione della musica in arrivo",
+    "useDefault": "Usa la musica predefinita",
+    "pick": "Scegli un brano per questa sezione.",
+    "defaultOption": "Colonna sonora predefinita",
+    "done": "Fatto"
+  },
+  "loading": "Caricamento del template...",
+  "notFound": "Template o progetto non trovato",
+  "backToTemplates": "Torna ai template",
+  "orientation": {
+    "portrait": "Orientamento verticale",
+    "landscape": "Orientamento orizzontale",
+    "square": "Orientamento quadrato"
+  },
+  "defaultDescription": "Crea un video usando questo template",
+  "sectionsTitle": "Sezioni",
+  "progress": "{{done}} di {{total}} sezioni completate",
+  "shotsLeft_one": "{{count}} ripresa rimasta",
+  "shotsLeft_other": "{{count}} riprese rimaste",
+  "mode": {
+    "linear": "Passo dopo passo",
+    "hub": "Tutto insieme"
+  },
+  "step": {
+    "indicator": "Sezione {{index}} di {{total}}",
+    "completed": "Completata",
+    "notCompleted": "Non ancora completata",
+    "edit": "Modifica — {{cta}}",
+    "back": "Indietro",
+    "next": "Avanti",
+    "previousAccessibility": "Sezione precedente",
+    "nextAccessibility": "Sezione successiva"
+  },
+  "linearCopy": {
+    "mediaTitle": "Musica e sfondo",
+    "mediaDescription": "Scegli la colonna sonora e lo sfondo per il tuo video.",
+    "mediaCta": "Scegli musica e sfondo",
+    "sectionFallbackDescription": "Completa questa sezione per continuare.",
+    "recordCta": "Registra clip",
+    "formCta": "Compila i dettagli",
+    "openCta": "Apri la sezione"
+  },
+  "alerts": {
+    "incompleteForm": {
+      "title": "Modulo incompleto",
+      "message": "Compila tutti i campi obbligatori"
+    },
+    "error": {
+      "title": "Errore",
+      "message": "Impossibile visualizzare l'anteprima del video."
+    },
+    "unsupported": {
+      "title": "Non supportato",
+      "message": "Questo tipo di sezione non è ancora modificabile."
+    },
+    "addedToQueue": {
+      "title": "Aggiunto alla coda",
+      "message": "Il server non è raggiungibile in questo momento — il tuo video verrà elaborato automaticamente al ripristino."
+    },
+    "compilationFailed": {
+      "title": "Compilazione non riuscita",
+      "fallback": "Si è verificato un errore durante la compilazione del video."
+    },
+    "compilationError": {
+      "title": "Errore di compilazione",
+      "message": "Si è verificato un errore imprevisto: {{error}}",
+      "unknownError": "Errore sconosciuto"
+    }
+  }
+}

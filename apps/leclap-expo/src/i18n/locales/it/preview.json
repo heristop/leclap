@@ -1,0 +1,16 @@
+{
+  "loading": "Caricamento anteprima...",
+  "notAvailable": "Video non disponibile per l'anteprima.",
+  "toolbar": {
+    "saveAndClose": "Salva e chiudi l'anteprima",
+    "trim": "Taglia",
+    "crop": "Ritaglia",
+    "retake": "Rigira"
+  },
+  "trim": {
+    "title": "Taglia il clip"
+  },
+  "crop": {
+    "title": "Trascina il riquadro per ritagliare"
+  }
+}

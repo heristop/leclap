@@ -1,0 +1,22 @@
+{
+  "kicker": "Crear",
+  "screenTitle": "Escenarios",
+  "orientation": {
+    "portrait": "Vídeo vertical",
+    "landscape": "Vídeo horizontal",
+    "square": "Vídeo cuadrado"
+  },
+  "subtitle": "Elige un escenario para crear tu vídeo",
+  "loadError": "No se pudieron cargar las plantillas",
+  "loadErrorHint": "Desliza para actualizar e inténtalo de nuevo.",
+  "createTemplate": "Crear una plantilla",
+  "cardDefaultDescription": "Crea un vídeo con esta plantilla",
+  "custom": "Personalizado",
+  "search": {
+    "placeholder": "Buscar plantillas..."
+  },
+  "refresh": {
+    "syncWhenOnline": "Desliza para sincronizar al estar en línea",
+    "pullToRefresh": "Desliza para actualizar"
+  }
+}

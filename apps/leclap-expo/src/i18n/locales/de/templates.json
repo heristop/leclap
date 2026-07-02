@@ -1,0 +1,22 @@
+{
+  "kicker": "Erstellen",
+  "screenTitle": "Szenarien",
+  "orientation": {
+    "portrait": "Hochformat-Video",
+    "landscape": "Querformat-Video",
+    "square": "Quadratisches Video"
+  },
+  "subtitle": "Wähle ein Szenario, um dein Video zu erstellen",
+  "loadError": "Vorlagen konnten nicht geladen werden",
+  "loadErrorHint": "Zum Aktualisieren ziehen und erneut versuchen.",
+  "createTemplate": "Vorlage erstellen",
+  "cardDefaultDescription": "Erstelle ein Video mit dieser Vorlage",
+  "custom": "Eigene",
+  "search": {
+    "placeholder": "Vorlagen suchen..."
+  },
+  "refresh": {
+    "syncWhenOnline": "Zum Synchronisieren ziehen, wenn online",
+    "pullToRefresh": "Zum Aktualisieren ziehen"
+  }
+}

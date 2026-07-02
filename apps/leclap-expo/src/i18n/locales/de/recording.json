@@ -1,0 +1,33 @@
+{
+  "instructions": {
+    "portrait": "Halte dein Gerät senkrecht für beste Ergebnisse",
+    "landscape": "Halte dein Gerät waagerecht für beste Ergebnisse",
+    "square": "Halte dein Gerät senkrecht — wir rahmen ein 1:1-Quadrat"
+  },
+  "countdown": {
+    "getReady": "Mach dich bereit…",
+    "accessibility": "Aufnahme in {{value}}"
+  },
+  "endWarning": {
+    "wrapUp": "Zum Ende kommen — noch {{remaining}}s",
+    "timesUp": "Zeit ist um"
+  },
+  "permissions": {
+    "checking": "Kameraberechtigungen werden geprüft...",
+    "title": "Kameraberechtigung erforderlich",
+    "message": "Bitte erteile die Kamera- und Mikrofonberechtigung, um Videos aufzunehmen."
+  },
+  "noDevice": "Kein Kameragerät verfügbar",
+  "alerts": {
+    "loadError": {
+      "title": "Fehler",
+      "message": "Aufnahmebildschirm konnte nicht geladen werden. Daten fehlen."
+    },
+    "saveError": {
+      "title": "Fehler",
+      "message": "Aufgenommenes Video konnte nicht gespeichert werden. Bitte versuche es erneut."
+    }
+  },
+  "loadingError": "Fehler beim Laden des Aufnahmebildschirms.",
+  "processing": "Wird verarbeitet…"
+}

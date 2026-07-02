@@ -1,0 +1,16 @@
+{
+  "loading": "Chargement de l’aperçu...",
+  "notAvailable": "Vidéo indisponible pour l’aperçu.",
+  "toolbar": {
+    "saveAndClose": "Enregistrer et fermer l’aperçu",
+    "trim": "Rogner",
+    "crop": "Recadrer",
+    "retake": "Refaire"
+  },
+  "trim": {
+    "title": "Rogner le clip"
+  },
+  "crop": {
+    "title": "Fais glisser le cadre pour recadrer"
+  }
+}

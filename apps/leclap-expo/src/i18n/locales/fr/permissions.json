@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "title": "Autorisation caméra requise",
+    "message": "On a besoin d’accéder à la caméra pour enregistrer des vidéos. Autorise l’accès dans les réglages de ton appareil."
+  },
+  "microphone": {
+    "title": "Autorisation micro requise",
+    "message": "On a besoin d’accéder au micro pour enregistrer le son de tes vidéos. Autorise l’accès dans les réglages de ton appareil."
+  },
+  "mediaLibrary": {
+    "title": "Autorisation médiathèque requise",
+    "message": "On a besoin d’accéder à ta médiathèque pour enregistrer les vidéos. Autorise l’accès dans les réglages de ton appareil."
+  },
+  "openSettings": "Ouvrir les réglages"
+}

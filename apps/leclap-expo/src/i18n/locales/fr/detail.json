@@ -1,0 +1,84 @@
+{
+  "button": {
+    "create": "Créer ma vidéo",
+    "addingToQueue": "Ajout à la file...",
+    "creating": "Création de la vidéo..."
+  },
+  "preview": "Aperçu",
+  "media": {
+    "title": "Musique et fond",
+    "description": "Choisis la bande-son et le décor",
+    "saved": "Sélection enregistrée",
+    "accessibilityLabel": "Sélection de la musique et du fond"
+  },
+  "music": {
+    "comingSoon": "Sélection de musique bientôt disponible",
+    "useDefault": "Utiliser la musique par défaut",
+    "pick": "Choisis un morceau pour cette section.",
+    "defaultOption": "Bande-son par défaut",
+    "done": "Terminé"
+  },
+  "loading": "Chargement du template...",
+  "notFound": "Template ou projet introuvable",
+  "backToTemplates": "Retour aux templates",
+  "orientation": {
+    "portrait": "Orientation portrait",
+    "landscape": "Orientation paysage",
+    "square": "Orientation carrée"
+  },
+  "defaultDescription": "Crée une vidéo à partir de ce template",
+  "sectionsTitle": "Sections",
+  "progress": "{{done}} sur {{total}} sections terminées",
+  "shotsLeft_one": "{{count}} prise restante",
+  "shotsLeft_other": "{{count}} prises restantes",
+  "mode": {
+    "linear": "Étape par étape",
+    "hub": "Tout en même temps"
+  },
+  "step": {
+    "indicator": "Section {{index}} sur {{total}}",
+    "completed": "Terminée",
+    "notCompleted": "Pas encore terminée",
+    "edit": "Modifier — {{cta}}",
+    "back": "Retour",
+    "next": "Suivant",
+    "previousAccessibility": "Section précédente",
+    "nextAccessibility": "Section suivante"
+  },
+  "linearCopy": {
+    "mediaTitle": "Musique et fond",
+    "mediaDescription": "Choisis la bande-son et le décor de ta vidéo.",
+    "mediaCta": "Choisir musique et fond",
+    "sectionFallbackDescription": "Termine cette section pour continuer.",
+    "recordCta": "Enregistrer un clip",
+    "formCta": "Remplir les détails",
+    "openCta": "Ouvrir la section"
+  },
+  "alerts": {
+    "incompleteForm": {
+      "title": "Formulaire incomplet",
+      "message": "Remplis tous les champs obligatoires"
+    },
+    "error": {
+      "title": "Erreur",
+      "message": "Impossible d’afficher l’aperçu de la vidéo."
+    },
+    "unsupported": {
+      "title": "Non pris en charge",
+      "message": "Ce type de section n’est pas encore modifiable."
+    },
+    "addedToQueue": {
+      "title": "Ajoutée à la file",
+      "message": "Le serveur est injoignable pour l’instant — ta vidéo sera générée automatiquement dès son retour."
+    },
+    "compilationFailed": {
+      "title": "Échec de la compilation",
+      "fallback": "Une erreur est survenue pendant la compilation de la vidéo."
+    },
+    "compilationError": {
+      "title": "Erreur de compilation",
+      "message": "Une erreur inattendue est survenue : {{error}}",
+      "unknownError": "Erreur inconnue"
+    }
+  }
+}

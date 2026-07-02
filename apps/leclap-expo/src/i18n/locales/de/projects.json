@@ -1,0 +1,20 @@
+{
+  "kicker": "Deine Werke",
+  "title": "Meine Videos",
+  "createNew": "Neues Video erstellen",
+  "empty": {
+    "title": "Noch keine Videos",
+    "subtitle": "Erstelle zunächst ein neues Video über den Tab Szenarien"
+  },
+  "deleteAll": {
+    "title": "Alle Projekte löschen",
+    "message": "Möchtest du wirklich alle deine Videos löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "confirm": "Alle löschen"
+  },
+  "alerts": {
+    "deleteAllError": {
+      "title": "Fehler",
+      "message": "Projekte konnten nicht gelöscht werden. Bitte versuche es erneut."
+    }
+  }
+}

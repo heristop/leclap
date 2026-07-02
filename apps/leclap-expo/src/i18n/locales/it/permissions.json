@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "title": "Permesso fotocamera richiesto",
+    "message": "Ci serve l'accesso alla fotocamera per registrare i video. Concedi il permesso nelle impostazioni del dispositivo."
+  },
+  "microphone": {
+    "title": "Permesso microfono richiesto",
+    "message": "Ci serve l'accesso al microfono per registrare l'audio nei tuoi video. Concedi il permesso nelle impostazioni del dispositivo."
+  },
+  "mediaLibrary": {
+    "title": "Permesso libreria multimediale richiesto",
+    "message": "Ci serve l'accesso alla tua libreria multimediale per salvare i video. Concedi il permesso nelle impostazioni del dispositivo."
+  },
+  "openSettings": "Apri le impostazioni"
+}

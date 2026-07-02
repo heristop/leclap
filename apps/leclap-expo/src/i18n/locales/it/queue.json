@@ -1,0 +1,133 @@
+{
+  "status": {
+    "waiting": "In attesa",
+    "rendering": "In rendering",
+    "failed": "Non riuscito",
+    "ready": "Pronto"
+  },
+  "relativeTime": {
+    "justNow": "proprio ora",
+    "minAgo_one": "{{count}} min fa",
+    "minAgo_other": "{{count}} min fa",
+    "hourAgo_one": "{{count}} h fa",
+    "hourAgo_other": "{{count}} h fa"
+  },
+  "screen": {
+    "title": "Compilazioni",
+    "selectAll": "Seleziona tutto",
+    "deselectAll": "Deseleziona tutto",
+    "videoAccessibility": "Video, {{status}}, aggiunto {{time}}",
+    "yourVideo": "Il tuo video",
+    "retried": "Riprovato {{count}}×"
+  },
+  "filters": {
+    "all": "Tutti",
+    "pending": "In sospeso",
+    "processing": "In elaborazione",
+    "failed": "Non riusciti",
+    "completed": "Completati"
+  },
+  "actionBar": {
+    "processAll": "Elabora tutti",
+    "processing": "Elaborazione...",
+    "cleanup": "Pulisci",
+    "cleaning": "Pulizia..."
+  },
+  "processingBanner": {
+    "rendering_one": "1 video in rendering",
+    "rendering_other": "{{count}} video in rendering",
+    "waiting": " · {{count}} in attesa"
+  },
+  "empty": {
+    "title": "Ancora nessun video",
+    "text": "Registra qualche clip e appariranno qui man mano che vengono assemblate.",
+    "cta": "Crea un video",
+    "filteredTitle": "Nessuno {{status}}",
+    "filteredText": "Nessun video corrisponde a questo filtro al momento.",
+    "showAll": "Mostra tutti"
+  },
+  "batchModal": {
+    "selected_one": "{{count}} elemento selezionato",
+    "selected_other": "{{count}} elementi selezionati",
+    "retry": "Riprova",
+    "remove": "Rimuovi"
+  },
+  "offline": {
+    "title": "Sei offline",
+    "retryMessage": "Connettiti a internet per riprovare questi video.",
+    "compileMessage": "Connettiti a internet per avviare la compilazione."
+  },
+  "couldntCompile": {
+    "title": "Compilazione non riuscita",
+    "fallback": "Qualcosa è andato storto. Riprova."
+  },
+  "alerts": {
+    "retry": {
+      "title": "Riprova i video",
+      "message_one": "Riprovare a compilare {{count}} video selezionato?",
+      "message_other": "Riprovare a compilare {{count}} video selezionati?",
+      "confirm": "Riprova tutti"
+    },
+    "remove": {
+      "title": "Rimuovi i video",
+      "message_one": "Rimuovere {{count}} video dalla coda?",
+      "message_other": "Rimuovere {{count}} video dalla coda?",
+      "confirm": "Rimuovi tutti"
+    },
+    "cleanup": {
+      "title": "Cancella i completati",
+      "message": "Rimuovere i video terminati più di 7 giorni fa?",
+      "confirm": "Pulisci"
+    }
+  },
+  "header": {
+    "empty": "Nessun video in coda",
+    "queued_one": "{{count}} video in coda",
+    "queued_other": "{{count}} video in coda",
+    "willProcessOnline": "📴 Verrà elaborato quando sei online",
+    "processingWhenPossible": "🌐 Elaborazione appena possibile",
+    "offlineBadge": "Offline"
+  },
+  "card": {
+    "project": "Progetto: {{id}}...",
+    "added": "Aggiunto {{time}}"
+  },
+  "itemStatus": {
+    "failed_one": "❌ Non riuscito ({{count}} tentativo)",
+    "failed_other": "❌ Non riuscito ({{count}} tentativi)",
+    "processing": "⚙️ Elaborazione...",
+    "pending": "⏳ In sospeso"
+  },
+  "actions": {
+    "retry": "Riprova",
+    "remove": "Rimuovi"
+  },
+  "showMore_one": "👆 Tocca per mostrare {{count}} altro elemento",
+  "showMore_other": "👆 Tocca per mostrare altri {{count}} elementi",
+  "footer": {
+    "offline": "📱 Offline: i video verranno elaborati automaticamente una volta connesso",
+    "online": "🌐 Online: elaborazione della coda in background"
+  },
+  "itemAlerts": {
+    "noInternet": {
+      "title": "🌐 Nessuna connessione internet",
+      "message": "Connettiti a internet per riprovare la compilazione del video."
+    },
+    "retryFailed": {
+      "title": "❌ Nuovo tentativo non riuscito",
+      "fallback": "La compilazione è di nuovo fallita."
+    },
+    "success": {
+      "title": "✅ Fatto!",
+      "message": "Compilazione del video completata con successo!",
+      "confirm": "Ottimo!"
+    },
+    "retryError": {
+      "title": "⚠️ Errore nel nuovo tentativo"
+    },
+    "remove": {
+      "title": "🗑️ Rimuovi dalla coda",
+      "message": "Vuoi davvero rimuovere questa compilazione dalla coda?"
+    }
+  }
+}

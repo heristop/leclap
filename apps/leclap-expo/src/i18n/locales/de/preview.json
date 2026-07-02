@@ -1,0 +1,16 @@
+{
+  "loading": "Vorschau wird geladen...",
+  "notAvailable": "Video für Vorschau nicht verfügbar.",
+  "toolbar": {
+    "saveAndClose": "Vorschau speichern und schließen",
+    "trim": "Zuschneiden",
+    "crop": "Beschneiden",
+    "retake": "Neu aufnehmen"
+  },
+  "trim": {
+    "title": "Clip zuschneiden"
+  },
+  "crop": {
+    "title": "Ziehe den Rahmen zum Beschneiden"
+  }
+}

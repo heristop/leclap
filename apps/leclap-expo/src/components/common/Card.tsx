@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '@/src/styles/theme';
+import { elevation } from '@/src/styles/elevation';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 
 interface CardProps {
   title: string;
@@ -46,7 +48,7 @@ const Card = ({
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
+    <PressableScale style={styles.card} onPress={onPress} accessibilityLabel={title}>
       {imageUri ? (
         <ImageBackground source={{ uri: imageUri }} style={styles.cardImageContainer} imageStyle={{ opacity: 0.8 }}>
           <View style={[styles.overlay, { backgroundColor: `${colors.primary}80` }]} />
@@ -97,7 +99,7 @@ const Card = ({
       )}
 
       <View style={[styles.cardBorder, { backgroundColor: accentColor }]} />
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 
@@ -106,11 +108,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     marginBottom: spacing.m,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    ...elevation.card,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -131,11 +129,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+    ...elevation.pressed,
     zIndex: 1,
   },
   cardContent: {

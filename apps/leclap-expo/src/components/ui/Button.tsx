@@ -1,6 +1,7 @@
 import { type ColorTokens, type FontSizeTokens, Button as TamaguiButton, Text, XStack } from 'tamagui';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { colors } from '@/src/styles/theme';
+import { triggerHaptic } from '@/src/hooks/use-haptic-press';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'success';
 type ButtonSize = 'small' | 'medium' | 'large' | 'x-large';
@@ -85,6 +86,13 @@ const getSizeProps = (size: ButtonSize) => {
         fontSize: '$5',
         height: 62,
       } as const;
+    case 'x-large':
+      return {
+        paddingHorizontal: '$xl',
+        paddingVertical: '$m',
+        fontSize: '$6',
+        height: 68,
+      } as const;
     default:
       return {};
   }
@@ -122,9 +130,9 @@ const getIconSize = (size: ButtonSize): number => {
 const resolveIconColor = (textColor: ColorTokens): string => {
   if (textColor === 'white') return 'white';
 
-  if (textColor === '$color') return '#212121';
+  if (textColor === '$color') return colors.textStrong;
 
-  return '#757575';
+  return colors.textSecondary;
 };
 
 const getScales = (disabled: boolean) =>
@@ -195,12 +203,10 @@ export default function Button({
   const handlePress = () => {
     if (disabled || loading) return;
 
-    runAsync(async () => {
-      if (hapticFeedback) {
-        const style = variant === 'destructive' ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Light;
-        await Haptics.impactAsync(style);
-      }
+    const impact = variant === 'destructive' ? 'heavy' : 'light';
+    triggerHaptic(hapticFeedback ? impact : false);
 
+    runAsync(async () => {
       await onPress?.();
     });
   };
@@ -221,11 +227,11 @@ export default function Button({
       disabled={disabled || loading}
       opacity={disabled ? 0.6 : 1}
       width={fullWidth ? '100%' : 'auto'}
-      borderRadius="$3"
-      shadowColor="$shadowColor"
-      shadowOffset={{ width: 0, height: 2 }}
-      shadowOpacity={isGhost ? 0 : 0.1}
-      shadowRadius={4}
+      borderRadius="$4"
+      shadowColor={colors.primary as ColorTokens}
+      shadowOffset={{ width: 0, height: 6 }}
+      shadowOpacity={isGhost ? 0 : 0.14}
+      shadowRadius={14}
       transition="bouncy"
       scale={scales.default}
       hoverStyle={{

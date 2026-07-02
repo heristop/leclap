@@ -24,6 +24,46 @@ const oswaldFont = createFont({
     15: 114,
     16: 124,
   },
+  // Oswald is condensed: display sizes get tight line-heights (≈0.95×) and negative tracking; body
+  // sizes stay comfortable. Explicit lineHeight avoids RN clipping ascenders/accents at large sizes.
+  lineHeight: {
+    1: 16,
+    2: 17,
+    3: 18,
+    4: 20,
+    true: 20,
+    5: 22,
+    6: 24,
+    7: 26,
+    8: 28,
+    9: 38,
+    10: 50,
+    11: 61,
+    12: 73,
+    13: 84,
+    14: 108,
+    15: 134,
+    16: 146,
+  },
+  letterSpacing: {
+    1: 0.2,
+    2: 0.2,
+    3: 0.2,
+    4: 0.2,
+    true: 0.2,
+    5: 0.2,
+    6: 0.1,
+    7: 0.1,
+    8: 0.1,
+    9: 0,
+    10: -0.25,
+    11: -0.5,
+    12: -0.75,
+    13: -1,
+    14: -1.2,
+    15: -1.5,
+    16: -1.75,
+  },
   weight: {
     1: '300',
     2: '400',
@@ -33,12 +73,16 @@ const oswaldFont = createFont({
     6: '800',
     7: '900',
   },
+  // Only Oswald 300–700 are loaded (app/_layout.tsx). Map the 800/900 weight tokens onto the 700 face
+  // so a `fontWeight="800"` resolves to a real bundled face instead of a silent synthetic fallback.
   face: {
     300: { normal: 'Oswald_300Light' },
     400: { normal: 'Oswald_400Regular' },
     500: { normal: 'Oswald_500Medium' },
     600: { normal: 'Oswald_600SemiBold' },
     700: { normal: 'Oswald_700Bold' },
+    800: { normal: 'Oswald_700Bold' },
+    900: { normal: 'Oswald_700Bold' },
   },
 });
 
@@ -88,35 +132,35 @@ const leClapConfig = createTamagui({
       // LeClap brand colors
       color1: '#7C83FD', // primary - Bleu lavande
       color2: '#6A70E3', // primaryDark
-      color3: '#FFF685', // accent - Jaune pastel
+      color3: '#FFE45E', // accent - Jaune pastel
       color4: '#FF8AAE', // secondary - Rose clair
-      color5: '#F2F2F2', // background - Gris clair
-      color6: '#FFFFFF', // surface
-      color7: '#212121', // text
-      color8: '#757575', // textSecondary
-      color9: '#E0E0E0', // divider
-      color10: '#4CAF50', // success
-      color11: '#F44336', // error
+      color5: '#F4F3FA', // background - lavender-tinted (matches theme.ts)
+      color6: '#FCFBFF', // surface - off-white, subtly tinted
+      color7: '#17142B', // text - deep ink with brand tint
+      color8: '#6E6A82', // textSecondary - tinted gray
+      color9: '#E7E4F2', // divider - tinted
+      color10: '#3FB27F', // success
+      color11: '#F4505A', // error
       color12: '#FF9800', // warning
       color13: '#2196F3', // info
 
-      // Override default theme colors with LeClap brand
-      background: '#F2F2F2',
-      backgroundHover: '#EEEEEE',
-      backgroundPress: '#E8E8E8',
-      backgroundFocus: '#F5F5F5',
+      // Override default theme colors with LeClap brand (tinted neutrals — no flat "AI default" gray)
+      background: '#F4F3FA',
+      backgroundHover: '#EDEBF6',
+      backgroundPress: '#E6E3F2',
+      backgroundFocus: '#F0EEF8',
       backgroundStrong: '#FFFFFF',
-      backgroundTransparent: 'rgba(242, 242, 242, 0)',
-      color: '#212121',
-      colorHover: '#424242',
-      colorPress: '#616161',
-      colorFocus: '#424242',
-      colorTransparent: 'rgba(33, 33, 33, 0)',
-      borderColor: '#E0E0E0',
-      borderColorHover: '#BDBDBD',
+      backgroundTransparent: 'rgba(244, 243, 250, 0)',
+      color: '#17142B',
+      colorHover: '#2C2843',
+      colorPress: '#45415C',
+      colorFocus: '#2C2843',
+      colorTransparent: 'rgba(23, 20, 43, 0)',
+      borderColor: '#E7E4F2',
+      borderColorHover: '#D6D2E8',
       borderColorFocus: '#7C83FD',
-      borderColorPress: '#9E9E9E',
-      placeholderColor: '#757575',
+      borderColorPress: '#C8C3DE',
+      placeholderColor: '#6E6A82',
 
       // Brand-specific colors
       primary: '#7C83FD',
@@ -126,11 +170,11 @@ const leClapConfig = createTamagui({
       secondary: '#FF8AAE',
       secondaryHover: '#FF7A9E',
       secondaryPress: '#FF6A8E',
-      accent: '#FFF685',
-      accentHover: '#FFF575',
-      accentPress: '#FFF465',
-      success: '#4CAF50',
-      error: '#F44336',
+      accent: '#FFE45E',
+      accentHover: '#FFED8A',
+      accentPress: '#F2D63C',
+      success: '#3FB27F',
+      error: '#F4505A',
       warning: '#FF9800',
       info: '#2196F3',
     },
@@ -139,15 +183,15 @@ const leClapConfig = createTamagui({
       // Dark theme variations
       color1: '#7C83FD',
       color2: '#6A70E3',
-      color3: '#FFF685',
+      color3: '#FFE45E',
       color4: '#FF8AAE',
       color5: '#121212', // dark background
       color6: '#1E1E1E', // dark surface
       color7: '#FFFFFF', // light text
       color8: '#B0B0B0', // secondary text
       color9: '#333333', // divider
-      color10: '#4CAF50',
-      color11: '#F44336',
+      color10: '#3FB27F',
+      color11: '#F4505A',
       color12: '#FF9800',
       color13: '#2196F3',
 
@@ -168,9 +212,9 @@ const leClapConfig = createTamagui({
       primaryHover: '#8A8FFF',
       primaryPress: '#9CA1FF',
       secondary: '#FF8AAE',
-      accent: '#FFF685',
-      success: '#4CAF50',
-      error: '#F44336',
+      accent: '#FFE45E',
+      success: '#3FB27F',
+      error: '#F4505A',
       warning: '#FF9800',
       info: '#2196F3',
     },
@@ -188,11 +232,11 @@ const leClapConfig = createTamagui({
       secondary: '#FF8AAE',
       secondaryHover: '#FF7A9E',
       secondaryPress: '#FF6A8E',
-      accent: '#FFF685',
-      accentHover: '#FFF575',
-      accentPress: '#FFF465',
-      success: '#4CAF50',
-      error: '#F44336',
+      accent: '#FFE45E',
+      accentHover: '#FFED8A',
+      accentPress: '#F2D63C',
+      success: '#3FB27F',
+      error: '#F4505A',
       warning: '#FF9800',
       info: '#2196F3',
     },

@@ -8,29 +8,12 @@ import type { Template } from '@/src/types';
 import { buildDescriptionVars, resolveVariables } from '@/src/utils/i18nText';
 import { ORIENTATION_ICON } from '@/src/features/templates/orientationMeta';
 import { colors as theme, fonts } from '@/src/styles/theme';
+import { coverFor } from '@/src/styles/gradients';
 
 interface TemplateCardProps {
   template: Template;
   onPress: (template: Template) => void;
 }
-
-// Template thumbnails aren't generated server-side, so each card uses a deterministic
-// brand-gradient cover instead of a broken image request — distinct per template, cohesive
-// across the set.
-const GRADIENTS: [string, string][] = [
-  ['#7C83FD', '#FF8AAE'], // lavender → pink
-  ['#5B61D6', '#7C83FD'], // deep lavender → lavender
-  ['#FF8AAE', '#FFE45E'], // pink → warm yellow
-  ['#6A70E3', '#A07BF0'], // indigo → violet
-];
-
-const gradientFor = (name: string): [string, string] => {
-  let sum = 0;
-
-  for (const ch of name) sum += ch.codePointAt(0) ?? 0;
-
-  return GRADIENTS[sum % GRADIENTS.length];
-};
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
   const { t } = useTranslation('templates');
@@ -47,7 +30,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onPress }) => {
       )
     : t('cardDefaultDescription');
 
-  const [c1, c2] = gradientFor(templateName);
+  const [c1, c2] = coverFor(templateName);
 
   // The Tamagui config registers an animation driver at runtime, but its prop types
   // aren't injected into component props in this setup — pass `animation` via a typed

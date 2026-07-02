@@ -225,50 +225,63 @@ const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => {
 
 type Indicator = { left: number; width: number; opacity: number };
 
-/** Desktop nav with a magnetic pill that glides between items and follows hover. */
+/** Desktop nav: a magnetic gray pill follows hover, while a persistent brand "playhead" underline
+    marks the active route (and the active item traces a snake border on change). */
 const DesktopNav = ({ pathname }: { pathname: string }) => {
   const { t } = useTranslation();
   const navRef = useRef<HTMLElement>(null);
   const [pill, setPill] = useState<Indicator>({ left: 0, width: 0, opacity: 0 });
+  const [playhead, setPlayhead] = useState<Indicator>({ left: 0, width: 0, opacity: 0 });
 
   const moveTo = useCallback((el: HTMLElement | null) => {
     if (el) setPill({ left: el.offsetLeft, width: el.offsetWidth, opacity: 1 });
   }, []);
 
-  const snapToActive = useCallback(() => {
-    const active = navRef.current?.querySelector<HTMLElement>('[data-active="true"]');
+  const hidePill = useCallback(() => {
+    setPill((p) => ({ ...p, opacity: 0 }));
+  }, []);
 
-    if (active) {
-      moveTo(active);
+  // The underline tracks the active route independent of hover, so the current page stays marked even
+  // while the gray pill glides to a hovered item. Inset from the item's padding to underline the label.
+  const syncPlayhead = useCallback(() => {
+    const el = navRef.current?.querySelector<HTMLElement>('[data-active="true"]');
+
+    if (el) {
+      setPlayhead({ left: el.offsetLeft + 14, width: Math.max(0, el.offsetWidth - 28), opacity: 1 });
 
       return;
     }
 
-    setPill((p) => ({ ...p, opacity: 0 }));
-  }, [moveTo]);
+    setPlayhead((p) => ({ ...p, opacity: 0 }));
+  }, []);
 
   useEffect(() => {
-    snapToActive();
-  }, [pathname, snapToActive]);
+    syncPlayhead();
+  }, [pathname, syncPlayhead]);
   useEffect(() => {
-    window.addEventListener('resize', snapToActive);
+    window.addEventListener('resize', syncPlayhead);
 
     return () => {
-      window.removeEventListener('resize', snapToActive);
+      window.removeEventListener('resize', syncPlayhead);
     };
-  }, [snapToActive]);
+  }, [syncPlayhead]);
 
   return (
     <nav
       ref={navRef}
       aria-label={t('nav.primaryLabel')}
       className="relative hidden md:flex items-center gap-1"
-      onMouseLeave={snapToActive}
+      onMouseLeave={hidePill}
     >
       <span
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 h-9 -translate-y-1/2 rounded-full bg-foreground/10 transition-[left,width,opacity] duration-300 ease-[var(--ease-out-expo)]"
         style={{ left: pill.left, width: pill.width, opacity: pill.opacity }}
+      />
+      <span
+        aria-hidden="true"
+        className="brand-gradient pointer-events-none absolute bottom-1 h-0.5 rounded-full transition-[left,width,opacity] duration-300 ease-[var(--ease-out-expo)]"
+        style={{ left: playhead.left, width: playhead.width, opacity: playhead.opacity }}
       />
       {navigationItems.map((item) => {
         const isActive = pathname === item.href;

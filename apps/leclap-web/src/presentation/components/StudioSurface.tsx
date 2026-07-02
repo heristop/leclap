@@ -8,6 +8,9 @@ interface StudioSurfaceProps {
   kicker?: string;
   /** Right-aligned header actions. */
   actions?: ReactNode;
+  /** Optional replacement for the default titlebar heading (e.g. a KineticHeading). `title` is still
+      passed for context/SEO, so consumers that omit this keep the plain truncating h1. */
+  titleSlot?: ReactNode;
   children: ReactNode;
 }
 
@@ -15,7 +18,7 @@ interface StudioSurfaceProps {
 // with a faint brand-tinted dot stage, and tops the content with an editor-style titlebar (brand
 // chip + display title + optional subtitle/actions). Mirrors the editor titlebar's look so the
 // gallery and the editor read as one app. Presentational only — pages own the content.
-export const StudioSurface = ({ title, subtitle, kicker, actions, children }: StudioSurfaceProps) => (
+export const StudioSurface = ({ title, subtitle, kicker, actions, titleSlot, children }: StudioSurfaceProps) => (
   <div className="dark studio-stage min-h-[calc(100vh-4rem)] bg-background text-foreground">
     <header className="relative overflow-hidden border-b border-foreground/10 bg-surface-2/70 shadow-[inset_0_1px_0_0_oklch(1_0_0/0.04)] backdrop-blur-md">
       {/* Living brand glow behind the titlebar — a slow aurora drift so the surface reads as lit.
@@ -35,9 +38,11 @@ export const StudioSurface = ({ title, subtitle, kicker, actions, children }: St
           {kicker && (
             <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-brand-300/70">{kicker}</p>
           )}
-          <h1 className="truncate font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {title}
-          </h1>
+          {titleSlot ?? (
+            <h1 className="truncate font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              {title}
+            </h1>
+          )}
           {subtitle && <p className="mt-1 text-pretty text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         {/* On phones the actions drop to their own full-width row and wrap, instead of overflowing

@@ -7,7 +7,6 @@ import { ArrowRightIcon } from '@/presentation/components/icons/arrow-right';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { FolderOpenIcon } from '@/presentation/components/icons/folder-open';
-import { cn } from '@/lib/utils';
 import { CopyIcon } from '@/presentation/components/icons/copy';
 import { GithubIcon } from '@/presentation/components/icons/github';
 import {
@@ -26,6 +25,7 @@ import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
 import { templateToPartial } from '@/lib/templateToPartial';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { TemplatePoster } from '@/presentation/components/TemplatePoster';
 import { Seo } from '@/presentation/components/Seo';
 import { logger } from '@/lib/logger';
@@ -257,7 +257,13 @@ export const Admin = () => {
   );
 
   return (
-    <StudioSurface title={t('page.heading')} subtitle={t('page.subtitle')} actions={actions}>
+    <StudioSurface
+      title={t('page.heading')}
+      kicker={t('page.kicker')}
+      titleSlot={<KineticHeading text={t('page.heading')} level="l" as="h1" uppercase />}
+      subtitle={t('page.subtitle')}
+      actions={actions}
+    >
       <Seo title={t('templates.title', { ns: 'seo' })} path="/templates" noindex />
 
       <section aria-labelledby="my-templates" className="mb-14 scroll-mt-24">
@@ -454,10 +460,9 @@ export const Admin = () => {
             {/* Step 2: Open GitHub */}
             <div className="flex gap-3">
               <span
-                className={cn(
-                  'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300',
+                className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300 ${
                   copied ? 'bg-brand-500/20 text-brand-300' : 'bg-foreground/[0.08] text-gray-500'
-                )}
+                }`}
               >
                 2
               </span>

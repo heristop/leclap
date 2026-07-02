@@ -8,6 +8,7 @@
     }
   },
   "page": {
+    "kicker": "Vos modèles",
     "heading": "Éditeur",
     "subtitle": "Pars d’un exemple ou crée le tien — enregistré dans ce navigateur.",
     "create": "Créer un modèle",

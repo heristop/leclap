@@ -2,8 +2,9 @@
 // the app (template filters, doc CLI tabs, media-source switch). The thumb is measured from the active
 // button and animated via transform + width with a slight overshoot for the magnetic feel; a
 // ResizeObserver keeps it aligned through layout changes and reduced-motion snaps instead of sliding.
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { SnakeBorder } from '@/presentation/components/kinetic';
 
 // Track padding (px): the thumb sits inside it, so the measured offset is shifted by this much.
 const TRACK_PAD = 2;
@@ -38,6 +39,18 @@ export const SegmentedControl = ({ value, options, onChange, ariaLabel, classNam
     options.findIndex((option) => option.value === value)
   );
 
+  // A monotonic count of user-driven selection changes — the SnakeBorder replays on each (its key), but
+  // never on the initial mount, so a page full of segmented controls doesn't flash comets on load.
+  const previousValue = useRef(value);
+  const [changeCount, setChangeCount] = useState(0);
+
+  useEffect(() => {
+    if (previousValue.current === value) return;
+
+    previousValue.current = value;
+    setChangeCount((count) => count + 1);
+  }, [value]);
+
   useLayoutEffect(() => {
     const measure = () => {
       const el = buttonsRef.current[activeIndex];
@@ -69,6 +82,9 @@ export const SegmentedControl = ({ value, options, onChange, ariaLabel, classNam
         classNames?.track
       )}
     >
+      {/* Punctuate a selection change: a gradient comet races once around the track. Keyed on the change
+          count so it remounts and replays on each switch; CSS-driven and hidden under reduced-motion. */}
+      {changeCount > 0 && <SnakeBorder key={changeCount} />}
       {thumb && (
         <span
           aria-hidden

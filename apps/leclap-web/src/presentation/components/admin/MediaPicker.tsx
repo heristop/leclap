@@ -54,6 +54,21 @@ function filterByAllowed(items: MediaCredit[], allowedIds: string[] | undefined)
 const noop = () => {};
 const pickerShellClass = 'rounded-xl border border-foreground/10 bg-surface-2/40 p-3';
 
+// On-brand empty state for a library grid: a compact dashed brand panel with the kind's glyph, instead
+// of a bare line of grey text. Static (no motion), so it's reduced-motion safe by construction.
+const MediaEmpty = ({ kind, message }: { kind: MediaKind; message: string }) => {
+  const Icon = kind === 'music' ? Music : ImageIcon;
+
+  return (
+    <div className="flex flex-col items-center gap-2.5 rounded-lg border border-dashed border-brand-500/25 bg-brand-500/[0.04] px-4 py-8 text-center">
+      <span className="grid size-9 place-items-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-300">
+        <Icon className="size-4" />
+      </span>
+      <p className="text-sm text-gray-400">{message}</p>
+    </div>
+  );
+};
+
 export const MediaPicker = ({
   kind,
   value,
@@ -145,7 +160,7 @@ const SingleLibraryGrid = ({ kind, value, onChange, allowedIds }: SingleLibraryG
   const items = filterByAllowed(rawItems, allowedIds);
 
   if (items.length === 0) {
-    return <p className="px-1 py-6 text-center text-sm text-gray-400">{t('media.emptyLibrary')}</p>;
+    return <MediaEmpty kind={kind} message={t('media.emptyLibrary')} />;
   }
 
   return (
@@ -179,7 +194,7 @@ const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLi
   const items = filterByAllowed(rawItems, allowedIds);
 
   if (items.length === 0) {
-    return <p className="px-1 py-6 text-center text-sm text-gray-400">{t('media.emptyMultiLibrary')}</p>;
+    return <MediaEmpty kind={kind} message={t('media.emptyMultiLibrary')} />;
   }
 
   return (
@@ -214,7 +229,7 @@ const SingleByIdGrid = ({ kind, selectedId, onSelectId, allowedIds }: SingleById
   const items = filterByAllowed(rawItems, allowedIds);
 
   if (items.length === 0) {
-    return <p className="px-1 py-6 text-center text-sm text-gray-400">{t('media.emptyLibrary')}</p>;
+    return <MediaEmpty kind={kind} message={t('media.emptyLibrary')} />;
   }
 
   return (

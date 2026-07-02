@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
+import { PressableScale } from '@/presentation/components/kinetic';
 import {
   SECTION_CATEGORY,
   SECTION_ICON,
@@ -83,20 +84,19 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
 
   return (
     <div className="shrink-0">
-      <button
+      <PressableScale
         ref={buttonRef}
-        type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={toggle}
-        className="tap grid h-full w-32 place-items-center gap-1.5 rounded-xl border border-dashed border-foreground/20 bg-surface/30 p-2 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-muted-foreground transition-colors hover:border-brand-500/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+        className="grid h-full w-32 place-items-center gap-1.5 rounded-xl border border-dashed border-foreground/20 bg-surface/30 p-2 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-muted-foreground transition-colors hover:border-brand-500/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
         {...plusHoverProps}
       >
         <span aria-hidden="true" className="grid size-9 place-items-center rounded-xl bg-foreground/[0.06]">
           <PlusIcon ref={plusRef} size={18} />
         </span>
         {t('shell.addScene')}
-      </button>
+      </PressableScale>
 
       {open &&
         anchor &&
@@ -115,20 +115,19 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
                   const Icon = SECTION_ICON[kind];
 
                   return (
-                    <button
+                    <PressableScale
                       key={kind}
-                      type="button"
                       role="menuitem"
                       onClick={() => {
                         pick(kind);
                       }}
-                      className="tap flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                     >
                       <span className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-500/10">
                         <Icon className="size-4 text-brand-700 dark:text-brand-300" aria-hidden="true" />
                       </span>
                       {SECTION_LABELS[kind]}
-                    </button>
+                    </PressableScale>
                   );
                 })
             )}

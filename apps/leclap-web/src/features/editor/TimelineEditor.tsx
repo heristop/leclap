@@ -6,6 +6,7 @@ import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { ArrowRightLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/presentation/components/ui';
+import { GradientMeter, ratio01 } from '@/presentation/components/kinetic';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import { CropFrame } from '@/features/editor/components/CropFrame';
 import { Timeline } from '@/features/editor/components/Timeline';
@@ -169,6 +170,10 @@ export function TimelineEditor({ file, label, edit, onChange }: TimelineEditorPr
               </Button>
             </div>
           </div>
+
+          {/* Playback readout as the shared gradient scrubber — the kinetic playhead vocabulary sitting
+              above the source track, reading how far through the trimmed output the deck has played. */}
+          <GradientMeter progress={ratio01(e.outputPosition, e.outputDuration)} variant="playhead" size={5} />
 
           <Timeline
             segments={e.segments}

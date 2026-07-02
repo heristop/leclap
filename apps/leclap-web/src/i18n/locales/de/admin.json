@@ -8,6 +8,7 @@
     }
   },
   "page": {
+    "kicker": "Deine Vorlagen",
     "heading": "Builder",
     "subtitle": "Nutze ein Beispiel oder gestalte dein eigenes – in diesem Browser gespeichert.",
     "create": "Vorlage erstellen",

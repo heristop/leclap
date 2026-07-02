@@ -7,6 +7,7 @@ import { ZapIcon } from '@/presentation/components/icons/zap';
 import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
 import clsx from 'clsx';
 import { Card } from '@/presentation/components/ui';
+import { GradientMeter } from '@/presentation/components/kinetic';
 
 interface ProcessingProgress {
   stage: string;
@@ -39,15 +40,6 @@ const getStageIcon = (percentage: number) => {
   if (percentage === 0) return AlertCircle;
 
   return CpuIcon;
-};
-
-const getProgressColor = (percentage: number): string => {
-  // One on-brand fill (lavender→pink) that turns success-green on completion —
-  // not a rainbow ramp. A single travelling shimmer (below) carries the motion;
-  // the fill itself stays still so the two don't compete.
-  if (percentage >= 100) return 'bg-success';
-
-  return 'brand-gradient';
 };
 
 interface StepIndicatorProps {
@@ -219,7 +211,7 @@ interface ProgressBarProps {
 
 const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
   const { t } = useTranslation('process');
-  const progressColor = getProgressColor(percentage);
+  const done = percentage >= 100;
 
   return (
     <div className="space-y-2">
@@ -228,35 +220,23 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
           {currentStep.length > 0 ? currentStep : t('progress.bar.currentStepFallback')}
         </span>
         <span
-          className={clsx(
-            'font-semibold',
-            percentage >= 100 ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300'
-          )}
+          className={clsx('font-semibold', done ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300')}
         >
           {Math.round(percentage)}%
         </span>
       </div>
 
-      <div
-        role="progressbar"
-        aria-valuenow={Math.round(percentage)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={t('progress.bar.ariaLabel')}
-        className="relative w-full h-3 bg-foreground/10 rounded-full overflow-hidden border border-foreground/5"
-      >
-        <div
-          className={clsx(
-            'h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden motion-reduce:transition-none',
-            progressColor
-          )}
-          style={{ width: `${Math.max(percentage, 0)}%` }}
-        >
-          {percentage < 100 && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-[shimmer_1.5s_infinite] motion-reduce:hidden" />
-          )}
-        </div>
-      </div>
+      {/* The render bar now reads in the shared GradientMeter family (lavender→pink) instead of a
+          bespoke track, keeping its original completion behaviour: a still success-green swap plus a
+          travelling shimmer that stops the moment the bar completes. */}
+      <GradientMeter
+        progress={percentage / 100}
+        variant="bar"
+        size={12}
+        success={done}
+        shimmer
+        label={t('progress.bar.ariaLabel')}
+      />
     </div>
   );
 };

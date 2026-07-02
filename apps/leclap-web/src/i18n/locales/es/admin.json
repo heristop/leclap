@@ -8,6 +8,7 @@
     }
   },
   "page": {
+    "kicker": "Tus plantillas",
     "heading": "Editor",
     "subtitle": "Usa un ejemplo o crea la tuya — se guarda en este navegador.",
     "create": "Crear plantilla",

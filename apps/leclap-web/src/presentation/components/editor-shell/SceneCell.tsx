@@ -1,6 +1,7 @@
 import { type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { Check, type LucideIcon } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
+import { PressableScale } from '@/presentation/components/kinetic';
 
 interface SceneCellProps {
   index: number;
@@ -83,9 +84,8 @@ export const SceneCell = ({
   compact = false,
 }: SceneCellProps) => (
   <div className="relative shrink-0">
-    <button
+    <PressableScale
       ref={buttonRef}
-      type="button"
       role={role}
       aria-selected={role === 'tab' ? active : undefined}
       aria-current={role === 'button' ? active : undefined}
@@ -94,7 +94,7 @@ export const SceneCell = ({
       onClick={onSelect}
       onMouseMove={onPointerMove}
       className={cn(
-        'tap spotlight group relative flex flex-col rounded-xl border p-2 text-left transition-all duration-200 ease-[var(--ease-spring)] motion-reduce:transition-none',
+        'spotlight group relative flex flex-col rounded-xl border p-2 text-left transition-all duration-200 ease-[var(--ease-spring)] motion-reduce:transition-none',
         compact ? 'w-24 gap-1 sm:w-28' : 'w-28 gap-1.5 sm:w-32',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
         active
@@ -116,7 +116,7 @@ export const SceneCell = ({
         {eyebrow}
       </span>
       <span className="line-clamp-1 text-xs font-medium text-foreground">{title}</span>
-    </button>
+    </PressableScale>
     {trailing}
   </div>
 );

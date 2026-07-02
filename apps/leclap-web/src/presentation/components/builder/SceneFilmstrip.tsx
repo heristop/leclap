@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { Template, InputSection } from '@/services/templateService';
 import { SceneCell } from '@/presentation/components/editor-shell';
+import { FilmstripEdge } from '@/presentation/components/kinetic';
 import { resolveTranslation } from '@/lib/i18nText';
 import { displayFromTokens } from '@/lib/variableSyntax';
 import { sectionComplete, nextCue, type SceneModel } from './sceneStatus';
@@ -148,38 +149,43 @@ export const SceneFilmstrip = ({ template, sections, model, showMedia, activeNam
   };
 
   return (
-    <div
-      ref={laneRef}
-      role="tablist"
-      aria-label={t('hub.subtitle')}
-      onScroll={(e: UIEvent<HTMLDivElement>) => {
-        syncEdges(e.currentTarget);
-      }}
-      className="track-edge-fade flex flex-1 scroll-px-3 items-stretch gap-2 overflow-x-auto scroll-smooth px-3 py-2.5 [scrollbar-width:thin] motion-reduce:scroll-auto"
-    >
-      {sections.map((section, i) => (
-        <Cell
-          key={section.name}
-          template={template}
-          section={section}
-          index={i}
-          active={section.name === activeName}
-          isNext={i === nextSectionIndex}
-          clip={section.kind === 'clip' ? model.clipsBySection[section.name] : undefined}
-          model={model}
-          onSelect={() => {
-            onSelect(section.name);
-          }}
-          onKeyDown={(e) => {
-            move(e, i);
-          }}
-          tabIndex={section.name === activeName ? 0 : -1}
-          buttonRef={(el) => {
-            tabs.current[i] = el;
-          }}
-          t={t}
-        />
-      ))}
+    <div className="flex flex-1 items-stretch">
+      {/* A fixed film spine at the head of the reel — the sprocket-perforated rail motif — so the scene
+          rail reads as a strip of film even before the first poster. Decorative; stays put as cells scroll. */}
+      <FilmstripEdge className="shrink-0 self-stretch" holeSpacing={18} width={12} />
+      <div
+        ref={laneRef}
+        role="tablist"
+        aria-label={t('hub.subtitle')}
+        onScroll={(e: UIEvent<HTMLDivElement>) => {
+          syncEdges(e.currentTarget);
+        }}
+        className="track-edge-fade flex flex-1 scroll-px-3 items-stretch gap-2 overflow-x-auto scroll-smooth px-3 py-2.5 [scrollbar-width:thin] motion-reduce:scroll-auto"
+      >
+        {sections.map((section, i) => (
+          <Cell
+            key={section.name}
+            template={template}
+            section={section}
+            index={i}
+            active={section.name === activeName}
+            isNext={i === nextSectionIndex}
+            clip={section.kind === 'clip' ? model.clipsBySection[section.name] : undefined}
+            model={model}
+            onSelect={() => {
+              onSelect(section.name);
+            }}
+            onKeyDown={(e) => {
+              move(e, i);
+            }}
+            tabIndex={section.name === activeName ? 0 : -1}
+            buttonRef={(el) => {
+              tabs.current[i] = el;
+            }}
+            t={t}
+          />
+        ))}
+      </div>
     </div>
   );
 };

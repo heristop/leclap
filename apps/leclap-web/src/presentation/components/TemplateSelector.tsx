@@ -12,6 +12,7 @@ import { templateService, type Template } from '@/services/templateService';
 import { logger } from '@/lib/logger';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
+import { FilmstripEdge, GradientMeter, PressableScale, ProgramMonitor } from '@/presentation/components/kinetic';
 import { TemplatePoster } from './TemplatePoster';
 import { HighlightMatch } from './HighlightMatch';
 import { TemplateSearchBar } from './TemplateSearchBar';
@@ -49,6 +50,13 @@ const ORIENTATION_ICON: Record<Template['orientation'], LucideIcon> = {
   portrait: Image,
   square: Square,
   landscape: Video,
+};
+
+// Complexity → GradientMeter fill (0..1) — the at-a-glance "level" bar in the pro-editor vocabulary.
+const COMPLEXITY_PROGRESS: Record<Template['complexity'], number> = {
+  simple: 0.34,
+  intermediate: 0.67,
+  advanced: 1,
 };
 
 const CardMetaChips = ({
@@ -119,9 +127,17 @@ const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardPro
           : 'border-foreground/10 hover:border-brand-500/40'
       )}
     >
-      <TemplatePoster template={template} isSelected={isSelected} />
+      {/* Frame the poster as a program monitor: corner registration brackets over the preview band
+          (no tally chip — the poster already carries the complexity badge top-left). */}
+      <ProgramMonitor label={null} scanline className="rounded-none border-0">
+        <TemplatePoster template={template} isSelected={isSelected} />
+      </ProgramMonitor>
 
-      <div className="p-5">
+      {/* Film spine on the card's right edge — sits in the body's right padding gutter, so the whole
+          card reads as a strip of film without colliding with the poster chips or the copy. */}
+      <FilmstripEdge className="pointer-events-none absolute inset-y-0 right-0" width={14} />
+
+      <div className="p-5 pr-7">
         {template.source === 'user' && (
           <div className="mb-2">
             <Badge variant="brand">{t('custom')}</Badge>
@@ -137,6 +153,14 @@ const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardPro
           <HighlightMatch text={template.description} query={query} />
         </p>
         <CardMetaChips template={template} fieldCount={fieldCount} sectionCount={sectionCount} />
+
+        {/* Complexity as a lavender→pink level meter — the gradient-meter accent from the kinetic set. */}
+        <div className="mt-4 flex items-center gap-2.5">
+          <span className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-gray-500">
+            {t(`complexity.${template.complexity}`)}
+          </span>
+          <GradientMeter progress={COMPLEXITY_PROGRESS[template.complexity]} className="flex-1" />
+        </div>
       </div>
     </Card>
   );
@@ -263,9 +287,9 @@ export const TemplateSelector = ({
 
       {onBuildFromScratch && (
         <Reveal delay={0} className="mb-10">
-          <button
-            type="button"
+          <PressableScale
             onClick={onBuildFromScratch}
+            hoverLift
             className="group relative flex w-full items-center gap-6 overflow-hidden rounded-2xl border border-brand-500/25 bg-gradient-to-r from-brand-600/30 via-brand-500/15 to-violet-600/20 px-8 py-6 text-left transition-all hover:border-brand-500/50 hover:from-brand-600/40 hover:via-brand-500/25 hover:to-violet-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <span
@@ -285,7 +309,7 @@ export const TemplateSelector = ({
             >
               →
             </span>
-          </button>
+          </PressableScale>
         </Reveal>
       )}
 

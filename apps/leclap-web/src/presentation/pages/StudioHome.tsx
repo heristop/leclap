@@ -1,6 +1,7 @@
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
 import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibility';
 import { Seo } from '@/presentation/components/Seo';
@@ -34,7 +35,12 @@ export const StudioHome = () => {
   };
 
   return (
-    <StudioSurface kicker={t('studio.home.kicker')} title={t('studio.home.title')} subtitle={t('studio.home.subtitle')}>
+    <StudioSurface
+      kicker={t('studio.home.kicker')}
+      title={t('studio.home.title')}
+      subtitle={t('studio.home.subtitle')}
+      titleSlot={<KineticHeading text={t('studio.home.title')} level="l" as="h1" uppercase />}
+    >
       <Seo
         title={t('studio.title', { ns: 'seo' })}
         description={t('studio.description', { ns: 'seo' })}

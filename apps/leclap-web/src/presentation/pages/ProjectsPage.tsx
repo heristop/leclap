@@ -7,6 +7,7 @@ import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { useProjects } from '@/hooks/useProjects';
 import { ProjectCard } from '@/presentation/components/projects/ProjectCard';
 import { StudioSurface } from '@/presentation/components/StudioSurface';
+import { KineticHeading } from '@/presentation/components/kinetic';
 import { EmptyState } from '@/presentation/components/EmptyState';
 import { Seo } from '@/presentation/components/Seo';
 import {
@@ -81,6 +82,7 @@ export const ProjectsPage = () => {
     <StudioSurface
       kicker={t('kicker')}
       title={t('title')}
+      titleSlot={<KineticHeading text={t('title')} level="l" as="h1" uppercase />}
       subtitle={t('subtitle')}
       actions={
         <Button onClick={startNew} className="active:scale-[0.98]" {...plusHoverProps}>

@@ -14,7 +14,8 @@ import {
   Sparkles,
   type LucideIcon,
 } from '@/presentation/components/icons';
-import { Button, SegmentedControl } from '@/presentation/components/ui';
+import { SegmentedControl } from '@/presentation/components/ui';
+import { KineticHeading, GradientMeter, PressableScale, ratio01 } from '@/presentation/components/kinetic';
 import {
   ToolDock,
   ProgramMonitor,
@@ -28,7 +29,6 @@ import type { MediaChoice } from '@/presentation/components/admin/templateEditor
 import { resolveTranslation } from '@/lib/i18nText';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { withViewTransition } from '@/lib/viewTransition';
-import { cn } from '@/lib/utils';
 import { nextCue, hubProgress, type SceneModel } from './sceneStatus';
 import { sectionKindMeta } from './sectionKind';
 import { ScenePanel, MediaToolPanel, FormatPanel, orientationOf } from './editorPanels';
@@ -69,23 +69,20 @@ interface RailItem {
   label: string;
 }
 
-// Render-readiness as a segmented meter — a quick, glanceable "how close am I to Create" in the
-// titlebar, the way a pro tool surfaces export state.
+// Render-readiness as the shared gradient meter — a quick, glanceable "how close am I to Create" in
+// the titlebar, reading in the same lavender→pink progress vocabulary as the cards and the scrubbers.
 const ReadyMeter = ({ done, total, t }: { done: number; total: number; t: TFunction<'builder'> }) => {
   if (total === 0) return null;
 
   return (
-    <div className="mr-1 hidden items-center gap-2 md:flex" aria-label={t('editor.ready', { done, total })}>
-      <div className="flex items-center gap-1" aria-hidden="true">
-        {Array.from({ length: total }).map((_, i) => (
-          <span
-            key={i}
-            className={cn(
-              'h-1.5 w-4 rounded-full transition-colors duration-300',
-              i < done ? 'brand-gradient' : 'bg-foreground/15'
-            )}
-          />
-        ))}
+    <div className="mr-1 hidden items-center gap-2 md:flex">
+      <div className="w-24">
+        <GradientMeter
+          progress={ratio01(done, total)}
+          variant="bar"
+          size={5}
+          label={t('editor.ready', { done, total })}
+        />
       </div>
       <span className="text-xs font-semibold tabular-nums text-muted-foreground">
         {done}/{total}
@@ -139,19 +136,26 @@ const EditorTopBar = ({
     >
       <Clapperboard className="size-4" />
     </span>
-    <p
-      style={{ viewTransitionName: 'studio-title' }}
-      className="min-w-0 flex-1 truncate font-display text-base font-bold tracking-tight text-foreground"
-    >
-      {template.name}
-    </p>
+    {/* Template name as a kinetic heading — the words rise in on open, the signature editorial
+        entrance; the shared `studio-title` view-transition name rides the wrapper for the gallery→
+        editor morph. Clipped horizontally so long names never wrap the compact titlebar — use
+        `overflow-x-clip`, not `-hidden`, so it doesn't force overflow-y to `auto` and crop descenders. */}
+    <span style={{ viewTransitionName: 'studio-title' }} className="min-w-0 flex-1 overflow-x-clip">
+      <KineticHeading text={template.name} level="s" as="span" className="flex-nowrap whitespace-nowrap" />
+    </span>
 
     {phase === 'edit' && <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />}
     {phase === 'edit' && <ReadyMeter done={done} total={total} t={t} />}
     {phase === 'edit' && (
-      <Button onClick={onCreate} disabled={!allComplete} className="group rounded-full">
+      <PressableScale
+        onClick={onCreate}
+        disabled={!allComplete}
+        hoverLift
+        haptic="success"
+        className="brand-gradient group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-900/30 transition-shadow hover:shadow-brand-500/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4"
+      >
         <Sparkles size={16} /> {t('hub.createCta')}
-      </Button>
+      </PressableScale>
     )}
   </header>
 );

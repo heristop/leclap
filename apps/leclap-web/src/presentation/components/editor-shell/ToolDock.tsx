@@ -2,6 +2,7 @@ import React, { useEffect, useRef, type ComponentType, type KeyboardEvent } from
 import { cn } from '@/lib/utils';
 import { arrowTarget } from '@/presentation/components/builder/rovingKeys';
 import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
+import { PressableScale } from '@/presentation/components/kinetic';
 
 const RAIL_SLOT = 4.5; // rem — fixed slot height so the indicator can slide deterministically
 
@@ -35,16 +36,15 @@ const DockButton = ({ icon: Icon, label, active, tabIndex, onSelect, buttonRef, 
   >;
 
   return (
-    <button
+    <PressableScale
       ref={buttonRef}
-      type="button"
       onClick={onSelect}
       onKeyDown={onKeyDown}
       aria-current={active}
       tabIndex={tabIndex}
       {...hoverProps}
       className={cn(
-        'tap relative z-10 flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1 text-[0.65rem] font-medium transition-colors duration-200',
+        'relative z-10 flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1 text-[0.65rem] font-medium transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 lg:h-[4.5rem] lg:min-h-0 lg:w-full lg:flex-none lg:py-0',
         active ? 'text-brand-600 dark:text-brand-300' : 'text-foreground/50 hover:text-foreground/80'
       )}
@@ -59,7 +59,7 @@ const DockButton = ({ icon: Icon, label, active, tabIndex, onSelect, buttonRef, 
         <AnimIcon className="size-[1.15rem]" ref={ref} />
       </span>
       {label}
-    </button>
+    </PressableScale>
   );
 };
 

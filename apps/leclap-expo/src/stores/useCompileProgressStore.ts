@@ -31,9 +31,21 @@ export const useCompileProgressStore = create<CompileProgressStore>((set, get) =
   cancelling: false,
   cancel: null,
   start: (onCancel) => {
+    // Single-flight: if a compile is already in flight, abort it before adopting the new one's
+    // cancel handle, so the previous render can't keep running orphaned with no way to stop it.
+    const { visible, cancel } = get();
+
+    if (visible) {
+      cancel?.();
+    }
     set({ visible: true, ratio: 0, stage: '', cancelling: false, cancel: onCancel ?? null });
   },
   update: (ratio, stage) => {
+    // Once cancelling, freeze the bar: the engine keeps emitting progress for frames already in
+    // flight, and advancing under a "Cancelling…" label reads as if the cancel didn't take.
+    if (get().cancelling) {
+      return;
+    }
     set({ ratio: clamp01(ratio), stage });
   },
   requestCancel: () => {

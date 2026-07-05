@@ -47,6 +47,26 @@ describe('useCompileProgressStore', () => {
     expect(useCompileProgressStore.getState().ratio).toBe(0);
   });
 
+  it('update() is frozen once cancelling so the bar stops advancing', () => {
+    useCompileProgressStore.getState().start(() => undefined);
+    useCompileProgressStore.getState().update(0.4, 'Rendering');
+    useCompileProgressStore.getState().requestCancel();
+    useCompileProgressStore.getState().update(0.9, 'Almost there');
+
+    const state = useCompileProgressStore.getState();
+    expect(state.ratio).toBe(0.4);
+    expect(state.stage).toBe('Rendering');
+  });
+
+  it('start() aborts an in-flight compile before adopting the new cancel handle', () => {
+    const first = counter();
+    useCompileProgressStore.getState().start(first.fn);
+    // A second compile begins while the first is still visible.
+    useCompileProgressStore.getState().start(() => undefined);
+
+    expect(first.state.calls).toBe(1);
+  });
+
   it('requestCancel() flips cancelling and invokes the registered handle', () => {
     const onCancel = counter();
     useCompileProgressStore.getState().start(onCancel.fn);

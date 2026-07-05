@@ -46,6 +46,11 @@ interface VideoRecorderProps {
 // How many seconds before the target duration the end-of-recording warning kicks in.
 const END_WARNING_THRESHOLD = 3;
 
+// Grace period for the native finalize step. onRecordingFinished/onRecordingError normally release
+// the finalizing overlay; if the encoder resolves stopRecording() but drops both callbacks (a known
+// edge on some Android devices), this watchdog releases the overlay so the user is never trapped.
+const FINALIZE_TIMEOUT_MS = 15000;
+
 const DEFAULT_MODES: CaptureMode[] = ['front', 'back'];
 
 // Scrim gradients (brand near-black) that keep the header/description/controls legible over the live
@@ -644,6 +649,17 @@ function useRecordingActions({
   // stop button calls the native stopRecording() twice ("no active video recording in progress").
   // This ref blocks the second call until the recording actually finishes/errors and clears it.
   const isStoppingRef = useRef(false);
+  // Watchdog timer for the finalize step (see FINALIZE_TIMEOUT_MS); the callbacks and unmount clear it.
+  const finalizeWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearFinalizeWatchdog = () => {
+    if (finalizeWatchdogRef.current) {
+      clearTimeout(finalizeWatchdogRef.current);
+      finalizeWatchdogRef.current = null;
+    }
+  };
+
+  useEffect(() => clearFinalizeWatchdog, []);
 
   const startRecording = async () => {
     if (!cameraRef.current || !device) {
@@ -665,12 +681,14 @@ function useRecordingActions({
         videoCodec: 'h264',
         ...(Platform.OS === 'android' ? { outputFormat: 'mp4' } : { codec: 'avc1' }),
         onRecordingFinished: (video) => {
+          clearFinalizeWatchdog();
           isBusyRef.current = false;
           isStoppingRef.current = false;
           onVideoRecorded(video, orientation);
           setIsRecording(false);
         },
         onRecordingError: (error) => {
+          clearFinalizeWatchdog();
           isBusyRef.current = false;
           isStoppingRef.current = false;
           console.error('Recording error:', error);
@@ -695,10 +713,23 @@ function useRecordingActions({
     // Block the controls the instant stop is requested — the native finalize + save run after this,
     // and `onRecordingFinished` (which clears the guards) only fires once they complete.
     setIsFinalizing(true);
+    // Arm the watchdog: if neither native callback fires, release the overlay so Back works again.
+    clearFinalizeWatchdog();
+    finalizeWatchdogRef.current = setTimeout(() => {
+      if (!isStoppingRef.current) {
+        return;
+      }
+      console.warn('Recording finalize callbacks never fired; releasing the finalizing overlay.');
+      isBusyRef.current = false;
+      isStoppingRef.current = false;
+      setIsRecording(false);
+      setIsFinalizing(false);
+    }, FINALIZE_TIMEOUT_MS);
 
     try {
       await cameraRef.current.stopRecording();
     } catch (error) {
+      clearFinalizeWatchdog();
       isBusyRef.current = false;
       isStoppingRef.current = false;
       console.error('Failed to stop recording:', error);

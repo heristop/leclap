@@ -153,6 +153,17 @@ export function VariableTextField({
     <div className="relative">
       {multiline ? <textarea {...shared} rows={rows} /> : <input type="text" {...shared} />}
 
+      {/* When `#` is typed but nothing matches, surface WHY rather than showing nothing — either the
+          template has no variables yet, or the query doesn't match one. Keeps the trigger discoverable. */}
+      {query && options.length === 0 && (
+        <div
+          role="status"
+          className="absolute left-0 right-0 top-full z-30 mt-1 rounded-lg border border-foreground/10 bg-surface px-3 py-2 text-xs text-gray-500 shadow-xl dark:text-gray-400"
+        >
+          {names.length === 0 ? t('variables.none') : t('variables.noMatch', { query: query.query })}
+        </div>
+      )}
+
       {query && options.length > 0 && (
         <ul
           role="listbox"

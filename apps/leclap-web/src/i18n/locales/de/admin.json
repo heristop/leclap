@@ -492,7 +492,9 @@
   "variables": {
     "global": "Global",
     "local": "Lokal",
-    "insertHint": "Tippe #, um eine Variable einzufügen"
+    "insertHint": "Tippe #, um eine Variable einzufügen",
+    "none": "Noch keine Variablen — füge zuerst ein Formularfeld oder eine globale Variable hinzu",
+    "noMatch": "Keine Variable passt zu „{{query}}“"
   },
   "video": {
     "duration_one": "Dauer (Sekunde)",

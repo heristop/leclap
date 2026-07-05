@@ -492,7 +492,9 @@
   "variables": {
     "global": "Global",
     "local": "Local",
-    "insertHint": "Type # to insert a variable"
+    "insertHint": "Type # to insert a variable",
+    "none": "No variables yet — add a form field or global variable to reference here",
+    "noMatch": "No variable matches “{{query}}”"
   },
   "video": {
     "duration_one": "Duration (second)",

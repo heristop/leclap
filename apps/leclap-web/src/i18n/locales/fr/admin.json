@@ -8,7 +8,7 @@
     }
   },
   "page": {
-    "kicker": "Vos modèles",
+    "kicker": "Tes modèles",
     "heading": "Éditeur",
     "subtitle": "Pars d’un exemple ou crée le tien — enregistré dans ce navigateur.",
     "create": "Créer un modèle",
@@ -492,7 +492,9 @@
   "variables": {
     "global": "Global",
     "local": "Local",
-    "insertHint": "Tape # pour insérer une variable"
+    "insertHint": "Tape # pour insérer une variable",
+    "none": "Aucune variable pour l’instant — ajoute un champ de formulaire ou une variable globale",
+    "noMatch": "Aucune variable ne correspond à « {{query}} »"
   },
   "video": {
     "duration_one": "Durée (seconde)",

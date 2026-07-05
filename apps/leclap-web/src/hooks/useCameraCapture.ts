@@ -503,8 +503,14 @@ export function useCameraCapture(
   const { endingSoon, remaining } = endWarning(mode, elapsed, options.maxDurationSeconds);
 
   const confirmCapture = () => {
-    if (recorder.fileRef.current) onCapture(recorder.fileRef.current);
+    // Guard the whole confirm on having a clip: without this, an edge race (retake/clear leaving
+    // fileRef null) would skip onCapture but still onClose, dismissing the UI while the section
+    // receives no video — the user thinks they confirmed a recording that never arrived.
+    const file = recorder.fileRef.current;
 
+    if (!file) return;
+
+    onCapture(file);
     stopTracks(streamRef.current);
     streamRef.current = null;
     onClose();

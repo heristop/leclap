@@ -15,9 +15,10 @@ import { HeroViewfinder } from './hero-viewfinder';
 import { HeroTimeline } from './hero-timeline';
 import { useHeroPlayhead } from './use-hero-playhead';
 
-// The cinematic pacing of the headline reveal: a slower-than-default word stagger, line two picking
-// up where line one's words settle, and the gradient playhead rule wiping in last.
-const WORD_STAGGER = 0.09;
+// The cinematic pacing of the headline: a verb triptych ("Shoot. Cut. Share.") where each word
+// lands as its own cut — a much wider stagger than a flowing sentence — then the gradient rule
+// grows from the center once the last beat settles.
+const BEAT_STAGGER = 0.3;
 const wordCount = (text: string): number => text.trim().split(/\s+/).length;
 
 // The homepage hero as LeClap's own program monitor: the film plays behind the glass, framed by
@@ -48,10 +49,8 @@ export const CinematicHero = () => {
     glowRef.current?.style.setProperty('--my', '50%');
   };
 
-  const headlineA = t('hero.headlineA');
-  const headlineB = t('hero.headlineB');
-  const lineTwoDelay = 0.15 + wordCount(headlineA) * WORD_STAGGER;
-  const ruleDelay = lineTwoDelay + wordCount(headlineB) * WORD_STAGGER + 0.25;
+  const headline = t('hero.headlineA');
+  const ruleDelay = wordCount(headline) * BEAT_STAGGER + 0.35;
 
   return (
     <section
@@ -65,8 +64,9 @@ export const CinematicHero = () => {
       <HeroViewfinder timecodeRef={timecodeRef} />
 
       <div className="container relative z-10 mx-auto px-6 pb-28 pt-24 text-center sm:pb-32">
-        {/* The type follows the pointer a touch (opposite the footage) so the stage reads as depth. */}
-        <div className="hero-parallax mx-auto max-w-5xl [--parallax:0.018]">
+        {/* The type follows the pointer a touch (opposite the footage) so the stage reads as depth.
+            max-w-6xl keeps the longer localized lines (fr/es/it) on one row each at desktop widths. */}
+        <div className="hero-parallax mx-auto max-w-6xl [--parallax:0.018]">
           {/* Brand kicker — the one place gradient type is allowed; the claim keeps the H1. The
               animated pan is the old wordmark's treatment at kicker scale; the global reduced-motion
               reset stills it to a static gradient. The entrance lives on the wrapper because both
@@ -74,26 +74,18 @@ export const CinematicHero = () => {
           <p className="fade-in mb-5 text-sm font-bold uppercase tracking-[0.35em] -mr-[0.35em]">
             <span className="text-gradient-animated">{t('hero.eyebrow')}</span>
           </p>
-          <h1 aria-label={`${headlineA} ${headlineB}`}>
+          {/* The verb triptych — one line, three beats; each word is a cut landing on the stagger. */}
+          <h1 aria-label={headline}>
             <span aria-hidden="true" className="block">
-              <KineticHeading as="span" text={headlineA} level="mega" align="center" uppercase stagger={WORD_STAGGER} />
-              <KineticHeading
-                as="span"
-                text={headlineB}
-                level="mega"
-                align="center"
-                uppercase
-                stagger={WORD_STAGGER}
-                delay={lineTwoDelay}
-              />
+              <KineticHeading as="span" text={headline} level="mega" align="center" uppercase stagger={BEAT_STAGGER} />
             </span>
           </h1>
 
-          {/* The playhead rule — the one brand-gradient stroke of the composition, wiping in like a
-              scrubber once the words have settled. */}
+          {/* The gradient rule — the one brand-gradient stroke of the composition, growing from the
+              center out to both edges (default transform origin) once the words have settled. */}
           <motion.span
             aria-hidden="true"
-            className="brand-gradient mx-auto mt-6 block h-[3px] w-40 origin-left rounded-full"
+            className="brand-gradient mx-auto mt-6 block h-[3px] w-40 rounded-full"
             initial={reduced ? false : { scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: reduced ? 0 : 0.6, delay: reduced ? 0 : ruleDelay, ease: [0.16, 1, 0.3, 1] }}

@@ -1,9 +1,9 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Monta una película",
+    "headlineA": "Graba. Monta. Comparte.",
     "headlineB": "en tu navegador.",
-    "subtagline": "Con la potencia de WebAssembly y FFmpeg. Sin servidores. Sin límites.",
+    "subtagline": "En tu navegador, con la potencia de WebAssembly y FFmpeg. Sin servidores. Sin límites.",
     "privacy": "Tu material nunca sale de tu dispositivo.",
     "tally": "LeClap · En tu dispositivo",
     "scrubAria": "Desplazar la película de fondo",

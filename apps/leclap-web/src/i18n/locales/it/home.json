@@ -1,9 +1,9 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Monta un film",
+    "headlineA": "Gira. Monta. Condividi.",
     "headlineB": "nel tuo browser.",
-    "subtagline": "Con la potenza di WebAssembly e FFmpeg. Niente server. Nessun limite.",
+    "subtagline": "Nel tuo browser, con la potenza di WebAssembly e FFmpeg. Niente server. Nessun limite.",
     "privacy": "Il tuo girato non lascia mai il tuo dispositivo.",
     "tally": "LeClap · Sul dispositivo",
     "scrubAria": "Scorri il film di sfondo",

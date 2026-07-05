@@ -1,9 +1,9 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Cut a film",
+    "headlineA": "Shoot. Cut. Share.",
     "headlineB": "in your browser.",
-    "subtagline": "Powered by WebAssembly & FFmpeg. No servers. No limits.",
+    "subtagline": "In your browser, powered by WebAssembly & FFmpeg. No servers. No limits.",
     "privacy": "Your footage never leaves this device.",
     "tally": "LeClap · On-device",
     "scrubAria": "Scrub the background film",

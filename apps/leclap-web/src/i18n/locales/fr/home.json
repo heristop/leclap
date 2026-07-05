@@ -1,9 +1,9 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Monte un film",
+    "headlineA": "Tourne. Monte. Publie.",
     "headlineB": "dans ton navigateur.",
-    "subtagline": "Propulsé par WebAssembly et FFmpeg. Sans serveur, sans limite.",
+    "subtagline": "Dans ton navigateur, propulsé par WebAssembly et FFmpeg. Sans serveur, sans limite.",
     "privacy": "Tes images ne quittent jamais ton appareil.",
     "tally": "LeClap · Sur l'appareil",
     "scrubAria": "Faire défiler le film d'arrière-plan",

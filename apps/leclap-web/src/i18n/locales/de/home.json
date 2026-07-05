@@ -1,9 +1,9 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Schneide einen Film",
+    "headlineA": "Dreh. Schneide. Teile.",
     "headlineB": "direkt im Browser.",
-    "subtagline": "Angetrieben von WebAssembly & FFmpeg. Keine Server. Keine Grenzen.",
+    "subtagline": "Direkt im Browser, angetrieben von WebAssembly & FFmpeg. Keine Server. Keine Grenzen.",
     "privacy": "Dein Material verlässt nie dein Gerät.",
     "tally": "LeClap · Auf dem Gerät",
     "scrubAria": "Durch den Hintergrundfilm scrubben",

@@ -17,6 +17,7 @@ import { colors, spacing, typography } from '@/src/styles/theme';
 import { findInCatalog } from '@/src/templates/catalog';
 import { useUserTemplateStore } from '@/src/stores/useUserTemplateStore';
 import { compileOnDevice } from '@/src/services/compile/compileOnDevice';
+import { compileTemplate } from '@/src/features/templates/detail/compile-template';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useRouter } from 'expo-router';
 import { ExportSheet } from '../components/ExportSheet';
@@ -62,19 +63,6 @@ function checkSectionDone(section: Section, project: Project): boolean {
   if (section.type === 'music') return Boolean(project.formData[`music_${section.name}`]);
 
   return false;
-}
-
-function applyFormData(content: unknown, formData: Record<string, unknown>): unknown {
-  let str = JSON.stringify(JSON.parse(JSON.stringify(content)));
-
-  for (const [k, v] of Object.entries(formData)) {
-    str = str.replace(
-      new RegExp(`\\{\\{ ${k} \\}\\}`.replace(/[-\\^$*+?.()|[\]{}]/g, String.raw`\$&`), 'g'),
-      String(v)
-    );
-  }
-
-  return JSON.parse(str) as unknown;
 }
 
 function getSectionIcon(type: string): React.ComponentProps<typeof Ionicons>['name'] {
@@ -329,7 +317,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
     setIsCompiling(true);
     const doCompile = async () => {
       const result = await compileOnDevice(
-        applyFormData(template.content, currentProject.formData),
+        compileTemplate(template.content, currentProject.formData),
         currentProject.recordedVideos
       );
 

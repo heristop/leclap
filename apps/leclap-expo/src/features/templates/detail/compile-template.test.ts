@@ -26,4 +26,16 @@ describe('compileTemplate', () => {
     const out = compileTemplate(content({ a: '{{ missing }}' }), formData({}));
     expect(out).toEqual({ a: '{{ missing }}' });
   });
+
+  it('inserts values containing $-sequences literally, not as replacement patterns', () => {
+    // `$&`, `$1`, `` $` `` are String.prototype.replace special patterns; they must land verbatim.
+    const out = compileTemplate(content({ a: '{{ name }}' }), formData({ name: 'price $& $1 $`' }));
+    expect(out).toEqual({ a: 'price $& $1 $`' });
+  });
+
+  it('keeps the JSON valid when a value contains quotes or newlines', () => {
+    const value = 'she said "hi"\nthen left \\ ok';
+    const out = compileTemplate(content({ a: '{{ name }}' }), formData({ name: value }));
+    expect(out).toEqual({ a: value });
+  });
 });

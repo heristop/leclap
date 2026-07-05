@@ -1,13 +1,13 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { Outlet, ScrollRestoration } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Footer } from '@/presentation/components/Footer';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
-// Onboarding pulls in the compile pipeline (and FFmpeg WASM); it only shows on first visit, so lazy-
-// loading it keeps that weight out of the entry chunk and off the landing page's critical path.
+// Onboarding pulls in the compile pipeline (and FFmpeg WASM); it only shows on the first studio
+// visit, so lazy-loading it keeps that weight out of the entry chunk and off the landing page.
 const Onboarding = lazy(() =>
   import('@/presentation/components/Onboarding').then((module) => ({ default: module.Onboarding }))
 );
@@ -17,7 +17,17 @@ const Onboarding = lazy(() =>
 // on back/forward — the browser default that client-side routing otherwise loses.
 export function RootLayout() {
   const { t } = useTranslation();
-  const { show, dismiss } = useOnboarding();
+  const { show, dismiss, openIfFirstTime } = useOnboarding();
+  const location = useLocation();
+
+  // The guided intro no longer interrupts the landing page. It auto-opens once the visitor first
+  // reaches the studio — where orientation is actually useful — and never again after that.
+  // openIfFirstTime() no-ops for bots and for anyone who has already seen it.
+  useEffect(() => {
+    if (location.pathname.startsWith('/studio')) {
+      openIfFirstTime();
+    }
+  }, [location.pathname, openIfFirstTime]);
 
   // App-wide tactile feedback: a subtle haptic on every press of an interactive
   // element gives the web app a native, responsive feel (web-haptics).
@@ -60,7 +70,7 @@ export function RootLayout() {
         <Footer />
       </div>
 
-      {/* First-visit guided intro (record → compile a sample → download). */}
+      {/* First-studio-visit guided intro (record → compile a sample → download). */}
       {show && (
         <Suspense fallback={null}>
           <Onboarding onDone={dismiss} />

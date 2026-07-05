@@ -1,5 +1,46 @@
-import { describe, it, expect } from 'vitest';
-import { cropRect } from './useCameraCapture';
+import { describe, it, expect, afterEach } from 'vitest';
+import { cropRect, pickMimeType } from './useCameraCapture';
+
+// Desktop Chrome's MediaRecorder does NOT support the 'video/mp4;codecs=h264,aac' alias but DOES report
+// bare 'video/mp4' as supported — then silently records VP9+Opus inside the .mp4, a file that freezes on
+// playback/export. pickMimeType must prefer a real RFC-6381 H.264+AAC string and never pick bare mp4.
+describe('pickMimeType', () => {
+  const original = globalThis.MediaRecorder;
+
+  const withSupport = (supported: string[]): void => {
+    globalThis.MediaRecorder = {
+      isTypeSupported: (type: string): boolean => supported.includes(type),
+    } as unknown as typeof MediaRecorder;
+  };
+
+  afterEach(() => {
+    globalThis.MediaRecorder = original;
+  });
+
+  it('prefers real H.264+AAC MP4 over the bare video/mp4 trap (Chrome)', () => {
+    withSupport(['video/mp4', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus']);
+
+    expect(pickMimeType()).toBe('video/mp4;codecs=avc1.42E01E,mp4a.40.2');
+  });
+
+  it('never selects the bare video/mp4 container (VP9-in-mp4 trap)', () => {
+    withSupport(['video/mp4', 'video/webm']);
+
+    expect(pickMimeType()).toBe('video/webm');
+  });
+
+  it('falls back to WebM when no MP4 codec string is available', () => {
+    withSupport(['video/webm;codecs=vp9,opus', 'video/webm']);
+
+    expect(pickMimeType()).toBe('video/webm;codecs=vp9,opus');
+  });
+
+  it('returns undefined when MediaRecorder is unavailable', () => {
+    globalThis.MediaRecorder = undefined as unknown as typeof MediaRecorder;
+
+    expect(pickMimeType()).toBeUndefined();
+  });
+});
 
 // The recorder captures a canvas sized to cropRect's sw/sh. Android hardware H.264 encoders crash on
 // odd dimensions, so the crop must always be even — this guards that invariant (plus center framing).

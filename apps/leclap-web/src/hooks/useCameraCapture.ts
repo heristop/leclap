@@ -41,10 +41,19 @@ function idealConstraintsFor(orientation: CaptureOrientation | undefined): Media
 
 export type FacingMode = 'user' | 'environment';
 
-// Prefer an MP4 container when the browser can produce it (best downstream
-// compatibility), otherwise fall back to WebM.
+// Prefer real H.264+AAC MP4 (best downstream compatibility), otherwise fall back to WebM.
+//
+// The container string matters: Chrome reports bare 'video/mp4' as supported but then silently records
+// VP9+Opus inside the .mp4 — a file QuickTime can't decode and older ffmpeg demuxers mishandle, which
+// plays back frozen while the audio runs on. Only the RFC-6381 codec form ('avc1…,mp4a…') yields true
+// H.264+AAC, so bare 'video/mp4' is deliberately excluded from the candidates.
 export function pickMimeType(): string | undefined {
-  const candidates = ['video/mp4;codecs=h264,aac', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
+  const candidates = [
+    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm',
+  ];
 
   if (typeof MediaRecorder === 'undefined') return undefined;
 

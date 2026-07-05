@@ -1,7 +1,12 @@
 {
   "hero": {
-    "tagline": "Il compositore di video cinematografici che gira interamente nel tuo browser.",
+    "eyebrow": "LeClap Studio",
+    "headlineA": "Monta un film",
+    "headlineB": "nel tuo browser.",
     "subtagline": "Con la potenza di WebAssembly e FFmpeg. Niente server. Nessun limite.",
+    "privacy": "Il tuo girato non lascia mai il tuo dispositivo.",
+    "tally": "LeClap · Sul dispositivo",
+    "scrubAria": "Scorri il film di sfondo",
     "startCreating": "Inizia a creare",
     "seeHow": "Scopri come funziona"
   },

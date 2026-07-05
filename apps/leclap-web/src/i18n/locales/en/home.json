@@ -1,7 +1,12 @@
 {
   "hero": {
-    "tagline": "The cinematic video composer that runs entirely in your browser.",
+    "eyebrow": "LeClap Studio",
+    "headlineA": "Cut a film",
+    "headlineB": "in your browser.",
     "subtagline": "Powered by WebAssembly & FFmpeg. No servers. No limits.",
+    "privacy": "Your footage never leaves this device.",
+    "tally": "LeClap · On-device",
+    "scrubAria": "Scrub the background film",
     "startCreating": "Start Creating",
     "seeHow": "See How It Works"
   },

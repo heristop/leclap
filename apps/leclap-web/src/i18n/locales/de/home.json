@@ -1,7 +1,12 @@
 {
   "hero": {
-    "tagline": "Der cinematische Video-Composer, der komplett in deinem Browser läuft.",
+    "eyebrow": "LeClap Studio",
+    "headlineA": "Schneide einen Film",
+    "headlineB": "direkt im Browser.",
     "subtagline": "Angetrieben von WebAssembly & FFmpeg. Keine Server. Keine Grenzen.",
+    "privacy": "Dein Material verlässt nie dein Gerät.",
+    "tally": "LeClap · Auf dem Gerät",
+    "scrubAria": "Durch den Hintergrundfilm scrubben",
     "startCreating": "Jetzt loslegen",
     "seeHow": "So funktioniert's"
   },

@@ -416,9 +416,16 @@ export const Header = () => {
       // (0px when nothing is open) while leaving the header background full-width.
       style={{ paddingRight: 'var(--removed-body-scroll-bar-size, 0px)' }}
       className={clsx(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        // The hairline is ALWAYS a border-b that only changes color. Without the class in the
+        // resting state, preflight leaves border-color at currentColor (white in dark mode), and
+        // `transition-all` animates from that — a white seam flashing in on every scroll toggle.
+        'fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300',
         (overHero || onDarkSurface) && 'dark',
-        scrolled ? 'bg-background/80 backdrop-blur-md border-b border-divider py-2' : 'bg-transparent py-4'
+        // The scrolled hairline: full divider on light, softened in dark mode — at full opacity a
+        // light-on-dark line reads as a glowing seam over the dark surfaces.
+        scrolled
+          ? 'bg-background/80 backdrop-blur-md border-divider dark:border-divider/40 py-2'
+          : 'bg-transparent border-transparent py-4'
       )}
     >
       <div className="container mx-auto px-4">

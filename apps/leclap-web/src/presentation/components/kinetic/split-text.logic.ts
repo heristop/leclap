@@ -8,3 +8,8 @@ export const splitLines = (text: string): string[] => text.split('\n');
 
 // The reveal delay for the nth token in the stagger (same unit as `step`).
 export const staggerDelay = (index: number, step: number): number => Math.max(0, index) * step;
+
+// The nth token's delay when the whole heading starts `offset` after mount (multi-line heroes:
+// line two starts where line one's stagger ends). Negative offsets read as zero.
+export const revealDelay = (index: number, step: number, offset: number): number =>
+  Math.max(0, offset) + staggerDelay(index, step);

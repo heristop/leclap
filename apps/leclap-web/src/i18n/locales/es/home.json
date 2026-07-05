@@ -1,7 +1,12 @@
 {
   "hero": {
-    "tagline": "El compositor de vídeo cinematográfico que funciona enteramente en tu navegador.",
+    "eyebrow": "LeClap Studio",
+    "headlineA": "Monta una película",
+    "headlineB": "en tu navegador.",
     "subtagline": "Con la potencia de WebAssembly y FFmpeg. Sin servidores. Sin límites.",
+    "privacy": "Tu material nunca sale de tu dispositivo.",
+    "tally": "LeClap · En tu dispositivo",
+    "scrubAria": "Desplazar la película de fondo",
     "startCreating": "Empezar a crear",
     "seeHow": "Mira cómo funciona"
   },

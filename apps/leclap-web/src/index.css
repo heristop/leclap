@@ -229,7 +229,10 @@ body {
   --text-display-sm: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
 
   /* Kinetic Editorial — oversized display ramp (web port of the Expo displayHero…displayS scale).
-     Used by the KineticHeading primitive; layered alongside the existing --text-display tokens. */
+     Used by the KineticHeading primitive; layered alongside the existing --text-display tokens.
+     `mega` is the homepage-hero poster size — one step past `hero`, still clamped so long
+     translations (de/fr) wrap instead of overflowing. */
+  --text-display-mega: clamp(3.1rem, 1.5rem + 7vw, 7.5rem);
   --text-display-hero: clamp(3rem, 1.9rem + 5.2vw, 4.5rem);
   --text-display-xl: clamp(2.5rem, 1.7rem + 3.6vw, 3.5rem);
   --text-display-l: clamp(2rem, 1.5rem + 2.4vw, 2.75rem);
@@ -496,8 +499,8 @@ body {
 
 /* Single animated gradient focus border, painted directly ON the control via the padding-box/border-box
    background-clip trick — so even a bare <input>/<textarea>/<select> shows exactly ONE gradient ring on
-   focus (no wrapper, no ::before, no separate box-shadow ring). Replaces the old border-brand + ring-2
-   double indicator. The interior keeps its own fill via --field-fill (default surface-2); set it to the
+   focus (no wrapper, no ::before, no separate box-shadow ring, no border-brand + ring-2 double
+   indicator). The interior keeps its own fill via --field-fill (default surface-2); set it to the
    control's actual background where that differs. Honours prefers-reduced-motion (gradient stays, panning
    stops). Use alongside a normal `border` on the control — the gradient inherits its width. */
 @utility field-focus-gradient {
@@ -525,6 +528,30 @@ body {
     &:focus-visible {
       animation: none;
     }
+  }
+}
+
+/* Pointer parallax for layered hero stages: the layer drifts a fraction of the cursor's travel,
+   read from the same --mx/--my custom properties usePointerGlow already writes on the host.
+   `--parallax` sets each layer's depth (negative counter-moves, positive follows); the long
+   eased transition turns raw pointermove into a damped, cinematic chase. Percentages resolve
+   against the layer's own size, so oversized backdrops drift more than the type — free depth.
+   Under reduced motion usePointerGlow never writes the vars, and the transition is dropped, so
+   the layer holds perfectly still. */
+@utility hero-parallax {
+  transform: translate3d(
+    calc((var(--mx, 50%) - 50%) * var(--parallax, -0.04)),
+    calc((var(--my, 50%) - 50%) * var(--parallax, -0.04)),
+    0
+  );
+  transition: transform 0.7s var(--ease-out-expo);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-parallax {
+    transform: none;
+    transition: none;
   }
 }
 
@@ -1132,9 +1159,9 @@ body {
   }
 }
 
-/* Program-monitor scanline drift — the raster crawls down exactly one tile (4px) so the loop is
-   seamless. background-position only (compositor-cheap); the global reduced-motion reset freezes it
-   to a static CRT grille. */
+/* Program-monitor scanline drift — the raster crawls down exactly one tile (4px) so the loop
+   restarts with no visible jump. background-position only (compositor-cheap); the global
+   reduced-motion reset freezes it to a static CRT grille. */
 @keyframes scanline-drift {
   to {
     background-position-y: 4px;

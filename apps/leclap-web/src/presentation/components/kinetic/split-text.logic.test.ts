@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitWords, splitLines, staggerDelay } from './split-text.logic';
+import { splitWords, splitLines, staggerDelay, revealDelay } from './split-text.logic';
 
 describe('splitWords', () => {
   it('splits on whitespace and drops empties', () => {
@@ -33,5 +33,16 @@ describe('staggerDelay', () => {
 
   it('never returns a negative delay', () => {
     expect(staggerDelay(-2, 0.06)).toBe(0);
+  });
+});
+
+describe('revealDelay', () => {
+  it('offsets the whole word stagger by the heading delay', () => {
+    expect(revealDelay(0, 0.06, 0.4)).toBeCloseTo(0.4, 5);
+    expect(revealDelay(2, 0.06, 0.4)).toBeCloseTo(0.52, 5);
+  });
+
+  it('treats a negative offset as zero', () => {
+    expect(revealDelay(1, 0.06, -1)).toBeCloseTo(0.06, 5);
   });
 });

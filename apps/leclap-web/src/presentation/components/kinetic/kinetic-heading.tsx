@@ -3,12 +3,13 @@ import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { kineticMotion } from './motion';
 import { alignJustify, type HeadingAlign } from './kinetic-heading.logic';
-import { splitWords, staggerDelay } from './split-text.logic';
+import { revealDelay, splitWords } from './split-text.logic';
 
-type DisplayLevel = 'hero' | 'xl' | 'l' | 'm' | 's';
+type DisplayLevel = 'mega' | 'hero' | 'xl' | 'l' | 'm' | 's';
 
 // Each level maps to the Kinetic Editorial display scale added in index.css (@theme).
 const LEVEL_SIZE: Record<DisplayLevel, string> = {
+  mega: 'var(--text-display-mega)',
   hero: 'var(--text-display-hero)',
   xl: 'var(--text-display-xl)',
   l: 'var(--text-display-l)',
@@ -24,6 +25,9 @@ export interface KineticHeadingProps {
   /** `responsive` centres on mobile and left-aligns at `lg+` (the `text-center lg:text-left` case). */
   align?: HeadingAlign;
   stagger?: number;
+  /** Hold the whole reveal for this long (s) before the first word rises — lets a multi-line
+      hero start line two where line one's stagger ends. */
+  delay?: number;
   /** Play the word-by-word reveal when the heading scrolls into view (once) instead of on mount.
       Use for below-the-fold section titles so the staggered entrance is actually seen. */
   revealOnView?: boolean;
@@ -41,6 +45,7 @@ export function KineticHeading({
   uppercase = false,
   align = 'left',
   stagger = kineticMotion.stagger,
+  delay = 0,
   revealOnView = false,
   className,
 }: KineticHeadingProps) {
@@ -72,7 +77,7 @@ export function KineticHeading({
           viewport={revealOnView ? { once: true, amount: 0.5 } : undefined}
           transition={{
             duration: reduced ? 0 : kineticMotion.duration.base,
-            delay: reduced ? 0 : staggerDelay(index, stagger),
+            delay: reduced ? 0 : revealDelay(index, stagger, delay),
             ease: [0.16, 1, 0.3, 1],
           }}
         >

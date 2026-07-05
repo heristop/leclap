@@ -20,9 +20,9 @@ export function RootLayout() {
   const { show, dismiss, openIfFirstTime } = useOnboarding();
   const location = useLocation();
 
-  // The guided intro no longer interrupts the landing page. It auto-opens once the visitor first
-  // reaches the studio — where orientation is actually useful — and never again after that.
-  // openIfFirstTime() no-ops for bots and for anyone who has already seen it.
+  // The guided intro stays off the landing page: it auto-opens once the visitor first reaches the
+  // studio — where orientation is useful — then never again. openIfFirstTime() no-ops for bots and
+  // for anyone who has already seen it.
   useEffect(() => {
     if (location.pathname.startsWith('/studio')) {
       openIfFirstTime();

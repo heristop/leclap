@@ -8,6 +8,7 @@ import type { TFunction } from 'i18next';
 import type { VideoFile } from 'react-native-vision-camera';
 import VideoRecorder from '@/src/features/editor/components/VideoRecorder';
 import type { Section, Orientation } from '@/src/types';
+import { EDITABLE_TYPES } from '@/src/features/templates/detail/section-status';
 import { parseOrientation, toDeviceOrientation } from '@/src/features/templates/orientationMeta';
 import { colors, spacing, fonts, typography, withAlpha } from '@/src/styles/theme';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
@@ -221,7 +222,11 @@ const shotPosition = (
   project: ReturnType<typeof useProject>['data'],
   sectionName: string
 ): { shotIndex?: number; shotTotal: number } => {
-  const sections = project?.templateContent.sections ?? [];
+  // Count only the sections a viewer fills in, matching the detail hub's shot list (EDITABLE_TYPES /
+  // getSectionInfo). Authored colour/text cards aren't shots — including them would misnumber the badge.
+  const sections = (project?.templateContent.sections ?? []).filter((s: Section) =>
+    (EDITABLE_TYPES as readonly string[]).includes(s.type)
+  );
   const index = sections.findIndex((s: Section) => s.name === sectionName);
 
   return { shotIndex: index >= 0 ? index + 1 : undefined, shotTotal: sections.length };

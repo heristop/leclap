@@ -1,0 +1,12 @@
+LeClap
+Copyright (c) 2023-2026 Alexandre Mogère
+
+This software is licensed under the MIT License (see LICENSE).
+
+The "LeClap" name and logo are trademarks of Alexandre Mogère and are NOT
+covered by the MIT License. See TRADEMARK.md for what you may and may not do
+with the brand.
+
+The optional on-device mobile engine statically links an FFmpeg built from
+source under LGPL-3.0-or-later (no --enable-gpl). See
+docs/on-device-compilation.md and packages/ffmpeg-engine/README.md.

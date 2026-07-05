@@ -13,6 +13,7 @@ Describe a video in one JSON _template_ — sections, filters, music, overlays �
 [![pnpm](https://img.shields.io/badge/pnpm-11-f69220.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Trademark: LeClap](https://img.shields.io/badge/™-LeClap-blue.svg)](TRADEMARK.md)
 
 [Quick start](#-quick-start) · [Templates](docs/template-configuration.md) · [Library API](packages/ffmpeg-video-composer/README.md) · [Architecture](docs/architecture.md) · [Docs](#-documentation)
 
@@ -113,4 +114,6 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 
 ## 🤝 Contributing & License
 
-Issues and PRs welcome. Keep changes formatted (`pnpm fmt`) and lint-clean (`pnpm lint`) before committing. Licensed under the [MIT License](LICENSE).
+Issues and PRs welcome. Keep changes formatted (`pnpm fmt`) and lint-clean (`pnpm lint`) before committing. The code is licensed under the [MIT License](LICENSE).
+
+**Brand & trademark.** The MIT License covers the code, not the brand. The **LeClap** name and logo are trademarks of Alexandre Mogère — you can fork and reuse the code freely, but please give your fork a different name and don't imply endorsement. See [TRADEMARK.md](TRADEMARK.md) for details.

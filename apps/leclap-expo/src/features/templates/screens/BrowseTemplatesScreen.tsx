@@ -7,7 +7,6 @@ import TemplateList from '../components/TemplateList';
 import { useTemplates } from '@/src/hooks/useTemplates';
 import type { Template } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
-import { CompilationQueueStatus } from '../../../components/ui/CompilationQueueStatus';
 import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
 import Button from '../../../components/ui/Button';
 import * as Haptics from 'expo-haptics';
@@ -41,8 +40,6 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   if (isLoading && templates.length === 0) {
     return (
       <View style={styles.container}>
-        <CompilationQueueStatus />
-
         <Text style={styles.screenTitle}>{t('screenTitle')}</Text>
         <Text style={styles.subtitle}>{t('subtitle')}</Text>
 
@@ -75,8 +72,6 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
 
   return (
     <View style={styles.container}>
-      <CompilationQueueStatus />
-
       <TemplateList
         templates={templates}
         onSelectTemplate={handleSelectTemplate}

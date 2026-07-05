@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import type { Template, Section, Project, MediaChoice, MediaChoices } from '@/src/types';
 import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
-import { useQueueVideoCompilation } from '@/src/hooks/useCompilationQueue';
+import { useOnDeviceCompilation } from '@/src/hooks/useOnDeviceCompilation';
 import { needsMediaStep } from '@/src/services/media/mediaStepHelpers';
 import { getSectionInfo } from '@/src/features/templates/detail/section-status';
 import { computeAllDone } from '@/src/features/templates/detail/progress';
@@ -146,18 +146,17 @@ type CompileCtx = {
   mediaChoices: MediaChoices;
   setProject: (p: Project) => void;
   saveProjectMutation: ReturnType<typeof useSaveProject>;
-  queueVideoCompilation: ReturnType<typeof useQueueVideoCompilation>;
+  onDeviceCompilation: ReturnType<typeof useOnDeviceCompilation>;
   router: ReturnType<typeof useRouter>;
 };
 
 function useCompileHandler(ctx: CompileCtx) {
   const { t } = useTranslation('detail');
-  const { t: tc } = useTranslation('common');
-  const { project, template, mediaChoices, setProject, saveProjectMutation, queueVideoCompilation, router } = ctx;
+  const { project, template, mediaChoices, setProject, saveProjectMutation, onDeviceCompilation, router } = ctx;
 
   return () => {
     if (!project || !template) return;
-    queueVideoCompilation.mutate(
+    onDeviceCompilation.mutate(
       {
         projectId: project.id,
         templateDescriptor: compileTemplate(template.content, project.formData),
@@ -170,11 +169,11 @@ function useCompileHandler(ctx: CompileCtx) {
           // window, so a cancelled compile must not fall through to the success branch and navigate
           // into a preview the user asked to cancel. The overlay already closed via finish(); leave
           // the user on the hub without a scary "Compilation Failed" alert.
-          if (result.immediate && (result.cancelled || result.result.error === 'Compilation cancelled.')) {
+          if (result.cancelled || result.result.error === 'Compilation cancelled.') {
             return;
           }
 
-          if (result.immediate && result.result.success) {
+          if (result.result.success) {
             const updated = {
               ...project,
               outputVideoUri: result.result.outputUri,
@@ -187,19 +186,6 @@ function useCompileHandler(ctx: CompileCtx) {
               pathname: '/(fullscreen)/preview',
               params: { projectId: project.id, videoUri: result.result.outputUri },
             });
-
-            return;
-          }
-
-          if (!result.immediate) {
-            Alert.alert(t('alerts.addedToQueue.title'), t('alerts.addedToQueue.message'), [
-              {
-                text: tc('actions.ok'),
-                onPress: () => {
-                  router.back();
-                },
-              },
-            ]);
 
             return;
           }
@@ -319,7 +305,7 @@ function useMediaState(template: Template | undefined) {
   };
 }
 
-function useTemplateHandlers(ctx: HandlerCtx & Pick<CompileCtx, 'mediaChoices' | 'queueVideoCompilation'>) {
+function useTemplateHandlers(ctx: HandlerCtx & Pick<CompileCtx, 'mediaChoices' | 'onDeviceCompilation'>) {
   const sectionHandlers = useSectionHandlers(ctx);
   const handleCompile = useCompileHandler({
     project: ctx.project,
@@ -327,7 +313,7 @@ function useTemplateHandlers(ctx: HandlerCtx & Pick<CompileCtx, 'mediaChoices' |
     mediaChoices: ctx.mediaChoices,
     setProject: ctx.setProject,
     saveProjectMutation: ctx.saveProjectMutation,
-    queueVideoCompilation: ctx.queueVideoCompilation,
+    onDeviceCompilation: ctx.onDeviceCompilation,
     router: ctx.router,
   });
 
@@ -340,7 +326,7 @@ export function useTemplateDetail(templateName: string, projectId: string | unde
   const { data: template, isLoading: templateLoading, error: templateError } = useTemplate(templateName);
   const { data: existingProject, isLoading: projectLoading } = useProject(projectId ?? '');
   const saveProjectMutation = useSaveProject();
-  const queueVideoCompilation = useQueueVideoCompilation();
+  const onDeviceCompilation = useOnDeviceCompilation();
   // The app is fully local — compilation always renders on-device now, never queued.
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
@@ -389,7 +375,7 @@ export function useTemplateDetail(templateName: string, projectId: string | unde
     handleMusicSelect,
     handleMusicUseDefault,
     handleCompile,
-  } = useTemplateHandlers({ ...hCtx, mediaChoices, queueVideoCompilation });
+  } = useTemplateHandlers({ ...hCtx, mediaChoices, onDeviceCompilation });
   const allDone = computeAllDone(project, template, filteredSections, hasMediaStep, mediaStepDone);
 
   const description = buildHeaderDescription(template, project, t);
@@ -417,7 +403,7 @@ export function useTemplateDetail(templateName: string, projectId: string | unde
     setMusicChoice,
     setBackgroundChoice,
     mediaStepDone,
-    isPending: queueVideoCompilation.isPending,
+    isPending: onDeviceCompilation.isPending,
     willQueue: false,
     handleFormDataChange,
     handleFormSubmit,

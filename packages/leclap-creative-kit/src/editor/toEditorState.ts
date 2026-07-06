@@ -15,6 +15,7 @@ import {
   type EditableTemplate,
   type SectionTransition,
   type AudioMix,
+  type DuckingSettings,
   type DefaultTransition,
   type Grade,
   type MotionEffect,
@@ -104,6 +105,7 @@ function overlayOptionsFrom(o: Partial<GlobalAnimation>): Omit<AnimationOverlay,
     ...(o.loop === false ? { loop: false } : {}),
     ...(o.position ? { position: o.position } : {}),
     ...(o.scale ? { scale: o.scale } : {}),
+    ...(o.fit && o.fit !== 'stretch' ? { fit: o.fit } : {}),
     ...(o.start ? { start: o.start } : {}),
     ...(o.persistent === false ? { persistent: false } : {}),
     ...(o.opacity !== undefined && o.opacity < 1 ? { opacity: o.opacity } : {}),
@@ -132,16 +134,21 @@ function imagesFrom(s: Section): ImageOverlay[] {
   return (s.inputs ?? [])
     .filter((i) => i.type === 'image' && i.url)
     .map((input) => {
-      const { position, scale, opacity, rotation, motion } = input.options ?? {};
+      const { position, scale, fit, opacity, rotation, motion, start, duration } = input.options ?? {};
 
       // opacity defaults to opaque, so only carry an explicit fade (< 1) back, mirroring animationsFrom.
+      // The stored show window is start/duration; the editor edits absolute start/end, so
+      // end = start + duration (trimmed of float noise — 0.1 + 0.2 must rehydrate as 0.3).
       return {
         id: input.name,
         choice: choiceFromMarker(input.url as string),
         ...(position ? { position } : {}),
         ...(scale ? { scale } : {}),
+        ...(fit && fit !== 'stretch' ? { fit } : {}),
         ...(opacity !== undefined && opacity < 1 ? { opacity } : {}),
         ...(rotation ? { rotation } : {}),
+        ...(start ? { start } : {}),
+        ...(duration !== undefined ? { end: Number(((start ?? 0) + duration).toFixed(4)) } : {}),
         ...(motion ? { motion } : {}),
       };
     });
@@ -181,6 +188,13 @@ function sectionAudioExtrasFrom(s: Section): { musicVolume?: number; audioFade?:
   };
 }
 
+// Recover per-section playback tempo (options.speed, a PTS multiplier); normal speed stays absent.
+function sectionPlaybackFrom(s: Section): { speed?: number } {
+  const speed = s.options?.speed;
+
+  return speed === undefined || speed === 1 ? {} : { speed };
+}
+
 function colorSectionFrom(s: Section): EditorSection {
   const layers = (s.options?.layers ?? []) as BackgroundLayer[];
   const images = imagesFrom(s);
@@ -194,6 +208,7 @@ function colorSectionFrom(s: Section): EditorSection {
     ...(s.titleCard ? { titleCard: s.titleCard as TitleCard } : {}),
     overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
     ...sectionAudioExtrasFrom(s),
+    ...sectionPlaybackFrom(s),
     ...visualExtrasFrom(s),
   };
 }
@@ -233,6 +248,7 @@ function videoSectionFrom(s: Section): EditorSection {
     countdownCustomized: true,
     ...videoExtrasFrom(s),
     ...sectionAudioExtrasFrom(s),
+    ...sectionPlaybackFrom(s),
     ...visualExtrasFrom(s),
   };
 }
@@ -257,6 +273,7 @@ function storedSectionToEditor(
       ...(images.length > 0 ? { images } : {}),
       overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
       ...sectionAudioExtrasFrom(s),
+    ...sectionPlaybackFrom(s),
       ...visualExtrasFrom(s),
     };
   }
@@ -283,8 +300,15 @@ function audioFrom(global: TemplateDescriptor['global']): AudioMix {
     sourceVolume: a?.sourceVolume ?? DEFAULT_AUDIO_MIX.sourceVolume,
     musicVolume: a?.musicVolume ?? DEFAULT_AUDIO_MIX.musicVolume,
     ...(a?.normalize ? { normalize: a.normalize } : {}),
-    ducking: Boolean(a?.ducking),
+    ducking: duckingFrom(a?.ducking),
   };
+}
+
+// Recover the ducking union: a stored fine-tune object survives as-is; anything truthy else is `true`.
+function duckingFrom(ducking: unknown): AudioMix['ducking'] {
+  if (ducking && typeof ducking === 'object') return ducking as DuckingSettings;
+
+  return Boolean(ducking);
 }
 
 function defaultTransitionFrom(global: TemplateDescriptor['global']): DefaultTransition {

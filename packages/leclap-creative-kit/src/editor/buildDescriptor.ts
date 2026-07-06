@@ -63,6 +63,8 @@ function animationOptions(animation: AnimationOverlay) {
     ...(animation.start ? { start: animation.start } : {}),
     ...(animation.position ? { position: animation.position } : {}),
     ...(animation.scale ? { scale: animation.scale } : {}),
+    // 'stretch' is the engine default, so only a real aspect choice (contain/cover) is written.
+    ...(animation.fit && animation.fit !== 'stretch' ? { fit: animation.fit } : {}),
     ...(animation.opacity !== undefined && animation.opacity < 1 ? { opacity: animation.opacity } : {}),
     ...(animation.rotation ? { rotation: animation.rotation } : {}),
     ...(animation.motion ? { motion: animation.motion } : {}),
@@ -98,14 +100,32 @@ function markerFromChoice(choice: MediaChoice): string {
   return choice.url;
 }
 
+// Trim float noise off a seconds arithmetic result (0.3 - 0.1 → 0.2, not 0.19999999999999998).
+const trimSeconds = (value: number): number => Number(value.toFixed(4));
+
+// The editor's show window (start/end seconds) → the input's start/duration options. The engine
+// lowers these to the overlay filter's timeline enable for images. start 0 and a non-positive
+// window are omitted (untimed = spans the whole section), keeping the descriptor minimal.
+function imageTimingFrom(overlay: ImageOverlay): { start?: number; duration?: number } {
+  const start = overlay.start ?? 0;
+
+  return {
+    ...(start > 0 ? { start } : {}),
+    ...(overlay.end !== undefined && overlay.end > start ? { duration: trimSeconds(overlay.end - start) } : {}),
+  };
+}
+
 // A still-image overlay → a `type: 'image'` input composited via the same overlay path as animations.
-// Named `image_<i>` by array position. position/scale/opacity(<1)/rotation(≠0) pass through when set.
+// Named `image_<i>` by array position. position/scale/opacity(<1)/rotation(≠0)/timing pass through when set.
 function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Section['inputs']>[number] {
   const options = {
     ...(overlay.position ? { position: overlay.position } : {}),
     ...(overlay.scale ? { scale: overlay.scale } : {}),
+    // 'stretch' is the engine default, so only a real aspect choice (contain/cover) is written.
+    ...(overlay.fit && overlay.fit !== 'stretch' ? { fit: overlay.fit } : {}),
     ...(overlay.opacity !== undefined && overlay.opacity < 1 ? { opacity: overlay.opacity } : {}),
     ...(overlay.rotation ? { rotation: overlay.rotation } : {}),
+    ...imageTimingFrom(overlay),
     ...(overlay.motion ? { motion: overlay.motion } : {}),
   };
 
@@ -168,6 +188,14 @@ function sectionAudioOptions(section: {
   return out;
 }
 
+// Per-section playback tempo (options.speed, a PTS multiplier — see model.VisualPlayback). Normal
+// speed (1 / unset) emits nothing so untouched sections stay clean.
+function sectionPlaybackOptions(section: { speed?: number }): Partial<{ speed: number }> {
+  if (section.speed === undefined || section.speed === 1) return {};
+
+  return { speed: section.speed };
+}
+
 function formDescriptorFrom(section: { kind: 'form'; fields: FormField[] }, index: number): Section {
   return {
     name: `form_${index}`,
@@ -213,6 +241,7 @@ function colorDescriptorFrom(section: ColorSection, index: number): Section {
       backgroundColor: section.color,
       ...(section.layers && section.layers.length > 0 ? { layers: section.layers } : {}),
       ...sectionAudioOptions(section),
+      ...sectionPlaybackOptions(section),
     },
     ...(section.titleCard ? { titleCard: section.titleCard as Section['titleCard'] } : {}),
     ...(filters.length > 0 ? { filters } : {}),
@@ -237,6 +266,7 @@ function videoDescriptorFrom(section: VideoSection, index: number): Section {
       ...(section.countdown ? { countdown: true, countdownDuration: section.countdownSeconds } : {}),
       ...(section.framingGuide ? { framingGuide: section.framingGuide } : {}),
       ...sectionAudioOptions(section),
+      ...sectionPlaybackOptions(section),
     },
     // Recording instructions for the filmer, keyed under the app's default locale.
     // A blank/whitespace-only description emits nothing.
@@ -269,7 +299,7 @@ function descriptorFor({ section, index }: IndexedSection): DescriptorSection | 
     return {
       name: `image_${index}`,
       type: 'image_background',
-      options: { duration: section.duration, ...sectionAudioOptions(section) },
+      options: { duration: section.duration, ...sectionAudioOptions(section), ...sectionPlaybackOptions(section) },
       ...(filters.length > 0 ? { filters } : {}),
       ...visualExtras(section),
       ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -338,13 +368,25 @@ function globalOverlaysField(
   return kept.length > 0 ? { overlays: kept as GlobalOverlay[] } : {};
 }
 
+// The ducking field to emit: off emits nothing, on-with-defaults emits `true`, and a fine-tuned
+// object passes through — collapsing back to `true` when every knob was cleared.
+function duckingField(ducking: AudioMix['ducking']): { ducking?: true | AudioMix['ducking'] } {
+  if (ducking === false) return {};
+
+  if (ducking === true) return { ducking: true };
+
+  const tuned = pruneEmpty(ducking);
+
+  return Object.keys(tuned).length > 0 ? { ducking: tuned as AudioMix['ducking'] } : { ducking: true };
+}
+
 // editor audio mix -> global.audio, dropping normalize/ducking unless set/enabled.
 function audioGlobal(audio: AudioMix): NonNullable<NonNullable<TemplateDescriptor['global']>['audio']> {
   return {
     sourceVolume: audio.sourceVolume,
     musicVolume: audio.musicVolume,
     ...(audio.normalize ? { normalize: audio.normalize } : {}),
-    ...(audio.ducking ? { ducking: true } : {}),
+    ...duckingField(audio.ducking),
   };
 }
 

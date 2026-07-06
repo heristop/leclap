@@ -11,10 +11,12 @@ import type {
   MotionEffectSchema,
   BackgroundLayerSchema,
   FramingGuideSchema,
+  OverlayFitSchema,
   RevealSchema,
   ExitSchema,
   TextEffectSchema,
   ChromaKeySchema,
+  DuckingSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type {
   CaptionSchema,
@@ -44,6 +46,9 @@ export type Reveal = z.infer<typeof RevealSchema>;
 export type Exit = z.infer<typeof ExitSchema>;
 export type TextEffect = z.infer<typeof TextEffectSchema>;
 export type ChromaKey = z.infer<typeof ChromaKeySchema>;
+// How an overlay maps into its "w:h" scale box: stretch (default, may distort) / contain / cover.
+export type OverlayFit = z.infer<typeof OverlayFitSchema>;
+export type DuckingSettings = z.infer<typeof DuckingSchema>;
 export type TitleCard = z.infer<typeof TitleCardSchema>;
 export type LowerThird = z.infer<typeof LowerThirdSchema>;
 export type GlobalTextOverlay = z.infer<typeof GlobalTextOverlaySchema>;
@@ -64,11 +69,18 @@ export interface TextOverlay {
   box: boolean;
   boxcolor: string;
   boxOpacity: number;
+  // Whole-text alpha in [0,1] for watermark-style overlays; omitted = fully opaque. Lowered as a
+  // `#rrggbb@a` fontcolor token (the pattern boxcolor already uses) rather than the drawtext `alpha`
+  // option, which FilterManager.bakeTextAnimation overwrites with the reveal/exit expression.
+  textOpacity?: number;
   // Animated entrance (rise/slide/fade); the engine bakes it onto the drawtext at compile.
   reveal?: Reveal;
   // Animated exit (rise/slide/fade out) after a delay, timed against the section duration; the engine
   // bakes it alongside the entrance at compile.
   exit?: Exit;
+  // Drop shadow / outline for legibility over busy footage; lowered to drawtext
+  // shadowx/shadowy/shadowcolor + borderw/bordercolor keys (see overlayFilters).
+  effect?: TextEffect;
 }
 
 // A transition emitted after a visual section (maps to section.transition).
@@ -93,6 +105,14 @@ export interface SectionAudioFade {
 export interface VisualAudio {
   musicVolume?: number;
   audioFade?: SectionAudioFade;
+}
+
+// Per-section playback tempo (descriptor options.speed, engine FormatterManager). NOTE the descriptor
+// value is a PTS multiplier, NOT a rate: speed 2 = slow motion at half rate, speed 0.5 = twice as fast.
+// The builder UI presents the intuitive rate (×) and converts (see speedRate helpers web-side).
+// Omitted means normal speed (1).
+export interface VisualPlayback {
+  speed?: number;
 }
 
 export interface EditorCaption {
@@ -130,6 +150,9 @@ export interface AnimationOverlay {
   label?: string;
   position?: string;
   scale?: string;
+  // How the overlay maps into its "w:h" scale box: 'contain' letterboxes (transparent padding),
+  // 'cover' fills and centre-crops. Omitted/'stretch' keeps the free w:h scale (may distort).
+  fit?: OverlayFit;
   // Playback extent — exactly one of these is active (the builder's mode control enforces it):
   // `loop` (forever) → `-stream_loop -1`; `loops` (finite count) → `-stream_loop N-1`; `duration`
   // (seconds) → `-stream_loop -1 -t D`. Engine precedence: duration > loops > loop.
@@ -159,10 +182,19 @@ export interface ImageOverlay {
   choice: MediaChoice;
   position?: string;
   scale?: string;
+  // How the image maps into its "w:h" scale box — same convention as AnimationOverlay.fit, so a
+  // drag-resized logo can keep its aspect instead of stretching.
+  fit?: OverlayFit;
   // Overlay alpha, 0–1. Omitted means fully opaque (1). Same convention as AnimationOverlay.opacity.
   opacity?: number;
   // Clockwise rotation in degrees applied to the image before compositing. Omitted/0 = upright.
   rotation?: number;
+  // Show window, in section-relative seconds. `start` = when the image appears (omitted/0 = from the
+  // section start); `end` = when it disappears (omitted/0 = until the section ends). Stored on the
+  // descriptor input as start/duration (duration = end - start) and lowered by the engine to the
+  // overlay filter's timeline enable — unlike AnimationOverlay, whose start/duration are source flags.
+  start?: number;
+  end?: number;
   // Animated entrance for the image (rise/slide/fade), reusing the reveal vocabulary; pass-through.
   motion?: Reveal;
 }
@@ -203,6 +235,7 @@ export type EditorSection =
       // in array order (later entries paint on top). Author-set; empty/absent means none.
       images?: ImageOverlay[];
     } & VisualAudio &
+      VisualPlayback &
       VisualCaption &
       VisualAnimation)
   | ({
@@ -222,6 +255,7 @@ export type EditorSection =
       // in array order (later entries paint on top). Author-set; empty/absent means none.
       images?: ImageOverlay[];
     } & VisualAudio &
+      VisualPlayback &
       VisualCaption &
       VisualAnimation)
   | { kind: 'music'; allowed: string[]; allowUpload: boolean }
@@ -240,6 +274,7 @@ export type EditorSection =
       // in array order (later entries paint on top). Author-set; empty/absent means none.
       images?: ImageOverlay[];
     } & VisualAudio &
+      VisualPlayback &
       VisualCaption &
       VisualAnimation);
 
@@ -247,12 +282,13 @@ export type { Orientation };
 
 // Global audio mix applied across the whole composition: the recorded clips' own audio
 // (sourceVolume) vs the background music (musicVolume), each 0..1. normalize/ducking are
-// finishing options surfaced by the builder.
+// finishing options surfaced by the builder. `ducking` mirrors the descriptor union: false = off,
+// true = engine defaults, object = fine-tuned threshold/ratio/attack/release (DuckingSchema).
 export interface AudioMix {
   sourceVolume: number;
   musicVolume: number;
   normalize?: 'loudnorm' | 'dynaudnorm';
-  ducking: boolean;
+  ducking: boolean | DuckingSettings;
 }
 
 export const DEFAULT_AUDIO_MIX: AudioMix = { sourceVolume: 1, musicVolume: 0.5, ducking: false };

@@ -1,0 +1,159 @@
+// Ready-made EditorState skeletons so authors start from a real structure instead of a blank video.
+// Pure data + model factories only (no React, no web-only imports) so the Expo app can reuse them.
+// Each preset's `build()` returns a fresh, saveable EditorState (fresh id, a name, several sections).
+import {
+  newSection,
+  makeTemplateId,
+  DEFAULT_AUDIO_MIX,
+  DEFAULT_TRANSITION,
+  type EditorState,
+  type EditorSection,
+} from './model';
+
+export interface StarterPreset {
+  id: string;
+  nameKey: string; // i18n key under the `admin` namespace (presets.items.<id>.name)
+  descriptionKey: string;
+  accent: string; // swatch colour for the picker card
+  // The scene kinds build() will create, in order — a cheap structural summary for picker cards so
+  // they never have to call build() (which mints a fresh template id) just to render icons.
+  scenes: Array<EditorSection['kind']>;
+  build: () => EditorState;
+}
+
+// Base state matching toEditorState(null), minus the single default section — presets supply their own.
+const baseState = (name: string): Omit<EditorState, 'sections'> => ({
+  id: makeTemplateId(),
+  name,
+  description: '',
+  orientation: 'landscape',
+  globalVariables: [],
+  audio: { ...DEFAULT_AUDIO_MIX },
+  defaultTransition: { ...DEFAULT_TRANSITION },
+  globalAnimations: [],
+  globalOverlays: [],
+});
+
+const fade = { type: 'fade', duration: 0.5 } as const;
+
+// Narrowing factory helpers: start from newSection(kind) then layer preset-specific fields on. Casting
+// through the discriminated union keeps this terse while staying type-checked at each field.
+const colorSection = (over: Partial<Extract<EditorSection, { kind: 'color' }>>): EditorSection => ({
+  ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+  ...over,
+});
+
+const videoSection = (over: Partial<Extract<EditorSection, { kind: 'video' }>>): EditorSection => ({
+  ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>),
+  ...over,
+});
+
+const imageSection = (over: Partial<Extract<EditorSection, { kind: 'image' }>>): EditorSection => ({
+  ...(newSection('image') as Extract<EditorSection, { kind: 'image' }>),
+  ...over,
+});
+
+const musicSection = (): EditorSection => ({
+  ...(newSection('music') as Extract<EditorSection, { kind: 'music' }>),
+  // allowUpload so the scene passes the save guard (a media scene with no library + no upload can't save).
+  allowUpload: true,
+});
+
+export const STARTER_PRESETS: StarterPreset[] = [
+  {
+    id: 'talking-head',
+    nameKey: 'presets.items.talking-head.name',
+    descriptionKey: 'presets.items.talking-head.description',
+    accent: '#7C83FD',
+    scenes: ['color', 'video', 'color'],
+    build: () => ({
+      ...baseState('Talking-head intro'),
+      defaultTransition: { ...fade },
+      sections: [
+        colorSection({
+          color: '#0E1116',
+          duration: 3,
+          transitionAfter: { ...fade },
+          titleCard: {
+            kicker: { en: 'Introducing' },
+            headline: { en: 'Your headline here' },
+            subtitle: { en: 'A short supporting line' },
+            accent: '#7C83FD',
+            reveal: { type: 'rise' },
+          },
+        }),
+        videoSection({ duration: 8, transitionAfter: { ...fade } }),
+        colorSection({
+          color: '#0E1116',
+          duration: 3,
+          titleCard: { headline: { en: 'Thanks for watching' }, accent: '#7C83FD' },
+        }),
+      ],
+    }),
+  },
+  {
+    id: 'product-showcase',
+    nameKey: 'presets.items.product-showcase.name',
+    descriptionKey: 'presets.items.product-showcase.description',
+    accent: '#FF7AC6',
+    scenes: ['image', 'video', 'music'],
+    build: () => ({
+      ...baseState('Product showcase'),
+      defaultTransition: { ...fade },
+      sections: [
+        imageSection({
+          allowUpload: true,
+          duration: 4,
+          transitionAfter: { ...fade },
+          motion: [{ type: 'kenburns', direction: 'in', intensity: 1.15 }],
+          caption: { text: 'Introducing our latest product', style: 'bold', position: 'bottom' },
+        }),
+        videoSection({
+          duration: 8,
+          transitionAfter: { ...fade },
+          lowerThird: {
+            title: { en: 'Product name' },
+            badge: { en: '$99' },
+            accent: '#FF7AC6',
+            reveal: { type: 'rise' },
+          },
+        }),
+        musicSection(),
+      ],
+    }),
+  },
+  {
+    id: 'testimonial',
+    nameKey: 'presets.items.testimonial.name',
+    descriptionKey: 'presets.items.testimonial.description',
+    accent: '#FDE047',
+    scenes: ['video', 'color'],
+    build: () => ({
+      ...baseState('Testimonial'),
+      defaultTransition: { ...fade },
+      sections: [
+        videoSection({
+          duration: 10,
+          transitionAfter: { ...fade },
+          lowerThird: {
+            title: { en: 'Jane Doe' },
+            subtitle: { en: 'Happy customer' },
+            accent: '#FDE047',
+            reveal: { type: 'rise' },
+          },
+          // Centered so the quote never collides with the lower-third band at the bottom.
+          caption: {
+            text: '“This changed everything for our team.”',
+            style: 'subtle',
+            position: 'center',
+          },
+        }),
+        colorSection({
+          color: '#0E1116',
+          duration: 3,
+          titleCard: { headline: { en: 'Join thousands of happy customers' }, accent: '#FDE047' },
+        }),
+      ],
+    }),
+  },
+];

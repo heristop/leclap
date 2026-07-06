@@ -118,6 +118,7 @@ describe('templateEditorModel — animation overlay', () => {
     url: string;
     position?: string;
     scale?: string;
+    fit?: 'stretch' | 'contain' | 'cover';
     loop?: boolean;
     persistent?: boolean;
     opacity?: number;
@@ -238,6 +239,37 @@ describe('templateEditorModel — animation overlay', () => {
     expect(color.animations).toEqual([{ id: 'animation_0', url: '/assets/animations/badge.apng', rotation: 30 }]);
   });
 
+  it('passes a contain/cover fit through the input options and stays schema-valid', () => {
+    const d = buildDescriptor(
+      baseState([colorWithAnimation({ url: '/assets/animations/badge.apng', scale: '200:200', fit: 'contain' })])
+    );
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true, scale: '200:200', fit: 'contain' });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('omits the fit from the input options when stretch (the default)', () => {
+    const d = buildDescriptor(
+      baseState([colorWithAnimation({ url: '/assets/animations/badge.apng', scale: '200:200', fit: 'stretch' })])
+    );
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ loop: true, persistent: true, scale: '200:200' });
+  });
+
+  it('round-trips a fit back into the editor', () => {
+    const state = baseState([
+      colorWithAnimation({ url: '/assets/animations/badge.apng', scale: '200:200', fit: 'cover' }),
+    ]);
+    const back = toEditorState(asTemplate(state));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.animations).toEqual([
+      { id: 'animation_0', url: '/assets/animations/badge.apng', scale: '200:200', fit: 'cover' },
+    ]);
+  });
+
   it('emits no inputs when a visual section has no animation', () => {
     const d = buildDescriptor(baseState([newSection('color')]));
 
@@ -298,6 +330,48 @@ describe('templateEditorModel — ffmpeg-feature sugar round-trips', () => {
     const back = toEditorState(asTemplate(baseState([color])));
     const recovered = back.sections.find((s) => s.kind === 'color') as ColorSection;
     expect(recovered.animations?.[0]).toMatchObject({ motion: 'slide-left' });
+  });
+
+  it('emits and round-trips a positionable text overlay effect (shadow + outline)', () => {
+    const state = baseState([
+      videoSection([overlay({ text: 'Hi', effect: { shadow: true, outline: { color: '#ff0000' } } })]),
+    ]);
+    const values = drawtextValues(state);
+
+    // Exact engine defaults from applyTextEffect (editor/presets/text.ts) — catches drift with the
+    // kit-side mirror in overlayFilters.ts.
+    expect(values).toMatchObject({
+      shadowcolor: '#000000@0.6',
+      shadowx: 2,
+      shadowy: 2,
+      bordercolor: '#ff0000',
+      borderw: 2,
+    });
+    expect(() => TemplateDescriptorSchema.parse(buildDescriptor(state))).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.overlays[0].effect).toEqual({ shadow: true, outline: { color: '#ff0000' } });
+  });
+
+  it('emits no shadow/border keys and recovers no effect when the overlay has none', () => {
+    const state = baseState([videoSection([overlay({ text: 'Hi' })])]);
+    const values = drawtextValues(state);
+
+    expect(values).not.toHaveProperty('shadowcolor');
+    expect(values).not.toHaveProperty('bordercolor');
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.overlays[0].effect).toBeUndefined();
+  });
+
+  it('recovers a customised overlay shadow as an object with only the overridden fields', () => {
+    const state = baseState([videoSection([overlay({ text: 'Hi', effect: { shadow: { dx: 6, dy: 6 } } })])]);
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.overlays[0].effect).toEqual({ shadow: { dx: 6, dy: 6 } });
   });
 
   it('emits a title card effect on a color section', () => {
@@ -364,6 +438,78 @@ describe('templateEditorModel — image overlays on color/image sections', () =>
     const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
 
     expect(color.images).toEqual([{ id: 'image_0', choice: { source: 'url', url: '/logo.png' }, position: '20:20' }]);
+  });
+
+  it('emits and round-trips an image overlay fit; stretch stays omitted', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [
+        { id: 'a', choice: { source: 'url', url: '/logo.png' }, scale: '200:200', fit: 'contain' },
+        { id: 'b', choice: { source: 'url', url: '/sticker.png' }, scale: '120:120', fit: 'stretch' },
+      ],
+    };
+    const state = baseState([section]);
+    const inputs = buildDescriptor(state).sections?.find((s) => s.inputs)?.inputs;
+
+    expect(inputs?.[0].options).toEqual({ scale: '200:200', fit: 'contain' });
+    expect(inputs?.[1].options).toEqual({ scale: '120:120' });
+    expect(() => TemplateDescriptorSchema.parse(buildDescriptor(state))).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.images).toEqual([
+      { id: 'image_0', choice: { source: 'url', url: '/logo.png' }, scale: '200:200', fit: 'contain' },
+      { id: 'image_1', choice: { source: 'url', url: '/sticker.png' }, scale: '120:120' },
+    ]);
+  });
+
+  it('emits an image overlay show window (start/end) as input start/duration', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' }, start: 2, end: 5 }],
+    };
+    const d = buildDescriptor(baseState([section]));
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ start: 2, duration: 3 });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('emits only duration when the image window starts at 0, and only start when it has no end', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [
+        { id: 'a', choice: { source: 'url', url: '/a.png' }, end: 4 },
+        { id: 'b', choice: { source: 'url', url: '/b.png' }, start: 1.5 },
+      ],
+    };
+    const inputs = buildDescriptor(baseState([section])).sections?.find((s) => s.inputs)?.inputs;
+
+    expect(inputs?.[0].options).toEqual({ duration: 4 });
+    expect(inputs?.[1].options).toEqual({ start: 1.5 });
+  });
+
+  it('does not emit timing when end is not after start (a collapsed window means untimed)', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' }, start: 3, end: 3 }],
+    };
+    const input = buildDescriptor(baseState([section])).sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toEqual({ start: 3 });
+  });
+
+  it('round-trips an image overlay show window back into start/end', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' }, start: 0.1, end: 0.3 }],
+    };
+    const back = toEditorState(asTemplate(baseState([section])));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    // end rehydrates as start + duration with float noise trimmed (0.1 + 0.2 must give 0.3, not 0.30000000000000004)
+    expect(color.images?.[0]).toMatchObject({ start: 0.1, end: 0.3 });
   });
 
   it('emits and round-trips an image overlay entrance motion', () => {
@@ -872,6 +1018,16 @@ describe('templateEditorModel — video overlays → drawtext filters', () => {
     expect(plain).not.toHaveProperty('boxcolor');
   });
 
+  it('suffixes fontcolor with the text opacity only when the overlay sets one', () => {
+    const faded = drawtextValues(baseState([videoSection([overlay({ text: 'Watermark', textOpacity: 0.35 })])]));
+
+    expect(faded?.fontcolor).toBe('#ffffff@0.35');
+
+    const solid = drawtextValues(baseState([videoSection([overlay({ text: 'Solid' })])]));
+
+    expect(solid?.fontcolor).toBe('#ffffff');
+  });
+
   it('emits one drawtext filter per non-empty overlay, in order, skipping blanks', () => {
     const filters = drawtextFilters(
       baseState([videoSection([overlay({ text: 'Keep' }), overlay({ text: '   ' }), overlay({ text: 'Me' })])])
@@ -981,6 +1137,22 @@ describe('templateEditorModel — round-trips', () => {
 
     expect(video.overlays[0].boxOpacity).toBeCloseTo(0.3);
     expect(video.overlays[0].font).toBe('pacifico');
+  });
+
+  it('round-trips the text opacity and keeps the recovered fontcolor clean of the alpha token', () => {
+    const o = overlay({ text: 'Watermark', fontcolor: '#ff8800', textOpacity: 0.35 });
+    const back = toEditorState(asTemplate(baseState([videoSection([o])])));
+    const video = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    expect(video.overlays[0].textOpacity).toBeCloseTo(0.35);
+    expect(video.overlays[0].fontcolor).toBe('#ff8800');
+  });
+
+  it('leaves overlays without a text opacity free of the field after a round-trip', () => {
+    const back = toEditorState(asTemplate(baseState([videoSection([overlay({ text: 'Solid' })])])));
+    const video = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    expect(video.overlays[0]).not.toHaveProperty('textOpacity');
   });
 
   it('round-trips a music section, surfaced at the top', () => {
@@ -1108,7 +1280,10 @@ describe('templateEditorModel — transitions/look/grade/motion/layers fields', 
   });
 
   it('passes color-section layers through as options.layers and back', () => {
-    const layers: BackgroundLayer[] = [{ gradient: { from: '#000', to: '#fff', direction: 'vertical' }, opacity: 0.8 }];
+    // shape rides along to prove new gradient fields round-trip opaquely (layers pass through as-is).
+    const layers: BackgroundLayer[] = [
+      { gradient: { from: '#000', to: '#fff', direction: 'vertical', shape: 'radial' }, opacity: 0.8 },
+    ];
     const state = baseState([{ ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>), layers }]);
     const d = buildDescriptor(state);
 

@@ -7,8 +7,10 @@
 // reuses one bundled clip per project_video slot.
 import type { EditorState } from '../templateEditorModel';
 
-const PLACEHOLDER_LANDSCAPE = '/videos/placeholder-landscape.mp4';
-const PLACEHOLDER_PORTRAIT = '/videos/placeholder-portrait.mp4';
+// v2: dithered gradient (banding-free through the preview re-encode). The query busts the browser's
+// HTTP cache for the old banded v1 clips; bump it whenever render-placeholder.sh regenerates them.
+const PLACEHOLDER_LANDSCAPE = '/videos/placeholder-landscape.mp4?v=2';
+const PLACEHOLDER_PORTRAIT = '/videos/placeholder-portrait.mp4?v=2';
 
 // Fetch the bundled placeholder clip for the template's orientation and hand back `count` copies —
 // one File per project_video section, named preview_1…preview_N so the compile service keys them

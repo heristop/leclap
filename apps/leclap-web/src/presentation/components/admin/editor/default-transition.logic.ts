@@ -2,12 +2,11 @@
 // Mirrors the engine's rule (TemplateDirector: `section.transition ?? global.transition`): a
 // boundary without its own transition renders with the template default, and an explicit
 // `{ type: 'cut' }` override beats a non-cut default.
+import { DEFAULT_TRANSITION_DURATION } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { SectionTransition, DefaultTransition } from '../templateEditorModel';
 
 // The picker dialog's sentinel tile id for "clear the override, use the template default".
 export const DEFAULT_TILE = 'default';
-
-const FALLBACK_DURATION = 0.5;
 
 export interface EffectiveBoundary {
   type: string;
@@ -21,7 +20,8 @@ export function effectiveBoundary(
   transition: SectionTransition | undefined,
   fallback: DefaultTransition | undefined
 ): EffectiveBoundary {
-  const fallbackDuration = fallback?.duration ?? FALLBACK_DURATION;
+  // The engine's own unset-duration fallback, so the chip label matches what actually renders.
+  const fallbackDuration = fallback?.duration ?? DEFAULT_TRANSITION_DURATION;
 
   if (transition) {
     return { type: transition.type, duration: transition.duration ?? fallbackDuration, fromDefault: false };

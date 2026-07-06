@@ -2,7 +2,7 @@
 // The xfade name list is the single source of truth (core's effects.schemas) — we
 // only bucket those names by prefix and map each bucket to a CSS animation family,
 // so the UI never hardcodes the list and can never drift from the engine.
-import { XFADE_TRANSITIONS } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
+import { DEFAULT_TRANSITION_DURATION, XFADE_TRANSITIONS } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { TFunction } from 'i18next';
 
 export type XfadeName = (typeof XFADE_TRANSITIONS)[number];
@@ -102,7 +102,7 @@ export function transitionLabel(type: string, duration: number | undefined, t: T
   if (type === 'cut') return t('transition.cut');
 
   const pretty = type.charAt(0).toUpperCase() + type.slice(1);
-  const secs = duration ?? 0.5;
+  const secs = duration ?? DEFAULT_TRANSITION_DURATION;
 
   return t('transition.label', { name: pretty, duration: secs });
 }

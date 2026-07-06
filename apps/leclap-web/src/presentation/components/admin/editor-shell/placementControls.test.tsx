@@ -9,7 +9,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n, { type TFunction } from 'i18next';
 import admin from '@/i18n/locales/en/admin.json';
 import type { AnimationOverlay, ImageOverlay } from '../templateEditorModel';
-import { PlacementControls, placementSummary } from './placementControls';
+import { PlacementControls, placementSummary, playbackSummary, timingSummary } from './placementControls';
 
 beforeAll(async () => {
   await i18n.init({ lng: 'en', fallbackLng: 'en', ns: ['admin'], defaultNS: 'admin', resources: { en: { admin } } });
@@ -87,7 +87,27 @@ describe('PlacementControls', () => {
     expect(html).not.toContain(admin.shape.cornerRadius);
   });
 
-  it('animation variant: source tabs + placement disclosure + playback, still no drag canvas', () => {
+  it('image variant: show window + entrance grouped under a collapsed timing disclosure with a summary', () => {
+    const html = renderImage();
+
+    // The disclosure header carries the group label and, while collapsed, the "Default" state chip;
+    // the numeric fields themselves render only once expanded (static markup escapes the ampersand).
+    expect(html).toContain(admin.imageOverlay.timingGroup.replace('&', '&amp;'));
+    expect(html).toContain(admin.summaryChip.default);
+    expect(html).not.toContain(admin.imageOverlay.startLabel);
+  });
+
+  it('shape image: the same timing & entrance disclosure applies', () => {
+    const html = renderToStaticMarkup(
+      <I18nextProvider i18n={i18n}>
+        <PlacementControls kind="image" orientation="landscape" value={shape} onChange={noop} />
+      </I18nextProvider>
+    );
+
+    expect(html).toContain(admin.imageOverlay.timingGroup.replace('&', '&amp;'));
+  });
+
+  it('animation variant: source tabs + placement disclosure + collapsed playback disclosure, still no drag canvas', () => {
     const html = renderAnimation();
 
     expect(html).toContain(admin.animation.placementGroup);
@@ -96,7 +116,46 @@ describe('PlacementControls', () => {
     expect(html).toContain(admin.media.tab.upload);
     expect(html).toContain(admin.media.tab.url);
     expect(html).toContain(admin.animation.playback);
+    // The collapsed playback summary mirrors the default extent ("Forever").
+    expect(html).toContain(admin.animation.forever);
     expect(html).not.toContain(admin.animation.dragHint);
+  });
+});
+
+describe('timingSummary', () => {
+  const t = ((key: string) => key) as unknown as TFunction<'admin'>;
+
+  it('reads "Default" (the summaryChip key) when the window is open and no entrance is set', () => {
+    expect(timingSummary(t, {})).toBe('summaryChip.default');
+    expect(timingSummary(t, { start: 0, end: 0 })).toBe('summaryChip.default');
+  });
+
+  it('formats the show window, leaving an open side blank', () => {
+    expect(timingSummary(t, { start: 2, end: 5 })).toBe('2s → 5s');
+    expect(timingSummary(t, { start: 2 })).toBe('2s →');
+    expect(timingSummary(t, { end: 5 })).toBe('→ 5s');
+  });
+
+  it('appends the entrance style by its reveal key, for both value shapes', () => {
+    expect(timingSummary(t, { start: 2, motion: 'rise' })).toBe('2s → · reveal.rise');
+    expect(timingSummary(t, { motion: { type: 'fade' } })).toBe('reveal.fade');
+    expect(timingSummary(t, { motion: 'none' })).toBe('summaryChip.default');
+  });
+});
+
+describe('playbackSummary', () => {
+  const t = ((key: string) => key) as unknown as TFunction<'admin'>;
+  const base: AnimationOverlay = { id: 'a', url: '/a.apng' };
+
+  it('reads the extent: forever by default, loops, or seconds', () => {
+    expect(playbackSummary(t, base)).toBe('animation.forever');
+    expect(playbackSummary(t, { ...base, loops: 2 })).toBe('animation.summaryLoops');
+    expect(playbackSummary(t, { ...base, loop: false })).toBe('animation.summaryLoops');
+    expect(playbackSummary(t, { ...base, duration: 3 })).toBe('3s');
+  });
+
+  it('appends a delayed start', () => {
+    expect(playbackSummary(t, { ...base, start: 2 })).toBe('animation.forever · animation.summaryFrom');
   });
 });
 

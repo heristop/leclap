@@ -4,6 +4,7 @@
 // are surfaced inline (the shell has no separate error dialog for this panel).
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Check } from '@/presentation/components/icons';
 import { DownloadIcon } from '@/presentation/components/icons/download';
 import { UploadIcon } from '@/presentation/components/icons/upload';
 import type { EditorState } from '../templateEditorModel';
@@ -30,6 +31,7 @@ export const EditorImportExport = ({ state, onImport }: EditorImportExportProps)
   const { t } = useTranslation('admin');
   const fileRef = useRef<HTMLInputElement>(null);
   const [importErrors, setImportErrors] = useState<string[] | null>(null);
+  const [imported, setImported] = useState(false);
 
   const exportJson = (): void => {
     downloadText(exportDescriptorJson(state), exportFilename(state));
@@ -39,11 +41,13 @@ export const EditorImportExport = ({ state, onImport }: EditorImportExportProps)
     const result = importDescriptorJson(text, state);
 
     if (!result.ok) {
+      setImported(false);
       setImportErrors(result.errors);
 
       return;
     }
     setImportErrors(null);
+    setImported(true);
     onImport(result.state);
   };
 
@@ -86,6 +90,17 @@ export const EditorImportExport = ({ state, onImport }: EditorImportExportProps)
           }}
         />
       </div>
+      {/* Success confirmation (aria-live via role="status"): a silent state swap after picking a
+          file reads as "nothing happened" — this closes the loop without stealing focus. */}
+      {imported && !importErrors && (
+        <p
+          role="status"
+          className="mt-3 flex items-center gap-1.5 rounded-lg border border-[var(--color-success)]/50 bg-[var(--color-success)]/15 p-2.5 text-xs font-medium text-[var(--color-success-foreground)]"
+        >
+          <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {t('editor.advanced.io.importSuccess')}
+        </p>
+      )}
       {importErrors && (
         <div
           role="alert"

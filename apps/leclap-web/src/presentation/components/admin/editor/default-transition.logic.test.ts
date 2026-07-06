@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { DEFAULT_TRANSITION_DURATION } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import { effectiveBoundary, boundaryPick, hasNonCutDefault } from './default-transition.logic';
 
 describe('effectiveBoundary', () => {
@@ -18,7 +19,18 @@ describe('effectiveBoundary', () => {
   });
 
   it('is a hard cut when neither the boundary nor a default is set', () => {
-    expect(effectiveBoundary(undefined, undefined)).toEqual({ type: 'cut', duration: 0.5, fromDefault: false });
+    // The unset-duration fallback is the ENGINE default (0.3s), so the chip label matches the render.
+    expect(DEFAULT_TRANSITION_DURATION).toBe(0.3);
+    expect(effectiveBoundary(undefined, undefined)).toEqual({
+      type: 'cut',
+      duration: DEFAULT_TRANSITION_DURATION,
+      fromDefault: false,
+    });
+  });
+
+  it('fills a missing override duration with the engine default when no template default exists', () => {
+    const effective = effectiveBoundary({ type: 'fade' }, undefined);
+    expect(effective.duration).toBe(DEFAULT_TRANSITION_DURATION);
   });
 
   it('keeps an explicit cut override over a non-cut default', () => {

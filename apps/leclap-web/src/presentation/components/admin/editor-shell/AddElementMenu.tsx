@@ -58,13 +58,19 @@ const KIND_LABEL: Record<AddableKind, string> = {
   lowerThird: 'element.addLowerThird',
 };
 
+// The structured text-sugar kinds render after a labelled divider ("Ready-made text") so the nine
+// otherwise-flat entries scan as two groups: free elements vs auto-laid-out text blocks.
+const SUGAR_KINDS: ReadonlySet<AddableKind> = new Set(['caption', 'titleCard', 'lowerThird']);
+
 interface AddElementMenuProps {
   section: EditorSection;
   onAdd: (kind: AddableKind) => void;
 }
 
-// Estimated per-item height for the flip-up heuristic (menu row + padding).
-const MENU_ITEM_PX = 36;
+// Estimated per-item height for the flip-up heuristic (44px touch-target rows), plus the divider
+// heading and the popover padding.
+const MENU_ITEM_PX = 44;
+const MENU_EXTRA_PX = 40;
 
 // The bottom edge the dropdown must not cross: the nearest scrollable ancestor's viewport (the left
 // panel clips the menu well before the window does), else the window.
@@ -137,7 +143,7 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
         aria-label={t('element.add')}
         onClick={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
-          setDropUp(clipBottom(event.currentTarget) - rect.bottom < kinds.length * MENU_ITEM_PX + 16);
+          setDropUp(clipBottom(event.currentTarget) - rect.bottom < kinds.length * MENU_ITEM_PX + MENU_EXTRA_PX);
           setOpen((v) => !v);
         }}
         {...plusHoverProps}
@@ -155,21 +161,30 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
             dropUp ? 'bottom-full mb-1' : 'mt-1'
           )}
         >
-          {kinds.map((kind) => {
+          {kinds.map((kind, index) => {
             const Icon = KIND_ICON[kind];
+            // The divider heading sits before the FIRST sugar kind — but only when free elements
+            // precede it (a sugar-only menu needs no group of one).
+            const startsSugarGroup = SUGAR_KINDS.has(kind) && index > 0 && !SUGAR_KINDS.has(kinds[index - 1]);
 
             return (
-              <button
-                key={kind}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  pick(kind);
-                }}
-                className="tap flex min-h-10 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40"
-              >
-                <Icon className="h-3.5 w-3.5 text-gray-400" aria-hidden /> {t(KIND_LABEL[kind])}
-              </button>
+              <div key={kind} role="presentation">
+                {startsSugarGroup && (
+                  <div className="mx-2 mb-1 mt-1.5 border-t border-foreground/10 pt-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-gray-400">
+                    {t('element.sugarGroup')}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    pick(kind);
+                  }}
+                  className="tap flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40"
+                >
+                  <Icon className="h-3.5 w-3.5 text-gray-400" aria-hidden /> {t(KIND_LABEL[kind])}
+                </button>
+              </div>
             );
           })}
         </div>

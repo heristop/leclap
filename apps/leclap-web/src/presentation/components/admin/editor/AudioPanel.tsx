@@ -4,15 +4,13 @@
 // release, the descriptor's DuckingSchema object form). All map to state.audio (AudioMix).
 // Per-section music volume overrides and audio fades are on each visual section card
 // via SectionAudioFields — they map to EditorSection.musicVolume / .audioFade.
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { WavesIcon } from '@/presentation/components/icons/waves';
 import { MicIcon } from '@/presentation/components/icons/mic';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
-import { cn } from '@/lib/utils';
 import { Checkbox } from '@/presentation/components/ui';
 import type { AudioMix, DuckingSettings } from '../templateEditorModel';
 import { RangeSlider, SegmentedControl, VolumeSlider, type SegmentOption } from './controls';
+import { SectionDisclosure } from './SectionDisclosure';
 
 // Engine defaults for the fine-tune knobs (DuckingSchema descriptions) — used to seed the sliders
 // so opening "advanced" starts from what `true` already does.
@@ -37,6 +35,14 @@ interface AudioPanelProps {
 }
 
 type NormalizeChoice = 'off' | 'loudnorm' | 'dynaudnorm';
+
+// One-line plain-language caption per normalisation choice, so "Loudnorm"/"Dynamic"
+// never read as unexplained filter jargon.
+const NORMALIZE_HINT_KEY: Record<NormalizeChoice, string> = {
+  off: 'audio.normalizeHintOff',
+  loudnorm: 'audio.normalizeHintLoudnorm',
+  dynaudnorm: 'audio.normalizeHintDynamic',
+};
 
 export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
   const { t } = useTranslation('admin');
@@ -82,10 +88,17 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
           }}
         />
         <div>
-          <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
-            <WavesIcon size={14} /> {t('audio.normalize')}
-          </span>
-          <SegmentedControl value={audio.normalize ?? 'off'} options={normalizeOptions} onChange={setNormalize} />
+          <SegmentedControl
+            label={t('audio.normalize')}
+            value={audio.normalize ?? 'off'}
+            options={normalizeOptions}
+            onChange={setNormalize}
+          />
+          {/* Live caption for the active choice: swaps as the author toggles, so each option is
+              self-explanatory without a tooltip (one glance, zero extra interactions). */}
+          <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            {t(NORMALIZE_HINT_KEY[audio.normalize ?? 'off'])}
+          </p>
         </div>
         <label
           htmlFor={duckId}
@@ -113,8 +126,17 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
   );
 };
 
+// How many fine-tune knobs sit off their engine default — feeds the collapsed summary chip.
+function tunedKnobCount(current: DuckingSettings): number {
+  return (Object.keys(DUCKING_DEFAULTS) as DuckingKnob[]).filter(
+    (key) => current[key] !== undefined && current[key] !== DUCKING_DEFAULTS[key]
+  ).length;
+}
+
 // The fine-tune disclosure shown while ducking is on. Sliders read from the object form (or the
 // engine defaults while ducking is plain `true`); the first non-default write upgrades to the object.
+// Rendered with the shared SectionDisclosure so it matches every other collapsed group in the builder,
+// and its summary chip reports how many knobs were moved off the defaults without expanding.
 const DuckingAdvanced = ({
   ducking,
   onChange,
@@ -123,78 +145,64 @@ const DuckingAdvanced = ({
   onChange: (ducking: AudioMix['ducking']) => void;
 }) => {
   const { t } = useTranslation('admin');
-  const [open, setOpen] = useState(false);
   const current: DuckingSettings = ducking === true ? {} : ducking;
-  const tuned = ducking !== true;
+  const tuned = tunedKnobCount(current);
+  const summary = tuned === 0 ? t('summaryChip.default') : t('audio.duckingTuned', { count: tuned });
 
   const knob = (key: DuckingKnob): number => current[key] ?? DUCKING_DEFAULTS[key];
 
   return (
-    <div className="rounded-lg border border-foreground/10">
-      <button
-        type="button"
-        onClick={() => {
-          setOpen((v) => !v);
-        }}
-        aria-expanded={open}
-        className="tap flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-      >
-        {t('audio.duckingAdvanced')}
-        {tuned && <span className="h-1.5 w-1.5 rounded-full bg-brand-500" aria-label={t('grade.customised')} />}
-        <ChevronDownIcon size={16} className={cn('ml-auto transition-transform', open && 'rotate-180')} />
-      </button>
-      {open && (
-        <div className="grid gap-3 px-3 pb-3 sm:grid-cols-2">
-          <RangeSlider
-            label={t('audio.duckingThreshold')}
-            value={knob('threshold')}
-            min={0}
-            max={1}
-            step={0.01}
-            format={(v) => `${Math.round(v * 100)}%`}
-            resetTo={DUCKING_DEFAULTS.threshold}
-            onChange={(v) => {
-              onChange(nextDucking(current, 'threshold', v));
-            }}
-          />
-          <RangeSlider
-            label={t('audio.duckingRatio')}
-            value={knob('ratio')}
-            min={1}
-            max={20}
-            step={0.5}
-            format={(v) => `${v}:1`}
-            resetTo={DUCKING_DEFAULTS.ratio}
-            onChange={(v) => {
-              onChange(nextDucking(current, 'ratio', v));
-            }}
-          />
-          <RangeSlider
-            label={t('audio.duckingAttack')}
-            value={knob('attack')}
-            min={1}
-            max={500}
-            step={1}
-            format={(v) => `${v} ms`}
-            resetTo={DUCKING_DEFAULTS.attack}
-            onChange={(v) => {
-              onChange(nextDucking(current, 'attack', v));
-            }}
-          />
-          <RangeSlider
-            label={t('audio.duckingRelease')}
-            value={knob('release')}
-            min={10}
-            max={2000}
-            step={10}
-            format={(v) => `${v} ms`}
-            resetTo={DUCKING_DEFAULTS.release}
-            onChange={(v) => {
-              onChange(nextDucking(current, 'release', v));
-            }}
-          />
-        </div>
-      )}
-    </div>
+    <SectionDisclosure label={t('audio.duckingAdvanced')} summary={summary}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <RangeSlider
+          label={t('audio.duckingThreshold')}
+          value={knob('threshold')}
+          min={0}
+          max={1}
+          step={0.01}
+          format={(v) => `${Math.round(v * 100)}%`}
+          resetTo={DUCKING_DEFAULTS.threshold}
+          onChange={(v) => {
+            onChange(nextDucking(current, 'threshold', v));
+          }}
+        />
+        <RangeSlider
+          label={t('audio.duckingRatio')}
+          value={knob('ratio')}
+          min={1}
+          max={20}
+          step={0.5}
+          format={(v) => `${v}:1`}
+          resetTo={DUCKING_DEFAULTS.ratio}
+          onChange={(v) => {
+            onChange(nextDucking(current, 'ratio', v));
+          }}
+        />
+        <RangeSlider
+          label={t('audio.duckingAttack')}
+          value={knob('attack')}
+          min={1}
+          max={500}
+          step={1}
+          format={(v) => `${v} ms`}
+          resetTo={DUCKING_DEFAULTS.attack}
+          onChange={(v) => {
+            onChange(nextDucking(current, 'attack', v));
+          }}
+        />
+        <RangeSlider
+          label={t('audio.duckingRelease')}
+          value={knob('release')}
+          min={10}
+          max={2000}
+          step={10}
+          format={(v) => `${v} ms`}
+          resetTo={DUCKING_DEFAULTS.release}
+          onChange={(v) => {
+            onChange(nextDucking(current, 'release', v));
+          }}
+        />
+      </div>
+    </SectionDisclosure>
   );
 };

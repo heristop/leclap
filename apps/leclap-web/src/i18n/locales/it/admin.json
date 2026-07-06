@@ -115,7 +115,8 @@
       },
       "io": {
         "label": "Importa / esporta",
-        "hint": "Esporta questo modello come JSON, oppure importa un descrittore per sostituire quello attuale."
+        "hint": "Esporta questo modello come JSON, oppure importa un descrittore per sostituire quello attuale.",
+        "importSuccess": "Modello importato."
       }
     },
     "variables": {
@@ -356,12 +357,17 @@
     "normalizeOff": "Off",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dinamico",
+    "normalizeHintOff": "Il volume resta esattamente come registrato.",
+    "normalizeHintLoudnorm": "Uniforma tutto il video a un livello di volume standard.",
+    "normalizeHintDynamic": "Attenua le variazioni di volume in tempo reale durante la riproduzione.",
     "ducking": "Abbassa la musica quando si parla",
     "duckingAdvanced": "Ducking avanzato",
     "duckingThreshold": "Soglia",
     "duckingRatio": "Rapporto",
     "duckingAttack": "Attacco",
-    "duckingRelease": "Rilascio"
+    "duckingRelease": "Rilascio",
+    "duckingTuned_one": "{{count}} regolazione personalizzata",
+    "duckingTuned_other": "{{count}} regolazioni personalizzate"
   },
   "sectionAudio": {
     "label": "Audio della sezione",
@@ -373,7 +379,29 @@
     "duration": "Durata",
     "fadeDuration": "Durata di {{side}} in secondi",
     "curve": "Curva",
-    "fadeCurve": "Curva di {{side}}"
+    "fadeCurve": "Curva di {{side}}",
+    "curves": {
+      "tri": "Lineare (tri)",
+      "qsin": "Quarto di seno (qsin)",
+      "hsin": "Mezzo seno (hsin)",
+      "esin": "Seno esponenziale (esin)",
+      "log": "Logaritmica (log)",
+      "ipar": "Parabola invertita (ipar)",
+      "qua": "Quadratica (qua)",
+      "cub": "Cubica (cub)",
+      "squ": "Radice quadrata (squ)",
+      "cbr": "Radice cubica (cbr)",
+      "par": "Parabola (par)",
+      "exp": "Esponenziale (exp)",
+      "iqsin": "Quarto di seno invertito (iqsin)",
+      "ihsin": "Mezzo seno invertito (ihsin)",
+      "dese": "Plateau doppio esponenziale (dese)",
+      "desi": "Sigmoide doppia esponenziale (desi)",
+      "losi": "Sigmoide logistica (losi)",
+      "sinc": "Seno cardinale (sinc)",
+      "isinc": "Seno cardinale invertito (isinc)",
+      "nofade": "Nessuna dissolvenza (nofade)"
+    }
   },
   "framing": {
     "label": "Guida di inquadratura",
@@ -452,6 +480,8 @@
     "borderColor": "Colore del contorno",
     "borderWidth": "Spessore del contorno",
     "borderHint": "Tratto disegnato lungo il bordo del livello, sopra il riempimento.",
+    "revealHintSolid": "I livelli a tinta unita appaiono al ritardo scelto (senza dissolvenza) — usa un livello sfumato per una dissolvenza o uno scorrimento.",
+    "revealHintGradient": "I livelli sfumati appaiono con dissolvenza o scorrimento secondo l'ingresso scelto.",
     "add": "Aggiungi livello"
   },
   "look": {
@@ -514,7 +544,10 @@
     "loopsLabel": "Numero di loop",
     "secondsLabel_one": "Durata (secondo)",
     "secondsLabel_other": "Durata (secondi)",
-    "startLabel": "Inizia a (s)",
+    "startLabel": "Inizia a",
+    "summaryLoops_one": "{{count}} loop",
+    "summaryLoops_other": "{{count}} loop",
+    "summaryFrom": "da {{seconds}}s",
     "keepLastFrame": "Mantieni l’ultimo frame",
     "dragHint": "Trascina per spostare · angolo per ridimensionare · frecce per piccoli spostamenti",
     "reset": "Ripristina i valori predefiniti",
@@ -550,7 +583,8 @@
     "detachHint": "Trasforma questo blocco in elementi di testo liberi da trascinare ovunque — il layout automatico va perso.",
     "addCaption": "Didascalia",
     "addTitleCard": "Scheda titolo",
-    "addLowerThird": "Sottopancia"
+    "addLowerThird": "Sottopancia",
+    "sugarGroup": "Testi predefiniti"
   },
   "shape": {
     "kind": "Forma",
@@ -625,8 +659,10 @@
     "add": "Aggiungi un’immagine",
     "label": "Immagine",
     "remove": "Rimuovi immagine",
-    "startLabel": "Appare a (s)",
-    "endLabel": "Scompare a (s)",
+    "startLabel": "Appare a",
+    "endLabel": "Scompare a",
+    "timingGroup": "Tempi e entrata",
+    "windowHint": "Secondi all'interno della scena — 0 lascia quel lato aperto.",
     "count_one": "{{count}} immagine",
     "count_other": "{{count}} immagini"
   },
@@ -758,7 +794,9 @@
   "exit": {
     "label": "Uscita",
     "after": "Inizia dopo",
-    "summaryDefault": "termina alla fine della sezione"
+    "summaryDefault": "termina alla fine della sezione",
+    "auto": "Auto",
+    "afterHint": "Lascia invariato e l'uscita terminerà con la scena; trascina per avviarla a un momento preciso."
   },
   "textEffect": {
     "label": "Leggibilità",

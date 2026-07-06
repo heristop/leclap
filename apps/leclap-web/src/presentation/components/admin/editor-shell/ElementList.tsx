@@ -158,6 +158,8 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
       <button
         type="button"
         aria-pressed={active}
+        // The preview text truncates in the narrow panel; the title surfaces the full text on hover.
+        title={descriptor.previewText}
         onClick={() => {
           onSelect(ref);
         }}

@@ -8,15 +8,15 @@ import { useState } from 'react';
 import { Music, Camera, SwitchCamera, Type } from '@/presentation/components/icons';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, SegmentedControl } from '@/presentation/components/ui';
+import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';
-import { MediaPicker } from '../../MediaPicker';
 import { VariableTextField } from '../VariableTextField';
 import { FramingGuidePicker } from '../FramingGuidePicker';
 import { MotionPanel } from '../MotionPanel';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
 import { effectsSummary, audioSummary, framingSummary, captureSummary } from '../sectionHints';
+import { ClipSourceControl, type ClipSource } from './clip-source-control';
 import { NumberField } from './NumberField';
 import { SpeedField } from './SpeedField';
 import { FitField } from './fit-field';
@@ -35,54 +35,6 @@ interface VideoFieldsProps {
   onChange: (p: Partial<EditorSection>) => void;
   inputCls: string;
 }
-
-type ClipSource = 'camera' | 'clip';
-
-// The scene-source toggle (camera vs fixed clip) and, in clip mode, the video picker.
-const ClipSourceControl = ({
-  section,
-  source,
-  onSelectSource,
-  onChange,
-}: {
-  section: VideoSection;
-  source: ClipSource;
-  onSelectSource: (source: ClipSource) => void;
-  onChange: (p: Partial<EditorSection>) => void;
-}) => {
-  const { t } = useTranslation('admin');
-
-  return (
-    <>
-      <div>
-        <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-          {t('video.source')}
-        </span>
-        <SegmentedControl
-          ariaLabel={t('video.source')}
-          value={source}
-          onChange={(value) => {
-            onSelectSource(value as ClipSource);
-          }}
-          options={[
-            { value: 'camera', label: t('video.sourceCamera') },
-            { value: 'clip', label: t('video.sourceClip') },
-          ]}
-        />
-        <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">{t('video.sourceHint')}</span>
-      </div>
-      {source === 'clip' && (
-        <MediaPicker
-          kind="video"
-          value={section.videoUrl ?? null}
-          onChange={(choice) => {
-            onChange({ videoUrl: choice ?? undefined });
-          }}
-        />
-      )}
-    </>
-  );
-};
 
 // Camera-only essentials: the filming prompt and the pre-record countdown.
 const RecorderPromptFields = ({

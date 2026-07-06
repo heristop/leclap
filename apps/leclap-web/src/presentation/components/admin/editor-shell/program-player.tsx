@@ -6,10 +6,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EditorState } from '../templateEditorModel';
 import { sceneClockAt, transitionAt, kenburnsTransformAt, type Segment } from './program-timeline.logic';
-import { overlayVisibilityAt } from './overlay-visibility.logic';
+import { overlayVisibilityAt, type OverlayVisibility } from './overlay-visibility.logic';
+import { imageVisibilityAt, layerVisibilityAt } from './element-visibility.logic';
 import { transitionBlendAt, type BlendLayerStyle } from './transition-blend.logic';
 import { useFrameHeight } from './SugarPreviewLayer';
-import { ProgramScene, type ProgramSceneHandles, type VisualSection } from './program-scene';
+import { ProgramScene, sceneImages, sceneLayers, type ProgramSceneHandles, type VisualSection } from './program-scene';
 import type { ProgramClock } from './use-program-clock';
 
 interface Mounted {
@@ -29,7 +30,16 @@ function writeBlend(el: HTMLDivElement | null, style: BlendLayerStyle): void {
   el.style.filter = style.filter ?? '';
 }
 
-// Paint one mounted scene at its local clock: backdrop Ken Burns + per-overlay reveal/exit.
+// Write one sampled visibility onto an animation wrapper element.
+function writeVisibility(el: HTMLDivElement | null, vis: OverlayVisibility): void {
+  if (!el) return;
+
+  el.style.opacity = String(vis.opacity);
+  el.style.transform = `translate(${vis.translateX.toFixed(2)}px, ${vis.translateY.toFixed(2)}px)`;
+}
+
+// Paint one mounted scene at its local clock: backdrop Ken Burns + per-overlay reveal/exit +
+// per-image show-window/motion + per-layer reveal.
 function paintScene(
   handles: ProgramSceneHandles | null,
   section: VisualSection,
@@ -47,9 +57,17 @@ function paintScene(
 
     if (!el) continue;
 
-    const vis = overlayVisibilityAt(overlay.reveal, overlay.exit, localT, duration);
-    el.style.opacity = String(vis.opacity);
-    el.style.transform = `translate(${vis.translateX.toFixed(2)}px, ${vis.translateY.toFixed(2)}px)`;
+    writeVisibility(el, overlayVisibilityAt(overlay.reveal, overlay.exit, localT, duration));
+  }
+
+  // Still-image / shape overlays: show window + `motion` entrance (element-visibility.logic).
+  for (const [i, image] of sceneImages(section).entries()) {
+    writeVisibility(handles.images[i] ?? null, imageVisibilityAt(image, localT, duration));
+  }
+
+  // Background layers: gradient layers animate their reveal; solid layers pop at the delay.
+  for (const [i, layer] of sceneLayers(section).entries()) {
+    writeVisibility(handles.layers[i] ?? null, layerVisibilityAt(layer, localT, duration));
   }
 }
 

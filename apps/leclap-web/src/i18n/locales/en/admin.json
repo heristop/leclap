@@ -115,7 +115,8 @@
       },
       "io": {
         "label": "Import / export",
-        "hint": "Export this template as JSON, or import a descriptor to replace the current one."
+        "hint": "Export this template as JSON, or import a descriptor to replace the current one.",
+        "importSuccess": "Template imported."
       }
     },
     "variables": {
@@ -356,12 +357,17 @@
     "normalizeOff": "Off",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dynamic",
+    "normalizeHintOff": "Loudness is left exactly as recorded.",
+    "normalizeHintLoudnorm": "Evens the whole video out to a broadcast-standard loudness.",
+    "normalizeHintDynamic": "Smooths volume swings in real time as the video plays.",
     "ducking": "Lower music when people speak",
     "duckingAdvanced": "Advanced ducking",
     "duckingThreshold": "Threshold",
     "duckingRatio": "Ratio",
     "duckingAttack": "Attack",
-    "duckingRelease": "Release"
+    "duckingRelease": "Release",
+    "duckingTuned_one": "{{count}} setting tuned",
+    "duckingTuned_other": "{{count}} settings tuned"
   },
   "sectionAudio": {
     "label": "Section audio",
@@ -373,7 +379,29 @@
     "duration": "Duration",
     "fadeDuration": "{{side}} duration in seconds",
     "curve": "Curve",
-    "fadeCurve": "{{side}} curve"
+    "fadeCurve": "{{side}} curve",
+    "curves": {
+      "tri": "Linear (tri)",
+      "qsin": "Quarter sine (qsin)",
+      "hsin": "Half sine (hsin)",
+      "esin": "Exponential sine (esin)",
+      "log": "Logarithmic (log)",
+      "ipar": "Inverted parabola (ipar)",
+      "qua": "Quadratic (qua)",
+      "cub": "Cubic (cub)",
+      "squ": "Square root (squ)",
+      "cbr": "Cubic root (cbr)",
+      "par": "Parabola (par)",
+      "exp": "Exponential (exp)",
+      "iqsin": "Inverted quarter sine (iqsin)",
+      "ihsin": "Inverted half sine (ihsin)",
+      "dese": "Double-exponential seat (dese)",
+      "desi": "Double-exponential sigmoid (desi)",
+      "losi": "Logistic sigmoid (losi)",
+      "sinc": "Sine cardinal (sinc)",
+      "isinc": "Inverted sine cardinal (isinc)",
+      "nofade": "No fade (nofade)"
+    }
   },
   "framing": {
     "label": "Framing guide",
@@ -452,6 +480,8 @@
     "borderColor": "Outline color",
     "borderWidth": "Outline width",
     "borderHint": "Stroke drawn along the layer's edge, over the fill.",
+    "revealHintSolid": "Solid layers appear at the delay (no fade) — use a gradient layer for a soft fade or slide.",
+    "revealHintGradient": "Gradient layers fade or slide in with the chosen entrance.",
     "add": "Add layer"
   },
   "look": {
@@ -514,7 +544,10 @@
     "loopsLabel": "Number of loops",
     "secondsLabel_one": "Duration (second)",
     "secondsLabel_other": "Duration (seconds)",
-    "startLabel": "Start at (s)",
+    "startLabel": "Start at",
+    "summaryLoops_one": "{{count}} loop",
+    "summaryLoops_other": "{{count}} loops",
+    "summaryFrom": "from {{seconds}}s",
     "keepLastFrame": "Keep last frame",
     "dragHint": "Drag to move · corner to resize · arrows to nudge",
     "reset": "Reset to default",
@@ -550,7 +583,8 @@
     "detachHint": "Turns this block into free text elements you can drag anywhere — its automatic layout is lost.",
     "addCaption": "Caption",
     "addTitleCard": "Title card",
-    "addLowerThird": "Lower third"
+    "addLowerThird": "Lower third",
+    "sugarGroup": "Ready-made text"
   },
   "shape": {
     "kind": "Shape",
@@ -625,8 +659,10 @@
     "add": "Add an image",
     "label": "Image",
     "remove": "Remove image",
-    "startLabel": "Appears at (s)",
-    "endLabel": "Disappears at (s)",
+    "startLabel": "Appears at",
+    "endLabel": "Disappears at",
+    "timingGroup": "Timing & entrance",
+    "windowHint": "Seconds within the scene — 0 keeps that side open.",
     "count_one": "{{count}} image",
     "count_other": "{{count}} images"
   },
@@ -758,7 +794,9 @@
   "exit": {
     "label": "Exit",
     "after": "Starts after",
-    "summaryDefault": "ends at section end"
+    "summaryDefault": "ends at section end",
+    "auto": "Auto",
+    "afterHint": "Leave untouched and the exit finishes with the scene; drag to start it at a fixed time."
   },
   "textEffect": {
     "label": "Legibility",

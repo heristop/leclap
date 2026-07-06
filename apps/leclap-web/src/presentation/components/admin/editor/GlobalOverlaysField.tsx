@@ -44,6 +44,9 @@ const POSITION_GRID: ReadonlyArray<Position | null> = [
 ];
 
 const DEFAULT_COLOR = '#ffffff';
+// Sentinel for the "no font override" Select item (Radix reserves the empty string), mapped back to
+// deleting `font` on change so picking a font stays reversible.
+const FONT_DEFAULT = '__default__';
 // Mirrors the engine's fallback (round(h * 0.03) at 1080p landscape) so the untouched field shows
 // what actually renders.
 const DEFAULT_SIZE = 32;
@@ -72,8 +75,7 @@ export const GlobalOverlaysField = ({ overlays, variables, sectionNames, patch }
   };
 
   // Collapsed summary: how many watermark lines are configured (the disclosure's at-a-glance state).
-  const summary =
-    overlays.length === 0 ? t('summaryChip.none') : t('globalOverlay.count', { count: overlays.length });
+  const summary = overlays.length === 0 ? t('summaryChip.none') : t('globalOverlay.count', { count: overlays.length });
 
   return (
     <SectionDisclosure label={t('globalOverlay.label')} summary={summary}>
@@ -269,15 +271,16 @@ const OverlayAdvanced = ({
             {t('globalOverlay.font')}
           </span>
           <Select
-            value={overlay.font ?? ''}
+            value={overlay.font ?? FONT_DEFAULT}
             onValueChange={(font) => {
-              onChange({ ...overlay, font });
+              onChange(font === FONT_DEFAULT ? withoutFont(overlay) : { ...overlay, font });
             }}
           >
             <SelectTrigger aria-label={t('globalOverlay.font')} className="w-full">
               <SelectValue placeholder={t('globalOverlay.fontDefault')} />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value={FONT_DEFAULT}>{t('globalOverlay.fontDefault')}</SelectItem>
               {FONTS.map((font) => (
                 <SelectItem key={font.id} value={font.id} style={{ fontFamily: font.cssFamily }}>
                   {font.label}
@@ -317,7 +320,9 @@ const OverlayAdvanced = ({
             }}
           />
         </fieldset>
-        {hasReveal && <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{t('globalOverlay.opacityRevealNote')}</p>}
+        {hasReveal && (
+          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{t('globalOverlay.opacityRevealNote')}</p>
+        )}
       </div>
       <OverlaySectionsControl overlay={overlay} sectionNames={sectionNames} onChange={onChange} />
     </SectionDisclosure>
@@ -326,6 +331,12 @@ const OverlayAdvanced = ({
 
 function withoutOpacity(overlay: GlobalTextOverlay): GlobalTextOverlay {
   const { opacity: _opacity, ...rest } = overlay;
+
+  return rest;
+}
+
+function withoutFont(overlay: GlobalTextOverlay): GlobalTextOverlay {
+  const { font: _font, ...rest } = overlay;
 
   return rest;
 }

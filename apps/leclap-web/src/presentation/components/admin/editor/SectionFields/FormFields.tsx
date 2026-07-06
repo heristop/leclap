@@ -17,7 +17,9 @@ interface FormFieldsProps {
 
 // id | label | max-length | delete — one template shared by the header and every row so the columns
 // line up. The max-length column is narrow (just a 2-digit counter) and the delete column is icon-sized.
-const COLS = 'grid grid-cols-[1fr_1fr_5rem_2.25rem] gap-2';
+// minmax(0,1fr) lets the text inputs shrink below their intrinsic width so a 320px panel never
+// horizontal-scrolls.
+const COLS = 'grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5rem_2.25rem] gap-2';
 const COL_LABEL = 'self-end px-1 text-[0.65rem] font-semibold uppercase leading-tight tracking-wider text-gray-500';
 // One height for all three controls so the row reads as a single aligned set.
 const FIELD_H = 'h-10';

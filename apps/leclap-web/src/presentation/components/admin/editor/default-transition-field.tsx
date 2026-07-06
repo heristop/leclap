@@ -4,6 +4,7 @@
 // touching each boundary chip. Reuses the boundary picker's grouped dialog (TransitionGrid).
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MAX_TRANSITION_DURATION } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import { Scissors } from '@/presentation/components/icons';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
@@ -58,7 +59,7 @@ export const DefaultTransitionField = ({ value, onChange }: DefaultTransitionFie
                 label={t('transition.duration')}
                 value={value.duration}
                 min={0.1}
-                max={2}
+                max={MAX_TRANSITION_DURATION}
                 step={0.1}
                 format={(v) => `${v.toFixed(1)}s`}
                 onChange={(duration) => {

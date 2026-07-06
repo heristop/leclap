@@ -27,7 +27,11 @@ export const LookGallery = ({ look, onChange }: LookGalleryProps) => {
       <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
         {t('look.label')}
       </span>
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="radiogroup" aria-label={t('look.preset')}>
+      <div
+        className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1"
+        role="radiogroup"
+        aria-label={t('look.preset')}
+      >
         {options.map((option) => (
           <LookCard
             key={option.label}
@@ -58,7 +62,7 @@ const LookCard = ({ label, filter, active, onSelect }: LookCardProps) => (
     aria-checked={active}
     onClick={onSelect}
     className={cn(
-      'shrink-0 rounded-xl border p-1 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+      'shrink-0 snap-start rounded-xl border p-1 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
       active
         ? 'border-brand-500 bg-brand-500/10'
         : 'border-foreground/10 hover:border-brand-500/40 hover:bg-foreground/5'

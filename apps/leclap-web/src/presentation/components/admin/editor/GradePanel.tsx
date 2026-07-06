@@ -52,6 +52,8 @@ interface SliderSpec {
   min: number;
   max: number;
   step: number;
+  /** Value-chip formatter — units the raw readout (degrees, pixels) where one applies. */
+  format?: (value: number) => string;
 }
 
 const SLIDERS: SliderSpec[] = [
@@ -59,8 +61,8 @@ const SLIDERS: SliderSpec[] = [
   { key: 'contrast', min: 0, max: 2, step: 0.05 },
   { key: 'saturation', min: 0, max: 3, step: 0.05 },
   { key: 'gamma', min: 0.1, max: 3, step: 0.05 },
-  { key: 'hue', min: -180, max: 180, step: 1 },
-  { key: 'blur', min: 0, max: 20, step: 0.5 },
+  { key: 'hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
+  { key: 'blur', min: 0, max: 20, step: 0.5, format: (v) => `${v}px` },
 ];
 
 export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
@@ -133,6 +135,7 @@ export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
                   min={spec.min}
                   max={spec.max}
                   step={spec.step}
+                  format={spec.format}
                   resetTo={GRADE_DEFAULTS[spec.key]}
                   onChange={(v) => {
                     setField(spec.key, v);
@@ -192,10 +195,21 @@ const ColorBalanceBlock = ({
         className="tap flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
       >
         {t('grade.colorBalance')}
-        {active && (
+        {active && open && (
           <span className="h-1.5 w-1.5 rounded-full bg-brand-500" role="img" aria-label={t('grade.customised')} />
         )}
-        <ChevronDownIcon size={16} className={cn('ml-auto transition-transform', open && 'rotate-180')} />
+        {/* Collapsed at-a-glance state: which tonal ranges carry a shift ("Shadows · Highlights"). */}
+        {active && !open && (
+          <span className="ml-auto shrink-0 truncate rounded-md bg-foreground/[0.06] px-2 py-0.5 text-[0.7rem] font-medium normal-case tracking-normal text-gray-500 dark:text-gray-400">
+            {COLOR_BALANCE_RANGES.filter((range) => grade.colorBalance?.[range])
+              .map((range) => t(`grade.${range}`))
+              .join(' · ')}
+          </span>
+        )}
+        <ChevronDownIcon
+          size={16}
+          className={cn('shrink-0 transition-transform', open && 'rotate-180', (open || !active) && 'ml-auto')}
+        />
       </button>
       {open && (
         <div className="space-y-3 px-3 pb-3">

@@ -247,7 +247,8 @@ const DirectionButton = ({
         onChange(dir);
       }}
       className={cn(
-        'tap grid aspect-square place-items-center rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+        // Fixed 44px square: a real touch target that wraps to a second row on narrow panels.
+        'tap grid size-11 place-items-center rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
         active
           ? 'border-brand-500 bg-brand-500/15 text-brand-600 dark:text-brand-300'
           : 'border-foreground/10 text-gray-500 hover:border-brand-500/40 hover:text-foreground'
@@ -268,7 +269,7 @@ const DirectionGrid = ({
   t: TFunction<'admin'>;
   onChange: (d: Direction) => void;
 }) => (
-  <div role="radiogroup" aria-label={t('motion.direction')} className="grid grid-cols-6 gap-1.5">
+  <div role="radiogroup" aria-label={t('motion.direction')} className="flex flex-wrap gap-1.5">
     {DIRECTIONS.map(({ value: dir, icon, titleKey }) => (
       <DirectionButton
         key={dir}

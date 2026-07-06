@@ -1,7 +1,7 @@
 // The styling controls for a single selected text overlay, lifted out of the legacy OverlayCanvas:
 // font, size, insert-variable, delete, color, and the optional background box. No canvas/preview here
 // — these render in the left OverlayInspector and patch the overlay through `onPatch`.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { Trash2, Type } from '@/presentation/components/icons';
 import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
@@ -295,7 +295,9 @@ const FontSelect = ({
 );
 
 // "Insert variable ▾" dropdown. Lists the available variable names; choosing one inserts
-// `{{ name }}`. Disabled when there are no variables.
+// `{{ name }}`. Disabled when there are no variables. Dismissal mirrors AddElementMenu
+// (outside-click + Escape) so keyboard users can Tab from the trigger onto the items — a
+// close-on-blur trigger would slam the menu shut before focus ever reaches them.
 const VariableMenu = ({
   variables,
   t,
@@ -306,8 +308,34 @@ const VariableMenu = ({
   onInsert: (name: string) => void;
 }) => {
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const disabled = variables.length === 0;
   const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
+
+  useEffect(() => {
+    const onPointer = (event: MouseEvent) => {
+      if (rootRef.current?.contains(event.target as Node)) return;
+
+      setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+
+      setOpen(false);
+      // Hand focus back to the trigger so keyboard users don't drop to the document body.
+      rootRef.current?.querySelector('button')?.focus();
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', onPointer);
+      document.addEventListener('keydown', onKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   if (disabled) {
     return (
@@ -317,8 +345,15 @@ const VariableMenu = ({
     );
   }
 
+  const pick = (name: string) => {
+    onInsert(name);
+    setOpen(false);
+    // The clicked item unmounts with the popover; without this, focus falls to <body>.
+    rootRef.current?.querySelector('button')?.focus();
+  };
+
   return (
-    <div className="relative">
+    <div className="relative" ref={rootRef}>
       <Button
         type="button"
         variant="secondary"
@@ -328,9 +363,6 @@ const VariableMenu = ({
         onClick={() => {
           setOpen((v) => !v);
         }}
-        onBlur={() => {
-          setOpen(false);
-        }}
         {...chevronHoverProps}
       >
         {t('overlay.insertVariable')} <ChevronDownIcon ref={chevronRef} size={14} />
@@ -338,6 +370,7 @@ const VariableMenu = ({
       {open && (
         <div
           role="menu"
+          aria-label={t('overlay.insertVariable')}
           className="absolute z-10 mt-1 max-h-48 min-w-[10rem] overflow-auto rounded-xl border border-divider bg-surface p-1 shadow-[var(--shadow-lg)]"
         >
           {variables.map((name) => (
@@ -345,14 +378,12 @@ const VariableMenu = ({
               key={name}
               type="button"
               role="menuitem"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                onInsert(name);
-                setOpen(false);
+              onClick={() => {
+                pick(name);
               }}
-              className="tap flex min-h-10 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40"
+              className="tap flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40"
             >
-              <Type className="h-3.5 w-3.5 text-gray-400" /> {name}
+              <Type className="h-3.5 w-3.5 text-gray-400" aria-hidden /> {name}
             </button>
           ))}
         </div>

@@ -82,17 +82,22 @@ export const ExitControl = ({ exit, onChange }: ExitControlProps) => {
       />
       {current.type !== 'none' && (
         <SectionDisclosure label={t('reveal.advanced')} summary={timingSummary(t, current)}>
-          <RangeSlider
-            label={t('exit.after')}
-            value={current.after ?? DEFAULT_AFTER}
-            min={0}
-            max={10}
-            step={0.1}
-            format={(v) => `${v}s`}
-            onChange={(after) => {
-              set({ after });
-            }}
-          />
+          <div>
+            <RangeSlider
+              label={t('exit.after')}
+              value={current.after ?? DEFAULT_AFTER}
+              min={0}
+              max={10}
+              step={0.1}
+              // Until the author drags, the engine times the exit itself — say so instead of
+              // showing a start time that isn't stored.
+              format={(v) => (current.after === undefined ? t('exit.auto') : `${v}s`)}
+              onChange={(after) => {
+                set({ after });
+              }}
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('exit.afterHint')}</p>
+          </div>
           <RangeSlider
             label={t('reveal.duration')}
             value={current.duration ?? DEFAULT_DURATION}

@@ -1,6 +1,7 @@
 // Author-defined template constants. Each row is a {name, value} pair that buildDescriptor merges into
 // global.variables; insertable as {{ name }} in any overlay text. Extracted from TemplateEditor so both
 // the legacy editor and the studio shell's Variables panel render the exact same authoring UI.
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from '@/presentation/components/icons';
 import { PlusIcon } from '@/presentation/components/icons/plus';
@@ -19,6 +20,9 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
   const { t } = useTranslation('admin');
   const { globalVariables } = state;
   const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
+  // Index of a just-added row: its key input grabs focus on mount so "Add variable" flows straight
+  // into typing the name (add + type = one uninterrupted gesture, no extra click).
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
 
   const update = (i: number, p: Partial<EditorState['globalVariables'][number]>) => {
     patch({ globalVariables: globalVariables.map((v, idx) => (idx === i ? { ...v, ...p } : v)) });
@@ -40,6 +44,12 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
                 #
               </span>
               <input
+                ref={(node) => {
+                  if (!node || focusIndex !== i) return;
+
+                  node.focus();
+                  setFocusIndex(null);
+                }}
                 aria-label={t('editor.variables.name', { index: i + 1 })}
                 className={`${EDITOR_INPUT_CLASS} pl-7`}
                 value={variable.name}
@@ -88,6 +98,7 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
         <button
           type="button"
           onClick={() => {
+            setFocusIndex(globalVariables.length);
             patch({ globalVariables: [...globalVariables, { name: '', value: '' }] });
           }}
           className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"

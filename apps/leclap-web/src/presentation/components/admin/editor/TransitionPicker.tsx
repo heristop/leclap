@@ -8,6 +8,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import {
+  DEFAULT_TRANSITION_DURATION,
+  MAX_TRANSITION_DURATION,
+} from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import { Scissors } from '@/presentation/components/icons';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
@@ -27,19 +31,26 @@ interface TransitionPickerProps {
 }
 
 const GROUPS = transitionGroups();
-const DEFAULT_DURATION = 0.5;
 
 // Tile label for one xfade name — the same capitalisation the boundary chip uses (transitionLabel),
 // so the grid never shows an all-lowercase raw engine id next to a title-cased chip.
 const prettyName = (name: string): string => name.charAt(0).toUpperCase() + name.slice(1);
+
+// The duration the dialog edits: the override's, else the template default's, else the engine default.
+const boundaryDuration = (transition: SectionTransition | undefined, fallback: DefaultTransition | undefined) =>
+  transition?.duration ?? fallback?.duration ?? DEFAULT_TRANSITION_DURATION;
+
+// Which tile the grid highlights: the override's type, else the default tile / plain cut.
+const currentTile = (transition: SectionTransition | undefined, fallback: DefaultTransition | undefined) =>
+  transition?.type ?? (hasNonCutDefault(fallback) ? DEFAULT_TILE : 'cut');
 
 export const TransitionPicker = ({ transition, onChange, defaultTransition }: TransitionPickerProps) => {
   const { t } = useTranslation('admin');
   const [open, setOpen] = useState(false);
   const effective = effectiveBoundary(transition, defaultTransition);
   const isCut = effective.type === 'cut';
-  const duration = transition?.duration ?? defaultTransition?.duration ?? DEFAULT_DURATION;
-  const current = transition?.type ?? (hasNonCutDefault(defaultTransition) ? DEFAULT_TILE : 'cut');
+  const duration = boundaryDuration(transition, defaultTransition);
+  const current = currentTile(transition, defaultTransition);
 
   const pick = (type: string) => {
     onChange(boundaryPick(type, duration, defaultTransition));
@@ -71,18 +82,21 @@ export const TransitionPicker = ({ transition, onChange, defaultTransition }: Tr
             <DialogTitle>{t('transition.title')}</DialogTitle>
             <DialogDescription>{t('transition.description')}</DialogDescription>
           </DialogHeader>
-          {transition && transition.type !== 'cut' && (
+          {/* Shown whenever the boundary renders a real transition — including one inherited from the
+              template default: dragging then stores an override with the same type, so tuning the
+              duration is a single interaction instead of pick-a-tile-first. */}
+          {!isCut && (
             <div className="mb-3">
               <RangeSlider
                 label={t('transition.duration')}
                 value={duration}
                 min={0.1}
-                max={2}
+                max={MAX_TRANSITION_DURATION}
                 step={0.1}
                 format={(v) => `${v.toFixed(1)}s`}
-                resetTo={defaultTransition?.duration ?? DEFAULT_DURATION}
+                resetTo={defaultTransition?.duration ?? DEFAULT_TRANSITION_DURATION}
                 onChange={(d) => {
-                  onChange({ type: transition.type, duration: d });
+                  onChange({ type: effective.type, duration: d });
                 }}
               />
             </div>

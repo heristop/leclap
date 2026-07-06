@@ -3,6 +3,7 @@
 // is a straight concatenation — it deliberately ignores the xfade overlap that shortens the final
 // render, keeping time→scene mapping monotone and the scrubber linear (documented preview-vs-render
 // length difference).
+import { DEFAULT_TRANSITION_DURATION } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { DefaultTransition, EditorSection, MotionEffect, SectionTransition } from '../templateEditorModel';
 import { previewFamilyFor, type PreviewFamily } from '../editor/transitionGroups';
 
@@ -12,8 +13,6 @@ export type VisualKind = 'video' | 'color' | 'image';
 // zero-collapse the timeline.
 export const DEFAULT_SEGMENT_DURATION = 3;
 
-// The default xfade blend window when a transition carries no explicit duration.
-const DEFAULT_TRANSITION_DURATION = 0.5;
 
 export interface Segment {
   index: number; // index into the ORIGINAL sections array (for selection sync)

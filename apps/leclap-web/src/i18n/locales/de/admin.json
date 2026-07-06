@@ -115,7 +115,8 @@
       },
       "io": {
         "label": "Import / Export",
-        "hint": "Exportiere diese Vorlage als JSON oder importiere einen Deskriptor, um die aktuelle zu ersetzen."
+        "hint": "Exportiere diese Vorlage als JSON oder importiere einen Deskriptor, um die aktuelle zu ersetzen.",
+        "importSuccess": "Vorlage importiert."
       }
     },
     "variables": {
@@ -356,12 +357,17 @@
     "normalizeOff": "Aus",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dynamisch",
+    "normalizeHintOff": "Die Lautheit bleibt genau wie aufgenommen.",
+    "normalizeHintLoudnorm": "Gleicht das ganze Video auf Sendestandard-Lautheit an.",
+    "normalizeHintDynamic": "Glättet Lautstärkeschwankungen in Echtzeit während der Wiedergabe.",
     "ducking": "Musik leiser, wenn jemand spricht",
     "duckingAdvanced": "Erweitertes Ducking",
     "duckingThreshold": "Schwelle",
     "duckingRatio": "Verhältnis",
     "duckingAttack": "Attack",
-    "duckingRelease": "Release"
+    "duckingRelease": "Release",
+    "duckingTuned_one": "{{count}} Regler angepasst",
+    "duckingTuned_other": "{{count}} Regler angepasst"
   },
   "sectionAudio": {
     "label": "Abschnitts-Audio",
@@ -373,7 +379,29 @@
     "duration": "Dauer",
     "fadeDuration": "{{side}}-Dauer in Sekunden",
     "curve": "Kurve",
-    "fadeCurve": "{{side}}-Kurve"
+    "fadeCurve": "{{side}}-Kurve",
+    "curves": {
+      "tri": "Linear (tri)",
+      "qsin": "Viertelsinus (qsin)",
+      "hsin": "Halbsinus (hsin)",
+      "esin": "Exponentialsinus (esin)",
+      "log": "Logarithmisch (log)",
+      "ipar": "Umgekehrte Parabel (ipar)",
+      "qua": "Quadratisch (qua)",
+      "cub": "Kubisch (cub)",
+      "squ": "Quadratwurzel (squ)",
+      "cbr": "Kubikwurzel (cbr)",
+      "par": "Parabel (par)",
+      "exp": "Exponentiell (exp)",
+      "iqsin": "Umgekehrter Viertelsinus (iqsin)",
+      "ihsin": "Umgekehrter Halbsinus (ihsin)",
+      "dese": "Doppelexponentielles Plateau (dese)",
+      "desi": "Doppelexponentielles Sigmoid (desi)",
+      "losi": "Logistisches Sigmoid (losi)",
+      "sinc": "Sinus cardinalis (sinc)",
+      "isinc": "Umgekehrter Sinus cardinalis (isinc)",
+      "nofade": "Keine Blende (nofade)"
+    }
   },
   "framing": {
     "label": "Bildausschnitt-Hilfe",
@@ -452,6 +480,8 @@
     "borderColor": "Konturfarbe",
     "borderWidth": "Konturbreite",
     "borderHint": "Linie entlang der Ebenenkante, über der Füllung gezeichnet.",
+    "revealHintSolid": "Einfarbige Ebenen erscheinen zur gewählten Verzögerung (ohne Überblendung) — für weiches Ein- oder Hereingleiten eine Verlaufsebene verwenden.",
+    "revealHintGradient": "Verlaufsebenen blenden oder gleiten mit dem gewählten Auftritt ein.",
     "add": "Ebene hinzufügen"
   },
   "look": {
@@ -514,7 +544,10 @@
     "loopsLabel": "Anzahl der Schleifen",
     "secondsLabel_one": "Dauer (Sekunde)",
     "secondsLabel_other": "Dauer (Sekunden)",
-    "startLabel": "Start bei (s)",
+    "startLabel": "Start bei",
+    "summaryLoops_one": "{{count}} Schleife",
+    "summaryLoops_other": "{{count}} Schleifen",
+    "summaryFrom": "ab {{seconds}}s",
     "keepLastFrame": "Letztes Bild behalten",
     "dragHint": "Ziehen zum Bewegen · Ecke zum Skalieren · Pfeile zum Justieren",
     "reset": "Auf Standard zurücksetzen",
@@ -550,7 +583,8 @@
     "detachHint": "Wandelt diesen Block in frei verschiebbare Textelemente um — das automatische Layout geht verloren.",
     "addCaption": "Untertitel",
     "addTitleCard": "Titelkarte",
-    "addLowerThird": "Bauchbinde"
+    "addLowerThird": "Bauchbinde",
+    "sugarGroup": "Vorgefertigte Texte"
   },
   "shape": {
     "kind": "Form",
@@ -625,8 +659,10 @@
     "add": "Ein Bild hinzufügen",
     "label": "Bild",
     "remove": "Bild entfernen",
-    "startLabel": "Erscheint bei (s)",
-    "endLabel": "Verschwindet bei (s)",
+    "startLabel": "Erscheint bei",
+    "endLabel": "Verschwindet bei",
+    "timingGroup": "Timing & Eingang",
+    "windowHint": "Sekunden innerhalb der Szene — 0 lässt diese Seite offen.",
     "count_one": "{{count}} Bild",
     "count_other": "{{count}} Bilder"
   },
@@ -758,7 +794,9 @@
   "exit": {
     "label": "Ausgang",
     "after": "Startet nach",
-    "summaryDefault": "endet am Abschnittsende"
+    "summaryDefault": "endet am Abschnittsende",
+    "auto": "Auto",
+    "afterHint": "Unverändert endet der Abgang mit der Szene; ziehen, um ihn zu einem festen Zeitpunkt zu starten."
   },
   "textEffect": {
     "label": "Lesbarkeit",

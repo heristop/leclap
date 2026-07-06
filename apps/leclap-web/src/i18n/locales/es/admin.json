@@ -115,7 +115,8 @@
       },
       "io": {
         "label": "Importar / exportar",
-        "hint": "Exporta esta plantilla como JSON o importa un descriptor para reemplazar el actual."
+        "hint": "Exporta esta plantilla como JSON o importa un descriptor para reemplazar el actual.",
+        "importSuccess": "Plantilla importada."
       }
     },
     "variables": {
@@ -356,12 +357,17 @@
     "normalizeOff": "Desactivado",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dinámico",
+    "normalizeHintOff": "El volumen se mantiene exactamente como se grabó.",
+    "normalizeHintLoudnorm": "Iguala todo el vídeo a una sonoridad estándar de emisión.",
+    "normalizeHintDynamic": "Suaviza los cambios de volumen en tiempo real durante la reproducción.",
     "ducking": "Bajar la música cuando alguien habla",
     "duckingAdvanced": "Ducking avanzado",
     "duckingThreshold": "Umbral",
     "duckingRatio": "Relación",
     "duckingAttack": "Ataque",
-    "duckingRelease": "Liberación"
+    "duckingRelease": "Liberación",
+    "duckingTuned_one": "{{count}} ajuste personalizado",
+    "duckingTuned_other": "{{count}} ajustes personalizados"
   },
   "sectionAudio": {
     "label": "Audio de la sección",
@@ -373,7 +379,29 @@
     "duration": "Duración",
     "fadeDuration": "Duración de {{side}} en segundos",
     "curve": "Curva",
-    "fadeCurve": "Curva de {{side}}"
+    "fadeCurve": "Curva de {{side}}",
+    "curves": {
+      "tri": "Lineal (tri)",
+      "qsin": "Cuarto de seno (qsin)",
+      "hsin": "Medio seno (hsin)",
+      "esin": "Seno exponencial (esin)",
+      "log": "Logarítmica (log)",
+      "ipar": "Parábola invertida (ipar)",
+      "qua": "Cuadrática (qua)",
+      "cub": "Cúbica (cub)",
+      "squ": "Raíz cuadrada (squ)",
+      "cbr": "Raíz cúbica (cbr)",
+      "par": "Parábola (par)",
+      "exp": "Exponencial (exp)",
+      "iqsin": "Cuarto de seno invertido (iqsin)",
+      "ihsin": "Medio seno invertido (ihsin)",
+      "dese": "Meseta doble exponencial (dese)",
+      "desi": "Sigmoide doble exponencial (desi)",
+      "losi": "Sigmoide logística (losi)",
+      "sinc": "Seno cardinal (sinc)",
+      "isinc": "Seno cardinal invertido (isinc)",
+      "nofade": "Sin fundido (nofade)"
+    }
   },
   "framing": {
     "label": "Guía de encuadre",
@@ -452,6 +480,8 @@
     "borderColor": "Color del contorno",
     "borderWidth": "Grosor del contorno",
     "borderHint": "Trazo dibujado a lo largo del borde de la capa, sobre el relleno.",
+    "revealHintSolid": "Las capas sólidas aparecen en el retardo elegido (sin fundido) — usa una capa degradada para un fundido o deslizamiento suave.",
+    "revealHintGradient": "Las capas degradadas aparecen con fundido o deslizamiento según la entrada elegida.",
     "add": "Añadir capa"
   },
   "look": {
@@ -514,7 +544,10 @@
     "loopsLabel": "Número de bucles",
     "secondsLabel_one": "Duración (segundo)",
     "secondsLabel_other": "Duración (segundos)",
-    "startLabel": "Empezar en (s)",
+    "startLabel": "Empezar en",
+    "summaryLoops_one": "{{count}} bucle",
+    "summaryLoops_other": "{{count}} bucles",
+    "summaryFrom": "desde {{seconds}}s",
     "keepLastFrame": "Mantener el último fotograma",
     "dragHint": "Arrastra para mover · esquina para redimensionar · flechas para ajustar",
     "reset": "Restablecer a los valores predeterminados",
@@ -550,7 +583,8 @@
     "detachHint": "Convierte este bloque en elementos de texto libres que puedes arrastrar — se pierde su diseño automático.",
     "addCaption": "Leyenda",
     "addTitleCard": "Tarjeta de título",
-    "addLowerThird": "Rótulo"
+    "addLowerThird": "Rótulo",
+    "sugarGroup": "Textos prediseñados"
   },
   "shape": {
     "kind": "Forma",
@@ -625,8 +659,10 @@
     "add": "Añadir una imagen",
     "label": "Imagen",
     "remove": "Quitar imagen",
-    "startLabel": "Aparece en (s)",
-    "endLabel": "Desaparece en (s)",
+    "startLabel": "Aparece en",
+    "endLabel": "Desaparece en",
+    "timingGroup": "Tiempos y entrada",
+    "windowHint": "Segundos dentro de la escena — 0 deja ese lado abierto.",
     "count_one": "{{count}} imagen",
     "count_other": "{{count}} imágenes"
   },
@@ -758,7 +794,9 @@
   "exit": {
     "label": "Salida",
     "after": "Empieza después de",
-    "summaryDefault": "termina al final de la sección"
+    "summaryDefault": "termina al final de la sección",
+    "auto": "Auto",
+    "afterHint": "Déjalo sin tocar y la salida terminará con la escena; arrastra para iniciarla en un momento fijo."
   },
   "textEffect": {
     "label": "Legibilidad",

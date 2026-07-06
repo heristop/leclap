@@ -319,8 +319,13 @@ const AnimationSettings = ({ section, activeRef, orientation, t, onPatchSection 
   );
 };
 
-// The muted "select an element" placeholder, mirroring OverlayInspector's hint styling.
-const Hint = ({ label }: { label: string }) => <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>;
+// The muted "select an element" placeholder — the same dashed affordance as ElementList's empty
+// state, so every "nothing here yet, act on the list above" moment reads as one visual family.
+const Hint = ({ label }: { label: string }) => (
+  <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-2.5 text-center text-xs text-gray-500 dark:text-gray-400">
+    {label}
+  </p>
+);
 
 // The inspector card — the same surface OverlayInspector draws around SelectedControls, so every
 // per-element settings block reads as one consistent panel under the element list. The layer kind

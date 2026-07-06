@@ -5,6 +5,7 @@
 import { useTranslation } from 'react-i18next';
 import { Trash2, Type } from '@/presentation/components/icons';
 import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Button } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { newOverlay, type TextOverlay } from '../templateEditorModel';
@@ -56,14 +57,10 @@ export const OverlayInspector = ({ overlays, variables, selection, onSelectText,
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">{t('overlay.list')}</span>
-        <button
-          type="button"
-          onClick={addText}
-          className="tap inline-flex items-center gap-1.5 rounded-lg bg-foreground/5 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] dark:text-gray-300"
-          {...plusHoverProps}
-        >
+        {/* Same secondary trigger as ElementBlock's "+ Add" so both left-panel headers match. */}
+        <Button type="button" variant="secondary" size="sm" onClick={addText} {...plusHoverProps}>
           <PlusIcon ref={plusRef} size={14} /> {t('overlay.addText')}
-        </button>
+        </Button>
       </div>
       <OverlayList
         overlays={overlays}
@@ -116,7 +113,12 @@ const OverlayList = ({
   onDelete,
 }: OverlayListProps) => {
   if (overlays.length === 0) {
-    return <p className="text-xs text-gray-500 dark:text-gray-400">{emptyLabel}</p>;
+    // Dashed drop-zone-styled hint, matching ElementList's empty state.
+    return (
+      <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-2.5 text-center text-xs text-gray-500 dark:text-gray-400">
+        {emptyLabel}
+      </p>
+    );
   }
 
   return (

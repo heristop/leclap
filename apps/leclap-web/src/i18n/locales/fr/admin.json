@@ -115,7 +115,8 @@
       },
       "io": {
         "label": "Importer / exporter",
-        "hint": "Exporte ce modèle en JSON, ou importe un descripteur pour remplacer l’actuel."
+        "hint": "Exporte ce modèle en JSON, ou importe un descripteur pour remplacer l’actuel.",
+        "importSuccess": "Modèle importé."
       }
     },
     "variables": {
@@ -356,12 +357,17 @@
     "normalizeOff": "Désactivé",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dynamique",
+    "normalizeHintOff": "Le volume reste exactement tel qu’enregistré.",
+    "normalizeHintLoudnorm": "Uniformise toute la vidéo au niveau de diffusion standard.",
+    "normalizeHintDynamic": "Lisse les variations de volume en temps réel pendant la lecture.",
     "ducking": "Baisser la musique quand quelqu’un parle",
     "duckingAdvanced": "Ducking avancé",
     "duckingThreshold": "Seuil",
     "duckingRatio": "Ratio",
     "duckingAttack": "Attaque",
-    "duckingRelease": "Relâchement"
+    "duckingRelease": "Relâchement",
+    "duckingTuned_one": "{{count}} réglage ajusté",
+    "duckingTuned_other": "{{count}} réglages ajustés"
   },
   "sectionAudio": {
     "label": "Audio de la section",
@@ -373,7 +379,29 @@
     "duration": "Durée",
     "fadeDuration": "Durée {{side}} en secondes",
     "curve": "Courbe",
-    "fadeCurve": "Courbe {{side}}"
+    "fadeCurve": "Courbe {{side}}",
+    "curves": {
+      "tri": "Linéaire (tri)",
+      "qsin": "Quart de sinus (qsin)",
+      "hsin": "Demi-sinus (hsin)",
+      "esin": "Sinus exponentiel (esin)",
+      "log": "Logarithmique (log)",
+      "ipar": "Parabole inversée (ipar)",
+      "qua": "Quadratique (qua)",
+      "cub": "Cubique (cub)",
+      "squ": "Racine carrée (squ)",
+      "cbr": "Racine cubique (cbr)",
+      "par": "Parabole (par)",
+      "exp": "Exponentielle (exp)",
+      "iqsin": "Quart de sinus inversé (iqsin)",
+      "ihsin": "Demi-sinus inversé (ihsin)",
+      "dese": "Palier double-exponentiel (dese)",
+      "desi": "Sigmoïde double-exponentielle (desi)",
+      "losi": "Sigmoïde logistique (losi)",
+      "sinc": "Sinus cardinal (sinc)",
+      "isinc": "Sinus cardinal inversé (isinc)",
+      "nofade": "Sans fondu (nofade)"
+    }
   },
   "framing": {
     "label": "Guide de cadrage",
@@ -452,6 +480,8 @@
     "borderColor": "Couleur du contour",
     "borderWidth": "Épaisseur du contour",
     "borderHint": "Trait dessiné le long du bord du calque, par-dessus le fond.",
+    "revealHintSolid": "Les calques unis apparaissent au délai choisi (sans fondu) — utilisez un calque dégradé pour un fondu ou un glissement.",
+    "revealHintGradient": "Les calques dégradés apparaissent en fondu ou en glissement selon l'entrée choisie.",
     "add": "Ajouter un calque"
   },
   "look": {
@@ -514,7 +544,10 @@
     "loopsLabel": "Nombre de boucles",
     "secondsLabel_one": "Durée (seconde)",
     "secondsLabel_other": "Durée (secondes)",
-    "startLabel": "Démarrer à (s)",
+    "startLabel": "Démarrer à",
+    "summaryLoops_one": "{{count}} boucle",
+    "summaryLoops_other": "{{count}} boucles",
+    "summaryFrom": "dès {{seconds}}s",
     "keepLastFrame": "Garder la dernière image",
     "dragHint": "Glisse pour déplacer · coin pour redimensionner · flèches pour ajuster",
     "reset": "Revenir aux valeurs par défaut",
@@ -550,7 +583,8 @@
     "detachHint": "Transforme ce bloc en éléments texte libres déplaçables partout — sa mise en page automatique est perdue.",
     "addCaption": "Légende",
     "addTitleCard": "Carte de titre",
-    "addLowerThird": "Bandeau"
+    "addLowerThird": "Bandeau",
+    "sugarGroup": "Textes prêts à l'emploi"
   },
   "shape": {
     "kind": "Forme",
@@ -625,8 +659,10 @@
     "add": "Ajouter une image",
     "label": "Image",
     "remove": "Supprimer l’image",
-    "startLabel": "Apparaît à (s)",
-    "endLabel": "Disparaît à (s)",
+    "startLabel": "Apparaît à",
+    "endLabel": "Disparaît à",
+    "timingGroup": "Timing et entrée",
+    "windowHint": "Secondes dans la scène — 0 laisse ce côté ouvert.",
     "count_one": "{{count}} image",
     "count_other": "{{count}} images"
   },
@@ -758,7 +794,9 @@
   "exit": {
     "label": "Sortie",
     "after": "Commence après",
-    "summaryDefault": "se termine à la fin de la section"
+    "summaryDefault": "se termine à la fin de la section",
+    "auto": "Auto",
+    "afterHint": "Laissez tel quel et la sortie se termine avec la scène ; faites glisser pour la démarrer à un moment précis."
   },
   "textEffect": {
     "label": "Lisibilité",

@@ -55,7 +55,7 @@ export const StarterPresetPicker = ({ open, onPick, onBlank }: StarterPresetPick
                 onClick={() => {
                   onPick(preset);
                 }}
-                className="tap w-full cursor-pointer rounded-xl border border-divider bg-surface-inset p-4 text-left transition-colors hover:border-brand-500/50 hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                className="tap w-full cursor-pointer rounded-xl border border-divider bg-surface-inset p-4 text-left transition-colors hover:border-brand-500/50 hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]"
               >
                 {/* flex-wrap lets the glyph strip drop under the copy on narrow phones. */}
                 <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">

@@ -3,7 +3,7 @@
 // whole frame visible with pad bars, 'off' skips the conform scaling entirely. Emitted as the
 // descriptor's forceAspectRatio / forceOriginalAspectRatio flags (see the kit's sectionFitOptions).
 import { useTranslation } from 'react-i18next';
-import { SegmentedControl } from '@/presentation/components/ui';
+import { SegmentedControl } from '../controls';
 import { SECTION_FIT_MODES, type SectionFit } from '../../templateEditorModel';
 
 interface FitFieldProps {
@@ -22,15 +22,12 @@ export const FitField = ({ fit, onChange }: FitFieldProps) => {
 
   return (
     <div>
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-        {t('fit.label')}
-      </span>
       <SegmentedControl
-        ariaLabel={t('fit.label')}
+        label={t('fit.label')}
         value={fit ?? 'cover'}
         onChange={(value) => {
           // The default cover fit is stored as an absent field so untouched sections stay clean.
-          onChange(value === 'cover' ? undefined : (value as SectionFit));
+          onChange(value === 'cover' ? undefined : value);
         }}
         options={SECTION_FIT_MODES.map((mode) => ({ value: mode, label: labels[mode] }))}
       />

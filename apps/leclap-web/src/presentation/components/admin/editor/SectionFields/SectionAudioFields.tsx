@@ -189,9 +189,11 @@ const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSid
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            {/* Friendly name first, raw FFmpeg id in parens (falls back to the id if a label is
+                ever missing) — the select never reads as a bare engine-token list. */}
             {AFADE_CURVES.map((c) => (
               <SelectItem key={c} value={c}>
-                {c}
+                {t(`sectionAudio.curves.${c}`, c)}
               </SelectItem>
             ))}
           </SelectContent>

@@ -19,13 +19,22 @@ interface ElementBlockProps {
 
 export const ElementBlock = ({ state, section, selection, patchSection, onSelectElement }: ElementBlockProps) => {
   const { t } = useTranslation('admin');
+  const elements = listSectionElements(section);
 
   return (
     <div className="mt-4 space-y-3 border-t border-foreground/10 pt-4">
       {/* One header row — list label left, "+ Add" right — mirroring OverlayInspector's header so
-          the label and the action that feeds the list read as a single group. */}
+          the label and the action that feeds the list read as a single group. A count badge keeps
+          the section's element total readable even while the list scrolls off short viewports. */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">{t('element.list')}</span>
+        <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
+          {t('element.list')}
+          {elements.length > 0 && (
+            <span className="rounded-md bg-foreground/[0.06] px-1.5 py-0.5 text-[0.65rem] font-semibold normal-case tabular-nums tracking-normal text-gray-500 dark:text-gray-400">
+              {elements.length}
+            </span>
+          )}
+        </span>
         <AddElementMenu
           section={section}
           onAdd={(kind) => {
@@ -40,7 +49,7 @@ export const ElementBlock = ({ state, section, selection, patchSection, onSelect
         />
       </div>
       <ElementList
-        elements={listSectionElements(section)}
+        elements={elements}
         activeRef={selection.element}
         onSelect={onSelectElement}
         onDelete={(ref) => {

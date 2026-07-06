@@ -97,7 +97,10 @@
       "orientation": "Orientation",
       "landscape": "Landscape (16:9)",
       "portrait": "Portrait (9:16)",
-      "square": "Square (1:1)"
+      "square": "Square (1:1)",
+      "landscapeShort": "Landscape",
+      "portraitShort": "Portrait",
+      "squareShort": "Square"
     },
     "advanced": {
       "label": "Advanced settings",
@@ -105,6 +108,10 @@
       "wholeVideo": {
         "label": "Whole-video animations",
         "hint": "Overlays that span the entire video, across every section."
+      },
+      "wholeVideoLook": {
+        "label": "Whole-video look & grade",
+        "hint": "One colour treatment applied to the entire video, on top of each scene’s own look."
       },
       "io": {
         "label": "Import / export",
@@ -114,12 +121,27 @@
     "variables": {
       "label": "Global variables",
       "hint": "Reusable values you can insert as #token in any text.",
+      "empty": "No variables yet — add one to reuse a value in any text.",
       "name": "Variable {{index}} key",
       "value": "Variable {{index}} value",
       "remove": "Remove variable {{index}}",
       "namePlaceholder": "key",
       "valuePlaceholder": "value",
-      "add": "Add variable"
+      "add": "Add variable",
+      "colorValue": "Variable {{index}} colour"
+    },
+    "colorsList": {
+      "label": "Colour palette",
+      "hint": "Ordered swatches usable as #color1, #color2… in any colour field.",
+      "slot": "Palette colour {{index}}",
+      "remove": "Remove palette colour {{index}}",
+      "add": "Add colour"
+    },
+    "colorField": {
+      "variables": "Variables",
+      "useVariable": "Use variable {{name}}",
+      "unresolved": "Unknown variable — set its colour in the Variables tool",
+      "hint": "Pick a variable to keep this colour in sync with it everywhere it's used"
     },
     "scenes": {
       "label": "Scenes",
@@ -286,7 +308,10 @@
     "musicFormats": "MP3, WAV, M4A · stored on this device",
     "imageFormats": "JPG, PNG, WebP · stored on this device",
     "uploaded": "Uploaded · stored on this device",
-    "removeUpload": "Remove uploaded file"
+    "removeUpload": "Remove uploaded file",
+    "uploadVideo": "Upload a video clip",
+    "dropVideo": "Drop a video or click to browse",
+    "videoFormats": "MP4, MOV, WebM · stored on this device"
   },
   "overlay": {
     "textOverlays": "Text overlays",
@@ -295,14 +320,16 @@
     "editText": "Edit overlay text",
     "selectOrAdd": "Select a text — or add one below.",
     "addText": "Add text",
-    "size": "Size — {{size}}px",
+    "size": "Size",
     "deleteText": "Delete text",
     "color": "Color",
     "textColor": "Text color",
-    "textOpacity": "Text opacity — {{percent}}%",
+    "textOpacity": "Text opacity",
     "box": "Box",
     "boxColor": "Box color",
-    "boxOpacity": "Box opacity — {{percent}}%",
+    "boxOpacity": "Box opacity",
+    "boxPadding": "Box padding",
+    "boxPaddingHint": "Breathing room around the text. Corners stay square — the renderer can't round them.",
     "font": "Font",
     "insertVariable": "Insert variable",
     "insertVariableHint": "Add a form field or global variable first",
@@ -311,7 +338,9 @@
     "list": "Text overlays",
     "untitled": "Text {{index}}",
     "empty": "No text yet. Add one to start.",
-    "selectHint": "Select a text on the preview, or pick one below."
+    "selectHint": "Select a text on the preview, or pick one below.",
+    "styleGroup": "Accent & legibility",
+    "motionGroup": "Entrance & exit"
   },
   "controls": {
     "reset": "Reset {{label}}",
@@ -341,7 +370,7 @@
     "resetToGlobal": "Reset to global ({{percent}})",
     "fadeIn": "Fade in",
     "fadeOut": "Fade out",
-    "duration": "Duration (s)",
+    "duration": "Duration",
     "fadeDuration": "{{side}} duration in seconds",
     "curve": "Curve",
     "fadeCurve": "{{side}} curve"
@@ -388,7 +417,9 @@
       "negative": "Negative",
       "strong_contrast": "Strong contrast",
       "vintage": "Vintage"
-    }
+    },
+    "adjustedCount_one": "{{count}} adjustment",
+    "adjustedCount_other": "{{count}} adjustments"
   },
   "layer": {
     "background": "Background",
@@ -410,12 +441,37 @@
     "gradientStart": "Gradient start",
     "gradientEnd": "Gradient end",
     "direction": "Direction",
+    "directionHint": "The arrow points from the start colour toward the end colour.",
+    "shape": "Shape",
+    "shapeLinear": "Linear",
+    "shapeRadial": "Radial",
+    "shapeCircular": "Circular",
+    "shapeSpiral": "Spiral",
+    "shapeHint": "Radial fills from the centre, circular sweeps around it, spiral twists the sweep.",
+    "border": "Outline",
+    "borderColor": "Outline color",
+    "borderWidth": "Outline width",
+    "borderHint": "Stroke drawn along the layer's edge, over the fill.",
     "add": "Add layer"
   },
   "look": {
     "label": "Look",
     "preset": "Look preset",
-    "none": "None"
+    "none": "None",
+    "presets": {
+      "cinematic": "Cinematic",
+      "warm": "Warm",
+      "cool": "Cool",
+      "vintage": "Vintage",
+      "noir": "Noir",
+      "vivid": "Vivid",
+      "dreamy": "Dreamy",
+      "teal-orange": "Teal & orange",
+      "warm-film": "Warm film",
+      "mono-film": "Mono film",
+      "noir-film": "Noir film",
+      "vivid-pop": "Vivid pop"
+    }
   },
   "animation": {
     "label": "Animation",
@@ -445,6 +501,11 @@
     "positionHint": "px from top-left",
     "opacity": "Opacity",
     "rotation": "Rotation",
+    "mirror": "Mirror",
+    "mirrorHorizontal": "Horizontal",
+    "mirrorVertical": "Vertical",
+    "mirrorHorizontalHint": "Flip left–right",
+    "mirrorVerticalHint": "Flip top–bottom",
     "loop": "Loop",
     "playback": "Playback",
     "forever": "Forever",
@@ -456,7 +517,8 @@
     "startLabel": "Start at (s)",
     "keepLastFrame": "Keep last frame",
     "dragHint": "Drag to move · corner to resize · arrows to nudge",
-    "reset": "Reset to default"
+    "reset": "Reset to default",
+    "placementGroup": "Placement"
   },
   "element": {
     "resize": "Resize element",
@@ -468,6 +530,8 @@
     "addText": "Text",
     "addImageOverlay": "Image / logo",
     "addAnimation": "Animation",
+    "addShapeRect": "Rectangle",
+    "addShapeEllipse": "Circle",
     "empty": "Add your first element",
     "list": "Elements",
     "moveUp": "Move up",
@@ -476,6 +540,7 @@
     "text": "Text",
     "layer": "Background",
     "image": "Image",
+    "shape": "Shape",
     "animation": "Animation",
     "backgroundImage": "Background image",
     "titleCard": "Title card",
@@ -486,6 +551,18 @@
     "addCaption": "Caption",
     "addTitleCard": "Title card",
     "addLowerThird": "Lower third"
+  },
+  "shape": {
+    "kind": "Shape",
+    "rect": "Rectangle",
+    "ellipse": "Circle",
+    "fill": "Fill color",
+    "cornerRadius": "Corner radius",
+    "cornerRadiusHint": "Rounds the rectangle's corners, in output pixels.",
+    "stroke": "Outline",
+    "strokeHint": "An outline drawn just inside the shape's edge.",
+    "strokeColor": "Outline color",
+    "none": "None"
   },
   "motion": {
     "label": "Motion",
@@ -516,11 +593,26 @@
     "audio": "Audio",
     "animation": "Animation",
     "cameraGuide": "Camera guide",
+    "capture": "Capture sources",
     "images": "Images",
     "overlays": "Overlays",
     "titleCard": "Title card",
     "lowerThird": "Lower third",
     "chromaKey": "Background removal"
+  },
+  "capture": {
+    "hint": "Which inputs the person filming can use — front or back camera, screen recording, or a file upload. Never rendered into the video.",
+    "allowedLabel": "Allowed sources",
+    "defaultLabel": "Opens with",
+    "lockedNote": "A single allowed source locks the recorder to it.",
+    "summaryModes_one": "{{count}} source",
+    "summaryModes_other": "{{count}} sources",
+    "mode": {
+      "front": "Front camera",
+      "back": "Back camera",
+      "screen": "Screen",
+      "upload": "Upload"
+    }
   },
   "overlays": {
     "kind": "Overlay type",
@@ -582,6 +674,11 @@
     "none": "No transition",
     "cut": "Cut",
     "label": "{{name}} · {{duration}}s",
+    "defaultField": "Default transition",
+    "defaultHint": "Used at every scene change that doesn't pick its own transition.",
+    "defaultDescription": "How scenes blend into each other when a boundary doesn't choose its own transition.",
+    "defaultTile": "Default ({{label}})",
+    "defaultBadge": "Template default transition",
     "group": {
       "Fades": "Fades",
       "Wipes": "Wipes",
@@ -610,11 +707,22 @@
     "countdownSeconds_one": "Countdown (second)",
     "countdownSeconds_other": "Countdown (seconds)",
     "speed": "Playback speed",
-    "speedHint": "Slower or faster playback also stretches or shortens this scene in the final video."
+    "speedHint": "Slower or faster playback also stretches or shortens this scene in the final video.",
+    "source": "Scene source",
+    "sourceCamera": "Camera",
+    "sourceClip": "Video clip",
+    "sourceHint": "Camera asks the person to film this scene; Video clip plays a fixed video you provide — a brand bumper or stock footage."
   },
   "image": {
     "pickImages": "Choose a background.",
     "allowUpload": "Allow viewers to upload their own image"
+  },
+  "fit": {
+    "label": "Frame fit",
+    "cover": "Fill",
+    "letterbox": "Letterbox",
+    "off": "Off",
+    "hint": "Fill crops the footage to fill the frame; Letterbox keeps it all visible with bars; Off uses the file as-is, without fitting it to the frame."
   },
   "musicSection": {
     "pickTracks": "Pick the tracks viewers can choose from.",
@@ -640,6 +748,11 @@
     "delay": "Delay",
     "duration": "Duration",
     "distance": "Distance",
+    "easing": "Easing",
+    "easingLinear": "Linear",
+    "easingEaseOut": "Ease out",
+    "easingEaseInOut": "Ease in-out",
+    "easingHint": "How the entrance accelerates — Ease out glides into place, Ease in-out ramps up then settles.",
     "summaryDefault": "default timing"
   },
   "exit": {
@@ -653,6 +766,14 @@
     "shadowColor": "Shadow colour",
     "outline": "Outline",
     "outlineColor": "Outline colour"
+  },
+  "accent": {
+    "label": "Accent",
+    "enable": "Accent bar",
+    "color": "Accent colour",
+    "hint": "Draws a small underline bar in the accent colour beneath the text.",
+    "hintTitleCard": "Draws the underline bar and tints the kicker.",
+    "hintLowerThird": "Colours the band’s accent bar and the badge."
   },
   "chromaKey": {
     "hint": "Key out a solid screen colour (green/blue screen) and composite the clip over a flat colour.",
@@ -708,12 +829,25 @@
   "globalOverlay": {
     "label": "Whole-video text",
     "hint": "Text drawn on every section — e.g. a brand watermark, authored once.",
+    "count_one": "{{count}} text",
+    "count_other": "{{count}} texts",
     "add": "Add watermark",
     "text": "Text",
     "textPlaceholder": "e.g. #brand",
     "position": "Position",
     "color": "Colour",
     "remove": "Remove",
+    "advanced": "Advanced styling",
+    "advancedNone": "Defaults",
+    "font": "Font",
+    "fontDefault": "Default font",
+    "size": "Font size",
+    "opacity": "Opacity",
+    "opacityRevealNote": "The entrance animation drives the opacity while a reveal is set.",
+    "sections": "Scenes",
+    "sectionsHint": "Leave all off to draw the text on every scene.",
+    "sectionsSummary_one": "{{count}} scene",
+    "sectionsSummary_other": "{{count}} scenes",
     "pos": {
       "top-left": "Top left",
       "top-right": "Top right",

@@ -25,11 +25,11 @@ const colorSection = (): EditorSection => ({
 
 const baseState = (section: EditorSection): EditorState => ({ ...toEditorState(null), sections: [section] });
 
-const render = (section: EditorSection) =>
+const render = (section: EditorSection, activeTool: 'scenes' | 'advanced' = 'scenes') =>
   renderToStaticMarkup(
     <I18nextProvider i18n={i18n}>
       <EditorPanelSwitch
-        activeTool="scenes"
+        activeTool={activeTool}
         state={baseState(section)}
         section={section}
         partials={[]}
@@ -58,5 +58,15 @@ describe('EditorPanelSwitch', () => {
 
     // "Add layer" is the LayersEditor's distinctive control; it must no longer render in the panel.
     expect(html).not.toContain(admin.layer.add);
+  });
+
+  it('renders the whole-video look & grade controls in the Advanced panel', () => {
+    const html = render(colorSection(), 'advanced');
+
+    expect(html).toContain(admin.editor.advanced.wholeVideoLook.label.replace(/&/g, '&amp;'));
+    expect(html).toContain(admin.editor.advanced.wholeVideoLook.hint.replace(/'/g, '&#x27;'));
+    // The look gallery's radiogroup + the grade fine-tune disclosure both mount.
+    expect(html).toContain(`aria-label="${admin.look.preset}"`);
+    expect(html).toContain(admin.grade.fineTune);
   });
 });

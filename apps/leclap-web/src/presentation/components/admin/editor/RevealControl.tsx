@@ -3,18 +3,50 @@
 // value is the descriptor `reveal` shape — a bare type string when only the style is set, or the full
 // object once any timing is overridden — so it round-trips through buildDescriptor unchanged.
 import { useTranslation } from 'react-i18next';
-import { REVEAL_TYPES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
+import type { TFunction } from 'i18next';
+import { REVEAL_TYPES, REVEAL_EASINGS } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { Reveal } from '../templateEditorModel';
 import { SegmentedControl, RangeSlider, type SegmentOption } from './controls';
 import { SectionDisclosure } from './SectionDisclosure';
 
 type RevealType = (typeof REVEAL_TYPES)[number];
-type RevealObject = { type: RevealType; delay?: number; duration?: number; distance?: number };
+type RevealEasing = (typeof REVEAL_EASINGS)[number];
+type RevealObject = {
+  type: RevealType;
+  delay?: number;
+  duration?: number;
+  distance?: number;
+  easing?: RevealEasing;
+};
 
 const MOVING: RevealType[] = ['rise', 'slide-left', 'slide-right'];
 const DEFAULT_DELAY = 0.3;
 const DEFAULT_DURATION = 0.6;
 const DEFAULT_DISTANCE = 60;
+
+// value → locale key suffix for the easing labels (flat keys, matching the reveal.* namespace).
+const EASING_LABEL_KEYS: Record<RevealEasing, string> = {
+  linear: 'easingLinear',
+  'ease-out': 'easingEaseOut',
+  'ease-in-out': 'easingEaseInOut',
+};
+
+// Store a slider value equal to the engine default as "unset" so descriptors stay minimal and the
+// timing summary/reset affordance stay honest.
+const orUnset = (value: number, defaultValue: number): number | undefined =>
+  value === defaultValue ? undefined : value;
+
+// The collapsed Timing summary: every overridden knob ("Delay 0.5s · Ease out"), or the default hint.
+function timingSummary(t: TFunction<'admin'>, current: RevealObject): string {
+  const parts = [
+    current.delay === undefined ? null : `${t('reveal.delay')} ${current.delay}s`,
+    current.duration === undefined ? null : `${t('reveal.duration')} ${current.duration}s`,
+    current.distance === undefined ? null : `${t('reveal.distance')} ${current.distance}px`,
+    current.easing === undefined ? null : t(`reveal.${EASING_LABEL_KEYS[current.easing]}`),
+  ].filter((part): part is string => part !== null);
+
+  return parts.length > 0 ? parts.join(' · ') : t('reveal.summaryDefault');
+}
 
 function normalize(reveal: Reveal | undefined): RevealObject {
   if (reveal === undefined) return { type: 'none' };
@@ -24,13 +56,14 @@ function normalize(reveal: Reveal | undefined): RevealObject {
   return reveal;
 }
 
-// Emit the bare type when no timing is overridden (matches authored templates); the full object once it is.
+// Emit the bare type when nothing is overridden (matches authored templates); the full object once it is.
 function pack(obj: RevealObject): Reveal | undefined {
   if (obj.type === 'none') return undefined;
 
-  const hasTiming = obj.delay !== undefined || obj.duration !== undefined || obj.distance !== undefined;
+  const hasOverride =
+    obj.delay !== undefined || obj.duration !== undefined || obj.distance !== undefined || obj.easing !== undefined;
 
-  return hasTiming ? obj : obj.type;
+  return hasOverride ? obj : obj.type;
 }
 
 interface RevealControlProps {
@@ -62,7 +95,7 @@ export const RevealControl = ({ reveal, onChange }: RevealControlProps) => {
         }}
       />
       {current.type !== 'none' && (
-        <SectionDisclosure label={t('reveal.advanced')} summary={t('reveal.summaryDefault')}>
+        <SectionDisclosure label={t('reveal.advanced')} summary={timingSummary(t, current)}>
           <RangeSlider
             label={t('reveal.delay')}
             value={current.delay ?? DEFAULT_DELAY}
@@ -70,8 +103,9 @@ export const RevealControl = ({ reveal, onChange }: RevealControlProps) => {
             max={2}
             step={0.05}
             format={(v) => `${v}s`}
+            resetTo={DEFAULT_DELAY}
             onChange={(delay) => {
-              set({ delay });
+              set({ delay: orUnset(delay, DEFAULT_DELAY) });
             }}
           />
           <RangeSlider
@@ -81,8 +115,9 @@ export const RevealControl = ({ reveal, onChange }: RevealControlProps) => {
             max={2}
             step={0.05}
             format={(v) => `${v}s`}
+            resetTo={DEFAULT_DURATION}
             onChange={(duration) => {
-              set({ duration });
+              set({ duration: orUnset(duration, DEFAULT_DURATION) });
             }}
           />
           {MOVING.includes(current.type) && (
@@ -93,11 +128,24 @@ export const RevealControl = ({ reveal, onChange }: RevealControlProps) => {
               max={300}
               step={5}
               format={(v) => `${v}px`}
+              resetTo={DEFAULT_DISTANCE}
               onChange={(distance) => {
-                set({ distance });
+                set({ distance: orUnset(distance, DEFAULT_DISTANCE) });
               }}
             />
           )}
+          <div>
+            <SegmentedControl
+              label={t('reveal.easing')}
+              value={current.easing ?? 'linear'}
+              options={REVEAL_EASINGS.map((value) => ({ value, label: t(`reveal.${EASING_LABEL_KEYS[value]}`) }))}
+              onChange={(easing) => {
+                // Linear is the engine default — emit it as "unset" so descriptors stay minimal.
+                set({ easing: easing === 'linear' ? undefined : easing });
+              }}
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('reveal.easingHint')}</p>
+          </div>
         </SectionDisclosure>
       )}
     </div>

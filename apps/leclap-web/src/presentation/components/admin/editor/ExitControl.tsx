@@ -4,6 +4,7 @@
 // overridden — so it round-trips through buildDescriptor unchanged. `after` is when the exit begins
 // (seconds from the section start); left unset, the engine times it to end at the section end.
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { REVEAL_TYPES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { Exit } from '../templateEditorModel';
 import { SegmentedControl, RangeSlider, type SegmentOption } from './controls';
@@ -16,6 +17,23 @@ const MOVING: ExitType[] = ['rise', 'slide-left', 'slide-right'];
 const DEFAULT_AFTER = 2.5;
 const DEFAULT_DURATION = 0.6;
 const DEFAULT_DISTANCE = 60;
+
+// Store a slider value equal to the engine default as "unset" so descriptors stay minimal and the
+// timing summary/reset affordance stay honest.
+const orUnset = (value: number, defaultValue: number): number | undefined =>
+  value === defaultValue ? undefined : value;
+
+// The collapsed Timing summary: every overridden knob ("Starts after 3s · Duration 1s"), or the
+// default hint (the engine times the exit to end at the section end).
+function timingSummary(t: TFunction<'admin'>, current: ExitObject): string {
+  const parts = [
+    current.after === undefined ? null : `${t('exit.after')} ${current.after}s`,
+    current.duration === undefined ? null : `${t('reveal.duration')} ${current.duration}s`,
+    current.distance === undefined ? null : `${t('reveal.distance')} ${current.distance}px`,
+  ].filter((part): part is string => part !== null);
+
+  return parts.length > 0 ? parts.join(' · ') : t('exit.summaryDefault');
+}
 
 function normalize(exit: Exit | undefined): ExitObject {
   if (exit === undefined) return { type: 'none' };
@@ -63,7 +81,7 @@ export const ExitControl = ({ exit, onChange }: ExitControlProps) => {
         }}
       />
       {current.type !== 'none' && (
-        <SectionDisclosure label={t('reveal.advanced')} summary={t('exit.summaryDefault')}>
+        <SectionDisclosure label={t('reveal.advanced')} summary={timingSummary(t, current)}>
           <RangeSlider
             label={t('exit.after')}
             value={current.after ?? DEFAULT_AFTER}
@@ -82,8 +100,9 @@ export const ExitControl = ({ exit, onChange }: ExitControlProps) => {
             max={2}
             step={0.05}
             format={(v) => `${v}s`}
+            resetTo={DEFAULT_DURATION}
             onChange={(duration) => {
-              set({ duration });
+              set({ duration: orUnset(duration, DEFAULT_DURATION) });
             }}
           />
           {MOVING.includes(current.type) && (
@@ -94,8 +113,9 @@ export const ExitControl = ({ exit, onChange }: ExitControlProps) => {
               max={300}
               step={5}
               format={(v) => `${v}px`}
+              resetTo={DEFAULT_DISTANCE}
               onChange={(distance) => {
-                set({ distance });
+                set({ distance: orUnset(distance, DEFAULT_DISTANCE) });
               }}
             />
           )}

@@ -18,7 +18,8 @@ export const LookGallery = ({ look, onChange }: LookGalleryProps) => {
 
   const options: Array<{ value: string | undefined; label: string }> = [
     { value: undefined, label: t('look.none') },
-    ...LOOK_PRESETS.map((name) => ({ value: name as string | undefined, label: name })),
+    // Every preset has a look.presets.<name> label; fall back to the raw id if one is ever missing.
+    ...LOOK_PRESETS.map((name) => ({ value: name as string | undefined, label: t(`look.presets.${name}`, name) })),
   ];
 
   return (
@@ -66,7 +67,7 @@ const LookCard = ({ label, filter, active, onSelect }: LookCardProps) => (
     <PreviewSurface filter={filter} className="h-16 w-24" />
     <span
       className={cn(
-        'mt-1 block text-center text-[0.65rem] font-semibold capitalize',
+        'mt-1 block w-24 truncate text-center text-[0.65rem] font-semibold',
         active ? 'text-brand-600 dark:text-brand-300' : 'text-gray-500'
       )}
     >

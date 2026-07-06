@@ -8,6 +8,7 @@
 // at the preview's small widths (≈1px) the difference is invisible, and stroke stays crisp where a
 // multi-offset text-shadow ring would blur.
 import type { CSSProperties } from 'react';
+import { resolvePreviewColor, type ColorVariableMap } from '@leclap/creative-kit/editor';
 import type { TextEffect } from '../templateEditorModel';
 import { rgba } from './sectionCanvasColor';
 
@@ -15,12 +16,15 @@ import { rgba } from './sectionCanvasColor';
 const SHADOW_DEFAULTS = { color: '#000000@0.6', dx: 2, dy: 2 };
 const OUTLINE_DEFAULTS = { color: '#000000', width: 2 };
 
-// FFmpeg colour token → CSS colour: '#rrggbb@a' becomes rgba(); anything else passes through
-// (a plain hex, or a named colour whose @opacity we cannot express — the base colour is close enough).
-function cssColorFromToken(token: string): string {
-  if (!token.includes('@')) return token;
+// FFmpeg colour token → CSS colour: a '{{ variable }}' resolves to its current colour first (the
+// engine's formatColor does the same at compile time), then '#rrggbb@a' becomes rgba(); anything
+// else passes through (a plain hex, or a named colour whose @opacity we cannot express — the base
+// colour is close enough).
+function cssColorFromToken(token: string, vars?: ColorVariableMap): string {
+  if (!token.includes('@')) return resolvePreviewColor(token, vars);
 
-  const [base, alpha] = token.split('@');
+  const [raw, alpha] = token.split('@');
+  const base = resolvePreviewColor(raw, vars);
   const parsed = Number.parseFloat(alpha);
 
   if (!base.startsWith('#') || Number.isNaN(parsed)) return base;
@@ -29,22 +33,23 @@ function cssColorFromToken(token: string): string {
 }
 
 /**
- * The CSS properties approximating a TextEffect at `scale` preview px per engine px.
+ * The CSS properties approximating a TextEffect at `scale` preview px per engine px, with colour
+ * variables resolved against `vars` (the editor's global-variable scope).
  * Returns {} when the effect is absent or empty (matching the engine's applyTextEffect no-op).
  */
-export function textEffectCss(effect: TextEffect | undefined, scale: number): CSSProperties {
+export function textEffectCss(effect: TextEffect | undefined, scale: number, vars?: ColorVariableMap): CSSProperties {
   if (!effect) return {};
 
   const out: CSSProperties = {};
 
   if (effect.shadow) {
     const shadow = effect.shadow === true ? SHADOW_DEFAULTS : { ...SHADOW_DEFAULTS, ...effect.shadow };
-    out.textShadow = `${shadow.dx * scale}px ${shadow.dy * scale}px ${cssColorFromToken(shadow.color)}`;
+    out.textShadow = `${shadow.dx * scale}px ${shadow.dy * scale}px ${cssColorFromToken(shadow.color, vars)}`;
   }
 
   if (effect.outline) {
     const outline = effect.outline === true ? OUTLINE_DEFAULTS : { ...OUTLINE_DEFAULTS, ...effect.outline };
-    out.WebkitTextStroke = `${outline.width * scale}px ${cssColorFromToken(outline.color)}`;
+    out.WebkitTextStroke = `${outline.width * scale}px ${cssColorFromToken(outline.color, vars)}`;
   }
 
   return out;

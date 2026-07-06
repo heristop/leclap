@@ -17,7 +17,7 @@ interface FormFieldsProps {
 
 // id | label | max-length | delete — one template shared by the header and every row so the columns
 // line up. The max-length column is narrow (just a 2-digit counter) and the delete column is icon-sized.
-const COLS = 'grid grid-cols-[1fr_1fr_5rem_1.75rem] gap-2';
+const COLS = 'grid grid-cols-[1fr_1fr_5rem_2.25rem] gap-2';
 const COL_LABEL = 'self-end px-1 text-[0.65rem] font-semibold uppercase leading-tight tracking-wider text-gray-500';
 // One height for all three controls so the row reads as a single aligned set.
 const FIELD_H = 'h-10';
@@ -79,11 +79,13 @@ const FieldRow = ({ field, inputCls, onPatch, onRemove }: FieldRowProps) => {
           onPatch({ maxLength });
         }}
       />
+      {/* Always visible (dimmed) — a hover-only reveal is unreachable on touch screens. */}
       <button
         type="button"
         onClick={onRemove}
         aria-label={t('form.removeField')}
-        className="tap grid size-7 place-items-center rounded-lg text-gray-600 opacity-0 transition-all hover:text-[var(--color-error)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 group-hover:opacity-100 active:scale-90"
+        title={t('form.removeField')}
+        className="tap grid size-9 place-items-center justify-self-center rounded-lg text-gray-600 opacity-50 transition-all hover:opacity-100 hover:text-[var(--color-error)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 group-hover:opacity-100 active:scale-90"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
@@ -126,7 +128,7 @@ export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => 
             onChange({
               fields: [
                 ...section.fields,
-                { name: `field_${section.fields.length + 1}`, label: 'Label', maxLength: 40 },
+                { name: `field_${section.fields.length + 1}`, label: t('form.fieldLabelPlaceholder'), maxLength: 40 },
               ],
             });
           }}

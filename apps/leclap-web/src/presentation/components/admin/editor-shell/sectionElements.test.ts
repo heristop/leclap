@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { newSection, newOverlay, type EditorSection } from '../templateEditorModel';
+import { newSection, newOverlay, type EditorSection, type ImageOverlay } from '../templateEditorModel';
 import { newExtraLayer } from '../editor/layerGeometry';
 import { listSectionElements, canAddElement, addElement, removeElement, reorderElement } from './sectionElements';
 
@@ -122,6 +122,64 @@ describe('addElement', () => {
   it('returns null when the section does not own the array', () => {
     expect(addElement(videoSection(), 'layer')).toBeNull();
     expect(addElement(newSection('music'), 'text')).toBeNull();
+  });
+});
+
+describe('shape elements (image overlays carrying a shape recipe)', () => {
+  it('gates the shape add on image ownership', () => {
+    expect(canAddElement(newSection('color'), 'shapeRect')).toBe(true);
+    expect(canAddElement(videoSection(), 'shapeEllipse')).toBe(true);
+    expect(canAddElement(newSection('image'), 'shapeRect')).toBe(true);
+    expect(canAddElement(newSection('music'), 'shapeRect')).toBe(false);
+    expect(canAddElement(newSection('form'), 'shapeEllipse')).toBe(false);
+  });
+
+  it('appends a rect shape to the images array with the recipe and a data: PNG choice', () => {
+    const result = addElement(newSection('color'), 'shapeRect', 'portrait');
+
+    if (!result) throw new Error('expected a patch');
+
+    const images = field<ImageOverlay>(result.patch, 'images');
+
+    expect(images).toHaveLength(1);
+    expect(images?.[0]?.shape).toMatchObject({ kind: 'rect' });
+    expect(images?.[0]?.choice).toMatchObject({ source: 'url' });
+    expect(result.ref).toEqual({ kind: 'image', index: 0 });
+  });
+
+  it('appends an ellipse shape after existing images', () => {
+    const section = {
+      ...newSection('video'),
+      images: [{ id: 'i', choice: { source: 'url', url: '/logo.png' } }],
+    } as EditorSection;
+    const result = addElement(section, 'shapeEllipse', 'landscape');
+
+    if (!result) throw new Error('expected a patch');
+
+    expect(field<ImageOverlay>(result.patch, 'images')).toHaveLength(2);
+    expect(field<ImageOverlay>(result.patch, 'images')?.[1]?.shape?.kind).toBe('ellipse');
+    expect(result.ref).toEqual({ kind: 'image', index: 1 });
+  });
+
+  it('returns null where the section cannot carry images', () => {
+    expect(addElement(newSection('music'), 'shapeRect', 'portrait')).toBeNull();
+  });
+
+  it('lists a shape-bearing image as element.shape with its fill colour as the preview', () => {
+    const section = {
+      ...newSection('color'),
+      images: [
+        { id: 'a', choice: { source: 'url', url: '/logo.png' } },
+        { id: 'b', choice: { source: 'url', url: 'data:image/png;base64,AA' }, shape: { kind: 'rect', color: '#ff4d4d' } },
+      ],
+    } as EditorSection;
+    const rows = listSectionElements(section).filter((d) => d.kind === 'image');
+
+    expect(rows[0].labelKey).toBe('element.image');
+    expect(rows[0].previewText).toBe('logo.png');
+    expect(rows[1].labelKey).toBe('element.shape');
+    expect(rows[1].previewText).toBe('#ff4d4d');
+    expect(rows[1].ref).toEqual({ kind: 'image', index: 1 });
   });
 });
 

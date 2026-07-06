@@ -43,6 +43,7 @@ export const OverlayPlacement = ({ orientation, url, value, onChange }: OverlayP
             position={value.position}
             scale={value.scale}
             rotation={value.rotation}
+            flip={value.flip}
             onChange={onChange}
           />
           <p className="mt-1 text-center text-[0.6rem] text-gray-400">{t('animation.dragHint')}</p>

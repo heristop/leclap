@@ -25,15 +25,39 @@ const render = (kind: Parameters<typeof newSection>[0]) =>
 
 describe('addableKinds', () => {
   it('orders video kinds (sugar singletons trail while absent)', () => {
-    expect(addableKinds(newSection('video'))).toEqual(['text', 'image', 'animation', 'caption', 'lowerThird']);
+    expect(addableKinds(newSection('video'))).toEqual([
+      'text',
+      'image',
+      'shapeRect',
+      'shapeEllipse',
+      'animation',
+      'caption',
+      'lowerThird',
+    ]);
   });
 
   it('orders color kinds (sugar singletons trail while absent)', () => {
-    expect(addableKinds(newSection('color'))).toEqual(['layer', 'text', 'image', 'animation', 'caption', 'titleCard']);
+    expect(addableKinds(newSection('color'))).toEqual([
+      'layer',
+      'text',
+      'image',
+      'shapeRect',
+      'shapeEllipse',
+      'animation',
+      'caption',
+      'titleCard',
+    ]);
   });
 
   it('orders image kinds (sugar singletons trail while absent)', () => {
-    expect(addableKinds(newSection('image'))).toEqual(['text', 'image', 'animation', 'caption']);
+    expect(addableKinds(newSection('image'))).toEqual([
+      'text',
+      'image',
+      'shapeRect',
+      'shapeEllipse',
+      'animation',
+      'caption',
+    ]);
   });
 
   it('returns nothing for music', () => {

@@ -4,20 +4,24 @@
 // controls read/write) so both consumers depend on the single source. The owning PairField / AxisInput
 // helpers live here too.
 import { useTranslation } from 'react-i18next';
-import type { OverlayFit } from '../templateEditorModel';
+import type { TFunction } from 'i18next';
+import { cn } from '@/lib/utils';
+import type { OverlayFit, OverlayFlip } from '../templateEditorModel';
 import { RotateCcw } from '@/presentation/components/icons';
 import { parsePair, formatPair } from './animationOverlay';
 import { RangeSlider, SegmentedControl } from './controls';
+import { hasFlipAxis, toggleFlipAxis, type FlipAxis } from './overlayFlip.logic';
 
 // The subset of overlay fields the shared placement controls read/write. Both AnimationOverlay and
 // ImageOverlay carry these (string "x:y" position, string "w:h" scale, 0–1 opacity, degrees rotation,
-// and the fit mode that keeps a logo/sticker's aspect inside that scale box).
+// the fit mode that keeps a logo/sticker's aspect inside that scale box, and the mirror flip).
 export interface OverlayPlacementValue {
   position?: string;
   scale?: string;
   fit?: OverlayFit;
   opacity?: number;
   rotation?: number;
+  flip?: OverlayFlip;
 }
 
 interface PlacementFieldsProps {
@@ -93,6 +97,13 @@ export const PlacementFields = ({ value, onChange }: PlacementFieldsProps) => {
           onChange({ rotation });
         }}
       />
+      <MirrorToggle
+        flip={value.flip}
+        t={t}
+        onChange={(flip) => {
+          onChange({ flip });
+        }}
+      />
       {(value.position ?? value.scale) ? (
         <button
           type="button"
@@ -106,6 +117,55 @@ export const PlacementFields = ({ value, onChange }: PlacementFieldsProps) => {
           {t('animation.reset')}
         </button>
       ) : null}
+    </div>
+  );
+};
+
+// Mirror control: two independent axis toggles (both on = the descriptor's 'both') writing the single
+// combined flip value. Checkbox semantics — unlike fit, the axes are not mutually exclusive.
+const MirrorToggle = ({
+  flip,
+  t,
+  onChange,
+}: {
+  flip: OverlayFlip | undefined;
+  t: TFunction<'admin'>;
+  onChange: (flip: OverlayFlip | undefined) => void;
+}) => {
+  const axes: Array<{ axis: FlipAxis; label: string; hint: string }> = [
+    { axis: 'horizontal', label: t('animation.mirrorHorizontal'), hint: t('animation.mirrorHorizontalHint') },
+    { axis: 'vertical', label: t('animation.mirrorVertical'), hint: t('animation.mirrorVerticalHint') },
+  ];
+
+  return (
+    <div>
+      <span className="mb-1 block text-[0.65rem] font-semibold uppercase tracking-wide text-gray-400">
+        {t('animation.mirror')}
+      </span>
+      <div role="group" aria-label={t('animation.mirror')} className="flex gap-1 rounded-xl border border-foreground/10 bg-surface p-1">
+        {axes.map(({ axis, label, hint }) => {
+          const active = hasFlipAxis(flip, axis);
+
+          return (
+            <button
+              key={axis}
+              type="button"
+              aria-pressed={active}
+              title={hint}
+              onClick={() => {
+                onChange(toggleFlipAxis(flip, axis));
+              }}
+              className={cn(
+                'tap flex flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[0.65rem] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+                active ? 'brand-gradient text-white shadow-sm shadow-brand-500/20' : 'text-gray-500 hover:text-foreground'
+              )}
+            >
+              <span aria-hidden>{axis === 'horizontal' ? '↔' : '↕'}</span>
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

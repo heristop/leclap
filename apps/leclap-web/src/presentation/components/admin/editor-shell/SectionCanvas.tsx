@@ -16,10 +16,11 @@ import type {
   TitleCard,
   Orientation,
   BackgroundLayer,
+  SectionFit,
 } from '../templateEditorModel';
 import { clampFraction, fontSizeFromResize } from '../overlayGeometry';
 import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
-import { lookFilter, gradeFilter } from '../editor/lookFilters';
+import { combinedLookGradeFilter } from '../editor/lookFilters';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { OverlayBox } from './sectionCanvasBox';
 import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
@@ -39,10 +40,12 @@ const previewAspectClass: Record<Orientation, string> = {
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
-// The frame's backdrop image (e.g. an image_background). When absent and no editable layers are
-// supplied, a neutral dark frame is shown instead.
+// The frame's backdrop (an image_background's picture, or an asset-backed video section's clip,
+// previewed as a muted looping <video>). When absent and no editable layers are supplied, a
+// neutral dark frame is shown instead.
 export interface CanvasBackground {
   imageUrl?: string;
+  videoUrl?: string;
 }
 
 // An editable background-layer stack (color_background): the base plus draggable/resizable extra
@@ -54,6 +57,54 @@ export interface CanvasLayers {
 
 // Geometry patches a media box emits (a subset of the overlay fields).
 type MediaPatch = { position: string } | { scale: string } | { rotation: number };
+
+// CSS approximation of the section's source-footage fit (SegmentBuilder.prependScaleFilters):
+// cover = scale+crop (object-cover), letterbox = scale+pad with black bars (object-contain on a
+// black element box — ffmpeg's pad default is black), off = no conform scaling at all, so the frame
+// simply follows the source; filling the preview frame is the closest static approximation.
+const backdropFitClass: Record<SectionFit, string> = {
+  cover: 'object-cover',
+  letterbox: 'bg-black object-contain',
+  off: 'object-fill',
+};
+
+// The frame's non-interactive backdrop media: the neutral dark frame when nothing is set, an
+// image_background's picture, or an asset-backed video section's clip as a muted looping <video>.
+const BackdropMedia = ({
+  background,
+  hasBackground,
+  fit,
+}: {
+  background?: CanvasBackground;
+  hasBackground: boolean;
+  fit?: SectionFit;
+}) => (
+  <>
+    {!hasBackground && (
+      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]" />
+    )}
+    {background?.imageUrl && (
+      <img
+        aria-hidden
+        alt=""
+        src={background.imageUrl}
+        className={cn('pointer-events-none absolute inset-0 h-full w-full', backdropFitClass[fit ?? 'cover'])}
+      />
+    )}
+    {background?.videoUrl && (
+      <video
+        key={background.videoUrl}
+        aria-hidden
+        src={background.videoUrl}
+        muted
+        loop
+        autoPlay
+        playsInline
+        className={cn('pointer-events-none absolute inset-0 h-full w-full', backdropFitClass[fit ?? 'cover'])}
+      />
+    )}
+  </>
+);
 
 // Replace one overlay in a fresh array (immutable update for onChange).
 const withOverlay = (overlays: TextOverlay[], index: number, patch: Partial<TextOverlay>): TextOverlay[] =>
@@ -73,6 +124,8 @@ interface SectionCanvasProps {
   overlays: TextOverlay[];
   orientation: Orientation;
   background?: CanvasBackground;
+  // How the backdrop media maps into the frame (the section's source-footage fit); omitted = cover.
+  backgroundFit?: SectionFit;
   layers?: CanvasLayers;
   images?: ImageOverlay[];
   animations?: AnimationOverlay[];
@@ -81,6 +134,10 @@ interface SectionCanvasProps {
   // overlays (SegmentBuilder.injectSugarFilters), so text must stay ungraded here too.
   look?: string;
   grade?: Grade;
+  // The whole-video treatment (EditorState.globalLook/globalGrade) — the engine bakes it into every
+  // section's base frame AFTER the section's own look/grade, so it chains onto the same backdrop filter.
+  globalLook?: string;
+  globalGrade?: Grade;
   // The section's text sugar, rendered as a WYSIWYG layer with direct manipulation
   // (SugarPreviewLayer): click-select, double-click line edit, drag-snap, caption resize.
   caption?: EditorCaption;
@@ -110,11 +167,14 @@ export const SectionCanvas = ({
   overlays,
   orientation,
   background,
+  backgroundFit,
   layers,
   images,
   animations,
   look,
   grade,
+  globalLook,
+  globalGrade,
   caption,
   titleCard,
   lowerThird,
@@ -143,13 +203,13 @@ export const SectionCanvas = ({
     image: activeIndex(selection, 'image'),
     animation: activeIndex(selection, 'animation'),
   };
-  const hasBackground = Boolean(background?.imageUrl ?? layers?.items.length);
+  const hasBackground = Boolean(background?.imageUrl ?? background?.videoUrl ?? layers?.items.length);
   const imageList = images ?? [];
   const animationList = animations ?? [];
-  // CSS approximation of the section's look + grade, applied to the backdrop group only. `lookFilter`
-  // and `gradeFilter` return 'none' rather than '' when unset, so drop those before joining.
-  const gradeParts = [lookFilter(look), gradeFilter(grade)].filter((part) => part !== 'none');
-  const backdropFilter = gradeParts.length > 0 ? { filter: gradeParts.join(' ') } : undefined;
+  // CSS approximation of the section's look + grade chained with the whole-video one, applied to
+  // the backdrop group only (combinedLookGradeFilter mirrors the engine's section-then-global order).
+  const gradeCss = combinedLookGradeFilter({ look, grade }, { look: globalLook, grade: globalGrade });
+  const backdropFilter = gradeCss ? { filter: gradeCss } : undefined;
 
   const moveTo = (index: number, clientX: number, clientY: number) => {
     const rect = frameRect();
@@ -237,22 +297,14 @@ export const SectionCanvas = ({
           pointer-events-none lets empty-area clicks reach the frame (deselect); the interactive
           layer boxes re-enable their own pointer events. */}
       <div className="pointer-events-none absolute inset-0" style={backdropFilter}>
-        {!hasBackground && (
-          <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]" />
-        )}
-        {background?.imageUrl && (
-          <img
-            aria-hidden
-            alt=""
-            src={background.imageUrl}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-        )}
+        <BackdropMedia background={background} hasBackground={hasBackground} fit={backgroundFit} />
         {layers && (
           <BackgroundLayerBoxes
             layers={layers.items}
             onChange={layers.onChange}
             frameRect={frameRect}
+            frameRef={frameRef}
+            orientation={orientation}
             selectedIndex={active.layer}
             onSelect={(index) => {
               onSelectElement({ kind: 'layer', index });

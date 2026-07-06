@@ -102,6 +102,26 @@ describe('UserTemplateService', () => {
     expect(svc.list().map((t) => t.id)).toContain('user-dup');
   });
 
+  it('duplicate() re-stamps the descriptor meta so the embedded identity follows the "(copy)" name', () => {
+    const svc = new UserTemplateService(
+      memStorage(),
+      okValidator,
+      () => 1000,
+      () => 'user-dup'
+    );
+
+    const original = sampleTemplate({
+      descriptor: { meta: { name: 'My Template', description: 'A demo' }, sections: [] },
+    });
+    const copy = svc.duplicate(original);
+
+    // The editor prefers descriptor.meta over the wrapper name — a stale meta would reopen
+    // the copy under the original's name. The description is identity too and carries over.
+    expect(copy.descriptor.meta).toEqual({ name: 'My Template (copy)', description: 'A demo' });
+    // The source template's descriptor is left untouched.
+    expect(original.descriptor.meta?.name).toBe('My Template');
+  });
+
   it('returns an empty list (never throws) when storage is unavailable', () => {
     const svc = new UserTemplateService(null, okValidator);
     expect(svc.list()).toEqual([]);

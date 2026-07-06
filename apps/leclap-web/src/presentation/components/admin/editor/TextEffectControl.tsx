@@ -4,7 +4,7 @@
 // colour (or outline width) is overridden, so it round-trips through buildDescriptor unchanged.
 import { useTranslation } from 'react-i18next';
 import type { TextEffect } from '../templateEditorModel';
-import { ColorPicker } from '@/presentation/components/ui';
+import { Checkbox, ColorPicker } from '@/presentation/components/ui';
 
 const DEFAULT_SHADOW_COLOR = '#000000';
 const DEFAULT_OUTLINE_COLOR = '#000000';
@@ -60,14 +60,19 @@ export const TextEffectControl = ({ effect, onChange }: TextEffectControlProps) 
         }}
       />
       {shadowOn && (
-        <ColorPicker
-          aria-label={t('textEffect.shadowColor')}
-          value={colorOf(current.shadow, DEFAULT_SHADOW_COLOR)}
-          onChange={(color) => {
-            const shadow: ShadowObject = { color };
-            set({ shadow });
-          }}
-        />
+        <div className="pl-6">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+            {t('textEffect.shadowColor')}
+          </span>
+          <ColorPicker
+            aria-label={t('textEffect.shadowColor')}
+            value={colorOf(current.shadow, DEFAULT_SHADOW_COLOR)}
+            onChange={(color) => {
+              const shadow: ShadowObject = { color };
+              set({ shadow });
+            }}
+          />
+        </div>
       )}
 
       <Toggle
@@ -78,20 +83,26 @@ export const TextEffectControl = ({ effect, onChange }: TextEffectControlProps) 
         }}
       />
       {outlineOn && (
-        <ColorPicker
-          aria-label={t('textEffect.outlineColor')}
-          value={colorOf(current.outline, DEFAULT_OUTLINE_COLOR)}
-          onChange={(color) => {
-            const outline: OutlineObject = { color };
-            set({ outline });
-          }}
-        />
+        <div className="pl-6">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+            {t('textEffect.outlineColor')}
+          </span>
+          <ColorPicker
+            aria-label={t('textEffect.outlineColor')}
+            value={colorOf(current.outline, DEFAULT_OUTLINE_COLOR)}
+            onChange={(color) => {
+              const outline: OutlineObject = { color };
+              set({ outline });
+            }}
+          />
+        </div>
       )}
     </div>
   );
 };
 
-// A small labelled checkbox toggle — local to this control to avoid a new shared dependency.
+// A small labelled checkbox toggle — the shared studio Checkbox so it matches every other toggle
+// in the panels (focus ring, hover, pointer cursor) instead of a bare native input.
 const Toggle = ({
   label,
   checked,
@@ -101,13 +112,11 @@ const Toggle = ({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) => (
-  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-    <input
-      type="checkbox"
+  <label className="flex w-fit cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+    <Checkbox
       checked={checked}
-      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-      onChange={(e) => {
-        onChange(e.target.checked);
+      onCheckedChange={(c) => {
+        onChange(c === true);
       }}
     />
     {label}

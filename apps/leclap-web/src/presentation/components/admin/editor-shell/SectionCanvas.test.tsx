@@ -67,3 +67,30 @@ describe('SectionCanvas selection from props', () => {
     expect(html).not.toContain('aria-pressed="true"');
   });
 });
+
+// The backdrop mirrors the section's source-footage fit (options.forceAspectRatio /
+// forceOriginalAspectRatio): cover → object-cover, letterbox → object-contain on black, off → fill.
+describe('SectionCanvas backdrop fit mirror', () => {
+  const background = { imageUrl: '/assets/backgrounds/paper.jpg' };
+
+  it('cover-crops the backdrop by default', () => {
+    const html = render({ element: null, editing: false }, { background });
+
+    expect(html).toContain('object-cover');
+  });
+
+  it('letterboxes the backdrop on black for the letterbox fit', () => {
+    const html = render({ element: null, editing: false }, { background, backgroundFit: 'letterbox' });
+
+    expect(html).toContain('object-contain');
+    expect(html).toContain('bg-black');
+    expect(html).not.toContain('object-cover');
+  });
+
+  it('fills the frame without aspect correction for the off fit', () => {
+    const html = render({ element: null, editing: false }, { background, backgroundFit: 'off' });
+
+    expect(html).toContain('object-fill');
+    expect(html).not.toContain('object-cover');
+  });
+});

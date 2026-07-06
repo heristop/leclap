@@ -49,10 +49,75 @@ describe('import/export round-trip', () => {
     // The descriptor the re-imported state builds must equal the original descriptor — a clean
     // round-trip through buildDescriptor -> JSON -> safeParse -> toEditorState -> buildDescriptor.
     expect(buildDescriptor(result.state)).toEqual(buildDescriptor(original));
-    // Meta carried over from the current state.
+    // The id carries over from the current state; name/description ride inside the descriptor meta.
     expect(result.state.id).toBe(original.id);
     expect(result.state.name).toBe(original.name);
     expect(result.state.orientation).toBe('portrait');
+  });
+
+  it('exports the template identity as descriptor meta', () => {
+    const exported = JSON.parse(exportDescriptorJson(state())) as { meta?: { name?: string; description?: string } };
+
+    expect(exported.meta).toEqual({ name: 'My Template', description: 'A demo' });
+  });
+
+  it('prefers the imported descriptor meta over the current editor identity', () => {
+    const foreign = exportDescriptorJson(state({ name: 'Someone Else Promo', description: 'Their blurb' }));
+
+    const result = importDescriptorJson(foreign, state());
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) return;
+
+    expect(result.state.name).toBe('Someone Else Promo');
+    expect(result.state.description).toBe('Their blurb');
+    // The import still lands as an edit of the SAME template.
+    expect(result.state.id).toBe('user-42');
+  });
+
+  it('keeps the current identity when the imported JSON has no meta (legacy descriptor)', () => {
+    const legacy = JSON.stringify({ global: { orientation: 'portrait' }, sections: [] });
+
+    const result = importDescriptorJson(legacy, state());
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) return;
+
+    expect(result.state.name).toBe('My Template');
+    expect(result.state.description).toBe('A demo');
+  });
+
+  it('imports a square descriptor as square (not the current orientation)', () => {
+    const square = exportDescriptorJson(state({ orientation: 'square' }));
+
+    const result = importDescriptorJson(square, state({ orientation: 'portrait' }));
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) return;
+
+    expect(result.state.orientation).toBe('square');
+  });
+
+  it('imports a landscape descriptor as landscape (not the current orientation)', () => {
+    const landscape = exportDescriptorJson(state({ orientation: 'landscape' }));
+
+    const result = importDescriptorJson(landscape, state({ orientation: 'portrait' }));
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) return;
+
+    expect(result.state.orientation).toBe('landscape');
+  });
+
+  it('keeps the current orientation when the imported descriptor omits it', () => {
+    const noOrientation = JSON.stringify({ sections: [] });
+
+    const result = importDescriptorJson(noOrientation, state({ orientation: 'square' }));
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) return;
+
+    expect(result.state.orientation).toBe('square');
   });
 
   it('reports readable zod errors for an invalid descriptor', () => {

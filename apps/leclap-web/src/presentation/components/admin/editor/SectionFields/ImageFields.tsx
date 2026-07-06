@@ -12,6 +12,7 @@ import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
 import { effectsSummary, audioSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
+import { FitField } from './fit-field';
 import { SectionAudioFields } from './SectionAudioFields';
 import { VisualEffects } from './VisualEffects';
 
@@ -57,6 +58,12 @@ export const ImageFields = ({ section, onChange, inputCls }: ImageFieldsProps) =
         />
         {t('image.allowUpload')}
       </label>
+      <FitField
+        fit={section.fit}
+        onChange={(fit) => {
+          onChange({ fit });
+        }}
+      />
       {advanced && (
         <div className="space-y-2">
           <SectionDisclosure

@@ -45,6 +45,26 @@ describe('buildMasterTimeline', () => {
     expect(buildMasterTimeline([newSection('music')])).toEqual([]);
     expect(totalDuration([])).toBe(0);
   });
+
+  // Mirrors the engine's `section.transition ?? global.transition` boundary resolution.
+  it('fills unset boundaries with the template default transition', () => {
+    const timeline = buildMasterTimeline([video(8), color(3)], { type: 'fade', duration: 1 });
+    expect(timeline[0].transitionAfter).toEqual({ type: 'fade', duration: 1 });
+  });
+
+  it('keeps per-boundary overrides (including explicit cuts) over the default', () => {
+    const timeline = buildMasterTimeline(
+      [video(8, { type: 'wipeleft', duration: 0.4 }), video(5, { type: 'cut' }), color(3)],
+      { type: 'fade', duration: 1 }
+    );
+    expect(timeline[0].transitionAfter).toEqual({ type: 'wipeleft', duration: 0.4 });
+    expect(timeline[1].transitionAfter).toEqual({ type: 'cut' });
+  });
+
+  it('leaves boundaries untouched for a cut default', () => {
+    const timeline = buildMasterTimeline([video(8), color(3)], { type: 'cut', duration: 0.5 });
+    expect(timeline[0].transitionAfter).toBeUndefined();
+  });
 });
 
 describe('sceneClockAt', () => {

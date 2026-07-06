@@ -79,7 +79,7 @@ export const StarterPresetPicker = ({ open, onPick, onBlank }: StarterPresetPick
         <button
           type="button"
           onClick={onBlank}
-          className="tap mt-2 cursor-pointer justify-self-start text-sm font-medium text-gray-500 underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+          className="tap mt-1 inline-flex min-h-11 cursor-pointer items-center justify-self-start rounded-lg px-1 text-sm font-medium text-gray-500 underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
         >
           {t('presets.startBlank')}
         </button>

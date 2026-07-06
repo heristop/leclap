@@ -6,9 +6,10 @@
 import { type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import type { AnimationOverlay, ImageOverlay, Orientation } from '../templateEditorModel';
+import type { AnimationOverlay, ImageOverlay, Orientation, OverlayFlip } from '../templateEditorModel';
 import { FRAME_SIZE } from '../editor/animationOverlay';
 import { AnimationMedia } from '../editor/AnimationMedia';
+import { flipCssTransform } from '../editor/overlayFlip.logic';
 import { moveOverlay, nudgeOverlay, resizeOverlay, resolveOverlayRect, rotateOverlay } from './imageAnimationDrag';
 
 // Arrow-key nudge step (output px); Shift jumps further. Mirrors AnimationFrameCanvas's 8/40 steps.
@@ -149,7 +150,7 @@ export const SectionCanvasMediaBox = (props: MediaBoxProps) => {
       aria-pressed={active}
       onPointerDown={beginMove}
       onKeyDown={onKeyDown}
-      style={boxStyle(rect, k, value.rotation, value.opacity)}
+      style={boxStyle(rect, k, value.rotation, value.flip, value.opacity)}
       className={cn(
         'absolute cursor-move touch-none rounded-[2px] outline-none',
         active && 'ring-2 ring-brand-500 focus-visible:ring-2'
@@ -219,19 +220,24 @@ function listenUntilUp(onMove: (ev: PointerEvent) => void): void {
   window.addEventListener('pointerup', onUp);
 }
 
-// Position/size the box in display px, applying the overlay's rotation (around its centre) and opacity.
+// Position/size the box in display px, applying the overlay's rotation (around its centre), mirror
+// flip and opacity. The flip fragment sits AFTER rotate so CSS (right-to-left) mirrors first, then
+// rotates — matching the engine's flip-then-rotate leg chain.
 function boxStyle(
   rect: { left: number; top: number; width: number; height: number },
   k: number,
   rotation: number | undefined,
+  flip: OverlayFlip | undefined,
   opacity: number | undefined
 ): CSSProperties {
+  const transform = [rotation ? `rotate(${rotation}deg)` : '', flipCssTransform(flip)].filter(Boolean).join(' ');
+
   return {
     left: rect.left * k,
     top: rect.top * k,
     width: rect.width * k,
     height: rect.height * k,
-    transform: rotation ? `rotate(${rotation}deg)` : undefined,
+    transform: transform || undefined,
     opacity: opacity ?? 1,
   };
 }

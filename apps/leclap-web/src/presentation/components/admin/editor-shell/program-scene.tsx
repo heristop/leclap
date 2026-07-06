@@ -5,7 +5,9 @@
 // Ken Burns). Still-image and animation overlays are out of the v1 playback scope; they keep
 // rendering in the edit canvas.
 import { forwardRef, useImperativeHandle, useRef, type CSSProperties, type RefObject } from 'react';
+import type { ColorVariableMap } from '@leclap/creative-kit/editor';
 import { displayFromTokens } from '@/lib/variableSyntax';
+import { useColorVariables } from '@/presentation/components/ui';
 import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
 import {
   type BackgroundLayer,
@@ -15,8 +17,9 @@ import {
 } from '../templateEditorModel';
 import { newBaseLayer } from '../editor/layerGeometry';
 import { cssLayerBackground } from '../editor/layerPreview';
-import { lookFilter, gradeFilter } from '../editor/lookFilters';
-import { boxStyle } from './sectionCanvasBox';
+import { combinedLookGradeFilter, type LookGradeTreatment } from '../editor/lookFilters';
+import { boxStyle, OverlayAccentBar } from './sectionCanvasBox';
+import { previewScale } from './sugarPreviewGeometry';
 import { SugarPreviewLayer } from './SugarPreviewLayer';
 import { initialSectionSelection } from './useSectionSelection';
 
@@ -39,14 +42,24 @@ const colorLayers = (section: Extract<EditorSection, { kind: 'color' }>): Backgr
   section.layers && section.layers.length > 0 ? section.layers : [newBaseLayer(section.color)];
 
 // The engine grades the base frame BEFORE sugar and drawtext overlays, so only the backdrop group
-// carries the CSS look/grade filter (mirrors SectionCanvas).
-const backdropFilter = (section: VisualSection): CSSProperties => {
-  const parts = [lookFilter(section.look), gradeFilter(section.grade)].filter((part) => part !== 'none');
+// carries the CSS look/grade filter (mirrors SectionCanvas), with the whole-video treatment
+// (EditorState.globalLook/globalGrade) chained after the section's own — the engine's order.
+const backdropFilter = (section: VisualSection, globalTreatment: LookGradeTreatment): CSSProperties => {
+  const css = combinedLookGradeFilter({ look: section.look, grade: section.grade }, globalTreatment);
 
-  return parts.length > 0 ? { filter: parts.join(' ') } : {};
+  return css ? { filter: css } : {};
 };
 
-const Backdrop = ({ section }: { section: VisualSection }) => {
+const Backdrop = ({
+  section,
+  colorVars,
+  borderScale,
+}: {
+  section: VisualSection;
+  colorVars: ColorVariableMap;
+  /** Preview px per engine px — rescales a layer's border stroke (authored in engine px) to the frame. */
+  borderScale: number;
+}) => {
   if (section.kind === 'image') {
     const url = imageSectionUrl(section.allowed);
 
@@ -59,7 +72,7 @@ const Backdrop = ({ section }: { section: VisualSection }) => {
     return (
       <>
         {colorLayers(section).map((layer, i) => (
-          <div key={i} aria-hidden style={cssLayerBackground(layer, i === 0)} />
+          <div key={i} aria-hidden style={cssLayerBackground(layer, i === 0, colorVars, borderScale)} />
         ))}
       </>
     );
@@ -76,15 +89,19 @@ interface ProgramSceneProps {
   orientation: Orientation;
   frameRef: RefObject<HTMLDivElement | null>;
   previewH: number;
+  // The whole-video look/grade (EditorState.globalLook/globalGrade), chained onto every scene's backdrop.
+  globalTreatment: LookGradeTreatment;
 }
 
 // Renders one scene; exposes the backdrop + per-overlay wrapper elements for the clock's paint loop.
 export const ProgramScene = forwardRef<ProgramSceneHandles, ProgramSceneProps>(
-  ({ section, orientation, frameRef, previewH }, ref) => {
+  ({ section, orientation, frameRef, previewH, globalTreatment }, ref) => {
     const backdropRef = useRef<HTMLDivElement>(null);
     const overlayRefs = useRef<Array<HTMLDivElement | null>>([]);
     const overlays: TextOverlay[] = section.overlays;
     overlayRefs.current.length = overlays.length;
+    // Resolve '{{ variable }}' colour tokens so playback matches the compiled colours.
+    const { variables: colorVars } = useColorVariables();
 
     useImperativeHandle(ref, () => ({
       get backdrop() {
@@ -98,8 +115,8 @@ export const ProgramScene = forwardRef<ProgramSceneHandles, ProgramSceneProps>(
     return (
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Backdrop group: graded + Ken Burns'd as one unit (transform written by the clock). */}
-        <div ref={backdropRef} className="absolute inset-0" style={backdropFilter(section)}>
-          <Backdrop section={section} />
+        <div ref={backdropRef} className="absolute inset-0" style={backdropFilter(section, globalTreatment)}>
+          <Backdrop section={section} colorVars={colorVars} borderScale={previewScale(previewH, orientation)} />
         </div>
         <SugarPreviewLayer
           caption={section.caption}
@@ -118,8 +135,9 @@ export const ProgramScene = forwardRef<ProgramSceneHandles, ProgramSceneProps>(
             }}
             className="absolute inset-0"
           >
-            <span className="absolute whitespace-pre" style={boxStyle(overlay, previewH, orientation)}>
+            <span className="absolute whitespace-pre" style={boxStyle(overlay, previewH, orientation, colorVars)}>
               {displayFromTokens(overlay.text)}
+              <OverlayAccentBar overlay={overlay} vars={colorVars} />
             </span>
           </div>
         ))}

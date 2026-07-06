@@ -74,6 +74,11 @@ describe('ElementInspector', () => {
     const html = render(section, { kind: 'text', index: 0 });
 
     expect(html).toContain(`aria-label="${admin.overlay.font}"`);
+    // The finishing controls sit under the two collapsed disclosures with state summaries
+    // (static markup HTML-escapes the ampersand in the group labels).
+    expect(html).toContain(admin.overlay.styleGroup.replace('&', '&amp;'));
+    expect(html).toContain(admin.overlay.motionGroup.replace('&', '&amp;'));
+    expect(html).toContain(admin.summaryChip.none);
   });
 
   it('dispatches a layer ref to LayerRow', () => {
@@ -86,7 +91,9 @@ describe('ElementInspector', () => {
   it('dispatches an image ref to PlacementControls', () => {
     const html = render(videoWithImage(), { kind: 'image', index: 0 });
 
-    expect(html).toContain('aria-label="X"');
+    // The numeric fields live inside the collapsed Placement disclosure; its summary carries the value.
+    expect(html).toContain(admin.animation.placementGroup);
+    expect(html).toContain('10:20');
   });
 
   it('dispatches an animation ref to PlacementControls', () => {

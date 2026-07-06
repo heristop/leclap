@@ -1,6 +1,7 @@
 // The left inspector's per-kind dispatcher: given the section + the single shared selection, render the
 // right SETTINGS control for the selected element (text / background layer / image / animation) by
 // reusing the existing extracted controls. Array surgery for layer move/remove reuses sectionElements.
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type {
@@ -123,7 +124,7 @@ export const ElementInspector = ({
     }
 
     return (
-      <div className="space-y-3">
+      <Card>
         <CaptionField
           caption={section.caption}
           onChange={(caption) => {
@@ -137,7 +138,7 @@ export const ElementInspector = ({
             detachSugar('caption', section.caption);
           }}
         />
-      </div>
+      </Card>
     );
   }
 
@@ -145,7 +146,7 @@ export const ElementInspector = ({
     if (section.kind !== 'color') return <Hint label={t('element.selectHint')} />;
 
     return (
-      <div className="space-y-3">
+      <Card>
         <TitleCardField
           titleCard={section.titleCard}
           onChange={(titleCard) => {
@@ -160,7 +161,7 @@ export const ElementInspector = ({
             detachSugar('titleCard', section.titleCard);
           }}
         />
-      </div>
+      </Card>
     );
   }
 
@@ -168,7 +169,7 @@ export const ElementInspector = ({
     if (section.kind !== 'video') return <Hint label={t('element.selectHint')} />;
 
     return (
-      <div className="space-y-3">
+      <Card>
         <LowerThirdField
           lowerThird={section.lowerThird}
           onChange={(lowerThird) => {
@@ -183,7 +184,7 @@ export const ElementInspector = ({
             detachSugar('lowerThird', section.lowerThird);
           }}
         />
-      </div>
+      </Card>
     );
   }
 
@@ -214,22 +215,24 @@ const TextSettings = ({ section, activeRef, variables, t, onPatchSection, onSele
   if (!overlay) return <Hint label={t('element.selectHint')} />;
 
   return (
-    <SelectedControls
-      overlay={overlay}
-      t={t}
-      variables={variables}
-      onPatch={(patch) => {
-        onPatchSection({ overlays: patchAt(overlays, activeRef.index, patch) } as Partial<EditorSection>);
-      }}
-      onInsertVariable={(name) => {
-        const text = `${overlay.text}{{ ${name} }}`;
-        onPatchSection({ overlays: patchAt(overlays, activeRef.index, { text }) } as Partial<EditorSection>);
-      }}
-      onDelete={() => {
-        onSelectElement(null);
-        onPatchSection(removeElement(section, activeRef));
-      }}
-    />
+    <Card>
+      <SelectedControls
+        overlay={overlay}
+        t={t}
+        variables={variables}
+        onPatch={(patch) => {
+          onPatchSection({ overlays: patchAt(overlays, activeRef.index, patch) } as Partial<EditorSection>);
+        }}
+        onInsertVariable={(name) => {
+          const text = `${overlay.text}{{ ${name} }}`;
+          onPatchSection({ overlays: patchAt(overlays, activeRef.index, { text }) } as Partial<EditorSection>);
+        }}
+        onDelete={() => {
+          onSelectElement(null);
+          onPatchSection(removeElement(section, activeRef));
+        }}
+      />
+    </Card>
   );
 };
 
@@ -283,14 +286,16 @@ const ImageSettings = ({ section, activeRef, orientation, t, onPatchSection }: P
   if (!image) return <Hint label={t('element.selectHint')} />;
 
   return (
-    <PlacementControls
-      kind="image"
-      orientation={orientation}
-      value={image}
-      onChange={(patch) => {
-        onPatchSection({ images: patchAt(images, activeRef.index, patch) } as Partial<EditorSection>);
-      }}
-    />
+    <Card>
+      <PlacementControls
+        kind="image"
+        orientation={orientation}
+        value={image}
+        onChange={(patch) => {
+          onPatchSection({ images: patchAt(images, activeRef.index, patch) } as Partial<EditorSection>);
+        }}
+      />
+    </Card>
   );
 };
 
@@ -301,19 +306,28 @@ const AnimationSettings = ({ section, activeRef, orientation, t, onPatchSection 
   if (!animation) return <Hint label={t('element.selectHint')} />;
 
   return (
-    <PlacementControls
-      kind="animation"
-      orientation={orientation}
-      value={animation}
-      onChange={(patch) => {
-        onPatchSection({ animations: patchAt(animations, activeRef.index, patch) } as Partial<EditorSection>);
-      }}
-    />
+    <Card>
+      <PlacementControls
+        kind="animation"
+        orientation={orientation}
+        value={animation}
+        onChange={(patch) => {
+          onPatchSection({ animations: patchAt(animations, activeRef.index, patch) } as Partial<EditorSection>);
+        }}
+      />
+    </Card>
   );
 };
 
 // The muted "select an element" placeholder, mirroring OverlayInspector's hint styling.
 const Hint = ({ label }: { label: string }) => <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>;
+
+// The inspector card — the same surface OverlayInspector draws around SelectedControls, so every
+// per-element settings block reads as one consistent panel under the element list. The layer kind
+// skips it (LayerRow already renders its own card).
+const Card = ({ children }: { children: ReactNode }) => (
+  <div className="space-y-3 rounded-xl border border-foreground/10 bg-surface-2/50 p-3">{children}</div>
+);
 
 // "Detach into text elements": the escape hatch from structural sugar to free overlays. Secondary
 // styling + an explicit trade-off hint, since the conversion drops the block's automatic layout

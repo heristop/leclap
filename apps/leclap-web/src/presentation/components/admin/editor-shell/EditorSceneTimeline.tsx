@@ -6,7 +6,7 @@ import { SceneCell } from '@/presentation/components/editor-shell';
 import { usePointerReorder } from '@/presentation/components/editor-shell/usePointerReorder';
 import { SECTION_ICON, type SectionKind } from '@/lib/sectionMeta';
 import { displayFromTokens } from '@/lib/variableSyntax';
-import type { EditorSection, SectionTransition } from '../templateEditorModel';
+import type { DefaultTransition, EditorSection, SectionTransition } from '../templateEditorModel';
 import { TransitionPicker } from '../editor/TransitionPicker';
 import { AddSceneMenu } from './AddSceneMenu';
 import { isPristineTimeline } from './timelinePristine';
@@ -20,6 +20,9 @@ interface EditorSceneTimelineProps {
   onDelete: (index: number) => void;
   onReorder: (from: number, to: number) => void;
   onTransition: (index: number, transition: SectionTransition | undefined) => void;
+  // The template-wide default transition unset boundaries inherit — the chips show it as the
+  // effective transition so the lane never claims "Cut" while the render fades.
+  defaultTransition?: DefaultTransition;
   sectionTitle: (section: EditorSection, index: number) => string;
   sectionKindLabel: (section: EditorSection) => string;
   // Restricts the add-scene menu to these kinds (partials allow only video/form/color/image).
@@ -83,6 +86,7 @@ export const EditorSceneTimeline = ({
   onDelete,
   onReorder,
   onTransition,
+  defaultTransition,
   sectionTitle,
   sectionKindLabel,
   addKinds,
@@ -154,6 +158,7 @@ export const EditorSceneTimeline = ({
               <span className="grid shrink-0 place-items-center" aria-label={t('shell.transitionAfter')}>
                 <TransitionPicker
                   transition={'transitionAfter' in section ? section.transitionAfter : undefined}
+                  defaultTransition={defaultTransition}
                   onChange={(transition) => {
                     onTransition(i, transition);
                   }}

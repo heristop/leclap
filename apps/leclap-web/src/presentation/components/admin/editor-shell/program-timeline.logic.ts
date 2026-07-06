@@ -3,7 +3,7 @@
 // is a straight concatenation — it deliberately ignores the xfade overlap that shortens the final
 // render, keeping time→scene mapping monotone and the scrubber linear (documented preview-vs-render
 // length difference).
-import type { EditorSection, MotionEffect, SectionTransition } from '../templateEditorModel';
+import type { DefaultTransition, EditorSection, MotionEffect, SectionTransition } from '../templateEditorModel';
 import { previewFamilyFor, type PreviewFamily } from '../editor/transitionGroups';
 
 export type VisualKind = 'video' | 'color' | 'image';
@@ -46,9 +46,12 @@ const safeDuration = (duration: number): number =>
 
 // The visual scenes concatenated into ordered segments. Non-visual scenes (music/form/partial)
 // contribute nothing to the played timeline — they're authoring-only, matching how the engine joins
-// visual sections.
-export function buildMasterTimeline(sections: EditorSection[]): Segment[] {
+// visual sections. A boundary without its own transition inherits the template default (the engine's
+// `section.transition ?? global.transition` rule); a cut default contributes nothing.
+export function buildMasterTimeline(sections: EditorSection[], defaultTransition?: DefaultTransition): Segment[] {
   const segments: Segment[] = [];
+  const fallback: SectionTransition | undefined =
+    defaultTransition && defaultTransition.type !== 'cut' ? { ...defaultTransition } : undefined;
   let cursor = 0;
 
   for (const [index, section] of sections.entries()) {
@@ -56,6 +59,7 @@ export function buildMasterTimeline(sections: EditorSection[]): Segment[] {
 
     const visual = section as Extract<EditorSection, { kind: VisualKind }>;
     const duration = safeDuration(visual.duration);
+    const transitionAfter = visual.transitionAfter ?? fallback;
 
     segments.push({
       index,
@@ -63,7 +67,7 @@ export function buildMasterTimeline(sections: EditorSection[]): Segment[] {
       start: cursor,
       end: cursor + duration,
       duration,
-      ...(visual.transitionAfter ? { transitionAfter: visual.transitionAfter } : {}),
+      ...(transitionAfter ? { transitionAfter } : {}),
     });
     cursor += duration;
   }

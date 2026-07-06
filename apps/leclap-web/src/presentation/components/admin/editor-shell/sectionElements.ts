@@ -17,6 +17,7 @@ import {
   newOverlay,
   type EditorSection,
   type EditorCaption,
+  type Orientation,
   type TextOverlay,
   type TitleCard,
   type ImageOverlay,
@@ -25,6 +26,7 @@ import {
   type LowerThird,
 } from '../templateEditorModel';
 import { newExtraLayer } from '../editor/layerGeometry';
+import { newShapeImage } from './shape-image';
 import { translationText } from './sugarPreviewGeometry';
 import type { ElementRef } from './useSectionSelection';
 
@@ -45,6 +47,17 @@ type ArrayField = 'layers' | 'overlays' | 'images' | 'animations';
 // authored via the scene fields / its inspector, never added or reordered like array elements.
 type ArrayKind = 'layer' | 'text' | 'image' | 'animation';
 export type SugarKind = 'caption' | 'titleCard' | 'lowerThird';
+
+// Everything the "+ Add" menu can offer: the selectable element kinds plus the two shape entries.
+// Shapes are NOT an ElementRef kind — a shape is an ImageOverlay carrying a `shape` recipe, so the
+// menu entries lower to an `images` append and select as `{ kind: 'image' }`.
+export type AddableKind = ElementRef['kind'] | 'shapeRect' | 'shapeEllipse';
+
+type ShapeAddKind = 'shapeRect' | 'shapeEllipse';
+
+function isShapeKind(kind: AddableKind): kind is ShapeAddKind {
+  return kind === 'shapeRect' || kind === 'shapeEllipse';
+}
 
 export function isSugarKind(kind: ElementRef['kind']): kind is SugarKind {
   return kind === 'caption' || kind === 'titleCard' || kind === 'lowerThird';
@@ -106,7 +119,10 @@ function sectionArray(section: EditorSection, kind: ElementRef['kind']): unknown
 
 // True when the section can gain an element of `kind`: array kinds need the owning section kind;
 // a sugar singleton is addable only where owned AND while still absent (at most one per section).
-export function canAddElement(section: EditorSection, kind: ElementRef['kind']): boolean {
+// The shape entries ride the images array, so they are gated by image ownership.
+export function canAddElement(section: EditorSection, kind: AddableKind): boolean {
+  if (isShapeKind(kind)) return OWNED_KINDS[section.kind].includes('image');
+
   if (isSugarKind(kind)) {
     return SUGAR_OWNERS[kind].includes(section.kind) && sugarValue(section, kind) === undefined;
   }
@@ -132,12 +148,19 @@ function mediaChoiceLabel(choice: ImageOverlay['choice']): string | undefined {
 }
 
 // A short, identity-bearing content preview for an element row — the overlay text or the asset
-// filename — truncated. Undefined when the element has no content to show yet.
+// filename — truncated. Undefined when the element has no content to show yet. A shape's identity
+// is its fill colour (its data: URL basename would be base64 noise).
 function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
   const raw = ((): string | undefined => {
     if (kind === 'text') return (element as TextOverlay).text.trim() || undefined;
 
-    if (kind === 'image') return mediaChoiceLabel((element as ImageOverlay).choice);
+    if (kind === 'image') {
+      const image = element as ImageOverlay;
+
+      if (image.shape) return image.shape.color;
+
+      return mediaChoiceLabel(image.choice);
+    }
 
     if (kind === 'animation') return fileLabel((element as AnimationOverlay).url);
 
@@ -145,6 +168,13 @@ function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
   })();
 
   return truncatePreview(raw);
+}
+
+// The row label key: shape-bearing images read as "Shape", everything else as its kind.
+function elementLabelKey(element: unknown, kind: ArrayKind): string {
+  if (kind === 'image' && (element as ImageOverlay).shape) return 'element.shape';
+
+  return `element.${kind}`;
 }
 
 function truncatePreview(raw: string | undefined): string | undefined {
@@ -161,7 +191,7 @@ function descriptorsFor(section: EditorSection, kind: ArrayKind): ElementDescrip
   return list.map((element, index) => ({
     ref: { kind, index },
     kind,
-    labelKey: `element.${kind}`,
+    labelKey: elementLabelKey(element, kind),
     labelParams: { n: index + 1 },
     previewText: elementPreview(element, kind),
   }));
@@ -234,11 +264,27 @@ function newSugar(kind: SugarKind): Partial<EditorSection> {
 }
 
 // Append a default element to the matching array (ref at the new last index), or seed an absent
-// sugar singleton (ref at index 0). Null when the section can't gain that kind.
+// sugar singleton (ref at index 0). Null when the section can't gain that kind. A shape entry
+// appends a freshly rasterized shape overlay to `images` (orientation sizes/centres it) and selects
+// it as a regular image element.
 export function addElement(
   section: EditorSection,
-  kind: ElementRef['kind']
+  kind: AddableKind,
+  orientation: Orientation = 'portrait'
 ): { patch: Partial<EditorSection>; ref: ElementRef } | null {
+  if (isShapeKind(kind)) {
+    const list = sectionArray(section, 'image');
+
+    if (!list) return null;
+
+    const shape = newShapeImage(kind === 'shapeRect' ? 'rect' : 'ellipse', orientation);
+
+    return {
+      patch: { images: [...list, shape] } as Partial<EditorSection>,
+      ref: { kind: 'image', index: list.length },
+    };
+  }
+
   if (isSugarKind(kind)) {
     if (!canAddElement(section, kind)) return null;
 

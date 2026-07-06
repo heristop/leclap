@@ -18,7 +18,13 @@ import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import clsx from 'clsx';
 import type { AvailablePartial } from '@/services/templatePartialService';
-import { SECTION_LABELS, type EditorSection, type EditorState, type SectionTransition } from '../templateEditorModel';
+import {
+  SECTION_LABELS,
+  type EditorSection,
+  type EditorState,
+  type MediaChoice,
+  type SectionTransition,
+} from '../templateEditorModel';
 import { TransitionPicker } from './TransitionPicker';
 import { SectionFields } from './SectionFields';
 import { errorsForEditorSection, type SectionValidation, type ValidationError } from './validationMapping';
@@ -248,6 +254,7 @@ export const SceneList = ({
           {!dragging && hasVisualAfter(sections, i) && (
             <TransitionPicker
               transition={'transitionAfter' in section ? section.transitionAfter : undefined}
+              defaultTransition={editorState.defaultTransition}
               onChange={(transition) => {
                 setTransition(i, transition);
               }}
@@ -496,14 +503,26 @@ export const AddSectionButtons = ({
 
 const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? '' : 's'}`;
 
+// A human label for an asset-backed clip source: the upload's filename, the library id, or the
+// file part of a pasted URL.
+function clipLabel(choice: MediaChoice): string {
+  if (choice.source === 'library') return choice.id;
+
+  if (choice.source === 'upload') return choice.label;
+
+  return choice.url.split('/').filter(Boolean).at(-1) ?? choice.url;
+}
+
 function videoSummary(section: Extract<EditorSection, { kind: 'video' }>): string {
   const parts = [`${section.duration}s`];
+
+  if (section.videoUrl) parts.push(`clip · ${clipLabel(section.videoUrl)}`);
 
   if (section.mute) parts.push('muted');
 
   if (section.overlays.length > 0) parts.push(plural(section.overlays.length, 'overlay'));
 
-  if (section.countdown) parts.push(`countdown ${section.countdownSeconds}s`);
+  if (!section.videoUrl && section.countdown) parts.push(`countdown ${section.countdownSeconds}s`);
 
   return parts.join(' · ');
 }

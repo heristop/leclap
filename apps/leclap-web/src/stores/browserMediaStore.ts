@@ -1,4 +1,4 @@
-export type MediaKind = 'music' | 'picture';
+export type MediaKind = 'music' | 'picture' | 'video';
 
 export interface MediaRecord {
   key: string;

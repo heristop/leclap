@@ -11,8 +11,10 @@ import {
 import type { TFunction } from 'i18next';
 import { Type } from '@/presentation/components/icons';
 import { findFont } from '@leclap/creative-kit/fonts';
+import { resolvePreviewColor, DEFAULT_BOX_PADDING, type ColorVariableMap } from '@leclap/creative-kit/editor';
 import { displayFromTokens, tokensFromDisplay } from '@/lib/variableSyntax';
 import { cn } from '@/lib/utils';
+import { useColorVariables } from '@/presentation/components/ui';
 import type { TextOverlay, Orientation } from '../templateEditorModel';
 import { previewFontPx, refVideoHeight } from '../overlayGeometry';
 import { FloatingVariableSuggestions, useVariableAutocomplete } from '../editor/variableAutocomplete';
@@ -99,6 +101,9 @@ export const OverlayBox = (props: OverlayBoxProps) => {
   };
 
   const previewH = frameRect()?.height ?? 0;
+  // Resolve '{{ variable }}' colour tokens against the editor's global scope so the WYSIWYG box
+  // shows the token's current colour (matching the engine's compile-time formatColor).
+  const { variables: colorVars } = useColorVariables();
 
   return (
     <div
@@ -117,7 +122,7 @@ export const OverlayBox = (props: OverlayBoxProps) => {
         props.onEdit();
       }}
       onKeyDown={onKeyDown}
-      style={boxStyle(overlay, previewH, orientation)}
+      style={boxStyle(overlay, previewH, orientation, colorVars)}
       className={cn(
         'absolute max-w-[92%] cursor-move touch-none whitespace-pre-wrap text-center leading-tight outline-none',
         active && 'rounded-[0.2em] ring-2 ring-brand-500'
@@ -133,6 +138,7 @@ export const OverlayBox = (props: OverlayBoxProps) => {
         onCaret={props.onCaret}
         onEndEdit={props.onEndEdit}
       />
+      <OverlayAccentBar overlay={overlay} vars={colorVars} />
       {active && !editing && <ResizeHandles onHandlePointerDown={onHandlePointerDown} />}
     </div>
   );
@@ -280,9 +286,17 @@ const ResizeHandles = ({
 
 
 // Inline style for an overlay box: position, the real font face, the WYSIWYG-scaled font size, color,
-// and an optional padded background box at the author's opacity. Exported so the live program monitor
-// (program-scene) renders playback overlays with the exact same typography math as the edit canvas.
-export function boxStyle(overlay: TextOverlay, previewH: number, orientation: Orientation): CSSProperties {
+// and an optional padded background box at the author's opacity. Colour fields may hold '{{ variable }}'
+// tokens — they resolve against `vars` (the editor's global scope) the way the engine's formatColor
+// does at compile time. Exported so the live program monitor (program-scene) renders playback overlays
+// with the exact same typography math as the edit canvas.
+export function boxStyle(
+  overlay: TextOverlay,
+  previewH: number,
+  orientation: Orientation,
+  vars?: ColorVariableMap
+): CSSProperties {
+  const fontcolor = resolvePreviewColor(overlay.fontcolor, vars);
   const base: CSSProperties = {
     left: `${overlay.x * 100}%`,
     top: `${overlay.y * 100}%`,
@@ -290,20 +304,49 @@ export function boxStyle(overlay: TextOverlay, previewH: number, orientation: Or
     fontFamily: findFont(overlay.font)?.cssFamily ?? 'inherit',
     fontSize: `${previewFontPx(overlay.fontsize, previewH, orientation)}px`,
     // Watermark-style text alpha rides on the color (mirrors the `#rrggbb@a` drawtext lowering).
-    color: overlay.textOpacity === undefined ? overlay.fontcolor : rgba(overlay.fontcolor, overlay.textOpacity),
+    color: overlay.textOpacity === undefined ? fontcolor : rgba(fontcolor, overlay.textOpacity),
     // Drop shadow / outline preview, scaled like the fontsize (drawtext px → preview px).
-    ...textEffectCss(overlay.effect, previewH / refVideoHeight(orientation)),
+    ...textEffectCss(overlay.effect, previewH / refVideoHeight(orientation), vars),
   };
 
   if (!overlay.box) return base;
 
+  // The author's boxPadding (drawtext boxborderw, video px) scaled to preview px like the fontsize —
+  // uniform and square-cornered because that is exactly what drawtext renders (no corner radius).
+  const padding = (overlay.boxPadding ?? DEFAULT_BOX_PADDING) * (previewH / refVideoHeight(orientation));
+
   return {
     ...base,
-    backgroundColor: rgba(overlay.boxcolor, overlay.boxOpacity),
-    padding: '0.1em 0.3em',
-    borderRadius: '0.15em',
+    backgroundColor: rgba(resolvePreviewColor(overlay.boxcolor, vars), overlay.boxOpacity),
+    padding: `${padding}px`,
   };
 }
+
+// CSS mirror of the kit's accent underline bar (overlayFilters accentBarFilters): a solid bar
+// ~6× the fontsize wide centered under the text, height ~0.12em (min 2 preview px), one small gap
+// below. Sized in `em` so it inherits the box's WYSIWYG-scaled font size; hidden while the overlay
+// has no text (the kit drops empty overlays, bar included). Shared by the edit canvas box and the
+// program monitor's playback overlays so both previews draw the same bar.
+export const OverlayAccentBar = ({ overlay, vars }: { overlay: TextOverlay; vars?: ColorVariableMap }) => {
+  if (!overlay.accent || overlay.text.trim() === '') return null;
+
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: 'absolute',
+        top: '100%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        marginTop: '0.25em',
+        width: '6em',
+        height: 'max(2px, 0.12em)',
+        backgroundColor: resolvePreviewColor(overlay.accent, vars),
+        pointerEvents: 'none',
+      }}
+    />
+  );
+};
 
 // Accessible label for an overlay box, using its text when present.
 function overlayLabel(overlay: TextOverlay, index: number, t: TFunction<'admin'>): string {

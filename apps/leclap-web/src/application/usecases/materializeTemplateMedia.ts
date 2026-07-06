@@ -61,6 +61,22 @@ export async function materializeTemplateMedia(
     })
   );
 
+  // Uploaded clip sources on asset-backed `type: 'video'` sections (options.videoUrl as `media://<key>`).
+  const clipUploads = (descriptor.sections ?? []).filter(
+    (section) => section.type === 'video' && (section.options?.videoUrl?.startsWith(PREFIX) ?? false)
+  );
+
+  await Promise.all(
+    clipUploads.map(async (section) => {
+      const key = (section.options?.videoUrl ?? '').slice(PREFIX.length);
+      const meta = await source.getMeta(key);
+      const bytes = await readOrThrow(source, key);
+      const path = `/assets/videos/${key}.${meta?.ext ?? 'mp4'}`;
+      await target.writeFile(path, bytes);
+      section.options = { ...section.options, videoUrl: path };
+    })
+  );
+
   // Uploaded images on any section's `inputs` (the video-section image overlays).
   const inputUploads = (descriptor.sections ?? []).flatMap((section) =>
     (section.inputs ?? []).filter((input) => input.url?.startsWith(PREFIX))

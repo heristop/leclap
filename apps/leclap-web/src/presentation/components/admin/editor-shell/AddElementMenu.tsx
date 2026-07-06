@@ -5,25 +5,23 @@
 // overlayControls' VariableMenu (outside-click + Escape).
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Square, Type } from '@/presentation/components/icons';
+import { Circle, Image, Square, Type } from '@/presentation/components/icons';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { Button } from '@/presentation/components/ui';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import type { EditorSection } from '../templateEditorModel';
-import { canAddElement } from './sectionElements';
-import type { ElementRef } from './useSectionSelection';
+import { canAddElement, type AddableKind } from './sectionElements';
 
-// Array-backed kinds plus the sugar singletons (caption/titleCard/lowerThird) — sugar is offered
-// only where the section owns it and it isn't set yet (canAddElement gates the singleton).
-type AddableKind = ElementRef['kind'];
-
-// Canonical add order: background layer → text → image overlay → animation → structured text sugar.
+// Canonical add order: background layer → text → image overlay → shapes → animation → structured
+// text sugar. The shape entries (rectangle/circle) lower to image overlays carrying a shape recipe.
 const ADD_ORDER: ReadonlyArray<AddableKind> = [
   'layer',
   'text',
   'image',
+  'shapeRect',
+  'shapeEllipse',
   'animation',
   'caption',
   'titleCard',
@@ -40,6 +38,8 @@ const KIND_ICON: Record<AddableKind, ComponentType<{ className?: string }>> = {
   layer: Square,
   text: Type,
   image: Image,
+  shapeRect: Square,
+  shapeEllipse: Circle,
   animation: SparklesIcon,
   caption: Type,
   titleCard: Type,
@@ -50,6 +50,8 @@ const KIND_LABEL: Record<AddableKind, string> = {
   layer: 'element.addBackgroundColor',
   text: 'element.addText',
   image: 'element.addImageOverlay',
+  shapeRect: 'element.addShapeRect',
+  shapeEllipse: 'element.addShapeEllipse',
   animation: 'element.addAnimation',
   caption: 'element.addCaption',
   titleCard: 'element.addTitleCard',
@@ -100,6 +102,8 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
       if (event.key !== 'Escape') return;
 
       setOpen(false);
+      // Hand focus back to the trigger so keyboard users don't drop to the document body.
+      rootRef.current?.querySelector('button')?.focus();
     };
 
     if (open) {
@@ -118,6 +122,8 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
   const pick = (kind: AddableKind) => {
     onAdd(kind);
     setOpen(false);
+    // The clicked menu item unmounts with the popover; without this, focus falls to <body>.
+    rootRef.current?.querySelector('button')?.focus();
   };
 
   return (
@@ -142,7 +148,10 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
         <div
           role="menu"
           className={cn(
-            'absolute z-10 min-w-[12rem] overflow-auto rounded-xl border border-divider bg-surface p-1 shadow-[var(--shadow-lg)]',
+            // Right-anchored: the trigger sits at the right edge of the Elements header, so a
+            // left-anchored popover would overflow the 320px panel. Max-height keeps every entry
+            // reachable (scroll) on short viewports.
+            'absolute right-0 z-10 max-h-[min(20rem,60vh)] min-w-[12rem] overflow-auto rounded-xl border border-divider bg-surface p-1 shadow-[var(--shadow-lg)]',
             dropUp ? 'bottom-full mb-1' : 'mt-1'
           )}
         >
@@ -157,9 +166,9 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
                 onClick={() => {
                   pick(kind);
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground hover:bg-brand-500/15"
+                className="tap flex min-h-10 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40"
               >
-                <Icon className="h-3.5 w-3.5 text-gray-400" /> {t(KIND_LABEL[kind])}
+                <Icon className="h-3.5 w-3.5 text-gray-400" aria-hidden /> {t(KIND_LABEL[kind])}
               </button>
             );
           })}

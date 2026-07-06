@@ -155,6 +155,7 @@ export const ProgramPlayer = ({ state, clock, timeline }: ProgramPlayerProps) =>
               orientation={state.orientation}
               frameRef={frameRef}
               previewH={previewH}
+              globalTreatment={{ look: state.globalLook, grade: state.globalGrade }}
             />
           </div>
         ))}

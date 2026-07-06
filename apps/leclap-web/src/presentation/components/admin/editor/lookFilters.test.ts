@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pruneGrade, gradeFilter, lookFilter } from './lookFilters';
+import { pruneGrade, gradeFilter, lookFilter, combinedLookGradeFilter } from './lookFilters';
 
 describe('pruneGrade', () => {
   it('drops slider fields at their defaults', () => {
@@ -45,5 +45,26 @@ describe('gradeFilter / lookFilter', () => {
     const css = gradeFilter({ contrast: 1.2, hue: 30 });
     expect(css).toContain('contrast(1.2)');
     expect(css).toContain('hue-rotate(30deg)');
+  });
+});
+
+describe('combinedLookGradeFilter', () => {
+  it('returns undefined when neither the section nor the whole video is treated', () => {
+    expect(combinedLookGradeFilter({}, {})).toBeUndefined();
+  });
+
+  it('keeps a section-only treatment identical to the old preview chain', () => {
+    const css = combinedLookGradeFilter({ look: 'noir', grade: { contrast: 1.2 } }, {});
+    expect(css).toBe([lookFilter('noir'), gradeFilter({ contrast: 1.2 })].join(' '));
+  });
+
+  it('applies the whole-video look/grade alone when the section carries none', () => {
+    const css = combinedLookGradeFilter({}, { look: 'warm', grade: { saturation: 1.4 } });
+    expect(css).toBe([lookFilter('warm'), gradeFilter({ saturation: 1.4 })].join(' '));
+  });
+
+  it('chains the whole-video treatment AFTER the section one, mirroring the engine order', () => {
+    const css = combinedLookGradeFilter({ look: 'noir' }, { look: 'warm' });
+    expect(css).toBe([lookFilter('noir'), lookFilter('warm')].join(' '));
   });
 });

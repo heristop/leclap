@@ -80,3 +80,33 @@ describe('overlayVisibilityAt', () => {
     expect(overlayVisibilityAt('none', 'none', 0, 8)).toMatchObject({ phase: 'hold', opacity: 1 });
   });
 });
+
+// The authored `easing` mirrors the engine's expression curves (linear ramp, cubic-out, smoothstep);
+// an UNSET easing keeps the monitor's signature ease-out-expo feel, unchanged for old templates.
+describe('reveal easing mirror', () => {
+  it('linear easing samples the raw progress', () => {
+    const mid = revealOffset('rise', 0.5, 60, true, 'linear');
+    expect(mid.opacity).toBeCloseTo(0.5, 5);
+    expect(mid.translateY).toBeCloseTo(30, 5);
+  });
+
+  it('ease-out samples the cubic-out curve the engine lowers (1-(1-p)^3)', () => {
+    expect(revealOffset('fade', 0.5, 60, true, 'ease-out').opacity).toBeCloseTo(0.875, 5);
+  });
+
+  it('ease-in-out samples the smoothstep curve (p*p*(3-2p))', () => {
+    expect(revealOffset('fade', 0.5, 60, true, 'ease-in-out').opacity).toBeCloseTo(0.5, 5);
+    expect(revealOffset('fade', 0.25, 60, true, 'ease-in-out').opacity).toBeCloseTo(0.15625, 5);
+  });
+
+  it('unset easing keeps the signature ease-out-expo feel', () => {
+    expect(revealOffset('fade', 0.5, 60, true).opacity).toBeCloseTo(easeOutExpo(0.5), 5);
+  });
+
+  it('overlayVisibilityAt reads the easing off the reveal object', () => {
+    const reveal = { type: 'rise', easing: 'linear' } as const;
+    const mid = overlayVisibilityAt(reveal, undefined, REVEAL_DEFAULTS.delay + 0.3, 8);
+    expect(mid.opacity).toBeCloseTo(0.5, 5);
+    expect(mid.translateY).toBeCloseTo(30, 5);
+  });
+});

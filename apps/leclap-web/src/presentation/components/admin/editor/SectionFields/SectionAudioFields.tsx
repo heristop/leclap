@@ -2,9 +2,10 @@
 // - Music volume override (0..1 slider; overrides the global mix for this section).
 // - Audio fade-in: toggle, duration input, and curve select.
 // - Audio fade-out: toggle, duration input, and curve select.
-// All changes flow through the parent's onChange (patchSection) — no local state.
+// All changes flow through the parent's onChange (patchSection) — no local state. Every string
+// resolves through the `sectionAudio.*` locale keys (all five locales carry them).
 import { useId } from 'react';
-import { Music } from '@/presentation/components/icons';
+import { useTranslation } from 'react-i18next';
 import { Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
@@ -23,6 +24,7 @@ interface SectionAudioFieldsProps {
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
 export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProps) => {
+  const { t } = useTranslation('admin');
   const fadeInCheckId = useId();
   const fadeOutCheckId = useId();
 
@@ -61,13 +63,9 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
 
   return (
     <div className="space-y-3">
-      <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
-        <Music className="size-3.5" /> Section audio
-      </span>
-
       {/* Per-section music volume override */}
       <VolumeSlider
-        label={`Music volume${section.musicVolume === undefined ? ' (global)' : ''}`}
+        label={section.musicVolume === undefined ? t('sectionAudio.musicVolumeGlobal') : t('sectionAudio.musicVolume')}
         value={section.musicVolume ?? 0.5}
         onChange={(musicVolume) => {
           onChange({ musicVolume } as Partial<EditorSection>);
@@ -81,7 +79,7 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
           }}
           className="tap inline-flex items-center gap-1 rounded-lg bg-foreground/5 px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97]"
         >
-          Reset to global ({pct(0.5)})
+          {t('sectionAudio.resetToGlobal', { percent: pct(0.5) })}
         </button>
       )}
 
@@ -98,11 +96,11 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
               toggleFadeIn(c === true);
             }}
           />
-          Fade in
+          {t('sectionAudio.fadeIn')}
         </label>
         {hasFadeIn && fade.in && (
           <FadeSideFields
-            label="Fade in"
+            label={t('sectionAudio.fadeIn')}
             duration={fade.in.duration}
             curve={fade.in.curve}
             onDuration={(duration) => {
@@ -130,11 +128,11 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
               toggleFadeOut(c === true);
             }}
           />
-          Fade out
+          {t('sectionAudio.fadeOut')}
         </label>
         {hasFadeOut && fade.out && (
           <FadeSideFields
-            label="Fade out"
+            label={t('sectionAudio.fadeOut')}
             duration={fade.out.duration}
             curve={fade.out.curve}
             onDuration={(duration) => {
@@ -161,6 +159,7 @@ interface FadeSideFieldsProps {
 }
 
 const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSideFieldsProps) => {
+  const { t } = useTranslation('admin');
   const durId = useId();
   const curveId = useId();
 
@@ -168,8 +167,8 @@ const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSid
     <div className="grid gap-2 sm:grid-cols-2 pl-6">
       <NumberField
         id={durId}
-        label="Duration"
-        aria-label={`${label} duration in seconds`}
+        label={t('sectionAudio.duration')}
+        aria-label={t('sectionAudio.fadeDuration', { side: label })}
         value={duration}
         min={0}
         max={10}
@@ -183,10 +182,10 @@ const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSid
       />
       <div>
         <label htmlFor={curveId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-          Curve
+          {t('sectionAudio.curve')}
         </label>
         <Select value={curve ?? 'tri'} onValueChange={onCurve}>
-          <SelectTrigger id={curveId} aria-label={`${label} curve`}>
+          <SelectTrigger id={curveId} aria-label={t('sectionAudio.fadeCurve', { side: label })}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

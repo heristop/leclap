@@ -72,6 +72,7 @@ export const ChromaKeyField = ({ chromaKey, onChange }: ChromaKeyFieldProps) => 
             max={1}
             step={0.01}
             format={(v) => `${Math.round(v * 100)}%`}
+            resetTo={DEFAULT_SIMILARITY}
             onChange={(similarity) => {
               patch({ similarity });
             }}

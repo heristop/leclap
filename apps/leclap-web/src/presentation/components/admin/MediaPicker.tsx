@@ -1,7 +1,7 @@
 import { useState, useId, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
-import { Upload, Music, Image as ImageIcon, Check, X } from '@/presentation/components/icons';
+import { Upload, Music, Image as ImageIcon, Video as VideoIcon, Check, X } from '@/presentation/components/icons';
 import { PlayIcon } from '@/presentation/components/icons/play';
 import { PauseIcon } from '@/presentation/components/icons/pause';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
@@ -13,7 +13,7 @@ import { MUSIC_LIBRARY, BACKGROUND_LIBRARY, type MediaCredit } from '@/data/medi
 import type { MediaChoice } from './templateEditorModel';
 import { CANVAS_DND_MIME, type DropPayload } from './editor-shell/canvasDrop';
 
-type MediaKind = 'music' | 'picture';
+type MediaKind = 'music' | 'picture' | 'video';
 type Tab = 'library' | 'upload' | 'url';
 
 export interface MediaPickerProps {
@@ -43,6 +43,25 @@ interface CardProps {
 const ACCEPT: Record<MediaKind, Record<string, string[]>> = {
   music: { 'audio/*': ['.mp3', '.wav', '.m4a', '.aac', '.ogg'] },
   picture: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
+  video: { 'video/*': ['.mp4', '.mov', '.webm', '.m4v'] },
+};
+
+// Per-kind copy + glyph for the upload pane / selected-upload chip / empty state.
+const KIND_ICON: Record<MediaKind, typeof Music> = { music: Music, picture: ImageIcon, video: VideoIcon };
+const UPLOAD_LABEL_KEY: Record<MediaKind, string> = {
+  music: 'media.uploadMusic',
+  picture: 'media.uploadImage',
+  video: 'media.uploadVideo',
+};
+const DROP_KEY: Record<MediaKind, string> = {
+  music: 'media.dropTrack',
+  picture: 'media.dropImage',
+  video: 'media.dropVideo',
+};
+const FORMATS_KEY: Record<MediaKind, string> = {
+  music: 'media.musicFormats',
+  picture: 'media.imageFormats',
+  video: 'media.videoFormats',
 };
 
 function filterByAllowed(items: MediaCredit[], allowedIds: string[] | undefined): MediaCredit[] {
@@ -57,7 +76,7 @@ const pickerShellClass = 'rounded-xl border border-foreground/10 bg-surface-2/40
 // On-brand empty state for a library grid: a compact dashed brand panel with the kind's glyph, instead
 // of a bare line of grey text. Static (no motion), so it's reduced-motion safe by construction.
 const MediaEmpty = ({ kind, message }: { kind: MediaKind; message: string }) => {
-  const Icon = kind === 'music' ? Music : ImageIcon;
+  const Icon = KIND_ICON[kind];
 
   return (
     <div className="flex flex-col items-center gap-2.5 rounded-lg border border-dashed border-brand-500/25 bg-brand-500/[0.04] px-4 py-8 text-center">
@@ -90,6 +109,9 @@ export const MediaPicker = ({
 
     if (value?.source === 'url') return 'url';
 
+    // Video clips have no curated library (yet) — the picker opens on Upload instead.
+    if (kind === 'video') return 'upload';
+
     return 'library';
   };
   const [tab, setTab] = useState<Tab>(pickInitialTab);
@@ -120,7 +142,7 @@ export const MediaPicker = ({
 
   return (
     <div className={pickerShellClass}>
-      <TabSwitch tab={tab} setTab={setTab} allowUpload={allowUpload} />
+      <TabSwitch kind={kind} tab={tab} setTab={setTab} allowUpload={allowUpload} />
       {tab === 'library' ? (
         <SingleLibraryGrid kind={kind} value={choice} onChange={handleChange} allowedIds={allowedIds} />
       ) : null}
@@ -130,9 +152,28 @@ export const MediaPicker = ({
   );
 };
 
-const TabSwitch = ({ tab, setTab, allowUpload }: { tab: Tab; setTab: (t: Tab) => void; allowUpload: boolean }) => {
+// The tab set per kind: video has no curated library, so only Upload / URL are offered.
+const tabsFor = (kind: MediaKind, allowUpload: boolean): Tab[] => {
+  if (kind === 'video') return ['upload', 'url'];
+
+  if (allowUpload) return ['library', 'upload', 'url'];
+
+  return ['library', 'url'];
+};
+
+const TabSwitch = ({
+  kind,
+  tab,
+  setTab,
+  allowUpload,
+}: {
+  kind: MediaKind;
+  tab: Tab;
+  setTab: (t: Tab) => void;
+  allowUpload: boolean;
+}) => {
   const { t } = useTranslation('admin');
-  const tabs: Tab[] = allowUpload ? ['library', 'upload', 'url'] : ['library', 'url'];
+  const tabs = tabsFor(kind, allowUpload);
 
   return (
     <SegmentedControl
@@ -440,22 +481,16 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
   return (
     <div
       {...getRootProps()}
-      aria-label={kind === 'music' ? t('media.uploadMusic') : t('media.uploadImage')}
+      aria-label={t(UPLOAD_LABEL_KEY[kind])}
       className={cn(
         'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
         isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
       )}
     >
-      <input
-        {...getInputProps()}
-        id={inputId}
-        aria-label={kind === 'music' ? t('media.uploadMusic') : t('media.uploadImage')}
-      />
+      <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
       <Upload className="h-6 w-6 text-gray-400" />
-      <span className="text-sm text-gray-300">{kind === 'music' ? t('media.dropTrack') : t('media.dropImage')}</span>
-      <span className="text-xs text-gray-500">
-        {kind === 'music' ? t('media.musicFormats') : t('media.imageFormats')}
-      </span>
+      <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
+      <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind])}</span>
     </div>
   );
 };
@@ -497,11 +532,12 @@ const UrlPane = ({
 
 const SelectedUpload = ({ kind, label, onClear }: { kind: MediaKind; label: string; onClear: () => void }) => {
   const { t } = useTranslation('admin');
+  const Icon = KIND_ICON[kind];
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-brand-500/30 bg-brand-500/10 p-3">
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-500/20 text-brand-300">
-        {kind === 'music' ? <Music className="h-5 w-5" /> : <ImageIcon className="h-5 w-5" />}
+        <Icon className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-foreground">{label}</span>

@@ -66,7 +66,10 @@ const SLIDERS: SliderSpec[] = [
 export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
   const { t } = useTranslation('admin');
   const [open, setOpen] = useState(false);
-  const active = grade !== undefined && Object.keys(grade).length > 0;
+  // The grade prop is pruned on every write, so its key count = how many knobs are off default
+  // (colorBalance and curvesPreset each count as one).
+  const adjustedCount = grade === undefined ? 0 : Object.keys(grade).length;
+  const active = adjustedCount > 0;
   const { ref: slidersRef, hoverProps: slidersHoverProps } = useIconHover();
   const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
 
@@ -103,11 +106,19 @@ export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
         }}
       >
         <SlidersHorizontalIcon ref={slidersRef} size={14} /> {t('grade.fineTune')}
-        {active && <span className="h-1.5 w-1.5 rounded-full bg-brand-500" aria-label={t('grade.customised')} />}
+        {active && open && (
+          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" role="img" aria-label={t('grade.customised')} />
+        )}
+        {/* Collapsed at-a-glance state, mirroring the SectionDisclosure summary chip. */}
+        {active && !open && (
+          <span className="ml-auto shrink-0 truncate rounded-md bg-foreground/[0.06] px-2 py-0.5 text-[0.7rem] font-medium normal-case tracking-normal text-gray-500 dark:text-gray-400">
+            {t('grade.adjustedCount', { count: adjustedCount })}
+          </span>
+        )}
         <ChevronDownIcon
           ref={chevronRef}
           size={16}
-          className={cn('ml-auto transition-transform', open && 'rotate-180')}
+          className={cn('transition-transform', open && 'rotate-180', (open || !active) && 'ml-auto')}
         />
       </button>
       {open && (
@@ -181,7 +192,9 @@ const ColorBalanceBlock = ({
         className="tap flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-widest text-gray-400 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
       >
         {t('grade.colorBalance')}
-        {active && <span className="h-1.5 w-1.5 rounded-full bg-brand-500" aria-label={t('grade.customised')} />}
+        {active && (
+          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" role="img" aria-label={t('grade.customised')} />
+        )}
         <ChevronDownIcon size={16} className={cn('ml-auto transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
@@ -189,7 +202,8 @@ const ColorBalanceBlock = ({
           {COLOR_BALANCE_RANGES.map((range) => (
             <div key={range}>
               <span className="mb-1 block text-xs font-medium text-gray-500">{t(`grade.${range}`)}</span>
-              <div className="grid grid-cols-3 gap-2">
+              {/* One column on narrow panels so each RGB slider keeps room for its value + reset. */}
+              <div className="grid gap-2 sm:grid-cols-3">
                 {COLOR_CHANNELS.map((channel) => (
                   <RangeSlider
                     key={channel}

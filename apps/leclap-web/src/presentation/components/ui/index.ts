@@ -26,5 +26,6 @@ export {
 export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem } from './select';
 export { Checkbox } from './checkbox';
 export { ColorPicker, type ColorPickerProps } from './color-picker';
+export { ColorVariablesProvider, useColorVariables, type ColorVariablesScope } from './color-variables-context';
 export { Reveal, type RevealProps } from './reveal';
 export { SegmentedControl, type SegmentedControlProps, type SegmentedOption } from './segmented-control';

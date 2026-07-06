@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Trash2 } from '@/presentation/components/icons';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
+import { normalizeHex } from '@/lib/color';
 import type { EditorState } from '../templateEditorModel';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
 import { FieldGroupHeader } from './FieldGroupHeader';
@@ -27,6 +28,11 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
     <div>
       <FieldGroupHeader label={t('editor.variables.label')} hint={t('editor.variables.hint')} />
       <div className="space-y-2">
+        {globalVariables.length === 0 && (
+          <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400">
+            {t('editor.variables.empty')}
+          </p>
+        )}
         {globalVariables.map((variable, i) => (
           <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
             <div className="relative">
@@ -43,22 +49,37 @@ export const GlobalVariablesEditor = ({ state, patch }: GlobalVariablesEditorPro
                 placeholder={t('editor.variables.namePlaceholder')}
               />
             </div>
-            <input
-              aria-label={t('editor.variables.value', { index: i + 1 })}
-              className={EDITOR_INPUT_CLASS}
-              value={variable.value}
-              onChange={(e) => {
-                update(i, { value: e.target.value });
-              }}
-              placeholder={t('editor.variables.valuePlaceholder')}
-            />
+            <div className="relative">
+              <input
+                aria-label={t('editor.variables.value', { index: i + 1 })}
+                className={`${EDITOR_INPUT_CLASS} ${normalizeHex(variable.value) ? 'pr-11' : ''}`}
+                value={variable.value}
+                onChange={(e) => {
+                  update(i, { value: e.target.value });
+                }}
+                placeholder={t('editor.variables.valuePlaceholder')}
+              />
+              {/* A colour-valued variable gets an inline swatch: the native picker edits it in place,
+                  so palette variables are tweakable without leaving the Variables tool. */}
+              {normalizeHex(variable.value) && (
+                <input
+                  type="color"
+                  aria-label={t('editor.variables.colorValue', { index: i + 1 })}
+                  value={normalizeHex(variable.value) ?? '#000000'}
+                  onChange={(e) => {
+                    update(i, { value: e.target.value });
+                  }}
+                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 cursor-pointer rounded-md border border-divider bg-transparent p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 [&::-webkit-color-swatch]:rounded [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-moz-color-swatch]:rounded [&::-moz-color-swatch]:border-0"
+                />
+              )}
+            </div>
             <button
               type="button"
               onClick={() => {
                 patch({ globalVariables: globalVariables.filter((_, idx) => idx !== i) });
               }}
               aria-label={t('editor.variables.remove', { index: i + 1 })}
-              className="tap rounded-lg p-1.5 text-gray-500 transition-colors hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
+              className="tap relative rounded-lg p-1.5 text-gray-500 transition-colors after:absolute after:-inset-2 after:content-[''] hover:text-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90"
             >
               <Trash2 className="h-4 w-4" />
             </button>

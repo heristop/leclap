@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { SectionCanvas } from './SectionCanvas';
+import { SectionCanvas, type CanvasBackground } from './SectionCanvas';
+import { useClipPreviewUrl } from './use-clip-preview-url';
 import { PartialPreview } from './PartialPreview';
 import { resolveCanvasDrop, type DropPayload, type DropPoint } from './canvasDrop';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
@@ -113,6 +114,9 @@ export const EditorMonitor = ({
   onEndEdit,
 }: EditorMonitorProps) => {
   const { t } = useTranslation('admin');
+  // Asset-backed video sections preview their fixed clip as the canvas backdrop (mirrors the render's
+  // base layer); camera sections keep the neutral frame. Resolved before any early return (hooks rule).
+  const clipPreviewUrl = useClipPreviewUrl(section?.kind === 'video' ? section.videoUrl : undefined);
 
   if (!section) return <EmptyState label={t('shell.monitorEmpty')} />;
 
@@ -128,12 +132,22 @@ export const EditorMonitor = ({
     onSelectElement(result.selectRef);
   };
 
+  const canvasBackground = (): CanvasBackground | undefined => {
+    if (section.kind === 'image') return { imageUrl: imageSectionUrl(section.allowed) };
+
+    if (section.kind === 'video' && clipPreviewUrl) return { videoUrl: clipPreviewUrl };
+
+    return undefined;
+  };
+
   return (
     <div className="grid h-full place-items-center overflow-auto p-4 sm:p-6">
       <SectionCanvas
         overlays={section.overlays}
         orientation={state.orientation}
-        background={section.kind === 'image' ? { imageUrl: imageSectionUrl(section.allowed) } : undefined}
+        background={canvasBackground()}
+        // The section's source-footage fit, mirrored on the backdrop (video clip / background image).
+        backgroundFit={section.kind === 'color' ? undefined : section.fit}
         layers={
           section.kind === 'color'
             ? {
@@ -148,6 +162,8 @@ export const EditorMonitor = ({
         animations={section.animations}
         look={section.look}
         grade={section.grade}
+        globalLook={state.globalLook}
+        globalGrade={state.globalGrade}
         caption={section.caption}
         titleCard={section.kind === 'color' ? section.titleCard : undefined}
         lowerThird={section.kind === 'video' ? section.lowerThird : undefined}

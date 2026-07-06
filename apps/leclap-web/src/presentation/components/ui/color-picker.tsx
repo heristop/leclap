@@ -1,6 +1,10 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
+import { colorTokenName, resolveColorToken } from '@leclap/creative-kit/editor';
 import { cn } from '@/lib/utils';
 import { normalizeHex, BRAND_SWATCHES } from '@/lib/color';
+import { useColorVariables, type ColorVariablesScope } from './color-variables-context';
+import { colorDraftFromValue, filterColorDraft, commitColorDraft } from './color-picker.logic';
 
 export interface ColorPickerProps {
   value: string;
@@ -11,42 +15,154 @@ export interface ColorPickerProps {
   'aria-label'?: string;
 }
 
+// Checkerboard for an unresolvable '{{ token }}' — the classic "no colour here" swatch.
+const CHECKER: React.CSSProperties = {
+  backgroundImage: 'conic-gradient(#9ca3af 0 25%, #e5e7eb 0 50%, #9ca3af 0 75%, #e5e7eb 0)',
+  backgroundSize: '8px 8px',
+};
+
+interface VariableChip {
+  name: string;
+  color: string | null; // resolved hex, or null (checkerboard)
+}
+
+// The pickable variable chips: the palette's colorN slots first, then every author variable whose
+// value currently resolves to a colour. Non-colour variables (plain text) stay out of colour fields.
+function variableChips(scope: ColorVariablesScope): VariableChip[] {
+  const slots: VariableChip[] = scope.colorsList.map((c, i) => ({
+    name: `color${i + 1}`,
+    color: normalizeHex(c),
+  }));
+  const slotNames = new Set(slots.map((s) => s.name));
+
+  const named = Object.keys(scope.variables)
+    .filter((name) => !slotNames.has(name))
+    .map((name) => ({ name, color: normalizeHex(resolveColorToken(`{{ ${name} }}`, scope.variables) ?? '') }))
+    .filter((chip): chip is VariableChip & { color: string } => chip.color !== null);
+
+  return [...slots, ...named];
+}
+
+// The pickable variable chips row: each stores its literal '{{ name }}' token in the field.
+const VariableChips = ({
+  chips,
+  tokenName,
+  onPick,
+}: {
+  chips: VariableChip[];
+  tokenName: string | null;
+  onPick: (name: string) => void;
+}) => {
+  const { t } = useTranslation('admin');
+
+  return (
+    <div className="flex flex-wrap items-center gap-1" title={t('editor.colorField.hint')}>
+      <span className="mr-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">
+        {t('editor.colorField.variables')}
+      </span>
+      {chips.map((chip) => {
+        const active = tokenName === chip.name;
+
+        return (
+          <button
+            key={chip.name}
+            type="button"
+            aria-label={t('editor.colorField.useVariable', { name: chip.name })}
+            aria-pressed={active}
+            onClick={() => {
+              onPick(chip.name);
+            }}
+            className={cn(
+              'tap inline-flex items-center gap-1.5 rounded-md border border-divider bg-surface-2 px-1.5 py-1 font-mono text-[11px] text-gray-600 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-300',
+              active && 'ring-2 ring-brand-500 ring-offset-1 ring-offset-surface'
+            )}
+          >
+            <span
+              aria-hidden
+              className="h-3.5 w-3.5 rounded-sm border border-foreground/15"
+              style={chip.color ? { backgroundColor: chip.color } : CHECKER}
+            />
+            #{chip.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+// The trigger swatch: the native colour input, painted with the field's RESOLVED colour and
+// overlaid with the checkerboard when a '{{ token }}' can't resolve.
+const TriggerSwatch = React.forwardRef<
+  HTMLInputElement,
+  { id?: string; ariaLabel?: string; resolvedHex: string | null; unresolved: boolean; onPick: (hex: string) => void }
+>(({ id, ariaLabel, resolvedHex, unresolved, onPick }, ref) => {
+  const { t } = useTranslation('admin');
+
+  return (
+    <span className="relative shrink-0" title={unresolved ? t('editor.colorField.unresolved') : undefined}>
+      <input
+        ref={ref}
+        id={id}
+        type="color"
+        aria-label={ariaLabel ?? 'Pick a color'}
+        value={resolvedHex ?? '#000000'}
+        onChange={(e) => {
+          onPick(e.target.value);
+        }}
+        className="tap h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-divider bg-surface-2 p-1 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
+      />
+      {unresolved && <span aria-hidden className="pointer-events-none absolute inset-1 rounded-md" style={CHECKER} />}
+    </span>
+  );
+});
+TriggerSwatch.displayName = 'TriggerSwatch';
+
 // On-brand color picker: native swatch (OS picker) + validated hex entry + quick-pick swatches.
+// Inside an editor shell (ColorVariablesProvider) the field is also variable-aware: the template's
+// colour variables appear as pickable chips that store a literal '{{ name }}' token, the swatch
+// shows the token's RESOLVED colour (checkerboard when it can't resolve), and typing a variable
+// name — or pasting '{{ name }}' — in the text entry commits the token too.
 // No extra deps — the native <input type="color"> drives the actual picking UI.
 const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
   ({ value, onChange, id, presets = BRAND_SWATCHES, className, 'aria-label': ariaLabel }, ref) => {
-    const [draft, setDraft] = React.useState(() => value.replace(/^#/, ''));
+    const scope = useColorVariables();
+    const [draft, setDraft] = React.useState(() => colorDraftFromValue(value));
 
-    // Keep the hex field in sync when the value changes from outside (swatch/native picker).
+    // Keep the text field in sync when the value changes from outside (swatch/native picker/chip).
     React.useEffect(() => {
-      setDraft(value.replace(/^#/, ''));
+      setDraft(colorDraftFromValue(value));
     }, [value]);
 
-    const commit = (raw: string) => {
-      const hex = normalizeHex(raw);
+    const chips = variableChips(scope);
+    // Typed names accept ANY in-scope variable (even one whose colour isn't set yet) — the swatch
+    // then shows the checkerboard until the variable resolves.
+    const knownNames = Object.keys(scope.variables);
+    const tokenName = colorTokenName(value);
+    const resolvedHex = normalizeHex(resolveColorToken(value, scope.variables) ?? value);
+    const unresolvedToken = tokenName !== null && resolvedHex === null;
 
-      if (hex) {
-        onChange(hex);
+    const commit = (raw: string) => {
+      const next = commitColorDraft(raw, knownNames);
+
+      if (next) {
+        onChange(next);
 
         return;
       }
 
-      setDraft(value.replace(/^#/, '')); // revert an invalid entry
+      setDraft(colorDraftFromValue(value)); // revert an invalid entry
     };
 
     return (
       <div className={cn('flex flex-col gap-2', className)}>
         <div className="flex items-center gap-2">
-          <input
+          <TriggerSwatch
             ref={ref}
             id={id}
-            type="color"
-            aria-label={ariaLabel ?? 'Pick a color'}
-            value={value}
-            onChange={(e) => {
-              onChange(e.target.value);
-            }}
-            className="tap h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-divider bg-surface-2 p-1 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
+            ariaLabel={ariaLabel}
+            resolvedHex={resolvedHex}
+            unresolved={unresolvedToken}
+            onPick={onChange}
           />
           <div className="relative flex-1">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none text-gray-500">
@@ -55,11 +171,11 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
             <input
               type="text"
               spellCheck={false}
-              maxLength={6}
+              maxLength={knownNames.length > 0 ? 32 : 6}
               aria-label={`${ariaLabel ?? 'Color'} hex value`}
               value={draft}
               onChange={(e) => {
-                setDraft(e.target.value.replace(/[^0-9a-fA-F]/g, ''));
+                setDraft(filterColorDraft(e.target.value));
               }}
               onBlur={(e) => {
                 commit(e.target.value);
@@ -67,10 +183,23 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commit((e.target as HTMLInputElement).value);
               }}
-              className="field-focus-gradient w-full rounded-lg border border-divider bg-surface-2 py-2 pl-7 pr-3 font-mono text-sm uppercase text-foreground transition-colors focus-visible:outline-none"
+              className={cn(
+                'field-focus-gradient w-full rounded-lg border border-divider bg-surface-2 py-2 pl-7 pr-3 font-mono text-sm text-foreground transition-colors focus-visible:outline-none',
+                // Hex reads canonical in caps; a variable name keeps the author's casing.
+                tokenName === null && 'uppercase'
+              )}
             />
           </div>
         </div>
+        {chips.length > 0 && (
+          <VariableChips
+            chips={chips}
+            tokenName={tokenName}
+            onPick={(name) => {
+              onChange(`{{ ${name} }}`);
+            }}
+          />
+        )}
         {presets.length > 0 && (
           // Auto-fill grid so the swatches stretch edge-to-edge in whatever column the picker sits in
           // (no dead space on the right) — each cell stays square via aspect-square. The 1.25rem floor

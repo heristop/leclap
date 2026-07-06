@@ -1,13 +1,22 @@
 // Direct-manipulation boxes for a color section's background layers, rendered inside the OverlayCanvas
 // frame behind the text overlays. The base layer (index 0) is a full-bleed, non-interactive backdrop;
 // every extra layer is a draggable + resizable box that writes its new x/y/w/h back to the descriptor.
-import { useRef, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
+} from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import type { ColorVariableMap } from '@leclap/creative-kit/editor';
 import { cn } from '@/lib/utils';
-import type { BackgroundLayer } from './templateEditorModel';
+import { useColorVariables } from '@/presentation/components/ui';
+import type { BackgroundLayer, Orientation } from './templateEditorModel';
 import { cssLayerBackground, layerFill } from './editor/layerPreview';
 import { layerPercents, movedGeometry, resizedGeometry } from './editor/layerDrag';
+import { useFrameHeight } from './editor-shell/SugarPreviewLayer';
+import { previewScale } from './editor-shell/sugarPreviewGeometry';
 
 // 2% keyboard nudge for a selected layer box.
 const NUDGE = 2;
@@ -23,6 +32,9 @@ interface BackgroundLayerBoxesProps {
   layers: BackgroundLayer[];
   onChange: (layers: BackgroundLayer[]) => void;
   frameRect: () => DOMRect | undefined;
+  /** The canvas frame element — measured live so a layer's border stroke rescales with the monitor. */
+  frameRef: RefObject<HTMLDivElement | null>;
+  orientation: Orientation;
   selectedIndex: number | null;
   onSelect: (index: number) => void;
 }
@@ -31,10 +43,17 @@ export const BackgroundLayerBoxes = ({
   layers,
   onChange,
   frameRect,
+  frameRef,
+  orientation,
   selectedIndex,
   onSelect,
 }: BackgroundLayerBoxesProps) => {
   const { t } = useTranslation('admin');
+  // Resolve '{{ variable }}' colour tokens so a token-coloured layer previews as its current colour.
+  const { variables: colorVars } = useColorVariables();
+  // Preview px per engine px — a layer border is authored in engine output px (drawbox t=width).
+  const previewH = useFrameHeight(frameRef);
+  const borderScale = previewScale(previewH, orientation);
 
   const patch = (index: number, p: Partial<BackgroundLayer>) => {
     onChange(layers.map((layer, i) => (i === index ? { ...layer, ...p } : layer)));
@@ -45,7 +64,12 @@ export const BackgroundLayerBoxes = ({
       {layers.map((layer, index) => {
         if (index === 0) {
           return (
-            <div key={index} aria-hidden className="pointer-events-none" style={cssLayerBackground(layer, true)} />
+            <div
+              key={index}
+              aria-hidden
+              className="pointer-events-none"
+              style={cssLayerBackground(layer, true, colorVars, borderScale)}
+            />
           );
         }
 
@@ -61,6 +85,8 @@ export const BackgroundLayerBoxes = ({
             onPatch={(p) => {
               patch(index, p);
             }}
+            colorVars={colorVars}
+            borderScale={borderScale}
           />
         );
       })}
@@ -76,11 +102,23 @@ interface LayerBoxProps {
   frameRect: () => DOMRect | undefined;
   onSelect: (index: number) => void;
   onPatch: (patch: Partial<BackgroundLayer>) => void;
+  colorVars: ColorVariableMap;
+  borderScale: number;
 }
 
 // One extra layer's box: a faded fill (at the layer's opacity) under a full-opacity selection ring and
 // resize handle, so the editing affordances stay crisp over a semi-transparent layer.
-const LayerBox = ({ layer, index, t, active, frameRect, onSelect, onPatch }: LayerBoxProps) => {
+const LayerBox = ({
+  layer,
+  index,
+  t,
+  active,
+  frameRect,
+  onSelect,
+  onPatch,
+  colorVars,
+  borderScale,
+}: LayerBoxProps) => {
   const modeRef = useRef<'move' | 'resize' | null>(null);
   const grabRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
   const geo = layerPercents(layer);
@@ -160,7 +198,7 @@ const LayerBox = ({ layer, index, t, active, frameRect, onSelect, onPatch }: Lay
         active && 'ring-2 ring-brand-500'
       )}
     >
-      <div aria-hidden className="absolute inset-0 rounded-[0.15em]" style={layerFill(layer)} />
+      <div aria-hidden className="absolute inset-0 rounded-[0.15em]" style={layerFill(layer, colorVars, borderScale)} />
       {active && (
         <div
           aria-hidden

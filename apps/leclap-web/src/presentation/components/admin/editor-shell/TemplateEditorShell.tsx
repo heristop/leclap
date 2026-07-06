@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'motion/react';
 import { ShellChrome, ToolDock, ProgramMonitor } from '@/presentation/components/editor-shell';
+import { ColorVariablesProvider } from '@/presentation/components/ui';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
 import { userPartialService } from '@/services/userPartialService';
@@ -111,7 +112,10 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   // rAF clock. Play mode swaps the WYSIWYG edit canvas for the playback surface; touching the
   // transport enters it, selecting a scene card leaves it.
   const reduced = useReducedMotion() ?? false;
-  const playTimeline = useMemo(() => buildMasterTimeline(state.sections), [state.sections]);
+  const playTimeline = useMemo(
+    () => buildMasterTimeline(state.sections, state.defaultTransition),
+    [state.sections, state.defaultTransition]
+  );
   const playTotal = playTimeline.at(-1)?.end ?? 0;
   const clock = useProgramClock(playTotal, reduced);
   const [playMode, setPlayMode] = useState(false);
@@ -222,7 +226,10 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   });
 
   return (
-    <>
+    // Colour fields anywhere in the shell (panels, inspectors, canvas) resolve and offer the
+    // template's {{ variable }} colour tokens through this scope — including the palette's
+    // 1-indexed {{ colorN }} slots, so the canvas previews mirror the engine's substitution.
+    <ColorVariablesProvider variables={state.globalVariables} colorsList={state.colorsList}>
     <ShellChrome
       resizeLabel={t('shell.resizePanels')}
       titlebar={
@@ -316,6 +323,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
           onDelete={removeSection}
           onReorder={reorderScenes}
           onTransition={setTransition}
+          defaultTransition={state.defaultTransition}
           sectionTitle={sectionTitle}
           sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
           onBrowsePresets={() => {
@@ -340,6 +348,6 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
         setPresetsOpen(false);
       }}
     />
-    </>
+    </ColorVariablesProvider>
   );
 };

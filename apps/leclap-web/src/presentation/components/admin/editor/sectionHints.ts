@@ -3,6 +3,7 @@
 import type { TFunction } from 'i18next';
 import type {
   AnimationOverlay,
+  CaptureMode,
   EditorSection,
   FramingGuide,
   Grade,
@@ -106,6 +107,24 @@ export function framingSummary(t: TFunction<'admin'>, guide: FramingGuide | unde
   if (!guide) return t('summaryChip.off');
 
   return TITLE_CASE(guide.position);
+}
+
+// "Capture" group summary: the explicit default mode and/or the restricted mode count, or "Default"
+// when the recorder keeps its stock behaviour (front camera, all four modes).
+export function captureSummary(
+  t: TFunction<'admin'>,
+  captureMode: CaptureMode | undefined,
+  allowedCaptureModes: CaptureMode[] | undefined
+): string {
+  const parts: string[] = [];
+
+  if (captureMode) parts.push(t(`capture.mode.${captureMode}`));
+
+  if (allowedCaptureModes && allowedCaptureModes.length > 0 && allowedCaptureModes.length < 4) {
+    parts.push(t('capture.summaryModes', { count: allowedCaptureModes.length }));
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : t('summaryChip.default');
 }
 
 // A grade counts toward the Effects summary's "edited" state too; exposed for callers that show a

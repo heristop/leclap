@@ -82,7 +82,13 @@ export class UserTemplateService {
   }
 
   duplicate(template: Template): StoredTemplate {
-    return this.save({ ...template, id: this.makeId(), name: `${template.name} (copy)` });
+    const name = `${template.name} (copy)`;
+
+    // The descriptor's embedded identity (meta.name) must follow the rename — the editor prefers
+    // descriptor.meta over the wrapper, so a stale meta would reopen the copy under the old name.
+    const descriptor = { ...template.descriptor, meta: { ...template.descriptor.meta, name } };
+
+    return this.save({ ...template, id: this.makeId(), name, descriptor });
   }
 
   private persist(templates: StoredTemplate[]): void {

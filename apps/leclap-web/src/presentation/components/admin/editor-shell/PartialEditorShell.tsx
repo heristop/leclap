@@ -3,6 +3,7 @@ import { LayersIcon } from '@/presentation/components/icons/layers';
 import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import { ShellChrome, ToolDock, ProgramMonitor } from '@/presentation/components/editor-shell';
+import { ColorVariablesProvider } from '@/presentation/components/ui';
 import { SECTION_LABELS, type EditorSection } from '../templateEditorModel';
 import { EditorMonitor } from './EditorMonitor';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
@@ -46,6 +47,9 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
   ];
 
   return (
+    // Colour fields anywhere in the shell resolve and offer the draft's {{ variable }} colour tokens,
+    // including the {{ colorN }} slots when the partial's descriptor carries a colorsList palette.
+    <ColorVariablesProvider variables={draftState.globalVariables} colorsList={draftState.colorsList}>
     <ShellChrome
       resizeLabel={t('shell.resizePanels')}
       titlebar={
@@ -135,5 +139,6 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
         />
       }
     />
+    </ColorVariablesProvider>
   );
 };

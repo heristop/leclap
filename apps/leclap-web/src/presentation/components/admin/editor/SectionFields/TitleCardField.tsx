@@ -16,12 +16,12 @@ import {
 } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { SegmentedControl, type SegmentOption } from '../controls';
+import { AccentControl } from '../AccentControl';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { VariableTextField } from '../VariableTextField';
 
-const DEFAULT_ACCENT = '#7C83FF';
 type Align = NonNullable<TitleCard['align']>;
 type LineStyle = NonNullable<TitleCard['kickerStyle']>;
 
@@ -149,18 +149,15 @@ const CardOptions = ({ card, patch }: { card: TitleCard; patch: (next: Partial<T
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-            {t('titleCard.accent')}
-          </span>
-          <ColorPicker
-            aria-label={t('titleCard.accent')}
-            value={card.accent ?? DEFAULT_ACCENT}
-            onChange={(accent) => {
-              patch({ accent });
-            }}
-          />
-        </div>
+        {/* The shared accent control (same as the lower third + text overlays): the engine draws the
+            underline bar and tints an unstyled kicker only when an accent is set. */}
+        <AccentControl
+          accent={card.accent}
+          hint={t('accent.hintTitleCard')}
+          onChange={(accent) => {
+            patch({ accent });
+          }}
+        />
         <SegmentedControl
           label={t('titleCard.align')}
           value={align}

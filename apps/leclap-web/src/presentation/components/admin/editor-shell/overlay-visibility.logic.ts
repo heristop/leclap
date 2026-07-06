@@ -22,6 +22,7 @@ interface NormalizedReveal {
   delay: number;
   duration: number;
   distance: number;
+  easing?: string;
 }
 
 interface NormalizedExit {
@@ -44,6 +45,7 @@ function normalizeReveal(reveal: Reveal | undefined): NormalizedReveal | null {
     delay: typeof reveal === 'string' ? REVEAL_DEFAULTS.delay : (reveal.delay ?? REVEAL_DEFAULTS.delay),
     duration: typeof reveal === 'string' ? REVEAL_DEFAULTS.duration : (reveal.duration ?? REVEAL_DEFAULTS.duration),
     distance: typeof reveal === 'string' ? REVEAL_DEFAULTS.distance : (reveal.distance ?? REVEAL_DEFAULTS.distance),
+    ...(typeof reveal === 'object' && reveal.easing !== undefined ? { easing: reveal.easing } : {}),
   };
 }
 
@@ -71,15 +73,32 @@ export function easeOutExpo(p: number): number {
   return 1 - Math.pow(2, -10 * p);
 }
 
+// Samples the AUTHORED easing at a 0..1 progress, mirroring the engine's expression curves
+// (linear ramp / cubic-out 1-(1-p)^3 / smoothstep p*p*(3-2p)). An unset easing keeps the monitor's
+// signature ease-out-expo feel, so pre-easing templates preview exactly as before.
+function easeProgress(progress: number, easing: string | undefined): number {
+  const p = Math.min(1, Math.max(0, progress));
+
+  if (easing === 'linear') return p;
+
+  if (easing === 'ease-out') return 1 - Math.pow(1 - p, 3);
+
+  if (easing === 'ease-in-out') return p * p * (3 - 2 * p);
+
+  return easeOutExpo(p);
+}
+
 // The offset/opacity of one reveal/exit style at an eased 0..1 progress. `entering` animates toward
-// the resting state (offset → 0); exits animate away from it (0 → offset).
+// the resting state (offset → 0); exits animate away from it (0 → offset). `easing` is the reveal's
+// authored curve; exits have no easing field and keep the signature curve.
 export function revealOffset(
   type: string,
   progress: number,
   distance: number,
-  entering: boolean
+  entering: boolean,
+  easing?: string
 ): { opacity: number; translateX: number; translateY: number } {
-  const eased = easeOutExpo(Math.min(1, Math.max(0, progress)));
+  const eased = easeProgress(progress, easing);
   const remaining = entering ? 1 - eased : eased;
   const opacity = entering ? eased : 1 - eased;
 
@@ -113,7 +132,7 @@ export function overlayVisibilityAt(
 
   if (entrance && localT < entrance.delay + entrance.duration) {
     const progress = (localT - entrance.delay) / entrance.duration;
-    const sample = revealOffset(entrance.type, progress, entrance.distance, true);
+    const sample = revealOffset(entrance.type, progress, entrance.distance, true, entrance.easing);
 
     return { phase: 'reveal', progress, ...sample };
   }

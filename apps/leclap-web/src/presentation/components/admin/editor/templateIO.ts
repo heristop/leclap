@@ -2,8 +2,15 @@
 // arbitrary JSON, validates it against the core schema, and (on success) re-hydrates an EditorState
 // — round-tripping cleanly because buildDescriptor / toEditorState are inverse. No DOM dependency
 // (the actual file download/upload wiring lives in the component); unit-testable in node.
+import { OrientationSchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import { TemplateDescriptorSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
-import { buildDescriptor, toEditorState, type EditorState, type TemplateDescriptor } from '../templateEditorModel';
+import {
+  buildDescriptor,
+  toEditorState,
+  type EditorState,
+  type Orientation,
+  type TemplateDescriptor,
+} from '../templateEditorModel';
 
 export interface ImportSuccess {
   ok: true;
@@ -43,9 +50,22 @@ function readableZodErrors(error: { issues: Array<{ path: PropertyKey[]; message
   });
 }
 
-// Parse + validate raw JSON text into an EditorState, carrying over the current id/name/meta so the
-// import lands as an undoable edit of the same template (not a brand-new one). On any failure the
-// zod issues are surfaced verbatim.
+// Every OrientationSchema value (landscape/portrait/square) maps through; only an absent or
+// unrecognised orientation keeps the editor's current one. TemplateDescriptor types the field as a
+// plain string, so this narrows it back to the enum the editor state requires.
+function importedOrientation(value: string | undefined, current: Orientation): Orientation {
+  const parsed = OrientationSchema.safeParse(value);
+
+  if (!parsed.success) return current;
+
+  return parsed.data;
+}
+
+// Parse + validate raw JSON text into an EditorState. The current id carries over so the import
+// lands as an undoable edit of the same template (not a brand-new one), but the imported
+// descriptor's own identity wins: toEditorState prefers descriptor.meta name/description over the
+// wrapper values passed here (which remain the per-field fallback for meta-less legacy JSON).
+// On any failure the zod issues are surfaced verbatim.
 export function importDescriptorJson(text: string, current: EditorState): ImportResult {
   let parsed: unknown;
 
@@ -66,7 +86,7 @@ export function importDescriptorJson(text: string, current: EditorState): Import
     id: current.id,
     name: current.name,
     description: current.description,
-    orientation: descriptor.global?.orientation === 'portrait' ? 'portrait' : current.orientation,
+    orientation: importedOrientation(descriptor.global?.orientation, current.orientation),
     descriptor,
   });
 

@@ -97,7 +97,10 @@
       "orientation": "Ausrichtung",
       "landscape": "Querformat (16:9)",
       "portrait": "Hochformat (9:16)",
-      "square": "Quadratisch (1:1)"
+      "square": "Quadratisch (1:1)",
+      "landscapeShort": "Querformat",
+      "portraitShort": "Hochformat",
+      "squareShort": "Quadrat"
     },
     "advanced": {
       "label": "Erweiterte Einstellungen",
@@ -105,6 +108,10 @@
       "wholeVideo": {
         "label": "Animationen über das ganze Video",
         "hint": "Overlays, die sich über das gesamte Video erstrecken, über alle Abschnitte hinweg."
+      },
+      "wholeVideoLook": {
+        "label": "Look & Farbkorrektur für das ganze Video",
+        "hint": "Eine Farbbehandlung für das gesamte Video, zusätzlich zum eigenen Look jeder Szene."
       },
       "io": {
         "label": "Import / Export",
@@ -114,12 +121,27 @@
     "variables": {
       "label": "Globale Variablen",
       "hint": "Wiederverwendbare Werte, die du als #token in jeden Text einfügen kannst.",
+      "empty": "Noch keine Variablen — füge eine hinzu, um einen Wert in jedem Text wiederzuverwenden.",
       "name": "Schlüssel der Variable {{index}}",
       "value": "Wert von Variable {{index}}",
       "remove": "Variable {{index}} entfernen",
       "namePlaceholder": "Schlüssel",
       "valuePlaceholder": "Wert",
-      "add": "Variable hinzufügen"
+      "add": "Variable hinzufügen",
+      "colorValue": "Farbe von Variable {{index}}"
+    },
+    "colorsList": {
+      "label": "Farbpalette",
+      "hint": "Geordnete Farbfelder, nutzbar als #color1, #color2… in jedem Farbfeld.",
+      "slot": "Palettenfarbe {{index}}",
+      "remove": "Palettenfarbe {{index}} entfernen",
+      "add": "Farbe hinzufügen"
+    },
+    "colorField": {
+      "variables": "Variablen",
+      "useVariable": "Variable {{name}} verwenden",
+      "unresolved": "Unbekannte Variable — lege ihre Farbe im Variablen-Werkzeug fest",
+      "hint": "Wähle eine Variable, damit diese Farbe überall synchron bleibt"
     },
     "scenes": {
       "label": "Szenen",
@@ -286,7 +308,10 @@
     "musicFormats": "MP3, WAV, M4A · auf diesem Gerät gespeichert",
     "imageFormats": "JPG, PNG, WebP · auf diesem Gerät gespeichert",
     "uploaded": "Hochgeladen · auf diesem Gerät gespeichert",
-    "removeUpload": "Hochgeladene Datei entfernen"
+    "removeUpload": "Hochgeladene Datei entfernen",
+    "uploadVideo": "Einen Videoclip hochladen",
+    "dropVideo": "Video ablegen oder klicken zum Durchsuchen",
+    "videoFormats": "MP4, MOV, WebM · auf diesem Gerät gespeichert"
   },
   "overlay": {
     "textOverlays": "Text-Overlays",
@@ -295,14 +320,16 @@
     "editText": "Overlay-Text bearbeiten",
     "selectOrAdd": "Wähle einen Text – oder füge unten einen hinzu.",
     "addText": "Text hinzufügen",
-    "size": "Größe — {{size}} px",
+    "size": "Größe",
     "deleteText": "Text löschen",
     "color": "Farbe",
     "textColor": "Textfarbe",
-    "textOpacity": "Text-Deckkraft — {{percent}} %",
+    "textOpacity": "Text-Deckkraft",
     "box": "Box",
     "boxColor": "Box-Farbe",
-    "boxOpacity": "Box-Deckkraft — {{percent}} %",
+    "boxOpacity": "Box-Deckkraft",
+    "boxPadding": "Box-Innenabstand",
+    "boxPaddingHint": "Freiraum um den Text. Die Ecken bleiben eckig — das Rendering kann sie nicht abrunden.",
     "font": "Schrift",
     "insertVariable": "Variable einfügen",
     "insertVariableHint": "Füge zuerst ein Formularfeld oder eine globale Variable hinzu",
@@ -311,7 +338,9 @@
     "list": "Text-Overlays",
     "untitled": "Text {{index}}",
     "empty": "Noch kein Text. Füge einen hinzu, um zu starten.",
-    "selectHint": "Wähle einen Text in der Vorschau oder unten aus."
+    "selectHint": "Wähle einen Text in der Vorschau oder unten aus.",
+    "styleGroup": "Akzent & Lesbarkeit",
+    "motionGroup": "Eingang & Ausgang"
   },
   "controls": {
     "reset": "{{label}} zurücksetzen",
@@ -341,7 +370,7 @@
     "resetToGlobal": "Auf global zurücksetzen ({{percent}})",
     "fadeIn": "Einblenden",
     "fadeOut": "Ausblenden",
-    "duration": "Dauer (s)",
+    "duration": "Dauer",
     "fadeDuration": "{{side}}-Dauer in Sekunden",
     "curve": "Kurve",
     "fadeCurve": "{{side}}-Kurve"
@@ -388,7 +417,9 @@
       "negative": "Negativ",
       "strong_contrast": "Starker Kontrast",
       "vintage": "Vintage"
-    }
+    },
+    "adjustedCount_one": "{{count}} Anpassung",
+    "adjustedCount_other": "{{count}} Anpassungen"
   },
   "layer": {
     "background": "Hintergrund",
@@ -410,12 +441,37 @@
     "gradientStart": "Verlaufsstart",
     "gradientEnd": "Verlaufsende",
     "direction": "Richtung",
+    "directionHint": "Der Pfeil zeigt von der Startfarbe zur Endfarbe.",
+    "shape": "Form",
+    "shapeLinear": "Linear",
+    "shapeRadial": "Radial",
+    "shapeCircular": "Kreisförmig",
+    "shapeSpiral": "Spirale",
+    "shapeHint": "Radial füllt vom Zentrum aus, kreisförmig läuft darum herum, Spirale verdreht den Verlauf.",
+    "border": "Kontur",
+    "borderColor": "Konturfarbe",
+    "borderWidth": "Konturbreite",
+    "borderHint": "Linie entlang der Ebenenkante, über der Füllung gezeichnet.",
     "add": "Ebene hinzufügen"
   },
   "look": {
     "label": "Look",
     "preset": "Look-Preset",
-    "none": "Keiner"
+    "none": "Keiner",
+    "presets": {
+      "cinematic": "Cineastisch",
+      "warm": "Warm",
+      "cool": "Kühl",
+      "vintage": "Vintage",
+      "noir": "Noir",
+      "vivid": "Leuchtend",
+      "dreamy": "Verträumt",
+      "teal-orange": "Teal & Orange",
+      "warm-film": "Warmer Film",
+      "mono-film": "Mono-Film",
+      "noir-film": "Noir-Film",
+      "vivid-pop": "Knallig"
+    }
   },
   "animation": {
     "label": "Animation",
@@ -445,6 +501,11 @@
     "positionHint": "px von oben links",
     "opacity": "Deckkraft",
     "rotation": "Drehung",
+    "mirror": "Spiegeln",
+    "mirrorHorizontal": "Horizontal",
+    "mirrorVertical": "Vertikal",
+    "mirrorHorizontalHint": "Links-rechts spiegeln",
+    "mirrorVerticalHint": "Oben-unten spiegeln",
     "loop": "Schleife",
     "playback": "Wiedergabe",
     "forever": "Endlos",
@@ -456,7 +517,8 @@
     "startLabel": "Start bei (s)",
     "keepLastFrame": "Letztes Bild behalten",
     "dragHint": "Ziehen zum Bewegen · Ecke zum Skalieren · Pfeile zum Justieren",
-    "reset": "Auf Standard zurücksetzen"
+    "reset": "Auf Standard zurücksetzen",
+    "placementGroup": "Platzierung"
   },
   "element": {
     "resize": "Element skalieren",
@@ -468,6 +530,8 @@
     "addText": "Text",
     "addImageOverlay": "Bild / Logo",
     "addAnimation": "Animation",
+    "addShapeRect": "Rechteck",
+    "addShapeEllipse": "Kreis",
     "empty": "Füge dein erstes Element hinzu",
     "list": "Elemente",
     "moveUp": "Nach oben",
@@ -476,6 +540,7 @@
     "text": "Text",
     "layer": "Hintergrund",
     "image": "Bild",
+    "shape": "Form",
     "animation": "Animation",
     "backgroundImage": "Hintergrundbild",
     "titleCard": "Titelkarte",
@@ -486,6 +551,18 @@
     "addCaption": "Untertitel",
     "addTitleCard": "Titelkarte",
     "addLowerThird": "Bauchbinde"
+  },
+  "shape": {
+    "kind": "Form",
+    "rect": "Rechteck",
+    "ellipse": "Kreis",
+    "fill": "Füllfarbe",
+    "cornerRadius": "Eckenradius",
+    "cornerRadiusHint": "Rundet die Ecken des Rechtecks ab, in Ausgabepixeln.",
+    "stroke": "Kontur",
+    "strokeHint": "Eine Kontur direkt innerhalb der Kante der Form.",
+    "strokeColor": "Konturfarbe",
+    "none": "Keine"
   },
   "motion": {
     "label": "Bewegung",
@@ -516,11 +593,26 @@
     "audio": "Audio",
     "animation": "Animation",
     "cameraGuide": "Kamera-Hilfe",
+    "capture": "Aufnahmequellen",
     "images": "Bilder",
     "overlays": "Overlays",
     "titleCard": "Titelkarte",
     "lowerThird": "Bauchbinde",
     "chromaKey": "Hintergrund entfernen"
+  },
+  "capture": {
+    "hint": "Welche Quellen beim Filmen genutzt werden können — Front- oder Rückkamera, Bildschirmaufnahme oder Datei-Upload. Wird nie ins Video gerendert.",
+    "allowedLabel": "Erlaubte Quellen",
+    "defaultLabel": "Startet mit",
+    "lockedNote": "Eine einzige erlaubte Quelle legt den Rekorder darauf fest.",
+    "summaryModes_one": "{{count}} Quelle",
+    "summaryModes_other": "{{count}} Quellen",
+    "mode": {
+      "front": "Frontkamera",
+      "back": "Rückkamera",
+      "screen": "Bildschirm",
+      "upload": "Upload"
+    }
   },
   "overlays": {
     "kind": "Overlay-Typ",
@@ -582,6 +674,11 @@
     "none": "Kein Übergang",
     "cut": "Schnitt",
     "label": "{{name}} · {{duration}} s",
+    "defaultField": "Standardübergang",
+    "defaultHint": "Gilt bei jedem Szenenwechsel ohne eigenen Übergang.",
+    "defaultDescription": "So blenden Szenen ineinander über, wenn ein Wechsel keinen eigenen Übergang wählt.",
+    "defaultTile": "Standard ({{label}})",
+    "defaultBadge": "Standardübergang der Vorlage",
     "group": {
       "Fades": "Blenden",
       "Wipes": "Wischer",
@@ -610,11 +707,22 @@
     "countdownSeconds_one": "Countdown (Sekunde)",
     "countdownSeconds_other": "Countdown (Sekunden)",
     "speed": "Wiedergabegeschwindigkeit",
-    "speedHint": "Langsamere oder schnellere Wiedergabe verlängert oder verkürzt diese Szene auch im fertigen Video."
+    "speedHint": "Langsamere oder schnellere Wiedergabe verlängert oder verkürzt diese Szene auch im fertigen Video.",
+    "source": "Szenenquelle",
+    "sourceCamera": "Kamera",
+    "sourceClip": "Videoclip",
+    "sourceHint": "Kamera bittet die Person, diese Szene zu filmen; Videoclip spielt ein festes Video ab, das du bereitstellst — ein Marken-Bumper oder Stock-Material."
   },
   "image": {
     "pickImages": "Wähle einen Hintergrund.",
     "allowUpload": "Zuschauern erlauben, ihr eigenes Bild hochzuladen"
+  },
+  "fit": {
+    "label": "Bildanpassung",
+    "cover": "Füllen",
+    "letterbox": "Letterbox",
+    "off": "Aus",
+    "hint": "Füllen beschneidet das Material, um den Rahmen zu füllen; Letterbox zeigt alles mit Balken; Aus verwendet die Datei unverändert, ohne Anpassung an den Rahmen."
   },
   "musicSection": {
     "pickTracks": "Wähle die Tracks, aus denen Zuschauer wählen können.",
@@ -640,6 +748,11 @@
     "delay": "Verzögerung",
     "duration": "Dauer",
     "distance": "Distanz",
+    "easing": "Kurve",
+    "easingLinear": "Linear",
+    "easingEaseOut": "Ausklingend",
+    "easingEaseInOut": "Sanft",
+    "easingHint": "Tempoverlauf des Eingangs — Ausklingend gleitet in Position, Sanft beschleunigt und setzt weich auf.",
     "summaryDefault": "Standard-Timing"
   },
   "exit": {
@@ -653,6 +766,14 @@
     "shadowColor": "Schattenfarbe",
     "outline": "Umriss",
     "outlineColor": "Umrissfarbe"
+  },
+  "accent": {
+    "label": "Akzent",
+    "enable": "Akzentbalken",
+    "color": "Akzentfarbe",
+    "hint": "Zeichnet einen kleinen Unterstreichungsbalken in der Akzentfarbe unter den Text.",
+    "hintTitleCard": "Zeichnet den Unterstreichungsbalken und färbt den Kicker.",
+    "hintLowerThird": "Färbt den Akzentbalken des Bands und das Badge."
   },
   "chromaKey": {
     "hint": "Entferne eine einfarbige Bildschirmfarbe (Green-/Bluescreen) und setze den Clip über eine flache Farbe.",
@@ -708,12 +829,25 @@
   "globalOverlay": {
     "label": "Text über das ganze Video",
     "hint": "Text, der auf jedem Abschnitt gezeichnet wird – z. B. ein Marken-Wasserzeichen, einmal angelegt.",
+    "count_one": "{{count}} Text",
+    "count_other": "{{count}} Texte",
     "add": "Wasserzeichen hinzufügen",
     "text": "Text",
     "textPlaceholder": "z. B. #brand",
     "position": "Position",
     "color": "Farbe",
     "remove": "Entfernen",
+    "advanced": "Erweiterter Stil",
+    "advancedNone": "Standardwerte",
+    "font": "Schriftart",
+    "fontDefault": "Standardschrift",
+    "size": "Schriftgröße",
+    "opacity": "Deckkraft",
+    "opacityRevealNote": "Solange ein Einblendeffekt gesetzt ist, steuert die Eingangsanimation die Deckkraft.",
+    "sections": "Szenen",
+    "sectionsHint": "Alles deaktiviert lassen, um den Text auf jeder Szene zu zeichnen.",
+    "sectionsSummary_one": "{{count}} Szene",
+    "sectionsSummary_other": "{{count}} Szenen",
     "pos": {
       "top-left": "Oben links",
       "top-right": "Oben rechts",

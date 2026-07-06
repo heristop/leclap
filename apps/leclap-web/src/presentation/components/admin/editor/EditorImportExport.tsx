@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { DownloadIcon } from '@/presentation/components/icons/download';
 import { UploadIcon } from '@/presentation/components/icons/upload';
 import type { EditorState } from '../templateEditorModel';
+import { FieldGroupHeader } from './FieldGroupHeader';
 import { exportDescriptorJson, exportFilename, importDescriptorJson } from './templateIO';
 
 interface EditorImportExportProps {
@@ -56,11 +57,8 @@ export const EditorImportExport = ({ state, onImport }: EditorImportExportProps)
   };
 
   return (
-    <div className="mt-4 border-t border-foreground/10 pt-4">
-      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">
-        {t('editor.advanced.io.label')}
-      </span>
-      <p className="mt-1 mb-3 text-xs text-gray-500">{t('editor.advanced.io.hint')}</p>
+    <div className="border-t border-foreground/10 pt-4">
+      <FieldGroupHeader label={t('editor.advanced.io.label')} hint={t('editor.advanced.io.hint')} />
       <div className="flex flex-wrap gap-2">
         <button
           type="button"

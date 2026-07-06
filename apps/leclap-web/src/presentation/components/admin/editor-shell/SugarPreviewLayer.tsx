@@ -24,8 +24,10 @@ import {
   type RefObject,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { resolvePreviewColor } from '@leclap/creative-kit/editor';
 import { cn } from '@/lib/utils';
 import { displayFromTokens, tokensFromDisplay } from '@/lib/variableSyntax';
+import { useColorVariables } from '@/presentation/components/ui';
 import { FloatingVariableSuggestions, useVariableAutocomplete } from '../editor/variableAutocomplete';
 import type { EditorCaption, LowerThird, Orientation, TitleCard } from '../templateEditorModel';
 import { fontSizeFromResize } from '../overlayGeometry';
@@ -375,6 +377,8 @@ interface SugarLineProps {
 // line carries a box (caption bar, badge pill). lineHeight 1 approximates drawtext's glyph-box y.
 const SugarLine = ({ line, lineIndex, gestures, editing, effectScale, shift, resize, editor }: SugarLineProps) => {
   const g = usePieceGestures(gestures, lineIndex, resize);
+  // Resolve '{{ variable }}' colour tokens so a token-coloured line previews as its current colour.
+  const { variables: colorVars } = useColorVariables();
 
   return (
     <span
@@ -395,11 +399,16 @@ const SugarLine = ({ line, lineIndex, gestures, editing, effectScale, shift, res
         ...anchorStyle(line.x, line.y, shift),
         fontSize: line.fontPx,
         fontFamily: `'${line.fontFamily}', sans-serif`,
-        color: line.color,
+        color: resolvePreviewColor(line.color, colorVars),
         lineHeight: 1,
         whiteSpace: 'pre',
-        ...(line.box ? { backgroundColor: rgba(line.box.color, line.box.opacity), padding: line.box.paddingPx } : {}),
-        ...textEffectCss(line.effect, effectScale),
+        ...(line.box
+          ? {
+              backgroundColor: rgba(resolvePreviewColor(line.box.color, colorVars), line.box.opacity),
+              padding: line.box.paddingPx,
+            }
+          : {}),
+        ...textEffectCss(line.effect, effectScale, colorVars),
       }}
       className={cn(
         'pointer-events-auto touch-none outline-none',
@@ -415,18 +424,22 @@ const SugarLine = ({ line, lineIndex, gestures, editing, effectScale, shift, res
 };
 
 // A solid accent bar (drawbox t=fill). Decorative only — too small to be a useful click target.
-const SugarBarBox = ({ bar, shift }: { bar: SugarBar; shift?: { dx: number; dy: number } }) => (
-  <div
-    aria-hidden
-    style={{
-      ...anchorStyle(bar.x, { edge: 'top', px: bar.topPx }, shift),
-      width: bar.widthPx,
-      height: bar.heightPx,
-      backgroundColor: bar.color,
-    }}
-    className={cn(shift && 'opacity-80')}
-  />
-);
+const SugarBarBox = ({ bar, shift }: { bar: SugarBar; shift?: { dx: number; dy: number } }) => {
+  const { variables: colorVars } = useColorVariables();
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        ...anchorStyle(bar.x, { edge: 'top', px: bar.topPx }, shift),
+        width: bar.widthPx,
+        height: bar.heightPx,
+        backgroundColor: resolvePreviewColor(bar.color, colorVars),
+      }}
+      className={cn(shift && 'opacity-80')}
+    />
+  );
+};
 
 // The full-width legibility band behind a lower third (drawbox x=0 w=iw) — the block's natural
 // click/drag target, selectable and draggable like the lines it carries.
@@ -440,6 +453,7 @@ const SugarBandBox = ({
   shift?: { dx: number; dy: number };
 }) => {
   const g = usePieceGestures(gestures, 0);
+  const { variables: colorVars } = useColorVariables();
 
   return (
     <div
@@ -459,7 +473,7 @@ const SugarBandBox = ({
         right: 0,
         top: band.topPx,
         height: band.heightPx,
-        backgroundColor: rgba(band.color, band.opacity),
+        backgroundColor: rgba(resolvePreviewColor(band.color, colorVars), band.opacity),
         ...(shift ? { transform: `translate(${shift.dx}px, ${shift.dy}px)` } : {}),
       }}
       className={cn(

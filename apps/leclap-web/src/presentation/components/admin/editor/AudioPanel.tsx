@@ -64,7 +64,7 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
 
   return (
     <div>
-      <span className="block text-xs font-semibold uppercase tracking-widest text-gray-400">{t('audio.label')}</span>
+      {/* The panel frame already titles this tool "Audio" — repeat only the guidance line here. */}
       <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{t('audio.hint')}</p>
       <div className="space-y-4 rounded-xl border border-foreground/10 bg-surface p-3">
         <VolumeSlider
@@ -89,7 +89,7 @@ export const AudioPanel = ({ audio, onChange }: AudioPanelProps) => {
         </div>
         <label
           htmlFor={duckId}
-          className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200"
+          className="-mx-2 flex min-h-11 cursor-pointer select-none items-center gap-2 rounded-lg px-2 text-sm text-gray-700 transition-colors hover:bg-foreground/5 dark:text-gray-200"
         >
           <Checkbox
             id={duckId}
@@ -151,6 +151,7 @@ const DuckingAdvanced = ({
             min={0}
             max={1}
             step={0.01}
+            format={(v) => `${Math.round(v * 100)}%`}
             resetTo={DUCKING_DEFAULTS.threshold}
             onChange={(v) => {
               onChange(nextDucking(current, 'threshold', v));

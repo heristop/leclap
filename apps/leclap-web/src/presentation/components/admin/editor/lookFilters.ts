@@ -63,6 +63,33 @@ export function gradeFilter(grade: Grade | undefined): string {
   return parts.join(' ');
 }
 
+// One colour treatment (a look preset and/or a fine-tune grade) — either a section's own or the
+// whole-video one authored in the Advanced panel (EditorState.globalLook/globalGrade).
+export interface LookGradeTreatment {
+  look?: string;
+  grade?: Grade;
+}
+
+// The combined CSS filter for a backdrop: the section's look+grade first, THEN the whole-video
+// look+grade — mirroring SegmentBuilder.injectSugarFilters, which appends the global decorations
+// after the section's own background sugar (CSS filters apply left-to-right, like the chain).
+// Returns undefined when nothing is set so callers can skip the style entirely.
+export function combinedLookGradeFilter(
+  section: LookGradeTreatment,
+  global: LookGradeTreatment
+): string | undefined {
+  const parts = [
+    lookFilter(section.look),
+    gradeFilter(section.grade),
+    lookFilter(global.look),
+    gradeFilter(global.grade),
+  ].filter((part) => part !== 'none');
+
+  if (parts.length === 0) return undefined;
+
+  return parts.join(' ');
+}
+
 export type ColorBalance = NonNullable<Grade['colorBalance']>;
 export type ColorBalanceRange = keyof ColorBalance;
 export type ColorChannel = 'r' | 'g' | 'b';

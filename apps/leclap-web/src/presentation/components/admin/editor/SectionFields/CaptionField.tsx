@@ -259,6 +259,7 @@ const CaptionBoxControls = ({
             max={1}
             step={0.05}
             format={(v) => `${Math.round(v * 100)}%`}
+            resetTo={DEFAULT_BOX_OPACITY}
             onChange={(boxOpacity) => {
               onChange(nextCaption(caption, { boxOpacity }));
             }}

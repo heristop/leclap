@@ -6,11 +6,11 @@ import { useTranslation } from 'react-i18next';
 import type { LowerThird } from '../../templateEditorModel';
 import { ColorPicker } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
+import { AccentControl } from '../AccentControl';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { VariableTextField } from '../VariableTextField';
 
-const DEFAULT_ACCENT = '#7C83FF';
 const DEFAULT_BAND_COLOR = '#0a0f14';
 const DEFAULT_BAND_OPACITY = 0.6;
 type Position = NonNullable<LowerThird['position']>;
@@ -90,18 +90,16 @@ export const LowerThirdField = ({ lowerThird, onChange, variables, inputCls }: L
       {band && hasAnyText(band) && (
         <>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-                {t('lowerThird.accent')}
-              </span>
-              <ColorPicker
-                aria-label={t('lowerThird.accent')}
-                value={band.accent ?? DEFAULT_ACCENT}
-                onChange={(accent) => {
-                  patch({ accent });
-                }}
-              />
-            </div>
+            {/* The shared accent control (same as the title card + text overlays): the engine draws
+                the band's accent bar only when an accent is set (the badge pill falls back to the
+                house colour). */}
+            <AccentControl
+              accent={band.accent}
+              hint={t('accent.hintLowerThird')}
+              onChange={(accent) => {
+                patch({ accent });
+              }}
+            />
             <SegmentedControl
               label={t('lowerThird.position')}
               value={position}
@@ -131,6 +129,7 @@ export const LowerThirdField = ({ lowerThird, onChange, variables, inputCls }: L
               max={1}
               step={0.05}
               format={(v) => `${Math.round(v * 100)}%`}
+              resetTo={DEFAULT_BAND_OPACITY}
               onChange={(boxOpacity) => {
                 patch({ boxOpacity });
               }}

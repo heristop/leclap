@@ -4,7 +4,7 @@
 // unset overlay shows at the file's native size at the top-left — exactly how the engine composites it.
 import { useState, type PointerEvent as ReactPointerEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Orientation } from '../templateEditorModel';
+import type { Orientation, OverlayFlip } from '../templateEditorModel';
 import {
   FRAME_SIZE,
   PREVIEW_BG_CLASS,
@@ -14,6 +14,7 @@ import {
   isAnimationVideo,
   type PreviewBg,
 } from './animationOverlay';
+import { flipCssTransform } from './overlayFlip.logic';
 
 const DISPLAY_MAX = 168; // px — the frame's larger side on screen
 const MIN_SIZE = 16; // output px — smallest the overlay can be resized to
@@ -70,6 +71,7 @@ interface FrameCanvasProps {
   position: string | undefined;
   scale: string | undefined;
   rotation?: number;
+  flip?: OverlayFlip;
   onChange: (over: { position?: string; scale?: string; rotation?: number }) => void;
 }
 
@@ -88,6 +90,7 @@ export const AnimationFrameCanvas = ({
   position,
   scale,
   rotation,
+  flip,
   onChange,
 }: FrameCanvasProps) => {
   const { t } = useTranslation('admin');
@@ -199,9 +202,16 @@ export const AnimationFrameCanvas = ({
   };
 
   // rotate() shares the box's centre as its transform-origin (the default), so the preview spins in place
-  // exactly as the engine composites it — an unset/0 rotation leaves the box upright.
-  const spin = rotation ? `rotate(${rotation}deg)` : undefined;
-  const boxStyle = { left: rect.x * k, top: rect.y * k, width: rect.w * k, height: rect.h * k, transform: spin };
+  // exactly as the engine composites it — an unset/0 rotation leaves the box upright. The mirror flip
+  // sits AFTER rotate so CSS (right-to-left) mirrors first, matching the engine's flip-then-rotate chain.
+  const spin = [rotation ? `rotate(${rotation}deg)` : '', flipCssTransform(flip)].filter(Boolean).join(' ');
+  const boxStyle = {
+    left: rect.x * k,
+    top: rect.y * k,
+    width: rect.w * k,
+    height: rect.h * k,
+    transform: spin || undefined,
+  };
 
   return (
     <div data-frame className={cnFrame(bg)} style={{ width: frame.w * k, height: frame.h * k }}>

@@ -84,6 +84,38 @@ describe('materializeTemplateMedia', () => {
     expect(inputs?.find((i) => i.name === 'background')?.url).toBe('/backgrounds/x.jpg');
   });
 
+  it('writes an uploaded clip source on a video section and rewrites options.videoUrl', async () => {
+    const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
+    const descriptor = {
+      global: {},
+      sections: [{ name: 'clip_1', type: 'video', options: { duration: 4, videoUrl: 'media://clipK' } }],
+    } as unknown as TemplateDescriptor;
+
+    await materializeTemplateMedia(
+      descriptor,
+      sourceWith({ clipK: { bytes: new Uint8Array([4]), ext: 'mp4' } }),
+      target
+    );
+
+    expect(target.writeFile).toHaveBeenCalledWith('/assets/videos/clipK.mp4', new Uint8Array([4]));
+    expect(descriptor.sections?.[0]?.options?.videoUrl).toBe('/assets/videos/clipK.mp4');
+  });
+
+  it('leaves a remote videoUrl on a video section untouched', async () => {
+    const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
+    const descriptor = {
+      global: {},
+      sections: [
+        { name: 'clip_1', type: 'video', options: { duration: 4, videoUrl: 'https://cdn.example.com/bumper.mp4' } },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    await materializeTemplateMedia(descriptor, sourceWith({}), target);
+
+    expect(target.writeFile).not.toHaveBeenCalled();
+    expect(descriptor.sections?.[0]?.options?.videoUrl).toBe('https://cdn.example.com/bumper.mp4');
+  });
+
   it('leaves curated URLs untouched', async () => {
     const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
     const descriptor = {

@@ -71,9 +71,12 @@ export const ElementList = ({ elements, activeRef, onSelect, onDelete, onMove }:
 
   return (
     <div className="space-y-2">
-      <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">{t('element.list')}</span>
+      {/* The "Elements" header (label + "+ Add") is owned by ElementBlock so the list starts at
+          its rows; the empty state is a dashed drop-zone-styled hint pointing at that Add menu. */}
       {elements.length === 0 ? (
-        <p className="text-xs text-gray-500 dark:text-gray-400">{t('element.empty')}</p>
+        <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-2.5 text-center text-xs text-gray-500 dark:text-gray-400">
+          {t('element.empty')}
+        </p>
       ) : (
         <ul className="space-y-1">
           {elements.map((descriptor) => (
@@ -131,7 +134,11 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
 
   return (
     <li
-      className={cn('flex items-center gap-1 rounded-lg', dropTarget && 'ring-2 ring-brand-500/50')}
+      // cursor-grab on the row gaps hints that rows are draggable (buttons keep their own cursor).
+      className={cn(
+        'flex cursor-grab items-center gap-1 rounded-lg active:cursor-grabbing',
+        dropTarget && 'ring-2 ring-brand-500/50'
+      )}
       draggable
       onDragStart={(event) => {
         event.dataTransfer.effectAllowed = 'copyMove';

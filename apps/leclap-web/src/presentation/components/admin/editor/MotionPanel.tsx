@@ -125,6 +125,7 @@ const EffectControls = ({
           max={2}
           step={0.01}
           format={(v) => `${v.toFixed(2)}×`}
+          resetTo={DEFAULT_INTENSITY}
           onChange={(intensity) => {
             onChange({ ...effect, intensity });
           }}
@@ -177,6 +178,7 @@ const EffectControls = ({
         max={100}
         step={5}
         format={(v) => `${v}%`}
+        resetTo={100}
         onChange={(percent) => {
           onChange({ ...effect, w: cropExpr('iw', percent) });
         }}
@@ -188,6 +190,7 @@ const EffectControls = ({
         max={100}
         step={5}
         format={(v) => `${v}%`}
+        resetTo={100}
         onChange={(percent) => {
           onChange({ ...effect, h: cropExpr('ih', percent) });
         }}
@@ -238,6 +241,7 @@ const DirectionButton = ({
       type="button"
       role="radio"
       aria-checked={active}
+      aria-label={t(titleKey)}
       title={t(titleKey)}
       onClick={() => {
         onChange(dir);

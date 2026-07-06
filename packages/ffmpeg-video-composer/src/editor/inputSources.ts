@@ -1,4 +1,5 @@
 import { assertSafeArgToken } from '@/core/argGuard';
+import { easeRampExpr, type RevealEasing } from './presets/text';
 import type { BackgroundLayer } from '../schemas/template.schemas';
 
 // Pure builders for the `-i` source fragments of composited inputs (animations and gradient layers).
@@ -54,6 +55,21 @@ export function buildSingleFileAnimationSource(
 /** How an overlay maps into its "w:h" scale box (see buildAnimationLegFilters). */
 export type OverlayFit = 'stretch' | 'contain' | 'cover';
 
+/** Mirror applied to the overlay leg before rotation (see buildAnimationLegFilters). */
+export type OverlayFlip = 'horizontal' | 'vertical' | 'both';
+
+// flip → the hflip/vflip leg filters ('both' = hflip then vflip). The same core LGPL filters the
+// section motion flip emits (presets/looks.ts), so on-device (--disable-gpl) parity is proven.
+function flipLegFilters(flip: OverlayFlip | undefined): string[] {
+  if (!flip) return [];
+
+  if (flip === 'horizontal') return ['hflip'];
+
+  if (flip === 'vertical') return ['vflip'];
+
+  return ['hflip', 'vflip'];
+}
+
 // fit only has meaning against a fixed pixel box: both scale components must be plain positive
 // integers. The "w:-1" keep-aspect trick and expression scales fall back to the free scale, since
 // pad/crop against a -1 or expression dimension would be invalid or meaningless.
@@ -82,13 +98,20 @@ function fitBoxFrom(scale: string | undefined, fit: OverlayFit | undefined): str
  *   - cover: scale up to fill, then centre-crop the overflow to the box.
  * scale, pad and crop are all core LGPL filters, so the on-device (--disable-gpl) build keeps parity.
  *
- * Rotation order: scale → rotate → fade. The `rotate` runs on an `format=rgba` frame with `c=none` so
- * the corners the rotation exposes stay transparent (no black box around a rotated PNG/APNG), and
- * `ow=rotw(…)/oh=roth(…)` grow the output frame to the rotated bounds so it is never clipped.
+ * `flip` mirrors the overlay itself (hflip/vflip — core LGPL, same filters the section motion flip
+ * emits) BEFORE the rotate, so a mirrored sticker still rotates around its own visual centre. Because
+ * it runs on the overlay leg, only the overlay mirrors — the per-input `filters` array can't do this,
+ * as MapManager chains those AFTER the overlay and would flip the whole composited frame.
+ *
+ * Chain order: scale/fit → flip → rotate → fade. The `rotate` runs on an `format=rgba` frame with
+ * `c=none` so the corners the rotation exposes stay transparent (no black box around a rotated
+ * PNG/APNG), and `ow=rotw(…)/oh=roth(…)` grow the output frame to the rotated bounds so it is never
+ * clipped.
  */
 export function buildAnimationLegFilters(options: {
   scale?: string;
   fit?: OverlayFit;
+  flip?: OverlayFlip;
   rotation?: number;
   opacity?: number;
 }): string[] {
@@ -111,6 +134,8 @@ export function buildAnimationLegFilters(options: {
   }
 
   if (!fitBox && options.scale) legFilters.push(`scale=${options.scale}`, 'setsar=1');
+
+  legFilters.push(...flipLegFilters(options.flip));
 
   // rotate's `c=none` and the alpha multiply both need an alpha channel; convert to rgba once and
   // reuse it for whichever steps follow so the chain never re-formats the same frame. A contain fit
@@ -138,9 +163,13 @@ export function buildAnimationLegFilters(options: {
 // Reuses the `reveal` vocabulary (rise / slide / fade) but emits OVERLAY-filter coordinates (W,H,w,h,t)
 // — NOT the drawtext text_w coords `revealToExpr` produces. slide/rise become `overlay` x/y time
 // expressions easing from an offset back to the base position; fade reuses an alpha fade-in on the
-// overlay leg (the opacity path) instead of moving the overlay.
+// overlay leg (the opacity path) instead of moving the overlay. `easing` curves the rise/slide ramp
+// (shared easeRampExpr — pure expression math, LGPL-safe); a fade motion IGNORES it, because the fade
+// FILTER only ramps linearly.
 
-type OverlayMotionInput = string | { type: string; delay?: number; duration?: number; distance?: number };
+type OverlayMotionInput =
+  | string
+  | { type: string; delay?: number; duration?: number; distance?: number; easing?: RevealEasing };
 
 export type OverlayMotion = {
   /** Overlay x expression (already incorporates the base x); paired with `y` for slide/rise. */
@@ -176,7 +205,8 @@ export function overlayMotionExpr(motion: OverlayMotionInput | undefined, positi
   const duration = intent.duration ?? MOTION_DURATION;
   const distance = intent.distance ?? MOTION_DISTANCE;
   const [bx = '0', by = '0'] = position.split(':');
-  const ramp = `if(lt(t,${trimNum(delay)}),0,if(lt(t,${trimNum(delay + duration)}),(t-${trimNum(delay)})/${trimNum(duration)},1))`;
+  const linear = `if(lt(t,${trimNum(delay)}),0,if(lt(t,${trimNum(delay + duration)}),(t-${trimNum(delay)})/${trimNum(duration)},1))`;
+  const ramp = easeRampExpr(linear, intent.easing);
 
   if (intent.type === 'fade') {
     return { legFilter: `fade=t=in:st=${trimNum(delay)}:d=${trimNum(duration)}:alpha=1` };
@@ -315,7 +345,7 @@ export function buildGradientSource(layer: BackgroundLayer, scale: string, durat
   // otherwise a 50%-wide gradient layer renders full-frame and its geometry fields do nothing.
   const { w, h } = resolveLayerGeometry(layer, scale);
   const size = `${w}x${h}`;
-  const coords = gradientCoords(gradient.shape, gradient.direction, w, h);
+  const coords = gradientCoords(gradient.shape, gradient.direction, gradient.angle, w, h);
 
   const from = assertSafeArgToken(gradient.from, 'gradient from');
   const to = assertSafeArgToken(gradient.to, 'gradient to');
@@ -330,12 +360,44 @@ export function buildGradientSource(layer: BackgroundLayer, scale: string, durat
 // linear sweeps between two points along a direction; radial/circular/spiral radiate from the
 // (x0,y0) origin, so they get a centred origin with (x1,y1) at the far corner (radial reach =
 // half-diagonal, filling the whole box) — the direction coords would pin them to the top-left.
-function gradientCoords(shape: string | undefined, direction: string | undefined, w: number, h: number): string {
+// A free `angle` (degrees) wins over the direction enum, unlocking the reverse and diagonal
+// sweeps the three fixed directions can't express; the enum stays as sugar for old descriptors.
+function gradientCoords(
+  shape: string | undefined,
+  direction: string | undefined,
+  angle: number | undefined,
+  w: number,
+  h: number
+): string {
   if (shape && shape !== 'linear') {
     return `x0=${Math.round(w / 2)}:y0=${Math.round(h / 2)}:x1=${w}:y1=${h}`;
   }
 
+  if (angle !== undefined) return angleCoords(angle, w, h);
+
   const sweep = GRADIENT_DIRECTION_COORDS[direction ?? 'vertical'] ?? GRADIENT_DIRECTION_COORDS.vertical;
 
   return sweep.replace('%W', String(w)).replace('%H', String(h));
+}
+
+// Lowers a CSS-convention angle (0=bottom→top, 90=left→right, clockwise) to gradients sweep
+// endpoints: a ray through the box centre, cut where it exits the box — the gradients source
+// re-randomises coordinates outside the box, so the endpoints must stay within [0,w]×[0,h].
+function angleCoords(angleDeg: number, w: number, h: number): string {
+  const theta = (((angleDeg % 360) + 360) % 360) * (Math.PI / 180);
+  // CSS angles run clockwise from "up"; screen y grows downward, hence dy = -cos.
+  const dx = Math.sin(theta);
+  const dy = -Math.cos(theta);
+  const tx = Math.abs(dx) < 1e-9 ? Infinity : w / 2 / Math.abs(dx);
+  const ty = Math.abs(dy) < 1e-9 ? Infinity : h / 2 / Math.abs(dy);
+  const reach = Math.min(tx, ty);
+  const clampX = (v: number): number => Math.min(Math.max(Math.round(v), 0), w);
+  const clampY = (v: number): number => Math.min(Math.max(Math.round(v), 0), h);
+
+  const x0 = clampX(w / 2 - dx * reach);
+  const y0 = clampY(h / 2 - dy * reach);
+  const x1 = clampX(w / 2 + dx * reach);
+  const y1 = clampY(h / 2 + dy * reach);
+
+  return `x0=${x0}:y0=${y0}:x1=${x1}:y1=${y1}`;
 }

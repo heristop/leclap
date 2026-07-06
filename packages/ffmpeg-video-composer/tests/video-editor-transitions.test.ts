@@ -182,6 +182,27 @@ describe('VideoEditor.assembleWithTransitions', () => {
     expect(command).toContain('xfade=transition=dissolve:duration=0.4:offset=8.1');
   });
 
+  it('lowers fadefast and fadeslow straight to their xfade names', async () => {
+    const durations = [5, 4, 6];
+    const ffmpeg = {
+      execute: vi.fn(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async (src: string) => infos(durations[Number(src.match(/(\d)/)?.[1] ?? 0)])),
+    };
+    const { editor, ffmpeg: f } = makeEditor({ ffmpeg });
+
+    await editor.assembleWithTransitions(
+      ['/build/s0.mp4', '/build/s1.mp4', '/build/s2.mp4'],
+      [
+        { type: 'fadefast', duration: 0.5 },
+        { type: 'fadeslow', duration: 0.4 },
+      ]
+    );
+
+    const command = f.execute.mock.calls[0][0] as string;
+    expect(command).toContain('xfade=transition=fadefast:duration=0.5:offset=4.5');
+    expect(command).toContain('xfade=transition=fadeslow:duration=0.4:offset=8.1');
+  });
+
   it('renders a cut boundary as a near-zero fade', async () => {
     const { editor, ffmpeg } = makeEditor();
 

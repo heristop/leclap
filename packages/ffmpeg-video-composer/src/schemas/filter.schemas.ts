@@ -34,6 +34,20 @@ export const FilterValuesSchema = z
       .optional()
       .describe('Font size in pixels or as an FFmpeg expression passed to the drawtext filter.'),
     fontfile: z.string().optional().describe('Path or URL to the font file used by the drawtext filter.'),
+    box: z
+      .union([z.number(), z.string()])
+      .optional()
+      .describe('drawtext background box toggle (1 draws a box behind the text).'),
+    boxcolor: z
+      .string()
+      .optional()
+      .describe('drawtext background box colour token, e.g. "#000000@0.5" (the @suffix is the opacity).'),
+    boxborderw: z
+      .union([z.number(), z.string()])
+      .optional()
+      .describe(
+        'drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side "up|right|down|left" strings.'
+      ),
     shadowcolor: z.string().optional().describe('drawtext drop-shadow colour token, e.g. "#000000@0.6".'),
     shadowx: z.union([z.number(), z.string()]).optional().describe('drawtext drop-shadow horizontal offset in pixels.'),
     shadowy: z.union([z.number(), z.string()]).optional().describe('drawtext drop-shadow vertical offset in pixels.'),

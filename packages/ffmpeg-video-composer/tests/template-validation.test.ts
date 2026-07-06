@@ -351,6 +351,13 @@ describe('Template Validation', () => {
       expect(r.success).toBe(true);
     });
 
+    it('accepts the n8.0 fadefast and fadeslow xfade names', () => {
+      const fast = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'fadefast' } });
+      const slow = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'fadeslow' } });
+      expect(fast.success).toBe(true);
+      expect(slow.success).toBe(true);
+    });
+
     it('accepts cut as a valid transition type', () => {
       const r = SectionSchema.safeParse({ name: 's1', type: 'video', transition: { type: 'cut' } });
       expect(r.success).toBe(true);

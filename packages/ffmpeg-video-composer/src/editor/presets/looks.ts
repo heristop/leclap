@@ -348,7 +348,9 @@ export function motionToFilters(motion: MotionEffect[] | undefined, ctx: MotionC
  * which cannot be expressed as a plain section filter — they are intentionally
  * skipped here and compiled by the input/maps pipeline.
  *
- * Layers without a color AND without a gradient are also skipped (nothing to draw).
+ * Layers without a color AND without a border AND without a gradient are also skipped
+ * (nothing to draw). A layer with a `border` emits a second drawbox with a numeric
+ * thickness `t=<width>` after the fill — or alone for outline-only layers.
  */
 export function layersToFilters(layers: BackgroundLayer[] | undefined): Filter[] {
   if (!layers || layers.length === 0) {
@@ -363,24 +365,27 @@ export function layersToFilters(layers: BackgroundLayer[] | undefined): Filter[]
       continue;
     }
 
-    if (!layer.color) {
-      continue;
+    const opacity = layer.opacity ?? 1;
+    const geometry = {
+      x: layer.x ?? 0,
+      y: layer.y ?? 0,
+      w: layer.w ?? 'iw',
+      h: layer.h ?? 'ih',
+    };
+
+    if (layer.color) {
+      filters.push({
+        type: 'drawbox',
+        values: { ...geometry, c: `${layer.color}@${opacity}`, t: 'fill' },
+      });
     }
 
-    const opacity = layer.opacity ?? 1;
-    const colorWithOpacity = `${layer.color}@${opacity}`;
-
-    filters.push({
-      type: 'drawbox',
-      values: {
-        x: layer.x ?? 0,
-        y: layer.y ?? 0,
-        w: layer.w ?? 'iw',
-        h: layer.h ?? 'ih',
-        c: colorWithOpacity,
-        t: 'fill',
-      },
-    });
+    if (layer.border) {
+      filters.push({
+        type: 'drawbox',
+        values: { ...geometry, c: `${layer.border.color}@${opacity}`, t: layer.border.width },
+      });
+    }
   }
 
   return filters;

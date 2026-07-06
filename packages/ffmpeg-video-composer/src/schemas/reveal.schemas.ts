@@ -9,12 +9,24 @@ import { z } from 'zod';
 
 export const REVEAL_TYPES = ['none', 'fade', 'rise', 'slide-left', 'slide-right'] as const;
 
+// Progress curves for the entrance ramp. Lowered as pure expression math on the drawtext alpha/x/y
+// and overlay x/y (ease-out = 1-(1-p)^3, ease-in-out = smoothstep p*p*(3-2p)) — no extra filter, so
+// the LGPL on-device build keeps parity. An overlay `fade` motion lowers to the fade FILTER, which
+// is linear only, so easing applies to rise/slide overlay paths (text fades ARE eased: drawtext alpha).
+export const REVEAL_EASINGS = ['linear', 'ease-out', 'ease-in-out'] as const;
+
 export const RevealObjectSchema = z
   .object({
     type: z.enum(REVEAL_TYPES).describe('Entrance style: none, fade, rise (up from below), slide-left, slide-right.'),
     delay: z.number().min(0).optional().describe('Seconds before the entrance starts (default 0.3).'),
     duration: z.number().positive().optional().describe('Seconds the entrance takes (default 0.6).'),
     distance: z.number().positive().optional().describe('Pixels the text travels for rise/slide (default 60).'),
+    easing: z
+      .enum(REVEAL_EASINGS)
+      .optional()
+      .describe(
+        'Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).'
+      ),
   })
   .strict()
   .describe('Animated entrance for sugar text, with optional timing overrides.');

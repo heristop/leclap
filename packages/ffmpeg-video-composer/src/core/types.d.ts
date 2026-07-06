@@ -116,6 +116,9 @@ export interface GlobalTextOverlay {
 /** How an overlay maps into its "w:h" scale box: free stretch, letterbox inside, or fill + centre-crop. */
 export type OverlayFit = 'stretch' | 'contain' | 'cover';
 
+/** Mirror applied to the overlay leg before rotation: left-right, top-bottom, or both. */
+export type OverlayFlip = 'horizontal' | 'vertical' | 'both';
+
 // A whole-video animation overlay (global.animations) composited over the final joined video.
 export interface GlobalAnimation {
   url: string;
@@ -126,6 +129,8 @@ export interface GlobalAnimation {
   opacity?: number;
   /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
   rotation?: number;
+  /** Mirror the overlay before compositing: left-right, top-bottom, or both. */
+  flip?: OverlayFlip;
   loop?: boolean;
   /** Finite play count; takes precedence over loop. */
   loops?: number;
@@ -134,7 +139,7 @@ export interface GlobalAnimation {
   /** Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning. */
   start?: number;
   persistent?: boolean;
-  /** Animated entrance (rise/slide/fade); applied by the per-section overlay path, ignored whole-video. */
+  /** Animated entrance (rise/slide/fade), same lowering as the per-section overlay path. */
   motion?: Reveal;
 }
 
@@ -241,10 +246,28 @@ export interface FramingGuideConfig {
   style?: 'bust' | 'outline';
 }
 
+/**
+ * Editor-only recipe of a builder-rasterized shape overlay (the input's url carries the actual PNG).
+ * The engine never reads it; it exists so the builder re-hydrates shape controls on import.
+ */
+export interface ShapeSpec {
+  kind: 'rect' | 'ellipse';
+  /** Fill colour as a hex string (e.g. "#ff4d4d"). */
+  color: string;
+  /** Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners). */
+  cornerRadius?: number;
+  /** Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline). */
+  strokeWidth?: number;
+  /** Outline colour as a hex string; used when strokeWidth > 0. */
+  strokeColor?: string;
+}
+
 interface Input {
   name: string;
   url?: string;
   type?: 'animation' | 'image';
+  /** Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine. */
+  shape?: ShapeSpec;
   options?: InputOptions;
   filters?: Filter[];
 }
@@ -267,6 +290,8 @@ interface InputOptions {
   opacity?: number;
   /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
   rotation?: number;
+  /** Mirror the overlay before compositing: left-right, top-bottom, or both. */
+  flip?: OverlayFlip;
   /** Animated entrance for the overlay (rise/slide/fade), reusing the reveal vocabulary. */
   motion?: Reveal;
 }

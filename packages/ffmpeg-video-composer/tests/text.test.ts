@@ -88,6 +88,27 @@ describe('revealToExpr', () => {
       alpha: `'if(lt(t,0.1),0,if(lt(t,0.3),(t-0.1)/0.2,1))'`,
     });
   });
+
+  // easing wraps the ramp p in a curve (ease-out = 1-(1-p)^3, ease-in-out = smoothstep) — shared with
+  // the overlay motion path so a caption and a sticker with the same reveal settle identically.
+  it('ease-out wraps the alpha and motion ramp in a cubic-out curve', () => {
+    const eased = `1-pow(1-(${DEFAULT_RAMP}),3)`;
+
+    expect(revealToExpr({ type: 'rise', easing: 'ease-out' }, { x: 0, y: 652 })).toEqual({
+      alpha: `'${eased}'`,
+      y: `'(652)+(1-(${eased}))*60'`,
+    });
+  });
+
+  it('ease-in-out wraps the ramp in a smoothstep curve', () => {
+    const eased = `(${DEFAULT_RAMP})*(${DEFAULT_RAMP})*(3-2*(${DEFAULT_RAMP}))`;
+
+    expect(revealToExpr({ type: 'fade', easing: 'ease-in-out' }, base)).toEqual({ alpha: `'${eased}'` });
+  });
+
+  it('explicit linear easing emits the same expressions as the default', () => {
+    expect(revealToExpr({ type: 'slide-left', easing: 'linear' }, base)).toEqual(revealToExpr('slide-left', base));
+  });
 });
 
 describe('titleCardToFilters', () => {

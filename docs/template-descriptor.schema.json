@@ -266,6 +266,15 @@
                 "description": "Clockwise rotation in degrees applied to the overlay before compositing.",
                 "type": "number"
               },
+              "flip": {
+                "type": "string",
+                "enum": [
+                  "horizontal",
+                  "vertical",
+                  "both"
+                ],
+                "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+              },
               "loop": {
                 "description": "When true, the overlay loops continuously for the whole video duration (default false).",
                 "type": "boolean"
@@ -387,6 +396,15 @@
                         "description": "Pixels the text travels for rise/slide (default 60).",
                         "type": "number",
                         "exclusiveMinimum": 0
+                      },
+                      "easing": {
+                        "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                        "type": "string",
+                        "enum": [
+                          "linear",
+                          "ease-out",
+                          "ease-in-out"
+                        ]
                       }
                     },
                     "required": [
@@ -674,6 +692,43 @@
                         "image"
                       ]
                     },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
@@ -734,6 +789,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -775,6 +839,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -1006,6 +1079,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -1321,6 +1403,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -1628,6 +1719,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -1913,6 +2013,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -2013,6 +2122,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -2078,6 +2191,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -2709,6 +2831,43 @@
                         "image"
                       ]
                     },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
@@ -2769,6 +2928,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -2810,6 +2978,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -3041,6 +3218,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -3356,6 +3542,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -3663,6 +3858,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -3948,6 +4152,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -4048,6 +4261,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -4113,6 +4330,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -4806,6 +5032,43 @@
                         "image"
                       ]
                     },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
@@ -4866,6 +5129,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -4907,6 +5179,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -5138,6 +5419,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -5453,6 +5743,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -5760,6 +6059,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -6045,6 +6353,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -6145,6 +6462,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -6210,6 +6531,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -6841,6 +7171,43 @@
                         "image"
                       ]
                     },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
@@ -6901,6 +7268,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -6942,6 +7318,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -7173,6 +7558,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -7488,6 +7882,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -7795,6 +8198,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -8080,6 +8492,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -8180,6 +8601,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -8245,6 +8670,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -8673,6 +9107,66 @@
                       "type": "string"
                     }
                   },
+                  "kickerStyle": {
+                    "description": "Font / size / colour override for the kicker.",
+                    "type": "object",
+                    "properties": {
+                      "font": {
+                        "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                        "type": "string"
+                      },
+                      "fontsize": {
+                        "description": "Font size in px; overrides the scale-derived size.",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "color": {
+                        "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "headlineStyle": {
+                    "description": "Font / size / colour override for the headline.",
+                    "type": "object",
+                    "properties": {
+                      "font": {
+                        "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                        "type": "string"
+                      },
+                      "fontsize": {
+                        "description": "Font size in px; overrides the scale-derived size.",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "color": {
+                        "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "subtitleStyle": {
+                    "description": "Font / size / colour override for the subtitle.",
+                    "type": "object",
+                    "properties": {
+                      "font": {
+                        "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
+                        "type": "string"
+                      },
+                      "fontsize": {
+                        "description": "Font size in px; overrides the scale-derived size.",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "color": {
+                        "description": "Text colour as a CSS hex string; overrides the preset colour.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "accent": {
                     "description": "Accent colour: draws an underline bar and tints the kicker.",
                     "type": "string"
@@ -8730,6 +9224,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -9072,7 +9575,7 @@
                           ]
                         },
                         "gradient": {
-                          "description": "Linear gradient drawn across the layer; overrides the solid color field.",
+                          "description": "Gradient drawn across the layer; overrides the solid color field.",
                           "type": "object",
                           "properties": {
                             "from": {
@@ -9084,18 +9587,53 @@
                               "description": "End colour of the gradient as a CSS hex string or FFmpeg colour name."
                             },
                             "direction": {
-                              "description": "Direction of the gradient sweep (default: vertical).",
+                              "description": "Direction of the gradient sweep (default: vertical); only meaningful for the linear shape.",
                               "type": "string",
                               "enum": [
                                 "horizontal",
                                 "vertical",
                                 "diagonal"
                               ]
+                            },
+                            "angle": {
+                              "description": "Free angle of the linear sweep in degrees, CSS convention: 0 = bottom→top, 90 = left→right, 180 = top→bottom, 270 = right→left. Overrides direction when set; only meaningful for the linear shape.",
+                              "type": "number"
+                            },
+                            "shape": {
+                              "description": "Geometry of the gradient (default: linear): radial fills outward from the centre, circular sweeps angularly around it, spiral twists the angular sweep.",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "radial",
+                                "circular",
+                                "spiral"
+                              ]
                             }
                           },
                           "required": [
                             "from",
                             "to"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "border": {
+                          "description": "Outline stroke drawn along the layer rectangle edge, over the fill — or alone when the layer has no fill colour. Ignored on gradient layers.",
+                          "type": "object",
+                          "properties": {
+                            "color": {
+                              "type": "string",
+                              "description": "Outline colour as a CSS hex string or FFmpeg colour name (e.g. \"#FFFFFF\")."
+                            },
+                            "width": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991,
+                              "description": "Outline thickness in output pixels."
+                            }
+                          },
+                          "required": [
+                            "color",
+                            "width"
                           ],
                           "additionalProperties": false
                         }
@@ -9143,6 +9681,43 @@
                         "animation",
                         "image"
                       ]
+                    },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
                     },
                     "options": {
                       "description": "Playback and compositing options for this input.",
@@ -9204,6 +9779,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -9245,6 +9829,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -9476,6 +10069,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -9791,6 +10393,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -10098,6 +10709,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -10383,6 +11003,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -10483,6 +11112,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -10548,6 +11181,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -11179,6 +11821,43 @@
                         "image"
                       ]
                     },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
@@ -11239,6 +11918,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -11280,6 +11968,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -11511,6 +12208,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -11826,6 +12532,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -12133,6 +12848,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -12418,6 +13142,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -12518,6 +13251,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -12583,6 +13320,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -13214,6 +13960,43 @@
                         "image"
                       ]
                     },
+                    "shape": {
+                      "description": "Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.",
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "rect",
+                            "ellipse"
+                          ],
+                          "description": "Shape geometry: an axis-aligned rectangle or an ellipse/circle."
+                        },
+                        "color": {
+                          "type": "string",
+                          "description": "Fill colour as a hex string (e.g. \"#ff4d4d\")."
+                        },
+                        "cornerRadius": {
+                          "description": "Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeWidth": {
+                          "description": "Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).",
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "strokeColor": {
+                          "description": "Outline colour as a hex string; used when strokeWidth > 0.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "color"
+                      ],
+                      "additionalProperties": false
+                    },
                     "options": {
                       "description": "Playback and compositing options for this input.",
                       "type": "object",
@@ -13274,6 +14057,15 @@
                           "description": "Clockwise rotation in degrees applied before compositing.",
                           "type": "number"
                         },
+                        "flip": {
+                          "type": "string",
+                          "enum": [
+                            "horizontal",
+                            "vertical",
+                            "both"
+                          ],
+                          "description": "Mirror the overlay before compositing: \"horizontal\" flips left-right, \"vertical\" flips top-bottom, \"both\" applies both."
+                        },
                         "motion": {
                           "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.",
                           "anyOf": [
@@ -13315,6 +14107,15 @@
                                   "description": "Pixels the text travels for rise/slide (default 60).",
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "ease-out",
+                                    "ease-in-out"
+                                  ]
                                 }
                               },
                               "required": [
@@ -13546,6 +14347,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -13861,6 +14671,15 @@
                                     "description": "Pixels the text travels for rise/slide (default 60).",
                                     "type": "number",
                                     "exclusiveMinimum": 0
+                                  },
+                                  "easing": {
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "ease-out",
+                                      "ease-in-out"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -14168,6 +14987,15 @@
                               "description": "Pixels the text travels for rise/slide (default 60).",
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "easing": {
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "ease-out",
+                                "ease-in-out"
+                              ]
                             }
                           },
                           "required": [
@@ -14453,6 +15281,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [
@@ -14553,6 +15390,10 @@
                     "description": "Accent colour: draws an accent bar and the badge background.",
                     "type": "string"
                   },
+                  "bandColor": {
+                    "description": "Legibility band colour as a CSS hex string (default near-black #0a0f14).",
+                    "type": "string"
+                  },
                   "boxOpacity": {
                     "description": "Legibility band opacity 0..1 (default 0.6; 0 = no band).",
                     "type": "number",
@@ -14618,6 +15459,15 @@
                             "description": "Pixels the text travels for rise/slide (default 60).",
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "easing": {
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "ease-out",
+                              "ease-in-out"
+                            ]
                           }
                         },
                         "required": [

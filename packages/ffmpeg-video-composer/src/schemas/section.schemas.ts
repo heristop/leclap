@@ -9,6 +9,7 @@ import {
   LOOK_PRESETS,
   MotionEffectSchema,
   OverlayFitSchema,
+  OverlayFlipSchema,
   RevealSchema,
   TransitionSchema,
 } from './effects.schemas';
@@ -55,12 +56,36 @@ export const InputOptionsSchema = z
     start: z.number().positive().optional().describe('Seconds to delay the overlay before it appears (default 0).'),
     opacity: z.number().min(0).max(1).optional().describe('Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.'),
     rotation: z.number().optional().describe('Clockwise rotation in degrees applied before compositing.'),
+    flip: OverlayFlipSchema.optional(),
     motion: RevealSchema.optional().describe(
       'Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or fade in.'
     ),
   })
   .strict()
   .describe('Playback and compositing options for an animation input.');
+
+// Builder metadata for a shape element: the editor pre-rasterizes the shape into the input's PNG
+// data: URL and keeps this vector recipe alongside so the shape controls re-hydrate on import. The
+// ENGINE NEVER READS IT — the input composites exactly like any other still image — but the schema
+// must carry it (zod's default strip mode would drop it on any parse-then-store flow).
+export const ShapeSpecSchema = z
+  .object({
+    kind: z.enum(['rect', 'ellipse']).describe('Shape geometry: an axis-aligned rectangle or an ellipse/circle.'),
+    color: z.string().describe('Fill colour as a hex string (e.g. "#ff4d4d").'),
+    cornerRadius: z
+      .number()
+      .min(0)
+      .optional()
+      .describe('Rounded-corner radius in output pixels; rectangles only (0/omitted = square corners).'),
+    strokeWidth: z
+      .number()
+      .min(0)
+      .optional()
+      .describe('Outline width in output pixels drawn inside the shape bounds (0/omitted = no outline).'),
+    strokeColor: z.string().optional().describe('Outline colour as a hex string; used when strokeWidth > 0.'),
+  })
+  .strict()
+  .describe('Editor-only recipe of a pre-rasterized shape overlay; ignored by the engine at compile.');
 
 export const InputSchema = z
   .object({
@@ -73,6 +98,9 @@ export const InputSchema = z
       .enum(['animation', 'image'])
       .optional()
       .describe('"animation" = animated overlay (.apng/.webp/.gif/.webm); "image" = still held for section duration.'),
+    shape: ShapeSpecSchema.optional().describe(
+      'Editor-only shape recipe when this image input is a builder-rasterized shape; ignored by the engine.'
+    ),
     options: InputOptionsSchema.optional().describe('Playback and compositing options for this input.'),
     filters: z.array(FilterSchema).optional().describe('Filter chain applied to this input stream before compositing.'),
   })

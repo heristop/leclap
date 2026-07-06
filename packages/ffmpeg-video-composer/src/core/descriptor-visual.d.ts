@@ -37,5 +37,5 @@ export interface BackgroundLayer {
   y?: number | string;
   w?: number | string;
   h?: number | string;
-  gradient?: { from: string; to: string; direction?: 'horizontal' | 'vertical' | 'diagonal' };
+  gradient?: { from: string; to: string; direction?: 'horizontal' | 'vertical' | 'diagonal'; angle?: number };
 }

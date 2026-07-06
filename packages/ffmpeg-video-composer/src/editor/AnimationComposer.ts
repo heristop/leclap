@@ -1,7 +1,12 @@
 import { inject, injectable, registry, type DependencyContainer } from 'tsyringe';
 import type { GlobalAnimation } from '@/core/types';
 import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
-import { buildSingleFileAnimationSource, buildAnimationLegFilters } from './inputSources';
+import {
+  buildSingleFileAnimationSource,
+  buildAnimationLegFilters,
+  overlayMotionExpr,
+  type OverlayMotion,
+} from './inputSources';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
@@ -203,25 +208,51 @@ class AnimationComposer {
     let base = opts.baseLabel ?? '[0:v]';
 
     for (const [k, { anim }] of staged.entries()) {
-      const legRef = this.appendOverlayLeg(anim, firstInputIndex + k, k, legs);
+      // An optional `motion` animates the entrance, same lowering as the per-section overlay
+      // (MapManager.addAnimationOverlay): slide/rise emit overlay x/y time expressions easing back to
+      // the static position; fade adds an alpha fade-in to the overlay leg. All LGPL-safe (fade/format/overlay).
+      const motion = overlayMotionExpr(anim.motion, anim.position ?? '0:0');
+      const legRef = this.appendOverlayLeg(anim, firstInputIndex + k, k, legs, motion);
       const out = k === staged.length - 1 ? outLabel : `[${chainPrefix}${k}]`;
 
-      overlays.push(`${base}${legRef}overlay=${anim.position ?? '0:0'}:eof_action=${this.overlayEof(anim)}${out}`);
+      // Moving entrances use the named, single-quoted overlay form so the comma-bearing time
+      // expressions are not mis-parsed as extra filter options; otherwise the static positional form.
+      const placement = motion.x || motion.y ? `x='${motion.x}':y='${motion.y}'` : (anim.position ?? '0:0');
+
+      overlays.push(`${base}${legRef}overlay=${placement}:eof_action=${this.overlayEof(anim)}${out}`);
       base = `[${chainPrefix}${k}]`;
     }
 
     return [...legs, ...overlays].join(';');
   }
 
-  // Push the per-animation leg (scale/rotate/opacity) when any filter applies and return the label the
-  // overlay should consume — the padded leg output, or the raw input stream when no leg filters apply.
-  private appendOverlayLeg(anim: GlobalAnimation, inputIndex: number, k: number, legs: string[]): string {
+  // Push the per-animation leg (scale/rotate/opacity, plus a fade motion's alpha fade-in) when any
+  // filter applies and return the label the overlay should consume — the padded leg output, or the
+  // raw input stream when no leg filters apply.
+  private appendOverlayLeg(
+    anim: GlobalAnimation,
+    inputIndex: number,
+    k: number,
+    legs: string[],
+    motion: OverlayMotion
+  ): string {
     const legFilters = buildAnimationLegFilters({
       scale: anim.scale,
       fit: anim.fit,
+      flip: anim.flip,
       rotation: anim.rotation,
       opacity: anim.opacity,
     });
+
+    // The fade filter's alpha ramp needs an alpha-capable frame; reuse the leg's rgba conversion
+    // when the opacity/rotate path already added one (same guard as MapManager.addAnimationOverlay).
+    if (motion.legFilter) {
+      if (!legFilters.includes('format=rgba')) {
+        legFilters.push('format=rgba');
+      }
+
+      legFilters.push(motion.legFilter);
+    }
 
     if (legFilters.length === 0) {
       return `[${inputIndex}:v]`;

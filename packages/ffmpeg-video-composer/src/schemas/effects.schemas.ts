@@ -14,6 +14,17 @@ export const OverlayFitSchema = z
     'How the overlay maps into its "w:h" scale box: "stretch" (default) scales freely and may distort; "contain" letterboxes inside the box with transparent padding; "cover" fills the box and centre-crops the overflow. Ignored without a fixed positive "w:h" scale.'
   );
 
+// Mirror applied to the overlay leg itself, before rotation and compositing. Lives here for the same
+// section/global reuse reason as OverlayFitSchema. Lowered by buildAnimationLegFilters to hflip/vflip —
+// the same core LGPL filters the section motion flip emits — so on-device parity is proven.
+export const OVERLAY_FLIPS = ['horizontal', 'vertical', 'both'] as const;
+
+export const OverlayFlipSchema = z
+  .enum(OVERLAY_FLIPS)
+  .describe(
+    'Mirror the overlay before compositing: "horizontal" flips left-right, "vertical" flips top-bottom, "both" applies both.'
+  );
+
 // ── xfade / audio constants ────────────────────────────────────────────────────
 
 export const XFADE_TRANSITIONS = [
@@ -21,6 +32,8 @@ export const XFADE_TRANSITIONS = [
   'fadeblack',
   'fadewhite',
   'fadegrays',
+  'fadefast',
+  'fadeslow',
   'distance',
   'dissolve',
   'pixelize',
@@ -117,7 +130,14 @@ export const LOOK_PRESETS = [
 // Reveal/exit (animated text entrance + exit) and the text-legibility (shadow/outline) + chroma-key
 // sugar live in their own files to keep this one under the max-lines budget; all are re-exported here
 // so importers keep a single `effects.schemas` entry point.
-export { REVEAL_TYPES, RevealObjectSchema, RevealSchema, ExitObjectSchema, ExitSchema } from './reveal.schemas';
+export {
+  REVEAL_TYPES,
+  REVEAL_EASINGS,
+  RevealObjectSchema,
+  RevealSchema,
+  ExitObjectSchema,
+  ExitSchema,
+} from './reveal.schemas';
 export { TextEffectSchema, ChromaKeySchema } from './text-media.schemas';
 
 // ── transition ─────────────────────────────────────────────────────────────────
@@ -302,6 +322,12 @@ export const BackgroundLayerSchema = z
           .enum(['horizontal', 'vertical', 'diagonal'])
           .optional()
           .describe('Direction of the gradient sweep (default: vertical); only meaningful for the linear shape.'),
+        angle: z
+          .number()
+          .optional()
+          .describe(
+            'Free angle of the linear sweep in degrees, CSS convention: 0 = bottom→top, 90 = left→right, 180 = top→bottom, 270 = right→left. Overrides direction when set; only meaningful for the linear shape.'
+          ),
         shape: z
           .enum(['linear', 'radial', 'circular', 'spiral'])
           .optional()
@@ -311,6 +337,15 @@ export const BackgroundLayerSchema = z
       })
       .optional()
       .describe('Gradient drawn across the layer; overrides the solid color field.'),
+    border: z
+      .object({
+        color: z.string().describe('Outline colour as a CSS hex string or FFmpeg colour name (e.g. "#FFFFFF").'),
+        width: z.number().int().min(1).describe('Outline thickness in output pixels.'),
+      })
+      .optional()
+      .describe(
+        'Outline stroke drawn along the layer rectangle edge, over the fill — or alone when the layer has no fill colour. Ignored on gradient layers.'
+      ),
   })
   .describe('A single composited background layer drawn onto the color_background section.');
 

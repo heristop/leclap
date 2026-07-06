@@ -37,6 +37,41 @@ describe('overlayMotionExpr', () => {
     const expr = overlayMotionExpr({ type: 'rise', delay: 0.5, duration: 1, distance: 100 }, '0:0');
     expect(expr.y).toBe('(0)+(1-(if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,1))))*100');
   });
+
+  // easing wraps the linear ramp p in a curve — pure expression math on the overlay x/y, no new
+  // filter, so the LGPL on-device build keeps parity. ease-out = 1-(1-p)^3, ease-in-out = smoothstep.
+  const EASE_OUT = `1-pow(1-(${RAMP}),3)`;
+  const SMOOTHSTEP = `(${RAMP})*(${RAMP})*(3-2*(${RAMP}))`;
+
+  it('ease-out wraps the rise/slide ramp in a cubic-out curve', () => {
+    expect(overlayMotionExpr({ type: 'rise', easing: 'ease-out' }, '40:200')).toEqual({
+      x: '40',
+      y: `(200)+(1-(${EASE_OUT}))*60`,
+    });
+    expect(overlayMotionExpr({ type: 'slide-left', easing: 'ease-out' }, '40:200')).toEqual({
+      x: `(40)+(1-(${EASE_OUT}))*60`,
+      y: '200',
+    });
+  });
+
+  it('ease-in-out wraps the ramp in a smoothstep curve', () => {
+    expect(overlayMotionExpr({ type: 'slide-right', easing: 'ease-in-out' }, '40:200')).toEqual({
+      x: `(40)-(1-(${SMOOTHSTEP}))*60`,
+      y: '200',
+    });
+  });
+
+  it('explicit linear easing emits the same ramp as the default', () => {
+    expect(overlayMotionExpr({ type: 'rise', easing: 'linear' }, '40:200')).toEqual(
+      overlayMotionExpr('rise', '40:200')
+    );
+  });
+
+  it('fade ignores easing (it lowers to the fade filter, which is linear only)', () => {
+    expect(overlayMotionExpr({ type: 'fade', easing: 'ease-out' }, '40:200')).toEqual({
+      legFilter: 'fade=t=in:st=0.3:d=0.6:alpha=1',
+    });
+  });
 });
 
 // The animation-leg filter chain shared by the per-section overlay (MapManager.addAnimationOverlay)
@@ -82,6 +117,31 @@ describe('buildAnimationLegFilters', () => {
       'setsar=1',
       'format=rgba',
       'rotate=a=45*PI/180:ow=rotw(45*PI/180):oh=roth(45*PI/180):c=none',
+      'colorchannelmixer=aa=0.4',
+    ]);
+  });
+
+  // flip mirrors the overlay leg itself (before compositing) — hflip/vflip are the same core LGPL
+  // filters the section motion flip emits, placed after the scale and before the rotate.
+  it('mirrors horizontally via hflip', () => {
+    expect(buildAnimationLegFilters({ flip: 'horizontal' })).toEqual(['hflip']);
+  });
+
+  it('mirrors vertically via vflip', () => {
+    expect(buildAnimationLegFilters({ flip: 'vertical' })).toEqual(['vflip']);
+  });
+
+  it('mirrors both axes via hflip then vflip', () => {
+    expect(buildAnimationLegFilters({ flip: 'both' })).toEqual(['hflip', 'vflip']);
+  });
+
+  it('flips after the scale and before the rotate on one chain', () => {
+    expect(buildAnimationLegFilters({ scale: '640:360', flip: 'horizontal', rotation: 30, opacity: 0.4 })).toEqual([
+      'scale=640:360',
+      'setsar=1',
+      'hflip',
+      'format=rgba',
+      'rotate=a=30*PI/180:ow=rotw(30*PI/180):oh=roth(30*PI/180):c=none',
       'colorchannelmixer=aa=0.4',
     ]);
   });
@@ -256,6 +316,64 @@ describe('buildGradientSource shape', () => {
     const spiral = buildGradientSource({ gradient: { ...gradient, shape: 'spiral' } }, '1280:720', 4);
     expect(spiral).toContain('type=spiral');
     expect(spiral).toContain('x0=640:y0=360:x1=1280:y1=720');
+  });
+});
+
+// A free `angle` (degrees, CSS convention: 0=bottom→top, 90=left→right, 180=top→bottom,
+// 270=right→left) lowers to sweep endpoints computed against the layer box: a ray through the
+// centre, cut at the box edges so the coords stay inside the range the gradients source accepts.
+// It unlocks the reverse sweeps the direction enum lacks; the enum stays as sugar.
+describe('buildGradientSource angle', () => {
+  const gradient = { from: '#000000', to: '#ffffff' };
+
+  it('lowers angle=0 to a bottom→top sweep up the centre column', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 0 } }, '1280:720', 4);
+    expect(src).toContain('x0=640:y0=720:x1=640:y1=0');
+  });
+
+  it('lowers angle=90 to a left→right sweep along the centre row', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 90 } }, '1280:720', 4);
+    expect(src).toContain('x0=0:y0=360:x1=1280:y1=360');
+  });
+
+  it('lowers angle=180 to a top→bottom sweep (the vertical default, recentred)', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 180 } }, '1280:720', 4);
+    expect(src).toContain('x0=640:y0=0:x1=640:y1=720');
+  });
+
+  it('lowers angle=270 to the right→left sweep the direction enum lacks', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 270 } }, '1280:720', 4);
+    expect(src).toContain('x0=1280:y0=360:x1=0:y1=360');
+  });
+
+  it('cuts a 45° sweep at the box corners of a square layer (bottom-left→top-right)', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 45 }, w: 400, h: 400 }, '1280:720', 4);
+    expect(src).toContain('gradients=s=400x400');
+    expect(src).toContain('x0=0:y0=400:x1=400:y1=0');
+  });
+
+  it('computes the sweep against the resolved layer box, not the frame', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 270 }, w: 'iw*0.5', h: 'ih*0.5' }, '1280:720', 4);
+    expect(src).toContain('gradients=s=640x360');
+    expect(src).toContain('x0=640:y0=180:x1=0:y1=180');
+  });
+
+  it('normalises angles outside 0..360 (450 ≡ 90, -90 ≡ 270)', () => {
+    const wrapped = buildGradientSource({ gradient: { ...gradient, angle: 450 } }, '1280:720', 4);
+    expect(wrapped).toContain('x0=0:y0=360:x1=1280:y1=360');
+
+    const negative = buildGradientSource({ gradient: { ...gradient, angle: -90 } }, '1280:720', 4);
+    expect(negative).toContain('x0=1280:y0=360:x1=0:y1=360');
+  });
+
+  it('wins over the direction enum when both are set', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 0, direction: 'horizontal' } }, '1280:720', 4);
+    expect(src).toContain('x0=640:y0=720:x1=640:y1=0');
+  });
+
+  it('is ignored for non-linear shapes, which keep their centred origin', () => {
+    const src = buildGradientSource({ gradient: { ...gradient, angle: 90, shape: 'radial' } }, '1280:720', 4);
+    expect(src).toContain('x0=640:y0=360:x1=1280:y1=720');
   });
 });
 

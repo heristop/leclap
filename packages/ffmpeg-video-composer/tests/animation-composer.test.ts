@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi } from 'vitest';
 import AnimationComposer from '@/editor/AnimationComposer';
+import { GlobalAnimationSchema } from '@/schemas/global.schemas';
 import type { GlobalAnimation } from '@/core/types';
 
 function setup(animations: GlobalAnimation[], opts: { hasAudio?: boolean } = {}) {
@@ -86,6 +87,23 @@ describe('AnimationComposer.buildOverlayGraph (fusion params)', () => {
   });
 });
 
+describe('GlobalAnimationSchema motion', () => {
+  it('accepts the motion field the editor emits (bare type and full object)', () => {
+    expect(GlobalAnimationSchema.safeParse({ url: GLOW, loop: true, motion: 'fade' }).success).toBe(true);
+    expect(
+      GlobalAnimationSchema.safeParse({
+        url: GLOW,
+        loop: true,
+        motion: { type: 'rise', delay: 0.2, duration: 0.8, distance: 40, easing: 'ease-out' },
+      }).success
+    ).toBe(true);
+  });
+
+  it('still rejects unknown keys (strict schema)', () => {
+    expect(GlobalAnimationSchema.safeParse({ url: GLOW, wobble: true }).success).toBe(false);
+  });
+});
+
 describe('AnimationComposer.appendAnimations', () => {
   it('no-ops when there are no global animations', async () => {
     const { composer, ffmpegAdapter, moves } = setup([]);
@@ -160,6 +178,48 @@ describe('AnimationComposer.appendAnimations', () => {
     expect(cmd).toContain('-stream_loop -1 -t 8 -i /build/assets/glow_border.apng');
     expect(cmd).toContain('[0:v][1:v]overlay=0:0:eof_action=pass[vout]');
     expect(cmd).not.toContain('shortest=1');
+  });
+
+  it('lowers a fade motion to an alpha fade-in on the overlay leg (format+fade, both LGPL)', async () => {
+    const { composer, executed } = setup([{ url: GLOW, loop: true, motion: 'fade' }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    // the fade rides the overlay LEG (before compositing) so only the overlay fades in, not the video
+    expect(cmd).toContain('[1:v]format=rgba,fade=t=in:st=0.3:d=0.6:alpha=1[anim0]');
+    expect(cmd).toContain('[0:v][anim0]overlay=0:0:eof_action=pass:shortest=1[vout]');
+  });
+
+  it('appends the fade after the existing leg filters, reusing their rgba frame', async () => {
+    const { composer, executed } = setup([{ url: GLOW, loop: true, scale: '1280:600', opacity: 0.3, motion: 'fade' }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    // the opacity path already converted to rgba once; the fade must not re-format
+    expect(executed[0]).toContain(
+      '[1:v]scale=1280:600,setsar=1,format=rgba,colorchannelmixer=aa=0.3,fade=t=in:st=0.3:d=0.6:alpha=1[anim0]'
+    );
+  });
+
+  it('lowers a rise motion to overlay x/y time expressions easing back to the static position', async () => {
+    const { composer, executed } = setup([
+      { url: GLOW, loop: true, position: '10:20', motion: { type: 'rise', delay: 0, duration: 1, distance: 40 } },
+    ]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain(
+      "[0:v][1:v]overlay=x='10':y='(20)+(1-(if(lt(t,0),0,if(lt(t,1),(t-0)/1,1))))*40':eof_action=pass:shortest=1[vout]"
+    );
+  });
+
+  it('keeps the static positional overlay form for motion none', async () => {
+    const { composer, executed } = setup([{ url: GLOW, loop: true, position: '10:20', motion: 'none' }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain('[0:v][1:v]overlay=10:20:eof_action=pass:shortest=1[vout]');
   });
 
   it('caps a finite loop count with the base-video duration ceiling and drops shortest', async () => {

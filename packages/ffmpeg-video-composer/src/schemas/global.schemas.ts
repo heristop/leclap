@@ -5,6 +5,7 @@ import {
   GradeSchema,
   LOOK_PRESETS,
   OverlayFitSchema,
+  OverlayFlipSchema,
   RevealSchema,
   TextEffectSchema,
 } from './effects.schemas';
@@ -72,6 +73,7 @@ export const GlobalAnimationSchema = z
       .number()
       .optional()
       .describe('Clockwise rotation in degrees applied to the overlay before compositing.'),
+    flip: OverlayFlipSchema.optional(),
     loop: z
       .boolean()
       .optional()
@@ -100,6 +102,9 @@ export const GlobalAnimationSchema = z
       .describe(
         'When true, the overlay freezes its last frame once it ends instead of letting the video show through.'
       ),
+    motion: RevealSchema.optional().describe(
+      'Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or an alpha fade-in on the overlay leg.'
+    ),
   })
   .strict()
   .describe('A single whole-video animation overlay composited over the final joined video.');

@@ -431,6 +431,36 @@ describe('layersToFilters', () => {
     expect(layersToFilters(layers)).toEqual([]);
   });
 
+  it('layer with fill and border → fill drawbox then outline drawbox on the same geometry', () => {
+    const layers: BackgroundLayer[] = [
+      { color: '#FF0000', opacity: 0.5, x: 10, y: 20, w: 100, h: 50, border: { color: '#FFFFFF', width: 4 } },
+    ];
+    expect(layersToFilters(layers)).toEqual<Filter[]>([
+      { type: 'drawbox', values: { x: 10, y: 20, w: 100, h: 50, c: '#FF0000@0.5', t: 'fill' } },
+      { type: 'drawbox', values: { x: 10, y: 20, w: 100, h: 50, c: '#FFFFFF@0.5', t: 4 } },
+    ]);
+  });
+
+  it('border-only layer (no color) → a single outline drawbox with default geometry', () => {
+    const layers: BackgroundLayer[] = [{ border: { color: 'white', width: 6 } }];
+    expect(layersToFilters(layers)).toEqual<Filter[]>([
+      { type: 'drawbox', values: { x: 0, y: 0, w: 'iw', h: 'ih', c: 'white@1', t: 6 } },
+    ]);
+  });
+
+  it('border inherits the layer opacity default of 1', () => {
+    const [f] = layersToFilters([{ border: { color: '#00FF00', width: 2 } }]);
+    expect((f.values as Record<string, unknown>).c).toBe('#00FF00@1');
+    expect((f.values as Record<string, unknown>).t).toBe(2);
+  });
+
+  it('gradient layer with a border → still skipped (compiled by the maps pipeline)', () => {
+    const layers: BackgroundLayer[] = [
+      { gradient: { from: '#000', to: '#FFF' }, border: { color: 'white', width: 4 } },
+    ];
+    expect(layersToFilters(layers)).toEqual([]);
+  });
+
   it('ffmpeg string check: values-object filter shape (drawbox)', () => {
     const [f] = layersToFilters([{ color: '#FF0000', opacity: 0.5, x: 10, y: 20, w: 100, h: 50 }]);
     // FormatterManager.formatMultipleTypesValues iterates Object.keys and uses:

@@ -174,6 +174,11 @@ class MapManager {
    * stream as a single overlay map. Opacity < 1 fades the gradient leg via
    * `format=rgba,colorchannelmixer=aa=<opacity>` before the overlay.
    *
+   * A layer `reveal` animates the entrance with the same overlay-motion machinery the animation
+   * overlays use (overlayMotionExpr): fade adds an alpha fade-in on the gradient leg; rise/slide
+   * emit overlay x/y time expressions easing to the layer position. All core LGPL filters, so the
+   * on-device (--disable-gpl) build keeps parity. No reveal keeps the output byte-identical.
+   *
    * The first overlay map of the section carries `useSectionFilters` so the section's authored
    * filter chain is folded into the main-stream leg (see SegmentBuilder.buildGradientLayers for
    * the resulting overlay-after-filters ordering).
@@ -188,27 +193,38 @@ class MapManager {
     // fallback for callers that already hold pixel numbers.
     const overlayPosition = position ?? `${layer.x ?? 0}:${layer.y ?? 0}`;
     const opacity = layer.opacity ?? 1;
+    const motion = overlayMotionExpr(layer.reveal, overlayPosition);
 
-    // Opacity < 1 fades the gradient leg on its own chain (so the main stream is untouched) before
-    // it feeds the overlay. The chain is prepended to the graph so its pad exists when the overlay
-    // map references it.
+    // Leg filters (opacity fade + reveal fade-in) run on the gradient's own chain so the main
+    // stream is untouched; both need an rgba frame first. The chain is prepended to the graph so
+    // its pad exists when the overlay map references it.
+    const legFilters: string[] = [];
+
+    if (opacity < 1 || motion.legFilter) legFilters.push('format=rgba');
+
+    if (opacity < 1) legFilters.push(`colorchannelmixer=aa=${opacity}`);
+
+    if (motion.legFilter) legFilters.push(motion.legFilter);
+
     let gradientLeg = `${gradientIndex}:v`;
 
-    if (opacity < 1) {
-      const opacityPad = `${outputName}_op`;
+    if (legFilters.length > 0) {
+      const legPad = `${outputName}_op`;
       // unshift, not push: the pad must be defined before the overlay map that consumes it,
       // or ffmpeg fails with an undefined stream specifier.
-      this.segment.filtersMapList.unshift(
-        `[${gradientIndex}:v]format=rgba,colorchannelmixer=aa=${opacity}[${opacityPad}]`
-      );
-      gradientLeg = opacityPad;
+      this.segment.filtersMapList.unshift(`[${gradientIndex}:v]${legFilters.join(',')}[${legPad}]`);
+      gradientLeg = legPad;
     }
 
     this.segment.inputsMapCount++;
 
+    // A moving entrance uses the named, single-quoted overlay form (the time expressions hold
+    // commas); otherwise the static positional "x:y" form keeps existing output unchanged.
+    const overlayValue = motion.x || motion.y ? `x='${motion.x}':y='${motion.y}'` : overlayPosition;
+
     this.addMap({
       inputs: [baseStream, gradientLeg],
-      filters: [{ type: 'overlay', value: overlayPosition }],
+      filters: [{ type: 'overlay', value: overlayValue }],
       outputs: [outputName],
       options: {
         useSectionFilters,

@@ -1,5 +1,6 @@
 import type { Filter } from '@/core/types';
 import type { Grade, MotionEffect, BackgroundLayer } from '../../schemas/template.schemas';
+import { revealEnableExpr } from './text';
 
 // ---------------------------------------------------------------------------
 // lookToFilters
@@ -351,6 +352,11 @@ export function motionToFilters(motion: MotionEffect[] | undefined, ctx: MotionC
  * Layers without a color AND without a border AND without a gradient are also skipped
  * (nothing to draw). A layer with a `border` emits a second drawbox with a numeric
  * thickness `t=<width>` after the fill — or alone for outline-only layers.
+ *
+ * A layer `reveal` gates the fill AND border drawboxes with `enable='gte(t,delay)'` — drawbox has
+ * no alpha expression, so a solid layer POPS in at the reveal delay (the timeline gate is core
+ * LGPL, on-device-safe). Gradient layers get the full fade/slide entrance instead, via the
+ * overlay-motion machinery in MapManager.addGradientOverlay.
  */
 export function layersToFilters(layers: BackgroundLayer[] | undefined): Filter[] {
   if (!layers || layers.length === 0) {
@@ -372,18 +378,20 @@ export function layersToFilters(layers: BackgroundLayer[] | undefined): Filter[]
       w: layer.w ?? 'iw',
       h: layer.h ?? 'ih',
     };
+    const enable = revealEnableExpr(layer.reveal);
+    const gate = enable === undefined ? {} : { enable };
 
     if (layer.color) {
       filters.push({
         type: 'drawbox',
-        values: { ...geometry, c: `${layer.color}@${opacity}`, t: 'fill' },
+        values: { ...geometry, c: `${layer.color}@${opacity}`, t: 'fill', ...gate },
       });
     }
 
     if (layer.border) {
       filters.push({
         type: 'drawbox',
-        values: { ...geometry, c: `${layer.border.color}@${opacity}`, t: layer.border.width },
+        values: { ...geometry, c: `${layer.border.color}@${opacity}`, t: layer.border.width, ...gate },
       });
     }
   }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RevealSchema } from './reveal.schemas';
 
 // ── overlay fit ────────────────────────────────────────────────────────────────
 
@@ -149,6 +150,10 @@ export { TextEffectSchema, ChromaKeySchema } from './text-media.schemas';
  */
 export const DEFAULT_TRANSITION_DURATION = 0.3;
 
+// Upper bound on a transition's duration (seconds) — the schema's `.max()`. Exported so the
+// editor's duration slider covers the full valid range instead of hardcoding (and drifting from) it.
+export const MAX_TRANSITION_DURATION = 5;
+
 export const TransitionSchema = z
   .object({
     type: z
@@ -157,7 +162,7 @@ export const TransitionSchema = z
     duration: z
       .number()
       .positive()
-      .max(5)
+      .max(MAX_TRANSITION_DURATION)
       .optional()
       .describe('Transition length in seconds (default: the global transition duration, then 0.3).'),
   })
@@ -346,6 +351,9 @@ export const BackgroundLayerSchema = z
       .describe(
         'Outline stroke drawn along the layer rectangle edge, over the fill — or alone when the layer has no fill colour. Ignored on gradient layers.'
       ),
+    reveal: RevealSchema.optional().describe(
+      'Animated entrance for the layer. Gradient layers fade/slide in via the overlay motion machinery; solid (drawbox) layers cannot animate alpha, so they appear at the reveal delay via a timeline gate.'
+    ),
   })
   .describe('A single composited background layer drawn onto the color_background section.');
 

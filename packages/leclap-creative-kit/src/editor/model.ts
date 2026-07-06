@@ -6,18 +6,19 @@ import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.
 // Re-export the core descriptor type so both apps can pin their stored-template shapes to the
 // exact descriptor buildDescriptor emits / toEditorState consumes — keeping the editor in lock-step.
 export type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
-import type {
-  GradeSchema,
-  MotionEffectSchema,
-  BackgroundLayerSchema,
-  FramingGuideSchema,
-  OverlayFitSchema,
-  OverlayFlipSchema,
-  RevealSchema,
-  ExitSchema,
-  TextEffectSchema,
-  ChromaKeySchema,
-  DuckingSchema,
+import {
+  DEFAULT_TRANSITION_DURATION,
+  type GradeSchema,
+  type MotionEffectSchema,
+  type BackgroundLayerSchema,
+  type FramingGuideSchema,
+  type OverlayFitSchema,
+  type OverlayFlipSchema,
+  type RevealSchema,
+  type ExitSchema,
+  type TextEffectSchema,
+  type ChromaKeySchema,
+  type DuckingSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type {
   CaptionSchema,
@@ -355,7 +356,9 @@ export interface DefaultTransition {
   duration: number;
 }
 
-export const DEFAULT_TRANSITION: DefaultTransition = { type: 'cut', duration: 0.5 };
+// The duration mirrors the ENGINE fallback (DEFAULT_TRANSITION_DURATION) so a descriptor that
+// leaves the duration unset re-hydrates — and re-emits — exactly what the engine renders.
+export const DEFAULT_TRANSITION: DefaultTransition = { type: 'cut', duration: DEFAULT_TRANSITION_DURATION };
 
 // Opacity used for a framing-guide silhouette when none is authored. Shared by the authoring
 // pickers (web + expo) and the live recording overlays so an unspecified guide renders exactly as

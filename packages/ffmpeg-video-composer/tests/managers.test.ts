@@ -261,6 +261,20 @@ describe('FormatterManager', () => {
       expect(manager.formatMultipleTypesValues({ type: 'drawtext' } as Filter)).toBe('drawtext=');
     });
 
+    it('a drawbox timeline gate (enable) keeps its single quotes and comma intact', () => {
+      // The reveal-timed solid layer / accent bar path: the pre-quoted `'gte(t,0.3)'` must survive
+      // the default value formatting (stripFilterUnsafe removes only `"` and spaces).
+      const { manager } = build({ section: { name: 's', type: 'color_background' } });
+      const filter = {
+        type: 'drawbox',
+        values: { x: 0, y: 0, w: 'iw', h: 'ih', c: '#112233@1', t: 'fill', enable: "'gte(t,0.3)'" },
+      } as unknown as Filter;
+
+      expect(manager.formatMultipleTypesValues(filter)).toBe(
+        "drawbox=x=0:y=0:w=iw:h=ih:c='#112233@1':t=fill:enable='gte(t,0.3)'"
+      );
+    });
+
     it('formats text value with escaping and locale', () => {
       const { manager } = build({
         section: { name: 's', type: 'color_background' },
@@ -1152,6 +1166,54 @@ describe('MapManager', () => {
       const { manager, segment } = build({ section: bgSection() });
       manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' } }, 2, 'gradient_layer_0');
       expect(segment.filtersMapList.some((g) => g.includes('colorchannelmixer'))).toBe(false);
+    });
+
+    it('a fade reveal adds an alpha fade-in on the gradient leg (format=rgba first)', () => {
+      const { manager, segment, filterManager } = build({ section: bgSection() });
+      manager.addGradientOverlay(
+        { gradient: { from: '#000', to: '#fff' }, reveal: 'fade' },
+        2,
+        'gradient_layer_0',
+        '0:0'
+      );
+      const leg = segment.filtersMapList.find((g) => g.startsWith('[2:v]'));
+      expect(leg).toBe('[2:v]format=rgba,fade=t=in:st=0.3:d=0.6:alpha=1[gradient_layer_0_op]');
+      // the overlay keeps the static position (fade does not move the layer).
+      expect(filterManager.addFilter).toHaveBeenCalledWith(expect.objectContaining({ type: 'overlay', value: '0:0' }));
+    });
+
+    it('a rise reveal emits overlay x/y time expressions easing to the base position', () => {
+      const { manager, filterManager } = build({ section: bgSection() });
+      manager.addGradientOverlay(
+        { gradient: { from: '#000', to: '#fff' }, reveal: { type: 'rise', delay: 0.5, duration: 1 } },
+        2,
+        'gradient_layer_0',
+        '320:180'
+      );
+      const overlay = (filterManager.addFilter.mock.calls as Array<[Filter]>).find(
+        ([f]) => f.type === 'overlay'
+      )?.[0];
+      expect(overlay?.value).toBe(
+        "x='320':y='(180)+(1-(if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,1))))*60'"
+      );
+    });
+
+    it('combines a reveal fade with an opacity chain on one leg', () => {
+      const { manager, segment } = build({ section: bgSection() });
+      manager.addGradientOverlay(
+        { gradient: { from: '#000', to: '#fff' }, opacity: 0.5, reveal: 'fade' },
+        2,
+        'gradient_layer_0'
+      );
+      const leg = segment.filtersMapList.find((g) => g.startsWith('[2:v]'));
+      expect(leg).toBe('[2:v]format=rgba,colorchannelmixer=aa=0.5,fade=t=in:st=0.3:d=0.6:alpha=1[gradient_layer_0_op]');
+    });
+
+    it('a none reveal keeps the output byte-identical to no reveal', () => {
+      const { manager, segment, filterManager } = build({ section: bgSection() });
+      manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' }, reveal: 'none' }, 2, 'gradient_layer_0');
+      expect(segment.filtersMapList.some((g) => g.includes('fade'))).toBe(false);
+      expect(filterManager.addFilter).toHaveBeenCalledWith(expect.objectContaining({ type: 'overlay', value: '0:0' }));
     });
   });
 });

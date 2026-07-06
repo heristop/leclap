@@ -344,6 +344,9 @@ export interface FilterValues {
   shadowy?: number | string;
   bordercolor?: string;
   borderw?: number | string;
+  // Timeline gate expression forwarded to the filter's `enable=` option, pre-quoted when it holds
+  // commas (e.g. `'gte(t,0.3)'`) — mirrored from filter.schemas.ts.
+  enable?: string;
 }
 
 interface Translation {

@@ -57,6 +57,12 @@ export const FilterValuesSchema = z
     d: z.string().optional().describe('Duration parameter passed to the FFmpeg filter in seconds.'),
     st: z.string().optional().describe('Start time parameter passed to the FFmpeg filter in seconds.'),
     color: z.string().optional().describe('Alternate colour parameter (some filters use "color" instead of "c").'),
+    enable: z
+      .string()
+      .optional()
+      .describe(
+        "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\")."
+      ),
   })
   .describe('Key-value filter parameters forwarded verbatim to the corresponding FFmpeg filter.');
 

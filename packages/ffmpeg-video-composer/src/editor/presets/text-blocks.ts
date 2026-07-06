@@ -7,6 +7,7 @@ import {
   applyTextEffect,
   hasText,
   resolveFontFile,
+  revealEnableExpr,
   staggered,
 } from './text';
 
@@ -55,16 +56,25 @@ function pushLine(filters: Filter[], spec: LineSpec, reveal: RevealInput, index:
   return index + 1;
 }
 
-// A solid accent bar (drawbox), or nothing when no accent colour is set.
+// A solid accent bar (drawbox), or nothing when no accent colour is set. `reveal` is the (already
+// staggered) reveal of the text line the bar decorates: drawbox has no alpha expression, so the bar
+// follows the text's entrance via a timeline gate (`enable='gte(t,delay)'`) — it pops in when the
+// text starts entering instead of sitting alone on screen before it.
 function accentBar(
   accent: string | undefined,
-  geom: { x: string | number; y: number; w: number; h: number }
+  geom: { x: string | number; y: number; w: number; h: number },
+  reveal?: RevealInput
 ): Filter[] {
   if (!accent) {
     return [];
   }
 
-  return [{ type: 'drawbox', values: { x: geom.x, y: geom.y, w: geom.w, h: geom.h, c: `${accent}@1`, t: 'fill' } }];
+  const enable = revealEnableExpr(reveal);
+  const gate = enable === undefined ? {} : { enable };
+
+  return [
+    { type: 'drawbox', values: { x: geom.x, y: geom.y, w: geom.w, h: geom.h, c: `${accent}@1`, t: 'fill', ...gate } },
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -179,6 +189,7 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
     index,
     effect
   );
+  const headlineIndex = index;
   index = pushLine(
     filters,
     {
@@ -194,7 +205,16 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
 
   const barW = round(w * 0.13);
   const barX = align === 'center' ? `(w-${barW})/2` : margin;
-  filters.push(...accentBar(accent, { x: barX, y: round(h * 0.585), w: barW, h: Math.max(4, round(h * 0.006)) }));
+  // The bar underlines the headline, so it follows the headline's staggered reveal; when the card
+  // has no headline it falls back to the last pushed line (the kicker), or the base stagger slot.
+  const barLineIndex = index > headlineIndex ? headlineIndex : Math.max(0, index - 1);
+  filters.push(
+    ...accentBar(
+      accent,
+      { x: barX, y: round(h * 0.585), w: barW, h: Math.max(4, round(h * 0.006)) },
+      staggered(reveal, barLineIndex)
+    )
+  );
 
   pushLine(
     filters,
@@ -310,7 +330,12 @@ export function lowerThirdToFilters(lowerThird: LowerThird | undefined, ctx: Low
   const filters: Filter[] = [];
   filters.push(...band(bandColor, lowerThird.boxOpacity, bandY, bandH));
   filters.push(
-    ...accentBar(accent, { x: margin, y: bandY + round(h * 0.04), w: round(w * 0.1), h: Math.max(4, round(h * 0.006)) })
+    ...accentBar(
+      accent,
+      { x: margin, y: bandY + round(h * 0.04), w: round(w * 0.1), h: Math.max(4, round(h * 0.006)) },
+      // The bar accompanies the title (the first staggered line), so it enters with it.
+      staggered(reveal, 0)
+    )
   );
 
   let index = 0;

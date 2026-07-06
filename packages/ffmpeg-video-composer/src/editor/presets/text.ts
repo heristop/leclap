@@ -326,6 +326,33 @@ export function applyTextEffect(values: Record<string, unknown>, effect: TextEff
   }
 }
 
+/**
+ * Lowers a reveal intent to a filter timeline gate — the pre-quoted `'gte(t,<delay>)'` an
+ * `enable=` option needs (the expression holds a comma). For filters with no alpha expression
+ * (drawbox: a solid layer, an accent bar) this is the LGPL-safe way to follow a reveal's timing:
+ * the box pops in at the delay instead of appearing before the text/content it accompanies.
+ * Returns undefined for no reveal, `none`, or a zero delay, so existing output stays byte-identical.
+ */
+export function revealEnableExpr(input: RevealInput | undefined): string | undefined {
+  if (input === undefined) {
+    return undefined;
+  }
+
+  const reveal = normalize(input);
+
+  if (reveal.type === 'none') {
+    return undefined;
+  }
+
+  const delay = reveal.delay ?? DEFAULT_DELAY;
+
+  if (delay <= 0) {
+    return undefined;
+  }
+
+  return `'gte(t,${num(delay)})'`;
+}
+
 // Shifts a reveal's delay by its line index so stacked lines enter in sequence.
 export function staggered(reveal: RevealInput, index: number): Reveal {
   const obj = normalize(reveal);

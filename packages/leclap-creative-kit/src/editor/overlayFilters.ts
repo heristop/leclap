@@ -83,13 +83,36 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
   };
 }
 
+// Default reveal delay, mirroring the engine's DEFAULT_DELAY (editor/presets/text.ts). The kit
+// round-trip test pins the emitted gate so an engine-side change is caught.
+const REVEAL_DEFAULT_DELAY = 0.3;
+
+// The timeline gate keeping the accent bar in step with its drawtext's reveal: drawbox has no alpha
+// expression, so the bar pops in at the reveal delay (`enable='gte(t,delay)'`, pre-quoted because
+// the expression holds a comma) instead of sitting on screen before its text. No reveal / `none` /
+// a zero delay emit nothing, so existing descriptors stay byte-identical.
+function accentEnable(reveal: TextOverlay['reveal']): string | undefined {
+  if (!reveal) return undefined;
+
+  const obj = typeof reveal === 'string' ? { type: reveal } : reveal;
+
+  if (obj.type === 'none') return undefined;
+
+  const delay = 'delay' in obj && obj.delay !== undefined ? obj.delay : REVEAL_DEFAULT_DELAY;
+
+  if (delay <= 0) return undefined;
+
+  return `'gte(t,${Number(delay.toFixed(4))})'`;
+}
+
 // The accent underline bar beneath the text — the title-card treatment (engine text-blocks.ts
 // accentBar) for a positionable overlay. The kit never knows the output size, so the geometry uses
 // the drawbox expression vocabulary (iw/ih) mirroring the drawtext `(w-text_w)*fraction` anchor:
 // width ≈ 6× the fontsize centered on the x anchor, height max(4, fontsize*0.12), sitting one
 // approximated text height (fontsize*1.2) plus a small gap below the y anchor. The bar is emitted
 // right AFTER its drawtext so overlayParsing can recover the pair by adjacency; the geometry is
-// recomputed on every build, so only the colour needs to round-trip.
+// recomputed on every build, so only the colour needs to round-trip. A revealed overlay gates the
+// bar with the reveal delay (accentEnable) so it enters with its text.
 function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
   if (!overlay.accent) return [];
 
@@ -97,6 +120,7 @@ function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
   const barW = Math.round(overlay.fontsize * 6);
   const barH = Math.max(4, Math.round(overlay.fontsize * 0.12));
   const gap = Math.round(overlay.fontsize * 0.25);
+  const enable = accentEnable(overlay.reveal);
 
   return [
     {
@@ -108,6 +132,7 @@ function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
         h: barH,
         c: `${overlay.accent}@1`,
         t: 'fill',
+        ...(enable === undefined ? {} : { enable }),
       },
     },
   ];

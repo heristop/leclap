@@ -19,6 +19,11 @@ DIST_DIR="$REPO_ROOT/scripts/ffmpeg/dist"
 # even though the demuxer is present). `--enable-libvpx` + the `libvpx_vp9` decoder add WebM transparency
 # — the native `vp9` decoder ignores the alpha (BlockAdditional) stream, only libvpx decodes it.
 # `--disable-ffplay` avoids the SDL dependency (we only need ffmpeg + ffprobe).
+# lavfi sources are filters too: the editor emits `color`, `sine`, `anullsrc`, `aevalsrc` (silent-audio
+# padding) and `gradients` (gradient background layers) — all LGPL (no `_deps` in configure), so each
+# must be in the --enable-filter list or the render fails only on device. `boxblur` is deliberately
+# absent: boxblur_filter_deps="gpl" (configure:3926), so under --disable-gpl configure silently drops
+# it — listing it was dead config; blur on device is `gblur`.
 FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --disable-gpl \
  --disable-ffplay --disable-doc --disable-autodetect \
  --enable-zlib \
@@ -31,8 +36,8 @@ FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --dis
  --enable-decoder=h264,hevc,aac,mp3,pcm_s16le,mpeg4,png,mjpeg,apng,gif,webp,vp9,libvpx_vp9 \
  --enable-encoder=aac,mpeg4,libopenh264 \
  --enable-filter=scale,crop,pad,setsar,setdar,format,fps,trim,setpts,settb,fade,drawtext,overlay,concat,xfade,loop,tile,\
-boxblur,drawbox,gblur,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
-atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,volume,anull,anullsrc,color,sine \
+drawbox,gblur,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
+atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,volume,anull,anullsrc,aevalsrc,color,sine,gradients \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"
 
 # Fetch the FFmpeg source once (shallow), cached under .work/.

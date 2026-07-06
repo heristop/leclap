@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+// ── overlay fit ────────────────────────────────────────────────────────────────
+
+// How an overlay maps into its "w:h" scale box. Lives here (not section.schemas) because both the
+// section input options and the global animation options use it, and global.schemas cannot import
+// from section.schemas without a cycle. Lowered by buildAnimationLegFilters to core LGPL filters
+// (scale / pad / crop) so the on-device (--disable-gpl) engine keeps parity.
+export const OVERLAY_FITS = ['stretch', 'contain', 'cover'] as const;
+
+export const OverlayFitSchema = z
+  .enum(OVERLAY_FITS)
+  .describe(
+    'How the overlay maps into its "w:h" scale box: "stretch" (default) scales freely and may distort; "contain" letterboxes inside the box with transparent padding; "cover" fills the box and centre-crops the overflow. Ignored without a fixed positive "w:h" scale.'
+  );
+
 // ── xfade / audio constants ────────────────────────────────────────────────────
 
 export const XFADE_TRANSITIONS = [
@@ -287,10 +301,16 @@ export const BackgroundLayerSchema = z
         direction: z
           .enum(['horizontal', 'vertical', 'diagonal'])
           .optional()
-          .describe('Direction of the gradient sweep (default: vertical).'),
+          .describe('Direction of the gradient sweep (default: vertical); only meaningful for the linear shape.'),
+        shape: z
+          .enum(['linear', 'radial', 'circular', 'spiral'])
+          .optional()
+          .describe(
+            'Geometry of the gradient (default: linear): radial fills outward from the centre, circular sweeps angularly around it, spiral twists the angular sweep.'
+          ),
       })
       .optional()
-      .describe('Linear gradient drawn across the layer; overrides the solid color field.'),
+      .describe('Gradient drawn across the layer; overrides the solid color field.'),
   })
   .describe('A single composited background layer drawn onto the color_background section.');
 

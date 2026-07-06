@@ -247,6 +247,15 @@
                 "description": "Scale expression applied to the overlay before compositing, as \"w:h\".",
                 "type": "string"
               },
+              "fit": {
+                "type": "string",
+                "enum": [
+                  "stretch",
+                  "contain",
+                  "cover"
+                ],
+                "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+              },
               "opacity": {
                 "description": "Overlay alpha from 0 (invisible) to 1 (opaque); 1 (or omitted) keeps it fully opaque.",
                 "type": "number",
@@ -682,6 +691,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -697,7 +715,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -2708,6 +2726,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -2723,7 +2750,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -4796,6 +4823,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -4811,7 +4847,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -6822,6 +6858,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -6837,7 +6882,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -9116,6 +9161,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -9131,7 +9185,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -11142,6 +11196,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -11157,7 +11220,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -13168,6 +13231,15 @@
                           "description": "Scale expression applied to the input before compositing, as \"w:h\".",
                           "type": "string"
                         },
+                        "fit": {
+                          "type": "string",
+                          "enum": [
+                            "stretch",
+                            "contain",
+                            "cover"
+                          ],
+                          "description": "How the overlay maps into its \"w:h\" scale box: \"stretch\" (default) scales freely and may distort; \"contain\" letterboxes inside the box with transparent padding; \"cover\" fills the box and centre-crops the overflow. Ignored without a fixed positive \"w:h\" scale."
+                        },
                         "persistent": {
                           "description": "When true, freeze the last frame once the overlay ends (default false).",
                           "type": "boolean"
@@ -13183,7 +13255,7 @@
                           "maximum": 9007199254740991
                         },
                         "duration": {
-                          "description": "Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.",
+                          "description": "Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.",
                           "type": "number",
                           "exclusiveMinimum": 0
                         },
@@ -15171,6 +15243,44 @@
             "description": "A reference to a reusable partial (by `ref`) or an inline one (`sections`), expanded before compilation."
           }
         ]
+      }
+    },
+    "partials": {
+      "description": "Reusable partials referenced by `{ type: \"partial\", ref }` sections; expanded before compilation.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id referenced by `{ type: \"partial\", ref }` sections."
+          },
+          "description": {
+            "description": "Short human-readable summary of the partial.",
+            "type": "string"
+          },
+          "variables": {
+            "description": "Default `{{ key }}` values, overridden per ref.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {},
+            "description": "The real sections this partial expands into (validated once inlined)."
+          }
+        },
+        "required": [
+          "id",
+          "sections"
+        ],
+        "additionalProperties": false,
+        "description": "A reusable section fragment expanded into a template via `{ type: \"partial\", ref }`."
       }
     }
   },

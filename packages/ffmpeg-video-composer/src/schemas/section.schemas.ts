@@ -8,6 +8,7 @@ import {
   GradeSchema,
   LOOK_PRESETS,
   MotionEffectSchema,
+  OverlayFitSchema,
   RevealSchema,
   TransitionSchema,
 } from './effects.schemas';
@@ -32,6 +33,7 @@ export const InputOptionsSchema = z
     fps: z.number().positive().optional().describe('Frames per second the animation plays at (default 25).'),
     position: z.string().optional().describe('Overlay position as "x:y" in output pixels (e.g. "0:0" top-left).'),
     scale: z.string().optional().describe('Scale expression applied to the input before compositing, as "w:h".'),
+    fit: OverlayFitSchema.optional(),
     persistent: z
       .boolean()
       .optional()
@@ -47,7 +49,9 @@ export const InputOptionsSchema = z
       .number()
       .positive()
       .optional()
-      .describe('Seconds the overlay plays before it ends (loops the source to fill). Precedence over loops/loop.'),
+      .describe(
+        'Seconds the overlay stays visible before it ends (animations loop the source to fill; still images hide). Precedence over loops/loop.'
+      ),
     start: z.number().positive().optional().describe('Seconds to delay the overlay before it appears (default 0).'),
     opacity: z.number().min(0).max(1).optional().describe('Overlay alpha 0–1; 1 (or omitted) keeps it fully opaque.'),
     rotation: z.number().optional().describe('Clockwise rotation in degrees applied before compositing.'),

@@ -4,6 +4,7 @@ import {
   GlobalAudioSchema,
   GradeSchema,
   LOOK_PRESETS,
+  OverlayFitSchema,
   RevealSchema,
   TextEffectSchema,
 } from './effects.schemas';
@@ -60,6 +61,7 @@ export const GlobalAnimationSchema = z
       .describe('URL or file path of the animation overlay (.apng/.webp/.gif/.webm); may use {{ varName }}.'),
     position: z.string().optional().describe('Overlay position as "x:y" in output pixels (e.g. "0:0" top-left).'),
     scale: z.string().optional().describe('Scale expression applied to the overlay before compositing, as "w:h".'),
+    fit: OverlayFitSchema.optional(),
     opacity: z
       .number()
       .min(0)

@@ -328,6 +328,42 @@ describe('SegmentBuilder.buildMaps', () => {
     expect(managers.mapManager.addGradientOverlay).toHaveBeenCalledTimes(1);
   });
 
+  it('sizes a gradient layer to its w/h box and overlays it at the resolved x/y', async () => {
+    const segment = makeSegment();
+    const project = makeProject({ videoConfig: { scale: '1280:720' } });
+    const { builder, managers } = makeBuilder({ segment, project });
+    builder.hydrate({ name: 'bg', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'bg',
+      type: 'color_background',
+      options: {
+        duration: 4,
+        layers: [
+          {
+            gradient: { from: '#000000', to: '#ffffff', direction: 'vertical' },
+            x: 'iw*0.25',
+            y: 'ih*0.25',
+            w: 'iw*0.5',
+            h: 'ih*0.5',
+          },
+        ],
+      },
+    } as never;
+
+    await builder.buildMaps();
+
+    // The gradients source is the layer box, not the full frame, and the overlay lands at the
+    // resolved pixel offset (overlay expressions have no iw/ih, so raw layer values would break).
+    const assets = segment.inputsAsset as unknown as Record<string, string>;
+    expect(assets.gradient_0).toContain('gradients=s=640x360');
+    expect(managers.mapManager.addGradientOverlay).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.any(Number),
+      'gradient_layer_0',
+      '320:180'
+    );
+  });
+
   it('skips solid (non-gradient) layers in the inputs/maps pipeline', async () => {
     const segment = makeSegment();
     const { builder, managers } = makeBuilder({ segment });

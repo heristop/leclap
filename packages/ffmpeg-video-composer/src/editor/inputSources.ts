@@ -51,6 +51,24 @@ export function buildSingleFileAnimationSource(
   return `${codec}${flags}-i ${assertSafeArgToken(path, 'animation source')}`;
 }
 
+/** How an overlay maps into its "w:h" scale box (see buildAnimationLegFilters). */
+export type OverlayFit = 'stretch' | 'contain' | 'cover';
+
+// fit only has meaning against a fixed pixel box: both scale components must be plain positive
+// integers. The "w:-1" keep-aspect trick and expression scales fall back to the free scale, since
+// pad/crop against a -1 or expression dimension would be invalid or meaningless.
+function fitBoxFrom(scale: string | undefined, fit: OverlayFit | undefined): string | undefined {
+  if (!fit || fit === 'stretch' || !scale) return undefined;
+
+  const parts = scale.split(':');
+
+  if (parts.length !== 2) return undefined;
+
+  if (!parts.every((part) => /^\d+$/.test(part.trim()) && Number(part) > 0)) return undefined;
+
+  return scale;
+}
+
 /**
  * Filters applied to an animation leg before it is overlaid: scale it to its declared size (so `scale`
  * sizes the animation itself, not the already-composited frame), rotate it clockwise when `rotation` is
@@ -58,22 +76,49 @@ export function buildSingleFileAnimationSource(
  * gradient layer uses). Shared by the per-section overlay (MapManager.addAnimationOverlay) and the
  * whole-video pass (AnimationComposer) so both stay identical.
  *
+ * `fit` keeps the source aspect inside the "w:h" box instead of free-stretching it:
+ *   - contain: scale down to fit, then pad back up to the box with a TRANSPARENT letterbox
+ *     (pad needs an rgba frame first or the bars come out black).
+ *   - cover: scale up to fill, then centre-crop the overflow to the box.
+ * scale, pad and crop are all core LGPL filters, so the on-device (--disable-gpl) build keeps parity.
+ *
  * Rotation order: scale → rotate → fade. The `rotate` runs on an `format=rgba` frame with `c=none` so
  * the corners the rotation exposes stay transparent (no black box around a rotated PNG/APNG), and
  * `ow=rotw(…)/oh=roth(…)` grow the output frame to the rotated bounds so it is never clipped.
  */
-export function buildAnimationLegFilters(options: { scale?: string; rotation?: number; opacity?: number }): string[] {
+export function buildAnimationLegFilters(options: {
+  scale?: string;
+  fit?: OverlayFit;
+  rotation?: number;
+  opacity?: number;
+}): string[] {
   const opacity = options.opacity ?? 1;
   const rotation = options.rotation ?? 0;
   const legFilters: string[] = [];
+  const fitBox = fitBoxFrom(options.scale, options.fit);
 
-  if (options.scale) legFilters.push(`scale=${options.scale}`, 'setsar=1');
+  if (fitBox && options.fit === 'contain') {
+    legFilters.push(
+      `scale=${fitBox}:force_original_aspect_ratio=decrease`,
+      'format=rgba',
+      `pad=${fitBox}:(ow-iw)/2:(oh-ih)/2:color=black@0`,
+      'setsar=1'
+    );
+  }
+
+  if (fitBox && options.fit === 'cover') {
+    legFilters.push(`scale=${fitBox}:force_original_aspect_ratio=increase`, `crop=${fitBox}`, 'setsar=1');
+  }
+
+  if (!fitBox && options.scale) legFilters.push(`scale=${options.scale}`, 'setsar=1');
 
   // rotate's `c=none` and the alpha multiply both need an alpha channel; convert to rgba once and
-  // reuse it for whichever steps follow so the chain never re-formats the same frame.
+  // reuse it for whichever steps follow so the chain never re-formats the same frame. A contain fit
+  // already left the frame rgba (for its transparent pad), so it never re-formats either.
+  const hasAlpha = legFilters.includes('format=rgba');
   const needsAlpha = rotation !== 0 || opacity < 1;
 
-  if (needsAlpha) legFilters.push('format=rgba');
+  if (needsAlpha && !hasAlpha) legFilters.push('format=rgba');
 
   if (rotation !== 0) {
     const angle = `${rotation}*PI/180`;
@@ -158,6 +203,92 @@ export function buildSingleFileImageSource(path: string): string {
   return `-loop 1 -i ${assertSafeArgToken(path, 'image source')}`;
 }
 
+/**
+ * Timeline gate for a STILL-IMAGE overlay's start/duration: the `:enable=…` suffix appended to the
+ * overlay filter's option string. Images are held with a bare `-loop 1` source (buildSingleFileImageSource
+ * ignores the `-itsoffset`/`-t` flags animations use), so their show window lowers to the overlay
+ * filter's timeline support instead — core LGPL, no extra filter:
+ *   - start S + duration D → `:enable='between(t,S,S+D)'`
+ *   - duration D only      → `:enable='between(t,0,D)'`
+ *   - start S only         → `:enable='gte(t,S)'` (visible until the section ends)
+ *   - neither              → '' (the image spans the whole section, unchanged behavior)
+ * `t` is the section-relative timestamp: each section compiles as its own segment starting at 0.
+ */
+export function imageOverlayEnable(options: { start?: number; duration?: number }): string {
+  const start = options.start ?? 0;
+
+  if (options.duration !== undefined) {
+    return `:enable='between(t,${trimNum(start)},${trimNum(start + options.duration)})'`;
+  }
+
+  if (start > 0) {
+    return `:enable='gte(t,${trimNum(start)})'`;
+  }
+
+  return '';
+}
+
+/** A background layer's box lowered to concrete output pixels. */
+export type ResolvedLayerGeometry = { x: number; y: number; w: number; h: number };
+
+// The builder UI authors layer geometry as `iw*<fraction>` / `ih*<fraction>` expressions
+// (see the web app's layerGeometry helpers); this recognises exactly that shape.
+const LAYER_FRACTION_EXPR = /^(iw|ih)\s*\*\s*(\d*\.?\d+)$/;
+
+const parseScaleDim = (token: string | undefined, fallback: number): number => {
+  const value = Number(token);
+
+  // Keep-aspect (-1/-2) or expression components can't size a raster box; fall back.
+  if (!Number.isFinite(value) || value <= 0) return fallback;
+
+  return value;
+};
+
+const resolveGeometryValue = (
+  value: number | string | undefined,
+  frameW: number,
+  frameH: number,
+  fallback: number
+): number => {
+  if (value === undefined) return fallback;
+
+  if (typeof value === 'number') return Math.round(value);
+
+  const match = LAYER_FRACTION_EXPR.exec(value.trim());
+
+  // Free-form FFmpeg expressions can't be evaluated statically; fall back rather than emit a
+  // token the gradients `s=` option (which needs plain WxH pixels) would reject.
+  if (!match) return fallback;
+
+  const basis = match[1] === 'iw' ? frameW : frameH;
+
+  return Math.round(basis * Number(match[2]));
+};
+
+/**
+ * Lowers a background layer's x/y/w/h (pixels or `iw*f`/`ih*f` fraction expressions) to concrete
+ * pixels against the project scale ("W:H"). Needed because the lavfi `gradients` source is sized
+ * with a literal `s=WxH` and the overlay filter has no iw/ih variables — raw layer expressions
+ * would either be rejected or mis-evaluated at run time. Unresolvable values fall back to the
+ * legacy behaviour: full-frame w/h, origin x/y.
+ */
+export function resolveLayerGeometry(
+  layer: Pick<BackgroundLayer, 'x' | 'y' | 'w' | 'h'>,
+  scale: string
+): ResolvedLayerGeometry {
+  const [wToken, hToken] = scale.split(':');
+  const frameW = parseScaleDim(wToken, 1280);
+  const frameH = parseScaleDim(hToken, 720);
+
+  return {
+    x: resolveGeometryValue(layer.x, frameW, frameH, 0),
+    y: resolveGeometryValue(layer.y, frameW, frameH, 0),
+    // A raster source can't be 0-sized; clamp to 1px so a degenerate box stays renderable.
+    w: Math.max(1, resolveGeometryValue(layer.w, frameW, frameH, frameW)),
+    h: Math.max(1, resolveGeometryValue(layer.h, frameW, frameH, frameH)),
+  };
+}
+
 const GRADIENT_DIRECTION_COORDS: Record<string, string> = {
   // gradients defaults to a top→bottom (vertical) sweep; we set the end coords explicitly per direction.
   horizontal: 'x0=0:y0=0:x1=%W:y1=0',
@@ -169,6 +300,9 @@ const GRADIENT_DIRECTION_COORDS: Record<string, string> = {
  * lavfi gradients source for a gradient background layer:
  * `-f lavfi -i gradients=s=<WxH>:c0=<from>:c1=<to>:d=<duration>:<direction coords>`.
  * Colors are guarded; W/H come from the (already validated) scale; duration is numeric.
+ * `gradients` is an LGPL lavfi source, but the on-device build only ships explicitly enabled
+ * filters — it must stay in FF_COMMON's --enable-filter list (scripts/ffmpeg/common.sh, guarded
+ * by tests/engine-filter-config.test.ts) or gradient layers fail on device only.
  */
 export function buildGradientSource(layer: BackgroundLayer, scale: string, duration: number): string {
   const gradient = layer.gradient;
@@ -177,15 +311,31 @@ export function buildGradientSource(layer: BackgroundLayer, scale: string, durat
     throw new Error('buildGradientSource called on a layer without a gradient');
   }
 
-  const size = scale.replace(':', 'x');
-  const [width, height] = size.split('x');
-  const direction = gradient.direction ?? 'vertical';
-  const coords = (GRADIENT_DIRECTION_COORDS[direction] ?? GRADIENT_DIRECTION_COORDS.vertical)
-    .replace('%W', width)
-    .replace('%H', height);
+  // Size the source to the LAYER's box (w/h resolved against the scale), not the full frame —
+  // otherwise a 50%-wide gradient layer renders full-frame and its geometry fields do nothing.
+  const { w, h } = resolveLayerGeometry(layer, scale);
+  const size = `${w}x${h}`;
+  const coords = gradientCoords(gradient.shape, gradient.direction, w, h);
 
   const from = assertSafeArgToken(gradient.from, 'gradient from');
   const to = assertSafeArgToken(gradient.to, 'gradient to');
+  // Only emit `type=` when the descriptor sets a shape, so older descriptors keep byte-identical
+  // commands; `speed=0` is ALWAYS explicit — the source's default 0.01 slowly rotates the gradient
+  // over the section, an unexposed side effect a background layer must not have.
+  const type = gradient.shape ? `:type=${gradient.shape}` : '';
 
-  return `-f lavfi -i gradients=s=${size}:c0=${from}:c1=${to}:d=${duration}:${coords}`;
+  return `-f lavfi -i gradients=s=${size}:c0=${from}:c1=${to}:d=${duration}:${coords}:speed=0${type}`;
+}
+
+// linear sweeps between two points along a direction; radial/circular/spiral radiate from the
+// (x0,y0) origin, so they get a centred origin with (x1,y1) at the far corner (radial reach =
+// half-diagonal, filling the whole box) — the direction coords would pin them to the top-left.
+function gradientCoords(shape: string | undefined, direction: string | undefined, w: number, h: number): string {
+  if (shape && shape !== 'linear') {
+    return `x0=${Math.round(w / 2)}:y0=${Math.round(h / 2)}:x1=${w}:y1=${h}`;
+  }
+
+  const sweep = GRADIENT_DIRECTION_COORDS[direction ?? 'vertical'] ?? GRADIENT_DIRECTION_COORDS.vertical;
+
+  return sweep.replace('%W', String(w)).replace('%H', String(h));
 }

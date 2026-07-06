@@ -12,7 +12,12 @@ import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/argGuard';
 import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
-import { buildSingleFileAnimationSource, buildSingleFileImageSource, buildGradientSource } from './inputSources';
+import {
+  buildSingleFileAnimationSource,
+  buildSingleFileImageSource,
+  buildGradientSource,
+  resolveLayerGeometry,
+} from './inputSources';
 import { buildAudioFadeArg } from './audioFade';
 import { getPerfTimer } from '../utils/perf-timer';
 import {
@@ -359,8 +364,11 @@ class SegmentBuilder {
         continue;
       }
 
+      // x/y resolve to pixels here (not in MapManager) because only the builder knows the project
+      // scale; the overlay filter itself has no iw/ih variables to evaluate the UI's expressions.
+      const geometry = resolveLayerGeometry(layer, scale);
       inputsAsset[`gradient_${i}`] = buildGradientSource(layer, scale, duration);
-      this.mapManager.addGradientOverlay(layer, gradientIndex, `gradient_layer_${i}`);
+      this.mapManager.addGradientOverlay(layer, gradientIndex, `gradient_layer_${i}`, `${geometry.x}:${geometry.y}`);
       gradientIndex++;
     }
   };

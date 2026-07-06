@@ -1052,6 +1052,54 @@ describe('MapManager', () => {
       unset.manager.addAnimationOverlay(makeAnimInput({ scale: undefined }), 2);
       expect(unset.segment.filtersMapList.some((chain) => chain.includes('colorchannelmixer'))).toBe(false);
     });
+
+    // Still-image inputs are held with `-loop 1` (no -itsoffset/-t source flags like animations), so
+    // their start/duration lower to the overlay filter's timeline `enable` option instead.
+    function makeImageInput(overrides: Partial<MapAnimationInput['options']> = {}): MapAnimationInput {
+      return { ...makeAnimInput(overrides), name: 'logo', type: 'image' };
+    }
+
+    it('gates an image overlay with a between() timeline when start and duration are set', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeImageInput({ start: 2, duration: 3 }), 2);
+      expect(overlayFilterValue(filterManager)).toBe("0:0:eof_action=pass:enable='between(t,2,5)'");
+    });
+
+    it('gates an image overlay from its start to the section end when only start is set', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeImageInput({ start: 1.5 }), 2);
+      expect(overlayFilterValue(filterManager)).toBe("0:0:eof_action=pass:enable='gte(t,1.5)'");
+    });
+
+    it('gates an image overlay from the section start when only duration is set', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeImageInput({ duration: 4 }), 2);
+      expect(overlayFilterValue(filterManager)).toBe("0:0:eof_action=pass:enable='between(t,0,4)'");
+    });
+
+    it('trims float noise in the between() end bound (start + duration)', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeImageInput({ start: 0.1, duration: 0.2 }), 2);
+      expect(overlayFilterValue(filterManager)).toBe("0:0:eof_action=pass:enable='between(t,0.1,0.3)'");
+    });
+
+    it('appends the timeline gate after the named-form motion expressions', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeImageInput({ position: '40:200', motion: 'fade', start: 2 }), 2);
+      expect(overlayFilterValue(filterManager)).toBe("40:200:eof_action=pass:enable='gte(t,2)'");
+    });
+
+    it('does not gate an untimed image overlay (spans the whole section)', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeImageInput(), 2);
+      expect(overlayFilterValue(filterManager)).toBe('0:0:eof_action=pass');
+    });
+
+    it('does not gate animation inputs — their start/duration lower to -itsoffset/-t source flags', () => {
+      const { manager, filterManager } = build({ section: animationSection() });
+      manager.addAnimationOverlay(makeAnimInput({ start: 2, duration: 3 }), 2);
+      expect(overlayFilterValue(filterManager)).toBe('0:0:eof_action=pass');
+    });
   });
 
   describe('addGradientOverlay', () => {
@@ -1074,6 +1122,21 @@ describe('MapManager', () => {
       manager.addGradientOverlay({ gradient: { from: '#000', to: '#fff' }, x: 10, y: 20 }, 2, 'gradient_layer_0');
       expect(filterManager.addFilter).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'overlay', value: '10:20' })
+      );
+    });
+
+    it('overlays at the resolved pixel position when the caller passes one', () => {
+      // SegmentBuilder resolves `iw*0.25`-style layer expressions to pixels (overlay has no iw/ih
+      // variables) and passes the concrete position; the raw layer x/y must be ignored then.
+      const { manager, filterManager } = build({ section: bgSection() });
+      manager.addGradientOverlay(
+        { gradient: { from: '#000', to: '#fff' }, x: 'iw*0.25', y: 'ih*0.25' },
+        2,
+        'gradient_layer_0',
+        '320:180'
+      );
+      expect(filterManager.addFilter).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'overlay', value: '320:180' })
       );
     });
 

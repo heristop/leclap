@@ -216,7 +216,12 @@ class AnimationComposer {
   // Push the per-animation leg (scale/rotate/opacity) when any filter applies and return the label the
   // overlay should consume — the padded leg output, or the raw input stream when no leg filters apply.
   private appendOverlayLeg(anim: GlobalAnimation, inputIndex: number, k: number, legs: string[]): string {
-    const legFilters = buildAnimationLegFilters({ scale: anim.scale, rotation: anim.rotation, opacity: anim.opacity });
+    const legFilters = buildAnimationLegFilters({
+      scale: anim.scale,
+      fit: anim.fit,
+      rotation: anim.rotation,
+      opacity: anim.opacity,
+    });
 
     if (legFilters.length === 0) {
       return `[${inputIndex}:v]`;

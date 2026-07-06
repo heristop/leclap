@@ -113,11 +113,16 @@ export interface GlobalTextOverlay {
   sections?: string[];
 }
 
+/** How an overlay maps into its "w:h" scale box: free stretch, letterbox inside, or fill + centre-crop. */
+export type OverlayFit = 'stretch' | 'contain' | 'cover';
+
 // A whole-video animation overlay (global.animations) composited over the final joined video.
 export interface GlobalAnimation {
   url: string;
   position?: string;
   scale?: string;
+  /** Aspect handling within the "w:h" scale box; 'stretch' (or omitted) scales freely. */
+  fit?: OverlayFit;
   opacity?: number;
   /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
   rotation?: number;
@@ -248,6 +253,8 @@ interface InputOptions {
   fps?: number;
   position?: string;
   scale?: string;
+  /** Aspect handling within the "w:h" scale box; 'stretch' (or omitted) scales freely. */
+  fit?: OverlayFit;
   persistent?: boolean;
   loop?: boolean;
   /** Finite play count; takes precedence over loop. */
@@ -305,6 +312,13 @@ export interface FilterValues {
   box?: number | string;
   boxcolor?: string;
   boxborderw?: number | string;
+  // drawtext drop-shadow / outline keys — mirrored from filter.schemas.ts (shadow*/border* are
+  // colour-formatted via FormatterManager.COLOR_KEYS at compile).
+  shadowcolor?: string;
+  shadowx?: number | string;
+  shadowy?: number | string;
+  bordercolor?: string;
+  borderw?: number | string;
 }
 
 interface Translation {
@@ -334,6 +348,8 @@ type MapAnimationOptions = {
   fps: number;
   position: string;
   scale: string;
+  /** Aspect handling within the "w:h" scale box; 'stretch' (or omitted) scales freely. */
+  fit?: OverlayFit;
   persistent: boolean;
   loop: boolean;
   loops?: number;

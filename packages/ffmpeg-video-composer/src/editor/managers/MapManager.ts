@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import type Segment from '../../core/models/Segment';
 import type { Section, Map, MapAnimationInput, ChromaKey } from '@/core/types';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
-import { buildAnimationLegFilters, overlayMotionExpr } from '../inputSources';
+import { buildAnimationLegFilters, imageOverlayEnable, overlayMotionExpr } from '../inputSources';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
 
@@ -147,12 +147,17 @@ class MapManager {
 
     this.segment.inputsMapCount++;
 
+    // Still images ignore the -itsoffset/-t source flags animations get (their source is a bare
+    // `-loop 1`), so a timed image lowers its start/duration to the overlay's timeline `enable`
+    // instead; animations keep the source-flag path (gating them here would double-apply the delay).
+    const timeline = input.type === 'image' ? imageOverlayEnable(input.options) : '';
+
     // Moving entrances use the named, single-quoted overlay form so the comma-bearing time expressions
     // are not mis-parsed as extra filter options; otherwise the static positional "x:y" form.
     const overlayValue =
       motion.x || motion.y
-        ? `x='${motion.x}':y='${motion.y}':eof_action=${eofAction}`
-        : `${position}:eof_action=${eofAction}`;
+        ? `x='${motion.x}':y='${motion.y}':eof_action=${eofAction}${timeline}`
+        : `${position}:eof_action=${eofAction}${timeline}`;
 
     // The animation overlays on top of the already-filtered background; no section filters here.
     // `input.filters` is optional in the schema (builder-authored inputs omit it), so default to none.
@@ -173,12 +178,15 @@ class MapManager {
    * filter chain is folded into the main-stream leg (see SegmentBuilder.buildGradientLayers for
    * the resulting overlay-after-filters ordering).
    */
-  addGradientOverlay = (layer: BackgroundLayer, gradientIndex: number, outputName: string): void => {
+  addGradientOverlay = (layer: BackgroundLayer, gradientIndex: number, outputName: string, position?: string): void => {
     const useSectionFilters = this.segment.inputsMapCount === 0;
     const videoStream = `${this.getVideoInputIncrement()}:v`;
     const baseStream = useSectionFilters ? videoStream : (this.segment.mapsList.at(-1) ?? videoStream);
 
-    const position = `${layer.x ?? 0}:${layer.y ?? 0}`;
+    // SegmentBuilder passes the layer x/y resolved to pixels (overlay expressions have no iw/ih,
+    // so the UI's `iw*0.25`-style values must be lowered first); raw layer values are the legacy
+    // fallback for callers that already hold pixel numbers.
+    const overlayPosition = position ?? `${layer.x ?? 0}:${layer.y ?? 0}`;
     const opacity = layer.opacity ?? 1;
 
     // Opacity < 1 fades the gradient leg on its own chain (so the main stream is untouched) before
@@ -200,7 +208,7 @@ class MapManager {
 
     this.addMap({
       inputs: [baseStream, gradientLeg],
-      filters: [{ type: 'overlay', value: position }],
+      filters: [{ type: 'overlay', value: overlayPosition }],
       outputs: [outputName],
       options: {
         useSectionFilters,

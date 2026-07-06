@@ -191,8 +191,9 @@ describe('VideoSegment.configure', () => {
       seg.configure();
       const command = seg.getCommand();
 
-      // WASM branch: simpler/faster encoding to avoid memory issues
-      expect(command).toContain('-crf 28');
+      // WASM branch: fast encode, but crf 23 (not 28) — gradients band at 28 and the bands shimmer
+      // through fades in the draft player (reported as "blink glitch noise").
+      expect(command).toContain('-crf 23');
       expect(command).toContain('-preset ultrafast');
       // native-only flags must be absent on the WASM branch
       expect(command).not.toContain('-b:v 12M');

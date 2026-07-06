@@ -15,9 +15,11 @@ function videoSegmentEncoding(config: ProjectConfig): string {
     return `${buildVideoEncoderArgs(config)} -c:a aac -ac 2 ${buildPixFmtArg(config)} ${colorArgs} -movflags +faststart`;
   }
 
-  // Browser WASM: a lighter encode to stay within the in-memory FS budget.
+  // Browser WASM: a light encode to stay within the in-memory FS budget. crf 23 (not 28): smooth
+  // gradients band hard at 28 and the bands shift per frame through fades, reading as blink/glitch
+  // noise in the draft player; 23 keeps them stable for a modest size bump on short previews.
   if (typeof window !== 'undefined') {
-    return `-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 28 -preset ultrafast ${colorArgs} -movflags +faststart`;
+    return `-c:v libx264 -c:a aac -ac 2 -pix_fmt yuv420p -crf 23 -preset ultrafast ${colorArgs} -movflags +faststart`;
   }
 
   // Node / server: high-quality software encode.

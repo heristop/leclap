@@ -584,7 +584,8 @@
     "addCaption": "Légende",
     "addTitleCard": "Carte de titre",
     "addLowerThird": "Bandeau",
-    "sugarGroup": "Textes prêts à l'emploi"
+    "sugarGroup": "Textes prêts à l'emploi",
+    "reorderHint": "Les éléments se superposent par type. Réorganisez les éléments d'un même type avec les flèches ou par glisser-déposer."
   },
   "shape": {
     "kind": "Forme",
@@ -811,7 +812,16 @@
     "color": "Couleur d’accent",
     "hint": "Dessine une petite barre de soulignement de la couleur d’accent sous le texte.",
     "hintTitleCard": "Dessine la barre de soulignement et teinte le kicker.",
-    "hintLowerThird": "Colore la barre d’accent du bandeau et le badge."
+    "hintLowerThird": "Colore la barre d’accent du bandeau et le badge.",
+    "position": "Position",
+    "positionBelow": "Dessous",
+    "positionAbove": "Dessus",
+    "align": "Alignement",
+    "alignLeft": "Gauche",
+    "alignCenter": "Centre",
+    "alignRight": "Droite",
+    "length": "Longueur de la barre",
+    "thickness": "Épaisseur de la barre"
   },
   "chromaKey": {
     "hint": "Détourez une couleur d’écran unie (fond vert/bleu) et incrustez le clip sur une couleur plate.",

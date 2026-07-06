@@ -134,9 +134,12 @@ export const SelectedControls = ({
     {/* Finishing touches, tucked under two disclosures so the essentials (text/font/size/colour)
         stay above the fold. Each summary mirrors the current state so nothing hides silently. */}
     <SectionDisclosure label={t('overlay.styleGroup')} summary={styleSummary(t, overlay)}>
-      {/* Accent underline bar — the shared control the title card and lower third use, so the
-          accent UX is identical everywhere. The kit lowers it to a drawbox under the drawtext. */}
+      {/* Accent bar — the shared control the title card and lower third use, so the accent UX is
+          identical everywhere. Only this call site opts into the geometry knobs (position/length/
+          thickness/align): the structural title-card/lower-third bars stay colour-only. The kit
+          lowers it all to a drawbox next to the drawtext. */}
       <AccentControl
+        geometry
         accent={overlay.accent}
         onChange={(accent) => {
           onPatch({ accent });

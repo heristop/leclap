@@ -584,7 +584,8 @@
     "addCaption": "Untertitel",
     "addTitleCard": "Titelkarte",
     "addLowerThird": "Bauchbinde",
-    "sugarGroup": "Vorgefertigte Texte"
+    "sugarGroup": "Vorgefertigte Texte",
+    "reorderHint": "Elemente werden nach Typ geschichtet. Ordne Elemente desselben Typs mit den Pfeilen oder per Ziehen neu an."
   },
   "shape": {
     "kind": "Form",
@@ -811,7 +812,16 @@
     "color": "Akzentfarbe",
     "hint": "Zeichnet einen kleinen Unterstreichungsbalken in der Akzentfarbe unter den Text.",
     "hintTitleCard": "Zeichnet den Unterstreichungsbalken und färbt den Kicker.",
-    "hintLowerThird": "Färbt den Akzentbalken des Bands und das Badge."
+    "hintLowerThird": "Färbt den Akzentbalken des Bands und das Badge.",
+    "position": "Position",
+    "positionBelow": "Unter dem Text",
+    "positionAbove": "Über dem Text",
+    "align": "Ausrichtung",
+    "alignLeft": "Links",
+    "alignCenter": "Mitte",
+    "alignRight": "Rechts",
+    "length": "Balkenlänge",
+    "thickness": "Balkenstärke"
   },
   "chromaKey": {
     "hint": "Entferne eine einfarbige Bildschirmfarbe (Green-/Bluescreen) und setze den Clip über eine flache Farbe.",

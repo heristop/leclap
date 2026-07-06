@@ -584,7 +584,8 @@
     "addCaption": "Leyenda",
     "addTitleCard": "Tarjeta de título",
     "addLowerThird": "Rótulo",
-    "sugarGroup": "Textos prediseñados"
+    "sugarGroup": "Textos prediseñados",
+    "reorderHint": "Los elementos se superponen por tipo. Reordena los elementos del mismo tipo con las flechas o arrastrándolos."
   },
   "shape": {
     "kind": "Forma",
@@ -811,7 +812,16 @@
     "color": "Color de acento",
     "hint": "Dibuja una pequeña barra subrayada del color de acento debajo del texto.",
     "hintTitleCard": "Dibuja la barra subrayada y tiñe el kicker.",
-    "hintLowerThird": "Colorea la barra de acento de la banda y la insignia."
+    "hintLowerThird": "Colorea la barra de acento de la banda y la insignia.",
+    "position": "Posición",
+    "positionBelow": "Debajo",
+    "positionAbove": "Encima",
+    "align": "Alineación",
+    "alignLeft": "Izquierda",
+    "alignCenter": "Centro",
+    "alignRight": "Derecha",
+    "length": "Longitud de la barra",
+    "thickness": "Grosor de la barra"
   },
   "chromaKey": {
     "hint": "Elimina un color de pantalla sólido (croma verde/azul) y compón el clip sobre un color plano.",

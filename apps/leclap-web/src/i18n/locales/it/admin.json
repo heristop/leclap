@@ -584,7 +584,8 @@
     "addCaption": "Didascalia",
     "addTitleCard": "Scheda titolo",
     "addLowerThird": "Sottopancia",
-    "sugarGroup": "Testi predefiniti"
+    "sugarGroup": "Testi predefiniti",
+    "reorderHint": "Gli elementi si sovrappongono per tipo. Riordina gli elementi dello stesso tipo con le frecce o trascinandoli."
   },
   "shape": {
     "kind": "Forma",
@@ -811,7 +812,16 @@
     "color": "Colore d’accento",
     "hint": "Disegna una piccola barra di sottolineatura nel colore d’accento sotto il testo.",
     "hintTitleCard": "Disegna la barra di sottolineatura e colora il kicker.",
-    "hintLowerThird": "Colora la barra d’accento della banda e il badge."
+    "hintLowerThird": "Colora la barra d’accento della banda e il badge.",
+    "position": "Posizione",
+    "positionBelow": "Sotto",
+    "positionAbove": "Sopra",
+    "align": "Allineamento",
+    "alignLeft": "Sinistra",
+    "alignCenter": "Centro",
+    "alignRight": "Destra",
+    "length": "Lunghezza della barra",
+    "thickness": "Spessore della barra"
   },
   "chromaKey": {
     "hint": "Rimuovi un colore di sfondo uniforme (green/blue screen) e sovrapponi la clip su un colore piatto.",

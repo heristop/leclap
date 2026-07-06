@@ -6,12 +6,11 @@
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { ColorPicker } from '@/presentation/components/ui';
-import { SegmentedControl } from '../editor/controls';
+import { RangeSlider, SegmentedControl } from '../editor/controls';
 import type { ImageOverlay, Orientation, ShapeSpec } from '../templateEditorModel';
-import { regeneratedShapePatch } from './shape-image';
+import { regeneratedShapePatch, shapeTargetBox } from './shape-image';
 
-// Preset pixel chips (output px): a curated ladder beats raw numeric entry for both knobs.
-const CORNER_PRESETS = [0, 12, 24, 48] as const;
+// Preset pixel chips (output px): a curated ladder for the outline width.
 const STROKE_PRESETS = [0, 4, 8, 16] as const;
 
 // Default outline colour when the width is set before the colour.
@@ -37,6 +36,11 @@ export const ShapeControls = ({ value, shape, orientation, onChange }: ShapeCont
 
     onChange(regeneratedShapePatch(value, next, orientation));
   };
+
+  // Cap the radius at half the shape's current short edge — that value is a full pill/circle, and the
+  // rasterizer clamps anything larger anyway, so the slider top always means "as round as it gets".
+  const box = shapeTargetBox(value.scale, orientation);
+  const cornerMax = Math.round(Math.min(box.w, box.h) / 2);
 
   return (
     <div className="space-y-3">
@@ -64,16 +68,21 @@ export const ShapeControls = ({ value, shape, orientation, onChange }: ShapeCont
         />
       </div>
       {shape.kind === 'rect' && (
-        <PresetChips
-          label={t('shape.cornerRadius')}
-          hint={t('shape.cornerRadiusHint')}
-          value={shape.cornerRadius ?? 0}
-          presets={CORNER_PRESETS}
-          t={t}
-          onChange={(cornerRadius) => {
-            patchShape({ cornerRadius: cornerRadius === 0 ? undefined : cornerRadius });
-          }}
-        />
+        <div>
+          <RangeSlider
+            label={t('shape.cornerRadius')}
+            value={shape.cornerRadius ?? 0}
+            min={0}
+            max={cornerMax}
+            step={2}
+            format={(v) => `${v}px`}
+            resetTo={0}
+            onChange={(cornerRadius) => {
+              patchShape({ cornerRadius: cornerRadius === 0 ? undefined : cornerRadius });
+            }}
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('shape.cornerRadiusHint')}</p>
+        </div>
       )}
       <PresetChips
         label={t('shape.stroke')}

@@ -11,7 +11,12 @@ import {
 import type { TFunction } from 'i18next';
 import { Type } from '@/presentation/components/icons';
 import { findFont } from '@leclap/creative-kit/fonts';
-import { resolvePreviewColor, DEFAULT_BOX_PADDING, type ColorVariableMap } from '@leclap/creative-kit/editor';
+import {
+  resolveAccentBar,
+  resolvePreviewColor,
+  DEFAULT_BOX_PADDING,
+  type ColorVariableMap,
+} from '@leclap/creative-kit/editor';
 import { displayFromTokens, tokensFromDisplay } from '@/lib/variableSyntax';
 import { cn } from '@/lib/utils';
 import { useColorVariables } from '@/presentation/components/ui';
@@ -322,26 +327,46 @@ export function boxStyle(
   };
 }
 
-// CSS mirror of the kit's accent underline bar (overlayFilters accentBarFilters): a solid bar
-// ~6× the fontsize wide centered under the text, height ~0.12em (min 2 preview px), one small gap
-// below. Sized in `em` so it inherits the box's WYSIWYG-scaled font size; hidden while the overlay
-// has no text (the kit drops empty overlays, bar included). Shared by the edit canvas box and the
-// program monitor's playback overlays so both previews draw the same bar.
+// The bar's horizontal placement per alignment, mirroring the kit's x expressions: the box centre
+// is the preview's stand-in for the overlay's x anchor line (iw*fx), so 'center' centres the bar on
+// it, 'left' hangs the bar rightward from it, 'right' ends the bar on it.
+function accentBarAlignCss(align: 'left' | 'center' | 'right'): CSSProperties {
+  if (align === 'left') return { left: '50%' };
+
+  if (align === 'right') return { left: '50%', transform: 'translateX(-100%)' };
+
+  return { left: '50%', transform: 'translateX(-50%)' };
+}
+
+// The bar's vertical placement: below hangs it one gap under the text box, above floats it one gap
+// over — the same fontsize*0.25 gap the kit's drawbox y expression bakes in.
+function accentBarPositionCss(position: 'below' | 'above'): CSSProperties {
+  if (position === 'above') return { bottom: '100%', marginBottom: '0.25em' };
+
+  return { top: '100%', marginTop: '0.25em' };
+}
+
+// CSS mirror of the kit's accent bar (overlayFilters accentBarFilters): a solid bar whose
+// length/thickness are em of the overlay fontsize (thickness floored at 2 preview px), one small
+// gap below or above the text. Sized in `em` so it inherits the box's WYSIWYG-scaled font size —
+// the same em→px math as the fontsize itself; hidden while the overlay has no text (the kit drops
+// empty overlays, bar included). Shared by the edit canvas box and the program monitor's playback
+// overlays so both previews draw the same bar.
 export const OverlayAccentBar = ({ overlay, vars }: { overlay: TextOverlay; vars?: ColorVariableMap }) => {
   if (!overlay.accent || overlay.text.trim() === '') return null;
+
+  const bar = resolveAccentBar(overlay.accent);
 
   return (
     <span
       aria-hidden
       style={{
         position: 'absolute',
-        top: '100%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        marginTop: '0.25em',
-        width: '6em',
-        height: 'max(2px, 0.12em)',
-        backgroundColor: resolvePreviewColor(overlay.accent, vars),
+        ...accentBarPositionCss(bar.position),
+        ...accentBarAlignCss(bar.align),
+        width: `${bar.length}em`,
+        height: `max(2px, ${bar.thickness}em)`,
+        backgroundColor: resolvePreviewColor(bar.color, vars),
         pointerEvents: 'none',
       }}
     />

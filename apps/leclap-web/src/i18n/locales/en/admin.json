@@ -584,7 +584,8 @@
     "addCaption": "Caption",
     "addTitleCard": "Title card",
     "addLowerThird": "Lower third",
-    "sugarGroup": "Ready-made text"
+    "sugarGroup": "Ready-made text",
+    "reorderHint": "Elements layer by type. Reorder items of the same type with the arrows or by dragging."
   },
   "shape": {
     "kind": "Shape",
@@ -811,7 +812,16 @@
     "color": "Accent colour",
     "hint": "Draws a small underline bar in the accent colour beneath the text.",
     "hintTitleCard": "Draws the underline bar and tints the kicker.",
-    "hintLowerThird": "Colours the band’s accent bar and the badge."
+    "hintLowerThird": "Colours the band’s accent bar and the badge.",
+    "position": "Position",
+    "positionBelow": "Below",
+    "positionAbove": "Above",
+    "align": "Alignment",
+    "alignLeft": "Left",
+    "alignCenter": "Center",
+    "alignRight": "Right",
+    "length": "Bar length",
+    "thickness": "Bar thickness"
   },
   "chromaKey": {
     "hint": "Key out a solid screen colour (green/blue screen) and composite the clip over a flat colour.",

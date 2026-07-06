@@ -69,30 +69,48 @@ export const ElementList = ({ elements, activeRef, onSelect, onDelete, onMove }:
     return acc;
   }, {});
 
+  // Which kind is currently being dragged (set on dragStart, cleared on dragEnd). Rows use it to
+  // highlight only same-kind drop targets and show a "can't drop here" cursor on the rest — so the
+  // per-kind reorder scope is legible mid-drag instead of a silent no-op.
+  const [draggingKind, setDraggingKind] = useState<ElementRef['kind'] | null>(null);
+
+  if (elements.length === 0) {
+    return (
+      // The "Elements" header (label + "+ Add") is owned by ElementBlock so the list starts at its
+      // rows; the empty state is a dashed drop-zone-styled hint pointing at that Add menu.
+      <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-2.5 text-center text-xs text-gray-500 dark:text-gray-400">
+        {t('element.empty')}
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-2">
-      {/* The "Elements" header (label + "+ Add") is owned by ElementBlock so the list starts at
-          its rows; the empty state is a dashed drop-zone-styled hint pointing at that Add menu. */}
-      {elements.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-2.5 text-center text-xs text-gray-500 dark:text-gray-400">
-          {t('element.empty')}
-        </p>
-      ) : (
-        <ul className="space-y-1">
-          {elements.map((descriptor) => (
+      <ul className="space-y-1">
+        {elements.map((descriptor) => {
+          // Reorder only exists between siblings of the same kind; a lone element of its kind shows no
+          // move arrows at all (dim, permanently-disabled arrows on every row read as "broken").
+          const reorderable = (countByKind[descriptor.kind] ?? 1) > 1;
+
+          return (
             <Row
               key={`${descriptor.kind}:${descriptor.ref.index}`}
               descriptor={descriptor}
               active={sameRef(descriptor.ref, activeRef)}
               first={descriptor.ref.index === 0}
               last={descriptor.ref.index === (countByKind[descriptor.kind] ?? 1) - 1}
+              reorderable={reorderable}
+              draggingKind={draggingKind}
+              onDragKind={setDraggingKind}
               onSelect={onSelect}
               onDelete={onDelete}
               onMove={onMove}
             />
-          ))}
-        </ul>
-      )}
+          );
+        })}
+      </ul>
+      {/* One line demystifying the model: layering is by type, arrows/drag reorder within a type. */}
+      <p className="px-1 text-xs leading-snug text-gray-500 dark:text-gray-400">{t('element.reorderHint')}</p>
     </div>
   );
 };
@@ -102,12 +120,26 @@ interface RowProps {
   active: boolean;
   first: boolean;
   last: boolean;
+  reorderable: boolean;
+  draggingKind: ElementRef['kind'] | null;
+  onDragKind: (kind: ElementRef['kind'] | null) => void;
   onSelect: (ref: ElementRef) => void;
   onDelete: (ref: ElementRef) => void;
   onMove: (ref: ElementRef, delta: number) => void;
 }
 
-const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: RowProps) => {
+const Row = ({
+  descriptor,
+  active,
+  first,
+  last,
+  reorderable,
+  draggingKind,
+  onDragKind,
+  onSelect,
+  onDelete,
+  onMove,
+}: RowProps) => {
   const { t } = useTranslation('admin');
   const Icon = KIND_ICON[descriptor.kind];
   const { ref } = descriptor;
@@ -115,9 +147,15 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
   const { ref: chevronDownRef, hoverProps: chevronDownHoverProps } = useIconHover();
   const [dropTarget, setDropTarget] = useState(false);
 
-  // A row dragged onto ANOTHER row reorders the list (same kind only — kinds live in separate arrays).
-  // The same draggable also feeds the canvas (effectAllowed copyMove), so dropping on the canvas still
-  // adds the element; dropping on a row moves it.
+  // A drag is a valid reorder target only for a DIFFERENT row of the SAME kind (kinds live in separate
+  // arrays and can't interleave). Knowing the dragged kind up front lets the row show accept vs. reject
+  // feedback during the drag, instead of accepting the drop then silently discarding it.
+  const dragActive = draggingKind !== null;
+  const acceptsDrag = dragActive && draggingKind === ref.kind;
+
+  // A row dragged onto ANOTHER row reorders the list (same kind only). The same draggable also feeds the
+  // canvas (effectAllowed copyMove), so dropping on the canvas still adds the element; dropping on a
+  // same-kind row moves it.
   const onRowDrop = (event: React.DragEvent<HTMLLIElement>): void => {
     setDropTarget(false);
     const raw = event.dataTransfer.getData(CANVAS_DND_MIME);
@@ -134,18 +172,29 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
 
   return (
     <li
-      // cursor-grab on the row gaps hints that rows are draggable (buttons keep their own cursor).
+      // cursor-grab on the row gaps hints that rows are draggable (buttons keep their own cursor); a
+      // no-drop cursor over an incompatible-kind row while dragging teaches the per-kind reorder scope.
       className={cn(
-        'flex cursor-grab items-center gap-1 rounded-lg active:cursor-grabbing',
-        dropTarget && 'ring-2 ring-brand-500/50'
+        'flex items-center gap-1 rounded-lg',
+        reorderable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default',
+        dropTarget && acceptsDrag && 'ring-2 ring-brand-500/50',
+        dragActive && !acceptsDrag && 'cursor-no-drop opacity-60'
       )}
-      draggable
+      draggable={reorderable}
       onDragStart={(event) => {
         event.dataTransfer.effectAllowed = 'copyMove';
         event.dataTransfer.setData(CANVAS_DND_MIME, JSON.stringify({ source: 'element-row', ref }));
+        onDragKind(ref.kind);
+      }}
+      onDragEnd={() => {
+        onDragKind(null);
+        setDropTarget(false);
       }}
       onDragOver={(event) => {
         if (!event.dataTransfer.types.includes(CANVAS_DND_MIME)) return;
+        // Only a same-kind row is a real drop target; leave incompatible rows to the browser's
+        // default "no-drop" so the reject is visible rather than a fake highlight.
+        if (!acceptsDrag) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
         setDropTarget(true);
@@ -174,26 +223,30 @@ const Row = ({ descriptor, active, first, last, onSelect, onDelete, onMove }: Ro
           <span className="truncate text-gray-400 dark:text-gray-500">{descriptor.previewText}</span>
         )}
       </button>
-      <IconButton
-        label={t('element.moveUp')}
-        disabled={first}
-        onClick={() => {
-          onMove(ref, -1);
-        }}
-        hoverProps={chevronUpHoverProps}
-      >
-        <ChevronUpIcon ref={chevronUpRef} size={14} />
-      </IconButton>
-      <IconButton
-        label={t('element.moveDown')}
-        disabled={last}
-        onClick={() => {
-          onMove(ref, 1);
-        }}
-        hoverProps={chevronDownHoverProps}
-      >
-        <ChevronDownIcon ref={chevronDownRef} size={14} />
-      </IconButton>
+      {reorderable && (
+        <>
+          <IconButton
+            label={t('element.moveUp')}
+            disabled={first}
+            onClick={() => {
+              onMove(ref, -1);
+            }}
+            hoverProps={chevronUpHoverProps}
+          >
+            <ChevronUpIcon ref={chevronUpRef} size={14} />
+          </IconButton>
+          <IconButton
+            label={t('element.moveDown')}
+            disabled={last}
+            onClick={() => {
+              onMove(ref, 1);
+            }}
+            hoverProps={chevronDownHoverProps}
+          >
+            <ChevronDownIcon ref={chevronDownRef} size={14} />
+          </IconButton>
+        </>
+      )}
       <IconButton
         label={t('element.delete')}
         danger

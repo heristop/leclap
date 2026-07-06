@@ -2,6 +2,7 @@
 // section builders.
 import type { Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { findFont } from '../fonts';
+import { resolveAccentBar, type AccentBar } from './accent-bar';
 import type { TextEffect, TextOverlay } from './model';
 
 type StoredFilter = NonNullable<Section['filters']>[number];
@@ -105,20 +106,42 @@ function accentEnable(reveal: TextOverlay['reveal']): string | undefined {
   return `'gte(t,${Number(delay.toFixed(4))})'`;
 }
 
-// The accent underline bar beneath the text — the title-card treatment (engine text-blocks.ts
-// accentBar) for a positionable overlay. The kit never knows the output size, so the geometry uses
-// the drawbox expression vocabulary (iw/ih) mirroring the drawtext `(w-text_w)*fraction` anchor:
-// width ≈ 6× the fontsize centered on the x anchor, height max(4, fontsize*0.12), sitting one
-// approximated text height (fontsize*1.2) plus a small gap below the y anchor. The bar is emitted
-// right AFTER its drawtext so overlayParsing can recover the pair by adjacency; the geometry is
-// recomputed on every build, so only the colour needs to round-trip. A revealed overlay gates the
-// bar with the reveal delay (accentEnable) so it enters with its text.
+// The bar's x expression for one alignment. drawbox cannot reference text_w, so exact text-edge
+// alignment is impossible; instead each mode anchors an edge of the bar on the overlay's x anchor
+// LINE (iw*fx — the frame point the drawtext's own `(w-text_w)*fx` layout passes through):
+// 'center' keeps the historic fraction-aligned form (the same (iw-W)*fx layout the text uses),
+// 'left' hangs the bar rightward from the anchor, 'right' ends it on the anchor.
+function accentX(align: Required<AccentBar>['align'], barW: number, fx: number): string {
+  if (align === 'left') return `iw*${fx}`;
+
+  if (align === 'right') return `iw*${fx}-${barW}`;
+
+  return `(iw-${barW})*${fx}`;
+}
+
+// The bar's y expression: 'below' sits one approximated text height (fontsize*1.2) plus the gap
+// under the drawtext y anchor (the historical underline); 'above' sits gap + bar height over it.
+function accentY(position: Required<AccentBar>['position'], textH: number, gap: number, barH: number, fy: number): string {
+  if (position === 'above') return `(ih-${textH})*${fy}-${gap + barH}`;
+
+  return `(ih-${textH})*${fy}+${textH + gap}`;
+}
+
+// The accent bar riding the text — the title-card treatment (engine text-blocks.ts accentBar) for
+// a positionable overlay. The kit never knows the output size, so the geometry uses the drawbox
+// expression vocabulary (iw/ih) mirroring the drawtext `(w-text_w)*fraction` anchor. length and
+// thickness are em (multiples of the fontsize) so the bar scales with the text; the defaults
+// (below / 6em / 0.12em floored at 4px / center) reproduce the historical hardcoded bar exactly,
+// keeping a bare colour string byte-identical in the emitted filters. The bar is emitted right
+// AFTER its drawtext so overlayParsing can recover the pair by adjacency. A revealed overlay gates
+// the bar with the reveal delay (accentEnable) so it enters with its text.
 function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
   if (!overlay.accent) return [];
 
+  const bar = resolveAccentBar(overlay.accent);
   const textH = Math.round(overlay.fontsize * 1.2);
-  const barW = Math.round(overlay.fontsize * 6);
-  const barH = Math.max(4, Math.round(overlay.fontsize * 0.12));
+  const barW = Math.round(overlay.fontsize * bar.length);
+  const barH = Math.max(4, Math.round(overlay.fontsize * bar.thickness));
   const gap = Math.round(overlay.fontsize * 0.25);
   const enable = accentEnable(overlay.reveal);
 
@@ -126,11 +149,11 @@ function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
     {
       type: 'drawbox',
       values: {
-        x: `(iw-${barW})*${roundFraction(overlay.x)}`,
-        y: `(ih-${textH})*${roundFraction(overlay.y)}+${textH + gap}`,
+        x: accentX(bar.align, barW, roundFraction(overlay.x)),
+        y: accentY(bar.position, textH, gap, barH, roundFraction(overlay.y)),
         w: barW,
         h: barH,
-        c: `${overlay.accent}@1`,
+        c: `${bar.color}@1`,
         t: 'fill',
         ...(enable === undefined ? {} : { enable }),
       },

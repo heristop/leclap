@@ -28,6 +28,7 @@ import type {
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
 import type { Orientation, GlobalTextOverlaySchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
+import type { AccentBar } from './accent-bar';
 import { FONTS, DEFAULT_FONT_ID } from '../fonts';
 
 export type MediaChoice =
@@ -111,10 +112,11 @@ export interface TextOverlay {
   // Drop shadow / outline for legibility over busy footage; lowered to drawtext
   // shadowx/shadowy/shadowcolor + borderw/bordercolor keys (see overlayFilters).
   effect?: TextEffect;
-  // Accent underline bar beneath the text (the title-card treatment): a solid drawbox in this
-  // colour, sized from the fontsize and emitted right after the drawtext (see overlayFilters /
-  // overlayParsing). Omitted = no bar.
-  accent?: string;
+  // Accent bar for the text (the title-card treatment): a solid drawbox emitted right after the
+  // drawtext (see overlayFilters / overlayParsing). A plain string is the colour with the default
+  // geometry (a 6em underline below the text); an AccentBar object adds position/length/thickness/
+  // align knobs. Omitted = no bar.
+  accent?: string | AccentBar;
 }
 
 // A transition emitted after a visual section (maps to section.transition).

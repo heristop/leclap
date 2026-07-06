@@ -1,6 +1,7 @@
 // Reverse the drawtext encoding buildDescriptor emits: recover a TextOverlay (position fractions,
 // box color/opacity) from a stored section's drawtext filter values.
 import type { Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import { ACCENT_BAR_DEFAULTS, type AccentBar } from './accent-bar';
 import { fontIdFromFile, type TextEffect, type TextOverlay } from './model';
 import { DEFAULT_BOX_PADDING } from './overlayFilters';
 
@@ -147,33 +148,113 @@ export function overlayFrom(dt: {
   };
 }
 
-// The accent colour when `filter` is a kit-emitted accent bar: the solid drawbox overlayFiltersFrom
-// writes right after its drawtext, recognisable by its `(iw-…)*fraction` x anchor (a hand-authored
-// wash uses numeric offsets). Geometry is recomputed from the overlay on the next build, so only
-// the colour is recovered (minus the fixed `@1` alpha suffix).
-function accentFrom(filter: StoredFilter | undefined): string | undefined {
-  if (!filter || filter.type !== 'drawbox') return undefined;
+// The x forms accentBarFilters emits, one per alignment: centered `(iw-W)*f`, left `iw*f`,
+// right `iw*f-W`. Anything else (a numeric offset, a hand-authored expression) is not a kit bar.
+const ACCENT_CENTER_X = /^\(iw-(\d+)\)\*(\d*\.?\d+)$/;
+const ACCENT_LEFT_X = /^iw\*(\d*\.?\d+)$/;
+const ACCENT_RIGHT_X = /^iw\*(\d*\.?\d+)-(\d+)$/;
+// The y form: `(ih-textH)*f` plus the below (+) / above (-) offset.
+const ACCENT_Y = /^\(ih-\d+\)\*\d*\.?\d+([+-])\d+$/;
+
+// The alignment encoded by a bar's x expression, cross-checked against the stored width so a
+// hand-authored drawbox whose x disagrees with its w is never claimed. undefined = not a kit form.
+function accentAlignFrom(x: unknown, barW: number): Required<AccentBar>['align'] | undefined {
+  if (typeof x !== 'string') return undefined;
+
+  const center = ACCENT_CENTER_X.exec(x);
+
+  if (center) return Number(center[1]) === barW ? 'center' : undefined;
+
+  if (ACCENT_LEFT_X.test(x)) return 'left';
+
+  const right = ACCENT_RIGHT_X.exec(x);
+
+  if (!right) return undefined;
+
+  return Number(right[2]) === barW ? 'right' : undefined;
+}
+
+// The vertical side encoded by a bar's y expression sign. undefined = not a kit form.
+function accentPositionFrom(y: unknown): Required<AccentBar>['position'] | undefined {
+  const match = typeof y === 'string' ? ACCENT_Y.exec(y) : null;
+
+  if (!match) return undefined;
+
+  return match[1] === '+' ? 'below' : 'above';
+}
+
+// px → em at 3 decimals: a finer grid than the builder sliders, and close enough that re-emitting
+// the rounded value reproduces the same rounded px (error ≤ fontsize*0.0005 < 0.5 for the whole
+// authoring range), so rebuilds never drift.
+function emOf(px: number, fontsize: number): number {
+  return Math.round((px / fontsize) * 1000) / 1000;
+}
+
+// The raw bar a kit-emitted accent drawbox describes: the colour plus its px geometry. undefined
+// when `filter` is not a kit bar — the extended adjacency signature requires a solid fill, string
+// colour, numeric w/h AND the expression-form x/y anchors, so a hand-authored wash (numeric
+// offsets, foreign expressions) stays unclaimed.
+function accentBarValuesFrom(
+  filter: StoredFilter | undefined
+): { color: string; barW: number; barH: number; align: Required<AccentBar>['align']; position: Required<AccentBar>['position'] } | undefined {
+  if (filter?.type !== 'drawbox') return undefined;
 
   const v = filter.values ?? {};
 
   if (v.t !== 'fill' || typeof v.c !== 'string') return undefined;
 
-  if (typeof v.x !== 'string' || !v.x.startsWith('(iw-')) return undefined;
+  const barW = Number(v.w);
+  const barH = Number(v.h);
 
-  return v.c.split('@')[0];
+  if (!Number.isFinite(barW) || !Number.isFinite(barH)) return undefined;
+
+  const align = accentAlignFrom(v.x, barW);
+  const position = accentPositionFrom(v.y);
+
+  if (align === undefined || position === undefined) return undefined;
+
+  return { color: v.c.split('@')[0], barW, barH, align, position };
+}
+
+// The accent when `filter` is a kit-emitted accent bar. Geometry is read back in em against the
+// paired drawtext's fontsize; fields matching the defaults IN PIXELS drop out (the default h for
+// fontsize 48 is 6px = 0.125em, not 0.12 — the px compare is what collapses it), so an untouched
+// bar returns the minimal plain colour string.
+function accentFrom(filter: StoredFilter | undefined, fontsize: number): string | AccentBar | undefined {
+  const raw = accentBarValuesFrom(filter);
+
+  if (raw === undefined) return undefined;
+
+  const defaultW = Math.round(fontsize * ACCENT_BAR_DEFAULTS.length);
+  const defaultH = Math.max(4, Math.round(fontsize * ACCENT_BAR_DEFAULTS.thickness));
+  const bar: AccentBar = {
+    color: raw.color,
+    ...(raw.position === ACCENT_BAR_DEFAULTS.position ? {} : { position: raw.position }),
+    ...(raw.barW === defaultW ? {} : { length: emOf(raw.barW, fontsize) }),
+    ...(raw.barH === defaultH ? {} : { thickness: emOf(raw.barH, fontsize) }),
+    ...(raw.align === ACCENT_BAR_DEFAULTS.align ? {} : { align: raw.align }),
+  };
+
+  if (Object.keys(bar).length === 1) return bar.color;
+
+  return bar;
 }
 
 // Section filters → TextOverlays: each drawtext becomes an overlay, and a kit accent drawbox
-// immediately after it rides back as the overlay's accent colour. Other filter types pass silently
-// (they never described overlays). Shared by the video/color/image section importers.
+// immediately after it rides back as the overlay's accent (colour, plus any non-default geometry).
+// Other filter types pass silently (they never described overlays). Shared by the video/color/image
+// section importers.
 export function overlaysFromFilters(filters: Section['filters']): TextOverlay[] {
   const list = filters ?? [];
 
   return list.flatMap((filter, index) => {
     if (filter.type !== 'drawtext') return [];
 
-    const accent = accentFrom(list[index + 1]);
+    const base = overlayFrom(filter);
+    // The bar's em geometry is measured against ITS drawtext's fontsize — the same scale the
+    // lowering multiplied by.
+    const accent = accentFrom(list[index + 1], base.fontsize);
 
-    return [{ ...overlayFrom(filter), ...(accent === undefined ? {} : { accent }) }];
+    return [{ ...base, ...(accent === undefined ? {} : { accent }) }];
   });
 }

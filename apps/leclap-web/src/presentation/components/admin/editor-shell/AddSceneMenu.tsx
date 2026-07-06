@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@/presentation/components/icons/plus';
@@ -44,7 +44,11 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
       if (!menuRef.current?.contains(target)) setOpen(false);
     };
     const onKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key !== 'Escape') return;
+
+      setOpen(false);
+      // Standard menu behavior: Escape hands focus back to the trigger.
+      buttonRef.current?.focus();
     };
 
     if (open) {
@@ -57,6 +61,36 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [open]);
+
+  // Menu keyboard support: focus lands on the first item when the menu opens…
+  useEffect(() => {
+    if (!open) return;
+
+    menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+  }, [open]);
+
+  // …and ↑/↓ cycle through the items (wrapping at both ends).
+  const onMenuKeyDown = (e: ReactKeyboardEvent): void => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+
+    e.preventDefault();
+
+    const items = [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+
+    if (items.length === 0) return;
+
+    const at = items.indexOf(document.activeElement as HTMLElement);
+
+    // Focus sitting outside the items (shouldn't happen after the open-autofocus) re-enters at the top.
+    if (at === -1) {
+      items[0]?.focus();
+
+      return;
+    }
+
+    const delta = e.key === 'ArrowDown' ? 1 : -1;
+    items[(at + delta + items.length) % items.length]?.focus();
+  };
 
   const toggle = (): void => {
     if (open) {
@@ -105,6 +139,7 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
             ref={menuRef}
             role="menu"
             aria-label={t('shell.addScene')}
+            onKeyDown={onMenuKeyDown}
             style={{ position: 'fixed', left: anchor.left, bottom: anchor.bottom }}
             className="dark z-[70] max-h-[60vh] w-56 overflow-y-auto rounded-xl border border-foreground/10 bg-surface-2 p-1.5 text-foreground shadow-2xl"
           >

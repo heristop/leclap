@@ -25,6 +25,7 @@ import {
 } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
 import { SectionDisclosure } from '../SectionDisclosure';
+import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 
@@ -198,6 +199,13 @@ const CaptionAdvanced = ({
         />
       </div>
       <CaptionBoxControls caption={caption} onChange={onChange} />
+      {/* Entrance animation (reveal) — already lowered by the engine's applyReveal; this just surfaces it. */}
+      <RevealControl
+        reveal={caption.reveal}
+        onChange={(reveal) => {
+          onChange(nextCaption(caption, { reveal }));
+        }}
+      />
       <TextEffectControl
         effect={caption.effect}
         onChange={(effect) => {

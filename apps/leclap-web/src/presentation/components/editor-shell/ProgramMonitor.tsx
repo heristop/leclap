@@ -6,12 +6,15 @@ interface ProgramMonitorProps {
   note?: string;
   meta?: string;
   swapKey?: string;
+  /** Optional transport bar (play/scrub) docked between the stage and the status strip. */
+  transport?: ReactNode;
 }
 
 // The program-monitor stage: the preview floats on a recessed, vignetted workspace (`studio-stage`)
 // framed like a video deck — corner registration brackets, a REC tally dot on the status strip and a
-// lavender→pink program-out scrubber along the bottom edge, echoing the kinetic ProgramMonitor.
-export const ProgramMonitor = ({ children, label, note, meta, swapKey }: ProgramMonitorProps) => (
+// lavender→pink program-out scrubber along the bottom edge, echoing the kinetic ProgramMonitor. When
+// a transport is passed it sits flush under the stage's gradient edge, above the status strip.
+export const ProgramMonitor = ({ children, label, note, meta, swapKey, transport }: ProgramMonitorProps) => (
   <div className="flex h-full min-h-0 flex-col">
     <div className="studio-stage relative min-h-0 flex-1">
       <div key={swapKey} className="fade-in h-full motion-reduce:animate-none">
@@ -39,16 +42,19 @@ export const ProgramMonitor = ({ children, label, note, meta, swapKey }: Program
       {/* Program-out scrubber — the signature gradient pinned to the stage's out edge. */}
       <span aria-hidden="true" className="brand-gradient pointer-events-none absolute inset-x-0 bottom-0 h-[3px]" />
     </div>
-    <div className="flex items-center justify-between border-t border-foreground/10 bg-surface-2/40 px-4 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-      <span className="flex items-center gap-1.5">
+    {transport}
+    <div className="flex shrink-0 items-center justify-between gap-3 border-t border-foreground/10 bg-surface-2/40 px-4 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <span className="flex min-w-0 items-center gap-1.5">
         <span
           aria-hidden="true"
-          className="size-1.5 animate-pulse rounded-full bg-[var(--color-error)] motion-reduce:animate-none"
+          className="size-1.5 shrink-0 animate-pulse rounded-full bg-[var(--color-error)] motion-reduce:animate-none"
         />
-        {label}
-        {note ? ` · ${note}` : ''}
+        <span className="truncate">
+          {label}
+          {note ? ` · ${note}` : ''}
+        </span>
       </span>
-      {meta ? <span className="tabular-nums">{meta}</span> : null}
+      {meta ? <span className="shrink-0 tabular-nums">{meta}</span> : null}
     </div>
   </div>
 );

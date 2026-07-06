@@ -297,16 +297,17 @@ const EditorBody = (p: EditorBodyProps) => {
   const clipFile =
     p.tool === 'content' && p.section?.kind === 'clip' ? p.model.clipsBySection[p.section.name] : undefined;
   const editForClip = p.section ? p.model.editsBySection[p.section.name] : undefined;
-  const { containerRef, monitorHeight, beginResize } = useMobileSplit();
+  const { containerRef, monitorHeight, beginResize, resizeBy } = useMobileSplit();
 
   return (
     // One grid holds all regions. Mobile (flex-col): monitor → resize divider → panel → timeline →
     // dock (the dock is a bottom tab bar, order-last). The monitor's height is the draggable mobile
-    // split (`--monitor-h`); `lg:h-auto` resets it for the desktop grid, where the timeline spans the
-    // full second row below dock·panel·monitor.
+    // split (`--monitor-h`); `md:h-auto` resets it for the grid tiers, where the timeline spans the
+    // full second row below dock·panel·monitor. Same tiers as ShellChrome: icon-only dock + narrow
+    // panel at md, widening at lg/xl so the monitor keeps priority.
     <div
       ref={containerRef}
-      className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[5rem_24rem_1fr] lg:grid-rows-[minmax(0,1fr)_auto]"
+      className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[3.75rem_19rem_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[5rem_22rem_minmax(0,1fr)] xl:grid-cols-[5rem_24rem_minmax(0,1fr)]"
     >
       <ToolDock
         items={p.rail.map((r): ToolItem<Tool> => ({ id: r.tool, icon: r.icon, label: r.label }))}
@@ -315,7 +316,7 @@ const EditorBody = (p: EditorBodyProps) => {
         ariaLabel={p.t('editor.tools')}
       />
 
-      <section className="order-3 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 lg:order-none lg:border-r">
+      <section className="order-3 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 md:order-none md:border-r">
         {p.panelTitle && (
           <header className="shrink-0 border-b border-foreground/10 px-4 py-3 sm:px-5">
             {p.panelEyebrow && (
@@ -335,7 +336,7 @@ const EditorBody = (p: EditorBodyProps) => {
       </section>
 
       <div
-        className="order-1 h-[var(--monitor-h)] min-h-0 shrink-0 lg:order-none lg:h-auto lg:shrink"
+        className="order-1 h-[var(--monitor-h)] min-h-0 shrink-0 md:order-none md:h-auto md:shrink"
         style={{ '--monitor-h': monitorHeight } as CSSProperties}
       >
         <ProgramArea
@@ -349,9 +350,9 @@ const EditorBody = (p: EditorBodyProps) => {
         />
       </div>
 
-      <MobileResizeHandle onResize={beginResize} label={p.t('editor.resizePanels')} />
+      <MobileResizeHandle onResize={beginResize} onNudge={resizeBy} label={p.t('editor.resizePanels')} />
 
-      <footer className="track-lane order-4 flex items-stretch border-t border-foreground/10 lg:order-none lg:col-span-3">
+      <footer className="track-lane order-4 flex items-stretch border-t border-foreground/10 md:order-none md:col-span-3">
         <div className="hidden w-20 shrink-0 flex-col items-center justify-center gap-1.5 border-r border-foreground/10 bg-surface-2/30 sm:flex">
           <span
             aria-hidden="true"

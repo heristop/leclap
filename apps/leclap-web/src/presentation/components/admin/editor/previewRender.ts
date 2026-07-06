@@ -6,8 +6,8 @@
 import { buildDescriptor, type EditorState, type TemplateDescriptor } from '../templateEditorModel';
 import { templateService, type Template } from '@/services/templateService';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
-import { resolveLibraryInputMarkers } from '@/application/usecases/applyMediaChoices';
-import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
+import { applyMediaChoices, resolveLibraryInputMarkers } from '@/application/usecases/applyMediaChoices';
+import { findBackground, findMusic, BACKGROUND_LIBRARY, MUSIC_LIBRARY } from '@/data/mediaCatalog';
 
 // SectionOptions from core omits pictureUrl at the type level; cast locally for image_background access.
 type ImageOptions = { pictureUrl?: string } & Record<string, unknown>;
@@ -31,6 +31,50 @@ function fillPreviewBackgrounds(descriptor: TemplateDescriptor): TemplateDescrip
   });
 
   return { ...descriptor, sections } as TemplateDescriptor;
+}
+
+// A music scene stores only an `allowedMusic` list (the end user picks a track at compile time); a
+// draft has no such pick, so lay the first allowed library track — else the bundled default — under
+// the whole preview, the same stand-in rule fillPreviewBackgrounds uses for pictures. Without it the
+// draft of a template WITH a music scene renders silent, hiding the audio mix/fades being authored.
+function fillPreviewMusic(descriptor: TemplateDescriptor): void {
+  if (descriptor.global?.musicEnabled !== true || descriptor.global.music) return;
+
+  const track = findMusic(descriptor.global.allowedMusic?.at(0) ?? '') ?? MUSIC_LIBRARY.at(0);
+
+  if (!track) return;
+
+  applyMediaChoices(descriptor, { music: { source: 'library', id: track.id } });
+}
+
+// The engine's rendering section types (services/templateValidationRules.ts RENDERING_SECTION_TYPES):
+// the ones that emit picture and can carry a transition into the next one.
+const RENDERING_TYPES = new Set(['video', 'project_video', 'color_background', 'image_background']);
+
+// Drop a non-cut transition from the LAST rendering section: it has nothing to transition into and
+// the engine's template validation rejects it ("dangling_transition"), which would abort the whole
+// draft compile. The scene card still surfaces the validation error for the real flow (see
+// validationMapping) — the draft just renders without the dangling transition instead of dying.
+// A trailing partial is left untouched: it may expand into rendering sections, making the transition
+// valid again after materialization.
+function stripDanglingTransition(descriptor: TemplateDescriptor): TemplateDescriptor {
+  const sections = descriptor.sections ?? [];
+
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const section = sections[i];
+
+    if (section.type === 'partial') return descriptor;
+
+    if (!RENDERING_TYPES.has(section.type)) continue;
+
+    if (!section.transition || section.transition.type === 'cut') return descriptor;
+
+    const { transition: _dangling, ...rest } = section;
+
+    return { ...descriptor, sections: sections.map((s, index) => (index === i ? rest : s)) } as TemplateDescriptor;
+  }
+
+  return descriptor;
 }
 
 // A draft only needs to show each scene's look, not its full runtime. Capping every section to a few
@@ -91,7 +135,10 @@ export function previewTemplate(state: EditorState): Template {
   // Save & film path. Without this the engine can't fetch the overlay and the segment aborts in WASM
   // with "Output file not found" (a draft with an author-added library image element).
   resolveLibraryInputMarkers(built);
-  const descriptor = fillPreviewBackgrounds(clampPreviewDurations(built));
+  // A draft renders the WHOLE template, so the global config must hold up without end-user input:
+  // stand-in music, stand-in backgrounds, and no validation-fatal dangling transition.
+  fillPreviewMusic(built);
+  const descriptor = stripDanglingTransition(fillPreviewBackgrounds(clampPreviewDurations(built)));
 
   return {
     id: `${state.id}-preview`,

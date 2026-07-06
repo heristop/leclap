@@ -10,6 +10,7 @@ import { FONTS } from '@leclap/creative-kit/fonts';
 import { rangeFill } from '../editor/controls';
 import { RevealControl } from '../editor/RevealControl';
 import { ExitControl } from '../editor/ExitControl';
+import { TextEffectControl } from '../editor/TextEffectControl';
 import {
   Button,
   Checkbox,
@@ -79,20 +80,31 @@ export const SelectedControls = ({
         </button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
-            {t('overlay.color')}
-          </label>
-          <ColorPicker
-            aria-label={t('overlay.textColor')}
-            value={overlay.fontcolor}
-            onChange={(fontcolor) => {
-              onPatch({ fontcolor });
-            }}
-          />
+        <div className="space-y-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+              {t('overlay.color')}
+            </label>
+            <ColorPicker
+              aria-label={t('overlay.textColor')}
+              value={overlay.fontcolor}
+              onChange={(fontcolor) => {
+                onPatch({ fontcolor });
+              }}
+            />
+          </div>
+          <TextOpacityControl overlay={overlay} t={t} onPatch={onPatch} />
         </div>
         <BoxControls overlay={overlay} t={t} onPatch={onPatch} />
       </div>
+      {/* Drop shadow / outline legibility effect — the same control the sugar text layers use; the
+          engine lowers it to drawtext shadow/border keys. */}
+      <TextEffectControl
+        effect={overlay.effect}
+        onChange={(effect) => {
+          onPatch({ effect });
+        }}
+      />
       {/* Animated entrance (rise/slide/fade) for the text — same reveal vocabulary as the other layers. */}
       <RevealControl
         reveal={overlay.reveal}
@@ -106,6 +118,45 @@ export const SelectedControls = ({
         onChange={(exit) => {
           onPatch({ exit });
         }}
+      />
+    </div>
+  );
+};
+
+// Whole-text opacity slider for watermark-style overlays, mirroring the box-opacity one. Fully
+// opaque (1) patches the field back to undefined so solid overlays keep emitting the exact same
+// descriptor as before the control existed.
+const TextOpacityControl = ({
+  overlay,
+  t,
+  onPatch,
+}: {
+  overlay: TextOverlay;
+  t: TFunction<'admin'>;
+  onPatch: (patch: Partial<TextOverlay>) => void;
+}) => {
+  const opacityId = useId();
+  const value = overlay.textOpacity ?? 1;
+
+  return (
+    <div>
+      <label htmlFor={opacityId} className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+        {t('overlay.textOpacity', { percent: Math.round(value * 100) })}
+      </label>
+      <input
+        id={opacityId}
+        type="range"
+        min={0}
+        max={1}
+        step={0.05}
+        value={value}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+
+          onPatch({ textOpacity: next === 1 ? undefined : next });
+        }}
+        style={rangeFill(value, 0, 1)}
+        className="studio-range"
       />
     </div>
   );

@@ -11,10 +11,16 @@ import type {
   AnimationOverlay,
   Orientation,
 } from '../templateEditorModel';
+import { Button } from '@/presentation/components/ui';
 import { SelectedControls } from './overlayControls';
 import { LayerRow } from '../editor/LayerRow';
 import { PlacementControls } from './placementControls';
-import { removeElement, reorderElement } from './sectionElements';
+import { CaptionField } from '../editor/SectionFields/CaptionField';
+import { TitleCardField } from '../editor/SectionFields/TitleCardField';
+import { LowerThirdField } from '../editor/SectionFields/LowerThirdField';
+import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
+import { removeElement, reorderElement, type SugarKind } from './sectionElements';
+import { sugarToOverlays } from './sugarToOverlays';
 import type { ElementRef } from './useSectionSelection';
 
 interface ElementInspectorProps {
@@ -93,6 +99,91 @@ export const ElementInspector = ({
         t={t}
         onPatchSection={onPatchSection}
       />
+    );
+  }
+
+  // The text-sugar singletons reuse the scene-field editors, so clicking the sugar on the canvas
+  // edits the exact same model the Scenes panel edits. Each editor guards on the section kind that
+  // can carry the sugar (see the editor model). Below each editor, "Detach into text elements"
+  // converts the block into regular overlays (sugarToOverlays) for full direct manipulation.
+  const detachSugar = (kind: SugarKind, sugar: Parameters<typeof sugarToOverlays>[1]) => {
+    const converted = sugarToOverlays(kind, sugar, orientation);
+
+    if (converted.length === 0) return;
+
+    const overlays = readArray<TextOverlay>(section, 'overlays');
+
+    onPatchSection({ [kind]: undefined, overlays: [...overlays, ...converted] } as Partial<EditorSection>);
+    onSelectElement({ kind: 'text', index: overlays.length });
+  };
+
+  if (activeRef.kind === 'caption') {
+    if (section.kind !== 'video' && section.kind !== 'color' && section.kind !== 'image') {
+      return <Hint label={t('element.selectHint')} />;
+    }
+
+    return (
+      <div className="space-y-3">
+        <CaptionField
+          caption={section.caption}
+          onChange={(caption) => {
+            onPatchSection({ caption } as Partial<EditorSection>);
+          }}
+          inputCls={EDITOR_INPUT_CLASS}
+        />
+        <DetachSugar
+          t={t}
+          onDetach={() => {
+            detachSugar('caption', section.caption);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (activeRef.kind === 'titleCard') {
+    if (section.kind !== 'color') return <Hint label={t('element.selectHint')} />;
+
+    return (
+      <div className="space-y-3">
+        <TitleCardField
+          titleCard={section.titleCard}
+          onChange={(titleCard) => {
+            onPatchSection({ titleCard } as Partial<EditorSection>);
+          }}
+          variables={variables}
+          inputCls={EDITOR_INPUT_CLASS}
+        />
+        <DetachSugar
+          t={t}
+          onDetach={() => {
+            detachSugar('titleCard', section.titleCard);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (activeRef.kind === 'lowerThird') {
+    if (section.kind !== 'video') return <Hint label={t('element.selectHint')} />;
+
+    return (
+      <div className="space-y-3">
+        <LowerThirdField
+          lowerThird={section.lowerThird}
+          onChange={(lowerThird) => {
+            onPatchSection({ lowerThird } as Partial<EditorSection>);
+          }}
+          variables={variables}
+          inputCls={EDITOR_INPUT_CLASS}
+        />
+        <DetachSugar
+          t={t}
+          onDetach={() => {
+            detachSugar('lowerThird', section.lowerThird);
+          }}
+        />
+      </div>
     );
   }
 
@@ -223,3 +314,15 @@ const AnimationSettings = ({ section, activeRef, orientation, t, onPatchSection 
 
 // The muted "select an element" placeholder, mirroring OverlayInspector's hint styling.
 const Hint = ({ label }: { label: string }) => <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>;
+
+// "Detach into text elements": the escape hatch from structural sugar to free overlays. Secondary
+// styling + an explicit trade-off hint, since the conversion drops the block's automatic layout
+// (and its band/accent-bar decorations).
+const DetachSugar = ({ t, onDetach }: { t: TFunction<'admin'>; onDetach: () => void }) => (
+  <div className="space-y-1.5 border-t border-foreground/10 pt-3">
+    <Button type="button" variant="secondary" size="sm" onClick={onDetach}>
+      {t('element.detach')}
+    </Button>
+    <p className="text-xs text-gray-500 dark:text-gray-400">{t('element.detachHint')}</p>
+  </div>
+);

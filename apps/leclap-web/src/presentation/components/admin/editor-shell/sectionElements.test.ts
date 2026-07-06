@@ -134,6 +134,61 @@ describe('removeElement', () => {
     expect(overlays).toHaveLength(1);
     expect(overlays?.[0]?.text).toBe('b');
   });
+
+  it('clears a sugar field instead of splicing an array', () => {
+    const section = { ...newSection('video'), lowerThird: { title: { en: 'Jane' } } } as EditorSection;
+    const patch = removeElement(section, { kind: 'lowerThird', index: 0 });
+
+    expect('lowerThird' in patch).toBe(true);
+    expect((patch as { lowerThird?: unknown }).lowerThird).toBeUndefined();
+  });
+
+  it('no-ops for a sugar kind the section cannot carry', () => {
+    expect(removeElement(newSection('video'), { kind: 'titleCard', index: 0 })).toEqual({});
+  });
+});
+
+describe('sugar elements (caption / titleCard / lowerThird)', () => {
+  it('lists present sugar after the array elements, as index-0 singletons', () => {
+    const section = {
+      ...richColorSection(),
+      caption: { text: 'A subtitle' },
+      titleCard: { headline: { en: 'Big intro' } },
+    } as EditorSection;
+    const descriptors = listSectionElements(section);
+
+    expect(descriptors.map((d) => d.kind)).toEqual(['layer', 'layer', 'text', 'text', 'animation', 'caption', 'titleCard']);
+    expect(descriptors.at(-2)?.ref).toEqual({ kind: 'caption', index: 0 });
+    expect(descriptors.at(-2)?.labelKey).toBe('element.caption');
+    expect(descriptors.at(-2)?.previewText).toBe('A subtitle');
+    expect(descriptors.at(-1)?.labelKey).toBe('element.titleCard');
+    expect(descriptors.at(-1)?.previewText).toBe('Big intro');
+  });
+
+  it('lists a video lower third with its title as preview', () => {
+    const section = { ...newSection('video'), lowerThird: { title: { en: 'Jane Doe' } } } as EditorSection;
+    const descriptors = listSectionElements(section);
+
+    expect(descriptors).toEqual([
+      {
+        ref: { kind: 'lowerThird', index: 0 },
+        kind: 'lowerThird',
+        labelKey: 'element.lowerThird',
+        previewText: 'Jane Doe',
+      },
+    ]);
+  });
+
+  it('lists nothing when a section carries no sugar', () => {
+    expect(listSectionElements(newSection('video'))).toEqual([]);
+  });
+
+  it('is addable from the add menu only while absent (per-section singleton)', () => {
+    expect(canAddElement(newSection('video'), 'lowerThird')).toBe(true);
+    expect(canAddElement(newSection('color'), 'titleCard')).toBe(true);
+    expect(canAddElement(newSection('video'), 'caption')).toBe(true);
+    expect(addElement(newSection('video'), 'caption')).not.toBeNull();
+  });
 });
 
 describe('reorderElement', () => {
@@ -151,6 +206,12 @@ describe('reorderElement', () => {
     const patch = reorderElement(section, { kind: 'text', index: 0 }, -1);
 
     expect(patch).toEqual({});
+  });
+
+  it('returns an empty no-op patch for a sugar ref (sugar is a singleton, not an ordered array)', () => {
+    const section = { ...newSection('video'), lowerThird: { title: { en: 'Jane' } } } as EditorSection;
+
+    expect(reorderElement(section, { kind: 'lowerThird', index: 0 }, -1)).toEqual({});
   });
 
   it('insert-moves across multiple positions (drag-and-drop), shifting the rest', () => {
@@ -171,5 +232,42 @@ describe('reorderElement', () => {
     const overlays = field<{ text: string }>(patch, 'overlays');
 
     expect(overlays?.map((o) => o.text)).toEqual(['b', 'c', 'a']);
+  });
+});
+
+describe('sugar add (caption / titleCard / lowerThird from the + Add menu)', () => {
+  it('offers a sugar kind only on its owner sections and only while absent', () => {
+    const video = newSection('video');
+    const color = newSection('color');
+
+    expect(canAddElement(video, 'caption')).toBe(true);
+    expect(canAddElement(video, 'lowerThird')).toBe(true);
+    expect(canAddElement(video, 'titleCard')).toBe(false);
+    expect(canAddElement(color, 'titleCard')).toBe(true);
+    expect(canAddElement(color, 'lowerThird')).toBe(false);
+    expect(canAddElement(newSection('music'), 'caption')).toBe(false);
+
+    const withCaption = { ...video, caption: { text: 'x' } } as EditorSection;
+    expect(canAddElement(withCaption, 'caption')).toBe(false);
+  });
+
+  it('adds a visible default and selects the singleton ref', () => {
+    const video = newSection('video');
+    const added = addElement(video, 'caption');
+    expect(added?.ref).toEqual({ kind: 'caption', index: 0 });
+    expect((added?.patch as { caption?: { text: string } } | undefined)?.caption?.text.length).toBeGreaterThan(0);
+
+    const color = newSection('color');
+    const card = addElement(color, 'titleCard');
+    expect(card?.ref).toEqual({ kind: 'titleCard', index: 0 });
+
+    const third = addElement(video, 'lowerThird');
+    expect(third?.ref).toEqual({ kind: 'lowerThird', index: 0 });
+  });
+
+  it('refuses to add sugar where unowned or already present', () => {
+    expect(addElement(newSection('video'), 'titleCard')).toBeNull();
+    const withCaption = { ...newSection('video'), caption: { text: 'x' } } as EditorSection;
+    expect(addElement(withCaption, 'caption')).toBeNull();
   });
 });

@@ -52,6 +52,15 @@ describe('sectionSelectionReducer', () => {
     expect(next).toEqual({ element: { kind: 'layer', index: 1 }, editing: false });
   });
 
+  it('selectElement accepts the singleton sugar kinds', () => {
+    const next = sectionSelectionReducer(initialSectionSelection, {
+      type: 'selectElement',
+      ref: { kind: 'lowerThird', index: 0 },
+    });
+
+    expect(next).toEqual({ element: { kind: 'lowerThird', index: 0 }, editing: false });
+  });
+
   it('beginEdit arms editing for a non-text selected element', () => {
     const selected = sectionSelectionReducer(initialSectionSelection, {
       type: 'selectElement',

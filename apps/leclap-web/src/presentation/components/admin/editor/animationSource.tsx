@@ -151,7 +151,8 @@ export const AnimationPlayback = ({ value, patch }: PlaybackProps) => {
   );
 };
 
-const NumberRow = ({
+// Shared label + compact number input row; also reused by ImageOverlayField for the image show window.
+export const NumberRow = ({
   label,
   value,
   min,

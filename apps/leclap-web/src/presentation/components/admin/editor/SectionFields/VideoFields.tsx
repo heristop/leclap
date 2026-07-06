@@ -9,10 +9,12 @@ import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';
 import { VariableTextField } from '../VariableTextField';
 import { FramingGuidePicker } from '../FramingGuidePicker';
+import { MotionPanel } from '../MotionPanel';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
 import { effectsSummary, audioSummary, framingSummary } from '../sectionHints';
 import { NumberField } from './NumberField';
+import { SpeedField } from './SpeedField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { LowerThirdField } from './LowerThirdField';
 import { ChromaKeyField } from './ChromaKeyField';
@@ -71,6 +73,12 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
           {t('video.muteAudio')}
         </label>
       </div>
+      <SpeedField
+        speed={section.speed}
+        onChange={(speed) => {
+          onChange({ speed });
+        }}
+      />
       <label className="block">
         <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-gray-400">
           {t('video.whatToFilm')}
@@ -129,8 +137,14 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
           <SectionDisclosure
             label={t('disclosure.effects')}
             icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
-            summary={effectsSummary(t, section.look)}
+            summary={effectsSummary(t, section.look, section.motion)}
           >
+            <MotionPanel
+              motion={section.motion}
+              onChange={(motion) => {
+                onChange({ motion });
+              }}
+            />
             <VisualEffects
               look={section.look}
               grade={section.grade}

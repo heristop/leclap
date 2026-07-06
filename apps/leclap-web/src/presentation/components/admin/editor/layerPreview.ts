@@ -12,13 +12,24 @@ const GRADIENT_ANGLE: Record<'horizontal' | 'vertical' | 'diagonal', string> = {
 
 // The CSS `background` value for a layer: a gradient when set, else the solid colour.
 function backgroundValue(layer: BackgroundLayer): string {
-  if (layer.gradient) {
-    const angle = GRADIENT_ANGLE[layer.gradient.direction ?? 'vertical'];
-
-    return `linear-gradient(${angle}, ${layer.gradient.from}, ${layer.gradient.to})`;
-  }
+  if (layer.gradient) return gradientValue(layer.gradient);
 
   return layer.color ?? 'transparent';
+}
+
+// Mirrors the engine's gradients `type=` lowering: linear keeps the direction sweep; radial fills
+// from the centre; circular AND spiral both preview as a conic sweep — CSS cannot twist the angle
+// by radius the way the spiral type does, so the angular sweep is the closest still swatch.
+function gradientValue(gradient: NonNullable<BackgroundLayer['gradient']>): string {
+  const { from, to, shape } = gradient;
+
+  if (shape === 'radial') return `radial-gradient(circle at center, ${from}, ${to})`;
+
+  if (shape === 'circular' || shape === 'spiral') return `conic-gradient(from 0deg at center, ${from}, ${to})`;
+
+  const angle = GRADIENT_ANGLE[gradient.direction ?? 'vertical'];
+
+  return `linear-gradient(${angle}, ${from}, ${to})`;
 }
 
 // Just the paint of a layer (fill + opacity), with no positioning — for rendering the fill inside an

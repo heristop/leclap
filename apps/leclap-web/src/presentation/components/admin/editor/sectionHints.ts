@@ -21,8 +21,8 @@ export const SECTION_HINTS = {
   image: 'A photo backdrop with motion',
 } satisfies Record<EditorSection['kind'], string>;
 
-// "Effects" group summary: the active look + Ken Burns move, or "None". `motion` is optional so
-// video/color callers (no motion) can omit it.
+// "Effects" group summary: the active look + motion move (Ken Burns by name, the rest generically),
+// or "None". `motion` is optional so callers without motion can omit it.
 export function effectsSummary(t: TFunction<'admin'>, look: string | undefined, motion?: MotionEffect[]): string {
   const parts: string[] = [];
 
@@ -31,6 +31,10 @@ export function effectsSummary(t: TFunction<'admin'>, look: string | undefined, 
   const kenburns = (motion ?? []).some((m) => m.type === 'kenburns');
 
   if (kenburns) parts.push(t('summaryChip.kenBurns'));
+
+  const otherMotion = (motion ?? []).some((m) => m.type !== 'kenburns');
+
+  if (otherMotion) parts.push(t('summaryChip.motion'));
 
   return parts.length > 0 ? parts.join(' · ') : t('summaryChip.none');
 }

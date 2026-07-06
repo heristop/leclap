@@ -20,8 +20,9 @@ const readStored = (): number | null => {
 };
 
 // `containerRef` goes on the stacked shell body; `monitorHeight` feeds the monitor's `--monitor-h`
-// var; `beginResize` is the divider's onPointerDown. Height is measured from the container top, so it
-// equals the monitor's height (the monitor is the top-most region in the mobile stack).
+// var; `beginResize` is the divider's onPointerDown; `resizeBy` nudges the split by a signed pixel
+// delta (the divider's keyboard path). Height is measured from the container top, so it equals the
+// monitor's height (the monitor is the top-most region in the mobile stack).
 export const useMobileSplit = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [heightPx, setHeightPx] = useState<number | null>(readStored);
@@ -56,6 +57,21 @@ export const useMobileSplit = () => {
     [clampForContainer]
   );
 
+  const resizeBy = useCallback(
+    (delta: number) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+
+      if (!rect) return;
+
+      setHeightPx((current) => {
+        const base = current ?? (rect.height * DEFAULT_VH) / 100;
+
+        return clampForContainer(base + delta, rect.height);
+      });
+    },
+    [clampForContainer]
+  );
+
   useEffect(() => {
     if (heightPx === null) return;
 
@@ -66,5 +82,5 @@ export const useMobileSplit = () => {
     }
   }, [heightPx]);
 
-  return { containerRef, monitorHeight, beginResize };
+  return { containerRef, monitorHeight, beginResize, resizeBy };
 };

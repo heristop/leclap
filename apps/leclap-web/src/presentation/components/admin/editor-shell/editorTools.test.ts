@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildEditorTools, type EditorToolId } from './editorTools';
+import { buildEditorTools, nextTool, prevTool, type EditorToolId } from './editorTools';
 
 describe('buildEditorTools', () => {
   it('always offers scenes, basics, audio', () => {
@@ -23,5 +23,22 @@ describe('buildEditorTools', () => {
       expect(tool.labelKey.length).toBeGreaterThan(0);
       expect(tool.icon).toBeTruthy();
     }
+  });
+});
+
+describe('nextTool / prevTool', () => {
+  const tools = buildEditorTools({ advanced: true });
+
+  it('cycles forward and wraps at the end', () => {
+    expect(nextTool(tools, 'scenes')).toBe('basics');
+    expect(nextTool(tools, 'advanced')).toBe('scenes');
+  });
+  it('cycles backward and wraps at the start', () => {
+    expect(prevTool(tools, 'basics')).toBe('scenes');
+    expect(prevTool(tools, 'scenes')).toBe('advanced');
+  });
+  it('falls back to the first tool when current is absent', () => {
+    expect(nextTool(tools, 'variables' as EditorToolId)).toBe('advanced');
+    expect(nextTool(buildEditorTools({ advanced: false }), 'variables')).toBe('scenes');
   });
 });

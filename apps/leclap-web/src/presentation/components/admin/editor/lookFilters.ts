@@ -63,16 +63,38 @@ export function gradeFilter(grade: Grade | undefined): string {
   return parts.join(' ');
 }
 
-// Drop any slider field still at its default, returning `undefined` when nothing
-// remains — so buildDescriptor never writes a no-op grade into the descriptor.
-// colorBalance/curvesPreset aren't surfaced by the panel sliders; pass them through
-// untouched so editing a slider never silently discards an author-set grade.
+export type ColorBalance = NonNullable<Grade['colorBalance']>;
+export type ColorBalanceRange = keyof ColorBalance;
+export type ColorChannel = 'r' | 'g' | 'b';
+
+export const COLOR_BALANCE_RANGES: ColorBalanceRange[] = ['shadows', 'midtones', 'highlights'];
+export const COLOR_CHANNELS: ColorChannel[] = ['r', 'g', 'b'];
+
+// Drop colorBalance ranges whose every channel is 0 (a no-op shift), then the whole object when
+// nothing remains — so nudging a slider to zero cleans the descriptor back up.
+function pruneColorBalance(balance: ColorBalance | undefined): ColorBalance | undefined {
+  if (!balance) return undefined;
+
+  const out: ColorBalance = {};
+
+  for (const range of COLOR_BALANCE_RANGES) {
+    const shift = balance[range];
+
+    if (shift && COLOR_CHANNELS.some((ch) => (shift[ch] ?? 0) !== 0)) out[range] = shift;
+  }
+
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+// Drop any slider field still at its default, an all-zero colorBalance and an empty curvesPreset,
+// returning `undefined` when nothing remains — so buildDescriptor never writes a no-op grade.
 export function pruneGrade(grade: Grade): Grade | undefined {
   const out: Grade = {};
+  const colorBalance = pruneColorBalance(grade.colorBalance);
 
-  if (grade.colorBalance !== undefined) out.colorBalance = grade.colorBalance;
+  if (colorBalance) out.colorBalance = colorBalance;
 
-  if (grade.curvesPreset !== undefined) out.curvesPreset = grade.curvesPreset;
+  if (grade.curvesPreset) out.curvesPreset = grade.curvesPreset;
 
   for (const key of Object.keys(GRADE_DEFAULTS) as GradeKey[]) {
     const value = grade[key];

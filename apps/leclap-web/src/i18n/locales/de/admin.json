@@ -205,7 +205,53 @@
     "partialSave": "Partial speichern",
     "partialPreviewLabel": "Partial-Vorschau",
     "partialUnset": "Kein Partial ausgewählt",
-    "dragToReorder": "Zum Sortieren ziehen"
+    "dragToReorder": "Zum Sortieren ziehen",
+    "timelineEmptyTitle": "Baue deine Geschichte Szene für Szene",
+    "timelineEmptyCta": "Startvorlagen durchstöbern"
+  },
+  "shortcuts": {
+    "title": "Tastenkürzel",
+    "hint": "Drücke jederzeit ?, um diese Liste zu öffnen",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "save": "Vorlage speichern",
+    "duplicateScene": "Szene duplizieren",
+    "deleteScene": "Szene löschen",
+    "addScene": "Szene hinzufügen",
+    "prevScene": "Vorherige Szene",
+    "nextScene": "Nächste Szene",
+    "tools": "Vorheriges / nächstes Werkzeug",
+    "playPause": "Vorschau abspielen / pausieren",
+    "showHelp": "Kürzel anzeigen"
+  },
+  "presets": {
+    "pickerTitle": "Starte deine Vorlage",
+    "pickerSubtitle": "Wähle eine fertige Struktur oder beginne mit einer leeren Leinwand.",
+    "startBlank": "Leer beginnen",
+    "items": {
+      "talking-head": {
+        "name": "Talking-Head-Intro",
+        "description": "Titelkarte, dein Clip und ein Abspann."
+      },
+      "product-showcase": {
+        "name": "Produkt-Showcase",
+        "description": "Ken-Burns-Bild, dein Clip und Hintergrundmusik."
+      },
+      "testimonial": {
+        "name": "Testimonial",
+        "description": "Ein Zitat mit Bauchbinde, dann eine Abschlusskarte."
+      }
+    }
+  },
+  "monitor": {
+    "fallbackMusicTitle": "Hintergrundmusik",
+    "fallbackMusicSubtitle": "Nur Audio — diese Szene läuft unter dem Video, ohne etwas auf dem Bildschirm.",
+    "fallbackFormTitle": "Formularfelder",
+    "fallbackFormSubtitle": "Zuschauer füllen diese Felder vor dem Rendern aus; ihre Antworten speisen die Vorlagen-Variablen.",
+    "playing": "Wiedergabe",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "scrub": "Im Video spulen"
   },
   "testRender": {
     "rendering": "Rendering …",
@@ -253,6 +299,7 @@
     "deleteText": "Text löschen",
     "color": "Farbe",
     "textColor": "Textfarbe",
+    "textOpacity": "Text-Deckkraft — {{percent}} %",
     "box": "Box",
     "boxColor": "Box-Farbe",
     "boxOpacity": "Box-Deckkraft — {{percent}} %",
@@ -280,7 +327,12 @@
     "normalizeOff": "Aus",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dynamisch",
-    "ducking": "Musik leiser, wenn jemand spricht"
+    "ducking": "Musik leiser, wenn jemand spricht",
+    "duckingAdvanced": "Erweitertes Ducking",
+    "duckingThreshold": "Schwelle",
+    "duckingRatio": "Verhältnis",
+    "duckingAttack": "Attack",
+    "duckingRelease": "Release"
   },
   "sectionAudio": {
     "label": "Abschnitts-Audio",
@@ -315,7 +367,28 @@
     "saturation": "Sättigung",
     "gamma": "Gamma",
     "hue": "Farbton",
-    "blur": "Weichzeichnen"
+    "blur": "Weichzeichnen",
+    "colorBalance": "Farbbalance",
+    "shadows": "Schatten",
+    "midtones": "Mitteltöne",
+    "highlights": "Lichter",
+    "channelR": "Rot",
+    "channelG": "Grün",
+    "channelB": "Blau",
+    "curvesPreset": "Kurven-Preset",
+    "curvesNone": "Keins",
+    "curves": {
+      "color_negative": "Farbnegativ",
+      "cross_process": "Crossentwicklung",
+      "darker": "Dunkler",
+      "increase_contrast": "Mehr Kontrast",
+      "lighter": "Heller",
+      "linear_contrast": "Linearer Kontrast",
+      "medium_contrast": "Mittlerer Kontrast",
+      "negative": "Negativ",
+      "strong_contrast": "Starker Kontrast",
+      "vintage": "Vintage"
+    }
   },
   "layer": {
     "background": "Hintergrund",
@@ -362,6 +435,13 @@
     "position": "Position",
     "scale": "Skalierung",
     "scaleHint": "px · −1 behält das Seitenverhältnis",
+    "fit": "Anpassung",
+    "fitStretch": "Strecken",
+    "fitContain": "Einpassen",
+    "fitCover": "Füllen",
+    "fitStretchHint": "Füllt die B×H-Box frei, kann verzerren",
+    "fitContainHint": "Passt in die Box und behält das Seitenverhältnis",
+    "fitCoverHint": "Füllt die Box und beschneidet den Überstand",
     "positionHint": "px von oben links",
     "opacity": "Deckkraft",
     "rotation": "Drehung",
@@ -397,7 +477,15 @@
     "layer": "Hintergrund",
     "image": "Bild",
     "animation": "Animation",
-    "backgroundImage": "Hintergrundbild"
+    "backgroundImage": "Hintergrundbild",
+    "titleCard": "Titelkarte",
+    "lowerThird": "Bauchbinde",
+    "caption": "Untertitel",
+    "detach": "In Textelemente umwandeln",
+    "detachHint": "Wandelt diesen Block in frei verschiebbare Textelemente um — das automatische Layout geht verloren.",
+    "addCaption": "Untertitel",
+    "addTitleCard": "Titelkarte",
+    "addLowerThird": "Bauchbinde"
   },
   "motion": {
     "label": "Bewegung",
@@ -409,7 +497,19 @@
     "panLeft": "Nach links schwenken",
     "panRight": "Nach rechts schwenken",
     "panUp": "Nach oben schwenken",
-    "panDown": "Nach unten schwenken"
+    "panDown": "Nach unten schwenken",
+    "enable": "Bewegungseffekt",
+    "type": "Effekttyp",
+    "kindKenburns": "Ken Burns",
+    "kindRotate": "Drehen",
+    "kindFlip": "Spiegeln",
+    "kindCrop": "Zuschneiden",
+    "angle": "Winkel",
+    "axis": "Spiegelachse",
+    "axisHorizontal": "Horizontal",
+    "axisVertical": "Vertikal",
+    "cropWidth": "Zuschnittbreite",
+    "cropHeight": "Zuschnitthöhe"
   },
   "disclosure": {
     "effects": "Effekte",
@@ -433,6 +533,8 @@
     "add": "Ein Bild hinzufügen",
     "label": "Bild",
     "remove": "Bild entfernen",
+    "startLabel": "Erscheint bei (s)",
+    "endLabel": "Verschwindet bei (s)",
     "count_one": "{{count}} Bild",
     "count_other": "{{count}} Bilder"
   },
@@ -452,7 +554,8 @@
     "customVolume": "Eigene Lautstärke",
     "fadeIn": "Einblenden",
     "fadeOut": "Ausblenden",
-    "fadeInOut": "Ein-/Ausblenden"
+    "fadeInOut": "Ein-/Ausblenden",
+    "motion": "Bewegung"
   },
   "hint": {
     "video": "Nimm dich mit der Kamera auf",
@@ -505,7 +608,9 @@
     "whatToFilmHint": "Wird der filmenden Person beim Aufnehmen gezeigt – ein kurzer Hinweis, nie ins Video eingebrannt.",
     "countdown": "Countdown vor der Aufnahme",
     "countdownSeconds_one": "Countdown (Sekunde)",
-    "countdownSeconds_other": "Countdown (Sekunden)"
+    "countdownSeconds_other": "Countdown (Sekunden)",
+    "speed": "Wiedergabegeschwindigkeit",
+    "speedHint": "Langsamere oder schnellere Wiedergabe verlängert oder verkürzt diese Szene auch im fertigen Video."
   },
   "image": {
     "pickImages": "Wähle einen Hintergrund.",
@@ -572,7 +677,9 @@
     "fadeIn": "Einblenden",
     "fadeOut": "Ausblenden",
     "summaryEmpty": "kein Text",
-    "hint": "Eine saubere Kicker- / Überschrift- / Untertitel-Karte – an die Ausrichtung angepasst."
+    "hint": "Eine saubere Kicker- / Überschrift- / Untertitel-Karte – an die Ausrichtung angepasst.",
+    "background": "Kartenhintergrund",
+    "fade": "Auto-Blende"
   },
   "lowerThird": {
     "title": "Titel",
@@ -607,5 +714,43 @@
       "bottom": "Unten",
       "center": "Mitte"
     }
+  },
+  "caption": {
+    "label": "Untertitel",
+    "hint": "Ein gestaltetes Textband, das in diese Szene eingebrannt wird.",
+    "placeholder": "Untertiteltext…",
+    "styleLabel": "Stil",
+    "positionLabel": "Position",
+    "alignLabel": "Ausrichtung",
+    "advanced": "Erweiterter Stil",
+    "advancedNone": "Standard",
+    "font": "Schriftart",
+    "fontDefault": "Standardschrift",
+    "fontsize": "Schriftgröße",
+    "color": "Textfarbe",
+    "box": "Texthintergrund",
+    "boxColor": "Hintergrundfarbe",
+    "boxOpacity": "Hintergrund-Deckkraft",
+    "position": {
+      "top": "Oben",
+      "center": "Mitte",
+      "bottom": "Unten",
+      "lower-third": "Unteres Drittel"
+    },
+    "style": {
+      "bar": "Balken",
+      "subtle": "Dezent",
+      "bold": "Kräftig"
+    },
+    "align": {
+      "left": "Links",
+      "center": "Mitte",
+      "right": "Rechts"
+    }
+  },
+  "scene": {
+    "notes": "Szenennotizen",
+    "notesHint": "Private Notizen für Mitwirkende — erscheinen nie im Video.",
+    "notesPlaceholder": "z. B. Diesen Clip nach dem Launch austauschen…"
   }
 }

@@ -8,6 +8,7 @@ import type { EditorSection, Orientation } from '../../templateEditorModel';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { useIsAdvanced } from '../useBuilderMode';
 import { effectsSummary, audioSummary } from '../sectionHints';
+import { MotionPanel } from '../MotionPanel';
 import { NumberField } from './NumberField';
 import { SectionAudioFields } from './SectionAudioFields';
 import { TitleCardField } from './TitleCardField';
@@ -58,8 +59,14 @@ export const ColorFields = ({ section, variables, onChange, inputCls }: ColorFie
           <SectionDisclosure
             label={t('disclosure.effects')}
             icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
-            summary={effectsSummary(t, section.look)}
+            summary={effectsSummary(t, section.look, section.motion)}
           >
+            <MotionPanel
+              motion={section.motion}
+              onChange={(motion) => {
+                onChange({ motion });
+              }}
+            />
             <VisualEffects
               look={section.look}
               grade={section.grade}

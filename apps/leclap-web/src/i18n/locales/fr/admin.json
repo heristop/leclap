@@ -205,7 +205,53 @@
     "partialSave": "Enregistrer le fragment",
     "partialPreviewLabel": "Aperçu du fragment",
     "partialUnset": "Aucun fragment sélectionné",
-    "dragToReorder": "Glisse pour réordonner"
+    "dragToReorder": "Glisse pour réordonner",
+    "timelineEmptyTitle": "Construisez votre histoire scène par scène",
+    "timelineEmptyCta": "Parcourir les modèles de départ"
+  },
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "hint": "Appuyez sur ? à tout moment pour afficher cette liste",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "save": "Enregistrer le modèle",
+    "duplicateScene": "Dupliquer la scène",
+    "deleteScene": "Supprimer la scène",
+    "addScene": "Ajouter une scène",
+    "prevScene": "Scène précédente",
+    "nextScene": "Scène suivante",
+    "tools": "Outil précédent / suivant",
+    "playPause": "Lecture / pause de l’aperçu",
+    "showHelp": "Afficher les raccourcis"
+  },
+  "presets": {
+    "pickerTitle": "Démarrez votre modèle",
+    "pickerSubtitle": "Choisissez une structure prête à l’emploi, ou partez d’une page blanche.",
+    "startBlank": "Partir de zéro",
+    "items": {
+      "talking-head": {
+        "name": "Intro face caméra",
+        "description": "Carte de titre, votre clip et une conclusion."
+      },
+      "product-showcase": {
+        "name": "Vitrine produit",
+        "description": "Image en Ken Burns, votre clip et une musique de fond."
+      },
+      "testimonial": {
+        "name": "Témoignage",
+        "description": "Une citation avec bandeau, puis une carte de clôture."
+      }
+    }
+  },
+  "monitor": {
+    "fallbackMusicTitle": "Musique de fond",
+    "fallbackMusicSubtitle": "Audio uniquement — cette scène joue sous la vidéo sans rien à l’écran.",
+    "fallbackFormTitle": "Champs de formulaire",
+    "fallbackFormSubtitle": "Les spectateurs remplissent ces champs avant le rendu ; leurs réponses alimentent les variables du modèle.",
+    "playing": "Lecture",
+    "play": "Lecture",
+    "pause": "Pause",
+    "scrub": "Naviguer dans la vidéo"
   },
   "testRender": {
     "rendering": "Rendu en cours…",
@@ -253,6 +299,7 @@
     "deleteText": "Supprimer le texte",
     "color": "Couleur",
     "textColor": "Couleur du texte",
+    "textOpacity": "Opacité du texte — {{percent}} %",
     "box": "Cadre",
     "boxColor": "Couleur du cadre",
     "boxOpacity": "Opacité du cadre — {{percent}} %",
@@ -280,7 +327,12 @@
     "normalizeOff": "Désactivé",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dynamique",
-    "ducking": "Baisser la musique quand quelqu’un parle"
+    "ducking": "Baisser la musique quand quelqu’un parle",
+    "duckingAdvanced": "Ducking avancé",
+    "duckingThreshold": "Seuil",
+    "duckingRatio": "Ratio",
+    "duckingAttack": "Attaque",
+    "duckingRelease": "Relâchement"
   },
   "sectionAudio": {
     "label": "Audio de la section",
@@ -315,7 +367,28 @@
     "saturation": "Saturation",
     "gamma": "Gamma",
     "hue": "Teinte",
-    "blur": "Flou"
+    "blur": "Flou",
+    "colorBalance": "Balance des couleurs",
+    "shadows": "Ombres",
+    "midtones": "Tons moyens",
+    "highlights": "Hautes lumières",
+    "channelR": "Rouge",
+    "channelG": "Vert",
+    "channelB": "Bleu",
+    "curvesPreset": "Préréglage de courbes",
+    "curvesNone": "Aucun",
+    "curves": {
+      "color_negative": "Négatif couleur",
+      "cross_process": "Traitement croisé",
+      "darker": "Plus sombre",
+      "increase_contrast": "Contraste accru",
+      "lighter": "Plus clair",
+      "linear_contrast": "Contraste linéaire",
+      "medium_contrast": "Contraste moyen",
+      "negative": "Négatif",
+      "strong_contrast": "Contraste fort",
+      "vintage": "Vintage"
+    }
   },
   "layer": {
     "background": "Arrière-plan",
@@ -362,6 +435,13 @@
     "position": "Position",
     "scale": "Échelle",
     "scaleHint": "px · −1 garde les proportions",
+    "fit": "Ajustement",
+    "fitStretch": "Étirer",
+    "fitContain": "Contenir",
+    "fitCover": "Couvrir",
+    "fitStretchHint": "Remplit librement la boîte L×H, peut déformer",
+    "fitContainHint": "Tient dans la boîte en conservant les proportions",
+    "fitCoverHint": "Remplit la boîte et rogne le surplus",
     "positionHint": "px depuis le coin haut-gauche",
     "opacity": "Opacité",
     "rotation": "Rotation",
@@ -397,7 +477,15 @@
     "layer": "Arrière-plan",
     "image": "Image",
     "animation": "Animation",
-    "backgroundImage": "Image d’arrière-plan"
+    "backgroundImage": "Image d’arrière-plan",
+    "titleCard": "Carte de titre",
+    "lowerThird": "Bandeau",
+    "caption": "Légende",
+    "detach": "Détacher en éléments texte",
+    "detachHint": "Transforme ce bloc en éléments texte libres déplaçables partout — sa mise en page automatique est perdue.",
+    "addCaption": "Légende",
+    "addTitleCard": "Carte de titre",
+    "addLowerThird": "Bandeau"
   },
   "motion": {
     "label": "Mouvement",
@@ -409,7 +497,19 @@
     "panLeft": "Panoramique à gauche",
     "panRight": "Panoramique à droite",
     "panUp": "Panoramique vers le haut",
-    "panDown": "Panoramique vers le bas"
+    "panDown": "Panoramique vers le bas",
+    "enable": "Effet de mouvement",
+    "type": "Type d’effet",
+    "kindKenburns": "Ken Burns",
+    "kindRotate": "Rotation",
+    "kindFlip": "Miroir",
+    "kindCrop": "Recadrage",
+    "angle": "Angle",
+    "axis": "Axe du miroir",
+    "axisHorizontal": "Horizontal",
+    "axisVertical": "Vertical",
+    "cropWidth": "Largeur du recadrage",
+    "cropHeight": "Hauteur du recadrage"
   },
   "disclosure": {
     "effects": "Effets",
@@ -433,6 +533,8 @@
     "add": "Ajouter une image",
     "label": "Image",
     "remove": "Supprimer l’image",
+    "startLabel": "Apparaît à (s)",
+    "endLabel": "Disparaît à (s)",
     "count_one": "{{count}} image",
     "count_other": "{{count}} images"
   },
@@ -452,7 +554,8 @@
     "customVolume": "Volume perso",
     "fadeIn": "Fondu en entrée",
     "fadeOut": "Fondu en sortie",
-    "fadeInOut": "Fondu entrée/sortie"
+    "fadeInOut": "Fondu entrée/sortie",
+    "motion": "Mouvement"
   },
   "hint": {
     "video": "Filme-toi à la caméra",
@@ -505,7 +608,9 @@
     "whatToFilmHint": "Affiché à la personne qui filme pendant la prise — une consigne rapide, jamais incrustée dans la vidéo.",
     "countdown": "Compte à rebours avant la prise",
     "countdownSeconds_one": "Compte à rebours (seconde)",
-    "countdownSeconds_other": "Compte à rebours (secondes)"
+    "countdownSeconds_other": "Compte à rebours (secondes)",
+    "speed": "Vitesse de lecture",
+    "speedHint": "Ralentir ou accélérer la lecture allonge ou raccourcit aussi cette scène dans la vidéo finale."
   },
   "image": {
     "pickImages": "Choisis un arrière-plan.",
@@ -569,10 +674,12 @@
     "align": "Alignement",
     "alignLeft": "Gauche",
     "alignCenter": "Centre",
-    "fadeIn": "Fondu en entrée",
-    "fadeOut": "Fondu en sortie",
+    "fadeIn": "Fondu d’entrée",
+    "fadeOut": "Fondu de sortie",
     "summaryEmpty": "aucun texte",
-    "hint": "Un carton accroche / titre / sous-titre épuré — dimensionné selon l’orientation."
+    "hint": "Un carton accroche / titre / sous-titre épuré — dimensionné selon l’orientation.",
+    "background": "Fond de la carte",
+    "fade": "Fondu automatique"
   },
   "lowerThird": {
     "title": "Titre",
@@ -607,5 +714,43 @@
       "bottom": "Bas",
       "center": "Centre"
     }
+  },
+  "caption": {
+    "label": "Légende",
+    "hint": "Un bandeau de texte stylisé incrusté sur cette scène.",
+    "placeholder": "Texte de la légende…",
+    "styleLabel": "Style",
+    "positionLabel": "Position",
+    "alignLabel": "Alignement",
+    "advanced": "Style avancé",
+    "advancedNone": "Par défaut",
+    "font": "Police",
+    "fontDefault": "Police par défaut",
+    "fontsize": "Taille du texte",
+    "color": "Couleur du texte",
+    "box": "Fond du texte",
+    "boxColor": "Couleur du fond",
+    "boxOpacity": "Opacité du fond",
+    "position": {
+      "top": "Haut",
+      "center": "Centre",
+      "bottom": "Bas",
+      "lower-third": "Tiers inférieur"
+    },
+    "style": {
+      "bar": "Bandeau",
+      "subtle": "Discret",
+      "bold": "Impact"
+    },
+    "align": {
+      "left": "Gauche",
+      "center": "Centre",
+      "right": "Droite"
+    }
+  },
+  "scene": {
+    "notes": "Notes de scène",
+    "notesHint": "Notes privées pour les collaborateurs — jamais affichées dans la vidéo.",
+    "notesPlaceholder": "p. ex. Remplacer ce clip après le lancement…"
   }
 }

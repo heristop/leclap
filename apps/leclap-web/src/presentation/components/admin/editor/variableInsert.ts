@@ -62,3 +62,21 @@ export function filterVariables(names: string[], query: string): string[] {
 
   return names.filter((name) => name.toLowerCase().includes(q));
 }
+
+// A variable the autocomplete can offer, with its scope (drives the grouped popover headers).
+export interface VariableOption {
+  name: string;
+  scope: 'global' | 'local';
+}
+
+const SCOPE_ORDER: VariableOption['scope'][] = ['local', 'global'];
+
+// The options a `#query` should list: filtered by the query, local variables before global — the
+// order that drives both the rendered popover and its keyboard navigation.
+export function visibleVariableOptions(variables: VariableOption[], query: string): VariableOption[] {
+  const matches = new Set(filterVariables(variables.map((v) => v.name), query));
+
+  return variables
+    .filter((v) => matches.has(v.name))
+    .sort((a, b) => SCOPE_ORDER.indexOf(a.scope) - SCOPE_ORDER.indexOf(b.scope));
+}

@@ -152,7 +152,13 @@ const LayerBox = ({ layer, index, t, active, frameRect, onSelect, onPatch }: Lay
       onPointerCancel={endGesture}
       onKeyDown={onKeyDown}
       style={{ left: `${geo.x}%`, top: `${geo.y}%`, width: `${geo.w}%`, height: `${geo.h}%` }}
-      className={cn('absolute cursor-move touch-none rounded-[0.15em] outline-none', active && 'ring-2 ring-brand-500')}
+      // pointer-events-auto: the canvas wraps the backdrop group in a pointer-events-none div (so the
+      // look/grade CSS filter can apply to it without eating empty-area clicks); re-enable events here
+      // to keep the layer boxes draggable.
+      className={cn(
+        'pointer-events-auto absolute cursor-move touch-none rounded-[0.15em] outline-none',
+        active && 'ring-2 ring-brand-500'
+      )}
     >
       <div aria-hidden className="absolute inset-0 rounded-[0.15em]" style={layerFill(layer)} />
       {active && (

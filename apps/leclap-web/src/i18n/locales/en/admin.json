@@ -205,7 +205,53 @@
     "partialSave": "Save partial",
     "partialPreviewLabel": "Partial preview",
     "partialUnset": "No partial selected",
-    "dragToReorder": "Drag to reorder"
+    "dragToReorder": "Drag to reorder",
+    "timelineEmptyTitle": "Build your story scene by scene",
+    "timelineEmptyCta": "Browse starter templates"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "hint": "Press ? anytime to open this list",
+    "undo": "Undo",
+    "redo": "Redo",
+    "save": "Save template",
+    "duplicateScene": "Duplicate scene",
+    "deleteScene": "Delete scene",
+    "addScene": "Add scene",
+    "prevScene": "Previous scene",
+    "nextScene": "Next scene",
+    "tools": "Previous / next tool",
+    "playPause": "Play / pause preview",
+    "showHelp": "Show shortcuts"
+  },
+  "presets": {
+    "pickerTitle": "Start your template",
+    "pickerSubtitle": "Pick a ready-made structure, or start from a blank canvas.",
+    "startBlank": "Start blank",
+    "items": {
+      "talking-head": {
+        "name": "Talking-head intro",
+        "description": "Title card, your clip, and an outro."
+      },
+      "product-showcase": {
+        "name": "Product showcase",
+        "description": "Ken Burns image, your clip, and background music."
+      },
+      "testimonial": {
+        "name": "Testimonial",
+        "description": "A quote with a lower third, then a closing card."
+      }
+    }
+  },
+  "monitor": {
+    "fallbackMusicTitle": "Background music",
+    "fallbackMusicSubtitle": "Audio only — this scene plays under the video with nothing on screen.",
+    "fallbackFormTitle": "Form fields",
+    "fallbackFormSubtitle": "Viewers fill these fields before rendering; their answers feed the template variables.",
+    "playing": "Playing",
+    "play": "Play",
+    "pause": "Pause",
+    "scrub": "Seek through the video"
   },
   "testRender": {
     "rendering": "Rendering…",
@@ -253,6 +299,7 @@
     "deleteText": "Delete text",
     "color": "Color",
     "textColor": "Text color",
+    "textOpacity": "Text opacity — {{percent}}%",
     "box": "Box",
     "boxColor": "Box color",
     "boxOpacity": "Box opacity — {{percent}}%",
@@ -280,7 +327,12 @@
     "normalizeOff": "Off",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dynamic",
-    "ducking": "Lower music when people speak"
+    "ducking": "Lower music when people speak",
+    "duckingAdvanced": "Advanced ducking",
+    "duckingThreshold": "Threshold",
+    "duckingRatio": "Ratio",
+    "duckingAttack": "Attack",
+    "duckingRelease": "Release"
   },
   "sectionAudio": {
     "label": "Section audio",
@@ -315,7 +367,28 @@
     "saturation": "Saturation",
     "gamma": "Gamma",
     "hue": "Hue",
-    "blur": "Blur"
+    "blur": "Blur",
+    "colorBalance": "Color balance",
+    "shadows": "Shadows",
+    "midtones": "Midtones",
+    "highlights": "Highlights",
+    "channelR": "Red",
+    "channelG": "Green",
+    "channelB": "Blue",
+    "curvesPreset": "Curves preset",
+    "curvesNone": "None",
+    "curves": {
+      "color_negative": "Color negative",
+      "cross_process": "Cross process",
+      "darker": "Darker",
+      "increase_contrast": "Increase contrast",
+      "lighter": "Lighter",
+      "linear_contrast": "Linear contrast",
+      "medium_contrast": "Medium contrast",
+      "negative": "Negative",
+      "strong_contrast": "Strong contrast",
+      "vintage": "Vintage"
+    }
   },
   "layer": {
     "background": "Background",
@@ -362,6 +435,13 @@
     "position": "Position",
     "scale": "Scale",
     "scaleHint": "px · −1 keeps aspect",
+    "fit": "Fit",
+    "fitStretch": "Stretch",
+    "fitContain": "Contain",
+    "fitCover": "Cover",
+    "fitStretchHint": "Fill the W×H box freely, may distort",
+    "fitContainHint": "Fit inside the box, keep the aspect ratio",
+    "fitCoverHint": "Fill the box and crop the overflow",
     "positionHint": "px from top-left",
     "opacity": "Opacity",
     "rotation": "Rotation",
@@ -397,7 +477,15 @@
     "layer": "Background",
     "image": "Image",
     "animation": "Animation",
-    "backgroundImage": "Background image"
+    "backgroundImage": "Background image",
+    "titleCard": "Title card",
+    "lowerThird": "Lower third",
+    "caption": "Caption",
+    "detach": "Detach into text elements",
+    "detachHint": "Turns this block into free text elements you can drag anywhere — its automatic layout is lost.",
+    "addCaption": "Caption",
+    "addTitleCard": "Title card",
+    "addLowerThird": "Lower third"
   },
   "motion": {
     "label": "Motion",
@@ -409,7 +497,19 @@
     "panLeft": "Pan left",
     "panRight": "Pan right",
     "panUp": "Pan up",
-    "panDown": "Pan down"
+    "panDown": "Pan down",
+    "enable": "Motion effect",
+    "type": "Effect type",
+    "kindKenburns": "Ken Burns",
+    "kindRotate": "Rotate",
+    "kindFlip": "Flip",
+    "kindCrop": "Crop",
+    "angle": "Angle",
+    "axis": "Flip axis",
+    "axisHorizontal": "Horizontal",
+    "axisVertical": "Vertical",
+    "cropWidth": "Crop width",
+    "cropHeight": "Crop height"
   },
   "disclosure": {
     "effects": "Effects",
@@ -433,6 +533,8 @@
     "add": "Add an image",
     "label": "Image",
     "remove": "Remove image",
+    "startLabel": "Appears at (s)",
+    "endLabel": "Disappears at (s)",
     "count_one": "{{count}} image",
     "count_other": "{{count}} images"
   },
@@ -452,7 +554,8 @@
     "customVolume": "Custom volume",
     "fadeIn": "Fade in",
     "fadeOut": "Fade out",
-    "fadeInOut": "Fade in/out"
+    "fadeInOut": "Fade in/out",
+    "motion": "Motion"
   },
   "hint": {
     "video": "Record yourself on camera",
@@ -505,7 +608,9 @@
     "whatToFilmHint": "Shown to the person filming while they record — a quick prompt, never burned into the video.",
     "countdown": "Countdown before recording",
     "countdownSeconds_one": "Countdown (second)",
-    "countdownSeconds_other": "Countdown (seconds)"
+    "countdownSeconds_other": "Countdown (seconds)",
+    "speed": "Playback speed",
+    "speedHint": "Slower or faster playback also stretches or shortens this scene in the final video."
   },
   "image": {
     "pickImages": "Choose a background.",
@@ -572,7 +677,9 @@
     "fadeIn": "Fade in",
     "fadeOut": "Fade out",
     "summaryEmpty": "no text",
-    "hint": "A clean kicker / headline / subtitle card — sized to the orientation."
+    "hint": "A clean kicker / headline / subtitle card — sized to the orientation.",
+    "background": "Card background",
+    "fade": "Auto fade"
   },
   "lowerThird": {
     "title": "Title",
@@ -607,5 +714,43 @@
       "bottom": "Bottom",
       "center": "Center"
     }
+  },
+  "caption": {
+    "label": "Caption",
+    "hint": "A styled text band burned onto this scene.",
+    "placeholder": "Caption text…",
+    "styleLabel": "Style",
+    "positionLabel": "Position",
+    "alignLabel": "Alignment",
+    "advanced": "Advanced styling",
+    "advancedNone": "Defaults",
+    "font": "Font",
+    "fontDefault": "Default font",
+    "fontsize": "Font size",
+    "color": "Text color",
+    "box": "Background box",
+    "boxColor": "Box color",
+    "boxOpacity": "Box opacity",
+    "position": {
+      "top": "Top",
+      "center": "Center",
+      "bottom": "Bottom",
+      "lower-third": "Lower third"
+    },
+    "style": {
+      "bar": "Bar",
+      "subtle": "Subtle",
+      "bold": "Bold"
+    },
+    "align": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
+    }
+  },
+  "scene": {
+    "notes": "Scene notes",
+    "notesHint": "Private notes for collaborators — never shown in the video.",
+    "notesPlaceholder": "e.g. Swap this clip after the launch…"
   }
 }

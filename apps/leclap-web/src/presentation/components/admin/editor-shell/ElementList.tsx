@@ -16,11 +16,15 @@ import type { ElementDescriptor } from './sectionElements';
 import { CANVAS_DND_MIME } from './canvasDrop';
 
 // Shared with AddElementMenu's KIND_ICON so list rows and add-menu items use the same glyph per kind.
+// The text-sugar singletons reuse the text glyph — they are styled text blocks, differentiated by label.
 const KIND_ICON: Record<ElementRef['kind'], ComponentType<{ className?: string }>> = {
   layer: Square,
   text: Type,
   image: Image,
   animation: SparklesIcon,
+  caption: Type,
+  titleCard: Type,
+  lowerThird: Type,
 };
 
 // Two refs point at the same element when both kind and index match.

@@ -4,15 +4,18 @@
 // controls read/write) so both consumers depend on the single source. The owning PairField / AxisInput
 // helpers live here too.
 import { useTranslation } from 'react-i18next';
+import type { OverlayFit } from '../templateEditorModel';
 import { RotateCcw } from '@/presentation/components/icons';
 import { parsePair, formatPair } from './animationOverlay';
-import { RangeSlider } from './controls';
+import { RangeSlider, SegmentedControl } from './controls';
 
 // The subset of overlay fields the shared placement controls read/write. Both AnimationOverlay and
-// ImageOverlay carry these (string "x:y" position, string "w:h" scale, 0–1 opacity, degrees rotation).
+// ImageOverlay carry these (string "x:y" position, string "w:h" scale, 0–1 opacity, degrees rotation,
+// and the fit mode that keeps a logo/sticker's aspect inside that scale box).
 export interface OverlayPlacementValue {
   position?: string;
   scale?: string;
+  fit?: OverlayFit;
   opacity?: number;
   rotation?: number;
 }
@@ -50,6 +53,22 @@ export const PlacementFields = ({ value, onChange }: PlacementFieldsProps) => {
           onChange({ scale });
         }}
       />
+      {/* Fit only acts on a fixed W:H box, so the control appears once a scale is set. 'stretch'
+          is the engine default and is stored as undefined to keep the descriptor minimal. */}
+      {value.scale ? (
+        <SegmentedControl<OverlayFit>
+          label={t('animation.fit')}
+          value={value.fit ?? 'stretch'}
+          options={[
+            { value: 'stretch', label: t('animation.fitStretch'), title: t('animation.fitStretchHint') },
+            { value: 'contain', label: t('animation.fitContain'), title: t('animation.fitContainHint') },
+            { value: 'cover', label: t('animation.fitCover'), title: t('animation.fitCoverHint') },
+          ]}
+          onChange={(fit) => {
+            onChange({ fit: fit === 'stretch' ? undefined : fit });
+          }}
+        />
+      ) : null}
       <RangeSlider
         label={t('animation.opacity')}
         value={value.opacity ?? 1}
@@ -78,7 +97,8 @@ export const PlacementFields = ({ value, onChange }: PlacementFieldsProps) => {
         <button
           type="button"
           onClick={() => {
-            onChange({ position: undefined, scale: undefined });
+            // Clearing the scale also clears the fit — without a box the mode has nothing to act on.
+            onChange({ position: undefined, scale: undefined, fit: undefined });
           }}
           className="tap inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[0.65rem] font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-300"
         >

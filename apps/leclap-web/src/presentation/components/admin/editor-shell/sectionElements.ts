@@ -16,12 +16,16 @@ import {
   makeTemplateId,
   newOverlay,
   type EditorSection,
+  type EditorCaption,
   type TextOverlay,
+  type TitleCard,
   type ImageOverlay,
   type AnimationOverlay,
   type BackgroundLayer,
+  type LowerThird,
 } from '../templateEditorModel';
 import { newExtraLayer } from '../editor/layerGeometry';
+import { translationText } from './sugarPreviewGeometry';
 import type { ElementRef } from './useSectionSelection';
 
 export interface ElementDescriptor {
@@ -36,8 +40,18 @@ export interface ElementDescriptor {
 
 type ArrayField = 'layers' | 'overlays' | 'images' | 'animations';
 
-// The array field that backs each ElementRef kind.
-const FIELD_FOR_KIND: Record<ElementRef['kind'], ArrayField> = {
+// The kinds backed by an ordered per-section array, vs the SINGLETON text-sugar kinds
+// (caption/titleCard/lowerThird — at most one per section, always ElementRef index 0). Sugar is
+// authored via the scene fields / its inspector, never added or reordered like array elements.
+type ArrayKind = 'layer' | 'text' | 'image' | 'animation';
+export type SugarKind = 'caption' | 'titleCard' | 'lowerThird';
+
+export function isSugarKind(kind: ElementRef['kind']): kind is SugarKind {
+  return kind === 'caption' || kind === 'titleCard' || kind === 'lowerThird';
+}
+
+// The array field that backs each array-backed ElementRef kind.
+const FIELD_FOR_KIND: Record<ArrayKind, ArrayField> = {
   layer: 'layers',
   text: 'overlays',
   image: 'images',
@@ -55,11 +69,32 @@ const OWNED_KINDS: Record<EditorSection['kind'], ReadonlyArray<ElementRef['kind'
   partial: [],
 };
 
+// Which section kinds may carry each sugar singleton (mirrors the editor model: titleCard lives on
+// color sections, lowerThird on video sections, caption on every visual section).
+const SUGAR_OWNERS: Record<SugarKind, ReadonlyArray<EditorSection['kind']>> = {
+  caption: ['video', 'color', 'image'],
+  titleCard: ['color'],
+  lowerThird: ['video'],
+};
+
 // Stable flatten order: background layers, then text overlays, then image overlays, then animations.
-const KIND_ORDER: ReadonlyArray<ElementRef['kind']> = ['layer', 'text', 'image', 'animation'];
+const KIND_ORDER: ReadonlyArray<ArrayKind> = ['layer', 'text', 'image', 'animation'];
+
+// Sugar rows follow the array elements, in the engine's overlay draw order (registry 50/55/58).
+const SUGAR_ORDER: ReadonlyArray<SugarKind> = ['caption', 'titleCard', 'lowerThird'];
+
+// The sugar value a section carries for `kind`, or undefined when unowned/absent.
+function sugarValue(section: EditorSection, kind: SugarKind): unknown {
+  if (!SUGAR_OWNERS[kind].includes(section.kind)) return undefined;
+
+  return (section as Record<string, unknown>)[kind];
+}
 
 // The element array a section carries for `kind`, defaulting to [] for an owned-but-absent array.
+// Sugar kinds are not array-backed, so they read as "no array" here.
 function sectionArray(section: EditorSection, kind: ElementRef['kind']): unknown[] | undefined {
+  if (isSugarKind(kind)) return undefined;
+
   if (!OWNED_KINDS[section.kind].includes(kind)) return undefined;
 
   const value = (section as Record<string, unknown>)[FIELD_FOR_KIND[kind]];
@@ -69,8 +104,13 @@ function sectionArray(section: EditorSection, kind: ElementRef['kind']): unknown
   return value;
 }
 
-// True only when the section kind owns the array for `kind`.
+// True when the section can gain an element of `kind`: array kinds need the owning section kind;
+// a sugar singleton is addable only where owned AND while still absent (at most one per section).
 export function canAddElement(section: EditorSection, kind: ElementRef['kind']): boolean {
+  if (isSugarKind(kind)) {
+    return SUGAR_OWNERS[kind].includes(section.kind) && sugarValue(section, kind) === undefined;
+  }
+
   return OWNED_KINDS[section.kind].includes(kind);
 }
 
@@ -93,7 +133,7 @@ function mediaChoiceLabel(choice: ImageOverlay['choice']): string | undefined {
 
 // A short, identity-bearing content preview for an element row — the overlay text or the asset
 // filename — truncated. Undefined when the element has no content to show yet.
-function elementPreview(element: unknown, kind: ElementRef['kind']): string | undefined {
+function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
   const raw = ((): string | undefined => {
     if (kind === 'text') return (element as TextOverlay).text.trim() || undefined;
 
@@ -104,12 +144,16 @@ function elementPreview(element: unknown, kind: ElementRef['kind']): string | un
     return undefined;
   })();
 
+  return truncatePreview(raw);
+}
+
+function truncatePreview(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
 
   return raw.length > 24 ? `${raw.slice(0, 24)}…` : raw;
 }
 
-function descriptorsFor(section: EditorSection, kind: ElementRef['kind']): ElementDescriptor[] {
+function descriptorsFor(section: EditorSection, kind: ArrayKind): ElementDescriptor[] {
   const list = sectionArray(section, kind);
 
   if (!list) return [];
@@ -123,13 +167,49 @@ function descriptorsFor(section: EditorSection, kind: ElementRef['kind']): Eleme
   }));
 }
 
-// Flatten a section's elements into the documented order with one descriptor per indexed element.
+// The identity-bearing line of a sugar singleton for its list row (the caption text, the card
+// headline, the band title), resolved like the canvas preview resolves translations.
+function sugarPreview(value: unknown, kind: SugarKind): string | undefined {
+  if (kind === 'caption') return (value as EditorCaption).text.trim() || undefined;
+
+  if (kind === 'titleCard') {
+    const card = value as TitleCard;
+
+    return [card.headline, card.kicker, card.subtitle].map(translationText).find((line) => line.trim() !== '');
+  }
+
+  const third = value as LowerThird;
+
+  return [third.title, third.subtitle, third.badge].map(translationText).find((line) => line.trim() !== '');
+}
+
+// One index-0 descriptor per sugar singleton the section currently carries. `labelParams` is omitted
+// on purpose: a singleton row reads as "Caption", never "Caption 1".
+function sugarDescriptors(section: EditorSection): ElementDescriptor[] {
+  return SUGAR_ORDER.flatMap((kind) => {
+    const value = sugarValue(section, kind);
+
+    if (!value) return [];
+
+    return [
+      {
+        ref: { kind, index: 0 },
+        kind,
+        labelKey: `element.${kind}`,
+        previewText: truncatePreview(sugarPreview(value, kind)),
+      },
+    ];
+  });
+}
+
+// Flatten a section's elements into the documented order with one descriptor per indexed element,
+// followed by the sugar singletons so they are selectable from the panel like anything else.
 export function listSectionElements(section: EditorSection): ElementDescriptor[] {
-  return KIND_ORDER.flatMap((kind) => descriptorsFor(section, kind));
+  return [...KIND_ORDER.flatMap((kind) => descriptorsFor(section, kind)), ...sugarDescriptors(section)];
 }
 
 // A fresh default element for `kind`, reusing the model's real factories.
-function newElement(kind: ElementRef['kind']): TextOverlay | BackgroundLayer | ImageOverlay | AnimationOverlay {
+function newElement(kind: ArrayKind): TextOverlay | BackgroundLayer | ImageOverlay | AnimationOverlay {
   if (kind === 'text') return newOverlay();
 
   if (kind === 'layer') return newExtraLayer();
@@ -139,12 +219,32 @@ function newElement(kind: ElementRef['kind']): TextOverlay | BackgroundLayer | I
   return { id: makeTemplateId(), url: '' };
 }
 
-// Append a default element to the matching array; returns the immutable patch + a ref at the new
-// last index. Null when the section does not own the array.
+// A fresh, immediately-visible default for a sugar singleton — seeded with placeholder text (like
+// the form-field factory's 'Label') because an empty sugar renders nothing on the canvas.
+function newSugar(kind: SugarKind): Partial<EditorSection> {
+  if (kind === 'caption') {
+    return { caption: { text: 'Your caption', style: 'subtle', position: 'bottom' } } as Partial<EditorSection>;
+  }
+
+  if (kind === 'titleCard') {
+    return { titleCard: { headline: { en: 'Your headline' } } } as Partial<EditorSection>;
+  }
+
+  return { lowerThird: { title: { en: 'Your title' } } } as Partial<EditorSection>;
+}
+
+// Append a default element to the matching array (ref at the new last index), or seed an absent
+// sugar singleton (ref at index 0). Null when the section can't gain that kind.
 export function addElement(
   section: EditorSection,
   kind: ElementRef['kind']
 ): { patch: Partial<EditorSection>; ref: ElementRef } | null {
+  if (isSugarKind(kind)) {
+    if (!canAddElement(section, kind)) return null;
+
+    return { patch: newSugar(kind), ref: { kind, index: 0 } };
+  }
+
   const list = sectionArray(section, kind);
 
   if (!list) return null;
@@ -158,8 +258,15 @@ export function addElement(
   };
 }
 
-// Drop the referenced index from the matching array. No-op patch when the section lacks the array.
+// Drop the referenced index from the matching array. A sugar ref clears its singleton field instead
+// (patchSection merges `{ lowerThird: undefined }` over the section). No-op patch when unowned.
 export function removeElement(section: EditorSection, ref: ElementRef): Partial<EditorSection> {
+  if (isSugarKind(ref.kind)) {
+    if (sugarValue(section, ref.kind) === undefined) return {};
+
+    return { [ref.kind]: undefined } as Partial<EditorSection>;
+  }
+
   const list = sectionArray(section, ref.kind);
 
   if (!list) return {};
@@ -170,8 +277,11 @@ export function removeElement(section: EditorSection, ref: ElementRef): Partial<
   return { [field]: next } as Partial<EditorSection>;
 }
 
-// Move the referenced element by `delta`, clamped in-bounds (no-op patch at an edge / missing array).
+// Move the referenced element by `delta`, clamped in-bounds (no-op patch at an edge / missing array
+// / a sugar singleton, which has no order to change).
 export function reorderElement(section: EditorSection, ref: ElementRef, delta: number): Partial<EditorSection> {
+  if (isSugarKind(ref.kind)) return {};
+
   const list = sectionArray(section, ref.kind);
 
   if (!list) return {};

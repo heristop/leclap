@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { findHashQuery, insertVariableAtHash, filterVariables } from './variableInsert';
+import {
+  findHashQuery,
+  insertVariableAtHash,
+  filterVariables,
+  visibleVariableOptions,
+  type VariableOption,
+} from './variableInsert';
 
 describe('findHashQuery', () => {
   it('detects a `#query` typed at the caret', () => {
@@ -57,5 +63,26 @@ describe('filterVariables', () => {
   it('filters case-insensitively by substring', () => {
     expect(filterVariables(['optionA1', 'optionB1', 'name'], 'opt')).toEqual(['optionA1', 'optionB1']);
     expect(filterVariables(['optionA1', 'formName'], 'NAME')).toEqual(['formName']);
+  });
+});
+
+describe('visibleVariableOptions', () => {
+  const variables: VariableOption[] = [
+    { name: 'brand', scope: 'global' },
+    { name: 'firstName', scope: 'local' },
+    { name: 'price', scope: 'global' },
+  ];
+
+  it('keeps everything for an empty query, local variables first', () => {
+    expect(visibleVariableOptions(variables, '')).toEqual([
+      { name: 'firstName', scope: 'local' },
+      { name: 'brand', scope: 'global' },
+      { name: 'price', scope: 'global' },
+    ]);
+  });
+
+  it('filters by the query and preserves the local-first order', () => {
+    expect(visibleVariableOptions(variables, 'name')).toEqual([{ name: 'firstName', scope: 'local' }]);
+    expect(visibleVariableOptions(variables, 'zzz')).toEqual([]);
   });
 });

@@ -1,0 +1,82 @@
+import { describe, it, expect } from 'vitest';
+import { overlayVisibilityAt, revealOffset, easeOutExpo, REVEAL_DEFAULTS } from './overlay-visibility.logic';
+
+describe('easeOutExpo', () => {
+  it('pins the endpoints and rises steeply early', () => {
+    expect(easeOutExpo(0)).toBe(0);
+    expect(easeOutExpo(1)).toBe(1);
+    expect(easeOutExpo(0.5)).toBeGreaterThan(0.9);
+  });
+});
+
+describe('revealOffset', () => {
+  it('rises toward rest on entrance and away on exit', () => {
+    const enter = revealOffset('rise', 0, 60, true);
+    expect(enter.translateY).toBe(60);
+    expect(enter.opacity).toBe(0);
+
+    const settled = revealOffset('rise', 1, 60, true);
+    expect(settled.translateY).toBe(0);
+    expect(settled.opacity).toBe(1);
+
+    const leaving = revealOffset('rise', 1, 60, false);
+    expect(leaving.translateY).toBe(60);
+    expect(leaving.opacity).toBe(0);
+  });
+
+  it('slides horizontally for slide styles and fades in place for fade', () => {
+    expect(revealOffset('slide-left', 0, 60, true).translateX).toBe(60);
+    expect(revealOffset('slide-right', 0, 60, true).translateX).toBe(-60);
+    const fade = revealOffset('fade', 0.0, 60, true);
+    expect(fade.translateX).toBe(0);
+    expect(fade.translateY).toBe(0);
+  });
+
+  it('treats unknown/none styles as always visible', () => {
+    expect(revealOffset('none', 0, 60, true)).toEqual({ opacity: 1, translateX: 0, translateY: 0 });
+  });
+});
+
+describe('overlayVisibilityAt', () => {
+  it('is resting for an overlay without reveal or exit', () => {
+    expect(overlayVisibilityAt(undefined, undefined, 2, 8)).toMatchObject({ phase: 'hold', opacity: 1 });
+  });
+
+  it('walks before → reveal → hold with default timing', () => {
+    const reveal = 'rise' as const;
+    expect(overlayVisibilityAt(reveal, undefined, 0.1, 8).phase).toBe('before');
+    expect(overlayVisibilityAt(reveal, undefined, 0.1, 8).opacity).toBe(0);
+
+    const mid = overlayVisibilityAt(reveal, undefined, REVEAL_DEFAULTS.delay + 0.3, 8);
+    expect(mid.phase).toBe('reveal');
+    expect(mid.progress).toBeCloseTo(0.5, 5);
+
+    expect(overlayVisibilityAt(reveal, undefined, 2, 8)).toMatchObject({ phase: 'hold', opacity: 1 });
+  });
+
+  it('honours object timing overrides', () => {
+    const custom = { type: 'fade', delay: 1, duration: 2 } as const;
+    expect(overlayVisibilityAt(custom, undefined, 0.9, 8).phase).toBe('before');
+    expect(overlayVisibilityAt(custom, undefined, 2, 8)).toMatchObject({ phase: 'reveal' });
+    expect(overlayVisibilityAt(custom, undefined, 2, 8).progress).toBeCloseTo(0.5, 5);
+  });
+
+  it('times an after-less exit to end exactly at the scene end', () => {
+    const exit = 'fade' as const;
+    // duration 8, exit duration 0.6 → exit starts at 7.4
+    expect(overlayVisibilityAt(undefined, exit, 7.3, 8).phase).toBe('hold');
+    expect(overlayVisibilityAt(undefined, exit, 7.7, 8).phase).toBe('exit');
+    expect(overlayVisibilityAt(undefined, exit, 7.7, 8).progress).toBeCloseTo(0.5, 5);
+  });
+
+  it('starts an explicit exit at `after` seconds and hides beyond it', () => {
+    const exit = { type: 'rise', after: 3, duration: 1 } as const;
+    expect(overlayVisibilityAt(undefined, exit, 2.9, 8).phase).toBe('hold');
+    expect(overlayVisibilityAt(undefined, exit, 3.5, 8).phase).toBe('exit');
+    expect(overlayVisibilityAt(undefined, exit, 5, 8)).toMatchObject({ phase: 'after', opacity: 0 });
+  });
+
+  it('ignores none-type reveals and exits', () => {
+    expect(overlayVisibilityAt('none', 'none', 0, 8)).toMatchObject({ phase: 'hold', opacity: 1 });
+  });
+});

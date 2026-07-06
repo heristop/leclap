@@ -205,7 +205,53 @@
     "partialSave": "Salva partial",
     "partialPreviewLabel": "Anteprima del partial",
     "partialUnset": "Nessun partial selezionato",
-    "dragToReorder": "Trascina per riordinare"
+    "dragToReorder": "Trascina per riordinare",
+    "timelineEmptyTitle": "Costruisci la tua storia scena per scena",
+    "timelineEmptyCta": "Sfoglia i modelli di partenza"
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "hint": "Premi ? in qualsiasi momento per aprire questo elenco",
+    "undo": "Annulla",
+    "redo": "Ripeti",
+    "save": "Salva modello",
+    "duplicateScene": "Duplica scena",
+    "deleteScene": "Elimina scena",
+    "addScene": "Aggiungi scena",
+    "prevScene": "Scena precedente",
+    "nextScene": "Scena successiva",
+    "tools": "Strumento precedente / successivo",
+    "playPause": "Riproduci / metti in pausa anteprima",
+    "showHelp": "Mostra scorciatoie"
+  },
+  "presets": {
+    "pickerTitle": "Inizia il tuo modello",
+    "pickerSubtitle": "Scegli una struttura pronta all’uso o parti da zero.",
+    "startBlank": "Inizia da zero",
+    "items": {
+      "talking-head": {
+        "name": "Intro a camera",
+        "description": "Scheda titolo, il tuo clip e una chiusura."
+      },
+      "product-showcase": {
+        "name": "Vetrina prodotto",
+        "description": "Immagine con Ken Burns, il tuo clip e musica di sottofondo."
+      },
+      "testimonial": {
+        "name": "Testimonianza",
+        "description": "Una citazione con sottopancia, poi una scheda finale."
+      }
+    }
+  },
+  "monitor": {
+    "fallbackMusicTitle": "Musica di sottofondo",
+    "fallbackMusicSubtitle": "Solo audio: questa scena suona sotto il video senza nulla sullo schermo.",
+    "fallbackFormTitle": "Campi del modulo",
+    "fallbackFormSubtitle": "Gli spettatori compilano questi campi prima del rendering; le risposte alimentano le variabili del modello.",
+    "playing": "Riproduzione",
+    "play": "Riproduci",
+    "pause": "Pausa",
+    "scrub": "Scorri il video"
   },
   "testRender": {
     "rendering": "Rendering…",
@@ -253,6 +299,7 @@
     "deleteText": "Elimina testo",
     "color": "Colore",
     "textColor": "Colore del testo",
+    "textOpacity": "Opacità del testo — {{percent}}%",
     "box": "Riquadro",
     "boxColor": "Colore del riquadro",
     "boxOpacity": "Opacità del riquadro — {{percent}}%",
@@ -280,7 +327,12 @@
     "normalizeOff": "Off",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dinamico",
-    "ducking": "Abbassa la musica quando si parla"
+    "ducking": "Abbassa la musica quando si parla",
+    "duckingAdvanced": "Ducking avanzato",
+    "duckingThreshold": "Soglia",
+    "duckingRatio": "Rapporto",
+    "duckingAttack": "Attacco",
+    "duckingRelease": "Rilascio"
   },
   "sectionAudio": {
     "label": "Audio della sezione",
@@ -315,7 +367,28 @@
     "saturation": "Saturazione",
     "gamma": "Gamma",
     "hue": "Tonalità",
-    "blur": "Sfocatura"
+    "blur": "Sfocatura",
+    "colorBalance": "Bilanciamento colore",
+    "shadows": "Ombre",
+    "midtones": "Mezzitoni",
+    "highlights": "Luci",
+    "channelR": "Rosso",
+    "channelG": "Verde",
+    "channelB": "Blu",
+    "curvesPreset": "Preset curve",
+    "curvesNone": "Nessuno",
+    "curves": {
+      "color_negative": "Negativo a colori",
+      "cross_process": "Cross process",
+      "darker": "Più scuro",
+      "increase_contrast": "Più contrasto",
+      "lighter": "Più chiaro",
+      "linear_contrast": "Contrasto lineare",
+      "medium_contrast": "Contrasto medio",
+      "negative": "Negativo",
+      "strong_contrast": "Contrasto forte",
+      "vintage": "Vintage"
+    }
   },
   "layer": {
     "background": "Sfondo",
@@ -362,6 +435,13 @@
     "position": "Posizione",
     "scale": "Scala",
     "scaleHint": "px · −1 mantiene le proporzioni",
+    "fit": "Adattamento",
+    "fitStretch": "Estendi",
+    "fitContain": "Contieni",
+    "fitCover": "Copri",
+    "fitStretchHint": "Riempie liberamente il riquadro L×A, può deformare",
+    "fitContainHint": "Sta nel riquadro mantenendo le proporzioni",
+    "fitCoverHint": "Riempie il riquadro e ritaglia l'eccedenza",
     "positionHint": "px dall’alto a sinistra",
     "opacity": "Opacità",
     "rotation": "Rotazione",
@@ -397,7 +477,15 @@
     "layer": "Sfondo",
     "image": "Immagine",
     "animation": "Animazione",
-    "backgroundImage": "Immagine di sfondo"
+    "backgroundImage": "Immagine di sfondo",
+    "titleCard": "Scheda titolo",
+    "lowerThird": "Sottopancia",
+    "caption": "Didascalia",
+    "detach": "Scollega in elementi di testo",
+    "detachHint": "Trasforma questo blocco in elementi di testo liberi da trascinare ovunque — il layout automatico va perso.",
+    "addCaption": "Didascalia",
+    "addTitleCard": "Scheda titolo",
+    "addLowerThird": "Sottopancia"
   },
   "motion": {
     "label": "Movimento",
@@ -409,7 +497,19 @@
     "panLeft": "Panoramica a sinistra",
     "panRight": "Panoramica a destra",
     "panUp": "Panoramica verso l’alto",
-    "panDown": "Panoramica verso il basso"
+    "panDown": "Panoramica verso il basso",
+    "enable": "Effetto di movimento",
+    "type": "Tipo di effetto",
+    "kindKenburns": "Ken Burns",
+    "kindRotate": "Ruota",
+    "kindFlip": "Specchia",
+    "kindCrop": "Ritaglia",
+    "angle": "Angolo",
+    "axis": "Asse di specchiatura",
+    "axisHorizontal": "Orizzontale",
+    "axisVertical": "Verticale",
+    "cropWidth": "Larghezza ritaglio",
+    "cropHeight": "Altezza ritaglio"
   },
   "disclosure": {
     "effects": "Effetti",
@@ -433,6 +533,8 @@
     "add": "Aggiungi un’immagine",
     "label": "Immagine",
     "remove": "Rimuovi immagine",
+    "startLabel": "Appare a (s)",
+    "endLabel": "Scompare a (s)",
     "count_one": "{{count}} immagine",
     "count_other": "{{count}} immagini"
   },
@@ -452,7 +554,8 @@
     "customVolume": "Volume personalizzato",
     "fadeIn": "Dissolvenza in entrata",
     "fadeOut": "Dissolvenza in uscita",
-    "fadeInOut": "Dissolvenza in entrata/uscita"
+    "fadeInOut": "Dissolvenza in entrata/uscita",
+    "motion": "Movimento"
   },
   "hint": {
     "video": "Registrati con la fotocamera",
@@ -505,7 +608,9 @@
     "whatToFilmHint": "Mostrato a chi filma durante la registrazione — un suggerimento rapido, mai impresso nel video.",
     "countdown": "Conto alla rovescia prima di registrare",
     "countdownSeconds_one": "Conto alla rovescia (secondo)",
-    "countdownSeconds_other": "Conto alla rovescia (secondi)"
+    "countdownSeconds_other": "Conto alla rovescia (secondi)",
+    "speed": "Velocità di riproduzione",
+    "speedHint": "Una riproduzione più lenta o più veloce allunga o accorcia anche questa scena nel video finale."
   },
   "image": {
     "pickImages": "Scegli uno sfondo.",
@@ -572,7 +677,9 @@
     "fadeIn": "Dissolvenza in entrata",
     "fadeOut": "Dissolvenza in uscita",
     "summaryEmpty": "nessun testo",
-    "hint": "Un cartello pulito con occhiello / titolo / sottotitolo — dimensionato in base all’orientamento."
+    "hint": "Un cartello pulito con occhiello / titolo / sottotitolo — dimensionato in base all’orientamento.",
+    "background": "Sfondo della scheda",
+    "fade": "Dissolvenza automatica"
   },
   "lowerThird": {
     "title": "Titolo",
@@ -607,5 +714,43 @@
       "bottom": "In basso",
       "center": "Centro"
     }
+  },
+  "caption": {
+    "label": "Didascalia",
+    "hint": "Una banda di testo stilizzata impressa su questa scena.",
+    "placeholder": "Testo della didascalia…",
+    "styleLabel": "Stile",
+    "positionLabel": "Posizione",
+    "alignLabel": "Allineamento",
+    "advanced": "Stile avanzato",
+    "advancedNone": "Predefinito",
+    "font": "Carattere",
+    "fontDefault": "Carattere predefinito",
+    "fontsize": "Dimensione testo",
+    "color": "Colore del testo",
+    "box": "Sfondo del testo",
+    "boxColor": "Colore dello sfondo",
+    "boxOpacity": "Opacità dello sfondo",
+    "position": {
+      "top": "In alto",
+      "center": "Centro",
+      "bottom": "In basso",
+      "lower-third": "Terzo inferiore"
+    },
+    "style": {
+      "bar": "Barra",
+      "subtle": "Discreto",
+      "bold": "Deciso"
+    },
+    "align": {
+      "left": "Sinistra",
+      "center": "Centro",
+      "right": "Destra"
+    }
+  },
+  "scene": {
+    "notes": "Note di scena",
+    "notesHint": "Note private per i collaboratori — mai mostrate nel video.",
+    "notesPlaceholder": "es. Sostituire questo clip dopo il lancio…"
   }
 }

@@ -205,7 +205,53 @@
     "partialSave": "Guardar fragmento",
     "partialPreviewLabel": "Vista previa del fragmento",
     "partialUnset": "Ningún fragmento seleccionado",
-    "dragToReorder": "Arrastra para reordenar"
+    "dragToReorder": "Arrastra para reordenar",
+    "timelineEmptyTitle": "Construye tu historia escena a escena",
+    "timelineEmptyCta": "Explorar plantillas de inicio"
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "hint": "Pulsa ? en cualquier momento para abrir esta lista",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "save": "Guardar plantilla",
+    "duplicateScene": "Duplicar escena",
+    "deleteScene": "Eliminar escena",
+    "addScene": "Añadir escena",
+    "prevScene": "Escena anterior",
+    "nextScene": "Escena siguiente",
+    "tools": "Herramienta anterior / siguiente",
+    "playPause": "Reproducir / pausar vista previa",
+    "showHelp": "Mostrar atajos"
+  },
+  "presets": {
+    "pickerTitle": "Empieza tu plantilla",
+    "pickerSubtitle": "Elige una estructura lista para usar o empieza desde cero.",
+    "startBlank": "Empezar en blanco",
+    "items": {
+      "talking-head": {
+        "name": "Intro a cámara",
+        "description": "Tarjeta de título, tu clip y un cierre."
+      },
+      "product-showcase": {
+        "name": "Escaparate de producto",
+        "description": "Imagen con Ken Burns, tu clip y música de fondo."
+      },
+      "testimonial": {
+        "name": "Testimonio",
+        "description": "Una cita con rótulo, luego una tarjeta de cierre."
+      }
+    }
+  },
+  "monitor": {
+    "fallbackMusicTitle": "Música de fondo",
+    "fallbackMusicSubtitle": "Solo audio: esta escena suena bajo el vídeo sin nada en pantalla.",
+    "fallbackFormTitle": "Campos del formulario",
+    "fallbackFormSubtitle": "Los espectadores rellenan estos campos antes del renderizado; sus respuestas alimentan las variables de la plantilla.",
+    "playing": "Reproduciendo",
+    "play": "Reproducir",
+    "pause": "Pausa",
+    "scrub": "Desplazarse por el vídeo"
   },
   "testRender": {
     "rendering": "Renderizando…",
@@ -253,6 +299,7 @@
     "deleteText": "Eliminar texto",
     "color": "Color",
     "textColor": "Color del texto",
+    "textOpacity": "Opacidad del texto — {{percent}} %",
     "box": "Caja",
     "boxColor": "Color de la caja",
     "boxOpacity": "Opacidad de la caja — {{percent}} %",
@@ -280,7 +327,12 @@
     "normalizeOff": "Desactivado",
     "normalizeLoudnorm": "Loudnorm",
     "normalizeDynamic": "Dinámico",
-    "ducking": "Bajar la música cuando alguien habla"
+    "ducking": "Bajar la música cuando alguien habla",
+    "duckingAdvanced": "Ducking avanzado",
+    "duckingThreshold": "Umbral",
+    "duckingRatio": "Relación",
+    "duckingAttack": "Ataque",
+    "duckingRelease": "Liberación"
   },
   "sectionAudio": {
     "label": "Audio de la sección",
@@ -315,7 +367,28 @@
     "saturation": "Saturación",
     "gamma": "Gamma",
     "hue": "Tono",
-    "blur": "Desenfoque"
+    "blur": "Desenfoque",
+    "colorBalance": "Balance de color",
+    "shadows": "Sombras",
+    "midtones": "Tonos medios",
+    "highlights": "Luces",
+    "channelR": "Rojo",
+    "channelG": "Verde",
+    "channelB": "Azul",
+    "curvesPreset": "Preajuste de curvas",
+    "curvesNone": "Ninguno",
+    "curves": {
+      "color_negative": "Negativo de color",
+      "cross_process": "Proceso cruzado",
+      "darker": "Más oscuro",
+      "increase_contrast": "Más contraste",
+      "lighter": "Más claro",
+      "linear_contrast": "Contraste lineal",
+      "medium_contrast": "Contraste medio",
+      "negative": "Negativo",
+      "strong_contrast": "Contraste fuerte",
+      "vintage": "Vintage"
+    }
   },
   "layer": {
     "background": "Fondo",
@@ -362,6 +435,13 @@
     "position": "Posición",
     "scale": "Escala",
     "scaleHint": "px · −1 mantiene la proporción",
+    "fit": "Ajuste",
+    "fitStretch": "Estirar",
+    "fitContain": "Contener",
+    "fitCover": "Cubrir",
+    "fitStretchHint": "Rellena la caja An×Al libremente, puede deformar",
+    "fitContainHint": "Cabe dentro de la caja manteniendo la proporción",
+    "fitCoverHint": "Rellena la caja y recorta el sobrante",
     "positionHint": "px desde la esquina superior izquierda",
     "opacity": "Opacidad",
     "rotation": "Rotación",
@@ -397,7 +477,15 @@
     "layer": "Fondo",
     "image": "Imagen",
     "animation": "Animación",
-    "backgroundImage": "Imagen de fondo"
+    "backgroundImage": "Imagen de fondo",
+    "titleCard": "Tarjeta de título",
+    "lowerThird": "Rótulo",
+    "caption": "Leyenda",
+    "detach": "Separar en elementos de texto",
+    "detachHint": "Convierte este bloque en elementos de texto libres que puedes arrastrar — se pierde su diseño automático.",
+    "addCaption": "Leyenda",
+    "addTitleCard": "Tarjeta de título",
+    "addLowerThird": "Rótulo"
   },
   "motion": {
     "label": "Movimiento",
@@ -409,7 +497,19 @@
     "panLeft": "Desplazar a la izquierda",
     "panRight": "Desplazar a la derecha",
     "panUp": "Desplazar hacia arriba",
-    "panDown": "Desplazar hacia abajo"
+    "panDown": "Desplazar hacia abajo",
+    "enable": "Efecto de movimiento",
+    "type": "Tipo de efecto",
+    "kindKenburns": "Ken Burns",
+    "kindRotate": "Rotar",
+    "kindFlip": "Voltear",
+    "kindCrop": "Recortar",
+    "angle": "Ángulo",
+    "axis": "Eje de volteo",
+    "axisHorizontal": "Horizontal",
+    "axisVertical": "Vertical",
+    "cropWidth": "Ancho del recorte",
+    "cropHeight": "Alto del recorte"
   },
   "disclosure": {
     "effects": "Efectos",
@@ -433,6 +533,8 @@
     "add": "Añadir una imagen",
     "label": "Imagen",
     "remove": "Quitar imagen",
+    "startLabel": "Aparece en (s)",
+    "endLabel": "Desaparece en (s)",
     "count_one": "{{count}} imagen",
     "count_other": "{{count}} imágenes"
   },
@@ -452,7 +554,8 @@
     "customVolume": "Volumen personalizado",
     "fadeIn": "Fundido de entrada",
     "fadeOut": "Fundido de salida",
-    "fadeInOut": "Fundido de entrada/salida"
+    "fadeInOut": "Fundido de entrada/salida",
+    "motion": "Movimiento"
   },
   "hint": {
     "video": "Grábate con la cámara",
@@ -505,7 +608,9 @@
     "whatToFilmHint": "Se muestra a quien graba mientras filma: una indicación rápida, nunca incrustada en el vídeo.",
     "countdown": "Cuenta atrás antes de grabar",
     "countdownSeconds_one": "Cuenta atrás (segundo)",
-    "countdownSeconds_other": "Cuenta atrás (segundos)"
+    "countdownSeconds_other": "Cuenta atrás (segundos)",
+    "speed": "Velocidad de reproducción",
+    "speedHint": "Reproducir más lento o más rápido también alarga o acorta esta escena en el vídeo final."
   },
   "image": {
     "pickImages": "Elige un fondo.",
@@ -572,7 +677,9 @@
     "fadeIn": "Fundido de entrada",
     "fadeOut": "Fundido de salida",
     "summaryEmpty": "sin texto",
-    "hint": "Una tarjeta limpia de antetítulo / titular / subtítulo, ajustada a la orientación."
+    "hint": "Una tarjeta limpia de antetítulo / titular / subtítulo, ajustada a la orientación.",
+    "background": "Fondo de la tarjeta",
+    "fade": "Fundido automático"
   },
   "lowerThird": {
     "title": "Título",
@@ -607,5 +714,43 @@
       "bottom": "Abajo",
       "center": "Centro"
     }
+  },
+  "caption": {
+    "label": "Leyenda",
+    "hint": "Una banda de texto estilizada grabada en esta escena.",
+    "placeholder": "Texto de la leyenda…",
+    "styleLabel": "Estilo",
+    "positionLabel": "Posición",
+    "alignLabel": "Alineación",
+    "advanced": "Estilo avanzado",
+    "advancedNone": "Predeterminado",
+    "font": "Fuente",
+    "fontDefault": "Fuente predeterminada",
+    "fontsize": "Tamaño del texto",
+    "color": "Color del texto",
+    "box": "Fondo del texto",
+    "boxColor": "Color del fondo",
+    "boxOpacity": "Opacidad del fondo",
+    "position": {
+      "top": "Arriba",
+      "center": "Centro",
+      "bottom": "Abajo",
+      "lower-third": "Tercio inferior"
+    },
+    "style": {
+      "bar": "Barra",
+      "subtle": "Sutil",
+      "bold": "Impactante"
+    },
+    "align": {
+      "left": "Izquierda",
+      "center": "Centro",
+      "right": "Derecha"
+    }
+  },
+  "scene": {
+    "notes": "Notas de escena",
+    "notesHint": "Notas privadas para colaboradores; nunca se muestran en el vídeo.",
+    "notesPlaceholder": "p. ej. Cambiar este clip tras el lanzamiento…"
   }
 }

@@ -27,3 +27,19 @@ const ADVANCED: EditorTool[] = [
 // appear only when the editor is in "advanced" mode (matching the existing Simple/Advanced toggle).
 export const buildEditorTools = ({ advanced }: { advanced: boolean }): EditorTool[] =>
   advanced ? [...BASE, ...ADVANCED] : BASE;
+
+// The tool one step after `current` in `tools`, wrapping at the end. Used by the `]` shortcut.
+export const nextTool = (tools: EditorTool[], current: EditorToolId): EditorToolId => {
+  const at = tools.findIndex((tool) => tool.id === current);
+  const next = at < 0 || at >= tools.length - 1 ? 0 : at + 1;
+
+  return tools[next].id;
+};
+
+// The tool one step before `current`, wrapping at the start. Used by the `[` shortcut.
+export const prevTool = (tools: EditorTool[], current: EditorToolId): EditorToolId => {
+  const at = tools.findIndex((tool) => tool.id === current);
+  const prev = at <= 0 ? tools.length - 1 : at - 1;
+
+  return tools[prev].id;
+};

@@ -4,7 +4,7 @@
 // line removes the card. Distinct from the positional OverlayCanvas — this is the structured card.
 import { useTranslation } from 'react-i18next';
 import type { TitleCard } from '../../templateEditorModel';
-import { ColorPicker } from '@/presentation/components/ui';
+import { Checkbox, ColorPicker } from '@/presentation/components/ui';
 import { SegmentedControl, type SegmentOption } from '../controls';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
@@ -110,6 +110,42 @@ export const TitleCardField = ({ titleCard, onChange, variables, inputCls }: Tit
               }}
             />
           </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+                {t('titleCard.background')}
+              </span>
+              {/* The card's fade colour; the engine defaults to the section background when unset. */}
+              <ColorPicker
+                aria-label={t('titleCard.background')}
+                value={card.background ?? '#000000'}
+                onChange={(background) => {
+                  patch({ background });
+                }}
+              />
+            </div>
+            <div>
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+                {t('titleCard.fade')}
+              </span>
+              <div className="flex flex-col gap-1.5">
+                <FadeToggle
+                  label={t('titleCard.fadeIn')}
+                  checked={card.fade?.in ?? true}
+                  onChange={(on) => {
+                    patch({ fade: { ...card.fade, in: on } });
+                  }}
+                />
+                <FadeToggle
+                  label={t('titleCard.fadeOut')}
+                  checked={card.fade?.out ?? true}
+                  onChange={(on) => {
+                    patch({ fade: { ...card.fade, out: on } });
+                  }}
+                />
+              </div>
+            </div>
+          </div>
           <RevealControl
             reveal={card.reveal}
             onChange={(reveal) => {
@@ -127,6 +163,27 @@ export const TitleCardField = ({ titleCard, onChange, variables, inputCls }: Tit
     </div>
   );
 };
+
+// A small labelled checkbox for the card's auto fade-in / fade-out toggles.
+const FadeToggle = ({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (on: boolean) => void;
+}) => (
+  <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+    <Checkbox
+      checked={checked}
+      onCheckedChange={(c) => {
+        onChange(c === true);
+      }}
+    />
+    {label}
+  </label>
+);
 
 // One labelled text line — shared by kicker / headline / subtitle. Backed by VariableTextField so
 // typing `#` opens the in-scope variable autocomplete and stores the canonical `{{ name }}` token.

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useReducedMotion } from 'motion/react';
 import { ShellChrome, ToolDock, ProgramMonitor } from '@/presentation/components/editor-shell';
 import { templateService, type Template } from '@/services/templateService';
 import { userTemplateService } from '@/services/userTemplateService';
@@ -8,6 +9,7 @@ import { listAvailablePartials } from '@/services/templatePartialService';
 import type { StoredPartial } from '@/stores/userPartialStore';
 import type { StoredTemplate } from '@/stores/userTemplateStore';
 import { useEditorHistory } from '@/hooks/useEditorHistory';
+import { useEditorShortcuts } from '@/hooks/useEditorShortcuts';
 import { useEditorSectionOps } from '../editor/useEditorSectionOps';
 import {
   buildDescriptor,
@@ -17,13 +19,19 @@ import {
   type EditorState,
 } from '../templateEditorModel';
 import { TestRenderButton } from '../editor/TestRenderButton';
-import { buildEditorTools } from './editorTools';
+import { buildEditorTools, nextTool, prevTool } from './editorTools';
 import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { useSectionSelection } from './useSectionSelection';
 import { EditorShellTitlebar } from './EditorShellTitlebar';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
 import { EditorMonitor } from './EditorMonitor';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
+import { ShortcutCheatSheet } from './ShortcutCheatSheet';
+import { StarterPresetPicker } from './StarterPresetPicker';
+import { buildMasterTimeline } from './program-timeline.logic';
+import { useProgramClock } from './use-program-clock';
+import { ProgramPlayer } from './program-player';
+import { ProgramTransport } from './program-transport';
 
 interface TemplateEditorShellProps {
   initial: Template | null;
@@ -86,6 +94,9 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition } = ops;
   const [localPartials] = useState<StoredPartial[]>(() => userPartialService.list());
   const [error, setError] = useState('');
+  const [helpOpen, setHelpOpen] = useState(false);
+  // Cold start (building from scratch): offer starter presets before showing the blank editor.
+  const [presetsOpen, setPresetsOpen] = useState(initial === null);
   const partials = listAvailablePartials(localPartials);
 
   // Selection state for the shell (which tool + which scene), clamped to a valid section index.
@@ -95,6 +106,24 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   // (draggable surface) and the left inspector (controls) so they act on one element. Keyed by the
   // section index so switching scenes resets it.
   const sectionSelection = useSectionSelection(String(sel.selectedIndex));
+
+  // Live program monitor: the visual scenes concatenated into one playable timeline, driven by a
+  // rAF clock. Play mode swaps the WYSIWYG edit canvas for the playback surface; touching the
+  // transport enters it, selecting a scene card leaves it.
+  const reduced = useReducedMotion() ?? false;
+  const playTimeline = useMemo(() => buildMasterTimeline(state.sections), [state.sections]);
+  const playTotal = playTimeline.at(-1)?.end ?? 0;
+  const clock = useProgramClock(playTotal, reduced);
+  const [playMode, setPlayMode] = useState(false);
+
+  useEffect(() => {
+    if (clock.playing) setPlayMode(true);
+  }, [clock.playing]);
+
+  const exitPlayMode = (): void => {
+    clock.pause();
+    setPlayMode(false);
+  };
 
   useEffect(() => {
     dispatch({ type: 'clamp', count: state.sections.length });
@@ -142,7 +171,58 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
     if (saved) onSaveAndCompile?.(saved);
   };
 
+  const selectSceneClamped = (index: number): void => {
+    const last = state.sections.length - 1;
+    dispatch({ type: 'selectScene', index: Math.max(0, Math.min(index, last)) });
+  };
+
+  // Global editor keyboard shortcuts (see useEditorShortcuts). Disabled while the cheat sheet is open so
+  // the dialog owns Escape and stray keys don't act on scenes behind it.
+  useEditorShortcuts({
+    onUndo: undo,
+    onRedo: redo,
+    onSave: () => {
+      if (!guardFails) handleSave();
+    },
+    onDeleteScene: () => {
+      // While a canvas element is selected, Delete/Backspace belongs to the element (its own focused
+      // handlers act on it) — never nuke the whole scene out from under that intent.
+      if (sectionSelection.state.element) return;
+      removeSection(sel.selectedIndex);
+    },
+    onDuplicateScene: () => {
+      duplicateSection(sel.selectedIndex);
+    },
+    onAddScene: () => {
+      addEditorSection('video');
+    },
+    onNextScene: () => {
+      selectSceneClamped(sel.selectedIndex + 1);
+    },
+    onPrevScene: () => {
+      selectSceneClamped(sel.selectedIndex - 1);
+    },
+    onNextTool: () => {
+      dispatch({ type: 'selectTool', tool: nextTool(tools, sel.activeTool) });
+    },
+    onPrevTool: () => {
+      dispatch({ type: 'selectTool', tool: prevTool(tools, sel.activeTool) });
+    },
+    onTogglePlay: () => {
+      clock.toggle();
+    },
+    onShowHelp: () => {
+      setHelpOpen(true);
+    },
+    // The help dialog closes itself on Escape (Radix); this fires with it closed — exit play mode.
+    onDismissHelp: () => {
+      if (playMode) exitPlayMode();
+    },
+    enabled: !helpOpen && !presetsOpen,
+  });
+
   return (
+    <>
     <ShellChrome
       resizeLabel={t('shell.resizePanels')}
       titlebar={
@@ -199,18 +279,27 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
         </>
       }
       monitor={
-        <ProgramMonitor label={t('shell.preview')} meta={state.orientation} swapKey={String(sel.selectedIndex)}>
-          <EditorMonitor
-            state={state}
-            section={selectedSection}
-            onPatchSection={(p) => {
-              patchSection(sel.selectedIndex, p);
-            }}
-            selection={sectionSelection.state}
-            onSelectElement={sectionSelection.selectElement}
-            onBeginEdit={sectionSelection.beginEdit}
-            onEndEdit={sectionSelection.endEdit}
-          />
+        <ProgramMonitor
+          label={playMode ? t('monitor.playing') : t('shell.preview')}
+          meta={state.orientation}
+          swapKey={playMode ? 'play' : String(sel.selectedIndex)}
+          transport={playTimeline.length > 0 ? <ProgramTransport clock={clock} timeline={playTimeline} /> : undefined}
+        >
+          {playMode ? (
+            <ProgramPlayer state={state} clock={clock} timeline={playTimeline} />
+          ) : (
+            <EditorMonitor
+              state={state}
+              section={selectedSection}
+              onPatchSection={(p) => {
+                patchSection(sel.selectedIndex, p);
+              }}
+              selection={sectionSelection.state}
+              onSelectElement={sectionSelection.selectElement}
+              onBeginEdit={sectionSelection.beginEdit}
+              onEndEdit={sectionSelection.endEdit}
+            />
+          )}
         </ProgramMonitor>
       }
       timeline={
@@ -218,6 +307,8 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
           sections={state.sections}
           selectedIndex={sel.selectedIndex}
           onSelect={(i) => {
+            // Picking a scene card returns to the edit canvas for that scene.
+            if (playMode) exitPlayMode();
             dispatch({ type: 'selectScene', index: i });
           }}
           onAdd={addEditorSection}
@@ -227,8 +318,28 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
           onTransition={setTransition}
           sectionTitle={sectionTitle}
           sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
+          onBrowsePresets={() => {
+            setPresetsOpen(true);
+          }}
         />
       }
     />
+    <ShortcutCheatSheet
+      open={helpOpen}
+      onClose={() => {
+        setHelpOpen(false);
+      }}
+    />
+    <StarterPresetPicker
+      open={presetsOpen}
+      onPick={(preset) => {
+        reset(preset.build());
+        setPresetsOpen(false);
+      }}
+      onBlank={() => {
+        setPresetsOpen(false);
+      }}
+    />
+    </>
   );
 };

@@ -8,6 +8,22 @@ describe('nextCaption', () => {
     expect(nextCaption(undefined, { position: 'center' })).toBeUndefined();
   });
 
+  it('preserves the reveal entrance across unrelated edits and writes it via a patch', () => {
+    const current = { text: 'Hello', reveal: 'rise' as const };
+
+    // Editing another field must not drop the entrance animation.
+    expect(nextCaption(current, { position: 'top' })).toEqual({ text: 'Hello', reveal: 'rise', position: 'top' });
+
+    // The RevealControl writes the full timing object once any timing is overridden.
+    expect(nextCaption(current, { reveal: { type: 'fade', delay: 0.5 } })).toEqual({
+      text: 'Hello',
+      reveal: { type: 'fade', delay: 0.5 },
+    });
+
+    // Selecting "none" clears the entrance but keeps the caption.
+    expect(nextCaption(current, { reveal: undefined })).toEqual({ text: 'Hello', reveal: undefined });
+  });
+
   it('merges the patch over the existing caption, preserving the textI18n stash', () => {
     const current = {
       text: 'Hello',

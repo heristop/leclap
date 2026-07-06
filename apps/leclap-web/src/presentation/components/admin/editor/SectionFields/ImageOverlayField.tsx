@@ -5,10 +5,12 @@
 import { useTranslation } from 'react-i18next';
 import { makeTemplateId, type EditorState, type ImageOverlay, type MediaChoice } from '../../templateEditorModel';
 import { MediaPicker } from '../../MediaPicker';
+import { NumberRow } from '../animationSource';
 import { OverlayLayer } from '../OverlayLayer';
 import { OverlayPlacement } from '../OverlayPlacement';
 import { RevealControl } from '../RevealControl';
 import { useChoicePreviewUrl } from '../useChoicePreviewUrl';
+import { showWindowSeconds } from './image-show-window';
 
 interface ImageOverlayRowProps {
   value: ImageOverlay;
@@ -52,6 +54,29 @@ const ImageOverlayRow = ({ value, index, orientation, onChange, onRemove }: Imag
               value={value}
               onChange={(patch) => {
                 onChange({ ...value, ...patch });
+              }}
+            />
+            {/* Show window, in scene-relative seconds: when the image appears / disappears. 0 means
+                unbounded on that side (from the scene start / until the scene end) — the engine
+                lowers the window to the overlay filter's timeline enable. */}
+            <NumberRow
+              label={t('imageOverlay.startLabel')}
+              value={value.start ?? 0}
+              min={0}
+              step={0.5}
+              unit="s"
+              onChange={(n) => {
+                onChange({ ...value, start: showWindowSeconds(n) });
+              }}
+            />
+            <NumberRow
+              label={t('imageOverlay.endLabel')}
+              value={value.end ?? 0}
+              min={0}
+              step={0.5}
+              unit="s"
+              onChange={(n) => {
+                onChange({ ...value, end: showWindowSeconds(n) });
               }}
             />
             {/* Animated entrance (rise/slide/fade) for the image — reuses the reveal vocabulary. */}

@@ -9,6 +9,7 @@ import { displayFromTokens } from '@/lib/variableSyntax';
 import type { EditorSection, SectionTransition } from '../templateEditorModel';
 import { TransitionPicker } from '../editor/TransitionPicker';
 import { AddSceneMenu } from './AddSceneMenu';
+import { isPristineTimeline } from './timelinePristine';
 
 interface EditorSceneTimelineProps {
   sections: EditorSection[];
@@ -23,6 +24,8 @@ interface EditorSceneTimelineProps {
   sectionKindLabel: (section: EditorSection) => string;
   // Restricts the add-scene menu to these kinds (partials allow only video/form/color/image).
   addKinds?: readonly SectionKind[];
+  // When set, an untouched cold-start timeline shows a "browse starter templates" hint that calls this.
+  onBrowsePresets?: () => void;
 }
 
 const VISUAL_KINDS: ReadonlySet<EditorSection['kind']> = new Set(['video', 'color', 'image']);
@@ -83,17 +86,19 @@ export const EditorSceneTimeline = ({
   sectionTitle,
   sectionKindLabel,
   addKinds,
+  onBrowsePresets,
 }: EditorSceneTimelineProps) => {
   const { t } = useTranslation('admin');
   const { containerRef, draggingIndex, overIndex, itemPointerDown } = usePointerReorder(onReorder);
   const canDelete = sections.length > 1;
+  const pristine = Boolean(onBrowsePresets) && isPristineTimeline(sections);
 
   return (
     <div
       ref={containerRef}
       role="toolbar"
       aria-label={t('shell.scenes')}
-      className="track-edge-fade flex flex-1 items-stretch gap-2 overflow-x-auto px-3 py-2.5 [scrollbar-width:thin]"
+      className="track-edge-fade flex flex-1 items-stretch gap-2 overflow-x-auto overscroll-x-contain px-3 py-2.5 [scrollbar-width:thin]"
     >
       {/* Tells the user the cards are reorderable; hidden mid-drag to declutter. */}
       {sections.length > 1 && draggingIndex === null && (
@@ -161,6 +166,20 @@ export const EditorSceneTimeline = ({
       <motion.div layout transition={REORDER_SPRING} className="flex">
         <AddSceneMenu onAdd={onAdd} kinds={addKinds} />
       </motion.div>
+      {/* Cold-start guidance: while the lane is the untouched default, point at the add-scene menu and
+          offer the starter-preset picker again. Disappears at the first real edit. */}
+      {pristine && (
+        <div className="flex shrink-0 select-none flex-col justify-center gap-0.5 self-stretch rounded-xl border-2 border-dashed border-foreground/15 px-4 text-xs">
+          <span className="font-semibold text-gray-500">{t('shell.timelineEmptyTitle')}</span>
+          <button
+            type="button"
+            onClick={onBrowsePresets}
+            className="tap cursor-pointer text-left font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-brand-400"
+          >
+            {t('shell.timelineEmptyCta')}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -172,14 +191,15 @@ interface CellActionsProps {
   t: (key: string) => string;
 }
 
-// Duplicate + delete affordances overlaid on the active cell via SceneCell's `trailing` slot.
+// Duplicate + delete affordances overlaid on the active cell via SceneCell's `trailing` slot. The
+// ::before overlays pad each 28px button toward a comfortable thumb target without growing the chip.
 const CellActions = ({ canDelete, onDuplicate, onDelete, t }: CellActionsProps) => (
-  <div className="absolute right-1.5 top-1.5 z-10 flex gap-1">
+  <div className="absolute right-1.5 top-1.5 z-10 flex gap-1.5">
     <button
       type="button"
       aria-label={t('shell.duplicateScene')}
       onClick={onDuplicate}
-      className="tap grid size-6 place-items-center rounded-md bg-black/55 text-white transition-colors hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60"
+      className="tap relative grid size-7 place-items-center rounded-md bg-black/55 text-white transition-colors before:absolute before:-inset-1 before:content-[''] hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60"
     >
       <Copy className="size-3.5" />
     </button>
@@ -188,7 +208,7 @@ const CellActions = ({ canDelete, onDuplicate, onDelete, t }: CellActionsProps) 
       aria-label={t('shell.deleteScene')}
       disabled={!canDelete}
       onClick={onDelete}
-      className="tap grid size-6 place-items-center rounded-md bg-black/55 text-white transition-colors hover:bg-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/60 disabled:pointer-events-none disabled:opacity-40"
+      className="tap relative grid size-7 place-items-center rounded-md bg-black/55 text-white transition-colors before:absolute before:-inset-1 before:content-[''] hover:bg-[var(--color-error)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/60 disabled:pointer-events-none disabled:opacity-40"
     >
       <Trash2 className="size-3.5" />
     </button>

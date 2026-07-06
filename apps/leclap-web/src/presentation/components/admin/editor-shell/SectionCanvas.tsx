@@ -6,12 +6,24 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import type { AnimationOverlay, ImageOverlay, TextOverlay, Orientation, BackgroundLayer } from '../templateEditorModel';
+import type {
+  AnimationOverlay,
+  EditorCaption,
+  Grade,
+  ImageOverlay,
+  LowerThird,
+  TextOverlay,
+  TitleCard,
+  Orientation,
+  BackgroundLayer,
+} from '../templateEditorModel';
 import { clampFraction, fontSizeFromResize } from '../overlayGeometry';
 import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
+import { lookFilter, gradeFilter } from '../editor/lookFilters';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import { OverlayBox } from './sectionCanvasBox';
 import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
+import { SugarPreviewLayer } from './SugarPreviewLayer';
 import type { DropPayload, DropPoint } from './canvasDrop';
 import { useCanvasDropTarget } from './useCanvasDropTarget';
 
@@ -64,6 +76,21 @@ interface SectionCanvasProps {
   layers?: CanvasLayers;
   images?: ImageOverlay[];
   animations?: AnimationOverlay[];
+  // The section's colour treatment, previewed as a CSS filter on the backdrop group only — the
+  // engine bakes look/grade into the linear chain BEFORE the text sugar and the authored drawtext
+  // overlays (SegmentBuilder.injectSugarFilters), so text must stay ungraded here too.
+  look?: string;
+  grade?: Grade;
+  // The section's text sugar, rendered as a WYSIWYG layer with direct manipulation
+  // (SugarPreviewLayer): click-select, double-click line edit, drag-snap, caption resize.
+  caption?: EditorCaption;
+  titleCard?: TitleCard;
+  lowerThird?: LowerThird;
+  onChangeCaption?: (caption: EditorCaption | undefined) => void;
+  onChangeTitleCard?: (titleCard: TitleCard | undefined) => void;
+  onChangeLowerThird?: (lowerThird: LowerThird | undefined) => void;
+  // Variable names in scope for the inline editors' `#` autocomplete (same list the panel gets).
+  variables?: string[];
   selection: SectionSelectionState;
   onSelectElement: (ref: ElementRef | null) => void;
   onBeginEdit: () => void;
@@ -86,6 +113,15 @@ export const SectionCanvas = ({
   layers,
   images,
   animations,
+  look,
+  grade,
+  caption,
+  titleCard,
+  lowerThird,
+  onChangeCaption,
+  onChangeTitleCard,
+  onChangeLowerThird,
+  variables,
   selection,
   onSelectElement,
   onBeginEdit,
@@ -110,6 +146,10 @@ export const SectionCanvas = ({
   const hasBackground = Boolean(background?.imageUrl ?? layers?.items.length);
   const imageList = images ?? [];
   const animationList = animations ?? [];
+  // CSS approximation of the section's look + grade, applied to the backdrop group only. `lookFilter`
+  // and `gradeFilter` return 'none' rather than '' when unset, so drop those before joining.
+  const gradeParts = [lookFilter(look), gradeFilter(grade)].filter((part) => part !== 'none');
+  const backdropFilter = gradeParts.length > 0 ? { filter: gradeParts.join(' ') } : undefined;
 
   const moveTo = (index: number, clientX: number, clientY: number) => {
     const rect = frameRect();
@@ -187,30 +227,39 @@ export const SectionCanvas = ({
       onDrop={drop.onDrop}
       className={cn(
         'relative touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
-        !hasBackground && 'bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]',
         drop.dragOver && 'ring-2 ring-brand-500/60',
         previewAspectClass[orientation]
       )}
     >
-      {background?.imageUrl && (
-        <img
-          aria-hidden
-          alt=""
-          src={background.imageUrl}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
-      )}
-      {layers && (
-        <BackgroundLayerBoxes
-          layers={layers.items}
-          onChange={layers.onChange}
-          frameRect={frameRect}
-          selectedIndex={active.layer}
-          onSelect={(index) => {
-            onSelectElement({ kind: 'layer', index });
-          }}
-        />
-      )}
+      {/* Backdrop group: everything the engine grades (the base frame) lives under one CSS filter.
+          The engine bakes look/grade BEFORE the sugar text and the authored drawtext overlays, so
+          only this group is filtered — text and media overlays above stay untinted, like the render.
+          pointer-events-none lets empty-area clicks reach the frame (deselect); the interactive
+          layer boxes re-enable their own pointer events. */}
+      <div className="pointer-events-none absolute inset-0" style={backdropFilter}>
+        {!hasBackground && (
+          <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]" />
+        )}
+        {background?.imageUrl && (
+          <img
+            aria-hidden
+            alt=""
+            src={background.imageUrl}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        {layers && (
+          <BackgroundLayerBoxes
+            layers={layers.items}
+            onChange={layers.onChange}
+            frameRect={frameRect}
+            selectedIndex={active.layer}
+            onSelect={(index) => {
+              onSelectElement({ kind: 'layer', index });
+            }}
+          />
+        )}
+      </div>
       {imageList.map((image, index) => (
         <ImageOverlayItem
           key={image.id}
@@ -241,6 +290,23 @@ export const SectionCanvas = ({
           onDelete={removeAnimation}
         />
       ))}
+      {/* Text sugar draws above the composited media, below the draggable overlays — the engine's
+          z-order (overlay-class sugar chains onto the final map; authored drawtext comes after). */}
+      <SugarPreviewLayer
+        caption={caption}
+        titleCard={titleCard}
+        lowerThird={lowerThird}
+        orientation={orientation}
+        frameRef={frameRef}
+        selection={selection}
+        onSelectElement={onSelectElement}
+        onBeginEdit={onBeginEdit}
+        onEndEdit={onEndEdit}
+        onChangeCaption={onChangeCaption}
+        onChangeTitleCard={onChangeTitleCard}
+        onChangeLowerThird={onChangeLowerThird}
+        variables={variables}
+      />
       {overlays.map((overlay, index) => (
         <OverlayBox
           key={index}
@@ -250,6 +316,7 @@ export const SectionCanvas = ({
           orientation={orientation}
           active={index === active.text}
           editing={index === active.text && selection.editing}
+          variables={variables}
           editRef={editRef}
           frameRect={frameRect}
           onSelect={(i) => {

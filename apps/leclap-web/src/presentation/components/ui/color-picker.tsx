@@ -72,7 +72,11 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
           </div>
         </div>
         {presets.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          // Auto-fill grid so the swatches stretch edge-to-edge in whatever column the picker sits in
+          // (no dead space on the right) — each cell stays square via aspect-square. The 1.25rem floor
+          // keeps the grid COMPACT: narrow half-columns fit ~6 per row, wide panels ~12, so the palette
+          // reads identically everywhere instead of ballooning into rows of four giant tiles.
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(1.25rem,1fr))] gap-1">
             {presets.map((c) => {
               const active = normalizeHex(c) === normalizeHex(value);
 
@@ -87,7 +91,7 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
                   }}
                   style={{ backgroundColor: c }}
                   className={cn(
-                    'tap h-6 w-6 rounded-md border border-foreground/15 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
+                    'tap aspect-square w-full rounded-md border border-foreground/15 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
                     active && 'ring-2 ring-brand-500 ring-offset-2 ring-offset-surface'
                   )}
                 />

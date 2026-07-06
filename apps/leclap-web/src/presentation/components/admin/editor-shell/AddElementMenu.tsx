@@ -10,14 +10,25 @@ import { PlusIcon } from '@/presentation/components/icons/plus';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { Button } from '@/presentation/components/ui';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
+import { cn } from '@/lib/utils';
 import type { EditorSection } from '../templateEditorModel';
 import { canAddElement } from './sectionElements';
 import type { ElementRef } from './useSectionSelection';
 
+// Array-backed kinds plus the sugar singletons (caption/titleCard/lowerThird) — sugar is offered
+// only where the section owns it and it isn't set yet (canAddElement gates the singleton).
 type AddableKind = ElementRef['kind'];
 
-// Canonical add order: background layer → text → image overlay → animation.
-const ADD_ORDER: ReadonlyArray<AddableKind> = ['layer', 'text', 'image', 'animation'];
+// Canonical add order: background layer → text → image overlay → animation → structured text sugar.
+const ADD_ORDER: ReadonlyArray<AddableKind> = [
+  'layer',
+  'text',
+  'image',
+  'animation',
+  'caption',
+  'titleCard',
+  'lowerThird',
+];
 
 // The element kinds the section supports, in canonical order. Empty for sections with no elements.
 export function addableKinds(section: EditorSection): AddableKind[] {
@@ -30,6 +41,9 @@ const KIND_ICON: Record<AddableKind, ComponentType<{ className?: string }>> = {
   text: Type,
   image: Image,
   animation: SparklesIcon,
+  caption: Type,
+  titleCard: Type,
+  lowerThird: Type,
 };
 
 const KIND_LABEL: Record<AddableKind, string> = {
@@ -37,6 +51,9 @@ const KIND_LABEL: Record<AddableKind, string> = {
   text: 'element.addText',
   image: 'element.addImageOverlay',
   animation: 'element.addAnimation',
+  caption: 'element.addCaption',
+  titleCard: 'element.addTitleCard',
+  lowerThird: 'element.addLowerThird',
 };
 
 interface AddElementMenuProps {
@@ -44,9 +61,31 @@ interface AddElementMenuProps {
   onAdd: (kind: AddableKind) => void;
 }
 
+// Estimated per-item height for the flip-up heuristic (menu row + padding).
+const MENU_ITEM_PX = 36;
+
+// The bottom edge the dropdown must not cross: the nearest scrollable ancestor's viewport (the left
+// panel clips the menu well before the window does), else the window.
+function clipBottom(from: HTMLElement): number {
+  let node: HTMLElement | null = from.parentElement;
+
+  while (node) {
+    const { overflowY } = getComputedStyle(node);
+
+    if (overflowY === 'auto' || overflowY === 'scroll') return node.getBoundingClientRect().bottom;
+
+    node = node.parentElement;
+  }
+
+  return window.innerHeight;
+}
+
 export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
   const { t } = useTranslation('admin');
   const [open, setOpen] = useState(false);
+  // Drop the menu upward when the trigger sits too close to the viewport bottom — otherwise the
+  // trailing entries (the sugar kinds) clip under the panel edge and read as missing.
+  const [dropUp, setDropUp] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const kinds = addableKinds(section);
   const { ref: plusRef, hoverProps: plusHoverProps } = useIconHover();
@@ -90,7 +129,9 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t('element.add')}
-        onClick={() => {
+        onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          setDropUp(clipBottom(event.currentTarget) - rect.bottom < kinds.length * MENU_ITEM_PX + 16);
           setOpen((v) => !v);
         }}
         {...plusHoverProps}
@@ -100,7 +141,10 @@ export const AddElementMenu = ({ section, onAdd }: AddElementMenuProps) => {
       {open && (
         <div
           role="menu"
-          className="absolute z-10 mt-1 min-w-[12rem] overflow-auto rounded-xl border border-divider bg-surface p-1 shadow-[var(--shadow-lg)]"
+          className={cn(
+            'absolute z-10 min-w-[12rem] overflow-auto rounded-xl border border-divider bg-surface p-1 shadow-[var(--shadow-lg)]',
+            dropUp ? 'bottom-full mb-1' : 'mt-1'
+          )}
         >
           {kinds.map((kind) => {
             const Icon = KIND_ICON[kind];

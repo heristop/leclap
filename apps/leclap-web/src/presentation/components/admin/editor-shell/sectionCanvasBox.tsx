@@ -2,6 +2,7 @@
 // with the real font/size/color, owning its own move/resize pointer capture and (when editing) an
 // inline textarea. Extracted from the legacy OverlayCanvas so the canvas half lives on its own.
 import {
+  useLayoutEffect,
   useRef,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -10,10 +11,13 @@ import {
 import type { TFunction } from 'i18next';
 import { Type } from '@/presentation/components/icons';
 import { findFont } from '@leclap/creative-kit/fonts';
-import { displayFromTokens } from '@/lib/variableSyntax';
+import { displayFromTokens, tokensFromDisplay } from '@/lib/variableSyntax';
 import { cn } from '@/lib/utils';
 import type { TextOverlay, Orientation } from '../templateEditorModel';
-import { previewFontPx } from '../overlayGeometry';
+import { previewFontPx, refVideoHeight } from '../overlayGeometry';
+import { FloatingVariableSuggestions, useVariableAutocomplete } from '../editor/variableAutocomplete';
+import { rgba } from './sectionCanvasColor';
+import { textEffectCss } from './textEffectCss';
 
 // 2% keyboard nudge step for a selected, non-editing overlay.
 const NUDGE = 0.02;
@@ -33,6 +37,8 @@ interface OverlayBoxProps {
   orientation: Orientation;
   active: boolean;
   editing: boolean;
+  // Variable names in scope for the inline editor's `#` autocomplete (same list the panel gets).
+  variables?: string[];
   editRef: React.Ref<HTMLTextAreaElement>;
   frameRect: () => DOMRect | undefined;
   onSelect: (index: number) => void;
@@ -121,6 +127,7 @@ export const OverlayBox = (props: OverlayBoxProps) => {
         overlay={overlay}
         editing={editing}
         t={t}
+        variables={props.variables ?? []}
         editRef={props.editRef}
         onCommitText={props.onCommitText}
         onCaret={props.onCaret}
@@ -135,46 +142,102 @@ interface BoxContentProps {
   overlay: TextOverlay;
   editing: boolean;
   t: TFunction<'admin'>;
+  variables: string[];
   editRef: React.Ref<HTMLTextAreaElement>;
   onCommitText: (text: string) => void;
   onCaret: (start: number, end: number) => void;
   onEndEdit: () => void;
 }
 
-// The text body: an editing textarea, the raw overlay text, or a muted placeholder when empty.
-const BoxContent = ({ overlay, editing, t, editRef, onCommitText, onCaret, onEndEdit }: BoxContentProps) => {
+// Forwarded + local ref in one callback: the parent keeps its editRef while the autocomplete reads
+// the caret through a RefObject it can dereference.
+function assignEditRef(editRef: React.Ref<HTMLTextAreaElement>, el: HTMLTextAreaElement | null): void {
+  if (typeof editRef === 'function') {
+    editRef(el);
+
+    return;
+  }
+
+  if (editRef) editRef.current = el;
+}
+
+// The text body: an editing textarea, the overlay text, or a muted placeholder when empty. The
+// textarea edits in DISPLAY space (`{{ name }}` shows as `#name`) and live-commits the canonical
+// tokens; typing `#` opens the same variable autocomplete as the panel's VariableTextField, in a
+// body portal (the canvas frame clips and transforms its children).
+const BoxContent = ({ overlay, editing, t, variables, editRef, onCommitText, onCaret, onEndEdit }: BoxContentProps) => {
+  const localRef = useRef<HTMLTextAreaElement | null>(null);
+  const pendingCaret = useRef<number | null>(null);
+  const known = new Set(variables);
+
+  // Restore the caret after a token insert replaced the value programmatically.
+  useLayoutEffect(() => {
+    if (pendingCaret.current !== null && localRef.current) {
+      localRef.current.setSelectionRange(pendingCaret.current, pendingCaret.current);
+      localRef.current.focus();
+      pendingCaret.current = null;
+    }
+  });
+
+  const autocomplete = useVariableAutocomplete({
+    variables: variables.map((name) => ({ name, scope: 'global' as const })),
+    elementRef: localRef,
+    onInsert: (next, caret) => {
+      pendingCaret.current = caret;
+      onCommitText(tokensFromDisplay(next, known));
+    },
+  });
+
   if (editing) {
     return (
-      <textarea
-        ref={editRef}
-        autoFocus
-        aria-label={t('overlay.editText')}
-        value={overlay.text}
-        placeholder={t('overlay.textPlaceholder')}
-        onChange={(e) => {
-          onCommitText(e.target.value);
-          onCaret(e.target.selectionStart, e.target.selectionEnd);
-        }}
-        onSelect={(e) => {
-          onCaret(e.currentTarget.selectionStart, e.currentTarget.selectionEnd);
-        }}
-        onBlur={onEndEdit}
-        onPointerDown={(e) => {
-          e.stopPropagation();
-        }}
-        onKeyDown={(e) => {
-          e.stopPropagation();
+      <>
+        <textarea
+          ref={(el) => {
+            localRef.current = el;
+            assignEditRef(editRef, el);
+          }}
+          autoFocus
+          aria-label={t('overlay.editText')}
+          value={displayFromTokens(overlay.text)}
+          placeholder={t('overlay.textPlaceholder')}
+          onChange={(e) => {
+            onCommitText(tokensFromDisplay(e.target.value, known));
+            onCaret(e.target.selectionStart, e.target.selectionEnd);
+            autocomplete.sync();
+          }}
+          onSelect={(e) => {
+            onCaret(e.currentTarget.selectionStart, e.currentTarget.selectionEnd);
+          }}
+          onClick={() => {
+            autocomplete.sync();
+          }}
+          onBlur={onEndEdit}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onKeyUp={(e) => {
+            e.stopPropagation();
+            autocomplete.syncFromKeyUp(e.key);
+          }}
+          onKeyDown={(e) => {
+            e.stopPropagation();
 
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            onEndEdit();
-          }
-        }}
-        rows={1}
-        // `field-sizing: content` makes the textarea hug its text so the box (and its selection ring)
-        // wraps the overlay content; min-w keeps the placeholder readable while empty.
-        className="min-w-[3ch] resize-none bg-transparent text-center outline-none [field-sizing:content] [font:inherit] [color:inherit] placeholder:opacity-45"
-      />
+            // The picker's protocol wins while it is open — Enter inserts the highlighted variable
+            // instead of ending the edit; Escape only closes the popover.
+            if (autocomplete.handleKeyDown(e)) return;
+
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              onEndEdit();
+            }
+          }}
+          rows={1}
+          // `field-sizing: content` makes the textarea hug its text so the box (and its selection ring)
+          // wraps the overlay content; min-w keeps the placeholder readable while empty.
+          className="min-w-[3ch] resize-none bg-transparent text-center outline-none [field-sizing:content] [font:inherit] [color:inherit] placeholder:opacity-45"
+        />
+        <FloatingVariableSuggestions autocomplete={autocomplete} totalCount={variables.length} anchorRef={localRef} />
+      </>
     );
   }
 
@@ -215,35 +278,21 @@ const ResizeHandles = ({
   </>
 );
 
-// Parse a `#rgb`/`#rrggbb` hex into its [r, g, b] channel bytes, defaulting to black when malformed.
-function hexChannels(hex: string): [number, number, number] {
-  const raw = hex.replace('#', '');
-  const full = raw.length === 3 ? raw.replace(/(.)/g, '$1$1') : raw;
-  const int = Number.parseInt(full, 16);
-
-  if (full.length !== 6 || !Number.isFinite(int)) return [0, 0, 0];
-
-  return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
-}
-
-// A CSS `rgba(...)` string for a hex color at the given [0,1] alpha, so the preview box matches the
-// drawtext `boxcolor@opacity` the model emits.
-function rgba(hex: string, alpha: number): string {
-  const [r, g, b] = hexChannels(hex);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 // Inline style for an overlay box: position, the real font face, the WYSIWYG-scaled font size, color,
-// and an optional padded background box at the author's opacity.
-function boxStyle(overlay: TextOverlay, previewH: number, orientation: Orientation): CSSProperties {
+// and an optional padded background box at the author's opacity. Exported so the live program monitor
+// (program-scene) renders playback overlays with the exact same typography math as the edit canvas.
+export function boxStyle(overlay: TextOverlay, previewH: number, orientation: Orientation): CSSProperties {
   const base: CSSProperties = {
     left: `${overlay.x * 100}%`,
     top: `${overlay.y * 100}%`,
     transform: 'translate(-50%, -50%)',
     fontFamily: findFont(overlay.font)?.cssFamily ?? 'inherit',
     fontSize: `${previewFontPx(overlay.fontsize, previewH, orientation)}px`,
-    color: overlay.fontcolor,
+    // Watermark-style text alpha rides on the color (mirrors the `#rrggbb@a` drawtext lowering).
+    color: overlay.textOpacity === undefined ? overlay.fontcolor : rgba(overlay.fontcolor, overlay.textOpacity),
+    // Drop shadow / outline preview, scaled like the fontsize (drawtext px → preview px).
+    ...textEffectCss(overlay.effect, previewH / refVideoHeight(orientation)),
   };
 
   if (!overlay.box) return base;

@@ -1,6 +1,7 @@
-// Ken Burns control for image sections: a direction picker (zoom in/out + pan
-// left/right/up/down) and an intensity slider, with a live CSS keyframe preview that
-// animates the chosen move. Writes section.motion = [{type:'kenburns',direction,intensity}].
+// Motion control for visual sections: pick one of the engine's motion effects — Ken Burns (direction
+// grid + intensity), rotate (angle), flip (axis) or crop (centered percent box) — with a live CSS
+// preview approximating the move. Writes section.motion = [effect] (single effect; the engine accepts
+// an ordered list — list editing is a follow-up). Pure read/write logic lives in motionPanel.logic.ts.
 import { useId, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -13,7 +14,17 @@ import { cn } from '@/lib/utils';
 import { Checkbox } from '@/presentation/components/ui';
 import type { MotionEffect } from '../templateEditorModel';
 import { PreviewSurface } from './PreviewSurface';
-import { RangeSlider } from './controls';
+import { RangeSlider, SegmentedControl, type SegmentOption } from './controls';
+import {
+  MOTION_KINDS,
+  activeMotion,
+  defaultMotion,
+  writeMotion,
+  cropExpr,
+  cropPercent,
+  DEFAULT_INTENSITY,
+  type MotionKind,
+} from './motionPanel.logic';
 
 type Direction = 'in' | 'out' | 'left' | 'right' | 'up' | 'down';
 
@@ -26,18 +37,12 @@ const DIRECTIONS: Array<{ value: Direction; icon: ComponentType<{ className?: st
   { value: 'down', icon: ArrowDownIcon, titleKey: 'motion.panDown' },
 ];
 
-const DEFAULT_INTENSITY = 1.15;
-
-type KenBurns = Extract<MotionEffect, { type: 'kenburns' }>;
-
-// Reads the single kenburns effect out of the motion list (the only one this panel writes).
-function kenburns(motion: MotionEffect[] | undefined): { direction: Direction; intensity: number } | null {
-  const effect = motion?.find((m): m is KenBurns => m.type === 'kenburns');
-
-  if (!effect) return null;
-
-  return { direction: effect.direction ?? 'in', intensity: effect.intensity ?? DEFAULT_INTENSITY };
-}
+const KIND_LABEL_KEY: Record<MotionKind, string> = {
+  kenburns: 'motion.kindKenburns',
+  rotate: 'motion.kindRotate',
+  flip: 'motion.kindFlip',
+  crop: 'motion.kindCrop',
+};
 
 interface MotionPanelProps {
   motion: MotionEffect[] | undefined;
@@ -46,17 +51,17 @@ interface MotionPanelProps {
 
 export const MotionPanel = ({ motion, onChange }: MotionPanelProps) => {
   const { t } = useTranslation('admin');
-  const current = kenburns(motion);
-  const enabled = current !== null;
-  const direction = current?.direction ?? 'in';
-  const intensity = current?.intensity ?? DEFAULT_INTENSITY;
+  const effect = activeMotion(motion);
+  const enabled = effect !== null;
 
-  const write = (next: { direction: Direction; intensity: number } | null) => {
-    const motionList: MotionEffect[] | undefined = next
-      ? [{ type: 'kenburns', direction: next.direction, intensity: next.intensity }]
-      : undefined;
-    onChange(motionList);
+  const write = (next: MotionEffect | null) => {
+    onChange(writeMotion(next));
   };
+
+  const kindOptions: ReadonlyArray<SegmentOption<MotionKind>> = MOTION_KINDS.map((kind) => ({
+    value: kind,
+    label: t(KIND_LABEL_KEY[kind]),
+  }));
 
   return (
     <div>
@@ -69,35 +74,125 @@ export const MotionPanel = ({ motion, onChange }: MotionPanelProps) => {
             enabled={enabled}
             t={t}
             onToggle={() => {
-              write(enabled ? null : { direction, intensity });
+              write(enabled ? null : defaultMotion('kenburns'));
             }}
           />
-          {enabled && (
+          {effect && (
             <>
-              <DirectionGrid
-                value={direction}
-                t={t}
-                onChange={(d) => {
-                  write({ direction: d, intensity });
+              <SegmentedControl
+                label={t('motion.type')}
+                value={effect.type}
+                options={kindOptions}
+                onChange={(kind) => {
+                  // Switching type replaces the effect with that type's defaults (single-effect MVP).
+                  write(kind === effect.type ? effect : defaultMotion(kind));
                 }}
               />
-              <RangeSlider
-                label={t('motion.intensity')}
-                value={intensity}
-                min={1.01}
-                max={2}
-                step={0.01}
-                format={(v) => `${v.toFixed(2)}×`}
-                onChange={(v) => {
-                  write({ direction, intensity: v });
-                }}
-              />
+              <EffectControls effect={effect} t={t} onChange={write} />
             </>
           )}
         </div>
-        <MotionPreview enabled={enabled} direction={direction} intensity={intensity} />
+        <MotionPreview effect={effect} />
       </div>
     </div>
+  );
+};
+
+// The per-type parameter controls, dispatched on the effect's discriminant.
+const EffectControls = ({
+  effect,
+  t,
+  onChange,
+}: {
+  effect: MotionEffect;
+  t: TFunction<'admin'>;
+  onChange: (effect: MotionEffect) => void;
+}) => {
+  if (effect.type === 'kenburns') {
+    return (
+      <>
+        <DirectionGrid
+          value={effect.direction ?? 'in'}
+          t={t}
+          onChange={(direction) => {
+            onChange({ ...effect, direction });
+          }}
+        />
+        <RangeSlider
+          label={t('motion.intensity')}
+          value={effect.intensity ?? DEFAULT_INTENSITY}
+          min={1.01}
+          max={2}
+          step={0.01}
+          format={(v) => `${v.toFixed(2)}×`}
+          onChange={(intensity) => {
+            onChange({ ...effect, intensity });
+          }}
+        />
+      </>
+    );
+  }
+
+  if (effect.type === 'rotate') {
+    return (
+      <RangeSlider
+        label={t('motion.angle')}
+        value={effect.angle}
+        min={-180}
+        max={180}
+        step={1}
+        format={(v) => `${v}°`}
+        resetTo={90}
+        onChange={(angle) => {
+          onChange({ ...effect, angle });
+        }}
+      />
+    );
+  }
+
+  if (effect.type === 'flip') {
+    const axisOptions: ReadonlyArray<SegmentOption<'horizontal' | 'vertical'>> = [
+      { value: 'horizontal', label: t('motion.axisHorizontal') },
+      { value: 'vertical', label: t('motion.axisVertical') },
+    ];
+
+    return (
+      <SegmentedControl
+        label={t('motion.axis')}
+        value={effect.axis}
+        options={axisOptions}
+        onChange={(axis) => {
+          onChange({ ...effect, axis });
+        }}
+      />
+    );
+  }
+
+  return (
+    <>
+      <RangeSlider
+        label={t('motion.cropWidth')}
+        value={cropPercent(effect.w)}
+        min={10}
+        max={100}
+        step={5}
+        format={(v) => `${v}%`}
+        onChange={(percent) => {
+          onChange({ ...effect, w: cropExpr('iw', percent) });
+        }}
+      />
+      <RangeSlider
+        label={t('motion.cropHeight')}
+        value={cropPercent(effect.h)}
+        min={10}
+        max={100}
+        step={5}
+        format={(v) => `${v}%`}
+        onChange={(percent) => {
+          onChange({ ...effect, h: cropExpr('ih', percent) });
+        }}
+      />
+    </>
   );
 };
 
@@ -116,7 +211,7 @@ const ToggleRow = ({ enabled, t, onToggle }: { enabled: boolean; t: TFunction<'a
           onToggle();
         }}
       />
-      <SparklesIcon size={14} className="text-brand-500" /> {t('motion.kenBurns')}
+      <SparklesIcon size={14} className="text-brand-500" /> {t('motion.enable')}
     </label>
   );
 };
@@ -194,26 +289,52 @@ const END_TRANSFORM: Record<Direction, (scale: number) => string> = {
   down: (s) => `scale(${s}) translate(0,-6%)`,
 };
 
-const MotionPreview = ({
-  enabled,
-  direction,
-  intensity,
-}: {
-  enabled: boolean;
-  direction: Direction;
-  intensity: number;
-}) => {
+// Ken Burns keeps its animated keyframes; rotate/flip/crop are static CSS approximations (the exact
+// framing is the engine's job — the preview just shows the move's character).
+const MotionPreview = ({ effect }: { effect: MotionEffect | null }) => {
+  if (effect?.type === 'kenburns') {
+    return <KenburnsPreview direction={effect.direction ?? 'in'} intensity={effect.intensity ?? DEFAULT_INTENSITY} />;
+  }
+
+  if (effect?.type === 'rotate') {
+    return <StaticPreview sceneStyle={{ transform: `rotate(${effect.angle}deg) scale(0.72)` }} />;
+  }
+
+  if (effect?.type === 'flip') {
+    return <StaticPreview sceneStyle={{ transform: effect.axis === 'horizontal' ? 'scaleX(-1)' : 'scaleY(-1)' }} />;
+  }
+
+  if (effect?.type === 'crop') {
+    const w = cropPercent(effect.w);
+    const h = cropPercent(effect.h);
+    const insetX = ((100 - w) / 2).toFixed(1);
+    const insetY = ((100 - h) / 2).toFixed(1);
+
+    return <StaticPreview sceneStyle={{ clipPath: `inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)` }} />;
+  }
+
+  return <StaticPreview />;
+};
+
+const StaticPreview = ({ sceneStyle }: { sceneStyle?: React.CSSProperties }) => (
+  <div className="sm:sticky sm:top-2 sm:self-start">
+    <PreviewSurface sceneStyle={sceneStyle} className="h-24 w-full" />
+  </div>
+);
+
+const KenburnsPreview = ({ direction, intensity }: { direction: Direction; intensity: number }) => {
   const id = `kb-${direction}-${intensity.toFixed(2)}`.replace('.', '_');
   const startScale = direction === 'out' ? intensity : 1;
   const endTransform = direction === 'out' ? 'scale(1)' : END_TRANSFORM[direction](intensity);
   const keyframes = `@keyframes ${id}{from{transform:scale(${startScale})}to{transform:${endTransform}}}`;
-  const sceneStyle = enabled
-    ? { animation: `${id} 3s var(--ease-out-expo, ease-in-out) infinite alternate`, transformOrigin: 'center' }
-    : undefined;
+  const sceneStyle = {
+    animation: `${id} 3s var(--ease-out-expo, ease-in-out) infinite alternate`,
+    transformOrigin: 'center',
+  };
 
   return (
     <div className="sm:sticky sm:top-2 sm:self-start">
-      {enabled && <style>{keyframes}</style>}
+      <style>{keyframes}</style>
       <PreviewSurface sceneStyle={sceneStyle} className="h-24 w-full" />
     </div>
   );

@@ -11,6 +11,7 @@ import { TextEffectControl } from '../TextEffectControl';
 import { VariableTextField } from '../VariableTextField';
 
 const DEFAULT_ACCENT = '#7C83FF';
+const DEFAULT_BAND_COLOR = '#0a0f14';
 const DEFAULT_BAND_OPACITY = 0.6;
 type Position = NonNullable<LowerThird['position']>;
 
@@ -110,17 +111,31 @@ export const LowerThirdField = ({ lowerThird, onChange, variables, inputCls }: L
               }}
             />
           </div>
-          <RangeSlider
-            label={t('lowerThird.band')}
-            value={band.boxOpacity ?? DEFAULT_BAND_OPACITY}
-            min={0}
-            max={1}
-            step={0.05}
-            format={(v) => `${Math.round(v * 100)}%`}
-            onChange={(boxOpacity) => {
-              patch({ boxOpacity });
-            }}
-          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-400">
+                {t('lowerThird.bandColor')}
+              </span>
+              <ColorPicker
+                aria-label={t('lowerThird.bandColor')}
+                value={band.bandColor ?? DEFAULT_BAND_COLOR}
+                onChange={(bandColor) => {
+                  patch({ bandColor });
+                }}
+              />
+            </div>
+            <RangeSlider
+              label={t('lowerThird.band')}
+              value={band.boxOpacity ?? DEFAULT_BAND_OPACITY}
+              min={0}
+              max={1}
+              step={0.05}
+              format={(v) => `${Math.round(v * 100)}%`}
+              onChange={(boxOpacity) => {
+                patch({ boxOpacity });
+              }}
+            />
+          </div>
           <RevealControl
             reveal={band.reveal}
             onChange={(reveal) => {

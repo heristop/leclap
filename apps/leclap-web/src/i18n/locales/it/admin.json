@@ -679,7 +679,15 @@
     "summaryEmpty": "nessun testo",
     "hint": "Un cartello pulito con occhiello / titolo / sottotitolo — dimensionato in base all’orientamento.",
     "background": "Sfondo della scheda",
-    "fade": "Dissolvenza automatica"
+    "fade": "Dissolvenza automatica",
+    "kickerStyleLabel": "Stile dell'occhiello",
+    "headlineStyleLabel": "Stile del titolo",
+    "subtitleStyleLabel": "Stile del sottotitolo",
+    "styleDefaults": "Predefinito",
+    "font": "Carattere",
+    "fontDefault": "Carattere predefinito",
+    "fontsize": "Dimensione testo",
+    "color": "Colore del testo"
   },
   "lowerThird": {
     "title": "Titolo",
@@ -690,6 +698,7 @@
     "badgePlaceholder": "es. #form_1_price",
     "accent": "Colore d’accento",
     "band": "Opacità della fascia",
+    "bandColor": "Colore della fascia",
     "position": "Posizione",
     "bottom": "In basso",
     "top": "In alto",

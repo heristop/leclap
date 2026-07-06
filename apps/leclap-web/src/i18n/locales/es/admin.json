@@ -679,7 +679,15 @@
     "summaryEmpty": "sin texto",
     "hint": "Una tarjeta limpia de antetítulo / titular / subtítulo, ajustada a la orientación.",
     "background": "Fondo de la tarjeta",
-    "fade": "Fundido automático"
+    "fade": "Fundido automático",
+    "kickerStyleLabel": "Estilo del antetítulo",
+    "headlineStyleLabel": "Estilo del titular",
+    "subtitleStyleLabel": "Estilo del subtítulo",
+    "styleDefaults": "Predeterminado",
+    "font": "Fuente",
+    "fontDefault": "Fuente predeterminada",
+    "fontsize": "Tamaño del texto",
+    "color": "Color del texto"
   },
   "lowerThird": {
     "title": "Título",
@@ -690,6 +698,7 @@
     "badgePlaceholder": "p. ej. #form_1_price",
     "accent": "Color de acento",
     "band": "Opacidad de la banda",
+    "bandColor": "Color de la banda",
     "position": "Posición",
     "bottom": "Abajo",
     "top": "Arriba",

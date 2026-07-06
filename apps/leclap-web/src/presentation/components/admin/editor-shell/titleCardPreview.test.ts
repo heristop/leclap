@@ -103,6 +103,38 @@ describe('titleCardPreview', () => {
     expect(preview?.lines[0].text).toBe('Salut');
   });
 
+  it('per-line styles override the preset font family, size and colour (mirrors styledLook)', () => {
+    const preview = titleCardPreview(
+      {
+        ...card,
+        kickerStyle: { font: 'bebas', fontsize: 30, color: '#ff0000' },
+        headlineStyle: { font: 'Pacifico.ttf', color: '#00ff00' },
+        subtitleStyle: { fontsize: 40 },
+      },
+      PREVIEW_H,
+      'landscape'
+    );
+
+    if (!preview) throw new Error('expected a preview');
+    const [kicker, headline, subtitle] = preview.lines;
+    // font id → cssFamily; fontsize is absolute engine px (30 → 15 preview px at factor 0.5).
+    expect(kicker).toMatchObject({ fontFamily: 'Bebas Neue', fontPx: 15, color: '#ff0000' });
+    // raw .ttf resolved by file; size stays scale-derived (round(720*0.085) = 61 → 30.5).
+    expect(headline).toMatchObject({ fontFamily: 'Pacifico', fontPx: 30.5, color: '#00ff00' });
+    // only the size overridden; font + colour keep the subtitle preset.
+    expect(subtitle).toMatchObject({ fontFamily: 'Oswald', fontPx: 20, color: '#cfd3de' });
+  });
+
+  it('an unknown font keeps the preset family and a styled kicker colour beats the accent', () => {
+    const preview = titleCardPreview(
+      { kicker: { en: 'Ep 1' }, accent: '#7C83FD', kickerStyle: { font: 'nope', color: '#123456' } },
+      PREVIEW_H,
+      'landscape'
+    );
+
+    expect(preview?.lines[0]).toMatchObject({ fontFamily: 'Oswald', color: '#123456' });
+  });
+
   it('carries the card effect onto every line (the engine applies it per pushLine)', () => {
     const effect = { shadow: true as const };
     const preview = titleCardPreview({ ...card, effect }, PREVIEW_H, 'landscape');

@@ -152,6 +152,40 @@ describe('titleCardToFilters', () => {
     expect((filters[1].values as Record<string, unknown>).x).toBe('(w-166)/2');
   });
 
+  it('per-line styles override the preset font, size and colour', () => {
+    const filters = titleCardToFilters(
+      {
+        kicker: { en: 'Ep 1' },
+        headline: { en: 'Hi' },
+        subtitle: { en: 'Sub' },
+        reveal: 'none',
+        kickerStyle: { font: 'bebas', fontsize: 30, color: '#ff0000' },
+        headlineStyle: { font: 'Custom.ttf', color: '#00ff00' },
+        subtitleStyle: { fontsize: 40 },
+      },
+      ctx
+    );
+    const [kicker, headline, subtitle] = filters
+      .filter((f) => f.type === 'drawtext')
+      .map((f) => f.values as Record<string, unknown>);
+
+    // font id resolved via the registry; unset fields keep the preset defaults.
+    expect(kicker).toMatchObject({ fontfile: 'BebasNeue.ttf', fontsize: 30, fontcolor: '#ff0000' });
+    // raw .ttf filenames pass through; the size stays scale-derived (round(720*0.085) = 61).
+    expect(headline).toMatchObject({ fontfile: 'Custom.ttf', fontsize: 61, fontcolor: '#00ff00' });
+    // only the size overridden; font + colour keep the subtitle preset.
+    expect(subtitle).toMatchObject({ fontfile: 'Oswald.ttf', fontsize: 40, fontcolor: '#cfd3de' });
+  });
+
+  it('a styled kicker colour wins over the accent tint', () => {
+    const filters = titleCardToFilters(
+      { kicker: { en: 'Ep 1' }, accent: '#7C83FD', reveal: 'none', kickerStyle: { color: '#123456' } },
+      ctx
+    );
+
+    expect((filters[0].values as Record<string, unknown>).fontcolor).toBe('#123456');
+  });
+
   it('effect lowers shadow + outline onto every drawtext line', () => {
     const filters = titleCardToFilters(
       {
@@ -199,6 +233,18 @@ describe('lowerThirdToFilters', () => {
     const badge = filters[4].values as Record<string, unknown>;
     expect(badge.x).toBe('w-text_w-77');
     expect(badge.boxcolor).toBe('#7C83FF@1');
+  });
+
+  it('bandColor customises the band drawbox and the badge text on an accent pill', () => {
+    const filters = lowerThirdToFilters(
+      { title: { en: 'Aurora' }, badge: { en: '$199' }, accent: '#7C83FF', bandColor: '#22101a', boxOpacity: 0.4 },
+      ctx
+    );
+
+    expect(filters.map((f) => f.type)).toEqual(['drawbox', 'drawbox', 'drawtext', 'drawtext']);
+    expect(filters[0].values).toMatchObject({ c: '#22101a@0.4' });
+    // the badge text sits on the accent pill, so it reuses the band colour for cohesion.
+    expect((filters[3].values as Record<string, unknown>).fontcolor).toBe('#22101a');
   });
 
   it('boxOpacity 0 drops the band; top position anchors to y=0', () => {

@@ -679,7 +679,15 @@
     "summaryEmpty": "aucun texte",
     "hint": "Un carton accroche / titre / sous-titre épuré — dimensionné selon l’orientation.",
     "background": "Fond de la carte",
-    "fade": "Fondu automatique"
+    "fade": "Fondu automatique",
+    "kickerStyleLabel": "Style de l'accroche",
+    "headlineStyleLabel": "Style du titre",
+    "subtitleStyleLabel": "Style du sous-titre",
+    "styleDefaults": "Par défaut",
+    "font": "Police",
+    "fontDefault": "Police par défaut",
+    "fontsize": "Taille du texte",
+    "color": "Couleur du texte"
   },
   "lowerThird": {
     "title": "Titre",
@@ -690,6 +698,7 @@
     "badgePlaceholder": "ex. #form_1_price",
     "accent": "Couleur d’accent",
     "band": "Opacité du bandeau",
+    "bandColor": "Couleur du bandeau",
     "position": "Position",
     "bottom": "Bas",
     "top": "Haut",

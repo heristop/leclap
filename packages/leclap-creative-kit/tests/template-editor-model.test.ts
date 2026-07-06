@@ -590,6 +590,10 @@ describe('templateEditorModel — text sugar (titleCard / lowerThird / caption r
       headline: { en: 'World' },
       accent: '#7C83FF',
       reveal: 'rise' as const,
+      // Per-line style overrides ride the whole-object pass-through and must survive the round-trip.
+      kickerStyle: { font: 'bebas', fontsize: 30, color: '#ff0000' },
+      headlineStyle: { color: '#00ff00' },
+      subtitleStyle: { fontsize: 40 },
     };
     const color: EditorSection = { ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>), titleCard };
     const d = buildDescriptor(baseState([color]));
@@ -604,7 +608,7 @@ describe('templateEditorModel — text sugar (titleCard / lowerThird / caption r
   });
 
   it('round-trips a lowerThird on a video section', () => {
-    const lowerThird = { title: { en: 'Aurora' }, badge: { en: '$199' }, accent: '#7C83FF' };
+    const lowerThird = { title: { en: 'Aurora' }, badge: { en: '$199' }, accent: '#7C83FF', bandColor: '#22101a' };
     const video: EditorSection = {
       ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>),
       overlays: [],

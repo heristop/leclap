@@ -46,6 +46,22 @@ export type Caption = z.infer<typeof CaptionSchema>;
 
 // ── title card ───────────────────────────────────────────────────────────────────
 
+// A per-line style override for a title card line. Every field is optional so the preset look
+// (font / scale-derived size / colour) stays the default; set fields win over it.
+export const TitleCardLineStyleSchema = z
+  .object({
+    font: z
+      .string()
+      .optional()
+      .describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
+    fontsize: z.number().positive().optional().describe('Font size in px; overrides the scale-derived size.'),
+    color: z.string().optional().describe('Text colour as a CSS hex string; overrides the preset colour.'),
+  })
+  .strict()
+  .describe('Per-line font / size / colour override for a title card line.');
+
+export type TitleCardLineStyle = z.infer<typeof TitleCardLineStyleSchema>;
+
 // A kicker / headline / subtitle card for color_background sections. Lowered by the titleCard preset
 // (editor/presets/text-blocks.ts) into the drawtext/drawbox/fade filters intros and outros used to
 // author by hand. Positions and sizes are derived from the output scale so it renders in any orientation.
@@ -54,6 +70,9 @@ export const TitleCardSchema = z
     kicker: TranslationSchema.optional().describe('Small eyebrow label above the headline.'),
     headline: TranslationSchema.optional().describe('Main headline, rendered large.'),
     subtitle: TranslationSchema.optional().describe('Supporting line below the headline.'),
+    kickerStyle: TitleCardLineStyleSchema.optional().describe('Font / size / colour override for the kicker.'),
+    headlineStyle: TitleCardLineStyleSchema.optional().describe('Font / size / colour override for the headline.'),
+    subtitleStyle: TitleCardLineStyleSchema.optional().describe('Font / size / colour override for the subtitle.'),
     accent: z.string().optional().describe('Accent colour: draws an underline bar and tints the kicker.'),
     align: z.enum(['left', 'center']).optional().describe('Horizontal alignment of the card (default left).'),
     background: z.string().optional().describe('Fade colour; defaults to the section background colour.'),
@@ -80,6 +99,10 @@ export const LowerThirdSchema = z
     title: TranslationSchema.optional().describe('Main line of the lower third.'),
     subtitle: TranslationSchema.optional().describe('Supporting line below the title.'),
     accent: z.string().optional().describe('Accent colour: draws an accent bar and the badge background.'),
+    bandColor: z
+      .string()
+      .optional()
+      .describe('Legibility band colour as a CSS hex string (default near-black #0a0f14).'),
     boxOpacity: z
       .number()
       .min(0)

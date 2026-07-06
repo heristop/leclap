@@ -679,7 +679,15 @@
     "summaryEmpty": "kein Text",
     "hint": "Eine saubere Kicker- / Überschrift- / Untertitel-Karte – an die Ausrichtung angepasst.",
     "background": "Kartenhintergrund",
-    "fade": "Auto-Blende"
+    "fade": "Auto-Blende",
+    "kickerStyleLabel": "Kicker-Stil",
+    "headlineStyleLabel": "Überschrift-Stil",
+    "subtitleStyleLabel": "Untertitel-Stil",
+    "styleDefaults": "Standard",
+    "font": "Schriftart",
+    "fontDefault": "Standardschrift",
+    "fontsize": "Schriftgröße",
+    "color": "Textfarbe"
   },
   "lowerThird": {
     "title": "Titel",
@@ -690,6 +698,7 @@
     "badgePlaceholder": "z. B. #form_1_price",
     "accent": "Akzentfarbe",
     "band": "Band-Deckkraft",
+    "bandColor": "Bandfarbe",
     "position": "Position",
     "bottom": "Unten",
     "top": "Oben",

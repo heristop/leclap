@@ -3,6 +3,7 @@
 // text-blocks.ts): the same margins, y positions, font files and colours, computed in engine px
 // (with the engine's rounding) then rescaled to the preview frame. Reveal/fade are entrance
 // animations — the preview renders the resting (fully revealed) state.
+import { findFont, findFontByFile } from '@leclap/creative-kit/fonts';
 import type { TitleCard, Orientation } from '../templateEditorModel';
 import {
   ENGINE_FRAME,
@@ -19,7 +20,9 @@ export interface TitleCardPreview {
   bar: SugarBar | null;
 }
 
-// One line's engine spec: the raw fractions of the engine frame the compiler uses.
+// One line's engine spec: the raw fractions of the engine frame the compiler uses, plus the
+// author's per-line style override (mirrors the engine's styledLook in text-blocks.ts).
+type LineStyle = NonNullable<TitleCard['kickerStyle']>;
 type LineSpec = {
   key: string;
   text: string;
@@ -27,7 +30,22 @@ type LineSpec = {
   sizeFrac: number;
   fontFamily: string;
   color: string;
+  style?: LineStyle;
 };
+
+// A styled font id → its CSS family; a raw .ttf resolved by file name; anything unknown keeps the
+// preset family (the engine's resolveFontFile falls back the same way).
+function lineFontFamily(font: string | undefined, presetFamily: string): string {
+  if (!font) return presetFamily;
+
+  const byId = findFont(font);
+
+  if (byId) return byId.cssFamily;
+
+  if (font.endsWith('.ttf')) return findFontByFile(font)?.cssFamily ?? presetFamily;
+
+  return presetFamily;
+}
 
 /**
  * Lays out a titleCard as positioned preview boxes, or null when the card has no text at all
@@ -55,9 +73,33 @@ export function titleCardPreview(
   const x: SugarAnchorX = align === 'center' ? { side: 'center' } : { side: 'left', px: margin * f };
 
   const specs: LineSpec[] = [
-    { key: 'kicker', text: kicker, yFrac: 0.4, sizeFrac: 0.026, fontFamily: 'Oswald', color: accent ?? '#ffffff' },
-    { key: 'headline', text: headline, yFrac: 0.452, sizeFrac: 0.085, fontFamily: 'Anton', color: '#ffffff' },
-    { key: 'subtitle', text: subtitle, yFrac: 0.63, sizeFrac: 0.03, fontFamily: 'Oswald', color: '#cfd3de' },
+    {
+      key: 'kicker',
+      text: kicker,
+      yFrac: 0.4,
+      sizeFrac: 0.026,
+      fontFamily: 'Oswald',
+      color: accent ?? '#ffffff',
+      style: card.kickerStyle,
+    },
+    {
+      key: 'headline',
+      text: headline,
+      yFrac: 0.452,
+      sizeFrac: 0.085,
+      fontFamily: 'Anton',
+      color: '#ffffff',
+      style: card.headlineStyle,
+    },
+    {
+      key: 'subtitle',
+      text: subtitle,
+      yFrac: 0.63,
+      sizeFrac: 0.03,
+      fontFamily: 'Oswald',
+      color: '#cfd3de',
+      style: card.subtitleStyle,
+    },
   ];
 
   const lines: SugarTextLine[] = specs
@@ -67,9 +109,10 @@ export function titleCardPreview(
       text: spec.text,
       x,
       y: { edge: 'top', px: Math.round(h * spec.yFrac) * f },
-      fontPx: Math.round(h * spec.sizeFrac) * f,
-      fontFamily: spec.fontFamily,
-      color: spec.color,
+      // A styled fontsize is absolute engine px (like caption overrides); otherwise scale-derived.
+      fontPx: (spec.style?.fontsize ?? Math.round(h * spec.sizeFrac)) * f,
+      fontFamily: lineFontFamily(spec.style?.font, spec.fontFamily),
+      color: spec.style?.color ?? spec.color,
       // The engine applies the card effect to every pushLine (text-blocks.ts titleCardToFilters).
       ...(card.effect ? { effect: card.effect } : {}),
     }));

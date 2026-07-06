@@ -679,7 +679,15 @@
     "summaryEmpty": "no text",
     "hint": "A clean kicker / headline / subtitle card — sized to the orientation.",
     "background": "Card background",
-    "fade": "Auto fade"
+    "fade": "Auto fade",
+    "kickerStyleLabel": "Kicker styling",
+    "headlineStyleLabel": "Headline styling",
+    "subtitleStyleLabel": "Subtitle styling",
+    "styleDefaults": "Defaults",
+    "font": "Font",
+    "fontDefault": "Default font",
+    "fontsize": "Font size",
+    "color": "Text color"
   },
   "lowerThird": {
     "title": "Title",
@@ -690,6 +698,7 @@
     "badgePlaceholder": "e.g. #form_1_price",
     "accent": "Accent colour",
     "band": "Band opacity",
+    "bandColor": "Band colour",
     "position": "Position",
     "bottom": "Bottom",
     "top": "Top",

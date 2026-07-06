@@ -75,10 +75,40 @@ function accentBar(
 // subtitle + staggered alpha/kinetic expressions + fades) into one structured block. Lowers to the
 // same drawtext/drawbox/fade filters authors used to write by hand.
 
+// A per-line override of the preset look. Unset fields keep the preset font / scale-derived size /
+// colour, so existing cards render identically.
+export type TitleCardLineStyle = {
+  /** Font id (bundled registry) or a raw .ttf filename. */
+  font?: string;
+  /** Font size in px; overrides the scale-derived size. */
+  fontsize?: number;
+  /** Text colour as a CSS hex string. */
+  color?: string;
+};
+
+// Merges an author's per-line style over the preset look, resolving font ids through the shared
+// registry so all sugar font handling stays in resolveFontFile.
+function styledLook(
+  defaults: { font: string; size: number; color: string },
+  style: TitleCardLineStyle | undefined
+): { font: string; size: number; color: string } {
+  return {
+    font: resolveFontFile(style?.font, defaults.font),
+    size: style?.fontsize ?? defaults.size,
+    color: style?.color ?? defaults.color,
+  };
+}
+
 export type TitleCard = {
   kicker?: Translation;
   headline?: Translation;
   subtitle?: Translation;
+  /** Font / size / colour override for the kicker. */
+  kickerStyle?: TitleCardLineStyle;
+  /** Font / size / colour override for the headline. */
+  headlineStyle?: TitleCardLineStyle;
+  /** Font / size / colour override for the subtitle. */
+  subtitleStyle?: TitleCardLineStyle;
   /** Accent colour: draws an underline bar and tints the kicker. Omit for no bar / white kicker. */
   accent?: string;
   align?: 'left' | 'center';
@@ -140,9 +170,10 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
       text: titleCard.kicker,
       x,
       y: round(h * 0.4),
-      font: 'Oswald.ttf',
-      size: round(h * 0.026),
-      color: accent ?? '#ffffff',
+      ...styledLook(
+        { font: 'Oswald.ttf', size: round(h * 0.026), color: accent ?? '#ffffff' },
+        titleCard.kickerStyle
+      ),
     },
     reveal,
     index,
@@ -150,7 +181,12 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
   );
   index = pushLine(
     filters,
-    { text: titleCard.headline, x, y: round(h * 0.452), font: 'Anton.ttf', size: round(h * 0.085), color: '#ffffff' },
+    {
+      text: titleCard.headline,
+      x,
+      y: round(h * 0.452),
+      ...styledLook({ font: 'Anton.ttf', size: round(h * 0.085), color: '#ffffff' }, titleCard.headlineStyle),
+    },
     reveal,
     index,
     effect
@@ -162,7 +198,12 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
 
   pushLine(
     filters,
-    { text: titleCard.subtitle, x, y: round(h * 0.63), font: 'Oswald.ttf', size: round(h * 0.03), color: '#cfd3de' },
+    {
+      text: titleCard.subtitle,
+      x,
+      y: round(h * 0.63),
+      ...styledLook({ font: 'Oswald.ttf', size: round(h * 0.03), color: '#cfd3de' }, titleCard.subtitleStyle),
+    },
     reveal,
     index,
     effect
@@ -188,6 +229,8 @@ export type LowerThird = {
   subtitle?: Translation;
   /** Accent colour: draws an accent bar and the badge background. */
   accent?: string;
+  /** Colour of the legibility band behind the text (default near-black #0a0f14). */
+  bandColor?: string;
   /** Opacity of the legibility band behind the text, 0..1 (default 0.6; 0 = no band). */
   boxOpacity?: number;
   /** Vertical anchor of the band (default "bottom"). */
@@ -205,19 +248,20 @@ export type LowerThirdContext = {
   scale: string;
 };
 
-function band(boxOpacity: number | undefined, y: number, h: number): Filter[] {
+function band(color: string, boxOpacity: number | undefined, y: number, h: number): Filter[] {
   const opacity = boxOpacity ?? DEFAULT_BAND_OPACITY;
 
   if (opacity <= 0) {
     return [];
   }
 
-  return [{ type: 'drawbox', values: { x: 0, y, w: 'iw', h, c: `${BAND_COLOR}@${opacity}`, t: 'fill' } }];
+  return [{ type: 'drawbox', values: { x: 0, y, w: 'iw', h, c: `${color}@${opacity}`, t: 'fill' } }];
 }
 
 function badgePill(
   text: Translation | undefined,
   accent: string | undefined,
+  bandColor: string,
   geom: { x: string; y: number; size: number; border: number },
   reveal: RevealInput
 ): Filter[] {
@@ -231,7 +275,8 @@ function badgePill(
     y: geom.y,
     fontfile: 'Anton.ttf',
     fontsize: geom.size,
-    fontcolor: accent ? BAND_COLOR : '#ffffff',
+    // On an accent pill the badge text reuses the band colour so band + badge stay cohesive.
+    fontcolor: accent ? bandColor : '#ffffff',
     box: 1,
     boxcolor: `${accent ?? '#7C83FF'}@1`,
     boxborderw: geom.border,
@@ -256,13 +301,14 @@ export function lowerThirdToFilters(lowerThird: LowerThird | undefined, ctx: Low
   const margin = round(w * 0.06);
   const reveal = lowerThird.reveal ?? 'rise';
   const accent = lowerThird.accent;
+  const bandColor = lowerThird.bandColor ?? BAND_COLOR;
   const effect = lowerThird.effect;
   const bandH = round(h * 0.2);
   const bandY = lowerThird.position === 'top' ? 0 : h - bandH;
   const x = String(margin);
 
   const filters: Filter[] = [];
-  filters.push(...band(lowerThird.boxOpacity, bandY, bandH));
+  filters.push(...band(bandColor, lowerThird.boxOpacity, bandY, bandH));
   filters.push(
     ...accentBar(accent, { x: margin, y: bandY + round(h * 0.04), w: round(w * 0.1), h: Math.max(4, round(h * 0.006)) })
   );
@@ -303,7 +349,7 @@ export function lowerThirdToFilters(lowerThird: LowerThird | undefined, ctx: Low
     size: round(h * 0.04),
     border: Math.max(8, round(h * 0.014)),
   };
-  filters.push(...badgePill(lowerThird.badge, accent, badgeGeom, staggered('fade', index)));
+  filters.push(...badgePill(lowerThird.badge, accent, bandColor, badgeGeom, staggered('fade', index)));
 
   return filters;
 }

@@ -13,6 +13,7 @@ import type {
   AnimationOverlay,
   ImageOverlay,
   MediaChoice,
+  SectionFit,
 } from './model';
 import { pruneEmpty } from './prune';
 import { overlayFiltersFrom } from './overlayFilters';
@@ -55,7 +56,7 @@ function animationExtent(a: AnimationOverlay) {
 
 // Placement/playback options shared by a section animation input and a whole-video global animation:
 // extent (duration | loops | loop), persistent, start, position/scale; opacity only when it fades (< 1),
-// rotation only when nonzero, motion when set — so opaque/upright/static overlays stay clean.
+// rotation only when nonzero, flip/motion when set — so opaque/upright/static overlays stay clean.
 function animationOptions(animation: AnimationOverlay) {
   return {
     ...animationExtent(animation),
@@ -67,6 +68,7 @@ function animationOptions(animation: AnimationOverlay) {
     ...(animation.fit && animation.fit !== 'stretch' ? { fit: animation.fit } : {}),
     ...(animation.opacity !== undefined && animation.opacity < 1 ? { opacity: animation.opacity } : {}),
     ...(animation.rotation ? { rotation: animation.rotation } : {}),
+    ...(animation.flip ? { flip: animation.flip } : {}),
     ...(animation.motion ? { motion: animation.motion } : {}),
   };
 }
@@ -116,7 +118,9 @@ function imageTimingFrom(overlay: ImageOverlay): { start?: number; duration?: nu
 }
 
 // A still-image overlay → a `type: 'image'` input composited via the same overlay path as animations.
-// Named `image_<i>` by array position. position/scale/opacity(<1)/rotation(≠0)/timing pass through when set.
+// Named `image_<i>` by array position. position/scale/opacity(<1)/rotation(≠0)/flip/timing pass through when set.
+// A builder-drawn shape carries its vector recipe (`shape`) on the input — editor metadata the engine
+// ignores; the actual pixels are the choice's pre-rasterized PNG data: URL.
 function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Section['inputs']>[number] {
   const options = {
     ...(overlay.position ? { position: overlay.position } : {}),
@@ -125,11 +129,18 @@ function imageInputFrom(overlay: ImageOverlay, index: number): NonNullable<Secti
     ...(overlay.fit && overlay.fit !== 'stretch' ? { fit: overlay.fit } : {}),
     ...(overlay.opacity !== undefined && overlay.opacity < 1 ? { opacity: overlay.opacity } : {}),
     ...(overlay.rotation ? { rotation: overlay.rotation } : {}),
+    ...(overlay.flip ? { flip: overlay.flip } : {}),
     ...imageTimingFrom(overlay),
     ...(overlay.motion ? { motion: overlay.motion } : {}),
   };
 
-  return { name: `image_${index}`, url: markerFromChoice(overlay.choice), type: 'image', options };
+  return {
+    name: `image_${index}`,
+    url: markerFromChoice(overlay.choice),
+    type: 'image',
+    ...(overlay.shape ? { shape: overlay.shape } : {}),
+    options,
+  };
 }
 
 // Animations + image overlays composited over a visual section, in z-order: animations first (array
@@ -196,6 +207,18 @@ function sectionPlaybackOptions(section: { speed?: number }): Partial<{ speed: n
   return { speed: section.speed };
 }
 
+// The section's source-footage fit → the descriptor aspect flags SegmentBuilder lowers to
+// scale/crop (cover) or scale/pad (letterbox). The default cover fit emits nothing.
+function sectionFitOptions(section: {
+  fit?: SectionFit;
+}): Partial<{ forceAspectRatio: boolean; forceOriginalAspectRatio: boolean }> {
+  if (section.fit === 'letterbox') return { forceOriginalAspectRatio: true };
+
+  if (section.fit === 'off') return { forceAspectRatio: false };
+
+  return {};
+}
+
 function formDescriptorFrom(section: { kind: 'form'; fields: FormField[] }, index: number): Section {
   return {
     name: `form_${index}`,
@@ -252,7 +275,34 @@ function colorDescriptorFrom(section: ColorSection, index: number): Section {
 
 type VideoSection = Extract<EditorSection, { kind: 'video' }>;
 
+// Asset-backed clip (videoUrl set): a fixed bumper / stock video the engine re-encodes via its
+// VideoSegment path — emitted as `type: 'video'` + `options.videoUrl`. Recorder-only metadata
+// (countdown, capture modes, framing guide, filming instructions) is dropped: nothing is filmed.
+function clipDescriptorFrom(section: VideoSection, videoUrl: MediaChoice, index: number): Section {
+  const filters = overlayFiltersFrom(section.overlays);
+  const overlayInputs = overlayInputsFrom(section);
+
+  return {
+    name: `clip_${index}`,
+    type: 'video',
+    options: {
+      duration: section.duration,
+      muteSection: section.mute,
+      videoUrl: markerFromChoice(videoUrl),
+      ...sectionAudioOptions(section),
+      ...sectionPlaybackOptions(section),
+      ...sectionFitOptions(section),
+    },
+    ...(section.lowerThird ? { lowerThird: section.lowerThird as Section['lowerThird'] } : {}),
+    ...(filters.length > 0 ? { filters } : {}),
+    ...visualExtras(section),
+    ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
+  };
+}
+
 function videoDescriptorFrom(section: VideoSection, index: number): Section {
+  if (section.videoUrl) return clipDescriptorFrom(section, section.videoUrl, index);
+
   const filters = overlayFiltersFrom(section.overlays);
   const description = section.description?.trim();
   const overlayInputs = overlayInputsFrom(section);
@@ -265,8 +315,15 @@ function videoDescriptorFrom(section: VideoSection, index: number): Section {
       muteSection: section.mute,
       ...(section.countdown ? { countdown: true, countdownDuration: section.countdownSeconds } : {}),
       ...(section.framingGuide ? { framingGuide: section.framingGuide } : {}),
+      // Recorder metadata (never lowered to filters): the preselected mode and the allowed set,
+      // each emitted only when the author set them (omitted = front / all four).
+      ...(section.captureMode ? { captureMode: section.captureMode } : {}),
+      ...(section.allowedCaptureModes && section.allowedCaptureModes.length > 0
+        ? { allowedCaptureModes: section.allowedCaptureModes }
+        : {}),
       ...sectionAudioOptions(section),
       ...sectionPlaybackOptions(section),
+      ...sectionFitOptions(section),
     },
     // Recording instructions for the filmer, keyed under the app's default locale.
     // A blank/whitespace-only description emits nothing.
@@ -299,7 +356,12 @@ function descriptorFor({ section, index }: IndexedSection): DescriptorSection | 
     return {
       name: `image_${index}`,
       type: 'image_background',
-      options: { duration: section.duration, ...sectionAudioOptions(section), ...sectionPlaybackOptions(section) },
+      options: {
+        duration: section.duration,
+        ...sectionAudioOptions(section),
+        ...sectionPlaybackOptions(section),
+        ...sectionFitOptions(section),
+      },
       ...(filters.length > 0 ? { filters } : {}),
       ...visualExtras(section),
       ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -313,10 +375,15 @@ function descriptorFor({ section, index }: IndexedSection): DescriptorSection | 
 // they are folded into the global media fields.
 function mapEditorSections(sections: EditorSection[]): DescriptorSection[] {
   let videoIndex = 0;
+  let clipIndex = 0;
   let imageIndex = 0;
   let descIndex = 0;
 
   const counted = sections.map((section): IndexedSection => {
+    // Asset-backed clips run on their own counter (clip_1…): the `video_<i>` names are reserved for
+    // the camera sections the apps map recorded/uploaded user clips onto, in order.
+    if (section.kind === 'video' && section.videoUrl) return { section, index: (clipIndex += 1) };
+
     if (section.kind === 'video') return { section, index: (videoIndex += 1) };
 
     if (section.kind === 'image') return { section, index: (imageIndex += 1) };
@@ -325,6 +392,16 @@ function mapEditorSections(sections: EditorSection[]): DescriptorSection[] {
   });
 
   return counted.map(descriptorFor).filter((s): s is Section => s !== null);
+}
+
+// The emitted names of the sections a whole-video text overlay can target (global.overlays[].sections):
+// the renderable ones only. form is metadata (never rendered) and a partial's inner sections carry the
+// partial's own (possibly prefixed) names, so neither can be matched by the compiler's per-section filter.
+export function renderableSectionNames(sections: EditorSection[]): string[] {
+  return mapEditorSections(sections)
+    .filter((section) => section.type !== 'form' && section.type !== 'partial')
+    .map((section) => section.name)
+    .filter((name): name is string => typeof name === 'string');
 }
 
 // music section -> global.allowed*/allowUpload*; image sections -> de-duplicated
@@ -390,8 +467,26 @@ function audioGlobal(audio: AudioMix): NonNullable<NonNullable<TemplateDescripto
   };
 }
 
+// The template palette with blank swatch rows dropped; empty/absent palettes emit nothing.
+function paletteFrom(state: EditorState): string[] {
+  return (state.colorsList ?? []).filter((color) => color.trim() !== '');
+}
+
+// The template's human-facing identity (descriptor.meta) — name/description trimmed and emitted
+// only when non-blank, so an exported JSON stays self-describing while untouched fields stay clean.
+function metaFrom(state: EditorState): Pick<TemplateDescriptor, 'meta'> {
+  const name = state.name.trim();
+  const description = state.description.trim();
+
+  if (!name && !description) return {};
+
+  return { meta: { ...(name ? { name } : {}), ...(description ? { description } : {}) } };
+}
+
 // Pure: editor state -> a core TemplateDescriptor.
 export function buildDescriptor(state: EditorState): TemplateDescriptor {
+  const palette = paletteFrom(state);
+
   const global: NonNullable<TemplateDescriptor['global']> = {
     orientation: state.orientation,
     musicEnabled: false,
@@ -403,6 +498,10 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     ...globalOverlaysField(state.globalOverlays),
     ...(state.globalLook ? { look: state.globalLook } : {}),
     ...(state.globalGrade ? { grade: state.globalGrade } : {}),
+    // The colour palette lands in BOTH descriptor slots: global.colorsList (user-facing, read by the
+    // apps) and global.variables.colorsList (engine — FormatterManager.formatColor resolves the
+    // '{{ colorN }}' tokens from there at compile time).
+    ...(palette.length > 0 ? { colorsList: palette, variables: { colorsList: palette } } : {}),
     ...mediaGlobals(state.sections),
   };
 
@@ -412,7 +511,7 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     global.variables = { ...global.variables, ...variables };
   }
 
-  return { global, sections: mapEditorSections(state.sections) };
+  return { ...metaFrom(state), global, sections: mapEditorSections(state.sections) };
 }
 
 // De-duplicated union of every variable name available to the editor: form

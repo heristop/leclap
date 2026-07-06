@@ -12,6 +12,7 @@ import type {
   BackgroundLayerSchema,
   FramingGuideSchema,
   OverlayFitSchema,
+  OverlayFlipSchema,
   RevealSchema,
   ExitSchema,
   TextEffectSchema,
@@ -22,6 +23,8 @@ import type {
   CaptionSchema,
   TitleCardSchema,
   LowerThirdSchema,
+  ShapeSpecSchema,
+  CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
 import type { Orientation, GlobalTextOverlaySchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import { FONTS, DEFAULT_FONT_ID } from '../fonts';
@@ -48,10 +51,32 @@ export type TextEffect = z.infer<typeof TextEffectSchema>;
 export type ChromaKey = z.infer<typeof ChromaKeySchema>;
 // How an overlay maps into its "w:h" scale box: stretch (default, may distort) / contain / cover.
 export type OverlayFit = z.infer<typeof OverlayFitSchema>;
+// Mirror applied to the overlay before rotation/compositing: horizontal / vertical / both.
+export type OverlayFlip = z.infer<typeof OverlayFlipSchema>;
 export type DuckingSettings = z.infer<typeof DuckingSchema>;
 export type TitleCard = z.infer<typeof TitleCardSchema>;
 export type LowerThird = z.infer<typeof LowerThirdSchema>;
+// The vector recipe of a builder-drawn shape element (rect/ellipse). Stored on an ImageOverlay whose
+// choice url is the pre-rasterized PNG data: URL; the descriptor carries it verbatim (engine ignores
+// it) so the shape controls re-hydrate on import.
+export type ShapeSpec = z.infer<typeof ShapeSpecSchema>;
 export type GlobalTextOverlay = z.infer<typeof GlobalTextOverlaySchema>;
+// Recorder input source for a project_video section: front/back camera, screen share, or file upload.
+// Pure recorder metadata (honoured by both capture UIs), never lowered to FFmpeg filters.
+export type CaptureMode = z.infer<typeof CaptureModeSchema>;
+
+// Every capture mode, in display order — the recorder default when a template doesn't restrict them.
+export const ALL_CAPTURE_MODES: readonly CaptureMode[] = ['front', 'back', 'screen', 'upload'];
+
+// How a section's SOURCE footage maps into the output frame (descriptor options.forceAspectRatio /
+// forceOriginalAspectRatio, lowered by SegmentBuilder.prependScaleFilters — scale/crop/pad only,
+// LGPL-safe). 'cover' (default, omitted) fills the frame and centre-crops the overflow; 'letterbox'
+// keeps the whole frame visible with pad bars (forceOriginalAspectRatio: true); 'off' skips the
+// conform scaling entirely (forceAspectRatio: false) for sources that already match the output.
+export type SectionFit = 'cover' | 'letterbox' | 'off';
+
+// Every fit mode, in display order — shared by the builder UIs' segmented control.
+export const SECTION_FIT_MODES: readonly SectionFit[] = ['cover', 'letterbox', 'off'];
 
 // --- Editor-friendly section model (flattened; compiled to a descriptor on save) ---
 export type FormField = { name: string; label: string; maxLength: number };
@@ -69,6 +94,10 @@ export interface TextOverlay {
   box: boolean;
   boxcolor: string;
   boxOpacity: number;
+  // Background-box padding in video px around the text (drawtext boxborderw); omitted = the
+  // historical 12. drawtext/drawbox have no corner radius (LGPL or otherwise), so padding is the
+  // only box-shape knob the engine can honour.
+  boxPadding?: number;
   // Whole-text alpha in [0,1] for watermark-style overlays; omitted = fully opaque. Lowered as a
   // `#rrggbb@a` fontcolor token (the pattern boxcolor already uses) rather than the drawtext `alpha`
   // option, which FilterManager.bakeTextAnimation overwrites with the reveal/exit expression.
@@ -81,6 +110,10 @@ export interface TextOverlay {
   // Drop shadow / outline for legibility over busy footage; lowered to drawtext
   // shadowx/shadowy/shadowcolor + borderw/bordercolor keys (see overlayFilters).
   effect?: TextEffect;
+  // Accent underline bar beneath the text (the title-card treatment): a solid drawbox in this
+  // colour, sized from the fontsize and emitted right after the drawtext (see overlayFilters /
+  // overlayParsing). Omitted = no bar.
+  accent?: string;
 }
 
 // A transition emitted after a visual section (maps to section.transition).
@@ -167,6 +200,8 @@ export interface AnimationOverlay {
   opacity?: number;
   // Clockwise rotation in degrees applied to the overlay before compositing. Omitted/0 = upright.
   rotation?: number;
+  // Mirror applied before the rotation (engine hflip/vflip on the overlay leg). Omitted = unmirrored.
+  flip?: OverlayFlip;
   // Animated entrance for the overlay (rise/slide/fade), reusing the reveal vocabulary; pass-through.
   motion?: Reveal;
 }
@@ -189,6 +224,8 @@ export interface ImageOverlay {
   opacity?: number;
   // Clockwise rotation in degrees applied to the image before compositing. Omitted/0 = upright.
   rotation?: number;
+  // Mirror applied before the rotation — same convention as AnimationOverlay.flip. Omitted = unmirrored.
+  flip?: OverlayFlip;
   // Show window, in section-relative seconds. `start` = when the image appears (omitted/0 = from the
   // section start); `end` = when it disappears (omitted/0 = until the section ends). Stored on the
   // descriptor input as start/duration (duration = end - start) and lowered by the engine to the
@@ -197,6 +234,11 @@ export interface ImageOverlay {
   end?: number;
   // Animated entrance for the image (rise/slide/fade), reusing the reveal vocabulary; pass-through.
   motion?: Reveal;
+  // Set when this overlay is a builder-drawn SHAPE element: the vector recipe (kind/colour/corner
+  // radius/stroke) the builder rasterized into the choice's PNG data: URL. The builder regenerates
+  // the PNG whenever these params change; the engine composites the PNG and ignores this field.
+  // Absent on a plain picked/uploaded image.
+  shape?: ShapeSpec;
 }
 
 export interface VisualAnimation {
@@ -212,6 +254,12 @@ export type EditorSection =
       kind: 'video';
       duration: number;
       mute: boolean;
+      // Asset-backed clip source (a brand bumper / stock clip): when set, the section plays this
+      // fixed video instead of asking the end-user to film — emitted as `type: 'video'` +
+      // `options.videoUrl` (the engine's VideoSegment scale/crop + re-encode path, LGPL-safe).
+      // Absent = a camera scene (`type: 'project_video'`). Recorder-only fields (countdown,
+      // description, captureMode, framingGuide) are ignored while a clip source is set.
+      videoUrl?: MediaChoice;
       overlays: TextOverlay[];
       // Recording instructions shown to the end-user while they film this scene
       // (e.g. "Stand centered, look at the camera, say your name"). Emitted as the
@@ -231,9 +279,15 @@ export type EditorSection =
       // Structured lower-third band composited over the recorded clip (descriptor shape, passed through).
       lowerThird?: LowerThird;
       framingGuide?: FramingGuide;
+      // Recorder mode preselected when the end-user films this scene (omitted = front camera).
+      captureMode?: CaptureMode;
+      // Modes the end-user may switch to; omitted = all four. A single element locks to one mode.
+      allowedCaptureModes?: CaptureMode[];
       // Still-image layers dragged/resized on the preview and composited OVER the recorded clip,
       // in array order (later entries paint on top). Author-set; empty/absent means none.
       images?: ImageOverlay[];
+      // How the recorded clip / fixed video maps into the output frame; omitted = 'cover'.
+      fit?: SectionFit;
     } & VisualAudio &
       VisualPlayback &
       VisualCaption &
@@ -273,6 +327,8 @@ export type EditorSection =
       // Still-image layers dragged/resized on the preview and composited OVER the background image,
       // in array order (later entries paint on top). Author-set; empty/absent means none.
       images?: ImageOverlay[];
+      // How the picked/uploaded background image maps into the output frame; omitted = 'cover'.
+      fit?: SectionFit;
     } & VisualAudio &
       VisualPlayback &
       VisualCaption &
@@ -324,6 +380,11 @@ export interface EditorState {
   // Whole-video colour grade applied across every section (descriptor global.look / global.grade).
   globalLook?: string;
   globalGrade?: Grade;
+  // The template's colour palette, 1-indexed as '{{ colorN }}' tokens in any colour field. Emitted
+  // to BOTH descriptor locations: global.colorsList (the schema's user-facing palette, read by the
+  // apps' template screens) and global.variables.colorsList (where the engine's
+  // FormatterManager.formatColor resolves the tokens at compile). Absent/empty means no palette.
+  colorsList?: string[];
 }
 
 /** Minimal shape needed to re-hydrate the editor from a saved template (web Template + expo UserTemplate both satisfy it). */

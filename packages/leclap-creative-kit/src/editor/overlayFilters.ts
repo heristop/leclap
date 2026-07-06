@@ -13,6 +13,11 @@ type StoredValues = NonNullable<StoredFilter['values']>;
 const SHADOW_DEFAULTS = { color: '#000000@0.6', dx: 2, dy: 2 };
 const OUTLINE_DEFAULTS = { color: '#000000', width: 2 };
 
+// The boxborderw the kit has always emitted; overlays without an authored boxPadding keep it, and
+// a parsed value equal to it collapses back to an absent field (see overlayParsing). Exported so
+// the web canvas preview pads its CSS box with the exact same default.
+export const DEFAULT_BOX_PADDING = 12;
+
 // Lower a TextEffect to the drawtext shadow/border keys; empty when the overlay has no effect,
 // so older overlays keep emitting the exact same filter values.
 function effectValues(
@@ -66,7 +71,9 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
       fontfile: findFont(overlay.font)?.file ?? 'Rubik.ttf',
       x: `(w-text_w)*${roundFraction(overlay.x)}`,
       y: `(h-text_h)*${roundFraction(overlay.y)}`,
-      ...(overlay.box ? { box: 1, boxcolor: `${overlay.boxcolor}@${overlay.boxOpacity}`, boxborderw: 12 } : {}),
+      ...(overlay.box
+        ? { box: 1, boxcolor: `${overlay.boxcolor}@${overlay.boxOpacity}`, boxborderw: overlay.boxPadding ?? DEFAULT_BOX_PADDING }
+        : {}),
       ...effectValues(overlay.effect),
     },
     // The entrance/exit animations ride as sibling `reveal`/`exit` the engine bakes onto the drawtext;
@@ -76,8 +83,41 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
   };
 }
 
-// Non-empty text overlays → drawtext filters, in author order. Shared by video/color/image sections;
-// tolerant of an absent list (older states / sections built before overlays existed on this kind).
+// The accent underline bar beneath the text — the title-card treatment (engine text-blocks.ts
+// accentBar) for a positionable overlay. The kit never knows the output size, so the geometry uses
+// the drawbox expression vocabulary (iw/ih) mirroring the drawtext `(w-text_w)*fraction` anchor:
+// width ≈ 6× the fontsize centered on the x anchor, height max(4, fontsize*0.12), sitting one
+// approximated text height (fontsize*1.2) plus a small gap below the y anchor. The bar is emitted
+// right AFTER its drawtext so overlayParsing can recover the pair by adjacency; the geometry is
+// recomputed on every build, so only the colour needs to round-trip.
+function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
+  if (!overlay.accent) return [];
+
+  const textH = Math.round(overlay.fontsize * 1.2);
+  const barW = Math.round(overlay.fontsize * 6);
+  const barH = Math.max(4, Math.round(overlay.fontsize * 0.12));
+  const gap = Math.round(overlay.fontsize * 0.25);
+
+  return [
+    {
+      type: 'drawbox',
+      values: {
+        x: `(iw-${barW})*${roundFraction(overlay.x)}`,
+        y: `(ih-${textH})*${roundFraction(overlay.y)}+${textH + gap}`,
+        w: barW,
+        h: barH,
+        c: `${overlay.accent}@1`,
+        t: 'fill',
+      },
+    },
+  ];
+}
+
+// Non-empty text overlays → drawtext filters (each followed by its optional accent bar), in author
+// order. Shared by video/color/image sections; tolerant of an absent list (older states / sections
+// built before overlays existed on this kind).
 export function overlayFiltersFrom(overlays: TextOverlay[] | undefined): StoredFilter[] {
-  return (overlays ?? []).filter((o) => o.text.trim() !== '').map(drawtextFilterFrom);
+  return (overlays ?? [])
+    .filter((o) => o.text.trim() !== '')
+    .flatMap((o) => [drawtextFilterFrom(o), ...accentBarFilters(o)]);
 }

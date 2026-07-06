@@ -30,8 +30,10 @@ import {
   type LowerThird,
   type GlobalTextOverlay,
   type ChromaKey,
+  type CaptureMode,
+  type SectionFit,
 } from './model';
-import { overlayFrom } from './overlayParsing';
+import { overlaysFromFilters } from './overlayParsing';
 import { pruneEmpty } from './prune';
 
 function formSectionFrom(s: Section): EditorSection {
@@ -110,6 +112,7 @@ function overlayOptionsFrom(o: Partial<GlobalAnimation>): Omit<AnimationOverlay,
     ...(o.persistent === false ? { persistent: false } : {}),
     ...(o.opacity !== undefined && o.opacity < 1 ? { opacity: o.opacity } : {}),
     ...(o.rotation ? { rotation: o.rotation } : {}),
+    ...(o.flip ? { flip: o.flip } : {}),
     ...(o.motion ? { motion: o.motion } : {}),
   };
 }
@@ -134,7 +137,7 @@ function imagesFrom(s: Section): ImageOverlay[] {
   return (s.inputs ?? [])
     .filter((i) => i.type === 'image' && i.url)
     .map((input) => {
-      const { position, scale, fit, opacity, rotation, motion, start, duration } = input.options ?? {};
+      const { position, scale, fit, opacity, rotation, flip, motion, start, duration } = input.options ?? {};
 
       // opacity defaults to opaque, so only carry an explicit fade (< 1) back, mirroring animationsFrom.
       // The stored show window is start/duration; the editor edits absolute start/end, so
@@ -147,9 +150,13 @@ function imagesFrom(s: Section): ImageOverlay[] {
         ...(fit && fit !== 'stretch' ? { fit } : {}),
         ...(opacity !== undefined && opacity < 1 ? { opacity } : {}),
         ...(rotation ? { rotation } : {}),
+        ...(flip ? { flip } : {}),
         ...(start ? { start } : {}),
         ...(duration !== undefined ? { end: Number(((start ?? 0) + duration).toFixed(4)) } : {}),
         ...(motion ? { motion } : {}),
+        // A builder-drawn shape re-hydrates its vector recipe so the shape controls come back;
+        // without the field the data: URL stays a plain image.
+        ...(input.shape ? { shape: input.shape } : {}),
       };
     });
 }
@@ -195,6 +202,17 @@ function sectionPlaybackFrom(s: Section): { speed?: number } {
   return speed === undefined || speed === 1 ? {} : { speed };
 }
 
+// Recover the source-footage fit from the stored aspect flags. Letterbox wins when both are set,
+// matching the engine (forceOriginalAspectRatio still triggers the scale/pad path). Default cover
+// stays absent so untouched sections import clean.
+function sectionFitFrom(s: Section): { fit?: SectionFit } {
+  if (s.options?.forceOriginalAspectRatio) return { fit: 'letterbox' };
+
+  if (s.options?.forceAspectRatio === false) return { fit: 'off' };
+
+  return {};
+}
+
 function colorSectionFrom(s: Section): EditorSection {
   const layers = (s.options?.layers ?? []) as BackgroundLayer[];
   const images = imagesFrom(s);
@@ -206,7 +224,7 @@ function colorSectionFrom(s: Section): EditorSection {
     ...(layers.length > 0 ? { layers } : {}),
     ...(images.length > 0 ? { images } : {}),
     ...(s.titleCard ? { titleCard: s.titleCard as TitleCard } : {}),
-    overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
+    overlays: overlaysFromFilters(s.filters),
     ...sectionAudioExtrasFrom(s),
     ...sectionPlaybackFrom(s),
     ...visualExtrasFrom(s),
@@ -220,14 +238,24 @@ function descriptionFrom(s: Section): string | undefined {
   return s.description.en ?? Object.values(s.description)[0];
 }
 
-// Video-only extras (framing guide + lower third), absent when not stored.
-function videoExtrasFrom(s: Section): { framingGuide?: FramingGuide; lowerThird?: LowerThird; chromaKey?: ChromaKey } {
+// Video-only extras (framing guide + lower third + capture modes), absent when not stored.
+function videoExtrasFrom(s: Section): {
+  framingGuide?: FramingGuide;
+  lowerThird?: LowerThird;
+  chromaKey?: ChromaKey;
+  captureMode?: CaptureMode;
+  allowedCaptureModes?: CaptureMode[];
+} {
   const framingGuide = s.options?.framingGuide as FramingGuide | undefined;
+  const captureMode = s.options?.captureMode as CaptureMode | undefined;
+  const allowedCaptureModes = s.options?.allowedCaptureModes as CaptureMode[] | undefined;
 
   return {
     ...(framingGuide ? { framingGuide } : {}),
     ...(s.lowerThird ? { lowerThird: s.lowerThird as LowerThird } : {}),
     ...(s.chromaKey ? { chromaKey: s.chromaKey as ChromaKey } : {}),
+    ...(captureMode ? { captureMode } : {}),
+    ...(allowedCaptureModes && allowedCaptureModes.length > 0 ? { allowedCaptureModes } : {}),
   };
 }
 
@@ -237,10 +265,14 @@ function videoSectionFrom(s: Section): EditorSection {
 
   return {
     kind: 'video',
+    // A stored `type: 'video'` section carries its fixed clip source in options.videoUrl — hydrate
+    // it back to a MediaChoice so the section re-opens (and re-builds) as an asset-backed clip
+    // instead of silently converting into a camera scene.
+    ...(s.options?.videoUrl ? { videoUrl: choiceFromMarker(s.options.videoUrl) } : {}),
     ...(images.length > 0 ? { images } : {}),
     duration: s.options?.duration ?? 8,
     mute: Boolean(s.options?.muteSection),
-    overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
+    overlays: overlaysFromFilters(s.filters),
     ...(description ? { description } : {}),
     countdown: Boolean(s.options?.countdown),
     countdownSeconds: s.options?.countdownDuration ?? 4,
@@ -249,6 +281,7 @@ function videoSectionFrom(s: Section): EditorSection {
     ...videoExtrasFrom(s),
     ...sectionAudioExtrasFrom(s),
     ...sectionPlaybackFrom(s),
+    ...sectionFitFrom(s),
     ...visualExtrasFrom(s),
   };
 }
@@ -271,9 +304,10 @@ function storedSectionToEditor(
       allowUpload: allowUploadBackground,
       duration: s.options?.duration ?? 4,
       ...(images.length > 0 ? { images } : {}),
-      overlays: (s.filters ?? []).filter((f) => f.type === 'drawtext').map(overlayFrom),
+      overlays: overlaysFromFilters(s.filters),
       ...sectionAudioExtrasFrom(s),
-    ...sectionPlaybackFrom(s),
+      ...sectionPlaybackFrom(s),
+      ...sectionFitFrom(s),
       ...visualExtrasFrom(s),
     };
   }
@@ -285,8 +319,19 @@ function isRenderableSection(s: NonNullable<TemplateDescriptor['sections']>[numb
   return s.type !== 'partial' && typeof s.name === 'string';
 }
 
+// Recover the template palette: prefer the schema's user-facing global.colorsList, falling back to
+// the engine slot (global.variables.colorsList) for descriptors authored before the palette editor.
+function colorsListFrom(global: TemplateDescriptor['global']): string[] {
+  if (global?.colorsList && global.colorsList.length > 0) return global.colorsList;
+
+  const engineSlot = global?.variables?.colorsList;
+
+  return Array.isArray(engineSlot) ? engineSlot : [];
+}
+
 // String entries of a descriptor's global.variables become editable author
-// rows; string[] entries (e.g. colorsList-style vars) are skipped.
+// rows; string[] entries (the colorsList palette) are skipped — the palette
+// hydrates into EditorState.colorsList instead (see colorsListFrom).
 function globalVariablesFrom(global: TemplateDescriptor['global']): EditorState['globalVariables'] {
   return Object.entries(global?.variables ?? {})
     .filter(([, val]) => typeof val === 'string')
@@ -380,11 +425,14 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
   }
 
   const global = template.descriptor.global;
+  const colorsList = colorsListFrom(global);
 
   return {
     id: template.id,
-    name: template.name,
-    description: template.description,
+    // The descriptor's own identity (meta) wins over the wrapper, per field, so an imported JSON
+    // brings its name/description along; legacy descriptors without meta keep the wrapper values.
+    name: template.descriptor.meta?.name ?? template.name,
+    description: template.descriptor.meta?.description ?? template.description,
     orientation: template.orientation,
     sections: editorSectionsFrom(template.descriptor),
     globalVariables: globalVariablesFrom(global),
@@ -394,5 +442,6 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     globalOverlays: globalOverlaysFrom(global),
     ...(global?.look ? { globalLook: global.look } : {}),
     ...(global?.grade ? { globalGrade: global.grade as EditorState['globalGrade'] } : {}),
+    ...(colorsList.length > 0 ? { colorsList } : {}),
   };
 }

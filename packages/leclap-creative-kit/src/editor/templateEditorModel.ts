@@ -9,4 +9,6 @@ export * from './buildDescriptor';
 export * from './operations';
 export * from './toEditorState';
 export * from './overlayParsing';
+export * from './overlayFilters';
 export * from './starter-presets';
+export * from './color-token';

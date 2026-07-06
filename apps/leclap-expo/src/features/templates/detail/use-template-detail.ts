@@ -168,7 +168,7 @@ function useCompileHandler(ctx: CompileCtx) {
           // Check the cancel outcome first: the render can finish successfully inside the abort
           // window, so a cancelled compile must not fall through to the success branch and navigate
           // into a preview the user asked to cancel. The overlay already closed via finish(); leave
-          // the user on the hub without a scary "Compilation Failed" alert.
+          // the user on the hub without the misleading "Compilation Failed" alert.
           if (result.cancelled || result.result.error === 'Compilation cancelled.') {
             return;
           }

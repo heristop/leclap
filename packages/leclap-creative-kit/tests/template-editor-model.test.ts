@@ -15,6 +15,7 @@ import {
   type EditorState,
   type EditorSection,
   type EditableTemplate,
+  type TemplateDescriptor,
   type TextOverlay,
   type BackgroundLayer,
 } from '../src/editor/templateEditorModel';
@@ -332,6 +333,36 @@ describe('templateEditorModel — ffmpeg-feature sugar round-trips', () => {
     expect(recovered.animations?.[0]).toMatchObject({ motion: 'slide-left' });
   });
 
+  it('emits and round-trips an overlay motion with an easing curve', () => {
+    const motion = { type: 'rise' as const, easing: 'ease-out' as const };
+    const color: EditorSection = {
+      ...(newSection('color') as ColorSection),
+      animations: [{ id: 'a', url: '/assets/animations/pulse_ring.apng', motion }],
+    };
+    const d = buildDescriptor(baseState([color]));
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input?.options).toMatchObject({ motion });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(baseState([color])));
+    const recovered = back.sections.find((s) => s.kind === 'color') as ColorSection;
+    expect(recovered.animations?.[0]).toMatchObject({ motion });
+  });
+
+  it('emits and round-trips a caption reveal with an easing curve', () => {
+    const reveal = { type: 'slide-left' as const, easing: 'ease-in-out' as const };
+    const state = baseState([video({ caption: { text: 'Hi', reveal } })]);
+    const d = buildDescriptor(state);
+
+    expect(d.sections?.find((s) => s.caption)?.caption?.reveal).toEqual(reveal);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.caption?.reveal).toEqual(reveal);
+  });
+
   it('emits and round-trips a positionable text overlay effect (shadow + outline)', () => {
     const state = baseState([
       videoSection([overlay({ text: 'Hi', effect: { shadow: true, outline: { color: '#ff0000' } } })]),
@@ -510,6 +541,71 @@ describe('templateEditorModel — image overlays on color/image sections', () =>
 
     // end rehydrates as start + duration with float noise trimmed (0.1 + 0.2 must give 0.3, not 0.30000000000000004)
     expect(color.images?.[0]).toMatchObject({ start: 0.1, end: 0.3 });
+  });
+
+  it('emits a shape overlay as a type:image input carrying the shape recipe', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [
+        {
+          id: 's',
+          choice: { source: 'url', url: 'data:image/png;base64,AAAA' },
+          scale: '480:480',
+          shape: { kind: 'rect', color: '#ff4d4d', cornerRadius: 24, strokeWidth: 4, strokeColor: '#ffffff' },
+        },
+      ],
+    };
+    const d = buildDescriptor(baseState([section]));
+    const input = d.sections?.find((s) => s.inputs)?.inputs?.[0];
+
+    expect(input).toEqual({
+      name: 'image_0',
+      url: 'data:image/png;base64,AAAA',
+      type: 'image',
+      shape: { kind: 'rect', color: '#ff4d4d', cornerRadius: 24, strokeWidth: 4, strokeColor: '#ffffff' },
+      options: { scale: '480:480' },
+    });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('round-trips a shape overlay back into the editor with its recipe intact', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [
+        {
+          id: 's',
+          choice: { source: 'url', url: 'data:image/png;base64,AAAA' },
+          position: '120:80',
+          scale: '300:300',
+          shape: { kind: 'ellipse', color: '#7c83fd' },
+        },
+      ],
+    };
+    const back = toEditorState(asTemplate(baseState([section])));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+
+    expect(color.images).toEqual([
+      {
+        id: 'image_0',
+        choice: { source: 'url', url: 'data:image/png;base64,AAAA' },
+        position: '120:80',
+        scale: '300:300',
+        shape: { kind: 'ellipse', color: '#7c83fd' },
+      },
+    ]);
+  });
+
+  it('keeps a plain data:-url image a plain image on import (no shape field, no recipe)', () => {
+    const section: EditorSection = {
+      ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+      images: [{ id: 'i', choice: { source: 'url', url: 'data:image/png;base64,BBBB' } }],
+    };
+    const input = buildDescriptor(baseState([section])).sections?.find((s) => s.inputs)?.inputs?.[0];
+    expect(input).not.toHaveProperty('shape');
+
+    const back = toEditorState(asTemplate(baseState([section])));
+    const color = back.sections.find((s) => s.kind === 'color') as Extract<EditorSection, { kind: 'color' }>;
+    expect(color.images?.[0]).not.toHaveProperty('shape');
   });
 
   it('emits and round-trips an image overlay entrance motion', () => {
@@ -1074,6 +1170,104 @@ describe('templateEditorModel — video overlays → drawtext filters', () => {
   });
 });
 
+// --- overlay accent bar ---
+
+describe('templateEditorModel — overlay accent bar', () => {
+  const accented = (over: Partial<TextOverlay> = {}) =>
+    overlay({ text: 'Title', x: 0.25, y: 0.8, fontsize: 50, accent: '#ff8800', ...over });
+
+  const videoOverlays = (state: EditorState): TextOverlay[] => {
+    const back = toEditorState(asTemplate(state));
+    const video = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    return video.overlays;
+  };
+
+  it('emits a drawbox accent bar right after the drawtext, sized from the fontsize', () => {
+    const d = buildDescriptor(baseState([videoSection([accented()])]));
+    const filters = d.sections?.find((s) => s.type === 'project_video')?.filters ?? [];
+
+    expect(filters.map((f) => f.type)).toEqual(['drawtext', 'drawbox']);
+    // width = fontsize*6 centered on the x anchor; height max(4, fontsize*0.12); the bar sits one
+    // approximated text height (fontsize*1.2) plus a fontsize*0.25 gap below the drawtext y anchor.
+    expect(filters[1].values).toEqual({
+      x: '(iw-300)*0.25',
+      y: '(ih-60)*0.8+73',
+      w: 300,
+      h: 6,
+      c: '#ff8800@1',
+      t: 'fill',
+    });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('emits no drawbox when the overlay has no accent (backward compatible)', () => {
+    const d = buildDescriptor(baseState([videoSection([overlay({ text: 'Plain' })])]));
+    const filters = d.sections?.find((s) => s.type === 'project_video')?.filters ?? [];
+
+    expect(filters.map((f) => f.type)).toEqual(['drawtext']);
+  });
+
+  it('round-trips the accent and keeps accent-less overlays clean of the field', () => {
+    const overlays = [accented(), overlay({ text: 'Plain', y: 0.9 })];
+    const recovered = videoOverlays(baseState([videoSection(overlays)]));
+
+    expect(recovered).toEqual(overlays);
+    expect(recovered[0].accent).toBe('#ff8800');
+    expect(recovered[1]).not.toHaveProperty('accent');
+  });
+
+  it('pairs each accent bar with its own drawtext across multiple overlays', () => {
+    const overlays = [
+      accented({ text: 'One', accent: '#ff0000' }),
+      overlay({ text: 'Two', y: 0.6 }),
+      accented({ text: 'Three', y: 0.9, accent: '#00ff00' }),
+    ];
+    const recovered = videoOverlays(baseState([videoSection(overlays)]));
+
+    expect(recovered).toEqual(overlays);
+  });
+
+  it('rebuilds an identical descriptor after a round-trip', () => {
+    const state = baseState([videoSection([accented()])]);
+    const back = toEditorState(asTemplate(state));
+
+    expect(buildDescriptor(back)).toEqual(buildDescriptor(state));
+  });
+
+  it('does not claim a hand-authored drawbox that lacks the accent-bar signature', () => {
+    const descriptor = {
+      sections: [
+        {
+          name: 'video_1',
+          type: 'project_video',
+          options: { duration: 8, muteSection: false },
+          filters: [
+            {
+              type: 'drawtext',
+              values: {
+                text: { en: 'Hi' },
+                fontsize: 48,
+                fontcolor: '#ffffff',
+                fontfile: 'Rubik.ttf',
+                x: '(w-text_w)*0.5',
+                y: '(h-text_h)*0.5',
+              },
+            },
+            // A full-frame wash, not a kit accent bar: numeric x, no `(iw-…)*fraction` form.
+            { type: 'drawbox', values: { x: 0, y: 0, w: 100, h: 100, c: '#000000@1', t: 'fill' } },
+          ],
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+    const back = toEditorState({ id: 'user-x', name: 'T', description: '', orientation: 'landscape', descriptor });
+    const video = back.sections.find((s) => s.kind === 'video') as Extract<EditorSection, { kind: 'video' }>;
+
+    expect(video.overlays).toHaveLength(1);
+    expect(video.overlays[0]).not.toHaveProperty('accent');
+  });
+});
+
 // --- per-overlay font + global variables ---
 
 describe('templateEditorModel — per-overlay font + global variables', () => {
@@ -1284,9 +1478,29 @@ describe('templateEditorModel — transitions/look/grade/motion/layers fields', 
   });
 
   it('passes color-section layers through as options.layers and back', () => {
-    // shape rides along to prove new gradient fields round-trip opaquely (layers pass through as-is).
+    // shape and angle ride along to prove new gradient fields round-trip opaquely (layers pass through as-is).
     const layers: BackgroundLayer[] = [
       { gradient: { from: '#000', to: '#fff', direction: 'vertical', shape: 'radial' }, opacity: 0.8 },
+      { gradient: { from: '#111', to: '#eee', angle: 225 } },
+    ];
+    const state = baseState([{ ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>), layers }]);
+    const d = buildDescriptor(state);
+
+    expect(d.sections?.[0].options?.layers).toEqual(layers);
+    const back = toEditorState(asTemplate(state)).sections.find((s) => s.kind === 'color') as Extract<
+      EditorSection,
+      { kind: 'color' }
+    >;
+
+    expect(back.layers).toEqual(layers);
+  });
+
+  it('passes a layer border through as options.layers and back', () => {
+    // border rides along to prove the outline fields round-trip opaquely — a stroked fill AND an
+    // outline-only layer (no color) both survive buildDescriptor → toEditorState.
+    const layers: BackgroundLayer[] = [
+      { color: '#112233', opacity: 0.9, border: { color: '#FFFFFF', width: 4 } },
+      { border: { color: '#00FF00', width: 8 }, x: 'iw*0.25', y: 'ih*0.25', w: 'iw*0.5', h: 'ih*0.5' },
     ];
     const state = baseState([{ ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>), layers }]);
     const d = buildDescriptor(state);

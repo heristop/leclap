@@ -159,7 +159,7 @@
       "video": "Dein Video",
       "form": "Formularfelder",
       "color": "Farbhintergrund",
-      "music": "Hintergrundmusik",
+      "music": "Musikauswahl",
       "image": "Hintergrundbild"
     },
     "card": {
@@ -267,8 +267,8 @@
     }
   },
   "monitor": {
-    "fallbackMusicTitle": "Hintergrundmusik",
-    "fallbackMusicSubtitle": "Nur Audio — diese Szene läuft unter dem Video, ohne etwas auf dem Bildschirm.",
+    "fallbackMusicTitle": "Musikauswahl",
+    "fallbackMusicSubtitle": "Legt die Hintergrundmusik der Vorlage fest — sie läuft unter dem Video, ohne etwas auf dem Bildschirm.",
     "fallbackFormTitle": "Formularfelder",
     "fallbackFormSubtitle": "Zuschauer füllen diese Felder vor dem Rendern aus; ihre Antworten speisen die Vorlagen-Variablen.",
     "playing": "Wiedergabe",

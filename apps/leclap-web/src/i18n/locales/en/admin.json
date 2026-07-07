@@ -159,7 +159,7 @@
       "video": "Your video",
       "form": "Form fields",
       "color": "Color background",
-      "music": "Background music",
+      "music": "Music selection",
       "image": "Background image"
     },
     "card": {
@@ -267,8 +267,8 @@
     }
   },
   "monitor": {
-    "fallbackMusicTitle": "Background music",
-    "fallbackMusicSubtitle": "Audio only — this scene plays under the video with nothing on screen.",
+    "fallbackMusicTitle": "Music selection",
+    "fallbackMusicSubtitle": "Sets the template's background music — it plays under the video with nothing on screen.",
     "fallbackFormTitle": "Form fields",
     "fallbackFormSubtitle": "Viewers fill these fields before rendering; their answers feed the template variables.",
     "playing": "Playing",

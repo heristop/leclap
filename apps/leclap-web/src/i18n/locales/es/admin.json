@@ -159,7 +159,7 @@
       "video": "Tu vídeo",
       "form": "Campos del formulario",
       "color": "Fondo de color",
-      "music": "Música de fondo",
+      "music": "Selección de música",
       "image": "Imagen de fondo"
     },
     "card": {
@@ -267,8 +267,8 @@
     }
   },
   "monitor": {
-    "fallbackMusicTitle": "Música de fondo",
-    "fallbackMusicSubtitle": "Solo audio: esta escena suena bajo el vídeo sin nada en pantalla.",
+    "fallbackMusicTitle": "Selección de música",
+    "fallbackMusicSubtitle": "Define la música de fondo de la plantilla: suena bajo el vídeo, sin nada en pantalla.",
     "fallbackFormTitle": "Campos del formulario",
     "fallbackFormSubtitle": "Los espectadores rellenan estos campos antes del renderizado; sus respuestas alimentan las variables de la plantilla.",
     "playing": "Reproduciendo",

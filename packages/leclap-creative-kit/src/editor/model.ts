@@ -406,7 +406,7 @@ export const SECTION_LABELS: Record<EditorSection['kind'], string> = {
   partial: 'Partial',
   video: 'Your video',
   color: 'Color background',
-  music: 'Background music',
+  music: 'Music selection',
   image: 'Background image',
 };
 

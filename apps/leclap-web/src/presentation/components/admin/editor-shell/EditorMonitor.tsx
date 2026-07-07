@@ -58,8 +58,8 @@ const FallbackPreview = ({ section }: { section: EditorSection }) => {
   const meta = sectionFallbackMeta(kind);
   const Icon = SECTION_ICON[kind];
   const chips = formFieldChips(section);
-  // Music scenes get a real player for the selected (or default) track, so the monitor previews the
-  // audio the render will lay under the video — not just a label.
+  // Music scenes surface the selected (or default) track's name, so the monitor shows which track the
+  // render will lay under the video.
   const track = musicSectionTrack(section);
 
   return (
@@ -85,13 +85,7 @@ const FallbackPreview = ({ section }: { section: EditorSection }) => {
                 ))}
               </ul>
             )}
-            {track && (
-              <div className="mt-2 w-full max-w-xs">
-                <p className="mb-1.5 truncate text-xs font-medium text-white/75">{track.title}</p>
-                {/* keyed by url so switching the selected track swaps the loaded source */}
-                <audio key={track.url} controls preload="none" src={track.url} aria-label={track.title} className="h-9 w-full" />
-              </div>
-            )}
+            {track && <p className="mt-2 max-w-xs truncate text-xs font-medium text-white/75">{track.title}</p>}
           </div>
         </div>
       </div>

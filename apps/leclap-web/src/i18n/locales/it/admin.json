@@ -159,7 +159,7 @@
       "video": "Il tuo video",
       "form": "Campi del form",
       "color": "Sfondo a colori",
-      "music": "Musica di sottofondo",
+      "music": "Selezione musicale",
       "image": "Immagine di sfondo"
     },
     "card": {
@@ -267,8 +267,8 @@
     }
   },
   "monitor": {
-    "fallbackMusicTitle": "Musica di sottofondo",
-    "fallbackMusicSubtitle": "Solo audio: questa scena suona sotto il video senza nulla sullo schermo.",
+    "fallbackMusicTitle": "Selezione musicale",
+    "fallbackMusicSubtitle": "Imposta la musica di sottofondo del modello: suona sotto il video, senza nulla sullo schermo.",
     "fallbackFormTitle": "Campi del modulo",
     "fallbackFormSubtitle": "Gli spettatori compilano questi campi prima del rendering; le risposte alimentano le variabili del modello.",
     "playing": "Riproduzione",

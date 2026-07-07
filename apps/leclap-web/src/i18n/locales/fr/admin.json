@@ -159,7 +159,7 @@
       "video": "Ta vidéo",
       "form": "Champs de formulaire",
       "color": "Arrière-plan couleur",
-      "music": "Musique de fond",
+      "music": "Sélection musicale",
       "image": "Image d’arrière-plan"
     },
     "card": {
@@ -267,8 +267,8 @@
     }
   },
   "monitor": {
-    "fallbackMusicTitle": "Musique de fond",
-    "fallbackMusicSubtitle": "Audio uniquement — cette scène joue sous la vidéo sans rien à l’écran.",
+    "fallbackMusicTitle": "Sélection musicale",
+    "fallbackMusicSubtitle": "Définit la musique de fond du modèle — elle joue sous la vidéo, sans rien à l’écran.",
     "fallbackFormTitle": "Champs de formulaire",
     "fallbackFormSubtitle": "Les spectateurs remplissent ces champs avant le rendu ; leurs réponses alimentent les variables du modèle.",
     "playing": "Lecture",

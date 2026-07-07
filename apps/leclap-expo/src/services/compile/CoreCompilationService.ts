@@ -5,7 +5,7 @@ import { Asset } from 'expo-asset';
 // Import the PRE-BUILT output (decorators compiled) — not the raw src — so Metro/Hermes never sees
 // the core's tsyringe decorators. reflect-metadata is loaded once at the app entry (app/_layout.tsx).
 import { compileReactNative, type NativeEngine } from 'ffmpeg-video-composer/reactnative';
-import { renderQuip } from '@leclap/creative-kit/renderQuips';
+import { renderQuip } from '@leclap/creative-kit/render-quips';
 import {
   MUSIC_ASSETS,
   FONT_ASSETS,

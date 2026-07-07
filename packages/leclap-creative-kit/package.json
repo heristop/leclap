@@ -13,9 +13,9 @@
       "types": "./src/editor/index.ts",
       "default": "./src/editor/index.ts"
     },
-    "./renderQuips": {
-      "types": "./src/renderQuips.ts",
-      "default": "./src/renderQuips.ts"
+    "./render-quips": {
+      "types": "./src/render-quips.ts",
+      "default": "./src/render-quips.ts"
     },
     "./partials": {
       "types": "./src/partials.ts",

@@ -16,7 +16,7 @@ import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
-import { renderQuip } from '@leclap/creative-kit/renderQuips';
+import { renderQuip } from '@leclap/creative-kit/render-quips';
 
 export type { MediaChoices };
 

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { resolveAssetsDir } from '../src/resolveAssetsDir';
+import { resolveAssetsDir } from '../src/resolve-assets-dir';
 
 describe('resolveAssetsDir', () => {
   it('resolves the caller cwd/assets', () => {

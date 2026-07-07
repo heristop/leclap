@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TemplateDescriptorSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
 import { STARTER_PRESETS } from '../src/editor/starter-presets';
-import { buildDescriptor } from '../src/editor/buildDescriptor';
+import { buildDescriptor } from '../src/editor/build-descriptor';
 
 // The save guard mirrored from the web shell: a media scene (music/image) with no library pick and no
 // upload can't be saved. Presets must never ship in that state.

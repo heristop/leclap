@@ -33,7 +33,7 @@ import {
   type CaptureMode,
   type SectionFit,
 } from './model';
-import { overlaysFromFilters } from './overlayParsing';
+import { overlaysFromFilters } from './overlay-parsing';
 import { pruneEmpty } from './prune';
 
 function formSectionFrom(s: Section): EditorSection {

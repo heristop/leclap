@@ -16,7 +16,7 @@ import type {
   SectionFit,
 } from './model';
 import { pruneEmpty } from './prune';
-import { overlayFiltersFrom } from './overlayFilters';
+import { overlayFiltersFrom } from './overlay-filters';
 
 // Default authoring locale for Translation fields the editor emits (section descriptions,
 // overlay/form text all key under 'en'). Single source so future i18n has one place to change.

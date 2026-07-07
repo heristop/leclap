@@ -3,7 +3,7 @@
 import type { Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { ACCENT_BAR_DEFAULTS, type AccentBar } from './accent-bar';
 import { fontIdFromFile, type TextEffect, type TextOverlay } from './model';
-import { DEFAULT_BOX_PADDING } from './overlayFilters';
+import { DEFAULT_BOX_PADDING } from './overlay-filters';
 
 type StoredFilter = NonNullable<Section['filters']>[number];
 type DrawtextValues = NonNullable<StoredFilter['values']>;

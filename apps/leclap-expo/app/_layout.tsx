@@ -23,8 +23,17 @@ import config from '../tamagui.config';
 
 // A dependency's bundled code wildcard-imports `react-native`, which enumerates the module and touches
 // RN's deprecated `SafeAreaView` getter — emitting a dev-only warnOnce we can't fix in our own code
-// (all our SafeAreaViews already come from react-native-safe-area-context). Silence just that one line.
+// (all our SafeAreaViews already come from react-native-safe-area-context). LogBox hides the in-app
+// overlay; the console shim drops the same line from the Metro terminal. Passes every other warning through.
 LogBox.ignoreLogs([/SafeAreaView has been deprecated/]);
+
+const nativeWarn = console.warn;
+
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('SafeAreaView has been deprecated')) return;
+
+  nativeWarn(...args);
+};
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});

@@ -182,7 +182,8 @@
     },
     "audio": {
       "sourceVolume": 1,
-      "normalize": "loudnorm"
+      "normalize": "loudnorm",
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     },
     "animations": [
       {
@@ -366,14 +367,17 @@
       "grade": {
         "contrast": 1.1,
         "saturation": 1.2,
-        "gamma": 0.96
+        "gamma": 0.96,
+        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
+        "curvesPreset": "increase_contrast"
       },
       "motion": [
         {
           "type": "kenburns",
           "direction": "in",
           "intensity": 1.1
-        }
+        },
+        { "type": "flip", "axis": "horizontal" }
       ],
       "transition": {
         "type": "pixelize",
@@ -529,14 +533,17 @@
       "grade": {
         "contrast": 1.1,
         "saturation": 1.2,
-        "gamma": 0.96
+        "gamma": 0.96,
+        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
+        "curvesPreset": "increase_contrast"
       },
       "motion": [
         {
           "type": "kenburns",
           "direction": "in",
           "intensity": 1.1
-        }
+        },
+        { "type": "flip", "axis": "horizontal" }
       ],
       "transition": {
         "type": "coverleft",
@@ -687,7 +694,9 @@
       "grade": {
         "contrast": 1.1,
         "saturation": 1.2,
-        "gamma": 0.96
+        "gamma": 0.96,
+        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
+        "curvesPreset": "increase_contrast"
       },
       "transition": {
         "type": "circleclose",
@@ -753,7 +762,9 @@
       "grade": {
         "contrast": 1.1,
         "saturation": 1.2,
-        "gamma": 0.96
+        "gamma": 0.96,
+        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
+        "curvesPreset": "increase_contrast"
       },
       "options": {
         "videoUrl": "{{ videoOutro }}",

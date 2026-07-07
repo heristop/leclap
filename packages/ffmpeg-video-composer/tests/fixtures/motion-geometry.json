@@ -1,0 +1,20 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "transition": { "type": "fade", "duration": 0.5 }
+  },
+  "sections": [
+    {
+      "name": "geo",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "motion": [
+        { "type": "crop", "w": 960, "h": 540, "x": "(iw-ow)/2", "y": "(ih-oh)/2" },
+        { "type": "rotate", "angle": 4 },
+        { "type": "flip", "axis": "horizontal" }
+      ]
+    }
+  ]
+}

@@ -20,7 +20,16 @@ const fixturesDir = path.resolve(here, 'fixtures');
 // suites (a sibling's end-of-run cleanup would otherwise delete this file's output mid-render — a race).
 const buildDir = path.resolve(repoRoot, 'build/effects-fixtures');
 
-const FIXTURES = ['effects-text', 'effects-lut', 'effects-chromakey', 'effects-overlay-motion', 'sample'];
+const FIXTURES = [
+  'effects-text',
+  'effects-lut',
+  'effects-chromakey',
+  'effects-overlay-motion',
+  'grade-colorbalance',
+  'motion-geometry',
+  'ducking',
+  'sample',
+];
 
 function load(id: string): TemplateDescriptor {
   return JSON.parse(fs.readFileSync(path.resolve(fixturesDir, `${id}.json`), 'utf8')) as TemplateDescriptor;

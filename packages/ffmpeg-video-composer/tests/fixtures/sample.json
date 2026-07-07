@@ -2,7 +2,14 @@
   "global": {
     "variables": { "videoSample": "videos/earth.mp4" },
     "orientation": "landscape",
-    "musicEnabled": false,
+    "musicEnabled": true,
+    "music": { "name": "point-being.mp3" },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.3,
+      "normalize": "loudnorm",
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
+    },
     "look": "teal-orange",
     "overlays": [
       {
@@ -20,7 +27,7 @@
       "titleCard": {
         "kicker": { "en": "Kitchen Sink" },
         "headline": { "en": "Every New Effect" },
-        "subtitle": { "en": "shadow · outline · LUT · key · motion" },
+        "subtitle": { "en": "shadow · outline · LUT · key · grade · motion · slow-mo" },
         "accent": "#7C83FF",
         "reveal": "rise",
         "effect": { "shadow": true, "outline": { "width": 3 } }
@@ -31,6 +38,7 @@
       "type": "video",
       "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
       "look": "warm-film",
+      "grade": { "colorBalance": { "shadows": { "b": 0.06 }, "highlights": { "r": 0.05 } }, "curvesPreset": "increase_contrast" },
       "lowerThird": {
         "title": { "en": "Warm Film LUT" },
         "subtitle": { "en": "lut3d-backed look" },
@@ -49,6 +57,24 @@
         "style": "bold",
         "effect": { "shadow": true }
       }
+    },
+    {
+      "name": "geo",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "motion": [
+        { "type": "crop", "w": 960, "h": 540, "x": "(iw-ow)/2", "y": "(ih-oh)/2" },
+        { "type": "rotate", "angle": 4 },
+        { "type": "flip", "axis": "horizontal" }
+      ],
+      "caption": { "text": { "en": "crop · rotate · flip" }, "style": "bold", "effect": { "shadow": true } }
+    },
+    {
+      "name": "slowmo",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2, "speed": 2, "muteSection": true },
+      "maps": [{ "inputs": ["1:v"], "filters": [{ "type": "setpts", "value": "2*PTS" }], "outputs": ["final"] }],
+      "caption": { "text": { "en": "slow-mo ×2" }, "style": "subtle", "position": "bottom", "effect": { "shadow": true } }
     },
     {
       "name": "motion",

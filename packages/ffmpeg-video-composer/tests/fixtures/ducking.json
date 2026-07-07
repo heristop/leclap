@@ -1,0 +1,27 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "music": { "name": "point-being.mp3" },
+    "transition": { "type": "fade", "duration": 0.5 },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.3,
+      "normalize": "loudnorm",
+      "ducking": { "threshold": 0.04, "ratio": 6, "attack": 15, "release": 350 }
+    }
+  },
+  "sections": [
+    {
+      "name": "clip_a",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 }
+    },
+    {
+      "name": "clip_b",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 }
+    }
+  ]
+}

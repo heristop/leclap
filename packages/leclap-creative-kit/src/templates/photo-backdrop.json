@@ -17,7 +17,8 @@
     },
     "audio": {
       "sourceVolume": 1,
-      "normalize": "loudnorm"
+      "normalize": "loudnorm",
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     }
   },
   "sections": [
@@ -52,6 +53,9 @@
     {
       "name": "backdrop",
       "type": "image_background",
+      "grade": {
+        "curvesPreset": "vintage"
+      },
       "motion": [
         {
           "type": "kenburns",

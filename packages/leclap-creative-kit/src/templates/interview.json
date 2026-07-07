@@ -18,7 +18,8 @@
     "audio": {
       "sourceVolume": 1,
       "musicVolume": 0.18,
-      "normalize": "loudnorm"
+      "normalize": "loudnorm",
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     }
   },
   "sections": [
@@ -181,6 +182,7 @@
       "name": "video_1",
       "type": "project_video",
       "look": "teal-orange",
+      "grade": { "colorBalance": { "shadows": {"b":0.05}, "highlights": {"r":0.04} } },
       "caption": {
         "text": {
           "en": "{{ form_1_question }}"

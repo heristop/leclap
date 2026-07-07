@@ -26,7 +26,13 @@
     "audio": {
       "sourceVolume": 1,
       "musicVolume": 0.25,
-      "normalize": "loudnorm"
+      "normalize": "loudnorm",
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
     }
   },
   "sections": [
@@ -100,7 +106,7 @@
         "en": "{{ optionA1 }} or {{ optionB1 }}? — film your answer"
       },
       "options": {
-        "duration": 20,
+        "duration": 12,
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
@@ -179,7 +185,7 @@
         "en": "{{ optionA2 }} or {{ optionB2 }}? — film your answer"
       },
       "options": {
-        "duration": 20,
+        "duration": 12,
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
@@ -258,7 +264,7 @@
         "en": "{{ optionA3 }} or {{ optionB3 }}? — film your answer"
       },
       "options": {
-        "duration": 20,
+        "duration": 12,
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,

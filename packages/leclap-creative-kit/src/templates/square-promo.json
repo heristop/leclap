@@ -19,7 +19,8 @@
       "duration": 0.5
     },
     "audio": {
-      "sourceVolume": 1
+      "sourceVolume": 1,
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     }
   },
   "sections": [
@@ -164,6 +165,12 @@
       "name": "video_1",
       "type": "project_video",
       "look": "vivid-pop",
+      "grade": {
+        "colorBalance": {
+          "shadows": { "r": 0.04 },
+          "highlights": { "r": 0.05 }
+        }
+      },
       "inputs": [
         {
           "name": "promo_glow",

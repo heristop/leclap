@@ -16,7 +16,8 @@
       "duration": 0.5
     },
     "audio": {
-      "sourceVolume": 1
+      "sourceVolume": 1,
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     }
   },
   "sections": [
@@ -151,6 +152,7 @@
       "name": "video_1",
       "type": "project_video",
       "look": "teal-orange",
+      "grade": { "colorBalance": { "shadows": {"b":0.04}, "highlights": {"r":0.05} }, "curvesPreset": "increase_contrast" },
       "inputs": [
         {
           "name": "spotlight_glow",

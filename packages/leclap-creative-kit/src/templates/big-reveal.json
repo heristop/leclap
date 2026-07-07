@@ -18,7 +18,13 @@
     "audio": {
       "sourceVolume": 1,
       "musicVolume": 0.3,
-      "normalize": "loudnorm"
+      "normalize": "loudnorm",
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
     }
   },
   "sections": [
@@ -205,6 +211,9 @@
       "name": "video_1",
       "type": "project_video",
       "look": "vivid-pop",
+      "grade": {
+        "curvesPreset": "increase_contrast"
+      },
       "inputs": [
         {
           "name": "confetti",

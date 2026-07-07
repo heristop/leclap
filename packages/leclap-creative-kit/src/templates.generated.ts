@@ -3,6 +3,7 @@
 import type { TemplateDescriptor } from './types';
 import AppTutorial from './templates/app-tutorial.json';
 import BigReveal from './templates/big-reveal.json';
+import CoffeeBreak from './templates/coffee-break.json';
 import FastCurious from './templates/fast-curious.json';
 import Interview from './templates/interview.json';
 import PhotoBackdrop from './templates/photo-backdrop.json';
@@ -12,13 +13,14 @@ import SquarePromo from './templates/square-promo.json';
 import StoryReel from './templates/story-reel.json';
 
 export const TEMPLATE_DESCRIPTORS: Record<string, TemplateDescriptor> = {
-  'app-tutorial': AppTutorial as TemplateDescriptor,
-  'big-reveal': BigReveal as TemplateDescriptor,
-  'fast-curious': FastCurious as TemplateDescriptor,
-  interview: Interview as TemplateDescriptor,
-  'photo-backdrop': PhotoBackdrop as TemplateDescriptor,
-  'product-launch': ProductLaunch as TemplateDescriptor,
-  spotlight: Spotlight as TemplateDescriptor,
-  'square-promo': SquarePromo as TemplateDescriptor,
-  'story-reel': StoryReel as TemplateDescriptor,
+  "app-tutorial": AppTutorial as TemplateDescriptor,
+  "big-reveal": BigReveal as TemplateDescriptor,
+  "coffee-break": CoffeeBreak as TemplateDescriptor,
+  "fast-curious": FastCurious as TemplateDescriptor,
+  "interview": Interview as TemplateDescriptor,
+  "photo-backdrop": PhotoBackdrop as TemplateDescriptor,
+  "product-launch": ProductLaunch as TemplateDescriptor,
+  "spotlight": Spotlight as TemplateDescriptor,
+  "square-promo": SquarePromo as TemplateDescriptor,
+  "story-reel": StoryReel as TemplateDescriptor,
 };

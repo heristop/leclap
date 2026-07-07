@@ -20,7 +20,8 @@
     },
     "audio": {
       "sourceVolume": 1,
-      "musicVolume": 0.22
+      "musicVolume": 0.22,
+      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     },
     "overlays": [
       {
@@ -96,6 +97,9 @@
       "name": "video_1",
       "type": "project_video",
       "look": "cool",
+      "grade": {
+        "curvesPreset": "medium_contrast"
+      },
       "inputs": [
         {
           "name": "tutorial_frame",

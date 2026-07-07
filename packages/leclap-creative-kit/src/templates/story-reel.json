@@ -18,7 +18,13 @@
     "audio": {
       "sourceVolume": 1,
       "musicVolume": 0.3,
-      "normalize": "loudnorm"
+      "normalize": "loudnorm",
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
     }
   },
   "sections": [
@@ -61,6 +67,12 @@
       "name": "video_1",
       "type": "project_video",
       "look": "vivid-pop",
+      "grade": {
+        "colorBalance": {
+          "shadows": { "r": 0.05 },
+          "highlights": { "r": 0.05 }
+        }
+      },
       "transition": {
         "type": "smoothup",
         "duration": 0.4
@@ -113,6 +125,11 @@
       "name": "video_2",
       "type": "project_video",
       "look": "vivid-pop",
+      "grade": {
+        "colorBalance": {
+          "midtones": { "g": 0.02 }
+        }
+      },
       "transition": {
         "type": "pixelize",
         "duration": 0.4
@@ -165,6 +182,12 @@
       "name": "video_3",
       "type": "project_video",
       "look": "vivid-pop",
+      "grade": {
+        "colorBalance": {
+          "shadows": { "b": 0.06 },
+          "highlights": { "b": 0.05 }
+        }
+      },
       "caption": {
         "text": {
           "en": "{{ form_1_scene3 }}"

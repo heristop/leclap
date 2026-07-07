@@ -36,6 +36,9 @@ const baseState = (name: string): Omit<EditorState, 'sections'> => ({
 
 const fade = { type: 'fade', duration: 0.5 } as const;
 
+// Speech-ducking on by default so music dips under narration — a fresh preset sounds finished, not raw.
+const ducking = { threshold: 0.05, ratio: 8, attack: 20, release: 400 } as const;
+
 // Narrowing factory helpers: start from newSection(kind) then layer preset-specific fields on. Casting
 // through the discriminated union keeps this terse while staying type-checked at each field.
 const colorSection = (over: Partial<Extract<EditorSection, { kind: 'color' }>>): EditorSection => ({
@@ -68,6 +71,7 @@ export const STARTER_PRESETS: StarterPreset[] = [
     scenes: ['color', 'video', 'color'],
     build: () => ({
       ...baseState('Talking-head intro'),
+      audio: { ...DEFAULT_AUDIO_MIX, ducking },
       defaultTransition: { ...fade },
       sections: [
         colorSection({
@@ -82,7 +86,12 @@ export const STARTER_PRESETS: StarterPreset[] = [
             reveal: { type: 'rise' },
           },
         }),
-        videoSection({ duration: 8, transitionAfter: { ...fade } }),
+        videoSection({
+          duration: 8,
+          transitionAfter: { ...fade },
+          look: 'cinematic',
+          grade: { curvesPreset: 'increase_contrast' },
+        }),
         colorSection({
           color: '#0E1116',
           duration: 3,
@@ -99,6 +108,7 @@ export const STARTER_PRESETS: StarterPreset[] = [
     scenes: ['image', 'video', 'music'],
     build: () => ({
       ...baseState('Product showcase'),
+      audio: { ...DEFAULT_AUDIO_MIX, ducking },
       defaultTransition: { ...fade },
       sections: [
         imageSection({
@@ -106,11 +116,13 @@ export const STARTER_PRESETS: StarterPreset[] = [
           duration: 4,
           transitionAfter: { ...fade },
           motion: [{ type: 'kenburns', direction: 'in', intensity: 1.15 }],
+          grade: { colorBalance: { highlights: { r: 0.05 } }, curvesPreset: 'increase_contrast' },
           caption: { text: 'Introducing our latest product', style: 'bold', position: 'bottom' },
         }),
         videoSection({
           duration: 8,
           transitionAfter: { ...fade },
+          look: 'vivid-pop',
           lowerThird: {
             title: { en: 'Product name' },
             badge: { en: '$99' },
@@ -130,11 +142,14 @@ export const STARTER_PRESETS: StarterPreset[] = [
     scenes: ['video', 'color'],
     build: () => ({
       ...baseState('Testimonial'),
+      audio: { ...DEFAULT_AUDIO_MIX, ducking },
       defaultTransition: { ...fade },
       sections: [
         videoSection({
           duration: 10,
           transitionAfter: { ...fade },
+          look: 'warm-film',
+          grade: { curvesPreset: 'medium_contrast' },
           lowerThird: {
             title: { en: 'Jane Doe' },
             subtitle: { en: 'Happy customer' },

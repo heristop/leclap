@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "name": "Coffee Break",
+    "description": "A warm café showcase — LeClap grades the b-roll, drifts into slow motion and drops a lower-third, all scored to café jazz that ducks under the room."
+  },
+  "global": {
+    "orientation": "landscape",
+    "variables": {
+      "drinkCoffee": "videos/drink-and-coffee.mp4"
+    },
+    "musicEnabled": true,
+    "music": {
+      "name": "cafe-jazz.mp3"
+    },
+    "allowedMusic": ["cafe-jazz", "cafe-bossa-nova", "lofi-chill", "lofi-sentimental-jazz", "romantic-piano"],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "fade",
+      "duration": 0.4
+    },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.3,
+      "normalize": "loudnorm",
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
+    },
+    "overlays": [
+      {
+        "text": { "en": "LeClap" },
+        "position": "bottom-right",
+        "effect": { "shadow": true, "outline": true }
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "intro",
+      "type": "color_background",
+      "transition": {
+        "type": "smoothright",
+        "duration": 0.4
+      },
+      "options": {
+        "backgroundColor": "#1a120b",
+        "duration": 2.6
+      },
+      "titleCard": {
+        "kicker": { "en": "FRESHLY BREWED" },
+        "headline": { "en": "Coffee Break" },
+        "subtitle": { "en": "a LeClap showcase" },
+        "accent": "#c8873f",
+        "reveal": "rise",
+        "effect": { "shadow": true, "outline": true }
+      }
+    },
+    {
+      "name": "hero",
+      "type": "video",
+      "grade": {
+        "colorBalance": {
+          "shadows": { "b": 0.06 },
+          "midtones": { "r": 0.04 },
+          "highlights": { "r": 0.05, "b": -0.04 }
+        },
+        "curvesPreset": "increase_contrast"
+      },
+      "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.08 }],
+      "options": {
+        "videoUrl": "{{ drinkCoffee }}",
+        "duration": 7
+      },
+      "lowerThird": {
+        "title": { "en": "Slow mornings" },
+        "subtitle": { "en": "coffee, steam, calm" },
+        "accent": "#c8873f",
+        "reveal": "rise",
+        "effect": { "shadow": true, "outline": true }
+      },
+      "filters": [{ "type": "vignette" }]
+    },
+    {
+      "name": "savor",
+      "type": "video",
+      "grade": {
+        "curvesPreset": "medium_contrast"
+      },
+      "options": {
+        "videoUrl": "{{ drinkCoffee }}",
+        "duration": 5,
+        "speed": 2,
+        "muteSection": true
+      },
+      "maps": [
+        {
+          "inputs": ["1:v"],
+          "filters": [{ "type": "setpts", "value": "2*PTS" }],
+          "outputs": ["final"]
+        }
+      ],
+      "caption": {
+        "text": { "en": "Savor the moment" },
+        "style": "subtle",
+        "position": "center",
+        "align": "center",
+        "effect": { "shadow": true }
+      }
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#1a120b",
+        "duration": 2.4
+      },
+      "titleCard": {
+        "headline": { "en": "Made with LeClap" },
+        "subtitle": { "en": "tell your story" },
+        "accent": "#c8873f",
+        "align": "center",
+        "reveal": "rise",
+        "effect": { "shadow": true, "outline": true }
+      }
+    },
+    {
+      "type": "partial",
+      "ref": "logo-bumper"
+    }
+  ]
+}

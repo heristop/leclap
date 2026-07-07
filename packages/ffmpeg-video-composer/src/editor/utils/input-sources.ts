@@ -1,6 +1,6 @@
 import { assertSafeArgToken } from '@/core/argGuard';
-import { easeRampExpr, type RevealEasing } from './presets/text';
-import type { BackgroundLayer } from '../schemas/template.schemas';
+import { easeRampExpr, type RevealEasing } from '../presets/text';
+import type { BackgroundLayer } from '../../schemas/template.schemas';
 
 // Pure builders for the `-i` source fragments of composited inputs (animations and gradient layers).
 // They return fully-formed fragment strings (already containing `-i`, plus any `-framerate` /

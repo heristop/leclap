@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import type Segment from '../../core/models/Segment';
 import type { Section, Map, MapAnimationInput, ChromaKey } from '@/core/types';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
-import { buildAnimationLegFilters, imageOverlayEnable, overlayMotionExpr } from '../inputSources';
+import { buildAnimationLegFilters, imageOverlayEnable, overlayMotionExpr } from '../utils/input-sources';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
 

@@ -5,7 +5,7 @@ import {
   buildSingleFileAnimationSource,
   overlayMotionExpr,
   resolveLayerGeometry,
-} from '@/editor/inputSources';
+} from '@/editor/utils/input-sources';
 
 // overlayMotionExpr maps a reveal intent to overlay-filter (W,H,w,h,t) coordinates. These assert the
 // exact expressions so a regression in the entrance math is caught.

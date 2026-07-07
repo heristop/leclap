@@ -3,7 +3,7 @@ import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type Project from '../../core/models/Project';
 import type { Filter } from '@/core/types';
-import { applyFilterCompat, engineCapabilities } from '../filter-compat';
+import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
 import { applyAnimation } from '../presets/text';
 import type FormatterManager from './FormatterManager';
 

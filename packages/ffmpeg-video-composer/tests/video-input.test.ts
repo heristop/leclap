@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildVideoInputArgs, firstConcatEntry } from '@/editor/video-input';
+import { buildVideoInputArgs, firstConcatEntry } from '@/editor/utils/video-input';
 
 describe('video-input', () => {
   it('builds a plain file input', () => {

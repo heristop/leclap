@@ -1,6 +1,6 @@
 import type { Filter, ProjectConfig } from '@/core/types';
-import { usesLgplEngine } from '../core/encoding';
-import { eqValueToLutyuv } from './presets/looks';
+import { usesLgplEngine } from '../../core/encoding';
+import { eqValueToLutyuv } from '../presets/looks';
 
 /**
  * What the active FFmpeg build can do. The on-device engine is a `--disable-gpl` LGPL build, so

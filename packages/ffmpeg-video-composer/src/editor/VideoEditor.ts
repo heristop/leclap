@@ -10,7 +10,7 @@ import type MusicComposer from './MusicComposer';
 import type AnimationComposer from './AnimationComposer';
 import type { StagedAnimation } from './AnimationComposer';
 import { getPerfTimer } from '../utils/perf-timer';
-import type { VideoSource } from './video-input';
+import type { VideoSource } from './utils/video-input';
 import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 import {
   buildAudioGraph,
@@ -21,7 +21,7 @@ import {
   round,
   type SegmentProbe,
   type Transition,
-} from './transition-graph';
+} from './utils/transition-graph';
 
 @injectable()
 class VideoEditor {

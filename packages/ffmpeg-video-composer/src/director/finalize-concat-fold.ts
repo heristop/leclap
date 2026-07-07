@@ -1,5 +1,5 @@
 import type { Section } from '@/core/types';
-import type { VideoSource } from '../editor/video-input';
+import type { VideoSource } from '../editor/utils/video-input';
 
 export interface FinalizeContext {
   segments: Section[];

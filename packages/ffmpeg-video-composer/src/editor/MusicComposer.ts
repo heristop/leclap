@@ -7,7 +7,7 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type AbstractMusic from '../platform/ffmpeg/AbstractMusic';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
-import { resolveVideoInput, type VideoSource } from './video-input';
+import { resolveVideoInput, type VideoSource } from './utils/video-input';
 import { musicAssetUrl } from '@/core/asset-source';
 
 type MusicFilterOptions = {

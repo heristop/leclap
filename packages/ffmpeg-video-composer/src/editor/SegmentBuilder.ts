@@ -17,8 +17,8 @@ import {
   buildSingleFileImageSource,
   buildGradientSource,
   resolveLayerGeometry,
-} from './inputSources';
-import { buildAudioFadeArg } from './audio-fade';
+} from './utils/input-sources';
+import { buildAudioFadeArg } from './utils/audio-fade';
 import { getPerfTimer } from '../utils/perf-timer';
 import {
   resolveVideoCodec,

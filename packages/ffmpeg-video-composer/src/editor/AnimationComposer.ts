@@ -6,7 +6,7 @@ import {
   buildAnimationLegFilters,
   overlayMotionExpr,
   type OverlayMotion,
-} from './inputSources';
+} from './utils/input-sources';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';

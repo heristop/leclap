@@ -1,4 +1,4 @@
-import { assertSafeSegmentName } from '../../core/argGuard';
+import { assertSafeSegmentName } from '../../core/arg-guard';
 
 abstract class AbstractFilesystem {
   protected root: string | undefined;

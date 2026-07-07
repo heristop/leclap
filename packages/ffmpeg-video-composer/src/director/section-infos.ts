@@ -2,7 +2,7 @@ import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type { FFMpegInfos, LogParams, ProjectConfig, Section } from '@/core/types';
-import { assertSafeArgToken, assertSafeSegmentName } from '../core/argGuard';
+import { assertSafeArgToken, assertSafeSegmentName } from '../core/arg-guard';
 
 // Everything TemplateDirector needs to find a section's clip and read its media info. Passed in rather
 // than reaching back into the director so this stays a pure, testable unit.

@@ -1,5 +1,5 @@
 import AbstractFFmpeg from './AbstractFFmpeg';
-import { parseCommand } from './parseCommand';
+import { parseCommand } from './parse-command';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import type { FFMpegInfos } from '../../core/types';
 

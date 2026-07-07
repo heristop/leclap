@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
-import { assertSafeArgToken } from '@/core/argGuard';
+import { assertSafeArgToken } from '@/core/arg-guard';
 
 @injectable()
 class ProjectVideo extends SegmentBuilder {

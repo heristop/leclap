@@ -1,4 +1,4 @@
-import { assertSafeArgToken } from '@/core/argGuard';
+import { assertSafeArgToken } from '@/core/arg-guard';
 import { easeRampExpr, type RevealEasing } from '../presets/text';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
 

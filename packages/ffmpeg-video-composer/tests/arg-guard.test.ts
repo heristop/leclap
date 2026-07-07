@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi } from 'vitest';
-import { assertSafeArgToken } from '@/core/argGuard';
+import { assertSafeArgToken } from '@/core/arg-guard';
 import SegmentBuilder from '@/editor/SegmentBuilder';
 import type { Section } from '@/core/types';
 

@@ -11,10 +11,10 @@ import {
   validateGlobalAnimations,
   validateFonts,
   type ValidationError,
-} from './templateValidationRules';
+} from './template-validation-rules';
 import { expandPartialsSafe } from '@/core/partials';
 
-export type { ValidationError } from './templateValidationRules';
+export type { ValidationError } from './template-validation-rules';
 
 export interface ValidationResult {
   success: boolean;

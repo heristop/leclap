@@ -10,7 +10,7 @@ import type VariableManager from '../editor/managers/VariableManager';
 import type MapManager from '../editor/managers/MapManager';
 import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
-import { assertSafeArgToken } from '@/core/argGuard';
+import { assertSafeArgToken } from '@/core/arg-guard';
 import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
 import {
   buildSingleFileAnimationSource,

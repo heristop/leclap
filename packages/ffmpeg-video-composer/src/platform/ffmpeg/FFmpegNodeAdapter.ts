@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 import type { FFMpegInfos } from '../../core/types';
 import AbstractFFmpeg from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
-import { parseCommand } from './parseCommand';
+import { parseCommand } from './parse-command';
 import { getPerfTimer } from '../../utils/perf-timer';
 
 const execFileAsync = promisify(execFile);

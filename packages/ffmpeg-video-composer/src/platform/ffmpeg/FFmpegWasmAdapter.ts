@@ -1,7 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import type { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg, { type FSNode, type VirtualFilesystemFFmpeg } from './AbstractFFmpeg';
-import { parseCommand } from './parseCommand';
+import { parseCommand } from './parse-command';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import type AbstractFilesystem from '../filesystem/AbstractFilesystem';
 

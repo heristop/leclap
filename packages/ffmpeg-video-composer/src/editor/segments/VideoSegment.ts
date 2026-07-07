@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
-import { assertSafeArgToken } from '@/core/argGuard';
+import { assertSafeArgToken } from '@/core/arg-guard';
 import { buildColorMetadataArgs, buildVideoEncoderArgs, buildPixFmtArg, usesLgplEngine } from '@/core/encoding';
 import type { ProjectConfig } from '@/core/types';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import FFmpegLeclapAdapter, { type NativeEngine } from '../src/platform/ffmpeg/FFmpegLeclapAdapter';
-import { parseCommand } from '../src/platform/ffmpeg/parseCommand';
+import { parseCommand } from '../src/platform/ffmpeg/parse-command';
 
 describe('parseCommand', () => {
   it('splits args and keeps a quoted filtergraph (incl. inner single quotes) intact', () => {

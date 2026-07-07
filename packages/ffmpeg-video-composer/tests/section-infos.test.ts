@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchSectionInfos, type SectionInfosDeps } from '@/director/sectionInfos';
+import { fetchSectionInfos, type SectionInfosDeps } from '@/director/section-infos';
 import type { Section } from '@/core/types';
 
 const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };

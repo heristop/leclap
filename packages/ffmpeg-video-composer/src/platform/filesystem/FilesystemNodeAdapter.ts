@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import axios, { type AxiosResponse, type ResponseType } from 'axios';
 import AbstractFilesystem from './AbstractFilesystem';
-import { assertSafeRemoteUrl } from './urlGuard';
+import { assertSafeRemoteUrl } from './url-guard';
 import { catalogAssetUrl } from '../../core/asset-source';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,9 +44,14 @@ function useProjectsScreenState() {
     });
   })();
 
-  useFocusEffect(() => {
-    loadProjects().catch(console.error);
-  });
+  // useFocusEffect keeps `effect` in its dependency array, so the callback MUST be memoized — an
+  // inline function re-runs the effect every render, and loadProjects → setProjects then re-renders,
+  // spinning a refetch loop that locks the JS thread. loadProjects is now stable, so this runs on focus.
+  useFocusEffect(
+    useCallback(() => {
+      loadProjects().catch(console.error);
+    }, [loadProjects])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);

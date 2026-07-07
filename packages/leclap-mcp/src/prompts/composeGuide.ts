@@ -17,11 +17,15 @@ const argsShape = {
 
 type GuideArgs = { goal?: string; orientation?: 'landscape' | 'portrait' | 'square' };
 
-// On-device FFmpeg ships a fixed filter allowlist (scripts/ffmpeg/common.sh). Authoring against it
-// keeps the output identical across React Native, browser WASM, and the server.
+// On-device FFmpeg is an LGPL build (scripts/ffmpeg/common.sh, --disable-gpl). Authoring against this
+// set keeps the output identical across React Native, browser WASM, and the server. GPL filters (eq,
+// boxblur, geq) are absent — the engine auto-remaps `eq`→`lutyuv` and blur is `gblur` — so prefer the
+// structured `grade`/`look`/`motion` fields below over raw GPL filters.
 const ON_DEVICE_FILTERS =
-  'scale, crop, pad, fade, drawtext, overlay, concat, xfade, boxblur, drawbox, eq, gblur, hue, ' +
-  'vignette, rotate, transpose, colorchannelmixer, color, amix, afade, acrossfade, volume';
+  'scale, crop, pad, format, fps, trim, setpts, fade, drawtext, overlay, concat, xfade, loop, tile, ' +
+  'drawbox, gblur, hue, vignette, hflip, vflip, rotate, transpose, negate, colorchannelmixer, ' +
+  'colorbalance, curves, zoompan, lutyuv, sidechaincompress, aresample, aformat, amix, afade, ' +
+  'acrossfade, afftdn, volume, color, sine, gradients';
 
 const BUNDLED_FONTS = 'BebasNeue, Oswald, PlayfairDisplay, Pacifico, Rubik, RobotoMono';
 
@@ -51,15 +55,23 @@ function buildText(args: GuideArgs): string {
     'the Remotion intro in front of your scenes. It needs @remotion/* (optional) and is a design-time render',
     '(headless Chromium), not an on-device path; everything else stays on-device.',
     '',
-    'Premium building blocks (use ONLY these on-device filters so it renders everywhere):',
-    `  allowlist: ${ON_DEVICE_FILTERS}`,
-    '  - background: full-frame `drawbox` (t:fill) for a solid base, plus layered band drawboxes for depth.',
-    '  - cinematic grade: `vignette` (+ optional `eq`) over the whole frame.',
-    '  - typography: `drawtext` with a bundled font and an eased `alpha` expression over `t` for a staged',
-    '    reveal, e.g. "\'if(lt(t,0.5),0,if(lt(t,1.4),(t-0.5)/0.9,1))\'".',
+    'Premium building blocks — PREFER the structured fields (they lower to on-device-safe filters and',
+    'stay legible) over hand-rolled filtergraphs:',
+    '  - text: `titleCard` / `lowerThird` / `caption` sugar with `accent`, `reveal` ("rise"/"fade"),',
+    '    and `effect: { shadow, outline }` — a staged, on-brand reveal without writing `alpha` expressions.',
+    '  - colour: a section `look` (named preset, e.g. "cinematic"/"warm-film"/"teal-orange") plus a manual',
+    '    `grade` — `colorBalance` (shadows/midtones/highlights r/g/b) and `curvesPreset` (e.g.',
+    '    "increase_contrast", "vintage") are LGPL and run everywhere.',
+    '  - motion: a section `motion` array — `kenburns` (direction+intensity push-in), `rotate`, `flip`,',
+    '    `crop`. Per-section `options.speed` retimes a clip (2 = half-speed slow-mo, 0.5 = 2× fast).',
+    '  - audio: `global.audio` with `musicVolume`, `normalize: "loudnorm"`, and `ducking`',
+    '    ({ threshold, ratio, attack, release }) so music dips under speech — on-device-safe.',
+    '  - background: full-frame `drawbox` (t:fill) for a solid base, layered band drawboxes or `gradients`',
+    '    for depth, `vignette` for a cinematic edge.',
     '  - motion between clips: `xfade`; per-clip in/out: `fade`.',
-    '  - NOT available on-device: zoompan, gradients, geq, curves — fake push-in with animated `crop`,',
-    '    gradients with `color` + `vignette` or a blurred (`gblur`) scaled image.',
+    '  - raw-filter escape hatch (LGPL on-device allowlist, use only these when you must hand-roll):',
+    `    ${ON_DEVICE_FILTERS}`,
+    '  - NOT available on-device: GPL `eq` (auto-remapped to `lutyuv`), `boxblur` (use `gblur`), `geq`.',
     `  bundled fonts (bare names, no path): ${BUNDLED_FONTS}.`,
     '',
     'Portrait is 720x1280 (9:16); landscape is 1280x720 (16:9); square is 1080x1080 (1:1). project_video sections need a user clip',

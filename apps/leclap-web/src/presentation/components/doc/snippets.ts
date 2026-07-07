@@ -66,6 +66,15 @@ export const snippets = {
     ],
   }),
 
+  speed: json({
+    name: 'slowmo',
+    type: 'video',
+    // speed is a PTS multiplier: 2 = half-speed (slow-mo), 0.5 = 2x (fast). It only takes effect
+    // with a setpts map node; muteSection avoids an atempo pitch shift on the (now silent) audio.
+    options: { videoUrl: '{{ clip }}', duration: 4, speed: 2, muteSection: true },
+    maps: [{ inputs: ['1:v'], filters: [{ type: 'setpts', value: '2*PTS' }], outputs: ['final'] }],
+  }),
+
   framingGuide: json({
     name: 'record',
     type: 'project_video',

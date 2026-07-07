@@ -34,6 +34,18 @@ export const DocMotion = () => (
       <Sample code={snippets.motion} title="Stacking motion effects" />
     </DocSection>
 
+    <DocSection id="speed" title="Retiming (slow-mo / fast-forward)" kicker="options.speed">
+      <Prose className="mb-5">
+        <p>
+          <Code>options.speed</Code> retimes a clip as a PTS multiplier — <Code>2</Code> is half-speed slow motion,{' '}
+          <Code>0.5</Code> plays it back twice as fast. It only takes effect alongside a <Code>setpts</Code>{' '}
+          <Code>maps</Code> node (speed on its own is inert); pair it with <Code>muteSection</Code> to avoid an{' '}
+          <Code>atempo</Code> pitch shift on the audio.
+        </p>
+      </Prose>
+      <Sample code={snippets.speed} title="A slow-motion clip" />
+    </DocSection>
+
     <DocSection id="framing-guide" title="Framing guide" kicker="project_video">
       <Prose className="mb-5">
         <p>

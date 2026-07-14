@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogoMark, type LogoMarkHandle } from './LogoMark';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
-import { perforationStyle } from '@/lib/film-strip';
+import { perforationMaskStyle, perforationTileStyle } from '@/lib/film-strip';
 
 const REPO_URL = 'https://github.com/heristop/leclap';
 
@@ -25,17 +25,29 @@ export const Footer = () => {
     <footer className="relative mt-auto overflow-hidden border-t border-divider bg-surface">
       {/* Both edges carry a slowly drifting sprocket-hole row, so the footer reads as one frame of
           film running through a projector — the brand glow below the top edge is its light spilling
-          into the frame. All motion stops under the global prefers-reduced-motion reset. */}
+          into the frame. All motion stops under the global prefers-reduced-motion reset. The drifting
+          span is one tile wider than the strip and translates (compositor-only), so a static masked
+          wrapper clips it and keeps the edge fade in place. */}
       <div
         aria-hidden="true"
-        className="animate-film-drift pointer-events-none absolute inset-x-0 top-0 h-3.5"
-        style={{ ...perforationStyle, backgroundPosition: 'left top' }}
-      />
+        className="pointer-events-none absolute inset-x-0 top-0 h-3.5 overflow-hidden"
+        style={perforationMaskStyle}
+      >
+        <span
+          className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+          style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
+        />
+      </div>
       <div
         aria-hidden="true"
-        className="animate-film-drift pointer-events-none absolute inset-x-0 bottom-0 h-3.5"
-        style={{ ...perforationStyle, backgroundPosition: 'left bottom' }}
-      />
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-3.5 overflow-hidden"
+        style={perforationMaskStyle}
+      >
+        <span
+          className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+          style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
+        />
+      </div>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-0 h-44 w-[44rem] max-w-[92vw] -translate-x-1/2 -translate-y-1/3 rounded-full bg-brand-500/[0.07] blur-3xl"

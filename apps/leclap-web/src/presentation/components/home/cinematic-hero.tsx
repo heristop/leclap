@@ -92,7 +92,7 @@ export const CinematicHero = () => {
           />
 
           <p
-            className="fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-300 sm:text-xl"
+            className="text-shimmer-radial fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed sm:text-xl"
             style={{ animationDelay: '0.9s' }}
           >
             {t('hero.subtagline')}

@@ -372,6 +372,23 @@ body {
   animation: gradient-pan 6s linear infinite;
 }
 
+/* Radial-clipped shimmer text (the codewiki hero technique, on the lavender palette): a hot-white
+   core over the upper half of the line, cooling to the brand tint at the edges — reads as a beam
+   caught on glass rather than the ambient gradient-pan above. Deliberately static (no infinite
+   animation) so it stays legible as body copy and doesn't compete with the animated eyebrow. */
+@utility text-shimmer-radial {
+  background-image: radial-gradient(
+    120% 160% at 50% 20%,
+    oklch(1 0 0 / 0.98) 0%,
+    oklch(1 0 0 / 0.82) 38%,
+    var(--color-brand-300) 72%,
+    var(--color-brand-400) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 @utility glow-brand {
   box-shadow: var(--shadow-glow);
 }
@@ -551,6 +568,34 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hero-parallax {
     transform: none;
+    transition: none;
+  }
+}
+
+/* Soft volumetric floor-glow — codewiki's "light pooling under the object", ported to the brand
+   hue. A wide, low ellipse sits near the bottom of its host (~50%/78%) so a centerpiece resting
+   above it reads as lit from below. `--glow` is the single intensity knob (default 0.5, static
+   here in Phase 1; Phase 2 drives it live from scroll progress as a motion value) — kept as an
+   `opacity` multiplier rather than baked into the color-mix ratios so a MotionValue can write it
+   directly without recomputing the gradient. Absolutely positioned + pointer-events: none so it
+   never intercepts the copy or CTAs stacked above it; host needs `relative`. */
+@utility brand-floor-glow {
+  position: absolute;
+  inset: 0;
+  opacity: var(--glow, 0.5);
+  background: radial-gradient(
+    52% 38% at 50% 78%,
+    color-mix(in oklch, var(--color-brand-500) 60%, transparent) 0%,
+    color-mix(in oklch, var(--color-brand-500) 24%, transparent) 45%,
+    transparent 75%
+  );
+  filter: blur(3.5rem);
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease-smooth);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-floor-glow {
     transition: none;
   }
 }
@@ -994,6 +1039,42 @@ body {
   }
 }
 
+/* The hero's 3D stage — extends the `pointer-tilt` idiom (perspective + preserve-3d) into a real
+   scene container. `perspective` has to live here, on the parent: individual motion transforms on
+   the leaves below don't carry their own perspective, so without this the child rotations would
+   flatten into a skew instead of reading as depth. Sized for the clapperboard centerpiece (Phase 2);
+   inert on its own. */
+@utility hero-scene {
+  perspective: 1400px;
+  transform-style: preserve-3d;
+}
+
+/* A single frosted-glass plane inside `hero-scene` — the clapperboard slate and its film frames
+   (Phase 2) are each one of these. `preserve-3d` + `backface-visibility: hidden` keep the leaf from
+   showing its reverse face mid-rotation; the frost reuses the theme's own glass tokens rather than
+   inventing new ones so the centerpiece matches every other glass surface in dark mode. Kept off
+   `hero-scene` itself — backdrop-filter on a `preserve-3d` ancestor forces 3D flattening and Safari
+   has known bugs sampling the backdrop under a 3D transform, so the blur stays leaf-local. */
+@utility hero-leaf {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  background: var(--glass-bg);
+  border: 0.0625rem solid var(--glass-border);
+  backdrop-filter: blur(1rem) saturate(1.3);
+  -webkit-backdrop-filter: blur(1rem) saturate(1.3);
+}
+
+/* Coarse-pointer/small-screen fallback: live `backdrop-filter` over ~5-6 stacked, 3D-transformed
+   leaves is the centerpiece's main cost (and Safari's backdrop-under-3D sampling is unreliable) —
+   drop the blur for a flatter, more opaque fill so the glass reads solid rather than see-through. */
+@media (pointer: coarse), (max-width: 40rem) {
+  .hero-leaf {
+    background: oklch(0.235 0.007 280 / 0.88);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* Playhead-scrubber link: a brand underline wipes in from the left on hover/focus, like a timeline
    scrubber. Extracted from the footer so nav links, tabs and inline links share one hover language. */
 @utility playhead-link {
@@ -1139,9 +1220,11 @@ body {
   }
 }
 
+/* One perforation tile (28px) of drift, then a seamless loop restart. Translates the tile span
+   (compositor-only) instead of animating background-position, which would repaint every frame. */
 @keyframes film-drift {
   to {
-    background-position-x: 28px;
+    transform: translate3d(28px, 0, 0);
   }
 }
 

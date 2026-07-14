@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { ArrowRight } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
+import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 import { Button } from '@/presentation/components/ui';
 import { KineticHeading } from '@/presentation/components/kinetic';
-import { perforationStyle } from '@/lib/film-strip';
+import { perforationMaskStyle, perforationTileStyle } from '@/lib/film-strip';
 
 // A muted ambient loop of a Remotion promo (landscape 16:9 + portrait 9:16 cuts), shown on the home page.
 // The orientation is responsive — landscape on desktop, portrait on phones — and only the matching cut is
@@ -84,6 +86,9 @@ export const ResponsivePromoShowcase = ({
   );
   const [reduced, setReduced] = useState(prefersReducedMotion);
   const [wide, setWide] = useState(() => window.matchMedia(WIDE_QUERY).matches);
+  // Scroll-scrubbed parallax reveal for the video frame — same motion language as the hero ghost panels.
+  const revealScopeRef = useRef<HTMLDivElement>(null);
+  const reveal = useScrollReveal(revealScopeRef);
 
   useEffect(() => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -175,17 +180,12 @@ export const ResponsivePromoShowcase = ({
             </div>
           </div>
 
-          {/* Video frame — capped so it never spans edge-to-edge; trails the copy on reveal. */}
-          <div
-            className={cn(
-              'relative [transition-delay:120ms]',
-              revealClasses(revealed, 'translate-y-6'),
-              mediaSide === 'left' ? 'lg:order-1' : 'lg:order-2'
-            )}
-          >
+          {/* Video frame — capped so it never spans edge-to-edge; scroll-scrubbed parallax reveal. */}
+          <div className={cn('relative', mediaSide === 'left' ? 'lg:order-1' : 'lg:order-2')}>
             <div
+              ref={revealScopeRef}
               className={cn(
-                'relative mx-auto',
+                'relative mx-auto [perspective:1400px]',
                 wide ? 'w-full max-w-2xl lg:max-w-none' : 'max-w-[17rem] sm:max-w-[19rem]'
               )}
             >
@@ -197,13 +197,22 @@ export const ResponsivePromoShowcase = ({
                   revealed && 'opacity-100'
                 )}
               />
-              <div
+              <motion.div
                 ref={setMediaRef}
-                className={cn(
-                  'group relative overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-foreground/10 transition duration-500 sm:shadow-2xl hover:-translate-y-1 hover:ring-foreground/25 motion-reduce:hover:translate-y-0',
-                  wide ? 'aspect-video' : 'aspect-[9/16]'
-                )}
+                className="group relative rounded-2xl shadow-xl ring-1 ring-foreground/10 transition-[box-shadow] duration-500 sm:shadow-2xl hover:ring-foreground/25"
+                // Scroll-scrubbed rise + fade + tilt + parallax; skipped under reduced motion.
+                style={reduced ? undefined : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }}
               >
+                {/* The rounded clip lives on this untransformed wrapper: a 3D-transformed element
+                    cannot clip its composited children to a border-radius. Chrome also lets composited
+                    children (the <video>) escape a rounded overflow clip inside a 3D rendering context,
+                    so the corners are enforced with clip-path, which the compositor always honors. */}
+                <div
+                  className={cn(
+                    'relative overflow-hidden rounded-[inherit] bg-black [clip-path:inset(0_round_1rem)]',
+                    wide ? 'aspect-video' : 'aspect-[9/16]'
+                  )}
+                >
                 {/* Shimmer placeholder holds the frame until the video is mounted. */}
                 {!shouldLoad && (
                   <div
@@ -246,26 +255,33 @@ export const ResponsivePromoShowcase = ({
 
                 {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the
                     footer motif), each on a slim dark gradient so the holes stay legible over bright
-                    video. Drift freezes under the global reduced-motion reset. */}
+                    video. Drift freezes under the global reduced-motion reset. The drifting span is
+                    one tile wider than the strip and translates (compositor-only), so a static masked
+                    wrapper clips it and keeps the edge fade in place. */}
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-linear-to-b from-black/55 to-transparent"
                 >
-                  <span
-                    className="animate-film-drift absolute inset-0"
-                    style={{ ...perforationStyle, backgroundPosition: 'left top' }}
-                  />
+                  <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                    <span
+                      className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                      style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
+                    />
+                  </span>
                 </span>
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-linear-to-t from-black/55 to-transparent"
                 >
-                  <span
-                    className="animate-film-drift absolute inset-0"
-                    style={{ ...perforationStyle, backgroundPosition: 'left bottom' }}
-                  />
+                  <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                    <span
+                      className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                      style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
+                    />
+                  </span>
                 </span>
-              </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>

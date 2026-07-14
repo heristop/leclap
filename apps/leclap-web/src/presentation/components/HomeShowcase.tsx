@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import { ArrowRight, Volume2, VolumeX } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
+import { useScrollReveal } from '@/hooks/use-scroll-reveal';
 import { Button } from '@/presentation/components/ui';
 import { KineticHeading } from '@/presentation/components/kinetic';
-import { perforationStyle } from '@/lib/film-strip';
+import { perforationMaskStyle, perforationTileStyle } from '@/lib/film-strip';
 
 // The clip is an actual LeClap render (1280x720), shipped under public/videos. It plays as a
 // muted ambient loop to show the product's output up front; a corner control lets viewers unmute.
@@ -40,6 +42,9 @@ export const HomeShowcase = () => {
   const [reduced, setReduced] = useState(prefersReducedMotion);
   const [muted, setMuted] = useState(true);
   const [volume, setVolume] = useState(DEFAULT_VOLUME);
+  // Scroll-scrubbed parallax reveal for the frame — same motion language as the hero ghost panels.
+  const revealScopeRef = useRef<HTMLDivElement>(null);
+  const reveal = useScrollReveal(revealScopeRef);
   // Store the element AND set `muted` as an attribute the instant it mounts, before the browser
   // evaluates autoplay eligibility — otherwise some browsers refuse the scroll-triggered play().
   const setVideoEl = useCallback((node: HTMLVideoElement | null) => {
@@ -106,7 +111,7 @@ export const HomeShowcase = () => {
   };
 
   return (
-    <section className="relative bg-background py-10 sm:py-16 lg:py-28">
+    <section className="relative bg-background pb-10 pt-4 sm:pb-16 sm:pt-8 lg:pb-28 lg:pt-14">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-300">
@@ -123,7 +128,7 @@ export const HomeShowcase = () => {
           <p className="mt-4 leading-relaxed text-gray-400">{t('showcase.subtitle')}</p>
         </div>
 
-        <div className="relative mx-auto mt-8 max-w-4xl sm:mt-12">
+        <div ref={revealScopeRef} className="relative mx-auto mt-8 max-w-4xl [perspective:1400px] sm:mt-12">
           {/* Projector glow — a soft brand aura behind the frame that fades in with it, then slowly
               drifts/breathes (animate-aurora) so the frame reads as lit by a projector. Frozen under
               the global reduced-motion reset. */}
@@ -135,18 +140,18 @@ export const HomeShowcase = () => {
               revealed ? 'opacity-100' : 'opacity-0'
             )}
           />
-          <div
+          <motion.div
             ref={setFrameRef}
-            className={cn(
-              'relative aspect-video overflow-hidden rounded-xl bg-black shadow-xl ring-1 ring-foreground/10 sm:rounded-2xl sm:shadow-2xl',
-              'transition-all duration-700 ease-[var(--ease-spring)]',
-              'motion-reduce:transition-none motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100',
-              // will-change only while hidden, then dropped so the frame's compositor layer is freed.
-              revealed
-                ? 'translate-y-0 scale-100 opacity-100'
-                : 'translate-y-6 scale-[0.97] opacity-0 will-change-[transform,opacity]'
-            )}
+            className="relative rounded-xl shadow-xl ring-1 ring-foreground/10 sm:rounded-2xl sm:shadow-2xl"
+            // Scroll-scrubbed rise + fade + tilt + parallax; skipped under reduced motion so the frame
+            // simply sits in place with native controls.
+            style={reduced ? undefined : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }}
           >
+            {/* The rounded clip lives on this untransformed wrapper: a 3D-transformed element cannot
+                clip its composited children to a border-radius. Chrome also lets composited children
+                (the <video>) escape a rounded overflow clip inside a 3D rendering context, so the
+                corners are enforced with clip-path, which the compositor always honors. */}
+            <div className="relative aspect-video overflow-hidden rounded-[inherit] bg-black [clip-path:inset(0_round_0.75rem)] sm:[clip-path:inset(0_round_1rem)]">
             {/* Shimmer placeholder holds the frame until the video is mounted. */}
             {!shouldLoad && (
               <div
@@ -181,24 +186,30 @@ export const HomeShowcase = () => {
             </span>
 
             {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the footer
-                motif), each on a slim dark gradient so the holes stay legible over bright video. */}
+                motif), each on a slim dark gradient so the holes stay legible over bright video. The
+                drifting span is one tile wider than the strip and translates (compositor-only), so a
+                static masked wrapper clips it and keeps the edge fade in place. */}
             <span
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-black/55 to-transparent"
             >
-              <span
-                className="animate-film-drift absolute inset-0"
-                style={{ ...perforationStyle, backgroundPosition: 'left top' }}
-              />
+              <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                <span
+                  className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                  style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
+                />
+              </span>
             </span>
             <span
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-black/55 to-transparent"
             >
-              <span
-                className="animate-film-drift absolute inset-0"
-                style={{ ...perforationStyle, backgroundPosition: 'left bottom' }}
-              />
+              <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                <span
+                  className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                  style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
+                />
+              </span>
             </span>
 
             {/* Sound control — muted by default; the slider reveals on hover/focus. Hidden when the
@@ -227,7 +238,8 @@ export const HomeShowcase = () => {
                 />
               </div>
             )}
-          </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* CTA cluster: one filled primary + outlined secondaries, from the app's Button variants. */}

@@ -620,8 +620,59 @@ export const SugarPreviewLayer = ({
     };
   };
 
-  // The caption is the only sugar with a fontsize field, so it alone gets resize handles. The grab
-  // fontsize is recovered from the preview px (fontPx = engine fontsize × previewScale).
+  // Children follow the engine draw order (caption → titleCard → lowerThird, registry orders 50/55/58).
+  return (
+    <SugarPieces
+      captionLine={captionLine}
+      card={card}
+      third={third}
+      gesturesFor={gesturesFor}
+      editingIndex={editingIndex}
+      shiftFor={shiftFor}
+      editorFor={editorFor}
+      caption={caption}
+      onChangeCaption={onChangeCaption}
+      previewH={previewH}
+      orientation={orientation}
+      resizeRef={resizeRef}
+    />
+  );
+};
+
+interface SugarPiecesProps {
+  captionLine: ReturnType<typeof captionPreview>;
+  card: ReturnType<typeof titleCardPreview>;
+  third: ReturnType<typeof lowerThirdPreview>;
+  gesturesFor: (kind: SugarKind, label: string) => PieceGestures;
+  editingIndex: (kind: SugarKind) => number | null;
+  shiftFor: (kind: SugarKind) => { dx: number; dy: number } | undefined;
+  editorFor: (kind: SugarKind, lineIndex: number) => SugarLineProps['editor'];
+  caption: EditorCaption | undefined;
+  onChangeCaption?: (caption: EditorCaption | undefined) => void;
+  previewH: number;
+  orientation: Orientation;
+  resizeRef: RefObject<{ cx: number; cy: number; dist: number; fontsize: number } | null>;
+}
+
+// The rendered sugar pieces in engine draw order. Split from SugarPreviewLayer so the layer keeps the
+// gesture/selection wiring while this owns only the draw — including the caption's corner resize
+// handles (the one sugar with a fontsize field; its grab size is recovered from the preview px).
+const SugarPieces = ({
+  captionLine,
+  card,
+  third,
+  gesturesFor,
+  editingIndex,
+  shiftFor,
+  editorFor,
+  caption,
+  onChangeCaption,
+  previewH,
+  orientation,
+  resizeRef,
+}: SugarPiecesProps) => {
+  const { t } = useTranslation('admin');
+
   const captionResize: ResizeSupport | undefined =
     captionLine && onChangeCaption && caption
       ? {
@@ -648,7 +699,6 @@ export const SugarPreviewLayer = ({
   // Preview px per engine px, shared by every line's TextEffect (shadow offsets / outline width).
   const effectScale = previewScale(previewH, orientation);
 
-  // Children follow the engine draw order (caption → titleCard → lowerThird, registry orders 50/55/58).
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {captionLine && (

@@ -71,6 +71,41 @@ function paintScene(
   }
 }
 
+// Paint the active scene (and, during a transition window, the idling incoming scene) for one clock
+// tick, writing blend styles straight to the container refs. Split from the tick handler so each stays
+// simple; the handler owns only the coarse mount decision.
+function paintTick(
+  refs: {
+    containers: Map<number, HTMLDivElement | null>;
+    handles: Map<number, ProgramSceneHandles | null>;
+  },
+  state: EditorState,
+  at: NonNullable<ReturnType<typeof sceneClockAt>>,
+  trans: ReturnType<typeof transitionAt>,
+  want: Mounted
+): void {
+  const active = state.sections[at.index] as VisualSection | undefined;
+
+  if (!active) return;
+
+  paintScene(refs.handles.get(at.index) ?? null, active, at.localT, at.segment.duration);
+
+  if (!trans || want.incoming === null) {
+    writeBlend(refs.containers.get(at.index) ?? null, {});
+
+    return;
+  }
+
+  const incoming = state.sections[want.incoming] as VisualSection | undefined;
+
+  // The incoming scene idles at its first frame until the boundary flips the mount.
+  if (incoming) paintScene(refs.handles.get(want.incoming) ?? null, incoming, 0, 1);
+
+  const blend = transitionBlendAt(trans.family, trans.progress);
+  writeBlend(refs.containers.get(at.index) ?? null, blend.outgoing);
+  writeBlend(refs.containers.get(want.incoming) ?? null, blend.incoming);
+}
+
 // Monitor frame aspect per template orientation.
 const ORIENTATION_ASPECT: Record<EditorState['orientation'], string> = {
   landscape: 'aspect-video',
@@ -117,26 +152,7 @@ export const ProgramPlayer = ({ state, clock, timeline }: ProgramPlayerProps) =>
         return;
       }
 
-      const active = s.sections[at.index] as VisualSection | undefined;
-
-      if (!active) return;
-
-      paintScene(handles.current.get(at.index) ?? null, active, at.localT, at.segment.duration);
-
-      if (!trans || want.incoming === null) {
-        writeBlend(containers.current.get(at.index) ?? null, {});
-
-        return;
-      }
-
-      const incoming = s.sections[want.incoming] as VisualSection | undefined;
-
-      // The incoming scene idles at its first frame until the boundary flips the mount.
-      if (incoming) paintScene(handles.current.get(want.incoming) ?? null, incoming, 0, 1);
-
-      const blend = transitionBlendAt(trans.family, trans.progress);
-      writeBlend(containers.current.get(at.index) ?? null, blend.outgoing);
-      writeBlend(containers.current.get(want.incoming) ?? null, blend.incoming);
+      paintTick({ containers: containers.current, handles: handles.current }, s, at, trans, want);
     });
   }, [clock]);
 

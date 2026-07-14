@@ -163,6 +163,40 @@ interface SectionCanvasProps {
 const activeIndex = (selection: SectionSelectionState, kind: ElementRef['kind']): number | null =>
   selection.element?.kind === kind ? selection.element.index : null;
 
+// Corner-handle proportional resize: record the pointer's radial distance from the box centre at grab
+// time, then scale the font by the drag ratio in ANY direction — dragging a one-line box's corner
+// horizontally (the natural gesture) works, where mapping to vertical travel alone did nothing.
+function useOverlayResize(
+  overlays: TextOverlay[],
+  frameRect: () => DOMRect | undefined,
+  onChange: (overlays: TextOverlay[]) => void
+) {
+  const startRef = useRef<{ dist: number; fontsize: number } | null>(null);
+
+  const resizeStart = (index: number, clientX: number, clientY: number) => {
+    const rect = frameRect();
+
+    if (!rect) return;
+    const overlay = overlays[index];
+    const { cx, cy } = overlayCenter(overlay, rect);
+    startRef.current = { dist: Math.hypot(clientX - cx, clientY - cy) || 1, fontsize: overlay.fontsize };
+  };
+
+  const resizeTo = (index: number, clientX: number, clientY: number) => {
+    const rect = frameRect();
+    const start = startRef.current;
+
+    if (!rect || !start) return;
+    const overlay = overlays[index];
+    const { cx, cy } = overlayCenter(overlay, rect);
+    const dist = Math.hypot(clientX - cx, clientY - cy);
+    const fontsize = fontSizeFromResize(start.fontsize, start.dist, dist);
+    onChange(withOverlay(overlays, index, { fontsize }));
+  };
+
+  return { resizeStart, resizeTo };
+}
+
 export const SectionCanvas = ({
   overlays,
   orientation,
@@ -220,32 +254,7 @@ export const SectionCanvas = ({
     onChange(withOverlay(overlays, index, { x, y }));
   };
 
-  // Corner-handle resize. The previous version mapped fontsize to the pointer's VERTICAL distance from
-  // the box centre, so dragging a corner of a one-line box horizontally (the natural gesture) did
-  // nothing. Scale proportionally instead: record the pointer's radial distance from the centre at
-  // grab time, then grow/shrink the font by the ratio as it's dragged in any direction.
-  const resizeStartRef = useRef<{ dist: number; fontsize: number } | null>(null);
-
-  const resizeStart = (index: number, clientX: number, clientY: number) => {
-    const rect = frameRect();
-
-    if (!rect) return;
-    const overlay = overlays[index];
-    const { cx, cy } = overlayCenter(overlay, rect);
-    resizeStartRef.current = { dist: Math.hypot(clientX - cx, clientY - cy) || 1, fontsize: overlay.fontsize };
-  };
-
-  const resizeTo = (index: number, clientX: number, clientY: number) => {
-    const rect = frameRect();
-    const start = resizeStartRef.current;
-
-    if (!rect || !start) return;
-    const overlay = overlays[index];
-    const { cx, cy } = overlayCenter(overlay, rect);
-    const dist = Math.hypot(clientX - cx, clientY - cy);
-    const fontsize = fontSizeFromResize(start.fontsize, start.dist, dist);
-    onChange(withOverlay(overlays, index, { fontsize }));
-  };
+  const { resizeStart, resizeTo } = useOverlayResize(overlays, frameRect, onChange);
 
   const nudge = (index: number, dx: number, dy: number) => {
     const overlay = overlays[index];

@@ -103,22 +103,66 @@ export const ElementInspector = ({
     );
   }
 
-  // The text-sugar singletons reuse the scene-field editors, so clicking the sugar on the canvas
-  // edits the exact same model the Scenes panel edits. Each editor guards on the section kind that
-  // can carry the sugar (see the editor model). Below each editor, "Detach into text elements"
-  // converts the block into regular overlays (sugarToOverlays) for full direct manipulation.
-  const detachSugar = (kind: SugarKind, sugar: Parameters<typeof sugarToOverlays>[1]) => {
-    const converted = sugarToOverlays(kind, sugar, orientation);
+  if (activeRef.kind === 'caption' || activeRef.kind === 'titleCard' || activeRef.kind === 'lowerThird') {
+    return (
+      <SugarSettings
+        kind={activeRef.kind}
+        section={section}
+        variables={variables}
+        orientation={orientation}
+        t={t}
+        onPatchSection={onPatchSection}
+        onSelectElement={onSelectElement}
+      />
+    );
+  }
+
+  return (
+    <AnimationSettings
+      section={section}
+      activeRef={activeRef}
+      orientation={orientation}
+      t={t}
+      onPatchSection={onPatchSection}
+    />
+  );
+};
+
+interface SugarSettingsProps {
+  kind: 'caption' | 'titleCard' | 'lowerThird';
+  section: EditorSection;
+  variables: string[];
+  orientation: Orientation;
+  t: TFunction<'admin'>;
+  onPatchSection: (patch: Partial<EditorSection>) => void;
+  onSelectElement: (ref: ElementRef | null) => void;
+}
+
+// The text-sugar singletons (caption / titleCard / lowerThird) reuse the scene-field editors, so
+// clicking the sugar on the canvas edits the exact same model the Scenes panel edits. Each branch
+// guards on the section kind that can carry the sugar (see the editor model). Below each editor,
+// "Detach into text elements" converts the block into regular overlays (sugarToOverlays).
+const SugarSettings = ({
+  kind,
+  section,
+  variables,
+  orientation,
+  t,
+  onPatchSection,
+  onSelectElement,
+}: SugarSettingsProps) => {
+  const detachSugar = (sugarKind: SugarKind, sugar: Parameters<typeof sugarToOverlays>[1]) => {
+    const converted = sugarToOverlays(sugarKind, sugar, orientation);
 
     if (converted.length === 0) return;
 
     const overlays = readArray<TextOverlay>(section, 'overlays');
 
-    onPatchSection({ [kind]: undefined, overlays: [...overlays, ...converted] } as Partial<EditorSection>);
+    onPatchSection({ [sugarKind]: undefined, overlays: [...overlays, ...converted] } as Partial<EditorSection>);
     onSelectElement({ kind: 'text', index: overlays.length });
   };
 
-  if (activeRef.kind === 'caption') {
+  if (kind === 'caption') {
     if (section.kind !== 'video' && section.kind !== 'color' && section.kind !== 'image') {
       return <Hint label={t('element.selectHint')} />;
     }
@@ -142,7 +186,7 @@ export const ElementInspector = ({
     );
   }
 
-  if (activeRef.kind === 'titleCard') {
+  if (kind === 'titleCard') {
     if (section.kind !== 'color') return <Hint label={t('element.selectHint')} />;
 
     return (
@@ -165,37 +209,25 @@ export const ElementInspector = ({
     );
   }
 
-  if (activeRef.kind === 'lowerThird') {
-    if (section.kind !== 'video') return <Hint label={t('element.selectHint')} />;
-
-    return (
-      <Card>
-        <LowerThirdField
-          lowerThird={section.lowerThird}
-          onChange={(lowerThird) => {
-            onPatchSection({ lowerThird } as Partial<EditorSection>);
-          }}
-          variables={variables}
-          inputCls={EDITOR_INPUT_CLASS}
-        />
-        <DetachSugar
-          t={t}
-          onDetach={() => {
-            detachSugar('lowerThird', section.lowerThird);
-          }}
-        />
-      </Card>
-    );
-  }
+  if (section.kind !== 'video') return <Hint label={t('element.selectHint')} />;
 
   return (
-    <AnimationSettings
-      section={section}
-      activeRef={activeRef}
-      orientation={orientation}
-      t={t}
-      onPatchSection={onPatchSection}
-    />
+    <Card>
+      <LowerThirdField
+        lowerThird={section.lowerThird}
+        onChange={(lowerThird) => {
+          onPatchSection({ lowerThird } as Partial<EditorSection>);
+        }}
+        variables={variables}
+        inputCls={EDITOR_INPUT_CLASS}
+      />
+      <DetachSugar
+        t={t}
+        onDetach={() => {
+          detachSugar('lowerThird', section.lowerThird);
+        }}
+      />
+    </Card>
   );
 };
 

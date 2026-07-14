@@ -41,44 +41,54 @@ export const ALWAYS_ALLOW_IN_INPUTS: ReadonlySet<EditorShortcutAction> = new Set
   'dismiss-help',
 ]);
 
-export function resolveShortcut(e: KeyEventLike): EditorShortcutAction | null {
-  const mod = e.metaKey || e.ctrlKey;
-  const k = e.key.toLowerCase();
+// Bare (no meta/ctrl) keys that map straight to an action. Arrow/delete pairs share a target.
+const BARE_KEY_ACTIONS: Record<string, EditorShortcutAction> = {
+  '?': 'show-help',
+  Escape: 'dismiss-help',
+  Backspace: 'delete-scene',
+  Delete: 'delete-scene',
+  ArrowRight: 'next-scene',
+  ArrowDown: 'next-scene',
+  ArrowLeft: 'prev-scene',
+  ArrowUp: 'prev-scene',
+  ' ': 'toggle-play',
+  ']': 'next-tool',
+  '[': 'prev-tool',
+};
 
-  if (mod && !e.altKey) {
-    if (k === 'z') return e.shiftKey ? 'redo' : 'undo';
+// ⌘/Ctrl chords (Alt already excluded by the caller). `k` is the lower-cased key.
+function resolveModShortcut(k: string, shiftKey: boolean): EditorShortcutAction | null {
+  if (k === 'z') return shiftKey ? 'redo' : 'undo';
 
-    if (k === 'y') return 'redo';
+  if (k === 'y') return 'redo';
 
-    if (k === 's') return 'save';
+  if (k === 's') return 'save';
 
-    if (k === 'd') return 'duplicate-scene';
-
-    return null;
-  }
-
-  // From here on, no meta/ctrl — bare (optionally shifted) keys.
-  if (mod) return null;
-
-  if (e.key === '?') return 'show-help';
-
-  if (e.key === 'Escape') return 'dismiss-help';
-
-  if (e.key === 'Backspace' || e.key === 'Delete') return 'delete-scene';
-
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') return 'next-scene';
-
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') return 'prev-scene';
-
-  if (e.key === ' ') return 'toggle-play';
-
-  if (e.key === ']') return 'next-tool';
-
-  if (e.key === '[') return 'prev-tool';
-
-  if (k === 'n') return 'add-scene';
+  if (k === 'd') return 'duplicate-scene';
 
   return null;
+}
+
+// Bare (optionally shifted) keys — table lookup, plus the lower-cased `n` for "add scene".
+function resolveBareShortcut(e: KeyEventLike): EditorShortcutAction | null {
+  const direct = BARE_KEY_ACTIONS[e.key] as EditorShortcutAction | undefined;
+
+  if (direct) return direct;
+
+  if (e.key.toLowerCase() === 'n') return 'add-scene';
+
+  return null;
+}
+
+export function resolveShortcut(e: KeyEventLike): EditorShortcutAction | null {
+  const mod = e.metaKey || e.ctrlKey;
+
+  if (mod && !e.altKey) return resolveModShortcut(e.key.toLowerCase(), e.shiftKey);
+
+  // Any other meta/ctrl combination (including Alt chords) is not a shortcut.
+  if (mod) return null;
+
+  return resolveBareShortcut(e);
 }
 
 export function isTypingTarget(t: TargetLike | null): boolean {

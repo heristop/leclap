@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useReducedMotion } from 'motion/react';
-import { ShellChrome, ToolDock, ProgramMonitor } from '@/presentation/components/editor-shell';
+import { ShellChrome, ToolDock } from '@/presentation/components/editor-shell';
 import { ColorVariablesProvider } from '@/presentation/components/ui';
-import { templateService, type Template } from '@/services/templateService';
-import { userTemplateService } from '@/services/userTemplateService';
+import type { Template } from '@/services/templateService';
 import { userPartialService } from '@/services/userPartialService';
 import { listAvailablePartials } from '@/services/templatePartialService';
 import type { StoredPartial } from '@/stores/userPartialStore';
@@ -12,27 +10,14 @@ import type { StoredTemplate } from '@/stores/userTemplateStore';
 import { useEditorHistory } from '@/hooks/useEditorHistory';
 import { useEditorShortcuts } from '@/hooks/useEditorShortcuts';
 import { useEditorSectionOps } from '../editor/useEditorSectionOps';
-import {
-  buildDescriptor,
-  toEditorState,
-  SECTION_LABELS,
-  type EditorSection,
-  type EditorState,
-} from '../templateEditorModel';
-import { TestRenderButton } from '../editor/TestRenderButton';
+import { toEditorState, SECTION_LABELS, type EditorSection } from '../templateEditorModel';
 import { buildEditorTools, nextTool, prevTool } from './editorTools';
 import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { useSectionSelection } from './useSectionSelection';
-import { EditorShellTitlebar } from './EditorShellTitlebar';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
-import { EditorMonitor } from './EditorMonitor';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
-import { ShortcutCheatSheet } from './ShortcutCheatSheet';
-import { StarterPresetPicker } from './StarterPresetPicker';
-import { buildMasterTimeline } from './program-timeline.logic';
-import { useProgramClock } from './use-program-clock';
-import { ProgramPlayer } from './program-player';
-import { ProgramTransport } from './program-transport';
+import { useProgramMonitor, useTemplatePersistence } from './use-template-editor-shell';
+import { ShellTitlebar, ShellMonitor, ShellModals } from './shell-slots';
 
 interface TemplateEditorShellProps {
   initial: Template | null;
@@ -41,36 +26,6 @@ interface TemplateEditorShellProps {
   // When provided, a "Save & film →" CTA is shown that saves the template and immediately
   // launches the Builder wizard — skipping the gallery entirely.
   onSaveAndCompile?: (saved: StoredTemplate) => void;
-}
-
-// Save guard mirroring TemplateEditor's saveGuardError: name + at least one section + media-or-upload.
-// Returns true when the template is NOT yet safe to save.
-function saveGuardFails(state: EditorState): boolean {
-  if (state.name.trim() === '') return true;
-
-  if (state.sections.length === 0) return true;
-
-  const emptyMedia = state.sections.find(
-    (s) => (s.kind === 'music' || s.kind === 'image') && s.allowed.length === 0 && !s.allowUpload
-  );
-
-  return Boolean(emptyMedia);
-}
-
-// Editor state -> persisted user Template (same projection as TemplateEditor.toUserTemplate).
-function toUserTemplate(state: EditorState): Template {
-  const descriptor = buildDescriptor(state);
-
-  return {
-    id: state.id,
-    name: state.name.trim(),
-    description: state.description.trim(),
-    orientation: state.orientation,
-    hasForm: templateService.extractFormFields(descriptor).length > 0,
-    complexity: templateService.getTemplateComplexity(descriptor),
-    source: 'user',
-    descriptor,
-  };
 }
 
 // A readable cell title: a video section's first non-empty overlay, else the kind label.
@@ -85,8 +40,8 @@ function sectionTitle(section: EditorSection): string {
 }
 
 // The template-authoring editor re-housed inside the studio shell. Reuses the exact same state hooks as
-// the legacy TemplateEditor (useEditorHistory + useEditorSectionOps), composing them into the shared
-// dock·panel·monitor·timeline frame. The legacy TemplateEditor stays in place; this is the new shell.
+// the legacy TemplateEditor (useEditorHistory + useEditorSectionOps), composing them — plus the shell's
+// own program-monitor + persistence hooks — into the shared dock·panel·monitor·timeline frame.
 export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompile }: TemplateEditorShellProps) => {
   const { t } = useTranslation('admin');
   const history = useEditorHistory(toEditorState(initial));
@@ -94,40 +49,16 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   const ops = useEditorSectionOps(set);
   const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition } = ops;
   const [localPartials] = useState<StoredPartial[]>(() => userPartialService.list());
-  const [error, setError] = useState('');
   const [helpOpen, setHelpOpen] = useState(false);
   // Cold start (building from scratch): offer starter presets before showing the blank editor.
   const [presetsOpen, setPresetsOpen] = useState(initial === null);
-  const partials = listAvailablePartials(localPartials);
 
-  // Selection state for the shell (which tool + which scene), clamped to a valid section index.
+  // Selection state for the shell (which tool + which scene), clamped to a valid section index; plus
+  // the shared text-overlay selection threaded to both the canvas and the inspector, keyed by scene.
   const [sel, dispatch] = useEditorSelection({ activeTool: 'scenes', selectedIndex: 0 });
-
-  // The shared text-overlay selection for the current section, threaded to BOTH the center canvas
-  // (draggable surface) and the left inspector (controls) so they act on one element. Keyed by the
-  // section index so switching scenes resets it.
   const sectionSelection = useSectionSelection(String(sel.selectedIndex));
-
-  // Live program monitor: the visual scenes concatenated into one playable timeline, driven by a
-  // rAF clock. Play mode swaps the WYSIWYG edit canvas for the playback surface; touching the
-  // transport enters it, selecting a scene card leaves it.
-  const reduced = useReducedMotion() ?? false;
-  const playTimeline = useMemo(
-    () => buildMasterTimeline(state.sections, state.defaultTransition),
-    [state.sections, state.defaultTransition]
-  );
-  const playTotal = playTimeline.at(-1)?.end ?? 0;
-  const clock = useProgramClock(playTotal, reduced);
-  const [playMode, setPlayMode] = useState(false);
-
-  useEffect(() => {
-    if (clock.playing) setPlayMode(true);
-  }, [clock.playing]);
-
-  const exitPlayMode = (): void => {
-    clock.pause();
-    setPlayMode(false);
-  };
+  const monitor = useProgramMonitor(state);
+  const save = useTemplatePersistence({ state, t, onSaved, onSaveAndCompile });
 
   useEffect(() => {
     dispatch({ type: 'clamp', count: state.sections.length });
@@ -136,7 +67,6 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   // All tools shown for now — the Simple/Advanced mode toggle isn't surfaced in the shell yet.
   const tools = buildEditorTools({ advanced: true });
   const selectedSection: EditorSection | null = state.sections[sel.selectedIndex] ?? null;
-  const guardFails = saveGuardFails(state);
 
   const addEditorSection = (kind: EditorSection['kind']): void => {
     addSection(kind);
@@ -150,31 +80,6 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
     dispatch({ type: 'selectScene', index: indexAfterReorder(sel.selectedIndex, from, to) });
   };
 
-  const persist = (): StoredTemplate | null => {
-    if (saveGuardFails(state)) return null;
-    setError('');
-
-    try {
-      return userTemplateService.save(toUserTemplate(state));
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : t('validation.saveFailed'));
-
-      return null;
-    }
-  };
-
-  const handleSave = (): void => {
-    const saved = persist();
-
-    if (saved) onSaved(saved);
-  };
-
-  const handleSaveAndCompile = (): void => {
-    const saved = persist();
-
-    if (saved) onSaveAndCompile?.(saved);
-  };
-
   const selectSceneClamped = (index: number): void => {
     const last = state.sections.length - 1;
     dispatch({ type: 'selectScene', index: Math.max(0, Math.min(index, last)) });
@@ -186,7 +91,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
     onUndo: undo,
     onRedo: redo,
     onSave: () => {
-      if (!guardFails) handleSave();
+      if (!save.guardFails) save.handleSave();
     },
     onDeleteScene: () => {
       // While a canvas element is selected, Delete/Backspace belongs to the element (its own focused
@@ -213,14 +118,14 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
       dispatch({ type: 'selectTool', tool: prevTool(tools, sel.activeTool) });
     },
     onTogglePlay: () => {
-      clock.toggle();
+      monitor.clock.toggle();
     },
     onShowHelp: () => {
       setHelpOpen(true);
     },
     // The help dialog closes itself on Escape (Radix); this fires with it closed — exit play mode.
     onDismissHelp: () => {
-      if (playMode) exitPlayMode();
+      if (monitor.playMode) monitor.exitPlayMode();
     },
     enabled: !helpOpen && !presetsOpen,
   });
@@ -230,124 +135,106 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
     // template's {{ variable }} colour tokens through this scope — including the palette's
     // 1-indexed {{ colorN }} slots, so the canvas previews mirror the engine's substitution.
     <ColorVariablesProvider variables={state.globalVariables} colorsList={state.colorsList}>
-    <ShellChrome
-      resizeLabel={t('shell.resizePanels')}
-      titlebar={
-        <EditorShellTitlebar
-          name={state.name}
-          onNameChange={(value) => {
-            patch({ name: value });
-          }}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onUndo={undo}
-          onRedo={redo}
-          onCancel={onCancel}
-          onSave={handleSave}
-          saveDisabled={guardFails}
-          onSaveAndCompile={onSaveAndCompile ? handleSaveAndCompile : undefined}
-          preview={<TestRenderButton state={state} disabled={state.sections.length === 0} />}
-          t={t}
-        />
-      }
-      dock={
-        <ToolDock
-          items={tools.map((tool) => ({ id: tool.id, icon: tool.icon, label: t(tool.labelKey) }))}
-          active={sel.activeTool}
-          onSelect={(id) => {
-            dispatch({ type: 'selectTool', tool: id });
-          }}
-          ariaLabel={t('shell.tools')}
-        />
-      }
-      panel={
-        <>
-          <EditorPanelSwitch
-            activeTool={sel.activeTool}
+      <ShellChrome
+        resizeLabel={t('shell.resizePanels')}
+        titlebar={
+          <ShellTitlebar
             state={state}
-            section={selectedSection}
-            partials={partials}
-            patch={patch}
-            patchSection={(p) => {
-              patchSection(sel.selectedIndex, p);
+            onNameChange={(value) => {
+              patch({ name: value });
             }}
-            onImport={reset}
-            selection={sectionSelection.state}
-            onSelectElement={sectionSelection.selectElement}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={undo}
+            onRedo={redo}
+            onCancel={onCancel}
+            onSave={save.handleSave}
+            saveDisabled={save.guardFails}
+            onSaveAndCompile={onSaveAndCompile ? save.handleSaveAndCompile : undefined}
           />
-          {error && (
-            <p
-              role="alert"
-              className="border-t border-foreground/10 px-4 py-2 text-xs font-medium text-[var(--color-error)]"
-            >
-              {error}
-            </p>
-          )}
-        </>
-      }
-      monitor={
-        <ProgramMonitor
-          label={playMode ? t('monitor.playing') : t('shell.preview')}
-          meta={state.orientation}
-          swapKey={playMode ? 'play' : String(sel.selectedIndex)}
-          transport={playTimeline.length > 0 ? <ProgramTransport clock={clock} timeline={playTimeline} /> : undefined}
-        >
-          {playMode ? (
-            <ProgramPlayer state={state} clock={clock} timeline={playTimeline} />
-          ) : (
-            <EditorMonitor
+        }
+        dock={
+          <ToolDock
+            items={tools.map((tool) => ({ id: tool.id, icon: tool.icon, label: t(tool.labelKey) }))}
+            active={sel.activeTool}
+            onSelect={(id) => {
+              dispatch({ type: 'selectTool', tool: id });
+            }}
+            ariaLabel={t('shell.tools')}
+          />
+        }
+        panel={
+          <>
+            <EditorPanelSwitch
+              activeTool={sel.activeTool}
               state={state}
               section={selectedSection}
-              onPatchSection={(p) => {
+              partials={listAvailablePartials(localPartials)}
+              patch={patch}
+              patchSection={(p) => {
                 patchSection(sel.selectedIndex, p);
               }}
+              onImport={reset}
               selection={sectionSelection.state}
               onSelectElement={sectionSelection.selectElement}
-              onBeginEdit={sectionSelection.beginEdit}
-              onEndEdit={sectionSelection.endEdit}
             />
-          )}
-        </ProgramMonitor>
-      }
-      timeline={
-        <EditorSceneTimeline
-          sections={state.sections}
-          selectedIndex={sel.selectedIndex}
-          onSelect={(i) => {
-            // Picking a scene card returns to the edit canvas for that scene.
-            if (playMode) exitPlayMode();
-            dispatch({ type: 'selectScene', index: i });
-          }}
-          onAdd={addEditorSection}
-          onDuplicate={duplicateSection}
-          onDelete={removeSection}
-          onReorder={reorderScenes}
-          onTransition={setTransition}
-          defaultTransition={state.defaultTransition}
-          sectionTitle={sectionTitle}
-          sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
-          onBrowsePresets={() => {
-            setPresetsOpen(true);
-          }}
-        />
-      }
-    />
-    <ShortcutCheatSheet
-      open={helpOpen}
-      onClose={() => {
-        setHelpOpen(false);
-      }}
-    />
-    <StarterPresetPicker
-      open={presetsOpen}
-      onPick={(preset) => {
-        reset(preset.build());
-        setPresetsOpen(false);
-      }}
-      onBlank={() => {
-        setPresetsOpen(false);
-      }}
-    />
+            {save.error && (
+              <p
+                role="alert"
+                className="border-t border-foreground/10 px-4 py-2 text-xs font-medium text-[var(--color-error)]"
+              >
+                {save.error}
+              </p>
+            )}
+          </>
+        }
+        monitor={
+          <ShellMonitor
+            state={state}
+            selectedIndex={sel.selectedIndex}
+            selectedSection={selectedSection}
+            onPatchSection={(p) => {
+              patchSection(sel.selectedIndex, p);
+            }}
+            selection={sectionSelection.state}
+            onSelectElement={sectionSelection.selectElement}
+            onBeginEdit={sectionSelection.beginEdit}
+            onEndEdit={sectionSelection.endEdit}
+            clock={monitor.clock}
+            playTimeline={monitor.playTimeline}
+            playMode={monitor.playMode}
+          />
+        }
+        timeline={
+          <EditorSceneTimeline
+            sections={state.sections}
+            selectedIndex={sel.selectedIndex}
+            onSelect={(i) => {
+              // Picking a scene card returns to the edit canvas for that scene.
+              if (monitor.playMode) monitor.exitPlayMode();
+              dispatch({ type: 'selectScene', index: i });
+            }}
+            onAdd={addEditorSection}
+            onDuplicate={duplicateSection}
+            onDelete={removeSection}
+            onReorder={reorderScenes}
+            onTransition={setTransition}
+            defaultTransition={state.defaultTransition}
+            sectionTitle={sectionTitle}
+            sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
+            onBrowsePresets={() => {
+              setPresetsOpen(true);
+            }}
+          />
+        }
+      />
+      <ShellModals
+        helpOpen={helpOpen}
+        setHelpOpen={setHelpOpen}
+        presetsOpen={presetsOpen}
+        setPresetsOpen={setPresetsOpen}
+        reset={reset}
+      />
     </ColorVariablesProvider>
   );
 };

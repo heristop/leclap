@@ -31,6 +31,73 @@ export interface LowerThirdPreview {
  * Lays out a lowerThird as positioned preview boxes, or null when it has no text at all (matching
  * the engine's empty guard over title + subtitle + badge).
  */
+interface LowerThirdParts {
+  title: string;
+  subtitle: string;
+  badge: string;
+  accent?: string;
+  effect: LowerThird['effect'];
+}
+
+interface LowerThirdGeometry {
+  f: number;
+  h: number;
+  margin: number;
+  bandY: number;
+}
+
+// Title / subtitle / badge as positioned preview lines, in engine draw order (later paints on top).
+// Empty strings are skipped. The engine applies the text effect to the title + subtitle only —
+// badgePill never calls applyTextEffect (text-blocks.ts) — so the badge line stays effect-free.
+function lowerThirdLines(parts: LowerThirdParts, geom: LowerThirdGeometry): SugarTextLine[] {
+  const { title, subtitle, badge, accent, effect } = parts;
+  const { f, h, margin, bandY } = geom;
+  const effectPatch = effect ? { effect } : {};
+  const lines: SugarTextLine[] = [];
+
+  if (title.trim() !== '') {
+    lines.push({
+      key: 'title',
+      text: title,
+      x: { side: 'left', px: margin * f },
+      y: { edge: 'top', px: (bandY + Math.round(h * 0.055)) * f },
+      fontPx: Math.round(h * 0.05) * f,
+      fontFamily: 'Anton',
+      color: '#ffffff',
+      ...effectPatch,
+    });
+  }
+
+  if (subtitle.trim() !== '') {
+    lines.push({
+      key: 'subtitle',
+      text: subtitle,
+      x: { side: 'left', px: margin * f },
+      y: { edge: 'top', px: (bandY + Math.round(h * 0.125)) * f },
+      fontPx: Math.round(h * 0.028) * f,
+      fontFamily: 'Oswald',
+      color: '#c9d0f5',
+      ...effectPatch,
+    });
+  }
+
+  if (badge.trim() !== '') {
+    lines.push({
+      key: 'badge',
+      text: badge,
+      x: { side: 'right', px: margin * f },
+      y: { edge: 'top', px: (bandY + Math.round(h * 0.055)) * f },
+      fontPx: Math.round(h * 0.04) * f,
+      fontFamily: 'Anton',
+      // Dark text on the accent pill; white on the default pill (engine badgePill).
+      color: accent ? BAND_COLOR : '#ffffff',
+      box: { color: accent ?? DEFAULT_BADGE_ACCENT, opacity: 1, paddingPx: Math.max(8, Math.round(h * 0.014)) * f },
+    });
+  }
+
+  return lines;
+}
+
 export function lowerThirdPreview(
   lowerThird: LowerThird | undefined,
   previewH: number,
@@ -65,51 +132,7 @@ export function lowerThirdPreview(
       }
     : null;
 
-  const lines: SugarTextLine[] = [];
-
-  // The engine applies the effect to the title + subtitle only — badgePill never calls
-  // applyTextEffect (text-blocks.ts), so the badge line stays effect-free below.
-  const effect = lowerThird.effect ? { effect: lowerThird.effect } : {};
-
-  if (title.trim() !== '') {
-    lines.push({
-      key: 'title',
-      text: title,
-      x: { side: 'left', px: margin * f },
-      y: { edge: 'top', px: (bandY + Math.round(h * 0.055)) * f },
-      fontPx: Math.round(h * 0.05) * f,
-      fontFamily: 'Anton',
-      color: '#ffffff',
-      ...effect,
-    });
-  }
-
-  if (subtitle.trim() !== '') {
-    lines.push({
-      key: 'subtitle',
-      text: subtitle,
-      x: { side: 'left', px: margin * f },
-      y: { edge: 'top', px: (bandY + Math.round(h * 0.125)) * f },
-      fontPx: Math.round(h * 0.028) * f,
-      fontFamily: 'Oswald',
-      color: '#c9d0f5',
-      ...effect,
-    });
-  }
-
-  if (badge.trim() !== '') {
-    lines.push({
-      key: 'badge',
-      text: badge,
-      x: { side: 'right', px: margin * f },
-      y: { edge: 'top', px: (bandY + Math.round(h * 0.055)) * f },
-      fontPx: Math.round(h * 0.04) * f,
-      fontFamily: 'Anton',
-      // Dark text on the accent pill; white on the default pill (engine badgePill).
-      color: accent ? BAND_COLOR : '#ffffff',
-      box: { color: accent ?? DEFAULT_BADGE_ACCENT, opacity: 1, paddingPx: Math.max(8, Math.round(h * 0.014)) * f },
-    });
-  }
+  const lines = lowerThirdLines({ title, subtitle, badge, accent, effect: lowerThird.effect }, { f, h, margin, bandY });
 
   return { band, bar, lines };
 }

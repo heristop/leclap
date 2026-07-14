@@ -87,22 +87,8 @@ export function useVariableAutocomplete({
     setQuery(null);
   };
 
-  const handleKeyDown = (event: ReactKeyboardEvent): boolean => {
-    if (!query) {
-      return false;
-    }
-
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-
-      return true;
-    }
-
-    if (options.length === 0) {
-      return false;
-    }
-
+  // Arrow/enter navigation over a known non-empty option list. Returns true when the key is consumed.
+  const navigateOptions = (event: ReactKeyboardEvent): boolean => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       setHighlight((highlight + 1) % options.length);
@@ -125,6 +111,21 @@ export function useVariableAutocomplete({
     }
 
     return false;
+  };
+
+  const handleKeyDown = (event: ReactKeyboardEvent): boolean => {
+    if (!query) return false;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+
+      return true;
+    }
+
+    if (options.length === 0) return false;
+
+    return navigateOptions(event);
   };
 
   return { query, options, highlight, setHighlight, sync, syncFromKeyUp, close, pick, handleKeyDown };

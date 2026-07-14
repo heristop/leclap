@@ -14,10 +14,11 @@
       "sections": [
         {
           "name": "flash",
-          "type": "color_background",
+          "type": "video",
           "options": {
-            "backgroundColor": "#141416",
-            "duration": 2.8
+            "videoUrl": "videos/video_2.mp4",
+            "duration": 2.8,
+            "muteSection": true
           },
           "filters": [
             {
@@ -27,7 +28,7 @@
                 "y": 0,
                 "w": 640,
                 "h": 720,
-                "c": "{{ colorA }}@1",
+                "c": "{{ colorA }}@0.82",
                 "t": "fill",
                 "enable": "'lt(mod(t,0.8),0.4)'"
               }
@@ -39,7 +40,7 @@
                 "y": 0,
                 "w": 640,
                 "h": 720,
-                "c": "{{ colorB }}@1",
+                "c": "{{ colorB }}@0.82",
                 "t": "fill",
                 "enable": "'lt(mod(t,0.8),0.4)'"
               }
@@ -51,7 +52,7 @@
                 "y": 0,
                 "w": 640,
                 "h": 720,
-                "c": "{{ colorB }}@1",
+                "c": "{{ colorB }}@0.82",
                 "t": "fill",
                 "enable": "'gte(mod(t,0.8),0.4)'"
               }
@@ -63,7 +64,7 @@
                 "y": 0,
                 "w": 640,
                 "h": 720,
-                "c": "{{ colorA }}@1",
+                "c": "{{ colorA }}@0.82",
                 "t": "fill",
                 "enable": "'gte(mod(t,0.8),0.4)'"
               }
@@ -168,7 +169,8 @@
       "form_2_keyword1": "Javascript",
       "form_2_keyword2": "Typescript",
       "form_2_keyword3": "Rust",
-      "form_2_keyword4": "Caffeine"
+      "form_2_keyword4": "Caffeine",
+      "form_3_keyword1": "Coffee Shop"
     },
     "music": {
       "name": "point-being",
@@ -176,6 +178,12 @@
     },
     "orientation": "landscape",
     "musicEnabled": true,
+    "grade": {
+      "contrast": 1.04,
+      "saturation": 1.12,
+      "gamma": 1.0,
+      "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } }
+    },
     "transition": {
       "type": "dissolve",
       "duration": 0.5
@@ -198,6 +206,7 @@
     {
       "name": "intro_1",
       "type": "video",
+      "look": "teal-orange",
       "transition": {
         "type": "smoothup",
         "duration": 0.6
@@ -268,6 +277,7 @@
         }
       ],
       "filters": [
+        { "type": "vignette" },
         {
           "type": "boxblur",
           "value": "5"
@@ -287,7 +297,7 @@
           "type": "drawtext",
           "values": {
             "text": {
-              "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
+              "en": "Meet {{ form_1_firstname }}"
             },
             "fontcolor": "{{ color2 }}",
             "fontsize": 58,
@@ -301,7 +311,7 @@
           "type": "drawtext",
           "values": {
             "text": {
-              "en": "“{{ form_1_job }}”"
+              "en": "Fueled by coffee & code"
             },
             "fontcolor": "{{ color2 }}",
             "fontsize": 34,
@@ -363,25 +373,13 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "warm-film",
-      "grade": {
-        "contrast": 1.1,
-        "saturation": 1.2,
-        "gamma": 0.96,
-        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
-        "curvesPreset": "increase_contrast"
-      },
+      "look": "teal-orange",
       "motion": [
-        {
-          "type": "kenburns",
-          "direction": "in",
-          "intensity": 1.1
-        },
-        { "type": "flip", "axis": "horizontal" }
+        { "type": "kenburns", "direction": "in", "intensity": 1.18 }
       ],
       "transition": {
-        "type": "pixelize",
-        "duration": 0.4
+        "type": "smoothleft",
+        "duration": 0.5
       },
       "title": {
         "en": "Tell us a little bit about you"
@@ -394,63 +392,69 @@
         "musicVolume": 0.1
       },
       "inputs": [
+        { "name": "caption_panel", "url": "panel:w=470,h=150,r=28,c=0a0f14,o=0.72" }
+      ],
+      "maps": [
         {
-          "name": "animatedIcon",
-          "type": "animation",
-          "options": {
-            "fps": 3.333,
-            "position": "600:200",
-            "scale": "1280:720",
-            "persistent": false,
-            "motion": "rise"
-          },
-          "filters": []
+          "inputs": ["0:v"],
+          "outputs": ["base"],
+          "options": { "useSectionFilters": true }
+        },
+        {
+          "inputs": ["base", "1:v"],
+          "filters": [
+            {
+              "type": "overlay",
+              "value": "x=40:y='if(lt(t,5.3),460+(1-(if(lt(t,0.12),0,if(lt(t,0.5),(t-0.12)/0.38,1))))*70,460+(if(lt(t,5.9),(t-5.3)/0.6,1))*280)'"
+            }
+          ],
+          "outputs": ["carded"]
+        },
+        {
+          "inputs": ["carded"],
+          "filters": [
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
+                },
+                "fontcolor": "#ffffff",
+                "fontsize": 44,
+                "x": 66,
+                "y": 482,
+                "fontfile": "Anton.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.55),0,if(lt(t,0.95),(t-0.55)/0.4,if(lt(t,4.8),1,if(lt(t,5.2),1-(t-4.8)/0.4,0))))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "{{ form_1_job }}"
+                },
+                "fontcolor": "#E0884C",
+                "fontsize": 28,
+                "x": 66,
+                "y": 542,
+                "fontfile": "Oswald.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.68),0,if(lt(t,1.08),(t-0.68)/0.4,if(lt(t,4.8),1,if(lt(t,5.2),1-(t-4.8)/0.4,0))))'"
+              }
+            }
+          ],
+          "outputs": ["final"]
         }
       ],
       "filters": [
         {
           "type": "vignette",
           "value": "PI/5"
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "{{ form_1_firstname }} {{ form_1_lastname }}"
-            },
-            "fontcolor": "#ffffff",
-            "fontsize": 46,
-            "x": "'(w-tw-40)+(1-(if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))))*70'",
-            "y": "(h-th-220)",
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,0.4),0,if(lt(t,1.1),(t-0.4)/0.7,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1,
-            "box": 1,
-            "boxcolor": "#0a0f14@0.72",
-            "boxborderw": 18
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "{{ form_1_job }}"
-            },
-            "fontcolor": "#E0884C",
-            "fontsize": 30,
-            "x": "'(w-tw-40)+(1-(if(lt(t,0.6),0,if(lt(t,1.3),(t-0.6)/0.7,1))))*70'",
-            "y": "(h-th-160)",
-            "fontfile": "Oswald.ttf",
-            "box": 1,
-            "boxcolor": "#0a0f14@0.64",
-            "boxborderw": 12,
-            "alpha": "'if(lt(t,0.6),0,if(lt(t,1.3),(t-0.6)/0.7,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1
-          }
         },
         {
           "type": "fade",
@@ -529,21 +533,9 @@
     {
       "name": "video_2",
       "type": "project_video",
-      "look": "warm-film",
-      "grade": {
-        "contrast": 1.1,
-        "saturation": 1.2,
-        "gamma": 0.96,
-        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
-        "curvesPreset": "increase_contrast"
-      },
+      "look": "teal-orange",
       "motion": [
-        {
-          "type": "kenburns",
-          "direction": "in",
-          "intensity": 1.1
-        },
-        { "type": "flip", "axis": "horizontal" }
+        { "type": "kenburns", "direction": "out", "intensity": 1.08 }
       ],
       "transition": {
         "type": "coverleft",
@@ -559,109 +551,109 @@
         "duration": 45,
         "musicVolume": 0.1
       },
+      "inputs": [
+        { "name": "caption_panel", "url": "panel:w=360,h=340,r=28,c=0a0f14,o=0.72" }
+      ],
+      "maps": [
+        {
+          "inputs": ["0:v"],
+          "outputs": ["base"],
+          "options": { "useSectionFilters": true }
+        },
+        {
+          "inputs": ["base", "1:v"],
+          "filters": [
+            {
+              "type": "overlay",
+              "value": "x=48:y='150+(1-(if(lt(t,0.12),0,if(lt(t,0.5),(t-0.12)/0.38,1))))*70'"
+            }
+          ],
+          "outputs": ["carded"]
+        },
+        {
+          "inputs": ["carded"],
+          "filters": [
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "Languages" },
+                "fontcolor": "#E0884C",
+                "fontsize": 40,
+                "x": 74,
+                "y": 200,
+                "fontfile": "Anton.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.55),0,if(lt(t,0.9),(t-0.55)/0.35,1))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "fr": "{{ form_2_keyword1 }}", "en": "{{ form_2_keyword1 }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 30,
+                "x": 74,
+                "y": 270,
+                "fontfile": "Oswald.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.72),0,if(lt(t,1.07),(t-0.72)/0.35,1))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "fr": "{{ form_2_keyword2 }}", "en": "{{ form_2_keyword2 }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 30,
+                "x": 74,
+                "y": 320,
+                "fontfile": "Oswald.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.87),0,if(lt(t,1.22),(t-0.87)/0.35,1))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_2_keyword3 }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 30,
+                "x": 74,
+                "y": 370,
+                "fontfile": "Oswald.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,1.02),0,if(lt(t,1.37),(t-1.02)/0.35,1))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": { "en": "{{ form_2_keyword4 }}" },
+                "fontcolor": "#ffffff",
+                "fontsize": 30,
+                "x": 74,
+                "y": 420,
+                "fontfile": "Oswald.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,1.17),0,if(lt(t,1.52),(t-1.17)/0.35,1))'"
+              }
+            }
+          ],
+          "outputs": ["final"]
+        }
+      ],
       "filters": [
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "Languages"
-            },
-            "fontcolor": "#E0884C",
-            "fontsize": 44,
-            "x": "'(w-text_w-12)+(1-(if(lt(t,0.3),0,if(lt(t,0.85),(t-0.3)/0.55,1))))*60'",
-            "y": 60,
-            "fontfile": "Anton.ttf",
-            "alpha": "'if(lt(t,0.3),0,if(lt(t,0.85),(t-0.3)/0.55,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1,
-            "box": 1,
-            "boxcolor": "#0a0f14@0.72",
-            "boxborderw": 16
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "fr": "{{ form_2_keyword1 }}",
-              "en": "{{ form_2_keyword1 }}"
-            },
-            "fontcolor": "#ffffff",
-            "fontsize": 32,
-            "x": "'(w-text_w-12)+(1-(if(lt(t,0.48),0,if(lt(t,1.03),(t-0.48)/0.55,1))))*60'",
-            "y": 160,
-            "fontfile": "Oswald.ttf",
-            "box": 1,
-            "boxcolor": "#0a0f14@0.64",
-            "boxborderw": 12,
-            "alpha": "'if(lt(t,0.48),0,if(lt(t,1.03),(t-0.48)/0.55,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "fr": "{{ form_2_keyword2 }}",
-              "en": "{{ form_2_keyword2 }}"
-            },
-            "fontcolor": "#ffffff",
-            "fontsize": 32,
-            "x": "'(w-text_w-12)+(1-(if(lt(t,0.66),0,if(lt(t,1.21),(t-0.66)/0.55,1))))*60'",
-            "y": 240,
-            "fontfile": "Oswald.ttf",
-            "box": 1,
-            "boxcolor": "#0a0f14@0.64",
-            "boxborderw": 12,
-            "alpha": "'if(lt(t,0.66),0,if(lt(t,1.21),(t-0.66)/0.55,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "{{ form_2_keyword3 }}"
-            },
-            "fontcolor": "#ffffff",
-            "fontsize": 32,
-            "x": "'(w-text_w-12)+(1-(if(lt(t,0.84),0,if(lt(t,1.39),(t-0.84)/0.55,1))))*60'",
-            "y": 320,
-            "fontfile": "Oswald.ttf",
-            "box": 1,
-            "boxcolor": "#0a0f14@0.64",
-            "boxborderw": 12,
-            "alpha": "'if(lt(t,0.84),0,if(lt(t,1.39),(t-0.84)/0.55,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1
-          }
-        },
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "{{ form_2_keyword4 }}"
-            },
-            "fontcolor": "#ffffff",
-            "fontsize": 32,
-            "x": "'(w-text_w-12)+(1-(if(lt(t,1.02),0,if(lt(t,1.57),(t-1.02)/0.55,1))))*60'",
-            "y": 400,
-            "fontfile": "Oswald.ttf",
-            "box": 1,
-            "boxcolor": "#0a0f14@0.64",
-            "boxborderw": 12,
-            "alpha": "'if(lt(t,1.02),0,if(lt(t,1.57),(t-1.02)/0.55,1))'",
-            "shadowcolor": "#000000@0.5",
-            "shadowx": 1,
-            "shadowy": 1
-          }
-        },
+        { "type": "vignette" },
         {
           "type": "fadein",
           "values": {
@@ -690,14 +682,7 @@
     {
       "name": "video_3",
       "type": "project_video",
-      "look": "warm-film",
-      "grade": {
-        "contrast": 1.1,
-        "saturation": 1.2,
-        "gamma": 0.96,
-        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
-        "curvesPreset": "increase_contrast"
-      },
+      "look": "teal-orange",
       "transition": {
         "type": "circleclose",
         "duration": 0.7
@@ -712,6 +697,9 @@
         "muteSection": true,
         "musicVolume": 0.4
       },
+      "inputs": [
+        { "name": "caption_panel", "url": "panel:w=380,h=150,r=28,c=0a0f14,o=0.72" }
+      ],
       "maps": [
         {
           "inputs": ["1:v"],
@@ -721,26 +709,62 @@
               "value": "0.25*PTS"
             }
           ],
+          "outputs": ["sped"],
+          "options": { "useSectionFilters": true }
+        },
+        {
+          "inputs": ["sped", "2:v"],
+          "filters": [
+            {
+              "type": "overlay",
+              "value": "x=48:y='474+(1-(if(lt(t,0.12),0,if(lt(t,0.5),(t-0.12)/0.38,1))))*70'"
+            }
+          ],
+          "outputs": ["carded"]
+        },
+        {
+          "inputs": ["carded"],
+          "filters": [
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "Environment"
+                },
+                "fontcolor": "#E0884C",
+                "fontsize": 30,
+                "x": 74,
+                "y": 500,
+                "fontfile": "Anton.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.55),0,if(lt(t,0.95),(t-0.55)/0.4,1))'"
+              }
+            },
+            {
+              "type": "drawtext",
+              "values": {
+                "text": {
+                  "en": "{{ form_3_keyword1 }}"
+                },
+                "fontcolor": "#ffffff",
+                "fontsize": 40,
+                "x": 74,
+                "y": 548,
+                "fontfile": "Oswald.ttf",
+                "shadowcolor": "#000000@0.5",
+                "shadowx": 1,
+                "shadowy": 1,
+                "alpha": "'if(lt(t,0.65),0,if(lt(t,1.05),(t-0.65)/0.4,1))'"
+              }
+            }
+          ],
           "outputs": ["final"]
         }
       ],
       "filters": [
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "{{ form_3_keyword1 }}"
-            },
-            "fontcolor": "{{ color2 }}",
-            "fontsize": 36,
-            "x": "(w-tw-40)",
-            "y": "(h-th-160)",
-            "fontfile": "Rubik+Doodle+Shadow.ttf",
-            "box": 1,
-            "boxcolor": "{{ color1 }}@0.5",
-            "boxborderw": 10
-          }
-        },
+        { "type": "vignette" },
         {
           "type": "fadein",
           "values": {
@@ -758,20 +782,22 @@
     {
       "name": "outro",
       "type": "video",
-      "look": "warm-film",
-      "grade": {
-        "contrast": 1.1,
-        "saturation": 1.2,
-        "gamma": 0.96,
-        "colorBalance": { "midtones": { "b": 0.05 }, "highlights": { "r": 0.04 } },
-        "curvesPreset": "increase_contrast"
-      },
+      "look": "teal-orange",
+      "motion": [
+        {
+          "type": "kenburns",
+          "direction": "in",
+          "intensity": 1.12
+        },
+        { "type": "flip", "axis": "horizontal" }
+      ],
       "options": {
         "videoUrl": "{{ videoOutro }}",
         "duration": 5,
         "musicVolume": 0.2
       },
       "filters": [
+        { "type": "vignette" },
         {
           "type": "fadein",
           "values": {

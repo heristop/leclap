@@ -642,6 +642,30 @@ describe('SegmentBuilder structured-sugar injection', () => {
     expect(colorbalanceIdx).toBeLessThan(hflipIdx);
   });
 
+  it('does not double-grade a section that overrides the global grade', async () => {
+    const segment = makeSegment();
+    const managers = makeManagers();
+    // Global grade with a distinctive value; the section defines its OWN grade, so the section's
+    // grade must win outright and the global grade must NOT also be baked in (no double-grading).
+    const template = makeTemplate({ global: { grade: { contrast: 1.2, saturation: 1.3 } } });
+    const { builder } = makeBuilder({ segment, template, managers });
+    builder.hydrate({ name: 'clip', type: 'color_background' });
+    (builder as unknown as { section: Section }).section = {
+      name: 'clip',
+      type: 'color_background',
+      options: { forceAspectRatio: false, duration: 3 },
+      grade: { contrast: 1.05 },
+      filters: [],
+      maps: [],
+    } as never;
+
+    await builder.buildFilters();
+
+    const eqFilters = (segment.filtersList as string[]).filter((s) => s.startsWith('eq='));
+    expect(eqFilters).toEqual(['eq=contrast=1.05']);
+    expect(eqFilters).not.toContain('eq=contrast=1.2:saturation=1.3');
+  });
+
   it('calibrates Ken Burns on a project_video over the probed clip length with d=1 (no stretch)', async () => {
     const segment = makeSegment();
     const managers = makeManagers();

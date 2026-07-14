@@ -96,20 +96,27 @@ export function compileSugarLayers(section: Section, ctx: SugarContext): { backg
  * split by layer. `look`/`grade` apply across every section as background colour; text `overlays`
  * draw on top of every section (or a named subset) — the engine fans the once-authored decoration
  * out to each section, reusing the section's own draw-order routing and text formatting.
+ *
+ * `look` and `grade` are per-field WHOLESALE overrides: a section that defines its own `look` (or
+ * `grade`) is compiled by compileSugarLayers, so the global `look` (or `grade`) is suppressed here to
+ * avoid double-grading. The override is independent per field — a section can override `grade` while
+ * still inheriting the global `look`, and vice-versa.
  */
 export function compileGlobalDecorations(
   global: TemplateDescriptorGlobal | undefined,
-  sectionName: string,
+  section: Section,
   ctx: SugarContext
 ): { background: Filter[]; overlay: Filter[] } {
   if (!global) {
     return { background: [], overlay: [] };
   }
 
-  const background = [...lookToFilters(global.look), ...gradeToFilters(global.grade as Grade | undefined)];
+  const look = section.look === undefined ? lookToFilters(global.look) : [];
+  const grade = section.grade === undefined ? gradeToFilters(global.grade as Grade | undefined) : [];
+  const background = [...look, ...grade];
 
   const overlay = (global.overlays ?? [])
-    .filter((overlay) => overlay.sections === undefined || overlay.sections.includes(sectionName))
+    .filter((overlay) => overlay.sections === undefined || overlay.sections.includes(section.name))
     .flatMap((overlay) => globalTextOverlayToFilters(overlay, { scale: ctx.scale }));
 
   return { background, overlay };

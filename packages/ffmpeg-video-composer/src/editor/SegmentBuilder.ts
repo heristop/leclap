@@ -72,6 +72,17 @@ class SegmentBuilder {
 
   protected section!: Section;
 
+  // Overlay-class (text) sugar computed in stageBackgroundSugar, routed once the overlay graph is known
+  // (buildFilters). Background-class sugar is folded into section.filters directly at staging time.
+  private pendingOverlaySugar: Filter[] = [];
+  // Count of background-sugar filters prepended to section.filters — the splice point for overlay text
+  // in the no-overlay-graph case (text sits above the grade, below the section's authored chain).
+  private backgroundSugarCount = 0;
+  // Guards stageBackgroundSugar so it folds the sugar exactly once per section: buildSegment stages it
+  // before buildMaps (so overlay base legs pick up the grade), and buildFilters calls it too (a no-op
+  // then) so buildFilters stays self-contained when driven directly. Reset per section in hydrate.
+  private sugarStaged = false;
+
   /** The video encoder name for this platform — `codecConfig.videoCodec` (h264_mediacodec on device) or `h264`. */
   protected videoCodec(): string {
     return resolveVideoCodec(this.project.config);
@@ -139,6 +150,12 @@ class SegmentBuilder {
     this.segment.inputsAsset = [];
     this.segment.inputsMapCount = 0;
 
+    // Structured-sugar staging is per-section: clear the guard + carried sugar so the next section
+    // stages its own look/grade/motion afresh.
+    this.sugarStaged = false;
+    this.pendingOverlaySugar = [];
+    this.backgroundSugarCount = 0;
+
     this.assetManager.segment = this.segment;
     this.mapManager.segment = this.segment;
     this.filterManager.segment = this.segment;
@@ -186,6 +203,11 @@ class SegmentBuilder {
     try {
       await timer.span('segment:assets', () => this.assetManager.fetchAssets());
       this.logger.info(`[${this.section.name}][Assets] fetched`);
+
+      // Fold background-class sugar (look/grade/motion/layers) into the authored chain BEFORE the maps
+      // are built, so an animation/gradient overlay's base leg (which bakes the section filters via
+      // `useSectionFilters` during buildMaps) picks up the colour grade and motion.
+      this.stageBackgroundSugar();
 
       await timer.span('segment:maps', () => this.buildMaps());
       this.logger.info(`[${this.section.name}][Maps] built`);
@@ -378,9 +400,21 @@ class SegmentBuilder {
     this.section.maps ??= [];
     this.section.filters ??= [];
 
+    // No-op when buildSegment already staged before buildMaps; folds it now when buildFilters is driven
+    // standalone (unit tests) so the linear-chain sugar is present.
+    this.stageBackgroundSugar();
+
     const opts = this.section.options;
 
-    const overlaySugar = this.injectSugarFilters(opts);
+    const hasOverlayGraph = this.segment.filtersMapList.length > 0;
+    const overlaySugar = this.pendingOverlaySugar;
+
+    // Overlay-class (text) sugar routing: with NO overlay graph, splice it into the linear chain right
+    // after the background sugar (above the grade, below the section's authored chain) to preserve the
+    // previous draw order; with an overlay graph it is chained onto the final composited pad below.
+    if (!hasOverlayGraph && overlaySugar.length > 0) {
+      this.section.filters.splice(this.backgroundSugarCount, 0, ...overlaySugar);
+    }
 
     // Force ratio (opts?.forceAspectRatio !== false is true when opts is undefined,
     // so the RHS opts.forceOriginalAspectRatio is only reached when opts is defined).
@@ -410,7 +444,7 @@ class SegmentBuilder {
     // When the section composites an overlay graph (animation/gradient maps), the linear filtersList
     // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
     // instead, drawing on top of the overlay rather than being dropped.
-    this.appendOverlayChain(overlaySugar);
+    this.appendOverlayChain(hasOverlayGraph ? overlaySugar : []);
 
     this.formatFilters();
   };
@@ -434,39 +468,45 @@ class SegmentBuilder {
     this.segment.mapsList.push(outPad);
   };
 
-  /**
-   * Prepends structured-sugar filters to the section's authored filter list, in the order fixed by
-   * the SUGAR_COMPILERS registry. Background-class sugar (layers/motion/grade/look) always prepends to
-   * the linear chain. Overlay-class sugar (caption/lowerThird text) prepends too WHEN there is no
-   * overlay graph; when an animation/gradient graph already exists, it is returned for the caller to
-   * chain onto the final map (so it draws on top). Called before prependScaleFilters so scale/sar
-   * remain first in the chain.
-   */
-  private readonly injectSugarFilters = (opts: SectionOptions | undefined): Filter[] => {
+  // The context each sugar compiler needs to lower time/space-dependent effects (Ken Burns calibrates
+  // over the clip length + scale). Real footage drives zoompan one output frame per input frame and
+  // calibrates over the clip's TRUE length: project_video clips are usually shorter than their declared
+  // options.duration; their probed length is filled into buildInfos.durations by
+  // TemplateDirector.calculateTotalLength before segments build, so read it here.
+  private readonly sugarContext = () => {
     const scale = this.project.config.videoConfig?.scale ?? '1280:720';
-    // Real footage drives zoompan one output frame per input frame (no time-stretch) and calibrates
-    // the Ken Burns curve over the clip's true length. project_video clips are usually shorter than
-    // their declared options.duration; their probed length is filled into buildInfos.durations by
-    // TemplateDirector.calculateTotalLength before segments build, so read it here.
     const isVideo = this.section.type === 'project_video' || this.section.type === 'video';
     const probedDuration = isVideo ? this.project.buildInfos.durations[this.section.name] : undefined;
-    const duration = probedDuration ?? opts?.duration ?? 0;
-    const ctx = { duration, scale, fps: 30, isVideo };
+    const duration = probedDuration ?? this.section.options?.duration ?? 0;
 
+    return { duration, scale, fps: 30, isVideo };
+  };
+
+  /**
+   * Folds BACKGROUND-class sugar (layers/motion/grade/look) into the section's authored filter list,
+   * ordered by the SUGAR_COMPILERS registry. Runs BEFORE buildMaps so an animation/gradient overlay's
+   * base leg — which bakes the section filters via `useSectionFilters` while the maps are assembled —
+   * picks up the colour grade and motion. (Previously this ran in buildFilters, AFTER buildMaps, so
+   * background sugar was silently dropped on any section compositing an overlay.) The OVERLAY-class
+   * (text) sugar is stashed on `pendingOverlaySugar` for buildFilters to route once the overlay graph
+   * is known — it draws on top of the composite. Global decorations (whole-video sugar) fan out here
+   * too, reusing the same routing and the section's own text formatting.
+   */
+  private readonly stageBackgroundSugar = (): void => {
+    if (this.sugarStaged) {
+      return;
+    }
+    this.sugarStaged = true;
+    this.section.filters ??= [];
+    const ctx = this.sugarContext();
     const sectionSugar = compileSugarLayers(this.section, ctx);
-    // Global decorations (the whole-video sugar siblings) are fanned out onto this section here, reusing
-    // the same layer routing and the section's own text formatting — author once in `global`, applied to
-    // every section. NOTE: like all background sugar, global look/grade still bakes only into the linear
-    // chain, so on a section with an animation overlay graph it is bypassed (a pre-existing limitation).
-    const globalSugar = compileGlobalDecorations(this.template.descriptor.global, this.section.name, ctx);
+    const globalSugar = compileGlobalDecorations(this.template.descriptor.global, this.section, ctx);
 
     const background = [...sectionSugar.background, ...globalSugar.background];
-    const overlay = [...sectionSugar.overlay, ...globalSugar.overlay];
-    const hasOverlayGraph = this.segment.filtersMapList.length > 0;
+    this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
+    this.backgroundSugarCount = background.length;
 
-    this.section.filters = [...background, ...(hasOverlayGraph ? [] : overlay), ...(this.section.filters ?? [])];
-
-    return hasOverlayGraph ? overlay : [];
+    this.section.filters = [...background, ...this.section.filters];
   };
 
   /**

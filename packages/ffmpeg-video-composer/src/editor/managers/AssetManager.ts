@@ -6,6 +6,7 @@ import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type VariableManager from './VariableManager';
 import { cubeFor } from '../presets/lut-library';
+import { parsePanelUrl, panelFileName, roundedPanelPng } from '../presets/rounded-panel';
 import { findFontByFile } from '@/core/fonts';
 import { fontAssetUrl } from '@/core/asset-source';
 
@@ -40,6 +41,7 @@ class AssetManager {
     this.segment.assetsDir = await this.filesystemAdapter.getBuildPath('assets');
     this.segment.fontsDir = await this.filesystemAdapter.getBuildPath('fonts');
     this.segment.lutsDir = await this.filesystemAdapter.getBuildPath('luts');
+    this.segment.panelsDir = await this.filesystemAdapter.getBuildPath('panels');
   }
 
   prepareAssets = (): void => {
@@ -181,30 +183,49 @@ class AssetManager {
     await this.filesystemAdapter.move(path, targetPath);
   }
 
+  // Write `produce()` to `targetPath` unless it is already staged, logging cached/staged under `label`.
+  // Returns false only when `produce` yields null (nothing to write). Shared by the LUT and panel
+  // generators — both synthesise a build-FS asset on the fly (uniform on Node, Expo and browser/WASM)
+  // rather than fetching one, so there are no bundled binary assets to ship per platform.
+  private readonly stageGenerated = async (
+    targetPath: string,
+    name: string,
+    label: string,
+    produce: () => Uint8Array | null
+  ): Promise<boolean> => {
+    const section = this.segment.currentSection?.name;
+
+    if (await this.filesystemAdapter.stat(targetPath)) {
+      this.logger.info(`[${section}][${label}] cached ${name}`);
+
+      return true;
+    }
+
+    const bytes = produce();
+
+    if (!bytes) {
+      return false;
+    }
+
+    await this.filesystemAdapter.writeFile(targetPath, bytes);
+    this.logger.info(`[${section}][${label}] staged ${name}`);
+
+    return true;
+  };
+
   // Stage every LUT referenced by a lut3d look (collected into tempLuts by the FormatterManager).
-  // The `.cube` text is generated on the fly and written to the build FS — uniform on Node, Expo and
-  // the browser/WASM virtual FS — so there are no bundled binary assets to ship per platform.
   fetchLuts = async (): Promise<void> => {
     await Promise.all(
       this.segment.tempLuts.map(async (name) => {
-        const targetPath = `${this.segment.lutsDir}/${name}.cube`;
+        const staged = await this.stageGenerated(`${this.segment.lutsDir}/${name}.cube`, `${name}.cube`, 'LUT', () => {
+          const cube = cubeFor(name);
 
-        if (await this.filesystemAdapter.stat(targetPath)) {
-          this.logger.info(`[${this.segment.currentSection?.name}][LUT] cached ${name}.cube`);
+          return cube ? new TextEncoder().encode(cube) : null;
+        });
 
-          return;
-        }
-
-        const cube = cubeFor(name);
-
-        if (!cube) {
+        if (!staged) {
           this.logger.error(`[${this.segment.currentSection?.name}][LUT] unknown LUT ${name}`);
-
-          return;
         }
-
-        await this.filesystemAdapter.writeFile(targetPath, new TextEncoder().encode(cube));
-        this.logger.info(`[${this.segment.currentSection?.name}][LUT] staged ${name}.cube`);
       })
     );
   };
@@ -221,6 +242,19 @@ class AssetManager {
     const cache = this.inputsCache;
 
     if (cache[url]) {
+      return;
+    }
+
+    // A `panel:` URL is a generated rounded-rect overlay, not a fetchable asset: build the PNG on the
+    // fly and stage it to the build FS (uniform on Node, Expo and browser/WASM), mirroring fetchLuts.
+    const panelSpec = parsePanelUrl(url);
+
+    if (panelSpec) {
+      const panelPath = `${this.segment.panelsDir}/${panelFileName(panelSpec)}`;
+
+      await this.stageGenerated(panelPath, panelFileName(panelSpec), 'Panel', () => roundedPanelPng(panelSpec));
+      cache[url] = panelPath;
+
       return;
     }
 

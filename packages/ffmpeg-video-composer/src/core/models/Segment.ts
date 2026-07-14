@@ -13,6 +13,7 @@ class Segment {
   public tempFonts: string[] = [];
   public lutsDir = '';
   public tempLuts: string[] = [];
+  public panelsDir = '';
   public inputsAsset: string[] = [];
   public inputsMapCount = 0;
 }

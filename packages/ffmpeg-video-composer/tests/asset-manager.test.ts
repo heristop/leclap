@@ -17,6 +17,7 @@ function createFilesystem() {
     move: vi.fn(async () => undefined),
     copy: vi.fn(async () => undefined),
     fetchAndRead: vi.fn(async () => ''),
+    writeFile: vi.fn(async () => undefined),
     // Default to "not bundled" so these tests still exercise the Google Fonts download path.
     resolveBundledFont: vi.fn(async (): Promise<string | null> => null),
     // Default to "no local copy" so media tests still exercise the download path.
@@ -56,6 +57,7 @@ function build(
     tempFonts: [] as string[],
     lutsDir: '/luts',
     tempLuts: [] as string[],
+    panelsDir: '/panels',
     inputsMapCount: 0,
     mapsList: [] as string[],
   };
@@ -72,13 +74,14 @@ beforeEach(() => {
 });
 
 describe('AssetManager.setUpPaths', () => {
-  it('resolves the assets, fonts and luts directories', async () => {
+  it('resolves the assets, fonts, luts and panels directories', async () => {
     const { manager, segment, fs } = build();
     await manager.setUpPaths();
     expect(segment.assetsDir).toBe('/build/assets');
     expect(segment.fontsDir).toBe('/build/fonts');
     expect(segment.lutsDir).toBe('/build/luts');
-    expect(fs.getBuildPath).toHaveBeenCalledTimes(3);
+    expect(segment.panelsDir).toBe('/build/panels');
+    expect(fs.getBuildPath).toHaveBeenCalledTimes(4);
   });
 });
 
@@ -361,6 +364,41 @@ describe('AssetManager.fetchCachedMedia', () => {
     expect(() => manager.fetchCachedMedia({ name: 'clip', url: 'http://a/clip.mp4' } as Media)).toThrow(
       /No cache found/
     );
+  });
+});
+
+describe('AssetManager panel: scheme', () => {
+  it('generates and stages a rounded-panel PNG instead of fetching', async () => {
+    const fs = createFilesystem();
+    fs.stat.mockResolvedValue(false); // not yet staged
+    const cache: Record<string, string | string[]> = {};
+    const { manager } = build({ section: { name: 's', type: 'video' }, inputsCache: cache, fs });
+
+    await manager.fetchMedia({ name: 'panel', url: 'panel:w=380,h=150,r=28,c=0a0f14,o=0.72' } as Media);
+
+    // Wrote a PNG (starts with the 8-byte signature) to the panels dir, keyed by the deterministic name.
+    expect(fs.writeFile).toHaveBeenCalledTimes(1);
+    const [path, bytes] = fs.writeFile.mock.calls[0];
+    expect(path).toBe('/panels/panel-380x150-r28-0a0f14-o72.png');
+    expect(Array.from((bytes as Uint8Array).slice(0, 8))).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    // Did NOT hit the network / local-resolve fetch path.
+    expect(fs.fetch).not.toHaveBeenCalled();
+    // Cache now resolves the input to the staged file.
+    expect(manager.fetchCachedMedia({ name: 'panel', url: 'panel:w=380,h=150,r=28,c=0a0f14,o=0.72' } as Media)).toBe(
+      '/panels/panel-380x150-r28-0a0f14-o72.png'
+    );
+  });
+
+  it('reuses an already-staged panel without rewriting', async () => {
+    const fs = createFilesystem();
+    fs.stat.mockResolvedValue(true); // already staged
+    const cache: Record<string, string | string[]> = {};
+    const { manager } = build({ section: { name: 's', type: 'video' }, inputsCache: cache, fs });
+
+    await manager.fetchMedia({ name: 'panel', url: 'panel:w=380,h=150,r=28,c=0a0f14,o=0.72' } as Media);
+
+    expect(fs.writeFile).not.toHaveBeenCalled();
+    expect(fs.fetch).not.toHaveBeenCalled();
   });
 });
 

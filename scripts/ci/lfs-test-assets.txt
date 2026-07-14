@@ -1,0 +1,33 @@
+# Core real-render videos
+packages/leclap-creative-kit/src/library/videos/earth.mp4
+packages/leclap-creative-kit/src/library/videos/earth-no-audio.mp4
+packages/leclap-creative-kit/src/library/videos/outro.mp4
+packages/leclap-creative-kit/src/library/videos/video_1.mp4
+packages/leclap-creative-kit/src/library/videos/video_2.mp4
+packages/leclap-creative-kit/src/library/videos/video_portrait.mp4
+
+# Core real-render music
+packages/leclap-creative-kit/src/library/musics/future-bass-energy.mp3
+packages/leclap-creative-kit/src/library/musics/indie-rock-dreamy.mp3
+packages/leclap-creative-kit/src/library/musics/lofi-sentimental-jazz.mp3
+packages/leclap-creative-kit/src/library/musics/party-dance.mp3
+packages/leclap-creative-kit/src/library/musics/point-being.mp3
+packages/leclap-creative-kit/src/library/musics/pop.mp3
+packages/leclap-creative-kit/src/library/musics/romantic-piano.mp3
+packages/leclap-creative-kit/src/library/musics/the-builder.mp3
+packages/leclap-creative-kit/src/library/musics/upbeat-electronic.mp3
+
+# Core real-render overlays and pictures
+packages/leclap-creative-kit/src/library/animations/animation_icons.apng
+packages/leclap-creative-kit/src/library/animations/corner_brackets.apng
+packages/leclap-creative-kit/src/library/animations/glow_border.apng
+packages/leclap-creative-kit/src/library/animations/light_leak.apng
+packages/leclap-creative-kit/src/library/animations/pulse_ring.apng
+packages/leclap-creative-kit/src/library/animations/rounded_border.apng
+packages/leclap-creative-kit/src/library/animations/spec_orbit.apng
+packages/leclap-creative-kit/src/library/animations/tap_pulse.apng
+packages/leclap-creative-kit/src/library/animations/white_border.apng
+packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png
+
+# MCP probe fixture
+packages/ffmpeg-engine/tests/fixtures/sample.mp4

@@ -22,12 +22,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      # The library/sample media (creative-kit videos/music, bundled Expo assets, and the
-      # ffmpeg-engine probe fixture the MCP probe_media test ffprobes) lives in Git LFS; the default
-      # checkout leaves pointer files, which ffprobe rejects with "analysis failed". Pull only the
-      # source media the tests actually read — NOT the app's public/ clips — to keep LFS bandwidth down.
+      # The real-render/probe media lives in Git LFS; the default checkout leaves pointer files, which
+      # FFmpeg rejects. Pull the reviewed CI allowlist only. Expo destinations are regenerated from
+      # creative-kit by copy-core-assets.ts, so fetching their duplicate LFS paths is unnecessary.
       - name: Fetch test media (Git LFS)
-        run: git lfs pull --include="packages/leclap-creative-kit/src/library/,apps/leclap-expo/assets/,packages/ffmpeg-engine/tests/fixtures/"
+        shell: bash
+        run: |
+          manifest=scripts/ci/lfs-test-assets.txt
+          include=$(sed -e 's/[[:space:]]*#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$manifest" | paste -sd, -)
+          test -n "$include"
+          git lfs pull --include="$include" --exclude=""
+          bash scripts/ci/verify-lfs-assets.sh "$manifest"
 
       # Installs the toolchain pinned in mise.toml (Node, pnpm and a full FFmpeg
       # build with the drawtext filter + ffprobe that the tests require).

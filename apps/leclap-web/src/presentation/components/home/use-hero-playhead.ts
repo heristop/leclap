@@ -13,7 +13,9 @@ interface HeroPlayheadOptions {
 }
 
 // Mirror the film's playhead into the chrome. Module-scope (it only ever dereferences stable refs)
-// so the effect below doesn't close over a per-render function.
+// so the effect below doesn't close over a per-render function. Every write is guarded by an
+// equality check: re-assigning an unchanged textContent/value still dirties layout and paint, so
+// ticks where the frame readout hasn't advanced cost nothing.
 const paintPlayhead = (
   video: VideoRef,
   timecode: RefObject<HTMLSpanElement | null>,
@@ -27,19 +29,30 @@ const paintPlayhead = (
   const readout = timecode.current;
   const range = scrub.current;
 
-  if (readout) readout.textContent = formatTimecode(film.currentTime);
+  if (readout) {
+    const text = formatTimecode(film.currentTime);
+
+    if (readout.textContent !== text) readout.textContent = text;
+  }
 
   if (!range) return;
 
-  range.valueAsNumber = Math.round(ratio * SCRUB_RESOLUTION);
-  range.style.setProperty('--range-pct', `${(ratio * 100).toFixed(2)}%`);
+  const value = Math.round(ratio * SCRUB_RESOLUTION);
+
+  if (range.valueAsNumber !== value) {
+    range.valueAsNumber = value;
+    range.style.setProperty('--range-pct', `${(ratio * 100).toFixed(2)}%`);
+  }
 };
 
-// Binds the hero's program-monitor chrome to the background film: one rAF loop mirrors the
-// video's playhead into the SMPTE timecode readout and the timeline scrubber (value + the
-// `--range-pct` gradient fill the studio-range track reads). All writes go straight to the DOM —
-// never through React state — so the 60fps sync costs zero re-renders. Scrubbing works both ways:
-// dragging (or arrow-keying) the range seeks the film, which the same paint reflects immediately.
+// Binds the hero's program-monitor chrome to the background film: one loop mirrors the video's
+// playhead into the SMPTE timecode readout and the timeline scrubber (value + the `--range-pct`
+// gradient fill the studio-range track reads). All writes go straight to the DOM — never through
+// React state — so the sync costs zero re-renders. The loop rides requestVideoFrameCallback where
+// available, so it ticks once per presented video frame (~24-30fps) instead of every display frame;
+// the video mounts lazily (on browser idle), so the scheduler re-checks for it on each rAF tick
+// until it exists. Scrubbing works both ways: dragging (or arrow-keying) the range seeks the film,
+// which the same paint reflects immediately.
 export function useHeroPlayhead(videoRef: VideoRef, { active, reduced }: HeroPlayheadOptions) {
   const timecodeRef = useRef<HTMLSpanElement>(null);
   const scrubRef = useRef<HTMLInputElement>(null);
@@ -49,13 +62,34 @@ export function useHeroPlayhead(videoRef: VideoRef, { active, reduced }: HeroPla
 
     if (reduced || !active) return () => {};
 
-    let frame = requestAnimationFrame(function tick() {
+    let rafId = 0;
+    let videoFrameId = 0;
+    let filmWithCallback: HTMLVideoElement | null = null;
+
+    const schedule = () => {
+      const film = videoRef.current;
+
+      if (film && 'requestVideoFrameCallback' in film) {
+        filmWithCallback = film;
+        videoFrameId = film.requestVideoFrameCallback(tick);
+
+        return;
+      }
+
+      filmWithCallback = null;
+      rafId = requestAnimationFrame(tick);
+    };
+
+    function tick() {
       paintPlayhead(videoRef, timecodeRef, scrubRef);
-      frame = requestAnimationFrame(tick);
-    });
+      schedule();
+    }
+
+    schedule();
 
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(rafId);
+      filmWithCallback?.cancelVideoFrameCallback(videoFrameId);
     };
   }, [active, reduced, videoRef]);
 

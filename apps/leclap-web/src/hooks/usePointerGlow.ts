@@ -28,6 +28,9 @@ export function usePointerGlow<T extends HTMLElement>(maxTiltDeg = 5) {
 
       el.style.setProperty('--mx', `${(px * 100).toFixed(2)}%`);
       el.style.setProperty('--my', `${(py * 100).toFixed(2)}%`);
+
+      if (maxTiltDeg === 0) return;
+
       // Lean toward the cursor: top half tilts back (positive rotateX), right half tilts right.
       el.style.setProperty('--tilt-x', `${((0.5 - py) * 2 * maxTiltDeg).toFixed(2)}deg`);
       el.style.setProperty('--tilt-y', `${((px - 0.5) * 2 * maxTiltDeg).toFixed(2)}deg`);

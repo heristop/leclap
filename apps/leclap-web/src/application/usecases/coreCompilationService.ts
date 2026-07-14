@@ -20,6 +20,26 @@ import { renderQuip } from '@leclap/creative-kit/render-quips';
 
 export type { MediaChoices };
 
+// Map a raw engine/FFmpeg failure to a concise, actionable message. The full error (ffmpeg stderr
+// included) is logged separately for debugging; this keeps what surfaces to the user readable instead
+// of a wall of stderr. Recognises the common "input couldn't be read" failures — a clip that is
+// missing, still uploading, or corrupt when it is staged into the WASM filesystem.
+export function describeCompilationError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+
+  if (/moov atom not found|Invalid data found|detected only with low score|does not contain any stream/i.test(raw)) {
+    return 'A clip could not be read — it may still be uploading, missing, or corrupt. Re-select it and try again.';
+  }
+
+  if (/no output produced|No such file/i.test(raw)) {
+    return 'The video could not be assembled. Please try again.';
+  }
+
+  const firstLine = raw.split('\n')[0].trim().slice(0, 200);
+
+  return `Video compilation failed${firstLine ? `: ${firstLine}` : ''}`;
+}
+
 export interface CompilationConfig {
   template: Template;
   formData: Record<string, string>;
@@ -105,9 +125,12 @@ class CoreCompilationService {
 
       return result;
     } catch (error) {
-      compilationLogger.error('Compilation error:', error);
+      // Surface a concise, user-facing message — not the raw ffmpeg stderr wall. The full error stays
+      // available on the thrown Error's cause for anyone who needs to inspect it.
+      const message = describeCompilationError(error);
+      compilationLogger.error('Compilation error:', message);
 
-      throw new Error(`Video compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(message, { cause: error });
     }
   }
 

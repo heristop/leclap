@@ -312,7 +312,9 @@ const HubFlow = (p: FlowProps) => {
   const derivePhase = (): 'edit' | 'processing' | 'result' => {
     if (p.processedVideo) return 'result';
 
-    if (onProcess || onResult || p.processing.isProcessing) return 'processing';
+    // Keep the compile view mounted on failure (isProcessing has flipped false but error is set), so
+    // CompileMonitor shows its error panel instead of the flow silently reverting to a blank/edit view.
+    if (onProcess || onResult || p.processing.isProcessing || p.processing.error) return 'processing';
 
     return 'edit';
   };

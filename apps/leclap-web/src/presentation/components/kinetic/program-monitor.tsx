@@ -35,8 +35,9 @@ export interface ProgramMonitorProps {
   className?: string;
 }
 
-// A faint drifting raster over the framed preview — the ambient "live video" cue. Position-only
-// motion; the global reduced-motion reset settles it to a static grille.
+// A faint drifting raster over the framed preview — the ambient "live video" cue. The raster layer
+// extends one tile above its clipped wrapper and translates down (compositor-only, no per-frame
+// repaint); the global reduced-motion reset settles it to a static grille.
 const SCANLINE_STYLE = {
   backgroundImage:
     'repeating-linear-gradient(to bottom, oklch(0 0 0 / 0.05) 0, oklch(0 0 0 / 0.05) 1px, transparent 1px, transparent 4px)',
@@ -46,9 +47,10 @@ const SCANLINE_STYLE = {
 const Scanline = () => (
   <span
     aria-hidden="true"
-    className="animate-scanline pointer-events-none absolute inset-0 z-[1] opacity-60 mix-blend-multiply"
-    style={SCANLINE_STYLE}
-  />
+    className="pointer-events-none absolute inset-0 z-[1] overflow-hidden opacity-60 mix-blend-multiply"
+  >
+    <span className="animate-scanline absolute inset-x-0 -top-1 bottom-0" style={SCANLINE_STYLE} />
+  </span>
 );
 
 // The corner registration brackets and the PROGRAM tally chip (with a pulsing "recording" dot).

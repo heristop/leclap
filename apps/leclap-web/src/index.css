@@ -1243,11 +1243,12 @@ body {
 }
 
 /* Program-monitor scanline drift — the raster crawls down exactly one tile (4px) so the loop
-   restarts with no visible jump. background-position only (compositor-cheap); the global
+   restarts with no visible jump. Translates the raster layer (compositor-only) instead of
+   animating background-position, which would repaint the whole overlay every frame; the global
    reduced-motion reset freezes it to a static CRT grille. */
 @keyframes scanline-drift {
   to {
-    background-position-y: 4px;
+    transform: translate3d(0, 4px, 0);
   }
 }
 

@@ -9,7 +9,8 @@ interface HeroStageProps {
 }
 
 // A faint CRT raster drifting down the whole monitor — the ambient "live video surface" cue.
-// background-position only (compositor-cheap); the global reduced-motion reset stills it to a grille.
+// The raster layer extends one tile above its clipped wrapper and translates down (compositor-only,
+// no per-frame repaint); the global reduced-motion reset stills it to a grille.
 const SCANLINE_STYLE = {
   backgroundImage: 'repeating-linear-gradient(to bottom, oklch(1 0 0 / 0.5) 0, oklch(1 0 0 / 0.5) 1px, transparent 1px, transparent 4px)',
   backgroundSize: '100% 4px',
@@ -128,11 +129,9 @@ export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
 
       {/* Pinned overlays — scanline, vignette and the fade into the next section stay fixed to the
           hero bounds (not parallaxed) so the frame stays grounded regardless of scroll. */}
-      <div
-        aria-hidden="true"
-        className="animate-scanline pointer-events-none absolute inset-0 z-0 opacity-[0.13]"
-        style={SCANLINE_STYLE}
-      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-[0.13]">
+        <div className="animate-scanline absolute inset-x-0 -top-1 bottom-0" style={SCANLINE_STYLE} />
+      </div>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_15%,rgba(8,8,14,0.74))]"

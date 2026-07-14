@@ -152,7 +152,7 @@
       "name": "video_1",
       "type": "project_video",
       "look": "teal-orange",
-      "grade": { "colorBalance": { "shadows": {"b":0.04}, "highlights": {"r":0.05} }, "curvesPreset": "increase_contrast" },
+      "grade": { "colorBalance": { "shadows": {"b":0.04}, "highlights": {"r":0.05} } },
       "inputs": [
         {
           "name": "spotlight_glow",

@@ -164,7 +164,7 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "vivid-pop",
+      "look": "warm-film",
       "grade": {
         "colorBalance": {
           "shadows": { "r": 0.04 },

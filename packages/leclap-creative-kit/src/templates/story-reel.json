@@ -131,7 +131,7 @@
         }
       },
       "transition": {
-        "type": "pixelize",
+        "type": "smoothup",
         "duration": 0.4
       },
       "caption": {

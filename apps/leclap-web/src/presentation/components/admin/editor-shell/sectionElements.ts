@@ -152,7 +152,7 @@ function mediaChoiceLabel(choice: ImageOverlay['choice']): string | undefined {
 // is its fill colour (its data: URL basename would be base64 noise).
 function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
   const raw = ((): string | undefined => {
-    if (kind === 'text') return (element as TextOverlay).text.trim() || undefined;
+    if (kind === 'text') return displayVariables((element as TextOverlay).text.trim()) || undefined;
 
     if (kind === 'image') {
       const image = element as ImageOverlay;
@@ -175,6 +175,14 @@ function elementLabelKey(element: unknown, kind: ArrayKind): string {
   if (kind === 'image' && (element as ImageOverlay).shape) return 'element.shape';
 
   return `element.${kind}`;
+}
+
+// Display `{{ variable }}` placeholders as a compact `#variable` chip. Applied only to authored TEXT
+// (caption/overlay/sugar content), never to asset filenames — a file literally named `photo{{2}}.jpg`
+// carries no template syntax and must show verbatim. The engine's mustache stays in the template; this
+// is a builder-display nicety only.
+function displayVariables(raw: string): string {
+  return raw.replace(/\{\{\s*([^}]+?)\s*\}\}/g, '#$1');
 }
 
 function truncatePreview(raw: string | undefined): string | undefined {
@@ -200,17 +208,21 @@ function descriptorsFor(section: EditorSection, kind: ArrayKind): ElementDescrip
 // The identity-bearing line of a sugar singleton for its list row (the caption text, the card
 // headline, the band title), resolved like the canvas preview resolves translations.
 function sugarPreview(value: unknown, kind: SugarKind): string | undefined {
-  if (kind === 'caption') return (value as EditorCaption).text.trim() || undefined;
+  const raw = ((): string | undefined => {
+    if (kind === 'caption') return (value as EditorCaption).text.trim() || undefined;
 
-  if (kind === 'titleCard') {
-    const card = value as TitleCard;
+    if (kind === 'titleCard') {
+      const card = value as TitleCard;
 
-    return [card.headline, card.kicker, card.subtitle].map(translationText).find((line) => line.trim() !== '');
-  }
+      return [card.headline, card.kicker, card.subtitle].map(translationText).find((line) => line.trim() !== '');
+    }
 
-  const third = value as LowerThird;
+    const third = value as LowerThird;
 
-  return [third.title, third.subtitle, third.badge].map(translationText).find((line) => line.trim() !== '');
+    return [third.title, third.subtitle, third.badge].map(translationText).find((line) => line.trim() !== '');
+  })();
+
+  return raw ? displayVariables(raw) : undefined;
 }
 
 // One index-0 descriptor per sugar singleton the section currently carries. `labelParams` is omitted

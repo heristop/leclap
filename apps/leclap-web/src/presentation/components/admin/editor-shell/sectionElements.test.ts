@@ -183,6 +183,28 @@ describe('shape elements (image overlays carrying a shape recipe)', () => {
   });
 });
 
+describe('variable display in previews', () => {
+  it('renders {{ variable }} as a #variable chip in text previews', () => {
+    const section = {
+      ...newSection('color'),
+      overlays: [{ ...newOverlay(), text: '{{ form_1_step }}' }],
+    } as EditorSection;
+    const text = listSectionElements(section).find((d) => d.kind === 'text');
+
+    expect(text?.previewText).toBe('#form_1_step');
+  });
+
+  it('leaves curly braces in an asset filename verbatim (not a variable)', () => {
+    const section = {
+      ...newSection('color'),
+      images: [{ id: 'a', choice: { source: 'url', url: '/photo{{2}}.jpg' } }],
+    } as EditorSection;
+    const image = listSectionElements(section).find((d) => d.kind === 'image');
+
+    expect(image?.previewText).toBe('photo{{2}}.jpg');
+  });
+});
+
 describe('removeElement', () => {
   it('drops the targeted index from the matching array', () => {
     const section = richColorSection();

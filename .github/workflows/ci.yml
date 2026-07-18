@@ -23,16 +23,16 @@ jobs:
         uses: actions/checkout@v5
 
       # The real-render/probe media lives in Git LFS; the default checkout leaves pointer files, which
-      # FFmpeg rejects. Pull the reviewed CI allowlist only. Expo destinations are regenerated from
-      # creative-kit by copy-core-assets.ts, so fetching their duplicate LFS paths is unnecessary.
-      - name: Fetch test media (Git LFS)
+      # FFmpeg rejects. Fetch the reviewed allowlist (scripts/ci/lfs-test-assets.txt) from the
+      # ci-assets-v1 release bundle over HTTPS instead of `git lfs pull` — release-asset downloads are
+      # not billed against the LFS bandwidth budget. verify-lfs-assets.sh still confirms the files are
+      # materialized and LFS-tracked. Expo destinations are regenerated from creative-kit by
+      # copy-core-assets.ts, so fetching their duplicate paths is unnecessary.
+      - name: Fetch test media (release bundle)
         shell: bash
         run: |
-          manifest=scripts/ci/lfs-test-assets.txt
-          include=$(sed -e 's/[[:space:]]*#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$manifest" | paste -sd, -)
-          test -n "$include"
-          git lfs pull --include="$include" --exclude=""
-          bash scripts/ci/verify-lfs-assets.sh "$manifest"
+          bash scripts/ci/fetch-test-media.sh
+          bash scripts/ci/verify-lfs-assets.sh scripts/ci/lfs-test-assets.txt
 
       # Installs the toolchain pinned in mise.toml (Node, pnpm and a full FFmpeg
       # build with the drawtext filter + ffprobe that the tests require).
@@ -89,9 +89,11 @@ jobs:
         uses: actions/checkout@v5
 
       # cli.rs renders from tests/fixtures/sample.mp4, which is stored in Git LFS; the default
-      # checkout leaves a pointer file that ffmpeg can't decode. Pull just that fixture dir.
-      - name: Fetch test fixtures (Git LFS)
-        run: git lfs pull --include="packages/ffmpeg-engine/tests/fixtures/"
+      # checkout leaves a pointer file that ffmpeg can't decode. Fetch just that fixture from the
+      # ci-assets-v1 release bundle over HTTPS instead of `git lfs pull` (keeps CI off the LFS
+      # bandwidth budget).
+      - name: Fetch test fixtures (release bundle)
+        run: bash scripts/ci/fetch-test-media.sh packages/ffmpeg-engine/tests/fixtures/sample.mp4
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable

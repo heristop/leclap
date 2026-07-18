@@ -267,23 +267,29 @@ describe('buildGradientSource geometry', () => {
   });
 
   it('sweeps a horizontal gradient across the layer width, not the frame', () => {
-    const src = buildGradientSource({ gradient: { ...gradient, direction: 'horizontal' }, w: 320, h: 720 }, '1280:720', 2);
+    const src = buildGradientSource(
+      { gradient: { ...gradient, direction: 'horizontal' }, w: 320, h: 720 },
+      '1280:720',
+      2
+    );
     expect(src).toContain('gradients=s=320x720');
     expect(src).toContain('x0=0:y0=0:x1=320:y1=0');
   });
 });
 
 // The gradients source's default speed (0.01) slowly rotates the gradient over the section — an
-// unexposed side effect; the layer must render a STILL gradient, so speed=0 is always explicit.
+// unexposed side effect; the layer must render a STILL gradient, so a frozen speed is always
+// explicit. It must be 0.00001, not 0: older FFmpeg builds (the ffmpeg.wasm core) enforce the
+// option's 0.00001 minimum and abort on 0 ("Error setting option speed to value 0").
 // `shape` lowers to the source's `type` option (linear|radial|circular|spiral); non-linear shapes
 // radiate from a point, so their origin is centred in the layer box instead of using the linear
 // direction sweep coords (which would pin a radial at the top-left corner).
 describe('buildGradientSource shape', () => {
   const gradient = { from: '#000000', to: '#ffffff' };
 
-  it('freezes the gradient with speed=0 and emits no type token when shape is unset', () => {
+  it('freezes the gradient with the minimum speed and emits no type token when shape is unset', () => {
     const src = buildGradientSource({ gradient }, '1280:720', 4);
-    expect(src).toContain('speed=0');
+    expect(src).toContain('speed=0.00001');
     expect(src).not.toContain('type=');
   });
 
@@ -301,7 +307,7 @@ describe('buildGradientSource shape', () => {
     const src = buildGradientSource({ gradient: { ...gradient, shape: 'radial' } }, '1280:720', 4);
     expect(src).toContain('type=radial');
     expect(src).toContain('x0=640:y0=360:x1=1280:y1=720');
-    expect(src).toContain('speed=0');
+    expect(src).toContain('speed=0.00001');
   });
 
   it('centres circular and spiral shapes the same way', () => {

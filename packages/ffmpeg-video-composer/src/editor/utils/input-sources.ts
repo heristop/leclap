@@ -350,11 +350,13 @@ export function buildGradientSource(layer: BackgroundLayer, scale: string, durat
   const from = assertSafeArgToken(gradient.from, 'gradient from');
   const to = assertSafeArgToken(gradient.to, 'gradient to');
   // Only emit `type=` when the descriptor sets a shape, so older descriptors keep byte-identical
-  // commands; `speed=0` is ALWAYS explicit — the source's default 0.01 slowly rotates the gradient
-  // over the section, an unexposed side effect a background layer must not have.
+  // commands; a frozen `speed` is ALWAYS explicit — the source's default 0.01 slowly rotates the
+  // gradient over the section, an unexposed side effect a background layer must not have. The value
+  // is the option's minimum (0.00001, imperceptible), not 0: older FFmpeg builds — including the
+  // ffmpeg.wasm core — enforce the minimum and abort on 0 ("Error setting option speed to value 0").
   const type = gradient.shape ? `:type=${gradient.shape}` : '';
 
-  return `-f lavfi -i gradients=s=${size}:c0=${from}:c1=${to}:d=${duration}:${coords}:speed=0${type}`;
+  return `-f lavfi -i gradients=s=${size}:c0=${from}:c1=${to}:d=${duration}:${coords}:speed=0.00001${type}`;
 }
 
 // linear sweeps between two points along a direction; radial/circular/spiral radiate from the

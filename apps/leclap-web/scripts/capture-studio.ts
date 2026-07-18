@@ -16,7 +16,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, '../../../packages/leclap-brand-motion/public/captures');
 const recDir = '/tmp/leclap-studio-rec';
 const SIZE = { width: 1600, height: 900 };
-const TEMPLATE = 'spotlight';
+const TEMPLATE = 'present-yourself';
 const SAMPLE = path.resolve(here, '../../../packages/leclap-creative-kit/src/library/videos/earth.mp4');
 
 // Run an async step for each item in order (a lint-clean alternative to `await` inside a for-loop).
@@ -44,7 +44,7 @@ const compose = async (page: Page): Promise<void> => {
 // The studio gallery — slow scroll through the template cards.
 const gallery = async (page: Page): Promise<void> => {
   await page.goto(`${BASE}/studio`);
-  await page.getByText('Spotlight', { exact: false }).first().waitFor({ state: 'visible' });
+  await page.getByText('Present Yourself', { exact: false }).first().waitFor({ state: 'visible' });
   await page.waitForTimeout(800);
   await forEachSeq([320, 320, -640] as const, async (dy) => {
     await page.mouse.wheel(0, dy);

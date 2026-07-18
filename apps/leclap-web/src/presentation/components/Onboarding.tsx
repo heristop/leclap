@@ -10,15 +10,13 @@ import { useSampleTemplate } from '@/hooks/useSampleTemplate';
 import { setHeroVideo } from '@/services/heroVideoStore';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
-// The onboarding makes a first video from a built-in template so newcomers see the whole flow
-// (record → compile → download) in one guided pass. We match the template to how the app is actually
-// shown — its live viewport shape — rather than the physical device: a viewport taller than it is
-// wide (a phone upright, or a narrow / split / resized desktop window) gets Big Reveal (a 3·2·1
-// countdown into the recorded clip with confetti + a headline); anything wider gets Spotlight (a
-// cinematic intro + outro wrap), so the recorded clip fills the frame instead of being letter-boxed.
+// The onboarding makes a first video from the built-in "Present Yourself" template so newcomers see
+// the whole flow (record → compile → download) in one guided pass. One concept, two orientation
+// variations: we match the variation to how the app is actually shown — its live viewport shape —
+// rather than the physical device, so the recorded clip fills the frame instead of being letter-boxed.
 // Both record one clip; the name typed at the record step lands in the template's first form field.
-const LANDSCAPE_TEMPLATE_ID = 'spotlight';
-const PORTRAIT_TEMPLATE_ID = 'big-reveal';
+const LANDSCAPE_TEMPLATE_ID = 'present-yourself';
+const PORTRAIT_TEMPLATE_ID = 'present-yourself-portrait';
 
 // Reflect the app's actual viewport (window aspect) — not the device-orientation media query, which
 // is always "landscape" on desktop regardless of how the window is sized.

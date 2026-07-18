@@ -127,7 +127,7 @@ describe('example templates enable the recording countdown', () => {
     everyClipCountsDown('fast-curious');
   });
 
-  it('the spotlight counts down before the clip', () => {
-    everyClipCountsDown('spotlight');
+  it('present yourself counts down before the clip', () => {
+    everyClipCountsDown('present-yourself');
   });
 });

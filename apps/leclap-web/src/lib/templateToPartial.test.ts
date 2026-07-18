@@ -16,13 +16,13 @@ const make = (over: Partial<Template>): Template => ({
 
 describe('templateToPartial', () => {
   it('slugifies the template name into a local: id', () => {
-    const partial = templateToPartial(make({ name: 'Big Reveal' }));
-    expect(partial.id).toBe('local:big-reveal');
+    const partial = templateToPartial(make({ name: 'Present Yourself' }));
+    expect(partial.id).toBe('local:present-yourself');
   });
 
   it('falls back to the name when description is empty', () => {
-    const partial = templateToPartial(make({ name: 'Big Reveal', description: '' }));
-    expect(partial.description).toBe('Big Reveal');
+    const partial = templateToPartial(make({ name: 'Present Yourself', description: '' }));
+    expect(partial.description).toBe('Present Yourself');
   });
 
   it('carries the descriptor sections through', () => {

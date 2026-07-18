@@ -65,7 +65,9 @@ describe('all templates compile (Node smoke)', () => {
         assetsDir: libDir,
         currentLocale: 'en',
         audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
-        videoConfig: { orientation: portrait ? 'portrait' : 'landscape', scale: portrait ? '720:1280' : '1280:720' },
+        // Always the landscape base scale: TemplateDirector.applyOrientationToScale swaps W:H itself
+        // for a portrait descriptor (pre-swapping here would double-swap back to landscape).
+        videoConfig: { orientation: portrait ? 'portrait' : 'landscape', scale: '1280:720' },
         fields: FIELDS,
         userVideoPaths,
       } as unknown as ProjectConfig;
@@ -84,7 +86,7 @@ describe('all templates compile (Node smoke)', () => {
 describe('templates compile with a video-only (no-audio) clip', () => {
   const noAudioClip = path.resolve(videosDir, 'earth-no-audio.mp4');
 
-  for (const id of ['big-reveal', 'photo-backdrop']) {
+  for (const id of ['present-yourself-portrait', 'photo-backdrop']) {
     it(`compiles ${id} when the recorded clip has no audio`, async () => {
       const raw = JSON.parse(fs.readFileSync(path.resolve(templatesDir, `${id}.json`), 'utf8')) as TemplateDescriptor;
       const sections = (raw.sections ?? []).filter((s) => s.type !== 'partial');
@@ -100,7 +102,9 @@ describe('templates compile with a video-only (no-audio) clip', () => {
         assetsDir: libDir,
         currentLocale: 'en',
         audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
-        videoConfig: { orientation: portrait ? 'portrait' : 'landscape', scale: portrait ? '720:1280' : '1280:720' },
+        // Always the landscape base scale: TemplateDirector.applyOrientationToScale swaps W:H itself
+        // for a portrait descriptor (pre-swapping here would double-swap back to landscape).
+        videoConfig: { orientation: portrait ? 'portrait' : 'landscape', scale: '1280:720' },
         fields: FIELDS,
         userVideoPaths,
       } as unknown as ProjectConfig;

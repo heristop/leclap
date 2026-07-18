@@ -182,7 +182,7 @@
       "name": "video_1",
       "type": "project_video",
       "look": "teal-orange",
-      "grade": { "colorBalance": { "shadows": {"b":0.05}, "highlights": {"r":0.04} } },
+      "grade": { "colorBalance": { "shadows": { "b": 0.05 }, "highlights": { "r": 0.04 } } },
       "caption": {
         "text": {
           "en": "{{ form_1_question }}"

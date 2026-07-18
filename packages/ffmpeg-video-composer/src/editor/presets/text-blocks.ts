@@ -180,10 +180,7 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
       text: titleCard.kicker,
       x,
       y: round(h * 0.4),
-      ...styledLook(
-        { font: 'Oswald.ttf', size: round(h * 0.026), color: accent ?? '#ffffff' },
-        titleCard.kickerStyle
-      ),
+      ...styledLook({ font: 'Oswald.ttf', size: round(h * 0.026), color: accent ?? '#ffffff' }, titleCard.kickerStyle),
     },
     reveal,
     index,
@@ -204,7 +201,9 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
   );
 
   const barW = round(w * 0.13);
-  const barX = align === 'center' ? `(w-${barW})/2` : margin;
+  // In drawbox expressions `w` is the box's own width (unlike drawtext, where it's the frame), so
+  // the frame-centred position must use `iw`.
+  const barX = align === 'center' ? `(iw-${barW})/2` : margin;
   // The bar underlines the headline, so it follows the headline's staggered reveal; when the card
   // has no headline it falls back to the last pushed line (the kicker), or the base stagger slot.
   const barLineIndex = index > headlineIndex ? headlineIndex : Math.max(0, index - 1);

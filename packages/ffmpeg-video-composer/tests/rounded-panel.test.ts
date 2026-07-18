@@ -76,7 +76,7 @@ const decodePng = (png: Uint8Array): { width: number; height: number; pixels: Ui
 const pixelAt = (
   decoded: { width: number; pixels: Uint8Array },
   x: number,
-  y: number,
+  y: number
 ): [number, number, number, number] => {
   const i = (y * decoded.width + x) * 4;
 

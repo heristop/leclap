@@ -170,7 +170,8 @@ describe('titleCardToFilters', () => {
     );
 
     expect((filters[0].values as Record<string, unknown>).x).toBe('(w-text_w)/2');
-    expect((filters[1].values as Record<string, unknown>).x).toBe('(w-166)/2');
+    // drawbox expressions read `w` as the BOX width (unlike drawtext) — the frame width is `iw`.
+    expect((filters[1].values as Record<string, unknown>).x).toBe('(iw-166)/2');
   });
 
   it('per-line styles override the preset font, size and colour', () => {

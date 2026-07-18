@@ -336,10 +336,5 @@ export function roundedPanelPng(input: PanelSpec): Uint8Array {
 
   const idat = zlibStore(rawImageBytes(spec));
 
-  return concat([
-    PNG_SIGNATURE,
-    chunk('IHDR', ihdr),
-    chunk('IDAT', idat),
-    chunk('IEND', new Uint8Array(0)),
-  ]);
+  return concat([PNG_SIGNATURE, chunk('IHDR', ihdr), chunk('IDAT', idat), chunk('IEND', new Uint8Array(0))]);
 }

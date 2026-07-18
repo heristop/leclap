@@ -69,12 +69,8 @@ describe('layerFill border outline', () => {
   });
 
   it('scales the engine-px width by the preview factor, clamped to 1px', () => {
-    expect(layerFill({ border: { color: '#fff', width: 8 } }, undefined, 0.5).boxShadow).toBe(
-      'inset 0 0 0 4px #fff'
-    );
+    expect(layerFill({ border: { color: '#fff', width: 8 } }, undefined, 0.5).boxShadow).toBe('inset 0 0 0 4px #fff');
     // 0 scale = frame not measured yet (first paint): keep a hairline instead of vanishing.
-    expect(layerFill({ border: { color: '#fff', width: 8 } }, undefined, 0).boxShadow).toBe(
-      'inset 0 0 0 1px #fff'
-    );
+    expect(layerFill({ border: { color: '#fff', width: 8 } }, undefined, 0).boxShadow).toBe('inset 0 0 0 1px #fff');
   });
 });

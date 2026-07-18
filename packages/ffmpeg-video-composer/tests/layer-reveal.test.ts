@@ -87,10 +87,7 @@ describe('accent bar follows the reveal timing', () => {
   const ctx = { scale: '1280:720' };
 
   it('titleCard: the bar is gated at the headline line stagger (default rise, kicker+headline)', () => {
-    const filters = titleCardToFilters(
-      { kicker: { en: 'ON AIR' }, headline: { en: 'Ada' }, accent: '#7C83FD' },
-      ctx
-    );
+    const filters = titleCardToFilters({ kicker: { en: 'ON AIR' }, headline: { en: 'Ada' }, accent: '#7C83FD' }, ctx);
     const bar = filters.find((f) => f.type === 'drawbox');
 
     // kicker staggers at 0.3, headline at 0.45 — the bar underlines the headline.

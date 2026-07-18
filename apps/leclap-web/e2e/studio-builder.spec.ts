@@ -50,7 +50,10 @@ test.describe('studio builder', () => {
 
   test('the program monitor plays across scenes without a compile', async ({ page }) => {
     await page.goto('/studio/builder');
-    await page.getByRole('dialog').getByRole('button', { name: /Talking-head intro/ }).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Talking-head intro/ })
+      .click();
 
     // The transport idles at zero, then play sweeps the playhead and the status strip flips to PLAYING.
     const scrubber = page.getByRole('slider', { name: 'Seek through the video' });

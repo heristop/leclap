@@ -108,17 +108,7 @@ interface LayerBoxProps {
 
 // One extra layer's box: a faded fill (at the layer's opacity) under a full-opacity selection ring and
 // resize handle, so the editing affordances stay crisp over a semi-transparent layer.
-const LayerBox = ({
-  layer,
-  index,
-  t,
-  active,
-  frameRect,
-  onSelect,
-  onPatch,
-  colorVars,
-  borderScale,
-}: LayerBoxProps) => {
+const LayerBox = ({ layer, index, t, active, frameRect, onSelect, onPatch, colorVars, borderScale }: LayerBoxProps) => {
   const modeRef = useRef<'move' | 'resize' | null>(null);
   const grabRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
   const geo = layerPercents(layer);

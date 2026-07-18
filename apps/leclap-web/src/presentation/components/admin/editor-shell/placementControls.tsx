@@ -39,10 +39,7 @@ const revealTypeOf = (value: Reveal | undefined): string | undefined =>
 
 // Collapsed "Timing & entrance" summary: the show window as "2s → 5s" (an open side leaves its slot
 // blank) plus the entrance style by name, or "Default" when untouched — so collapsing never hides state.
-export function timingSummary(
-  t: TFunction<'admin'>,
-  value: { start?: number; end?: number; motion?: Reveal }
-): string {
+export function timingSummary(t: TFunction<'admin'>, value: { start?: number; end?: number; motion?: Reveal }): string {
   const parts: string[] = [];
   const start = value.start ?? 0;
   const end = value.end ?? 0;
@@ -60,7 +57,8 @@ export function timingSummary(
 const playbackExtentLabel = (t: TFunction<'admin'>, value: AnimationOverlay): string => {
   if (value.duration !== undefined) return `${value.duration}s`;
 
-  if (value.loops !== undefined || value.loop === false) return t('animation.summaryLoops', { count: value.loops ?? 1 });
+  if (value.loops !== undefined || value.loop === false)
+    return t('animation.summaryLoops', { count: value.loops ?? 1 });
 
   return t('animation.forever');
 };

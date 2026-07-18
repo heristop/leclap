@@ -46,9 +46,12 @@ describe('ElementList', () => {
 
   // Reorder is scoped per kind (each kind lives in its own array), so the move arrows reflect an
   // element's position WITHIN its kind, not the flattened list.
-  const ups = (html: string) => [...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveUp}"[^>]*>`, 'g'))];
-  const downs = (html: string) =>
-    [...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveDown}"[^>]*>`, 'g'))];
+  const ups = (html: string) => [
+    ...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveUp}"[^>]*>`, 'g')),
+  ];
+  const downs = (html: string) => [
+    ...html.matchAll(new RegExp(`<button[^>]*aria-label="${admin.element.moveDown}"[^>]*>`, 'g')),
+  ];
 
   it('disables move-up on the first and move-down on the last element of a kind', () => {
     const texts: ElementDescriptor[] = [0, 1, 2].map((index) => ({

@@ -196,7 +196,15 @@ function emOf(px: number, fontsize: number): number {
 // offsets, foreign expressions) stays unclaimed.
 function accentBarValuesFrom(
   filter: StoredFilter | undefined
-): { color: string; barW: number; barH: number; align: Required<AccentBar>['align']; position: Required<AccentBar>['position'] } | undefined {
+):
+  | {
+      color: string;
+      barW: number;
+      barH: number;
+      align: Required<AccentBar>['align'];
+      position: Required<AccentBar>['position'];
+    }
+  | undefined {
   if (filter?.type !== 'drawbox') return undefined;
 
   const v = filter.values ?? {};

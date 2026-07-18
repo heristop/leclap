@@ -12,7 +12,8 @@ interface HeroStageProps {
 // The raster layer extends one tile above its clipped wrapper and translates down (compositor-only,
 // no per-frame repaint); the global reduced-motion reset stills it to a grille.
 const SCANLINE_STYLE = {
-  backgroundImage: 'repeating-linear-gradient(to bottom, oklch(1 0 0 / 0.5) 0, oklch(1 0 0 / 0.5) 1px, transparent 1px, transparent 4px)',
+  backgroundImage:
+    'repeating-linear-gradient(to bottom, oklch(1 0 0 / 0.5) 0, oklch(1 0 0 / 0.5) 1px, transparent 1px, transparent 4px)',
   backgroundSize: '100% 4px',
 } as const;
 

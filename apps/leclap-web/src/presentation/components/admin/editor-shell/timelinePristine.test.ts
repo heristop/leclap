@@ -22,7 +22,17 @@ describe('isPristineTimeline', () => {
     const withOverlay = newSection('video');
     if (withOverlay.kind !== 'video') throw new Error('expected video');
     withOverlay.overlays = [
-      { text: 'Hi', x: 0.5, y: 0.5, fontsize: 48, fontcolor: '#fff', font: 'default', box: false, boxcolor: '#000', boxOpacity: 0.5 },
+      {
+        text: 'Hi',
+        x: 0.5,
+        y: 0.5,
+        fontsize: 48,
+        fontcolor: '#fff',
+        font: 'default',
+        box: false,
+        boxcolor: '#000',
+        boxOpacity: 0.5,
+      },
     ];
     expect(isPristineTimeline([withOverlay])).toBe(false);
   });

@@ -19,8 +19,7 @@ const section = (overrides: Partial<Section> = {}): Section =>
 const gradeValues = (filters: { type: string; value?: string }[]): string[] =>
   filters.filter((f) => f.type === 'eq').map((f) => f.value ?? '');
 
-const hasLut = (filters: { type: string; value?: string }[]): boolean =>
-  filters.some((f) => f.type === 'lut3d');
+const hasLut = (filters: { type: string; value?: string }[]): boolean => filters.some((f) => f.type === 'lut3d');
 
 describe('compileGlobalDecorations look/grade override', () => {
   it('applies the global grade to a section that has no grade of its own', () => {

@@ -38,7 +38,10 @@
       "type": "video",
       "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
       "look": "warm-film",
-      "grade": { "colorBalance": { "shadows": { "b": 0.06 }, "highlights": { "r": 0.05 } }, "curvesPreset": "increase_contrast" },
+      "grade": {
+        "colorBalance": { "shadows": { "b": 0.06 }, "highlights": { "r": 0.05 } },
+        "curvesPreset": "increase_contrast"
+      },
       "lowerThird": {
         "title": { "en": "Warm Film LUT" },
         "subtitle": { "en": "lut3d-backed look" },
@@ -74,7 +77,12 @@
       "type": "video",
       "options": { "videoUrl": "{{ videoSample }}", "duration": 2, "speed": 2, "muteSection": true },
       "maps": [{ "inputs": ["1:v"], "filters": [{ "type": "setpts", "value": "2*PTS" }], "outputs": ["final"] }],
-      "caption": { "text": { "en": "slow-mo ×2" }, "style": "subtle", "position": "bottom", "effect": { "shadow": true } }
+      "caption": {
+        "text": { "en": "slow-mo ×2" },
+        "style": "subtle",
+        "position": "bottom",
+        "effect": { "shadow": true }
+      }
     },
     {
       "name": "motion",

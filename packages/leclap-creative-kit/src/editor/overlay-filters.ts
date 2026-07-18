@@ -73,7 +73,11 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
       x: `(w-text_w)*${roundFraction(overlay.x)}`,
       y: `(h-text_h)*${roundFraction(overlay.y)}`,
       ...(overlay.box
-        ? { box: 1, boxcolor: `${overlay.boxcolor}@${overlay.boxOpacity}`, boxborderw: overlay.boxPadding ?? DEFAULT_BOX_PADDING }
+        ? {
+            box: 1,
+            boxcolor: `${overlay.boxcolor}@${overlay.boxOpacity}`,
+            boxborderw: overlay.boxPadding ?? DEFAULT_BOX_PADDING,
+          }
         : {}),
       ...effectValues(overlay.effect),
     },
@@ -121,7 +125,13 @@ function accentX(align: Required<AccentBar>['align'], barW: number, fx: number):
 
 // The bar's y expression: 'below' sits one approximated text height (fontsize*1.2) plus the gap
 // under the drawtext y anchor (the historical underline); 'above' sits gap + bar height over it.
-function accentY(position: Required<AccentBar>['position'], textH: number, gap: number, barH: number, fy: number): string {
+function accentY(
+  position: Required<AccentBar>['position'],
+  textH: number,
+  gap: number,
+  barH: number,
+  fy: number
+): string {
   if (position === 'above') return `(ih-${textH})*${fy}-${gap + barH}`;
 
   return `(ih-${textH})*${fy}+${textH + gap}`;

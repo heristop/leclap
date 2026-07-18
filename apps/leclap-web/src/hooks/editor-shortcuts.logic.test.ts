@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  resolveShortcut,
-  isTypingTarget,
-  ALWAYS_ALLOW_IN_INPUTS,
-  type KeyEventLike,
-} from './editor-shortcuts.logic';
+import { resolveShortcut, isTypingTarget, ALWAYS_ALLOW_IN_INPUTS, type KeyEventLike } from './editor-shortcuts.logic';
 
 const key = (over: Partial<KeyEventLike>): KeyEventLike => ({
   key: '',

@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  DEFAULT_TRANSITION_DURATION,
-  MAX_TRANSITION_DURATION,
-  TransitionSchema,
-} from '@/schemas/effects.schemas';
+import { DEFAULT_TRANSITION_DURATION, MAX_TRANSITION_DURATION, TransitionSchema } from '@/schemas/effects.schemas';
 
 // The transition duration bounds are shared with the editor UI (the picker's slider max and the
 // chip's inherited-duration fallback) — they MUST stay in lockstep with the schema or the UI

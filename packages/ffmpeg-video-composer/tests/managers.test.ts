@@ -1190,12 +1190,8 @@ describe('MapManager', () => {
         'gradient_layer_0',
         '320:180'
       );
-      const overlay = (filterManager.addFilter.mock.calls as Array<[Filter]>).find(
-        ([f]) => f.type === 'overlay'
-      )?.[0];
-      expect(overlay?.value).toBe(
-        "x='320':y='(180)+(1-(if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,1))))*60'"
-      );
+      const overlay = (filterManager.addFilter.mock.calls as Array<[Filter]>).find(([f]) => f.type === 'overlay')?.[0];
+      expect(overlay?.value).toBe("x='320':y='(180)+(1-(if(lt(t,0.5),0,if(lt(t,1.5),(t-0.5)/1,1))))*60'");
     });
 
     it('combines a reveal fade with an opacity chain on one leg', () => {

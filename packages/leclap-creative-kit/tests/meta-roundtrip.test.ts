@@ -33,7 +33,13 @@ function metaState(over: Partial<EditorState> = {}): EditorState {
 
 // A wrapper whose own name/description are STALE, to prove descriptor.meta wins on re-hydration.
 function asTemplate(descriptor: TemplateDescriptor): EditableTemplate {
-  return { id: 'user-1', name: 'stale wrapper name', description: 'stale wrapper blurb', orientation: 'landscape', descriptor };
+  return {
+    id: 'user-1',
+    name: 'stale wrapper name',
+    description: 'stale wrapper blurb',
+    orientation: 'landscape',
+    descriptor,
+  };
 }
 
 describe('descriptor meta round-trip', () => {

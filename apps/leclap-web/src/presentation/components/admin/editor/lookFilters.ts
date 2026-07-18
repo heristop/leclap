@@ -74,10 +74,7 @@ export interface LookGradeTreatment {
 // look+grade — mirroring SegmentBuilder.injectSugarFilters, which appends the global decorations
 // after the section's own background sugar (CSS filters apply left-to-right, like the chain).
 // Returns undefined when nothing is set so callers can skip the style entirely.
-export function combinedLookGradeFilter(
-  section: LookGradeTreatment,
-  global: LookGradeTreatment
-): string | undefined {
+export function combinedLookGradeFilter(section: LookGradeTreatment, global: LookGradeTreatment): string | undefined {
   const parts = [
     lookFilter(section.look),
     gradeFilter(section.grade),

@@ -25,7 +25,11 @@ const THICKNESS_MAX = 0.4;
 // structural call sites (title card, lower third) keep their narrow string-typed onChange.
 type AccentControlProps = { hint?: string } & (
   | { geometry?: false; accent: string | undefined; onChange: (accent: string | undefined) => void }
-  | { geometry: true; accent: string | AccentBar | undefined; onChange: (accent: string | AccentBar | undefined) => void }
+  | {
+      geometry: true;
+      accent: string | AccentBar | undefined;
+      onChange: (accent: string | AccentBar | undefined) => void;
+    }
 );
 
 export const AccentControl = (props: AccentControlProps) => {

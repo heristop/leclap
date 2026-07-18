@@ -201,7 +201,11 @@ export const ResponsivePromoShowcase = ({
                 ref={setMediaRef}
                 className="group relative rounded-2xl shadow-xl ring-1 ring-foreground/10 transition-[box-shadow] duration-500 sm:shadow-2xl hover:ring-foreground/25"
                 // Scroll-scrubbed rise + fade + tilt + parallax; skipped under reduced motion.
-                style={reduced ? undefined : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }}
+                style={
+                  reduced
+                    ? undefined
+                    : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }
+                }
               >
                 {/* The rounded clip lives on this untransformed wrapper: a 3D-transformed element
                     cannot clip its composited children to a border-radius. Chrome also lets composited
@@ -213,73 +217,73 @@ export const ResponsivePromoShowcase = ({
                     wide ? 'aspect-video' : 'aspect-[9/16]'
                   )}
                 >
-                {/* Shimmer placeholder holds the frame until the video is mounted. */}
-                {!shouldLoad && (
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 animate-pulse bg-linear-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
-                  />
-                )}
+                  {/* Shimmer placeholder holds the frame until the video is mounted. */}
+                  {!shouldLoad && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 animate-pulse bg-linear-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
+                    />
+                  )}
 
-                {shouldLoad && (
-                  <video
-                    ref={setVideoEl}
-                    className="h-full w-full object-cover"
-                    autoPlay={!reduced}
-                    loop
-                    muted
-                    playsInline
-                    controls={reduced}
-                    // Prebuffer once the frame is near the viewport (it's only mounted then), so the
-                    // scroll-triggered play() starts instantly instead of stalling on a metadata clip.
-                    preload="auto"
-                    aria-label={videoAria}
-                    onCanPlay={(event) => {
-                      if (reduced || !playInView) return;
-                      event.currentTarget.muted = true;
-                      event.currentTarget.play().catch(() => {});
-                    }}
-                    onLoadedData={(event) => {
-                      if (reduced || !playInView) return;
-                      event.currentTarget.play().catch(() => {});
-                    }}
-                  >
-                    <source src={src.webm} type="video/webm" />
-                    <source src={src.mp4} type="video/mp4" />
-                  </video>
-                )}
+                  {shouldLoad && (
+                    <video
+                      ref={setVideoEl}
+                      className="h-full w-full object-cover"
+                      autoPlay={!reduced}
+                      loop
+                      muted
+                      playsInline
+                      controls={reduced}
+                      // Prebuffer once the frame is near the viewport (it's only mounted then), so the
+                      // scroll-triggered play() starts instantly instead of stalling on a metadata clip.
+                      preload="auto"
+                      aria-label={videoAria}
+                      onCanPlay={(event) => {
+                        if (reduced || !playInView) return;
+                        event.currentTarget.muted = true;
+                        event.currentTarget.play().catch(() => {});
+                      }}
+                      onLoadedData={(event) => {
+                        if (reduced || !playInView) return;
+                        event.currentTarget.play().catch(() => {});
+                      }}
+                    >
+                      <source src={src.webm} type="video/webm" />
+                      <source src={src.mp4} type="video/mp4" />
+                    </video>
+                  )}
 
-                <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
-                  {badge}
-                </span>
+                  <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
+                    {badge}
+                  </span>
 
-                {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the
+                  {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the
                     footer motif), each on a slim dark gradient so the holes stay legible over bright
                     video. Drift freezes under the global reduced-motion reset. The drifting span is
                     one tile wider than the strip and translates (compositor-only), so a static masked
                     wrapper clips it and keeps the edge fade in place. */}
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-linear-to-b from-black/55 to-transparent"
-                >
-                  <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
-                    <span
-                      className="animate-film-drift absolute inset-y-0 -left-7 right-0"
-                      style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
-                    />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-linear-to-b from-black/55 to-transparent"
+                  >
+                    <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                      <span
+                        className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                        style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
+                      />
+                    </span>
                   </span>
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-linear-to-t from-black/55 to-transparent"
-                >
-                  <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
-                    <span
-                      className="animate-film-drift absolute inset-y-0 -left-7 right-0"
-                      style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
-                    />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-linear-to-t from-black/55 to-transparent"
+                  >
+                    <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                      <span
+                        className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                        style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
+                      />
+                    </span>
                   </span>
-                </span>
                 </div>
               </motion.div>
             </div>

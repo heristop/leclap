@@ -32,10 +32,7 @@ export interface EditorShortcutHandlers {
 
 // Resolve an action to its handler (or undefined when the feature isn't wired). A missing handler means
 // the key is left alone — no preventDefault — so native behaviour (e.g. Space activating a button) stays.
-const handlerFor = (
-  action: EditorShortcutAction,
-  h: EditorShortcutHandlers
-): (() => void) | undefined => {
+const handlerFor = (action: EditorShortcutAction, h: EditorShortcutHandlers): (() => void) | undefined => {
   const map: Record<EditorShortcutAction, (() => void) | undefined> = {
     undo: h.onUndo,
     redo: h.onRedo,

@@ -374,9 +374,7 @@
       "name": "video_1",
       "type": "project_video",
       "look": "teal-orange",
-      "motion": [
-        { "type": "kenburns", "direction": "in", "intensity": 1.18 }
-      ],
+      "motion": [{ "type": "kenburns", "direction": "in", "intensity": 1.18 }],
       "transition": {
         "type": "smoothleft",
         "duration": 0.5
@@ -391,9 +389,7 @@
         "duration": 20,
         "musicVolume": 0.1
       },
-      "inputs": [
-        { "name": "caption_panel", "url": "panel:w=470,h=150,r=28,c=0a0f14,o=0.72" }
-      ],
+      "inputs": [{ "name": "caption_panel", "url": "panel:w=470,h=150,r=28,c=0a0f14,o=0.72" }],
       "maps": [
         {
           "inputs": ["0:v"],
@@ -534,9 +530,7 @@
       "name": "video_2",
       "type": "project_video",
       "look": "teal-orange",
-      "motion": [
-        { "type": "kenburns", "direction": "out", "intensity": 1.08 }
-      ],
+      "motion": [{ "type": "kenburns", "direction": "out", "intensity": 1.08 }],
       "transition": {
         "type": "coverleft",
         "duration": 0.5
@@ -551,9 +545,7 @@
         "duration": 45,
         "musicVolume": 0.1
       },
-      "inputs": [
-        { "name": "caption_panel", "url": "panel:w=360,h=340,r=28,c=0a0f14,o=0.72" }
-      ],
+      "inputs": [{ "name": "caption_panel", "url": "panel:w=360,h=340,r=28,c=0a0f14,o=0.72" }],
       "maps": [
         {
           "inputs": ["0:v"],
@@ -697,9 +689,7 @@
         "muteSection": true,
         "musicVolume": 0.4
       },
-      "inputs": [
-        { "name": "caption_panel", "url": "panel:w=380,h=150,r=28,c=0a0f14,o=0.72" }
-      ],
+      "inputs": [{ "name": "caption_panel", "url": "panel:w=380,h=150,r=28,c=0a0f14,o=0.72" }],
       "maps": [
         {
           "inputs": ["1:v"],

@@ -142,7 +142,11 @@ const MirrorToggle = ({
       <span className="mb-1 block text-[0.65rem] font-semibold uppercase tracking-wide text-gray-400">
         {t('animation.mirror')}
       </span>
-      <div role="group" aria-label={t('animation.mirror')} className="flex gap-1 rounded-xl border border-foreground/10 bg-surface p-1">
+      <div
+        role="group"
+        aria-label={t('animation.mirror')}
+        className="flex gap-1 rounded-xl border border-foreground/10 bg-surface p-1"
+      >
         {axes.map(({ axis, label, hint }) => {
           const active = hasFlipAxis(flip, axis);
 
@@ -157,7 +161,9 @@ const MirrorToggle = ({
               }}
               className={cn(
                 'tap flex flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[0.65rem] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
-                active ? 'brand-gradient text-white shadow-sm shadow-brand-500/20' : 'text-gray-500 hover:text-foreground'
+                active
+                  ? 'brand-gradient text-white shadow-sm shadow-brand-500/20'
+                  : 'text-gray-500 hover:text-foreground'
               )}
             >
               <span aria-hidden>{axis === 'horizontal' ? '↔' : '↕'}</span>

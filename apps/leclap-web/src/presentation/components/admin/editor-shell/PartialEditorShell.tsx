@@ -50,95 +50,95 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
     // Colour fields anywhere in the shell resolve and offer the draft's {{ variable }} colour tokens,
     // including the {{ colorN }} slots when the partial's descriptor carries a colorsList palette.
     <ColorVariablesProvider variables={draftState.globalVariables} colorsList={draftState.colorsList}>
-    <ShellChrome
-      resizeLabel={t('shell.resizePanels')}
-      titlebar={
-        <PartialTitlebar
-          id={draftState.id}
-          selected={editor.selected}
-          partials={editor.partials}
-          readonly={editor.readonly}
-          idLocked={editor.idLocked}
-          onIdChange={(value) => {
-            ops.patch({ id: value, name: value });
-          }}
-          onPick={editor.pickPartial}
-          onNew={editor.loadNew}
-          onDelete={editor.deleteSelected}
-          onSave={editor.saveDraft}
-          onBack={editor.goBack}
-          t={t}
-        />
-      }
-      dock={
-        <ToolDock
-          items={tools}
-          active={editor.activeTool}
-          onSelect={(id) => {
-            dispatch({ type: 'selectTool', tool: id });
-          }}
-          ariaLabel={t('shell.tools')}
-        />
-      }
-      panel={
-        <>
-          <PartialPanelSwitch
-            activeTool={editor.activeTool}
-            state={draftState}
-            section={editor.selectedSection}
+      <ShellChrome
+        resizeLabel={t('shell.resizePanels')}
+        titlebar={
+          <PartialTitlebar
+            id={draftState.id}
+            selected={editor.selected}
             partials={editor.partials}
             readonly={editor.readonly}
             idLocked={editor.idLocked}
-            patch={ops.patch}
-            patchSection={(p) => {
-              ops.patchSection(sel.selectedIndex, p);
+            onIdChange={(value) => {
+              ops.patch({ id: value, name: value });
             }}
-            selection={sectionSelection.state}
-            onSelectElement={sectionSelection.selectElement}
+            onPick={editor.pickPartial}
+            onNew={editor.loadNew}
+            onDelete={editor.deleteSelected}
+            onSave={editor.saveDraft}
+            onBack={editor.goBack}
+            t={t}
           />
-          {editor.error && (
-            <p
-              role="alert"
-              className="border-t border-foreground/10 px-4 py-2 text-xs font-medium text-[var(--color-error)]"
-            >
-              {editor.error}
-            </p>
-          )}
-        </>
-      }
-      monitor={
-        <ProgramMonitor label={t('shell.preview')} meta={draftState.orientation} swapKey={String(sel.selectedIndex)}>
-          <EditorMonitor
-            state={draftState}
-            section={editor.selectedSection}
-            onPatchSection={(p) => {
-              ops.patchSection(sel.selectedIndex, p);
+        }
+        dock={
+          <ToolDock
+            items={tools}
+            active={editor.activeTool}
+            onSelect={(id) => {
+              dispatch({ type: 'selectTool', tool: id });
             }}
-            selection={sectionSelection.state}
-            onSelectElement={sectionSelection.selectElement}
-            onBeginEdit={sectionSelection.beginEdit}
-            onEndEdit={sectionSelection.endEdit}
+            ariaLabel={t('shell.tools')}
           />
-        </ProgramMonitor>
-      }
-      timeline={
-        <EditorSceneTimeline
-          sections={draftState.sections}
-          selectedIndex={sel.selectedIndex}
-          onSelect={(i) => {
-            dispatch({ type: 'selectScene', index: i });
-          }}
-          onAdd={editor.addEditorSection}
-          onDuplicate={ops.duplicateSection}
-          onDelete={ops.removeSection}
-          onReorder={editor.reorderScenes}
-          onTransition={ops.setTransition}
-          sectionTitle={sectionTitle}
-          sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
-          addKinds={EDITABLE_PARTIAL_KINDS}
-        />
-      }
-    />
+        }
+        panel={
+          <>
+            <PartialPanelSwitch
+              activeTool={editor.activeTool}
+              state={draftState}
+              section={editor.selectedSection}
+              partials={editor.partials}
+              readonly={editor.readonly}
+              idLocked={editor.idLocked}
+              patch={ops.patch}
+              patchSection={(p) => {
+                ops.patchSection(sel.selectedIndex, p);
+              }}
+              selection={sectionSelection.state}
+              onSelectElement={sectionSelection.selectElement}
+            />
+            {editor.error && (
+              <p
+                role="alert"
+                className="border-t border-foreground/10 px-4 py-2 text-xs font-medium text-[var(--color-error)]"
+              >
+                {editor.error}
+              </p>
+            )}
+          </>
+        }
+        monitor={
+          <ProgramMonitor label={t('shell.preview')} meta={draftState.orientation} swapKey={String(sel.selectedIndex)}>
+            <EditorMonitor
+              state={draftState}
+              section={editor.selectedSection}
+              onPatchSection={(p) => {
+                ops.patchSection(sel.selectedIndex, p);
+              }}
+              selection={sectionSelection.state}
+              onSelectElement={sectionSelection.selectElement}
+              onBeginEdit={sectionSelection.beginEdit}
+              onEndEdit={sectionSelection.endEdit}
+            />
+          </ProgramMonitor>
+        }
+        timeline={
+          <EditorSceneTimeline
+            sections={draftState.sections}
+            selectedIndex={sel.selectedIndex}
+            onSelect={(i) => {
+              dispatch({ type: 'selectScene', index: i });
+            }}
+            onAdd={editor.addEditorSection}
+            onDuplicate={ops.duplicateSection}
+            onDelete={ops.removeSection}
+            onReorder={editor.reorderScenes}
+            onTransition={ops.setTransition}
+            sectionTitle={sectionTitle}
+            sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
+            addKinds={EDITABLE_PARTIAL_KINDS}
+          />
+        }
+      />
     </ColorVariablesProvider>
   );
 };

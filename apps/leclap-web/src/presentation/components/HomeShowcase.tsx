@@ -145,99 +145,103 @@ export const HomeShowcase = () => {
             className="relative rounded-xl shadow-xl ring-1 ring-foreground/10 sm:rounded-2xl sm:shadow-2xl"
             // Scroll-scrubbed rise + fade + tilt + parallax; skipped under reduced motion so the frame
             // simply sits in place with native controls.
-            style={reduced ? undefined : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }}
+            style={
+              reduced
+                ? undefined
+                : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }
+            }
           >
             {/* The rounded clip lives on this untransformed wrapper: a 3D-transformed element cannot
                 clip its composited children to a border-radius. Chrome also lets composited children
                 (the <video>) escape a rounded overflow clip inside a 3D rendering context, so the
                 corners are enforced with clip-path, which the compositor always honors. */}
             <div className="relative aspect-video overflow-hidden rounded-[inherit] bg-black [clip-path:inset(0_round_0.75rem)] sm:[clip-path:inset(0_round_1rem)]">
-            {/* Shimmer placeholder holds the frame until the video is mounted. */}
-            {!shouldLoad && (
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 animate-pulse bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
-              />
-            )}
+              {/* Shimmer placeholder holds the frame until the video is mounted. */}
+              {!shouldLoad && (
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 animate-pulse bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
+                />
+              )}
 
-            {shouldLoad && (
-              <video
-                ref={setVideoEl}
-                className="h-full w-full object-cover"
-                autoPlay={!reduced}
-                loop
-                muted={muted}
-                playsInline
-                controls={reduced}
-                preload="auto"
-                aria-label={t('showcase.videoAria')}
-                onLoadedData={(event) => {
-                  if (reduced || !playInView) return;
-                  event.currentTarget.play().catch(() => {});
-                }}
-              >
-                <source src={VIDEO_SRC_WEBM} type="video/webm" />
-                <source src={VIDEO_SRC_MP4} type="video/mp4" />
-              </video>
-            )}
+              {shouldLoad && (
+                <video
+                  ref={setVideoEl}
+                  className="h-full w-full object-cover"
+                  autoPlay={!reduced}
+                  loop
+                  muted={muted}
+                  playsInline
+                  controls={reduced}
+                  preload="auto"
+                  aria-label={t('showcase.videoAria')}
+                  onLoadedData={(event) => {
+                    if (reduced || !playInView) return;
+                    event.currentTarget.play().catch(() => {});
+                  }}
+                >
+                  <source src={VIDEO_SRC_WEBM} type="video/webm" />
+                  <source src={VIDEO_SRC_MP4} type="video/mp4" />
+                </video>
+              )}
 
-            <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
-              {t('showcase.badge')}
-            </span>
+              <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
+                {t('showcase.badge')}
+              </span>
 
-            {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the footer
+              {/* Film-cell edges: sprocket holes drift along the top and bottom of the frame (the footer
                 motif), each on a slim dark gradient so the holes stay legible over bright video. The
                 drifting span is one tile wider than the strip and translates (compositor-only), so a
                 static masked wrapper clips it and keeps the edge fade in place. */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-black/55 to-transparent"
-            >
-              <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
-                <span
-                  className="animate-film-drift absolute inset-y-0 -left-7 right-0"
-                  style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
-                />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-black/55 to-transparent"
+              >
+                <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                  <span
+                    className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                    style={{ ...perforationTileStyle, backgroundPosition: 'left top' }}
+                  />
+                </span>
               </span>
-            </span>
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-black/55 to-transparent"
-            >
-              <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
-                <span
-                  className="animate-film-drift absolute inset-y-0 -left-7 right-0"
-                  style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
-                />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-black/55 to-transparent"
+              >
+                <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
+                  <span
+                    className="animate-film-drift absolute inset-y-0 -left-7 right-0"
+                    style={{ ...perforationTileStyle, backgroundPosition: 'left bottom' }}
+                  />
+                </span>
               </span>
-            </span>
 
-            {/* Sound control — muted by default; the slider reveals on hover/focus. Hidden when the
+              {/* Sound control — muted by default; the slider reveals on hover/focus. Hidden when the
                 native controls are shown for reduced-motion viewers, or before the video mounts. */}
-            {shouldLoad && !reduced && (
-              <div className="group/vol absolute bottom-3 right-3 flex items-center rounded-full bg-black/55 px-1.5 py-1 ring-1 ring-white/15 backdrop-blur-sm">
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  aria-label={muted ? t('showcase.unmute') : t('showcase.mute')}
-                  className="grid h-8 w-8 place-items-center rounded-full text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
-                >
-                  {muted ? <VolumeX /> : <Volume2 />}
-                </button>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={muted ? 0 : volume}
-                  onChange={(event) => {
-                    changeVolume(Number(event.target.value));
-                  }}
-                  aria-label={t('showcase.volume')}
-                  className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/30 opacity-0 accent-white transition-all duration-200 focus-visible:ml-2 focus-visible:w-20 focus-visible:opacity-100 group-hover/vol:ml-2 group-hover/vol:w-20 group-hover/vol:opacity-100"
-                />
-              </div>
-            )}
+              {shouldLoad && !reduced && (
+                <div className="group/vol absolute bottom-3 right-3 flex items-center rounded-full bg-black/55 px-1.5 py-1 ring-1 ring-white/15 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    aria-label={muted ? t('showcase.unmute') : t('showcase.mute')}
+                    className="grid h-8 w-8 place-items-center rounded-full text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
+                  >
+                    {muted ? <VolumeX /> : <Volume2 />}
+                  </button>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={muted ? 0 : volume}
+                    onChange={(event) => {
+                      changeVolume(Number(event.target.value));
+                    }}
+                    aria-label={t('showcase.volume')}
+                    className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/30 opacity-0 accent-white transition-all duration-200 focus-visible:ml-2 focus-visible:w-20 focus-visible:opacity-100 group-hover/vol:ml-2 group-hover/vol:w-20 group-hover/vol:opacity-100"
+                  />
+                </div>
+              )}
             </div>
           </motion.div>
         </div>

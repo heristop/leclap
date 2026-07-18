@@ -60,7 +60,12 @@ test.describe('Preview render — ffmpeg-feature sugar on ffmpeg.wasm', () => {
   test('lower-third + caption text effects (shadow/outline) compile on the WASM core', async ({ page }) => {
     test.setTimeout(6 * 60 * 1000);
     const size = await compileWithPatch(page, {
-      lowerThird: { title: { en: 'Name' }, subtitle: { en: 'Role' }, accent: '#E0884C', effect: { shadow: true, outline: true } },
+      lowerThird: {
+        title: { en: 'Name' },
+        subtitle: { en: 'Role' },
+        accent: '#E0884C',
+        effect: { shadow: true, outline: true },
+      },
       caption: { text: 'Hello', effect: { shadow: true, outline: true } },
     });
     expect(size).toBeGreaterThan(1000);
@@ -74,13 +79,16 @@ test.describe('Preview render — ffmpeg-feature sugar on ffmpeg.wasm', () => {
     const size = await page.evaluate(async () => {
       const { toEditorState } = await import('/src/presentation/components/admin/templateEditorModel.ts');
       const { buildPreviewPlan } = await import('/src/presentation/components/admin/editor/previewRender.ts');
-      const { generatePlaceholderClips } = await import('/src/presentation/components/admin/editor/placeholderClips.ts');
+      const { generatePlaceholderClips } =
+        await import('/src/presentation/components/admin/editor/placeholderClips.ts');
       const { coreCompilationService } = await import('/src/application/usecases/coreCompilationService.ts');
       const { BACKGROUND_LIBRARY } = await import('/src/data/mediaCatalog.ts');
 
       const state = toEditorState(null);
       const libId = BACKGROUND_LIBRARY[0].id;
-      (state.sections[0] as Record<string, unknown>).images = [{ id: 'img1', choice: { source: 'library', id: libId } }];
+      (state.sections[0] as Record<string, unknown>).images = [
+        { id: 'img1', choice: { source: 'library', id: libId } },
+      ];
 
       const plan = buildPreviewPlan(state);
       const files = await generatePlaceholderClips(state, plan.clipCount);
@@ -99,7 +107,8 @@ test.describe('Preview render — ffmpeg-feature sugar on ffmpeg.wasm', () => {
     const size = await page.evaluate(async () => {
       const { toEditorState, newSection } = await import('/src/presentation/components/admin/templateEditorModel.ts');
       const { buildPreviewPlan } = await import('/src/presentation/components/admin/editor/previewRender.ts');
-      const { generatePlaceholderClips } = await import('/src/presentation/components/admin/editor/placeholderClips.ts');
+      const { generatePlaceholderClips } =
+        await import('/src/presentation/components/admin/editor/placeholderClips.ts');
       const { coreCompilationService } = await import('/src/application/usecases/coreCompilationService.ts');
 
       const state = toEditorState(null);

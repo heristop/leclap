@@ -170,7 +170,11 @@ describe('shape elements (image overlays carrying a shape recipe)', () => {
       ...newSection('color'),
       images: [
         { id: 'a', choice: { source: 'url', url: '/logo.png' } },
-        { id: 'b', choice: { source: 'url', url: 'data:image/png;base64,AA' }, shape: { kind: 'rect', color: '#ff4d4d' } },
+        {
+          id: 'b',
+          choice: { source: 'url', url: 'data:image/png;base64,AA' },
+          shape: { kind: 'rect', color: '#ff4d4d' },
+        },
       ],
     } as EditorSection;
     const rows = listSectionElements(section).filter((d) => d.kind === 'image');
@@ -237,7 +241,15 @@ describe('sugar elements (caption / titleCard / lowerThird)', () => {
     } as EditorSection;
     const descriptors = listSectionElements(section);
 
-    expect(descriptors.map((d) => d.kind)).toEqual(['layer', 'layer', 'text', 'text', 'animation', 'caption', 'titleCard']);
+    expect(descriptors.map((d) => d.kind)).toEqual([
+      'layer',
+      'layer',
+      'text',
+      'text',
+      'animation',
+      'caption',
+      'titleCard',
+    ]);
     expect(descriptors.at(-2)?.ref).toEqual({ kind: 'caption', index: 0 });
     expect(descriptors.at(-2)?.labelKey).toBe('element.caption');
     expect(descriptors.at(-2)?.previewText).toBe('A subtitle');

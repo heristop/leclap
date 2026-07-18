@@ -109,9 +109,7 @@ const Backdrop = ({
   }
 
   // A video scene has no asset at authoring time — the same dark placeholder frame as the canvas.
-  return (
-    <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]" />
-  );
+  return <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_0%,#2b2b3a,#15151f)]" />;
 };
 
 // One still-image / shape overlay at its RESTING placement (the same geometry math as the edit

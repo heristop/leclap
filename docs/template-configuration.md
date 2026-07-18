@@ -280,12 +280,12 @@ A visual section (`project_video`, `image`, `color_background`) may declare a `c
 { "color": "#00b140", "similarity": 0.3, "blend": 0.1, "background": "#101418" }
 ```
 
-| Field        | Type            | Description                                                            |
-| ------------ | --------------- | --------------------------------------------------------------------- |
-| `color`      | hex (required)  | The screen colour to remove.                                          |
-| `similarity` | `number` 0.01..1 | How close a pixel must be to `color` to be keyed (default ~0.3).      |
-| `blend`      | `number` 0..1   | Edge softness between kept and keyed pixels (default 0).               |
-| `background` | hex             | Flat colour composited behind the keyed clip (default the section's `backgroundColor`). |
+| Field        | Type             | Description                                                                             |
+| ------------ | ---------------- | --------------------------------------------------------------------------------------- |
+| `color`      | hex (required)   | The screen colour to remove.                                                            |
+| `similarity` | `number` 0.01..1 | How close a pixel must be to `color` to be keyed (default ~0.3).                        |
+| `blend`      | `number` 0..1    | Edge softness between kept and keyed pixels (default 0).                                |
+| `background` | hex              | Flat colour composited behind the keyed clip (default the section's `backgroundColor`). |
 
 `colorkey` is LGPL and present on every backend; a backend without it drops the key with a warning (the clip renders un-keyed) rather than aborting. v1 keys over a **solid colour only** (no simultaneous background image / animation overlay on the same section).
 
@@ -297,15 +297,15 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 { "text": { "en": "Design is how it works" }, "style": "bar", "position": "lower-third", "align": "center" }
 ```
 
-| Field                             | Type          | Description                                                                 |
-| --------------------------------- | ------------- | --------------------------------------------------------------------------- |
-| `text`                            | `Translation` | Localised caption text (required).                                          |
-| `style`                           | preset        | Visual preset (default `bar`).                                              |
-| `position`                        | enum          | Vertical placement (default `lower-third`).                                 |
-| `align`                           | enum          | Horizontal alignment (default `center`).                                    |
-| `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex). |
-| `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).        |
-| `reveal`                          | `Reveal`      | Animated entrance (see [Reveal](#reveal)).                                  |
+| Field                             | Type          | Description                                                                     |
+| --------------------------------- | ------------- | ------------------------------------------------------------------------------- |
+| `text`                            | `Translation` | Localised caption text (required).                                              |
+| `style`                           | preset        | Visual preset (default `bar`).                                                  |
+| `position`                        | enum          | Vertical placement (default `lower-third`).                                     |
+| `align`                           | enum          | Horizontal alignment (default `center`).                                        |
+| `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex).     |
+| `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).            |
+| `reveal`                          | `Reveal`      | Animated entrance (see [Reveal](#reveal)).                                      |
 | `effect`                          | `TextEffect`  | Drop shadow / outline for legibility (see [Text legibility](#text-legibility)). |
 
 ## Text legibility
@@ -317,10 +317,10 @@ Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes
 "effect": { "shadow": { "color": "#000000@0.6", "dx": 2, "dy": 2 }, "outline": { "color": "#101010", "width": 3 } }
 ```
 
-| Field     | Shorthand                  | Object form                                  |
-| --------- | -------------------------- | -------------------------------------------- |
-| `shadow`  | `true` → `#000000@0.6` @ 2,2 | `{ color?, dx?, dy? }` (px offsets)          |
-| `outline` | `true` → `#000000` width 2   | `{ color?, width? }` (px)                    |
+| Field     | Shorthand                    | Object form                         |
+| --------- | ---------------------------- | ----------------------------------- |
+| `shadow`  | `true` → `#000000@0.6` @ 2,2 | `{ color?, dx?, dy? }` (px offsets) |
+| `outline` | `true` → `#000000` width 2   | `{ color?, width? }` (px)           |
 
 ## Reveal
 

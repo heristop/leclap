@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  RATE_STOPS,
-  NORMAL_RATE_INDEX,
-  rateFromSpeed,
-  speedFromRate,
-  nearestRateIndex,
-  formatRate,
-} from './speedRate';
+import { RATE_STOPS, NORMAL_RATE_INDEX, rateFromSpeed, speedFromRate, nearestRateIndex, formatRate } from './speedRate';
 
 describe('rateFromSpeed / speedFromRate', () => {
   it('inverts the PTS multiplier into a user-facing rate', () => {

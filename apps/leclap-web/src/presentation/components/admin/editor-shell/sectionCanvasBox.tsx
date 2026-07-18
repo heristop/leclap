@@ -289,7 +289,6 @@ const ResizeHandles = ({
   </>
 );
 
-
 // Inline style for an overlay box: position, the real font face, the WYSIWYG-scaled font size, color,
 // and an optional padded background box at the author's opacity. Colour fields may hold '{{ variable }}'
 // tokens — they resolve against `vars` (the editor's global scope) the way the engine's formatColor

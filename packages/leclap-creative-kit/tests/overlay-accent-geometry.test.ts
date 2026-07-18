@@ -130,9 +130,7 @@ describe('overlay accent geometry — lowering', () => {
   });
 
   it('thickness keeps the 4px legibility floor', () => {
-    const filters = accentFilters(
-      baseState([videoSection([accented({ color: '#ff8800', thickness: 0.05 })])])
-    );
+    const filters = accentFilters(baseState([videoSection([accented({ color: '#ff8800', thickness: 0.05 })])]));
 
     // round(50*0.05) = 3 → floored to 4 so the bar never vanishes at small sizes.
     expect(filters[0]).toEqual({ ...LEGACY_BAR_VALUES, h: 4 });

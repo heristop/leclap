@@ -13,7 +13,6 @@ export type VisualKind = 'video' | 'color' | 'image';
 // zero-collapse the timeline.
 export const DEFAULT_SEGMENT_DURATION = 3;
 
-
 export interface Segment {
   index: number; // index into the ORIGINAL sections array (for selection sync)
   kind: VisualKind;

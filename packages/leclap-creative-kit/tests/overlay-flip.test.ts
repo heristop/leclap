@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flipCssTransform, hasFlipAxis, toggleFlipAxis } from './overlayFlip.logic';
+import { flipCssTransform, hasFlipAxis, toggleFlipAxis } from '../src/editor/overlay-flip';
 
 describe('hasFlipAxis', () => {
   it('reads each axis out of the combined flip value', () => {

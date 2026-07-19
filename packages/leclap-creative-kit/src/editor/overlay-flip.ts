@@ -1,7 +1,7 @@
 // Pure mirror-toggle logic for the overlay flip control (placementFields). The descriptor stores one
 // combined value ('horizontal' | 'vertical' | 'both' | absent) while the UI exposes two independent
 // axis toggles, so these helpers translate between the two shapes.
-import type { OverlayFlip } from '../templateEditorModel';
+import type { OverlayFlip } from './model';
 
 export type FlipAxis = 'horizontal' | 'vertical';
 

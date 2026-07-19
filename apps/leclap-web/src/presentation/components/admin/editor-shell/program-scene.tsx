@@ -6,7 +6,7 @@
 // samples via imageVisibilityAt (show window + `motion` entrance); background layers get a wrapper
 // sampled via layerVisibilityAt (`reveal`). Animation (video) overlays stay out of playback scope.
 import { forwardRef, useImperativeHandle, useRef, type CSSProperties, type RefObject } from 'react';
-import type { ColorVariableMap } from '@leclap/creative-kit/editor';
+import { flipCssTransform, type ColorVariableMap } from '@leclap/creative-kit/editor';
 import { displayFromTokens } from '@/lib/variableSyntax';
 import { useColorVariables } from '@/presentation/components/ui';
 import { findBackground, BACKGROUND_LIBRARY } from '@/data/mediaCatalog';
@@ -20,7 +20,6 @@ import {
 import { newBaseLayer } from '../editor/layerGeometry';
 import { cssLayerBackground } from '../editor/layerPreview';
 import { combinedLookGradeFilter, type LookGradeTreatment } from '../editor/lookFilters';
-import { flipCssTransform } from '../editor/overlayFlip.logic';
 import { useChoicePreviewUrl } from '../editor/useChoicePreviewUrl';
 import { resolveOverlayRect } from './imageAnimationDrag';
 import { boxStyle, OverlayAccentBar } from './sectionCanvasBox';

@@ -5,15 +5,16 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Check } from '@/presentation/components/icons';
-import { ALL_CAPTURE_MODES, type CaptureMode } from '../../templateEditorModel';
 import { SegmentedControl, type SegmentOption } from '../controls';
 import {
+  ALL_CAPTURE_MODES,
+  type CaptureMode,
   allowedSetFrom,
   effectiveModeFrom,
   toggleAllowedMode,
   pickDefaultMode,
   type CaptureSelection,
-} from './capture-modes';
+} from '@leclap/creative-kit/editor';
 
 interface CaptureModeFieldProps {
   selection: CaptureSelection;

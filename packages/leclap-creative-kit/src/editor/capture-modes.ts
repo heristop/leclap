@@ -1,7 +1,7 @@
 // Pure capture-mode selection logic for the project_video section builder: which recorder modes the
 // end-user may pick (allowedCaptureModes) and which one the recorder opens on (captureMode). Both are
 // recorder metadata only — never lowered to FFmpeg filters. Kept UI-free so it's unit-testable.
-import { ALL_CAPTURE_MODES, type CaptureMode } from '../../templateEditorModel';
+import { ALL_CAPTURE_MODES, type CaptureMode } from './model';
 
 export interface CaptureSelection {
   captureMode?: CaptureMode;

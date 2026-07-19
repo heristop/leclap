@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import type { AnimationOverlay, ImageOverlay, Orientation, OverlayFlip } from '../templateEditorModel';
 import { FRAME_SIZE } from '../editor/animationOverlay';
 import { AnimationMedia } from '../editor/AnimationMedia';
-import { flipCssTransform } from '../editor/overlayFlip.logic';
+import { flipCssTransform } from '@leclap/creative-kit/editor';
 import { moveOverlay, nudgeOverlay, resizeOverlay, resolveOverlayRect, rotateOverlay } from './imageAnimationDrag';
 
 // Arrow-key nudge step (output px); Shift jumps further. Mirrors AnimationFrameCanvas's 8/40 steps.

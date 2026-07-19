@@ -1,8 +1,15 @@
 // Playback-speed control for visual sections: a slider over friendly rate stops (0.25×–4×) that writes
-// the descriptor's options.speed (a PTS multiplier — the inversion lives in speedRate.ts, tested).
+// the descriptor's options.speed (a PTS multiplier — the inversion lives in speed-rate.ts, tested).
 import { useTranslation } from 'react-i18next';
 import { RangeSlider } from '../controls';
-import { RATE_STOPS, NORMAL_RATE_INDEX, rateFromSpeed, speedFromRate, nearestRateIndex, formatRate } from './speedRate';
+import {
+  RATE_STOPS,
+  NORMAL_RATE_INDEX,
+  rateFromSpeed,
+  speedFromRate,
+  nearestRateIndex,
+  formatRate,
+} from '@leclap/creative-kit/editor';
 
 interface SpeedFieldProps {
   speed: number | undefined;

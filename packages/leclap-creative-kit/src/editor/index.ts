@@ -2,3 +2,8 @@
 // create-template). See ./templateEditorModel for the editor-friendly section model and its
 // bidirectional mapping to a core TemplateDescriptor. Pure — no React/DOM/RN dependency.
 export * from './templateEditorModel';
+
+// Pure, UI-free field-level helpers shared by both apps' editors.
+export * from './speed-rate';
+export * from './capture-modes';
+export * from './overlay-flip';

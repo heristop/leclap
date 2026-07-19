@@ -14,7 +14,7 @@ import {
   isAnimationVideo,
   type PreviewBg,
 } from './animationOverlay';
-import { flipCssTransform } from './overlayFlip.logic';
+import { flipCssTransform } from '@leclap/creative-kit/editor';
 
 const DISPLAY_MAX = 168; // px — the frame's larger side on screen
 const MIN_SIZE = 16; // output px — smallest the overlay can be resized to

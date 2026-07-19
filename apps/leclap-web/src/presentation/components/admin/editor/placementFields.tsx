@@ -10,7 +10,7 @@ import type { OverlayFit, OverlayFlip } from '../templateEditorModel';
 import { RotateCcw } from '@/presentation/components/icons';
 import { parsePair, formatPair } from './animationOverlay';
 import { RangeSlider, SegmentedControl } from './controls';
-import { hasFlipAxis, toggleFlipAxis, type FlipAxis } from './overlayFlip.logic';
+import { hasFlipAxis, toggleFlipAxis, type FlipAxis } from '@leclap/creative-kit/editor';
 
 // The subset of overlay fields the shared placement controls read/write. Both AnimationOverlay and
 // ImageOverlay carry these (string "x:y" position, string "w:h" scale, 0–1 opacity, degrees rotation,

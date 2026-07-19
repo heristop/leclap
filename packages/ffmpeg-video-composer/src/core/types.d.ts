@@ -41,6 +41,8 @@ export type ProjectConfig = {
   audioConfig?: AudioConfig;
   videoConfig?: VideoConfig;
   userVideoPaths?: { [sectionName: string]: string };
+  // Skip descriptor validation before compiling (trusted callers only; validation is on by default).
+  skipValidation?: boolean;
 };
 
 export type MusicConfig = {

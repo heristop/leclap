@@ -67,7 +67,7 @@
       "options": {
         "videoUrl": "{{ video }}",
         "duration": 4,
-        "musicVolume": 2
+        "musicVolume": 0.2
       },
       "filters": [
         {

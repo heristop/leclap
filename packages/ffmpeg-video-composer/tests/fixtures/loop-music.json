@@ -1,6 +1,7 @@
 {
   "global": {
     "variables": {
+      "video": "videos/earth.mp4",
       "colorsList": ["#FFFFFF"]
     },
     "music": {
@@ -14,7 +15,7 @@
       "duration": 0.5
     },
     "audio": {
-      "sourceVolume": 4
+      "sourceVolume": 1
     }
   },
   "sections": [
@@ -22,7 +23,7 @@
       "name": "test_loop_intro",
       "type": "video",
       "options": {
-        "useVideoSection": "video_4",
+        "videoUrl": "{{ video }}",
         "duration": 6,
         "musicVolume": 0.6
       },

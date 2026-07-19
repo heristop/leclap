@@ -15,6 +15,7 @@ import { getPerfTimer, resetPerfTimer } from './utils/perf-timer';
 import { formatPerfReport } from './utils/perf-report';
 import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 import { selectVideoCodec } from './platform/ffmpeg/select-video-codec';
+import { TemplateValidator } from './services/TemplateValidator';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -131,6 +132,23 @@ async function emitPerfReport(
   }
 }
 
+// Universal gate for the Node compile path: every descriptor is schema-validated before it reaches
+// the director, so a malformed template fails fast with a structured summary instead of failing late
+// (or silently rendering wrong) inside the engine. `skipValidation` is a trusted-caller opt-out
+// (e.g. a descriptor already validated upstream) — never throws on its own, the throw below is the gate.
+function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor: TemplateDescriptor): void {
+  if (projectConfig.skipValidation) {
+    return;
+  }
+
+  const validator = new TemplateValidator();
+  const validation = validator.validateTemplate(templateDescriptor);
+
+  if (!validation.success) {
+    throw new Error(validator.getValidationSummary(validation));
+  }
+}
+
 // Opt-in hardware H.264 encoder selection on the Node path (set FVC_HWENCODE=1). Default is OFF:
 // benchmarks showed videotoolbox is SLOWER than libx264 ultrafast on short multi-segment renders
 // (per-segment hardware-session setup) and only ~5% faster on heavy single encodes, so auto-on
@@ -218,6 +236,8 @@ export async function compile(
       hasUserVideoPaths: Boolean(projectConfig.userVideoPaths),
       videoPaths: projectConfig.userVideoPaths ? Object.keys(projectConfig.userVideoPaths) : 'none',
     });
+
+    assertValidDescriptor(projectConfig, templateDescriptor);
 
     await autoSelectHardwareEncoder(projectConfig, logger);
 

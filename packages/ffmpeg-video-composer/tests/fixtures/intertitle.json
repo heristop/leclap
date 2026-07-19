@@ -13,7 +13,7 @@
   },
   "sections": [
     {
-      "name": "test_intertitle",
+      "name": "video_1",
       "type": "video",
       "options": {
         "useVideoSection": "video_1",

@@ -1,6 +1,7 @@
 {
   "global": {
     "variables": {
+      "video": "videos/earth.mp4",
       "colorsList": ["#FFFFFF"]
     },
     "orientation": "portrait",
@@ -15,7 +16,7 @@
       "name": "test_portrait",
       "type": "video",
       "options": {
-        "useVideoSection": "video_portrait",
+        "videoUrl": "{{ video }}",
         "duration": 6,
         "forceOriginalAspectRatio": true,
         "musicVolume": 0.4

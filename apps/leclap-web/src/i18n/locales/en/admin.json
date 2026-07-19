@@ -117,6 +117,16 @@
         "label": "Import / export",
         "hint": "Export this template as JSON, or import a descriptor to replace the current one.",
         "importSuccess": "Template imported."
+      },
+      "jsonEditor": {
+        "label": "Raw JSON",
+        "hint": "Edit the template descriptor directly, then Apply to validate and load your changes.",
+        "apply": "Apply",
+        "valid": "Valid JSON",
+        "invalid": "Invalid JSON",
+        "dirty": "Unapplied changes",
+        "stateChanged": "The template changed elsewhere — your edits are still here.",
+        "applied": "Template updated from JSON."
       }
     },
     "variables": {

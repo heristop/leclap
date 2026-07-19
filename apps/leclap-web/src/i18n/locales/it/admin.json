@@ -117,6 +117,16 @@
         "label": "Importa / esporta",
         "hint": "Esporta questo modello come JSON, oppure importa un descrittore per sostituire quello attuale.",
         "importSuccess": "Modello importato."
+      },
+      "jsonEditor": {
+        "label": "JSON grezzo",
+        "hint": "Modifica direttamente il descrittore del modello, poi tocca Applica per convalidare e caricare le modifiche.",
+        "apply": "Applica",
+        "valid": "JSON valido",
+        "invalid": "JSON non valido",
+        "dirty": "Modifiche non applicate",
+        "stateChanged": "Il modello è cambiato altrove — le tue modifiche sono ancora qui.",
+        "applied": "Modello aggiornato dal JSON."
       }
     },
     "variables": {

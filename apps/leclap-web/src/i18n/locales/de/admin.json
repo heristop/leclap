@@ -117,6 +117,16 @@
         "label": "Import / Export",
         "hint": "Exportiere diese Vorlage als JSON oder importiere einen Deskriptor, um die aktuelle zu ersetzen.",
         "importSuccess": "Vorlage importiert."
+      },
+      "jsonEditor": {
+        "label": "Rohes JSON",
+        "hint": "Bearbeite den Vorlagen-Deskriptor direkt und klicke auf Anwenden, um deine Änderungen zu validieren und zu laden.",
+        "apply": "Anwenden",
+        "valid": "Gültiges JSON",
+        "invalid": "Ungültiges JSON",
+        "dirty": "Nicht angewendete Änderungen",
+        "stateChanged": "Die Vorlage hat sich anderswo geändert — deine Änderungen sind noch hier.",
+        "applied": "Vorlage aus JSON aktualisiert."
       }
     },
     "variables": {

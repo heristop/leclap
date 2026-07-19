@@ -117,6 +117,16 @@
         "label": "Importar / exportar",
         "hint": "Exporta esta plantilla como JSON o importa un descriptor para reemplazar el actual.",
         "importSuccess": "Plantilla importada."
+      },
+      "jsonEditor": {
+        "label": "JSON en bruto",
+        "hint": "Edita el descriptor de la plantilla directamente y pulsa Aplicar para validar y cargar tus cambios.",
+        "apply": "Aplicar",
+        "valid": "JSON válido",
+        "invalid": "JSON no válido",
+        "dirty": "Cambios sin aplicar",
+        "stateChanged": "La plantilla cambió en otro lugar — tus cambios siguen aquí.",
+        "applied": "Plantilla actualizada desde JSON."
       }
     },
     "variables": {

@@ -10,6 +10,7 @@ import { WholeVideoLookGrade } from '../editor/whole-video-look-grade';
 import { GlobalOverlaysField } from '../editor/GlobalOverlaysField';
 import { DefaultTransitionField } from '../editor/default-transition-field';
 import { EditorImportExport } from '../editor/EditorImportExport';
+import { JsonEditorPanel } from '../editor/json-editor-panel';
 import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import {
@@ -151,6 +152,7 @@ export const EditorPanelSwitch = ({
           patch={patch}
         />
         <EditorImportExport state={state} onImport={onImport} />
+        <JsonEditorPanel state={state} onImport={onImport} />
       </div>
     </PanelFrame>
   );

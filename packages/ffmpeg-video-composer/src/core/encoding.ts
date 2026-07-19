@@ -69,6 +69,24 @@ export function buildColorMetadataFilter(): string {
   return 'setparams=range=tv:colorspace=bt709:color_primaries=bt709:color_trc=bt709';
 }
 
+export type QualityTier = 'draft' | 'standard' | 'high';
+
+// 'standard' MUST reproduce the historical hardcoded arguments exactly — it is the default tier and
+// existing callers must see byte-identical commands.
+const SOFTWARE_TIERS: Record<QualityTier, { crf: number; preset: string; bitrate: string }> = {
+  draft: { crf: 30, preset: 'veryfast', bitrate: '6M' },
+  standard: { crf: 23, preset: 'medium', bitrate: '12M' },
+  high: { crf: 18, preset: 'slow', bitrate: '16M' },
+};
+
+const HARDWARE_TIER_BITRATES: Record<QualityTier, string> = { draft: '4M', standard: '8M', high: '12M' };
+const OPENH264_TIER_BITRATES: Record<QualityTier, string> = { draft: '2M', standard: '4M', high: '6M' };
+const MPEG4_TIER_QSCALE: Record<QualityTier, number> = { draft: 8, standard: 4, high: 2 };
+
+function resolveTier(config: ProjectConfig): QualityTier {
+  return config.qualityTier ?? 'standard';
+}
+
 /**
  * Full `-c:v …` args for re-encoded clips. Defaults to the software (libx264-style) settings used
  * by the server/web. When a hardware encoder (h264_mediacodec / h264_videotoolbox on device) is
@@ -77,21 +95,24 @@ export function buildColorMetadataFilter(): string {
  */
 export function buildVideoEncoderArgs(config: ProjectConfig): string {
   const codec = resolveVideoCodec(config);
+  const tier = resolveTier(config);
 
   if (isHardwareCodec(config)) {
-    return `-c:v ${codec} -b:v 8M`;
+    return `-c:v ${codec} -b:v ${HARDWARE_TIER_BITRATES[tier]}`;
   }
 
   // mpeg4 (the on-device LGPL software encoder) takes quality/bitrate, not the libx264-only flags.
   if (codec === 'mpeg4') {
-    return '-c:v mpeg4 -q:v 4';
+    return `-c:v mpeg4 -q:v ${MPEG4_TIER_QSCALE[tier]}`;
   }
 
   // libopenh264 (Cisco's LGPL-OK software H.264, used on-device) — bitrate-based; no libx264 flags.
   // OpenH264 only encodes Constrained Baseline, so no `-profile:v` (main/high is rejected or ignored).
   if (codec === 'libopenh264') {
-    return '-c:v libopenh264 -b:v 4M';
+    return `-c:v libopenh264 -b:v ${OPENH264_TIER_BITRATES[tier]}`;
   }
 
-  return `-c:v ${codec} -crf 23 -tune film -b:v 12M -profile:v high -preset ${config.hardwareConfig?.preset ?? 'medium'}`;
+  const software = SOFTWARE_TIERS[tier];
+
+  return `-c:v ${codec} -crf ${software.crf} -tune film -b:v ${software.bitrate} -profile:v high -preset ${config.hardwareConfig?.preset ?? software.preset}`;
 }

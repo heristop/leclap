@@ -43,6 +43,9 @@ export type ProjectConfig = {
   userVideoPaths?: { [sectionName: string]: string };
   // Skip descriptor validation before compiling (trusted callers only; validation is on by default).
   skipValidation?: boolean;
+  // Named render-quality tier resolved by core/encoding.ts (default 'standard'). Encoder numbers
+  // (crf/preset/bitrate) stay an app concern — templates never carry them.
+  qualityTier?: 'draft' | 'standard' | 'high';
 };
 
 export type MusicConfig = {

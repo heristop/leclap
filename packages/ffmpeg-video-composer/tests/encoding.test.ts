@@ -61,3 +61,50 @@ describe('usesLgplEngine', () => {
     expect(usesLgplEngine(config('h264'))).toBe(false);
   });
 });
+
+describe('quality tiers', () => {
+  const software = (tier?: string) =>
+    ({ codecConfig: { videoCodec: '' }, qualityTier: tier }) as unknown as ProjectConfig;
+
+  it('standard tier (and no tier) reproduce the historical software args', () => {
+    const expected = '-c:v h264 -crf 23 -tune film -b:v 12M -profile:v high -preset medium';
+    expect(buildVideoEncoderArgs(software())).toBe(expected);
+    expect(buildVideoEncoderArgs(software('standard'))).toBe(expected);
+  });
+
+  it('draft and high tiers change crf/preset/bitrate', () => {
+    expect(buildVideoEncoderArgs(software('draft'))).toBe(
+      '-c:v h264 -crf 30 -tune film -b:v 6M -profile:v high -preset veryfast'
+    );
+    expect(buildVideoEncoderArgs(software('high'))).toBe(
+      '-c:v h264 -crf 18 -tune film -b:v 16M -profile:v high -preset slow'
+    );
+  });
+
+  it('an explicit hardwareConfig.preset still wins over the tier preset', () => {
+    const c = {
+      codecConfig: { videoCodec: '' },
+      qualityTier: 'high',
+      hardwareConfig: { preset: 'ultrafast' },
+    } as unknown as ProjectConfig;
+    expect(buildVideoEncoderArgs(c)).toContain('-preset ultrafast');
+  });
+
+  it('tiers scale the hardware and libopenh264 bitrates', () => {
+    const hw = (tier: string) =>
+      ({ codecConfig: { videoCodec: 'h264_videotoolbox' }, qualityTier: tier }) as unknown as ProjectConfig;
+    expect(buildVideoEncoderArgs(hw('draft'))).toBe('-c:v h264_videotoolbox -b:v 4M');
+    expect(buildVideoEncoderArgs(hw('standard'))).toBe('-c:v h264_videotoolbox -b:v 8M');
+    expect(buildVideoEncoderArgs(hw('high'))).toBe('-c:v h264_videotoolbox -b:v 12M');
+
+    const oh264 = (tier: string) =>
+      ({ codecConfig: { videoCodec: 'libopenh264' }, qualityTier: tier }) as unknown as ProjectConfig;
+    expect(buildVideoEncoderArgs(oh264('draft'))).toBe('-c:v libopenh264 -b:v 2M');
+    expect(buildVideoEncoderArgs(oh264('high'))).toBe('-c:v libopenh264 -b:v 6M');
+
+    const mpeg4 = (tier: string) =>
+      ({ codecConfig: { videoCodec: 'mpeg4' }, qualityTier: tier }) as unknown as ProjectConfig;
+    expect(buildVideoEncoderArgs(mpeg4('draft'))).toBe('-c:v mpeg4 -q:v 8');
+    expect(buildVideoEncoderArgs(mpeg4('high'))).toBe('-c:v mpeg4 -q:v 2');
+  });
+});

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { lookToFilters, gradeToFilters } from '@/editor/presets/looks';
 import { LOOK_PRESETS } from '@/schemas/effects.schemas';
 import {
@@ -10,25 +10,10 @@ import {
   applyFilterCompat,
   type EngineCapabilities,
 } from '@/editor/utils/filter-compat';
+import { parseEnabledFilters } from '../scripts/capability-sources';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const commonSh = fs.readFileSync(path.resolve(here, '../../../scripts/ffmpeg/common.sh'), 'utf8');
-
-// The on-device build's explicit filter list is the device source of truth (common.sh: a filter
-// absent from it "fails only on device"). Parse the multi-line --enable-filter= value.
-function parseEnabledFilters(script: string): Set<string> {
-  const match = /--enable-filter=([^ ]+(?:\\\n[^ ]+)*)/.exec(script);
-  expect(match, 'common.sh must contain an --enable-filter list').not.toBeNull();
-
-  const joined = (match as RegExpExecArray)[1].replace(/\\\n/g, '');
-
-  return new Set(
-    joined
-      .split(',')
-      .map((f) => f.trim())
-      .filter(Boolean)
-  );
-}
 
 const lgplCaps: EngineCapabilities = { gpl: false, lut3d: true, colorkey: true, textShaping: false };
 
@@ -49,7 +34,11 @@ function isDeviceSafe(filterType: string, enabled: Set<string>): boolean {
 }
 
 describe('LGPL device filter audit', () => {
-  const enabled = parseEnabledFilters(commonSh);
+  let enabled: Set<string>;
+
+  beforeAll(() => {
+    enabled = parseEnabledFilters(commonSh);
+  });
 
   it('every look preset lowers to device-safe filters', () => {
     for (const look of LOOK_PRESETS) {

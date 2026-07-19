@@ -47,7 +47,7 @@ FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --dis
 drawbox,gblur,noise,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
 lut3d,colorkey,split,setparams,null,rgbashift,edgedetect,\
 atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,sidechaincompress,volume,anull,anullsrc,aevalsrc,color,sine,gradients,\
-atempo,asplit,loudnorm,dynaudnorm \
+atempo,asplit,loudnorm,dynaudnorm,aecho,highpass,lowpass \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"
 
 # Fetch the FFmpeg source once (shallow), cached under .work/.

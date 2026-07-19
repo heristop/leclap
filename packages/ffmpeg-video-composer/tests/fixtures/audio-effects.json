@@ -1,0 +1,24 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "echo_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2, "audioEffect": "echo" }
+    },
+    {
+      "name": "telephone_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2, "audioEffect": "telephone" }
+    },
+    {
+      "name": "muffled_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2, "audioEffect": "muffled" }
+    }
+  ]
+}

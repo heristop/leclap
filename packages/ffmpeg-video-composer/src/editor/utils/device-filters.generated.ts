@@ -4,6 +4,7 @@
 
 export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
   'acrossfade',
+  'aecho',
   'aevalsrc',
   'afade',
   'afftdn',
@@ -33,9 +34,11 @@ export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
   'gblur',
   'gradients',
   'hflip',
+  'highpass',
   'hue',
   'loop',
   'loudnorm',
+  'lowpass',
   'lut3d',
   'lutyuv',
   'negate',

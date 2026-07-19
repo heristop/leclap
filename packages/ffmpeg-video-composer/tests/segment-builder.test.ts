@@ -832,4 +832,58 @@ describe('SegmentBuilder.buildAudioFadeArg', () => {
 
     expect(result).not.toContain('curve');
   });
+
+  it('builds an echo -af arg when audioEffect is set alone', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5, audioEffect: 'echo' },
+    } as never);
+
+    expect(result.trim()).toBe('-af "aecho=0.8:0.7:60:0.4"');
+  });
+
+  it('builds a telephone -af arg (two-filter comma chain) when audioEffect is set alone', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5, audioEffect: 'telephone' },
+    } as never);
+
+    expect(result.trim()).toBe('-af "highpass=f=300,lowpass=f=3400"');
+  });
+
+  it('builds a muffled -af arg when audioEffect is set alone', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5, audioEffect: 'muffled' },
+    } as never);
+
+    expect(result.trim()).toBe('-af "lowpass=f=1200"');
+  });
+
+  it('orders the effect before the fades in the -af chain', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: {
+        duration: 5,
+        audioEffect: 'echo',
+        audioFade: { in: { duration: 0.5 }, out: { duration: 0.5 } },
+      },
+    } as never);
+
+    expect(result.trim()).toBe('-af "aecho=0.8:0.7:60:0.4,afade=t=in:st=0:d=0.5,afade=t=out:st=4.5:d=0.5"');
+  });
+
+  it('emits no effect when the section is muted, even if audioEffect is set', () => {
+    const result = buildWithSection({
+      name: 'clip',
+      type: 'video',
+      options: { duration: 5, muteSection: true, audioEffect: 'echo' },
+    } as never);
+
+    expect(result).toBe('');
+  });
 });

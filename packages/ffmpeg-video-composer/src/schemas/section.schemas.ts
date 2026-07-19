@@ -66,6 +66,10 @@ export const BaseSectionOptionsSchema = z
       })
       .optional()
       .describe('Audio fade-in/out applied to this section.'),
+    audioEffect: z
+      .enum(['echo', 'telephone', 'muffled'])
+      .optional()
+      .describe('Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.'),
     fields: z.array(FieldSchema).optional().describe('Form fields defined for this section (used in form sections).'),
     speed: z
       .number()

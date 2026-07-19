@@ -2665,6 +2665,11 @@
                     },
                     "additionalProperties": false
                   },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
+                  },
                   "fields": {
                     "description": "Form fields defined for this section (used in form sections).",
                     "type": "array",
@@ -4739,6 +4744,11 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
                   },
                   "fields": {
                     "description": "Form fields defined for this section (used in form sections).",
@@ -6856,6 +6866,11 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
                   },
                   "fields": {
                     "description": "List of user-editable text fields rendered in the form.",
@@ -9155,6 +9170,11 @@
                     },
                     "additionalProperties": false
                   },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
+                  },
                   "fields": {
                     "description": "Form fields defined for this section (used in form sections).",
                     "type": "array",
@@ -11385,6 +11405,11 @@
                     },
                     "additionalProperties": false
                   },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
+                  },
                   "fields": {
                     "description": "Form fields defined for this section (used in form sections).",
                     "type": "array",
@@ -13460,6 +13485,11 @@
                     },
                     "additionalProperties": false
                   },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
+                  },
                   "fields": {
                     "description": "Form fields defined for this section (used in form sections).",
                     "type": "array",
@@ -15534,6 +15564,11 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "audioEffect": {
+                    "description": "Voice effect applied to the section audio: echo (aecho), telephone band-pass, or muffled low-pass.",
+                    "type": "string",
+                    "enum": ["echo", "telephone", "muffled"]
                   },
                   "fields": {
                     "description": "Form fields defined for this section (used in form sections).",

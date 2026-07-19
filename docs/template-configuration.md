@@ -137,6 +137,7 @@ Common options (`BaseSectionOptionsSchema`, `strict`) shared by all sections, pl
 | `duration`                                 | `number` (s)                                | Fixed section duration in **seconds**; overrides clip length.                                                                                                                 |
 | `musicVolume`                              | `number` 0..1                               | Per-section music volume override (overrides `global.audio.musicVolume`).                                                                                                     |
 | `audioFade`                                | `{ in?, out? }`                             | Section audio fades (see [Audio](#audio)).                                                                                                                                    |
+| `audioEffect`                              | `'echo' \| 'telephone' \| 'muffled'`        | Voice effect preset applied to the section audio (see [Audio](#audio)).                                                                                                       |
 | `speed`                                    | `number` > 0                                | Playback speed as a PTS multiplier (default 1; `2` = half-speed slow-mo). Needs a `setpts` map node to take effect; audio uses `atempo`, clamped to `[0.5, 2]`.               |
 | `muteSection`                              | `boolean`                                   | Silence the source audio of this section (default `false`).                                                                                                                   |
 | `countdown`                                | `boolean`                                   | Show a countdown overlay before recording (default `false`).                                                                                                                  |
@@ -261,6 +262,14 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 `ducking` as an object: `{ threshold? (0..1, default 0.05), ratio? (1..20, default 8), attack? (ms, default 20), release? (ms, default 400) }`.
 
 **Section audio fades** — `options.audioFade`: `{ in?: { duration, curve? }, out?: { duration, curve? } }`, compiled to `afade`. `duration` is in seconds; `curve` is an FFmpeg afade curve (`tri` default).
+
+**Section audio effect** — `options.audioEffect`: `'echo' | 'telephone' | 'muffled'`, a voice-effect preset appended to the section's `-af` chain **before** any `audioFade` entries (so fades still ramp the already-effected signal in/out). Skipped entirely when the section is muted (`muteSection: true`).
+
+| Value       | Compiles to                     |
+| ----------- | ------------------------------- |
+| `echo`      | `aecho=0.8:0.7:60:0.4`          |
+| `telephone` | `highpass=f=300,lowpass=f=3400` |
+| `muffled`   | `lowpass=f=1200`                |
 
 > `speed` ≠ 1 retimes audio via `atemp`, which is **clamped to `[0.5, 2]`**. Outside that range, video and audio can desync — split into multiple `atemp` stages or avoid extreme speeds.
 

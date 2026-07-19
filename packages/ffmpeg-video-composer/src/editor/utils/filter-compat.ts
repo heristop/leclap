@@ -154,4 +154,10 @@ export const ENGINE_EMITTED_FILTERS = [
   'dynaudnorm',
   'anullsrc',
   'aevalsrc',
+  // section audio effect presets (audio-fade.ts AUDIO_EFFECT_FILTERS: echo/telephone/muffled) —
+  // `telephone` chains highpass,lowpass in one -af value; listed as individual filter names since
+  // this string isn't a FilterManager filter object and so isn't FILTER_COMPAT-routed.
+  'aecho',
+  'highpass',
+  'lowpass',
 ] as const;

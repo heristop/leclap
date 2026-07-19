@@ -225,6 +225,7 @@ export interface SectionOptions {
   duration?: number;
   musicVolume?: number;
   audioFade?: { in?: AudioFade; out?: AudioFade };
+  audioEffect?: 'echo' | 'telephone' | 'muffled';
   fields?: Field[];
   speed?: number;
   muteSection?: boolean;

@@ -7,6 +7,7 @@
 | filter              | node (full build) | browser wasm (full build) | on-device (lgpl allowlist) |
 | ------------------- | ----------------- | ------------------------- | -------------------------- |
 | `acrossfade`        | yes               | yes                       | yes                        |
+| `aecho`             | yes               | yes                       | yes                        |
 | `aevalsrc`          | yes               | yes                       | yes                        |
 | `afade`             | yes               | yes                       | yes                        |
 | `afftdn`            | yes               | yes                       | yes                        |
@@ -34,8 +35,10 @@
 | `gblur`             | yes               | yes                       | yes                        |
 | `gradients`         | yes               | yes                       | yes                        |
 | `hflip`             | yes               | yes                       | yes                        |
+| `highpass`          | yes               | yes                       | yes                        |
 | `hue`               | yes               | yes                       | yes                        |
 | `loudnorm`          | yes               | yes                       | yes                        |
+| `lowpass`           | yes               | yes                       | yes                        |
 | `lut3d`             | yes               | yes                       | yes                        |
 | `lutyuv`            | yes               | yes                       | yes                        |
 | `noise`             | yes               | yes                       | yes                        |
@@ -55,4 +58,4 @@
 | `xfade`             | yes               | yes                       | yes                        |
 | `zoompan`           | yes               | yes                       | yes                        |
 
-Device allowlist size: 59 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and on-device compiles of affected templates fail over to the app's fallback path.
+Device allowlist size: 62 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and on-device compiles of affected templates fail over to the app's fallback path.

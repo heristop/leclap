@@ -103,6 +103,28 @@ export const MotionEffectSchema = z
         .enum(['horizontal', 'vertical'])
         .describe('Axis of the flip: "horizontal" mirrors left-right, "vertical" mirrors top-bottom.'),
     }),
+    z.object({
+      type: z
+        .literal('shake')
+        .describe('Handheld camera shake: the frame jitters via a crop window that wanders over time.'),
+      intensity: z
+        .number()
+        .min(1)
+        .max(20)
+        .optional()
+        .describe('Maximum jitter amplitude in pixels, 1..20 (default 6).'),
+      frequency: z.number().min(0.5).max(8).optional().describe('Wobble speed in Hz, 0.5..8 (default 2).'),
+    }),
+    z.object({
+      type: z.literal('pulse').describe('Rhythmic zoom pulse in and out around the frame centre.'),
+      intensity: z
+        .number()
+        .min(1.01)
+        .max(1.3)
+        .optional()
+        .describe('Peak zoom of each pulse, 1.01..1.3 (default 1.08).'),
+      frequency: z.number().min(0.25).max(4).optional().describe('Pulses per second, 0.25..4 (default 1).'),
+    }),
   ])
   .describe('Motion or geometric effect applied to the section video.');
 

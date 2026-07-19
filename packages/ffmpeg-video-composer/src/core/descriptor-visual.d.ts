@@ -34,7 +34,9 @@ export type MotionEffect =
   | { type: 'kenburns'; direction?: 'in' | 'out' | 'left' | 'right' | 'up' | 'down'; intensity?: number }
   | { type: 'rotate'; angle: number }
   | { type: 'crop'; w: number | string; h: number | string; x?: number | string; y?: number | string }
-  | { type: 'flip'; axis: 'horizontal' | 'vertical' };
+  | { type: 'flip'; axis: 'horizontal' | 'vertical' }
+  | { type: 'shake'; intensity?: number; frequency?: number }
+  | { type: 'pulse'; intensity?: number; frequency?: number };
 
 export interface BackgroundLayer {
   color?: string;

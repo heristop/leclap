@@ -1,6 +1,11 @@
 import type { Filter } from '@/core/types';
-import type { Grade, MotionEffect, BackgroundLayer } from '../../schemas/template.schemas';
+import type { Grade, BackgroundLayer } from '../../schemas/template.schemas';
 import { revealEnableExpr } from './text';
+import { parseScale, motionToFilters } from './motion';
+
+// motionToFilters lives in ./motion (split out to keep this file under the max-lines budget) and is
+// re-exported here so importers keep a single `@/editor/presets/looks` entry point.
+export { motionToFilters };
 
 // ---------------------------------------------------------------------------
 // lookToFilters
@@ -227,174 +232,6 @@ export function letterboxToFilters(
     { type: 'drawbox', values: { x: 0, y: 0, w: 'iw', h: barHeight, c: `${color}@1`, t: 'fill' } },
     { type: 'drawbox', values: { x: 0, y: `ih-${barHeight}`, w: 'iw', h: barHeight, c: `${color}@1`, t: 'fill' } },
   ];
-}
-
-// ---------------------------------------------------------------------------
-// motionToFilters
-// ---------------------------------------------------------------------------
-
-type MotionContext = {
-  duration: number;
-  /** Scale as 'W:H', e.g. '1280:720' (from default.config.ts / videoConfig.scale). */
-  scale: string;
-  fps: number;
-  /**
-   * True for real footage (project_video/video). zoompan must then advance one output frame per
-   * input frame (`d=1`) so it never time-stretches the clip; stills (undefined/false) synthesize
-   * `frames` output frames from the single input frame (`d=frames`). `duration` should be the
-   * clip's real (probed) length for video so the zoom/pan curve completes across the footage.
-   */
-  isVideo?: boolean;
-};
-
-/**
- * Parses a 'W:H' scale string into numeric width and height.
- * Falls back to 1280x720 if the string is malformed.
- */
-export function parseScale(scale: string): { w: number; h: number } {
-  const parts = scale.split(':');
-  const w = parseInt(parts[0] ?? '1280', 10);
-  const h = parseInt(parts[1] ?? '720', 10);
-
-  return { w: isNaN(w) ? 1280 : w, h: isNaN(h) ? 720 : h };
-}
-
-type KenBurnsEffect = Extract<MotionEffect, { type: 'kenburns' }>;
-type RotateEffect = Extract<MotionEffect, { type: 'rotate' }>;
-type CropEffect = Extract<MotionEffect, { type: 'crop' }>;
-type FlipEffect = Extract<MotionEffect, { type: 'flip' }>;
-
-type KenBurnsExpressions = {
-  z: string;
-  x: string;
-  y: string;
-};
-
-/**
- * Builds Ken Burns zoompan filters.
- * Convention: "left" means the camera pans left-to-right across the image
- * (i.e., x offset increases over time), so the viewer sees the image drift left.
- * "right" is the reverse. "up" increases y offset so the viewer sees the image
- * drift upward. "down" is the reverse.
- *
- * Two filters are emitted per kenburns effect:
- * (a) a pre-upscale to 2*W:-2 to reduce zoompan jitter
- * (b) the zoompan filter
- */
-function kenburnsToFilters(effect: KenBurnsEffect, ctx: MotionContext): Filter[] {
-  const { w, h } = parseScale(ctx.scale);
-  const frames = Math.round(ctx.duration * ctx.fps);
-  const intensity = effect.intensity ?? 1.15;
-  const direction = effect.direction ?? 'in';
-  const sizeStr = `${w}x${h}`;
-
-  // Pre-upscale to reduce zoompan jitter while bounding memory usage
-  const preUpscale: Filter = { type: 'scale', value: `${w * 2}:-2` };
-
-  const step = parseFloat(((intensity - 1) / frames).toFixed(6));
-  // Stills synthesize `frames` output frames from one input frame; video must advance one output
-  // per input frame (d=1) or zoompan slow-motions the clip. `frames` still scales the zoom/pan
-  // curve (step, on/frames) across the clip's real length in both cases.
-  const d = ctx.isVideo ? 1 : frames;
-  const baseZoompanSuffix = `:d=${d}:s=${sizeStr}:fps=${ctx.fps}`;
-  const centerX = `iw/2-(iw/zoom/2)`;
-  const centerY = `ih/2-(ih/zoom/2)`;
-
-  const DIRECTION_EXPRS: Record<string, KenBurnsExpressions> = {
-    in: {
-      z: `min(zoom+${step},${intensity})`,
-      x: centerX,
-      y: centerY,
-    },
-    out: {
-      z: `if(eq(on,1),${intensity},max(zoom-${step},1.0))`,
-      x: centerX,
-      y: centerY,
-    },
-    left: {
-      z: `${intensity}`,
-      x: `(iw-iw/zoom)*(on/${frames})`,
-      y: centerY,
-    },
-    right: {
-      z: `${intensity}`,
-      x: `(iw-iw/zoom)*(1-on/${frames})`,
-      y: centerY,
-    },
-    up: {
-      z: `${intensity}`,
-      x: centerX,
-      // y increases: viewer sees image drift upward
-      y: `(ih-ih/zoom)*(on/${frames})`,
-    },
-    down: {
-      z: `${intensity}`,
-      x: centerX,
-      // y decreases: viewer sees image drift downward
-      y: `(ih-ih/zoom)*(1-on/${frames})`,
-    },
-  };
-
-  const exprs = DIRECTION_EXPRS[direction] ?? DIRECTION_EXPRS.in;
-
-  const zp: Filter = {
-    type: 'zoompan',
-    value: `z='${exprs.z}':x='${exprs.x}':y='${exprs.y}'${baseZoompanSuffix}`,
-  };
-
-  if (ctx.isVideo) {
-    // Conform to the target fps BEFORE zoompan so d=1 maps frames 1:1 without retiming the clip:
-    // a 25fps source fed straight into a 30fps d=1 zoompan replays its frames 1:1 at 30fps and runs
-    // ~20% fast (9.1s → 7.6s). The fps filter resamples to CFR 30 first, preserving real time.
-    return [{ type: 'fps', value: `${ctx.fps}` }, preUpscale, zp];
-  }
-
-  return [preUpscale, zp];
-}
-
-function rotateToFilters(effect: RotateEffect): Filter[] {
-  return [{ type: 'rotate', value: `${effect.angle}*PI/180:c=black` }];
-}
-
-function cropToFilters(effect: CropEffect): Filter[] {
-  const x = effect.x ?? '(iw-ow)/2';
-  const y = effect.y ?? '(ih-oh)/2';
-
-  return [{ type: 'crop', value: `${effect.w}:${effect.h}:${x}:${y}` }];
-}
-
-function flipToFilters(effect: FlipEffect): Filter[] {
-  if (effect.axis === 'horizontal') {
-    return [{ type: 'hflip' }];
-  }
-
-  return [{ type: 'vflip' }];
-}
-
-const MOTION_HANDLERS: Record<string, (effect: MotionEffect, ctx: MotionContext) => Filter[]> = {
-  kenburns: (effect, ctx) => kenburnsToFilters(effect as KenBurnsEffect, ctx),
-  rotate: (effect) => rotateToFilters(effect as RotateEffect),
-  crop: (effect) => cropToFilters(effect as CropEffect),
-  flip: (effect) => flipToFilters(effect as FlipEffect),
-};
-
-/**
- * Translates an array of MotionEffect descriptors into an array of Filter objects.
- * Multiple effects are concatenated in array order.
- * Returns [] for undefined or empty motion array.
- */
-export function motionToFilters(motion: MotionEffect[] | undefined, ctx: MotionContext): Filter[] {
-  if (!motion || motion.length === 0) {
-    return [];
-  }
-
-  const filters: Filter[] = [];
-
-  for (const effect of motion) {
-    filters.push(...MOTION_HANDLERS[effect.type](effect, ctx));
-  }
-
-  return filters;
 }
 
 // ---------------------------------------------------------------------------

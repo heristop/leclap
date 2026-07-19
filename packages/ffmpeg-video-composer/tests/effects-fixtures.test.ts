@@ -29,6 +29,7 @@ const FIXTURES = [
   'effects-overlay-motion',
   'grade-colorbalance',
   'motion-geometry',
+  'motion-shake-pulse',
   'ducking',
   'sample',
 ];

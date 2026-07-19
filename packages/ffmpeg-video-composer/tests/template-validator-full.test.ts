@@ -556,6 +556,21 @@ describe('TemplateValidator – validateMotion', () => {
     expect(result.success).toBe(true);
   });
 
+  // shake/pulse crop/zoompan a generated frame in place — unlike kenburns they don't need real
+  // footage or a still to pan across, so (like rotate/crop/flip) they carry no section-type
+  // restriction: allowed on color_background as much as on video/image_background.
+  it('allows shake and pulse motion effects on any section type, including color_background', () => {
+    const result = validator.validateTemplate({
+      sections: [
+        { name: 'a', type: 'video', motion: [{ type: 'shake', intensity: 6, frequency: 2 }] },
+        { name: 'b', type: 'color_background', motion: [{ type: 'shake' }] },
+        { name: 'c', type: 'image_background', motion: [{ type: 'pulse', intensity: 1.08, frequency: 1 }] },
+        { name: 'd', type: 'color_background', motion: [{ type: 'pulse' }] },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('flags each section with kenburns on an unsupported (non-video, non-image) type', () => {
     const result = validator.validateTemplate({
       sections: [

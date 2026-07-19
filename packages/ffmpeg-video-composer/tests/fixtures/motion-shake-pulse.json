@@ -1,0 +1,21 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "shake_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "motion": [{ "type": "shake", "intensity": 8, "frequency": 3 }]
+    },
+    {
+      "name": "pulse_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2 },
+      "motion": [{ "type": "pulse", "intensity": 1.1, "frequency": 1.5 }]
+    }
+  ]
+}

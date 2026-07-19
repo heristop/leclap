@@ -37,11 +37,17 @@ const DIRECTIONS: Array<{ value: Direction; icon: ComponentType<{ className?: st
   { value: 'down', icon: ArrowDownIcon, titleKey: 'motion.panDown' },
 ];
 
+// NOTE: shake/pulse (effects-pack Task 3) are not yet selectable via MOTION_KINDS — this panel stays a
+// single-effect MVP over the original four types. The two entries below only exist to satisfy the
+// exhaustive Record<MotionKind, string> now that the schema's MotionEffect union grew; full shake/pulse
+// controls (label, per-type fields, preview) are Task 5 (builder exposure).
 const KIND_LABEL_KEY: Record<MotionKind, string> = {
   kenburns: 'motion.kindKenburns',
   rotate: 'motion.kindRotate',
   flip: 'motion.kindFlip',
   crop: 'motion.kindCrop',
+  shake: 'motion.kindShake',
+  pulse: 'motion.kindPulse',
 };
 
 interface MotionPanelProps {
@@ -169,34 +175,41 @@ const EffectControls = ({
     );
   }
 
-  return (
-    <>
-      <RangeSlider
-        label={t('motion.cropWidth')}
-        value={cropPercent(effect.w)}
-        min={10}
-        max={100}
-        step={5}
-        format={(v) => `${v}%`}
-        resetTo={100}
-        onChange={(percent) => {
-          onChange({ ...effect, w: cropExpr('iw', percent) });
-        }}
-      />
-      <RangeSlider
-        label={t('motion.cropHeight')}
-        value={cropPercent(effect.h)}
-        min={10}
-        max={100}
-        step={5}
-        format={(v) => `${v}%`}
-        resetTo={100}
-        onChange={(percent) => {
-          onChange({ ...effect, h: cropExpr('ih', percent) });
-        }}
-      />
-    </>
-  );
+  if (effect.type === 'crop') {
+    return (
+      <>
+        <RangeSlider
+          label={t('motion.cropWidth')}
+          value={cropPercent(effect.w)}
+          min={10}
+          max={100}
+          step={5}
+          format={(v) => `${v}%`}
+          resetTo={100}
+          onChange={(percent) => {
+            onChange({ ...effect, w: cropExpr('iw', percent) });
+          }}
+        />
+        <RangeSlider
+          label={t('motion.cropHeight')}
+          value={cropPercent(effect.h)}
+          min={10}
+          max={100}
+          step={5}
+          format={(v) => `${v}%`}
+          resetTo={100}
+          onChange={(percent) => {
+            onChange({ ...effect, h: cropExpr('ih', percent) });
+          }}
+        />
+      </>
+    );
+  }
+
+  // shake/pulse have no per-type controls yet — MOTION_KINDS doesn't offer them as a pick, so this
+  // is unreachable via the UI today; kept as a safe fallback rather than an exhaustive-switch throw.
+  // See Task 5 (builder exposure) for the shake/pulse control surface.
+  return null;
 };
 
 const ToggleRow = ({ enabled, t, onToggle }: { enabled: boolean; t: TFunction<'admin'>; onToggle: () => void }) => {

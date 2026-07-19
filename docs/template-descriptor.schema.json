@@ -2467,6 +2467,54 @@
                       },
                       "required": ["type", "axis"],
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
                     }
                   ],
                   "description": "Motion or geometric effect applied to the section video."
@@ -4493,6 +4541,54 @@
                         }
                       },
                       "required": ["type", "axis"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
                       "additionalProperties": false
                     }
                   ],
@@ -6563,6 +6659,54 @@
                       },
                       "required": ["type", "axis"],
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
                     }
                   ],
                   "description": "Motion or geometric effect applied to the section video."
@@ -8589,6 +8733,54 @@
                         }
                       },
                       "required": ["type", "axis"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
                       "additionalProperties": false
                     }
                   ],
@@ -10995,6 +11187,54 @@
                       },
                       "required": ["type", "axis"],
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
                     }
                   ],
                   "description": "Motion or geometric effect applied to the section video."
@@ -13022,6 +13262,54 @@
                       },
                       "required": ["type", "axis"],
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
                     }
                   ],
                   "description": "Motion or geometric effect applied to the section video."
@@ -15048,6 +15336,54 @@
                         }
                       },
                       "required": ["type", "axis"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "shake",
+                          "description": "Handheld camera shake: the frame jitters via a crop window that wanders over time."
+                        },
+                        "intensity": {
+                          "description": "Maximum jitter amplitude in pixels, 1..20 (default 6).",
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 20
+                        },
+                        "frequency": {
+                          "description": "Wobble speed in Hz, 0.5..8 (default 2).",
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 8
+                        }
+                      },
+                      "required": ["type"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "pulse",
+                          "description": "Rhythmic zoom pulse in and out around the frame centre."
+                        },
+                        "intensity": {
+                          "description": "Peak zoom of each pulse, 1.01..1.3 (default 1.08).",
+                          "type": "number",
+                          "minimum": 1.01,
+                          "maximum": 1.3
+                        },
+                        "frequency": {
+                          "description": "Pulses per second, 0.25..4 (default 1).",
+                          "type": "number",
+                          "minimum": 0.25,
+                          "maximum": 4
+                        }
+                      },
+                      "required": ["type"],
                       "additionalProperties": false
                     }
                   ],

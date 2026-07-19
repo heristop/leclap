@@ -233,15 +233,19 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
   { "type": "rotate", "angle": 5 },
   { "type": "crop", "w": 1280, "h": 720, "x": 0, "y": 0 },
   { "type": "flip", "axis": "horizontal" },
+  { "type": "shake", "intensity": 6, "frequency": 2 },
+  { "type": "pulse", "intensity": 1.08, "frequency": 1 },
 ]
 ```
 
-| `type`     | Fields                                                                                     | Notes                                              |
-| ---------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| `kenburns` | `direction?` (`in`/`out`/`left`/`right`/`up`/`down`), `intensity?` (1.01..2, default 1.15) | `zoompan` on stills — **`image_background` only**. |
-| `rotate`   | `angle` (degrees, + = clockwise)                                                           | `rotate`.                                          |
-| `crop`     | `w`, `h` (required), `x?`, `y?` (px or FFmpeg expression)                                  | `crop`; default offset centres the crop.           |
-| `flip`     | `axis` (`horizontal` / `vertical`)                                                         | `hflip` / `vflip`.                                 |
+| `type`     | Fields                                                                                           | Notes                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kenburns` | `direction?` (`in`/`out`/`left`/`right`/`up`/`down`), `intensity?` (1.01..2, default 1.15)       | `zoompan` on stills — **`image_background` only**.                                                                                                        |
+| `rotate`   | `angle` (degrees, + = clockwise)                                                                 | `rotate`.                                                                                                                                                 |
+| `crop`     | `w`, `h` (required), `x?`, `y?` (px or FFmpeg expression)                                        | `crop`; default offset centres the crop.                                                                                                                  |
+| `flip`     | `axis` (`horizontal` / `vertical`)                                                               | `hflip` / `vflip`.                                                                                                                                        |
+| `shake`    | `intensity?` (jitter amplitude px, 1..20, default 6), `frequency?` (Hz, 0.5..8, default 2)       | Handheld shake: a wandering `crop` window, scaled back to the section's output size so it never shrinks the frame. No section-type restriction.           |
+| `pulse`    | `intensity?` (peak zoom, 1.01..1.3, default 1.08), `frequency?` (pulses/sec, 0.25..4, default 1) | Rhythmic `zoompan` zoom in/out around the frame centre, mirroring `kenburns`'s still-vs-video (`d=frames` / `d=1`) handling. No section-type restriction. |
 
 ## Audio
 

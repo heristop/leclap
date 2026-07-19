@@ -460,6 +460,84 @@ describe('motionToFilters', () => {
     });
   });
 
+  // shake: a crop window that wanders over time (handheld jitter), then scaled back to ctx.scale.
+  // The trailing scale is the geometry-uniformity invariant — crop alone shrinks the frame, and a
+  // downstream concat/xfade needs every section's output at the same WxH, so shake must restore it.
+  describe('shake', () => {
+    it('emits crop (default intensity=6, frequency=2) then scale back to ctx.scale', () => {
+      const filters = motionToFilters([{ type: 'shake' }], CTX_6S);
+      expect(filters).toEqual<Filter[]>([
+        { type: 'crop', value: 'iw-12:ih-12:6+6*sin(t*2*2*PI):6+6*cos(t*2*1.7*PI)' },
+        { type: 'scale', value: '1280:720' },
+      ]);
+    });
+
+    it('honours explicit intensity and frequency', () => {
+      const filters = motionToFilters([{ type: 'shake', intensity: 10, frequency: 4 }], CTX_6S);
+      expect(filters[0]).toEqual<Filter>({
+        type: 'crop',
+        value: 'iw-20:ih-20:10+10*sin(t*4*2*PI):10+10*cos(t*4*1.7*PI)',
+      });
+    });
+
+    it('geometry-uniformity invariant: the trailing scale always restores ctx.scale', () => {
+      const narrowCtx = { duration: 6, scale: '720:1280', fps: 30 };
+      const filters = motionToFilters([{ type: 'shake', intensity: 3 }], narrowCtx);
+      expect(filters).toHaveLength(2);
+      expect(filters[1]).toEqual<Filter>({ type: 'scale', value: '720:1280' });
+    });
+  });
+
+  // pulse: rhythmic zoompan oscillation around the frame centre, mirroring kenburnsToFilters's
+  // pre-upscale + isVideo (d=1 vs d=frames) handling. The zoompan `s=` param already outputs at
+  // ctx.scale, so — unlike shake — no separate trailing scale filter is required.
+  describe('pulse', () => {
+    it('emits pre-upscale + zoompan with default intensity=1.08, frequency=1 (still: d=frames)', () => {
+      const filters = motionToFilters([{ type: 'pulse' }], CTX_6S);
+      expect(filters).toHaveLength(2);
+
+      const [upscale, zp] = filters;
+      expect(upscale).toEqual<Filter>({ type: 'scale', value: '2560:-2' });
+
+      expect(zp.type).toBe('zoompan');
+      const val = String(zp.value);
+      expect(val).toContain("z='1+0.080*0.5*(1+sin(2*PI*1*on/30))'");
+      expect(val).toContain("x='iw/2-(iw/zoom/2)'");
+      expect(val).toContain("y='ih/2-(ih/zoom/2)'");
+      expect(val).toContain(':d=180:s=1280x720:fps=30');
+    });
+
+    it('honours explicit intensity and frequency', () => {
+      const filters = motionToFilters([{ type: 'pulse', intensity: 1.2, frequency: 0.5 }], CTX_6S);
+      const zp = filters[1];
+      expect(String(zp.value)).toContain("z='1+0.200*0.5*(1+sin(2*PI*0.5*on/30))'");
+    });
+
+    describe('on video (isVideo → d=1)', () => {
+      const CTX_VIDEO = { duration: 9, scale: '1280:720', fps: 30, isVideo: true }; // frames = 270
+
+      it('conforms fps, then pre-upscales, then a d=1 zoompan', () => {
+        const filters = motionToFilters([{ type: 'pulse' }], CTX_VIDEO);
+        expect(filters).toHaveLength(3);
+
+        expect(filters[0]).toEqual<Filter>({ type: 'fps', value: '30' });
+        expect(filters[1]).toEqual<Filter>({ type: 'scale', value: '2560:-2' });
+
+        const zp = filters[2];
+        const val = String(zp.value);
+        expect(val).toContain("z='1+0.080*0.5*(1+sin(2*PI*1*on/30))'");
+        expect(val).toContain(':d=1:s=1280x720:fps=30');
+        expect(val).not.toContain(':d=270:');
+      });
+
+      it('stills are unaffected: the same effect without isVideo keeps d=frames', () => {
+        const stillCtx = { duration: 9, scale: '1280:720', fps: 30 };
+        const val = String(motionToFilters([{ type: 'pulse' }], stillCtx)[1].value);
+        expect(val).toContain(':d=270:');
+      });
+    });
+  });
+
   it('concatenates multiple effects in order', () => {
     const motion: MotionEffect[] = [
       { type: 'flip', axis: 'horizontal' },

@@ -1,24 +1,21 @@
 // Pure transforms that turn the engine's exported JSON Schema into readable field
 // rows. Keeping these out of the React tree makes them unit-testable and keeps the
-// docs page in lock-step with the schema (no hand-maintained field lists).
+// docs page in lock-step with the schema (no hand-maintained field lists). The generic
+// walker primitives (JsonSchemaNode, prop, collectEnum, mergeVariants, sectionVariants,
+// sectionProperty, optionProperty) live in creative-kit, shared with the builder's
+// control-metadata registry; only the docs-page-specific formatting stays here.
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
+import {
+  type JsonSchemaNode,
+  prop,
+  collectEnum,
+  mergeVariants,
+  sectionVariants as sharedSectionVariants,
+  sectionProperty as sharedSectionProperty,
+  optionProperty as sharedOptionProperty,
+} from '@leclap/creative-kit/editor';
 
-// The JSON Schema is structurally typed (zod's z.toJSONSchema output). We only read
-// a handful of keywords, so a narrow shape keeps the walker honest without `any`.
-export interface JsonSchemaNode {
-  type?: string | string[];
-  description?: string;
-  properties?: Record<string, JsonSchemaNode>;
-  required?: string[];
-  items?: JsonSchemaNode;
-  enum?: Array<string | number>;
-  const?: string | number | boolean;
-  anyOf?: JsonSchemaNode[];
-  oneOf?: JsonSchemaNode[];
-  minimum?: number;
-  maximum?: number;
-  default?: unknown;
-}
+export type { JsonSchemaNode };
 
 export interface FieldRow {
   name: string;
@@ -30,13 +27,6 @@ export interface FieldRow {
 }
 
 const schema = templateDescriptorJsonSchema as unknown as JsonSchemaNode;
-
-// A single nullable property lookup. Routing every nested access through this keeps
-// the walker honest against the schema's optionality (and lint-clean — the helper's
-// return type, not the cast's inferred shape, drives narrowing).
-function prop(node: JsonSchemaNode | undefined, key: string): JsonSchemaNode | undefined {
-  return node?.properties?.[key];
-}
 
 // A compact, human type label for one node: collapses anyOf/oneOf unions, names
 // arrays by their item type, and surfaces a literal const.
@@ -82,24 +72,6 @@ export function constraintsLabel(node: JsonSchemaNode): string {
   return parts.join(' · ');
 }
 
-// Pull enum values out of a node or its union variants (transition.type is an anyOf
-// of an enum + a "cut" const, so we flatten both).
-function variantEnum(node: JsonSchemaNode): Array<string | number> {
-  if (node.enum) return node.enum;
-
-  if (node.const !== undefined) return [node.const as string | number];
-
-  return [];
-}
-
-function collectEnum(node: JsonSchemaNode): Array<string | number> {
-  if (node.enum) return node.enum;
-
-  const variants = node.anyOf ?? node.oneOf ?? [];
-
-  return variants.flatMap(variantEnum);
-}
-
 // Turn an object node's `properties` into ordered, readable field rows.
 export function fieldRows(node: JsonSchemaNode | undefined): FieldRow[] {
   if (!node?.properties) return [];
@@ -115,12 +87,11 @@ export function fieldRows(node: JsonSchemaNode | undefined): FieldRow[] {
   }));
 }
 
-// The canonical section variant — every oneOf member shares the same base fields, so
-// the first one stands in for "a section". Its `options` differ per type, hence the
-// union below.
-function sectionVariants(): JsonSchemaNode[] {
-  return prop(schema, 'sections')?.items?.oneOf ?? [];
-}
+// Thin bindings of the shared walker primitives to this module's schema, so the rest of the file
+// reads exactly as it did before extraction.
+const sectionVariants = (): JsonSchemaNode[] => sharedSectionVariants(schema);
+const sectionProperty = (key: string): JsonSchemaNode | undefined => sharedSectionProperty(schema, key);
+const optionProperty = (key: string): JsonSchemaNode | undefined => sharedOptionProperty(schema, key);
 
 // Union the `options` properties across every section type so the docs show the full
 // surface (e.g. `layers` lives on color_background, `framingGuide` on project_video).
@@ -136,40 +107,6 @@ function unionOptions(): JsonSchemaNode {
   }
 
   return { type: 'object', properties: merged };
-}
-
-// Merge a node's union variants (anyOf/oneOf) into a single object so a discriminated union — e.g.
-// MotionEffect's kenburns | rotate | crop | flip — renders as one combined table. A plain object
-// passes through unchanged.
-function mergeVariants(node: JsonSchemaNode | undefined): JsonSchemaNode | undefined {
-  const variants = node?.anyOf ?? node?.oneOf;
-
-  if (!node || !variants) return node;
-
-  const merged: Record<string, JsonSchemaNode> = {};
-
-  for (const variant of variants) {
-    for (const [key, value] of Object.entries(variant.properties ?? {})) {
-      merged[key] ??= value;
-    }
-  }
-
-  return { type: 'object', properties: merged };
-}
-
-// Reach into a nested effect node by walking section → properties → key.
-function sectionProperty(key: string): JsonSchemaNode | undefined {
-  return prop(sectionVariants()[0], key);
-}
-
-function optionProperty(key: string): JsonSchemaNode | undefined {
-  for (const variant of sectionVariants()) {
-    const found = prop(prop(variant, 'options'), key);
-
-    if (found) return found;
-  }
-
-  return undefined;
 }
 
 // ── Granular accessors for the multi-page docs ──────────────────────────────────

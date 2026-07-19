@@ -7,3 +7,8 @@ export * from './templateEditorModel';
 export * from './speed-rate';
 export * from './capture-modes';
 export * from './overlay-flip';
+
+// Generic JSON-schema walker primitives (web docs + control-metadata both build on these) and the
+// schema-derived control-metadata registry for the six parity features.
+export * from './schema-walk';
+export * from './control-metadata';

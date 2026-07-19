@@ -34,13 +34,16 @@ class TemplateConcreteBuilder {
    * mutates the shared `Segment` DI singleton — while render() runs statelessly and may be pooled.
    */
   build = async (section: Section, projectConfig: ProjectConfig): Promise<{ segment: SegmentBuilder; ok: boolean }> => {
-    const segment = new SegmentFactory(projectConfig).create(section);
+    // Builders mutate section.filters in place (sugar staging, scale prepend); build from a local
+    // copy so that mutation can never reach the shared descriptor, whoever the caller is.
+    const localSection = structuredClone(section);
+    const segment = new SegmentFactory(projectConfig).create(localSection);
 
-    if (section.type === 'project_video') {
+    if (localSection.type === 'project_video') {
       segment.getProject().config = projectConfig;
     }
 
-    this.logger.info(`[${section.name}][BuildPart] init`);
+    this.logger.info(`[${localSection.name}][BuildPart] init`);
 
     const ok = await segment.init();
 

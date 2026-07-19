@@ -8,7 +8,7 @@ import { eqValueToLutyuv } from '../presets/looks';
  * Compatibility rules below key off these flags instead of branching on the codec ad hoc.
  */
 export type EngineCapabilities = {
-  /** GPL filters available (eq, vignette, geq, …). False on the on-device LGPL engine. */
+  /** GPL filters available (eq, boxblur, …). False on the on-device LGPL engine. */
   gpl: boolean;
   /** `lut3d` colour-LUT filter available (a standard LGPL filter; present on every normal build). */
   lut3d: boolean;
@@ -69,3 +69,69 @@ export function applyFilterCompat(filter: Filter, caps: EngineCapabilities): Fil
 
   return resolved;
 }
+
+/**
+ * Every filter name the engine itself can write into a command, beyond the section's authored
+ * filters: sugar lowering (looks/grade/motion/captions/text blocks), the map/overlay graphs,
+ * scaling, colour metadata and the assembly/audio passes. The LGPL audit test
+ * (tests/lgpl-filter-audit.test.ts) cross-checks this inventory against the on-device build's
+ * --enable-filter list; extend it whenever a preset or manager starts emitting a new filter.
+ */
+export const ENGINE_EMITTED_FILTERS = [
+  // scaling / framing (SegmentBuilder.prependScaleFilters, input-sources.ts scale/pad chains, layersToFilters)
+  'scale',
+  'crop',
+  'pad',
+  'setsar',
+  'drawbox',
+  // text & reveals (captions.ts, text-blocks.ts, text-blocks-helpers.ts, FilterManager fade shortcuts,
+  // input-sources.ts overlay entrance)
+  'drawtext',
+  'fade',
+  // looks / grade (looks.ts LOOK_TABLE + gradeToFilters, post-compat): `eq` is GPL-only and gets
+  // rewritten to `lutyuv` under the LGPL engine (see FILTER_COMPAT below)
+  'eq',
+  'lutyuv',
+  'hue',
+  'colorbalance',
+  'gblur',
+  'curves',
+  'lut3d',
+  // motion (MOTION_HANDLERS in looks.ts) + gradient/animation overlay opacity fade
+  'zoompan',
+  'rotate',
+  'hflip',
+  'vflip',
+  'fps',
+  'colorchannelmixer',
+  // maps / overlays / chroma key (MapManager), gradient lavfi source (input-sources.ts), speed
+  // (FormatterManager's setpts, authored via section.filters)
+  'overlay',
+  'split',
+  'colorkey',
+  'gradients',
+  'setpts',
+  // colour metadata (core/encoding.ts buildColorMetadataFilter, appended as every segment's final node)
+  'setparams',
+  // assembly & audio (transition-graph.ts, MusicComposer, audio-fade.ts): atempo is FormatterManager's
+  // audio counterpart to setpts (authored via section.filters); asplit/sidechaincompress/amix drive the
+  // ducking mix; loudnorm/dynaudnorm the normalize pass; afftdn the noise-reduction pass
+  'xfade',
+  'acrossfade',
+  'format',
+  'color',
+  'atrim',
+  'asetpts',
+  'atempo',
+  'afade',
+  'volume',
+  'aformat',
+  'amix',
+  'asplit',
+  'sidechaincompress',
+  'afftdn',
+  'loudnorm',
+  'dynaudnorm',
+  'anullsrc',
+  'aevalsrc',
+] as const;

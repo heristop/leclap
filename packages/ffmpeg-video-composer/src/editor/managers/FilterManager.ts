@@ -3,6 +3,7 @@ import type Template from '../../core/models/Template';
 import type Segment from '../../core/models/Segment';
 import type Project from '../../core/models/Project';
 import type { Filter } from '@/core/types';
+import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
 import { applyAnimation } from '../presets/text';
 import type FormatterManager from './FormatterManager';
@@ -13,7 +14,8 @@ class FilterManager {
     @inject('template') private readonly template: Template,
     @inject('FormattersManager') protected readonly formattersManager: FormatterManager,
     @inject('segment') public segment: Segment,
-    @inject('project') private readonly project: Project
+    @inject('project') private readonly project: Project,
+    @inject('logger') private readonly logger: AbstractLogger
   ) {}
 
   addFilter = (filter: Filter): string => {
@@ -30,8 +32,17 @@ class FilterManager {
     resolvedFilter = this.bakeTextAnimation(resolvedFilter);
 
     // Platform filter-compat: rewrite filters the active engine can't run (e.g. the on-device LGPL
-    // engine lacks GPL `eq` → lutyuv). A null result would mean "drop", which no current rule does.
-    resolvedFilter = applyFilterCompat(resolvedFilter, engineCapabilities(this.project.config)) ?? resolvedFilter;
+    // engine lacks GPL `eq` → lutyuv). A null result means the filter has no equivalent here: degrade
+    // to the no-op `null` filter and warn, rather than emitting a filter the engine will die on.
+    const compat = applyFilterCompat(resolvedFilter, engineCapabilities(this.project.config));
+
+    if (compat === null) {
+      this.logger.warn(`[FilterCompat] dropped unavailable filter "${resolvedFilter.type}"`);
+
+      return 'null';
+    }
+
+    resolvedFilter = compat;
 
     if (resolvedFilter.value) {
       return this.formattersManager.formatMultipleTypesValue(resolvedFilter);

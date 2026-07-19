@@ -23,7 +23,12 @@ DIST_DIR="$REPO_ROOT/scripts/ffmpeg/dist"
 # padding) and `gradients` (gradient background layers) — all LGPL (no `_deps` in configure), so each
 # must be in the --enable-filter list or the render fails only on device. `boxblur` is deliberately
 # absent: boxblur_filter_deps="gpl" (configure:3926), so under --disable-gpl configure silently drops
-# it — listing it was dead config; blur on device is `gblur`.
+# it — listing it was dead config; blur on device is `gblur`. `lut3d`/`colorkey`/`split` (LUT looks,
+# chroma key), `setparams` (colour-metadata tagging on every segment) and `atempo`/`asplit`/`loudnorm`/
+# `dynaudnorm` (speed audio, ducking mix, normalize) are guarded the same way by
+# tests/lgpl-filter-audit.test.ts, which cross-checks every filter the engine can emit against this
+# list (or a FILTER_COMPAT rewrite/drop) — extend both together when a preset or manager starts
+# emitting a new filter.
 FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --disable-gpl \
  --disable-ffplay --disable-doc --disable-autodetect \
  --enable-zlib \
@@ -37,7 +42,9 @@ FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --dis
  --enable-encoder=aac,mpeg4,libopenh264 \
  --enable-filter=scale,crop,pad,setsar,setdar,format,fps,trim,setpts,settb,fade,drawtext,overlay,concat,xfade,loop,tile,\
 drawbox,gblur,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
-atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,sidechaincompress,volume,anull,anullsrc,aevalsrc,color,sine,gradients \
+lut3d,colorkey,split,setparams,\
+atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,sidechaincompress,volume,anull,anullsrc,aevalsrc,color,sine,gradients,\
+atempo,asplit,loudnorm,dynaudnorm \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"
 
 # Fetch the FFmpeg source once (shallow), cached under .work/.

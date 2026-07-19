@@ -4,6 +4,7 @@ import FormatterManager from '@/editor/managers/FormatterManager';
 import FilterManager from '@/editor/managers/FilterManager';
 import MapManager from '@/editor/managers/MapManager';
 import VariableManager from '@/editor/managers/VariableManager';
+import * as filterCompat from '@/editor/utils/filter-compat';
 import type { Filter, Map as FilterMap, MapAnimationInput, Section } from '@/core/types';
 
 // ---------------------------------------------------------------------------
@@ -568,9 +569,16 @@ describe('FilterManager', () => {
       formatMultipleTypesValues: vi.fn((f: Filter) => `multi:${f.type}`),
     };
     const project = { config: { codecConfig: { videoCodec: opts.videoCodec ?? 'h264' } } };
-    const manager = new FilterManager(template as any, formatters as any, segment as any, project as any);
+    const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const manager = new FilterManager(
+      template as any,
+      formatters as any,
+      segment as any,
+      project as any,
+      logger as any
+    );
 
-    return { manager, formatters, segment };
+    return { manager, formatters, segment, logger };
   }
 
   it('delegates single-value filters to formatMultipleTypesValue', () => {
@@ -592,6 +600,18 @@ describe('FilterManager', () => {
     expect(out).toContain('single:lutyuv=');
     expect(out).toContain("u='clip((val-128)*1.2+128,0,255)'");
     expect(out).not.toContain('eq=');
+  });
+
+  it('drops a filter with no compat equivalent to the no-op null filter, warning via the logger', () => {
+    const { manager, logger } = build();
+    const spy = vi.spyOn(filterCompat, 'applyFilterCompat').mockReturnValue(null);
+
+    const out = manager.addFilter({ type: 'vignette', value: 'x=1' } as Filter);
+
+    expect(out).toBe('null');
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('dropped unavailable filter "vignette"'));
+
+    spy.mockRestore();
   });
 
   it('delegates multi-value filters to formatMultipleTypesValues', () => {

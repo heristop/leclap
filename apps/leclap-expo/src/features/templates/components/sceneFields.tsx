@@ -326,6 +326,33 @@ export const NumberInput = ({ value, onChange }: { value: number; onChange: (n: 
   />
 );
 
+// A hex-colour field: a swatch preview + a free-text hex input. RN has no native colour picker, so
+// (like the section-colour field above) authoring stays a plain hex string. Shared by the chromaKey /
+// titleCard / lowerThird panels for every colour they carry (key colour, accent, band colour, …).
+export const ColorField = ({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (color: string) => void;
+}) => (
+  <FieldRow label={label}>
+    <View style={styles.colorRow}>
+      <View style={[styles.swatch, { backgroundColor: value }]} />
+      <TextInput
+        style={[styles.inputSm, { flex: 1 }]}
+        value={value}
+        autoCapitalize="none"
+        onChangeText={onChange}
+        placeholder="#000000"
+        placeholderTextColor={colors.textSecondary}
+      />
+    </View>
+  </FieldRow>
+);
+
 export const IconBtn = ({
   icon,
   onPress,

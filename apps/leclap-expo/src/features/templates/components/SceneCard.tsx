@@ -10,6 +10,9 @@ import { colors } from '@/src/styles/theme';
 import { LookCarousel } from './LookCarousel';
 import { GradeFields } from './GradeFields';
 import { CaptionFields } from './CaptionFields';
+import { ChromaKeyFields } from './chroma-key-fields';
+import { TitleCardFields } from './title-card-fields';
+import { LowerThirdFields } from './lower-third-fields';
 import { LayerRows } from './LayerRows';
 import { FramingGuideRow } from './FramingGuideRow';
 import { MotionFields } from './MotionFields';
@@ -34,6 +37,8 @@ interface SceneCardProps {
   section: EditorSection;
   t: TFunction<'editor'>;
   defaultCountdownSeconds: (duration: number) => number;
+  // Global variable names insertable as `{{ name }}` tokens into titleCard/lowerThird text lines.
+  variables: string[];
   onChange: (p: Partial<EditorSection>) => void;
   onLayers: (layers: BackgroundLayer[]) => void;
   onRemove: () => void;
@@ -43,8 +48,19 @@ interface SceneCardProps {
 }
 
 export const SceneCard = (props: SceneCardProps) => {
-  const { index, count, section, t, defaultCountdownSeconds, onChange, onRemove, onDuplicate, onMove, onEditOverlay } =
-    props;
+  const {
+    index,
+    count,
+    section,
+    t,
+    defaultCountdownSeconds,
+    variables,
+    onChange,
+    onRemove,
+    onDuplicate,
+    onMove,
+    onEditOverlay,
+  } = props;
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -99,7 +115,7 @@ export const SceneCard = (props: SceneCardProps) => {
             onChange={onChange}
             onEditOverlay={onEditOverlay}
           />
-          <SceneAdvanced section={section} t={t} onChange={onChange} onLayers={props.onLayers} />
+          <SceneAdvanced section={section} t={t} variables={variables} onChange={onChange} onLayers={props.onLayers} />
         </>
       )}
     </View>
@@ -109,11 +125,12 @@ export const SceneCard = (props: SceneCardProps) => {
 interface SceneAdvancedProps {
   section: EditorSection;
   t: TFunction<'editor'>;
+  variables: string[];
   onChange: (p: Partial<EditorSection>) => void;
   onLayers: (layers: BackgroundLayer[]) => void;
 }
 
-const SceneAdvanced = ({ section, t, onChange, onLayers }: SceneAdvancedProps) => {
+const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvancedProps) => {
   if (!isVisualKind(section.kind)) return null;
 
   if (section.kind === 'video') {
@@ -163,6 +180,25 @@ const SceneAdvanced = ({ section, t, onChange, onLayers }: SceneAdvancedProps) =
             }}
           />
         </Disclosure>
+        <Disclosure title={t('advanced.chromaKey')} icon="color-wand-outline">
+          <ChromaKeyFields
+            value={section.chromaKey}
+            t={t}
+            onChange={(chromaKey) => {
+              onChange({ chromaKey });
+            }}
+          />
+        </Disclosure>
+        <Disclosure title={t('advanced.lowerThird')} icon="albums-outline">
+          <LowerThirdFields
+            value={section.lowerThird}
+            t={t}
+            variables={variables}
+            onChange={(lowerThird) => {
+              onChange({ lowerThird });
+            }}
+          />
+        </Disclosure>
       </View>
     );
   }
@@ -197,6 +233,16 @@ const SceneAdvanced = ({ section, t, onChange, onLayers }: SceneAdvancedProps) =
             t={t}
             onChange={(caption) => {
               onChange({ caption });
+            }}
+          />
+        </Disclosure>
+        <Disclosure title={t('advanced.titleCard')} icon="albums-outline">
+          <TitleCardFields
+            value={section.titleCard}
+            t={t}
+            variables={variables}
+            onChange={(titleCard) => {
+              onChange({ titleCard });
             }}
           />
         </Disclosure>

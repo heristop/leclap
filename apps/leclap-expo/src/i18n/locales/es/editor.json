@@ -112,7 +112,10 @@
     "audio": "Audio",
     "cameraGuide": "Guía de cámara",
     "layers": "Capas",
-    "motion": "Movimiento"
+    "motion": "Movimiento",
+    "chromaKey": "Eliminación de fondo",
+    "titleCard": "Tarjeta de título",
+    "lowerThird": "Tercio inferior"
   },
   "grade": {
     "brightness": "Brillo",
@@ -138,6 +141,50 @@
       "subtle": "Sutil",
       "bold": "Negrita"
     }
+  },
+  "chromaKey": {
+    "hint": "Elimina un color de pantalla sólido (croma verde/azul) y compón el clip sobre un color plano.",
+    "enable": "Eliminar el fondo",
+    "keyColor": "Color de pantalla",
+    "background": "Color de fondo",
+    "similarity": "Intensidad"
+  },
+  "titleCard": {
+    "hint": "Una tarjeta limpia de antetítulo / titular / subtítulo, ajustada a la orientación.",
+    "kicker": "Antetítulo",
+    "kickerPlaceholder": "p. ej. PRESENTAMOS",
+    "headline": "Titular",
+    "headlinePlaceholder": "p. ej. #form_1_name",
+    "subtitle": "Subtítulo",
+    "subtitlePlaceholder": "p. ej. #form_1_tagline",
+    "align": "Alineación",
+    "alignLeft": "Izquierda",
+    "alignCenter": "Centro",
+    "background": "Fondo de la tarjeta",
+    "fadeIn": "Fundido de entrada",
+    "fadeOut": "Fundido de salida"
+  },
+  "lowerThird": {
+    "hint": "Una banda de título / subtítulo sobre el clip, con una insignia opcional.",
+    "title": "Título",
+    "titlePlaceholder": "p. ej. #form_1_name",
+    "subtitle": "Subtítulo",
+    "subtitlePlaceholder": "p. ej. presentación de una línea",
+    "badge": "Insignia",
+    "badgePlaceholder": "p. ej. #form_1_price",
+    "position": "Posición",
+    "bottom": "Abajo",
+    "top": "Arriba",
+    "bandColor": "Color de la banda",
+    "band": "Opacidad de la banda"
+  },
+  "accent": {
+    "label": "Acento",
+    "enable": "Barra de acento",
+    "color": "Color de acento",
+    "hint": "Dibuja una pequeña barra subrayada del color de acento debajo del texto.",
+    "hintTitleCard": "Dibuja la barra subrayada y tiñe el kicker.",
+    "hintLowerThird": "Colorea la barra de acento de la banda y la insignia."
   },
   "partial": {
     "pick": "Elige un parcial",

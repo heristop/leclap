@@ -113,4 +113,21 @@ describe('expo builder parity → descriptor', () => {
     expect(options?.musicVolume).toBeUndefined();
     expect(options?.audioFade).toBeUndefined();
   });
+
+  it('chromaKey, titleCard and lowerThird land at their descriptor paths', () => {
+    let state = baseState();
+    state = patchSection(state, 0, { chromaKey: { color: '#00ff00', similarity: 0.2 } });
+    state = patchSection(state, 0, { lowerThird: { title: { en: 'Alex' }, position: 'top' } });
+    state = patchSection(state, 1, { titleCard: { headline: { en: 'Hello' } } });
+
+    const d = buildDescriptor(state);
+    const video = d.sections!.find((s) => s.name === 'video_1') as never as Record<string, unknown>;
+    const color = d.sections!.find((s) => s.type === 'color_background') as never as Record<string, unknown>;
+
+    expect((video.chromaKey as Record<string, unknown>).color).toBe('#00ff00');
+    expect((video.lowerThird as Record<string, unknown>).position).toBe('top');
+    expect(((video.lowerThird as Record<string, unknown>).title as Record<string, unknown>).en).toBe('Alex');
+    expect(((color.titleCard as Record<string, unknown>).headline as Record<string, unknown>).en).toBe('Hello');
+    expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
+  });
 });

@@ -170,6 +170,9 @@ export const ScenesStep = (props: ScenesStepProps) => {
   const { state, t, onPatchSection, onLayers, onRemove, onDuplicate, onMove, onAdd, onOpenTransition, onEditOverlay } =
     props;
   const lastVisual = lastVisualIndex(state);
+  // In-scope variable names insertable as `{{ name }}` tokens into titleCard/lowerThird text lines
+  // (same set OverlayPositioner offers for text overlays).
+  const variables = state.globalVariables.map((v) => v.name).filter((name) => name.trim() !== '');
 
   return (
     <View>
@@ -185,6 +188,7 @@ export const ScenesStep = (props: ScenesStepProps) => {
             count={state.sections.length}
             section={section}
             t={t}
+            variables={variables}
             defaultCountdownSeconds={defaultCountdownFor}
             onChange={(p) => {
               onPatchSection(i, p);

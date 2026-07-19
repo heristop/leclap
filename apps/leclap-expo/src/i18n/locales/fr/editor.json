@@ -112,7 +112,10 @@
     "audio": "Audio",
     "cameraGuide": "Guide caméra",
     "layers": "Calques",
-    "motion": "Mouvement"
+    "motion": "Mouvement",
+    "chromaKey": "Suppression du fond",
+    "titleCard": "Carton de titre",
+    "lowerThird": "Bandeau"
   },
   "grade": {
     "brightness": "Luminosité",
@@ -138,6 +141,50 @@
       "subtle": "Discret",
       "bold": "Gras"
     }
+  },
+  "chromaKey": {
+    "hint": "Détourez une couleur d’écran unie (fond vert/bleu) et incrustez le clip sur une couleur plate.",
+    "enable": "Supprimer l’arrière-plan",
+    "keyColor": "Couleur de l’écran",
+    "background": "Couleur d’arrière-plan",
+    "similarity": "Intensité"
+  },
+  "titleCard": {
+    "hint": "Un carton accroche / titre / sous-titre épuré — dimensionné selon l’orientation.",
+    "kicker": "Accroche",
+    "kickerPlaceholder": "ex. DÉCOUVRE",
+    "headline": "Titre",
+    "headlinePlaceholder": "ex. #form_1_name",
+    "subtitle": "Sous-titre",
+    "subtitlePlaceholder": "ex. #form_1_tagline",
+    "align": "Alignement",
+    "alignLeft": "Gauche",
+    "alignCenter": "Centre",
+    "background": "Fond de la carte",
+    "fadeIn": "Fondu d’entrée",
+    "fadeOut": "Fondu de sortie"
+  },
+  "lowerThird": {
+    "hint": "Un bandeau titre / sous-titre sur le clip, avec un badge facultatif.",
+    "title": "Titre",
+    "titlePlaceholder": "ex. #form_1_name",
+    "subtitle": "Sous-titre",
+    "subtitlePlaceholder": "ex. accroche en une ligne",
+    "badge": "Badge",
+    "badgePlaceholder": "ex. #form_1_price",
+    "position": "Position",
+    "bottom": "Bas",
+    "top": "Haut",
+    "bandColor": "Couleur du bandeau",
+    "band": "Opacité du bandeau"
+  },
+  "accent": {
+    "label": "Accent",
+    "enable": "Barre d’accent",
+    "color": "Couleur d’accent",
+    "hint": "Dessine une petite barre de soulignement de la couleur d’accent sous le texte.",
+    "hintTitleCard": "Dessine la barre de soulignement et teinte le kicker.",
+    "hintLowerThird": "Colore la barre d’accent du bandeau et le badge."
   },
   "partial": {
     "pick": "Choisis un partial",

@@ -112,7 +112,10 @@
     "audio": "Audio",
     "cameraGuide": "Kamerahilfe",
     "layers": "Ebenen",
-    "motion": "Bewegung"
+    "motion": "Bewegung",
+    "chromaKey": "Hintergrundentfernung",
+    "titleCard": "Titelkarte",
+    "lowerThird": "Bauchbinde"
   },
   "grade": {
     "brightness": "Helligkeit",
@@ -138,6 +141,50 @@
       "subtle": "Dezent",
       "bold": "Fett"
     }
+  },
+  "chromaKey": {
+    "hint": "Entferne eine einfarbige Bildschirmfarbe (Green-/Bluescreen) und setze den Clip über eine flache Farbe.",
+    "enable": "Hintergrund entfernen",
+    "keyColor": "Bildschirmfarbe",
+    "background": "Hintergrundfarbe",
+    "similarity": "Stärke"
+  },
+  "titleCard": {
+    "hint": "Eine saubere Kicker- / Überschrift- / Untertitel-Karte – an die Ausrichtung angepasst.",
+    "kicker": "Kicker",
+    "kickerPlaceholder": "z. B. NEU VORGESTELLT",
+    "headline": "Überschrift",
+    "headlinePlaceholder": "z. B. #form_1_name",
+    "subtitle": "Untertitel",
+    "subtitlePlaceholder": "z. B. #form_1_tagline",
+    "align": "Ausrichtung",
+    "alignLeft": "Links",
+    "alignCenter": "Mitte",
+    "background": "Kartenhintergrund",
+    "fadeIn": "Einblenden",
+    "fadeOut": "Ausblenden"
+  },
+  "lowerThird": {
+    "hint": "Ein Titel- / Untertitel-Band über dem Clip, mit optionalem Badge.",
+    "title": "Titel",
+    "titlePlaceholder": "z. B. #form_1_name",
+    "subtitle": "Untertitel",
+    "subtitlePlaceholder": "z. B. einzeiliger Pitch",
+    "badge": "Badge",
+    "badgePlaceholder": "z. B. #form_1_price",
+    "position": "Position",
+    "bottom": "Unten",
+    "top": "Oben",
+    "bandColor": "Bandfarbe",
+    "band": "Band-Deckkraft"
+  },
+  "accent": {
+    "label": "Akzent",
+    "enable": "Akzentbalken",
+    "color": "Akzentfarbe",
+    "hint": "Zeichnet einen kleinen Unterstreichungsbalken in der Akzentfarbe unter den Text.",
+    "hintTitleCard": "Zeichnet den Unterstreichungsbalken und färbt den Kicker.",
+    "hintLowerThird": "Färbt den Akzentbalken des Bands und das Badge."
   },
   "partial": {
     "pick": "Wähle ein Partial",

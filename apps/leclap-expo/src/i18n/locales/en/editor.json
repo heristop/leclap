@@ -112,7 +112,10 @@
     "audio": "Audio",
     "cameraGuide": "Camera guide",
     "layers": "Layers",
-    "motion": "Motion"
+    "motion": "Motion",
+    "chromaKey": "Background removal",
+    "titleCard": "Title card",
+    "lowerThird": "Lower third"
   },
   "grade": {
     "brightness": "Brightness",
@@ -138,6 +141,50 @@
       "subtle": "Subtle",
       "bold": "Bold"
     }
+  },
+  "chromaKey": {
+    "hint": "Key out a solid screen colour (green/blue screen) and composite the clip over a flat colour.",
+    "enable": "Remove background",
+    "keyColor": "Screen colour",
+    "background": "Background colour",
+    "similarity": "Strength"
+  },
+  "titleCard": {
+    "hint": "A clean kicker / headline / subtitle card — sized to the orientation.",
+    "kicker": "Kicker",
+    "kickerPlaceholder": "e.g. INTRODUCING",
+    "headline": "Headline",
+    "headlinePlaceholder": "e.g. #form_1_name",
+    "subtitle": "Subtitle",
+    "subtitlePlaceholder": "e.g. #form_1_tagline",
+    "align": "Alignment",
+    "alignLeft": "Left",
+    "alignCenter": "Center",
+    "background": "Card background",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out"
+  },
+  "lowerThird": {
+    "hint": "A title / subtitle band over the clip, with an optional badge.",
+    "title": "Title",
+    "titlePlaceholder": "e.g. #form_1_name",
+    "subtitle": "Subtitle",
+    "subtitlePlaceholder": "e.g. one-line pitch",
+    "badge": "Badge",
+    "badgePlaceholder": "e.g. #form_1_price",
+    "position": "Position",
+    "bottom": "Bottom",
+    "top": "Top",
+    "bandColor": "Band colour",
+    "band": "Band opacity"
+  },
+  "accent": {
+    "label": "Accent",
+    "enable": "Accent bar",
+    "color": "Accent colour",
+    "hint": "Draws a small underline bar in the accent colour beneath the text.",
+    "hintTitleCard": "Draws the underline bar and tints the kicker.",
+    "hintLowerThird": "Colours the band's accent bar and the badge."
   },
   "partial": {
     "pick": "Choose a partial",

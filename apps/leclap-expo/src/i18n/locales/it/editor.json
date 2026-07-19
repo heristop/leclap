@@ -112,7 +112,10 @@
     "audio": "Audio",
     "cameraGuide": "Guida camera",
     "layers": "Livelli",
-    "motion": "Movimento"
+    "motion": "Movimento",
+    "chromaKey": "Rimozione sfondo",
+    "titleCard": "Scheda del titolo",
+    "lowerThird": "Fascia informativa"
   },
   "grade": {
     "brightness": "Luminosità",
@@ -138,6 +141,50 @@
       "subtle": "Discreto",
       "bold": "Marcato"
     }
+  },
+  "chromaKey": {
+    "hint": "Rimuovi un colore di sfondo uniforme (green/blue screen) e sovrapponi la clip su un colore piatto.",
+    "enable": "Rimuovi lo sfondo",
+    "keyColor": "Colore dello schermo",
+    "background": "Colore di sfondo",
+    "similarity": "Intensità"
+  },
+  "titleCard": {
+    "hint": "Un cartello pulito con occhiello / titolo / sottotitolo — dimensionato in base all’orientamento.",
+    "kicker": "Occhiello",
+    "kickerPlaceholder": "es. IN ARRIVO",
+    "headline": "Titolo",
+    "headlinePlaceholder": "es. #form_1_name",
+    "subtitle": "Sottotitolo",
+    "subtitlePlaceholder": "es. #form_1_tagline",
+    "align": "Allineamento",
+    "alignLeft": "Sinistra",
+    "alignCenter": "Centro",
+    "background": "Sfondo della scheda",
+    "fadeIn": "Dissolvenza in entrata",
+    "fadeOut": "Dissolvenza in uscita"
+  },
+  "lowerThird": {
+    "hint": "Una fascia con titolo / sottotitolo sulla clip, con un badge opzionale.",
+    "title": "Titolo",
+    "titlePlaceholder": "es. #form_1_name",
+    "subtitle": "Sottotitolo",
+    "subtitlePlaceholder": "es. una frase di presentazione",
+    "badge": "Badge",
+    "badgePlaceholder": "es. #form_1_price",
+    "position": "Posizione",
+    "bottom": "In basso",
+    "top": "In alto",
+    "bandColor": "Colore della fascia",
+    "band": "Opacità della fascia"
+  },
+  "accent": {
+    "label": "Accento",
+    "enable": "Barra d’accento",
+    "color": "Colore d’accento",
+    "hint": "Disegna una piccola barra di sottolineatura nel colore d’accento sotto il testo.",
+    "hintTitleCard": "Disegna la barra di sottolineatura e colora il kicker.",
+    "hintLowerThird": "Colora la barra d’accento della banda e il badge."
   },
   "partial": {
     "pick": "Scegli un partial",

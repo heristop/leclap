@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ENGINE_EMITTED_FILTERS, FILTER_COMPAT } from '../src/editor/utils/filter-compat';
+import { ENGINE_EMITTED_FILTERS, FILTER_COMPAT, type EngineCapabilities } from '../src/editor/utils/filter-compat';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
@@ -31,10 +31,19 @@ export function readDeviceFilters(): Set<string> {
 
 /** Compat rules keyed by the filter type their remap consumes (derived by probing each rule). */
 function compatRuleFor(filterType: string): string | null {
-  const lgplCaps = { gpl: false, lut3d: true, colorkey: true, textShaping: false } as const;
+  // deviceFilters: null here is deliberate — this "via compat" column reflects REWRITE rules only
+  // (e.g. eq→lutyuv); null (full-build semantics) keeps the drop-absent-on-device rule from
+  // matching during probing, which would otherwise mislabel every device gap as "via compat".
+  const lgplCaps: EngineCapabilities = {
+    gpl: false,
+    lut3d: true,
+    colorkey: true,
+    textShaping: false,
+    deviceFilters: null,
+  };
 
   for (const rule of FILTER_COMPAT) {
-    if (rule.match({ type: filterType, value: 'contrast=1' }, lgplCaps as never)) {
+    if (rule.match({ type: filterType, value: 'contrast=1' }, lgplCaps)) {
       return rule.key;
     }
   }

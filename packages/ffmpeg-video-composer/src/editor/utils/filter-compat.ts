@@ -1,10 +1,11 @@
 import type { Filter, ProjectConfig } from '@/core/types';
 import { usesLgplEngine } from '../../core/encoding';
 import { eqValueToLutyuv } from '../presets/looks';
+import { DEVICE_FILTERS } from './device-filters.generated';
 
 /**
  * What the active FFmpeg build can do. The on-device engine is a `--disable-gpl` LGPL build, so
- * GPL-only filters (`eq`, `vignette`, …) are absent; the server/web/Node default is GPL-capable.
+ * GPL-only filters (`eq`, `boxblur`, …) are absent; the server/web/Node default is GPL-capable.
  * Compatibility rules below key off these flags instead of branching on the codec ad hoc.
  */
 export type EngineCapabilities = {
@@ -16,6 +17,9 @@ export type EngineCapabilities = {
   colorkey: boolean;
   /** drawtext `text_shaping` (HarfBuzz) available. Off by default — the WASM 6.x core may lack HarfBuzz. */
   textShaping: boolean;
+  /** The curated on-device allowlist (generated from common.sh), or null on full GPL/WASM builds
+   * where every filter the engine can emit is present. */
+  deviceFilters: ReadonlySet<string> | null;
 };
 
 // lut3d/colorkey are standard default-enabled filters present on every backend (host GPL, on-device
@@ -30,6 +34,7 @@ export function engineCapabilities(config: ProjectConfig): EngineCapabilities {
     lut3d: true,
     colorkey: true,
     textShaping: false,
+    deviceFilters: usesLgplEngine(config) ? DEVICE_FILTERS : null,
   };
 }
 
@@ -50,6 +55,14 @@ export const FILTER_COMPAT: FilterCompatRule[] = [
     key: 'eq-to-lutyuv',
     match: (filter, caps) => filter.type === 'eq' && Boolean(filter.value) && !caps.gpl,
     remap: (filter) => ({ ...filter, type: 'lutyuv', value: eqValueToLutyuv(String(filter.value)) }),
+  },
+  {
+    // Any filter still absent from the device allowlist after rewrites has no LGPL equivalent:
+    // drop it (FilterManager degrades to the no-op `null` filter with a warning) instead of letting
+    // the render die on-device with "No such filter".
+    key: 'drop-absent-on-device',
+    match: (filter, caps) => caps.deviceFilters !== null && !caps.deviceFilters.has(filter.type),
+    remap: () => null,
   },
 ];
 

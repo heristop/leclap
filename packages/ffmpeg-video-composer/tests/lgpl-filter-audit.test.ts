@@ -11,11 +11,21 @@ import {
   type EngineCapabilities,
 } from '@/editor/utils/filter-compat';
 import { parseEnabledFilters } from '../scripts/capability-sources';
+import { DEVICE_FILTERS } from '@/editor/utils/device-filters.generated';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const commonSh = fs.readFileSync(path.resolve(here, '../../../scripts/ffmpeg/common.sh'), 'utf8');
 
-const lgplCaps: EngineCapabilities = { gpl: false, lut3d: true, colorkey: true, textShaping: false };
+// deviceFilters: null here is deliberate — this audit probes rewrite rules only (e.g. eq→lutyuv);
+// the drop-absent-on-device rule is out of scope (it would trivially "cover" every filter by
+// dropping it, defeating the point of asserting engine-emitted filters land on a real device filter).
+const lgplCaps: EngineCapabilities = {
+  gpl: false,
+  lut3d: true,
+  colorkey: true,
+  textShaping: false,
+  deviceFilters: null,
+};
 
 function isDeviceSafe(filterType: string, enabled: Set<string>): boolean {
   if (enabled.has(filterType)) {
@@ -81,5 +91,9 @@ describe('LGPL device filter audit', () => {
 
       expect(enabled.has(probe.type), `rule "${rule.key}" remaps to "${probe.type}"`).toBe(true);
     }
+  });
+
+  it('device-filters.generated.ts matches common.sh', () => {
+    expect(new Set(DEVICE_FILTERS)).toEqual(parseEnabledFilters(commonSh));
   });
 });

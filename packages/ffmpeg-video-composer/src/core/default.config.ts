@@ -11,5 +11,8 @@ export default class DefaultConfig {
   // The 1:1 square preset (a fixed resolution, not derived from the 1280/720 family).
   static readonly SQUARE_SCALE: string = '1080:1080';
   static readonly SETSAR: string = '1/1';
+  // Output frame rate for every re-encode pass (segments + final assembly). Overridable per template
+  // via global.fps (resolved once by TemplateDirector into videoConfig.fps).
+  static readonly FPS: number = 30;
   static readonly CURRENT_LOCALE: string = 'en';
 }

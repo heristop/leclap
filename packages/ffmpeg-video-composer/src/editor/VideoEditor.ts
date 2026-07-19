@@ -6,6 +6,7 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type { Section } from '@/core/types';
+import DefaultConfig from '@/core/default.config';
 import type MusicComposer from './MusicComposer';
 import type AnimationComposer from './AnimationComposer';
 import type { StagedAnimation } from './AnimationComposer';
@@ -251,7 +252,7 @@ class VideoEditor {
 
     const effectiveDurations = computeEffectiveDurations(transitions, probes);
     const offsets = computeOffsets(probes, effectiveDurations);
-    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const normalizeGraph = buildNormalizeGraph(segmentFiles.length, scale);
     const audioGraph = buildAudioGraph(transitions, audioInputIndex, effectiveDurations);
 

@@ -5,6 +5,7 @@ import type { Filter, MapAnimationInput, Section, SectionOptions } from '@/core/
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type Segment from '../core/models/Segment';
+import DefaultConfig from '@/core/default.config';
 import type AssetManager from '../editor/managers/AssetManager';
 import type VariableManager from '../editor/managers/VariableManager';
 import type MapManager from '../editor/managers/MapManager';
@@ -453,7 +454,7 @@ class SegmentBuilder {
       return;
     }
 
-    const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const videoScale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale);
   };
 
@@ -482,7 +483,7 @@ class SegmentBuilder {
   // options.duration; their probed length is filled into buildInfos.durations by
   // TemplateDirector.calculateTotalLength before segments build, so read it here.
   private readonly sugarContext = () => {
-    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const isVideo = this.section.type === 'project_video' || this.section.type === 'video';
     const probedDuration = isVideo ? this.project.buildInfos.durations[this.section.name] : undefined;
     const duration = probedDuration ?? this.section.options?.duration ?? 0;

@@ -115,7 +115,24 @@
     "motion": "Motion",
     "chromaKey": "Background removal",
     "titleCard": "Title card",
-    "lowerThird": "Lower third"
+    "lowerThird": "Lower third",
+    "capture": "Capture sources"
+  },
+  "speed": {
+    "label": "Playback speed",
+    "hint": "Slower or faster playback also stretches or shortens this scene in the final video."
+  },
+  "capture": {
+    "hint": "Which inputs the person filming can use — front or back camera, screen recording, or a file upload. Never rendered into the video.",
+    "allowedLabel": "Allowed sources",
+    "defaultLabel": "Opens with",
+    "lockedNote": "A single allowed source locks the recorder to it.",
+    "mode": {
+      "front": "Front camera",
+      "back": "Back camera",
+      "screen": "Screen",
+      "upload": "Upload"
+    }
   },
   "grade": {
     "brightness": "Brightness",
@@ -311,8 +328,15 @@
     "keepLastFrame": "Keep last frame",
     "position": "Position (px)",
     "scale": "Scale (px, -1 = auto)",
+    "fit": "Fit",
+    "fitStretch": "Stretch",
+    "fitContain": "Contain",
+    "fitCover": "Cover",
     "opacity": "Opacity",
     "rotation": "Rotation (°)",
+    "mirror": "Mirror",
+    "mirrorHorizontal": "Horizontal",
+    "mirrorVertical": "Vertical",
     "add": "Add an animation",
     "layer": "Animation {{number}}",
     "remove": "Remove animation"

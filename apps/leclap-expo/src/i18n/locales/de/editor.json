@@ -115,7 +115,24 @@
     "motion": "Bewegung",
     "chromaKey": "Hintergrundentfernung",
     "titleCard": "Titelkarte",
-    "lowerThird": "Bauchbinde"
+    "lowerThird": "Bauchbinde",
+    "capture": "Aufnahmequellen"
+  },
+  "speed": {
+    "label": "Wiedergabegeschwindigkeit",
+    "hint": "Langsamere oder schnellere Wiedergabe verlängert oder verkürzt diese Szene auch im fertigen Video."
+  },
+  "capture": {
+    "hint": "Welche Quellen beim Filmen genutzt werden können — Front- oder Rückkamera, Bildschirmaufnahme oder Datei-Upload. Wird nie ins Video gerendert.",
+    "allowedLabel": "Erlaubte Quellen",
+    "defaultLabel": "Startet mit",
+    "lockedNote": "Eine einzige erlaubte Quelle legt den Rekorder darauf fest.",
+    "mode": {
+      "front": "Frontkamera",
+      "back": "Rückkamera",
+      "screen": "Bildschirm",
+      "upload": "Upload"
+    }
   },
   "grade": {
     "brightness": "Helligkeit",
@@ -311,8 +328,15 @@
     "keepLastFrame": "Letztes Bild behalten",
     "position": "Position (px)",
     "scale": "Skalierung (px, -1 = automatisch)",
+    "fit": "Anpassung",
+    "fitStretch": "Strecken",
+    "fitContain": "Einpassen",
+    "fitCover": "Füllen",
     "opacity": "Deckkraft",
     "rotation": "Drehung (°)",
+    "mirror": "Spiegeln",
+    "mirrorHorizontal": "Horizontal",
+    "mirrorVertical": "Vertikal",
     "add": "Animation hinzufügen",
     "layer": "Animation {{number}}",
     "remove": "Animation entfernen"

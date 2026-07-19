@@ -130,4 +130,27 @@ describe('expo builder parity → descriptor', () => {
     expect(((color.titleCard as Record<string, unknown>).headline as Record<string, unknown>).en).toBe('Hello');
     expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
   });
+
+  it('speed, captureMode and overlay flip land at their descriptor paths', () => {
+    let state = baseState();
+    state = patchSection(state, 0, {
+      speed: 2,
+      captureMode: 'back',
+      allowedCaptureModes: ['back', 'screen'],
+      animations: [{ url: 'library://confetti', flip: 'horizontal' }],
+    });
+
+    const d = buildDescriptor(state);
+    const video = d.sections!.find((s) => s.name === 'video_1') as never as Record<string, unknown>;
+    const options = video.options as Record<string, unknown>;
+    const inputs = video.inputs as Array<Record<string, unknown>>;
+    const animationInput = inputs.find((i) => i.type === 'animation') as Record<string, unknown>;
+    const animationOptions = animationInput.options as Record<string, unknown>;
+
+    expect(options.speed).toBe(2);
+    expect(options.captureMode).toBe('back');
+    expect(options.allowedCaptureModes).toEqual(['back', 'screen']);
+    expect(animationOptions.flip).toBe('horizontal');
+    expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
+  });
 });

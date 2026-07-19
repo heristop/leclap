@@ -7,14 +7,21 @@ import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { ANIMATION_LIBRARY, BACKGROUND_LIBRARY, backgroundAsset } from '@/src/data/mediaCatalog';
+import { OVERLAY_FITS } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import { MediaPicker } from './MediaPicker';
 import { PartialFields } from './PartialFields';
+import { SpeedField } from './speed-field';
 import { Slider, Segmented } from './EditorControls';
 import {
   makeTemplateId,
+  hasFlipAxis,
+  toggleFlipAxis,
   type EditorSection,
   type AnimationOverlay,
   type ImageOverlay,
+  type OverlayFit,
+  type OverlayFlip,
+  type FlipAxis,
 } from '../model/templateEditorModel';
 
 const toggleId = (list: string[], id: string): string[] =>
@@ -59,6 +66,13 @@ export const SceneBasics = ({
           value={section.mute}
           onChange={(mute) => {
             onChange({ mute });
+          }}
+        />
+        <SpeedField
+          speed={section.speed}
+          t={t}
+          onChange={(speed) => {
+            onChange({ speed });
           }}
         />
         <FieldRow label={t('section.whatToFilm')}>
@@ -172,6 +186,13 @@ export const SceneBasics = ({
             />
           </View>
         </FieldRow>
+        <SpeedField
+          speed={section.speed}
+          t={t}
+          onChange={(speed) => {
+            onChange({ speed });
+          }}
+        />
         <AnimationFieldsList
           value={section.animations}
           onChange={(animations) => {
@@ -278,6 +299,13 @@ export const SceneBasics = ({
         value={section.allowUpload}
         onChange={(allowUpload) => {
           onChange({ allowUpload });
+        }}
+      />
+      <SpeedField
+        speed={section.speed}
+        t={t}
+        onChange={(speed) => {
+          onChange({ speed });
         }}
       />
     </View>
@@ -494,11 +522,25 @@ export const AnimationFieldsList = ({
 
 // Animation-overlay sub-section for a visual scene (video / colour): pick a bundled .apng, then tune
 // loop / keep-last-frame and position / scale. Mirrors the web AnimationGallery; one overlay each.
-// Shared numeric placement controls for an overlay (animation or image): position, scale, opacity and
-// rotation. AnimationFields stacks its picker + loop/keep-last-frame on top; ImageFields stacks its
-// picture picker — both delegate the common controls here so the two panels stay identical. Labels use
-// the generic `animation.*` keys so both panels read the same.
-type PlacementValue = { position?: string; scale?: string; opacity?: number; rotation?: number };
+// Shared numeric placement controls for an overlay (animation or image): position, scale, fit, opacity,
+// rotation and mirror flip. AnimationFields stacks its picker + loop/keep-last-frame on top; ImageFields
+// stacks its picture picker — both delegate the common controls here so the two panels stay identical.
+// Labels use the generic `animation.*` keys so both panels read the same. Mirrors the web
+// placementFields.tsx (OverlayPlacementValue) field-for-field.
+type PlacementValue = {
+  position?: string;
+  scale?: string;
+  fit?: OverlayFit;
+  opacity?: number;
+  rotation?: number;
+  flip?: OverlayFlip;
+};
+
+const FIT_LABEL_KEY: Record<OverlayFit, string> = {
+  stretch: 'animation.fitStretch',
+  contain: 'animation.fitContain',
+  cover: 'animation.fitCover',
+};
 
 const PlacementFields = ({
   value,
@@ -530,6 +572,18 @@ const PlacementFields = ({
         onChange({ scale });
       }}
     />
+    {/* Fit only acts on a fixed W:H box, so the control appears once a scale is set. 'stretch' is the
+        engine default and is stored as undefined to keep the descriptor minimal. */}
+    {value.scale ? (
+      <Segmented<OverlayFit>
+        label={t('animation.fit')}
+        value={value.fit ?? 'stretch'}
+        options={OVERLAY_FITS.map((fit) => ({ value: fit, label: t(FIT_LABEL_KEY[fit]) }))}
+        onChange={(fit) => {
+          onChange({ fit: fit === 'stretch' ? undefined : fit });
+        }}
+      />
+    ) : null}
     <Slider
       label={t('animation.opacity')}
       value={value.opacity ?? 1}
@@ -554,8 +608,59 @@ const PlacementFields = ({
         onChange({ rotation });
       }}
     />
+    <MirrorToggle
+      flip={value.flip}
+      t={t}
+      onChange={(flip) => {
+        onChange({ flip });
+      }}
+    />
   </>
 );
+
+// Mirror control: two independent axis toggles (both on = the descriptor's 'both') writing the single
+// combined flip value. Checkbox semantics — unlike fit, the axes are not mutually exclusive. Mirrors
+// the web placementFields.tsx MirrorToggle.
+const MirrorToggle = ({
+  flip,
+  t,
+  onChange,
+}: {
+  flip: OverlayFlip | undefined;
+  t: TFunction<'editor'>;
+  onChange: (flip: OverlayFlip | undefined) => void;
+}) => {
+  const axes: Array<{ axis: FlipAxis; label: string }> = [
+    { axis: 'horizontal', label: t('animation.mirrorHorizontal') },
+    { axis: 'vertical', label: t('animation.mirrorVertical') },
+  ];
+
+  return (
+    <View style={{ marginTop: spacing.m }}>
+      <Text style={styles.fieldLabel}>{t('animation.mirror')}</Text>
+      <View style={styles.mirrorRow}>
+        {axes.map(({ axis, label }) => {
+          const active = hasFlipAxis(flip, axis);
+
+          return (
+            <TouchableOpacity
+              key={axis}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={label}
+              onPress={() => {
+                onChange(toggleFlipAxis(flip, axis));
+              }}
+              style={[styles.mirrorItem, active && styles.mirrorItemActive]}
+            >
+              <Text style={[styles.mirrorText, active && styles.mirrorTextActive]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 export const AnimationFields = ({
   value,
@@ -1009,6 +1114,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124,131,253,0.08)',
   },
   addInlineText: { ...typography.caption, color: colors.primary, fontWeight: '600' },
+  mirrorRow: {
+    flexDirection: 'row',
+    gap: 4,
+    padding: 4,
+    borderRadius: 14,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  mirrorItem: {
+    flex: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    paddingHorizontal: spacing.xs,
+  },
+  mirrorItemActive: { backgroundColor: colors.primary },
+  mirrorText: { ...typography.caption, fontSize: 13, color: colors.textSecondary },
+  mirrorTextActive: { color: '#fff', fontWeight: '600' },
   animStrip: { gap: spacing.s, paddingVertical: spacing.xs, paddingRight: spacing.s },
   animLayer: {
     borderRadius: 12,

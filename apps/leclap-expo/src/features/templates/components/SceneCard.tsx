@@ -13,6 +13,7 @@ import { CaptionFields } from './CaptionFields';
 import { ChromaKeyFields } from './chroma-key-fields';
 import { TitleCardFields } from './title-card-fields';
 import { LowerThirdFields } from './lower-third-fields';
+import { CaptureModeFields } from './capture-mode-fields';
 import { LayerRows } from './LayerRows';
 import { FramingGuideRow } from './FramingGuideRow';
 import { MotionFields } from './MotionFields';
@@ -177,6 +178,15 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             t={t}
             onChange={(framingGuide) => {
               onChange({ framingGuide });
+            }}
+          />
+        </Disclosure>
+        <Disclosure title={t('advanced.capture')} icon="camera-reverse-outline">
+          <CaptureModeFields
+            selection={{ captureMode: section.captureMode, allowedCaptureModes: section.allowedCaptureModes }}
+            t={t}
+            onChange={(next) => {
+              onChange(next);
             }}
           />
         </Disclosure>

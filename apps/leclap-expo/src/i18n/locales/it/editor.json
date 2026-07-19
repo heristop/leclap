@@ -115,7 +115,24 @@
     "motion": "Movimento",
     "chromaKey": "Rimozione sfondo",
     "titleCard": "Scheda del titolo",
-    "lowerThird": "Fascia informativa"
+    "lowerThird": "Fascia informativa",
+    "capture": "Sorgenti di ripresa"
+  },
+  "speed": {
+    "label": "Velocità di riproduzione",
+    "hint": "Una riproduzione più lenta o più veloce allunga o accorcia anche questa scena nel video finale."
+  },
+  "capture": {
+    "hint": "Gli ingressi utilizzabili da chi filma — fotocamera anteriore o posteriore, registrazione dello schermo o caricamento di un file. Mai renderizzati nel video.",
+    "allowedLabel": "Sorgenti consentite",
+    "defaultLabel": "Si apre con",
+    "lockedNote": "Una sola sorgente consentita blocca il registratore su di essa.",
+    "mode": {
+      "front": "Fotocamera anteriore",
+      "back": "Fotocamera posteriore",
+      "screen": "Schermo",
+      "upload": "Caricamento"
+    }
   },
   "grade": {
     "brightness": "Luminosità",
@@ -311,8 +328,15 @@
     "keepLastFrame": "Mantieni l'ultimo fotogramma",
     "position": "Posizione (px)",
     "scale": "Scala (px, -1 = auto)",
+    "fit": "Adattamento",
+    "fitStretch": "Estendi",
+    "fitContain": "Contieni",
+    "fitCover": "Copri",
     "opacity": "Opacità",
     "rotation": "Rotazione (°)",
+    "mirror": "Specchia",
+    "mirrorHorizontal": "Orizzontale",
+    "mirrorVertical": "Verticale",
     "add": "Aggiungi un'animazione",
     "layer": "Animazione {{number}}",
     "remove": "Rimuovi animazione"

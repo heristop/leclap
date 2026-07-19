@@ -299,7 +299,7 @@ class SegmentBuilder {
     // Otherwise the base is a separate source (color lavfi / useVideoSection) and assets start one slot later.
     const baseIsFirstInput = inputs[0]?.name === this.section.name && inputs[0]?.type !== 'animation';
     let inputIndex = this.mapManager.getVideoInputIncrement() + (baseIsFirstInput ? 0 : 1);
-    const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const videoScale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const pendingAnimations: Array<{ input: MapAnimationInput; index: number }> = [];
 
     // Stage every input as one `-i` in section order (stable stream indices), deferring the animation
@@ -380,7 +380,7 @@ class SegmentBuilder {
    */
   private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): void => {
     const layers = (this.section.options?.layers as BackgroundLayer[] | undefined) ?? [];
-    const scale = this.project.config.videoConfig?.scale ?? '1280:720';
+    const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const duration = this.section.options?.duration ?? 0;
 
     let gradientIndex = firstGradientIndex;

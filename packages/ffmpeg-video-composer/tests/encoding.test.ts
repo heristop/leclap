@@ -81,6 +81,12 @@ describe('quality tiers', () => {
     );
   });
 
+  it('falls back to standard for an unrecognised qualityTier value', () => {
+    const config = { codecConfig: { videoCodec: '' }, qualityTier: 'ultra' as never } as unknown as ProjectConfig;
+    const expected = '-c:v h264 -crf 23 -tune film -b:v 12M -profile:v high -preset medium';
+    expect(buildVideoEncoderArgs(config)).toBe(expected);
+  });
+
   it('an explicit hardwareConfig.preset still wins over the tier preset', () => {
     const c = {
       codecConfig: { videoCodec: '' },

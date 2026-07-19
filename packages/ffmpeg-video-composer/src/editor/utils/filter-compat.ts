@@ -88,6 +88,9 @@ export const ENGINE_EMITTED_FILTERS = [
   // input-sources.ts overlay entrance)
   'drawtext',
   'fade',
+  // drop-path no-op (FilterManager.addFilter): a compat rule with no device equivalent degrades to
+  // this rather than emitting a filter the engine will die on.
+  'null',
   // looks / grade (looks.ts LOOK_TABLE + gradeToFilters, post-compat): `eq` is GPL-only and gets
   // rewritten to `lutyuv` under the LGPL engine (see FILTER_COMPAT below)
   'eq',

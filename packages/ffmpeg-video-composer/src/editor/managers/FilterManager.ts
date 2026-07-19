@@ -39,6 +39,9 @@ class FilterManager {
     if (compat === null) {
       this.logger.warn(`[FilterCompat] dropped unavailable filter "${resolvedFilter.type}"`);
 
+      // `null` is the video no-op passthrough (device-enabled — see common.sh / ENGINE_EMITTED_FILTERS).
+      // A future AUDIO drop rule must return the audio equivalent 'anull' instead — 'null' only
+      // passthroughs a video stream.
       return 'null';
     }
 

@@ -83,8 +83,30 @@ const HARDWARE_TIER_BITRATES: Record<QualityTier, string> = { draft: '4M', stand
 const OPENH264_TIER_BITRATES: Record<QualityTier, string> = { draft: '2M', standard: '4M', high: '6M' };
 const MPEG4_TIER_QSCALE: Record<QualityTier, number> = { draft: 8, standard: 4, high: 2 };
 
+function isQualityTier(value: unknown): value is QualityTier {
+  return typeof value === 'string' && Object.hasOwn(SOFTWARE_TIERS, value);
+}
+
+// Untyped callers (e.g. JSON-sourced config) can pass an unknown string; falling straight through
+// to the tier tables would key-miss and produce `-crf undefined`. Guard against that here so every
+// unrecognised value quietly resolves to 'standard' instead of corrupting the encoder args.
 function resolveTier(config: ProjectConfig): QualityTier {
-  return config.qualityTier ?? 'standard';
+  const { qualityTier } = config;
+
+  if (isQualityTier(qualityTier)) {
+    return qualityTier;
+  }
+
+  return 'standard';
+}
+
+/**
+ * The libx264-style { crf, preset, bitrate } triplet for the resolved quality tier. Shared by
+ * `buildVideoEncoderArgs` (Node/server default codec) and the Node/browser `VideoSegment` encoding
+ * branches, so a `qualityTier` change reaches every software-encoded path from one table.
+ */
+export function resolveSoftwareTier(config: ProjectConfig): { crf: number; preset: string; bitrate: string } {
+  return SOFTWARE_TIERS[resolveTier(config)];
 }
 
 /**
@@ -112,7 +134,7 @@ export function buildVideoEncoderArgs(config: ProjectConfig): string {
     return `-c:v libopenh264 -b:v ${OPENH264_TIER_BITRATES[tier]}`;
   }
 
-  const software = SOFTWARE_TIERS[tier];
+  const software = resolveSoftwareTier(config);
 
   return `-c:v ${codec} -crf ${software.crf} -tune film -b:v ${software.bitrate} -profile:v high -preset ${config.hardwareConfig?.preset ?? software.preset}`;
 }

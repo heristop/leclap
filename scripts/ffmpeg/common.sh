@@ -19,10 +19,13 @@ DIST_DIR="$REPO_ROOT/scripts/ffmpeg/dist"
 # even though the demuxer is present). `--enable-libvpx` + the `libvpx_vp9` decoder add WebM transparency
 # — the native `vp9` decoder ignores the alpha (BlockAdditional) stream, only libvpx decodes it.
 # `--disable-ffplay` avoids the SDL dependency (we only need ffmpeg + ffprobe).
-# lavfi sources are filters too: the editor emits `color`, `sine`, `anullsrc`, `aevalsrc` (silent-audio
+# lavfi sources are filters too: the editor emits `color`, `anullsrc`, `aevalsrc` (silent-audio
 # padding) and `gradients` (gradient background layers) — all LGPL (no `_deps` in configure), so each
-# must be in the --enable-filter list or the render fails only on device. `boxblur` is deliberately
-# absent: boxblur_filter_deps="gpl" (configure:3926), so under --disable-gpl configure silently drops
+# must be in the --enable-filter list or the render fails only on device. `sine` is not emitted by the
+# editor but is enabled defensively (cheap, LGPL, occasionally useful for silent-audio debugging).
+# `null` is the FilterManager drop-path no-op (a compat rule with no device equivalent degrades to it
+# rather than emitting a filter the engine will die on) — also enabled defensively. `boxblur` is
+# deliberately absent: boxblur_filter_deps="gpl" (configure:3926), so under --disable-gpl configure silently drops
 # it — listing it was dead config; blur on device is `gblur`. `lut3d`/`colorkey`/`split` (LUT looks,
 # chroma key), `setparams` (colour-metadata tagging on every segment) and `atempo`/`asplit`/`loudnorm`/
 # `dynaudnorm` (speed audio, ducking mix, normalize) are guarded the same way by
@@ -42,7 +45,7 @@ FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --dis
  --enable-encoder=aac,mpeg4,libopenh264 \
  --enable-filter=scale,crop,pad,setsar,setdar,format,fps,trim,setpts,settb,fade,drawtext,overlay,concat,xfade,loop,tile,\
 drawbox,gblur,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
-lut3d,colorkey,split,setparams,\
+lut3d,colorkey,split,setparams,null,\
 atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,sidechaincompress,volume,anull,anullsrc,aevalsrc,color,sine,gradients,\
 atempo,asplit,loudnorm,dynaudnorm \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"

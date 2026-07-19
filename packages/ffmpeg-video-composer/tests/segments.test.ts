@@ -179,6 +179,44 @@ describe('VideoSegment.configure', () => {
     expect(seg.getCommand()).toContain('-preset medium');
   });
 
+  it('standard/no-tier native encode is byte-identical to the historical hardcoded args', () => {
+    const { seg } = buildSegment(Video, { options: { duration: 5 } });
+
+    seg.configure();
+
+    expect(seg.getCommand()).toContain('-crf 23 -b:v 12M -profile:v high');
+  });
+
+  it('draft/high qualityTier change the native crf/bitrate/preset numbers', () => {
+    const draft = buildSegment(Video, {
+      options: { duration: 5 },
+      projectConfig: { hardwareConfig: {}, qualityTier: 'draft' },
+    }).seg;
+    draft.configure();
+    expect(draft.getCommand()).toContain('-crf 30 -b:v 6M -profile:v high');
+    expect(draft.getCommand()).toContain('-preset veryfast');
+
+    const high = buildSegment(Video, {
+      options: { duration: 5 },
+      projectConfig: { hardwareConfig: {}, qualityTier: 'high' },
+    }).seg;
+    high.configure();
+    expect(high.getCommand()).toContain('-crf 18 -b:v 16M -profile:v high');
+    expect(high.getCommand()).toContain('-preset slow');
+  });
+
+  it('an explicit hardwareConfig.preset still wins over the tier preset on the native branch', () => {
+    const { seg } = buildSegment(Video, {
+      options: { duration: 5 },
+      projectConfig: { hardwareConfig: { preset: 'ultrafast' }, qualityTier: 'high' },
+    });
+
+    seg.configure();
+
+    expect(seg.getCommand()).toContain('-crf 18 -b:v 16M -profile:v high');
+    expect(seg.getCommand()).toContain('-preset ultrafast');
+  });
+
   it('uses the WASM-safe encoding params when running in a browser-like env (window defined)', () => {
     // Line 18: `const isWasm = typeof window !== 'undefined'`.
     // In node `window` is undefined (native branch). Define it to exercise the
@@ -200,6 +238,35 @@ describe('VideoSegment.configure', () => {
       expect(command).not.toContain('-profile:v high');
     } finally {
       // Restore the original window descriptor, or remove the stub if there was none
+      delete (globalThis as { window?: unknown }).window;
+
+      if (original) {
+        Object.defineProperty(globalThis, 'window', original);
+      }
+    }
+  });
+
+  it('draft/high qualityTier change the WASM crf but never the ultrafast preset', () => {
+    const original = Object.getOwnPropertyDescriptor(globalThis, 'window');
+    (globalThis as { window?: unknown }).window = {};
+    try {
+      const draft = buildSegment(Video, {
+        options: { duration: 5 },
+        projectConfig: { qualityTier: 'draft' },
+      }).seg;
+      draft.configure();
+      expect(draft.getCommand()).toContain('-crf 30');
+      expect(draft.getCommand()).toContain('-preset ultrafast');
+
+      const high = buildSegment(Video, {
+        options: { duration: 5 },
+        projectConfig: { qualityTier: 'high' },
+      }).seg;
+      high.configure();
+      expect(high.getCommand()).toContain('-crf 18');
+      // preset ultrafast is a WASM-speed choice, independent of quality tier
+      expect(high.getCommand()).toContain('-preset ultrafast');
+    } finally {
       delete (globalThis as { window?: unknown }).window;
 
       if (original) {

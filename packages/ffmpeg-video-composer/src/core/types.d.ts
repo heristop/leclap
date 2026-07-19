@@ -42,6 +42,7 @@ export type ProjectConfig = {
   videoConfig?: VideoConfig;
   userVideoPaths?: { [sectionName: string]: string };
   // Skip descriptor validation before compiling (trusted callers only; validation is on by default).
+  // Applies to the Node `compile()` path only — the browser and React Native paths always validate.
   skipValidation?: boolean;
   // Named render-quality tier resolved by core/encoding.ts (default 'standard'). Encoder numbers
   // (crf/preset/bitrate) stay an app concern — templates never carry them.

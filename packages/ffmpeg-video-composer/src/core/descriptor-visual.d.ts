@@ -21,7 +21,13 @@ export interface GradeConfig {
     highlights?: ChannelAdjust;
   };
   blur?: number;
+  grain?: number;
   curvesPreset?: string;
+}
+
+export interface Letterbox {
+  aspect: number;
+  color?: string;
 }
 
 export type MotionEffect =

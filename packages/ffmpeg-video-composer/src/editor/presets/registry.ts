@@ -1,6 +1,6 @@
 import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
 import type { Grade, MotionEffect, BackgroundLayer } from '../../schemas/template.schemas';
-import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters } from './looks';
+import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letterboxToFilters } from './looks';
 import { captionToFilters } from './captions';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
 
@@ -31,7 +31,7 @@ export type SugarCompiler = {
   compile: (section: Section, ctx: SugarContext) => Filter[];
 };
 
-// Order preserves the previous hardcoded chain: layers → motion → grade → look → caption.
+// Order preserves the previous hardcoded chain: layers → motion → grade → look → letterbox → caption.
 export const SUGAR_COMPILERS: SugarCompiler[] = [
   {
     key: 'layers',
@@ -56,6 +56,12 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     order: 40,
     layer: 'background',
     compile: (section) => lookToFilters(section.look),
+  },
+  {
+    key: 'letterbox',
+    order: 45,
+    layer: 'background',
+    compile: (section, ctx) => letterboxToFilters(section.letterbox, ctx),
   },
   {
     key: 'caption',

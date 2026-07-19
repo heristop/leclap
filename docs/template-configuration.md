@@ -121,6 +121,7 @@ Expansion happens **before** schema validation and compile, so everything downst
 | `transition`  | `Transition`     | Boundary transition applied **after** this section; overrides `global.transition`.                               |
 | `look`        | look preset      | Named colour-grade (see [Looks & grade](#looks--grade)).                                                         |
 | `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                                  |
+| `letterbox`   | `Letterbox`      | Cinemascope-style horizontal bars simulating a wider aspect ratio (see [Letterbox](#letterbox)).                 |
 | `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                                                      |
 | `caption`     | `Caption`        | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)).               |
 | `lowerThird`  | `LowerThird`     | Structured title/subtitle band over the clip (see [Lower thirds](#lower-thirds)). On visual sections.            |
@@ -201,9 +202,25 @@ Quoted from `XFADE_TRANSITIONS` in [`effects.schemas.ts`](../packages/ffmpeg-vid
 | `hue`                                                | -180..180 (deg) | 0       | `hue`          |
 | `colorBalance.{shadows,midtones,highlights}.{r,g,b}` | -1..1           | —       | `colorbalance` |
 | `blur`                                               | 0..20 (px)      | 0       | `gblur`        |
+| `grain`                                              | 0..1            | 0       | `noise`        |
 | `curvesPreset`                                       | string key      | —       | `curves`       |
 
-Looks and grades compile to ordinary FFmpeg filters (`eq`, `colorbalance`, `curves`, `gblur`, `hue`) — nothing exotic, on-device-safe.
+Looks and grades compile to ordinary FFmpeg filters (`eq`, `colorbalance`, `curves`, `gblur`, `noise`, `hue`) — nothing exotic, on-device-safe. `grain` lowers to `noise=alls=<0..20>:allf=t+u` (strength scaled from the 0..1 input).
+
+## Letterbox
+
+`letterbox` overlays two solid `drawbox` bars, top and bottom, to simulate a wider aspect ratio than the actual output frame (a cinemascope look):
+
+```jsonc
+{ "letterbox": { "aspect": 2.39, "color": "#000000" } }
+```
+
+| Field    | Type              | Description                                                          |
+| -------- | ----------------- | -------------------------------------------------------------------- |
+| `aspect` | `number` 1..4     | Target aspect ratio the bars simulate (e.g. `2.39` for cinemascope). |
+| `color`  | `string` optional | Bar colour (default `black`).                                        |
+
+The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output frame. **No-op when `aspect` is narrower than or equal to the output frame's own aspect ratio** — the engine never emits a bar with a non-positive height, so authoring `letterbox` on a frame that's already at least as wide as `aspect` silently draws nothing rather than producing an invalid filter.
 
 ## Motion
 

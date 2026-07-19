@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { lookToFilters, gradeToFilters, motionToFilters, layersToFilters } from '@/editor/presets/looks';
+import {
+  lookToFilters,
+  gradeToFilters,
+  motionToFilters,
+  layersToFilters,
+  letterboxToFilters,
+} from '@/editor/presets/looks';
 import type { Filter } from '@/core/types';
 import type { Grade, MotionEffect, BackgroundLayer } from '@/schemas/template.schemas';
 
@@ -154,6 +160,76 @@ describe('gradeToFilters', () => {
     expect(gradeToFilters({ curvesPreset: 'vintage' })).toEqual<Filter[]>([
       { type: 'curves', value: 'preset=vintage' },
     ]);
+  });
+
+  it('grain=0 → no noise filter emitted', () => {
+    const filters = gradeToFilters({ grain: 0 });
+    expect(filters.some((f) => f.type === 'noise')).toBe(false);
+  });
+
+  it('grain undefined → no noise filter emitted', () => {
+    const filters = gradeToFilters({ blur: 1 });
+    expect(filters.some((f) => f.type === 'noise')).toBe(false);
+  });
+
+  it('grain=1 → single noise filter at full strength', () => {
+    expect(gradeToFilters({ grain: 1 })).toEqual<Filter[]>([{ type: 'noise', value: 'alls=20:allf=t+u' }]);
+  });
+
+  it('grain=0.5 → noise filter rounds strength to 10', () => {
+    expect(gradeToFilters({ grain: 0.5 })).toEqual<Filter[]>([{ type: 'noise', value: 'alls=10:allf=t+u' }]);
+  });
+
+  it('grain emits after gblur and before curves', () => {
+    const filters = gradeToFilters({ blur: 2, grain: 0.5, curvesPreset: 'warm' });
+    expect(filters).toEqual<Filter[]>([
+      { type: 'gblur', value: 'sigma=2' },
+      { type: 'noise', value: 'alls=10:allf=t+u' },
+      { type: 'curves', value: 'preset=warm' },
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// letterboxToFilters
+// ---------------------------------------------------------------------------
+
+const SCALE_LANDSCAPE = { scale: '1280:720' }; // frame aspect 1.778 (< 2.39)
+
+describe('letterboxToFilters', () => {
+  it('returns [] for undefined', () => {
+    expect(letterboxToFilters(undefined, SCALE_LANDSCAPE)).toEqual([]);
+  });
+
+  it('aspect wider than frame → two drawbox bars, top and bottom, default black', () => {
+    const filters = letterboxToFilters({ aspect: 2.39 }, SCALE_LANDSCAPE);
+    expect(filters).toEqual<Filter[]>([
+      { type: 'drawbox', values: { x: 0, y: 0, w: 'iw', h: '(ih-iw/2.39)/2', c: 'black@1', t: 'fill' } },
+      {
+        type: 'drawbox',
+        values: { x: 0, y: 'ih-(ih-iw/2.39)/2', w: 'iw', h: '(ih-iw/2.39)/2', c: 'black@1', t: 'fill' },
+      },
+    ]);
+  });
+
+  it('custom color is honoured on both bars', () => {
+    const filters = letterboxToFilters({ aspect: 2.39, color: '#111111' }, SCALE_LANDSCAPE);
+    expect((filters[0].values as Record<string, unknown>).c).toBe('#111111@1');
+    expect((filters[1].values as Record<string, unknown>).c).toBe('#111111@1');
+  });
+
+  it('aspect equal to frame aspect → no-op ([])', () => {
+    // 1280:720 = 16:9 = 1.7777...78 exactly
+    expect(letterboxToFilters({ aspect: 1280 / 720 }, SCALE_LANDSCAPE)).toEqual([]);
+  });
+
+  it('aspect narrower than frame → no-op ([]), never emits a non-positive height drawbox', () => {
+    expect(letterboxToFilters({ aspect: 1.5 }, SCALE_LANDSCAPE)).toEqual([]);
+  });
+
+  it('portrait frame: an aspect wider than the portrait ratio still emits bars', () => {
+    const filters = letterboxToFilters({ aspect: 1.5 }, { scale: '720:1280' }); // frame aspect 0.5625
+    expect(filters).toHaveLength(2);
   });
 });
 

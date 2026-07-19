@@ -47,6 +47,12 @@ export const GradeSchema = z
       .optional()
       .describe('Per-range colour balance correction.'),
     blur: z.number().min(0).max(20).optional().describe('Gaussian blur radius in pixels, 0..20 (default 0).'),
+    grain: z
+      .number()
+      .min(0)
+      .max(1)
+      .optional()
+      .describe('Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).'),
     curvesPreset: z.string().optional().describe('Named curves preset key applied on top of other grade settings.'),
   })
   .describe('Colour-grade settings applied to the section video via FFmpeg eq/curves filters.');

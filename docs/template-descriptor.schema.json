@@ -627,6 +627,12 @@
               "minimum": 0,
               "maximum": 20
             },
+            "grain": {
+              "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
             "curvesPreset": {
               "description": "Named curves preset key applied on top of other grade settings.",
               "type": "string"
@@ -2304,11 +2310,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {
@@ -4302,11 +4332,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {
@@ -6342,11 +6396,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {
@@ -8340,11 +8418,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {
@@ -10716,11 +10818,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {
@@ -12714,11 +12840,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {
@@ -14712,11 +14862,35 @@
                     "minimum": 0,
                     "maximum": 20
                   },
+                  "grain": {
+                    "description": "Film-grain strength, 0..1 (default 0; lowered to the FFmpeg noise filter).",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "curvesPreset": {
                     "description": "Named curves preset key applied on top of other grade settings.",
                     "type": "string"
                   }
                 },
+                "additionalProperties": false
+              },
+              "letterbox": {
+                "description": "Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.",
+                "type": "object",
+                "properties": {
+                  "aspect": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 4,
+                    "description": "Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope)."
+                  },
+                  "color": {
+                    "description": "Bar colour (default black).",
+                    "type": "string"
+                  }
+                },
+                "required": ["aspect"],
                 "additionalProperties": false
               },
               "motion": {

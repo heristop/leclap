@@ -23,6 +23,7 @@ const buildDir = path.resolve(repoRoot, 'build/effects-fixtures');
 const FIXTURES = [
   'effects-text',
   'effects-lut',
+  'effects-letterbox',
   'effects-chromakey',
   'effects-overlay-motion',
   'grade-colorbalance',

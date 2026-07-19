@@ -111,6 +111,7 @@ export const ENGINE_EMITTED_FILTERS = [
   'hue',
   'colorbalance',
   'gblur',
+  'noise',
   'curves',
   'lut3d',
   // motion (MOTION_HANDLERS in looks.ts) + gradient/animation overlay opacity fade

@@ -133,6 +133,14 @@ export const BaseSectionSchema = z
       .optional()
       .describe('Named colour-grade preset applied to the section video (default: none).'),
     grade: GradeSchema.optional().describe('Fine-grained colour-grade settings applied to the section video.'),
+    letterbox: z
+      .object({
+        aspect: z.number().min(1).max(4).describe('Target aspect ratio the bars simulate (e.g. 2.39 for cinemascope).'),
+        color: z.string().optional().describe('Bar colour (default black).'),
+      })
+      .strict()
+      .optional()
+      .describe('Cinemascope-style horizontal bars overlaid top and bottom to simulate a wider aspect ratio.'),
     motion: z
       .array(MotionEffectSchema)
       .optional()

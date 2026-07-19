@@ -38,6 +38,7 @@ export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
   'lut3d',
   'lutyuv',
   'negate',
+  'noise',
   'null',
   'overlay',
   'pad',

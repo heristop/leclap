@@ -37,6 +37,7 @@
 | `loudnorm`          | yes               | yes                       | yes                        |
 | `lut3d`             | yes               | yes                       | yes                        |
 | `lutyuv`            | yes               | yes                       | yes                        |
+| `noise`             | yes               | yes                       | yes                        |
 | `null`              | yes               | yes                       | yes                        |
 | `overlay`           | yes               | yes                       | yes                        |
 | `pad`               | yes               | yes                       | yes                        |
@@ -52,4 +53,4 @@
 | `xfade`             | yes               | yes                       | yes                        |
 | `zoompan`           | yes               | yes                       | yes                        |
 
-Device allowlist size: 56 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and on-device compiles of affected templates fail over to the app's fallback path.
+Device allowlist size: 57 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and on-device compiles of affected templates fail over to the app's fallback path.

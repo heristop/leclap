@@ -163,11 +163,53 @@ export function gradeToFilters(grade?: Grade): Filter[] {
     filters.push({ type: 'gblur', value: `sigma=${grade.blur}` });
   }
 
+  if (grade.grain !== undefined && grade.grain > 0) {
+    filters.push({ type: 'noise', value: `alls=${Math.round(grade.grain * 20)}:allf=t+u` });
+  }
+
   if (grade.curvesPreset) {
     filters.push({ type: 'curves', value: `preset=${grade.curvesPreset}` });
   }
 
   return filters;
+}
+
+// ---------------------------------------------------------------------------
+// letterboxToFilters
+// ---------------------------------------------------------------------------
+
+type LetterboxContext = {
+  /** Output scale as 'W:H', e.g. '1280:720' — used only to decide whether bars are needed. */
+  scale: string;
+};
+
+/**
+ * Translates a Letterbox descriptor into two drawbox filters simulating a wider aspect ratio via
+ * horizontal bars, top and bottom. A no-op ([]) when the target aspect is narrower than or equal to
+ * the frame's own aspect ratio — bars would compute a non-positive height, and drawbox must never be
+ * emitted with h<=0.
+ */
+export function letterboxToFilters(
+  letterbox: { aspect: number; color?: string } | undefined,
+  ctx: LetterboxContext
+): Filter[] {
+  if (!letterbox) {
+    return [];
+  }
+
+  const { w, h } = parseScale(ctx.scale);
+
+  if (letterbox.aspect <= w / h) {
+    return [];
+  }
+
+  const color = letterbox.color ?? 'black';
+  const barHeight = `(ih-iw/${letterbox.aspect})/2`;
+
+  return [
+    { type: 'drawbox', values: { x: 0, y: 0, w: 'iw', h: barHeight, c: `${color}@1`, t: 'fill' } },
+    { type: 'drawbox', values: { x: 0, y: `ih-${barHeight}`, w: 'iw', h: barHeight, c: `${color}@1`, t: 'fill' } },
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -192,7 +234,7 @@ type MotionContext = {
  * Parses a 'W:H' scale string into numeric width and height.
  * Falls back to 1280x720 if the string is malformed.
  */
-function parseScale(scale: string): { w: number; h: number } {
+export function parseScale(scale: string): { w: number; h: number } {
   const parts = scale.split(':');
   const w = parseInt(parts[0] ?? '1280', 10);
   const h = parseInt(parts[1] ?? '720', 10);

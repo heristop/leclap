@@ -13,8 +13,8 @@ export type {
 } from './descriptor-text';
 import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
-export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer } from './descriptor-visual';
-import type { GradeConfig, MotionEffect, BackgroundLayer } from './descriptor-visual';
+export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
+import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 // Filtergraph primitives (input/filter/map + shape recipe) also live in a sibling for the budget;
 // the public ones are re-exported, and Filter/Input/Map imported back for the section declarations below.
 export type { ShapeSpec, Map, Filter, FilterValues, MapAnimationInput, OverlayFit, OverlayFlip } from './filter-types';
@@ -188,6 +188,7 @@ export interface Section {
   lowerThird?: LowerThird;
   look?: string;
   grade?: GradeConfig;
+  letterbox?: Letterbox;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
 }

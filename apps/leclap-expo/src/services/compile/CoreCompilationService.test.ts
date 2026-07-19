@@ -88,6 +88,26 @@ describe('CoreCompilationService abort wiring', () => {
   });
 });
 
+describe('CoreCompilationService quality-tier threading', () => {
+  it('passes qualityTier through to the ProjectConfig verbatim when set', async () => {
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    await new CoreCompilationService().compile({ ...input, qualityTier: 'high' });
+
+    const [projectConfig] = (compileReactNative as unknown as MockFn).mock.calls[0] as [{ qualityTier?: string }];
+    expect(projectConfig.qualityTier).toBe('high');
+  });
+
+  it('omits qualityTier from the ProjectConfig when unset', async () => {
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    await new CoreCompilationService().compile(input);
+
+    const [projectConfig] = (compileReactNative as unknown as MockFn).mock.calls[0] as [{ qualityTier?: string }];
+    expect(projectConfig.qualityTier).toBeUndefined();
+  });
+});
+
 describe('CoreCompilationService bundled-asset staging', () => {
   const withMusic = {
     descriptor: { sections: [], global: { music: { name: 'point-being.mp3' } } },

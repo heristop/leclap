@@ -31,6 +31,12 @@
   "progress": "{{done}} de {{total}} secciones completadas",
   "shotsLeft_one": "queda {{count}} toma",
   "shotsLeft_other": "quedan {{count}} tomas",
+  "quality": {
+    "label": "Calidad",
+    "draft": "Borrador",
+    "standard": "Estándar",
+    "high": "Alta"
+  },
   "mode": {
     "linear": "Paso a paso",
     "hub": "Todo a la vez"

@@ -150,6 +150,12 @@
     "mediaSubtitleShort": "Scegli colonna sonora e sfondo",
     "selectionSaved": "Selezione salvata",
     "clipOf": "Clip {{number}} di {{total}}",
-    "recordOrUpload": "Registra o carica la tua clip"
+    "recordOrUpload": "Registra o carica la tua clip",
+    "quality": {
+      "label": "Qualità",
+      "draft": "Bozza",
+      "standard": "Standard",
+      "high": "Alta"
+    }
   }
 }

@@ -31,6 +31,12 @@
   "progress": "{{done}} of {{total}} sections completed",
   "shotsLeft_one": "{{count}} shot left",
   "shotsLeft_other": "{{count}} shots left",
+  "quality": {
+    "label": "Quality",
+    "draft": "Draft",
+    "standard": "Standard",
+    "high": "High"
+  },
   "mode": {
     "linear": "Step-by-step",
     "hub": "All at once"

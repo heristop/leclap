@@ -23,7 +23,7 @@ import {
   useMobileSplit,
   type ToolItem,
 } from '@/presentation/components/editor-shell';
-import { templateService, type Template, type InputSection } from '@/services/templateService';
+import { templateService, type Template, type InputSection, type QualityTier } from '@/services/templateService';
 import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { resolveTranslation } from '@/lib/i18nText';
@@ -50,6 +50,8 @@ interface EditorShellProps {
   phaseContent: ReactNode;
   saveStatus: SaveStatus;
   lastSavedAt: number | null;
+  qualityTier: QualityTier;
+  onQualityTierChange: (tier: QualityTier) => void;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
   onAddRush: (sectionName: string, file: File) => void;
@@ -91,6 +93,30 @@ const ReadyMeter = ({ done, total, t }: { done: number; total: number; t: TFunct
   );
 };
 
+// draft/standard/high render quality — an engine-resolved CRF/bitrate bundle (see resolveTier in
+// encoding.ts). Arms the NEXT render; changing it mid-compile has no effect on one already running.
+const QUALITY_TIERS: QualityTier[] = ['draft', 'standard', 'high'];
+
+const QualityTierControl = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: QualityTier;
+  onChange: (tier: QualityTier) => void;
+  t: TFunction<'builder'>;
+}) => (
+  <SegmentedControl
+    ariaLabel={t('hub.quality.label')}
+    value={value}
+    onChange={(next) => {
+      onChange(next as QualityTier);
+    }}
+    options={QUALITY_TIERS.map((tier) => ({ value: tier, label: t(`hub.quality.${tier}`) }))}
+    classNames={{ button: 'px-2 py-1 text-xs' }}
+  />
+);
+
 const EditorTopBar = ({
   template,
   phase,
@@ -99,6 +125,8 @@ const EditorTopBar = ({
   total,
   saveStatus,
   lastSavedAt,
+  qualityTier,
+  onQualityTierChange,
   onCreate,
   onExit,
   t,
@@ -110,6 +138,8 @@ const EditorTopBar = ({
   total: number;
   saveStatus: SaveStatus;
   lastSavedAt: number | null;
+  qualityTier: QualityTier;
+  onQualityTierChange: (tier: QualityTier) => void;
   onCreate: () => void;
   onExit: () => void;
   t: TFunction<'builder'>;
@@ -146,6 +176,11 @@ const EditorTopBar = ({
 
     {phase === 'edit' && <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />}
     {phase === 'edit' && <ReadyMeter done={done} total={total} t={t} />}
+    {phase === 'edit' && (
+      <div className="hidden sm:block">
+        <QualityTierControl value={qualityTier} onChange={onQualityTierChange} t={t} />
+      </div>
+    )}
     {phase === 'edit' && (
       <PressableScale
         onClick={onCreate}
@@ -429,6 +464,8 @@ export const EditorShell = (p: EditorShellProps) => {
         total={totalItems}
         saveStatus={p.saveStatus}
         lastSavedAt={p.lastSavedAt}
+        qualityTier={p.qualityTier}
+        onQualityTierChange={p.onQualityTierChange}
         onCreate={p.onCreate}
         onExit={p.onExit}
         t={t}

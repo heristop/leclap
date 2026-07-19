@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import type { Template, Section, Project, MediaChoice, MediaChoices } from '@/src/types';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { useTemplate } from '@/src/hooks/useTemplates';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
 import { useOnDeviceCompilation } from '@/src/hooks/useOnDeviceCompilation';
@@ -144,6 +145,7 @@ type CompileCtx = {
   project: Project | null;
   template: Template | undefined;
   mediaChoices: MediaChoices;
+  qualityTier: QualityTier;
   setProject: (p: Project) => void;
   saveProjectMutation: ReturnType<typeof useSaveProject>;
   onDeviceCompilation: ReturnType<typeof useOnDeviceCompilation>;
@@ -152,7 +154,8 @@ type CompileCtx = {
 
 function useCompileHandler(ctx: CompileCtx) {
   const { t } = useTranslation('detail');
-  const { project, template, mediaChoices, setProject, saveProjectMutation, onDeviceCompilation, router } = ctx;
+  const { project, template, mediaChoices, qualityTier, setProject, saveProjectMutation, onDeviceCompilation, router } =
+    ctx;
 
   return () => {
     if (!project || !template) return;
@@ -162,6 +165,7 @@ function useCompileHandler(ctx: CompileCtx) {
         templateDescriptor: compileTemplate(template.content, project.formData),
         recordedVideos: project.recordedVideos,
         mediaChoices,
+        qualityTier,
       },
       {
         onSuccess: (result) => {
@@ -305,12 +309,15 @@ function useMediaState(template: Template | undefined) {
   };
 }
 
-function useTemplateHandlers(ctx: HandlerCtx & Pick<CompileCtx, 'mediaChoices' | 'onDeviceCompilation'>) {
+function useTemplateHandlers(
+  ctx: HandlerCtx & Pick<CompileCtx, 'mediaChoices' | 'qualityTier' | 'onDeviceCompilation'>
+) {
   const sectionHandlers = useSectionHandlers(ctx);
   const handleCompile = useCompileHandler({
     project: ctx.project,
     template: ctx.template,
     mediaChoices: ctx.mediaChoices,
+    qualityTier: ctx.qualityTier,
     setProject: ctx.setProject,
     saveProjectMutation: ctx.saveProjectMutation,
     onDeviceCompilation: ctx.onDeviceCompilation,
@@ -331,6 +338,9 @@ export function useTemplateDetail(templateName: string, projectId: string | unde
   const [project, setProject] = useState<Project | null>(null);
   const [activeFormSection, setActiveFormSection] = useState<Section | null>(null);
   const [activeMusicSection, setActiveMusicSection] = useState<Section | null>(null);
+  // Render-quality choice for this session — component state (not persisted with the project), so it
+  // resets to the standard default whenever the screen is freshly opened.
+  const [qualityTier, setQualityTier] = useState<QualityTier>('standard');
   const {
     mediaPickerVisible,
     setMediaPickerVisible,
@@ -375,7 +385,7 @@ export function useTemplateDetail(templateName: string, projectId: string | unde
     handleMusicSelect,
     handleMusicUseDefault,
     handleCompile,
-  } = useTemplateHandlers({ ...hCtx, mediaChoices, onDeviceCompilation });
+  } = useTemplateHandlers({ ...hCtx, mediaChoices, qualityTier, onDeviceCompilation });
   const allDone = computeAllDone(project, template, filteredSections, hasMediaStep, mediaStepDone);
 
   const description = buildHeaderDescription(template, project, t);
@@ -403,6 +413,8 @@ export function useTemplateDetail(templateName: string, projectId: string | unde
     setMusicChoice,
     setBackgroundChoice,
     mediaStepDone,
+    qualityTier,
+    setQualityTier,
     isPending: onDeviceCompilation.isPending,
     willQueue: false,
     handleFormDataChange,

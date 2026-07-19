@@ -44,6 +44,8 @@ const TemplateDetailScreen = () => {
     setMusicChoice,
     setBackgroundChoice,
     mediaStepDone,
+    qualityTier,
+    setQualityTier,
     isPending,
     willQueue,
     handleFormDataChange,
@@ -121,6 +123,8 @@ const TemplateDetailScreen = () => {
         isPending={isPending}
         willQueue={willQueue}
         shotsLeft={totalItems - totalDone}
+        qualityTier={qualityTier}
+        onQualityTierChange={setQualityTier}
         onCompile={handleCompile}
       />
 

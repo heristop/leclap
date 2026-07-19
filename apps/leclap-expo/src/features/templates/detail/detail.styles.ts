@@ -91,6 +91,7 @@ export const styles = StyleSheet.create({
   },
 
   // Create CTA
+  qualityRow: { marginBottom: spacing.s },
   footer: {
     position: 'absolute',
     left: 0,

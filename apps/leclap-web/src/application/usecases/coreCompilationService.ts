@@ -5,10 +5,8 @@ import { FONTS } from '@leclap/creative-kit/fonts';
 import BrowserFilesystemAdapter from 'ffmpeg-video-composer/src/platform/filesystem/BrowserFilesystemAdapter.ts';
 import type AbstractEventManager from 'ffmpeg-video-composer/src/platform/AbstractEventManager.ts';
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
-
-// VideoConfig isn't exported from core types; derive it from the ProjectConfig field so the
-// preview-render path can pass a reduced scale without a core change.
-type VideoConfigOverride = NonNullable<ProjectConfig['videoConfig']>;
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
+import { buildConfigOverrides, type VideoConfigOverride } from './compile-config-overrides';
 import { type Template } from '@/services/templateService';
 import { compilationLogger } from '@/lib/logger';
 import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdits';
@@ -18,7 +16,7 @@ import { applyMediaChoices, type MediaChoices } from '@/application/usecases/app
 import { materializeTemplatePartials } from '@/services/templatePartialService';
 import { renderQuip } from '@leclap/creative-kit/render-quips';
 
-export type { MediaChoices };
+export type { MediaChoices, VideoConfigOverride };
 
 // Map a raw engine/FFmpeg failure to a concise, actionable message. The full error (ffmpeg stderr
 // included) is logged separately for debugging; this keeps what surfaces to the user readable instead
@@ -55,6 +53,9 @@ export interface CompilationConfig {
   // Optional x264 preset (e.g. 'ultrafast'). The preview passes this so the transition/color encode
   // — which otherwise defaults to the slow 'medium' — keeps the draft fast at native resolution.
   preset?: string;
+  // Optional render quality tier (draft/standard/high) — an engine-resolved CRF/bitrate bundle. Left
+  // undefined for callers that don't offer the choice, which falls back to the engine's 'standard'.
+  qualityTier?: QualityTier;
 }
 
 export interface CompilationProgress {
@@ -80,7 +81,7 @@ class CoreCompilationService {
     config: CompilationConfig,
     onProgress: (progress: CompilationProgress) => void
   ): Promise<CompilationResult> {
-    const { template, formData, files, videoEdits, mediaChoices, videoConfig, preset } = config;
+    const { template, formData, files, videoEdits, mediaChoices, videoConfig, preset, qualityTier } = config;
 
     try {
       onProgress({
@@ -100,7 +101,11 @@ class CoreCompilationService {
 
       const userVideoPaths = await this.storeUploadedFiles(editedFiles, clipSectionNames, onProgress);
 
-      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, videoConfig, preset);
+      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, {
+        videoConfig,
+        preset,
+        qualityTier,
+      });
 
       // Pre-load bundled TTF fonts so drawtext works in WASM: the WASM
       // ffmpeg-core's freetype cannot decode the woff2 that Google Fonts serves
@@ -272,8 +277,7 @@ class CoreCompilationService {
     userVideoPaths: Record<string, string>,
     formData: Record<string, string>,
     onProgress: (progress: CompilationProgress) => void,
-    videoConfig?: VideoConfigOverride,
-    preset?: string
+    overrides: { videoConfig?: VideoConfigOverride; preset?: string; qualityTier?: QualityTier } = {}
   ): Promise<ProjectConfig> {
     onProgress({
       stage: 'Configuring',
@@ -287,13 +291,13 @@ class CoreCompilationService {
     await this.filesystemAdapter.ensureDir(buildDir);
 
     // Project merges this over the engine defaults. A `preset` (the preview passes 'ultrafast') routes
-    // into hardwareConfig so the transition/color encode skips the slow default 'medium'.
+    // into hardwareConfig so the transition/color encode skips the slow default 'medium'; `qualityTier`
+    // picks the engine's draft/standard/high CRF+bitrate bundle (see resolveTier in encoding.ts).
     return {
       buildDir,
       userVideoPaths,
       fields: formData,
-      ...(videoConfig ? { videoConfig } : {}),
-      ...(preset ? { hardwareConfig: { preset } } : {}),
+      ...buildConfigOverrides(overrides.videoConfig, overrides.preset, overrides.qualityTier),
     };
   }
 

@@ -6,6 +6,7 @@ import {
 } from '@/application/usecases/coreCompilationService';
 import { type Template } from '@/services/templateService';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { logger } from '@/lib/logger';
 import { haptic } from '@/lib/haptics';
 
@@ -68,14 +69,15 @@ function buildCompilationConfig(
   clipsBySection: Record<string, File>,
   templateWithFormData: Template & { formData?: Record<string, string> },
   editsBySection?: Record<string, VideoEdit | undefined>,
-  mediaChoices?: MediaChoices
+  mediaChoices?: MediaChoices,
+  qualityTier?: QualityTier
 ): CompilationConfig {
   const { formData, ...template } = templateWithFormData;
   const files = orderedClipNames(template)
     .map((name) => clipsBySection[name])
     .filter((f): f is File => Boolean(f));
 
-  return { template, formData: formData ?? {}, files, videoEdits: editsBySection, mediaChoices };
+  return { template, formData: formData ?? {}, files, videoEdits: editsBySection, mediaChoices, qualityTier };
 }
 
 function applyProgressUpdate(
@@ -151,7 +153,8 @@ export const useVideoProcessing = () => {
     clipsBySection: Record<string, File>,
     templateWithFormData: Template & { formData?: Record<string, string> },
     editsBySection?: Record<string, VideoEdit | undefined>,
-    mediaChoices?: MediaChoices
+    mediaChoices?: MediaChoices,
+    qualityTier?: QualityTier
   ) => {
     // Only `project_video` sections consume an uploaded clip — color/text-only templates
     // (e.g. the premium title/quote cards) render with no upload at all.
@@ -167,7 +170,8 @@ export const useVideoProcessing = () => {
       clipsBySection,
       templateWithFormData,
       editsBySection,
-      mediaChoices
+      mediaChoices,
+      qualityTier
     );
 
     startTransition(() => {

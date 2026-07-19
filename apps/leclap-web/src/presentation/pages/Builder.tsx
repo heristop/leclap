@@ -7,7 +7,7 @@ import { EditorShell, CompileMonitor, type SaveStatus } from '@/presentation/com
 import { EditorLoadingShell } from '@/presentation/components/builder/editor-loading-shell';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
-import { templateService, type Template, type InputSection } from '@/services/templateService';
+import { templateService, type Template, type InputSection, type QualityTier } from '@/services/templateService';
 import { findMusicByUrl } from '@/data/mediaCatalog';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
@@ -127,6 +127,7 @@ interface StepProcessProps {
   isProcessing: boolean;
   progress: ReturnType<typeof useVideoProcessing>['progress'];
   error: string | null;
+  qualityTier: QualityTier;
   onCancelProcessing: () => void;
 }
 
@@ -137,6 +138,7 @@ const StepProcess = ({
   isProcessing,
   progress,
   error,
+  qualityTier,
   onCancelProcessing,
 }: StepProcessProps) => {
   if (!selectedTemplate) return null;
@@ -149,6 +151,7 @@ const StepProcess = ({
       isProcessing={isProcessing}
       progress={progress}
       error={error}
+      qualityTier={qualityTier}
       onCancel={onCancelProcessing}
     />
   );
@@ -212,6 +215,7 @@ interface StepContentProps {
     progress: ProcessProgress;
     error: string | null;
   };
+  qualityTier: QualityTier;
   onFormDataChange: (d: Record<string, string>) => void;
   onClipChange: (sectionName: string, file: File | undefined) => void;
   onEditChange: (sectionName: string, edit: VideoEdit | undefined) => void;
@@ -237,6 +241,7 @@ const StepContent = (p: StepContentProps) => {
         isProcessing={p.processing.isProcessing}
         progress={p.processing.progress}
         error={p.processing.error}
+        qualityTier={p.qualityTier}
         onCancelProcessing={p.onCancelProcessing}
       />
     );
@@ -283,6 +288,8 @@ interface FlowProps {
     progress: ProcessProgress;
     error: string | null;
   };
+  qualityTier: QualityTier;
+  onQualityTierChange: (tier: QualityTier) => void;
   handlers: WizardHandlers;
   goTo: (i: number) => void;
   nextStep: () => void;
@@ -329,6 +336,7 @@ const HubFlow = (p: FlowProps) => {
         clipCount={p.clipCount}
         processedVideo={p.processedVideo}
         processing={p.processing}
+        qualityTier={p.qualityTier}
         onFormDataChange={handlers.onFormDataChange}
         onClipChange={handlers.onClipChange}
         onEditChange={handlers.onEditChange}
@@ -352,6 +360,8 @@ const HubFlow = (p: FlowProps) => {
       phaseContent={phaseContent}
       saveStatus={p.saveStatus}
       lastSavedAt={p.lastSavedAt}
+      qualityTier={p.qualityTier}
+      onQualityTierChange={p.onQualityTierChange}
       onFormDataChange={handlers.onFormDataChange}
       onClipChange={handlers.onClipChange}
       onAddRush={handlers.onAddRush}
@@ -379,6 +389,7 @@ interface ActionDeps {
   stepIndex: number;
   allComplete: boolean;
   error: string | null;
+  qualityTier: QualityTier;
   setSelectedTemplate: (t: Template | null) => void;
   setModel: (value: WizardModel | ((m: WizardModel) => WizardModel)) => void;
   processVideo: ReturnType<typeof useVideoProcessing>['processVideo'];
@@ -387,7 +398,8 @@ interface ActionDeps {
 
 // Builds every callback the flows need. Pure factory (no hooks) so it doesn't bloat the component.
 const makeWizardActions = (deps: ActionDeps) => {
-  const { model, selectedTemplate, steps, stepIndex, allComplete, error, setSelectedTemplate, setModel } = deps;
+  const { model, selectedTemplate, steps, stepIndex, allComplete, error, qualityTier, setSelectedTemplate, setModel } =
+    deps;
   const update = (patch: Partial<WizardModel>) => {
     setModel((m) => ({ ...m, ...patch }));
   };
@@ -413,7 +425,8 @@ const makeWizardActions = (deps: ActionDeps) => {
         model.clipsBySection,
         { ...selectedTemplate, formData: model.formData },
         model.editsBySection,
-        mediaChoices
+        mediaChoices,
+        qualityTier
       )
       .then(
         () => {
@@ -832,6 +845,18 @@ const initialModelFor = (template: Template | null): WizardModel =>
 
 const templateId = (template: Template | null): string | null => template?.id ?? null;
 
+// Derived, render-only values shared by the flow — split out so useBuilderController's own statement
+// count stays under budget as it grows (e.g. adding the quality-tier choice).
+const deriveFlowBasics = (selectedTemplate: Template | null, model: WizardModel, steps: WizardStep[]) => {
+  const stepIndex = Math.min(model.stepIndex, steps.length - 1);
+  const currentStepKind = steps[stepIndex]?.kind;
+  const clipCount = selectedTemplate ? totalClips(selectedTemplate) : 0;
+  const builderState: BuilderState = { ...model, selectedTemplate };
+  const allComplete = allInputsComplete(steps, builderState);
+
+  return { stepIndex, currentStepKind, clipCount, builderState, allComplete };
+};
+
 // Owns all wizard state + derived values + actions, so the Builder component is render-only.
 const useBuilderController = () => {
   const navigate = useNavigate();
@@ -839,6 +864,9 @@ const useBuilderController = () => {
   const presetTemplate = navStateTemplate(location.state);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(presetTemplate);
   const [model, setModel] = useState<WizardModel>(() => initialModelFor(presetTemplate));
+  // Render-quality choice for this session — not part of the persisted draft (WizardModel), so it
+  // resets to the standard default on every fresh visit rather than round-tripping through storage.
+  const [qualityTier, setQualityTier] = useState<QualityTier>('standard');
   const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, clearResults, isFFmpegReady } =
     useVideoProcessing();
   const { templateParam, projectIdParam, resolving } = useTemplatePreselect({
@@ -847,11 +875,11 @@ const useBuilderController = () => {
     presetId: templateId(presetTemplate),
   });
   const steps: WizardStep[] = selectedTemplate ? buildSteps(selectedTemplate) : [{ kind: 'template' }];
-  const stepIndex = Math.min(model.stepIndex, steps.length - 1);
-  const currentStepKind = steps[stepIndex]?.kind;
-  const clipCount = selectedTemplate ? totalClips(selectedTemplate) : 0;
-  const builderState: BuilderState = { ...model, selectedTemplate };
-  const allComplete = allInputsComplete(steps, builderState);
+  const { stepIndex, currentStepKind, clipCount, builderState, allComplete } = deriveFlowBasics(
+    selectedTemplate,
+    model,
+    steps
+  );
 
   const { hydrating, hydratedResult, resetProject, clearHydratedResult, saveStatus, lastSavedAt } =
     useProjectPersistence({
@@ -871,6 +899,7 @@ const useBuilderController = () => {
     stepIndex,
     allComplete,
     error,
+    qualityTier,
     setSelectedTemplate,
     setModel,
     processVideo,
@@ -913,6 +942,8 @@ const useBuilderController = () => {
       progress,
       error,
     },
+    qualityTier,
+    onQualityTierChange: setQualityTier,
     handlers,
     goTo: actions.goTo,
     nextStep: actions.nextStep,

@@ -1,5 +1,6 @@
 // Re-export from core package for consistency
 export type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+export type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { coreTemplateService, type CoreTemplate } from '@/infrastructure/templates/coreTemplateService';
 import type { TemplateOrientation } from '@leclap/creative-kit';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';

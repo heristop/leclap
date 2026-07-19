@@ -150,6 +150,12 @@
     "mediaSubtitleShort": "Choisis la bande-son et le décor",
     "selectionSaved": "Sélection enregistrée",
     "clipOf": "Clip {{number}} sur {{total}}",
-    "recordOrUpload": "Filme ou importe ton clip"
+    "recordOrUpload": "Filme ou importe ton clip",
+    "quality": {
+      "label": "Qualité",
+      "draft": "Brouillon",
+      "standard": "Standard",
+      "high": "Élevée"
+    }
   }
 }

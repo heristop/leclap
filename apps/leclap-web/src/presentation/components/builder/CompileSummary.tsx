@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { type Template } from '@/services/templateService';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { buildFieldLabels, humanizeKey } from './templateSummary';
 
 interface CompileSummaryProps {
   template: Template;
   clipCount: number;
   formData: Record<string, string>;
+  qualityTier: QualityTier;
 }
 
 // Small uppercase group label — quiet, subordinate to the render monitor.
@@ -23,7 +25,7 @@ const Fact = ({ label, value }: { label: string; value: React.ReactNode }) => (
 
 // A low-visual-weight project summary rail that frames the render monitor without competing with it:
 // the project name + description, a tight row of facts, and (when present) the user's answers.
-export const CompileSummary = ({ template, clipCount, formData }: CompileSummaryProps) => {
+export const CompileSummary = ({ template, clipCount, formData, qualityTier }: CompileSummaryProps) => {
   const { t } = useTranslation(['process', 'builder']);
   const fieldLabels = buildFieldLabels(template);
   const answers = Object.entries(formData).filter(([, value]) => value.trim().length > 0);
@@ -46,6 +48,7 @@ export const CompileSummary = ({ template, clipCount, formData }: CompileSummary
           label={t('process:processor.template.music')}
           value={musicOn ? t('process:processor.template.musicEnabled') : t('process:processor.template.musicDisabled')}
         />
+        <Fact label={t('builder:hub.quality.label')} value={t(`builder:hub.quality.${qualityTier}`)} />
       </div>
 
       {answers.length > 0 && (

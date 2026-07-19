@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { type Template } from '@/services/templateService';
 import type { useVideoProcessing } from '@/hooks/useVideoProcessing';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { StopButton } from '@/presentation/components/StopButton';
 import { CompileSummary } from './CompileSummary';
@@ -14,6 +15,7 @@ interface CompileMonitorProps {
   isProcessing: boolean;
   progress: ReturnType<typeof useVideoProcessing>['progress'];
   error: string | null;
+  qualityTier: QualityTier;
   onCancel: () => void;
 }
 
@@ -75,6 +77,7 @@ export const CompileMonitor = ({
   isProcessing,
   progress,
   error,
+  qualityTier,
   onCancel,
 }: CompileMonitorProps) => {
   const { t } = useTranslation('builder');
@@ -94,7 +97,7 @@ export const CompileMonitor = ({
         </div>
       </section>
 
-      <CompileSummary template={template} clipCount={clipFiles.length} formData={formData} />
+      <CompileSummary template={template} clipCount={clipFiles.length} formData={formData} qualityTier={qualityTier} />
     </div>
   );
 };

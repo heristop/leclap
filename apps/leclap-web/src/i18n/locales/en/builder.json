@@ -150,6 +150,12 @@
     "mediaSubtitleShort": "Choose soundtrack and backdrop",
     "selectionSaved": "Selection saved",
     "clipOf": "Clip {{number}} of {{total}}",
-    "recordOrUpload": "Record or upload your clip"
+    "recordOrUpload": "Record or upload your clip",
+    "quality": {
+      "label": "Quality",
+      "draft": "Draft",
+      "standard": "Standard",
+      "high": "High"
+    }
   }
 }

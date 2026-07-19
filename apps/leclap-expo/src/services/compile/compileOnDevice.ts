@@ -1,5 +1,6 @@
 import type { CompileRecordedVideos } from '@/src/services/api';
 import type { TemplateDescriptor, MediaChoices } from '@/src/types';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { CoreCompilationService } from './CoreCompilationService';
 import type { CompileProgress } from './CompileService';
 import { describeOnDeviceCapability } from './capability';
@@ -16,6 +17,8 @@ export interface CompileVideoOptions {
   fontPath?: string;
   /** Reserved for future on-device media selection; the local engine uses the template's own media. */
   mediaChoices?: MediaChoices;
+  /** Render quality tier (draft/standard/high) — an engine-resolved CRF/bitrate bundle. */
+  qualityTier?: QualityTier;
   /** Live progress (0..1 ratio + stage label) forwarded from the engine to the progress UI. */
   onProgress?: (progress: CompileProgress) => void;
   /** Abort an in-flight compilation; the engine cancels cooperatively and resolves to a failed result. */
@@ -46,7 +49,7 @@ export async function compileOnDevice(
   }
 
   return new CoreCompilationService().compile(
-    { descriptor, clips: recordedVideos },
+    { descriptor, clips: recordedVideos, qualityTier: options.qualityTier },
     { onProgress: options.onProgress, signal: options.signal }
   );
 }

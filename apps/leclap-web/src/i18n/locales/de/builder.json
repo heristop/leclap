@@ -150,6 +150,12 @@
     "mediaSubtitleShort": "Wähle Soundtrack und Hintergrund",
     "selectionSaved": "Auswahl gespeichert",
     "clipOf": "Clip {{number}} von {{total}}",
-    "recordOrUpload": "Nimm deinen Clip auf oder lade ihn hoch"
+    "recordOrUpload": "Nimm deinen Clip auf oder lade ihn hoch",
+    "quality": {
+      "label": "Qualität",
+      "draft": "Entwurf",
+      "standard": "Standard",
+      "high": "Hoch"
+    }
   }
 }

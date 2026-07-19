@@ -1,5 +1,6 @@
 import type { TemplateDescriptor } from '@/src/types';
 import type { CompileRecordedVideos } from '@/src/services/api';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 
 /**
  * The single seam through which the app turns a template + recorded clips into a finished
@@ -14,6 +15,9 @@ export type { CompileRecordedVideos };
 export interface CompileInput {
   descriptor: TemplateDescriptor;
   clips: CompileRecordedVideos;
+  /** Render quality tier (draft/standard/high) — an engine-resolved CRF/bitrate bundle. Left undefined
+   * falls back to the engine's own 'standard' default (see resolveTier in the core's encoding.ts). */
+  qualityTier?: QualityTier;
 }
 
 export interface CompileProgress {

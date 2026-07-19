@@ -150,6 +150,12 @@
     "mediaSubtitleShort": "Elige banda sonora y fondo",
     "selectionSaved": "Selección guardada",
     "clipOf": "Clip {{number}} de {{total}}",
-    "recordOrUpload": "Graba o sube tu clip"
+    "recordOrUpload": "Graba o sube tu clip",
+    "quality": {
+      "label": "Calidad",
+      "draft": "Borrador",
+      "standard": "Estándar",
+      "high": "Alta"
+    }
   }
 }

@@ -31,6 +31,12 @@
   "progress": "{{done}} von {{total}} Abschnitten abgeschlossen",
   "shotsLeft_one": "Noch {{count}} Aufnahme",
   "shotsLeft_other": "Noch {{count}} Aufnahmen",
+  "quality": {
+    "label": "Qualität",
+    "draft": "Entwurf",
+    "standard": "Standard",
+    "high": "Hoch"
+  },
   "mode": {
     "linear": "Schritt für Schritt",
     "hub": "Alles auf einmal"

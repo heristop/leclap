@@ -31,6 +31,12 @@
   "progress": "{{done}} sur {{total}} sections terminées",
   "shotsLeft_one": "{{count}} prise restante",
   "shotsLeft_other": "{{count}} prises restantes",
+  "quality": {
+    "label": "Qualité",
+    "draft": "Brouillon",
+    "standard": "Standard",
+    "high": "Élevée"
+  },
   "mode": {
     "linear": "Étape par étape",
     "hub": "Tout en même temps"

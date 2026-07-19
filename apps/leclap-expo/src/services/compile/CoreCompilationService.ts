@@ -192,7 +192,7 @@ async function stageBundledImages(descriptor: CompileInput['descriptor'], assets
 
 // Prepare the on-device build/asset dirs and the ProjectConfig the core compiles against.
 async function buildProjectConfig(input: CompileInput) {
-  const { descriptor, clips } = input;
+  const { descriptor, clips, qualityTier } = input;
   const cache = toPath(FileSystem.cacheDirectory ?? '');
   const buildDir = `${cache}leclap-build`;
   const assetsDir = `${cache}leclap-assets`;
@@ -227,6 +227,7 @@ async function buildProjectConfig(input: CompileInput) {
       audioCodec: 'aac',
     },
     hardwareConfig: { hwaccel: null, preset: 'medium' },
+    ...(qualityTier ? { qualityTier } : {}),
   };
 }
 

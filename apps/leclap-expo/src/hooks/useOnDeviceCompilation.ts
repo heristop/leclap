@@ -3,6 +3,7 @@ import { type CompileRecordedVideos } from '@/src/services/api';
 import { compileOnDevice } from '@/src/services/compile/compileOnDevice';
 import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 import type { MediaChoices } from '@/src/types';
+import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 
 /**
  * Compile a video on-device, right now. The app is fully local — nothing is ever queued or sent to a
@@ -17,11 +18,13 @@ export const useOnDeviceCompilation = () => {
       templateDescriptor,
       recordedVideos,
       mediaChoices,
+      qualityTier,
     }: {
       projectId: string;
       templateDescriptor: unknown;
       recordedVideos: CompileRecordedVideos;
       mediaChoices?: MediaChoices;
+      qualityTier?: QualityTier;
     }) => {
       const controller = new AbortController();
       const progress = useCompileProgressStore.getState();
@@ -32,6 +35,7 @@ export const useOnDeviceCompilation = () => {
       try {
         const result = await compileOnDevice(templateDescriptor, recordedVideos, {
           mediaChoices,
+          qualityTier,
           signal: controller.signal,
           onProgress: ({ ratio, stage }) => {
             useCompileProgressStore.getState().update(ratio, stage);

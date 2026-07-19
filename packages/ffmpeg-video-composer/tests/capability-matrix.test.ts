@@ -12,4 +12,12 @@ describe('runtime capability matrix', () => {
     expect(fs.existsSync(docPath), 'doc missing — run generate:capabilities').toBe(true);
     expect(fs.readFileSync(docPath, 'utf8')).toBe(renderCapabilityMatrix());
   });
+
+  // The freshness test alone would stay green if compatRuleFor probed with a real device set (every
+  // gap would then mislabel as covered by the drop rule); pin the semantic content of the column.
+  it('the compat column reflects rewrite rules, never the drop rule', () => {
+    const rendered = renderCapabilityMatrix();
+    expect(rendered).toContain('via compat: eq-to-lutyuv');
+    expect(rendered).not.toContain('drop-absent-on-device');
+  });
 });

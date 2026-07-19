@@ -82,12 +82,13 @@ export function renderCapabilityMatrix(): string {
     };
   });
 
-  // Calculate column widths for markdown table formatting (including padding)
+  // Column widths track the widest cell so long compat keys can't overflow the fixed padding and
+  // fight prettier over the generated doc (which would deadlock the byte-exact freshness test).
   const colWidths = {
     filter: Math.max(6, ...rows.map((r) => r.filter.length)),
-    node: 17,
-    browser: 25,
-    device: 26,
+    node: Math.max('node (full build)'.length, ...rows.map((r) => r.node.length)),
+    browser: Math.max('browser wasm (full build)'.length, ...rows.map((r) => r.browser.length)),
+    device: Math.max('on-device (lgpl allowlist)'.length, ...rows.map((r) => r.device.length)),
   };
 
   // Build header and separator

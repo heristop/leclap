@@ -53,23 +53,24 @@ Optional human-facing metadata embedded in the descriptor, used by template brow
 
 Project-wide defaults and the options a builder/editor exposes to end users. `global` is `strict` — unknown keys are rejected.
 
-| Field                   | Type                                    | Description                                                                                                                          |
-| ----------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `variables`             | `Record<string, string \| string[]>`    | Named values referenced anywhere via `{{ varName }}`.                                                                                |
-| `orientation`           | `'landscape' \| 'portrait' \| 'square'` | Output orientation → resolution preset: landscape `1280x720`, portrait `720x1280`, square `1080x1080` (default `landscape`).         |
-| `colorsList`            | `string[]`                              | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                                            |
-| `musicEnabled`          | `boolean`                               | Whether background music is enabled (default `true`).                                                                                |
-| `music`                 | `{ name: string, url?: string }`        | Default background track. Omit `url` to use an app-managed track.                                                                    |
-| `animations`            | `GlobalAnimation[]`                     | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)).                       |
-| `overlays`              | `GlobalTextOverlay[]`                   | Whole-video TEXT overlays — a brand watermark authored once, drawn on every section (see [Global decorations](#global-decorations)). |
-| `look`                  | look preset                             | Colour-grade preset applied across every section (whole-video look).                                                                 |
-| `grade`                 | `Grade`                                 | Fine-grained colour grade applied across every section.                                                                              |
-| `transition`            | `Transition`                            | Default boundary transition between sections (see [Transitions](#transitions)).                                                      |
-| `audio`                 | `GlobalAudio`                           | Global audio mix (see [Audio](#audio)).                                                                                              |
-| `allowedMusic`          | `string[]`                              | Allowlist of music identifiers the user may choose.                                                                                  |
-| `allowUploadMusic`      | `boolean`                               | Allow the user to upload a custom music file (default `false`).                                                                      |
-| `allowedBackgrounds`    | `string[]`                              | Allowlist of background identifiers the user may choose.                                                                             |
-| `allowUploadBackground` | `boolean`                               | Allow the user to upload a custom background (default `false`).                                                                      |
+| Field                   | Type                                    | Description                                                                                                                                    |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variables`             | `Record<string, string \| string[]>`    | Named values referenced anywhere via `{{ varName }}`.                                                                                          |
+| `orientation`           | `'landscape' \| 'portrait' \| 'square'` | Output orientation → resolution preset: landscape `1280x720`, portrait `720x1280`, square `1080x1080` (default `landscape`).                   |
+| `fps`                   | `number`                                | Output frame rate for the rendered video — integer `1..120` (default `30`). Applies to every re-encode pass (segments and the final assembly). |
+| `colorsList`            | `string[]`                              | Palette offered to the user; reference as `{{ color1 }}`, `{{ color2 }}`.                                                                      |
+| `musicEnabled`          | `boolean`                               | Whether background music is enabled (default `true`).                                                                                          |
+| `music`                 | `{ name: string, url?: string }`        | Default background track. Omit `url` to use an app-managed track.                                                                              |
+| `animations`            | `GlobalAnimation[]`                     | Whole-video overlays, composited over the whole video (see [Whole-video animations](#whole-video-animations)).                                 |
+| `overlays`              | `GlobalTextOverlay[]`                   | Whole-video TEXT overlays — a brand watermark authored once, drawn on every section (see [Global decorations](#global-decorations)).           |
+| `look`                  | look preset                             | Colour-grade preset applied across every section (whole-video look).                                                                           |
+| `grade`                 | `Grade`                                 | Fine-grained colour grade applied across every section.                                                                                        |
+| `transition`            | `Transition`                            | Default boundary transition between sections (see [Transitions](#transitions)).                                                                |
+| `audio`                 | `GlobalAudio`                           | Global audio mix (see [Audio](#audio)).                                                                                                        |
+| `allowedMusic`          | `string[]`                              | Allowlist of music identifiers the user may choose.                                                                                            |
+| `allowUploadMusic`      | `boolean`                               | Allow the user to upload a custom music file (default `false`).                                                                                |
+| `allowedBackgrounds`    | `string[]`                              | Allowlist of background identifiers the user may choose.                                                                                       |
+| `allowUploadBackground` | `boolean`                               | Allow the user to upload a custom background (default `false`).                                                                                |
 
 ## Sections
 

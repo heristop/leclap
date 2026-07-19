@@ -109,6 +109,11 @@ class SegmentBuilder {
     return buildColorMetadataArgs();
   }
 
+  /** Output fps for this segment's `-r` — the director-resolved `videoConfig.fps`, else the default. */
+  protected fps(): number {
+    return this.project.config.videoConfig?.fps ?? DefaultConfig.FPS;
+  }
+
   // Unwrapped references kept as protected fields so subclasses can access them.
   protected readonly assetManager: AssetManager;
   protected readonly variableManager: VariableManager;
@@ -488,7 +493,7 @@ class SegmentBuilder {
     const probedDuration = isVideo ? this.project.buildInfos.durations[this.section.name] : undefined;
     const duration = probedDuration ?? this.section.options?.duration ?? 0;
 
-    return { duration, scale, fps: 30, isVideo };
+    return { duration, scale, fps: this.project.config.videoConfig?.fps ?? DefaultConfig.FPS, isVideo };
   };
 
   /**

@@ -55,7 +55,7 @@ type HardwareConfig = { hwaccel?: string | null; preset?: string; maxRenderConcu
 
 type AudioConfig = { sampleRate?: number; channelLayout?: string };
 
-type VideoConfig = { orientation?: string; scale?: string; setsar?: string };
+export type VideoConfig = { orientation?: string; scale?: string; setsar?: string; fps?: number };
 
 export type ProjectBuildInfos = {
   totalSegments: number;
@@ -89,6 +89,7 @@ interface TemplateMeta {
 export interface TemplateDescriptorGlobal {
   variables?: Variables;
   orientation?: string;
+  fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;
   transition?: SectionTransition;

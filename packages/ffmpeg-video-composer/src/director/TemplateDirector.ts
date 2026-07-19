@@ -9,12 +9,12 @@ import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
-import DefaultConfig from '../core/default.config';
 import { assertSafeSegmentName } from '../core/arg-guard';
 import { fetchSectionInfos } from './section-infos';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
+import { resolveOrientationScale, resolveFps } from './resolve-video-config';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@/core/partials';
 import type Project from '../core/models/Project';
@@ -108,6 +108,7 @@ class TemplateDirector {
 
     this.project.applyDefault();
     this.applyOrientationToScale();
+    this.applyFpsToConfig();
 
     const paths = this.project.config.userVideoPaths;
     this.logger.info(
@@ -119,31 +120,19 @@ class TemplateDirector {
     return this;
   };
 
-  // Resolve the output orientation ONCE, here — the single point where the descriptor and the
-  // project config meet. A portrait template swaps the configured W:H, and a square template forces the
-  // 1080x1080 preset, so the recorded clip, the cards, and the final normalize all render to the same
-  // scale. Replaces the old per-SegmentBuilder swap, which mutated the shared config per segment and
+  // Resolve orientation + fps ONCE, here — the single point where the descriptor and the project
+  // config meet. Pure resolution lives in resolve-video-config (line-budget + testability); replaces
+  // the old per-SegmentBuilder orientation swap, which mutated the shared config per segment and
   // alternated orientation across them.
   private readonly applyOrientationToScale = (): void => {
-    const orientation = this.template.descriptor.global?.orientation;
-    const videoConfig = this.project.config.videoConfig;
+    this.project.config.videoConfig = resolveOrientationScale(
+      this.project.config.videoConfig,
+      this.template.descriptor.global?.orientation
+    );
+  };
 
-    if (!videoConfig) return;
-
-    if (orientation === 'square') {
-      this.project.config.videoConfig = { ...videoConfig, scale: DefaultConfig.SQUARE_SCALE };
-
-      return;
-    }
-
-    if (orientation !== 'portrait') return;
-
-    const parts = videoConfig.scale?.split(':');
-    const [width, height] = [parts?.[0], parts?.[1]];
-
-    if (width === undefined || height === undefined) return;
-
-    this.project.config.videoConfig = { ...videoConfig, scale: `${height}:${width}` };
+  private readonly applyFpsToConfig = (): void => {
+    this.project.config.videoConfig = resolveFps(this.project.config.videoConfig, this.template.descriptor.global?.fps);
   };
 
   construct = async (): Promise<string | null> => {

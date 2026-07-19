@@ -12,7 +12,7 @@ class ColorBackground extends SegmentBuilder {
     this.command =
       ` -y ${this.addBlankAudio()} ` +
       ` ${this.hwaccelArg} ${this.sources.join(' ')} -t ${this.section.options?.duration} ` +
-      ' -r 30 ' +
+      ` -r ${this.fps()} ` +
       ` -shortest ${this.pixFmtArg()} ${this.colorMetadataArgs()} -c:v ${this.videoCodec()} -c:a aac -ac 2 ` +
       ` ${this.filters} -map 0:a? ${this.buildAudioFadeArg()}${this.destination} `;
   };

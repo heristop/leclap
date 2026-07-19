@@ -54,7 +54,7 @@ class Video extends SegmentBuilder {
       // Use a video as second input
       this.command +=
         ` ${this.hwaccelArg} ${this.sources.join(' ')} ` +
-        ` -r 30 -t ${this.section.options.duration} ` +
+        ` -r ${this.fps()} -t ${this.section.options.duration} ` +
         ` ${encodingParams} ` +
         ` ${this.filters} ${audioFadeArg}${this.destination} `;
 
@@ -69,7 +69,7 @@ class Video extends SegmentBuilder {
 
       this.command +=
         ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
-        ` -r 30 -t ${this.section.options.duration} ` +
+        ` -r ${this.fps()} -t ${this.section.options.duration} ` +
         ` ${encodingParams} ` +
         ` ${this.filters} ${audioFadeArg}${this.destination} `;
 
@@ -82,7 +82,7 @@ class Video extends SegmentBuilder {
     // rejects with "At least one output file must be specified".
     this.command +=
       ` ${this.hwaccelArg} -i ${assertSafeArgToken(this.source, 'source')} ${this.sources.join(' ')} ` +
-      ` -r 30 -t ${this.section.options?.duration} ` +
+      ` -r ${this.fps()} -t ${this.section.options?.duration} ` +
       ` ${encodingParams} ` +
       ` ${this.filters} ${audioFadeArg}${this.destination} `;
   };

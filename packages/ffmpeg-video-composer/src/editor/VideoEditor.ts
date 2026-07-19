@@ -278,7 +278,7 @@ class VideoEditor {
       silentInputs.join('') +
       (overlay.sources ? ` ${overlay.sources} ` : '') +
       ` -filter_complex "${filterComplex}" ` +
-      ` -map "[vout]" -map "[aout]" -r 30 ${outputArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
+      ` -map "[vout]" -map "[aout]" -r ${this.project.config.videoConfig?.fps ?? DefaultConfig.FPS} ${outputArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
     );
   }
 

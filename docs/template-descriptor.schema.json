@@ -46,6 +46,12 @@
           "enum": ["landscape", "portrait", "square"],
           "description": "Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape)."
         },
+        "fps": {
+          "description": "Output frame rate for the rendered video (integer 1..120, default 30).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
         "colorsList": {
           "description": "Palette of colours offered to the user for customisation, as CSS hex strings.",
           "type": "array",
@@ -70,6 +76,8 @@
                     "fadeblack",
                     "fadewhite",
                     "fadegrays",
+                    "fadefast",
+                    "fadeslow",
                     "distance",
                     "dissolve",
                     "pixelize",
@@ -279,6 +287,48 @@
               "persistent": {
                 "description": "When true, the overlay freezes its last frame once it ends instead of letting the video show through.",
                 "type": "boolean"
+              },
+              "motion": {
+                "description": "Animated entrance for the overlay: rise/slide in via overlay x/y expressions, or an alpha fade-in on the overlay leg.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                        "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                      },
+                      "delay": {
+                        "description": "Seconds before the entrance starts (default 0.3).",
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "duration": {
+                        "description": "Seconds the entrance takes (default 0.6).",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "distance": {
+                        "description": "Pixels the text travels for rise/slide (default 60).",
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "easing": {
+                        "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                        "type": "string",
+                        "enum": ["linear", "ease-out", "ease-in-out"]
+                      }
+                    },
+                    "required": ["type"],
+                    "additionalProperties": false,
+                    "description": "Animated entrance for sugar text, with optional timing overrides."
+                  }
+                ]
               }
             },
             "required": ["url"],
@@ -890,6 +940,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -945,6 +1021,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -1178,6 +1258,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -1233,6 +1339,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -1457,6 +1567,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -1512,6 +1648,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -1639,6 +1779,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",
@@ -2796,6 +2938,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -2851,6 +3019,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -3084,6 +3256,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -3139,6 +3337,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -3363,6 +3565,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -3418,6 +3646,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -3545,6 +3777,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",
@@ -4744,6 +4978,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -4799,6 +5059,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -5032,6 +5296,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -5087,6 +5377,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -5311,6 +5605,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -5366,6 +5686,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -5493,6 +5817,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",
@@ -6650,6 +6976,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -6705,6 +7057,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -6938,6 +7294,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -6993,6 +7375,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -7217,6 +7603,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -7272,6 +7684,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -7399,6 +7815,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",
@@ -8602,6 +9020,48 @@
                           },
                           "required": ["color", "width"],
                           "additionalProperties": false
+                        },
+                        "reveal": {
+                          "description": "Animated entrance for the layer. Gradient layers fade/slide in via the overlay motion machinery; solid (drawbox) layers cannot animate alpha, so they appear at the reveal delay via a timeline gate.",
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["none", "fade", "rise", "slide-left", "slide-right"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
+                                  "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
+                                },
+                                "delay": {
+                                  "description": "Seconds before the entrance starts (default 0.3).",
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "duration": {
+                                  "description": "Seconds the entrance takes (default 0.6).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "distance": {
+                                  "description": "Pixels the text travels for rise/slide (default 60).",
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "easing": {
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "type": "string",
+                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false,
+                              "description": "Animated entrance for sugar text, with optional timing overrides."
+                            }
+                          ]
                         }
                       },
                       "additionalProperties": false,
@@ -8892,6 +9352,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -8947,6 +9433,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -9180,6 +9670,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -9235,6 +9751,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -9459,6 +9979,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -9514,6 +10060,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -9641,6 +10191,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",
@@ -10798,6 +11350,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -10853,6 +11431,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -11086,6 +11668,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -11141,6 +11749,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -11365,6 +11977,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -11420,6 +12058,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -11547,6 +12189,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",
@@ -12704,6 +13348,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -12759,6 +13429,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -12992,6 +13666,32 @@
                                 "description": "Path or URL to the font file used by the drawtext filter.",
                                 "type": "string"
                               },
+                              "box": {
+                                "description": "drawtext background box toggle (1 draws a box behind the text).",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "boxcolor": {
+                                "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                                "type": "string"
+                              },
+                              "boxborderw": {
+                                "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
                               "shadowcolor": {
                                 "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                                 "type": "string"
@@ -13047,6 +13747,10 @@
                               },
                               "color": {
                                 "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                                "type": "string"
+                              },
+                              "enable": {
+                                "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                                 "type": "string"
                               }
                             },
@@ -13271,6 +13975,32 @@
                           "description": "Path or URL to the font file used by the drawtext filter.",
                           "type": "string"
                         },
+                        "box": {
+                          "description": "drawtext background box toggle (1 draws a box behind the text).",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "boxcolor": {
+                          "description": "drawtext background box colour token, e.g. \"#000000@0.5\" (the @suffix is the opacity).",
+                          "type": "string"
+                        },
+                        "boxborderw": {
+                          "description": "drawtext background box padding in pixels around the text; FFmpeg n8.0 also accepts per-side \"up|right|down|left\" strings.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
                         "shadowcolor": {
                           "description": "drawtext drop-shadow colour token, e.g. \"#000000@0.6\".",
                           "type": "string"
@@ -13326,6 +14056,10 @@
                         },
                         "color": {
                           "description": "Alternate colour parameter (some filters use \"color\" instead of \"c\").",
+                          "type": "string"
+                        },
+                        "enable": {
+                          "description": "Timeline gate expression forwarded to the filter's enable option, pre-quoted when it holds commas (e.g. \"'gte(t,0.3)'\").",
                           "type": "string"
                         }
                       },
@@ -13453,6 +14187,8 @@
                           "fadeblack",
                           "fadewhite",
                           "fadegrays",
+                          "fadefast",
+                          "fadeslow",
                           "distance",
                           "dissolve",
                           "pixelize",

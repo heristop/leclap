@@ -125,6 +125,13 @@ export const GlobalConfigSchema = z
       'Template-wide variable definitions referenced via {{ varName }} syntax.'
     ),
     orientation: OrientationSchema.optional(),
+    fps: z
+      .number()
+      .int()
+      .min(1)
+      .max(120)
+      .optional()
+      .describe('Output frame rate for the rendered video (integer 1..120, default 30).'),
     colorsList: z
       .array(z.string())
       .optional()

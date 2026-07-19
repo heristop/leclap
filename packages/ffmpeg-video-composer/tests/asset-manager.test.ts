@@ -17,7 +17,7 @@ function createFilesystem() {
     move: vi.fn(async () => undefined),
     copy: vi.fn(async () => undefined),
     fetchAndRead: vi.fn(async () => ''),
-    writeFile: vi.fn(async () => undefined),
+    writeFile: vi.fn(async (_path: string, _bytes: Uint8Array) => undefined),
     // Default to "not bundled" so these tests still exercise the Google Fonts download path.
     resolveBundledFont: vi.fn(async (): Promise<string | null> => null),
     // Default to "no local copy" so media tests still exercise the download path.

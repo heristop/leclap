@@ -11,8 +11,8 @@ const readU32 = (bytes: Uint8Array, at: number): number =>
 // Standard PNG CRC32 (0xEDB88320) — recomputed independently to validate the encoder's chunk CRCs.
 const crc32 = (data: Uint8Array): number => {
   let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) {
-    crc ^= data[i];
+  for (const byte of data) {
+    crc ^= byte;
     for (let bit = 0; bit < 8; bit++) {
       const mask = -(crc & 1);
       crc = (crc >>> 1) ^ (0xedb88320 & mask);
@@ -34,7 +34,7 @@ const parseChunks = (png: Uint8Array): Chunk[] => {
   let offset = 8; // skip signature
   while (offset < png.length) {
     const length = readU32(png, offset);
-    const type = String.fromCharCode(png[offset + 4], png[offset + 5], png[offset + 6], png[offset + 7]);
+    const type = String.fromCodePoint(png[offset + 4], png[offset + 5], png[offset + 6], png[offset + 7]);
     const data = png.subarray(offset + 8, offset + 8 + length);
     const crc = readU32(png, offset + 8 + length);
     chunks.push({ type, data, crc });
@@ -105,10 +105,10 @@ describe('roundedPanelPng', () => {
     const chunks = parseChunks(png);
     for (const chunk of chunks) {
       const typeAndData = new Uint8Array(4 + chunk.data.length);
-      typeAndData[0] = chunk.type.charCodeAt(0);
-      typeAndData[1] = chunk.type.charCodeAt(1);
-      typeAndData[2] = chunk.type.charCodeAt(2);
-      typeAndData[3] = chunk.type.charCodeAt(3);
+      typeAndData[0] = chunk.type.codePointAt(0) ?? 0;
+      typeAndData[1] = chunk.type.codePointAt(1) ?? 0;
+      typeAndData[2] = chunk.type.codePointAt(2) ?? 0;
+      typeAndData[3] = chunk.type.codePointAt(3) ?? 0;
       typeAndData.set(chunk.data, 4);
       expect(chunk.crc).toBe(crc32(typeAndData));
     }

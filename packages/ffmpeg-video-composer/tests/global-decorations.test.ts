@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { compileGlobalDecorations, type SugarContext } from '@/editor/presets/registry';
-import type { Section, TemplateDescriptorGlobal } from '@/core/types';
+import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
 
 // ---------------------------------------------------------------------------
 // compileGlobalDecorations — per-field, wholesale override of global look/grade.
@@ -16,10 +16,10 @@ const ctx: SugarContext = { duration: 5, scale: '1280:720', fps: 30, isVideo: fa
 const section = (overrides: Partial<Section> = {}): Section =>
   ({ name: 'intro', type: 'image', ...overrides }) as Section;
 
-const gradeValues = (filters: { type: string; value?: string }[]): string[] =>
-  filters.filter((f) => f.type === 'eq').map((f) => f.value ?? '');
+const gradeValues = (filters: Filter[]): string[] =>
+  filters.filter((f) => f.type === 'eq').map((f) => String(f.value ?? ''));
 
-const hasLut = (filters: { type: string; value?: string }[]): boolean => filters.some((f) => f.type === 'lut3d');
+const hasLut = (filters: Filter[]): boolean => filters.some((f) => f.type === 'lut3d');
 
 describe('compileGlobalDecorations look/grade override', () => {
   it('applies the global grade to a section that has no grade of its own', () => {

@@ -82,6 +82,49 @@ describe('lookToFilters', () => {
     const second = lookToFilters('warm');
     expect(second[0].value).toBe('rs=0.08:rm=0.05:bs=-0.06');
   });
+
+  it('duotone: desaturate + channel mix + contrast lutyuv', () => {
+    expect(lookToFilters('duotone')).toEqual<Filter[]>([
+      { type: 'hue', value: 's=0' },
+      { type: 'colorchannelmixer', value: 'rr=1.1:gg=0.95:bb=0.75:rb=0.1' },
+      {
+        type: 'lutyuv',
+        value:
+          "y='clip(pow(clip((val/255-0.5)*1.08+0.5+0,0,1),1/1)*255,0,255)':u='clip((val-128)*1+128,0,255)':v='clip((val-128)*1+128,0,255)'",
+      },
+    ]);
+  });
+
+  it('posterize: single lutyuv quantizing y/u/v to 48-level steps', () => {
+    expect(lookToFilters('posterize')).toEqual<Filter[]>([
+      {
+        type: 'lutyuv',
+        value: "y='floor(val/48)*48':u='floor(val/48)*48':v='floor(val/48)*48'",
+      },
+    ]);
+  });
+
+  it('sketch: edgedetect colormix + contrast/brightness lutyuv', () => {
+    expect(lookToFilters('sketch')).toEqual<Filter[]>([
+      { type: 'edgedetect', value: 'mode=colormix:high=0.3:low=0.1' },
+      {
+        type: 'lutyuv',
+        value:
+          "y='clip(pow(clip((val/255-0.5)*1.15+0.5+0.05,0,1),1/1)*255,0,255)':u='clip((val-128)*1+128,0,255)':v='clip((val-128)*1+128,0,255)'",
+      },
+    ]);
+  });
+
+  it('glitch: rgbashift channel offset + noise', () => {
+    expect(lookToFilters('glitch')).toEqual<Filter[]>([
+      { type: 'rgbashift', value: 'rh=-5:bh=5:edge=wrap' },
+      { type: 'noise', value: 'alls=6:allf=t' },
+    ]);
+  });
+
+  it('soft-vignette: single vignette filter', () => {
+    expect(lookToFilters('soft-vignette')).toEqual<Filter[]>([{ type: 'vignette', value: 'angle=PI/5' }]);
+  });
 });
 
 // ---------------------------------------------------------------------------

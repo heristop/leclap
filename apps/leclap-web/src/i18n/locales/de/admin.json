@@ -510,7 +510,12 @@
       "warm-film": "Warmer Film",
       "mono-film": "Mono-Film",
       "noir-film": "Noir-Film",
-      "vivid-pop": "Knallig"
+      "vivid-pop": "Knallig",
+      "duotone": "Duoton",
+      "posterize": "Posterisieren",
+      "sketch": "Skizze",
+      "glitch": "Glitch",
+      "soft-vignette": "Sanfte Vignette"
     }
   },
   "animation": {

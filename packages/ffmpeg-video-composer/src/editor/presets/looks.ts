@@ -39,6 +39,23 @@ const LOOK_TABLE: Record<string, LookEntry> = {
   'mono-film': [{ type: 'lut3d', value: 'mono' }],
   'noir-film': [{ type: 'lut3d', value: 'noir' }],
   'vivid-pop': [{ type: 'lut3d', value: 'vivid' }],
+  // Stylized looks (Phase 4): each stays LGPL-safe (no eq/geq/boxblur) — contrast/brightness tweaks go
+  // through eqValueToLutyuv instead of the GPL-only `eq` filter.
+  duotone: [
+    { type: 'hue', value: 's=0' },
+    { type: 'colorchannelmixer', value: 'rr=1.1:gg=0.95:bb=0.75:rb=0.1' },
+    { type: 'lutyuv', value: eqValueToLutyuv('contrast=1.08') },
+  ],
+  posterize: [{ type: 'lutyuv', value: "y='floor(val/48)*48':u='floor(val/48)*48':v='floor(val/48)*48'" }],
+  sketch: [
+    { type: 'edgedetect', value: 'mode=colormix:high=0.3:low=0.1' },
+    { type: 'lutyuv', value: eqValueToLutyuv('contrast=1.15:brightness=0.05') },
+  ],
+  glitch: [
+    { type: 'rgbashift', value: 'rh=-5:bh=5:edge=wrap' },
+    { type: 'noise', value: 'alls=6:allf=t' },
+  ],
+  'soft-vignette': [{ type: 'vignette', value: 'angle=PI/5' }],
 };
 
 /**

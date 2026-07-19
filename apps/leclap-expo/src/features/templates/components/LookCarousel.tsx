@@ -26,6 +26,12 @@ const LOOK_SWATCHES: Record<(typeof LOOK_PRESETS)[number], [string, string]> = {
   'mono-film': ['#9a9a9a', '#2c2c2c'],
   'noir-film': ['#3a3a3a', '#050505'],
   'vivid-pop': ['#ff2e74', '#ffd23f'],
+  // Stylized looks (Phase 4) — swatches approximating each filter stack's effect.
+  duotone: ['#1a2b3c', '#c96b4a'],
+  posterize: ['#2f6b4f', '#e0c14c'],
+  sketch: ['#f4f1e8', '#1a1a1a'],
+  glitch: ['#ff2ee6', '#00e5ff'],
+  'soft-vignette': ['#3d3d3d', '#000000'],
 };
 
 const OPTIONS: LookOption[] = [

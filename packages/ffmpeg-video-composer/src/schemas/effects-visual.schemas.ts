@@ -19,6 +19,12 @@ export const LOOK_PRESETS = [
   'mono-film',
   'noir-film',
   'vivid-pop',
+  // Stylized looks (Phase 4): duotone/posterize/sketch/glitch/soft-vignette — see looks.ts LOOK_TABLE.
+  'duotone',
+  'posterize',
+  'sketch',
+  'glitch',
+  'soft-vignette',
 ] as const;
 
 // ── grade / look ───────────────────────────────────────────────────────────────

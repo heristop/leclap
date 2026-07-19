@@ -186,10 +186,11 @@ Quoted from `XFADE_TRANSITIONS` in [`effects.schemas.ts`](../packages/ffmpeg-vid
 
 ## Looks & grade
 
-`look` is a one-word colour-grade preset (`LOOK_PRESETS`). Two families:
+`look` is a one-word colour-grade preset (`LOOK_PRESETS`). Three families:
 
 - **`eq`/`curves` looks** (a stack of ordinary filters): `cinematic`, `warm`, `cool`, `vintage`, `noir`, `vivid`, `dreamy`.
 - **LUT-backed cinema looks** (a single `lut3d` + a bundled `.cube` file — a stronger, cleaner grade than the filter stacks): `teal-orange`, `warm-film`, `mono-film`, `noir-film`, `vivid-pop`. The engine stages the referenced `.cube` the same way it stages fonts, and `lut3d` is a standard LGPL filter that runs on every backend (host, on-device, WASM). A backend without `lut3d` drops the look with a warning rather than aborting (the clip renders ungraded).
+- **Stylized looks** (each its own small filter stack, all LGPL/on-device-safe — no `eq`/`geq`/`boxblur`): `duotone` (`hue` desaturate + `colorchannelmixer` tint + a `lutyuv` contrast lift), `posterize` (a single `lutyuv` that quantizes luma/chroma into 48-level steps), `sketch` (`edgedetect` in `colormix` mode + a `lutyuv` contrast/brightness lift), `glitch` (`rgbashift` channel offset + `noise`), `soft-vignette` (a single `vignette`).
 
 `grade` is the fine-grained equivalent and stacks on top of `look`. All fields optional:
 

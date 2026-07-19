@@ -502,7 +502,12 @@
             "warm-film",
             "mono-film",
             "noir-film",
-            "vivid-pop"
+            "vivid-pop",
+            "duotone",
+            "posterize",
+            "sketch",
+            "glitch",
+            "soft-vignette"
           ]
         },
         "grade": {
@@ -2185,7 +2190,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {
@@ -4207,7 +4217,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {
@@ -6271,7 +6286,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {
@@ -8293,7 +8313,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {
@@ -10693,7 +10718,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {
@@ -12715,7 +12745,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {
@@ -14737,7 +14772,12 @@
                   "warm-film",
                   "mono-film",
                   "noir-film",
-                  "vivid-pop"
+                  "vivid-pop",
+                  "duotone",
+                  "posterize",
+                  "sketch",
+                  "glitch",
+                  "soft-vignette"
                 ]
               },
               "grade": {

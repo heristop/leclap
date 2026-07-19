@@ -510,7 +510,12 @@
       "warm-film": "Pellicola calda",
       "mono-film": "Pellicola mono",
       "noir-film": "Pellicola noir",
-      "vivid-pop": "Pop vivido"
+      "vivid-pop": "Pop vivido",
+      "duotone": "Duotono",
+      "posterize": "Posterizzazione",
+      "sketch": "Schizzo",
+      "glitch": "Glitch",
+      "soft-vignette": "Vignettatura leggera"
     }
   },
   "animation": {

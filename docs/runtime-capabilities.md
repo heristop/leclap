@@ -26,6 +26,7 @@
 | `drawbox`           | yes               | yes                       | yes                        |
 | `drawtext`          | yes               | yes                       | yes                        |
 | `dynaudnorm`        | yes               | yes                       | yes                        |
+| `edgedetect`        | yes               | yes                       | yes                        |
 | `eq`                | yes               | yes                       | via compat: eq-to-lutyuv   |
 | `fade`              | yes               | yes                       | yes                        |
 | `format`            | yes               | yes                       | yes                        |
@@ -41,6 +42,7 @@
 | `null`              | yes               | yes                       | yes                        |
 | `overlay`           | yes               | yes                       | yes                        |
 | `pad`               | yes               | yes                       | yes                        |
+| `rgbashift`         | yes               | yes                       | yes                        |
 | `rotate`            | yes               | yes                       | yes                        |
 | `scale`             | yes               | yes                       | yes                        |
 | `setparams`         | yes               | yes                       | yes                        |
@@ -53,4 +55,4 @@
 | `xfade`             | yes               | yes                       | yes                        |
 | `zoompan`           | yes               | yes                       | yes                        |
 
-Device allowlist size: 57 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and on-device compiles of affected templates fail over to the app's fallback path.
+Device allowlist size: 59 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and on-device compiles of affected templates fail over to the app's fallback path.

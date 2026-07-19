@@ -114,6 +114,9 @@ export const ENGINE_EMITTED_FILTERS = [
   'noise',
   'curves',
   'lut3d',
+  // stylized looks (Phase 4 LOOK_TABLE rows: duotone/sketch/glitch)
+  'rgbashift',
+  'edgedetect',
   // motion (MOTION_HANDLERS in looks.ts) + gradient/animation overlay opacity fade
   'zoompan',
   'rotate',

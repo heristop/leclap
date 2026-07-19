@@ -216,7 +216,14 @@
   },
   "look": {
     "label": "Look",
-    "none": "None"
+    "none": "None",
+    "presets": {
+      "duotone": "Duotone",
+      "posterize": "Posterize",
+      "sketch": "Sketch",
+      "glitch": "Glitch",
+      "soft-vignette": "Soft vignette"
+    }
   },
   "overlay": {
     "title": "Position text",

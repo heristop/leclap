@@ -24,6 +24,7 @@ const FIXTURES = [
   'effects-text',
   'effects-lut',
   'effects-letterbox',
+  'effects-looks',
   'effects-chromakey',
   'effects-overlay-motion',
   'grade-colorbalance',

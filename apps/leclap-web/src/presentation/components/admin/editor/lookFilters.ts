@@ -23,6 +23,12 @@ const LOOK_FILTERS: Partial<Record<string, string>> = {
   'mono-film': 'grayscale(1) contrast(1.06)',
   'noir-film': 'grayscale(1) contrast(1.38) brightness(0.94)',
   'vivid-pop': 'saturate(1.75) contrast(1.12)',
+  // Stylized looks (Phase 4) — CSS stand-ins for their filter stacks.
+  duotone: 'grayscale(1) sepia(0.4) hue-rotate(190deg) saturate(1.8) contrast(1.1)',
+  posterize: 'contrast(1.4) saturate(1.3)',
+  sketch: 'grayscale(1) contrast(1.6) brightness(1.1)',
+  glitch: 'saturate(1.8) hue-rotate(15deg) contrast(1.15)',
+  'soft-vignette': 'brightness(0.96) contrast(1.05)',
 };
 
 // The CSS filter for a look name, or 'none' for an unknown/cleared look.

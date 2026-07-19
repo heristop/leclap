@@ -1,0 +1,39 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "duotone_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 1 },
+      "look": "duotone"
+    },
+    {
+      "name": "posterize_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 1 },
+      "look": "posterize"
+    },
+    {
+      "name": "sketch_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 1 },
+      "look": "sketch"
+    },
+    {
+      "name": "glitch_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 1 },
+      "look": "glitch"
+    },
+    {
+      "name": "soft_vignette_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 1 },
+      "look": "soft-vignette"
+    }
+  ]
+}

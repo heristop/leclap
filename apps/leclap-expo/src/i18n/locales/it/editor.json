@@ -116,7 +116,8 @@
     "chromaKey": "Rimozione sfondo",
     "titleCard": "Scheda del titolo",
     "lowerThird": "Fascia informativa",
-    "capture": "Sorgenti di ripresa"
+    "capture": "Sorgenti di ripresa",
+    "letterbox": "Letterbox"
   },
   "speed": {
     "label": "Velocità di riproduzione",
@@ -140,7 +141,14 @@
     "saturation": "Saturazione",
     "gamma": "Gamma",
     "hue": "Tonalità",
-    "blur": "Sfocatura"
+    "blur": "Sfocatura",
+    "grain": "Grana della pellicola"
+  },
+  "letterbox": {
+    "hint": "Barre in stile cinemascope sovrapposte in alto e in basso per simulare un formato più largo.",
+    "enable": "Barre cinemascope",
+    "aspect": "Rapporto d'aspetto",
+    "color": "Colore delle barre"
   },
   "caption": {
     "placeholder": "Titolo a schermo (facoltativo)",
@@ -253,7 +261,14 @@
     "normalizeOff": "Off",
     "normalizeLoudnorm": "EBU",
     "normalizeDynaudnorm": "Dinamico",
-    "ducking": "Abbassa la musica sotto la voce"
+    "ducking": "Abbassa la musica sotto la voce",
+    "effectLabel": "Effetto voce",
+    "effectNone": "Nessuno",
+    "effect": {
+      "echo": "Eco",
+      "telephone": "Telefono",
+      "muffled": "Ovattato"
+    }
   },
   "layers": {
     "label": "Livelli",
@@ -293,7 +308,15 @@
     "right": "Destra",
     "up": "Su",
     "down": "Giù",
-    "intensity": "Intensità"
+    "intensity": "Intensità",
+    "kind": "Tipo di effetto",
+    "kindKenburns": "Ken Burns",
+    "kindShake": "Tremore a mano libera",
+    "kindPulse": "Pulsazione zoom",
+    "shakeIntensity": "Intensità del tremore",
+    "shakeFrequency": "Frequenza del tremore",
+    "pulseIntensity": "Intensità della pulsazione",
+    "pulseFrequency": "Frequenza della pulsazione"
   },
   "style": {
     "defaultTransition": "Transizione predefinita",

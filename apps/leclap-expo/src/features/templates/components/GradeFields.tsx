@@ -8,7 +8,16 @@ import type { TFunction } from 'i18next';
 import { Slider } from './EditorControls';
 import type { Grade } from '../model/templateEditorModel';
 
-const GRADE_DEFAULTS = { brightness: 0, contrast: 1, saturation: 1, gamma: 1, hue: 0, blur: 0 } as const;
+const GRADE_DEFAULTS = {
+  brightness: 0,
+  contrast: 1,
+  saturation: 1,
+  gamma: 1,
+  hue: 0,
+  blur: 0,
+  // Film-grain strength (effects-pack) — lowered to the FFmpeg `noise` filter.
+  grain: 0,
+} as const;
 
 type GradeKey = keyof typeof GRADE_DEFAULTS;
 
@@ -19,6 +28,7 @@ const SPECS: ReadonlyArray<{ key: GradeKey; min: number; max: number; step: numb
   { key: 'gamma', min: 0.1, max: 3, step: 0.05 },
   { key: 'hue', min: -180, max: 180, step: 1 },
   { key: 'blur', min: 0, max: 20, step: 0.5 },
+  { key: 'grain', min: 0, max: 1, step: 0.02 },
 ];
 
 // Drop graded channels that sit at their neutral default, preserving any keys this UI doesn't manage.
@@ -49,7 +59,13 @@ export const GradeFields = ({ grade, t, onChange }: GradeFieldsProps) => (
         max={spec.max}
         step={spec.step}
         resetTo={GRADE_DEFAULTS[spec.key]}
-        format={(v) => (spec.key === 'hue' ? `${Math.round(v)}°` : v.toFixed(2))}
+        format={(v) => {
+          if (spec.key === 'hue') return `${Math.round(v)}°`;
+
+          if (spec.key === 'grain') return `${Math.round(v * 100)}%`;
+
+          return v.toFixed(2);
+        }}
         onChange={(value) => {
           onChange(pruneGrade({ ...grade, [spec.key]: value }));
         }}

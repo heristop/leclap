@@ -116,7 +116,8 @@
     "chromaKey": "Background removal",
     "titleCard": "Title card",
     "lowerThird": "Lower third",
-    "capture": "Capture sources"
+    "capture": "Capture sources",
+    "letterbox": "Letterbox"
   },
   "speed": {
     "label": "Playback speed",
@@ -140,7 +141,14 @@
     "saturation": "Saturation",
     "gamma": "Gamma",
     "hue": "Hue",
-    "blur": "Blur"
+    "blur": "Blur",
+    "grain": "Film grain"
+  },
+  "letterbox": {
+    "hint": "Cinemascope-style bars overlaid top and bottom to simulate a wider aspect ratio.",
+    "enable": "Cinemascope letterbox",
+    "aspect": "Aspect ratio",
+    "color": "Bar color"
   },
   "caption": {
     "placeholder": "On-screen title (optional)",
@@ -253,7 +261,14 @@
     "normalizeOff": "Off",
     "normalizeLoudnorm": "EBU",
     "normalizeDynaudnorm": "Dynamic",
-    "ducking": "Duck music under voice"
+    "ducking": "Duck music under voice",
+    "effectLabel": "Voice effect",
+    "effectNone": "None",
+    "effect": {
+      "echo": "Echo",
+      "telephone": "Telephone",
+      "muffled": "Muffled"
+    }
   },
   "layers": {
     "label": "Layers",
@@ -293,7 +308,15 @@
     "right": "Right",
     "up": "Up",
     "down": "Down",
-    "intensity": "Intensity"
+    "intensity": "Intensity",
+    "kind": "Effect type",
+    "kindKenburns": "Ken Burns",
+    "kindShake": "Handheld shake",
+    "kindPulse": "Zoom pulse",
+    "shakeIntensity": "Shake intensity",
+    "shakeFrequency": "Shake frequency",
+    "pulseIntensity": "Pulse intensity",
+    "pulseFrequency": "Pulse frequency"
   },
   "style": {
     "defaultTransition": "Default transition",

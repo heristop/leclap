@@ -390,6 +390,13 @@
     "fadeDuration": "Durée {{side}} en secondes",
     "curve": "Courbe",
     "fadeCurve": "Courbe {{side}}",
+    "effectNone": "Aucun",
+    "effect": {
+      "label": "Effet vocal",
+      "echo": "Écho",
+      "telephone": "Téléphone",
+      "muffled": "Étouffé"
+    },
     "curves": {
       "tri": "Linéaire (tri)",
       "qsin": "Quart de sinus (qsin)",
@@ -457,7 +464,13 @@
       "vintage": "Vintage"
     },
     "adjustedCount_one": "{{count}} réglage",
-    "adjustedCount_other": "{{count}} réglages"
+    "adjustedCount_other": "{{count}} réglages",
+    "grain": "Grain de film"
+  },
+  "letterbox": {
+    "enable": "Bandes cinémascope",
+    "aspect": "Format d'image",
+    "color": "Couleur des bandes"
   },
   "layer": {
     "background": "Arrière-plan",
@@ -637,12 +650,18 @@
     "kindRotate": "Rotation",
     "kindFlip": "Miroir",
     "kindCrop": "Recadrage",
+    "kindShake": "Secousse caméra",
+    "kindPulse": "Pulsation de zoom",
     "angle": "Angle",
     "axis": "Axe du miroir",
     "axisHorizontal": "Horizontal",
     "axisVertical": "Vertical",
     "cropWidth": "Largeur du recadrage",
-    "cropHeight": "Hauteur du recadrage"
+    "cropHeight": "Hauteur du recadrage",
+    "shakeIntensity": "Intensité de la secousse",
+    "shakeFrequency": "Fréquence de la secousse",
+    "pulseIntensity": "Intensité de la pulsation",
+    "pulseFrequency": "Fréquence de la pulsation"
   },
   "disclosure": {
     "effects": "Effets",
@@ -705,7 +724,8 @@
     "fadeIn": "Fondu en entrée",
     "fadeOut": "Fondu en sortie",
     "fadeInOut": "Fondu entrée/sortie",
-    "motion": "Mouvement"
+    "motion": "Mouvement",
+    "letterbox": "Letterbox"
   },
   "hint": {
     "video": "Filme-toi à la caméra",

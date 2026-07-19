@@ -390,6 +390,13 @@
     "fadeDuration": "{{side}}-Dauer in Sekunden",
     "curve": "Kurve",
     "fadeCurve": "{{side}}-Kurve",
+    "effectNone": "Keiner",
+    "effect": {
+      "label": "Stimmeffekt",
+      "echo": "Echo",
+      "telephone": "Telefon",
+      "muffled": "Gedämpft"
+    },
     "curves": {
       "tri": "Linear (tri)",
       "qsin": "Viertelsinus (qsin)",
@@ -457,7 +464,13 @@
       "vintage": "Vintage"
     },
     "adjustedCount_one": "{{count}} Anpassung",
-    "adjustedCount_other": "{{count}} Anpassungen"
+    "adjustedCount_other": "{{count}} Anpassungen",
+    "grain": "Filmkorn"
+  },
+  "letterbox": {
+    "enable": "Cinemascope-Balken",
+    "aspect": "Seitenverhältnis",
+    "color": "Balkenfarbe"
   },
   "layer": {
     "background": "Hintergrund",
@@ -637,12 +650,18 @@
     "kindRotate": "Drehen",
     "kindFlip": "Spiegeln",
     "kindCrop": "Zuschneiden",
+    "kindShake": "Handkamera-Wackeln",
+    "kindPulse": "Zoom-Puls",
     "angle": "Winkel",
     "axis": "Spiegelachse",
     "axisHorizontal": "Horizontal",
     "axisVertical": "Vertikal",
     "cropWidth": "Zuschnittbreite",
-    "cropHeight": "Zuschnitthöhe"
+    "cropHeight": "Zuschnitthöhe",
+    "shakeIntensity": "Wackelintensität",
+    "shakeFrequency": "Wackelfrequenz",
+    "pulseIntensity": "Pulsintensität",
+    "pulseFrequency": "Pulsfrequenz"
   },
   "disclosure": {
     "effects": "Effekte",
@@ -705,7 +724,8 @@
     "fadeIn": "Einblenden",
     "fadeOut": "Ausblenden",
     "fadeInOut": "Ein-/Ausblenden",
-    "motion": "Bewegung"
+    "motion": "Bewegung",
+    "letterbox": "Letterbox"
   },
   "hint": {
     "video": "Nimm dich mit der Kamera auf",

@@ -133,10 +133,37 @@ export function rangeOf(node: JsonSchemaNode | undefined): { min?: number; max?:
   return { min: node?.minimum, max: node?.maximum, default: node?.default };
 }
 
+// A path segment addressing one member of an array-of-discriminated-union field by its `type`
+// literal — e.g. "motion[shake]" picks the shake variant out of section.motion's kenburns | rotate |
+// crop | flip | shake | pulse union. Needed because a plain segment (see `descend` below) only
+// unwraps a *plain* array; a discriminated union has no single `.properties` to read a key off, so
+// callers addressing a field that only exists on one variant (motion shake/pulse's intensity/frequency
+// ranges differ per type) must name the variant explicitly.
+const UNION_MEMBER_SEGMENT = /^([a-zA-Z0-9_]+)\[([a-zA-Z0-9_-]+)\]$/;
+
+function unionMemberLiteral(variant: JsonSchemaNode): string | undefined {
+  const typeNode = prop(variant, 'type');
+  const value = typeNode?.const ?? typeNode?.enum?.[0];
+
+  return typeof value === 'string' ? value : undefined;
+}
+
 // Unwrap one path segment: arrays forward to their `items` before the property lookup, so a fixed
 // segment convention like "inputs.options.flip" reads through the array without a special case per
-// caller.
+// caller. A bracketed segment ("motion[shake]") instead selects one union member by its `type`
+// literal, returning that variant's own node so the next segment can read a variant-only field.
 function descend(node: JsonSchemaNode | undefined, segment: string): JsonSchemaNode | undefined {
+  const unionMember = UNION_MEMBER_SEGMENT.exec(segment);
+
+  if (unionMember) {
+    const [, key, discriminant] = unionMember;
+    const field = prop(node, key);
+    const items = field?.type === 'array' && field.items ? field.items : field;
+    const variants = items?.oneOf ?? items?.anyOf ?? [];
+
+    return variants.find((variant) => unionMemberLiteral(variant) === discriminant);
+  }
+
   const unwrapped = node?.type === 'array' && node.items ? node.items : node;
 
   return prop(unwrapped, segment);

@@ -390,6 +390,13 @@
     "fadeDuration": "Duración de {{side}} en segundos",
     "curve": "Curva",
     "fadeCurve": "Curva de {{side}}",
+    "effectNone": "Ninguno",
+    "effect": {
+      "label": "Efecto de voz",
+      "echo": "Eco",
+      "telephone": "Teléfono",
+      "muffled": "Amortiguado"
+    },
     "curves": {
       "tri": "Lineal (tri)",
       "qsin": "Cuarto de seno (qsin)",
@@ -457,7 +464,13 @@
       "vintage": "Vintage"
     },
     "adjustedCount_one": "{{count}} ajuste",
-    "adjustedCount_other": "{{count}} ajustes"
+    "adjustedCount_other": "{{count}} ajustes",
+    "grain": "Grano de película"
+  },
+  "letterbox": {
+    "enable": "Barras cinemascope",
+    "aspect": "Relación de aspecto",
+    "color": "Color de las barras"
   },
   "layer": {
     "background": "Fondo",
@@ -637,12 +650,18 @@
     "kindRotate": "Rotar",
     "kindFlip": "Voltear",
     "kindCrop": "Recortar",
+    "kindShake": "Temblor de cámara",
+    "kindPulse": "Pulso de zoom",
     "angle": "Ángulo",
     "axis": "Eje de volteo",
     "axisHorizontal": "Horizontal",
     "axisVertical": "Vertical",
     "cropWidth": "Ancho del recorte",
-    "cropHeight": "Alto del recorte"
+    "cropHeight": "Alto del recorte",
+    "shakeIntensity": "Intensidad del temblor",
+    "shakeFrequency": "Frecuencia del temblor",
+    "pulseIntensity": "Intensidad del pulso",
+    "pulseFrequency": "Frecuencia del pulso"
   },
   "disclosure": {
     "effects": "Efectos",
@@ -705,7 +724,8 @@
     "fadeIn": "Fundido de entrada",
     "fadeOut": "Fundido de salida",
     "fadeInOut": "Fundido de entrada/salida",
-    "motion": "Movimiento"
+    "motion": "Movimiento",
+    "letterbox": "Letterbox"
   },
   "hint": {
     "video": "Grábate con la cámara",

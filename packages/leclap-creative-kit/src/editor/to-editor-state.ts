@@ -13,6 +13,7 @@ import {
   type DuckingSettings,
   type DefaultTransition,
   type Grade,
+  type Letterbox,
   type MotionEffect,
   type BackgroundLayer,
   type FramingGuide,
@@ -25,6 +26,7 @@ import {
   type ChromaKey,
   type CaptureMode,
   type SectionFit,
+  type AudioEffect,
 } from './model';
 import { overlaysFromFilters } from './overlay-parsing';
 import { pruneEmpty } from './prune';
@@ -87,6 +89,7 @@ type VisualExtras = {
   caption?: EditorCaption;
   look?: string;
   grade?: Grade;
+  letterbox?: Letterbox;
   motion?: MotionEffect[];
   animations?: AnimationOverlay[];
 };
@@ -100,19 +103,26 @@ function visualExtrasFrom(s: Section): VisualExtras {
     ...(caption ? { caption } : {}),
     ...(s.look ? { look: s.look } : {}),
     ...(s.grade ? { grade: s.grade as Grade } : {}),
+    ...(s.letterbox ? { letterbox: s.letterbox } : {}),
     ...(s.motion && s.motion.length > 0 ? { motion: s.motion as MotionEffect[] } : {}),
     ...(animations.length > 0 ? { animations } : {}),
   };
 }
 
-// Recover per-section audio extras (musicVolume / audioFade) from stored options.
-function sectionAudioExtrasFrom(s: Section): { musicVolume?: number; audioFade?: SectionAudioFade } {
+// Recover per-section audio extras (musicVolume / audioFade / audioEffect) from stored options.
+function sectionAudioExtrasFrom(s: Section): {
+  musicVolume?: number;
+  audioFade?: SectionAudioFade;
+  audioEffect?: AudioEffect;
+} {
   const mv = s.options?.musicVolume;
   const af = s.options?.audioFade as SectionAudioFade | undefined;
+  const ae = s.options?.audioEffect as AudioEffect | undefined;
 
   return {
     ...(mv === undefined ? {} : { musicVolume: mv }),
     ...(af ? { audioFade: af } : {}),
+    ...(ae ? { audioEffect: ae } : {}),
   };
 }
 

@@ -116,7 +116,8 @@
     "chromaKey": "Hintergrundentfernung",
     "titleCard": "Titelkarte",
     "lowerThird": "Bauchbinde",
-    "capture": "Aufnahmequellen"
+    "capture": "Aufnahmequellen",
+    "letterbox": "Letterbox"
   },
   "speed": {
     "label": "Wiedergabegeschwindigkeit",
@@ -140,7 +141,14 @@
     "saturation": "Sättigung",
     "gamma": "Gamma",
     "hue": "Farbton",
-    "blur": "Unschärfe"
+    "blur": "Unschärfe",
+    "grain": "Filmkorn"
+  },
+  "letterbox": {
+    "hint": "Cinemascope-Balken oben und unten, die ein breiteres Seitenverhältnis simulieren.",
+    "enable": "Cinemascope-Balken",
+    "aspect": "Seitenverhältnis",
+    "color": "Balkenfarbe"
   },
   "caption": {
     "placeholder": "Titel auf dem Bildschirm (optional)",
@@ -253,7 +261,14 @@
     "normalizeOff": "Aus",
     "normalizeLoudnorm": "EBU",
     "normalizeDynaudnorm": "Dynamisch",
-    "ducking": "Musik unter der Stimme absenken"
+    "ducking": "Musik unter der Stimme absenken",
+    "effectLabel": "Stimmeffekt",
+    "effectNone": "Keiner",
+    "effect": {
+      "echo": "Echo",
+      "telephone": "Telefon",
+      "muffled": "Gedämpft"
+    }
   },
   "layers": {
     "label": "Ebenen",
@@ -293,7 +308,15 @@
     "right": "Rechts",
     "up": "Hoch",
     "down": "Runter",
-    "intensity": "Intensität"
+    "intensity": "Intensität",
+    "kind": "Effekttyp",
+    "kindKenburns": "Ken Burns",
+    "kindShake": "Handkamera-Wackeln",
+    "kindPulse": "Zoom-Puls",
+    "shakeIntensity": "Wackelintensität",
+    "shakeFrequency": "Wackelfrequenz",
+    "pulseIntensity": "Pulsintensität",
+    "pulseFrequency": "Pulsfrequenz"
   },
   "style": {
     "defaultTransition": "Standardübergang",

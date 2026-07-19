@@ -26,7 +26,18 @@ export interface ControlSpec {
   defaultValue?: unknown;
 }
 
-export type FeatureKey = 'chromaKey' | 'titleCard' | 'lowerThird' | 'speed' | 'captureMode' | 'flip';
+export type FeatureKey =
+  | 'chromaKey'
+  | 'titleCard'
+  | 'lowerThird'
+  | 'speed'
+  | 'captureMode'
+  | 'flip'
+  | 'grain'
+  | 'letterbox'
+  | 'shake'
+  | 'pulse'
+  | 'audioEffect';
 
 // Resolves a spec's schema node through the same path the conformance test re-checks
 // (resolveFieldPath), throwing immediately if a field has drifted out of the schema — a build
@@ -118,4 +129,21 @@ export const FEATURE_CONTROLS: Record<FeatureKey, ControlSpec[]> = {
     enumSpec('captureMode', 'options.allowedCaptureModes', 'capture.allowedLabel', 'chips'),
   ],
   flip: [enumSpec('flip', 'inputs.options.flip', 'animation.mirror', 'segmented')],
+  grain: [sliderSpec('grain', 'grade.grain', 'grade.grain')],
+  letterbox: [
+    sliderSpec('letterbox', 'letterbox.aspect', 'letterbox.aspect'),
+    colorSpec('letterbox', 'letterbox.color', 'letterbox.color'),
+  ],
+  // Motion's shake/pulse fields only exist on their own union member (see `descend`'s bracket
+  // notation in schema-walk.ts), so their fieldPaths address the variant explicitly rather than a
+  // bare `motion.<key>` (which would resolve nothing — motion.items is a plain union, not an object).
+  shake: [
+    sliderSpec('shake', 'motion[shake].intensity', 'motion.shakeIntensity'),
+    sliderSpec('shake', 'motion[shake].frequency', 'motion.shakeFrequency'),
+  ],
+  pulse: [
+    sliderSpec('pulse', 'motion[pulse].intensity', 'motion.pulseIntensity'),
+    sliderSpec('pulse', 'motion[pulse].frequency', 'motion.pulseFrequency'),
+  ],
+  audioEffect: [enumSpec('audioEffect', 'options.audioEffect', 'audio.effect', 'segmented')],
 };

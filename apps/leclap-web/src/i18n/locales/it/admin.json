@@ -390,6 +390,13 @@
     "fadeDuration": "Durata di {{side}} in secondi",
     "curve": "Curva",
     "fadeCurve": "Curva di {{side}}",
+    "effectNone": "Nessuno",
+    "effect": {
+      "label": "Effetto voce",
+      "echo": "Eco",
+      "telephone": "Telefono",
+      "muffled": "Ovattato"
+    },
     "curves": {
       "tri": "Lineare (tri)",
       "qsin": "Quarto di seno (qsin)",
@@ -457,7 +464,13 @@
       "vintage": "Vintage"
     },
     "adjustedCount_one": "{{count}} regolazione",
-    "adjustedCount_other": "{{count}} regolazioni"
+    "adjustedCount_other": "{{count}} regolazioni",
+    "grain": "Grana della pellicola"
+  },
+  "letterbox": {
+    "enable": "Barre cinemascope",
+    "aspect": "Rapporto d'aspetto",
+    "color": "Colore delle barre"
   },
   "layer": {
     "background": "Sfondo",
@@ -637,12 +650,18 @@
     "kindRotate": "Ruota",
     "kindFlip": "Specchia",
     "kindCrop": "Ritaglia",
+    "kindShake": "Tremore a mano libera",
+    "kindPulse": "Pulsazione zoom",
     "angle": "Angolo",
     "axis": "Asse di specchiatura",
     "axisHorizontal": "Orizzontale",
     "axisVertical": "Verticale",
     "cropWidth": "Larghezza ritaglio",
-    "cropHeight": "Altezza ritaglio"
+    "cropHeight": "Altezza ritaglio",
+    "shakeIntensity": "Intensità del tremore",
+    "shakeFrequency": "Frequenza del tremore",
+    "pulseIntensity": "Intensità della pulsazione",
+    "pulseFrequency": "Frequenza della pulsazione"
   },
   "disclosure": {
     "effects": "Effetti",
@@ -705,7 +724,8 @@
     "fadeIn": "Dissolvenza in entrata",
     "fadeOut": "Dissolvenza in uscita",
     "fadeInOut": "Dissolvenza in entrata/uscita",
-    "motion": "Movimento"
+    "motion": "Movimento",
+    "letterbox": "Letterbox"
   },
   "hint": {
     "video": "Registrati con la fotocamera",

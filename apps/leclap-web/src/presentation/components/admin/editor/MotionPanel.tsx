@@ -23,6 +23,10 @@ import {
   cropExpr,
   cropPercent,
   DEFAULT_INTENSITY,
+  DEFAULT_SHAKE_INTENSITY,
+  DEFAULT_SHAKE_FREQUENCY,
+  DEFAULT_PULSE_INTENSITY,
+  DEFAULT_PULSE_FREQUENCY,
   type MotionKind,
 } from './motionPanel.logic';
 
@@ -37,10 +41,6 @@ const DIRECTIONS: Array<{ value: Direction; icon: ComponentType<{ className?: st
   { value: 'down', icon: ArrowDownIcon, titleKey: 'motion.panDown' },
 ];
 
-// NOTE: shake/pulse (effects-pack Task 3) are not yet selectable via MOTION_KINDS — this panel stays a
-// single-effect MVP over the original four types. The two entries below only exist to satisfy the
-// exhaustive Record<MotionKind, string> now that the schema's MotionEffect union grew; full shake/pulse
-// controls (label, per-type fields, preview) are Task 5 (builder exposure).
 const KIND_LABEL_KEY: Record<MotionKind, string> = {
   kenburns: 'motion.kindKenburns',
   rotate: 'motion.kindRotate',
@@ -104,7 +104,158 @@ export const MotionPanel = ({ motion, onChange }: MotionPanelProps) => {
   );
 };
 
-// The per-type parameter controls, dispatched on the effect's discriminant.
+type EffectFieldsProps<T extends MotionEffect> = {
+  effect: T;
+  t: TFunction<'admin'>;
+  onChange: (effect: MotionEffect) => void;
+};
+
+const KenburnsControls = ({ effect, t, onChange }: EffectFieldsProps<Extract<MotionEffect, { type: 'kenburns' }>>) => (
+  <>
+    <DirectionGrid
+      value={effect.direction ?? 'in'}
+      t={t}
+      onChange={(direction) => {
+        onChange({ ...effect, direction });
+      }}
+    />
+    <RangeSlider
+      label={t('motion.intensity')}
+      value={effect.intensity ?? DEFAULT_INTENSITY}
+      min={1.01}
+      max={2}
+      step={0.01}
+      format={(v) => `${v.toFixed(2)}×`}
+      resetTo={DEFAULT_INTENSITY}
+      onChange={(intensity) => {
+        onChange({ ...effect, intensity });
+      }}
+    />
+  </>
+);
+
+const RotateControls = ({ effect, t, onChange }: EffectFieldsProps<Extract<MotionEffect, { type: 'rotate' }>>) => (
+  <RangeSlider
+    label={t('motion.angle')}
+    value={effect.angle}
+    min={-180}
+    max={180}
+    step={1}
+    format={(v) => `${v}°`}
+    resetTo={90}
+    onChange={(angle) => {
+      onChange({ ...effect, angle });
+    }}
+  />
+);
+
+const FlipControls = ({ effect, t, onChange }: EffectFieldsProps<Extract<MotionEffect, { type: 'flip' }>>) => {
+  const axisOptions: ReadonlyArray<SegmentOption<'horizontal' | 'vertical'>> = [
+    { value: 'horizontal', label: t('motion.axisHorizontal') },
+    { value: 'vertical', label: t('motion.axisVertical') },
+  ];
+
+  return (
+    <SegmentedControl
+      label={t('motion.axis')}
+      value={effect.axis}
+      options={axisOptions}
+      onChange={(axis) => {
+        onChange({ ...effect, axis });
+      }}
+    />
+  );
+};
+
+const CropControls = ({ effect, t, onChange }: EffectFieldsProps<Extract<MotionEffect, { type: 'crop' }>>) => (
+  <>
+    <RangeSlider
+      label={t('motion.cropWidth')}
+      value={cropPercent(effect.w)}
+      min={10}
+      max={100}
+      step={5}
+      format={(v) => `${v}%`}
+      resetTo={100}
+      onChange={(percent) => {
+        onChange({ ...effect, w: cropExpr('iw', percent) });
+      }}
+    />
+    <RangeSlider
+      label={t('motion.cropHeight')}
+      value={cropPercent(effect.h)}
+      min={10}
+      max={100}
+      step={5}
+      format={(v) => `${v}%`}
+      resetTo={100}
+      onChange={(percent) => {
+        onChange({ ...effect, h: cropExpr('ih', percent) });
+      }}
+    />
+  </>
+);
+
+const ShakeControls = ({ effect, t, onChange }: EffectFieldsProps<Extract<MotionEffect, { type: 'shake' }>>) => (
+  <>
+    <RangeSlider
+      label={t('motion.shakeIntensity')}
+      value={effect.intensity ?? DEFAULT_SHAKE_INTENSITY}
+      min={1}
+      max={20}
+      step={1}
+      format={(v) => `${v}px`}
+      resetTo={DEFAULT_SHAKE_INTENSITY}
+      onChange={(intensity) => {
+        onChange({ ...effect, intensity });
+      }}
+    />
+    <RangeSlider
+      label={t('motion.shakeFrequency')}
+      value={effect.frequency ?? DEFAULT_SHAKE_FREQUENCY}
+      min={0.5}
+      max={8}
+      step={0.1}
+      format={(v) => `${v.toFixed(1)}Hz`}
+      resetTo={DEFAULT_SHAKE_FREQUENCY}
+      onChange={(frequency) => {
+        onChange({ ...effect, frequency });
+      }}
+    />
+  </>
+);
+
+const PulseControls = ({ effect, t, onChange }: EffectFieldsProps<Extract<MotionEffect, { type: 'pulse' }>>) => (
+  <>
+    <RangeSlider
+      label={t('motion.pulseIntensity')}
+      value={effect.intensity ?? DEFAULT_PULSE_INTENSITY}
+      min={1.01}
+      max={1.3}
+      step={0.01}
+      format={(v) => `${v.toFixed(2)}×`}
+      resetTo={DEFAULT_PULSE_INTENSITY}
+      onChange={(intensity) => {
+        onChange({ ...effect, intensity });
+      }}
+    />
+    <RangeSlider
+      label={t('motion.pulseFrequency')}
+      value={effect.frequency ?? DEFAULT_PULSE_FREQUENCY}
+      min={0.25}
+      max={4}
+      step={0.05}
+      format={(v) => `${v.toFixed(2)}/s`}
+      resetTo={DEFAULT_PULSE_FREQUENCY}
+      onChange={(frequency) => {
+        onChange({ ...effect, frequency });
+      }}
+    />
+  </>
+);
+
+// The per-type parameter controls, dispatched on the effect's discriminant. Each type's own fields
+// live in a sibling component so this dispatcher stays a thin, low-complexity switch.
 const EffectControls = ({
   effect,
   t,
@@ -114,102 +265,17 @@ const EffectControls = ({
   t: TFunction<'admin'>;
   onChange: (effect: MotionEffect) => void;
 }) => {
-  if (effect.type === 'kenburns') {
-    return (
-      <>
-        <DirectionGrid
-          value={effect.direction ?? 'in'}
-          t={t}
-          onChange={(direction) => {
-            onChange({ ...effect, direction });
-          }}
-        />
-        <RangeSlider
-          label={t('motion.intensity')}
-          value={effect.intensity ?? DEFAULT_INTENSITY}
-          min={1.01}
-          max={2}
-          step={0.01}
-          format={(v) => `${v.toFixed(2)}×`}
-          resetTo={DEFAULT_INTENSITY}
-          onChange={(intensity) => {
-            onChange({ ...effect, intensity });
-          }}
-        />
-      </>
-    );
-  }
+  if (effect.type === 'kenburns') return <KenburnsControls effect={effect} t={t} onChange={onChange} />;
 
-  if (effect.type === 'rotate') {
-    return (
-      <RangeSlider
-        label={t('motion.angle')}
-        value={effect.angle}
-        min={-180}
-        max={180}
-        step={1}
-        format={(v) => `${v}°`}
-        resetTo={90}
-        onChange={(angle) => {
-          onChange({ ...effect, angle });
-        }}
-      />
-    );
-  }
+  if (effect.type === 'rotate') return <RotateControls effect={effect} t={t} onChange={onChange} />;
 
-  if (effect.type === 'flip') {
-    const axisOptions: ReadonlyArray<SegmentOption<'horizontal' | 'vertical'>> = [
-      { value: 'horizontal', label: t('motion.axisHorizontal') },
-      { value: 'vertical', label: t('motion.axisVertical') },
-    ];
+  if (effect.type === 'flip') return <FlipControls effect={effect} t={t} onChange={onChange} />;
 
-    return (
-      <SegmentedControl
-        label={t('motion.axis')}
-        value={effect.axis}
-        options={axisOptions}
-        onChange={(axis) => {
-          onChange({ ...effect, axis });
-        }}
-      />
-    );
-  }
+  if (effect.type === 'crop') return <CropControls effect={effect} t={t} onChange={onChange} />;
 
-  if (effect.type === 'crop') {
-    return (
-      <>
-        <RangeSlider
-          label={t('motion.cropWidth')}
-          value={cropPercent(effect.w)}
-          min={10}
-          max={100}
-          step={5}
-          format={(v) => `${v}%`}
-          resetTo={100}
-          onChange={(percent) => {
-            onChange({ ...effect, w: cropExpr('iw', percent) });
-          }}
-        />
-        <RangeSlider
-          label={t('motion.cropHeight')}
-          value={cropPercent(effect.h)}
-          min={10}
-          max={100}
-          step={5}
-          format={(v) => `${v}%`}
-          resetTo={100}
-          onChange={(percent) => {
-            onChange({ ...effect, h: cropExpr('ih', percent) });
-          }}
-        />
-      </>
-    );
-  }
+  if (effect.type === 'shake') return <ShakeControls effect={effect} t={t} onChange={onChange} />;
 
-  // shake/pulse have no per-type controls yet — MOTION_KINDS doesn't offer them as a pick, so this
-  // is unreachable via the UI today; kept as a safe fallback rather than an exhaustive-switch throw.
-  // See Task 5 (builder exposure) for the shake/pulse control surface.
-  return null;
+  return <PulseControls effect={effect} t={t} onChange={onChange} />;
 };
 
 const ToggleRow = ({ enabled, t, onToggle }: { enabled: boolean; t: TFunction<'admin'>; onToggle: () => void }) => {
@@ -309,29 +375,39 @@ const END_TRANSFORM: Record<Direction, (scale: number) => string> = {
 
 // Ken Burns keeps its animated keyframes; rotate/flip/crop are static CSS approximations (the exact
 // framing is the engine's job — the preview just shows the move's character).
+// rotate/flip/crop are static CSS approximations; each owns its transform calc so the dispatcher
+// below stays a thin, low-complexity switch.
+const RotatePreview = ({ angle }: { angle: number }) => (
+  <StaticPreview sceneStyle={{ transform: `rotate(${angle}deg) scale(0.72)` }} />
+);
+
+const FlipPreview = ({ axis }: { axis: 'horizontal' | 'vertical' }) => (
+  <StaticPreview sceneStyle={{ transform: axis === 'horizontal' ? 'scaleX(-1)' : 'scaleY(-1)' }} />
+);
+
+const CropPreview = ({ w, h }: { w: number | string; h: number | string }) => {
+  const widthPct = cropPercent(w);
+  const heightPct = cropPercent(h);
+  const insetX = ((100 - widthPct) / 2).toFixed(1);
+  const insetY = ((100 - heightPct) / 2).toFixed(1);
+
+  return <StaticPreview sceneStyle={{ clipPath: `inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)` }} />;
+};
+
 const MotionPreview = ({ effect }: { effect: MotionEffect | null }) => {
-  if (effect?.type === 'kenburns') {
-    return <KenburnsPreview direction={effect.direction ?? 'in'} intensity={effect.intensity ?? DEFAULT_INTENSITY} />;
-  }
+  if (!effect) return <StaticPreview />;
 
-  if (effect?.type === 'rotate') {
-    return <StaticPreview sceneStyle={{ transform: `rotate(${effect.angle}deg) scale(0.72)` }} />;
-  }
+  if (effect.type === 'kenburns') return <KenburnsPreview effect={effect} />;
 
-  if (effect?.type === 'flip') {
-    return <StaticPreview sceneStyle={{ transform: effect.axis === 'horizontal' ? 'scaleX(-1)' : 'scaleY(-1)' }} />;
-  }
+  if (effect.type === 'rotate') return <RotatePreview angle={effect.angle} />;
 
-  if (effect?.type === 'crop') {
-    const w = cropPercent(effect.w);
-    const h = cropPercent(effect.h);
-    const insetX = ((100 - w) / 2).toFixed(1);
-    const insetY = ((100 - h) / 2).toFixed(1);
+  if (effect.type === 'flip') return <FlipPreview axis={effect.axis} />;
 
-    return <StaticPreview sceneStyle={{ clipPath: `inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)` }} />;
-  }
+  if (effect.type === 'crop') return <CropPreview w={effect.w} h={effect.h} />;
 
-  return <StaticPreview />;
+  if (effect.type === 'shake') return <ShakePreview effect={effect} />;
+
+  return <PulsePreview effect={effect} />;
 };
 
 const StaticPreview = ({ sceneStyle }: { sceneStyle?: React.CSSProperties }) => (
@@ -340,13 +416,60 @@ const StaticPreview = ({ sceneStyle }: { sceneStyle?: React.CSSProperties }) => 
   </div>
 );
 
-const KenburnsPreview = ({ direction, intensity }: { direction: Direction; intensity: number }) => {
+const KenburnsPreview = ({ effect }: { effect: Extract<MotionEffect, { type: 'kenburns' }> }) => {
+  const direction = effect.direction ?? 'in';
+  const intensity = effect.intensity ?? DEFAULT_INTENSITY;
   const id = `kb-${direction}-${intensity.toFixed(2)}`.replace('.', '_');
   const startScale = direction === 'out' ? intensity : 1;
   const endTransform = direction === 'out' ? 'scale(1)' : END_TRANSFORM[direction](intensity);
   const keyframes = `@keyframes ${id}{from{transform:scale(${startScale})}to{transform:${endTransform}}}`;
   const sceneStyle = {
     animation: `${id} 3s var(--ease-out-expo, ease-in-out) infinite alternate`,
+    transformOrigin: 'center',
+  };
+
+  return (
+    <div className="sm:sticky sm:top-2 sm:self-start">
+      <style>{keyframes}</style>
+      <PreviewSurface sceneStyle={sceneStyle} className="h-24 w-full" />
+    </div>
+  );
+};
+
+// Handheld shake: a small centered jitter, period scaled by frequency (higher Hz = faster wobble).
+// The engine's actual jitter is a wandering crop window; this is a CSS stand-in for the character.
+const ShakePreview = ({ effect }: { effect: Extract<MotionEffect, { type: 'shake' }> }) => {
+  const intensity = effect.intensity ?? DEFAULT_SHAKE_INTENSITY;
+  const frequency = effect.frequency ?? DEFAULT_SHAKE_FREQUENCY;
+  const id = `shake-${intensity}-${frequency}`.replace(/\./g, '_');
+  const px = Math.min(intensity, 12);
+  const duration = (1 / frequency).toFixed(2);
+  const keyframes = `@keyframes ${id}{
+    0%{transform:translate(0,0)}
+    25%{transform:translate(${px}px,-${px * 0.6}px)}
+    50%{transform:translate(-${px * 0.8}px,${px * 0.4}px)}
+    75%{transform:translate(${px * 0.5}px,${px}px)}
+    100%{transform:translate(0,0)}
+  }`;
+  const sceneStyle = { animation: `${id} ${duration}s linear infinite` };
+
+  return (
+    <div className="sm:sticky sm:top-2 sm:self-start">
+      <style>{keyframes}</style>
+      <PreviewSurface sceneStyle={sceneStyle} className="h-24 w-full" />
+    </div>
+  );
+};
+
+// Zoom pulse: a smooth scale in/out loop, period scaled by frequency (pulses per second).
+const PulsePreview = ({ effect }: { effect: Extract<MotionEffect, { type: 'pulse' }> }) => {
+  const intensity = effect.intensity ?? DEFAULT_PULSE_INTENSITY;
+  const frequency = effect.frequency ?? DEFAULT_PULSE_FREQUENCY;
+  const id = `pulse-${intensity}-${frequency}`.replace(/\./g, '_');
+  const keyframes = `@keyframes ${id}{from{transform:scale(1)}to{transform:scale(${intensity})}}`;
+  const duration = (0.5 / frequency).toFixed(2);
+  const sceneStyle = {
+    animation: `${id} ${duration}s ease-in-out infinite alternate`,
     transformOrigin: 'center',
   };
 

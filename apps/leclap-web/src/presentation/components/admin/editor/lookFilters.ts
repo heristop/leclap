@@ -47,6 +47,8 @@ export const GRADE_DEFAULTS = {
   gamma: 1,
   hue: 0,
   blur: 0,
+  // Film-grain strength (effects-pack) — lowered to the FFmpeg `noise` filter; 0 = no grain.
+  grain: 0,
 } as const;
 
 export type GradeKey = keyof typeof GRADE_DEFAULTS;

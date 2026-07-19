@@ -390,6 +390,13 @@
     "fadeDuration": "{{side}} duration in seconds",
     "curve": "Curve",
     "fadeCurve": "{{side}} curve",
+    "effectNone": "None",
+    "effect": {
+      "label": "Voice effect",
+      "echo": "Echo",
+      "telephone": "Telephone",
+      "muffled": "Muffled"
+    },
     "curves": {
       "tri": "Linear (tri)",
       "qsin": "Quarter sine (qsin)",
@@ -457,7 +464,13 @@
       "vintage": "Vintage"
     },
     "adjustedCount_one": "{{count}} adjustment",
-    "adjustedCount_other": "{{count}} adjustments"
+    "adjustedCount_other": "{{count}} adjustments",
+    "grain": "Film grain"
+  },
+  "letterbox": {
+    "enable": "Cinemascope letterbox",
+    "aspect": "Aspect ratio",
+    "color": "Bar color"
   },
   "layer": {
     "background": "Background",
@@ -637,12 +650,18 @@
     "kindRotate": "Rotate",
     "kindFlip": "Flip",
     "kindCrop": "Crop",
+    "kindShake": "Handheld shake",
+    "kindPulse": "Zoom pulse",
     "angle": "Angle",
     "axis": "Flip axis",
     "axisHorizontal": "Horizontal",
     "axisVertical": "Vertical",
     "cropWidth": "Crop width",
-    "cropHeight": "Crop height"
+    "cropHeight": "Crop height",
+    "shakeIntensity": "Shake intensity",
+    "shakeFrequency": "Shake frequency",
+    "pulseIntensity": "Pulse intensity",
+    "pulseFrequency": "Pulse frequency"
   },
   "disclosure": {
     "effects": "Effects",
@@ -705,7 +724,8 @@
     "fadeIn": "Fade in",
     "fadeOut": "Fade out",
     "fadeInOut": "Fade in/out",
-    "motion": "Motion"
+    "motion": "Motion",
+    "letterbox": "Letterbox"
   },
   "hint": {
     "video": "Record yourself on camera",

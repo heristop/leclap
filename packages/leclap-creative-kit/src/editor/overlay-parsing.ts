@@ -194,9 +194,7 @@ function emOf(px: number, fontsize: number): number {
 // when `filter` is not a kit bar — the extended adjacency signature requires a solid fill, string
 // colour, numeric w/h AND the expression-form x/y anchors, so a hand-authored wash (numeric
 // offsets, foreign expressions) stays unclaimed.
-function accentBarValuesFrom(
-  filter: StoredFilter | undefined
-):
+function accentBarValuesFrom(filter: StoredFilter | undefined):
   | {
       color: string;
       barW: number;

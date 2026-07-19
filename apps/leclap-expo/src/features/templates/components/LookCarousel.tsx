@@ -61,13 +61,16 @@ export const LookCarousel = ({ look, t, onChange }: LookCarouselProps) => (
     >
       {OPTIONS.map((option) => {
         const active = (look ?? undefined) === option.value;
+        // Every preset has a look.presets.<name> label; fall back to the raw id if one is ever
+        // missing (mirrors the web LookGallery idiom).
+        const label = option.value === undefined ? t('look.none') : t(`look.presets.${option.label}`, option.label);
 
         return (
           <TouchableOpacity
             key={option.label}
             accessibilityRole="radio"
             accessibilityState={{ selected: active }}
-            accessibilityLabel={`Look ${option.label}`}
+            accessibilityLabel={`Look ${label}`}
             onPress={() => {
               onChange(option.value);
             }}
@@ -88,9 +91,7 @@ export const LookCarousel = ({ look, t, onChange }: LookCarouselProps) => (
                 </View>
               ) : null}
             </LinearGradient>
-            <Text style={[styles.cardLabel, active && styles.cardLabelActive]}>
-              {option.value === undefined ? t('look.none') : option.label}
-            </Text>
+            <Text style={[styles.cardLabel, active && styles.cardLabelActive]}>{label}</Text>
           </TouchableOpacity>
         );
       })}

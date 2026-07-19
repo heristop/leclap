@@ -7,19 +7,26 @@ import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
-import { Slider } from './EditorControls';
-import type { EditorSection, SectionAudioFade, AudioFadeSide } from '../model/templateEditorModel';
+import { Slider, Segmented } from './EditorControls';
+import type { AudioEffect, EditorSection, SectionAudioFade, AudioFadeSide } from '../model/templateEditorModel';
 
 type FadeSide = 'in' | 'out';
+
+// Section options.audioEffect enum (echo/telephone/muffled), plus the sentinel "none" the Segmented
+// control needs to represent "no effect" as a real, selectable option.
+const AUDIO_EFFECT_NONE = 'none' as const;
+type AudioEffectOption = AudioEffect | typeof AUDIO_EFFECT_NONE;
+const AUDIO_EFFECT_OPTIONS: readonly AudioEffect[] = ['echo', 'telephone', 'muffled'];
 
 interface SectionAudioFieldsProps {
   musicVolume: number | undefined;
   audioFade: SectionAudioFade | undefined;
+  audioEffect: AudioEffect | undefined;
   t: TFunction<'editor'>;
   onChange: (p: Partial<EditorSection>) => void;
 }
 
-export const SectionAudioFields = ({ musicVolume, audioFade, t, onChange }: SectionAudioFieldsProps) => {
+export const SectionAudioFields = ({ musicVolume, audioFade, audioEffect, t, onChange }: SectionAudioFieldsProps) => {
   // Rebuild the fade keeping only the sides that remain; an empty fade clears the whole key
   // (passed as `undefined` so patchSection's Partial merge actually removes it).
   const patchFade = (side: FadeSide, next: AudioFadeSide | undefined) => {
@@ -84,6 +91,18 @@ export const SectionAudioFields = ({ musicVolume, audioFade, t, onChange }: Sect
         value={audioFade?.out}
         onChange={(next) => {
           patchFade('out', next);
+        }}
+      />
+
+      <Segmented<AudioEffectOption>
+        label={t('audio.effectLabel')}
+        value={audioEffect ?? AUDIO_EFFECT_NONE}
+        options={[
+          { value: AUDIO_EFFECT_NONE, label: t('audio.effectNone') },
+          ...AUDIO_EFFECT_OPTIONS.map((effect) => ({ value: effect, label: t(`audio.effect.${effect}`) })),
+        ]}
+        onChange={(next) => {
+          onChange({ audioEffect: next === AUDIO_EFFECT_NONE ? undefined : next });
         }}
       />
     </View>

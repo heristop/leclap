@@ -317,6 +317,95 @@ describe('templateEditorModel — ffmpeg-feature sugar round-trips', () => {
     expect(recovered.chromaKey).toEqual(chromaKey);
   });
 
+  it('emits and round-trips a cinemascope letterbox on a video section', () => {
+    const letterbox = { aspect: 2.39, color: '#111111' };
+    const state = baseState([video({ letterbox })]);
+    const d = buildDescriptor(state);
+    const section = d.sections?.find((s) => (s as { letterbox?: unknown }).letterbox) as
+      | { letterbox?: unknown }
+      | undefined;
+
+    expect(section?.letterbox).toEqual(letterbox);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.letterbox).toEqual(letterbox);
+  });
+
+  it('emits and round-trips a letterbox on a color section', () => {
+    const letterbox = { aspect: 1.85 };
+    const color: EditorSection = { ...(newSection('color') as ColorSection), letterbox };
+    const d = buildDescriptor(baseState([color]));
+    const section = d.sections?.find((s) => s.type === 'color_background') as { letterbox?: unknown } | undefined;
+
+    expect(section?.letterbox).toEqual(letterbox);
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(baseState([color])));
+    const recovered = back.sections.find((s) => s.kind === 'color') as ColorSection;
+    expect(recovered.letterbox).toEqual(letterbox);
+  });
+
+  it('emits no letterbox field when unset', () => {
+    const d = buildDescriptor(baseState([video({})]));
+
+    expect(d.sections?.find((s) => s.type === 'project_video')).not.toHaveProperty('letterbox');
+  });
+
+  it('emits and round-trips a section audioEffect', () => {
+    const state = baseState([video({ audioEffect: 'telephone' })]);
+    const d = buildDescriptor(state);
+    const section = d.sections?.find((s) => s.type === 'project_video');
+
+    expect(section?.options?.audioEffect).toBe('telephone');
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.audioEffect).toBe('telephone');
+  });
+
+  it('emits no audioEffect option when unset', () => {
+    const d = buildDescriptor(baseState([video({})]));
+
+    expect(d.sections?.find((s) => s.type === 'project_video')?.options).not.toHaveProperty('audioEffect');
+  });
+
+  it('emits and round-trips shake/pulse motion effects (new MotionEffect union members)', () => {
+    const shakeState = baseState([video({ motion: [{ type: 'shake', intensity: 10, frequency: 3 }] })]);
+    const shakeDescriptor = buildDescriptor(shakeState);
+
+    expect(shakeDescriptor.sections?.find((s) => s.type === 'project_video')?.motion).toEqual([
+      { type: 'shake', intensity: 10, frequency: 3 },
+    ]);
+    expect(() => TemplateDescriptorSchema.parse(shakeDescriptor)).not.toThrow();
+
+    const shakeBack = toEditorState(asTemplate(shakeState));
+    const shakeRecovered = shakeBack.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(shakeRecovered.motion).toEqual([{ type: 'shake', intensity: 10, frequency: 3 }]);
+
+    const pulseState = baseState([video({ motion: [{ type: 'pulse', intensity: 1.15, frequency: 0.5 }] })]);
+    const pulseDescriptor = buildDescriptor(pulseState);
+
+    expect(pulseDescriptor.sections?.find((s) => s.type === 'project_video')?.motion).toEqual([
+      { type: 'pulse', intensity: 1.15, frequency: 0.5 },
+    ]);
+    expect(() => TemplateDescriptorSchema.parse(pulseDescriptor)).not.toThrow();
+  });
+
+  it('emits and round-trips grade.grain (new GradeSchema field)', () => {
+    const state = baseState([video({ grade: { grain: 0.4 } })]);
+    const d = buildDescriptor(state);
+
+    expect(d.sections?.find((s) => s.type === 'project_video')?.grade).toEqual({ grain: 0.4 });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+
+    const back = toEditorState(asTemplate(state));
+    const recovered = back.sections.find((s) => s.kind === 'video') as VideoSection;
+    expect(recovered.grade).toEqual({ grain: 0.4 });
+  });
+
   it('emits and round-trips an animation overlay motion', () => {
     const color: EditorSection = {
       ...(newSection('color') as ColorSection),

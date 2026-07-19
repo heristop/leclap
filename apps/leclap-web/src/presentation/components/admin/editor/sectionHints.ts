@@ -8,6 +8,7 @@ import type {
   FramingGuide,
   Grade,
   ImageOverlay,
+  Letterbox,
   MotionEffect,
 } from '../templateEditorModel';
 
@@ -22,9 +23,14 @@ export const SECTION_HINTS = {
   image: 'A photo backdrop with motion',
 } satisfies Record<EditorSection['kind'], string>;
 
-// "Effects" group summary: the active look + motion move (Ken Burns by name, the rest generically),
-// or "None". `motion` is optional so callers without motion can omit it.
-export function effectsSummary(t: TFunction<'admin'>, look: string | undefined, motion?: MotionEffect[]): string {
+// "Effects" group summary: the active look + motion move (Ken Burns by name, the rest generically)
+// + the letterbox bars, or "None". `motion`/`letterbox` are optional so callers without them can omit.
+export function effectsSummary(
+  t: TFunction<'admin'>,
+  look: string | undefined,
+  motion?: MotionEffect[],
+  letterbox?: Letterbox
+): string {
   const parts: string[] = [];
 
   if (look) parts.push(TITLE_CASE(look));
@@ -36,6 +42,8 @@ export function effectsSummary(t: TFunction<'admin'>, look: string | undefined, 
   const otherMotion = (motion ?? []).some((m) => m.type !== 'kenburns');
 
   if (otherMotion) parts.push(t('summaryChip.motion'));
+
+  if (letterbox) parts.push(t('summaryChip.letterbox'));
 
   return parts.length > 0 ? parts.join(' · ') : t('summaryChip.none');
 }

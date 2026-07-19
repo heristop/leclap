@@ -1,15 +1,22 @@
 // Pure read/write helpers for the MotionPanel: the panel edits ONE motion effect (MVP — the engine
-// accepts an ordered list; list editing is a follow-up) chosen among the engine's four types.
+// accepts an ordered list; list editing is a follow-up) chosen among the engine's six types (the
+// effects-pack's handheld shake + zoom pulse joined the original kenburns/rotate/flip/crop set).
 // Crop is exposed as resolution-independent percentages, emitted as FFmpeg `iw*x`/`ih*y` expressions.
 import type { MotionEffect } from '../templateEditorModel';
 
 export type MotionKind = MotionEffect['type'];
 
-export const MOTION_KINDS: MotionKind[] = ['kenburns', 'rotate', 'flip', 'crop'];
+export const MOTION_KINDS: MotionKind[] = ['kenburns', 'rotate', 'flip', 'crop', 'shake', 'pulse'];
 
 export const DEFAULT_INTENSITY = 1.15;
 export const DEFAULT_ANGLE = 90;
 export const DEFAULT_CROP_PERCENT = 80;
+// Schema defaults (see MotionEffectSchema's shake/pulse variants) — .describe() text only, no
+// zod `.default()`, so these are hand-copied here the same way DEFAULT_INTENSITY mirrors kenburns'.
+export const DEFAULT_SHAKE_INTENSITY = 6;
+export const DEFAULT_SHAKE_FREQUENCY = 2;
+export const DEFAULT_PULSE_INTENSITY = 1.08;
+export const DEFAULT_PULSE_FREQUENCY = 1;
 
 // The single effect this panel edits: the first entry of the motion list (none = disabled).
 export function activeMotion(motion: MotionEffect[] | undefined): MotionEffect | null {
@@ -24,6 +31,14 @@ export function defaultMotion(kind: MotionKind): MotionEffect {
 
   if (kind === 'crop') {
     return { type: 'crop', w: cropExpr('iw', DEFAULT_CROP_PERCENT), h: cropExpr('ih', DEFAULT_CROP_PERCENT) };
+  }
+
+  if (kind === 'shake') {
+    return { type: 'shake', intensity: DEFAULT_SHAKE_INTENSITY, frequency: DEFAULT_SHAKE_FREQUENCY };
+  }
+
+  if (kind === 'pulse') {
+    return { type: 'pulse', intensity: DEFAULT_PULSE_INTENSITY, frequency: DEFAULT_PULSE_FREQUENCY };
   }
 
   return { type: 'kenburns', direction: 'in', intensity: DEFAULT_INTENSITY };

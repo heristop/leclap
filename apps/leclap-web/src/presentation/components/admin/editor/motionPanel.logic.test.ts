@@ -26,6 +26,8 @@ describe('defaultMotion', () => {
     expect(defaultMotion('rotate')).toEqual({ type: 'rotate', angle: 90 });
     expect(defaultMotion('flip')).toEqual({ type: 'flip', axis: 'horizontal' });
     expect(defaultMotion('crop')).toEqual({ type: 'crop', w: 'iw*0.80', h: 'ih*0.80' });
+    expect(defaultMotion('shake')).toEqual({ type: 'shake', intensity: 6, frequency: 2 });
+    expect(defaultMotion('pulse')).toEqual({ type: 'pulse', intensity: 1.08, frequency: 1 });
   });
 
   it('covers every engine motion kind', () => {

@@ -9,8 +9,14 @@ import { useTranslation } from 'react-i18next';
 import { Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
-import type { EditorSection, SectionAudioFade } from '../../templateEditorModel';
-import { VolumeSlider } from '../controls';
+import type { AudioEffect, EditorSection, SectionAudioFade } from '../../templateEditorModel';
+import { SegmentedControl, VolumeSlider, type SegmentOption } from '../controls';
+
+// Section options.audioEffect enum (echo/telephone/muffled), plus the sentinel "none" the
+// SegmentedControl needs to represent "no effect" as a real, selectable option.
+const AUDIO_EFFECT_NONE = 'none' as const;
+type AudioEffectOption = AudioEffect | typeof AUDIO_EFFECT_NONE;
+const AUDIO_EFFECT_OPTIONS: readonly AudioEffect[] = ['echo', 'telephone', 'muffled'];
 
 type VisualSection = Extract<EditorSection, { kind: 'video' } | { kind: 'color' } | { kind: 'image' }>;
 
@@ -83,6 +89,14 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
         </button>
       )}
 
+      {/* Voice effect (effects-pack): echo / telephone / muffled, or none */}
+      <AudioEffectField
+        value={section.audioEffect}
+        onChange={(audioEffect) => {
+          onChange({ audioEffect } as Partial<EditorSection>);
+        }}
+      />
+
       {/* Fade-in */}
       <div className="rounded-xl border border-foreground/10 bg-surface p-3 space-y-2">
         <label
@@ -147,6 +161,33 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
         )}
       </div>
     </div>
+  );
+};
+
+// Voice effect segmented control: echo/telephone/muffled + a "None" option that clears the field.
+const AudioEffectField = ({
+  value,
+  onChange,
+}: {
+  value: AudioEffect | undefined;
+  onChange: (value: AudioEffect | undefined) => void;
+}) => {
+  const { t } = useTranslation('admin');
+
+  const options: ReadonlyArray<SegmentOption<AudioEffectOption>> = [
+    { value: AUDIO_EFFECT_NONE, label: t('sectionAudio.effectNone') },
+    ...AUDIO_EFFECT_OPTIONS.map((effect) => ({ value: effect, label: t(`sectionAudio.effect.${effect}`) })),
+  ];
+
+  return (
+    <SegmentedControl
+      label={t('sectionAudio.effect.label')}
+      value={value ?? AUDIO_EFFECT_NONE}
+      options={options}
+      onChange={(next) => {
+        onChange(next === AUDIO_EFFECT_NONE ? undefined : next);
+      }}
+    />
   );
 };
 

@@ -18,6 +18,7 @@ import { LayerRows } from './LayerRows';
 import { FramingGuideRow } from './FramingGuideRow';
 import { MotionFields } from './MotionFields';
 import { SectionAudioFields } from './SectionAudioFields';
+import { LetterboxFields } from './letterbox-fields';
 import { Disclosure } from './Disclosure';
 import { SceneBasics, IconBtn, sceneStyles } from './sceneFields';
 import { isVisualKind } from './wizardSteps';
@@ -155,6 +156,15 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
+        <Disclosure title={t('advanced.letterbox')} icon="scan-outline">
+          <LetterboxFields
+            value={section.letterbox}
+            t={t}
+            onChange={(letterbox) => {
+              onChange({ letterbox });
+            }}
+          />
+        </Disclosure>
         <Disclosure title={t('advanced.caption')} icon="text-outline">
           <CaptionFields
             caption={section.caption}
@@ -168,6 +178,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           <SectionAudioFields
             musicVolume={section.musicVolume}
             audioFade={section.audioFade}
+            audioEffect={section.audioEffect}
             t={t}
             onChange={onChange}
           />
@@ -237,6 +248,15 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
+        <Disclosure title={t('advanced.letterbox')} icon="scan-outline">
+          <LetterboxFields
+            value={section.letterbox}
+            t={t}
+            onChange={(letterbox) => {
+              onChange({ letterbox });
+            }}
+          />
+        </Disclosure>
         <Disclosure title={t('advanced.caption')} icon="text-outline">
           <CaptionFields
             caption={section.caption}
@@ -260,6 +280,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           <SectionAudioFields
             musicVolume={section.musicVolume}
             audioFade={section.audioFade}
+            audioEffect={section.audioEffect}
             t={t}
             onChange={onChange}
           />
@@ -299,6 +320,15 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           }}
         />
       </Disclosure>
+      <Disclosure title={t('advanced.letterbox')} icon="scan-outline">
+        <LetterboxFields
+          value={section.letterbox}
+          t={t}
+          onChange={(letterbox) => {
+            onChange({ letterbox });
+          }}
+        />
+      </Disclosure>
       <Disclosure title={t('advanced.caption')} icon="text-outline">
         <CaptionFields
           caption={section.caption}
@@ -309,7 +339,13 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
         />
       </Disclosure>
       <Disclosure title={t('advanced.audio')} icon="volume-medium-outline">
-        <SectionAudioFields musicVolume={section.musicVolume} audioFade={section.audioFade} t={t} onChange={onChange} />
+        <SectionAudioFields
+          musicVolume={section.musicVolume}
+          audioFade={section.audioFade}
+          audioEffect={section.audioEffect}
+          t={t}
+          onChange={onChange}
+        />
       </Disclosure>
     </View>
   );

@@ -154,6 +154,29 @@ describe('expo builder parity → descriptor', () => {
     expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
   });
 
+  it('letterbox, audioEffect and shake/pulse motion (effects-pack) land at their descriptor paths', () => {
+    let state = baseState();
+    state = patchSection(state, 0, {
+      letterbox: { aspect: 2.39, color: '#111111' },
+      audioEffect: 'telephone',
+      grade: { grain: 0.4 },
+    });
+    state = patchSection(state, 1, { letterbox: { aspect: 1.85 } });
+    state = patchSection(state, 2, { motion: [{ type: 'shake', intensity: 10, frequency: 3 }] });
+
+    const d = buildDescriptor(state);
+    const video = d.sections!.find((s) => s.name === 'video_1') as never as Record<string, unknown>;
+    const color = d.sections!.find((s) => s.type === 'color_background') as never as Record<string, unknown>;
+    const image = d.sections!.find((s) => s.type === 'image_background') as never as Record<string, unknown>;
+
+    expect(video.letterbox).toEqual({ aspect: 2.39, color: '#111111' });
+    expect((video.options as Record<string, unknown>).audioEffect).toBe('telephone');
+    expect((video.grade as Record<string, unknown>).grain).toBe(0.4);
+    expect(color.letterbox).toEqual({ aspect: 1.85 });
+    expect(image.motion).toEqual([{ type: 'shake', intensity: 10, frequency: 3 }]);
+    expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
+  });
+
   it('overlay fit is cleared when scale is cleared (stale-fit regression)', () => {
     let state = baseState();
     state = patchSection(state, 0, {

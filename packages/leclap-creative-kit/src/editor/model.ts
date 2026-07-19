@@ -1,11 +1,11 @@
 // Types, interfaces, constants, and section factories for the template editor model.
 // Consumed by buildDescriptor, operations, and toEditorState — pure, no React/DOM/RN dep.
 import type { z } from 'zod';
-import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { TemplateDescriptor, Letterbox } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 // Re-export the core descriptor type so both apps can pin their stored-template shapes to the
 // exact descriptor buildDescriptor emits / toEditorState consumes — keeping the editor in lock-step.
-export type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+export type { TemplateDescriptor, Letterbox } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import {
   DEFAULT_TRANSITION_DURATION,
   type GradeSchema,
@@ -71,6 +71,12 @@ export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 
 // Every capture mode, in display order — the recorder default when a template doesn't restrict them.
 export const ALL_CAPTURE_MODES: readonly CaptureMode[] = CaptureModeSchema.options;
+
+// Voice effect applied to the section's own audio (descriptor options.audioEffect): echo (aecho),
+// telephone (band-pass), or muffled (low-pass). Hand-modeled rather than schema-inferred (like
+// SectionFit below) since SectionOptionsSchema keeps every option flattened on one object with no
+// standalone exported enum to `z.infer` from.
+export type AudioEffect = 'echo' | 'telephone' | 'muffled';
 
 // How a section's SOURCE footage maps into the output frame (descriptor options.forceAspectRatio /
 // forceOriginalAspectRatio, lowered by SegmentBuilder.prependScaleFilters — scale/crop/pad only,
@@ -138,11 +144,12 @@ export interface SectionAudioFade {
   out?: AudioFadeSide;
 }
 
-// Visual-section audio extras: per-section music-volume override and fade-in/out.
+// Visual-section audio extras: per-section music-volume override, fade-in/out, and voice effect.
 // Co-located with look/grade/motion because they all ride on visual sections only.
 export interface VisualAudio {
   musicVolume?: number;
   audioFade?: SectionAudioFade;
+  audioEffect?: AudioEffect;
 }
 
 // Per-section playback tempo (descriptor options.speed, engine FormatterManager). NOTE the descriptor
@@ -278,6 +285,8 @@ export type EditorSection =
       transitionAfter?: SectionTransition;
       look?: string;
       grade?: Grade;
+      // Cinemascope-style horizontal bars simulating a wider aspect ratio (descriptor shape, pass-through).
+      letterbox?: Letterbox;
       motion?: MotionEffect[];
       // Background removal: key out a solid screen colour and composite over a solid colour (descriptor shape).
       chromaKey?: ChromaKey;
@@ -304,6 +313,8 @@ export type EditorSection =
       transitionAfter?: SectionTransition;
       look?: string;
       grade?: Grade;
+      // Cinemascope-style horizontal bars simulating a wider aspect ratio (descriptor shape, pass-through).
+      letterbox?: Letterbox;
       motion?: MotionEffect[];
       // Structured title card (kicker/headline/subtitle) drawn on the background (descriptor shape).
       titleCard?: TitleCard;
@@ -326,6 +337,8 @@ export type EditorSection =
       transitionAfter?: SectionTransition;
       look?: string;
       grade?: Grade;
+      // Cinemascope-style horizontal bars simulating a wider aspect ratio (descriptor shape, pass-through).
+      letterbox?: Letterbox;
       motion?: MotionEffect[];
       // Draggable/resizable text overlays drawn over the background image, same model as video sections.
       overlays: TextOverlay[];

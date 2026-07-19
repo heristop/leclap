@@ -63,6 +63,8 @@ const SLIDERS: SliderSpec[] = [
   { key: 'gamma', min: 0.1, max: 3, step: 0.05 },
   { key: 'hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
   { key: 'blur', min: 0, max: 20, step: 0.5, format: (v) => `${v}px` },
+  // Film-grain strength (effects-pack) — lowered to the FFmpeg `noise` filter.
+  { key: 'grain', min: 0, max: 1, step: 0.02, format: (v) => `${Math.round(v * 100)}%` },
 ];
 
 export const GradePanel = ({ grade, onChange }: GradePanelProps) => {

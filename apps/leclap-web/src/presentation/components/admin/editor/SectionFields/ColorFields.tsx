@@ -59,7 +59,7 @@ export const ColorFields = ({ section, variables, onChange, inputCls }: ColorFie
           <SectionDisclosure
             label={t('disclosure.effects')}
             icon={<SparklesIcon size={16} className="shrink-0 text-brand-500" aria-hidden />}
-            summary={effectsSummary(t, section.look, section.motion)}
+            summary={effectsSummary(t, section.look, section.motion, section.letterbox)}
           >
             <MotionPanel
               motion={section.motion}
@@ -70,11 +70,15 @@ export const ColorFields = ({ section, variables, onChange, inputCls }: ColorFie
             <VisualEffects
               look={section.look}
               grade={section.grade}
+              letterbox={section.letterbox}
               onLook={(look) => {
                 onChange({ look });
               }}
               onGrade={(grade) => {
                 onChange({ grade });
+              }}
+              onLetterbox={(letterbox) => {
+                onChange({ letterbox });
               }}
             />
           </SectionDisclosure>

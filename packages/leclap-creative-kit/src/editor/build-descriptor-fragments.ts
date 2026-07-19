@@ -5,6 +5,7 @@ import type { TemplateDescriptor, Section } from 'ffmpeg-video-composer/src/core
 import type {
   SectionTransition,
   Grade,
+  Letterbox,
   MotionEffect,
   ChromaKey,
   EditorCaption,
@@ -12,6 +13,7 @@ import type {
   ImageOverlay,
   MediaChoice,
   SectionFit,
+  AudioEffect,
 } from './model';
 import { pruneEmpty } from './prune';
 
@@ -158,6 +160,7 @@ export function visualExtras(section: {
   caption?: EditorCaption;
   look?: string;
   grade?: Grade;
+  letterbox?: Letterbox;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
   animations?: AnimationOverlay[];
@@ -170,6 +173,7 @@ export function visualExtras(section: {
     ...(caption ? { caption } : {}),
     ...(section.look ? { look: section.look } : {}),
     ...(section.grade ? { grade: section.grade } : {}),
+    ...(section.letterbox ? { letterbox: section.letterbox } : {}),
     ...(section.motion && section.motion.length > 0 ? { motion: section.motion } : {}),
     ...(section.chromaKey ? { chromaKey: section.chromaKey } : {}),
     ...(animationInputs.length > 0 ? { inputs: animationInputs } : {}),
@@ -180,18 +184,23 @@ export function visualExtras(section: {
 export function sectionAudioOptions(section: {
   musicVolume?: number;
   audioFade?: { in?: { duration: number; curve?: string }; out?: { duration: number; curve?: string } };
+  audioEffect?: AudioEffect;
 }): Partial<{
   musicVolume: number;
   audioFade: { in?: { duration: number; curve?: string }; out?: { duration: number; curve?: string } };
+  audioEffect: AudioEffect;
 }> {
   const out: Partial<{
     musicVolume: number;
     audioFade: { in?: { duration: number; curve?: string }; out?: { duration: number; curve?: string } };
+    audioEffect: AudioEffect;
   }> = {};
 
   if (section.musicVolume !== undefined) out.musicVolume = section.musicVolume;
 
   if (section.audioFade) out.audioFade = section.audioFade;
+
+  if (section.audioEffect) out.audioEffect = section.audioEffect;
 
   return out;
 }

@@ -153,4 +153,26 @@ describe('expo builder parity → descriptor', () => {
     expect(animationOptions.flip).toBe('horizontal');
     expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
   });
+
+  it('overlay fit is cleared when scale is cleared (stale-fit regression)', () => {
+    let state = baseState();
+    state = patchSection(state, 0, {
+      animations: [{ url: 'library://confetti', scale: '200:200', fit: 'contain' }],
+    });
+
+    // Mirrors PlacementFields' scale onChange (sceneFields.tsx): clearing the scale also clears the
+    // fit, so a fit picked while a scale box existed never survives into the descriptor once the
+    // scale is cleared again.
+    state = patchSection(state, 0, {
+      animations: [{ url: 'library://confetti', scale: undefined, fit: undefined }],
+    });
+
+    const d = buildDescriptor(state);
+    const video = d.sections!.find((s) => s.name === 'video_1') as never as Record<string, unknown>;
+    const inputs = video.inputs as Array<Record<string, unknown>> | undefined;
+    const animationInput = inputs?.find((i) => i.type === 'animation') as Record<string, unknown> | undefined;
+    const animationOptions = animationInput?.options as Record<string, unknown> | undefined;
+
+    expect(animationOptions?.fit).toBeUndefined();
+  });
 });

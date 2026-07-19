@@ -20,11 +20,13 @@ import {
   type ChromaKeySchema,
   type DuckingSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
-import type {
-  CaptionSchema,
-  TitleCardSchema,
-  LowerThirdSchema,
-  ShapeSpecSchema,
+// CaptureModeSchema is a value import (not type-only): ALL_CAPTURE_MODES reads .options off it at
+// runtime, so it can't join the `import type` group above it.
+import {
+  type CaptionSchema,
+  type TitleCardSchema,
+  type LowerThirdSchema,
+  type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
 import type { Orientation, GlobalTextOverlaySchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
@@ -68,7 +70,7 @@ export type GlobalTextOverlay = z.infer<typeof GlobalTextOverlaySchema>;
 export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 
 // Every capture mode, in display order — the recorder default when a template doesn't restrict them.
-export const ALL_CAPTURE_MODES: readonly CaptureMode[] = ['front', 'back', 'screen', 'upload'];
+export const ALL_CAPTURE_MODES: readonly CaptureMode[] = CaptureModeSchema.options;
 
 // How a section's SOURCE footage maps into the output frame (descriptor options.forceAspectRatio /
 // forceOriginalAspectRatio, lowered by SegmentBuilder.prependScaleFilters — scale/crop/pad only,

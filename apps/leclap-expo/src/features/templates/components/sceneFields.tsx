@@ -569,7 +569,9 @@ const PlacementFields = ({
       bLabel="H"
       placeholder="auto"
       onChange={(scale) => {
-        onChange({ scale });
+        // Clearing the scale also clears the fit — without a box the mode has nothing to act on
+        // (mirrors web placementFields.tsx).
+        onChange(scale ? { scale } : { scale: undefined, fit: undefined });
       }}
     />
     {/* Fit only acts on a fixed W:H box, so the control appears once a scale is set. 'stretch' is the

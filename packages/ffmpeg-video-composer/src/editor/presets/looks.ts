@@ -185,8 +185,10 @@ export function gradeToFilters(grade?: Grade): Filter[] {
     filters.push({ type: 'gblur', value: `sigma=${grade.blur}` });
   }
 
-  if (grade.grain !== undefined && grade.grain > 0) {
-    filters.push({ type: 'noise', value: `alls=${Math.round(grade.grain * 20)}:allf=t+u` });
+  const grainStrength = grade.grain === undefined ? 0 : Math.round(grade.grain * 20);
+
+  if (grainStrength > 0) {
+    filters.push({ type: 'noise', value: `alls=${grainStrength}:allf=t+u` });
   }
 
   if (grade.curvesPreset) {
@@ -208,8 +210,9 @@ type LetterboxContext = {
 /**
  * Translates a Letterbox descriptor into two drawbox filters simulating a wider aspect ratio via
  * horizontal bars, top and bottom. A no-op ([]) when the target aspect is narrower than or equal to
- * the frame's own aspect ratio — bars would compute a non-positive height, and drawbox must never be
- * emitted with h<=0.
+ * the frame's own aspect ratio, OR when it's wide enough that the resulting bar rounds to less than
+ * a pixel — FFmpeg's drawbox treats an `h` that truncates to 0 as "full input height", so a
+ * sub-pixel bar would fill the ENTIRE frame with the bar colour instead of doing nothing.
  */
 export function letterboxToFilters(
   letterbox: { aspect: number; color?: string } | undefined,
@@ -222,6 +225,10 @@ export function letterboxToFilters(
   const { w, h } = parseScale(ctx.scale);
 
   if (letterbox.aspect <= w / h) {
+    return [];
+  }
+
+  if ((h - w / letterbox.aspect) / 2 < 1) {
     return [];
   }
 

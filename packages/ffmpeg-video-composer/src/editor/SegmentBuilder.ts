@@ -524,9 +524,10 @@ class SegmentBuilder {
   };
 
   /**
-   * Builds the `-af` argument string for audio fades on this section, or returns '' if
-   * no fades are configured or the section is muted (fades on a muted track are pointless).
-   * Delegates to the pure module-level buildAudioFadeArg to keep this class within line limits.
+   * Builds the `-af` argument string for this section's audio effect (echo/telephone/muffled) and
+   * fades, or returns '' if neither is configured or the section is muted (processing a silent
+   * track is pointless). Delegates to the pure module-level buildAudioFadeArg to keep this class
+   * within line limits.
    */
   protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options);
 

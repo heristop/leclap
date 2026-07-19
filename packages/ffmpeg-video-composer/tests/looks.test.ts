@@ -223,6 +223,15 @@ describe('gradeToFilters', () => {
     expect(gradeToFilters({ grain: 0.5 })).toEqual<Filter[]>([{ type: 'noise', value: 'alls=10:allf=t+u' }]);
   });
 
+  it('grain=0.02 → rounds strength to 0 → no-op, no noise filter emitted', () => {
+    const filters = gradeToFilters({ grain: 0.02 });
+    expect(filters.some((f) => f.type === 'noise')).toBe(false);
+  });
+
+  it('grain=0.03 → rounds strength to 1 → noise filter emitted', () => {
+    expect(gradeToFilters({ grain: 0.03 })).toEqual<Filter[]>([{ type: 'noise', value: 'alls=1:allf=t+u' }]);
+  });
+
   it('grain emits after gblur and before curves', () => {
     const filters = gradeToFilters({ blur: 2, grain: 0.5, curvesPreset: 'warm' });
     expect(filters).toEqual<Filter[]>([
@@ -268,6 +277,16 @@ describe('letterboxToFilters', () => {
 
   it('aspect narrower than frame → no-op ([]), never emits a non-positive height drawbox', () => {
     expect(letterboxToFilters({ aspect: 1.5 }, SCALE_LANDSCAPE)).toEqual([]);
+  });
+
+  it('aspect barely wider than frame (1.78 on a 1280x720/1.778 frame) → sub-pixel bar → no-op ([])', () => {
+    // Bar height = (720 - 1280/1.78)/2 ≈ 0.45px. FFmpeg's drawbox treats an h that truncates to 0
+    // as "full input height", so emitting this would fill the whole frame with the bar colour.
+    expect(letterboxToFilters({ aspect: 1.78 }, SCALE_LANDSCAPE)).toEqual([]);
+  });
+
+  it('aspect 2.39 on the same frame still emits bars (bar height well over 1px)', () => {
+    expect(letterboxToFilters({ aspect: 2.39 }, SCALE_LANDSCAPE)).toHaveLength(2);
   });
 
   it('portrait frame: an aspect wider than the portrait ratio still emits bars', () => {

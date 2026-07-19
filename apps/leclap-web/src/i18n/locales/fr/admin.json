@@ -613,7 +613,7 @@
     "radius": "Rayon du panneau",
     "color": "Couleur du panneau",
     "opacity": "Opacité du panneau",
-    "hint": "Le fond arrondi généré derrière ce sous-titre. La taille suit la mise en page du modèle."
+    "hint": "Le fond arrondi généré derrière ce sous-titre. La taille suit la mise en page du modèle. La couleur doit être une valeur hexadécimale unie — les variables ne sont pas prises en charge ici."
   },
   "motion": {
     "label": "Mouvement",

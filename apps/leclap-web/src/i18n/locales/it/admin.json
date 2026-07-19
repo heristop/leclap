@@ -613,7 +613,7 @@
     "radius": "Raggio del pannello",
     "color": "Colore del pannello",
     "opacity": "Opacità del pannello",
-    "hint": "Lo sfondo arrotondato generato dietro questa didascalia. La dimensione segue il layout del modello."
+    "hint": "Lo sfondo arrotondato generato dietro questa didascalia. La dimensione segue il layout del modello. Il colore deve essere un valore esadecimale semplice — le variabili non sono supportate qui."
   },
   "motion": {
     "label": "Movimento",

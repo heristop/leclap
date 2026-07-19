@@ -13,6 +13,11 @@ export interface ColorPickerProps {
   presets?: readonly string[];
   className?: string;
   'aria-label'?: string;
+  // Hide the variable-chip row for a field whose stored value can only ever be a solid hex colour
+  // (e.g. an engine-generated recipe like the rounded-panel backdrop) — picking a `{{ token }}` there
+  // would silently fail to resolve downstream with no feedback. Default false: every other colour
+  // field keeps today's chip row unchanged.
+  hideVariables?: boolean;
 }
 
 // Checkerboard for an unresolvable '{{ token }}' — the classic "no colour here" swatch.
@@ -121,10 +126,14 @@ TriggerSwatch.displayName = 'TriggerSwatch';
 // Inside an editor shell (ColorVariablesProvider) the field is also variable-aware: the template's
 // colour variables appear as pickable chips that store a literal '{{ name }}' token, the swatch
 // shows the token's RESOLVED colour (checkerboard when it can't resolve), and typing a variable
-// name — or pasting '{{ name }}' — in the text entry commits the token too.
+// name — or pasting '{{ name }}' — in the text entry commits the token too. `hideVariables` opts a
+// field out of the chip row for consumers whose stored value can only ever be a solid hex colour.
 // No extra deps — the native <input type="color"> drives the actual picking UI.
 const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
-  ({ value, onChange, id, presets = BRAND_SWATCHES, className, 'aria-label': ariaLabel }, ref) => {
+  (
+    { value, onChange, id, presets = BRAND_SWATCHES, className, 'aria-label': ariaLabel, hideVariables = false },
+    ref
+  ) => {
     const scope = useColorVariables();
     const [draft, setDraft] = React.useState(() => colorDraftFromValue(value));
 
@@ -191,7 +200,7 @@ const ColorPicker = React.forwardRef<HTMLInputElement, ColorPickerProps>(
             />
           </div>
         </div>
-        {chips.length > 0 && (
+        {chips.length > 0 && !hideVariables && (
           <VariableChips
             chips={chips}
             tokenName={tokenName}

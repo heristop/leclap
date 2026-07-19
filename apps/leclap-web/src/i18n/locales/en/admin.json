@@ -613,7 +613,7 @@
     "radius": "Panel radius",
     "color": "Panel color",
     "opacity": "Panel opacity",
-    "hint": "The generated rounded-rect backdrop behind this caption. Size follows the template's layout."
+    "hint": "The generated rounded-rect backdrop behind this caption. Size follows the template's layout. Color must be a solid hex value — variables aren't supported here."
   },
   "motion": {
     "label": "Motion",

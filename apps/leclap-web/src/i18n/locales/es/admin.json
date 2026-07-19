@@ -613,7 +613,7 @@
     "radius": "Radio del panel",
     "color": "Color del panel",
     "opacity": "Opacidad del panel",
-    "hint": "El fondo redondeado generado detrás de este subtítulo. El tamaño sigue el diseño de la plantilla."
+    "hint": "El fondo redondeado generado detrás de este subtítulo. El tamaño sigue el diseño de la plantilla. El color debe ser un valor hexadecimal sólido — las variables no son compatibles aquí."
   },
   "motion": {
     "label": "Movimiento",

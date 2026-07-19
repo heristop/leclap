@@ -613,7 +613,7 @@
     "radius": "Feldradius",
     "color": "Feldfarbe",
     "opacity": "Felddeckkraft",
-    "hint": "Der generierte abgerundete Hintergrund hinter dieser Bildunterschrift. Die Größe richtet sich nach dem Layout der Vorlage."
+    "hint": "Der generierte abgerundete Hintergrund hinter dieser Bildunterschrift. Die Größe richtet sich nach dem Layout der Vorlage. Die Farbe muss ein einfacher Hex-Wert sein — Variablen werden hier nicht unterstützt."
   },
   "motion": {
     "label": "Bewegung",

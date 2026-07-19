@@ -52,4 +52,18 @@ describe('ColorPicker variable affordance', () => {
 
     expect(html).not.toContain('Use variable');
   });
+
+  it('hides the chip row entirely when hideVariables is set, even with variables in scope', () => {
+    const html = renderToStaticMarkup(
+      <I18nextProvider i18n={i18n}>
+        <ColorVariablesProvider variables={[{ name: 'brand', value: '#ff0044' }]}>
+          <ColorPicker value="#ffffff" onChange={noop} aria-label="Panel color" hideVariables />
+        </ColorVariablesProvider>
+      </I18nextProvider>
+    );
+
+    expect(html).not.toContain('Use variable');
+    // The rest of the picker (swatch + hex entry) still renders normally.
+    expect(html).toContain('value="#ffffff"');
+  });
 });

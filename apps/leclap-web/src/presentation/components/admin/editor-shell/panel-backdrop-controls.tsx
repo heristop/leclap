@@ -45,6 +45,10 @@ export const PanelBackdropControls = ({ spec, onChange }: PanelBackdropControlsP
         <ColorPicker
           aria-label={t('panel.color')}
           value={`#${spec.color}`}
+          // The engine's PanelSpec.color only accepts a solid hex string (no `{{ token }}` resolution)
+          // — a picked variable would silently collapse back to the engine default on the next parse,
+          // so the chip row is hidden entirely rather than offering a control that quietly misbehaves.
+          hideVariables
           onChange={(hex) => {
             patchSpec({ color: hex.startsWith('#') ? hex.slice(1) : hex });
           }}

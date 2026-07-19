@@ -92,6 +92,9 @@ EOF
   echo "[harfbuzz][ios:$SLICE] installed → $PREFIX"
 }
 
+# libvpx's configure has no --extra-ldflags (unlike FFmpeg's); its check_ld honors the LDFLAGS env
+# var instead. The sysroot must reach the LINK check too — Xcode 26+ clang otherwise fails it with
+# "ld: library 'System' not found" and configure aborts with "Toolchain is unable to link executables".
 # Cross-build libvpx (static, DECODE-ONLY) for iOS — reads WebM (VP9) alpha overlays the native vp9
 # decoder can't. Uses libvpx's portable `generic-gnu` target (pure C, no nasm) with the Xcode clang and
 # -arch/-isysroot, so it builds for every slice without libvpx's version-named darwin targets. Installs
@@ -106,6 +109,7 @@ build_libvpx() {
     CC="$CC" CXX="$CC" LD="$CC" AS="$CC" \
     AR="$(xcrun --sdk "$SDK" --find ar)" RANLIB="$(xcrun --sdk "$SDK" --find ranlib)" \
     STRIP="$(xcrun --sdk "$SDK" --find strip)" NM="$(xcrun --sdk "$SDK" --find nm)" \
+    LDFLAGS="-arch $ARCH $MIN -isysroot $SYSROOT" \
     ./configure --target=generic-gnu --prefix="$PREFIX" \
       --enable-static --disable-shared --enable-pic \
       --enable-vp8 --enable-vp9 --disable-vp8-encoder --disable-vp9-encoder \

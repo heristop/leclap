@@ -108,6 +108,31 @@ function fitBoxFrom(scale: string | undefined, fit: OverlayFit | undefined): str
  * PNG/APNG), and `ow=rotw(…)/oh=roth(…)` grow the output frame to the rotated bounds so it is never
  * clipped.
  */
+// scale/fit leg filters: a `contain` fit scales down then pads back up with a transparent letterbox,
+// a `cover` fit scales up then centre-crops, and a plain `scale` (no valid fit box) free-stretches.
+// fitBoxFrom returns a box only for contain/cover with an integer "w:h" scale, so a truthy box always
+// pairs with one of those two fits.
+function fitLegFilters(scale: string | undefined, fit: OverlayFit | undefined): string[] {
+  const fitBox = fitBoxFrom(scale, fit);
+
+  if (fitBox && fit === 'contain') {
+    return [
+      `scale=${fitBox}:force_original_aspect_ratio=decrease`,
+      'format=rgba',
+      `pad=${fitBox}:(ow-iw)/2:(oh-ih)/2:color=black@0`,
+      'setsar=1',
+    ];
+  }
+
+  if (fitBox && fit === 'cover') {
+    return [`scale=${fitBox}:force_original_aspect_ratio=increase`, `crop=${fitBox}`, 'setsar=1'];
+  }
+
+  if (!fitBox && scale) return [`scale=${scale}`, 'setsar=1'];
+
+  return [];
+}
+
 export function buildAnimationLegFilters(options: {
   scale?: string;
   fit?: OverlayFit;
@@ -118,22 +143,8 @@ export function buildAnimationLegFilters(options: {
   const opacity = options.opacity ?? 1;
   const rotation = options.rotation ?? 0;
   const legFilters: string[] = [];
-  const fitBox = fitBoxFrom(options.scale, options.fit);
 
-  if (fitBox && options.fit === 'contain') {
-    legFilters.push(
-      `scale=${fitBox}:force_original_aspect_ratio=decrease`,
-      'format=rgba',
-      `pad=${fitBox}:(ow-iw)/2:(oh-ih)/2:color=black@0`,
-      'setsar=1'
-    );
-  }
-
-  if (fitBox && options.fit === 'cover') {
-    legFilters.push(`scale=${fitBox}:force_original_aspect_ratio=increase`, `crop=${fitBox}`, 'setsar=1');
-  }
-
-  if (!fitBox && options.scale) legFilters.push(`scale=${options.scale}`, 'setsar=1');
+  legFilters.push(...fitLegFilters(options.scale, options.fit));
 
   legFilters.push(...flipLegFilters(options.flip));
 

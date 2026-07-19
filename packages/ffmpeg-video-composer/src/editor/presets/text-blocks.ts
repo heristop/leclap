@@ -7,75 +7,13 @@ import {
   applyTextEffect,
   hasText,
   resolveFontFile,
-  revealEnableExpr,
   staggered,
 } from './text';
+import { accentBar, parseScale, pushLine, round } from './text-blocks-helpers';
 
 const DEFAULT_FADE_COLOR = '#000000';
 const BAND_COLOR = '#0a0f14';
 const DEFAULT_BAND_OPACITY = 0.6;
-
-function round(value: number): number {
-  return Math.round(value);
-}
-
-function parseScale(scale: string): { w: number; h: number } {
-  const [w, h] = scale.split(':').map((part) => parseInt(part, 10));
-
-  return { w: Number.isFinite(w) ? w : 1280, h: Number.isFinite(h) ? h : 720 };
-}
-
-type LineSpec = {
-  text: Translation | undefined;
-  x: string;
-  y: number;
-  font: string;
-  size: number;
-  color: string;
-};
-
-// Pushes one styled, optionally-revealed drawtext line when it has text; returns the next stagger index.
-function pushLine(filters: Filter[], spec: LineSpec, reveal: RevealInput, index: number, effect?: TextEffect): number {
-  if (!hasText(spec.text)) {
-    return index;
-  }
-
-  const values: Record<string, unknown> = {
-    text: { ...spec.text },
-    x: spec.x,
-    y: spec.y,
-    fontfile: spec.font,
-    fontsize: spec.size,
-    fontcolor: spec.color,
-  };
-
-  applyTextEffect(values, effect);
-  applyReveal(values, staggered(reveal, index), { x: spec.x, y: spec.y });
-  filters.push({ type: 'drawtext', values: values as Filter['values'] });
-
-  return index + 1;
-}
-
-// A solid accent bar (drawbox), or nothing when no accent colour is set. `reveal` is the (already
-// staggered) reveal of the text line the bar decorates: drawbox has no alpha expression, so the bar
-// follows the text's entrance via a timeline gate (`enable='gte(t,delay)'`) — it pops in when the
-// text starts entering instead of sitting alone on screen before it.
-function accentBar(
-  accent: string | undefined,
-  geom: { x: string | number; y: number; w: number; h: number },
-  reveal?: RevealInput
-): Filter[] {
-  if (!accent) {
-    return [];
-  }
-
-  const enable = revealEnableExpr(reveal);
-  const gate = enable === undefined ? {} : { enable };
-
-  return [
-    { type: 'drawbox', values: { x: geom.x, y: geom.y, w: geom.w, h: geom.h, c: `${accent}@1`, t: 'fill', ...gate } },
-  ];
-}
 
 // ---------------------------------------------------------------------------
 // titleCard — a kicker / headline / subtitle card on a color_background section
@@ -153,27 +91,30 @@ function titleCardFades(fade: TitleCard['fade'], color: string): Filter[] {
   return filters;
 }
 
-/**
- * Lowers a TitleCard into an ordered drawtext/drawbox/fade filter list. Positions and sizes are
- * derived from the output scale so one card renders correctly in portrait, square and landscape.
- * Returns [] when the card has no text at all.
- */
-export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleCardContext): Filter[] {
-  if (!titleCard || (!hasText(titleCard.kicker) && !hasText(titleCard.headline) && !hasText(titleCard.subtitle))) {
-    return [];
-  }
+function titleCardHasText(titleCard: TitleCard): boolean {
+  return hasText(titleCard.kicker) || hasText(titleCard.headline) || hasText(titleCard.subtitle);
+}
 
-  const { w, h } = parseScale(ctx.scale);
-  const align = titleCard.align ?? 'left';
-  const margin = round(w * 0.06);
-  const reveal = titleCard.reveal ?? 'rise';
-  const accent = titleCard.accent;
-  const effect = titleCard.effect;
-  const x = align === 'center' ? '(w-text_w)/2' : String(margin);
+// The scale-derived layout the title-card lines share: frame size, alignment, margins, entrance and
+// the resolved x expression (left margin or centred).
+type TitleCardGeom = {
+  w: number;
+  h: number;
+  align: 'left' | 'center';
+  margin: number;
+  reveal: RevealInput;
+  accent: string | undefined;
+  effect: TextEffect | undefined;
+  x: string;
+};
 
-  const filters: Filter[] = [];
+// Pushes the kicker, headline, accent underline and subtitle (in z-order). The bar underlines the
+// headline, so it follows the headline's staggered reveal; when the card has no headline it falls
+// back to the last pushed line (the kicker), or the base stagger slot.
+function pushTitleCardBody(filters: Filter[], titleCard: TitleCard, geom: TitleCardGeom): void {
+  const { w, h, align, margin, reveal, accent, effect, x } = geom;
+
   let index = 0;
-
   index = pushLine(
     filters,
     {
@@ -204,8 +145,6 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
   // In drawbox expressions `w` is the box's own width (unlike drawtext, where it's the frame), so
   // the frame-centred position must use `iw`.
   const barX = align === 'center' ? `(iw-${barW})/2` : margin;
-  // The bar underlines the headline, so it follows the headline's staggered reveal; when the card
-  // has no headline it falls back to the last pushed line (the kicker), or the base stagger slot.
   const barLineIndex = index > headlineIndex ? headlineIndex : Math.max(0, index - 1);
   filters.push(
     ...accentBar(
@@ -227,6 +166,34 @@ export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleC
     index,
     effect
   );
+}
+
+/**
+ * Lowers a TitleCard into an ordered drawtext/drawbox/fade filter list. Positions and sizes are
+ * derived from the output scale so one card renders correctly in portrait, square and landscape.
+ * Returns [] when the card has no text at all.
+ */
+export function titleCardToFilters(titleCard: TitleCard | undefined, ctx: TitleCardContext): Filter[] {
+  if (!titleCard || !titleCardHasText(titleCard)) {
+    return [];
+  }
+
+  const { w, h } = parseScale(ctx.scale);
+  const align = titleCard.align ?? 'left';
+  const margin = round(w * 0.06);
+  const x = align === 'center' ? '(w-text_w)/2' : String(margin);
+
+  const filters: Filter[] = [];
+  pushTitleCardBody(filters, titleCard, {
+    w,
+    h,
+    align,
+    margin,
+    reveal: titleCard.reveal ?? 'rise',
+    accent: titleCard.accent,
+    effect: titleCard.effect,
+    x,
+  });
 
   const fadeColor = titleCard.background ?? ctx.backgroundColor ?? DEFAULT_FADE_COLOR;
   filters.push(...titleCardFades(titleCard.fade, fadeColor));

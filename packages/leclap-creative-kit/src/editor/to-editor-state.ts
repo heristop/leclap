@@ -1,10 +1,5 @@
 // Re-hydration: best-effort convert a stored TemplateDescriptor back to an EditorState.
-import type {
-  TemplateDescriptor,
-  Section,
-  PartialSection,
-  GlobalAnimation,
-} from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { TemplateDescriptor, Section, PartialSection } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import {
   DEFAULT_AUDIO_MIX,
   DEFAULT_TRANSITION,
@@ -24,8 +19,6 @@ import {
   type SectionAudioFade,
   type EditorCaption,
   type AnimationOverlay,
-  type ImageOverlay,
-  type MediaChoice,
   type TitleCard,
   type LowerThird,
   type GlobalTextOverlay,
@@ -35,6 +28,7 @@ import {
 } from './model';
 import { overlaysFromFilters } from './overlay-parsing';
 import { pruneEmpty } from './prune';
+import { animationsFrom, choiceFromMarker, imagesFrom, overlayOptionsFrom } from './to-editor-overlay';
 
 function formSectionFrom(s: Section): EditorSection {
   const fields = (s.options?.fields ?? []) as Array<{
@@ -86,79 +80,6 @@ function captionFrom(s: Section): EditorCaption | undefined {
     reveal: caption.reveal,
     effect: caption.effect,
   }) as EditorCaption;
-}
-
-// Recover the animation overlays from the section's `type: 'animation'` inputs, in stored order. The
-// editor-only `id` is derived from the input name so re-hydration is deterministic.
-function animationsFrom(s: Section): AnimationOverlay[] {
-  return (s.inputs ?? [])
-    .filter((i) => i.type === 'animation' && i.url)
-    .map((input) => {
-      return { id: input.name, url: input.url as string, ...overlayOptionsFrom(input.options ?? {}) };
-    });
-}
-
-// Recover editor-facing overlay options (placement + playback) from a stored animation, carrying
-// only explicit non-defaults. Active extent = whichever of duration / loops / loop:false is set.
-function overlayOptionsFrom(o: Partial<GlobalAnimation>): Omit<AnimationOverlay, 'id' | 'url' | 'label'> {
-  return {
-    ...(o.duration === undefined ? {} : { duration: o.duration }),
-    ...(o.loops === undefined ? {} : { loops: o.loops }),
-    ...(o.loop === false ? { loop: false } : {}),
-    ...(o.position ? { position: o.position } : {}),
-    ...(o.scale ? { scale: o.scale } : {}),
-    ...(o.fit && o.fit !== 'stretch' ? { fit: o.fit } : {}),
-    ...(o.start ? { start: o.start } : {}),
-    ...(o.persistent === false ? { persistent: false } : {}),
-    ...(o.opacity !== undefined && o.opacity < 1 ? { opacity: o.opacity } : {}),
-    ...(o.rotation ? { rotation: o.rotation } : {}),
-    ...(o.flip ? { flip: o.flip } : {}),
-    ...(o.motion ? { motion: o.motion } : {}),
-  };
-}
-
-// Reverse markerFromChoice (buildDescriptor): the input url marker → a MediaChoice. `media://` uploads
-// lose their human label across the descriptor, so fall back to the key as the display label.
-function choiceFromMarker(url: string): MediaChoice {
-  if (url.startsWith('library://')) return { source: 'library', id: url.slice('library://'.length) };
-
-  if (url.startsWith('media://')) {
-    const key = url.slice('media://'.length);
-
-    return { source: 'upload', key, label: key };
-  }
-
-  return { source: 'url', url };
-}
-
-// Recover the still-image overlays from the section's `type: 'image'` inputs, in their stored order.
-// The editor-only `id` is derived from the input name so re-hydration is deterministic.
-function imagesFrom(s: Section): ImageOverlay[] {
-  return (s.inputs ?? [])
-    .filter((i) => i.type === 'image' && i.url)
-    .map((input) => {
-      const { position, scale, fit, opacity, rotation, flip, motion, start, duration } = input.options ?? {};
-
-      // opacity defaults to opaque, so only carry an explicit fade (< 1) back, mirroring animationsFrom.
-      // The stored show window is start/duration; the editor edits absolute start/end, so
-      // end = start + duration (trimmed of float noise — 0.1 + 0.2 must rehydrate as 0.3).
-      return {
-        id: input.name,
-        choice: choiceFromMarker(input.url as string),
-        ...(position ? { position } : {}),
-        ...(scale ? { scale } : {}),
-        ...(fit && fit !== 'stretch' ? { fit } : {}),
-        ...(opacity !== undefined && opacity < 1 ? { opacity } : {}),
-        ...(rotation ? { rotation } : {}),
-        ...(flip ? { flip } : {}),
-        ...(start ? { start } : {}),
-        ...(duration !== undefined ? { end: Number(((start ?? 0) + duration).toFixed(4)) } : {}),
-        ...(motion ? { motion } : {}),
-        // A builder-drawn shape re-hydrates its vector recipe so the shape controls come back;
-        // without the field the data: URL stays a plain image.
-        ...(input.shape ? { shape: input.shape } : {}),
-      };
-    });
 }
 
 type VisualExtras = {

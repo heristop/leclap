@@ -358,6 +358,44 @@ export function motionToFilters(motion: MotionEffect[] | undefined, ctx: MotionC
  * LGPL, on-device-safe). Gradient layers get the full fade/slide entrance instead, via the
  * overlay-motion machinery in MapManager.addGradientOverlay.
  */
+// Drawbox filters for a single background layer: nothing for a gradient (compiled by the input/maps
+// pipeline), a `fill` drawbox for a color, and a numeric-thickness drawbox for a border — each gated
+// by the layer `reveal` timeline. See layersToFilters for the full contract.
+function layerToDrawboxFilters(layer: BackgroundLayer): Filter[] {
+  if (layer.gradient) {
+    // Gradient layers are compiled by the input/maps pipeline, not as section filters.
+    return [];
+  }
+
+  const opacity = layer.opacity ?? 1;
+  const geometry = {
+    x: layer.x ?? 0,
+    y: layer.y ?? 0,
+    w: layer.w ?? 'iw',
+    h: layer.h ?? 'ih',
+  };
+  const enable = revealEnableExpr(layer.reveal);
+  const gate = enable === undefined ? {} : { enable };
+
+  const filters: Filter[] = [];
+
+  if (layer.color) {
+    filters.push({
+      type: 'drawbox',
+      values: { ...geometry, c: `${layer.color}@${opacity}`, t: 'fill', ...gate },
+    });
+  }
+
+  if (layer.border) {
+    filters.push({
+      type: 'drawbox',
+      values: { ...geometry, c: `${layer.border.color}@${opacity}`, t: layer.border.width, ...gate },
+    });
+  }
+
+  return filters;
+}
+
 export function layersToFilters(layers: BackgroundLayer[] | undefined): Filter[] {
   if (!layers || layers.length === 0) {
     return [];
@@ -366,34 +404,7 @@ export function layersToFilters(layers: BackgroundLayer[] | undefined): Filter[]
   const filters: Filter[] = [];
 
   for (const layer of layers) {
-    if (layer.gradient) {
-      // Gradient layers are compiled by the input/maps pipeline, not as section filters.
-      continue;
-    }
-
-    const opacity = layer.opacity ?? 1;
-    const geometry = {
-      x: layer.x ?? 0,
-      y: layer.y ?? 0,
-      w: layer.w ?? 'iw',
-      h: layer.h ?? 'ih',
-    };
-    const enable = revealEnableExpr(layer.reveal);
-    const gate = enable === undefined ? {} : { enable };
-
-    if (layer.color) {
-      filters.push({
-        type: 'drawbox',
-        values: { ...geometry, c: `${layer.color}@${opacity}`, t: 'fill', ...gate },
-      });
-    }
-
-    if (layer.border) {
-      filters.push({
-        type: 'drawbox',
-        values: { ...geometry, c: `${layer.border.color}@${opacity}`, t: layer.border.width, ...gate },
-      });
-    }
+    filters.push(...layerToDrawboxFilters(layer));
   }
 
   return filters;

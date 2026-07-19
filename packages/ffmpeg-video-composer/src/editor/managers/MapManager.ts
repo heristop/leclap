@@ -2,7 +2,12 @@ import { inject, injectable } from 'tsyringe';
 import type Segment from '../../core/models/Segment';
 import type { Section, Map, MapAnimationInput, ChromaKey } from '@/core/types';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
-import { buildAnimationLegFilters, imageOverlayEnable, overlayMotionExpr } from '../utils/input-sources';
+import {
+  buildAnimationLegFilters,
+  imageOverlayEnable,
+  overlayMotionExpr,
+  type OverlayMotion,
+} from '../utils/input-sources';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
 
@@ -109,6 +114,35 @@ class MapManager {
     return baseStream;
   };
 
+  // Prepares the animation leg before the overlay: scale it to its declared size and fade it when
+  // opacity < 1 (shared with the whole-video AnimationComposer so both composite identically). A
+  // `motion` fade appends its alpha fade-in on an rgba frame. When leg filters exist the chain is
+  // prepended to the graph and its named pad returned; otherwise the raw `${inputIndex}:v` leg.
+  private readonly buildAnimationLeg = (
+    input: MapAnimationInput,
+    inputIndex: number,
+    motion: OverlayMotion
+  ): string => {
+    const legFilters = buildAnimationLegFilters(input.options);
+
+    if (motion.legFilter) {
+      if (!legFilters.includes('format=rgba')) {
+        legFilters.push('format=rgba');
+      }
+
+      legFilters.push(motion.legFilter);
+    }
+
+    if (legFilters.length === 0) {
+      return `${inputIndex}:v`;
+    }
+
+    const animationPad = `${input.name}_src`;
+    this.segment.filtersMapList.unshift(`[${inputIndex}:v]${legFilters.join(',')}[${animationPad}]`);
+
+    return animationPad;
+  };
+
   addAnimationOverlay = (input: MapAnimationInput, inputIndex: number, videoScale = ''): void => {
     const videoStream = `${this.getVideoInputIncrement()}:v`;
     const eofAction = input.options.persistent ? 'repeat' : 'pass';
@@ -121,29 +155,11 @@ class MapManager {
       ? this.buildAnimationBackground(input.name, videoStream, videoScale)
       : (this.segment.mapsList.at(-1) ?? videoStream);
 
-    // Prepare the animation leg before the overlay: scale it to its declared size and fade it when
-    // opacity < 1 (shared with the whole-video AnimationComposer so both composite identically).
-    const legFilters = buildAnimationLegFilters(input.options);
-
     // An optional `motion` animates the entrance: slide/rise emit overlay x/y time-expressions; fade
     // adds an alpha fade-in to the overlay leg (needs an rgba frame first).
     const motion = overlayMotionExpr(input.options.motion, position);
 
-    if (motion.legFilter) {
-      if (!legFilters.includes('format=rgba')) {
-        legFilters.push('format=rgba');
-      }
-
-      legFilters.push(motion.legFilter);
-    }
-
-    let animationLeg = `${inputIndex}:v`;
-
-    if (legFilters.length > 0) {
-      const animationPad = `${input.name}_src`;
-      this.segment.filtersMapList.unshift(`[${inputIndex}:v]${legFilters.join(',')}[${animationPad}]`);
-      animationLeg = animationPad;
-    }
+    const animationLeg = this.buildAnimationLeg(input, inputIndex, motion);
 
     this.segment.inputsMapCount++;
 
@@ -183,6 +199,35 @@ class MapManager {
    * filter chain is folded into the main-stream leg (see SegmentBuilder.buildGradientLayers for
    * the resulting overlay-after-filters ordering).
    */
+  // Leg filters (opacity fade + reveal fade-in) run on the gradient's own chain so the main stream is
+  // untouched; both need an rgba frame first. When filters exist the chain is prepended to the graph
+  // and its named pad returned; otherwise the raw `${gradientIndex}:v` leg.
+  private readonly buildGradientLeg = (
+    gradientIndex: number,
+    outputName: string,
+    opacity: number,
+    motion: OverlayMotion
+  ): string => {
+    const legFilters: string[] = [];
+
+    if (opacity < 1 || motion.legFilter) legFilters.push('format=rgba');
+
+    if (opacity < 1) legFilters.push(`colorchannelmixer=aa=${opacity}`);
+
+    if (motion.legFilter) legFilters.push(motion.legFilter);
+
+    if (legFilters.length === 0) {
+      return `${gradientIndex}:v`;
+    }
+
+    const legPad = `${outputName}_op`;
+    // unshift, not push: the pad must be defined before the overlay map that consumes it,
+    // or ffmpeg fails with an undefined stream specifier.
+    this.segment.filtersMapList.unshift(`[${gradientIndex}:v]${legFilters.join(',')}[${legPad}]`);
+
+    return legPad;
+  };
+
   addGradientOverlay = (layer: BackgroundLayer, gradientIndex: number, outputName: string, position?: string): void => {
     const useSectionFilters = this.segment.inputsMapCount === 0;
     const videoStream = `${this.getVideoInputIncrement()}:v`;
@@ -195,26 +240,7 @@ class MapManager {
     const opacity = layer.opacity ?? 1;
     const motion = overlayMotionExpr(layer.reveal, overlayPosition);
 
-    // Leg filters (opacity fade + reveal fade-in) run on the gradient's own chain so the main
-    // stream is untouched; both need an rgba frame first. The chain is prepended to the graph so
-    // its pad exists when the overlay map references it.
-    const legFilters: string[] = [];
-
-    if (opacity < 1 || motion.legFilter) legFilters.push('format=rgba');
-
-    if (opacity < 1) legFilters.push(`colorchannelmixer=aa=${opacity}`);
-
-    if (motion.legFilter) legFilters.push(motion.legFilter);
-
-    let gradientLeg = `${gradientIndex}:v`;
-
-    if (legFilters.length > 0) {
-      const legPad = `${outputName}_op`;
-      // unshift, not push: the pad must be defined before the overlay map that consumes it,
-      // or ffmpeg fails with an undefined stream specifier.
-      this.segment.filtersMapList.unshift(`[${gradientIndex}:v]${legFilters.join(',')}[${legPad}]`);
-      gradientLeg = legPad;
-    }
+    const gradientLeg = this.buildGradientLeg(gradientIndex, outputName, opacity, motion);
 
     this.segment.inputsMapCount++;
 

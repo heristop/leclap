@@ -67,8 +67,10 @@ export function parsePanelUrl(url: string): PanelSpec | null {
 
   const body = url.slice('panel:'.length);
   const pairs = new Map<string, string>();
+
   for (const part of body.split(',')) {
     const eq = part.indexOf('=');
+
     if (eq === -1) {
       continue;
     }
@@ -79,6 +81,7 @@ export function parsePanelUrl(url: string): PanelSpec | null {
   // zero-dimension PNG that every decoder treats as corrupt.
   const width = Math.floor(Number(pairs.get('w')));
   const height = Math.floor(Number(pairs.get('h')));
+
   if (!inPixelRange(width) || !inPixelRange(height)) {
     return null;
   }
@@ -122,43 +125,44 @@ const hexByte = (hex: string, at: number): number => {
  * full (1); only a corner's outer region tapers, via the signed distance to that corner's arc centre —
  * `clamp(radius - dist + 0.5)` gives a 1px anti-aliased edge.
  */
-const cornerCoverage = (cx: number, cy: number, spec: PanelSpec): number => {
+// The arc centre of whichever corner this pixel sits in; null when the pixel is on a straight run.
+// Corners never overlap (radius is capped at half the shorter side), so at most one branch matches.
+const cornerArcCenter = (cx: number, cy: number, spec: PanelSpec): { x: number; y: number } | null => {
   const { width, height, radius } = spec;
+
+  if (cx < radius && cy < radius) {
+    return { x: radius, y: radius };
+  }
+
+  if (cx > width - radius && cy < radius) {
+    return { x: width - radius, y: radius };
+  }
+
+  if (cx < radius && cy > height - radius) {
+    return { x: radius, y: height - radius };
+  }
+
+  if (cx > width - radius && cy > height - radius) {
+    return { x: width - radius, y: height - radius };
+  }
+
+  return null;
+};
+
+const cornerCoverage = (cx: number, cy: number, spec: PanelSpec): number => {
+  const { radius } = spec;
+
   if (radius <= 0) {
     return 1;
   }
 
-  // The arc centre of whichever corner this pixel sits in; null when the pixel is on a straight run.
-  let arcX = 0;
-  let arcY = 0;
-  let inCorner = false;
+  const arc = cornerArcCenter(cx, cy, spec);
 
-  if (cx < radius && cy < radius) {
-    arcX = radius;
-    arcY = radius;
-    inCorner = true;
-  }
-  if (cx > width - radius && cy < radius) {
-    arcX = width - radius;
-    arcY = radius;
-    inCorner = true;
-  }
-  if (cx < radius && cy > height - radius) {
-    arcX = radius;
-    arcY = height - radius;
-    inCorner = true;
-  }
-  if (cx > width - radius && cy > height - radius) {
-    arcX = width - radius;
-    arcY = height - radius;
-    inCorner = true;
-  }
-
-  if (!inCorner) {
+  if (!arc) {
     return 1;
   }
 
-  const dist = Math.hypot(cx - arcX, cy - arcY);
+  const dist = Math.hypot(cx - arc.x, cy - arc.y);
 
   return clamp(radius - dist + 0.5, 0, 1);
 }; // straight alpha, no premultiplication
@@ -177,7 +181,8 @@ const rawImageBytes = (spec: PanelSpec): Uint8Array => {
 
   for (let y = 0; y < height; y++) {
     const rowStart = y * (stride + 1);
-    raw[rowStart] = 0; // filter type: None
+    raw[rowStart] = 0;
+    // filter type: None
     for (let x = 0; x < width; x++) {
       const coverage = cornerCoverage(x + 0.5, y + 0.5, spec);
       const i = rowStart + 1 + x * 4;
@@ -194,8 +199,10 @@ const rawImageBytes = (spec: PanelSpec): Uint8Array => {
 // CRC32 table for the standard PNG polynomial 0xEDB88320, built once at module load.
 const CRC_TABLE = (() => {
   const table = new Uint32Array(256);
+
   for (let n = 0; n < 256; n++) {
     let c = n;
+
     for (let bit = 0; bit < 8; bit++) {
       const mask = -(c & 1);
       c = (c >>> 1) ^ (0xedb88320 & mask);
@@ -208,8 +215,9 @@ const CRC_TABLE = (() => {
 
 const crc32 = (data: Uint8Array): number => {
   let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) {
-    crc = CRC_TABLE[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
+
+  for (const byte of data) {
+    crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
   }
 
   return (crc ^ 0xffffffff) >>> 0;
@@ -220,28 +228,25 @@ const adler32 = (data: Uint8Array): number => {
   const MOD = 65521;
   let a = 1;
   let b = 0;
-  for (let i = 0; i < data.length; i++) {
-    a = (a + data[i]) % MOD;
+
+  for (const byte of data) {
+    a = (a + byte) % MOD;
     b = (b + a) % MOD;
   }
 
   return ((b << 16) | a) >>> 0;
 };
 
-// Wrap raw bytes in a minimal zlib stream (0x78 0x01) using DEFLATE *stored* blocks — no compression,
-// so no Hermes zlib dependency. Each block carries ≤65535 bytes; the final block sets BFINAL.
-const zlibStore = (raw: Uint8Array): Uint8Array => {
-  const MAX_BLOCK = 0xffff;
-  const blockCount = Math.max(1, Math.ceil(raw.length / MAX_BLOCK));
-  // 2 header bytes + per block (1 flag + 2 LEN + 2 NLEN) + payload + 4 adler bytes.
-  const out = new Uint8Array(2 + blockCount * 5 + raw.length + 4);
-  let pos = 0;
+// The largest payload a single DEFLATE *stored* block can carry (its LEN field is 16-bit).
+const MAX_STORED_BLOCK = 0xffff;
 
-  out[pos++] = 0x78;
-  out[pos++] = 0x01;
+// Write the DEFLATE *stored* blocks for `raw` into `out` starting at `startPos`; returns the position
+// just past the last block. Each block carries ≤65535 bytes; the final block sets BFINAL.
+const writeStoredBlocks = (out: Uint8Array, raw: Uint8Array, startPos: number): number => {
+  let pos = startPos;
 
-  for (let offset = 0; offset < raw.length || offset === 0; offset += MAX_BLOCK) {
-    const len = Math.min(MAX_BLOCK, raw.length - offset);
+  for (let offset = 0; offset < raw.length || offset === 0; offset += MAX_STORED_BLOCK) {
+    const len = Math.min(MAX_STORED_BLOCK, raw.length - offset);
     const isFinal = offset + len >= raw.length;
     out[pos++] = isFinal ? 1 : 0; // BFINAL, BTYPE=00 (stored)
     out[pos++] = len & 0xff;
@@ -251,10 +256,27 @@ const zlibStore = (raw: Uint8Array): Uint8Array => {
     out[pos++] = (nlen >>> 8) & 0xff;
     out.set(raw.subarray(offset, offset + len), pos);
     pos += len;
+
     if (isFinal) {
       break;
     }
   }
+
+  return pos;
+};
+
+// Wrap raw bytes in a minimal zlib stream (0x78 0x01) using DEFLATE *stored* blocks — no compression,
+// so no Hermes zlib dependency.
+const zlibStore = (raw: Uint8Array): Uint8Array => {
+  const blockCount = Math.max(1, Math.ceil(raw.length / MAX_STORED_BLOCK));
+  // 2 header bytes + per block (1 flag + 2 LEN + 2 NLEN) + payload + 4 adler bytes.
+  const out = new Uint8Array(2 + blockCount * 5 + raw.length + 4);
+  let pos = 0;
+
+  out[pos++] = 0x78;
+  out[pos++] = 0x01;
+
+  pos = writeStoredBlocks(out, raw, pos);
 
   const checksum = adler32(raw);
   out[pos++] = (checksum >>> 24) & 0xff;
@@ -268,8 +290,9 @@ const zlibStore = (raw: Uint8Array): Uint8Array => {
 // Encode one PNG chunk: length (uint32 BE) + type + data + CRC32(type+data) (uint32 BE).
 const chunk = (type: string, data: Uint8Array): Uint8Array => {
   const typeBytes = new Uint8Array(4);
+
   for (let i = 0; i < 4; i++) {
-    typeBytes[i] = type.charCodeAt(i);
+    typeBytes[i] = type.codePointAt(i) ?? 0;
   }
 
   const typeAndData = new Uint8Array(4 + data.length);
@@ -295,6 +318,7 @@ const concat = (parts: Uint8Array[]): Uint8Array => {
   const total = parts.reduce((sum, p) => sum + p.length, 0);
   const out = new Uint8Array(total);
   let pos = 0;
+
   for (const part of parts) {
     out.set(part, pos);
     pos += part.length;

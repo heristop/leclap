@@ -436,10 +436,7 @@ class SegmentBuilder {
     // Chroma-key composite: keys the section's screen colour out and paints a solid background behind
     // the clip. It builds its own split/overlay graph (no extra input), so the final mapped pad is
     // ck_out and the section's authored chain folds in via the overlay path below.
-    if (this.section.chromaKey) {
-      const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
-      this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale);
-    }
+    this.applyChromakeyComposite();
 
     // When the section composites an overlay graph (animation/gradient maps), the linear filtersList
     // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
@@ -447,6 +444,17 @@ class SegmentBuilder {
     this.appendOverlayChain(hasOverlayGraph ? overlaySugar : []);
 
     this.formatFilters();
+  };
+
+  // Builds the chroma-key split/overlay graph when the section requests it, sizing the clip to the
+  // output scale first. No-op otherwise, keeping non-keyed sections byte-identical.
+  private readonly applyChromakeyComposite = (): void => {
+    if (!this.section.chromaKey) {
+      return;
+    }
+
+    const videoScale = this.project.config.videoConfig?.scale ?? '1280:720';
+    this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale);
   };
 
   /**

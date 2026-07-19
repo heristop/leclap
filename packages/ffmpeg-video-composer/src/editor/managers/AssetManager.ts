@@ -269,6 +269,10 @@ class AssetManager {
       return;
     }
 
+    await this.downloadMedia(name, url, extension);
+  };
+
+  private readonly downloadMedia = async (name: string, url: string, extension: string): Promise<void> => {
     this.logger.info(`[${this.segment.currentSection?.name}][Media] fetching asset ${name}`);
 
     const path = await this.filesystemAdapter.fetch(url);
@@ -276,7 +280,7 @@ class AssetManager {
 
     await this.filesystemAdapter.move(path, targetPath);
 
-    cache[url] = targetPath;
+    this.inputsCache[url] = targetPath;
     this.logger.info(`[${this.segment.currentSection?.name}][Media] fetched asset ${name}`);
   };
 

@@ -57,8 +57,9 @@ export function timingSummary(t: TFunction<'admin'>, value: { start?: number; en
 const playbackExtentLabel = (t: TFunction<'admin'>, value: AnimationOverlay): string => {
   if (value.duration !== undefined) return `${value.duration}s`;
 
-  if (value.loops !== undefined || value.loop === false)
+  if (value.loops !== undefined || value.loop === false) {
     return t('animation.summaryLoops', { count: value.loops ?? 1 });
+  }
 
   return t('animation.forever');
 };

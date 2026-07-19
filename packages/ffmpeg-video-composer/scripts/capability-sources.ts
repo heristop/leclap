@@ -65,9 +65,11 @@ export function renderCapabilityMatrix(): string {
     const compat = compatRuleFor(filter);
 
     let deviceCell = 'NO — gap';
+
     if (onDevice) {
       deviceCell = 'yes';
     }
+
     if (compat && !onDevice) {
       deviceCell = `via compat: ${compat}`;
     }

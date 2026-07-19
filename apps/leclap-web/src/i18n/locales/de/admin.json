@@ -609,6 +609,12 @@
     "strokeColor": "Konturfarbe",
     "none": "Keine"
   },
+  "panel": {
+    "radius": "Feldradius",
+    "color": "Feldfarbe",
+    "opacity": "Felddeckkraft",
+    "hint": "Der generierte abgerundete Hintergrund hinter dieser Bildunterschrift. Die Größe richtet sich nach dem Layout der Vorlage."
+  },
   "motion": {
     "label": "Bewegung",
     "direction": "Bewegungsrichtung",

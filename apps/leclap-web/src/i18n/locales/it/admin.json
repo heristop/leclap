@@ -609,6 +609,12 @@
     "strokeColor": "Colore del contorno",
     "none": "Nessuno"
   },
+  "panel": {
+    "radius": "Raggio del pannello",
+    "color": "Colore del pannello",
+    "opacity": "Opacità del pannello",
+    "hint": "Lo sfondo arrotondato generato dietro questa didascalia. La dimensione segue il layout del modello."
+  },
   "motion": {
     "label": "Movimento",
     "direction": "Direzione del movimento",

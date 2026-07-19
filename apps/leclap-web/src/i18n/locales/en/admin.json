@@ -609,6 +609,12 @@
     "strokeColor": "Outline color",
     "none": "None"
   },
+  "panel": {
+    "radius": "Panel radius",
+    "color": "Panel color",
+    "opacity": "Panel opacity",
+    "hint": "The generated rounded-rect backdrop behind this caption. Size follows the template's layout."
+  },
   "motion": {
     "label": "Motion",
     "direction": "Motion direction",

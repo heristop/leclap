@@ -14,6 +14,8 @@ import { RevealControl } from '../editor/RevealControl';
 import { SectionDisclosure } from '../editor/SectionDisclosure';
 import { showWindowSeconds } from '../editor/SectionFields/image-show-window';
 import { ShapeControls } from './shape-controls';
+import { PanelBackdropControls } from './panel-backdrop-controls';
+import { panelSpecOf } from './panel-backdrop-logic';
 
 // Mirror-flip glyphs for the collapsed summary (the expanded control spells the axes out).
 const FLIP_GLYPH: Record<string, string> = { horizontal: '↔', vertical: '↕', both: '↔↕' };
@@ -121,28 +123,43 @@ interface ImagePlacementProps {
   onChange: (patch: Partial<ImageOverlay>) => void;
 }
 
+// The image element's SOURCE control: a shape recipe swaps in the shape controls (builder-rasterized
+// pixels, no media to pick); a `panel:` scheme choice swaps in the rounded-panel backdrop controls (the
+// engine generates those pixels at compile time, same "no media to pick" reasoning); anything else is a
+// plain picked/uploaded/pasted image and gets the ordinary media picker.
+const ImageSourceControls = ({ value, orientation, onChange }: ImagePlacementProps) => {
+  if (value.shape) {
+    return <ShapeControls value={value} shape={value.shape} orientation={orientation} onChange={onChange} />;
+  }
+
+  const panelSpec = panelSpecOf(value);
+
+  if (panelSpec) {
+    return <PanelBackdropControls spec={panelSpec} onChange={onChange} />;
+  }
+
+  return (
+    <MediaPicker
+      kind="picture"
+      value={value.choice}
+      onChange={(choice) => {
+        if (choice) onChange({ choice });
+      }}
+    />
+  );
+};
+
 // Source picker + numeric placement. Clearing the picker is a no-op here — deletion happens via the element
-// list, not this inspector. A shape element (an overlay carrying a `shape` recipe) swaps the source picker
-// for the shape controls: its pixels are builder-rasterized, so there is no media source to pick. Below the
-// placement sit the same entrance affordances the panel's ImageOverlayField exposes: the show window
-// (scene-relative seconds, 0 = unbounded — the engine lowers it to the overlay timeline enable) and the
-// `motion` reveal (rise/slide/fade), so shapes and images get the full apparition vocabulary here too.
+// list, not this inspector. Below the placement sit the same entrance affordances the panel's ImageOverlayField
+// exposes: the show window (scene-relative seconds, 0 = unbounded — the engine lowers it to the overlay
+// timeline enable) and the `motion` reveal (rise/slide/fade), so every image-kind element gets the full
+// apparition vocabulary here too.
 const ImagePlacement = ({ value, orientation, onChange }: ImagePlacementProps) => {
   const { t } = useTranslation('admin');
 
   return (
     <div className="space-y-3">
-      {value.shape ? (
-        <ShapeControls value={value} shape={value.shape} orientation={orientation} onChange={onChange} />
-      ) : (
-        <MediaPicker
-          kind="picture"
-          value={value.choice}
-          onChange={(choice) => {
-            if (choice) onChange({ choice });
-          }}
-        />
-      )}
+      <ImageSourceControls value={value} orientation={orientation} onChange={onChange} />
       <PlacementDisclosure
         value={value}
         onChange={(patch: OverlayPlacementValue) => {

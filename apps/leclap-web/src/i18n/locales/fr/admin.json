@@ -609,6 +609,12 @@
     "strokeColor": "Couleur du contour",
     "none": "Aucun"
   },
+  "panel": {
+    "radius": "Rayon du panneau",
+    "color": "Couleur du panneau",
+    "opacity": "Opacité du panneau",
+    "hint": "Le fond arrondi généré derrière ce sous-titre. La taille suit la mise en page du modèle."
+  },
   "motion": {
     "label": "Mouvement",
     "direction": "Direction du mouvement",

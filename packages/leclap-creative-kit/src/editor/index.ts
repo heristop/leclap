@@ -12,3 +12,7 @@ export * from './overlay-flip';
 // schema-derived control-metadata registry for the six parity features.
 export * from './schema-walk';
 export * from './control-metadata';
+
+// `panel:` overlay URL round trip (parse from the engine, build here) for the rounded caption panel
+// backdrop customization UI.
+export * from './panel-url';

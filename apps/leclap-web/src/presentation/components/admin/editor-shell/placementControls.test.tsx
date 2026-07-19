@@ -39,6 +39,13 @@ const shape: ImageOverlay = {
   shape: { kind: 'rect', color: '#ff4d4d', strokeWidth: 4, strokeColor: '#ffffff' },
 };
 
+const panel: ImageOverlay = {
+  id: 'panel-1',
+  choice: { source: 'url', url: 'panel:w=380,h=150,r=28,c=0a0f14,o=0.72' },
+  position: '10:20',
+  scale: '380:150',
+};
+
 const renderImage = () =>
   renderToStaticMarkup(
     <I18nextProvider i18n={i18n}>
@@ -85,6 +92,33 @@ describe('PlacementControls', () => {
     const html = renderImage();
 
     expect(html).not.toContain(admin.shape.cornerRadius);
+  });
+
+  it('panel overlay: rounded-panel backdrop controls replace the media picker, placement stays', () => {
+    const html = renderToStaticMarkup(
+      <I18nextProvider i18n={i18n}>
+        <PlacementControls kind="image" orientation="landscape" value={panel} onChange={noop} />
+      </I18nextProvider>
+    );
+
+    expect(html).toContain(admin.panel.radius);
+    expect(html).toContain(admin.panel.color);
+    expect(html).toContain(admin.panel.opacity);
+    // Placement stays; the media source picker is gone (a panel backdrop has no source to pick).
+    expect(html).toContain(admin.animation.placementGroup);
+    expect(html).not.toContain(admin.media.tab.library);
+  });
+
+  it('plain image and shape overlays show no panel controls', () => {
+    const imageHtml = renderImage();
+    const shapeHtml = renderToStaticMarkup(
+      <I18nextProvider i18n={i18n}>
+        <PlacementControls kind="image" orientation="landscape" value={shape} onChange={noop} />
+      </I18nextProvider>
+    );
+
+    expect(imageHtml).not.toContain(admin.panel.radius);
+    expect(shapeHtml).not.toContain(admin.panel.radius);
   });
 
   it('image variant: show window + entrance grouped under a collapsed timing disclosure with a summary', () => {

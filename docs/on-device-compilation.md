@@ -163,6 +163,12 @@ Notes:
 
 ---
 
+## Filter capability matrix
+
+Which FFmpeg filters run on which backend — Node (full build), browser WASM (full build), and the on-device LGPL allowlist — is **generated, not hand-maintained**: see [`docs/runtime-capabilities.md`](./runtime-capabilities.md). It's produced by `pnpm --filter ffmpeg-video-composer generate:capabilities` from `ENGINE_EMITTED_FILTERS` + `FILTER_COMPAT` (engine) and the device build's `--enable-filter` list (`scripts/ffmpeg/common.sh`), and kept fresh by two guard tests: `tests/capability-matrix.test.ts` (the doc matches the generated render) and `tests/lgpl-filter-audit.test.ts` (every filter the engine can emit is accounted for in the allowlist).
+
+---
+
 ## Key files
 
 | Concern                                    | Path                                                                                                                                        |

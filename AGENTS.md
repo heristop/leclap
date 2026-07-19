@@ -10,6 +10,7 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 - Design system (brand, colors, typography): [`DESIGN.md`](./DESIGN.md)
 - Architecture & design patterns: [`docs/architecture.md`](./docs/architecture.md)
 - Template JSON reference: [`docs/template-configuration.md`](./docs/template-configuration.md)
+- Engine configuration (ProjectConfig, env vars, encoder tiers): [`docs/engine-configuration.md`](./docs/engine-configuration.md)
 - FFmpeg detection/fallback: [`docs/ffmpeg-fallback-strategy.md`](./docs/ffmpeg-fallback-strategy.md)
 
 ## Repository layout

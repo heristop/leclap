@@ -31,6 +31,7 @@ const FIXTURES = [
   'motion-geometry',
   'motion-shake-pulse',
   'audio-effects',
+  'effects-showcase',
   'ducking',
   'sample',
 ];

@@ -1,0 +1,18 @@
+{
+  "global": {
+    "variables": { "videoSample": "videos/earth.mp4" },
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "showcase_clip",
+      "type": "video",
+      "options": { "videoUrl": "{{ videoSample }}", "duration": 2, "audioEffect": "echo" },
+      "look": "glitch",
+      "grade": { "grain": 0.4 },
+      "letterbox": { "aspect": 2.39, "color": "#000000" },
+      "motion": [{ "type": "shake", "intensity": 8, "frequency": 3 }]
+    }
+  ]
+}

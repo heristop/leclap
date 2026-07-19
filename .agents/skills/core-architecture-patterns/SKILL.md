@@ -1,6 +1,6 @@
 ---
 name: core-architecture-patterns
-description: Use when adding a segment type, platform adapter, editor manager, or core service in packages/ffmpeg-video-composer, or when wiring new dependencies into the tsyringe container.
+description: Use when adding a segment type, platform adapter, editor manager, core service, or descriptor effect (look/grade/motion/section-audio field) in packages/ffmpeg-video-composer, or when wiring new dependencies into the tsyringe container.
 ---
 
 # Core Architecture Patterns
@@ -24,6 +24,20 @@ init → build each section → concat → apply music.
 2. Create `editor/segments/<Name>Segment.ts` following an existing segment (e.g. `VideoSegment.ts`); use `@injectable()`.
 3. Register it in `editor/factories/SegmentFactory.ts` (map the new `type` literal → class).
 4. Add a test under `packages/ffmpeg-video-composer/tests/`.
+
+## Adding a descriptor effect
+
+A structured-sugar effect (a `look`/`grade`/`motion`/section-audio field — not a raw `filters[]` escape hatch) follows this recipe end to end, proven across Phases 1-4 (LUT looks, chroma key, overlay motion, grain, letterbox, stylized looks, shake/pulse, `audioEffect`):
+
+1. **Schema field** — add the field/variant in `packages/ffmpeg-video-composer/src/schemas/*.schemas.ts` (`effects-visual.schemas.ts` for `GradeSchema`/`LOOK_PRESETS`/`MotionEffectSchema`; `section.schemas.ts` for section-level fields like `letterbox`/`audioEffect`); update `src/core/descriptor-visual.d.ts` types. Every field keeps a `.describe()` — it feeds `docs/template-descriptor.schema.json`.
+2. **Preset / lowering fn** — a pure `*ToFilters` function or a `LOOK_TABLE`/`MOTION_HANDLERS` row in `src/editor/presets/` (`looks.ts`, `motion.ts`). LGPL discipline: never emit `eq`/`geq`/`boxblur`; reuse `eqValueToLutyuv` for eq-equivalent maths on the LGPL engine. A section-audio effect instead extends the `-af` chain builder beside `audio-fade.ts`.
+3. **Registry entry** — wire the compiler into `SUGAR_COMPILERS` in `src/editor/presets/registry.ts` (ordered `layers → motion → grade → look → letterbox → caption → titleCard → lowerThird` — pick an `order` between the neighbours it must sit next to), a `LOOK_TABLE` row, or a `MOTION_HANDLERS` entry.
+4. **Tests** — TDD: exact command-string/filter-array assertions first, in the matching suite (`tests/looks.test.ts`, the motion or audio-fade tests). Then a real-compile fixture: JSON under `packages/ffmpeg-video-composer/tests/fixtures/` + an id added to `effects-fixtures.test.ts`'s `FIXTURES` array (validates against the schema AND smoke-compiles through the Node engine — rc 0).
+5. **LGPL audit** — any new FFmpeg filter name goes into BOTH `ENGINE_EMITTED_FILTERS` (`src/editor/utils/filter-compat.ts`) AND the `--enable-filter=` list in `scripts/ffmpeg/common.sh`; `tests/lgpl-filter-audit.test.ts` cross-checks the two and fails the build if they drift.
+6. **Regen** — `pnpm --filter ffmpeg-video-composer generate:schema` (writes `docs/template-descriptor.schema.json`) and `generate:capabilities`, in the same commit as the schema change.
+7. **Builder exposure** — a `FEATURE_CONTROLS` entry in `packages/leclap-creative-kit/src/editor/control-metadata.ts`. If the field is new on the creative-kit section model (not already flowing through an existing inferred type like `Grade`/`MotionEffect`), also wire `model.ts` / `build-descriptor-fragments.ts` / `to-editor-state.ts` for build/rehydrate round-tripping. Then the web panel (`apps/leclap-web/src/presentation/components/admin/editor/*Panel.tsx`) + Expo panel (`apps/leclap-expo/src/features/templates/components/*Fields.tsx`) + i18n keys in all five locales, in both apps.
+8. **Docs** — add the field to `docs/template-configuration.md` in the same commit as the schema regen (this is the field reference authors read; `authoring-video-templates/SKILL.md` links to it).
+9. **Device rebuild** — a NEW FFmpeg filter (not just a descriptor field reusing filters already shipped) needs the on-device engines rebuilt before it works in the app: `scripts/ffmpeg/build-engine.sh android` then `ios` (sequential, never concurrent). The LGPL audit only proves the filter _can_ run on the LGPL config — the currently-shipped `.so`/xcframework binaries don't have it until they're rebuilt.
 
 ## Adding a platform adapter
 

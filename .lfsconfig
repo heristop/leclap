@@ -1,0 +1,13 @@
+# Git LFS clients read this on checkout. `fetchexclude = *` makes `git-lfs filter-process` leave
+# pointer files in place during clone/checkout instead of downloading the objects — so a fresh clone
+# NEVER fails on the LFS bandwidth budget (the `exceeded its LFS budget` smudge error). CI and the
+# Cloudflare web build fill the pointers they need from the ci-assets-v1 GitHub Release over HTTPS
+# (scripts/ci/fetch-*-media.sh) — release-asset downloads are not billed as LFS.
+#
+# Cloudflare Pages ignores the GIT_LFS_SKIP_SMUDGE env var during its clone step, so this repo-level
+# config is the only thing that unblocks that checkout.
+#
+# To materialise LFS objects locally (e.g. to rebuild a release bundle) override the exclude:
+#   git lfs pull --exclude=''
+[lfs]
+	fetchexclude = *

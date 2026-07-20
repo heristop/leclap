@@ -35,10 +35,15 @@ const JsonCodeMirror = lazy(async () => {
     import('@codemirror/lang-json'),
   ]);
 
+  // `theme="dark"` unconditionally, NOT the app theme: the studio editor shell is dark-chromed in
+  // both light and dark mode (its section paints oklch(0.235 …) with near-white text either way).
+  // CodeMirror's default light palette paints property keys and punctuation near-black, which is
+  // unreadable here; following the app theme instead would drop a white editor into the dark panel.
   const Editor = ({ value, onChange }: CodeEditorProps) => (
     <CodeMirror
       value={value}
       height="260px"
+      theme="dark"
       extensions={[json()]}
       onChange={onChange}
       className="overflow-hidden rounded-lg border border-foreground/15 text-xs"

@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -19,6 +20,11 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
 const libDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 const buildDir = path.resolve(repoRoot, 'build/watermark-compile');
+// A per-file build dir so this suite's second describe block (the fused-path fixture compile) never
+// shares build/output.mp4 with the bottom-right corner test above (both would otherwise race on the
+// same finalVideo path if vitest ever ran them concurrently within this file).
+const fusedBuildDir = path.resolve(repoRoot, 'build/watermark-compile-fused');
+const fixturesDir = path.resolve(here, 'fixtures');
 
 async function ffprobeDuration(filePath: string): Promise<number> {
   const { stdout } = await execFileAsync('ffprobe', [
@@ -121,5 +127,41 @@ describe('global.watermark — bottom-right corner real compile', () => {
         `watermark region should be visibly brighter than pure background at t=${atSeconds}`
       ).toBeGreaterThan(backgroundRegion + 15);
     }
+  }, 120000);
+});
+
+// Real-compile proof for the FUSED path: the corner-position test above has no section transition, so
+// it only exercises the standalone post-concat overlay pass (VideoEditor.overlayAnimations). The fixture
+// this test loads has a transition on its first section, which routes global.watermark's infinite
+// `-loop 1` source into VideoEditor.assembleWithTransitions instead — the xfade+overlay filtergraph is
+// woven into ONE re-encode with no output `-t` of its own, so an incorrectly-terminated infinite source
+// there would hang the whole compile rather than just mis-render a frame. Proves the fused command
+// terminates and settles at the xfade-shortened duration (2s + 2s sections, 0.5s fade -> 3.5s), not the
+// unfused 4s a missed shortest=1 (or an accidental duration stretch) would produce.
+describe('global.watermark — fused transition path (fixture) real compile', () => {
+  it('terminates and settles at the xfade-shortened duration instead of hanging or stretching', async () => {
+    const descriptor = JSON.parse(
+      fs.readFileSync(path.resolve(fixturesDir, 'watermark.json'), 'utf8')
+    ) as TemplateDescriptor;
+
+    const projectConfig = {
+      buildDir: fusedBuildDir,
+      assetsDir: libDir,
+      currentLocale: 'en',
+      audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
+      videoConfig: { orientation: 'landscape', scale: '1280:720' },
+      fields: {},
+      userVideoPaths: {},
+    } as unknown as ProjectConfig;
+
+    const out = await compile(projectConfig, descriptor);
+    expect(out, 'the fused watermark+transition fixture should compile').not.toBeNull();
+
+    // 2s + 2s sections minus the 0.5s fade overlap = 3.5s. A hang would time out the test; a missed
+    // shortest=1 on the still's infinite -loop 1 source, or a mis-applied maxDuration ceiling, would
+    // instead show up as a wrong (stretched or truncated) duration here.
+    const duration = await ffprobeDuration(out as string);
+    expect(duration).toBeGreaterThan(3.35);
+    expect(duration).toBeLessThan(3.65);
   }, 120000);
 });

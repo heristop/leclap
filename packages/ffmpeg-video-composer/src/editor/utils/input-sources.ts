@@ -1,6 +1,7 @@
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { easeRampExpr, type RevealEasing } from '../presets/text';
 import type { BackgroundLayer } from '../../schemas/template.schemas';
+import type { GlobalAnimation } from '@/core/types';
 
 // Pure builders for the `-i` source fragments of composited inputs (animations and gradient layers).
 // They return fully-formed fragment strings (already containing `-i`, plus any `-framerate` /
@@ -54,9 +55,34 @@ const STILL_IMAGE_EXTENSIONS = /\.(png|jpe?g)$/i;
  * still-image source (buildSingleFileImageSource) instead of the stream-looped animation source —
  * without this, a still decodes as ONE frame and vanishes (or freezes only incidentally via
  * `persistent: true`'s `eof_action=repeat`).
+ *
+ * This is a fallback HEURISTIC for untyped `global.animations` entries only — see `isStillAnimation`
+ * below, which prefers an explicit `still` flag when the caller (a watermark) already knows the answer.
  */
 export function isStillAnimationUrl(url: string): boolean {
   return !ANIMATED_EXTENSIONS.test(url) && STILL_IMAGE_EXTENSIONS.test(url);
+}
+
+/**
+ * `GlobalAnimation` augmented with an internal `still` flag, produced in-process by
+ * `watermarkToAnimation` (editor/presets/watermark.ts) — a watermark KNOWS it is a still image, so it
+ * sets this explicitly rather than leaving AnimationComposer to sniff it from a url. Deliberately NOT
+ * part of the public `GlobalAnimationSchema`: an authored `global.animations` entry has no such flag
+ * (there is no `type: 'image' | 'animation'` discriminator on that schema, unlike a section input), so
+ * widening the public schema would only invite authors to hand-author a flag that means nothing to them
+ * — the internal-only augmentation keeps it purely a compiler-side optimization.
+ */
+export type InternalAnimation = GlobalAnimation & { still?: boolean };
+
+/**
+ * True when a staged whole-video overlay should be treated as a still image. Prefers `anim.still` when
+ * the caller set it explicitly (watermarkToAnimation always does); otherwise falls back to sniffing the
+ * STAGED path — the real, locally-resolved file (post `{{ var }}` substitution and download/copy) —
+ * rather than the raw `anim.url`, so a `{{ var }}`-url plain animation is classified by its real
+ * extension instead of always missing the still regex.
+ */
+export function isStillAnimation(anim: { still?: boolean }, path: string): boolean {
+  return anim.still ?? isStillAnimationUrl(path);
 }
 
 /**

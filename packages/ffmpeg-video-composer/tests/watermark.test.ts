@@ -91,6 +91,16 @@ describe('watermarkToAnimation', () => {
     expect(anim.start).toBeUndefined();
     expect(anim.duration).toBeUndefined();
   });
+
+  // Fix 1+2: a watermark KNOWS it is a still image, so watermarkToAnimation sets the flag explicitly
+  // rather than leaving AnimationComposer to sniff it from a url that may be an unresolved `{{ var }}`
+  // or a `.webp` (excluded from the still regex for untyped entries). Set unconditionally, regardless
+  // of the url's own extension.
+  it('always sets still: true, regardless of the url extension', () => {
+    expect(watermarkToAnimation(BASE, '1280:720').still).toBe(true);
+    expect(watermarkToAnimation({ ...BASE, url: 'pictures/logo.webp' }, '1280:720').still).toBe(true);
+    expect(watermarkToAnimation({ ...BASE, url: '{{ logoUrl }}' }, '1280:720').still).toBe(true);
+  });
 });
 
 describe('hasWholeVideoOverlays', () => {

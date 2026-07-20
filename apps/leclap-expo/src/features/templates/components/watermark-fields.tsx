@@ -27,7 +27,7 @@ const sourceOf = (image: MediaChoice | undefined): ImageSource => (image?.source
 
 interface WatermarkFieldProps {
   value: WatermarkChoice | undefined;
-  onChange: (value: WatermarkChoice | undefined) => void;
+  onChange: (value?: WatermarkChoice) => void;
   t: TFunction<'editor'>;
 }
 
@@ -50,8 +50,7 @@ export const WatermarkField = ({ value, onChange, t }: WatermarkFieldProps) => {
   };
 
   const clear = () => {
-    const empty: WatermarkChoice | undefined = undefined;
-    onChange(empty);
+    onChange();
   };
 
   return (

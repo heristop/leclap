@@ -614,6 +614,51 @@ describe('TemplateValidator – validateGlobalAnimations', () => {
   });
 });
 
+// Fix 3: global.watermark reaches the identical overlay pass as global.animations (via
+// watermarkToAnimation), so an empty/whitespace url is the same silent failure — an empty overlay would
+// stage nothing and the final compositing pass would fail. Schema `z.string()` alone accepts a
+// whitespace-only string (no `.min(1)`, and even `.min(1)` wouldn't reject whitespace), hence this rule.
+describe('TemplateValidator – validateGlobalWatermark', () => {
+  let validator: TemplateValidator;
+
+  beforeEach(() => {
+    validator = new TemplateValidator();
+  });
+
+  it('accepts a watermark with a url', () => {
+    const result = validator.validateTemplate({
+      global: { watermark: { url: 'pictures/logo.png' } },
+      sections: [{ name: 'a', type: 'video' }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('flags a watermark with an empty url', () => {
+    const result = validator.validateTemplate({
+      global: { watermark: { url: '' } },
+      sections: [{ name: 'a', type: 'video' }],
+    });
+    expect(result.success).toBe(false);
+    const error = result.errors?.find((e) => e.code === 'global_watermark_missing_url');
+    expect(error).toBeDefined();
+    expect(error?.path).toBe('global.watermark.url');
+  });
+
+  it('flags a watermark with a whitespace-only url', () => {
+    const result = validator.validateTemplate({
+      global: { watermark: { url: '   ' } },
+      sections: [{ name: 'a', type: 'video' }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.errors?.some((e) => e.code === 'global_watermark_missing_url')).toBe(true);
+  });
+
+  it('is a no-op when no watermark is set', () => {
+    const result = validator.validateTemplate({ sections: [{ name: 'a', type: 'video' }] });
+    expect(result.success).toBe(true);
+  });
+});
+
 describe('TemplateValidator – validateFonts', () => {
   let validator: TemplateValidator;
 

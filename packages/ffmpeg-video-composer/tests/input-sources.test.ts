@@ -3,6 +3,7 @@ import {
   buildAnimationLegFilters,
   buildGradientSource,
   buildSingleFileAnimationSource,
+  isStillAnimation,
   isStillAnimationUrl,
   overlayMotionExpr,
   resolveLayerGeometry,
@@ -405,6 +406,25 @@ describe('isStillAnimationUrl', () => {
 
   it('is false for an unrelated/unknown extension', () => {
     expect(isStillAnimationUrl('/a/b/clip.mp4')).toBe(false);
+  });
+});
+
+// isStillAnimation is AnimationComposer's single source of truth for the still/animated decision: it
+// prefers an explicit `still` flag (set by watermarkToAnimation, since a watermark KNOWS it's a still)
+// over sniffing, and falls back to isStillAnimationUrl against the STAGED path only for untyped entries.
+describe('isStillAnimation', () => {
+  it('trusts an explicit still: true even against an animated-looking (.webp) path', () => {
+    expect(isStillAnimation({ still: true }, '/build/assets/logo.webp')).toBe(true);
+  });
+
+  it('trusts an explicit still: true even against an unresolved {{ var }} (non-extension) path', () => {
+    expect(isStillAnimation({ still: true }, '{{ logoUrl }}')).toBe(true);
+  });
+
+  it('falls back to the path extension heuristic when still is unset (untyped global.animations entry)', () => {
+    expect(isStillAnimation({}, '/build/assets/logo.png')).toBe(true);
+    expect(isStillAnimation({}, '/build/assets/glow.webp')).toBe(false);
+    expect(isStillAnimation({}, '/build/assets/glow.apng')).toBe(false);
   });
 });
 

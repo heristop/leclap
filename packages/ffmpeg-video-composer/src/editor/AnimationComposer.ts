@@ -7,9 +7,10 @@ import {
   buildSingleFileImageSource,
   buildAnimationLegFilters,
   imageOverlayEnable,
-  isStillAnimationUrl,
+  isStillAnimation,
   overlayMotionExpr,
   type OverlayMotion,
+  type InternalAnimation,
 } from './utils/input-sources';
 import { watermarkToAnimation } from './presets/watermark';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
@@ -19,7 +20,7 @@ import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type VariableManager from './managers/VariableManager';
 
-export type StagedAnimation = { path: string; anim: GlobalAnimation };
+export type StagedAnimation = { path: string; anim: InternalAnimation };
 
 type AnimationComposerDeps = {
   project: Project;
@@ -73,7 +74,7 @@ class AnimationComposer {
   // watermarkToAnimation is pure sugar: it returns the SAME GlobalAnimation shape, so every step below
   // (staging, buildOverlaySources, buildOverlayGraph) treats it exactly like an authored entry — the
   // only extra knowledge here is the output scale it needs to resolve a fractional width into pixels.
-  private animations(): GlobalAnimation[] {
+  private animations(): InternalAnimation[] {
     const global = this.template.descriptor.global;
     const raw = global?.animations ?? [];
 
@@ -168,7 +169,7 @@ class AnimationComposer {
 
   // The `-i` source args for the staged animations (loop/offset/duration flags), bounded by
   // maxDuration so an over-long loop can't lengthen the output. Shared by the standalone overlay
-  // command and the fused transition+overlay assembly (VideoEditor). A still image (isStillAnimationUrl)
+  // command and the fused transition+overlay assembly (VideoEditor). A still image (isStillAnimation)
   // gets the SAME `-loop 1` source the section path uses (buildSingleFileImageSource) instead of
   // being stream-looped as if it were an animated format — its own start/duration are NOT applied
   // here (no -itsoffset/-t/maxDuration ceiling); they lower to an overlay `enable=` gate instead, in
@@ -177,7 +178,7 @@ class AnimationComposer {
   buildOverlaySources(staged: StagedAnimation[], maxDuration?: number): string {
     return staged
       .map(({ anim, path }) =>
-        isStillAnimationUrl(anim.url)
+        isStillAnimation(anim, path)
           ? buildSingleFileImageSource(path)
           : buildSingleFileAnimationSource({ url: anim.url, options: anim }, path, { maxDuration })
       )
@@ -235,7 +236,7 @@ class AnimationComposer {
     const overlays: string[] = [];
     let base = opts.baseLabel ?? '[0:v]';
 
-    for (const [k, { anim }] of staged.entries()) {
+    for (const [k, { anim, path }] of staged.entries()) {
       // An optional `motion` animates the entrance, same lowering as the per-section overlay
       // (MapManager.addAnimationOverlay): slide/rise emit overlay x/y time expressions easing back to
       // the static position; fade adds an alpha fade-in to the overlay leg. All LGPL-safe (fade/format/overlay).
@@ -250,11 +251,11 @@ class AnimationComposer {
       // A still image's start/duration never reach its `-loop 1` source (buildOverlaySources), so they
       // lower here to the overlay filter's own timeline support instead — the same imageOverlayEnable
       // expression the per-section overlay uses, just against the video-global `t` this pass sees.
-      const timeline = isStillAnimationUrl(anim.url)
+      const timeline = isStillAnimation(anim, path)
         ? imageOverlayEnable({ start: anim.start, duration: anim.duration })
         : '';
 
-      overlays.push(`${base}${legRef}overlay=${placement}:eof_action=${this.overlayEof(anim)}${timeline}${out}`);
+      overlays.push(`${base}${legRef}overlay=${placement}:eof_action=${this.overlayEof(anim, path)}${timeline}${out}`);
       base = `[${chainPrefix}${k}]`;
     }
 
@@ -304,10 +305,10 @@ class AnimationComposer {
   // (buildOverlaySources) is always infinite (its start/duration lower to the enable gate above
   // instead of an input `-t`), so it always needs the same terminator or the overlay — and the
   // whole encode, since this pass has no output `-t` of its own — would never reach EOF.
-  private overlayEof(anim: GlobalAnimation): string {
+  private overlayEof(anim: InternalAnimation, path: string): string {
     const eofAction = anim.persistent ? 'repeat' : 'pass';
     const infiniteLoop =
-      isStillAnimationUrl(anim.url) || (anim.loop === true && anim.loops === undefined && anim.duration === undefined);
+      isStillAnimation(anim, path) || (anim.loop === true && anim.loops === undefined && anim.duration === undefined);
 
     return infiniteLoop ? `${eofAction}:shortest=1` : eofAction;
   }

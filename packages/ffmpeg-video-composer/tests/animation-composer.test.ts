@@ -6,7 +6,12 @@ import type { GlobalAnimation, Watermark } from '@/core/types';
 
 function setup(
   animations: GlobalAnimation[],
-  opts: { hasAudio?: boolean; watermark?: Watermark; scale?: string } = {}
+  opts: {
+    hasAudio?: boolean;
+    watermark?: Watermark;
+    scale?: string;
+    mapVariables?: (value: string) => string;
+  } = {}
 ) {
   const executed: string[] = [];
   const moves: Array<[string, string]> = [];
@@ -45,7 +50,7 @@ function setup(
   };
   const template = { descriptor: { global: { animations, watermark: opts.watermark } } };
   const logger = { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() };
-  const variableManager = { mapVariables: (value: string) => value };
+  const variableManager = { mapVariables: opts.mapVariables ?? ((value: string) => value) };
 
   const composer = new AnimationComposer({
     project,
@@ -337,6 +342,23 @@ describe('AnimationComposer still-image whole-video overlays', () => {
 
     expect(executed[0]).toContain('[1:v]scale=200:-1,setsar=1,format=rgba,colorchannelmixer=aa=0.5[anim0]');
   });
+
+  // Fix 1+2: an untyped `global.animations` entry has no `still` flag, so isStillAnimation falls back
+  // to sniffing — but against the STAGED path (post `{{ var }}` resolution), not the raw url. Before
+  // this fix, `isStillAnimationUrl(anim.url)` always missed a `{{ var }}` url (never matches the still
+  // regex), so a variable-authored still .png animation used to wrongly take the animated path.
+  it('resolves a {{ var }} plain animation url against the STAGED path, taking the still path for .png', async () => {
+    const { composer, executed } = setup([{ url: '{{ logoUrl }}' }], {
+      mapVariables: (value) => value.replace('{{ logoUrl }}', '/assets/images/logo.png'),
+    });
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.png');
+    expect(cmd).not.toContain('-stream_loop');
+    expect(cmd).toContain('[0:v][1:v]overlay=0:0:eof_action=pass:shortest=1[vout]');
+  });
 });
 
 // global.watermark wiring: AnimationComposer is the single place that reads global.animations for
@@ -388,5 +410,37 @@ describe('AnimationComposer global.watermark wiring', () => {
     // watermark overlays the base video first ([0:v] -> [v0]), the explicit animation overlays on top of THAT
     expect(cmd).toContain('[0:v][anim0]overlay=W-w-24:H-h-24:eof_action=pass:shortest=1[v0]');
     expect(cmd).toContain('[v0][2:v]overlay=10:20:eof_action=pass:shortest=1[vout]');
+  });
+
+  // Fix 1+2: watermarkToAnimation sets `still: true` explicitly, so AnimationComposer trusts the flag
+  // instead of sniffing `anim.url` — before this fix, a `{{ var }}` watermark url NEVER matched the
+  // still regex (isStillAnimationUrl), so it silently took the animated (stream-looped, non-`-loop 1`)
+  // path and rendered as a single vanishing frame.
+  it('emits -loop 1 for a {{ var }}-url watermark (the flag, not the unresolved url, decides)', async () => {
+    const { composer, executed } = setup([], {
+      watermark: { url: '{{ logoUrl }}' },
+      mapVariables: (value) => value.replace('{{ logoUrl }}', '/assets/images/logo.png'),
+    });
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.png');
+    expect(cmd).not.toContain('-stream_loop');
+    expect(cmd).toContain('[0:v][anim0]overlay=W-w-24:H-h-24:eof_action=pass:shortest=1[vout]');
+  });
+
+  // Fix 1+2: `.webp` is deliberately excluded from the still-image regex for untyped `global.animations`
+  // entries (it can itself be animated) — but a watermark is NEVER animated, so the `still` flag must
+  // win over that extension exclusion for a .webp logo too.
+  it('emits -loop 1 for a .webp watermark (the still flag wins over the .webp extension exclusion)', async () => {
+    const { composer, executed } = setup([], { watermark: { url: 'pictures/logo.webp' } });
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.webp');
+    expect(cmd).not.toContain('-stream_loop');
+    expect(cmd).toContain('[0:v][anim0]overlay=W-w-24:H-h-24:eof_action=pass:shortest=1[vout]');
   });
 });

@@ -9,6 +9,7 @@ import {
   validateTransitions,
   validateMotion,
   validateGlobalAnimations,
+  validateGlobalWatermark,
   validateFonts,
   type ValidationError,
 } from './template-validation-rules';
@@ -198,13 +199,7 @@ export class TemplateValidator {
       try {
         // Only validate section references as hard errors
         // Variable references are warnings since templates often use runtime variables
-        const sectionErrors = this.validateSectionReferences(template);
-        const transitionErrors = validateTransitions(template);
-        const motionErrors = validateMotion(template);
-        const animationErrors = validateGlobalAnimations(template);
-        const fontErrors = validateFonts(template);
-
-        const allErrors = [...sectionErrors, ...transitionErrors, ...motionErrors, ...animationErrors, ...fontErrors];
+        const allErrors = this.collectDescriptorErrors(template);
 
         if (allErrors.length > 0) {
           return {
@@ -242,6 +237,19 @@ export class TemplateValidator {
         ],
       };
     }
+  }
+
+  // Runs every descriptor-level rule (beyond the zod schema itself) and merges their errors. Extracted
+  // out of validateParsed to keep that function under the statement-count lint budget.
+  private collectDescriptorErrors(template: TemplateDescriptor): ValidationError[] {
+    return [
+      ...this.validateSectionReferences(template),
+      ...validateTransitions(template),
+      ...validateMotion(template),
+      ...validateGlobalAnimations(template),
+      ...validateGlobalWatermark(template),
+      ...validateFonts(template),
+    ];
   }
 
   validateSection(sectionData: unknown): ValidationResult {

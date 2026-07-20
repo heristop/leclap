@@ -111,6 +111,26 @@ export function validateGlobalAnimations(template: TemplateDescriptor): Validati
     .filter((error): error is ValidationError => error !== null);
 }
 
+// global_watermark_missing_url: global.watermark reaches the exact same whole-video overlay pass as
+// global.animations (via watermarkToAnimation), so an empty/whitespace url is the identical silent
+// failure — schema `.min(1)` alone can't catch it (a whitespace-only string still satisfies min(1)),
+// which is why this trims, same as validateGlobalAnimations above.
+export function validateGlobalWatermark(template: TemplateDescriptor): ValidationError[] {
+  const watermark = template.global?.watermark;
+
+  if (!watermark || (watermark.url && watermark.url.trim() !== '')) {
+    return [];
+  }
+
+  return [
+    {
+      path: 'global.watermark.url',
+      message: 'Watermark has no url',
+      code: 'global_watermark_missing_url',
+    },
+  ];
+}
+
 // unknown_font: a sugar `font` (caption / whole-video overlay) that won't resolve — neither a bundled
 // font id nor a `.ttf` filename — so the renderer would silently fall back to the default. Surfacing it
 // catches typos (e.g. "Oswlad"). A `{{ var }}` is resolved at runtime, so it is left alone.

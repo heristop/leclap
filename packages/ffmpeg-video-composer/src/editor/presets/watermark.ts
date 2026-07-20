@@ -1,5 +1,6 @@
-import type { GlobalAnimation, TemplateDescriptorGlobal, Watermark, WatermarkPosition } from '@/core/types';
+import type { TemplateDescriptorGlobal, Watermark, WatermarkPosition } from '@/core/types';
 import { parseScale } from './motion';
+import type { InternalAnimation } from '../utils/input-sources';
 
 // Pure lowering for the `global.watermark` descriptor sugar. It turns the small, presentation-only
 // watermark shape into the SAME GlobalAnimation object a `global.animations` entry uses, so every
@@ -32,11 +33,15 @@ const POSITION_EXPRESSIONS: Record<WatermarkPosition, (margin: number) => string
  * source image's own aspect ratio through the scale filter (same convention as every other overlay
  * scale in this engine).
  *
- * No `loop`/`persistent` flags are set: Task 1's `isStillAnimationUrl` detection already treats any
- * still raster image url (.png/.jpg/.jpeg) as an infinite `-loop 1` source with a `shortest=1`
- * terminator regardless of these flags, so a watermark image needs neither.
+ * `still: true` is set explicitly, rather than left to AnimationComposer's `isStillAnimationUrl`
+ * extension sniff: a watermark is ALWAYS a still image by definition, but its `url` may still be an
+ * unresolved `{{ varName }}` (never matches the still regex) or a `.webp` (deliberately excluded from
+ * the regex, since an authored `global.animations` entry may legitimately be an animated .webp) — either
+ * would otherwise mis-route to the stream-looped animation path and decode as a single frame that
+ * vanishes. No `loop`/`persistent` flags are set: the `still` flag alone already routes AnimationComposer
+ * to the infinite `-loop 1` source with a `shortest=1` terminator, so a watermark image needs neither.
  */
-export function watermarkToAnimation(watermark: Watermark, outputScale: string): GlobalAnimation {
+export function watermarkToAnimation(watermark: Watermark, outputScale: string): InternalAnimation {
   const { w } = parseScale(outputScale);
   const scale = watermark.scale ?? DEFAULT_SCALE;
   const margin = watermark.margin ?? DEFAULT_MARGIN;
@@ -48,6 +53,7 @@ export function watermarkToAnimation(watermark: Watermark, outputScale: string):
     position: POSITION_EXPRESSIONS[position](margin),
     scale: `${px}:-1`,
     opacity: watermark.opacity ?? DEFAULT_OPACITY,
+    still: true,
   };
 }
 

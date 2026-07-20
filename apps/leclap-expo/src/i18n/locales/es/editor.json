@@ -323,7 +323,9 @@
     "defaultTransitionHelp": "Se usa entre escenas que no definen la suya propia.",
     "globalAudio": "Mezcla de audio",
     "wholeVideoAnimations": "Animaciones de todo el vídeo",
-    "wholeVideoAnimationsHelp": "Superposiciones que abarcan todo el vídeo, a través de cada escena."
+    "wholeVideoAnimationsHelp": "Superposiciones que abarcan todo el vídeo, a través de cada escena.",
+    "watermark": "Marca de agua",
+    "watermarkHelp": "Una imagen de logo compuesta en una esquina de cada escena, definida una sola vez."
   },
   "save": "Guardar plantilla",
   "preview": "Vista previa",
@@ -375,5 +377,22 @@
     "kind": "Superposiciones",
     "animation": "Animación",
     "image": "Imagen"
+  },
+  "watermark": {
+    "source": "Origen de la imagen",
+    "sourceLibrary": "Biblioteca",
+    "sourceUrl": "URL",
+    "none": "Ninguna",
+    "urlPlaceholder": "https://ejemplo.com/logo.png",
+    "position": "Posición",
+    "scale": "Tamaño",
+    "opacity": "Opacidad",
+    "margin": "Margen",
+    "pos": {
+      "top-left": "Arriba izquierda",
+      "top-right": "Arriba derecha",
+      "bottom-left": "Abajo izquierda",
+      "bottom-right": "Abajo derecha"
+    }
   }
 }

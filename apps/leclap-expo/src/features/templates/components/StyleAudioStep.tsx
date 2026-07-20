@@ -9,6 +9,7 @@ import { colors, spacing, typography } from '@/src/styles/theme';
 import { Slider, Segmented } from './EditorControls';
 import { TransitionSheet } from './TransitionSheet';
 import { AnimationFieldsList } from './sceneFields';
+import { WatermarkField } from './watermark-fields';
 import type { EditorState, AudioMix } from '../model/templateEditorModel';
 
 type Normalize = 'off' | 'loudnorm' | 'dynaudnorm';
@@ -118,6 +119,16 @@ export const StyleAudioStep = ({ state, t, onPatch }: StyleAudioStepProps) => {
         value={state.globalAnimations}
         onChange={(globalAnimations) => {
           onPatch({ globalAnimations: globalAnimations ?? [] });
+        }}
+        t={t}
+      />
+
+      <Text style={[styles.label, { marginTop: spacing.l }]}>{t('style.watermark')}</Text>
+      <Text style={styles.help}>{t('style.watermarkHelp')}</Text>
+      <WatermarkField
+        value={state.watermark}
+        onChange={(watermark) => {
+          onPatch({ watermark });
         }}
         t={t}
       />

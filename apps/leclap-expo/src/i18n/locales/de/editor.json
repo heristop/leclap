@@ -323,7 +323,9 @@
     "defaultTransitionHelp": "Wird zwischen Szenen verwendet, die keinen eigenen festlegen.",
     "globalAudio": "Audiomischung",
     "wholeVideoAnimations": "Animationen für das ganze Video",
-    "wholeVideoAnimationsHelp": "Overlays, die sich über das gesamte Video und alle Szenen erstrecken."
+    "wholeVideoAnimationsHelp": "Overlays, die sich über das gesamte Video und alle Szenen erstrecken.",
+    "watermark": "Wasserzeichen",
+    "watermarkHelp": "Ein Logo-Bild, einmal festgelegt und in einer Ecke jeder Szene zu sehen."
   },
   "save": "Vorlage speichern",
   "preview": "Vorschau",
@@ -375,5 +377,22 @@
     "kind": "Overlays",
     "animation": "Animation",
     "image": "Bild"
+  },
+  "watermark": {
+    "source": "Bildquelle",
+    "sourceLibrary": "Bibliothek",
+    "sourceUrl": "URL",
+    "none": "Keine",
+    "urlPlaceholder": "https://beispiel.com/logo.png",
+    "position": "Position",
+    "scale": "Größe",
+    "opacity": "Deckkraft",
+    "margin": "Rand",
+    "pos": {
+      "top-left": "Oben links",
+      "top-right": "Oben rechts",
+      "bottom-left": "Unten links",
+      "bottom-right": "Unten rechts"
+    }
   }
 }

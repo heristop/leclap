@@ -52,6 +52,8 @@ jest.mock('@/src/data/mediaCatalog', () => ({
   MUSIC_ASSETS: { 'point-being.mp3': 42 },
   FONT_ASSETS: { 'BebasNeue.ttf': 7 },
   VIDEO_ASSETS: { 'leclap_bumper.mp4': 99 },
+  BACKGROUND_ASSETS: { 'desk-flatlay.jpg': 55 },
+  findBackground: (id: string) => (id === 'desk-flatlay' ? { id, file: 'desk-flatlay.jpg' } : undefined),
 }));
 
 jest.mock('ffmpeg-video-composer/reactnative', () => ({
@@ -137,6 +139,62 @@ describe('CoreCompilationService bundled-asset staging', () => {
     (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
 
     await new CoreCompilationService().compile(withMusic);
+
+    expect((FileSystem.copyAsync as unknown as MockFn).mock.calls.length).toBe(0);
+  });
+});
+
+describe('CoreCompilationService watermark staging', () => {
+  const withLibraryWatermark = {
+    descriptor: { sections: [], global: { watermark: { url: 'library://desk-flatlay', position: 'top-left' } } },
+    clips: {},
+  } as unknown as CompileInput;
+
+  it('stages a library watermark into assetsDir/backgrounds and rewrites its url', async () => {
+    (FileSystem.getInfoAsync as unknown as MockFn).mockResolvedValue({ exists: false });
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    await new CoreCompilationService().compile(withLibraryWatermark);
+
+    const copiedTo = (FileSystem.copyAsync as unknown as MockFn).mock.calls.map((c) => (c[0] as { to: string }).to);
+    expect(copiedTo).toContain('file:///cache/leclap-assets/backgrounds/desk-flatlay.jpg');
+
+    // Same descriptor object is mutated then handed to the core — assert the canonical rewrite the
+    // core's FilesystemExpoAdapter.resolveLocalAsset resolves offline, not the original library:// marker.
+    const [, passedDescriptor] = (compileReactNative as unknown as MockFn).mock.calls[0] as [
+      unknown,
+      { global?: { watermark?: { url?: string; position?: string } } },
+    ];
+    expect(passedDescriptor.global?.watermark?.url).toBe('/assets/backgrounds/desk-flatlay.jpg');
+    expect(passedDescriptor.global?.watermark?.position).toBe('top-left');
+  });
+
+  it('does not stage or rewrite a URL watermark (fetched remotely by the core)', async () => {
+    (FileSystem.getInfoAsync as unknown as MockFn).mockResolvedValue({ exists: false });
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    const withUrlWatermark = {
+      descriptor: { sections: [], global: { watermark: { url: 'https://example.com/logo.png' } } },
+      clips: {},
+    } as unknown as CompileInput;
+
+    await new CoreCompilationService().compile(withUrlWatermark);
+
+    const copiedTo = (FileSystem.copyAsync as unknown as MockFn).mock.calls.map((c) => (c[0] as { to: string }).to);
+    expect(copiedTo.some((p) => p.includes('backgrounds'))).toBe(false);
+
+    const [, passedDescriptor] = (compileReactNative as unknown as MockFn).mock.calls[0] as [
+      unknown,
+      { global?: { watermark?: { url?: string } } },
+    ];
+    expect(passedDescriptor.global?.watermark?.url).toBe('https://example.com/logo.png');
+  });
+
+  it('skips copying when the watermark background is already staged', async () => {
+    (FileSystem.getInfoAsync as unknown as MockFn).mockResolvedValue({ exists: true });
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    await new CoreCompilationService().compile(withLibraryWatermark);
 
     expect((FileSystem.copyAsync as unknown as MockFn).mock.calls.length).toBe(0);
   });

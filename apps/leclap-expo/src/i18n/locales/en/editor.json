@@ -323,7 +323,9 @@
     "defaultTransitionHelp": "Used between scenes that don't set their own.",
     "globalAudio": "Audio mix",
     "wholeVideoAnimations": "Whole-video animations",
-    "wholeVideoAnimationsHelp": "Overlays that span the entire video, across every scene."
+    "wholeVideoAnimationsHelp": "Overlays that span the entire video, across every scene.",
+    "watermark": "Watermark",
+    "watermarkHelp": "A logo image composited in one corner of every scene, authored once."
   },
   "save": "Save template",
   "preview": "Preview",
@@ -375,5 +377,22 @@
     "kind": "Overlays",
     "animation": "Animation",
     "image": "Image"
+  },
+  "watermark": {
+    "source": "Image source",
+    "sourceLibrary": "Library",
+    "sourceUrl": "URL",
+    "none": "None",
+    "urlPlaceholder": "https://example.com/logo.png",
+    "position": "Position",
+    "scale": "Size",
+    "opacity": "Opacity",
+    "margin": "Margin",
+    "pos": {
+      "top-left": "Top left",
+      "top-right": "Top right",
+      "bottom-left": "Bottom left",
+      "bottom-right": "Bottom right"
+    }
   }
 }

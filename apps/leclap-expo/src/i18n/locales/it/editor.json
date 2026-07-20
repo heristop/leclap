@@ -323,7 +323,9 @@
     "defaultTransitionHelp": "Usata tra le scene che non ne impostano una propria.",
     "globalAudio": "Mix audio",
     "wholeVideoAnimations": "Animazioni per l'intero video",
-    "wholeVideoAnimationsHelp": "Sovrimpressioni che coprono tutto il video, in ogni scena."
+    "wholeVideoAnimationsHelp": "Sovrimpressioni che coprono tutto il video, in ogni scena.",
+    "watermark": "Filigrana",
+    "watermarkHelp": "Un'immagine logo composta in un angolo di ogni scena, impostata una sola volta."
   },
   "save": "Salva template",
   "preview": "Anteprima",
@@ -375,5 +377,22 @@
     "kind": "Sovrimpressioni",
     "animation": "Animazione",
     "image": "Immagine"
+  },
+  "watermark": {
+    "source": "Origine immagine",
+    "sourceLibrary": "Libreria",
+    "sourceUrl": "URL",
+    "none": "Nessuna",
+    "urlPlaceholder": "https://esempio.com/logo.png",
+    "position": "Posizione",
+    "scale": "Dimensione",
+    "opacity": "Opacità",
+    "margin": "Margine",
+    "pos": {
+      "top-left": "Alto sinistra",
+      "top-right": "Alto destra",
+      "bottom-left": "Basso sinistra",
+      "bottom-right": "Basso destra"
+    }
   }
 }

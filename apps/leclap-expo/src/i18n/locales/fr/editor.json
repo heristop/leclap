@@ -323,7 +323,9 @@
     "defaultTransitionHelp": "Utilisée entre les scènes qui n’en définissent pas.",
     "globalAudio": "Mixage audio",
     "wholeVideoAnimations": "Animations sur toute la vidéo",
-    "wholeVideoAnimationsHelp": "Surimpressions qui couvrent toute la vidéo, sur chaque scène."
+    "wholeVideoAnimationsHelp": "Surimpressions qui couvrent toute la vidéo, sur chaque scène.",
+    "watermark": "Filigrane",
+    "watermarkHelp": "Une image de logo composée dans un coin de chaque scène, définie une seule fois."
   },
   "save": "Enregistrer le template",
   "preview": "Aperçu",
@@ -375,5 +377,22 @@
     "kind": "Surimpressions",
     "animation": "Animation",
     "image": "Image"
+  },
+  "watermark": {
+    "source": "Source de l'image",
+    "sourceLibrary": "Bibliothèque",
+    "sourceUrl": "URL",
+    "none": "Aucun",
+    "urlPlaceholder": "https://exemple.com/logo.png",
+    "position": "Position",
+    "scale": "Taille",
+    "opacity": "Opacité",
+    "margin": "Marge",
+    "pos": {
+      "top-left": "Haut gauche",
+      "top-right": "Haut droite",
+      "bottom-left": "Bas gauche",
+      "bottom-right": "Bas droite"
+    }
   }
 }

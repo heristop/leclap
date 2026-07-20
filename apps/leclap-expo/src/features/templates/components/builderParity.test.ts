@@ -177,6 +177,49 @@ describe('expo builder parity → descriptor', () => {
     expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
   });
 
+  it('global.watermark lands with the right url/position/scale and is schema-valid (library image)', () => {
+    let state = baseState();
+    state = {
+      ...state,
+      watermark: {
+        image: { source: 'library', id: 'desk-flatlay' },
+        position: 'top-left',
+        scale: 0.2,
+        opacity: 0.6,
+        margin: 12,
+      },
+    };
+
+    const d = buildDescriptor(state);
+
+    expect(d.global?.watermark).toEqual({
+      url: 'library://desk-flatlay',
+      position: 'top-left',
+      scale: 0.2,
+      opacity: 0.6,
+      margin: 12,
+    });
+    expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
+  });
+
+  it('global.watermark lowers a pasted URL image and omits unset presentation fields', () => {
+    let state = baseState();
+    state = { ...state, watermark: { image: { source: 'url', url: 'https://example.com/logo.png' } } };
+
+    const d = buildDescriptor(state);
+
+    expect(d.global?.watermark).toEqual({ url: 'https://example.com/logo.png' });
+    expect(TemplateDescriptorSchema.safeParse(d).success).toBe(true);
+  });
+
+  it('omits global.watermark entirely when unset', () => {
+    const state = baseState();
+
+    const d = buildDescriptor(state);
+
+    expect(d.global?.watermark).toBeUndefined();
+  });
+
   it('overlay fit is cleared when scale is cleared (stale-fit regression)', () => {
     let state = baseState();
     state = patchSection(state, 0, {

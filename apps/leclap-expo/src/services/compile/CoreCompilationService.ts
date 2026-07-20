@@ -190,6 +190,36 @@ async function stageBundledImages(descriptor: CompileInput['descriptor'], assets
   );
 }
 
+// Stage the whole-video watermark image (descriptor global.watermark.url) under `assetsDir/backgrounds`,
+// then rewrite the url so the engine resolves the staged copy locally instead of trying to fetch the
+// marker. Mirrors stageBundledImages: only a `library://<id>` marker is staged — resolve <id> to the
+// bundled background `<file>.jpg`, stage it, and rewrite to the canonical `/assets/backgrounds/<file>`
+// path FilesystemExpoAdapter.resolveLocalAsset maps to `${assetsDir}/backgrounds/<file>`. A `url://`
+// watermark (Expo's other authoring option, no upload — see watermark-fields.tsx) is left untouched;
+// the core fetches it directly like any other remote URL. Without staging, a library watermark 404s
+// on-device (AVERROR_INVALIDDATA). Mutates the descriptor.
+async function stageBundledWatermark(descriptor: CompileInput['descriptor'], assetsDir: string): Promise<void> {
+  const watermark = (descriptor.global as { watermark?: { url?: string } } | undefined)?.watermark;
+
+  if (!watermark?.url?.startsWith('library://')) return;
+
+  const file = findBackground(watermark.url.slice('library://'.length))?.file;
+
+  if (!file || !(file in BACKGROUND_ASSETS)) return;
+
+  watermark.url = `/assets/backgrounds/${file}`;
+
+  const backgroundsDir = `${assetsDir}/backgrounds`;
+  await FileSystem.makeDirectoryAsync(toUri(backgroundsDir), { intermediates: true }).catch(() => {});
+
+  const destination = `${backgroundsDir}/${file}`;
+
+  if ((await FileSystem.getInfoAsync(toUri(destination))).exists) return;
+
+  const asset = await Asset.fromModule(BACKGROUND_ASSETS[file]).downloadAsync();
+  await FileSystem.copyAsync({ from: toUri(asset.localUri ?? asset.uri), to: toUri(destination) });
+}
+
 // Prepare the on-device build/asset dirs and the ProjectConfig the core compiles against.
 async function buildProjectConfig(input: CompileInput) {
   const { descriptor, clips, qualityTier } = input;
@@ -203,6 +233,7 @@ async function buildProjectConfig(input: CompileInput) {
   await stageBundledVideos(assetsDir);
   await stageBundledAnimations(descriptor, assetsDir);
   await stageBundledImages(descriptor, assetsDir);
+  await stageBundledWatermark(descriptor, assetsDir);
 
   // Recorded clips, keyed by section name → the plain paths ffmpeg reads.
   const userVideoPaths: Record<string, string> = {};

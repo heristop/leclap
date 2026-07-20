@@ -8,6 +8,7 @@ import { ColorsListEditor } from '../editor/colors-list-editor';
 import { WholeVideoAnimations } from '../editor/WholeVideoAnimations';
 import { WholeVideoLookGrade } from '../editor/whole-video-look-grade';
 import { GlobalOverlaysField } from '../editor/GlobalOverlaysField';
+import { GlobalWatermarkField } from '../editor/global-watermark-field';
 import { DefaultTransitionField } from '../editor/default-transition-field';
 import { EditorImportExport } from '../editor/EditorImportExport';
 import { JsonEditorPanel } from '../editor/json-editor-panel';
@@ -145,6 +146,7 @@ export const EditorPanelSwitch = ({
         <ColorsListEditor state={state} patch={patch} />
         <WholeVideoLookGrade state={state} patch={patch} />
         <WholeVideoAnimations state={state} patch={patch} />
+        <GlobalWatermarkField watermark={state.watermark} patch={patch} />
         <GlobalOverlaysField
           overlays={state.globalOverlays}
           variables={collectVariables(state)}

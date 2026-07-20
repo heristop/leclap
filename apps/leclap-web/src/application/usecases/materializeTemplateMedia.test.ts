@@ -116,6 +116,23 @@ describe('materializeTemplateMedia', () => {
     expect(descriptor.sections?.[0]?.options?.videoUrl).toBe('https://cdn.example.com/bumper.mp4');
   });
 
+  it('writes an uploaded watermark image and rewrites global.watermark.url to an engine path', async () => {
+    const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
+    const descriptor: TemplateDescriptor = {
+      global: { watermark: { url: 'media://logoK', position: 'top-left' } },
+      sections: [],
+    } as unknown as TemplateDescriptor;
+
+    await materializeTemplateMedia(
+      descriptor,
+      sourceWith({ logoK: { bytes: new Uint8Array([5]), ext: 'png' } }),
+      target
+    );
+
+    expect(target.writeFile).toHaveBeenCalledWith('/assets/pictures/logoK.png', new Uint8Array([5]));
+    expect(descriptor.global?.watermark).toEqual({ url: '/assets/pictures/logoK.png', position: 'top-left' });
+  });
+
   it('leaves curated URLs untouched', async () => {
     const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
     const descriptor = {
@@ -128,6 +145,19 @@ describe('materializeTemplateMedia', () => {
     expect(target.writeFile).not.toHaveBeenCalled();
     expect(descriptor.global?.music?.url).toBe('/musics/go.mp3');
     expect(pictureUrlOf(descriptor)).toBe('/backgrounds/x.jpg');
+  });
+
+  it('leaves a curated watermark URL untouched', async () => {
+    const target: MediaTarget = { writeFile: vi.fn(async () => {}) };
+    const descriptor: TemplateDescriptor = {
+      global: { watermark: { url: '/backgrounds/logo.png' } },
+      sections: [],
+    } as unknown as TemplateDescriptor;
+
+    await materializeTemplateMedia(descriptor, sourceWith({}), target);
+
+    expect(target.writeFile).not.toHaveBeenCalled();
+    expect(descriptor.global?.watermark?.url).toBe('/backgrounds/logo.png');
   });
 
   it('throws a clear error when an uploaded blob is missing', async () => {

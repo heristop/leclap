@@ -24,6 +24,23 @@ async function readOrThrow(source: MediaSource, key: string): Promise<Uint8Array
 // SectionOptions from core omits pictureUrl; cast locally for image_background access.
 type ImageBackgroundOptions = NonNullable<TemplateDescriptor['sections']>[number]['options'] & { pictureUrl?: string };
 
+// Uploaded watermark image (descriptor global.watermark.url as `media://<key>`) — same copy-and-rewrite
+// shape as the other picture uploads below, split out to keep materializeTemplateMedia's complexity low.
+async function materializeWatermark(descriptor: TemplateDescriptor, source: MediaSource, target: MediaTarget) {
+  const watermarkUrl = descriptor.global?.watermark?.url;
+
+  if (!watermarkUrl?.startsWith(PREFIX) || !descriptor.global?.watermark) {
+    return;
+  }
+
+  const key = watermarkUrl.slice(PREFIX.length);
+  const meta = await source.getMeta(key);
+  const bytes = await readOrThrow(source, key);
+  const path = `/assets/pictures/${key}.${meta?.ext ?? 'bin'}`;
+  await target.writeFile(path, bytes);
+  descriptor.global.watermark = { ...descriptor.global.watermark, url: path };
+}
+
 /**
  * Copies uploaded blobs (referenced as `media://<key>`) into the engine filesystem
  * and rewrites the descriptor to point at the materialized engine paths. Curated
@@ -42,6 +59,8 @@ export async function materializeTemplateMedia(
     await target.writeFile(`/assets/musics/${key}.mp3`, bytes);
     descriptor.global.music = { name: key };
   }
+
+  await materializeWatermark(descriptor, source, target);
 
   const uploads = (descriptor.sections ?? []).filter((section) => {
     const opts = section.options as ImageBackgroundOptions | undefined;

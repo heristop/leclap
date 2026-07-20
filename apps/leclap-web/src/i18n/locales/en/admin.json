@@ -915,6 +915,20 @@
     "summaryEmpty": "no text",
     "hint": "A title / subtitle band over the clip, with an optional badge."
   },
+  "watermark": {
+    "label": "Watermark",
+    "hint": "A logo image composited in one corner of every scene, authored once.",
+    "position": "Position",
+    "scale": "Size",
+    "opacity": "Opacity",
+    "margin": "Margin",
+    "pos": {
+      "top-left": "Top left",
+      "top-right": "Top right",
+      "bottom-left": "Bottom left",
+      "bottom-right": "Bottom right"
+    }
+  },
   "globalOverlay": {
     "label": "Whole-video text",
     "hint": "Text drawn on every section — e.g. a brand watermark, authored once.",

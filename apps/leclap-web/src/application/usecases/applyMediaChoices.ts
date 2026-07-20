@@ -57,6 +57,16 @@ function applyBackgroundChoice(descriptor: TemplateDescriptor, choice: MediaChoi
   }
 }
 
+// global.watermark.url carries the same marker vocabulary as a section input (see WatermarkChoice.image
+// in the kit model) — resolve a library:// pick the same way findBackground resolves a section input.
+function resolveWatermarkMarker(descriptor: TemplateDescriptor): void {
+  const watermarkUrl = descriptor.global?.watermark?.url;
+
+  if (watermarkUrl?.startsWith('library://') && descriptor.global?.watermark) {
+    descriptor.global.watermark.url = findBackground(watermarkUrl.slice('library://'.length))?.url ?? watermarkUrl;
+  }
+}
+
 // Author-set image-overlay inputs (a video section's background/logo) carry a `library://<id>`
 // marker; resolve it to the curated `/backgrounds/<file>` url. `media://` uploads are left for
 // materializeTemplateMedia; pasted urls pass through untouched. Exported so the builder's preview
@@ -69,6 +79,8 @@ export function resolveLibraryInputMarkers(descriptor: TemplateDescriptor): void
       }
     }
   }
+
+  resolveWatermarkMarker(descriptor);
 }
 
 /**

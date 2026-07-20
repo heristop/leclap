@@ -915,6 +915,20 @@
     "summaryEmpty": "nessun testo",
     "hint": "Una fascia con titolo / sottotitolo sulla clip, con un badge opzionale."
   },
+  "watermark": {
+    "label": "Filigrana",
+    "hint": "Un'immagine logo composta in un angolo di ogni scena, impostata una sola volta.",
+    "position": "Posizione",
+    "scale": "Dimensione",
+    "opacity": "Opacità",
+    "margin": "Margine",
+    "pos": {
+      "top-left": "In alto a sinistra",
+      "top-right": "In alto a destra",
+      "bottom-left": "In basso a sinistra",
+      "bottom-right": "In basso a destra"
+    }
+  },
   "globalOverlay": {
     "label": "Testo sull’intero video",
     "hint": "Testo disegnato su ogni sezione — es. una filigrana del brand, scritta una sola volta.",

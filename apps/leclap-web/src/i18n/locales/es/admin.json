@@ -915,6 +915,20 @@
     "summaryEmpty": "sin texto",
     "hint": "Una banda de título / subtítulo sobre el clip, con una insignia opcional."
   },
+  "watermark": {
+    "label": "Marca de agua",
+    "hint": "Una imagen de logotipo colocada en una esquina de cada escena, definida una sola vez.",
+    "position": "Posición",
+    "scale": "Tamaño",
+    "opacity": "Opacidad",
+    "margin": "Margen",
+    "pos": {
+      "top-left": "Arriba a la izquierda",
+      "top-right": "Arriba a la derecha",
+      "bottom-left": "Abajo a la izquierda",
+      "bottom-right": "Abajo a la derecha"
+    }
+  },
   "globalOverlay": {
     "label": "Texto en todo el vídeo",
     "hint": "Texto dibujado en cada sección: p. ej. una marca de agua de marca, creada una sola vez.",

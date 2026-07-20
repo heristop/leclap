@@ -915,6 +915,20 @@
     "summaryEmpty": "aucun texte",
     "hint": "Un bandeau titre / sous-titre sur le clip, avec un badge facultatif."
   },
+  "watermark": {
+    "label": "Filigrane",
+    "hint": "Une image logo incrustée dans un coin de chaque scène, définie une seule fois.",
+    "position": "Position",
+    "scale": "Taille",
+    "opacity": "Opacité",
+    "margin": "Marge",
+    "pos": {
+      "top-left": "En haut à gauche",
+      "top-right": "En haut à droite",
+      "bottom-left": "En bas à gauche",
+      "bottom-right": "En bas à droite"
+    }
+  },
   "globalOverlay": {
     "label": "Texte sur toute la vidéo",
     "hint": "Du texte affiché sur chaque section — ex. un filigrane de marque, défini une seule fois.",

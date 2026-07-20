@@ -151,4 +151,39 @@ describe('applyMediaChoices', () => {
       expect(inputsOf(descriptor).find((i) => i.name === 'background')?.url).toBe('https://x/y.png');
     });
   });
+
+  describe('global.watermark marker', () => {
+    it('resolves a library:// watermark url to the curated /backgrounds url', () => {
+      const descriptor: TemplateDescriptor = {
+        global: { watermark: { url: 'library://forest-sea' } },
+        sections: [],
+      } as unknown as TemplateDescriptor;
+
+      applyMediaChoices(descriptor, {});
+
+      expect(descriptor.global?.watermark?.url).toMatch(/^\/backgrounds\//);
+    });
+
+    it('leaves a media:// watermark url untouched (for materializeTemplateMedia)', () => {
+      const descriptor: TemplateDescriptor = {
+        global: { watermark: { url: 'media://logoK' } },
+        sections: [],
+      } as unknown as TemplateDescriptor;
+
+      applyMediaChoices(descriptor, {});
+
+      expect(descriptor.global?.watermark?.url).toBe('media://logoK');
+    });
+
+    it('leaves a pasted-url watermark untouched', () => {
+      const descriptor: TemplateDescriptor = {
+        global: { watermark: { url: 'https://x/logo.png' } },
+        sections: [],
+      } as unknown as TemplateDescriptor;
+
+      applyMediaChoices(descriptor, {});
+
+      expect(descriptor.global?.watermark?.url).toBe('https://x/logo.png');
+    });
+  });
 });

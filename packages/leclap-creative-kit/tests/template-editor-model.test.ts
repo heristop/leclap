@@ -768,6 +768,98 @@ describe('templateEditorModel — global animations', () => {
   });
 });
 
+describe('templateEditorModel — watermark', () => {
+  it('omits global.watermark when none is set', () => {
+    const d = buildDescriptor(baseState([newSection('video')]));
+
+    expect(d.global?.watermark).toBeUndefined();
+  });
+
+  it('emits global.watermark from a library MediaChoice, with presentation fields, and stays schema-valid', () => {
+    const state = baseState({
+      watermark: {
+        image: { source: 'library', id: 'brand-logo' },
+        position: 'top-left',
+        scale: 0.2,
+        opacity: 0.6,
+        margin: 40,
+      },
+    });
+    const d = buildDescriptor(state);
+
+    expect(d.global?.watermark).toEqual({
+      url: 'library://brand-logo',
+      position: 'top-left',
+      scale: 0.2,
+      opacity: 0.6,
+      margin: 40,
+    });
+    expect(() => TemplateDescriptorSchema.parse(d)).not.toThrow();
+  });
+
+  it('emits global.watermark from an upload MediaChoice as a media:// marker', () => {
+    const d = buildDescriptor(
+      baseState({ watermark: { image: { source: 'upload', key: 'abc123', label: 'logo.png' } } })
+    );
+
+    expect(d.global?.watermark).toEqual({ url: 'media://abc123' });
+  });
+
+  it('emits global.watermark from a url MediaChoice as-is', () => {
+    const d = buildDescriptor(
+      baseState({ watermark: { image: { source: 'url', url: 'https://example.com/logo.png' } } })
+    );
+
+    expect(d.global?.watermark).toEqual({ url: 'https://example.com/logo.png' });
+  });
+
+  it('round-trips a library watermark back into the editor with presentation fields', () => {
+    const state = baseState({
+      watermark: {
+        image: { source: 'library', id: 'brand-logo' },
+        position: 'bottom-right',
+        scale: 0.12,
+        opacity: 0.8,
+        margin: 24,
+      },
+    });
+    const back = toEditorState(asTemplate(state));
+
+    expect(back.watermark).toEqual(state.watermark);
+  });
+
+  it('round-trips an upload watermark back into the editor (label falls back to the key)', () => {
+    const state = baseState({ watermark: { image: { source: 'upload', key: 'abc123', label: 'logo.png' } } });
+    const back = toEditorState(asTemplate(state));
+
+    // media:// markers lose the human label across the descriptor, same as image overlays.
+    expect(back.watermark).toEqual({ image: { source: 'upload', key: 'abc123', label: 'abc123' } });
+  });
+
+  it('round-trips a url watermark back into the editor', () => {
+    const state = baseState({ watermark: { image: { source: 'url', url: 'https://example.com/logo.png' } } });
+    const back = toEditorState(asTemplate(state));
+
+    expect(back.watermark).toEqual(state.watermark);
+  });
+
+  it('round-trips with no presentation fields set (defaults stay absent)', () => {
+    const state = baseState({ watermark: { image: { source: 'library', id: 'brand-logo' } } });
+    const d = buildDescriptor(state);
+
+    expect(d.global?.watermark).toEqual({ url: 'library://brand-logo' });
+
+    const back = toEditorState(asTemplate(state));
+    expect(back.watermark).toEqual(state.watermark);
+  });
+
+  it('omits watermark from the round-tripped editor state when never set', () => {
+    const back = toEditorState(asTemplate(baseState([newSection('video')])));
+
+    expect(back.watermark).toBeUndefined();
+  });
+});
+
 describe('templateEditorModel — text sugar (titleCard / lowerThird / caption reveal)', () => {
   it('round-trips a titleCard on a color section', () => {
     const titleCard = {

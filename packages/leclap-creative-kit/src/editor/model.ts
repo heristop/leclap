@@ -29,7 +29,11 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { Orientation, GlobalTextOverlaySchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
+import type {
+  Orientation,
+  GlobalTextOverlaySchema,
+  WatermarkSchema,
+} from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import type { AccentBar } from './accent-bar';
 import { FONTS, DEFAULT_FONT_ID } from '../fonts';
 
@@ -65,6 +69,9 @@ export type LowerThird = z.infer<typeof LowerThirdSchema>;
 // it) so the shape controls re-hydrate on import.
 export type ShapeSpec = z.infer<typeof ShapeSpecSchema>;
 export type GlobalTextOverlay = z.infer<typeof GlobalTextOverlaySchema>;
+// The watermark's corner enum, inferred so it can never drift from the engine schema (global.watermark).
+// The editor's own WatermarkChoice (below) swaps the descriptor's plain `url` string for a MediaChoice.
+export type WatermarkPosition = NonNullable<z.infer<typeof WatermarkSchema>['position']>;
 // Recorder input source for a project_video section: front/back camera, screen share, or file upload.
 // Pure recorder metadata (honoured by both capture UIs), never lowered to FFmpeg filters.
 export type CaptureMode = z.infer<typeof CaptureModeSchema>;
@@ -253,6 +260,19 @@ export interface ImageOverlay {
   shape?: ShapeSpec;
 }
 
+// A whole-video image watermark (descriptor global.watermark) authored once per template — e.g. a
+// logo composited over every section. `image` is a MediaChoice (library / upload / url), same
+// vocabulary as ImageOverlay.choice, so it reuses markerFromChoice/choiceFromMarker unchanged.
+// position/scale/opacity/margin mirror the engine schema's presentation fields verbatim (omitted =
+// engine defaults: bottom-right, 0.12, 0.8, 24).
+export interface WatermarkChoice {
+  image: MediaChoice;
+  position?: WatermarkPosition;
+  scale?: number;
+  opacity?: number;
+  margin?: number;
+}
+
 export interface VisualAnimation {
   // Animated overlays composited over the section, in array order (later entries paint on top).
   // Author-set; empty/absent means none.
@@ -397,6 +417,9 @@ export interface EditorState {
   // Whole-video TEXT overlays (descriptor global.overlays) — e.g. a brand watermark authored once and
   // composited onto every section (or a named subset). Empty means none.
   globalOverlays: GlobalTextOverlay[];
+  // Whole-video image watermark (descriptor global.watermark) — a logo authored once per template,
+  // composited over the final joined video. Absent means no watermark.
+  watermark?: WatermarkChoice;
   // Whole-video colour grade applied across every section (descriptor global.look / global.grade).
   globalLook?: string;
   globalGrade?: Grade;

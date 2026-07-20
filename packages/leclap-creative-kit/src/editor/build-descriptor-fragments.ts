@@ -14,6 +14,7 @@ import type {
   MediaChoice,
   SectionFit,
   AudioEffect,
+  WatermarkChoice,
 } from './model';
 import { pruneEmpty } from './prune';
 
@@ -99,6 +100,25 @@ export function markerFromChoice(choice: MediaChoice): string {
   if (choice.source === 'upload') return `media://${choice.key}`;
 
   return choice.url;
+}
+
+// The watermark's image → the descriptor's `global.watermark`, reusing the same marker vocabulary
+// as an ImageOverlay's choice. Presentation fields pass through only when the author set them,
+// leaving the engine defaults (bottom-right, 0.12, 0.8, 24) to apply. Emits nothing when unset.
+export function watermarkField(
+  watermark: WatermarkChoice | undefined
+): Partial<NonNullable<TemplateDescriptor['global']>> {
+  if (!watermark) return {};
+
+  return {
+    watermark: {
+      url: markerFromChoice(watermark.image),
+      ...(watermark.position ? { position: watermark.position } : {}),
+      ...(watermark.scale === undefined ? {} : { scale: watermark.scale }),
+      ...(watermark.opacity === undefined ? {} : { opacity: watermark.opacity }),
+      ...(watermark.margin === undefined ? {} : { margin: watermark.margin }),
+    },
+  };
 }
 
 // Trim float noise off a seconds arithmetic result (0.3 - 0.1 → 0.2, not 0.19999999999999998).

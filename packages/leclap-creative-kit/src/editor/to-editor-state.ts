@@ -30,7 +30,7 @@ import {
 } from './model';
 import { overlaysFromFilters } from './overlay-parsing';
 import { pruneEmpty } from './prune';
-import { animationsFrom, choiceFromMarker, imagesFrom, overlayOptionsFrom } from './to-editor-overlay';
+import { animationsFrom, choiceFromMarker, imagesFrom, overlayOptionsFrom, watermarkFrom } from './to-editor-overlay';
 
 function formSectionFrom(s: Section): EditorSection {
   const fields = (s.options?.fields ?? []) as Array<{
@@ -357,6 +357,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
 
   const global = template.descriptor.global;
   const colorsList = colorsListFrom(global);
+  const watermark = watermarkFrom(global);
 
   return {
     id: template.id,
@@ -371,6 +372,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     defaultTransition: defaultTransitionFrom(global),
     globalAnimations: globalAnimationsFrom(global),
     globalOverlays: globalOverlaysFrom(global),
+    ...(watermark ? { watermark } : {}),
     ...(global?.look ? { globalLook: global.look } : {}),
     ...(global?.grade ? { globalGrade: global.grade as EditorState['globalGrade'] } : {}),
     ...(colorsList.length > 0 ? { colorsList } : {}),

@@ -13,6 +13,7 @@ import {
   sectionFitOptions,
   sectionPlaybackOptions,
   visualExtras,
+  watermarkField,
 } from './build-descriptor-fragments';
 
 function formDescriptorFrom(section: { kind: 'form'; fields: FormField[] }, index: number): Section {
@@ -292,6 +293,7 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     ...(state.globalAnimations.length > 0 ? { animations: state.globalAnimations.map(globalAnimationFrom) } : {}),
     // Whole-video text overlays (brand watermark, etc.) authored once and composited onto every section.
     ...globalOverlaysField(state.globalOverlays),
+    ...watermarkField(state.watermark),
     ...(state.globalLook ? { look: state.globalLook } : {}),
     ...(state.globalGrade ? { grade: state.globalGrade } : {}),
     // The colour palette lands in BOTH descriptor slots: global.colorsList (user-facing, read by the

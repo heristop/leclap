@@ -1,7 +1,7 @@
 // Re-hydration helpers for the overlay inputs (animations + still images) of a stored section, plus the
 // MediaChoice marker decoder. Split out of to-editor-state so each option-recovery step stays small.
-import type { Section, GlobalAnimation } from 'ffmpeg-video-composer/src/core/types.d.ts';
-import type { AnimationOverlay, ImageOverlay, MediaChoice } from './model';
+import type { Section, GlobalAnimation, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { AnimationOverlay, ImageOverlay, MediaChoice, WatermarkChoice } from './model';
 
 type StoredInput = NonNullable<Section['inputs']>[number];
 type StoredInputOptions = NonNullable<StoredInput['options']>;
@@ -69,6 +69,22 @@ export function choiceFromMarker(url: string): MediaChoice {
   }
 
   return { source: 'url', url };
+}
+
+// Recover the watermark (global.watermark) — the marker url decodes back into a MediaChoice via
+// choiceFromMarker above; presentation fields carry through only when stored.
+export function watermarkFrom(global: TemplateDescriptor['global']): WatermarkChoice | undefined {
+  const w = global?.watermark;
+
+  if (!w) return undefined;
+
+  return {
+    image: choiceFromMarker(w.url),
+    ...(w.position ? { position: w.position } : {}),
+    ...(w.scale === undefined ? {} : { scale: w.scale }),
+    ...(w.opacity === undefined ? {} : { opacity: w.opacity }),
+    ...(w.margin === undefined ? {} : { margin: w.margin }),
+  };
 }
 
 // The stored show window is start/duration; the editor edits absolute start/end, so end = start +

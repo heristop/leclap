@@ -206,6 +206,12 @@
                   "description": "Fine-grained ducking parameters; used when global.audio.ducking is an object instead of a boolean."
                 }
               ]
+            },
+            "musicFade": {
+              "description": "Length in seconds of the music cross-fade between sections, independent of the video transition (default: the global transition duration). Longer values smooth large per-section musicVolume changes.",
+              "type": "number",
+              "minimum": 0.05,
+              "maximum": 3
             }
           },
           "additionalProperties": false

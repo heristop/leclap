@@ -201,6 +201,14 @@ export const GlobalAudioSchema = z
       .union([z.boolean(), DuckingSchema])
       .optional()
       .describe('Enable music ducking when source audio is present; true uses defaults, object allows fine-tuning.'),
+    musicFade: z
+      .number()
+      .min(0.05)
+      .max(3)
+      .optional()
+      .describe(
+        'Length in seconds of the music cross-fade between sections, independent of the video transition (default: the global transition duration). Longer values smooth large per-section musicVolume changes.'
+      ),
   })
   .describe('Global audio mix settings applied across the entire composition.');
 

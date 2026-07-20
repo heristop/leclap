@@ -528,6 +528,127 @@ describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => 
   });
 });
 
+describe('MusicComposer.prepareMusicTrack — musicFade decoupling', () => {
+  it('defaults to the transition duration for both the atrim tail and the acrossfade when musicFade is unset', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.2 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('atrim=start=0:duration=4.2');
+    expect(filters).toContain('acrossfade=d=0.2');
+  });
+
+  it('uses global.audio.musicFade for both the atrim tail and the acrossfade when set', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.2 }, audio: { musicFade: 1 } },
+    });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // Tail and acrossfade both use the configured 1s fade, not the 0.2s video transition.
+    expect(filters).toContain('atrim=start=0:duration=5');
+    expect(filters).toContain('acrossfade=d=1');
+    // The video transition duration is left untouched for the fade-in/out of the outer sections.
+    expect(project.buildInfos.totalSegments).toBe(2);
+  });
+
+  it('clamps musicFade to half the shortest renderable section when a section is shorter than 2x the requested fade', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.2 }, audio: { musicFade: 1 } },
+      sections: [
+        { name: 's1', type: 'video', options: { duration: 4 } },
+        { name: 's2', type: 'video', options: { duration: 1 } },
+      ],
+    });
+    const { composer } = makeComposer({ project, template });
+
+    // Shortest renderable section is 1s, so the fade is capped at 0.5 (half of 1), below the
+    // requested 1s.
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 1 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('atrim=start=0:duration=4.5');
+    expect(filters).toContain('acrossfade=d=0.5');
+  });
+
+  it('never clamps below the 0.05s floor', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.2 }, audio: { musicFade: 1 } },
+      sections: [
+        { name: 's1', type: 'video', options: { duration: 0.06 } },
+        { name: 's2', type: 'video', options: { duration: 0.06 } },
+      ],
+    });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 0.06 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 0.06 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('acrossfade=d=0.05');
+  });
+
+  it('ignores non-renderable sections (e.g. form) and zero-duration sections when computing the cap', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.2 }, audio: { musicFade: 1 } },
+      sections: [
+        { name: 'form_1', type: 'form', options: {} },
+        { name: 's1', type: 'video', options: { duration: 4 } },
+        { name: 's2', type: 'video', options: { duration: 4 } },
+      ],
+    });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // Cap is half of 4 (the only renderable durations), not skewed by the durationless form section.
+    expect(filters).toContain('atrim=start=0:duration=5');
+    expect(filters).toContain('acrossfade=d=1');
+  });
+
+  it('keeps the tail and acrossfade duration equal across the whole build (source-contiguous invariant)', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 3;
+    project.buildInfos.transitions = [
+      { type: 'fade', duration: 0.5 },
+      { type: 'wipeleft', duration: 0.7 },
+    ];
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.3 }, audio: { musicFade: 0.8 } },
+    });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 6 } });
+    composer.prepareMusicTrack({ name: 's3', type: 'video', options: { duration: 5 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('atrim=start=0:duration=4.8');
+    expect(filters).toContain('atrim=start=4:duration=6.8');
+    expect(filters).toContain('atrim=start=10:duration=5.8');
+    expect(filters.match(/acrossfade=d=0\.8/g)).toHaveLength(2);
+  });
+});
+
 describe('MusicComposer.appendMusic — normalize', () => {
   const segments1: Section[] = [{ name: 's1', type: 'video', options: { duration: 4 } }];
 

@@ -184,6 +184,7 @@ interface GlobalAudio {
   musicVolume?: number;
   normalize?: 'loudnorm' | 'dynaudnorm';
   ducking?: boolean | DuckingConfig;
+  musicFade?: number;
 }
 
 export interface Variables {

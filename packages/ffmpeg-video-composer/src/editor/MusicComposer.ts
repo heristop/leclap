@@ -8,17 +8,8 @@ import type AbstractMusic from '../platform/ffmpeg/AbstractMusic';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import { resolveVideoInput, type VideoSource } from './utils/video-input';
+import { resolveMusicFade, buildMusicFilter } from './utils/music-fade';
 import { musicAssetUrl } from '@/core/asset-source';
-
-type MusicFilterOptions = {
-  baseFilter: string;
-  isFirstSection: boolean;
-  isLastSection: boolean;
-  transitionDuration: number;
-  duration: number;
-  musicVolumeLevel: number;
-  mapName: string;
-};
 
 type AppendMusicOptions = {
   videoInputArgs: string;
@@ -34,6 +25,10 @@ type AppendMusicOptions = {
 class MusicComposer {
   private buildAssetsDir = '';
   private musicAssetsDir = '';
+
+  // Memoized result of resolveMusicFade — computed once per build since it only depends on
+  // instance-constant inputs (the descriptor's configured musicFade/transition, and the section list).
+  private resolvedMusicFade: number | null = null;
 
   private readonly project: Project;
   private readonly template: Template;
@@ -183,20 +178,6 @@ class MusicComposer {
     return await this.filesystemAdapter.stat(filePath);
   }
 
-  private buildMusicFilter(opts: MusicFilterOptions): string {
-    const { baseFilter, isFirstSection, isLastSection, transitionDuration, duration, musicVolumeLevel, mapName } = opts;
-
-    if (isFirstSection) {
-      return `${baseFilter},afade=t=in:st=0:d=${transitionDuration},volume=${musicVolumeLevel}[${mapName}];`;
-    }
-
-    if (isLastSection) {
-      return `${baseFilter},afade=t=out:st=${duration - transitionDuration}:d=${transitionDuration},volume=${musicVolumeLevel}[${mapName}];`;
-    }
-
-    return `${baseFilter},volume=${musicVolumeLevel}[${mapName}];`;
-  }
-
   private getSectionDuration(section: Section): number {
     return section.options?.duration ?? 0;
   }
@@ -209,6 +190,10 @@ class MusicComposer {
     // music slider), then the engine default. 0 = silent music.
     const musicVolumeLevel = section.options?.musicVolume ?? this.template.descriptor.global?.audio?.musicVolume ?? 0.5;
     const transitionDuration = this.template.descriptor.global?.transition?.duration ?? DEFAULT_TRANSITION_DURATION;
+    // Memoized ONCE per build (see ./utils/music-fade): decouples the music leg-to-leg blend from
+    // transitionDuration, which afade in/out below still use as-is (a video-synced fade to/from
+    // silence at the start/end, not a leg blend, so it has no reason to track this).
+    const musicFade = (this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration));
 
     const duration = this.getSectionDuration(section);
 
@@ -220,18 +205,19 @@ class MusicComposer {
     this.project.buildInfos.currentIncrement = sectionIncrement;
 
     const ss = this.project.buildInfos.currentLength;
-    const t = duration + transitionDuration;
+    const t = duration + musicFade;
 
     // Advance the music cursor by the FULL section duration so the next section's window starts
-    // exactly where this one's content ends. The acrossfade (d=transitionDuration) then blends each
-    // leg's last `transitionDuration` with the next leg's first `transitionDuration` over IDENTICAL
-    // source audio, keeping the music continuous. Subtracting the boundary transition here shifted
-    // the next window early, so the acrossfade blended two offset copies of the song — a doubled,
-    // time-shifted echo most audible in a music-only outro.
+    // exactly where this one's content ends. The acrossfade (d=musicFade) then blends each leg's
+    // last `musicFade` seconds with the next leg's first `musicFade` seconds over IDENTICAL source
+    // audio, keeping the music continuous. Subtracting the boundary transition here shifted the next
+    // window early, so the acrossfade blended two offset copies of the song — a doubled, time-shifted
+    // echo most audible in a music-only outro. The window tail and the acrossfade `d` MUST stay equal
+    // (both derive from `musicFade` here) or this invariant breaks.
     this.project.buildInfos.currentLength += duration;
 
     const baseFilter = `[1:a]atrim=start=${ss}:duration=${t},asetpts=PTS-STARTPTS`;
-    const filter = this.buildMusicFilter({
+    const filter = buildMusicFilter({
       baseFilter,
       isFirstSection,
       isLastSection,
@@ -244,7 +230,7 @@ class MusicComposer {
     this.project.buildInfos.musicFilters.push(` ${filter}`);
 
     if (sectionIncrement > 1) {
-      this.appendCrossfadeFilter(sectionIncrement, mapName, isLastSection, transitionDuration);
+      this.appendCrossfadeFilter(sectionIncrement, mapName, isLastSection, musicFade);
     }
   };
 
@@ -252,13 +238,13 @@ class MusicComposer {
     sectionIncrement: number,
     mapName: string,
     isLastSection: boolean,
-    transitionDuration: number
+    musicFade: number
   ): void {
     const acrossfadeMapName = isLastSection ? 'lastcrossed' : `crossed${sectionIncrement - 1}`;
     const previousMapName =
       sectionIncrement === 2 ? `section${sectionIncrement - 1}` : `crossed${sectionIncrement - 2}`;
 
-    const crossfade = ` [${previousMapName}][${mapName}]acrossfade=d=${transitionDuration}:c1=tri:c2=tri[${acrossfadeMapName}];`;
+    const crossfade = ` [${previousMapName}][${mapName}]acrossfade=d=${musicFade}:c1=tri:c2=tri[${acrossfadeMapName}];`;
     this.project.buildInfos.musicFilters.push(crossfade);
   }
 

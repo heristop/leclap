@@ -252,12 +252,13 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 
 `global.audio` (`GlobalAudio`) sets the mix; per-section `options.audioFade` and `options.musicVolume` refine it.
 
-| Field          | Type                           | Compiles to / behaviour                                               |
-| -------------- | ------------------------------ | --------------------------------------------------------------------- |
-| `sourceVolume` | `number` 0..1 (default 1)      | Recorded/source-audio volume in the final mix.                        |
-| `musicVolume`  | `number` 0..1 (default 0.5)    | Background-music volume; per-section `options.musicVolume` overrides. |
-| `normalize`    | `'loudnorm'` \| `'dynaudnorm'` | `loudnorm I=-16:TP=-1.5:LRA=11` or single-pass `dynaudnorm`.          |
-| `ducking`      | `boolean` \| object            | Music ducking via `sidechaincompress` when source audio is present.   |
+| Field          | Type                                                               | Compiles to / behaviour                                                                                                                                                                                                                                                             |
+| -------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sourceVolume` | `number` 0..1 (default 1)                                          | Recorded/source-audio volume in the final mix.                                                                                                                                                                                                                                      |
+| `musicVolume`  | `number` 0..1 (default 0.5)                                        | Background-music volume; per-section `options.musicVolume` overrides.                                                                                                                                                                                                               |
+| `normalize`    | `'loudnorm'` \| `'dynaudnorm'`                                     | `loudnorm I=-16:TP=-1.5:LRA=11` or single-pass `dynaudnorm`.                                                                                                                                                                                                                        |
+| `ducking`      | `boolean` \| object                                                | Music ducking via `sidechaincompress` when source audio is present.                                                                                                                                                                                                                 |
+| `musicFade`    | `number` 0.05..3 seconds (default: the global transition duration) | Length of the music cross-fade (`acrossfade`) between sections, independent of the video transition. Longer values smooth large per-section `musicVolume` changes. Clamped to half the shortest renderable section's duration so a short section can't be entirely crossfaded away. |
 
 `ducking` as an object: `{ threshold? (0..1, default 0.05), ratio? (1..20, default 8), attack? (ms, default 20), release? (ms, default 400) }`.
 

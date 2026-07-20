@@ -2,9 +2,12 @@ import 'reflect-metadata';
 import { describe, it, expect, vi } from 'vitest';
 import AnimationComposer from '@/editor/AnimationComposer';
 import { GlobalAnimationSchema } from '@/schemas/global.schemas';
-import type { GlobalAnimation } from '@/core/types';
+import type { GlobalAnimation, Watermark } from '@/core/types';
 
-function setup(animations: GlobalAnimation[], opts: { hasAudio?: boolean } = {}) {
+function setup(
+  animations: GlobalAnimation[],
+  opts: { hasAudio?: boolean; watermark?: Watermark; scale?: string } = {}
+) {
   const executed: string[] = [];
   const moves: Array<[string, string]> = [];
   const unlinked: string[] = [];
@@ -36,8 +39,11 @@ function setup(animations: GlobalAnimation[], opts: { hasAudio?: boolean } = {})
     }),
   };
 
-  const project = { config: {}, finalVideo: '/build/output.mp4' };
-  const template = { descriptor: { global: { animations } } };
+  const project = {
+    config: { videoConfig: opts.scale ? { scale: opts.scale } : undefined },
+    finalVideo: '/build/output.mp4',
+  };
+  const template = { descriptor: { global: { animations, watermark: opts.watermark } } };
   const logger = { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() };
   const variableManager = { mapVariables: (value: string) => value };
 
@@ -330,5 +336,57 @@ describe('AnimationComposer still-image whole-video overlays', () => {
     await composer.appendAnimations('/build/output.mp4');
 
     expect(executed[0]).toContain('[1:v]scale=200:-1,setsar=1,format=rgba,colorchannelmixer=aa=0.5[anim0]');
+  });
+});
+
+// global.watermark wiring: AnimationComposer is the single place that reads global.animations for
+// compositing, so prepending the lowered watermark there (rather than in every downstream stage)
+// makes it flow through staging/legs/overlay exactly like an authored animations[] entry — including
+// the corner position expression reaching `overlay=` UNESCAPED, proven here against the real command
+// string (not just the pure watermarkToAnimation unit, which never touches AnimationComposer at all).
+describe('AnimationComposer global.watermark wiring', () => {
+  const WATERMARK: Watermark = { url: 'pictures/logo.png' };
+
+  it('is a no-op when neither animations nor a watermark are set', async () => {
+    const { composer, ffmpegAdapter } = setup([]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(ffmpegAdapter.execute).not.toHaveBeenCalled();
+  });
+
+  it('prepends the watermark as a still overlay (loop 1) with the default bottom-right position', async () => {
+    const { composer, executed } = setup([], { watermark: WATERMARK });
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.png');
+    // default scale 0.12 * the fallback 1280 output width -> 154; default margin 24 -> bottom-right,
+    // reaching overlay= as plain unescaped ffmpeg arithmetic (no quoting around it).
+    expect(cmd).toContain('[1:v]scale=154:-1,setsar=1,format=rgba,colorchannelmixer=aa=0.8[anim0]');
+    expect(cmd).toContain('[0:v][anim0]overlay=W-w-24:H-h-24:eof_action=pass:shortest=1[vout]');
+  });
+
+  it('resolves the watermark scale against the actual project output scale, not the fallback default', async () => {
+    const { composer, executed } = setup([], { watermark: WATERMARK, scale: '720:1280' });
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    // 720 * 0.12 = 86.4 -> 86
+    expect(executed[0]).toContain('[1:v]scale=86:-1,setsar=1,format=rgba,colorchannelmixer=aa=0.8[anim0]');
+  });
+
+  it('prepends the watermark BEFORE an explicit animations entry, which then composites on top of it', async () => {
+    const { composer, executed } = setup([{ url: GLOW, loop: true, position: '10:20' }], { watermark: WATERMARK });
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    // watermark staged first -> input 1 (its still source), explicit animation staged second -> input 2
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.png -stream_loop -1 -i /build/assets/glow_border.apng');
+    // watermark overlays the base video first ([0:v] -> [v0]), the explicit animation overlays on top of THAT
+    expect(cmd).toContain('[0:v][anim0]overlay=W-w-24:H-h-24:eof_action=pass:shortest=1[v0]');
+    expect(cmd).toContain('[v0][2:v]overlay=10:20:eof_action=pass:shortest=1[vout]');
   });
 });

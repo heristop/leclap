@@ -1,5 +1,6 @@
 import { inject, injectable, registry, type DependencyContainer } from 'tsyringe';
 import type { GlobalAnimation } from '@/core/types';
+import DefaultConfig from '@/core/default.config';
 import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 import {
   buildSingleFileAnimationSource,
@@ -10,6 +11,7 @@ import {
   overlayMotionExpr,
   type OverlayMotion,
 } from './utils/input-sources';
+import { watermarkToAnimation } from './presets/watermark';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
@@ -66,8 +68,22 @@ class AnimationComposer {
     this.variableManager = deps.variableManager;
   }
 
+  // A `global.watermark`, when set, is prepended so an explicit `global.animations` entry still
+  // composites on top of it (the watermark becomes the base every explicit animation overlays over).
+  // watermarkToAnimation is pure sugar: it returns the SAME GlobalAnimation shape, so every step below
+  // (staging, buildOverlaySources, buildOverlayGraph) treats it exactly like an authored entry — the
+  // only extra knowledge here is the output scale it needs to resolve a fractional width into pixels.
   private animations(): GlobalAnimation[] {
-    return this.template.descriptor.global?.animations ?? [];
+    const global = this.template.descriptor.global;
+    const raw = global?.animations ?? [];
+
+    if (!global?.watermark) {
+      return raw;
+    }
+
+    const outputScale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
+
+    return [watermarkToAnimation(global.watermark, outputScale), ...raw];
   }
 
   /**

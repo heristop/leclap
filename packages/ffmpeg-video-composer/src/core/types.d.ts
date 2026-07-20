@@ -103,6 +103,7 @@ export interface TemplateDescriptorGlobal {
   music?: MusicConfig;
   animations?: GlobalAnimation[];
   overlays?: GlobalTextOverlay[];
+  watermark?: Watermark;
   look?: string;
   grade?: GradeConfig;
   allowedMusic?: string[];
@@ -146,6 +147,24 @@ export interface GlobalAnimation {
   persistent?: boolean;
   /** Animated entrance (rise/slide/fade), same lowering as the per-section overlay path. */
   motion?: Reveal;
+}
+
+// The corner a `global.watermark` anchors to; also the position-lowering lookup key in
+// editor/presets/watermark.ts (POSITION_EXPRESSIONS).
+export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+// A still-image watermark composited over the whole video (global.watermark) — pure sugar, lowered by
+// watermarkToAnimation (editor/presets/watermark.ts) into a GlobalAnimation entry so it reuses the
+// whole-video overlay pipeline untouched.
+export interface Watermark {
+  url: string;
+  position?: WatermarkPosition;
+  /** Watermark width as a fraction of the output width, 0.02..0.5 (default 0.12). */
+  scale?: number;
+  /** Watermark alpha, 0..1 (default 0.8). */
+  opacity?: number;
+  /** Inset from the frame edges in output pixels, 0..200 (default 24). */
+  margin?: number;
 }
 
 interface SectionTransition {

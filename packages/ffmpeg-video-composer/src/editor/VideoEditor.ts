@@ -13,6 +13,7 @@ import type { StagedAnimation } from './AnimationComposer';
 import { getPerfTimer } from '../utils/perf-timer';
 import type { VideoSource } from './utils/video-input';
 import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
+import { hasWholeVideoOverlays } from './presets/watermark';
 import {
   buildAudioGraph,
   buildNormalizeGraph,
@@ -192,7 +193,7 @@ class VideoEditor {
   // in finalize then skips). Empty when none declared, or when FVC_DISABLE_FUSION forces the two-pass
   // path (bench/debug A/B — overlayAnimations re-runs in that case).
   private async stageOverlaysForFusion(): Promise<StagedAnimation[]> {
-    if (!this.template.descriptor.global?.animations?.length || process.env.FVC_DISABLE_FUSION) {
+    if (!hasWholeVideoOverlays(this.template.descriptor.global) || process.env.FVC_DISABLE_FUSION) {
       return [];
     }
 
@@ -313,7 +314,7 @@ class VideoEditor {
       return;
     }
 
-    if (this.template.descriptor.global?.animations?.length && this.project.finalVideo) {
+    if (hasWholeVideoOverlays(this.template.descriptor.global) && this.project.finalVideo) {
       await this.animationComposer.appendAnimations(this.project.finalVideo);
     }
   }

@@ -112,6 +112,36 @@ export const GlobalAnimationSchema = z
   .strict()
   .describe('A single whole-video animation overlay composited over the final joined video.');
 
+// A still-image watermark composited over the whole video (e.g. a logo) — pure sugar that lowers into
+// a global.animations entry (see editor/presets/watermark.ts) so it reuses the whole-video overlay
+// pipeline untouched.
+export const WATERMARK_POSITIONS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+
+export const WatermarkSchema = z
+  .object({
+    url: z.string().describe('URL or path of the watermark image (png/jpg); may use {{ varName }}.'),
+    position: z
+      .enum(WATERMARK_POSITIONS)
+      .optional()
+      .describe('Corner the watermark is anchored to (default bottom-right).'),
+    scale: z
+      .number()
+      .min(0.02)
+      .max(0.5)
+      .optional()
+      .describe('Watermark width as a fraction of the output width, 0.02..0.5 (default 0.12).'),
+    opacity: z.number().min(0).max(1).optional().describe('Watermark alpha, 0..1 (default 0.8).'),
+    margin: z
+      .number()
+      .int()
+      .min(0)
+      .max(200)
+      .optional()
+      .describe('Inset from the frame edges in output pixels, 0..200 (default 24).'),
+  })
+  .strict()
+  .describe('A still-image watermark composited over the whole video (e.g. a logo).');
+
 // ── global config ──────────────────────────────────────────────────────────────
 
 export const OrientationSchema = z
@@ -156,6 +186,9 @@ export const GlobalConfigSchema = z
       .array(GlobalTextOverlaySchema)
       .optional()
       .describe('Whole-video text overlays (e.g. a brand watermark) composited onto every section.'),
+    watermark: WatermarkSchema.optional().describe(
+      'A still-image watermark (e.g. a logo) composited over the whole video, authored once per template.'
+    ),
     look: z
       .enum(LOOK_PRESETS)
       .optional()

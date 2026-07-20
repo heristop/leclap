@@ -15,6 +15,7 @@ import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
 import { resolveOrientationScale, resolveFps } from './resolve-video-config';
+import { hasWholeVideoOverlays } from '../editor/presets/watermark';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@/core/partials';
 import type Project from '../core/models/Project';
@@ -324,7 +325,7 @@ class TemplateDirector {
     return runFinalize({
       segments,
       hasTransition,
-      hasAnimations: (global?.animations?.length ?? 0) > 0,
+      hasAnimations: hasWholeVideoOverlays(global),
       musicEnabled: Boolean(global?.musicEnabled),
       musicWillRun: Boolean(global?.musicEnabled) && Boolean(this.project.buildInfos.musicPath),
       normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),

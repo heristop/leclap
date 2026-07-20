@@ -34,6 +34,7 @@ const FIXTURES = [
   'effects-showcase',
   'ducking',
   'sample',
+  'watermark',
 ];
 
 function load(id: string): TemplateDescriptor {

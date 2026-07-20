@@ -1,0 +1,25 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "watermark": {
+      "url": "pictures/logo.png",
+      "position": "bottom-right",
+      "scale": 0.15,
+      "opacity": 0.9,
+      "margin": 20
+    }
+  },
+  "sections": [
+    {
+      "name": "watermark_a",
+      "type": "color_background",
+      "options": { "backgroundColor": "#000000", "duration": 2 }
+    },
+    {
+      "name": "watermark_b",
+      "type": "color_background",
+      "options": { "backgroundColor": "#000000", "duration": 2 }
+    }
+  ]
+}

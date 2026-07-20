@@ -487,6 +487,41 @@
             "description": "A whole-video text overlay composited onto every section (or a named subset)."
           }
         },
+        "watermark": {
+          "description": "A still-image watermark (e.g. a logo) composited over the whole video, authored once per template.",
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "URL or path of the watermark image (png/jpg); may use {{ varName }}."
+            },
+            "position": {
+              "description": "Corner the watermark is anchored to (default bottom-right).",
+              "type": "string",
+              "enum": ["top-left", "top-right", "bottom-left", "bottom-right"]
+            },
+            "scale": {
+              "description": "Watermark width as a fraction of the output width, 0.02..0.5 (default 0.12).",
+              "type": "number",
+              "minimum": 0.02,
+              "maximum": 0.5
+            },
+            "opacity": {
+              "description": "Watermark alpha, 0..1 (default 0.8).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "margin": {
+              "description": "Inset from the frame edges in output pixels, 0..200 (default 24).",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            }
+          },
+          "required": ["url"],
+          "additionalProperties": false
+        },
         "look": {
           "description": "Colour-grade preset applied across every section (whole-video look).",
           "type": "string",

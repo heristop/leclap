@@ -2,7 +2,13 @@ import { z } from 'zod';
 import { TemplateDescriptorSchema, type SectionSchema, type InputSchema } from './section.schemas';
 import type { TemplatePartialSchema } from './partial.schemas';
 import type { FilterSchema, MapSchema } from './filter.schemas';
-import type { GlobalConfigSchema, VariablesSchema, TranslationSchema, MusicConfigSchema } from './global.schemas';
+import type {
+  GlobalConfigSchema,
+  VariablesSchema,
+  TranslationSchema,
+  MusicConfigSchema,
+  WatermarkSchema,
+} from './global.schemas';
 import type {
   TransitionSchema,
   GlobalAudioSchema,
@@ -34,6 +40,7 @@ export type GlobalConfig = z.infer<typeof GlobalConfigSchema>;
 export type Variables = z.infer<typeof VariablesSchema>;
 export type Translation = z.infer<typeof TranslationSchema>;
 export type MusicConfig = z.infer<typeof MusicConfigSchema>;
+export type Watermark = z.infer<typeof WatermarkSchema>;
 export type Transition = z.infer<typeof TransitionSchema>;
 export type GlobalAudio = z.infer<typeof GlobalAudioSchema>;
 export type Grade = z.infer<typeof GradeSchema>;

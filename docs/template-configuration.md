@@ -529,6 +529,24 @@ In the template builder, each image is picked from the bundled library or upload
 
 Each entry takes the same placement/playback options as a section animation input (`position`/`scale`/`opacity`/`rotation`, the playback extent `loop`/`loops`/`duration`, and `start`/`persistent`), minus `name`/`type`/`maps`. They composite in array order (later entries paint on top of earlier ones, on top of every section). A whole-video overlay sits **above** everything, including a section's own `maps[]` composite — for an overlay that must sit _under_ a section's drawn elements, keep it as a section input. The builder exposes these in its **Style & audio** step as "Whole-video animations".
 
+## Watermark
+
+`global.watermark` is authoring-time sugar for the single most common whole-video overlay: a still logo pinned to a corner for the entire video. It is pure sugar over `global.animations` — it lowers into one entry (`watermarkToAnimation`, prepended so any explicit `global.animations[]` entry still composites on top of it) and needs no dedicated engine support of its own.
+
+```jsonc
+"global": {
+  "watermark": {
+    "url": "pictures/logo.png", // png/jpg watermark image; may use {{ varName }}
+    "position": "bottom-right", // top-left / top-right / bottom-left / bottom-right (default bottom-right)
+    "scale": 0.12,              // fraction of the output WIDTH, 0.02..0.5 (default 0.12)
+    "opacity": 0.8,             // 0..1 (default 0.8)
+    "margin": 24                // inset from the frame edges in output px, 0..200 (default 24)
+  }
+}
+```
+
+`scale` resolves against the project's output width into a pixel width emitted as `"<px>:-1"` (aspect-preserving); `position` resolves to the corner's overlay `x:y` expression (e.g. bottom-right → `"W-w-<margin>:H-h-<margin>"`). Exactly one watermark per template — it is authoring-time only (no end-user override) and always spans the whole video (no `start`/`duration`).
+
 ## Maps
 
 `maps[]` wires the FFmpeg filtergraph explicitly — only needed for multi-input / overlay sections beyond what the sugar covers.

@@ -36,10 +36,35 @@ export function buildLoopFlags(options: LoopOptions, maxDuration?: number): stri
   return options.loop ? `-stream_loop -1 ${offset}` : offset;
 }
 
+// Single-file formats FFmpeg decodes as a LIVE/animated stream — mirrors the gate
+// SegmentBuilder.resolveAnimationSource already uses for the section path, so both paths agree on
+// what counts as "animated". `.webp` CAN be a still image, but the whole-video path has always
+// stream-looped it (there is no `type` discriminator on GlobalAnimation to disambiguate, unlike the
+// section input's `type: 'image' | 'animation'`); keeping it here preserves that existing behavior
+// instead of silently reinterpreting an already-working `.webp` overlay as a still.
+const ANIMATED_EXTENSIONS = /\.(apng|webp|gif|webm)$/i;
+
+// Still-raster formats a global animation overlay can name: anything that looks like a plain image
+// and is NOT already claimed by ANIMATED_EXTENSIONS above (so `.webp` never matches here).
+const STILL_IMAGE_EXTENSIONS = /\.(png|jpe?g)$/i;
+
+/**
+ * True when a `global.animations[].url` names a still raster image (`.png`/`.jpg`/`.jpeg`) rather than
+ * an animated single-file format. Used by AnimationComposer to route the overlay to the `-loop 1`
+ * still-image source (buildSingleFileImageSource) instead of the stream-looped animation source —
+ * without this, a still decodes as ONE frame and vanishes (or freezes only incidentally via
+ * `persistent: true`'s `eof_action=repeat`).
+ */
+export function isStillAnimationUrl(url: string): boolean {
+  return !ANIMATED_EXTENSIONS.test(url) && STILL_IMAGE_EXTENSIONS.test(url);
+}
+
 /**
  * Single-file animation source (`.apng`/`.webp`/`.gif`/`.webm`): `[-c:v libvpx-vp9] [loop flags] -i <path>`.
  * `.webm` gets `-c:v libvpx-vp9` BEFORE everything so its alpha channel decodes. The loop/duration
  * flags come from buildLoopFlags; `maxDuration` is the optional whole-video ceiling for finite loops.
+ * Still images (isStillAnimationUrl) never reach this function — AnimationComposer routes them to
+ * buildSingleFileImageSource instead.
  */
 export function buildSingleFileAnimationSource(
   input: { url: string; options: LoopOptions },
@@ -238,7 +263,10 @@ export function overlayMotionExpr(motion: OverlayMotionInput | undefined, positi
 /**
  * Still-image overlay source (`.jpg`/`.png`/`.webp`): `-loop 1 -i <path>` — the image2 demuxer holds
  * the single frame as a stream so it composites over the section for its whole duration (bounded by
- * the main video via `-shortest`), the same way an animation's `-stream_loop -1` holds it.
+ * the main video via `-shortest`), the same way an animation's `-stream_loop -1` holds it. Shared by
+ * the per-section overlay (SegmentBuilder.resolveAnimationSource) and the whole-video pass
+ * (AnimationComposer.buildOverlaySources, gated by isStillAnimationUrl) — both hold a still identically,
+ * only the enable-gate's `t` semantics differ (see imageOverlayEnable).
  */
 export function buildSingleFileImageSource(path: string): string {
   return `-loop 1 -i ${assertSafeArgToken(path, 'image source')}`;
@@ -251,9 +279,13 @@ export function buildSingleFileImageSource(path: string): string {
  * filter's timeline support instead — core LGPL, no extra filter:
  *   - start S + duration D → `:enable='between(t,S,S+D)'`
  *   - duration D only      → `:enable='between(t,0,D)'`
- *   - start S only         → `:enable='gte(t,S)'` (visible until the section ends)
- *   - neither              → '' (the image spans the whole section, unchanged behavior)
- * `t` is the section-relative timestamp: each section compiles as its own segment starting at 0.
+ *   - start S only         → `:enable='gte(t,S)'` (visible until the section/video ends)
+ *   - neither              → '' (the image spans the whole window, unchanged behavior)
+ * `t` is the section-relative timestamp for the per-section path (each section compiles as its own
+ * segment starting at 0); AnimationComposer reuses the exact same expression for its whole-video
+ * still overlays, where `t` is instead the VIDEO-GLOBAL timestamp (the post-concat pass runs once
+ * over the whole joined output) — the formula is agnostic to what `t` means, only the caller's
+ * `start`/`duration` values (already in the right timebase) differ.
  */
 export function imageOverlayEnable(options: { start?: number; duration?: number }): string {
   const start = options.start ?? 0;

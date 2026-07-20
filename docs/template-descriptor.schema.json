@@ -234,7 +234,7 @@
             "properties": {
               "url": {
                 "type": "string",
-                "description": "URL or file path of the animation overlay (.apng/.webp/.gif/.webm); may use {{ varName }}."
+                "description": "URL or file path of the overlay — an animated single-file format (.apng/.webp/.gif/.webm), stream-looped, or a still raster image (.png/.jpg/.jpeg), held with -loop 1 for the whole video; may use {{ varName }}."
               },
               "position": {
                 "description": "Overlay position as \"x:y\" in output pixels (e.g. \"0:0\" top-left).",

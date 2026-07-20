@@ -514,7 +514,7 @@ In the template builder, each image is picked from the bundled library or upload
 "global": {
   "animations": [
     {
-      "url": "animations/light_leak.apng", // .apng/.webp/.gif/.webm, may use {{ varName }}
+      "url": "animations/light_leak.apng", // animated: .apng/.webp/.gif/.webm (stream-looped); still: .png/.jpg/.jpeg (-loop 1, always spans the whole video — start/duration gate its VISIBLE window, not its loop). May use {{ varName }}.
       "duration": 8,        // play for 8s (omit for `loop: true` to span the whole video)
       "start": 3,           // delay before it appears, seconds (default 0)
       "opacity": 0.35,      // 0..1, default 1 — fade the overlay

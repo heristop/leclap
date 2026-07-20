@@ -59,7 +59,10 @@ export const GlobalAnimationSchema = z
   .object({
     url: z
       .string()
-      .describe('URL or file path of the animation overlay (.apng/.webp/.gif/.webm); may use {{ varName }}.'),
+      .describe(
+        'URL or file path of the overlay — an animated single-file format (.apng/.webp/.gif/.webm), stream-looped, ' +
+          'or a still raster image (.png/.jpg/.jpeg), held with -loop 1 for the whole video; may use {{ varName }}.'
+      ),
     position: z.string().optional().describe('Overlay position as "x:y" in output pixels (e.g. "0:0" top-left).'),
     scale: z.string().optional().describe('Scale expression applied to the overlay before compositing, as "w:h".'),
     fit: OverlayFitSchema.optional(),

@@ -3,7 +3,10 @@ import type { GlobalAnimation } from '@/core/types';
 import { buildColorMetadataArgs, buildPixFmtArg, buildVideoEncoderArgs } from '@/core/encoding';
 import {
   buildSingleFileAnimationSource,
+  buildSingleFileImageSource,
   buildAnimationLegFilters,
+  imageOverlayEnable,
+  isStillAnimationUrl,
   overlayMotionExpr,
   type OverlayMotion,
 } from './utils/input-sources';
@@ -149,10 +152,19 @@ class AnimationComposer {
 
   // The `-i` source args for the staged animations (loop/offset/duration flags), bounded by
   // maxDuration so an over-long loop can't lengthen the output. Shared by the standalone overlay
-  // command and the fused transition+overlay assembly (VideoEditor).
+  // command and the fused transition+overlay assembly (VideoEditor). A still image (isStillAnimationUrl)
+  // gets the SAME `-loop 1` source the section path uses (buildSingleFileImageSource) instead of
+  // being stream-looped as if it were an animated format — its own start/duration are NOT applied
+  // here (no -itsoffset/-t/maxDuration ceiling); they lower to an overlay `enable=` gate instead, in
+  // buildOverlayGraph, because the still's `-loop 1` source is always infinite and the video-global
+  // `t` the post-concat overlay sees is the natural place to bound a still's show window.
   buildOverlaySources(staged: StagedAnimation[], maxDuration?: number): string {
     return staged
-      .map(({ anim, path }) => buildSingleFileAnimationSource({ url: anim.url, options: anim }, path, { maxDuration }))
+      .map(({ anim, path }) =>
+        isStillAnimationUrl(anim.url)
+          ? buildSingleFileImageSource(path)
+          : buildSingleFileAnimationSource({ url: anim.url, options: anim }, path, { maxDuration })
+      )
       .join(' ');
   }
 
@@ -219,7 +231,14 @@ class AnimationComposer {
       // expressions are not mis-parsed as extra filter options; otherwise the static positional form.
       const placement = motion.x || motion.y ? `x='${motion.x}':y='${motion.y}'` : (anim.position ?? '0:0');
 
-      overlays.push(`${base}${legRef}overlay=${placement}:eof_action=${this.overlayEof(anim)}${out}`);
+      // A still image's start/duration never reach its `-loop 1` source (buildOverlaySources), so they
+      // lower here to the overlay filter's own timeline support instead — the same imageOverlayEnable
+      // expression the per-section overlay uses, just against the video-global `t` this pass sees.
+      const timeline = isStillAnimationUrl(anim.url)
+        ? imageOverlayEnable({ start: anim.start, duration: anim.duration })
+        : '';
+
+      overlays.push(`${base}${legRef}overlay=${placement}:eof_action=${this.overlayEof(anim)}${timeline}${out}`);
       base = `[${chainPrefix}${k}]`;
     }
 
@@ -264,11 +283,15 @@ class AnimationComposer {
     return pad;
   }
 
-  // eof_action + optional `:shortest=1`. shortest only bounds the legacy infinite `loop:true` case;
-  // duration/loops sources are already finite (via -t / -stream_loop N).
+  // eof_action + optional `:shortest=1`. shortest bounds any INFINITE source to the base video:
+  // the legacy `loop:true` animation case, and every still image — a still's `-loop 1` source
+  // (buildOverlaySources) is always infinite (its start/duration lower to the enable gate above
+  // instead of an input `-t`), so it always needs the same terminator or the overlay — and the
+  // whole encode, since this pass has no output `-t` of its own — would never reach EOF.
   private overlayEof(anim: GlobalAnimation): string {
     const eofAction = anim.persistent ? 'repeat' : 'pass';
-    const infiniteLoop = anim.loop === true && anim.loops === undefined && anim.duration === undefined;
+    const infiniteLoop =
+      isStillAnimationUrl(anim.url) || (anim.loop === true && anim.loops === undefined && anim.duration === undefined);
 
     return infiniteLoop ? `${eofAction}:shortest=1` : eofAction;
   }

@@ -3,6 +3,7 @@ import {
   buildAnimationLegFilters,
   buildGradientSource,
   buildSingleFileAnimationSource,
+  isStillAnimationUrl,
   overlayMotionExpr,
   resolveLayerGeometry,
 } from '@/editor/utils/input-sources';
@@ -380,6 +381,30 @@ describe('buildGradientSource angle', () => {
   it('is ignored for non-linear shapes, which keep their centred origin', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 90, shape: 'radial' } }, '1280:720', 4);
     expect(src).toContain('x0=640:y0=360:x1=1280:y1=720');
+  });
+});
+
+// Detects a still image (.png/.jpg/.jpeg) among global.animations URLs, mirroring the animated-format
+// gate SegmentBuilder.resolveAnimationSource already uses for the section path. `.webp` stays classified
+// as ANIMATED (not still) to preserve today's whole-video behavior of stream-looping it — an animated
+// .webp overlay must keep working exactly as before.
+describe('isStillAnimationUrl', () => {
+  it('is true for png/jpg/jpeg', () => {
+    expect(isStillAnimationUrl('/a/b/logo.png')).toBe(true);
+    expect(isStillAnimationUrl('/a/b/logo.jpg')).toBe(true);
+    expect(isStillAnimationUrl('/a/b/logo.jpeg')).toBe(true);
+    expect(isStillAnimationUrl('/a/b/LOGO.PNG')).toBe(true);
+  });
+
+  it('is false for the animated single-file formats, including .webp', () => {
+    expect(isStillAnimationUrl('/a/b/glow.apng')).toBe(false);
+    expect(isStillAnimationUrl('/a/b/glow.gif')).toBe(false);
+    expect(isStillAnimationUrl('/a/b/glow.webm')).toBe(false);
+    expect(isStillAnimationUrl('/a/b/glow.webp')).toBe(false);
+  });
+
+  it('is false for an unrelated/unknown extension', () => {
+    expect(isStillAnimationUrl('/a/b/clip.mp4')).toBe(false);
   });
 });
 

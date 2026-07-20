@@ -234,3 +234,101 @@ describe('AnimationComposer.appendAnimations', () => {
     expect(cmd).not.toContain('shortest=1');
   });
 });
+
+// A still image (.png/.jpg/.jpeg) in global.animations must decode as a LIVE stream (`-loop 1`), not a
+// single frame — the bug this task fixes. `.webp` stays on the animated (`-stream_loop`) path to
+// preserve today's behavior, since it can itself be an animation.
+describe('AnimationComposer still-image whole-video overlays', () => {
+  const LOGO_PNG = '/assets/images/logo.png';
+  const LOGO_JPG = '/assets/images/logo.jpg';
+
+  it('loops a .png overlay with -loop 1 instead of stream-looping it', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.png');
+    expect(cmd).not.toContain('-stream_loop');
+  });
+
+  it('loops a .jpg overlay with -loop 1 too', async () => {
+    const { composer, executed } = setup([{ url: LOGO_JPG }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain('-loop 1 -i /build/assets/logo.jpg');
+  });
+
+  it('keeps .apng/.gif/.webm/.webp on the stream-looped animation path (regression)', async () => {
+    const { composer, executed } = setup([
+      { url: '/assets/animations/a.apng', loop: true },
+      { url: '/assets/animations/b.gif', loop: true },
+      { url: '/assets/animations/c.webm', loop: true },
+      { url: '/assets/animations/d.webp', loop: true },
+    ]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    expect(cmd).toContain('-stream_loop -1 -i /build/assets/a.apng');
+    expect(cmd).toContain('-stream_loop -1 -i /build/assets/b.gif');
+    expect(cmd).toContain('-c:v libvpx-vp9 -stream_loop -1 -i /build/assets/c.webm');
+    expect(cmd).toContain('-stream_loop -1 -i /build/assets/d.webp');
+    expect(cmd).not.toContain('-loop 1');
+  });
+
+  it('bounds the -loop 1 (infinite) source to the base video via shortest=1, eof pass by default', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain('[0:v][1:v]overlay=0:0:eof_action=pass:shortest=1[vout]');
+  });
+
+  it('freezes the still on its last frame when persistent (still gets shortest=1 either way)', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG, persistent: true }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain('[0:v][1:v]overlay=0:0:eof_action=repeat:shortest=1[vout]');
+  });
+
+  it('lowers start+duration to an overlay enable gate instead of trimming the (always-looped) source', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG, start: 2, duration: 4 }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    const cmd = executed[0];
+    // the source stays a bare infinite loop — start/duration never reach the input flags
+    expect(cmd).toContain('-loop 1 -i /build/assets/logo.png');
+    expect(cmd).not.toContain('-itsoffset');
+    expect(cmd).not.toContain('-t 4');
+    // the timing is expressed as a video-global `enable` gate on the overlay filter instead
+    expect(cmd).toContain("[0:v][1:v]overlay=0:0:eof_action=pass:shortest=1:enable='between(t,2,6)'[vout]");
+  });
+
+  it('gates a duration-only still from t=0', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG, duration: 4 }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain("[0:v][1:v]overlay=0:0:eof_action=pass:shortest=1:enable='between(t,0,4)'[vout]");
+  });
+
+  it('gates a start-only still with gte (visible until the video ends)', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG, start: 3 }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain("[0:v][1:v]overlay=0:0:eof_action=pass:shortest=1:enable='gte(t,3)'[vout]");
+  });
+
+  it('applies scale/opacity leg filters on a still exactly like an animation leg', async () => {
+    const { composer, executed } = setup([{ url: LOGO_PNG, scale: '200:-1', opacity: 0.5 }]);
+
+    await composer.appendAnimations('/build/output.mp4');
+
+    expect(executed[0]).toContain('[1:v]scale=200:-1,setsar=1,format=rgba,colorchannelmixer=aa=0.5[anim0]');
+  });
+});

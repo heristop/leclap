@@ -105,6 +105,7 @@
   "stepResult": {
     "title": "Dein Video ist fertig!",
     "subtitle": "Lade deine Kreation herunter und teile sie",
+    "editProject": "Dieses Video weiter bearbeiten",
     "createAnother": "Noch ein Video erstellen"
   },
   "stepForm": {

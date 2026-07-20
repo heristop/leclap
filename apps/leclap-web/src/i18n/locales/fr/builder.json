@@ -105,6 +105,7 @@
   "stepResult": {
     "title": "Ta vidéo est prête !",
     "subtitle": "Télécharge et partage ta création",
+    "editProject": "Continuer à modifier cette vidéo",
     "createAnother": "Créer une autre vidéo"
   },
   "stepForm": {

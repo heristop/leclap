@@ -189,7 +189,7 @@ const StepResult = ({
               {...backHoverProps}
             >
               <ArrowLeftIcon ref={backRef} size={18} />
-              <span>{t('actions.back', { ns: 'common' })}</span>
+              <span>{t('stepResult.editProject')}</span>
             </Button>
             <Button variant="link" onClick={onReset} className="w-full sm:w-auto px-6 py-3" {...resetHoverProps}>
               <span>{t('stepResult.createAnother')}</span>

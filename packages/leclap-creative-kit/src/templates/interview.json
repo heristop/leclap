@@ -13,13 +13,19 @@
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",
-      "duration": 0.4
+      "duration": 0.5
     },
     "audio": {
       "sourceVolume": 1,
-      "musicVolume": 0.18,
+      "musicVolume": 0.25,
+      "musicFade": 0.8,
       "normalize": "loudnorm",
-      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
     }
   },
   "sections": [
@@ -62,8 +68,8 @@
       "name": "intro",
       "type": "color_background",
       "transition": {
-        "type": "smoothright",
-        "duration": 0.4
+        "type": "fade",
+        "duration": 0.6
       },
       "options": {
         "backgroundColor": "#0d1b2a",
@@ -179,19 +185,55 @@
       ]
     },
     {
+      "name": "question",
+      "type": "color_background",
+      "transition": {
+        "type": "slideleft",
+        "duration": 0.8
+      },
+      "titleCard": {
+        "kicker": {
+          "en": "QUESTION"
+        },
+        "headline": {
+          "en": "{{ form_1_question }}"
+        },
+        "subtitle": {
+          "en": "{{ form_1_name }} · {{ form_1_title }}"
+        },
+        "headlineStyle": {
+          "font": "Oswald.ttf",
+          "fontsize": 46
+        },
+        "accent": "#7C83FD",
+        "align": "center",
+        "reveal": "rise",
+        "effect": {
+          "shadow": true
+        }
+      },
+      "options": {
+        "backgroundColor": "#0d1b2a",
+        "duration": 3.2
+      },
+      "filters": [
+        {
+          "type": "vignette"
+        }
+      ]
+    },
+    {
       "name": "video_1",
       "type": "project_video",
       "look": "teal-orange",
-      "grade": { "colorBalance": { "shadows": { "b": 0.05 }, "highlights": { "r": 0.04 } } },
-      "caption": {
-        "text": {
-          "en": "{{ form_1_question }}"
-        },
-        "style": "bar",
-        "position": "top",
-        "align": "center",
-        "effect": {
-          "shadow": true
+      "grade": {
+        "colorBalance": {
+          "shadows": {
+            "b": 0.05
+          },
+          "highlights": {
+            "r": 0.04
+          }
         }
       },
       "title": {
@@ -205,7 +247,7 @@
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
-        "musicVolume": 0.08,
+        "musicVolume": 0.04,
         "framingGuide": {
           "type": "silhouette",
           "position": "center"
@@ -214,6 +256,22 @@
       "filters": [
         {
           "type": "vignette"
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_question }}"
+            },
+            "fontcolor": "#f5f5f0",
+            "fontsize": 38,
+            "x": "(w-text_w)/2",
+            "y": 64,
+            "fontfile": "Oswald.ttf",
+            "bordercolor": "#0d1b2a",
+            "borderw": 3,
+            "alpha": "'if(lt(t,0.5),0,if(lt(t,1.2),(t-0.5)/0.7,if(lt(t,5.0),1,if(lt(t,5.9),1-(t-5.0)/0.9,0))))'"
+          }
         },
         {
           "type": "drawbox",

@@ -17,7 +17,8 @@
     },
     "audio": {
       "sourceVolume": 1,
-      "musicVolume": 0.3,
+      "musicVolume": 0.25,
+      "musicFade": 0.8,
       "normalize": "loudnorm",
       "ducking": {
         "threshold": 0.05,
@@ -99,7 +100,7 @@
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
-        "musicVolume": 0.15
+        "musicVolume": 0.04
       },
       "filters": [
         {
@@ -156,7 +157,7 @@
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
-        "musicVolume": 0.15
+        "musicVolume": 0.04
       },
       "filters": [
         {
@@ -210,7 +211,7 @@
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
-        "musicVolume": 0.15
+        "musicVolume": 0.04
       },
       "filters": [
         {

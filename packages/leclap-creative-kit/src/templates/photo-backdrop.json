@@ -17,6 +17,8 @@
     },
     "audio": {
       "sourceVolume": 1,
+      "musicVolume": 0.25,
+      "musicFade": 0.8,
       "normalize": "loudnorm",
       "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
     }
@@ -116,7 +118,7 @@
         "forceAspectRatio": true,
         "countdown": true,
         "countdownDuration": 2,
-        "musicVolume": 0.12
+        "musicVolume": 0.04
       },
       "filters": [
         {

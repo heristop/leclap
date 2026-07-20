@@ -8,7 +8,8 @@ import type AbstractMusic from '../platform/ffmpeg/AbstractMusic';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import { resolveVideoInput, type VideoSource } from './utils/video-input';
-import { resolveMusicFade, buildMusicFilter } from './utils/music-fade';
+import { resolveMusicFade } from './utils/music-fade';
+import { finalizeLeg, type PendingLeg } from './utils/music-leg';
 import { musicAssetUrl } from '@/core/asset-source';
 
 type AppendMusicOptions = {
@@ -29,6 +30,10 @@ class MusicComposer {
   // Memoized result of resolveMusicFade — computed once per build since it only depends on
   // instance-constant inputs (the descriptor's configured musicFade/transition, and the section list).
   private resolvedMusicFade: number | null = null;
+
+  // The most recently seen section whose true video-timeline advance is still unknown (it depends on
+  // the transition into the NEXT section — see prepareMusicTrack/finalizeLeg). null once flushed.
+  private pendingLeg: PendingLeg | null = null;
 
   private readonly project: Project;
   private readonly template: Template;
@@ -182,18 +187,42 @@ class MusicComposer {
     return section.options?.duration ?? 0;
   }
 
+  // Per-section override wins; otherwise fall back to the template-wide music level (the builder's
+  // music slider), then the engine default. 0 = silent music.
+  private resolveMusicVolumeLevel(section: Section): number {
+    return section.options?.musicVolume ?? this.template.descriptor.global?.audio?.musicVolume ?? 0.5;
+  }
+
+  // Memoized ONCE per build (see ./utils/music-fade): decouples the music leg-to-leg blend from
+  // transitionDuration, which afade in/out still use as-is (a video-synced fade to/from silence at
+  // the start/end, not a leg blend, so it has no reason to track this).
+  private resolveTransitionAndFade(): { transitionDuration: number; musicFade: number } {
+    const transitionDuration = this.template.descriptor.global?.transition?.duration ?? DEFAULT_TRANSITION_DURATION;
+    const musicFade = (this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration));
+
+    return { transitionDuration, musicFade };
+  }
+
   /**
-   * Configure audio filters for video segment
+   * Configure audio filters for video segment.
+   *
+   * Each non-cut boundary overlaps its two VIDEO clips (xfade), shortening the rendered video
+   * timeline by that boundary's effective (capped) transition duration. The music track must track
+   * that SAME compressed timeline, or its volume envelope (e.g. a flash-card's louder `musicVolume`)
+   * drifts later and later relative to the section it's meant to cover — this is the bug this method
+   * fixes (see ./utils/music-leg for the arithmetic).
+   *
+   * A leg's own advance depends on the transition into the NEXT section, so it can't be finalized
+   * (pushed to musicFilters) until that next section's duration is known. Each call therefore
+   * finalizes the PREVIOUS section (now that this section's duration closes the gap) before storing
+   * itself as the new pending leg — except the last section, which has no outgoing boundary to wait
+   * for and finalizes immediately. `musicFilters` is joined into one `-filter_complex` string later
+   * (in buildFilterComplex), so pushing leg N's own filter one call after leg N started doesn't
+   * matter — ffmpeg's filtergraph parser links labels regardless of statement order.
    */
   prepareMusicTrack = (section: Section): void => {
-    // Per-section override wins; otherwise fall back to the template-wide music level (the builder's
-    // music slider), then the engine default. 0 = silent music.
-    const musicVolumeLevel = section.options?.musicVolume ?? this.template.descriptor.global?.audio?.musicVolume ?? 0.5;
-    const transitionDuration = this.template.descriptor.global?.transition?.duration ?? DEFAULT_TRANSITION_DURATION;
-    // Memoized ONCE per build (see ./utils/music-fade): decouples the music leg-to-leg blend from
-    // transitionDuration, which afade in/out below still use as-is (a video-synced fade to/from
-    // silence at the start/end, not a leg blend, so it has no reason to track this).
-    const musicFade = (this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration));
+    const musicVolumeLevel = this.resolveMusicVolumeLevel(section);
+    const { transitionDuration, musicFade } = this.resolveTransitionAndFade();
 
     const duration = this.getSectionDuration(section);
 
@@ -204,48 +233,51 @@ class MusicComposer {
 
     this.project.buildInfos.currentIncrement = sectionIncrement;
 
-    const ss = this.project.buildInfos.currentLength;
-    const t = duration + musicFade;
+    // This section's duration is exactly what the PREVIOUS (pending) leg was waiting for — finalize
+    // it now, which also advances currentLength to this leg's correct start.
+    if (this.pendingLeg) {
+      this.pushFinalizedLeg(this.pendingLeg, duration, transitionDuration, musicFade);
+      this.pendingLeg = null;
+    }
 
-    // Advance the music cursor by the FULL section duration so the next section's window starts
-    // exactly where this one's content ends. The acrossfade (d=musicFade) then blends each leg's
-    // last `musicFade` seconds with the next leg's first `musicFade` seconds over IDENTICAL source
-    // audio, keeping the music continuous. Subtracting the boundary transition here shifted the next
-    // window early, so the acrossfade blended two offset copies of the song — a doubled, time-shifted
-    // echo most audible in a music-only outro. The window tail and the acrossfade `d` MUST stay equal
-    // (both derive from `musicFade` here) or this invariant breaks.
-    this.project.buildInfos.currentLength += duration;
-
-    const baseFilter = `[1:a]atrim=start=${ss}:duration=${t},asetpts=PTS-STARTPTS`;
-    const filter = buildMusicFilter({
-      baseFilter,
-      isFirstSection,
-      isLastSection,
-      transitionDuration,
+    const leg: PendingLeg = {
+      ss: this.project.buildInfos.currentLength,
       duration,
+      sectionIncrement,
+      isFirstSection,
       musicVolumeLevel,
       mapName,
-    });
+    };
 
-    this.project.buildInfos.musicFilters.push(` ${filter}`);
+    if (isLastSection) {
+      // No outgoing boundary to wait for — finalize immediately (advance = its own full duration).
+      this.pushFinalizedLeg(leg, null, transitionDuration, musicFade);
 
-    if (sectionIncrement > 1) {
-      this.appendCrossfadeFilter(sectionIncrement, mapName, isLastSection, musicFade);
+      return;
     }
+
+    this.pendingLeg = leg;
   };
 
-  private appendCrossfadeFilter(
-    sectionIncrement: number,
-    mapName: string,
-    isLastSection: boolean,
+  // Resolves the leg's filter + crossfade via ./utils/music-leg (pure), then applies its side
+  // effects: pushes both filter strings and advances currentLength to the leg's true video-timeline
+  // advance.
+  private pushFinalizedLeg(
+    leg: PendingLeg,
+    nextDuration: number | null,
+    transitionDuration: number,
     musicFade: number
   ): void {
-    const acrossfadeMapName = isLastSection ? 'lastcrossed' : `crossed${sectionIncrement - 1}`;
-    const previousMapName =
-      sectionIncrement === 2 ? `section${sectionIncrement - 1}` : `crossed${sectionIncrement - 2}`;
+    const transition = this.project.buildInfos.transitions[leg.sectionIncrement - 1];
+    const resolved = finalizeLeg(leg, nextDuration, transition, transitionDuration, musicFade);
 
-    const crossfade = ` [${previousMapName}][${mapName}]acrossfade=d=${musicFade}:c1=tri:c2=tri[${acrossfadeMapName}];`;
-    this.project.buildInfos.musicFilters.push(crossfade);
+    this.project.buildInfos.musicFilters.push(` ${resolved.filter}`);
+
+    if (resolved.crossfade) {
+      this.project.buildInfos.musicFilters.push(resolved.crossfade);
+    }
+
+    this.project.buildInfos.currentLength = resolved.nextCurrentLength;
   }
 
   // Comma-prefixed normalize filter string inserted at the end of the chain that produces

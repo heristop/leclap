@@ -202,8 +202,12 @@ describe('MusicComposer.prepareMusicTrack', () => {
     const { composer } = makeComposer({ project, template });
 
     composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4, musicVolume: 0.8 } });
-
     expect(project.buildInfos.currentIncrement).toBe(1);
+
+    // A leg's own filter is only pushed once the transition into the NEXT section is known (see
+    // finalizeLeg) — a second call flushes section 1.
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
     const filters = project.buildInfos.musicFilters.join('');
     expect(filters).toContain('afade=t=in:st=0:d=0.5');
     expect(filters).toContain('volume=0.8');
@@ -216,6 +220,9 @@ describe('MusicComposer.prepareMusicTrack', () => {
     const { composer } = makeComposer({ project });
 
     composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+    // section 2's own filter + its crossfade against section 1 are only pushed once section 3's
+    // duration is known.
+    composer.prepareMusicTrack({ name: 's3', type: 'video', options: { duration: 4 } });
 
     const filters = project.buildInfos.musicFilters.join('');
     // default volume level 0.5, no fade for a middle section
@@ -449,10 +456,11 @@ describe('MusicComposer.loopMusic', () => {
 });
 
 describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => {
-  it('does not shift the next window for a non-cut transition, so acrossfade legs stay source-contiguous', () => {
+  it('shifts the next window early by the boundary overlap, shrinking the PRIOR leg to match (video-timeline aligned, still source-contiguous)', () => {
     const project = makeProject();
     project.buildInfos.totalSegments = 2;
-    // Boundary 0 (after section 1) is a wipeleft transition of duration 0.5.
+    // Boundary 0 (after section 1) is a wipeleft transition of duration 0.5 — this overlaps 0.5s of
+    // VIDEO between the two clips, so the video timeline is only 4 + 4 - 0.5 = 7.5s long.
     project.buildInfos.transitions = [{ type: 'wipeleft', duration: 0.5 }];
     const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.3 } } });
     const { composer } = makeComposer({ project, template });
@@ -463,16 +471,18 @@ describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => 
     composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
 
     const filters = project.buildInfos.musicFilters.join('');
-    // Section 1: ss=0, window covers source [0, 4.3].
-    expect(filters).toContain('atrim=start=0:duration=4.3');
-    // Section 2 must start at the FULL section-1 duration (4), NOT 4 - 0.5. With start=4 the
-    // acrossfade (d=0.3) blends section-1's last 0.3s (source [4.0, 4.3]) with section-2's first
-    // 0.3s (source [4.0, 4.3]) — identical content, so the music stays continuous instead of
-    // playing two offset copies of the song at the boundary.
-    expect(filters).toContain('atrim=start=4:duration=4.3');
+    // Section 1's advance is shrunk by the same 0.5s the video overlap consumes (4 - 0.5 = 3.5), so
+    // its window is shortened to match: t = 3.5 + 0.3 = 3.8, covering source [0, 3.8].
+    expect(filters).toContain('atrim=start=0:duration=3.8');
+    // Section 2 starts at 3.5 (section 1's advance), matching the video's own compressed timeline —
+    // NOT at the full, uncompressed 4. Section 1's tail (its last 0.3s, source [3.5, 3.8]) is
+    // IDENTICAL to section 2's head (its first 0.3s, source [3.5, 3.8]) because both derive from the
+    // same shrunk advance, so the d=0.3 acrossfade still blends one continuous copy of the song, not
+    // two offset copies (the doubled/echo failure mode this must avoid).
+    expect(filters).toContain('atrim=start=3.5:duration=4.3');
   });
 
-  it('cut transition does not shift the window', () => {
+  it('cut transition does not shift the window (no video overlap)', () => {
     const project = makeProject();
     project.buildInfos.totalSegments = 2;
     project.buildInfos.transitions = [{ type: 'cut', duration: 0.5 }];
@@ -483,7 +493,8 @@ describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => 
     composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
 
     const filters = project.buildInfos.musicFilters.join('');
-    // No shift: section 2 starts at 4 (full duration of section 1)
+    // A cut has zero video overlap (buildInfos.transitions stores duration:0 for it upstream) — no
+    // shift: section 2 starts at 4 (full duration of section 1)
     expect(filters).toContain('atrim=start=4:duration=4.3');
   });
 
@@ -502,11 +513,12 @@ describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => 
     expect(filters).toContain('atrim=start=5:duration=3.3');
   });
 
-  it('keeps adjacent acrossfade legs source-contiguous across three sections (no doubled echo)', () => {
+  it('keeps adjacent acrossfade legs source-contiguous across three sections with mixed transitions (no doubled echo)', () => {
     const project = makeProject();
     project.buildInfos.totalSegments = 3;
-    // Every boundary is a non-cut transition; whatever their nominal durations, the music windows
-    // must stay contiguous in source time so each acrossfade splices identical audio.
+    // Every boundary is a non-cut transition; each leg's advance shrinks by its OWN boundary's
+    // overlap, and the music windows still stay contiguous in source time so each acrossfade splices
+    // identical audio.
     project.buildInfos.transitions = [
       { type: 'fade', duration: 0.5 },
       { type: 'wipeleft', duration: 0.7 },
@@ -519,12 +531,37 @@ describe('MusicComposer.prepareMusicTrack — source-contiguous windows', () => 
     composer.prepareMusicTrack({ name: 's3', type: 'video', options: { duration: 5 } });
 
     const filters = project.buildInfos.musicFilters.join('');
-    // Each window starts at the cumulative FULL duration of the prior sections (0, 4, 10) and runs
-    // for duration + global-transition (0.3). Leg N's tail [start+dur, start+dur+0.3] therefore
-    // equals leg N+1's head [start, start+0.3], so the d=0.3 acrossfade never blends offset audio.
-    expect(filters).toContain('atrim=start=0:duration=4.3'); // leg1 source [0, 4.3]
-    expect(filters).toContain('atrim=start=4:duration=6.3'); // leg2 source [4, 10.3] — head [4,4.3] == leg1 tail
-    expect(filters).toContain('atrim=start=10:duration=5.3'); // leg3 source [10, 15.3] — head [10,10.3] == leg2 tail
+    // advance1 = 4 - 0.5 = 3.5; advance2 = 6 - 0.7 = 5.3; advance3 = 5 (last, no boundary after it).
+    // Each window starts at the cumulative advance of the prior legs (0, 3.5, 8.8) and runs for
+    // advance + the global transition fade (0.3). Leg N's tail therefore equals leg N+1's head.
+    expect(filters).toContain('atrim=start=0:duration=3.8'); // leg1 source [0, 3.8]
+    expect(filters).toContain('atrim=start=3.5:duration=5.6'); // leg2 source [3.5, 9.1] — head == leg1 tail
+    expect(filters).toContain('atrim=start=8.8:duration=5.3'); // leg3 source [8.8, 14.1] — head == leg2 tail
+  });
+
+  it('cumulative music timeline equals the video timeline for a multi-section template with mixed per-section transition durations', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 4;
+    // Mixed transitions: a longer intro fade, a cut (no overlap), and a short wipe.
+    project.buildInfos.transitions = [
+      { type: 'fade', duration: 0.4 },
+      { type: 'cut', duration: 0 },
+      { type: 'wipeleft', duration: 0.2 },
+    ];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.2 } } });
+    const { composer } = makeComposer({ project, template });
+
+    const durations = [3.5, 2.8, 12, 4];
+
+    for (const [i, duration] of durations.entries()) {
+      composer.prepareMusicTrack({ name: `s${i + 1}`, type: 'video', options: { duration } });
+    }
+
+    // Video timeline length = sum(durations) - sum(effective per-boundary overlaps). None of these
+    // transitions get capped (all well under half of their adjacent sections), so the effective
+    // overlap is the declared duration, except the cut (0 overlap): 0.4 + 0 + 0.2 = 0.6.
+    const videoTimelineLength = durations.reduce((a, b) => a + b, 0) - 0.6;
+    expect(project.buildInfos.currentLength).toBeCloseTo(videoTimelineLength, 5);
   });
 });
 
@@ -642,9 +679,12 @@ describe('MusicComposer.prepareMusicTrack — musicFade decoupling', () => {
     composer.prepareMusicTrack({ name: 's3', type: 'video', options: { duration: 5 } });
 
     const filters = project.buildInfos.musicFilters.join('');
-    expect(filters).toContain('atrim=start=0:duration=4.8');
-    expect(filters).toContain('atrim=start=4:duration=6.8');
-    expect(filters).toContain('atrim=start=10:duration=5.8');
+    // advance1 = 4 - 0.5 = 3.5 (t = 3.5 + 0.8 = 4.3); advance2 = 6 - 0.7 = 5.3 (t = 5.3 + 0.8 = 6.1);
+    // advance3 = 5 (last section, t = 5 + 0.8 = 5.8). musicFade (0.8) is unaffected by the boundary
+    // overlaps — only the video-timeline advance is.
+    expect(filters).toContain('atrim=start=0:duration=4.3');
+    expect(filters).toContain('atrim=start=3.5:duration=6.1');
+    expect(filters).toContain('atrim=start=8.8:duration=5.8');
     expect(filters.match(/acrossfade=d=0\.8/g)).toHaveLength(2);
   });
 });

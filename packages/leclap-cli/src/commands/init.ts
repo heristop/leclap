@@ -346,12 +346,23 @@ export const init = defineCommand({
         console.error(fail(`${pc.bold(name)} already exists and is not empty`));
         process.exit(1);
       }
-    } catch {
-      // Directory doesn't exist yet — that's the happy path.
+    } catch (error) {
+      // ENOENT is the happy path (dir doesn't exist yet). Anything else — most importantly ENOTDIR,
+      // when the target name already exists as a regular file — is a real error; surface it cleanly
+      // instead of letting the later writes throw a raw stack.
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        console.error(fail(`Cannot create ${pc.bold(name)}: ${(error as Error).message}`));
+        process.exit(1);
+      }
     }
 
-    const mcp = await resolveChoice(args.mcp, args.yes, 'Set up the LeClap MCP server for AI-agent authoring?');
     const remotion = await resolveChoice(args.remotion, args.yes, 'Add a Remotion starter for animated intros?');
+    // A Remotion intro is rendered THROUGH the MCP (render_remotion_clip), so Remotion implies the MCP
+    // wiring — otherwise the generated project has an intro slot with no renderer (and a README that
+    // claims one exists). When Remotion is off, the MCP is still offered on its own.
+    const mcp = remotion
+      ? true
+      : await resolveChoice(args.mcp, args.yes, 'Set up the LeClap MCP server for AI-agent authoring?');
 
     const packageManager = detectPackageManager();
     const files = starterFiles(path.basename(dir), {

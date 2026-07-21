@@ -24,6 +24,13 @@ export class LiveRenderer {
   private frame = 0;
   private printedLines = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
+  // Restore the cursor if the process is interrupted mid-render — start() hides it, and without this
+  // a Ctrl-C between start() and finish* leaves the user's shell with a permanently hidden cursor.
+  private readonly onSigint = (): void => {
+    this.stop();
+    this.stream.write(CURSOR_SHOW);
+    process.exit(130);
+  };
 
   constructor(label: string, stream: NodeJS.WriteStream = process.stdout) {
     this.label = label;
@@ -33,6 +40,7 @@ export class LiveRenderer {
 
   start(): void {
     this.stream.write(CURSOR_HIDE);
+    process.on('SIGINT', this.onSigint);
     this.paint();
     this.timer = setInterval(() => {
       this.frame = (this.frame + 1) % SPINNER_FRAMES.length;
@@ -74,6 +82,8 @@ export class LiveRenderer {
       clearInterval(this.timer);
       this.timer = null;
     }
+
+    process.removeListener('SIGINT', this.onSigint);
   }
 
   private erase(): void {
@@ -96,7 +106,9 @@ export class LiveRenderer {
 
     const lines = [header, ...this.tail.map((l) => `  ${pc.dim('›')} ${pc.dim(truncate(l, width - 4))}`)];
     this.stream.write(`${lines.join('\n')}\n`);
-    this.printedLines = lines.length;
+    // Count PHYSICAL rows, not logical lines: the header is not truncated and can wrap on a narrow
+    // terminal, so erase() must rewind the rows the block actually occupies or it corrupts the block.
+    this.printedLines = lines.reduce((rows, line) => rows + Math.max(1, Math.ceil(visibleWidth(line) / width)), 0);
   }
 }
 
@@ -104,4 +116,13 @@ function truncate(text: string, max: number): string {
   if (max <= 1) return '';
 
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+// Visible column count of a styled line: strip ANSI SGR escapes (colour/dim) so wrapped-row math
+// isn't thrown off by the non-printing bytes picocolors adds. The ESC (U+001B) is built via
+// fromCharCode so the source carries no control-character literal in the regex.
+const ANSI_SGR = new RegExp(`${String.fromCodePoint(27)}\\[[0-9;]*m`, 'g');
+
+function visibleWidth(text: string): number {
+  return text.replace(ANSI_SGR, '').length;
 }

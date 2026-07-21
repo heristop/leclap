@@ -90,4 +90,31 @@ describe('LiveRenderer', () => {
     expect(out).toContain('ffmpeg failed: boom');
     expect(out).toContain('\x1b[?25h');
   });
+
+  it('rewinds by PHYSICAL rows when the header wraps on a narrow terminal', () => {
+    // A label wider than the terminal makes the (un-truncated) header wrap to ≥2 rows; the erase on
+    // the next repaint must rewind those physical rows, not the single logical header line.
+    const stream = fakeStream(40);
+    const live = new LiveRenderer('Rendering a-very-long-template-name-that-exceeds-the-width…', stream);
+
+    live.start();
+    vi.advanceTimersByTime(80); // second paint → erase uses the first paint's row count
+
+    const esc = String.fromCodePoint(0x1b);
+    const rewind = stream.chunks.join('').match(new RegExp(`${esc}\\[(\\d+)A`));
+    expect(rewind).not.toBeNull();
+    expect(Number(rewind?.[1])).toBeGreaterThanOrEqual(2);
+  });
+
+  it('registers a SIGINT handler on start and removes it on finish (no leak, cursor safe)', () => {
+    const stream = fakeStream();
+    const live = new LiveRenderer('Rendering…', stream);
+    const before = process.listenerCount('SIGINT');
+
+    live.start();
+    expect(process.listenerCount('SIGINT')).toBe(before + 1);
+
+    live.finishSuccess('done');
+    expect(process.listenerCount('SIGINT')).toBe(before);
+  });
 });

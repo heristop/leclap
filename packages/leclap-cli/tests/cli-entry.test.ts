@@ -68,4 +68,23 @@ describe('render command', () => {
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Compilation failed to produce output'));
     expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Rendered'));
   });
+
+  it('emits a machine-readable JSON error (not human stderr) in --json mode when the template is missing', async () => {
+    const fsMod = (await import('node:fs/promises')).default;
+    vi.mocked(fsMod.access).mockRejectedValueOnce(new Error('ENOENT'));
+    // Halt at the first exit(1) so the assertion sees only the error output, not a later render.
+    exitSpy.mockImplementation(((code?: number): never => {
+      throw new Error(`exit:${code}`);
+    }) as never);
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    const { render } = await import('../src/commands/render');
+    await expect(render.run?.({ args: { template: 'missing.json', json: true } } as never)).rejects.toThrow('exit:1');
+
+    const out = writeSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(out).toContain('"ok":false');
+    expect(out).toContain('missing.json');
+    expect(errorSpy).not.toHaveBeenCalled();
+    writeSpy.mockRestore();
+  });
 });

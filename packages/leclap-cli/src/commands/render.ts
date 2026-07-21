@@ -40,12 +40,25 @@ function toList(value: unknown): string[] {
   return [];
 }
 
-async function ensureTemplateExists(templatePath: string): Promise<void> {
+// Fail with a machine-readable `{ok:false,error}` on stdout in --json mode (so a consumer parsing
+// stdout still gets the documented shape), or a coloured human error on stderr otherwise. Exits 1.
+function emitError(message: string, json: boolean): never {
+  if (json) {
+    process.stdout.write(`${JSON.stringify({ ok: false, error: message })}\n`);
+
+    return process.exit(1);
+  }
+
+  console.error(fail(message));
+
+  return process.exit(1);
+}
+
+async function ensureTemplateExists(templatePath: string, json: boolean): Promise<void> {
   try {
     await fs.access(templatePath);
   } catch {
-    console.error(fail(`Template not found: ${pc.bold(templatePath)}`));
-    process.exit(1);
+    emitError(`Template not found: ${json ? templatePath : pc.bold(templatePath)}`, json);
   }
 }
 
@@ -115,7 +128,7 @@ export const render = defineCommand({
     setEngineLogLevel(verbose ? 'info' : 'silent');
     process.env.LECLAP_CLI_UI = '1';
 
-    await ensureTemplateExists(args.template);
+    await ensureTemplateExists(args.template, json);
 
     const flags: RenderFlags = {
       field: toList(args.field),
@@ -155,9 +168,7 @@ function buildOptions(templatePath: string, flags: RenderFlags, mode: ModeFlags)
       watch: mode.watch,
     };
   } catch (error) {
-    console.error(fail(errorMessage(error)));
-
-    return process.exit(1);
+    return emitError(errorMessage(error), mode.json);
   }
 }
 
@@ -342,8 +353,14 @@ async function renderWatch(opts: RenderOptions): Promise<void> {
   await pass();
 
   const targets = [opts.templatePath, opts.projectConfig.assetsDir].filter((p): p is string => Boolean(p));
-  watchPaths(targets, () => {
+  const stopWatching = watchPaths(targets, () => {
     pass().catch(() => {});
+  });
+
+  // Tear the watchers down on Ctrl-C so the process can exit cleanly instead of leaking them.
+  process.once('SIGINT', () => {
+    stopWatching();
+    process.exit(130);
   });
 
   console.log(hint(`  watching ${pc.bold(path.basename(opts.templatePath))} + assets — ctrl-c to stop`));

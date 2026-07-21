@@ -17,7 +17,16 @@ export function watchPaths(paths: string[], onChange: () => void, debounceMs = 1
 
   const watchers = paths.map((target) => {
     try {
-      return fsWatch(target, { recursive: true }, fire);
+      const watcher = fsWatch(target, { recursive: true }, fire);
+
+      // Without an 'error' listener an OS-level watcher failure (editor rename/replace, EMFILE, the
+      // watched dir being removed) is thrown as an uncaught exception that kills the watch process.
+      // Close the individual watcher on error so the others keep running.
+      watcher.on('error', () => {
+        watcher.close();
+      });
+
+      return watcher;
     } catch {
       return null;
     }

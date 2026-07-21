@@ -199,3 +199,29 @@ describe('CoreCompilationService watermark staging', () => {
     expect((FileSystem.copyAsync as unknown as MockFn).mock.calls.length).toBe(0);
   });
 });
+
+describe('CoreCompilationService image_background staging', () => {
+  it('stages a bundled image_background pictureUrl so the segment can render', async () => {
+    (FileSystem.getInfoAsync as unknown as MockFn).mockResolvedValue({ exists: false });
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    const withImageBackground = {
+      descriptor: {
+        sections: [
+          {
+            type: 'image_background',
+            name: 'backdrop',
+            options: { pictureUrl: '/assets/backgrounds/desk-flatlay.jpg', duration: 4 },
+          },
+        ],
+      },
+      clips: {},
+    } as unknown as CompileInput;
+
+    await new CoreCompilationService().compile(withImageBackground);
+
+    const copiedTo = (FileSystem.copyAsync as unknown as MockFn).mock.calls.map((c) => (c[0] as { to: string }).to);
+    // Without this staging the background image never lands on device and the render fails ffprobe.
+    expect(copiedTo).toContain('file:///cache/leclap-assets/backgrounds/desk-flatlay.jpg');
+  });
+});

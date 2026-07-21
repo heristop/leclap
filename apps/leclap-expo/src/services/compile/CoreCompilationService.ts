@@ -155,23 +155,59 @@ async function stageBundledAnimations(descriptor: CompileInput['descriptor'], as
 // `${assetsDir}/backgrounds/<file>` (same convention as animations). Mirrors the web applyMediaChoices,
 // which rewrites the same `library://` marker before materializing media. Expo image overlays are
 // bundled-library only, so non-`library://` urls (none today) are left untouched. Mutates the descriptor.
-async function stageBundledImages(descriptor: CompileInput['descriptor'], assetsDir: string): Promise<void> {
+// An image_background section carries its picture as a canonical `/assets/backgrounds/<file>.jpg`
+// options.pictureUrl (already resolved, no marker). Return the bundled `<file>` when it points at a
+// registered background — staging it is required or the render produces a broken output ffprobe
+// rejects ("could not probe segment ... rc=1").
+function backgroundPictureFile(section: unknown): string | undefined {
+  const pictureUrl = (section as { options?: { pictureUrl?: string } }).options?.pictureUrl;
+
+  if (!pictureUrl?.startsWith('/assets/backgrounds/')) return undefined;
+
+  const file = pictureUrl.split('/').pop();
+
+  return file && file in BACKGROUND_ASSETS ? file : undefined;
+}
+
+// An authored image-overlay input carries a `library://<id>` marker; resolve it to the bundled
+// `<file>`, rewrite the input url to the canonical `/assets/backgrounds/<file>` path in place, and
+// return the file to stage.
+function libraryInputFile(input: { type?: string; url?: string }): string | undefined {
+  if (input.type !== 'image' || !input.url?.startsWith('library://')) return undefined;
+
+  const file = findBackground(input.url.slice('library://'.length))?.file;
+
+  if (!file || !(file in BACKGROUND_ASSETS)) return undefined;
+
+  input.url = `/assets/backgrounds/${file}`;
+
+  return file;
+}
+
+// Every bundled background file the descriptor references (image_background pictureUrls + library://
+// image inputs). Mutates library:// input urls to their canonical staged path.
+function collectBundledImageFiles(descriptor: CompileInput['descriptor']): Set<string> {
   const files = new Set<string>();
 
   for (const section of descriptor.sections ?? []) {
+    const pictureFile = backgroundPictureFile(section);
+
+    if (pictureFile) files.add(pictureFile);
+
     const inputs = (section as { inputs?: Array<{ type?: string; url?: string }> }).inputs ?? [];
 
     for (const input of inputs) {
-      if (input.type !== 'image' || !input.url?.startsWith('library://')) continue;
+      const file = libraryInputFile(input);
 
-      const file = findBackground(input.url.slice('library://'.length))?.file;
-
-      if (!file || !(file in BACKGROUND_ASSETS)) continue;
-
-      files.add(file);
-      input.url = `/assets/backgrounds/${file}`;
+      if (file) files.add(file);
     }
   }
+
+  return files;
+}
+
+async function stageBundledImages(descriptor: CompileInput['descriptor'], assetsDir: string): Promise<void> {
+  const files = collectBundledImageFiles(descriptor);
 
   if (files.size === 0) return;
 

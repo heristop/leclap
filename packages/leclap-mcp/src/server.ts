@@ -34,7 +34,13 @@ export function createServer(config: McpConfig): McpServer {
   registerValidateTemplate(server);
   registerCompose(server, config);
   registerProbe(server, config);
-  registerRenderRemotionClip(server, config);
+
+  // render_remotion_clip bundles + executes a caller-supplied entry (arbitrary local JS) — an RCE
+  // surface. Register it only when the operator explicitly opted in for trusted local design-time use.
+  if (config.allowRemotion) {
+    registerRenderRemotionClip(server, config);
+  }
+
   registerComposeGuide(server);
 
   return server;

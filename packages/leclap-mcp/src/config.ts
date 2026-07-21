@@ -8,11 +8,35 @@ export interface McpConfig {
   outputDir: string;
   mediaDir: string;
   renderTimeoutMs: number;
+  /**
+   * Enable the render_remotion_clip tool. It bundles and EXECUTES a caller-supplied Remotion entry
+   * (arbitrary local JS) in headless Chromium, so it is an RCE surface unless the client is trusted.
+   * Off by default; opt in with --allow-remotion / LECLAP_MCP_ALLOW_REMOTION for local design-time use.
+   */
+  allowRemotion: boolean;
   /** Default Remotion entry (the module that calls registerRoot) for render_remotion_clip; optional. */
   remotionEntry?: string;
 }
 
 const DEFAULT_RENDER_TIMEOUT_MS = 600_000;
+
+// A boolean flag: present as a bare `--flag` (or `--flag=true`/`1`), else the env var when truthy.
+// Self-contained (no positional readFlag lookup) so a bare `--flag` never swallows the next argv.
+function readBoolean(argv: readonly string[], flag: string, envValue: string | undefined): boolean {
+  if (argv.includes(flag)) {
+    return true;
+  }
+
+  const inline = argv.find((arg) => arg.startsWith(`${flag}=`));
+
+  if (inline !== undefined) {
+    const value = inline.slice(flag.length + 1);
+
+    return value === 'true' || value === '1';
+  }
+
+  return envValue === 'true' || envValue === '1';
+}
 
 // Minimal `--flag value` parser — no new dep. Returns the value following the flag, or
 // undefined when absent. Supports both `--flag value` and `--flag=value`.
@@ -63,11 +87,13 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
   );
 
   const remotionEntry = readFlag(argv, '--remotion-entry') ?? process.env.LECLAP_MCP_REMOTION_ENTRY;
+  const allowRemotion = readBoolean(argv, '--allow-remotion', process.env.LECLAP_MCP_ALLOW_REMOTION);
 
   return {
     outputDir: path.resolve(outputDir),
     mediaDir: path.resolve(mediaDir),
     renderTimeoutMs,
+    allowRemotion,
     ...(remotionEntry ? { remotionEntry: path.resolve(remotionEntry) } : {}),
   };
 }

@@ -1,4 +1,5 @@
 import { fork, type ChildProcess } from 'node:child_process';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer';
@@ -42,6 +43,45 @@ export interface RenderOptions {
 
 const GRACE_MS = 5_000;
 const RING_LIMIT = 16 * 1024;
+
+// Each render forks a worker that runs a fully-threaded ffmpeg, so a handful of parallel renders
+// already saturates the host. Cap concurrent workers (leaving headroom) and queue the rest, so a
+// burst of compose_video calls can't exhaust CPU/memory/file descriptors.
+const MAX_CONCURRENT_RENDERS = Math.max(1, Math.min(4, Math.floor(os.cpus().length / 2)));
+
+// Minimal FIFO async semaphore: acquire() resolves when a slot is free, release() hands the slot to
+// the next waiter (or frees it). `active` counts occupied slots; a queued waiter inherits a slot on
+// release without a decrement, so the count never drifts.
+class Semaphore {
+  private active = 0;
+  private readonly queue: Array<() => void> = [];
+
+  constructor(private readonly max: number) {}
+
+  acquire(): Promise<void> {
+    if (this.active < this.max) {
+      this.active += 1;
+
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => this.queue.push(resolve));
+  }
+
+  release(): void {
+    const next = this.queue.shift();
+
+    if (next) {
+      next();
+
+      return;
+    }
+
+    this.active -= 1;
+  }
+}
+
+const renderSemaphore = new Semaphore(MAX_CONCURRENT_RENDERS);
 
 // dist/render-worker.js sits beside the bundled dist/index.js this runner is compiled into, so
 // resolve it relative to the runner's own module URL at runtime (works regardless of cwd).
@@ -149,6 +189,17 @@ function onExit(state: RunState, code: number | null): void {
   });
 }
 
+// A fork() that never spawns (missing worker bundle, EMFILE, ENOMEM) or a send() over a closed
+// channel emits 'error'. Without a listener Node throws it as an uncaught exception, which would
+// crash the whole stdio server instead of failing just this render.
+function onError(state: RunState, error: Error): void {
+  settle(state, {
+    ok: false,
+    error: `render worker failed: ${error.message}`,
+    logTail: state.ring.toString(),
+  });
+}
+
 function onTimeout(state: RunState, timeoutMs: number): void {
   killChild(state.child);
   settle(state, {
@@ -158,7 +209,7 @@ function onTimeout(state: RunState, timeoutMs: number): void {
   });
 }
 
-export function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
+function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
   return new Promise<RenderResult>((resolve) => {
     const ring = new RingBuffer();
     const child = fork(workerPath(), [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
@@ -181,6 +232,29 @@ export function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderRe
       onExit(state, code);
     });
 
-    child.send(job);
+    child.on('error', (error) => {
+      clearTimeout(timer);
+      onError(state, error);
+    });
+
+    child.send(job, (error) => {
+      if (!error) {
+        return;
+      }
+
+      clearTimeout(timer);
+      onError(state, error);
+    });
   });
+}
+
+// Bound how many worker forks run at once; queued calls wait for a free slot before forking.
+export async function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
+  await renderSemaphore.acquire();
+
+  try {
+    return await executeRender(job, opts);
+  } finally {
+    renderSemaphore.release();
+  }
 }

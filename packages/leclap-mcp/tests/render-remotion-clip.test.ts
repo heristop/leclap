@@ -42,7 +42,7 @@ function captureHandler(config: McpConfig): Handler {
   return captured;
 }
 
-const config: McpConfig = { outputDir: '/out', mediaDir: '/media', renderTimeoutMs: 1000 };
+const config: McpConfig = { outputDir: '/out', mediaDir: '/media', renderTimeoutMs: 1000, allowRemotion: false };
 
 beforeEach(() => {
   vi.clearAllMocks();

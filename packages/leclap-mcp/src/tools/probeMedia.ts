@@ -12,6 +12,11 @@ import { assertWithinMediaDir } from '../compose/pathGuard.js';
 const execFileAsync = promisify(execFile);
 const requireModule = createRequire(import.meta.url);
 
+// ffprobe on a well-formed file returns in well under a second. Bound it so a pathological input
+// under the media dir (a FIFO/named pipe, a special file) can't block the tool forever — execFile
+// SIGKILLs the child on overrun, and the rejected promise surfaces as a clean tool error.
+const PROBE_TIMEOUT_MS = 30_000;
+
 const inputShape = {
   path: z.string(),
 };
@@ -97,7 +102,10 @@ export type ProbeRunner = (realPath: string) => Promise<FFProbeData>;
 
 const defaultRunner: ProbeRunner = async (realPath) => {
   const bin = await resolveFfprobeBin();
-  const { stdout } = await execFileAsync(bin, ['-v', 'quiet', '-print_format', 'json', '-show_streams', realPath]);
+  const { stdout } = await execFileAsync(bin, ['-v', 'quiet', '-print_format', 'json', '-show_streams', realPath], {
+    timeout: PROBE_TIMEOUT_MS,
+    killSignal: 'SIGKILL',
+  });
 
   return JSON.parse(stdout) as FFProbeData;
 };

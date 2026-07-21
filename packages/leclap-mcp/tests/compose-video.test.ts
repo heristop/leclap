@@ -43,7 +43,7 @@ beforeEach(async () => {
   vi.clearAllMocks();
   outputDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-out-')));
   mediaDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-media-')));
-  config = { outputDir, mediaDir, renderTimeoutMs: 1000 };
+  config = { outputDir, mediaDir, renderTimeoutMs: 1000, allowRemotion: false };
 });
 
 afterEach(async () => {

@@ -40,7 +40,7 @@ let config: McpConfig;
 beforeEach(async () => {
   mediaDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-media-')));
   outsideDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-outside-')));
-  config = { outputDir: mediaDir, mediaDir, renderTimeoutMs: 1000 };
+  config = { outputDir: mediaDir, mediaDir, renderTimeoutMs: 1000, allowRemotion: false };
 });
 
 afterEach(async () => {
@@ -169,7 +169,12 @@ describe.skipIf(!realProbeSupported)('probe_media real ffprobe', () => {
     // The default runner resolves a real ffprobe binary; point the media dir at the fixture's
     // directory so the guard accepts it.
     const fixtureRealDir = await fs.realpath(path.dirname(fixture));
-    const realConfig: McpConfig = { outputDir: fixtureRealDir, mediaDir: fixtureRealDir, renderTimeoutMs: 1000 };
+    const realConfig: McpConfig = {
+      outputDir: fixtureRealDir,
+      mediaDir: fixtureRealDir,
+      renderTimeoutMs: 1000,
+      allowRemotion: false,
+    };
 
     const result = (await captureHandler(realConfig)({ path: fixture })) as {
       isError?: boolean;

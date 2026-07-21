@@ -1,11 +1,41 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
+
+// bundle() (webpack over an arbitrary entry) and ensureBrowser() (can DOWNLOAD Chromium on first
+// run) are otherwise unbounded — only renderMedia carries a cancel signal. Bound the setup steps too
+// so a hung bundle/download can't block the tool indefinitely.
+const SETUP_TIMEOUT_MS = 300_000;
+
+async function withTimeout<T>(label: string, ms: number, run: () => Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${ms}ms`));
+    }, ms);
+    timer.unref();
+  });
+
+  try {
+    return await Promise.race([run(), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// A caller-supplied serveUrl must stay local: loopback http(s), or a file:/bare path CONTAINED in
+// the media dir. (The serveUrl produced internally by bundle() is trusted and never routed here.)
+function isWithin(child: string, parent: string): boolean {
+  const rel = path.relative(parent, child);
+
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
 
 const inputShape = {
   // Path to the consumer's Remotion entry (the module that calls registerRoot). Falls back to the
@@ -76,17 +106,27 @@ async function loadRemotion(): Promise<RemotionModules | { error: string }> {
 // file: / loopback http. NOTE: `entry` is the consumer's own Remotion project module and is bundled
 // (and executed) as-is by design — this tool is design-time/local-only, so do NOT expose the server
 // to untrusted clients.
-function assertServeUrlAllowed(serveUrl: string): string | ToolError {
+function assertLocalPathAllowed(candidate: string, mediaDir: string, original: string): string | ToolError {
+  const resolved = path.resolve(candidate);
+
+  if (!isWithin(resolved, mediaDir)) {
+    return errorResult(`serveUrl path must stay under the media dir (${mediaDir}): ${original}`);
+  }
+
+  return original;
+}
+
+function assertServeUrlAllowed(serveUrl: string, mediaDir: string): string | ToolError {
   let url: URL;
 
   try {
     url = new URL(serveUrl);
   } catch {
-    return serveUrl; // not a URL — treat as a local bundle path
+    return assertLocalPathAllowed(serveUrl, mediaDir, serveUrl); // not a URL — a local bundle path
   }
 
   if (url.protocol === 'file:') {
-    return serveUrl;
+    return assertLocalPathAllowed(fileURLToPath(url), mediaDir, serveUrl);
   }
 
   if (url.protocol === 'http:' || url.protocol === 'https:') {
@@ -109,7 +149,7 @@ async function resolveServeUrl(
   remotion: RemotionModules
 ): Promise<{ serveUrl: string } | ToolError> {
   if (args.serveUrl) {
-    const checked = assertServeUrlAllowed(args.serveUrl);
+    const checked = assertServeUrlAllowed(args.serveUrl, config.mediaDir);
 
     return typeof checked === 'string' ? { serveUrl: checked } : checked;
   }
@@ -127,7 +167,9 @@ async function resolveServeUrl(
     return errorResult(`Remotion entry not found: ${entry}`);
   }
 
-  return { serveUrl: await remotion.bundle({ entryPoint: entry }) };
+  return {
+    serveUrl: await withTimeout('Remotion bundle', SETUP_TIMEOUT_MS, () => remotion.bundle({ entryPoint: entry })),
+  };
 }
 
 function clipOutputPath(config: McpConfig, outputName?: string): string {
@@ -183,16 +225,23 @@ async function handleRender(args: ClipArgs, config: McpConfig) {
   }
 
   const outPath = clipOutputPath(config, args.outputName);
-  await remotion.ensureBrowser();
+
+  try {
+    await withTimeout('Remotion ensureBrowser', SETUP_TIMEOUT_MS, () => remotion.ensureBrowser());
+  } catch (error) {
+    return errorResult(`Remotion browser setup failed: ${describe(error)}`);
+  }
 
   let composition;
 
   try {
-    composition = await remotion.selectComposition({
-      serveUrl: resolved.serveUrl,
-      id: args.compositionId,
-      inputProps: args.inputProps,
-    });
+    composition = await withTimeout('Remotion selectComposition', SETUP_TIMEOUT_MS, () =>
+      remotion.selectComposition({
+        serveUrl: resolved.serveUrl,
+        id: args.compositionId,
+        inputProps: args.inputProps,
+      })
+    );
   } catch (error) {
     return errorResult(`Unknown or invalid composition "${args.compositionId}": ${describe(error)}`);
   }

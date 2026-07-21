@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
+import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { validateTemplate } from '../compose/validation.js';
 import { runRender, type RenderResult } from '../compose/renderRunner.js';
 
@@ -177,6 +178,14 @@ async function handleCompose(args: ComposeArgs, config: McpConfig) {
     return descriptor;
   }
 
+  // Contain the descriptor's raw filter chain (source filters, fontfile paths) before it reaches
+  // ffmpeg — the schema alone does not stop it escaping the media-dir sandbox.
+  const safety = await assertDescriptorSafe(descriptor.descriptor, config.mediaDir);
+
+  if (!safety.ok) {
+    return errorResult(safety.message);
+  }
+
   const provided = args.userVideoPaths ?? {};
   const coverageError = checkSectionCoverage(descriptor.descriptor, provided);
 
@@ -201,7 +210,28 @@ async function handleCompose(args: ComposeArgs, config: McpConfig) {
     return failurePayload(result);
   }
 
-  return successPayload(result, renderId);
+  const outputPath = await applyOutputName(result.outputPath, args.outputBaseName);
+
+  return successPayload({ ...result, outputPath }, renderId);
+}
+
+// Honour the optional outputBaseName by copying the fixed engine output (build/output.mp4) to a
+// sibling `<outputBaseName>.mp4`, so the caller gets the name it asked for (per-render naming is an
+// app concern, not the engine's). The regex on the input schema already rejects path separators.
+async function applyOutputName(outputPath: string, outputBaseName: string | undefined): Promise<string> {
+  if (!outputBaseName) {
+    return outputPath;
+  }
+
+  const named = path.join(path.dirname(outputPath), `${outputBaseName}.mp4`);
+
+  if (named === outputPath) {
+    return outputPath;
+  }
+
+  await fs.copyFile(outputPath, named);
+
+  return named;
 }
 
 export function registerCompose(server: McpServer, config: McpConfig): void {

@@ -4,7 +4,12 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadConfig } from '../src/config.js';
 
-const ENV_KEYS = ['LECLAP_MCP_OUTPUT_DIR', 'LECLAP_MCP_MEDIA_DIR', 'LECLAP_MCP_RENDER_TIMEOUT_MS'] as const;
+const ENV_KEYS = [
+  'LECLAP_MCP_OUTPUT_DIR',
+  'LECLAP_MCP_MEDIA_DIR',
+  'LECLAP_MCP_RENDER_TIMEOUT_MS',
+  'LECLAP_MCP_ALLOW_REMOTION',
+] as const;
 
 describe('loadConfig', () => {
   let saved: Record<string, string | undefined>;
@@ -34,6 +39,24 @@ describe('loadConfig', () => {
     expect(config.outputDir).toBe(path.join(os.homedir(), '.leclap', 'renders'));
     expect(config.mediaDir).toBe(path.join(os.homedir(), '.leclap', 'media'));
     expect(config.renderTimeoutMs).toBe(600_000);
+    expect(config.allowRemotion).toBe(false);
+  });
+
+  it('enables Remotion only when explicitly opted in', () => {
+    expect(loadConfig([]).allowRemotion).toBe(false);
+    expect(loadConfig(['--allow-remotion']).allowRemotion).toBe(true);
+    expect(loadConfig(['--allow-remotion=true']).allowRemotion).toBe(true);
+    expect(loadConfig(['--allow-remotion=false']).allowRemotion).toBe(false);
+
+    process.env.LECLAP_MCP_ALLOW_REMOTION = '1';
+    expect(loadConfig([]).allowRemotion).toBe(true);
+  });
+
+  it('does not let a bare --allow-remotion swallow the following argument', () => {
+    const config = loadConfig(['--allow-remotion', '--media-dir', '/tmp/flag-media']);
+
+    expect(config.allowRemotion).toBe(true);
+    expect(config.mediaDir).toBe('/tmp/flag-media');
   });
 
   it('reads values from env vars', () => {

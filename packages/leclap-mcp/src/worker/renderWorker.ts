@@ -21,8 +21,17 @@ interface RenderJob {
 
 type WorkerResult = { ok: true; outputPath: string; infos: unknown; sizeBytes: number } | { ok: false; error?: string };
 
-function send(message: WorkerResult): void {
-  process.send?.(message);
+// process.send is asynchronous: the message is queued on the IPC channel and flushed on the next
+// tick. Exiting immediately after (as a `finally { process.exit(0) }` would) can truncate that flush,
+// so the parent sees only 'exit' and reports a successful render as a failure. Exit ONLY from the
+// send callback (fired once the channel has accepted the message); fall back to a plain exit when
+// there is no IPC channel (worker run standalone).
+function sendAndExit(message: WorkerResult): void {
+  if (!process.send) {
+    process.exit(0);
+  }
+
+  process.send(message, undefined, undefined, () => process.exit(0));
 }
 
 async function describeOutput(outputPath: string): Promise<WorkerResult> {
@@ -43,15 +52,16 @@ async function runJob(job: RenderJob): Promise<WorkerResult> {
   return describeOutput(outputPath);
 }
 
-async function handleMessage(job: RenderJob): Promise<void> {
+async function resolveResult(job: RenderJob): Promise<WorkerResult> {
   try {
-    send(await runJob(job));
+    return await runJob(job);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    send({ ok: false, error: message });
-  } finally {
-    process.exit(0);
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+async function handleMessage(job: RenderJob): Promise<void> {
+  sendAndExit(await resolveResult(job));
 }
 
 process.on('message', (job: RenderJob) => {

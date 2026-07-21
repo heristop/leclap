@@ -29,7 +29,7 @@ function makeEmitter(): EmitterStub {
 }
 
 function makeProject() {
-  return {
+  const project = {
     config: {} as ProjectConfig,
     progress: 0,
     errors: [] as string[],
@@ -50,7 +50,26 @@ function makeProject() {
       musicPath: '',
       transitions: [] as Array<{ type: string; duration: number }>,
     },
+    // Mirrors the real Project.resetBuildState (tested for real in models.test.ts) so config()'s
+    // reset behaviour is exercised end-to-end through the director tests below.
+    resetBuildState: vi.fn(function (this: void) {
+      const bi = project.buildInfos;
+      Object.assign(bi, {
+        totalSegments: 0,
+        totalLength: 0,
+        currentLength: 0,
+        currentProgress: 0,
+        currentIncrement: 0,
+      });
+      bi.videoInputs.length = bi.musicInputs.length = bi.musicFilters.length = bi.transitions.length = 0;
+      bi.durations = {};
+      bi.sourceHasAudio = {};
+      project.errors.length = 0;
+      project.finalVideo = '';
+    }),
   };
+
+  return project;
 }
 
 function makeFilesystem() {
@@ -242,6 +261,41 @@ describe('TemplateDirector.config', () => {
     expect(sections.some((s) => s.name === 'video_1')).toBe(true);
     // The ref variables are substituted into the expanded section.
     expect(JSON.stringify(sections)).toContain('Tea');
+  });
+
+  it('fully resets build-accumulated state so a prior errored compile cannot corrupt the next', () => {
+    const { director, project } = makeDirector();
+
+    // Simulate the residue of a previous compile that errored (so emitFinalize skipped clean()):
+    // videoInputs/musicFilters accumulated segments, durations/sourceHasAudio filled, errors set.
+    project.buildInfos.videoInputs.push('/build/stale_1_output.mp4', '/build/stale_2_output.mp4');
+    project.buildInfos.musicInputs.push('/build/stale_music.mp4');
+    project.buildInfos.musicFilters.push('[stale]afade');
+    project.buildInfos.transitions.push({ type: 'fade', duration: 0.3 });
+    project.buildInfos.durations.stale = 12;
+    project.buildInfos.sourceHasAudio.stale = true;
+    project.buildInfos.currentIncrement = 4;
+    project.buildInfos.currentLength = 42;
+    project.buildInfos.totalLength = 42;
+    project.errors.push('prior-section');
+    project.finalVideo = '/build/old.mp4';
+
+    director.config({ buildDir: '/out' }, { sections: [] } as TemplateDescriptor);
+
+    // The critical one: videoInputs feeds assembleWithTransitions, so a stale entry would make the
+    // next compile probe a segment from the previous build.
+    expect(project.buildInfos.videoInputs).toEqual([]);
+    expect(project.buildInfos.musicInputs).toEqual([]);
+    expect(project.buildInfos.musicFilters).toEqual([]);
+    expect(project.buildInfos.transitions).toEqual([]);
+    expect(project.buildInfos.durations).toEqual({});
+    expect(project.buildInfos.sourceHasAudio).toEqual({});
+    expect(project.buildInfos.currentIncrement).toBe(0);
+    expect(project.buildInfos.currentLength).toBe(0);
+    expect(project.buildInfos.totalLength).toBe(0);
+    // errors must clear too, or emitFinalize skips clean() forever after the first failure.
+    expect(project.errors).toEqual([]);
+    expect(project.finalVideo).toBe('');
   });
 });
 
@@ -821,15 +875,19 @@ describe('TemplateDirector.config resets build-scoped state', () => {
     expect(project.errors).toEqual([]);
   });
 
-  it('does not touch durations/transitions — calculateTotalLength/buildTransitions repopulate those later in the same build', () => {
+  it('also clears the accumulators (videoInputs/durations/transitions) — repopulated later in the same build', () => {
     const { director, project } = makeDirector();
+    // videoInputs is the load-bearing one: append() PUSHES to it, so a leftover entry would make the
+    // next compile's assembleWithTransitions probe a segment from the previous (errored) build.
+    project.buildInfos.videoInputs.push('/build/leftover_output.mp4');
     project.buildInfos.durations = { leftover: 5 };
     project.buildInfos.transitions = [{ type: 'fade', duration: 0.3 }];
 
     director.config({}, { sections: [] });
 
-    expect(project.buildInfos.durations).toEqual({ leftover: 5 });
-    expect(project.buildInfos.transitions).toEqual([{ type: 'fade', duration: 0.3 }]);
+    expect(project.buildInfos.videoInputs).toEqual([]);
+    expect(project.buildInfos.durations).toEqual({});
+    expect(project.buildInfos.transitions).toEqual([]);
   });
 });
 

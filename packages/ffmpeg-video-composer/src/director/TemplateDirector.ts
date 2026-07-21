@@ -104,15 +104,10 @@ class TemplateDirector {
 
     this.template.descriptor = (expansion.ok ? expansion.data : clonedDescriptor) as SchemaTemplateDescriptor;
 
-    // Reset the leg/error state a build accumulates, at the START of every compile() (which always
-    // goes through config() first). Without this, a build that throws mid-flight leaves stale
-    // currentIncrement/currentLength/musicFilters AND a non-empty project.errors — and emitFinalize
-    // skips project.clean() whenever errors is non-empty, so in a long-lived process (browser/
-    // on-device) that never-cleared errors array corrupts every subsequent compile forever. durations
-    // and transitions are intentionally left alone: calculateTotalLength/buildTransitions repopulate
-    // (and, for transitions, explicitly clear) them later in the SAME build before anything reads them.
-    Object.assign(this.project.buildInfos, { currentIncrement: 0, currentLength: 0 });
-    this.project.buildInfos.musicFilters.length = this.project.errors.length = 0;
+    // Reset ALL build-accumulated state at the start of every compile() (config() runs first), so
+    // back-to-back compiles in one long-lived process (browser / on-device) are independent — see
+    // Project.resetBuildState for why (the videoInputs cascade).
+    this.project.resetBuildState();
 
     this.filesystemAdapter.setBuildDir(this.project.config.buildDir ?? 'build');
     this.filesystemAdapter.setAssetsDir(this.project.config.assetsDir ?? 'assets');

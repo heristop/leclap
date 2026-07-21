@@ -159,6 +159,39 @@ describe('Project', () => {
     });
   });
 
+  describe('resetBuildState', () => {
+    it('clears every build-accumulated field IN PLACE, plus errors and finalVideo', () => {
+      // Same array references before/after — components hold this singleton and must keep seeing them.
+      const videoInputs = project.buildInfos.videoInputs;
+      project.buildInfos.videoInputs.push('/build/stale_output.mp4');
+      project.buildInfos.musicInputs.push('/build/m.mp4');
+      project.buildInfos.musicFilters.push('[stale];');
+      project.buildInfos.transitions.push({ type: 'fade', duration: 0.3 });
+      project.buildInfos.durations = { stale: 12 };
+      project.buildInfos.sourceHasAudio = { stale: true };
+      project.buildInfos.currentIncrement = 4;
+      project.buildInfos.currentLength = 42;
+      project.buildInfos.totalLength = 42;
+      project.errors.push('prior-section');
+      project.finalVideo = '/build/old.mp4';
+
+      project.resetBuildState();
+
+      expect(project.buildInfos.videoInputs).toBe(videoInputs); // same reference (in-place)
+      expect(project.buildInfos.videoInputs).toEqual([]);
+      expect(project.buildInfos.musicInputs).toEqual([]);
+      expect(project.buildInfos.musicFilters).toEqual([]);
+      expect(project.buildInfos.transitions).toEqual([]);
+      expect(project.buildInfos.durations).toEqual({});
+      expect(project.buildInfos.sourceHasAudio).toEqual({});
+      expect(project.buildInfos.currentIncrement).toBe(0);
+      expect(project.buildInfos.currentLength).toBe(0);
+      expect(project.buildInfos.totalLength).toBe(0);
+      expect(project.errors).toEqual([]);
+      expect(project.finalVideo).toBe('');
+    });
+  });
+
   describe('applyDefault', () => {
     it('fills in every default config block when config is empty', () => {
       project.applyDefault();

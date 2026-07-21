@@ -246,7 +246,9 @@ const MOTION_DELAY = 0.3;
 const MOTION_DURATION = 0.6;
 const MOTION_DISTANCE = 60;
 
-const trimNum = (value: number): string => Number(value.toFixed(4)).toString();
+function trimNum(value: number): string {
+  return Number(value.toFixed(4)).toString();
+}
 
 /**
  * Translates an overlay `motion` intent into overlay-filter expressions, given the static `position`
@@ -334,21 +336,21 @@ export type ResolvedLayerGeometry = { x: number; y: number; w: number; h: number
 // (see the web app's layerGeometry helpers); this recognises exactly that shape.
 const LAYER_FRACTION_EXPR = /^(iw|ih)\s*\*\s*(\d*\.?\d+)$/;
 
-const parseScaleDim = (token: string | undefined, fallback: number): number => {
+function parseScaleDim(token: string | undefined, fallback: number): number {
   const value = Number(token);
 
   // Keep-aspect (-1/-2) or expression components can't size a raster box; fall back.
   if (!Number.isFinite(value) || value <= 0) return fallback;
 
   return value;
-};
+}
 
-const resolveGeometryValue = (
+function resolveGeometryValue(
   value: number | string | undefined,
   frameW: number,
   frameH: number,
   fallback: number
-): number => {
+): number {
   if (value === undefined) return fallback;
 
   if (typeof value === 'number') return Math.round(value);
@@ -362,7 +364,7 @@ const resolveGeometryValue = (
   const basis = match[1] === 'iw' ? frameW : frameH;
 
   return Math.round(basis * Number(match[2]));
-};
+}
 
 /**
  * Lowers a background layer's x/y/w/h (pixels or `iw*f`/`ih*f` fraction expressions) to concrete
@@ -462,8 +464,13 @@ function angleCoords(angleDeg: number, w: number, h: number): string {
   const tx = Math.abs(dx) < 1e-9 ? Infinity : w / 2 / Math.abs(dx);
   const ty = Math.abs(dy) < 1e-9 ? Infinity : h / 2 / Math.abs(dy);
   const reach = Math.min(tx, ty);
-  const clampX = (v: number): number => Math.min(Math.max(Math.round(v), 0), w);
-  const clampY = (v: number): number => Math.min(Math.max(Math.round(v), 0), h);
+  function clampX(v: number): number {
+    return Math.min(Math.max(Math.round(v), 0), w);
+  }
+
+  function clampY(v: number): number {
+    return Math.min(Math.max(Math.round(v), 0), h);
+  }
 
   const x0 = clampX(w / 2 - dx * reach);
   const y0 = clampY(h / 2 - dy * reach);

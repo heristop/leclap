@@ -5,10 +5,10 @@ import DefaultConfig from '@/core/default.config';
 // config meet. A portrait template swaps the configured W:H, and a square template forces the 1080x1080
 // preset, so the recorded clip, the cards, and the final normalize all render to the same scale.
 // Pure so TemplateDirector.applyOrientationToScale stays a one-line assignment (line-budget friendly).
-export const resolveOrientationScale = (
+export function resolveOrientationScale(
   videoConfig: VideoConfig | undefined,
   orientation: string | undefined
-): VideoConfig | undefined => {
+): VideoConfig | undefined {
   if (!videoConfig) return videoConfig;
 
   if (orientation === 'square') {
@@ -23,12 +23,12 @@ export const resolveOrientationScale = (
   if (width === undefined || height === undefined) return videoConfig;
 
   return { ...videoConfig, scale: `${height}:${width}` };
-};
+}
 
 // Resolve the output fps ONCE, mirroring resolveOrientationScale: the descriptor's global.fps wins over
 // any host-supplied videoConfig.fps; consumers read videoConfig.fps ?? DefaultConfig.FPS.
-export const resolveFps = (videoConfig: VideoConfig | undefined, fps: number | undefined): VideoConfig | undefined => {
+export function resolveFps(videoConfig: VideoConfig | undefined, fps: number | undefined): VideoConfig | undefined {
   if (!fps) return videoConfig;
 
   return { ...videoConfig, fps };
-};
+}

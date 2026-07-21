@@ -9,15 +9,19 @@ export type Transition = { type: string; duration: number };
 export type SegmentProbe = { duration: number; hasAudio: boolean };
 
 // FFmpeg accepts decimals; trim float noise (4.499999) to keep commands clean and assertable.
-export const round = (value: number): number => Math.round(value * 1000) / 1000;
+export function round(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
 
-const transitionName = (transition: Transition): string => (transition.type === 'cut' ? 'fade' : transition.type);
+function transitionName(transition: Transition): string {
+  return transition.type === 'cut' ? 'fade' : transition.type;
+}
 
 /**
  * xfade requires all inputs to share one resolution/SAR, and segments can disagree (forceAspectRatio
  * sections, mixed sources). Scale-and-pad every segment to the project scale before the xfade chain.
  */
-export const buildNormalizeGraph = (segmentCount: number, scale: string): string => {
+export function buildNormalizeGraph(segmentCount: number, scale: string): string {
   const links: string[] = [];
 
   for (let k = 0; k < segmentCount; k++) {
@@ -27,14 +31,14 @@ export const buildNormalizeGraph = (segmentCount: number, scale: string): string
   }
 
   return links.join(';');
-};
+}
 
 /**
  * offset_k = (Σ_{i≤k} d_i) − (Σ_{i≤k} effTr_i). The cumulative subtraction of prior transition
  * durations keeps every clip starting where the previous cross-dissolve ends, so later boundaries
  * don't drift.
  */
-export const computeOffsets = (probes: SegmentProbe[], effectiveDurations: number[]): number[] => {
+export function computeOffsets(probes: SegmentProbe[], effectiveDurations: number[]): number[] {
   const offsets: number[] = [];
   let durationSum = 0;
   let transitionSum = 0;
@@ -46,7 +50,7 @@ export const computeOffsets = (probes: SegmentProbe[], effectiveDurations: numbe
   }
 
   return offsets;
-};
+}
 
 /**
  * Per-boundary transition duration fed to xfade/acrossfade. A `cut` is a near-zero fade so the graph
@@ -56,21 +60,22 @@ export const computeOffsets = (probes: SegmentProbe[], effectiveDurations: numbe
  * keeps each clip ≥50% non-overlap so offsets stay strictly increasing. Normal multi-second clips pass
  * through unchanged.
  */
-export const effectiveDurations = (transitions: Transition[], probes: SegmentProbe[]): number[] =>
-  transitions.map((transition, k) => {
+export function effectiveDurations(transitions: Transition[], probes: SegmentProbe[]): number[] {
+  return transitions.map((transition, k) => {
     if (transition.type === 'cut') {
       return 0.001;
     }
 
     return round(Math.min(transition.duration, Math.min(probes[k].duration, probes[k + 1].duration) / 2));
   });
+}
 
-export const buildVideoGraph = (
+export function buildVideoGraph(
   transitions: Transition[],
   offsets: number[],
   effectiveDurationsList: number[],
   finalLabel = '[vout]'
-): string => {
+): string {
   const links: string[] = [];
 
   for (let k = 0; k < transitions.length; k++) {
@@ -84,13 +89,13 @@ export const buildVideoGraph = (
   }
 
   return links.join(';');
-};
+}
 
-export const buildAudioGraph = (
+export function buildAudioGraph(
   transitions: Transition[],
   audioInputIndex: number[],
   effectiveDurationsList: number[]
-): string => {
+): string {
   const links: string[] = [];
 
   for (let k = 0; k < transitions.length; k++) {
@@ -101,4 +106,4 @@ export const buildAudioGraph = (
   }
 
   return links.join(';');
-};
+}

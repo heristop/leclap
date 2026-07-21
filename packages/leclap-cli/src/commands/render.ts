@@ -273,13 +273,13 @@ function makeReporter(opts: RenderOptions, live: LiveRenderer | null): ReporterB
     },
   };
 
-  const flushLog = (): void => {
+  function flushLog(): void {
     try {
       writeFileSync(logPath, `${logLines.join('\n')}\n`);
     } catch {
       // A log-file write failure must never mask the render result.
     }
-  };
+  }
 
   return { reporter, flushLog, logRel: path.relative(process.cwd(), logPath) };
 }
@@ -329,7 +329,7 @@ async function renderWatch(opts: RenderOptions): Promise<void> {
   let busy = false;
   let queued = false;
 
-  const pass = async (): Promise<void> => {
+  async function pass(): Promise<void> {
     if (busy) {
       queued = true;
 
@@ -348,7 +348,7 @@ async function renderWatch(opts: RenderOptions): Promise<void> {
         pass().catch(() => {});
       }
     }
-  };
+  }
 
   await pass();
 

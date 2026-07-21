@@ -11,20 +11,26 @@
 type RGB = [number, number, number];
 type Transform = (r: number, g: number, b: number) => RGB;
 
-const clamp01 = (x: number): number => Math.max(0, Math.min(1, x));
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x));
+}
 
 // Rec.709 luma — the grayscale a pixel collapses to, used for mono/noir and saturation pivots.
-const luma = (r: number, g: number, b: number): number => 0.299 * r + 0.587 * g + 0.114 * b;
+function luma(r: number, g: number, b: number): number {
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
 
 // Linear contrast around the 0.5 mid-grey pivot. k > 1 increases contrast, k < 1 flattens.
-const contrast = (x: number, k: number): number => clamp01((x - 0.5) * k + 0.5);
+function contrast(x: number, k: number): number {
+  return clamp01((x - 0.5) * k + 0.5);
+}
 
 // Push a colour away from (s > 1) or toward (s < 1) its own luma — a saturation control.
-const saturate = ([r, g, b]: RGB, s: number): RGB => {
+function saturate([r, g, b]: RGB, s: number): RGB {
   const l = luma(r, g, b);
 
   return [clamp01(l + (r - l) * s), clamp01(l + (g - l) * s), clamp01(l + (b - l) * s)];
-};
+}
 
 // Each transform maps an input RGB (0..1) to a graded RGB (0..1). Kept simple and composable so the
 // output is reproducible; the goal is distinct, usable cinema grades, not film-stock emulation.
@@ -66,7 +72,9 @@ export const LUT_NAMES = Object.keys(LUT_TRANSFORMS);
 
 const DEFAULT_SIZE = 17;
 
-const fmt = (x: number): string => clamp01(x).toFixed(6);
+function fmt(x: number): string {
+  return clamp01(x).toFixed(6);
+}
 
 /**
  * Generates the `.cube` text for a named LUT at the given grid size (default 17³). The grid is walked

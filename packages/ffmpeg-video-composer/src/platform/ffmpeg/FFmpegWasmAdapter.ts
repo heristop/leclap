@@ -114,7 +114,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
     const errorMessages: string[] = [];
     const recentLog: string[] = [];
 
-    const errorCallback = ({ message }: FFmpegLogData) => {
+    function errorCallback({ message }: FFmpegLogData) {
       if (!message) {
         return;
       }
@@ -137,7 +137,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
         console.error('[FFmpegWasm Error]', message);
         errorMessages.push(message);
       }
-    };
+    }
 
     ffmpeg.on('log', errorCallback);
 

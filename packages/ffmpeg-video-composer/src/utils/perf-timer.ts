@@ -13,10 +13,11 @@ export interface PerfReport {
 // back to `process.hrtime` only on older Node. Must NOT touch `process.hrtime` in the browser — it is
 // undefined there, and the timer is constructed unconditionally (the `createdAt` initialiser runs even
 // when disabled), so a browser-unsafe clock crashes every browser/WASM compilation.
-const nowMs = (): number =>
-  typeof performance !== 'undefined' && typeof performance.now === 'function'
+function nowMs(): number {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
     ? performance.now()
     : Number(process.hrtime.bigint()) / 1_000_000;
+}
 
 /**
  * Lightweight, allocation-free-when-disabled phase timer. Records named spans using the
@@ -84,13 +85,13 @@ export class PerfTimer {
   }
 }
 
-export const createPerfTimer = (): PerfTimer => {
+export function createPerfTimer(): PerfTimer {
   // `process` is absent in the browser; guard so reading the opt-in flag never throws there. The timer
   // simply stays disabled when no env is available.
   const flag = typeof process === 'undefined' ? undefined : process.env.FVC_PERF;
 
   return new PerfTimer(Boolean(flag) && flag !== '0');
-};
+}
 
 // Process-wide timer shared by the pipeline (director, segment builder, ffmpeg adapter,
 // video editor) without threading a DI token through three entry points and the
@@ -98,14 +99,14 @@ export const createPerfTimer = (): PerfTimer => {
 // the current one via `getPerfTimer()`.
 let shared: PerfTimer | null = null;
 
-export const getPerfTimer = (): PerfTimer => {
+export function getPerfTimer(): PerfTimer {
   shared ??= createPerfTimer();
 
   return shared;
-};
+}
 
-export const resetPerfTimer = (): PerfTimer => {
+export function resetPerfTimer(): PerfTimer {
   shared = createPerfTimer();
 
   return shared;
-};
+}

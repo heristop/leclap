@@ -88,11 +88,11 @@ class FilterManager {
     let end = this.template.descriptor.global?.transition?.duration ?? 0;
     let start = 0;
 
-    const extractTimeValue = (pattern: RegExp, duration: string): number | undefined => {
+    function extractTimeValue(pattern: RegExp, duration: string): number | undefined {
       const matches = pattern.exec(duration);
 
       return matches ? parseFloat(matches[1]) : undefined;
-    };
+    }
 
     const startTime = extractTimeValue(/start=(.*)/, durations[0]);
 

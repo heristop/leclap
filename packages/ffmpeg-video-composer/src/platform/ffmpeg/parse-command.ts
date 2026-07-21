@@ -11,12 +11,12 @@ export function parseCommand(command: string): string[] {
   let current = '';
   let quoteChar: string | null = null;
 
-  const flush = (): void => {
+  function flush(): void {
     if (current.trim()) {
       args.push(current.trim());
     }
     current = '';
-  };
+  }
 
   for (const char of command) {
     if (quoteChar !== null) {

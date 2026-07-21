@@ -21,11 +21,13 @@ interface PartialRefSection {
   variables?: Record<string, string>;
 }
 
-const isPartialRef = (section: TemplateSection): section is TemplateSection & PartialRefSection =>
-  (section as { type?: string }).type === 'partial';
+function isPartialRef(section: TemplateSection): section is TemplateSection & PartialRefSection {
+  return (section as { type?: string }).type === 'partial';
+}
 
-export const partialsById = (partials: TemplatePartial[]): Record<string, TemplatePartial | undefined> =>
-  Object.fromEntries(partials.map((partial) => [partial.id, partial]));
+export function partialsById(partials: TemplatePartial[]): Record<string, TemplatePartial | undefined> {
+  return Object.fromEntries(partials.map((partial) => [partial.id, partial]));
+}
 
 // Deep-replace every `{{ key }}` placeholder in a partial's sections with the matching ref variable.
 // Keys absent from `variables` are left untouched, so a partial may still reference global template

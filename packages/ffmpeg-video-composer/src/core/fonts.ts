@@ -24,9 +24,13 @@ export const FONTS: FontEntry[] = [
   { id: 'lobster', label: 'Lobster', file: 'Lobster.ttf', cssFamily: 'Lobster' },
 ];
 
-export const findFont = (id: string): FontEntry | undefined => FONTS.find((f) => f.id === id);
+export function findFont(id: string): FontEntry | undefined {
+  return FONTS.find((f) => f.id === id);
+}
 
 // Look up a catalog font by its .ttf file name (used when staging fonts referenced by file).
-export const findFontByFile = (file: string): FontEntry | undefined => FONTS.find((f) => f.file === file);
+export function findFontByFile(file: string): FontEntry | undefined {
+  return FONTS.find((f) => f.file === file);
+}
 
 export const DEFAULT_FONT_ID = 'rubik';

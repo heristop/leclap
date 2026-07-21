@@ -22,13 +22,14 @@ export interface FinalizeContext {
 // and that pass needs a re-encode — i.e. no xfade transitions and no overlay animations — and there
 // IS an audio pass to fold into (music mix or audio normalize). `disableFold` is a bench/debug escape
 // hatch (FVC_DISABLE_CONCAT_FOLD) that forces the standard two-pass path.
-const shouldFoldConcat = (c: FinalizeContext): boolean =>
-  !c.disableFold && !c.hasTransition && !c.hasAnimations && (c.musicWillRun || c.normalizeWillRun);
+function shouldFoldConcat(c: FinalizeContext): boolean {
+  return !c.disableFold && !c.hasTransition && !c.hasAnimations && (c.musicWillRun || c.normalizeWillRun);
+}
 
 // Orchestrate the post-render finalize. Folded path: the single audio pass consumes the concat
 // demuxer directly (stream-copying video) and writes the final output — no standalone concat pass.
 // Standard path: assemble (concat or xfade) then normalize/music as before.
-export const runFinalize = async (ctx: FinalizeContext): Promise<string> => {
+export async function runFinalize(ctx: FinalizeContext): Promise<string> {
   if (shouldFoldConcat(ctx)) {
     ctx.setFinalVideo(ctx.finalPath);
     const source: VideoSource = { kind: 'concat', listPath: ctx.listPath };
@@ -56,4 +57,4 @@ export const runFinalize = async (ctx: FinalizeContext): Promise<string> => {
   await ctx.finalize(ctx.segments);
 
   return finalPath;
-};
+}

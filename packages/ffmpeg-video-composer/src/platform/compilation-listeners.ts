@@ -18,13 +18,13 @@ export function attachCompilationListeners(
 ): CompilationListeners {
   let compilationError: unknown = null;
 
-  const onStopped = (err: unknown): void => {
+  function onStopped(err: unknown): void {
     compilationError = err;
-  };
+  }
 
-  const onProgressEvent = (fraction: unknown): void => {
+  function onProgressEvent(fraction: unknown): void {
     onProgress?.(typeof fraction === 'number' ? fraction : 0);
-  };
+  }
 
   emitter.on('task-stopped', onStopped);
   emitter.on('compilation-progress', onProgressEvent);

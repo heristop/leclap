@@ -178,6 +178,11 @@ export default defineConfig({
       eqeqeq: ['error', 'always'],
       'no-var': 'error',
       'prefer-const': 'error',
+      // Free/module-level functions use `function` declarations (hoisted, top-down readable, named in
+      // stack traces); arrow functions stay for `this`-bound class fields and inline callbacks, which
+      // this rule does not touch. Disabled for the React/Remotion packages (apps + brand-motion),
+      // where `const Component = () => <jsx>` is the idiom.
+      'func-style': ['error', 'declaration'],
       // Surface stray TODO/FIXME/XXX comments so Sonar doesn't catch them
       // first. The list is the SonarQube set so the two stay aligned.
       'no-warning-comments': ['error', { terms: ['todo', 'fixme', 'xxx', 'hack'], location: 'start' }],
@@ -314,6 +319,17 @@ export default defineConfig({
           'unicorn/prefer-spread': 'off',
           'unicorn/no-array-sort': 'off',
           'unicorn/catch-error-name': 'off',
+          // Mock factories and per-case fixture builders are idiomatic as arrow consts in specs; the
+          // function-declaration convention applies to shipped package source, not test scaffolding.
+          'func-style': 'off',
+        },
+      },
+      {
+        // Build/codegen scripts and Cucumber step definitions are tooling, not shipped package
+        // source — exempt from the function-declaration convention.
+        files: ['scripts/**', '**/scripts/**', '**/features/**'],
+        rules: {
+          'func-style': 'off',
         },
       },
 
@@ -338,6 +354,8 @@ export default defineConfig({
           // strict for the library (packages/**) but relaxed for the UI layer.
           'max-lines': 'off',
           'max-lines-per-function': 'off',
+          // `const Component = () => <jsx>` is the React idiom — do not force declarations here.
+          'func-style': 'off',
         },
       },
       {
@@ -352,6 +370,8 @@ export default defineConfig({
           // modules — you cannot ES-import a Metro-bundled asset. `prefer-module` does not apply
           // to the RN runtime, so it is disabled app-wide for the Expo package.
           'unicorn/prefer-module': 'off',
+          // `const Component = () => <jsx>` is the React idiom — do not force declarations here.
+          'func-style': 'off',
         },
       },
       {
@@ -365,6 +385,8 @@ export default defineConfig({
           'max-lines': 'off',
           'max-lines-per-function': 'off',
           'max-statements': 'off',
+          // Remotion components are `const Component = () => <jsx>` — the React idiom.
+          'func-style': 'off',
         },
       },
       // -------------------------------------------------------------------------------------

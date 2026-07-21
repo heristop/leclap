@@ -9,15 +9,26 @@ import AbstractFilesystem from './AbstractFilesystem';
  * Lives in the core (behind AbstractFilesystem) but only loaded by the React-Native entry, so the
  * Node/web builds never resolve expo-file-system.
  */
-const toUri = (p: string): string => (p.startsWith('file://') ? p : `file://${p}`);
-const toPath = (p: string): string => p.replace(/^file:\/\//, '');
-const join = (...parts: string[]): string => parts.filter(Boolean).join('/').replace(/\/+/g, '/');
-const basename = (p: string): string => p.split('/').pop() ?? p;
+function toUri(p: string): string {
+  return p.startsWith('file://') ? p : `file://${p}`;
+}
+
+function toPath(p: string): string {
+  return p.replace(/^file:\/\//, '');
+}
+
+function join(...parts: string[]): string {
+  return parts.filter(Boolean).join('/').replace(/\/+/g, '/');
+}
+
+function basename(p: string): string {
+  return p.split('/').pop() ?? p;
+}
 
 // The path a canonical asset URL maps to under `assetsDir` (mirrors the Node adapter): everything
 // after the `/assets/` marker (keeping subdirs like `videos/leclap_bumper.mp4`), or the basename for
 // a flat URL. Lets the app's bundled-and-staged copy satisfy a descriptor's remote `videoUrl`.
-const assetsRelativeFromUrl = (url: string): string => {
+function assetsRelativeFromUrl(url: string): string {
   const marker = '/assets/';
   const index = url.lastIndexOf(marker);
 
@@ -26,7 +37,7 @@ const assetsRelativeFromUrl = (url: string): string => {
   if (!url.includes('://')) return url;
 
   return basename(url);
-};
+}
 
 class FilesystemExpoAdapter extends AbstractFilesystem {
   protected override root: string = toPath(FileSystem.documentDirectory ?? '');

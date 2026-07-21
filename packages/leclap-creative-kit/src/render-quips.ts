@@ -18,9 +18,9 @@ export const RENDER_QUIPS = [
   'Almost showtime…',
 ];
 
-export const renderQuip = (fraction: number): string => {
+export function renderQuip(fraction: number): string {
   const clamped = Math.min(Math.max(fraction, 0), 1);
   const index = Math.min(RENDER_QUIPS.length - 1, Math.floor(clamped * RENDER_QUIPS.length));
 
   return RENDER_QUIPS[index];
-};
+}

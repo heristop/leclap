@@ -16,26 +16,30 @@ export interface AppTemplate {
   descriptor: TemplateDescriptor;
 }
 
-const titleCase = (id: string): string =>
-  id
+function titleCase(id: string): string {
+  return id
     .split('-')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
 
-const orientationOf = (d: TemplateDescriptor): TemplateOrientation => {
+function orientationOf(d: TemplateDescriptor): TemplateOrientation {
   if (d.global?.orientation === 'portrait') return 'portrait';
 
   if (d.global?.orientation === 'square') return 'square';
 
   return 'landscape';
-};
+}
 
-const hasFormOf = (d: TemplateDescriptor): boolean => (d.sections ?? []).some((s) => s.type === 'form');
+function hasFormOf(d: TemplateDescriptor): boolean {
+  return (d.sections ?? []).some((s) => s.type === 'form');
+}
 
-const categoryOf = (descriptor: TemplateDescriptor): AppTemplateCategory =>
-  orientationOf(descriptor) === 'portrait' ? 'portrait' : 'advanced';
+function categoryOf(descriptor: TemplateDescriptor): AppTemplateCategory {
+  return orientationOf(descriptor) === 'portrait' ? 'portrait' : 'advanced';
+}
 
-const complexityOf = (descriptor: TemplateDescriptor): TemplateComplexity => {
+function complexityOf(descriptor: TemplateDescriptor): TemplateComplexity {
   const count = descriptor.sections?.length ?? 0;
 
   if (count <= 3) return 'simple';
@@ -43,11 +47,11 @@ const complexityOf = (descriptor: TemplateDescriptor): TemplateComplexity => {
   if (count <= 6) return 'intermediate';
 
   return 'advanced';
-};
+}
 
 const complexityOrder: Record<TemplateComplexity, number> = { simple: 0, intermediate: 1, advanced: 2 };
 
-const define = (id: string, raw: unknown): AppTemplate => {
+function define(id: string, raw: unknown): AppTemplate {
   const descriptor = raw as TemplateDescriptor;
   const meta = descriptor.meta ?? {};
 
@@ -61,7 +65,7 @@ const define = (id: string, raw: unknown): AppTemplate => {
     hasForm: hasFormOf(descriptor),
     descriptor,
   };
-};
+}
 
 export const APP_TEMPLATES: AppTemplate[] = Object.entries(TEMPLATE_DESCRIPTORS)
   .map(([id, descriptor]) => define(id, descriptor))

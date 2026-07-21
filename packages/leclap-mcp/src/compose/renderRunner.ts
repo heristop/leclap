@@ -225,17 +225,17 @@ function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResul
     }, opts.timeoutMs);
     timer.unref();
 
-    const onAbort = (): void => {
+    function onAbort(): void {
       killChild(child);
       settle(state, { ok: false, error: 'render cancelled', logTail: state.ring.toString() });
-    };
+    }
 
     // Cleared once, whichever handler settles first, so the timer and the abort listener never
     // outlive the render.
-    const clearGuards = (): void => {
+    function clearGuards(): void {
       clearTimeout(timer);
       opts.signal?.removeEventListener('abort', onAbort);
-    };
+    }
 
     child.on('message', (msg: WorkerMessage) => {
       clearGuards();

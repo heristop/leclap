@@ -14,7 +14,7 @@ export interface SectionInfosDeps {
 }
 
 // The user-recorded clip for a project_video section, if one was supplied and exists on disk.
-const resolveUserVideoSource = async (deps: SectionInfosDeps, section: Section): Promise<string | undefined> => {
+async function resolveUserVideoSource(deps: SectionInfosDeps, section: Section): Promise<string | undefined> {
   const userPath = deps.config.userVideoPaths?.[section.name];
 
   if (section.type !== 'project_video' || !userPath) {
@@ -32,14 +32,14 @@ const resolveUserVideoSource = async (deps: SectionInfosDeps, section: Section):
 
     return undefined;
   }
-};
+}
 
 // A project_video section with no user recording falls back to the bundled catalog demo clip. When
 // that clip isn't already staged under the assets dir, fetch it (the filesystem adapter resolves the
 // catalog-relative path to the public library) and move it onto the assets-dir source path that both
 // the probe and the segment's `-i` read. Best-effort: a failed stage leaves the probe to fall back to
 // the declared duration rather than aborting the render.
-const stageDemoClip = async (deps: SectionInfosDeps, section: Section, source: string): Promise<void> => {
+async function stageDemoClip(deps: SectionInfosDeps, section: Section, source: string): Promise<void> {
   if (section.type !== 'project_video') {
     return;
   }
@@ -57,13 +57,13 @@ const stageDemoClip = async (deps: SectionInfosDeps, section: Section, source: s
       error: error instanceof Error ? error.message : String(error),
     });
   }
-};
+}
 
 // Probe the clip, tolerating two failures by falling back to the section's declared `options.duration`:
 // a probe that throws (a clip the WASM build can't demux — some browser/MediaRecorder MP4s) and a clip
 // that advertises no duration. The render still runs; the section is trimmed to that length anyway.
 // With no declared duration there's nothing to fall back to, so the original error propagates.
-const probeWithFallback = async (deps: SectionInfosDeps, section: Section, source: string): Promise<FFMpegInfos> => {
+async function probeWithFallback(deps: SectionInfosDeps, section: Section, source: string): Promise<FFMpegInfos> {
   const declared = typeof section.options?.duration === 'number' ? section.options.duration : 0;
 
   let info: FFMpegInfos;
@@ -87,18 +87,19 @@ const probeWithFallback = async (deps: SectionInfosDeps, section: Section, sourc
   deps.logger.info(`[fetchSectionInfos] No probed duration for ${section.name}; using declared ${declared}s`);
 
   return { ...info, duration: declared };
-};
+}
 
 // Safe `<buildDir>/<name>_output.mp4` path for a rendered section's output file — reuses the same
 // segment-name guard as the asset-path fallback below, so a malicious/malformed section name can't
 // traverse out of the build dir here either. Lives alongside the other section-derived-path helpers
 // so TemplateDirector.append doesn't need its own `core/arg-guard` import for this one call site.
-export const segmentOutputPath = (buildDir: string | undefined, sectionName: string): string =>
-  `${buildDir}/${assertSafeSegmentName(sectionName)}_output.mp4`;
+export function segmentOutputPath(buildDir: string | undefined, sectionName: string): string {
+  return `${buildDir}/${assertSafeSegmentName(sectionName)}_output.mp4`;
+}
 
 // Resolve a section's clip source (user recording, else the assets-dir fallback) and read its media
 // info, falling back to the declared duration when the probe can't.
-export const fetchSectionInfos = async (deps: SectionInfosDeps, section: Section): Promise<FFMpegInfos> => {
+export async function fetchSectionInfos(deps: SectionInfosDeps, section: Section): Promise<FFMpegInfos> {
   const userPaths = deps.config.userVideoPaths;
   deps.logger.info(`[fetchSectionInfos] Processing section ${section.name} (${section.type})`, {
     userVideoPaths: userPaths ? Object.keys(userPaths).join(', ') : 'none',
@@ -118,4 +119,4 @@ export const fetchSectionInfos = async (deps: SectionInfosDeps, section: Section
   }
 
   return probeWithFallback(deps, section, source);
-};
+}

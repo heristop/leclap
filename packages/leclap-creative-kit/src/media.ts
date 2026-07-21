@@ -264,5 +264,9 @@ export const BACKGROUND_LIBRARY: MediaCredit[] = [
   },
 ];
 
-export const findMusic = (id: string): MediaCredit | undefined => MUSIC_LIBRARY.find((m) => m.id === id);
-export const findBackground = (id: string): MediaCredit | undefined => BACKGROUND_LIBRARY.find((m) => m.id === id);
+export function findMusic(id: string): MediaCredit | undefined {
+  return MUSIC_LIBRARY.find((m) => m.id === id);
+}
+export function findBackground(id: string): MediaCredit | undefined {
+  return BACKGROUND_LIBRARY.find((m) => m.id === id);
+}

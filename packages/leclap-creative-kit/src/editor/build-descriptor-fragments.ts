@@ -122,7 +122,9 @@ export function watermarkField(
 }
 
 // Trim float noise off a seconds arithmetic result (0.3 - 0.1 → 0.2, not 0.19999999999999998).
-const trimSeconds = (value: number): number => Number(value.toFixed(4));
+function trimSeconds(value: number): number {
+  return Number(value.toFixed(4));
+}
 
 // The editor's show window (start/end seconds) → the input's start/duration options. The engine
 // lowers these to the overlay filter's timeline enable for images. start 0 and a non-positive

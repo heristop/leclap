@@ -33,8 +33,9 @@ const classesMapping: Record<AdapterName, Record<PlatformKey, AdapterConstructor
   },
 };
 
-const isAdapterName = (name: string): name is AdapterName =>
-  name === 'logger' || name === 'filesystem' || name === 'music';
+function isAdapterName(name: string): name is AdapterName {
+  return name === 'logger' || name === 'filesystem' || name === 'music';
+}
 
 function resolvePlatform(): PlatformKey {
   if (typeof globalThis.process !== 'undefined' && typeof globalThis.process.versions.node === 'string') {

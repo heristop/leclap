@@ -154,10 +154,13 @@ function wireCompilationEvents(
 ): CompilationEvents {
   const emitter = eventManager.connect();
   let compilationError: unknown = null;
-  const onProgressEvent = (fraction: unknown): void => onProgress?.(typeof fraction === 'number' ? fraction : 0);
-  const onStopped = (err: unknown): void => {
+  function onProgressEvent(fraction: unknown): void {
+    return onProgress?.(typeof fraction === 'number' ? fraction : 0);
+  }
+
+  function onStopped(err: unknown): void {
     compilationError = err;
-  };
+  }
 
   emitter.on('task-stopped', onStopped);
   emitter.on('compilation-progress', onProgressEvent);

@@ -29,12 +29,12 @@ const httpsAgent = new https.Agent({ keepAlive: false });
 // target against the current URL, re-run assertSafeRemoteUrl, then re-request — so a
 // redirect to 169.254.169.254 (or any RFC1918/loopback host) is rejected, while a
 // legitimate redirect to another public host is followed.
-const requestWithGuardedRedirects = async (
+async function requestWithGuardedRedirects(
   url: string,
   responseType: ResponseType,
   origin: string = url,
   hop = 0
-): Promise<AxiosResponse> => {
+): Promise<AxiosResponse> {
   if (hop > MAX_REDIRECT_HOPS) {
     throw new Error(`Too many redirects (more than ${MAX_REDIRECT_HOPS}) while fetching ${origin}`);
   }
@@ -69,7 +69,7 @@ const requestWithGuardedRedirects = async (
   const next = new URL(location, url).toString();
 
   return requestWithGuardedRedirects(next, responseType, origin, hop + 1);
-};
+}
 
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {

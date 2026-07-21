@@ -64,16 +64,16 @@ function brandSequence(): string | null {
 const BRAND_OPEN = brandSequence();
 
 // One hue, applied with intent — never as a status signal.
-export const accent = (text: string): string => {
+export function accent(text: string): string {
   if (BRAND_OPEN === null) return pc.isColorSupported ? pc.magenta(text) : text;
 
   return `${BRAND_OPEN}${text}\x1b[39m`;
-};
+}
 
 // Per-character lavender → pink fade, the terminal twin of the web `brand-gradient`. Needs 24-bit
 // colour to interpolate per glyph; on stepped/basic terminals it falls back to the single brand hue so
 // the title still reads. Reserved for the brand mark — not status.
-export const gradient = (text: string): string => {
+export function gradient(text: string): string {
   if (!supportsTruecolor()) return accent(text);
 
   const last = Math.max(1, text.length - 1);
@@ -90,7 +90,7 @@ export const gradient = (text: string): string => {
   }
 
   return `${out}\x1b[39m`;
-};
+}
 
 // The vertical film-strip edge that anchors the wordmark and reappears as the live-progress fill.
 const EDGE = '▌';

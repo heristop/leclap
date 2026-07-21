@@ -35,8 +35,9 @@ export class Terminal {
     static: { available: boolean; version?: string };
     wasm: { available: boolean; version?: string };
   }): void {
-    const formatShort = (info: { available: boolean; version?: string }) =>
-      info.available ? pc.green('✓') : pc.dim('✗');
+    function formatShort(info: { available: boolean; version?: string }) {
+      return info.available ? pc.green('✓') : pc.dim('✗');
+    }
     const row = `${pc.dim('FFmpeg')} ${formatShort(detection.system)} sys ${detection.system.version ?? ''}  ${formatShort(detection.static)} static  ${formatShort(detection.wasm)} wasm`;
     console.log(row);
   }

@@ -23,7 +23,7 @@ export interface NativeEngine {
 
 // ffmpeg `-progress` appends repeated `key=value` blocks; the latest `out_time_us` is the current
 // output position in microseconds. Returns the last parseable value, or null if none written yet.
-const parseProgressMicros = (text: string): number | null => {
+function parseProgressMicros(text: string): number | null {
   let micros: number | null = null;
 
   for (const line of text.split('\n')) {
@@ -42,7 +42,7 @@ const parseProgressMicros = (text: string): number | null => {
   }
 
   return micros;
-};
+}
 
 interface ProbeStream {
   codec_type?: string;

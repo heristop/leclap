@@ -88,7 +88,7 @@ export class TemplateValidator {
 
     const variablePattern = /\{\{\s*(\w+)\s*\}\}/g;
 
-    const checkVariableReferences = (obj: unknown, path = ''): void => {
+    function checkVariableReferences(obj: unknown, path = ''): void {
       if (typeof obj === 'string') {
         let match;
 
@@ -121,7 +121,7 @@ export class TemplateValidator {
           checkVariableReferences(value, newPath);
         }
       }
-    };
+    }
 
     checkVariableReferences(template, 'template');
 

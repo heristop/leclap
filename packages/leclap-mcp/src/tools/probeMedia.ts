@@ -100,7 +100,7 @@ function resolveStaticFfprobe(): string {
 // straight to fd 1 — that would corrupt the MCP stdio JSON-RPC framing.
 export type ProbeRunner = (realPath: string) => Promise<FFProbeData>;
 
-const defaultRunner: ProbeRunner = async (realPath) => {
+async function defaultRunner(realPath: string): Promise<FFProbeData> {
   const bin = await resolveFfprobeBin();
   const { stdout } = await execFileAsync(bin, ['-v', 'quiet', '-print_format', 'json', '-show_streams', realPath], {
     timeout: PROBE_TIMEOUT_MS,
@@ -108,7 +108,7 @@ const defaultRunner: ProbeRunner = async (realPath) => {
   });
 
   return JSON.parse(stdout) as FFProbeData;
-};
+}
 
 function parseDuration(stream: FFProbeStream | undefined): number | null {
   if (!stream?.duration) {

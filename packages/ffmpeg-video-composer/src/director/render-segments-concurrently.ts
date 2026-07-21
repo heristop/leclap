@@ -10,17 +10,17 @@ const DEFAULT_RENDER_CONCURRENCY = 3;
 
 // Effective parallel-render width: 1 (serial) unless the adapter spawns independent processes, in
 // which case the requested value (default 3) capped by the segment count.
-export const resolveRenderConcurrency = (
+export function resolveRenderConcurrency(
   supportsConcurrentExecute: boolean,
   requested: number | undefined,
   segmentCount: number
-): number => {
+): number {
   if (!supportsConcurrentExecute) {
     return 1;
   }
 
   return Math.max(1, Math.min(requested ?? DEFAULT_RENDER_CONCURRENCY, segmentCount));
-};
+}
 
 export interface SerialRenderContext {
   segments: Section[];
@@ -38,7 +38,7 @@ export interface SerialRenderContext {
  * interpolated within its share of the total duration. This is the path for adapters that drive a
  * single engine (WASM, on-device) or whenever concurrency resolves to 1.
  */
-export const renderSegmentsSerially = async (ctx: SerialRenderContext): Promise<void> => {
+export async function renderSegmentsSerially(ctx: SerialRenderContext): Promise<void> {
   let accumulated = 0;
 
   await ctx.segments.reduce(async (chain, segment) => {
@@ -67,7 +67,7 @@ export const renderSegmentsSerially = async (ctx: SerialRenderContext): Promise<
 
     accumulated += segmentLength;
   }, Promise.resolve());
-};
+}
 
 export interface ParallelRenderContext {
   segments: Section[];
@@ -89,7 +89,7 @@ export interface RenderSegmentsContext extends SerialRenderContext, ParallelRend
 }
 
 // Single render entry: resolve the effective concurrency, then run serially (1) or via the pool.
-export const renderSegments = async (ctx: RenderSegmentsContext): Promise<void> => {
+export async function renderSegments(ctx: RenderSegmentsContext): Promise<void> {
   const concurrency = resolveRenderConcurrency(
     ctx.supportsConcurrentExecute,
     ctx.maxRenderConcurrency,
@@ -104,7 +104,7 @@ export const renderSegments = async (ctx: RenderSegmentsContext): Promise<void> 
   }
 
   await renderSegmentsConcurrently(ctx, concurrency);
-};
+}
 
 /**
  * Render segments with bounded concurrency. Build runs serially first (it mutates the shared
@@ -113,7 +113,7 @@ export const renderSegments = async (ctx: RenderSegmentsContext): Promise<void> 
  * original segment order. Falls back to serial rendering when two segments resolve to the same
  * output path (duplicate section names) — concurrent writes to one file corrupt it.
  */
-export const renderSegmentsConcurrently = async (ctx: ParallelRenderContext, concurrency: number): Promise<void> => {
+export async function renderSegmentsConcurrently(ctx: ParallelRenderContext, concurrency: number): Promise<void> {
   const built = await ctx.segments.reduce(async (chain, section) => {
     const acc = await chain;
 
@@ -146,4 +146,4 @@ export const renderSegmentsConcurrently = async (ctx: ParallelRenderContext, con
     await chain;
     await ctx.finalizeSegment(section);
   }, Promise.resolve());
-};
+}

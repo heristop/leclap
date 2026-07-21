@@ -22,17 +22,19 @@ export interface StarterPreset {
 }
 
 // Base state matching toEditorState(null), minus the single default section — presets supply their own.
-const baseState = (name: string): Omit<EditorState, 'sections'> => ({
-  id: makeTemplateId(),
-  name,
-  description: '',
-  orientation: 'landscape',
-  globalVariables: [],
-  audio: { ...DEFAULT_AUDIO_MIX },
-  defaultTransition: { ...DEFAULT_TRANSITION },
-  globalAnimations: [],
-  globalOverlays: [],
-});
+function baseState(name: string): Omit<EditorState, 'sections'> {
+  return {
+    id: makeTemplateId(),
+    name,
+    description: '',
+    orientation: 'landscape',
+    globalVariables: [],
+    audio: { ...DEFAULT_AUDIO_MIX },
+    defaultTransition: { ...DEFAULT_TRANSITION },
+    globalAnimations: [],
+    globalOverlays: [],
+  };
+}
 
 const fade = { type: 'fade', duration: 0.5 } as const;
 
@@ -41,26 +43,34 @@ const ducking = { threshold: 0.05, ratio: 8, attack: 20, release: 400 } as const
 
 // Narrowing factory helpers: start from newSection(kind) then layer preset-specific fields on. Casting
 // through the discriminated union keeps this terse while staying type-checked at each field.
-const colorSection = (over: Partial<Extract<EditorSection, { kind: 'color' }>>): EditorSection => ({
-  ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
-  ...over,
-});
+function colorSection(over: Partial<Extract<EditorSection, { kind: 'color' }>>): EditorSection {
+  return {
+    ...(newSection('color') as Extract<EditorSection, { kind: 'color' }>),
+    ...over,
+  };
+}
 
-const videoSection = (over: Partial<Extract<EditorSection, { kind: 'video' }>>): EditorSection => ({
-  ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>),
-  ...over,
-});
+function videoSection(over: Partial<Extract<EditorSection, { kind: 'video' }>>): EditorSection {
+  return {
+    ...(newSection('video') as Extract<EditorSection, { kind: 'video' }>),
+    ...over,
+  };
+}
 
-const imageSection = (over: Partial<Extract<EditorSection, { kind: 'image' }>>): EditorSection => ({
-  ...(newSection('image') as Extract<EditorSection, { kind: 'image' }>),
-  ...over,
-});
+function imageSection(over: Partial<Extract<EditorSection, { kind: 'image' }>>): EditorSection {
+  return {
+    ...(newSection('image') as Extract<EditorSection, { kind: 'image' }>),
+    ...over,
+  };
+}
 
-const musicSection = (): EditorSection => ({
-  ...(newSection('music') as Extract<EditorSection, { kind: 'music' }>),
-  // allowUpload so the scene passes the save guard (a media scene with no library + no upload can't save).
-  allowUpload: true,
-});
+function musicSection(): EditorSection {
+  return {
+    ...(newSection('music') as Extract<EditorSection, { kind: 'music' }>),
+    // allowUpload so the scene passes the save guard (a media scene with no library + no upload can't save).
+    allowUpload: true,
+  };
+}
 
 export const STARTER_PRESETS: StarterPreset[] = [
   {

@@ -29,14 +29,18 @@ const DEFAULT_OPACITY = 0.72;
 // most on the memory-constrained WASM/Hermes targets.
 const MAX_DIMENSION = 8192;
 
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
+function clamp(x: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, x));
+}
 
-const inPixelRange = (n: number): boolean => Number.isFinite(n) && n >= 1 && n <= MAX_DIMENSION;
+function inPixelRange(n: number): boolean {
+  return Number.isFinite(n) && n >= 1 && n <= MAX_DIMENSION;
+}
 
 // Normalise a `c=` value to a 6-hex-digit RGB string. Accepts an optional leading `#` and 3-digit CSS
 // shorthand (expanded, e.g. `fff` → `ffffff`); anything malformed or empty falls back to the default
 // instead of nibble-misaligning a short string into a silently-wrong colour.
-const normalizeColor = (raw: string | undefined): string => {
+function normalizeColor(raw: string | undefined): string {
   if (raw === undefined) {
     return DEFAULT_COLOR;
   }
@@ -52,7 +56,7 @@ const normalizeColor = (raw: string | undefined): string => {
   }
 
   return DEFAULT_COLOR;
-};
+}
 
 /**
  * Parses a `panel:` overlay URL — comma-separated `key=value` pairs after the scheme, order-independent,
@@ -114,11 +118,11 @@ export function panelFileName(spec: PanelSpec): string {
 }
 
 // Parse one channel of a 6-hex colour string; a malformed digit collapses to 0 rather than NaN.
-const hexByte = (hex: string, at: number): number => {
+function hexByte(hex: string, at: number): number {
   const value = parseInt(hex.slice(at, at + 2), 16);
 
   return Number.isFinite(value) ? value : 0;
-};
+}
 
 /**
  * Analytic coverage for a pixel centre inside a rounded rectangle. Straight edges and the interior read
@@ -127,7 +131,7 @@ const hexByte = (hex: string, at: number): number => {
  */
 // The arc centre of whichever corner this pixel sits in; null when the pixel is on a straight run.
 // Corners never overlap (radius is capped at half the shorter side), so at most one branch matches.
-const cornerArcCenter = (cx: number, cy: number, spec: PanelSpec): { x: number; y: number } | null => {
+function cornerArcCenter(cx: number, cy: number, spec: PanelSpec): { x: number; y: number } | null {
   const { width, height, radius } = spec;
 
   if (cx < radius && cy < radius) {
@@ -147,9 +151,9 @@ const cornerArcCenter = (cx: number, cy: number, spec: PanelSpec): { x: number; 
   }
 
   return null;
-};
+}
 
-const cornerCoverage = (cx: number, cy: number, spec: PanelSpec): number => {
+function cornerCoverage(cx: number, cy: number, spec: PanelSpec): number {
   const { radius } = spec;
 
   if (radius <= 0) {
@@ -165,11 +169,11 @@ const cornerCoverage = (cx: number, cy: number, spec: PanelSpec): number => {
   const dist = Math.hypot(cx - arc.x, cy - arc.y);
 
   return clamp(radius - dist + 0.5, 0, 1);
-}; // straight alpha, no premultiplication
+} // straight alpha, no premultiplication
 
 // Build the raw (unfiltered-minus-filter-byte) RGBA scanlines: one filter-type byte 0 per row, then
 // width*4 straight-alpha RGBA bytes.
-const rawImageBytes = (spec: PanelSpec): Uint8Array => {
+function rawImageBytes(spec: PanelSpec): Uint8Array {
   const { width, height, color, opacity } = spec;
   const r = hexByte(color, 0);
   const g = hexByte(color, 2);
@@ -194,7 +198,7 @@ const rawImageBytes = (spec: PanelSpec): Uint8Array => {
   }
 
   return raw;
-};
+}
 
 // CRC32 table for the standard PNG polynomial 0xEDB88320, built once at module load.
 const CRC_TABLE = (() => {
@@ -213,7 +217,7 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-const crc32 = (data: Uint8Array): number => {
+function crc32(data: Uint8Array): number {
   let crc = 0xffffffff;
 
   for (const byte of data) {
@@ -221,10 +225,10 @@ const crc32 = (data: Uint8Array): number => {
   }
 
   return (crc ^ 0xffffffff) >>> 0;
-};
+}
 
 // Adler32 over the raw image bytes — the zlib stream's trailing checksum.
-const adler32 = (data: Uint8Array): number => {
+function adler32(data: Uint8Array): number {
   const MOD = 65521;
   let a = 1;
   let b = 0;
@@ -235,14 +239,14 @@ const adler32 = (data: Uint8Array): number => {
   }
 
   return ((b << 16) | a) >>> 0;
-};
+}
 
 // The largest payload a single DEFLATE *stored* block can carry (its LEN field is 16-bit).
 const MAX_STORED_BLOCK = 0xffff;
 
 // Write the DEFLATE *stored* blocks for `raw` into `out` starting at `startPos`; returns the position
 // just past the last block. Each block carries ≤65535 bytes; the final block sets BFINAL.
-const writeStoredBlocks = (out: Uint8Array, raw: Uint8Array, startPos: number): number => {
+function writeStoredBlocks(out: Uint8Array, raw: Uint8Array, startPos: number): number {
   let pos = startPos;
 
   for (let offset = 0; offset < raw.length || offset === 0; offset += MAX_STORED_BLOCK) {
@@ -263,11 +267,11 @@ const writeStoredBlocks = (out: Uint8Array, raw: Uint8Array, startPos: number): 
   }
 
   return pos;
-};
+}
 
 // Wrap raw bytes in a minimal zlib stream (0x78 0x01) using DEFLATE *stored* blocks — no compression,
 // so no Hermes zlib dependency.
-const zlibStore = (raw: Uint8Array): Uint8Array => {
+function zlibStore(raw: Uint8Array): Uint8Array {
   const blockCount = Math.max(1, Math.ceil(raw.length / MAX_STORED_BLOCK));
   // 2 header bytes + per block (1 flag + 2 LEN + 2 NLEN) + payload + 4 adler bytes.
   const out = new Uint8Array(2 + blockCount * 5 + raw.length + 4);
@@ -285,10 +289,10 @@ const zlibStore = (raw: Uint8Array): Uint8Array => {
   out[pos++] = checksum & 0xff;
 
   return out;
-};
+}
 
 // Encode one PNG chunk: length (uint32 BE) + type + data + CRC32(type+data) (uint32 BE).
-const chunk = (type: string, data: Uint8Array): Uint8Array => {
+function chunk(type: string, data: Uint8Array): Uint8Array {
   const typeBytes = new Uint8Array(4);
 
   for (let i = 0; i < 4; i++) {
@@ -312,9 +316,9 @@ const chunk = (type: string, data: Uint8Array): Uint8Array => {
   out[11 + data.length] = crc & 0xff;
 
   return out;
-};
+}
 
-const concat = (parts: Uint8Array[]): Uint8Array => {
+function concat(parts: Uint8Array[]): Uint8Array {
   const total = parts.reduce((sum, p) => sum + p.length, 0);
   const out = new Uint8Array(total);
   let pos = 0;
@@ -325,7 +329,7 @@ const concat = (parts: Uint8Array[]): Uint8Array => {
   }
 
   return out;
-};
+}
 
 const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 

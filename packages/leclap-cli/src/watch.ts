@@ -7,13 +7,13 @@ import { watch as fsWatch } from 'node:fs';
 export function watchPaths(paths: string[], onChange: () => void, debounceMs = 150): () => void {
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const fire = (): void => {
+  function fire(): void {
     if (timer) {
       clearTimeout(timer);
     }
 
     timer = setTimeout(onChange, debounceMs);
-  };
+  }
 
   const watchers = paths.map((target) => {
     try {

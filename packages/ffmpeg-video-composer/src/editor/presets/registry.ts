@@ -91,8 +91,10 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
  */
 export function compileSugarLayers(section: Section, ctx: SugarContext): { background: Filter[]; overlay: Filter[] } {
   const sorted = [...SUGAR_COMPILERS].sort((a, b) => a.order - b.order);
-  const select = (layer: SugarLayer): Filter[] =>
-    sorted.filter((compiler) => compiler.layer === layer).flatMap((compiler) => compiler.compile(section, ctx));
+
+  function select(layer: SugarLayer): Filter[] {
+    return sorted.filter((compiler) => compiler.layer === layer).flatMap((compiler) => compiler.compile(section, ctx));
+  }
 
   return { background: select('background'), overlay: select('overlay') };
 }

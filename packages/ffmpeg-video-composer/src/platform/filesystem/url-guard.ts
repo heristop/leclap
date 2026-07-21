@@ -21,7 +21,9 @@ const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
 // Hostnames that must never be fetched regardless of resolution.
 const BLOCKED_HOSTNAMES = new Set(['localhost']);
 
-const ipToOctets = (ip: string): number[] => ip.split('.').map((part) => Number.parseInt(part, 10));
+function ipToOctets(ip: string): number[] {
+  return ip.split('.').map((part) => Number.parseInt(part, 10));
+}
 
 // Private/reserved IPv4 ranges. `b` is an inclusive [min, max] range on the second
 // octet, or undefined when the first octet alone defines the range.
@@ -36,13 +38,13 @@ const PRIVATE_IPV4_RANGES: { a: number; b?: [number, number] }[] = [
   { a: 198, b: [18, 19] }, //   198.18.0.0/15 benchmarking (can be NAT'd to internal services)
 ];
 
-const isPrivateIpv4 = (ip: string): boolean => {
+function isPrivateIpv4(ip: string): boolean {
   const [a, b] = ipToOctets(ip);
 
   return PRIVATE_IPV4_RANGES.some((range) => range.a === a && (!range.b || (b >= range.b[0] && b <= range.b[1])));
-};
+}
 
-const isPrivateIpv6 = (ip: string): boolean => {
+function isPrivateIpv6(ip: string): boolean {
   const normalized = ip.toLowerCase();
 
   // ::1 loopback (and the unspecified ::)
@@ -70,9 +72,9 @@ const isPrivateIpv6 = (ip: string): boolean => {
   }
 
   return false;
-};
+}
 
-const isPrivateIp = (ip: string): boolean => {
+function isPrivateIp(ip: string): boolean {
   const family = isIP(ip);
 
   if (family === 4) {
@@ -85,11 +87,11 @@ const isPrivateIp = (ip: string): boolean => {
 
   // Not a recognizable IP literal — caller decides (it's a hostname to resolve).
   return false;
-};
+}
 
 // Validate a remote URL before it is fetched server-side. Throws a clear Error when
 // the URL is unsafe; resolves when the fetch may proceed.
-export const assertSafeRemoteUrl = async (rawUrl: string): Promise<void> => {
+export async function assertSafeRemoteUrl(rawUrl: string): Promise<void> {
   const parsed = new URL(rawUrl);
 
   if (!ALLOWED_SCHEMES.has(parsed.protocol)) {
@@ -127,4 +129,4 @@ export const assertSafeRemoteUrl = async (rawUrl: string): Promise<void> => {
       `Refusing to fetch a host resolving to a private/reserved address: ${host} -> ${privateHit.address}`
     );
   }
-};
+}

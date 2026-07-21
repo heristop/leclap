@@ -50,11 +50,19 @@ function readFlag(argv: readonly string[], flag: string): string | undefined {
 
   const index = argv.indexOf(flag);
 
-  if (index === -1) {
+  // A value-taking flag with no value (end of argv, or immediately followed by another `--flag`)
+  // must read as absent rather than swallowing the following flag as its value.
+  if (index === -1 || index + 1 >= argv.length) {
     return undefined;
   }
 
-  return argv[index + 1];
+  const next = argv[index + 1];
+
+  if (next.startsWith('--')) {
+    return undefined;
+  }
+
+  return next;
 }
 
 function resolveTimeout(raw: string | undefined): number {

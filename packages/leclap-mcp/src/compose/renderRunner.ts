@@ -39,6 +39,9 @@ export type RenderResult =
 
 export interface RenderOptions {
   timeoutMs: number;
+  // Aborts when the MCP client cancels the tool call; kills the worker and frees its slot at once
+  // instead of holding it for the full timeout.
+  signal?: AbortSignal;
 }
 
 const GRACE_MS = 5_000;
@@ -222,19 +225,36 @@ function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResul
     }, opts.timeoutMs);
     timer.unref();
 
-    child.on('message', (msg: WorkerMessage) => {
+    const onAbort = (): void => {
+      killChild(child);
+      settle(state, { ok: false, error: 'render cancelled', logTail: state.ring.toString() });
+    };
+
+    // Cleared once, whichever handler settles first, so the timer and the abort listener never
+    // outlive the render.
+    const clearGuards = (): void => {
       clearTimeout(timer);
+      opts.signal?.removeEventListener('abort', onAbort);
+    };
+
+    child.on('message', (msg: WorkerMessage) => {
+      clearGuards();
       onMessage(state, msg);
     });
 
     child.on('exit', (code) => {
-      clearTimeout(timer);
+      clearGuards();
       onExit(state, code);
     });
 
     child.on('error', (error) => {
-      clearTimeout(timer);
+      clearGuards();
       onError(state, error);
+    });
+
+    opts.signal?.addEventListener('abort', () => {
+      clearGuards();
+      onAbort();
     });
 
     child.send(job, (error) => {
@@ -242,17 +262,22 @@ function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResul
         return;
       }
 
-      clearTimeout(timer);
+      clearGuards();
       onError(state, error);
     });
   });
 }
 
-// Bound how many worker forks run at once; queued calls wait for a free slot before forking.
+// Bound how many worker forks run at once; queued calls wait for a free slot before forking. If the
+// call was already cancelled while queued, skip the fork entirely.
 export async function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
   await renderSemaphore.acquire();
 
   try {
+    if (opts.signal?.aborted) {
+      return { ok: false, error: 'render cancelled' };
+    }
+
     return await executeRender(job, opts);
   } finally {
     renderSemaphore.release();

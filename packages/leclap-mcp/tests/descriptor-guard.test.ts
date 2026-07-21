@@ -63,6 +63,61 @@ describe('assertDescriptorSafe', () => {
     expect(result.ok).toBe(false);
   });
 
+  it('rejects the subtitles and ass file-reading filters', async () => {
+    for (const type of ['subtitles', 'ass']) {
+      const descriptor = {
+        sections: [{ name: 's', type: 'video', filters: [{ type, value: '/etc/passwd' }] }],
+      } as unknown as TemplateDescriptor;
+
+      const result = await assertDescriptorSafe(descriptor, mediaDir);
+
+      expect(result.ok).toBe(false);
+    }
+  });
+
+  it('rejects a file smuggled through a benign filter value (curves=psfile=…)', async () => {
+    const descriptor = {
+      sections: [{ name: 's', type: 'video', filters: [{ type: 'curves', value: 'psfile=/etc/passwd' }] }],
+    } as unknown as TemplateDescriptor;
+
+    const result = await assertDescriptorSafe(descriptor, mediaDir);
+
+    expect(result).toMatchObject({ ok: false });
+    expect(!result.ok && result.message).toMatch(/file|path/i);
+  });
+
+  it('rejects a URL smuggled through a scalar value (SSRF)', async () => {
+    const descriptor = {
+      sections: [
+        { name: 's', type: 'video', filters: [{ type: 'anullsrc', value: 'http://169.254.169.254/latest/' }] },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const result = await assertDescriptorSafe(descriptor, mediaDir);
+
+    expect(result.ok).toBe(false);
+  });
+
+  it('allows a legitimate curves control-point value (no false positive on slashes)', async () => {
+    const descriptor = {
+      sections: [{ name: 's', type: 'video', filters: [{ type: 'curves', value: 'all=0/0 0.5/0.4 1/1' }] }],
+    } as unknown as TemplateDescriptor;
+
+    const result = await assertDescriptorSafe(descriptor, mediaDir);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('allows a plain scale value with a colon (no false positive)', async () => {
+    const descriptor = {
+      sections: [{ name: 's', type: 'video', filters: [{ type: 'scale', value: '1280:720' }] }],
+    } as unknown as TemplateDescriptor;
+
+    const result = await assertDescriptorSafe(descriptor, mediaDir);
+
+    expect(result.ok).toBe(true);
+  });
+
   it('rejects a source filter nested inside a map filter chain (recursive walk)', async () => {
     const descriptor = {
       sections: [

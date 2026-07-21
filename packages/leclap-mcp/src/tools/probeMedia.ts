@@ -68,7 +68,7 @@ async function resolveFfprobeBin(): Promise<string> {
   }
 
   try {
-    await execFileAsync('ffprobe', ['-version']);
+    await execFileAsync('ffprobe', ['-version'], { timeout: PROBE_TIMEOUT_MS, killSignal: 'SIGKILL' });
     cachedBin = 'ffprobe';
 
     return cachedBin;

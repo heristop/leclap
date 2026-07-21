@@ -7,6 +7,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
+import { assertWithinMediaDir } from '../compose/pathGuard.js';
 
 // bundle() (webpack over an arbitrary entry) and ensureBrowser() (can DOWNLOAD Chromium on first
 // run) are otherwise unbounded — only renderMedia carries a cancel signal. Bound the setup steps too
@@ -27,14 +28,6 @@ async function withTimeout<T>(label: string, ms: number, run: () => Promise<T>):
   } finally {
     clearTimeout(timer);
   }
-}
-
-// A caller-supplied serveUrl must stay local: loopback http(s), or a file:/bare path CONTAINED in
-// the media dir. (The serveUrl produced internally by bundle() is trusted and never routed here.)
-function isWithin(child: string, parent: string): boolean {
-  const rel = path.relative(parent, child);
-
-  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
 }
 
 const inputShape = {
@@ -106,17 +99,25 @@ async function loadRemotion(): Promise<RemotionModules | { error: string }> {
 // file: / loopback http. NOTE: `entry` is the consumer's own Remotion project module and is bundled
 // (and executed) as-is by design — this tool is design-time/local-only, so do NOT expose the server
 // to untrusted clients.
-function assertLocalPathAllowed(candidate: string, mediaDir: string, original: string): string | ToolError {
-  const resolved = path.resolve(candidate);
+// Realpath-contain a local/file: serveUrl to the media dir (symlink-safe, same guard as compose and
+// probe use). Returns the original serveUrl on success, or a tool error on escape / missing path.
+async function assertLocalPathAllowed(
+  candidate: string,
+  mediaDir: string,
+  original: string
+): Promise<string | ToolError> {
+  try {
+    await assertWithinMediaDir(path.resolve(candidate), mediaDir);
 
-  if (!isWithin(resolved, mediaDir)) {
-    return errorResult(`serveUrl path must stay under the media dir (${mediaDir}): ${original}`);
+    return original;
+  } catch (error) {
+    return errorResult(
+      `serveUrl must stay under the media dir (${mediaDir}): ${error instanceof Error ? error.message : String(error)}`
+    );
   }
-
-  return original;
 }
 
-function assertServeUrlAllowed(serveUrl: string, mediaDir: string): string | ToolError {
+async function assertServeUrlAllowed(serveUrl: string, mediaDir: string): Promise<string | ToolError> {
   let url: URL;
 
   try {
@@ -149,7 +150,7 @@ async function resolveServeUrl(
   remotion: RemotionModules
 ): Promise<{ serveUrl: string } | ToolError> {
   if (args.serveUrl) {
-    const checked = assertServeUrlAllowed(args.serveUrl, config.mediaDir);
+    const checked = await assertServeUrlAllowed(args.serveUrl, config.mediaDir);
 
     return typeof checked === 'string' ? { serveUrl: checked } : checked;
   }

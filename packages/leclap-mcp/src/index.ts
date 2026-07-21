@@ -2,17 +2,14 @@
 // which requires a reflect-metadata polyfill at load time. `get_template_schema` imports the core's
 // TemplateDescriptorSchema value, so the polyfill has to be installed before the server module loads.
 import 'reflect-metadata';
+// MUST stay above ./server.js (and anything pulling in ffmpeg-video-composer): importing this runs
+// installStdoutGuard() before the core's import graph is evaluated, so a load-time stdout write from
+// the core can't corrupt the JSON-RPC framing. `out` is the genuine fd-1 writer for the transport.
+import { out } from './stdout-guard-install.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { loadConfig } from './config.js';
 import { createServer } from './server.js';
-import { installStdoutGuard } from './stdoutGuard.js';
-
-// Install the stdout guard as the FIRST statement, before any tool can log. `out` is the
-// genuine fd-1 writer handed to the transport; every other stdout write is diverted to stderr
-// so stray `console.log` can't corrupt the JSON-RPC framing. (ESM imports hoist, but none of
-// the imported modules write to stdout on load, so installing here is safe.)
-const out = installStdoutGuard();
 
 // The tool surface is authoring-only (get_template_schema, validate_template, compose_video,
 // probe_media, the Remotion authoring helpers, ping). All diagnostics go to stderr — never

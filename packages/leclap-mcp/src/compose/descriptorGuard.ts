@@ -5,18 +5,48 @@ import type { TemplateDescriptor } from 'ffmpeg-video-composer';
 import { assertWithinMediaDir } from './pathGuard.js';
 
 // compose_video schema-validates the descriptor but then forwards its filter chain to ffmpeg
-// VERBATIM (FilterSchema.type is a raw filter name, fontfile is a raw "Path or URL"). Only
-// userVideoPaths get the media-dir guard, so without this an agent-supplied template can reach the
-// host filesystem/network THROUGH the filtergraph, sidestepping the sandbox:
-//   • an ffmpeg SOURCE filter (`movie`/`amovie`) opens an arbitrary local file or, via its protocol
-//     support (http/https/…), a network URL → arbitrary read + SSRF.
-//   • a `fontfile` absolute path / traversal points drawtext at a file outside the media dir.
-// This guard walks the whole descriptor, rejecting source filters and containing every fontfile
-// path, before the descriptor is handed to the worker.
+// VERBATIM (FilterSchema.type is a raw filter name, and the scalar `value` becomes `type=value`;
+// the core's stripFilterUnsafe removes only quotes/spaces). Only userVideoPaths get the media-dir
+// guard, so without this an agent-supplied template can reach the host filesystem/network THROUGH
+// the filtergraph, sidestepping the sandbox. Two escape channels, both closed here:
+//
+//   1. A filter TYPE that itself opens an external resource: source filters (movie/amovie), subtitle
+//      readers (subtitles/ass), and plugin loaders (frei0r/ladspa/lv2/…) → arbitrary read + SSRF +
+//      code load. Rejected outright.
+//   2. A file/URL smuggled through the scalar `value` of ANY filter, e.g. `{type:"curves",
+//      value:"psfile=/etc/passwd"}` → `curves=psfile=/etc/passwd` reads a local file, or
+//      `value:"http://169.254.169.254/…"` → SSRF via libavformat. Rejected by token scan below.
+//
+// The structured `values` object cannot smuggle a path: its schema strips unknown keys, and the one
+// path-bearing key it does define (`fontfile`) is realpath-contained to the media dir here.
+//
+// NOTE: this is defense-in-depth over an intentionally permissive surface (raw filter passthrough).
+// It blocks the known escape classes; the provably-complete alternative is a positive filter-type
+// allowlist, which would also reject legitimate uncommon filters — a deliberate trade-off.
 
-// Source filters read an external resource (file or, for movie/amovie, any ffmpeg protocol incl.
-// http). A normal template never needs one — clips arrive as sections/inputs, which ARE guarded.
-const SOURCE_FILTERS = new Set(['movie', 'amovie']);
+// Filter types that read a file / fetch a URL / load a plugin. A normal template never needs one —
+// media arrives as sections/inputs (which ARE guarded).
+const DANGEROUS_FILTERS = new Set([
+  'movie',
+  'amovie',
+  'subtitles',
+  'ass',
+  'frei0r',
+  'frei0r_src',
+  'ladspa',
+  'lv2',
+  'openclsrc',
+  'coreimage',
+  'coreimagesrc',
+]);
+
+// A URL/pseudo-protocol scheme anywhere in a value → SSRF or protocol-based file access.
+const PSEUDO_PROTOCOL =
+  /(^|[^a-z0-9])(concat|subfile|async|cache|data|file|pipe|fd|crypto|http|https|ftp|ftps|sftp|tcp|udp|rtmp|rtp|rtsp|srtp|tls|unix|gopher|md5|hls):/i;
+// A file-bearing filter OPTION token (curves=psfile=…, drawtext=textfile=…, movie=filename=…, …).
+const FILE_OPTION = /(^|[\s,:;=])(psfile|filename|textfile|pfile|fontfile|model|model_filename|commands)\s*=/i;
+// A value that is itself an absolute path or a traversal.
+const ABSOLUTE_OR_TRAVERSAL = /^\s*(\/|[a-zA-Z]:[\\/])|(^|[\\/])\.\.([\\/]|$)/;
 
 export type GuardResult = { ok: true } | { ok: false; message: string };
 
@@ -49,14 +79,43 @@ function fontfileNeedsContainment(fontfile: string): boolean {
   return fontfile.includes('/') || fontfile.includes('\\') || fontfile.includes('..') || path.isAbsolute(fontfile);
 }
 
+function unsafeScalarValueReason(value: string): string | undefined {
+  if (value.includes('://') || PSEUDO_PROTOCOL.test(value)) {
+    return 'contains a URL/protocol scheme';
+  }
+
+  if (FILE_OPTION.test(value)) {
+    return 'references a file via a filter option';
+  }
+
+  if (ABSOLUTE_OR_TRAVERSAL.test(value)) {
+    return 'contains an absolute path or a traversal';
+  }
+
+  return undefined;
+}
+
 // Section/transition `type` values are enum-constrained by the schema (already validated), so a
-// `type` equal to a source-filter name can only be a raw filter entry — no false positives.
-function findSourceFilter(descriptor: TemplateDescriptor): string | undefined {
+// `type` equal to a dangerous filter name can only be a raw filter entry — no false positives.
+// Also scans each filter node's scalar `value` for a smuggled file/URL token.
+function findFilterEscape(descriptor: TemplateDescriptor): string | undefined {
   for (const node of objectNodes(descriptor)) {
     const type = node.type;
 
-    if (typeof type === 'string' && SOURCE_FILTERS.has(type.trim().toLowerCase())) {
-      return type;
+    if (typeof type !== 'string') {
+      continue;
+    }
+
+    if (DANGEROUS_FILTERS.has(type.trim().toLowerCase())) {
+      return `Filter "${type.trim()}" is not allowed: it can read arbitrary files or URLs. Supply media via userVideoPaths (checked against the media dir) instead.`;
+    }
+
+    if (typeof node.value === 'string') {
+      const reason = unsafeScalarValueReason(node.value);
+
+      if (reason) {
+        return `Filter "${type}" value ${reason}: refusing to forward a path/URL to ffmpeg.`;
+      }
     }
   }
 
@@ -75,16 +134,24 @@ function collectFontfiles(descriptor: TemplateDescriptor): string[] {
   return files;
 }
 
-// Reject source filters and confirm every path-like fontfile stays under the media dir. Async
-// because containment is realpath-checked (symlink-safe) via the same guard userVideoPaths use.
-export async function assertDescriptorSafe(descriptor: TemplateDescriptor, mediaDir: string): Promise<GuardResult> {
-  const sourceFilter = findSourceFilter(descriptor);
+// Realpath-contain one path-like fontfile; returns an error message on escape, undefined when safe.
+async function containFontfile(fontfile: string, mediaDir: string): Promise<string | undefined> {
+  try {
+    await assertWithinMediaDir(fontfile, mediaDir);
 
-  if (sourceFilter) {
-    return {
-      ok: false,
-      message: `Filter "${sourceFilter}" is not allowed: source filters can read arbitrary files or URLs. Supply media via userVideoPaths (checked against the media dir) instead.`,
-    };
+    return undefined;
+  } catch (error) {
+    return `fontfile ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
+// Reject dangerous filter types + file/URL-bearing scalar values, and confirm every path-like
+// fontfile stays under the media dir. Async because containment is realpath-checked (symlink-safe).
+export async function assertDescriptorSafe(descriptor: TemplateDescriptor, mediaDir: string): Promise<GuardResult> {
+  const escape = findFilterEscape(descriptor);
+
+  if (escape) {
+    return { ok: false, message: escape };
   }
 
   const pathLike = collectFontfiles(descriptor).filter(fontfileNeedsContainment);
@@ -96,15 +163,4 @@ export async function assertDescriptorSafe(descriptor: TemplateDescriptor, media
   }
 
   return { ok: true };
-}
-
-// Realpath-contain one path-like fontfile; returns an error message on escape, undefined when safe.
-async function containFontfile(fontfile: string, mediaDir: string): Promise<string | undefined> {
-  try {
-    await assertWithinMediaDir(fontfile, mediaDir);
-
-    return undefined;
-  } catch (error) {
-    return `fontfile ${error instanceof Error ? error.message : String(error)}`;
-  }
 }

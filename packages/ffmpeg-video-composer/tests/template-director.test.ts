@@ -798,6 +798,41 @@ describe('TemplateDirector.config descriptor cloning', () => {
   });
 });
 
+describe('TemplateDirector.config resets build-scoped state', () => {
+  // emitFinalize (VideoEditor) skips project.clean() whenever project.errors is non-empty — and
+  // nothing else ever resets project.errors, so an errored build in a long-lived process (browser/
+  // on-device) leaves it non-empty forever, permanently disabling clean() and leaking stale
+  // currentIncrement/currentLength/musicFilters into every subsequent compile. config() now resets
+  // that build-scoped state itself, at the start of every compile.
+  it('resets currentIncrement, currentLength, musicFilters and errors even after a prior build left them dirty', () => {
+    const { director, project } = makeDirector();
+
+    // Simulate a prior build that pushed leg/error state and never reached a clean finalize (it threw).
+    project.buildInfos.currentIncrement = 3;
+    project.buildInfos.currentLength = 12.4;
+    project.buildInfos.musicFilters.push(' [stale];');
+    project.errors.push('some_section');
+
+    director.config({}, { sections: [] });
+
+    expect(project.buildInfos.currentIncrement).toBe(0);
+    expect(project.buildInfos.currentLength).toBe(0);
+    expect(project.buildInfos.musicFilters).toEqual([]);
+    expect(project.errors).toEqual([]);
+  });
+
+  it('does not touch durations/transitions — calculateTotalLength/buildTransitions repopulate those later in the same build', () => {
+    const { director, project } = makeDirector();
+    project.buildInfos.durations = { leftover: 5 };
+    project.buildInfos.transitions = [{ type: 'fade', duration: 0.3 }];
+
+    director.config({}, { sections: [] });
+
+    expect(project.buildInfos.durations).toEqual({ leftover: 5 });
+    expect(project.buildInfos.transitions).toEqual([{ type: 'fade', duration: 0.3 }]);
+  });
+});
+
 describe('TemplateDirector.fireError', () => {
   it('serializes non-Error values and emits task-stopped', async () => {
     const { director, emitter, logger } = makeDirector();

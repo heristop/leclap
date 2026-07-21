@@ -9,13 +9,13 @@ import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
-import { assertSafeSegmentName } from '../core/arg-guard';
-import { fetchSectionInfos } from './section-infos';
+import { fetchSectionInfos, segmentOutputPath } from './section-infos';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
 import { resolveOrientationScale, resolveFps } from './resolve-video-config';
 import { hasWholeVideoOverlays } from '../editor/presets/watermark';
+import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@/core/partials';
 import type Project from '../core/models/Project';
@@ -104,6 +104,16 @@ class TemplateDirector {
 
     this.template.descriptor = (expansion.ok ? expansion.data : clonedDescriptor) as SchemaTemplateDescriptor;
 
+    // Reset the leg/error state a build accumulates, at the START of every compile() (which always
+    // goes through config() first). Without this, a build that throws mid-flight leaves stale
+    // currentIncrement/currentLength/musicFilters AND a non-empty project.errors — and emitFinalize
+    // skips project.clean() whenever errors is non-empty, so in a long-lived process (browser/
+    // on-device) that never-cleared errors array corrupts every subsequent compile forever. durations
+    // and transitions are intentionally left alone: calculateTotalLength/buildTransitions repopulate
+    // (and, for transitions, explicitly clear) them later in the SAME build before anything reads them.
+    Object.assign(this.project.buildInfos, { currentIncrement: 0, currentLength: 0 });
+    this.project.buildInfos.musicFilters.length = this.project.errors.length = 0;
+
     this.filesystemAdapter.setBuildDir(this.project.config.buildDir ?? 'build');
     this.filesystemAdapter.setAssetsDir(this.project.config.assetsDir ?? 'assets');
 
@@ -170,8 +180,7 @@ class TemplateDirector {
     const allSections = (Array.isArray(this.template.descriptor.sections)
       ? this.template.descriptor.sections
       : []) as unknown as Section[];
-    const videoSegmentTypes = new Set(['video', 'project_video', 'image_background', 'color_background']);
-    const videoSegments = allSections.filter((section) => videoSegmentTypes.has(section.type));
+    const videoSegments = allSections.filter((section) => VIDEO_SEGMENT_TYPES.has(section.type));
 
     if (videoSegments.length === 0) {
       this.logger.info('No video segments found in the template to compile.');
@@ -382,7 +391,7 @@ class TemplateDirector {
   };
 
   append = async (section: Section): Promise<void> => {
-    const file = `${this.filesystemAdapter.getBuildDir()}/${assertSafeSegmentName(section.name)}_output.mp4`;
+    const file = segmentOutputPath(this.filesystemAdapter.getBuildDir(), section.name);
     this.project.buildInfos.videoInputs.push(file);
 
     await this.filesystemAdapter.append(this.project.buildInfos.fileConcatPath, `file ${file}\n`);

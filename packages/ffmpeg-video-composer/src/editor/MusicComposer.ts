@@ -183,8 +183,22 @@ class MusicComposer {
     return await this.filesystemAdapter.stat(filePath);
   }
 
-  private getSectionDuration(section: Section): number {
-    return section.options?.duration ?? 0;
+  // The RENDERED length of a section, matching what actually ends up on the video timeline (and
+  // what the xfade assembly's own probe of the rendered file sees) — NOT necessarily the declared
+  // length. `ProjectVideoSegment` trims a `project_video` clip with `-t options.duration -shortest`,
+  // so the true rendered length is `min(declared, probed-clip-length)`. calculateTotalLength stores
+  // the RAW probed clip length (uncapped by the declared duration) in buildInfos.durations for a
+  // project_video; for every other section type it stores the declared duration verbatim (there's no
+  // separate source clip to trim against), so `declared` and `probed` already agree there.
+  private renderedSectionDuration(section: Section): number {
+    const declared = section.options?.duration ?? 0;
+    const probed = this.project.buildInfos.durations[section.name] ?? 0;
+
+    if (declared > 0 && probed > 0) {
+      return Math.min(declared, probed);
+    }
+
+    return probed || declared;
   }
 
   // Per-section override wins; otherwise fall back to the template-wide music level (the builder's
@@ -198,7 +212,10 @@ class MusicComposer {
   // the start/end, not a leg blend, so it has no reason to track this).
   private resolveTransitionAndFade(): { transitionDuration: number; musicFade: number } {
     const transitionDuration = this.template.descriptor.global?.transition?.duration ?? DEFAULT_TRANSITION_DURATION;
-    const musicFade = (this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration));
+    const durations = this.project.buildInfos.durations;
+    // durations is fully populated by calculateTotalLength before any section reaches
+    // prepareMusicTrack, so it's stable for the memoized lifetime of resolvedMusicFade.
+    const musicFade = (this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration, durations));
 
     return { transitionDuration, musicFade };
   }
@@ -224,10 +241,9 @@ class MusicComposer {
     const musicVolumeLevel = this.resolveMusicVolumeLevel(section);
     const { transitionDuration, musicFade } = this.resolveTransitionAndFade();
 
-    const duration = this.getSectionDuration(section);
+    const duration = this.renderedSectionDuration(section);
 
     const sectionIncrement = this.project.buildInfos.currentIncrement + 1;
-    const isFirstSection = sectionIncrement === 1;
     const isLastSection = sectionIncrement === this.project.buildInfos.totalSegments;
     const mapName = isLastSection ? 'lastsection' : `section${sectionIncrement}`;
 
@@ -244,7 +260,6 @@ class MusicComposer {
       ss: this.project.buildInfos.currentLength,
       duration,
       sectionIncrement,
-      isFirstSection,
       musicVolumeLevel,
       mapName,
     };
@@ -360,8 +375,10 @@ class MusicComposer {
     let command = ` -y ${opts.videoInputArgs} -i ${this.project.buildInfos.musicPath} `;
     command += ` -filter_complex "${filterComplex}" `;
     // +faststart so the music-mixed final output previews in a browser <video> (moov to the front),
-    // matching the concat/single-file paths.
-    command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 -movflags +faststart ${finalVideo} `;
+    // matching the concat/single-file paths. -shortest bounds the muxed output to the (finite, stream-
+    // copied) video stream — without it a longer music tail (e.g. after loopMusic overshoots, or a
+    // music-only graph with no video-derived audio length) would extend the output past the video.
+    command += ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 -movflags +faststart -shortest ${finalVideo} `;
 
     return command;
   }

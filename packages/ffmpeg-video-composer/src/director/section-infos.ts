@@ -89,6 +89,13 @@ const probeWithFallback = async (deps: SectionInfosDeps, section: Section, sourc
   return { ...info, duration: declared };
 };
 
+// Safe `<buildDir>/<name>_output.mp4` path for a rendered section's output file — reuses the same
+// segment-name guard as the asset-path fallback below, so a malicious/malformed section name can't
+// traverse out of the build dir here either. Lives alongside the other section-derived-path helpers
+// so TemplateDirector.append doesn't need its own `core/arg-guard` import for this one call site.
+export const segmentOutputPath = (buildDir: string | undefined, sectionName: string): string =>
+  `${buildDir}/${assertSafeSegmentName(sectionName)}_output.mp4`;
+
 // Resolve a section's clip source (user recording, else the assets-dir fallback) and read its media
 // info, falling back to the declared duration when the probe can't.
 export const fetchSectionInfos = async (deps: SectionInfosDeps, section: Section): Promise<FFMpegInfos> => {

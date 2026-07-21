@@ -8,7 +8,6 @@ export type PendingLeg = {
   ss: number;
   duration: number;
   sectionIncrement: number;
-  isFirstSection: boolean;
   musicVolumeLevel: number;
   mapName: string;
 };
@@ -25,6 +24,10 @@ export type FinalizedLeg = {
 // short section. A `cut` boundary has no video overlap (buildInfos.transitions already stores 0 for
 // it), so it's short-circuited here rather than reusing the xfade filter's own near-zero (0.001s)
 // stand-in for a cut, which is an ffmpeg-graph technicality irrelevant to audio timing.
+// Not done in this pass (tracked separately): boundaryOverlap/effectiveDurations both take/return
+// single-boundary scalars derived piecemeal from ad-hoc { duration, hasAudio } probes; a deeper
+// refactor to a shared scalar type across the video xfade graph and this music-leg math was scoped
+// out as too large for this change — revisit if the two drift further.
 export function boundaryOverlap(transition: Transition | undefined, legDuration: number, nextDuration: number): number {
   const resolved = transition ?? { type: 'cut', duration: 0 };
 
@@ -75,15 +78,17 @@ export function finalizeLeg(
   transitionDuration: number,
   musicFade: number
 ): FinalizedLeg {
+  const isFirstSection = leg.sectionIncrement === 1;
   const isLastSection = nextDuration === null;
   const overlap = isLastSection ? 0 : boundaryOverlap(transition, leg.duration, nextDuration);
   const advance = isLastSection ? leg.duration : round(leg.duration - overlap);
-  const t = advance + musicFade;
+  const t = round(advance + musicFade);
+  const nextCurrentLength = round(leg.ss + advance);
 
   const baseFilter = `[1:a]atrim=start=${leg.ss}:duration=${t},asetpts=PTS-STARTPTS`;
   const filter = buildMusicFilter({
     baseFilter,
-    isFirstSection: leg.isFirstSection,
+    isFirstSection,
     isLastSection,
     transitionDuration,
     duration: leg.duration,
@@ -94,5 +99,5 @@ export function finalizeLeg(
   const crossfade =
     leg.sectionIncrement > 1 ? buildCrossfadeFilter(leg.sectionIncrement, leg.mapName, isLastSection, musicFade) : null;
 
-  return { filter, crossfade, nextCurrentLength: leg.ss + advance };
+  return { filter, crossfade, nextCurrentLength };
 }

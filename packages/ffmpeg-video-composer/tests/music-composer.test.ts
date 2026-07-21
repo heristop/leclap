@@ -337,7 +337,7 @@ describe('MusicComposer.appendMusic', () => {
     expect(cmd).toContain('-f concat -safe 0 -auto_convert 1 -i /build/segments.list');
     expect(cmd).toContain('-c:v copy');
     expect(cmd).toContain('-map 0:v -map "[final]"');
-    expect(cmd).toContain('+faststart /build/output.mp4');
+    expect(cmd).toContain('+faststart -shortest /build/output.mp4');
     // probed the first listed segment for audio, not the not-yet-existing final output
     expect(ffmpeg.getInfos).toHaveBeenCalledWith('/build/intro_output.mp4');
     // folded path never moves the final output aside
@@ -686,6 +686,177 @@ describe('MusicComposer.prepareMusicTrack — musicFade decoupling', () => {
     expect(filters).toContain('atrim=start=3.5:duration=6.1');
     expect(filters).toContain('atrim=start=8.8:duration=5.8');
     expect(filters.match(/acrossfade=d=0\.8/g)).toHaveLength(2);
+  });
+});
+
+describe('MusicComposer.prepareMusicTrack — rendered (declared-vs-probed) duration', () => {
+  // A project_video section's RENDERED length is min(declared, probed): ProjectVideoSegment trims
+  // with `-t options.duration -shortest`, so a shorter recorded/uploaded clip caps the segment below
+  // the declared duration. buildInfos.durations holds the RAW probed clip length for a project_video
+  // (calculateTotalLength / getVideoSectionDuration) — the leg advance must use whichever of
+  // declared/probed is SMALLER, not the declared value alone, or the music window drifts past where
+  // the section actually ends on the real video timeline.
+  it('uses the shorter PROBED clip length (not the declared duration) as the leg duration when the recorded clip is short', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    // Declared 12s, but the actual uploaded clip only probed to 6s — the rendered segment is 6s.
+    project.buildInfos.durations = { s1: 6 };
+    project.buildInfos.transitions = [{ type: 'fade', duration: 0.2 }];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.2 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'project_video', options: { duration: 12 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // advance1 = round(6 - 0.2) = 5.8 (using the PROBED 6s, not the declared 12s); t = 5.8 + 0.2 = 6.
+    expect(filters).toContain('atrim=start=0:duration=6,');
+    // s2 is the last section, so calling prepareMusicTrack for it finalizes BOTH legs: final
+    // currentLength = advance1 (5.8) + s2's own full-duration advance (4, last section) = 9.8.
+    expect(project.buildInfos.currentLength).toBeCloseTo(9.8, 5);
+  });
+
+  it('uses the shorter DECLARED duration (not the longer probed clip) when the recorded clip overshoots', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    // Declared 12s, but the probed clip is actually 15s long — the segment is still trimmed to 12s.
+    project.buildInfos.durations = { s1: 15 };
+    project.buildInfos.transitions = [{ type: 'fade', duration: 0.2 }];
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.2 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'project_video', options: { duration: 12 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // advance1 = round(12 - 0.2) = 11.8 (capped at the declared 12s, not the longer 15s probe).
+    expect(filters).toContain('atrim=start=0:duration=12,');
+    // s2 is the last section: final currentLength = advance1 (11.8) + s2's own full duration (4) = 15.8.
+    expect(project.buildInfos.currentLength).toBeCloseTo(15.8, 5);
+  });
+
+  it('falls back to whichever of declared/probed is set when the other is 0/missing', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    // No probed entry at all (e.g. a non-project_video section, or a build that hasn't populated
+    // durations yet) — falls back to the declared duration.
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.2 } } });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 5 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('atrim=start=0:duration=5');
+  });
+
+  // The music-fade CAP (maxMusicFadeFromSections, via resolveMusicFade) must ALSO use the rendered
+  // (capped) duration, not the declared one — otherwise a musicFade could still be sized against a
+  // section's declared length even though it renders much shorter.
+  it('caps musicFade against the RENDERED duration of a trimmed project_video section, not its declared length', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    // Declared 12s but probed/rendered to 1s — half of the rendered length (0.5) is a tighter cap
+    // than half of the declared length (6) would have been.
+    project.buildInfos.durations = { s1: 1 };
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.2 }, audio: { musicFade: 2 } },
+      sections: [
+        { name: 's1', type: 'project_video', options: { duration: 12 } },
+        { name: 's2', type: 'video', options: { duration: 4 } },
+      ],
+    });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'project_video', options: { duration: 12 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('acrossfade=d=0.5');
+  });
+});
+
+describe('MusicComposer.appendMusic — -shortest bound', () => {
+  it('bounds the muxed output to the video stream length so a long music tail never extends it', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, ffmpeg });
+
+    await composer.appendMusic([{ name: 's1', type: 'video', options: { duration: 4 } }], '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-shortest');
+  });
+
+  it('bounds the muxed output to the video stream length on the video-only (no source audio) graph too', async () => {
+    const project = makeProject({ audioConfig: { sampleRate: 48000 } });
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: null, sampleRate: null })),
+    };
+    const { composer } = makeComposer({ project, ffmpeg });
+
+    await composer.appendMusic([{ name: 's1', type: 'video', options: { duration: 4 } }], '/build/output.mp4');
+
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-shortest');
+  });
+});
+
+describe('MusicComposer.prepareMusicTrack — last-section afade st clamp', () => {
+  it('clamps a negative afade-out st to 0 when the last section is shorter than the transition duration', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 2;
+    const template = makeTemplate({ global: { transition: { type: 'fade', duration: 0.5 } } });
+    const { composer } = makeComposer({ project, template });
+
+    // A non-first, LAST section shorter (0.3s) than the video transition duration (0.5s) — the naive
+    // `duration - transitionDuration` would be negative (-0.2), an invalid ffmpeg afade `st`.
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 0.3 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    expect(filters).toContain('afade=t=out:st=0:d=0.5');
+    expect(filters).not.toContain('st=-0.2');
+  });
+});
+
+describe('MusicComposer.prepareMusicTrack — clean (rounded) atrim args', () => {
+  it('rounds the atrim window (t) and the leg-boundary ss so emitted filter args never carry raw float noise', () => {
+    const project = makeProject();
+    project.buildInfos.totalSegments = 3;
+    project.buildInfos.transitions = [
+      { type: 'fade', duration: 0.3 },
+      { type: 'fade', duration: 0.3 },
+    ];
+    const template = makeTemplate({
+      global: { transition: { type: 'fade', duration: 0.3 }, audio: { musicFade: 0.1 } },
+    });
+    const { composer } = makeComposer({ project, template });
+
+    composer.prepareMusicTrack({ name: 's1', type: 'video', options: { duration: 4.4 } });
+    composer.prepareMusicTrack({ name: 's2', type: 'video', options: { duration: 3.6 } });
+    composer.prepareMusicTrack({ name: 's3', type: 'video', options: { duration: 4 } });
+
+    const filters = project.buildInfos.musicFilters.join('');
+    // advance1 = round(4.4 - 0.3) = 4.1; raw t1 = 4.1 + 0.1 = 4.199999999999999 without rounding.
+    expect(filters).toContain('atrim=start=0:duration=4.2');
+    // advance2 = round(3.6 - 0.3) = 3.3; raw nextCurrentLength = 4.1 + 3.3 = 7.3999999999999995.
+    expect(filters).toContain('atrim=start=4.1:duration=3.4');
+    expect(filters).toContain('atrim=start=7.4:duration=4.1');
+    // s3 is the LAST section (no outgoing boundary): its own advance is its full duration (4), so the
+    // final currentLength is round(7.4 + 4) = 11.4, not the intermediate 7.4 (already asserted above
+    // via the leg3 atrim start).
+    expect(project.buildInfos.currentLength).toBeCloseTo(11.4, 5);
+
+    for (const noisy of ['4.199999999999999', '7.3999999999999995', '3.3999999999999995']) {
+      expect(filters).not.toContain(noisy);
+    }
   });
 });
 

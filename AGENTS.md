@@ -11,7 +11,7 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 - Architecture & design patterns: [`docs/architecture.md`](./docs/architecture.md)
 - Template JSON reference: [`docs/template-configuration.md`](./docs/template-configuration.md)
 - Engine configuration (ProjectConfig, env vars, encoder tiers): [`docs/engine-configuration.md`](./docs/engine-configuration.md)
-- FFmpeg detection/fallback: [`docs/ffmpeg-fallback-strategy.md`](./docs/ffmpeg-fallback-strategy.md)
+- FFmpeg detection/fallback: [`docs/architecture.md`](./docs/architecture.md#cross-platform-support)
 
 ## Repository layout
 
@@ -33,7 +33,7 @@ The user-facing CLI is `@leclap/cli` (`leclap render|init|diagnose`). The `compi
 
 - **pnpm 11.5.2** (pinned via `packageManager`) and **Node ≥ 24** (pinned to 24 via `mise.toml`; `engine-strict=true` rejects wrong versions).
 - Install: `pnpm install` at the repo root.
-- FFmpeg is resolved at runtime — system → `ffmpeg-static` → `@ffmpeg/ffmpeg` (WASM). Installing system FFmpeg (e.g. via `mise`) is recommended for Node work. See `docs/ffmpeg-fallback-strategy.md`.
+- FFmpeg is resolved at runtime — system → `ffmpeg-static` → `@ffmpeg/ffmpeg` (WASM). Installing system FFmpeg (e.g. via `mise`) is recommended for Node work. See `docs/architecture.md`.
 
 ## Commands
 

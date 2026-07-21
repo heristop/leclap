@@ -9,7 +9,7 @@ A template is a Zod-validated JSON descriptor: a `global` block plus an ordered 
 - [README — overview & quick start](https://raw.githubusercontent.com/heristop/leclap/main/README.md): what LeClap is, the monorepo layout, and how to get running.
 - [Template configuration reference](https://raw.githubusercontent.com/heristop/leclap/main/docs/template-configuration.md): the template JSON reference — global config, sections, the FFmpeg pipeline, and `{{ placeholders }}`.
 - [Architecture](https://raw.githubusercontent.com/heristop/leclap/main/docs/architecture.md): system architecture and design patterns.
-- [FFmpeg fallback strategy](https://raw.githubusercontent.com/heristop/leclap/main/docs/ffmpeg-fallback-strategy.md): how automatic FFmpeg detection (native / WASM / server) chooses a backend.
+- [FFmpeg fallback strategy](https://raw.githubusercontent.com/heristop/leclap/main/docs/architecture.md): how automatic FFmpeg detection (native / WASM) chooses a backend.
 - [On-device compilation](https://raw.githubusercontent.com/heristop/leclap/main/docs/on-device-compilation.md): the serverless Expo / React Native compile pipeline.
 - [AGENTS.md — repo conventions](https://raw.githubusercontent.com/heristop/leclap/main/AGENTS.md): repo layout, commands, and conventions for contributors and AI agents.
 
@@ -32,8 +32,8 @@ The full, schema-driven descriptor reference — generated from the engine's own
 ## Packages
 
 - [ffmpeg-video-composer — the library](https://raw.githubusercontent.com/heristop/leclap/main/packages/ffmpeg-video-composer/README.md): install, the `compile()` API, entry points (Node / browser / RN), and FFmpeg detection.
-- [@leclap/mcp — agent-callable MCP server](https://raw.githubusercontent.com/heristop/leclap/main/packages/mcp/README.md): the engine as MCP tools (compose / list / probe) — author & render templates with no LLM in the loop.
-- [@leclap/creative-kit — templates & assets](https://raw.githubusercontent.com/heristop/leclap/main/packages/creative-kit/README.md): bundled premium templates, partials, fonts, and media.
+- [@leclap/mcp — agent-callable MCP server](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-mcp/README.md): the engine as MCP tools (compose / list / probe) — author & render templates with no LLM in the loop.
+- [@leclap/creative-kit — templates & assets](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-creative-kit/README.md): bundled premium templates, partials, fonts, and media.
 - [ffmpeg-engine — on-device Rust engine](https://raw.githubusercontent.com/heristop/leclap/main/packages/ffmpeg-engine/README.md): the Rust engine embedding FFmpeg fftools for native on-device compiles.
 
 ## Optional

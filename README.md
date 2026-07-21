@@ -108,7 +108,7 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 - **[🌐 Descriptor reference (web)](https://leclap.pages.dev/doc)** — the full, schema-driven descriptor reference, one page per topic (sections, transitions, looks, grade, motion, audio, captions, filters, examples, JSON Schema).
 - **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference.
 - **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
-- **[🔧 FFmpeg Fallback Strategy](docs/ffmpeg-fallback-strategy.md)** — how automatic FFmpeg detection works.
+- **[🔧 FFmpeg Fallback Strategy](docs/architecture.md#cross-platform-support)** — how automatic FFmpeg detection works.
 - **[📱 On-Device Compilation](docs/on-device-compilation.md)** — the serverless Expo compile pipeline.
 - **[🤖 AGENTS.md](AGENTS.md)** — repo layout, commands, and conventions for contributors and AI agents.
 

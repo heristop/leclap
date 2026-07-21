@@ -7,7 +7,7 @@ description: Use when working with FFmpeg across Node/Static/WASM, the PlatformB
 
 ## Overview
 
-The core never calls FFmpeg directly — it goes through an `AbstractFFmpeg` adapter chosen by the runtime. `PlatformBridge` detects the environment and wires the right adapter; the Node path additionally auto-detects an FFmpeg binary with a fallback chain. Full detail: `docs/ffmpeg-fallback-strategy.md` and `docs/architecture.md`.
+The core never calls FFmpeg directly — it goes through an `AbstractFFmpeg` adapter chosen by the runtime. `PlatformBridge` detects the environment and wires the right adapter; the Node path additionally auto-detects an FFmpeg binary with a fallback chain. Full detail: `docs/architecture.md`.
 
 - Bridge: `packages/ffmpeg-video-composer/src/platform/PlatformBridge.ts`
 - Adapters: `packages/ffmpeg-video-composer/src/platform/ffmpeg/` (`AbstractFFmpeg`, `FFmpegNodeAdapter`, `FFmpegStaticAdapter`, `FFmpegWasmAdapter`, `FFmpegDetector`, plus `*Music*` adapters)

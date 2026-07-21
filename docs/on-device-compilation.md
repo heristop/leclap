@@ -2,7 +2,7 @@
 
 How the Expo app compiles a template **fully on-device** — no upload, no server — by running a real, statically-linked FFmpeg CLI through the **same** `ffmpeg-video-composer` core that powers the server and web.
 
-> For the overall system architecture see [`architecture.md`](./architecture.md); for how a job is routed between on-device and server see [`ffmpeg-fallback-strategy.md`](./ffmpeg-fallback-strategy.md).
+> For the overall system architecture — including how FFmpeg detection selects a backend — see [`architecture.md`](./architecture.md#cross-platform-support).
 
 ## Why
 

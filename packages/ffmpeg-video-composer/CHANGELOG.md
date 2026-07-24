@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2026-07-24
+
+### Fixed
+
+- Build state is now fully reset between compiles, so back-to-back compiles in a
+  long-lived process (browser / on-device) stay independent — a leftover `videoInputs`
+  entry no longer makes the next compile probe a prior build's segment.
+
 ## [2.1.1] - 2026-06-29
 
 ### Added

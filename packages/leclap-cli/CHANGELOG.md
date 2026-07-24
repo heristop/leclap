@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-07-24
+
+### Fixed
+
+- Restore the terminal cursor on Ctrl-C during a render — interrupting a render no
+  longer leaves the shell with a permanently hidden cursor.
+- Keep `leclap render --watch` alive when an OS-level file-watcher error occurs (editor
+  rename/replace, `EMFILE`, the watched dir being removed) instead of crashing the process.
+- `--json` mode now emits a machine-readable `{ "ok": false, "error": … }` object on
+  failure (missing template, bad `--field`/`--video`) instead of coloured stderr text.
+- Count physical terminal rows when repainting, so a progress header that wraps on a
+  narrow terminal no longer corrupts the live render block.
+
 ## [0.2.0] - 2026-06-29
 
 ### Added

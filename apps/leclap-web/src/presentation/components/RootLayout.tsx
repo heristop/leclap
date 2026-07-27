@@ -5,6 +5,7 @@ import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Footer } from '@/presentation/components/Footer';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useSmoothScroll } from '@/hooks/use-smooth-scroll';
 
 // Onboarding pulls in the compile pipeline (and FFmpeg WASM); it only shows on the first studio
 // visit, so lazy-loading it keeps that weight out of the entry chunk and off the landing page.
@@ -19,6 +20,10 @@ export function RootLayout() {
   const { t } = useTranslation();
   const { show, dismiss, openIfFirstTime } = useOnboarding();
   const location = useLocation();
+
+  // Eased scrolling, marketing routes only — the hero's scroll-driven film only reads as film if the
+  // scroll carrying it has weight. Mounted here so it spans the whole page, not just the hero.
+  useSmoothScroll(location.pathname);
 
   // The guided intro stays off the landing page: it auto-opens once the visitor first reaches the
   // studio — where orientation is useful — then never again. openIfFirstTime() no-ops for bots and

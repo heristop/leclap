@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ChangeEvent, type RefObject } from 'react';
+import { subscribe } from '@/lib/ticker';
 import { formatTimecode, playheadRatio, scrubTime } from './hero-timecode.logic';
 
 export const SCRUB_RESOLUTION = 1000;
@@ -8,7 +9,7 @@ type VideoRef = RefObject<HTMLVideoElement | null>;
 interface HeroPlayheadOptions {
   /** Run the sync loop only while the hero is actually on screen. */
   active: boolean;
-  /** Reduced motion: paint once (settled) instead of running the rAF loop. */
+  /** Reduced motion: paint once (settled) instead of subscribing to the ticker. */
   reduced: boolean;
 }
 
@@ -45,14 +46,15 @@ const paintPlayhead = (
   }
 };
 
-// Binds the hero's program-monitor chrome to the background film: one loop mirrors the video's
-// playhead into the SMPTE timecode readout and the timeline scrubber (value + the `--range-pct`
-// gradient fill the studio-range track reads). All writes go straight to the DOM — never through
-// React state — so the sync costs zero re-renders. The loop rides requestVideoFrameCallback where
-// available, so it ticks once per presented video frame (~24-30fps) instead of every display frame;
-// the video mounts lazily (on browser idle), so the scheduler re-checks for it on each rAF tick
-// until it exists. Scrubbing works both ways: dragging (or arrow-keying) the range seeks the film,
-// which the same paint reflects immediately.
+// Binds the hero's program-monitor chrome to the background film: the video's playhead is mirrored
+// into the SMPTE timecode readout and the timeline scrubber (value + the `--range-pct` gradient fill
+// the studio-range track reads). All writes go straight to the DOM — never through React state — so
+// the sync costs zero re-renders.
+//
+// The paint rides the shared page ticker, upgrading to requestVideoFrameCallback as soon as the
+// idle-mounted video exists — once per presented frame (~24-30fps) rather than every display frame —
+// and dropping off the ticker at that point. Scrubbing works both ways: dragging (or arrow-keying)
+// the range seeks the film, which the same paint reflects immediately.
 export function useHeroPlayhead(videoRef: VideoRef, { active, reduced }: HeroPlayheadOptions) {
   const timecodeRef = useRef<HTMLSpanElement>(null);
   const scrubRef = useRef<HTMLInputElement>(null);
@@ -62,43 +64,54 @@ export function useHeroPlayhead(videoRef: VideoRef, { active, reduced }: HeroPla
 
     if (reduced || !active) return () => {};
 
-    let rafId = 0;
     let videoFrameId = 0;
     let filmWithCallback: HTMLVideoElement | null = null;
+    let unsubscribe: (() => void) | null = null;
 
-    const schedule = () => {
-      const film = videoRef.current;
-
-      if (film && 'requestVideoFrameCallback' in film) {
-        filmWithCallback = film;
-        videoFrameId = film.requestVideoFrameCallback(tick);
-
-        return;
-      }
-
-      filmWithCallback = null;
-      rafId = requestAnimationFrame(tick);
-    };
-
-    function tick() {
+    function onVideoFrame() {
       paintPlayhead(videoRef, timecodeRef, scrubRef);
-      schedule();
+
+      if (!filmWithCallback) return;
+
+      videoFrameId = filmWithCallback.requestVideoFrameCallback(onVideoFrame);
     }
 
-    schedule();
+    // The film mounts lazily (on browser idle), so the upgrade is retried each frame until it exists.
+    function upgradeToVideoFrames(): boolean {
+      const film = videoRef.current;
+
+      if (!film || !('requestVideoFrameCallback' in film)) return false;
+
+      filmWithCallback = film;
+      videoFrameId = film.requestVideoFrameCallback(onVideoFrame);
+
+      return true;
+    }
+
+    unsubscribe = subscribe(() => {
+      paintPlayhead(videoRef, timecodeRef, scrubRef);
+
+      if (filmWithCallback) return;
+
+      if (upgradeToVideoFrames()) {
+        unsubscribe?.();
+        unsubscribe = null;
+      }
+    });
 
     return () => {
-      cancelAnimationFrame(rafId);
+      unsubscribe?.();
       filmWithCallback?.cancelVideoFrameCallback(videoFrameId);
     };
   }, [active, reduced, videoRef]);
 
   const onScrub = (event: ChangeEvent<HTMLInputElement>) => {
+    const ratio = event.currentTarget.valueAsNumber / SCRUB_RESOLUTION;
     const video = videoRef.current;
 
     if (!video) return;
 
-    video.currentTime = scrubTime(event.currentTarget.valueAsNumber / SCRUB_RESOLUTION, video.duration);
+    video.currentTime = scrubTime(ratio, video.duration);
     paintPlayhead(videoRef, timecodeRef, scrubRef);
   };
 

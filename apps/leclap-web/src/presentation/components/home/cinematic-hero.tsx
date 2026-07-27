@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { Button } from '@/presentation/components/ui';
 import { KineticHeading } from '@/presentation/components/kinetic';
 import { useInView } from '@/hooks/useInView';
 import { usePointerGlow } from '@/hooks/usePointerGlow';
+import { useSound } from '@/hooks/use-sound';
 import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 import { HeroStage } from './hero-stage';
 import { HeroViewfinder } from './hero-viewfinder';
@@ -37,6 +38,14 @@ export const CinematicHero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { timecodeRef, scrubRef, onScrub } = useHeroPlayhead(videoRef, { active: heroInView, reduced });
 
+  const { enabled: soundEnabled, toggle: toggleSound, clap, tick } = useSound();
+
+  // The deck ticks as the playhead steps — silent unless the visitor switched sound on.
+  const onTimelineScrub = (event: ChangeEvent<HTMLInputElement>) => {
+    tick();
+    onScrub(event);
+  };
+
   const setHeroRef = (node: HTMLElement | null) => {
     inViewRef.current = node;
     glowRef.current = node;
@@ -61,7 +70,7 @@ export const CinematicHero = () => {
     >
       <HeroStage videoRef={videoRef} reduced={reduced} inView={heroInView} />
       {/* The tally already carries the brand via the hero.tally copy ("LeClap · On-device"). */}
-      <HeroViewfinder timecodeRef={timecodeRef} />
+      <HeroViewfinder timecodeRef={timecodeRef} soundEnabled={soundEnabled} onToggleSound={toggleSound} />
 
       <div className="container relative z-10 mx-auto px-6 pb-28 pt-24 text-center sm:pb-32">
         {/* The type follows the pointer a touch (opposite the footage) so the stage reads as depth.
@@ -104,7 +113,7 @@ export const CinematicHero = () => {
           style={{ animationDelay: '1.15s' }}
         >
           <Button asChild size="lg" className="group sheen glow-brand rounded-full hover:scale-105">
-            <Link to="/studio">
+            <Link to="/studio" onClick={clap}>
               {t('hero.startCreating')}
               <ArrowRight className="transition-transform group-hover:translate-x-1" />
             </Link>
@@ -134,7 +143,7 @@ export const CinematicHero = () => {
         </p>
       </div>
 
-      <HeroTimeline scrubRef={scrubRef} onScrub={onScrub} />
+      <HeroTimeline scrubRef={scrubRef} onScrub={onTimelineScrub} />
     </section>
   );
 };

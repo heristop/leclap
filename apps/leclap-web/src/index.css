@@ -101,6 +101,12 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Lenis (marketing routes) tags the root while it's mounted and owns easing from
+   there — the native smooth scroll would fight its rAF-driven position. */
+html.lenis {
+  scroll-behavior: auto;
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);

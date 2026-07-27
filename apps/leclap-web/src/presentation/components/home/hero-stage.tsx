@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useHeroVideoSrc } from '@/hooks/useHeroVideoSrc';
+import { subscribe } from '@/lib/ticker';
 
 interface HeroStageProps {
   videoRef: RefObject<HTMLVideoElement | null>;
@@ -72,29 +73,27 @@ export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
   }, [inView, reduced, heroSrc, stageReady, videoRef]);
 
   // Scroll parallax: the stage drifts down at a fraction of scroll speed so the footage reads as
-  // depth behind the copy. Transform written via rAF; the layer is over-sized so no edge shows.
+  // depth behind the copy. Driven by the shared ticker rather than a scroll listener of its own, so
+  // it reads the same frame as the playhead; the layer is over-sized so no edge shows.
+  // The written value is compared before assignment — an unchanged transform still dirties the
+  // compositor, and a page at rest should cost nothing.
   useEffect(() => {
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const el = scrollLayerRef.current;
+    if (reduced) return () => {};
 
-        if (!el) return;
+    let painted = '';
 
-        el.style.transform = `translate3d(0, ${(globalThis.scrollY * 0.12).toFixed(1)}px, 0)`;
-      });
-    };
+    return subscribe(() => {
+      const el = scrollLayerRef.current;
 
-    if (!reduced) {
-      onScroll();
-      globalThis.addEventListener('scroll', onScroll, { passive: true });
-    }
+      if (!el) return;
 
-    return () => {
-      globalThis.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(frame);
-    };
+      const next = `translate3d(0, ${(globalThis.scrollY * 0.12).toFixed(1)}px, 0)`;
+
+      if (next === painted) return;
+
+      painted = next;
+      el.style.transform = next;
+    });
   }, [reduced]);
 
   return (

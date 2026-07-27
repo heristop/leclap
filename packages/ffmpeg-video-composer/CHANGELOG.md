@@ -5,13 +5,57 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.2] - 2026-07-24
+## [2.2.0] - 2026-07-27
+
+### Added
+
+- Effects pack: film grain and cinemascope letterbox, stylized look presets, shake and
+  pulse motion effects, and section-level audio effect presets.
+- `global.watermark` — a global image watermark from an upload or a URL, with explicit
+  still-image handling and URL validation.
+- Named render-quality tiers, with tier-aware video segment selection.
+- `global.fps` on the descriptor: optional, default 30, so frame rate is a creative
+  choice rather than a hardcoded engine constant.
+- A generated runtime capability matrix plus a device filter capability set. Filters a
+  given FFmpeg build cannot provide are now dropped (or approximated) with a warning
+  instead of failing silently — closing the LGPL/on-device gap.
+- Descriptor validation on the Node `compile()` path, with a `skipValidation` opt-out on
+  `ProjectConfig` for callers that have already validated upstream.
+- Music cross-fade is decoupled from the video transition, so the audio curve no longer
+  has to match the cut.
+- Gradient shapes and angles, overlay flip and easing, layer borders, and global
+  animation motion.
+- Entrance options for shapes and layers, accent-bar reveal sync, and transition
+  duration bounds.
+- Rounded panel assets.
+
+### Changed
+
+- **`compile()` now validates by default on the Node path.** A malformed descriptor
+  fails fast with a structured summary instead of failing late inside the engine or
+  rendering something wrong. Descriptors that previously compiled despite schema errors
+  will now throw; pass `skipValidation: true` to restore the old behaviour.
+- fps and scale defaults are centralised rather than scattered across the builder and
+  the editor.
+- Editor utility modules are grouped under `editor/utils`, and remaining util modules
+  are renamed to kebab-case.
+- Effects and section schemas are split into `effects-visual` and `section-media`.
+- Library packages use function-declaration style throughout.
 
 ### Fixed
 
 - Build state is now fully reset between compiles, so back-to-back compiles in a
   long-lived process (browser / on-device) stay independent — a leftover `videoInputs`
   entry no longer makes the next compile probe a prior build's segment.
+- The music timeline uses rendered durations and hardens leg state, and stays aligned
+  with transition overlaps instead of drifting against them.
+- Still images loop correctly in whole-video overlays.
+- Letterbox and grain edge guards.
+- Segments are built from a section copy, so compiling the same descriptor twice yields
+  identical commands.
+- `drawbox` is centred using `iw` rather than the box width.
+- Gradients freeze at minimum speed under wasm.
+- Sugar is preserved in overlay graphs.
 
 ## [2.1.1] - 2026-06-29
 

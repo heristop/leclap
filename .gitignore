@@ -2,6 +2,9 @@
 .vscode/
 .idea/
 build
+# Gradle's local build cache (checksums, file hashes, daemon state). Trailing slash so it
+# only ever matches the directory — the tracked build.gradle scripts are unaffected.
+.gradle/
 # @leclap/cli demo-clip + media download cache (any `assets/` dir), except the apps'
 # own asset directories (e.g. apps/leclap-expo/assets), which are tracked.
 assets/

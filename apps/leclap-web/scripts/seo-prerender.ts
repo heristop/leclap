@@ -262,13 +262,21 @@ const marketingTitle = (route: MarketingRoute, lng: Locale) => {
   return route.titleVerbatim ? entry.title : `${entry.title} — LeClap`;
 };
 
-// Where a (route, locale) pair's index.html is written. English keeps the root tree; others nest
-// under /<lng>. The English home is dist/index.html itself.
+// Where a (route, locale) pair's HTML is written. English keeps the root tree; others nest under
+// /<lng>. The English home is dist/index.html itself.
+//
+// Non-home routes are written as a SIBLING `<route>.html`, not `<route>/index.html`. Static hosts
+// serve a folder index at the slash-suffixed URL and redirect the bare path to it (`/studio` → 308 →
+// `/studio/`), while `studio.html` is served directly at `/studio`. Every canonical, hreflang
+// alternate and sitemap <loc> here uses the slash-less form, so the folder layout made Google follow
+// a redirect for each one and land on a page whose canonical pointed back at the redirect. This is
+// fixed behaviour on Cloudflare Pages — it is not configurable — and the sibling layout also serves
+// correctly on Workers static assets, so it stays right if the deploy target changes.
 const fileFor = (routePath: string, lng: Locale) => {
   const prefix = lng === 'en' ? '' : `/${lng}`;
   const rel = `${prefix}${routePath === '/' ? '' : routePath}`.replace(/^\//, '');
 
-  return path.join(distDir, rel, 'index.html');
+  return rel === '' ? path.join(distDir, 'index.html') : path.join(distDir, `${rel}.html`);
 };
 
 function buildSitemap(lastmod: string) {

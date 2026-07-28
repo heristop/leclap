@@ -1,0 +1,82 @@
+# Every Git LFS asset the web build needs materialized before `vite build`.
+# Consumed by scripts/ci/fetch-web-media.sh (skip-if-present check + post-extract verification)
+# and mirrored by the web-media.tar.gz bundle on the ci-assets-v1 release.
+#
+# Regenerate after adding or removing media:
+#   git lfs ls-files -n | grep -E '^(packages/leclap-creative-kit/src/library/|apps/leclap-web/public/videos/)' | sort
+
+# Creative-kit music
+packages/leclap-creative-kit/src/library/musics/air-prelude.mp3
+packages/leclap-creative-kit/src/library/musics/americana.mp3
+packages/leclap-creative-kit/src/library/musics/anxiety.mp3
+packages/leclap-creative-kit/src/library/musics/arcadia.mp3
+packages/leclap-creative-kit/src/library/musics/autumn-day.mp3
+packages/leclap-creative-kit/src/library/musics/brain-dance.mp3
+packages/leclap-creative-kit/src/library/musics/cafe-bossa-nova.mp3
+packages/leclap-creative-kit/src/library/musics/cafe-jazz.mp3
+packages/leclap-creative-kit/src/library/musics/carefree.mp3
+packages/leclap-creative-kit/src/library/musics/fluffing-a-duck.mp3
+packages/leclap-creative-kit/src/library/musics/future-bass-energy.mp3
+packages/leclap-creative-kit/src/library/musics/indie-rock-dreamy.mp3
+packages/leclap-creative-kit/src/library/musics/local-forecast-elevator.mp3
+packages/leclap-creative-kit/src/library/musics/lofi-chill.mp3
+packages/leclap-creative-kit/src/library/musics/lofi-hip-hop.mp3
+packages/leclap-creative-kit/src/library/musics/lofi-sentimental-jazz.mp3
+packages/leclap-creative-kit/src/library/musics/monkeys-spinning-monkeys.mp3
+packages/leclap-creative-kit/src/library/musics/party-dance.mp3
+packages/leclap-creative-kit/src/library/musics/pixelland.mp3
+packages/leclap-creative-kit/src/library/musics/point-being.mp3
+packages/leclap-creative-kit/src/library/musics/pop.mp3
+packages/leclap-creative-kit/src/library/musics/romantic-piano.mp3
+packages/leclap-creative-kit/src/library/musics/silence-1-min.mp3
+packages/leclap-creative-kit/src/library/musics/sneaky-snitch.mp3
+packages/leclap-creative-kit/src/library/musics/the-builder.mp3
+packages/leclap-creative-kit/src/library/musics/tropical-cocktail.mp3
+packages/leclap-creative-kit/src/library/musics/upbeat-electronic.mp3
+
+# Creative-kit animation overlays
+packages/leclap-creative-kit/src/library/animations/animation_icons.apng
+packages/leclap-creative-kit/src/library/animations/confetti.apng
+packages/leclap-creative-kit/src/library/animations/corner_brackets.apng
+packages/leclap-creative-kit/src/library/animations/glow_border.apng
+packages/leclap-creative-kit/src/library/animations/light_leak.apng
+packages/leclap-creative-kit/src/library/animations/pulse_ring.apng
+packages/leclap-creative-kit/src/library/animations/rounded_border.apng
+packages/leclap-creative-kit/src/library/animations/shine_sweep.apng
+packages/leclap-creative-kit/src/library/animations/sparkle.apng
+packages/leclap-creative-kit/src/library/animations/spec_orbit.apng
+packages/leclap-creative-kit/src/library/animations/tap_pulse.apng
+packages/leclap-creative-kit/src/library/animations/white_border.apng
+
+# Creative-kit sample + bumper videos
+packages/leclap-creative-kit/src/library/videos/earth-no-audio.mp4
+packages/leclap-creative-kit/src/library/videos/earth.mp4
+packages/leclap-creative-kit/src/library/videos/leclap_bumper.mp4
+packages/leclap-creative-kit/src/library/videos/leclap_bumper_portrait.mp4
+packages/leclap-creative-kit/src/library/videos/outro.mp4
+packages/leclap-creative-kit/src/library/videos/video_1.mp4
+packages/leclap-creative-kit/src/library/videos/video_2.mp4
+packages/leclap-creative-kit/src/library/videos/video_3.mp4
+packages/leclap-creative-kit/src/library/videos/video_4.mp4
+packages/leclap-creative-kit/src/library/videos/video_portrait.mp4
+
+# Creative-kit pictures
+packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png
+packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_5mbmb.png
+
+# Web showcase, promo and placeholder clips
+apps/leclap-web/public/videos/clapperboard.mp4
+apps/leclap-web/public/videos/drink-and-coffee.mp4
+apps/leclap-web/public/videos/drink-and-coffee.webm
+apps/leclap-web/public/videos/leclap-android-demo.mp4
+apps/leclap-web/public/videos/leclap-android-demo.webm
+apps/leclap-web/public/videos/leclap-builder-promo-portrait.mp4
+apps/leclap-web/public/videos/leclap-builder-promo-portrait.webm
+apps/leclap-web/public/videos/leclap-builder-promo.mp4
+apps/leclap-web/public/videos/leclap-builder-promo.webm
+apps/leclap-web/public/videos/leclap-create-promo-portrait.mp4
+apps/leclap-web/public/videos/leclap-create-promo-portrait.webm
+apps/leclap-web/public/videos/leclap-create-promo.mp4
+apps/leclap-web/public/videos/leclap-create-promo.webm
+apps/leclap-web/public/videos/placeholder-landscape.mp4
+apps/leclap-web/public/videos/placeholder-portrait.mp4

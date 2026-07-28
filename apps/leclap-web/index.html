@@ -14,6 +14,14 @@
     <meta name="theme-color" content="#0b0b0f" />
     <link rel="canonical" href="https://leclap.pages.dev/" />
 
+    <!-- Google Search Console ownership proof for the https://leclap.pages.dev/ URL-prefix property.
+         Must stay in the served HTML: Google re-checks it periodically and un-verifies the property if
+         it disappears. Preferred over a public/google*.html file because Workers static assets serves
+         individual .html files at their extensionless path, so the file Google fetches to verify would
+         answer with a redirect. Google reads this only from the property root, so scripts/seo-prerender.ts
+         strips it from every other route instead of cloning it onto all of them. -->
+    <meta name="google-site-verification" content="ak0lU4DEgfZCkuAGahEbNVINVwjp5nkt_Sgct-KHrSw" />
+
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

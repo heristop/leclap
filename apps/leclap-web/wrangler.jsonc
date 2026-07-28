@@ -5,10 +5,18 @@
   // public/_headers (COOP/COEP cross-origin isolation) is copied into dist and honored by Workers static
   // assets. SPA fallback is handled by `not_found_handling` below — no _redirects file (a `/* /index.html`
   // rewrite is rejected by Workers static-assets validation as a self-referential loop).
+  //
+  // `html_handling` must be "drop-trailing-slash": scripts/seo-prerender.ts writes folder index files
+  // (dist/studio/index.html), and the default "auto-trailing-slash" serves those at /studio/ while
+  // 308-redirecting /studio. Every canonical, hreflang alternate and sitemap <loc> we emit uses the
+  // slash-less form — so the default would make Google follow a redirect for each one and land on a
+  // page whose canonical points straight back at the redirect. Dropping the slash serves /studio
+  // directly and redirects /studio/ to it, matching the URLs the prerender step declares.
   "name": "leclap",
   "compatibility_date": "2026-06-16",
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
+    "html_handling": "drop-trailing-slash",
   },
 }

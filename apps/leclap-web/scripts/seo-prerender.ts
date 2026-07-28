@@ -187,17 +187,43 @@ type HeadSpec = {
   routePath: string;
 };
 
+const setMeta = (input: string, attr: string, key: string, value: string) =>
+  input.replace(
+    new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")[^"]*(")`),
+    (_m: string, p1: string, p2: string) => p1 + value + p2
+  );
+
+// Search Console reads the ownership tag from the property root only. Every route clones the same
+// template, so drop the tag (and its now-orphaned comment, if HTML minification kept it) from the
+// other pages rather than shipping a tag that does nothing there.
+const stripVerification = (html: string) =>
+  html
+    .replace(/[ \t]*<!-- Google Search Console[\s\S]*?-->\n?/, '')
+    .replace(/[ \t]*<meta\s+name="google-site-verification"[^>]*>\n?/, '');
+
+// Reciprocal hreflang for every language + x-default, plus og:locale:alternate for the others.
+// og:locale itself is patched in place by patchHead so the template's existing tag isn't duplicated.
+function alternateLines(spec: HeadSpec) {
+  const lines: string[] = [];
+
+  for (const lng of LOCALES) {
+    lines.push(`    <link rel="alternate" hreflang="${lng}" href="${escapeAttr(localeUrl(lng, spec.routePath))}" />`);
+
+    if (lng !== spec.lang) {
+      lines.push(`    <meta property="og:locale:alternate" content="${OG_LOCALE[lng]}" />`);
+    }
+  }
+
+  lines.push(`    <link rel="alternate" hreflang="x-default" href="${escapeAttr(localeUrl('en', spec.routePath))}" />`);
+
+  return lines;
+}
+
 // Swap a head tag's value in place, tolerant of the multi-line attribute formatting Vite preserves.
 function patchHead(html: string, spec: HeadSpec) {
   const title = escapeAttr(spec.title);
   const desc = escapeAttr(spec.description);
   const url = escapeAttr(spec.canonical);
-
-  const setMeta = (input: string, attr: string, key: string, value: string) =>
-    input.replace(
-      new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")[^"]*(")`),
-      (_m: string, p1: string, p2: string) => p1 + value + p2
-    );
 
   const metas: Array<['name' | 'property', string, string]> = [
     ['name', 'description', desc],
@@ -209,7 +235,9 @@ function patchHead(html: string, spec: HeadSpec) {
     ['name', 'twitter:description', desc],
   ];
 
-  let out = html.replace(/<html lang="[^"]*">/, `<html lang="${spec.lang}">`);
+  const base = spec.canonical === `${SITE_URL}/` ? html : stripVerification(html);
+
+  let out = base.replace(/<html lang="[^"]*">/, `<html lang="${spec.lang}">`);
   out = out.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
 
   for (const [attr, key, value] of metas) {
@@ -221,28 +249,11 @@ function patchHead(html: string, spec: HeadSpec) {
     (_m: string, p1: string, p2: string) => p1 + url + p2
   );
 
-  // Inject the hreflang alternates (+ og:locale:alternate) before </head>. og:locale itself is
-  // patched in place above so the template's existing tag isn't duplicated.
-  const lines: string[] = [];
-
-  if (spec.alternates) {
-    for (const lng of LOCALES) {
-      lines.push(`    <link rel="alternate" hreflang="${lng}" href="${escapeAttr(localeUrl(lng, spec.routePath))}" />`);
-
-      if (lng !== spec.lang) {
-        lines.push(`    <meta property="og:locale:alternate" content="${OG_LOCALE[lng]}" />`);
-      }
-    }
-    lines.push(
-      `    <link rel="alternate" hreflang="x-default" href="${escapeAttr(localeUrl('en', spec.routePath))}" />`
-    );
-  }
-
-  if (lines.length === 0) {
+  if (!spec.alternates) {
     return out;
   }
 
-  return out.replace('</head>', `${lines.join('\n')}\n  </head>`);
+  return out.replace('</head>', `${alternateLines(spec).join('\n')}\n  </head>`);
 }
 
 const marketingTitle = (route: MarketingRoute, lng: Locale) => {

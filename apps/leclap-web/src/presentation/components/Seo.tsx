@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getLanguage, LANGUAGES, LOCALE_PREFIXES, type Language } from '@/lib/language';
 
 // Production domain (also used in index.html, robots.txt, sitemap.xml, scripts/seo-prerender.ts).
-const SITE_URL = 'https://leclap.pages.dev';
+const SITE_URL = 'https://leclap.dev';
 
 // Routes whose content is fully translated and therefore published as a distinct URL per language
 // (English at the root, others under /<lng>). Only these carry hreflang alternates. Everything else

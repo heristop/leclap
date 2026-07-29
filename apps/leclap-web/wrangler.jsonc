@@ -6,7 +6,7 @@
   // assets. SPA fallback is handled by `not_found_handling` below — no _redirects file (a `/* /index.html`
   // rewrite is rejected by Workers static-assets validation as a self-referential loop).
   //
-  // Trailing slashes are NOT configured here. leclap.pages.dev is served by Cloudflare Pages, which
+  // Trailing slashes are NOT configured here. leclap.dev is served by Cloudflare Pages, which
   // ignores this `assets` block entirely (it is Workers static-assets config) and whose slash handling
   // is fixed and non-configurable. scripts/seo-prerender.ts instead emits sibling `<route>.html` files
   // rather than `<route>/index.html`, which both Pages and Workers serve at the slash-less URL our

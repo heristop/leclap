@@ -1,4 +1,4 @@
-# https://leclap.pages.dev/robots.txt
+# https://leclap.dev/robots.txt
 User-agent: *
 Allow: /
 
@@ -6,4 +6,4 @@ Allow: /
 # intentionally NOT disallowed here — a Disallow would block the crawl and the noindex would never
 # be seen. Listed for reference: /templates, /templates/*, /projects, /partials.
 
-Sitemap: https://leclap.pages.dev/sitemap.xml
+Sitemap: https://leclap.dev/sitemap.xml

@@ -12,15 +12,7 @@
     />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#0b0b0f" />
-    <link rel="canonical" href="https://leclap.pages.dev/" />
-
-    <!-- Google Search Console ownership proof for the https://leclap.pages.dev/ URL-prefix property.
-         Must stay in the served HTML: Google re-checks it periodically and un-verifies the property if
-         it disappears. Preferred over a public/google*.html file because Workers static assets serves
-         individual .html files at their extensionless path, so the file Google fetches to verify would
-         answer with a redirect. Google reads this only from the property root, so scripts/seo-prerender.ts
-         strips it from every other route instead of cloning it onto all of them. -->
-    <meta name="google-site-verification" content="MgOIrQi5JH7ztaZegaNIC3-0oqnYEV4kAz-lDDvfma0" />
+    <link rel="canonical" href="https://leclap.dev/" />
 
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -43,8 +35,8 @@
       property="og:description"
       content="Build cinematic videos from templates entirely in your browser. Powered by WebAssembly and FFmpeg — no uploads, no servers, no limits."
     />
-    <meta property="og:url" content="https://leclap.pages.dev/" />
-    <meta property="og:image" content="https://leclap.pages.dev/og-image.jpg" />
+    <meta property="og:url" content="https://leclap.dev/" />
+    <meta property="og:image" content="https://leclap.dev/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -58,13 +50,52 @@
       name="twitter:description"
       content="Build cinematic videos from templates entirely in your browser. Powered by WebAssembly and FFmpeg — no uploads, no servers, no limits."
     />
-    <meta name="twitter:image" content="https://leclap.pages.dev/og-image.jpg" />
+    <meta name="twitter:image" content="https://leclap.dev/og-image.jpg" />
     <meta name="twitter:image:alt" content="LeClap — cinematic video composer running in the browser" />
 
     <!-- Fonts: Oswald is the primary UI face and is self-hosted (see @font-face in index.css), so we
          preload it on the critical path instead of pulling a render-blocking Google Fonts stylesheet —
          which also avoids an external request the COEP: require-corp policy would otherwise gate. -->
     <link rel="preload" href="/fonts/Oswald.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- First-visit language routing. English is served at the bare root; every other language lives
+         under a path prefix (/fr, /de, …). A visitor landing on the root whose browser asks for one of
+         those is sent there before paint — ahead of the app bundle, so nothing is downloaded twice and
+         no English frame is ever shown. Deliberately narrow:
+           • only the root redirects — a deep link was shared on purpose and is left exactly as it is;
+           • a choice made in the language picker always outranks browser detection;
+           • crawlers and automation are never redirected, so / stays indexable as the x-default.
+         The constants below cannot be imported here; src/lib/language.test.ts executes this very
+         script and asserts each one against its TypeScript source. -->
+    <script data-language-redirect>
+      (function () {
+        var LOCALES = ['en', 'fr', 'de', 'es', 'it'];
+        var BOTS =
+          /bot|crawl|spider|slurp|mediapartners|facebookexternalhit|embedly|quora|pinterest|slackbot|twitterbot|whatsapp|telegram|discord|lighthouse|prerender|headless|bingpreview|ia_archiver|duckduckbot|baiduspider|yandex|sogou|applebot|googlebot/i;
+
+        if ((location.pathname.replace(/\/+$/, '') || '/') !== '/') return;
+        if (navigator.webdriver || BOTS.test(navigator.userAgent)) return;
+
+        var picked = null;
+        try {
+          picked = localStorage.getItem('leclap-lang');
+        } catch (e) {
+          /* storage blocked — fall through to browser detection */
+        }
+
+        if (LOCALES.indexOf(picked) === -1) {
+          picked = null;
+          var wanted = navigator.languages || [navigator.language || ''];
+          for (var i = 0; i < wanted.length && picked === null; i++) {
+            var base = String(wanted[i]).split('-')[0].toLowerCase();
+            if (LOCALES.indexOf(base) !== -1) picked = base;
+          }
+        }
+
+        if (picked === null || picked === 'en') return;
+        location.replace('/' + picked + location.search + location.hash);
+      })();
+    </script>
 
     <!-- The hero's full-bleed clapperboard texture is the LCP element, but only on the home route. A
          static <link rel="preload"> in this shared shell would fetch it on every page and log a
@@ -93,7 +124,7 @@
         "name": "LeClap",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Any (modern web browser)",
-        "url": "https://leclap.pages.dev/",
+        "url": "https://leclap.dev/",
         "description": "A cinematic video composer that runs entirely in the browser, building videos from templates with WebAssembly and FFmpeg — no servers or uploads.",
         "browserRequirements": "Requires a browser with WebAssembly support",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }

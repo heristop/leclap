@@ -24,7 +24,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(scriptDir, '..');
 const distDir = path.join(appDir, 'dist');
 const localesDir = path.join(appDir, 'src/i18n/locales');
-const SITE_URL = 'https://leclap.pages.dev';
+const SITE_URL = 'https://leclap.dev';
 
 const LOCALES = ['en', 'fr', 'de', 'es', 'it'] as const;
 type Locale = (typeof LOCALES)[number];

@@ -26,7 +26,9 @@ export function HeroTimeline({ scrubRef, onScrub }: HeroTimelineProps) {
   return (
     // The strip is the last piece of chrome to appear — the deck comes online after the type has
     // assembled. Plain fade-in, so reduced-motion viewers get it settled instantly.
-    <div className="fade-in absolute inset-x-6 bottom-7 z-[6] sm:inset-x-16" style={{ animationDelay: '0.85s' }}>
+    // inset-x-11 clears the viewfinder's bottom corner brackets (inset-x-4 + size-6) on phones,
+    // where the track would otherwise run straight through them; sm+ has room for the wider gutter.
+    <div className="fade-in absolute inset-x-11 bottom-7 z-[6] sm:inset-x-16" style={{ animationDelay: '0.85s' }}>
       {/* items-end + the badges' bottom nudge keeps their centers on the track line, not the
           taller ruler+track column's center. */}
       <div className="flex items-end gap-3">

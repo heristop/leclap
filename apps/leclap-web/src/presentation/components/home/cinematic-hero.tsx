@@ -66,13 +66,17 @@ export const CinematicHero = () => {
       ref={setHeroRef}
       onPointerMove={glowProps.onPointerMove}
       onPointerLeave={onPointerLeave}
-      className="dark relative flex min-h-[92vh] items-center justify-center overflow-hidden bg-background text-foreground"
+      // svh (not vh) so the stage doesn't jump as mobile browsers collapse their address bar.
+      className="dark relative flex min-h-[92svh] items-center justify-center overflow-hidden bg-background text-foreground"
     >
       <HeroStage videoRef={videoRef} reduced={reduced} inView={heroInView} />
       {/* The tally already carries the brand via the hero.tally copy ("LeClap · On-device"). */}
       <HeroViewfinder timecodeRef={timecodeRef} soundEnabled={soundEnabled} onToggleSound={toggleSound} />
 
-      <div className="container relative z-10 mx-auto px-6 pb-28 pt-24 text-center sm:pb-32">
+      {/* On phones the copy is taller than the stage, so it can no longer be centred away from the
+          chrome: the top padding has to clear the tally/sound row itself (viewfinder top-20 + the
+          row's own top-4 + its height), and the bottom padding has to clear the timeline. */}
+      <div className="container relative z-10 mx-auto px-6 pb-24 pt-36 text-center sm:pb-32 sm:pt-24">
         {/* The type follows the pointer a touch (opposite the footage) so the stage reads as depth.
             max-w-6xl keeps the longer localized lines (fr/es/it) on one row each at desktop widths. */}
         <div className="hero-parallax mx-auto max-w-6xl [--parallax:0.018]">

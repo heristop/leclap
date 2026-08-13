@@ -49,7 +49,10 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
       <div className="fade-in inline-flex p-4 brand-gradient rounded-2xl shadow-lg shadow-brand-900/40 mb-5 animate-glow">
         <Clapperboard className="w-8 h-8 text-white" />
       </div>
-      <h2 className="fade-in text-3xl font-bold font-display text-foreground mb-2" style={{ animationDelay: '80ms' }}>
+      <h2
+        className="fade-in mb-2 px-8 font-display text-2xl font-bold text-balance text-foreground sm:px-0 sm:text-3xl"
+        style={{ animationDelay: '80ms' }}
+      >
         {t('welcome.title')} <span className="text-gradient-animated">{t('brand', { ns: 'common' })}</span>
       </h2>
       <p className="fade-in text-gray-300 mb-6" style={{ animationDelay: '160ms' }}>
@@ -142,8 +145,9 @@ export const CreateStep = ({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold font-display text-foreground mb-1">{t('create.title')}</h2>
-      <p className="text-gray-300 mb-6 text-sm">{t('create.subtitle')}</p>
+      {/* `pr-12` reserves the close button's corner so a left-aligned title never runs under it. */}
+      <h2 className="mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl">{t('create.title')}</h2>
+      <p className="mb-5 text-sm text-gray-300 sm:mb-6">{t('create.subtitle')}</p>
 
       <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2" htmlFor="ob-name">
         {t('create.nameLabel')}
@@ -228,10 +232,10 @@ export const CompilingStep = ({ progress, onStop }: CompilingStepProps) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold font-display text-foreground mb-1">{t('compiling.title')}</h2>
-      <p className="text-gray-300 mb-6 text-sm">{t('compiling.subtitle')}</p>
+      <h2 className="mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl">{t('compiling.title')}</h2>
+      <p className="mb-5 text-sm text-gray-300 sm:mb-6">{t('compiling.subtitle')}</p>
       <ProgressDisplay progress={progress} />
-      <div className="mt-6 flex justify-center">
+      <div className="mt-5 flex justify-center sm:mt-6">
         <StopButton onClick={onStop} label={t('compiling.stop')} />
       </div>
     </div>
@@ -251,8 +255,13 @@ export const DoneStep = ({ result, onStartCreating }: DoneStepProps) => {
       <div className="pop-in inline-flex p-3 bg-success rounded-2xl shadow-lg shadow-success/30 ring-4 ring-success/15 mb-4">
         <Check className="w-6 h-6 text-white" />
       </div>
-      <h2 className="text-2xl font-bold font-display brand-gradient-text mb-2">{t('done.title')}</h2>
-      <div className="mb-6">
+      {/* `px-10` keeps the centered title clear of the close button, and `text-balance` stops a
+          long localized title ("Ta première vidéo est prête !") from dropping its last glyph alone
+          onto a second line. */}
+      <h2 className="mb-3 px-10 font-display text-xl font-bold text-balance brand-gradient-text sm:mb-2 sm:text-2xl">
+        {t('done.title')}
+      </h2>
+      <div className="mb-5 sm:mb-6">
         <VideoPreview url={result.url} duration={result.duration} />
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -283,7 +292,9 @@ export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => 
       <div className="pop-in inline-flex p-3 bg-[var(--color-error)]/15 border border-[var(--color-error)]/30 rounded-2xl mb-4">
         <X className="w-6 h-6 text-[var(--color-error)]" />
       </div>
-      <h2 className="text-2xl font-bold font-display text-foreground mb-2">{t('error.title')}</h2>
+      <h2 className="mb-2 px-10 font-display text-xl font-bold text-balance text-foreground sm:px-0 sm:text-2xl">
+        {t('error.title')}
+      </h2>
       <p className="text-gray-300 mb-6 text-sm">{errorMessage}</p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Button onClick={onRetry} variant="primary" className="flex-1">

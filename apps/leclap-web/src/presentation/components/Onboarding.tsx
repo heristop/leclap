@@ -156,12 +156,12 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
 
       <div
         onClick={onBackdropClick}
-        className="relative min-h-full flex items-center justify-center p-4 pt-[max(1.5rem,env(safe-area-inset-top))] safe-b"
+        className="relative min-h-full flex items-center justify-center p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-4 sm:pt-[max(1.5rem,env(safe-area-inset-top))] safe-b"
       >
-        <div className="relative w-full max-w-lg bg-surface border border-foreground/10 rounded-2xl p-6 sm:p-8 shadow-2xl rise-in">
+        <div className="relative w-full max-w-lg bg-surface border border-foreground/10 rounded-2xl p-5 sm:p-8 shadow-2xl rise-in">
           <button
             onClick={step === 'compiling' ? stop : onDone}
-            className="tap absolute top-4 right-4 z-10 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-2.5 before:content-['']"
+            className="tap absolute top-3 right-3 sm:top-4 sm:right-4 z-10 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-2.5 before:content-['']"
             aria-label={step === 'compiling' ? t('compiling.stopAria') : t('skipAria')}
           >
             <X className="w-5 h-5" />

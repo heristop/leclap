@@ -11,3 +11,5 @@ export { DocAnimations } from './Animations';
 export { DocFilters } from './Filters';
 export { DocExamples } from './Examples';
 export { DocSchema } from './Schema';
+export { DocCli } from './Cli';
+export { DocMcp } from './Mcp';

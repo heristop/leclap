@@ -41,6 +41,8 @@ const DocAnimations = lazyPage(() => import('@/presentation/pages/doc'), 'DocAni
 const DocFilters = lazyPage(() => import('@/presentation/pages/doc'), 'DocFilters');
 const DocExamples = lazyPage(() => import('@/presentation/pages/doc'), 'DocExamples');
 const DocSchema = lazyPage(() => import('@/presentation/pages/doc'), 'DocSchema');
+const DocCli = lazyPage(() => import('@/presentation/pages/doc'), 'DocCli');
+const DocMcp = lazyPage(() => import('@/presentation/pages/doc'), 'DocMcp');
 
 // Non-English languages are served under a path prefix (/fr, /de, …). Mounting the router under a
 // matching basename lets every existing route work unchanged within the active locale — `/fr/studio`
@@ -86,6 +88,8 @@ const router = createBrowserRouter(
         <Route path="filters" element={<DocFilters />} />
         <Route path="examples" element={<DocExamples />} />
         <Route path="schema" element={<DocSchema />} />
+        <Route path="cli" element={<DocCli />} />
+        <Route path="mcp" element={<DocMcp />} />
       </Route>
       <Route path="/about" element={<About />} />
       <Route path="/legal" element={<Legal />} />

@@ -19,4 +19,7 @@ export const docNav: readonly DocNavItem[] = [
   { to: '/doc/filters', label: 'Filters & maps' },
   { to: '/doc/examples', label: 'Examples' },
   { to: '/doc/schema', label: 'JSON Schema' },
+  // The two front-ends that drive the descriptor above, last so the reference reads first.
+  { to: '/doc/cli', label: 'Command line' },
+  { to: '/doc/mcp', label: 'MCP server' },
 ];

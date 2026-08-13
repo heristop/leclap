@@ -149,8 +149,14 @@ export const CreateStep = ({
       <h2 className="mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl">{t('create.title')}</h2>
       <p className="mb-5 text-sm text-gray-300 sm:mb-6">{t('create.subtitle')}</p>
 
-      <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2" htmlFor="ob-name">
+      {/* Both inputs carry a label so their weight is legible: the name is optional — a sample stands
+          in when it's blank — and the clip is what gates Create. */}
+      <label
+        className="mb-2 flex items-baseline gap-2 text-xs font-semibold uppercase tracking-widest text-gray-400"
+        htmlFor="ob-name"
+      >
         {t('create.nameLabel')}
+        <span className="font-medium normal-case tracking-normal text-gray-500">{t('create.nameOptional')}</span>
       </label>
       <Input
         id="ob-name"
@@ -159,9 +165,15 @@ export const CreateStep = ({
           onNameChange(e.target.value);
         }}
         placeholder={t('create.namePlaceholder', { name: sampleName })}
-        className="mb-6 px-4 py-3 rounded-xl"
+        className="mb-5 px-4 py-3 rounded-xl"
       />
 
+      <p className="mb-2 flex items-baseline gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
+        {t('create.clipLabel')}
+        <span aria-hidden="true" className="text-brand-500">
+          *
+        </span>
+      </p>
       {videoFile ? (
         <div className="pop-in flex items-center justify-between gap-3 mb-6 p-3 rounded-xl bg-success/10 border border-success/30">
           <span className="flex items-center gap-2 text-sm text-success-foreground font-medium">
@@ -215,9 +227,23 @@ export const CreateStep = ({
         </div>
       )}
 
-      <Button onClick={onCreate} disabled={!canCreate} variant="primary" size="lg" className="w-full text-base">
+      <Button
+        onClick={onCreate}
+        disabled={!canCreate}
+        variant="primary"
+        size="lg"
+        className="w-full text-base"
+        aria-describedby={canCreate ? undefined : 'ob-create-hint'}
+      >
         <SparklesIcon size={16} /> {t('create.create')}
       </Button>
+      {/* The disabled button says "not yet"; this says why. It's gone once a clip exists, and
+          `role="status"` re-announces it if a take is discarded and the gate closes again. */}
+      {!canCreate && (
+        <p id="ob-create-hint" role="status" className="mt-2 text-center text-xs text-gray-400">
+          {t('create.clipRequired')}
+        </p>
+      )}
     </div>
   );
 };

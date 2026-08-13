@@ -415,7 +415,7 @@ body {
   color: transparent;
 }
 
-/* Anaglyph ghost for the primary button label: one offset copy of the text, down and to the left, in
+/* Anaglyph ghost for the primary button label: one offset copy of the text, down and to the right, in
    the system blue. It recalls the red/cyan fringing of 1980s 3D glasses without carrying the second
    channel — a white label over a blue ghost is already two colours on screen, and one ghost stays
    subtle enough to read as depth rather than as a broken webfont.
@@ -425,7 +425,7 @@ body {
    this is a colour treatment, not motion. The button's `transition-all duration-300` still crossfades
    it whenever a variant or disabled state changes. */
 @utility label-ghost-3d {
-  text-shadow: -1px 1px 0 color-mix(in oklch, var(--color-info) 38%, transparent);
+  text-shadow: 1px 1px 0 color-mix(in oklch, var(--color-info) 38%, transparent);
 }
 
 @utility glow-brand {

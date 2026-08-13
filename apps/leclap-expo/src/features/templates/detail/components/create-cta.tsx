@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
+import { colors, withAlpha } from '@/src/styles/theme';
 import { gradients, gradientDir } from '@/src/styles/gradients';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { Segmented } from '@/src/features/templates/components/EditorControls';
@@ -35,6 +36,8 @@ export function CreateCta({
 }: CreateCtaProps) {
   const { t } = useTranslation('detail');
   const label = getButtonLabel(isPending, willQueue, t);
+  // White on the muted lavender is ~1.6:1, so disabled uses ink instead.
+  const contentColor = isDisabled ? withAlpha(colors.textStrong, 0.72) : '#FFFFFF';
 
   return (
     <View style={styles.footer}>
@@ -58,11 +61,11 @@ export function CreateCta({
           <LinearGradient colors={[...gradients.brand]} {...gradientDir.horizontal} style={StyleSheet.absoluteFill} />
         )}
         {isPending ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
+          <ActivityIndicator size="small" color={contentColor} />
         ) : (
-          <Ionicons name="play" size={18} color="#FFFFFF" />
+          <Ionicons name="play" size={18} color={contentColor} />
         )}
-        <Text style={styles.ctaText}>{label}</Text>
+        <Text style={[styles.ctaText, isDisabled && styles.ctaTextDisabled]}>{label}</Text>
       </PressableScale>
 
       {isDisabled && !isPending && shotsLeft > 0 ? (

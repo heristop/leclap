@@ -116,7 +116,10 @@ export const styles = StyleSheet.create({
     ...elevation.raised,
     shadowOpacity: 0.32,
   },
-  ctaDisabled: { backgroundColor: withAlpha(colors.primary, 0.28) },
+  // Disabled cancels the lift inherited from `cta`: a disabled control shouldn't read as raised, and
+  // elevation under a see-through fill shows the shadow through the button (see `primaryMuted`).
+  ctaDisabled: { backgroundColor: colors.primaryMuted, elevation: 0, shadowOpacity: 0, shadowRadius: 0 },
+  ctaTextDisabled: { color: withAlpha(colors.textStrong, 0.72) },
   ctaText: {
     color: '#FFFFFF',
     fontFamily: fonts.poppins.semiBold,

@@ -13,9 +13,9 @@ export const LANGUAGES = LOCALES;
 const FALLBACK: Language = DEFAULT_LOCALE;
 
 /**
- * Remember a language the visitor picked themselves. The pre-paint redirect in index.html reads this
- * back on the next visit to the root and honours it over the browser's own languages — so choosing
- * English on a French browser sticks, instead of being undone by detection on the way back in.
+ * Remember a language the visitor picked themselves. `LanguageSuggestion` reads this back and stays
+ * quiet once it is set — so choosing English on a French browser sticks, instead of the banner
+ * offering French again on the way back in.
  */
 export const setStoredLanguage = (lng: Language): void => {
   try {

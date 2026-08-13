@@ -43,6 +43,11 @@
     "toggleMenu": "Apri/chiudi menu"
   },
   "skipToContent": "Vai al contenuto principale",
+  "languageSuggestion": {
+    "prompt": "Vedere questo sito in italiano?",
+    "accept": "Italiano",
+    "dismiss": "Chiudi"
+  },
   "footer": "Tutta l’elaborazione avviene in locale nel tuo browser - i tuoi file non lasciano mai il dispositivo",
   "footerNav": {
     "label": "Link legali",

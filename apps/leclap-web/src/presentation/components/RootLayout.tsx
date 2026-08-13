@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Footer } from '@/presentation/components/Footer';
+import { LanguageSuggestion } from '@/presentation/components/LanguageSuggestion';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useSmoothScroll } from '@/hooks/use-smooth-scroll';
 
@@ -74,6 +75,9 @@ export function RootLayout() {
 
         <Footer />
       </div>
+
+      {/* Offers the visitor's browser language instead of redirecting them to it (see index.html). */}
+      <LanguageSuggestion />
 
       {/* First-studio-visit guided intro (record → compile a sample → download). */}
       {show && (

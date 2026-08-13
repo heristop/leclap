@@ -43,6 +43,11 @@
     "toggleMenu": "Toggle menu"
   },
   "skipToContent": "Skip to main content",
+  "languageSuggestion": {
+    "prompt": "View this site in English?",
+    "accept": "English",
+    "dismiss": "Dismiss"
+  },
   "footer": "All processing happens locally in your browser - your files never leave your device",
   "footerNav": {
     "label": "Legal links",

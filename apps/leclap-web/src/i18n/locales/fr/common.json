@@ -43,6 +43,11 @@
     "toggleMenu": "Ouvrir le menu"
   },
   "skipToContent": "Aller au contenu principal",
+  "languageSuggestion": {
+    "prompt": "Voir ce site en français ?",
+    "accept": "Français",
+    "dismiss": "Fermer"
+  },
   "footer": "Tout se passe en local, dans ton navigateur — tes fichiers ne quittent jamais ton appareil",
   "footerNav": {
     "label": "Liens légaux",

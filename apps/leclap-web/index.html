@@ -58,44 +58,16 @@
          which also avoids an external request the COEP: require-corp policy would otherwise gate. -->
     <link rel="preload" href="/fonts/Oswald.woff2" as="font" type="font/woff2" crossorigin />
 
-    <!-- First-visit language routing. English is served at the bare root; every other language lives
-         under a path prefix (/fr, /de, …). A visitor landing on the root whose browser asks for one of
-         those is sent there before paint — ahead of the app bundle, so nothing is downloaded twice and
-         no English frame is ever shown. Deliberately narrow:
-           • only the root redirects — a deep link was shared on purpose and is left exactly as it is;
-           • a choice made in the language picker always outranks browser detection;
-           • crawlers and automation are never redirected, so / stays indexable as the x-default.
-         The constants below cannot be imported here; src/lib/language.test.ts executes this very
-         script and asserts each one against its TypeScript source. -->
-    <script data-language-redirect>
-      (function () {
-        var LOCALES = ['en', 'fr', 'de', 'es', 'it'];
-        var BOTS =
-          /bot|crawl|spider|slurp|mediapartners|facebookexternalhit|embedly|quora|pinterest|slackbot|twitterbot|whatsapp|telegram|discord|lighthouse|prerender|headless|bingpreview|ia_archiver|duckduckbot|baiduspider|yandex|sogou|applebot|googlebot/i;
-
-        if ((location.pathname.replace(/\/+$/, '') || '/') !== '/') return;
-        if (navigator.webdriver || BOTS.test(navigator.userAgent)) return;
-
-        var picked = null;
-        try {
-          picked = localStorage.getItem('leclap-lang');
-        } catch (e) {
-          /* storage blocked — fall through to browser detection */
-        }
-
-        if (LOCALES.indexOf(picked) === -1) {
-          picked = null;
-          var wanted = navigator.languages || [navigator.language || ''];
-          for (var i = 0; i < wanted.length && picked === null; i++) {
-            var base = String(wanted[i]).split('-')[0].toLowerCase();
-            if (LOCALES.indexOf(base) !== -1) picked = base;
-          }
-        }
-
-        if (picked === null || picked === 'en') return;
-        location.replace('/' + picked + location.search + location.hash);
-      })();
-    </script>
+    <!-- No automatic language redirect. English is served at the bare root (the declared x-default);
+         every other language lives under a path prefix (/fr, /de, …), reachable from the language
+         picker, the hreflang alternates and the sitemap. A visitor whose browser prefers another
+         language is offered it by <LanguageSuggestion>, never sent there behind their back:
+           • the URL someone typed or shared is never rewritten;
+           • / stays a plain cacheable 200 for every agent, so no user-agent sniffing is needed to
+             keep it crawlable — which is Google's own guidance ("avoid automatic redirection based
+             on the user's perceived language… consider using banners or links");
+           • a root-only redirect is inconsistent by construction: a deep link keeps the language it
+             was shared in, so the language would flip the moment the visitor clicked Home. -->
 
     <!-- The hero's full-bleed clapperboard texture is the LCP element, but only on the home route. A
          static <link rel="preload"> in this shared shell would fetch it on every page and log a

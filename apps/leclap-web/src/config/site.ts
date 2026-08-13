@@ -1,16 +1,15 @@
 // Single source of truth for the site's languages, its indexable routes and the URL shapes derived
-// from them. Before this module the locale list was hand-copied into six places (the i18n init, the
-// language helpers, two inline scripts in index.html, the prerender script and Seo.tsx's localized-
-// path set) and kept honest by string-matching tests. Everything reads from here now.
+// from them. Everything that needs the locale list — the i18n init, the language helpers, Seo.tsx
+// and the build-time prerender script — reads it from here instead of restating it.
 //
-// Imported from three different module systems, which constrains what may go in it:
-//   • app code            `@/config/site`            (Vite / Vitest, alias)
+// Two module systems import this file, which constrains what may go in it:
+//   • app code            `@/config/site`            (Vite / Vitest, via the alias)
 //   • the prerender step  `../src/config/site.ts`    (plain `node scripts/seo-prerender.ts`)
 //
 // Node runs that script through type-stripping, which applies neither tsconfig path mapping nor
 // extensionless resolution — hence the explicit `.ts` specifier there, and hence the rules here:
-// NO runtime imports, NO DOM, and erasable syntax only (no enum, no namespace, no parameter
-// properties). `tsconfig.node.json` enforces the last one with `erasableSyntaxOnly`.
+// no runtime imports, no DOM, and erasable syntax only (no enum, no namespace, no parameter
+// properties). Nothing checks that statically; the build does, by running Node straight at it.
 
 /** Production domain. Also literal in index.html, public/robots.txt and public/llms.txt. */
 export const SITE_URL = 'https://leclap.dev';

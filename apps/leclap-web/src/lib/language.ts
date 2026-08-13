@@ -1,26 +1,16 @@
 import i18n, { supportedLngs } from '@/i18n';
+import { DEFAULT_LOCALE, LANGUAGE_STORAGE_KEY, LOCALE_PREFIXES, LOCALES, type Language } from '@/config/site';
 
-export type Language = (typeof supportedLngs)[number];
+export type { Language };
 
-const FALLBACK: Language = 'en';
+// The manifest owns the list; these are re-exported so call sites keep importing "the language
+// module" for language things rather than reaching into config.
+// LANGUAGES carries each endonym — a language picker labels every entry in its own tongue, since a
+// French speaker scans for "Français", not "French".
+export { LANGUAGE_STORAGE_KEY, LOCALE_PREFIXES };
+export const LANGUAGES = LOCALES;
 
-// Endonyms — each language labelled in its own tongue, the convention for a language picker
-// (a French speaker scans for "Français", not "French"). Order: English first, then by reach.
-export const LANGUAGES: ReadonlyArray<{ code: Language; nativeName: string }> = [
-  { code: 'en', nativeName: 'English' },
-  { code: 'fr', nativeName: 'Français' },
-  { code: 'de', nativeName: 'Deutsch' },
-  { code: 'es', nativeName: 'Español' },
-  { code: 'it', nativeName: 'Italiano' },
-];
-
-// English lives at the root (x-default); every other language is served under a path prefix
-// (/fr, /de, …) so each language has its own crawlable URL — the Google-recommended pattern
-// for multilingual SEO. The active language is therefore derived from the URL, not localStorage.
-export const LOCALE_PREFIXES: Language[] = LANGUAGES.map((l) => l.code).filter((c) => c !== 'en');
-
-/** Where an explicit language choice is remembered. Also read by the redirect script in index.html. */
-export const LANGUAGE_STORAGE_KEY = 'leclap-lang';
+const FALLBACK: Language = DEFAULT_LOCALE;
 
 /**
  * Remember a language the visitor picked themselves. The pre-paint redirect in index.html reads this
@@ -57,7 +47,7 @@ export const localePath = (target: Language, fullPath: string): string => {
 
   const bare = parts.join('/') || '/';
 
-  if (target === 'en') {
+  if (target === DEFAULT_LOCALE) {
     return bare;
   }
 

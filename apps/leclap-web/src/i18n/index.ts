@@ -14,6 +14,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { LOCALE_CODES } from '@/config/site';
 import { en } from './locales/en';
 import { fr } from './locales/fr';
 import { de } from './locales/de';
@@ -21,7 +22,9 @@ import { es } from './locales/es';
 import { it } from './locales/it';
 
 export const defaultNS = 'common';
-export const supportedLngs = ['en', 'fr', 'de', 'es', 'it'] as const;
+
+/** The shipped languages, from the site manifest — the one place the list is written down. */
+export const supportedLngs = LOCALE_CODES;
 
 const applyDocumentLang = (lng: string): void => {
   if (typeof document === 'undefined') {

@@ -13,28 +13,35 @@
 //   3. generates dist/sitemap.xml from the same manifests, with xhtml:link alternates on the
 //      localized URLs — so the sitemap can never drift from the routes, and noindex pages are absent.
 //
-// The body still hydrates via React; only the <head> is pre-baked. Keep SITE_URL / LOCALES / the
-// localized-route set in sync with src/presentation/components/Seo.tsx and src/lib/language.ts.
+// The body still hydrates via React; only the <head> is pre-baked.
+//
+// The domain, the language list and both route tables come from src/config/site.ts — the same module
+// src/presentation/components/Seo.tsx reads — so the prerendered <head> and the runtime one cannot
+// drift. The `.ts` extension on those imports is required: this script runs as plain
+// `node scripts/seo-prerender.ts`, and Node's type-stripping applies neither tsconfig path mapping
+// nor extensionless resolution.
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  LOCALE_CODES,
+  LOCALIZED_ROUTES,
+  localeUrl,
+  OG_LOCALE,
+  SITE_URL,
+  type Language,
+  type LocalizedRoute,
+} from '../src/config/site.ts';
+import { DOC_ROUTES } from '../src/config/doc-routes.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(scriptDir, '..');
 const distDir = path.join(appDir, 'dist');
 const localesDir = path.join(appDir, 'src/i18n/locales');
-const SITE_URL = 'https://leclap.dev';
 
-const LOCALES = ['en', 'fr', 'de', 'es', 'it'] as const;
-type Locale = (typeof LOCALES)[number];
-const OG_LOCALE: Record<Locale, string> = {
-  en: 'en_US',
-  fr: 'fr_FR',
-  de: 'de_DE',
-  es: 'es_ES',
-  it: 'it_IT',
-};
+const LOCALES = LOCALE_CODES;
+type Locale = Language;
 
 // Marketing-route copy lives in each locale's seo bundle so it stays in sync with the runtime <Seo>.
 const seoByLocale = Object.fromEntries(
@@ -45,137 +52,11 @@ const seoByLocale = Object.fromEntries(
 
 type SeoEntry = { title: string; description: string };
 
-// Routes that are fully translated and published as a URL per language (hreflang alternates).
-// `seoKey` selects the per-locale copy; `titleVerbatim` uses the bundle title as-is (home only).
-type MarketingRoute = {
-  path: string;
-  seoKey: 'default' | 'studio' | 'about' | 'legal' | 'privacy';
-  titleVerbatim?: boolean;
-  priority: string;
-  changefreq: string;
-};
-const MARKETING_ROUTES: MarketingRoute[] = [
-  { path: '/', seoKey: 'default', titleVerbatim: true, priority: '1.0', changefreq: 'weekly' },
-  { path: '/studio', seoKey: 'studio', priority: '0.9', changefreq: 'weekly' },
-  { path: '/about', seoKey: 'about', priority: '0.5', changefreq: 'monthly' },
-  { path: '/legal', seoKey: 'legal', priority: '0.2', changefreq: 'yearly' },
-  { path: '/privacy', seoKey: 'privacy', priority: '0.2', changefreq: 'yearly' },
-];
-
-// English-only routes (developer reference + design system). Single canonical URL at the root, no
-// hreflang — their body content isn't translated, so a localized wrapper would be near-duplicate.
-type DocRoute = { path: string; title: string; description: string; priority: string; changefreq: string };
-const DOC_ROUTES: DocRoute[] = [
-  {
-    path: '/doc',
-    title: 'Template descriptor — overview',
-    description:
-      'What the LeClap template descriptor is, the two layers you compose with, how rendering chooses its path, and how to get started with the CLI.',
-    priority: '0.7',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/sections',
-    title: 'Sections & types — template descriptor',
-    description:
-      'The seven LeClap section types, the base fields every section shares, and the full per-section options surface.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/transitions',
-    title: 'Transitions — template descriptor',
-    description:
-      'The full live catalogue of LeClap transition types — every xfade name plus cut — and the transition field reference.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/looks',
-    title: 'Looks — template descriptor',
-    description:
-      'The named colour-grade presets a LeClap section can apply via the look field, and how they combine with a manual grade.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/grade',
-    title: 'Colour grade — template descriptor',
-    description:
-      'The manual colour-grade controls — brightness, contrast, saturation, gamma, hue, per-range colour balance, blur and curves — layered on top of any look.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/motion',
-    title: 'Motion & layers — template descriptor',
-    description:
-      'Per-section motion effects (Ken Burns, rotate, crop, flip), the recording framing guide, and composited background layers.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/audio',
-    title: 'Audio — template descriptor',
-    description:
-      'The final-mix audio settings — source and music volumes, normalisation, ducking — plus per-section fade curves.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/captions',
-    title: 'Captions — template descriptor',
-    description:
-      'The caption sugar — localized text drawn over a section — and its style, position and alignment options.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/animations',
-    title: 'Animations & images — template descriptor',
-    description:
-      'Animated (APNG / WebM) and still-image overlays composited over a section: formats, position, scale, loop and keep-last-frame.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/filters',
-    title: 'Filters & maps — template descriptor',
-    description:
-      'The raw FFmpeg escape hatch: pass filter names and arguments through verbatim, and wire explicit filtergraph maps for full control.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/examples',
-    title: 'Examples — template descriptor',
-    description: 'Copy-paste LeClap template descriptors you can save as JSON and render with the CLI.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/doc/schema',
-    title: 'JSON Schema — template descriptor',
-    description:
-      'The full machine-readable JSON Schema for the LeClap template descriptor, for editor tooling and validation.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/design',
-    title: 'Design System',
-    description: 'The LeClap design system — colors, typography, motion and UI components.',
-    priority: '0.6',
-    changefreq: 'monthly',
-  },
-];
+const MARKETING_ROUTES = LOCALIZED_ROUTES;
+type MarketingRoute = LocalizedRoute;
 
 const escapeAttr = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-/** Absolute URL for `path` in `lng` — English at the root, other languages under a /<lng> prefix. */
-const localeUrl = (lng: Locale, routePath: string) =>
-  lng === 'en' ? `${SITE_URL}${routePath}` : `${SITE_URL}/${lng}${routePath === '/' ? '' : routePath}`;
 
 type HeadSpec = {
   lang: Locale;

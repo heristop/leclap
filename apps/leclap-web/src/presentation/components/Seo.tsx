@@ -1,33 +1,14 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { LOCALIZED_PATHS, localeUrl, OG_LOCALE, SITE_URL } from '@/config/site';
 import { getLanguage, LANGUAGES, LOCALE_PREFIXES, type Language } from '@/lib/language';
 
-// Production domain (also used in index.html, robots.txt, sitemap.xml, scripts/seo-prerender.ts).
-const SITE_URL = 'https://leclap.dev';
-
-// Routes whose content is fully translated and therefore published as a distinct URL per language
-// (English at the root, others under /<lng>). Only these carry hreflang alternates. Everything else
-// (the English-only /doc reference, /design, …) canonicalizes to its English root URL so a localized
-// chrome wrapper around English content is never indexed as a separate, near-duplicate page.
-const LOCALIZED_PATHS = new Set(['/', '/studio', '/about', '/legal', '/privacy']);
-
-// BCP-47-ish locales for Open Graph (og:locale wants xx_XX).
-const OG_LOCALE: Record<Language, string> = {
-  en: 'en_US',
-  fr: 'fr_FR',
-  de: 'de_DE',
-  es: 'es_ES',
-  it: 'it_IT',
-};
-
-/** Absolute URL for `path` in `lng` — English at the root, other languages under a /<lng> prefix. */
-function localeUrl(lng: Language, path: string): string {
-  if (lng === 'en') {
-    return `${SITE_URL}${path}`;
-  }
-
-  return `${SITE_URL}/${lng}${path === '/' ? '' : path}`;
-}
+// The domain, the og:locale map, the URL shape and the set of fully-translated routes all come from
+// the site manifest, which scripts/seo-prerender.ts reads too — so the <head> this component sets at
+// runtime and the one baked into the prerendered HTML are derived from the same table and cannot
+// disagree. Everything outside LOCALIZED_PATHS (the English-only /doc reference, /design, …)
+// canonicalizes to its English root URL, so a localized chrome wrapper around English content is
+// never indexed as a separate, near-duplicate page.
 
 type SeoProps = {
   /** Page title; rendered as "<title> — LeClap". Omit on the home page for the default. */

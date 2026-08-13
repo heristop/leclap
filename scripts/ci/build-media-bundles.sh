@@ -8,17 +8,21 @@ set -euo pipefail
 #   web-media.tar.gz      scripts/ci/lfs-web-assets.txt   → apps/leclap-web build (fetch-web-media.sh)
 #   ci-test-media.tar.gz  scripts/ci/lfs-test-assets.txt  → GitHub Actions (fetch-test-media.sh)
 #
-# Run from a checkout where the media is materialized (not LFS pointers), then upload the output.
+# Run from a checkout where the media is materialized (not LFS pointers), then publish the output.
 #
 #   bash scripts/ci/build-media-bundles.sh [web|test]
-#   gh release upload ci-assets-v1 dist/ci-media/*.tar.gz --clobber
+#   bash scripts/ci/publish-media-bundles.sh
 #
 # The bundles are the only surviving copy of this media while LFS is over budget — rebuild from a
 # tree you trust, and check the manifest drift warning below before uploading.
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=scripts/ci/media-bundle.sh
+source "$script_dir/media-bundle.sh"
+
 repo_root="${REPO_ROOT:-$(git rev-parse --show-toplevel)}"
 out_dir="${CI_MEDIA_OUT_DIR:-$repo_root/dist/ci-media}"
-lfs_pointer='version https://git-lfs.github.com/spec/v1'
+lfs_pointer="$MEDIA_LFS_POINTER"
 only="${1:-all}"
 
 fail() {
@@ -26,9 +30,10 @@ fail() {
   exit 1
 }
 
-manifest_entries() {
-  sed -e 's/[[:space:]]*#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$1" | grep -v '^$'
-}
+# Deliberately not local, and the trap is set once here: every `fail` below exits straight past any
+# cleanup, and a function-local would be out of scope by the time an EXIT trap ran.
+media_bundle_list=''
+trap 'rm -f "$media_bundle_list"' EXIT
 
 # Refuse to bundle a pointer file: a bundle built from a partial checkout looks valid to tar and then
 # fails at render time, which is exactly the failure mode these bundles exist to prevent.
@@ -38,9 +43,11 @@ build_bundle() {
 
   [ -f "$manifest_path" ] || fail "manifest not found: $manifest"
 
-  local list count
-  list=$(mktemp "${TMPDIR:-/tmp}/media-bundle.XXXXXX")
-  manifest_entries "$manifest_path" > "$list"
+  local count
+  media_bundle_list=$(mktemp "${TMPDIR:-/tmp}/media-bundle.XXXXXX")
+  local list=$media_bundle_list
+  # Bare paths only: this file is handed to `tar -T`, which would treat a digest column as a filename.
+  media_manifest_paths "$manifest_path" > "$list"
   count=$(grep -c '' < "$list" || true)
   [ "$count" -gt 0 ] || fail "manifest has no entries: $manifest"
 
@@ -55,8 +62,14 @@ build_bundle() {
 
   mkdir -p "$out_dir"
   # COPYFILE_DISABLE stops macOS tar from embedding ._AppleDouble members that pollute the checkout.
-  COPYFILE_DISABLE=1 tar --exclude='.DS_Store' --exclude='._*' -czf "$out_dir/$name" -C "$repo_root" -T "$list"
+  # gzip -n omits the timestamp gzip would otherwise stamp into its header, so rebuilding unchanged
+  # media yields an identical file and "did the bundle actually change?" has an answer. (Byte-identity
+  # holds per machine; tar implementations differ. Correctness never rests on it — the manifest's
+  # per-asset digests do.)
+  COPYFILE_DISABLE=1 tar --exclude='.DS_Store' --exclude='._*' -cf - -C "$repo_root" -T "$list" \
+    | gzip -n > "$out_dir/$name"
   rm -f "$list"
+  media_bundle_list=''
 
   printf '  %-22s %s assets  %s\n' "$name" "$count" "$(du -h "$out_dir/$name" | cut -f1)"
 }
@@ -71,7 +84,7 @@ warn_web_manifest_drift() {
   local expected actual
   expected=$(git -C "$repo_root" lfs ls-files -n \
     | grep -E '^(packages/leclap-creative-kit/src/library/|apps/leclap-web/public/videos/)' | sort)
-  actual=$(manifest_entries "$repo_root/scripts/ci/lfs-web-assets.txt" | sort)
+  actual=$(media_manifest_paths "$repo_root/scripts/ci/lfs-web-assets.txt" | sort)
 
   [ "$expected" = "$actual" ] && return 0
 
@@ -101,5 +114,5 @@ case "$only" in
 esac
 
 echo
-echo "upload with:"
-echo "  gh release upload ${CI_MEDIA_TAG:-ci-assets-v1} ${out_dir}/*.tar.gz --clobber"
+echo "publish with:"
+echo "  bash scripts/ci/publish-media-bundles.sh"

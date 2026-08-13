@@ -38,8 +38,8 @@ const PosterTile = ({
 }: Pick<SceneCellProps, 'index' | 'icon' | 'poster' | 'done' | 'active' | 'isNext' | 'durationLabel' | 'compact'>) => (
   <span
     className={cn(
-      'relative grid w-full place-items-center overflow-hidden rounded-lg bg-linear-to-br from-brand-500/25 to-secondary-500/20',
-      compact ? 'h-12' : 'h-16'
+      'relative grid w-full place-items-center overflow-hidden rounded-lg bg-linear-to-br from-brand-500/25 to-secondary-500/20 short:h-9',
+      compact ? 'h-10 sm:h-12' : 'h-16'
     )}
   >
     {poster ?? <Icon className="h-6 w-6 text-white/90" />}
@@ -93,9 +93,13 @@ export const SceneCell = ({
       onKeyDown={onKeyDown}
       onClick={onSelect}
       onMouseMove={onPointerMove}
+      // The label is normally the cell's own text, but that text is hidden on a short viewport
+      // (see below), so name the control explicitly or it goes silent for assistive tech there.
+      aria-label={title}
       className={cn(
-        'spotlight group relative flex flex-col rounded-xl border p-2 text-left transition-all duration-200 ease-[var(--ease-spring)] motion-reduce:transition-none',
+        'spotlight group relative flex flex-col rounded-xl border p-1.5 text-left transition-all duration-200 ease-[var(--ease-spring)] motion-reduce:transition-none sm:p-2',
         compact ? 'w-24 gap-1 sm:w-28' : 'w-28 gap-1.5 sm:w-32',
+        'short:w-16 short:gap-0.5 short:p-1',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50',
         active
           ? 'border-brand-500 bg-brand-500/10 ring-1 ring-brand-500/40'
@@ -112,10 +116,14 @@ export const SceneCell = ({
         durationLabel={durationLabel}
         compact={compact}
       />
-      <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-brand-600/70 dark:text-brand-300/60">
+      {/* The kind eyebrow is redundant on a phone — the poster tile already carries the kind icon,
+          and the row it costs is a row the capture controls need. On a short viewport the title goes
+          too and the cell falls back to its poster, which still shows index, done check and active
+          accent; those text rows are the panel's only source of height there. */}
+      <span className="hidden text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-brand-600/70 sm:block short:hidden dark:text-brand-300/60">
         {eyebrow}
       </span>
-      <span className="line-clamp-1 text-xs font-medium text-foreground">{title}</span>
+      <span className="line-clamp-1 text-xs font-medium text-foreground short:hidden">{title}</span>
     </PressableScale>
     {trailing}
   </div>

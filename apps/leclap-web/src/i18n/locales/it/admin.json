@@ -218,6 +218,7 @@
     "advanced": "Avanzato",
     "tools": "Strumenti dell’editor",
     "resizePanels": "Trascina per ridimensionare anteprima e pannello",
+    "mobileView": "Anteprima o modifica",
     "preview": "Anteprima",
     "addScene": "Aggiungi scena",
     "addSceneKind": "Aggiungi scena {{kind}}",

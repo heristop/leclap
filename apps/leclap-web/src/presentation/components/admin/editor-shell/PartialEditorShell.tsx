@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { LayersIcon } from '@/presentation/components/icons/layers';
 import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
-import { ShellChrome, ToolDock, ProgramMonitor } from '@/presentation/components/editor-shell';
+import { Monitor } from '@/presentation/components/icons';
+import { ShellChrome, ToolDock, ProgramMonitor, type ViewTab } from '@/presentation/components/editor-shell';
 import { ColorVariablesProvider } from '@/presentation/components/ui';
 import { SECTION_LABELS, type EditorSection } from '../templateEditorModel';
 import { EditorMonitor } from './EditorMonitor';
@@ -46,12 +47,21 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
     { id: 'basics' as const, icon: FileTextIcon, label: t('shell.basics') },
   ];
 
+  const activeToolItem = tools.find((tool) => tool.id === editor.activeTool) ?? tools[0];
+  const viewTabs: [ViewTab, ViewTab] = [
+    { id: 'panel', icon: activeToolItem.icon, label: activeToolItem.label },
+    { id: 'monitor', icon: Monitor, label: t('shell.preview') },
+  ];
+
   return (
     // Colour fields anywhere in the shell resolve and offer the draft's {{ variable }} colour tokens,
     // including the {{ colorN }} slots when the partial's descriptor carries a colorsList palette.
     <ColorVariablesProvider variables={draftState.globalVariables} colorsList={draftState.colorsList}>
       <ShellChrome
         resizeLabel={t('shell.resizePanels')}
+        viewTabs={viewTabs}
+        viewTabsLabel={t('shell.mobileView')}
+        panelFocusKey={`${editor.activeTool}:${String(sel.selectedIndex)}`}
         titlebar={
           <PartialTitlebar
             id={draftState.id}

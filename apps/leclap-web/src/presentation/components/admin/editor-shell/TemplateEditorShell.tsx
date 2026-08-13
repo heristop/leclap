@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ShellChrome, ToolDock } from '@/presentation/components/editor-shell';
+import { Monitor } from '@/presentation/components/icons';
+import { ShellChrome, ToolDock, type ViewTab } from '@/presentation/components/editor-shell';
 import { ColorVariablesProvider } from '@/presentation/components/ui';
 import type { Template } from '@/services/templateService';
 import { userPartialService } from '@/services/userPartialService';
@@ -42,6 +43,21 @@ function sectionTitle(section: EditorSection): string {
 // The template-authoring editor re-housed inside the studio shell. Reuses the exact same state hooks as
 // the legacy TemplateEditor (useEditorHistory + useEditorSectionOps), composing them — plus the shell's
 // own program-monitor + persistence hooks — into the shared dock·panel·monitor·timeline frame.
+// Phone surface tabs for the authoring shell: the editing panel, named for the tool it will show, and
+// the program monitor. Built outside the component so it doesn't spend the shell's statement budget.
+const buildViewTabs = (
+  tools: ReturnType<typeof buildEditorTools>,
+  activeTool: string,
+  t: (key: string) => string
+): [ViewTab, ViewTab] => {
+  const active = tools.find((tool) => tool.id === activeTool) ?? tools[0];
+
+  return [
+    { id: 'panel', icon: active.icon, label: t(active.labelKey) },
+    { id: 'monitor', icon: Monitor, label: t('shell.preview') },
+  ];
+};
+
 export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompile }: TemplateEditorShellProps) => {
   const { t } = useTranslation('admin');
   const history = useEditorHistory(toEditorState(initial));
@@ -137,6 +153,9 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
     <ColorVariablesProvider variables={state.globalVariables} colorsList={state.colorsList}>
       <ShellChrome
         resizeLabel={t('shell.resizePanels')}
+        viewTabs={buildViewTabs(tools, sel.activeTool, t)}
+        viewTabsLabel={t('shell.mobileView')}
+        panelFocusKey={`${sel.activeTool}:${String(sel.selectedIndex)}`}
         titlebar={
           <ShellTitlebar
             state={state}

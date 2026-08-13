@@ -3,6 +3,20 @@
 /* Class-based dark mode: `dark:` utilities apply under a `.dark` ancestor. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* The editor shells leave their stacked phone layout for the three-pane desk layout only when the
+   viewport is wide AND tall enough to hold it. Width alone is the wrong test: a landscape phone
+   (844×390) clears `md` on width, but its shell body is barely 330px tall, and the vertical tool
+   rail, panel, monitor and scene lane then collide inside it. Height in a media query is measured
+   against the initial 16px root, not the fluid `html` size, so 34rem is a stable 544px — above any
+   phone in landscape, below every tablet and laptop. */
+@custom-variant desk (@media (min-width: 48rem) and (min-height: 34rem));
+
+/* The complement of `desk`'s height test: a viewport too short to spend rows on chrome — a phone in
+   landscape, mostly. The stacked shell has four fixed bands (titlebar, view tabs, scene lane, dock)
+   around one flexible panel, and the panel is the only one that can shrink, so it collapses to
+   nothing unless the bands give some height back. `short:` is where they do. */
+@custom-variant short (@media (max-height: 34rem));
+
 /* Tailwind v4 dropped the default `cursor: pointer` on buttons — restore it for
    every interactive element so clickable affordances feel right. */
 @layer base {
@@ -207,7 +221,6 @@ body {
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --animate-shimmer: shimmer 2s infinite linear;
-  --animate-processing: processing 2s ease-in-out infinite;
   --animate-fade-in: fade-in 0.6s var(--ease-out-expo) both;
   --animate-rise-in: rise-in 0.5s var(--ease-spring) both;
   --animate-float: float 6s ease-in-out infinite;
@@ -224,6 +237,13 @@ body {
   --animate-phone-sheen: phone-sheen 7s var(--ease-out-expo) infinite;
   /* Magnetic stretch the editor tool-dock indicator plays as it springs to a new tool. */
   --animate-dock-stretch: dock-stretch 0.32s var(--ease-spring);
+  /* The tally light riding the leading edge of an in-progress meter — the render bar's only moving
+     part. Keep it transform/opacity only: a background-position sweep tiles and snaps at each loop. */
+  --animate-meter-head: meter-head 2s ease-in-out infinite;
+  /* The stacked shell's two surfaces enter from the side their tab sits on, so switching reads as
+     travel across one room rather than two unrelated screens appearing in place. */
+  --animate-surface-in-left: surface-in-left 0.26s var(--ease-out-expo) both;
+  --animate-surface-in-right: surface-in-right 0.26s var(--ease-out-expo) both;
 
   /* Elevation — brand-tinted depth for the bold design system */
   --shadow-md: 0 8px 24px -8px oklch(0 0 0 / 0.35);
@@ -1107,12 +1127,17 @@ body {
 }
 
 /* Tactile press feedback — gives buttons/cards a native, springy "give". */
+/* The house press. Asymmetric on purpose: going DOWN is a fast, non-overshooting ease-out, because a
+   press is not a throw and a springy dip reads as wobble; coming BACK UP springs, because release is
+   the moment the surface pushes against you. Down is also the faster half — feedback has to feel
+   immediate, while the return can take its time. */
 @utility tap {
   touch-action: manipulation;
-  transition: transform 0.18s var(--ease-spring);
+  transition: transform 0.24s var(--ease-spring);
 
   &:active {
     transform: scale(0.96);
+    transition: transform 0.09s var(--ease-smooth);
   }
 }
 
@@ -1131,15 +1156,43 @@ body {
   }
 }
 
-/* Breathe with opacity only — a sub-pixel `scale()` here rasterizes the whole progress panel on a
-   fractional-scale GPU layer, which blurs its text for the entire compile. Opacity keeps the pulse crisp. */
-@keyframes processing {
+/* A shell surface arriving from its own side. Translate + opacity only, and short enough that it
+   never delays the tap: the tab indicator has already moved, and this just tells you which way. The
+   pair restarts every time its element goes from `display:none` to shown — which is exactly how the
+   tabs swap them, so neither surface is ever remounted and typed input and scroll survive the
+   switch. */
+@keyframes surface-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-1.25rem, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes surface-in-right {
+  from {
+    opacity: 0;
+    transform: translate3d(1.25rem, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The tally light at the fill's leading edge — breathes rather than blinks. */
+@keyframes meter-head {
   0%,
   100% {
-    opacity: 1;
+    opacity: 0.45;
+    transform: scale(0.9);
   }
   50% {
-    opacity: 0.85;
+    opacity: 1;
+    transform: scale(1.15);
   }
 }
 
@@ -1284,9 +1337,6 @@ body {
   background-size: 800px 104px;
 }
 
-@utility processing {
-  animation: var(--animate-processing);
-}
 @utility fade-in {
   animation: var(--animate-fade-in);
 }

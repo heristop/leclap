@@ -218,6 +218,7 @@
     "advanced": "Advanced",
     "tools": "Editor tools",
     "resizePanels": "Drag to resize preview and panel",
+    "mobileView": "Preview or edit",
     "preview": "Preview",
     "addScene": "Add scene",
     "addSceneKind": "Add {{kind}} scene",

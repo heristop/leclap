@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -19,9 +19,10 @@ import { KineticHeading, GradientMeter, PressableScale, ratio01 } from '@/presen
 import {
   ToolDock,
   ProgramMonitor,
-  MobileResizeHandle,
-  useMobileSplit,
+  MobileViewTabs,
   type ToolItem,
+  type ShellView,
+  type ViewTab,
 } from '@/presentation/components/editor-shell';
 import { templateService, type Template, type InputSection, type QualityTier } from '@/services/templateService';
 import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
@@ -144,7 +145,7 @@ const EditorTopBar = ({
   onExit: () => void;
   t: TFunction<'builder'>;
 }) => (
-  <header className="flex items-center gap-2.5 border-b border-foreground/10 bg-surface-2/70 px-4 py-2.5 shadow-[inset_0_1px_0_0_oklch(1_0_0/0.04)] backdrop-blur-md sm:px-6">
+  <header className="flex items-center gap-2.5 border-b border-foreground/10 bg-surface-2/70 px-4 py-2.5 shadow-[inset_0_1px_0_0_oklch(1_0_0/0.04)] backdrop-blur-md short:py-1 sm:px-6">
     {/* Back affordance as a subtle pill — harmonized with the hub's "Change template" wording. */}
     <button
       type="button"
@@ -182,14 +183,18 @@ const EditorTopBar = ({
       </div>
     )}
     {phase === 'edit' && (
+      // Icon-only on phones: spelled out, this CTA took roughly half the titlebar and truncated the
+      // project name to a couple of characters. The label returns as soon as there's room.
       <PressableScale
         onClick={onCreate}
         disabled={!allComplete}
         hoverLift
         haptic="success"
-        className="brand-gradient group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-900/30 transition-shadow hover:shadow-brand-500/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4"
+        aria-label={t('hub.createCta')}
+        title={t('hub.createCta')}
+        className="brand-gradient group inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-900/30 transition-shadow hover:shadow-brand-500/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 disabled:pointer-events-none disabled:opacity-50 sm:px-5 [&_svg]:size-4"
       >
-        <Sparkles size={16} /> {t('hub.createCta')}
+        <Sparkles size={16} /> <span className="hidden sm:inline">{t('hub.createCta')}</span>
       </PressableScale>
     )}
   </header>
@@ -242,6 +247,8 @@ interface EditorBodyProps extends EditorShellProps {
   panelTitle: string | null;
   panelEyebrow: string | null;
   rail: RailItem[];
+  // Which surface the phone layout is showing. Ignored from `md` up, where both are on screen.
+  mobileView: ShellView;
   t: TFunction<'builder'>;
 }
 
@@ -326,24 +333,45 @@ const ProgramArea = ({ clipFile, section, editForClip, onEditChange, template, m
   );
 };
 
+// The panel's title block. On phones the kind eyebrow (Record / Details) sits inline with the title
+// instead of stacking above it — the same two facts on one line rather than two, so the panel body
+// starts that much higher up the fold.
+const PanelHeader = ({ title, eyebrow }: { title: string | null; eyebrow: string | null }) => {
+  if (!title) return null;
+
+  const eyebrowClass =
+    'text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-brand-600/70 dark:text-brand-300/60';
+
+  return (
+    <header className="shrink-0 border-b border-foreground/10 px-4 py-2 short:py-1 sm:px-5 sm:py-3">
+      {eyebrow && <p className={`hidden sm:block short:hidden ${eyebrowClass}`}>{eyebrow}</p>}
+      <h2 className="flex min-w-0 items-baseline gap-2 font-display text-base font-bold text-foreground short:text-sm sm:text-lg">
+        {eyebrow && <span className={`shrink-0 sm:hidden short:inline ${eyebrowClass}`}>{eyebrow}</span>}
+        <span className="truncate">{title}</span>
+      </h2>
+    </header>
+  );
+};
+
 // The three-pane edit surface: tool dock · contextual panel · program monitor, with the scene
 // timeline lane below.
 const EditorBody = (p: EditorBodyProps) => {
   const clipFile =
     p.tool === 'content' && p.section?.kind === 'clip' ? p.model.clipsBySection[p.section.name] : undefined;
   const editForClip = p.section ? p.model.editsBySection[p.section.name] : undefined;
-  const { containerRef, monitorHeight, beginResize, resizeBy } = useMobileSplit();
+  // Phones show one surface at a time (see MobileViewTabs); the other is unmounted from the flow, not
+  // merely shrunk, so whichever one you are on gets the full height between the tabs and the lane.
+  const onMonitor = p.mobileView === 'monitor';
 
   return (
-    // One grid holds all regions. Mobile (flex-col): monitor → resize divider → panel → timeline →
-    // dock (the dock is a bottom tab bar, order-last). The monitor's height is the draggable mobile
-    // split (`--monitor-h`); `md:h-auto` resets it for the grid tiers, where the timeline spans the
-    // full second row below dock·panel·monitor. Same tiers as ShellChrome: icon-only dock + narrow
-    // panel at md, widening at lg/xl so the monitor keeps priority.
-    <div
-      ref={containerRef}
-      className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[3.75rem_19rem_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[5rem_22rem_minmax(0,1fr)] xl:grid-cols-[5rem_24rem_minmax(0,1fr)]"
-    >
+    // One grid holds all regions. Stacked (flex-col): the tab-selected surface → timeline → dock
+    // (the dock is a bottom tab bar, order-last). At `desk` both surfaces are on screen at once and
+    // the grid takes over: the timeline spans the full second row below dock·panel·monitor. The
+    // switch is `desk`, not `md`, because it needs viewport HEIGHT as well as width — a landscape
+    // phone is wide enough for the grid and nowhere near tall enough to live in it. Same tiers as
+    // ShellChrome: icon-only dock + narrow panel on the first desk tier, widening at lg/xl so the
+    // monitor keeps priority.
+    <div className="flex min-h-0 flex-1 flex-col desk:grid desk:grid-cols-[3.75rem_19rem_minmax(0,1fr)] desk:grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[5rem_22rem_minmax(0,1fr)] xl:grid-cols-[5rem_24rem_minmax(0,1fr)]">
       <ToolDock
         items={p.rail.map((r): ToolItem<Tool> => ({ id: r.tool, icon: r.icon, label: r.label }))}
         active={p.tool}
@@ -351,18 +379,11 @@ const EditorBody = (p: EditorBodyProps) => {
         ariaLabel={p.t('editor.tools')}
       />
 
-      <section className="order-3 flex min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 md:order-none md:border-r">
-        {p.panelTitle && (
-          <header className="shrink-0 border-b border-foreground/10 px-4 py-3 sm:px-5">
-            {p.panelEyebrow && (
-              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-brand-600/70 dark:text-brand-300/60">
-                {p.panelEyebrow}
-              </p>
-            )}
-            <h2 className="font-display text-lg font-bold text-foreground">{p.panelTitle}</h2>
-          </header>
-        )}
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+      <section
+        className={`order-3 min-h-0 flex-1 flex-col overflow-hidden border-foreground/10 bg-surface/30 animate-surface-in-left motion-reduce:animate-none desk:order-none desk:flex desk:animate-none desk:border-r ${onMonitor ? 'hidden' : 'flex'}`}
+      >
+        <PanelHeader title={p.panelTitle} eyebrow={p.panelEyebrow} />
+        <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5">
           {/* Keyed by tool + scene so swapping either cross-fades the body instead of hard-cutting. */}
           <div key={`${p.tool}:${p.section?.name ?? ''}`} className="panel-swap motion-reduce:animate-none">
             <ToolPanel {...p} />
@@ -371,8 +392,7 @@ const EditorBody = (p: EditorBodyProps) => {
       </section>
 
       <div
-        className="order-1 h-[var(--monitor-h)] min-h-0 shrink-0 md:order-none md:h-auto md:shrink"
-        style={{ '--monitor-h': monitorHeight } as CSSProperties}
+        className={`order-1 min-h-0 flex-1 animate-surface-in-right motion-reduce:animate-none desk:order-none desk:block desk:animate-none ${onMonitor ? 'block' : 'hidden'}`}
       >
         <ProgramArea
           clipFile={clipFile}
@@ -385,10 +405,11 @@ const EditorBody = (p: EditorBodyProps) => {
         />
       </div>
 
-      <MobileResizeHandle onResize={beginResize} onNudge={resizeBy} label={p.t('editor.resizePanels')} />
-
-      <footer className="track-lane order-4 flex items-stretch border-t border-foreground/10 md:order-none md:col-span-3">
-        <div className="hidden w-20 shrink-0 flex-col items-center justify-center gap-1.5 border-r border-foreground/10 bg-surface-2/30 sm:flex">
+      <footer className="track-lane order-4 flex items-stretch border-t border-foreground/10 desk:order-none desk:col-span-3">
+        {/* The lane's label spine. It is the tallest thing in the footer (icon + word + count), and
+            it is pure signage — the cells beside it already read as a timeline — so a viewport too
+            short to afford the rows gets the cells alone. */}
+        <div className="hidden w-20 shrink-0 flex-col items-center justify-center gap-1.5 border-r border-foreground/10 bg-surface-2/30 short:hidden sm:flex">
           <span
             aria-hidden="true"
             className="grid size-8 place-items-center rounded-lg bg-brand-500/12 text-brand-500 ring-1 ring-brand-500/20"
@@ -434,15 +455,36 @@ export const EditorShell = (p: EditorShellProps) => {
   const section: InputSection | null = sections.find((s) => s.name === sceneName) ?? sections.at(0) ?? null;
   const { doneItems, totalItems } = hubProgress(sections, template, model, showMedia);
 
+  // Which surface the phone shows. It opens on the editing panel because that is where the work is —
+  // the monitor has nothing to show until a clip or a field exists. Ignored from `md` up.
+  const [mobileView, setMobileView] = useState<ShellView>('panel');
+
+  // Choosing a scene or a tool is an intent to edit it, so both pull the phone back to the panel;
+  // otherwise the tap would silently change what the hidden surface is showing.
   const onSelectScene = (name: string) => {
     setSceneName(name);
     setTool('content');
+    setMobileView('panel');
+  };
+
+  const onSelectTool = (next: Tool) => {
+    setTool(next);
+    setMobileView('panel');
   };
 
   const rail: RailItem[] = [
     { tool: 'content', icon: Film, label: t('editor.content') },
     ...(showMedia ? [{ tool: 'media' as const, icon: Music, label: t('editor.media') }] : []),
     { tool: 'format', icon: Proportions, label: t('editor.format') },
+  ];
+  const activeRail = rail.find((r) => r.tool === tool) ?? rail[0];
+  // Editing sits left, the monitor right — the same order as the desktop columns, so the phone is a
+  // narrowed version of the same room rather than a different arrangement. The editing tab is named
+  // for the tool it will show (Content / Media / Format) rather than a generic "Edit", so the label
+  // always says what is behind it.
+  const viewTabs: [ViewTab, ViewTab] = [
+    { id: 'panel', icon: activeRail.icon, label: activeRail.label },
+    { id: 'monitor', icon: Monitor, label: t('editor.preview') },
   ];
 
   // Per-item framing: when editing content, the panel header shows the section's kind (Record/Details)
@@ -454,8 +496,12 @@ export const EditorShell = (p: EditorShellProps) => {
 
   // Sit BELOW the global LeClap header (fixed, ~4rem, z-50) rather than covering it — the site header
   // stays visible and on top. The shell fills the rest of the viewport with its own toolbar + panels.
+  // The exception is a short viewport (a phone held sideways): there the site header's 4rem is the
+  // difference between a usable editing panel and a two-line sliver, and the shell already carries
+  // its own way out ("Change template"), so the editor goes properly full-screen and takes the row
+  // back. It has to out-rank the header's z-50 to do it.
   return createPortal(
-    <div className="dark fixed inset-x-0 bottom-0 top-16 z-30 flex flex-col bg-background text-foreground">
+    <div className="dark fixed inset-x-0 bottom-0 top-16 z-30 flex flex-col bg-background text-foreground short:top-0 short:z-[60]">
       <EditorTopBar
         template={template}
         phase={phase}
@@ -471,17 +517,27 @@ export const EditorShell = (p: EditorShellProps) => {
         t={t}
       />
 
+      {phase === 'edit' && (
+        <MobileViewTabs
+          tabs={viewTabs}
+          active={mobileView}
+          onSelect={setMobileView}
+          ariaLabel={t('editor.mobileView')}
+        />
+      )}
+
       {phase === 'edit' ? (
         <EditorBody
           {...p}
           sections={sections}
           tool={tool}
-          setTool={setTool}
+          setTool={onSelectTool}
           section={section}
           onSelectScene={onSelectScene}
           panelTitle={panelTitle}
           panelEyebrow={panelEyebrow}
           rail={rail}
+          mobileView={mobileView}
           t={t}
         />
       ) : (

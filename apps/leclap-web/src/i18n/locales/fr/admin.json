@@ -218,6 +218,7 @@
     "advanced": "Avancé",
     "tools": "Outils de l’éditeur",
     "resizePanels": "Glisse pour redimensionner l’aperçu et le panneau",
+    "mobileView": "Aperçu ou édition",
     "preview": "Aperçu",
     "addScene": "Ajouter une scène",
     "addSceneKind": "Ajouter une scène {{kind}}",

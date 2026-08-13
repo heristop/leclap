@@ -4,9 +4,14 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 // panel in the stacked mobile layout). Desktop ignores it — the divider is hidden and `lg:h-auto`
 // resets the height, so the grid lays out as usual.
 const STORAGE_KEY = 'leclap.studio.splitPx';
-const MIN_MONITOR = 160; // px — the preview never collapses below this
-const MIN_REST = 240; // px — keep room for the panel + timeline + dock below the divider
-const DEFAULT_VH = 38; // initial monitor height before the user drags — leaves more room for the panel below
+const MIN_MONITOR = 140; // px — the preview never collapses below this
+// px — room the regions below the divider need: the panel's own header + a usable slice of its body,
+// plus the scene lane and the dock. Sized so the capture controls (drop zone AND the record button)
+// clear the fold on a small phone instead of the panel being cropped to a sliver.
+const MIN_REST = 340;
+// Initial monitor height before the user drags. `dvh` (not `vh`) so mobile browser chrome collapsing
+// doesn't leave the split measured against a viewport taller than the one actually on screen.
+const DEFAULT_VH = 30;
 
 const readStored = (): number | null => {
   try {
@@ -27,7 +32,7 @@ export const useMobileSplit = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [heightPx, setHeightPx] = useState<number | null>(readStored);
 
-  const monitorHeight = heightPx === null ? `${DEFAULT_VH}vh` : `${heightPx}px`;
+  const monitorHeight = heightPx === null ? `${DEFAULT_VH}dvh` : `${heightPx}px`;
 
   const clampForContainer = useCallback((raw: number, total: number): number => {
     const max = Math.max(MIN_MONITOR, total - MIN_REST);
@@ -71,6 +76,17 @@ export const useMobileSplit = () => {
     },
     [clampForContainer]
   );
+
+  // Re-clamp a restored split against the live container on mount: the stored value may come from a
+  // taller device or a build with a smaller `MIN_REST`, and the drag handler is the only other place
+  // the clamp runs.
+  useEffect(() => {
+    const rect = containerRef.current?.getBoundingClientRect();
+
+    if (!rect || rect.height === 0) return;
+
+    setHeightPx((current) => (current === null ? null : clampForContainer(current, rect.height)));
+  }, [clampForContainer]);
 
   useEffect(() => {
     if (heightPx === null) return;

@@ -218,6 +218,7 @@
     "advanced": "Avanzado",
     "tools": "Herramientas de edición",
     "resizePanels": "Arrastra para redimensionar la vista previa y el panel",
+    "mobileView": "Vista previa o edición",
     "preview": "Vista previa",
     "addScene": "Añadir escena",
     "addSceneKind": "Añadir escena de {{kind}}",

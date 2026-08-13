@@ -160,7 +160,7 @@ export const SceneFilmstrip = ({ template, sections, model, showMedia, activeNam
         onScroll={(e: UIEvent<HTMLDivElement>) => {
           syncEdges(e.currentTarget);
         }}
-        className="track-edge-fade flex flex-1 scroll-px-3 items-stretch gap-2 overflow-x-auto scroll-smooth px-3 py-2.5 [scrollbar-width:thin] motion-reduce:scroll-auto"
+        className="track-edge-fade flex flex-1 scroll-px-3 items-stretch gap-2 overflow-x-auto scroll-smooth px-3 py-1.5 [scrollbar-width:thin] motion-reduce:scroll-auto short:py-1 sm:py-2.5"
       >
         {sections.map((section, i) => (
           <Cell

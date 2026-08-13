@@ -218,6 +218,7 @@
     "advanced": "Erweitert",
     "tools": "Editor-Werkzeuge",
     "resizePanels": "Ziehen, um Vorschau und Panel anzupassen",
+    "mobileView": "Vorschau oder Bearbeiten",
     "preview": "Vorschau",
     "addScene": "Szene hinzufügen",
     "addSceneKind": "{{kind}}-Szene hinzufügen",

@@ -31,10 +31,12 @@ jobs:
           # Changesets needs full history to diff against the base branch and tag releases.
           fetch-depth: 0
 
-      # The bundled creative-kit media (templates/music) is embedded into the published
-      # package at build time and lives in Git LFS; pull it before building.
-      - name: Fetch bundled media (Git LFS)
-        run: git lfs pull --include="packages/leclap-creative-kit/src/library/"
+      # No media step here on purpose. This job builds only ffmpeg-video-composer, @leclap/cli and
+      # @leclap/mcp — none of which depend on @leclap/creative-kit or embed any of its media: each
+      # `build` is a bare tsdown over TypeScript entries, and every published `files` list is dist/
+      # plus markdown. Assets are fetched at runtime from the raw-GitHub base URL in asset-source.ts.
+      # This previously ran `git lfs pull`, which under this repo's exhausted LFS budget exits 0 while
+      # materializing nothing — it never did anything but hide that fact.
 
       # Toolchain pinned in mise.toml (Node, pnpm).
       - name: Set up toolchain (mise)
@@ -63,10 +65,8 @@ jobs:
           # Changesets needs full history to diff against the base branch and tag releases.
           fetch-depth: 0
 
-      # The bundled creative-kit media (templates/music) is embedded into the published
-      # package at build time and lives in Git LFS; pull it before building.
-      - name: Fetch bundled media (Git LFS)
-        run: git lfs pull --include="packages/leclap-creative-kit/src/library/"
+      # No media step here on purpose — see the note in the `version` job above. The published
+      # packages embed none of the creative-kit library.
 
       # Toolchain pinned in mise.toml (Node, pnpm).
       - name: Set up toolchain (mise)

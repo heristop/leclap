@@ -112,6 +112,22 @@ export const DOC_ROUTES: readonly DocRoute[] = [
     changefreq: 'monthly',
   },
   {
+    path: '/doc/cli',
+    title: 'Command line — LeClap CLI',
+    description:
+      'Scaffold a LeClap project and render a template descriptor to mp4 from your terminal: init, render, diagnose, and how FFmpeg is resolved.',
+    priority: '0.7',
+    changefreq: 'monthly',
+  },
+  {
+    path: '/doc/mcp',
+    title: 'MCP server — agent-callable video tools',
+    description:
+      'Expose the LeClap engine to an AI agent over MCP: the tool surface, the authoring loop, configuration, and wiring it into Claude Desktop.',
+    priority: '0.7',
+    changefreq: 'monthly',
+  },
+  {
     path: '/design',
     title: 'Design System',
     description: 'The LeClap design system — colors, typography, motion and UI components.',

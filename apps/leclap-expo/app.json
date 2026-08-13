@@ -56,7 +56,8 @@
           "photosPermission": "LeClap needs access to your photo library to use an image as a video background."
         }
       ],
-      "./plugins/withNdkVersion.js"
+      "./plugins/withNdkVersion.js",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

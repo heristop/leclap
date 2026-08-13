@@ -57,7 +57,7 @@ export const PolicyPage = ({
               <Reveal key={heading} delay={index * 80} scale>
                 <Card interactive glow className="p-6 sm:p-7">
                   <div className="flex items-start gap-4">
-                    <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-brand-500/10 text-brand-400 ring-1 ring-brand-500/20">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-500/10 text-brand-400 ring-1 ring-brand-500/20">
                       <Icon className="h-5 w-5" />
                     </span>
                     <div>
@@ -73,7 +73,9 @@ export const PolicyPage = ({
           <Reveal delay={sections.length * 80 + 80} className="mt-10">
             <Link
               to="/"
-              className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              // `-ml-2 px-2 py-2.5` grows the tap area to ~40px and pulls the text back to the
+              // original optical left edge, so the only way out of a policy page isn't a 20px target.
+              className="group -ml-2 inline-flex min-h-10 items-center gap-2 rounded-lg px-2 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowRight className="h-4 w-4 rotate-180 transition-transform group-hover:-translate-x-0.5" />
               {t('nav.home')}

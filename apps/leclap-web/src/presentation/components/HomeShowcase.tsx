@@ -195,7 +195,7 @@ export const HomeShowcase = () => {
                 static masked wrapper clips it and keeps the edge fade in place. */}
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-black/55 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-linear-to-b from-black/55 to-transparent"
               >
                 <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
                   <span
@@ -206,7 +206,7 @@ export const HomeShowcase = () => {
               </span>
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-black/55 to-transparent"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-linear-to-t from-black/55 to-transparent"
               >
                 <span className="absolute inset-0 overflow-hidden" style={perforationMaskStyle}>
                   <span
@@ -224,7 +224,9 @@ export const HomeShowcase = () => {
                     type="button"
                     onClick={toggleMute}
                     aria-label={muted ? t('showcase.unmute') : t('showcase.mute')}
-                    className="grid h-8 w-8 place-items-center rounded-full text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
+                    // 32px pill, 44px target: the `before` overlay pads the hit area without
+                    // enlarging the control over the video.
+                    className="tap relative grid h-8 w-8 place-items-center rounded-full text-white/85 transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4"
                   >
                     {muted ? <VolumeX /> : <Volume2 />}
                   </button>

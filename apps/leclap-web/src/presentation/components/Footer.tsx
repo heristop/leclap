@@ -18,8 +18,10 @@ export const Footer = () => {
 
   // Film-credits / marquee treatment: condensed Oswald, uppercase, wide tracking — with the shared
   // playhead-scrubber underline on hover, so the links read as end-of-reel credits.
+  // `py-3` carries the tap area to ~40px on a row of three adjacent links, where text height alone
+  // is an easy miss. Vertical only, so the playhead underline still hugs the words.
   const linkClass =
-    'playhead-link rounded font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
+    'playhead-link inline-flex items-center rounded py-3 font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-divider bg-surface">
@@ -104,7 +106,7 @@ export const Footer = () => {
         {/* Meta row: copyright + source, over a lavender→pink scrubber hairline (a timeline edge). */}
         <div
           aria-hidden="true"
-          className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-brand-500/40 to-transparent"
+          className="mt-8 h-px w-full bg-linear-to-r from-transparent via-brand-500/40 to-transparent"
         />
         <div className="mt-5 flex items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>
@@ -117,7 +119,7 @@ export const Footer = () => {
             aria-label={t('header.viewSource')}
             onMouseEnter={() => githubRef.current?.startAnimation()}
             onMouseLeave={() => githubRef.current?.stopAnimation()}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full px-3 py-1.5 transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
           >
             <GithubIcon ref={githubRef} size={16} />
             <span>{t('header.github')}</span>

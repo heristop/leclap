@@ -66,7 +66,9 @@ export function HeroViewfinder({ timecodeRef, soundEnabled, onToggleSound }: Her
         onClick={onToggleSound}
         aria-pressed={soundEnabled}
         aria-label={t(soundEnabled ? 'hero.soundOff' : 'hero.soundOn')}
-        className="fade-in pointer-events-auto absolute right-5 top-4 rounded-full bg-black/45 p-2 text-white/85 backdrop-blur-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 sm:right-7 sm:top-5"
+        // The visual pill stays small so it doesn't crowd the viewfinder; the `before` overlay pads
+        // the hit area out to 44px. It's the only real control in the hero, so it has to be hittable.
+        className="tap fade-in pointer-events-auto absolute right-5 top-4 grid size-8 place-items-center rounded-full bg-black/45 text-white/85 backdrop-blur-sm transition-colors before:absolute before:-inset-1.5 before:content-[''] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 sm:right-7 sm:top-5"
         style={{ animationDelay: '0.6s' }}
       >
         <SoundIcon className="size-3.5" aria-hidden="true" />

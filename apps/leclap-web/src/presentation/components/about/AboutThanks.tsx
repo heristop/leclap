@@ -19,8 +19,10 @@ export const AboutThanks = () => {
   return (
     <section className="mt-16 relative overflow-hidden rounded-2xl glass-panel-dark p-8 md:p-12">
       {/* Self-drawing heart watermark: stroke draws from 0→100% via stroke-dashoffset. pathLength=1
-          normalises the path so the dash maths is unit-based (no real length measurement needed). */}
-      <motion.svg
+          normalises the path so the dash maths is unit-based (no real length measurement needed).
+          The wrapper is a plain <svg>: it carries no motion props, and motion's SVG components
+          currently type their ref as Ref<never>, so they can't take a typed element ref. */}
+      <svg
         ref={heartRef}
         aria-hidden="true"
         width={208}
@@ -42,7 +44,7 @@ export const AboutThanks = () => {
           animate={{ strokeDashoffset: drawn ? 0 : 1 }}
           transition={reduced ? { duration: 0 } : { duration: 1.8, ease: 'easeInOut' }}
         />
-      </motion.svg>
+      </svg>
 
       <div className="relative max-w-2xl">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-secondary-600 dark:text-secondary-300">

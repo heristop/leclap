@@ -215,7 +215,8 @@ class MusicComposer {
     const durations = this.project.buildInfos.durations;
     // durations is fully populated by calculateTotalLength before any section reaches
     // prepareMusicTrack, so it's stable for the memoized lifetime of resolvedMusicFade.
-    const musicFade = (this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration, durations));
+    this.resolvedMusicFade ??= resolveMusicFade(this.template.descriptor, transitionDuration, durations);
+    const musicFade = this.resolvedMusicFade;
 
     return { transitionDuration, musicFade };
   }

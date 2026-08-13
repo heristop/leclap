@@ -56,7 +56,7 @@ function UploadErrors({ errors }: UploadErrorsProps) {
       role="alert"
     >
       <div className="flex items-start">
-        <AlertCircle className="w-5 h-5 text-[var(--color-error)] mt-0.5 mr-2 flex-shrink-0" />
+        <AlertCircle className="w-5 h-5 text-[var(--color-error)] mt-0.5 mr-2 shrink-0" />
         <div>
           <h4 className="text-sm font-medium text-[var(--color-error)] mb-1">{t('upload.errorsTitle')}</h4>
           <ul className="text-sm text-[var(--color-error)]/90 space-y-1">
@@ -164,7 +164,7 @@ function DropZone({
       {...hoverProps}
       aria-label={t('upload.uploadAria')}
       className={clsx(
-        'tap group relative border-2 border-dashed rounded-2xl p-5 text-center transition-all duration-300 cursor-pointer fade-in backdrop-blur-sm sm:p-8',
+        'tap group relative cursor-pointer rounded-2xl border-2 border-dashed p-3.5 text-center transition-all duration-300 fade-in backdrop-blur-sm sm:p-8',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         isDragActive || dragActive
           ? 'border-brand-500 bg-brand-500/10 scale-[1.02] shadow-lg shadow-brand-500/10'
@@ -174,24 +174,33 @@ function DropZone({
     >
       <input {...getInputProps()} aria-label={t('upload.uploadAria')} />
 
-      <div className="flex flex-col items-center space-y-4">
+      {/* Two shapes for one control. Phones get a compact row — icon beside a single "pick a video"
+          line — because there is nothing to drag on a touch device and the tall centered stack pushed
+          the record button (the actual primary action here) below the fold. The full stacked drop
+          target, with its drag copy and format hint, returns at `sm`. */}
+      <div className="flex items-center gap-3 text-left sm:flex-col sm:gap-0 sm:space-y-4 sm:text-center">
         <div
           className={clsx(
-            'p-4 rounded-full transition-all duration-300 shadow-lg',
+            'shrink-0 rounded-full p-2.5 shadow-lg transition-all duration-300 sm:p-4',
             isDragActive || dragActive
               ? 'bg-brand-600 text-white scale-110 shadow-brand-500/30'
               : 'bg-surface text-gray-400 shadow-black/20 group-hover:scale-105 group-hover:text-brand-700 dark:group-hover:text-brand-300'
           )}
         >
-          <UploadIcon size={32} ref={uploadRef} />
+          <UploadIcon ref={uploadRef} className="size-5 sm:size-8" />
         </div>
 
-        <div>
-          <p className="text-lg font-medium text-foreground">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground sm:hidden">
+            {isDragActive ? t('upload.dropActive') : t('upload.pickFile')}
+          </p>
+          <p className="hidden text-lg font-medium text-foreground sm:block">
             {isDragActive ? t('upload.dropActive') : t('upload.dropIdle')}
           </p>
-          <p className="text-sm text-gray-400 mt-1">{t('upload.browse', { count: maxFiles - uploadedFiles.length })}</p>
-          <p className="text-xs text-gray-500 mt-2">{t('upload.formats', { size: maxSizeInMB })}</p>
+          <p className="mt-1 hidden text-sm text-gray-400 sm:block">
+            {t('upload.browse', { count: maxFiles - uploadedFiles.length })}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-500 sm:mt-2">{t('upload.formats', { size: maxSizeInMB })}</p>
         </div>
       </div>
 
@@ -274,7 +283,7 @@ export const FileUpload = ({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <DropZone
         getRootProps={getRootProps}
         getInputProps={getInputProps}
@@ -300,7 +309,7 @@ export const FileUpload = ({
         }}
         disabled={atCapacity}
         className={clsx(
-          'group w-full px-6 py-4',
+          'group w-full px-4 py-3 sm:px-6 sm:py-4',
           !atCapacity &&
             'border-brand-500/30 bg-brand-500/10 text-brand-700 dark:text-brand-200 hover:bg-brand-500/20 hover:border-brand-500/50 hover:-translate-y-0.5'
         )}

@@ -2,6 +2,7 @@
   "upload": {
     "dropActive": "Drop the files here",
     "dropIdle": "Drag & drop video files here",
+    "pickFile": "Choose a video",
     "browse": "or click to browse files ({{count}} remaining)",
     "formats": "Supports MP4, AVI, MOV, MKV, WebM • Max {{size}}MB per file",
     "filesBadge": "{{count}}/{{max}} files",

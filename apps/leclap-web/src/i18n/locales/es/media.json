@@ -2,6 +2,7 @@
   "upload": {
     "dropActive": "Suelta los archivos aquí",
     "dropIdle": "Arrastra y suelta archivos de vídeo aquí",
+    "pickFile": "Elige un vídeo",
     "browse": "o haz clic para explorar archivos ({{count}} restantes)",
     "formats": "Admite MP4, AVI, MOV, MKV, WebM • Máx. {{size}} MB por archivo",
     "filesBadge": "{{count}}/{{max}} archivos",

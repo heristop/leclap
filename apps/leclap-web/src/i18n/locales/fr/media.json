@@ -2,6 +2,7 @@
   "upload": {
     "dropActive": "Dépose les fichiers ici",
     "dropIdle": "Glisse-dépose tes vidéos ici",
+    "pickFile": "Choisis une vidéo",
     "browse": "ou clique pour parcourir tes fichiers ({{count}} restant)",
     "formats": "MP4, AVI, MOV, MKV, WebM • {{size}} Mo max par fichier",
     "filesBadge": "{{count}}/{{max}} fichiers",

@@ -44,6 +44,7 @@
   },
   "skipToContent": "Aller au contenu principal",
   "languageSuggestion": {
+    "region": "Langue",
     "prompt": "Voir ce site en français ?",
     "accept": "Français",
     "dismiss": "Fermer"

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import i18n from '@/i18n';
+import { LOCALIZED_PATHS } from '@/config/site';
 import { cn } from '@/lib/utils';
 import { isBot } from '@/lib/isBot';
 import { GlobeIcon } from '@/presentation/components/icons/globe';
@@ -15,8 +17,18 @@ import { pickSuggestedLanguage, SUGGESTION_DISMISSED_KEY } from '@/lib/language-
 //
 // Copy is read with a locale-pinned `t`, so the offer is written in the language being offered — a
 // French speaker looking at the English site reads "Voir ce site en français ?", not English.
+//
+// Restricted to the routes that actually have a per-language URL (LOCALIZED_PATHS). Two reasons, and
+// the second is the load-bearing one: offering "read this page in French" only makes sense where a
+// French version of *this page* exists; and RootLayout wraps the working surfaces too, where a fixed
+// bar is not a suggestion but an obstruction — the studio editor is `z-30` (`short:z-[60]`), so a
+// `z-50` banner would sit over its timeline and compile action on one viewport and vanish behind it
+// on another.
 export function LanguageSuggestion() {
   const [suggested, setSuggested] = useState<Language | null>(null);
+  // Already de-prefixed: the router mounts under a /<lng> basename, so this is the bare route.
+  const { pathname } = useLocation();
+  const offerable = LOCALIZED_PATHS.has(pathname);
 
   useEffect(() => {
     // Crawlers must never see chrome that a human would dismiss, and automation would trip over it.
@@ -44,7 +56,9 @@ export function LanguageSuggestion() {
     );
   }, []);
 
-  if (!suggested) {
+  // Gated at render rather than inside the effect, so navigating out of a working surface and back
+  // to a localized page restores the offer instead of losing it to a one-shot effect.
+  if (!suggested || !offerable) {
     return null;
   }
 
@@ -75,7 +89,9 @@ export function LanguageSuggestion() {
       // the page is in — without this a screen reader pronounces "Voir ce site en français ?" with
       // an English synthesizer, which is the one sentence the feature exists to convey.
       lang={suggested}
-      aria-label={prompt}
+      // A short landmark name, not the prompt: reusing the visible sentence makes a screen reader
+      // announce it twice — once naming the region, once reading the paragraph.
+      aria-label={t('languageSuggestion.region')}
       className={cn(
         'fixed inset-x-4 z-50 mx-auto max-w-md',
         'bottom-[calc(1rem+env(safe-area-inset-bottom))]',

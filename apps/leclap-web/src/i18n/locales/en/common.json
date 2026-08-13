@@ -44,6 +44,7 @@
   },
   "skipToContent": "Skip to main content",
   "languageSuggestion": {
+    "region": "Language",
     "prompt": "View this site in English?",
     "accept": "English",
     "dismiss": "Dismiss"

@@ -44,6 +44,7 @@
   },
   "skipToContent": "Zum Hauptinhalt springen",
   "languageSuggestion": {
+    "region": "Sprache",
     "prompt": "Diese Seite auf Deutsch ansehen?",
     "accept": "Deutsch",
     "dismiss": "Schließen"

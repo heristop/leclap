@@ -123,7 +123,7 @@ export function captionToFilters(caption?: Caption): Filter[] {
   return [
     {
       type: 'drawtext',
-      values: values as Filter['values'],
+      values,
     },
   ];
 }

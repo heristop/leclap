@@ -18,10 +18,10 @@ class SegmentFactory {
 
   create(section: Section) {
     const classesMapping: Partial<Record<string, SegmentClass>> = {
-      video: Video as SegmentClass,
-      project_video: ProjectVideo as SegmentClass,
-      image_background: ImageBackground as SegmentClass,
-      color_background: ColorBackground as SegmentClass,
+      video: Video,
+      project_video: ProjectVideo,
+      image_background: ImageBackground,
+      color_background: ColorBackground,
     };
 
     const SegmentClass = classesMapping[section.type];

@@ -22,10 +22,10 @@ Code2Icon.displayName = 'Code2Icon';
 const socials: { id: string; Icon: AnimIcon; href: string; accent: boolean }[] = [
   { id: 'website', Icon: GlobeIcon, href: 'https://heristop.github.io', accent: false },
   { id: 'github', Icon: Code2Icon, href: 'https://github.com/heristop', accent: false },
-  { id: 'twitter', Icon: AtSignIcon as unknown as AnimIcon, href: 'https://twitter.com/heristop', accent: false },
+  { id: 'twitter', Icon: AtSignIcon, href: 'https://twitter.com/heristop', accent: false },
   {
     id: 'coffee',
-    Icon: CoffeeIcon as unknown as AnimIcon,
+    Icon: CoffeeIcon,
     href: 'https://www.buymeacoffee.com/heristop',
     accent: true,
   },

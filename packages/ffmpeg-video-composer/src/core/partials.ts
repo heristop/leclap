@@ -131,7 +131,7 @@ export function expandPartialsSafe(templateData: unknown): PartialExpansion {
   }
 
   try {
-    return { ok: true, data: expandPartials(templateData as TemplateDescriptor) };
+    return { ok: true, data: expandPartials(templateData) };
   } catch (error) {
     return {
       ok: false,

@@ -158,7 +158,7 @@ const SugarSettings = ({
 
     const overlays = readArray<TextOverlay>(section, 'overlays');
 
-    onPatchSection({ [sugarKind]: undefined, overlays: [...overlays, ...converted] } as Partial<EditorSection>);
+    onPatchSection({ [sugarKind]: undefined, overlays: [...overlays, ...converted] });
     onSelectElement({ kind: 'text', index: overlays.length });
   };
 
@@ -172,7 +172,7 @@ const SugarSettings = ({
         <CaptionField
           caption={section.caption}
           onChange={(caption) => {
-            onPatchSection({ caption } as Partial<EditorSection>);
+            onPatchSection({ caption });
           }}
           inputCls={EDITOR_INPUT_CLASS}
         />
@@ -194,7 +194,7 @@ const SugarSettings = ({
         <TitleCardField
           titleCard={section.titleCard}
           onChange={(titleCard) => {
-            onPatchSection({ titleCard } as Partial<EditorSection>);
+            onPatchSection({ titleCard });
           }}
           variables={variables}
           inputCls={EDITOR_INPUT_CLASS}
@@ -216,7 +216,7 @@ const SugarSettings = ({
       <LowerThirdField
         lowerThird={section.lowerThird}
         onChange={(lowerThird) => {
-          onPatchSection({ lowerThird } as Partial<EditorSection>);
+          onPatchSection({ lowerThird });
         }}
         variables={variables}
         inputCls={EDITOR_INPUT_CLASS}
@@ -253,11 +253,11 @@ const TextSettings = ({ section, activeRef, variables, t, onPatchSection, onSele
         t={t}
         variables={variables}
         onPatch={(patch) => {
-          onPatchSection({ overlays: patchAt(overlays, activeRef.index, patch) } as Partial<EditorSection>);
+          onPatchSection({ overlays: patchAt(overlays, activeRef.index, patch) });
         }}
         onInsertVariable={(name) => {
           const text = `${overlay.text}{{ ${name} }}`;
-          onPatchSection({ overlays: patchAt(overlays, activeRef.index, { text }) } as Partial<EditorSection>);
+          onPatchSection({ overlays: patchAt(overlays, activeRef.index, { text }) });
         }}
         onDelete={() => {
           onSelectElement(null);
@@ -290,7 +290,7 @@ const LayerSettings = ({ section, activeRef, t, onPatchSection, onSelectElement 
       canMoveUp={activeRef.index > 0}
       canMoveDown={activeRef.index < layers.length - 1}
       onPatch={(patch) => {
-        onPatchSection({ layers: patchAt(layers, activeRef.index, patch) } as Partial<EditorSection>);
+        onPatchSection({ layers: patchAt(layers, activeRef.index, patch) });
       }}
       onMove={(delta) => {
         onPatchSection(reorderElement(section, activeRef, delta));
@@ -324,7 +324,7 @@ const ImageSettings = ({ section, activeRef, orientation, t, onPatchSection }: P
         orientation={orientation}
         value={image}
         onChange={(patch) => {
-          onPatchSection({ images: patchAt(images, activeRef.index, patch) } as Partial<EditorSection>);
+          onPatchSection({ images: patchAt(images, activeRef.index, patch) });
         }}
       />
     </Card>
@@ -344,7 +344,7 @@ const AnimationSettings = ({ section, activeRef, orientation, t, onPatchSection 
         orientation={orientation}
         value={animation}
         onChange={(patch) => {
-          onPatchSection({ animations: patchAt(animations, activeRef.index, patch) } as Partial<EditorSection>);
+          onPatchSection({ animations: patchAt(animations, activeRef.index, patch) });
         }}
       />
     </Card>

@@ -51,12 +51,12 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
     // Drop the whole audioFade when both sides are gone. patchSection merges a Partial,
     // so the key must be present-but-undefined to clear it (omitting it keeps the old value).
     if (!next.in && !next.out) {
-      onChange({ audioFade: undefined } as Partial<EditorSection>);
+      onChange({ audioFade: undefined });
 
       return;
     }
 
-    onChange({ audioFade: next } as Partial<EditorSection>);
+    onChange({ audioFade: next });
   };
 
   const toggleFadeIn = (on: boolean) => {
@@ -74,14 +74,14 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
         label={section.musicVolume === undefined ? t('sectionAudio.musicVolumeGlobal') : t('sectionAudio.musicVolume')}
         value={section.musicVolume ?? 0.5}
         onChange={(musicVolume) => {
-          onChange({ musicVolume } as Partial<EditorSection>);
+          onChange({ musicVolume });
         }}
       />
       {section.musicVolume !== undefined && (
         <button
           type="button"
           onClick={() => {
-            onChange({ musicVolume: undefined } as Partial<EditorSection>);
+            onChange({ musicVolume: undefined });
           }}
           className="tap inline-flex items-center gap-1 rounded-lg bg-foreground/5 px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97]"
         >
@@ -93,7 +93,7 @@ export const SectionAudioFields = ({ section, onChange }: SectionAudioFieldsProp
       <AudioEffectField
         value={section.audioEffect}
         onChange={(audioEffect) => {
-          onChange({ audioEffect } as Partial<EditorSection>);
+          onChange({ audioEffect });
         }}
       />
 

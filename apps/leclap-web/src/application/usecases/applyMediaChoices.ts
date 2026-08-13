@@ -7,11 +7,6 @@ export interface MediaChoices {
   background?: MediaChoice | null;
 }
 
-// SectionOptions from core omits pictureUrl at the type level; cast locally for image_background access.
-type ImageBackgroundOptions = NonNullable<TemplateDescriptor['sections']>[number]['options'] & {
-  pictureUrl?: string;
-};
-
 function resolveMusic(choice: MediaChoice): { name: string; url?: string } {
   if (choice.source === 'library') {
     const entry = findMusic(choice.id);
@@ -52,7 +47,7 @@ function applyBackgroundChoice(descriptor: TemplateDescriptor, choice: MediaChoi
 
   for (const section of descriptor.sections ?? []) {
     if (section.type === 'image_background') {
-      section.options = { ...section.options, pictureUrl: url } as ImageBackgroundOptions;
+      section.options = { ...section.options, pictureUrl: url };
     }
   }
 }

@@ -271,7 +271,7 @@ function badgePill(
   // The badge only fades in (a kinetic x would fight the right-alignment expression).
   applyReveal(values, reveal, { x: geom.x, y: geom.y });
 
-  return [{ type: 'drawtext', values: values as Filter['values'] }];
+  return [{ type: 'drawtext', values }];
 }
 
 /**
@@ -400,5 +400,5 @@ export function globalTextOverlayToFilters(overlay: GlobalTextOverlay, ctx: Glob
     values.alpha = String(overlay.opacity);
   }
 
-  return [{ type: 'drawtext', values: values as Filter['values'] }];
+  return [{ type: 'drawtext', values }];
 }

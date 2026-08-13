@@ -30,7 +30,7 @@ function fillPreviewBackgrounds(descriptor: TemplateDescriptor): TemplateDescrip
     return { ...section, options: { ...opts, pictureUrl: fallbackUrl } };
   });
 
-  return { ...descriptor, sections } as TemplateDescriptor;
+  return { ...descriptor, sections };
 }
 
 // A music scene stores only an `allowedMusic` list (the end user picks a track at compile time); a
@@ -71,7 +71,7 @@ function stripDanglingTransition(descriptor: TemplateDescriptor): TemplateDescri
 
     const { transition: _dangling, ...rest } = section;
 
-    return { ...descriptor, sections: sections.map((s, index) => (index === i ? rest : s)) } as TemplateDescriptor;
+    return { ...descriptor, sections: sections.map((s, index) => (index === i ? rest : s)) };
   }
 
   return descriptor;
@@ -100,7 +100,7 @@ function clampPreviewDurations(descriptor: TemplateDescriptor): TemplateDescript
     };
   });
 
-  return { ...descriptor, sections } as TemplateDescriptor;
+  return { ...descriptor, sections };
 }
 
 // How many uploaded clips the descriptor consumes — one per project_video section. The preview

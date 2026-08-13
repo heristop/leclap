@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { STARTER_PRESETS, type StarterPreset } from '../templateEditorModel';
-import { SECTION_ICON, type SectionKind } from '@/lib/sectionMeta';
+import { SECTION_ICON } from '@/lib/sectionMeta';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/presentation/components/ui';
 
 interface StarterPresetPickerProps {
@@ -14,7 +14,7 @@ interface StarterPresetPickerProps {
 const SceneStrip = ({ preset }: { preset: StarterPreset }) => (
   <span aria-hidden="true" className="flex flex-wrap items-center gap-1">
     {preset.scenes.map((kind, i) => {
-      const Icon = SECTION_ICON[kind as SectionKind];
+      const Icon = SECTION_ICON[kind];
 
       return (
         <span

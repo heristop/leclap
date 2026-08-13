@@ -52,7 +52,7 @@ export function pushLine(
 
   applyTextEffect(values, effect);
   applyReveal(values, staggered(reveal, index), { x: spec.x, y: spec.y });
-  filters.push({ type: 'drawtext', values: values as Filter['values'] });
+  filters.push({ type: 'drawtext', values });
 
   return index + 1;
 }

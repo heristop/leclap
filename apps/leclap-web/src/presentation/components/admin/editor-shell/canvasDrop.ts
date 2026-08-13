@@ -100,7 +100,7 @@ const moveText = (section: EditorSection, index: number, point: DropPoint): Canv
     i === index ? { ...o, x: clampFraction(point.fracX, 1), y: clampFraction(point.fracY, 1) } : o
   );
 
-  return { patch: { overlays: next } as Partial<EditorSection>, selectRef: { kind: 'text', index } };
+  return { patch: { overlays: next }, selectRef: { kind: 'text', index } };
 };
 
 const moveMedia = (
@@ -115,7 +115,7 @@ const moveMedia = (
   const next = items.map((item, i) => (i === index ? { ...item, position } : item));
 
   return {
-    patch: { [field]: next } as Partial<EditorSection>,
+    patch: { [field]: next },
     selectRef: { kind: field === 'images' ? 'image' : 'animation', index },
   };
 };
@@ -126,7 +126,7 @@ const moveLayer = (section: EditorSection, index: number, point: DropPoint): Can
   const y = percentToExpr('y', clampFraction(point.fracY, 1) * 100);
   const next = layers.map((layer, i) => (i === index ? { ...layer, x, y } : layer));
 
-  return { patch: { layers: next } as Partial<EditorSection>, selectRef: { kind: 'layer', index } };
+  return { patch: { layers: next }, selectRef: { kind: 'layer', index } };
 };
 
 // Move an already-placed element to the drop point. The base background layer (index 0) is full-bleed
@@ -173,7 +173,7 @@ const applyLibrarySource = (
   const position = mediaPosition(sized, index, point, orientation);
   const next = sized.map((item, i) => (i === index ? { ...item, position } : item));
 
-  return { [mediaField(payload)]: next } as Partial<EditorSection>;
+  return { [mediaField(payload)]: next };
 };
 
 // Apply a dropped library card to the COMPATIBLE already-selected element (same kind) in place.

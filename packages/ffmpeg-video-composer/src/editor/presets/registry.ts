@@ -1,5 +1,4 @@
 import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
-import type { Grade, MotionEffect, BackgroundLayer } from '../../schemas/template.schemas';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letterboxToFilters } from './looks';
 import { captionToFilters } from './captions';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
@@ -37,19 +36,19 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     key: 'layers',
     order: 10,
     layer: 'background',
-    compile: (section) => layersToFilters(section.options?.layers as BackgroundLayer[] | undefined),
+    compile: (section) => layersToFilters(section.options?.layers),
   },
   {
     key: 'motion',
     order: 20,
     layer: 'background',
-    compile: (section, ctx) => motionToFilters(section.motion as MotionEffect[] | undefined, ctx),
+    compile: (section, ctx) => motionToFilters(section.motion, ctx),
   },
   {
     key: 'grade',
     order: 30,
     layer: 'background',
-    compile: (section) => gradeToFilters(section.grade as Grade | undefined),
+    compile: (section) => gradeToFilters(section.grade),
   },
   {
     key: 'look',
@@ -120,7 +119,7 @@ export function compileGlobalDecorations(
   }
 
   const look = section.look === undefined ? lookToFilters(global.look) : [];
-  const grade = section.grade === undefined ? gradeToFilters(global.grade as Grade | undefined) : [];
+  const grade = section.grade === undefined ? gradeToFilters(global.grade) : [];
   const background = [...look, ...grade];
 
   const overlay = (global.overlays ?? [])

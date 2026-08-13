@@ -10,7 +10,6 @@ import {
   type EditableTemplate,
   type SectionTransition,
   type AudioMix,
-  type DuckingSettings,
   type DefaultTransition,
   type Grade,
   type Letterbox,
@@ -102,9 +101,9 @@ function visualExtrasFrom(s: Section): VisualExtras {
     ...(s.transition ? { transitionAfter: s.transition } : {}),
     ...(caption ? { caption } : {}),
     ...(s.look ? { look: s.look } : {}),
-    ...(s.grade ? { grade: s.grade as Grade } : {}),
+    ...(s.grade ? { grade: s.grade } : {}),
     ...(s.letterbox ? { letterbox: s.letterbox } : {}),
-    ...(s.motion && s.motion.length > 0 ? { motion: s.motion as MotionEffect[] } : {}),
+    ...(s.motion && s.motion.length > 0 ? { motion: s.motion } : {}),
     ...(animations.length > 0 ? { animations } : {}),
   };
 }
@@ -116,8 +115,8 @@ function sectionAudioExtrasFrom(s: Section): {
   audioEffect?: AudioEffect;
 } {
   const mv = s.options?.musicVolume;
-  const af = s.options?.audioFade as SectionAudioFade | undefined;
-  const ae = s.options?.audioEffect as AudioEffect | undefined;
+  const af = s.options?.audioFade;
+  const ae = s.options?.audioEffect;
 
   return {
     ...(mv === undefined ? {} : { musicVolume: mv }),
@@ -177,14 +176,14 @@ function videoExtrasFrom(s: Section): {
   captureMode?: CaptureMode;
   allowedCaptureModes?: CaptureMode[];
 } {
-  const framingGuide = s.options?.framingGuide as FramingGuide | undefined;
+  const framingGuide = s.options?.framingGuide;
   const captureMode = s.options?.captureMode as CaptureMode | undefined;
   const allowedCaptureModes = s.options?.allowedCaptureModes as CaptureMode[] | undefined;
 
   return {
     ...(framingGuide ? { framingGuide } : {}),
     ...(s.lowerThird ? { lowerThird: s.lowerThird as LowerThird } : {}),
-    ...(s.chromaKey ? { chromaKey: s.chromaKey as ChromaKey } : {}),
+    ...(s.chromaKey ? { chromaKey: s.chromaKey } : {}),
     ...(captureMode ? { captureMode } : {}),
     ...(allowedCaptureModes && allowedCaptureModes.length > 0 ? { allowedCaptureModes } : {}),
   };
@@ -282,7 +281,7 @@ function audioFrom(global: TemplateDescriptor['global']): AudioMix {
 
 // Recover the ducking union: a stored fine-tune object survives as-is; anything truthy else is `true`.
 function duckingFrom(ducking: unknown): AudioMix['ducking'] {
-  if (ducking && typeof ducking === 'object') return ducking as DuckingSettings;
+  if (ducking && typeof ducking === 'object') return ducking;
 
   return Boolean(ducking);
 }
@@ -374,7 +373,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     globalOverlays: globalOverlaysFrom(global),
     ...(watermark ? { watermark } : {}),
     ...(global?.look ? { globalLook: global.look } : {}),
-    ...(global?.grade ? { globalGrade: global.grade as EditorState['globalGrade'] } : {}),
+    ...(global?.grade ? { globalGrade: global.grade } : {}),
     ...(colorsList.length > 0 ? { colorsList } : {}),
   };
 }

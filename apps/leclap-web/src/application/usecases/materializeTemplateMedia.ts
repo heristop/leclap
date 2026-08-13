@@ -21,9 +21,6 @@ async function readOrThrow(source: MediaSource, key: string): Promise<Uint8Array
   return bytes;
 }
 
-// SectionOptions from core omits pictureUrl; cast locally for image_background access.
-type ImageBackgroundOptions = NonNullable<TemplateDescriptor['sections']>[number]['options'] & { pictureUrl?: string };
-
 // Uploaded watermark image (descriptor global.watermark.url as `media://<key>`) — same copy-and-rewrite
 // shape as the other picture uploads below, split out to keep materializeTemplateMedia's complexity low.
 async function materializeWatermark(descriptor: TemplateDescriptor, source: MediaSource, target: MediaTarget) {
@@ -63,20 +60,19 @@ export async function materializeTemplateMedia(
   await materializeWatermark(descriptor, source, target);
 
   const uploads = (descriptor.sections ?? []).filter((section) => {
-    const opts = section.options as ImageBackgroundOptions | undefined;
+    const opts = section.options;
 
     return section.type === 'image_background' && (opts?.pictureUrl?.startsWith(PREFIX) ?? false);
   });
 
   await Promise.all(
     uploads.map(async (section) => {
-      const opts = section.options as ImageBackgroundOptions;
-      const key = (opts.pictureUrl ?? '').slice(PREFIX.length);
+      const key = (section.options?.pictureUrl ?? '').slice(PREFIX.length);
       const meta = await source.getMeta(key);
       const bytes = await readOrThrow(source, key);
       const path = `/assets/pictures/${key}.${meta?.ext ?? 'bin'}`;
       await target.writeFile(path, bytes);
-      section.options = { ...section.options, pictureUrl: path } as ImageBackgroundOptions;
+      section.options = { ...section.options, pictureUrl: path };
     })
   );
 

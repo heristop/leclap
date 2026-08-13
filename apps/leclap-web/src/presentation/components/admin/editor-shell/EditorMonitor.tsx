@@ -162,19 +162,19 @@ export const EditorMonitor = ({
         titleCard={section.kind === 'color' ? section.titleCard : undefined}
         lowerThird={section.kind === 'video' ? section.lowerThird : undefined}
         onChangeCaption={(caption) => {
-          onPatchSection({ caption } as Partial<EditorSection>);
+          onPatchSection({ caption });
         }}
         onChangeTitleCard={
           section.kind === 'color'
             ? (titleCard) => {
-                onPatchSection({ titleCard } as Partial<EditorSection>);
+                onPatchSection({ titleCard });
               }
             : undefined
         }
         onChangeLowerThird={
           section.kind === 'video'
             ? (lowerThird) => {
-                onPatchSection({ lowerThird } as Partial<EditorSection>);
+                onPatchSection({ lowerThird });
               }
             : undefined
         }

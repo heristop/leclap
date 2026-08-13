@@ -96,7 +96,7 @@ export function setTransitionAfter(
 
   if (state.sections[index].kind === 'music') return state;
 
-  return patchSection(state, index, { transitionAfter: transition } as Partial<EditorSection>);
+  return patchSection(state, index, { transitionAfter: transition });
 }
 
 // Replace the background layers of a color section. No-op for any other kind.
@@ -105,7 +105,7 @@ export function patchLayers(state: EditorState, index: number, layers: Backgroun
 
   if (state.sections[index].kind !== 'color') return state;
 
-  return patchSection(state, index, { layers } as Partial<EditorSection>);
+  return patchSection(state, index, { layers });
 }
 
 // --- bounded undo/redo history (pure; no UI deps) ---

@@ -63,7 +63,7 @@ function colorDescriptorFrom(section: ColorSection, index: number): Section {
       ...sectionAudioOptions(section),
       ...sectionPlaybackOptions(section),
     },
-    ...(section.titleCard ? { titleCard: section.titleCard as Section['titleCard'] } : {}),
+    ...(section.titleCard ? { titleCard: section.titleCard } : {}),
     ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
     ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -90,7 +90,7 @@ function clipDescriptorFrom(section: VideoSection, videoUrl: MediaChoice, index:
       ...sectionPlaybackOptions(section),
       ...sectionFitOptions(section),
     },
-    ...(section.lowerThird ? { lowerThird: section.lowerThird as Section['lowerThird'] } : {}),
+    ...(section.lowerThird ? { lowerThird: section.lowerThird } : {}),
     ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
     ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -125,7 +125,7 @@ function videoDescriptorFrom(section: VideoSection, index: number): Section {
     // Recording instructions for the filmer, keyed under the app's default locale.
     // A blank/whitespace-only description emits nothing.
     ...(description ? { description: { [DEFAULT_LOCALE]: description } } : {}),
-    ...(section.lowerThird ? { lowerThird: section.lowerThird as Section['lowerThird'] } : {}),
+    ...(section.lowerThird ? { lowerThird: section.lowerThird } : {}),
     ...(filters.length > 0 ? { filters } : {}),
     ...visualExtras(section),
     ...(overlayInputs.length > 0 ? { inputs: overlayInputs } : {}),
@@ -230,8 +230,6 @@ function authorVariables(globalVariables: EditorState['globalVariables']): Recor
   return Object.fromEntries(globalVariables.filter((v) => v.name.trim() !== '').map((v) => [v.name, v.value]));
 }
 
-type GlobalOverlay = NonNullable<NonNullable<TemplateDescriptor['global']>['overlays']>[number];
-
 // Whole-video text overlays, dropping any blank row the builder leaves behind so the descriptor only
 // carries real overlays. Emits nothing when none remain.
 function globalOverlaysField(
@@ -239,7 +237,7 @@ function globalOverlaysField(
 ): Partial<NonNullable<TemplateDescriptor['global']>> {
   const kept = overlays.filter((o) => Object.values(o.text).some((value) => value.trim() !== ''));
 
-  return kept.length > 0 ? { overlays: kept as GlobalOverlay[] } : {};
+  return kept.length > 0 ? { overlays: kept } : {};
 }
 
 // The ducking field to emit: off emits nothing, on-with-defaults emits `true`, and a fine-tuned
@@ -251,7 +249,7 @@ function duckingField(ducking: AudioMix['ducking']): { ducking?: true | AudioMix
 
   const tuned = pruneEmpty(ducking);
 
-  return Object.keys(tuned).length > 0 ? { ducking: tuned as AudioMix['ducking'] } : { ducking: true };
+  return Object.keys(tuned).length > 0 ? { ducking: tuned } : { ducking: true };
 }
 
 // editor audio mix -> global.audio, dropping normalize/ducking unless set/enabled.

@@ -29,7 +29,6 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
-import type { BackgroundLayer } from '../schemas/template.schemas';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -379,7 +378,7 @@ class SegmentBuilder {
    * difference is acceptable for v1.
    */
   private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): void => {
-    const layers = (this.section.options?.layers as BackgroundLayer[] | undefined) ?? [];
+    const layers = this.section.options?.layers ?? [];
     const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const duration = this.section.options?.duration ?? 0;
 

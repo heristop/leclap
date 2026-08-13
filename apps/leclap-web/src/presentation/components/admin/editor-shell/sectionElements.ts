@@ -265,14 +265,14 @@ function newElement(kind: ArrayKind): TextOverlay | BackgroundLayer | ImageOverl
 // the form-field factory's 'Label') because an empty sugar renders nothing on the canvas.
 function newSugar(kind: SugarKind): Partial<EditorSection> {
   if (kind === 'caption') {
-    return { caption: { text: 'Your caption', style: 'subtle', position: 'bottom' } } as Partial<EditorSection>;
+    return { caption: { text: 'Your caption', style: 'subtle', position: 'bottom' } };
   }
 
   if (kind === 'titleCard') {
-    return { titleCard: { headline: { en: 'Your headline' } } } as Partial<EditorSection>;
+    return { titleCard: { headline: { en: 'Your headline' } } };
   }
 
-  return { lowerThird: { title: { en: 'Your title' } } } as Partial<EditorSection>;
+  return { lowerThird: { title: { en: 'Your title' } } };
 }
 
 // Append a default element to the matching array (ref at the new last index), or seed an absent
@@ -322,7 +322,7 @@ export function removeElement(section: EditorSection, ref: ElementRef): Partial<
   if (isSugarKind(ref.kind)) {
     if (sugarValue(section, ref.kind) === undefined) return {};
 
-    return { [ref.kind]: undefined } as Partial<EditorSection>;
+    return { [ref.kind]: undefined };
   }
 
   const list = sectionArray(section, ref.kind);
@@ -332,7 +332,7 @@ export function removeElement(section: EditorSection, ref: ElementRef): Partial<
   const field = FIELD_FOR_KIND[ref.kind];
   const next = list.filter((_, index) => index !== ref.index);
 
-  return { [field]: next } as Partial<EditorSection>;
+  return { [field]: next };
 }
 
 // Move the referenced element by `delta`, clamped in-bounds (no-op patch at an edge / missing array
@@ -355,5 +355,5 @@ export function reorderElement(section: EditorSection, ref: ElementRef, delta: n
   next.splice(to, 0, moved);
   const field = FIELD_FOR_KIND[ref.kind];
 
-  return { [field]: next } as Partial<EditorSection>;
+  return { [field]: next };
 }

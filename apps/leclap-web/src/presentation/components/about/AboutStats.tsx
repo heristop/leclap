@@ -19,8 +19,8 @@ MonitorIcon.displayName = 'MonitorIcon';
 
 const stats: { id: string; value: string; Icon: AnimIcon }[] = [
   { id: 'browser', value: '100%', Icon: MonitorIcon },
-  { id: 'uploads', value: '0', Icon: ShieldCheckIcon as unknown as AnimIcon },
-  { id: 'projects', value: '∞', Icon: SparklesIcon as unknown as AnimIcon },
+  { id: 'uploads', value: '0', Icon: ShieldCheckIcon },
+  { id: 'projects', value: '∞', Icon: SparklesIcon },
 ];
 
 interface StatCardProps {

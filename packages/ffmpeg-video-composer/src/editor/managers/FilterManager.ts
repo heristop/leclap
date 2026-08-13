@@ -71,7 +71,7 @@ class FilterManager {
     const base = { x: typeof values.x === 'string' ? values.x : '0', y: typeof values.y === 'string' ? values.y : '0' };
     applyAnimation(values, filter.reveal, filter.exit, base, duration);
 
-    return { ...filter, values: values as Filter['values'] };
+    return { ...filter, values };
   };
 
   remapEnableBetweenSuffix = (filter: Filter): Filter => {

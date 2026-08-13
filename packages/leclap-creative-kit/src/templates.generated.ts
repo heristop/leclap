@@ -12,13 +12,13 @@ import SquarePromo from './templates/square-promo.json';
 import StoryReel from './templates/story-reel.json';
 
 export const TEMPLATE_DESCRIPTORS: Record<string, TemplateDescriptor> = {
-  'app-tutorial': AppTutorial as TemplateDescriptor,
+  'app-tutorial': AppTutorial,
   'fast-curious': FastCurious as TemplateDescriptor,
   interview: Interview as TemplateDescriptor,
   'photo-backdrop': PhotoBackdrop as TemplateDescriptor,
   'present-yourself-portrait': PresentYourselfPortrait as TemplateDescriptor,
   'present-yourself': PresentYourself as TemplateDescriptor,
-  'product-launch': ProductLaunch as TemplateDescriptor,
-  'square-promo': SquarePromo as TemplateDescriptor,
+  'product-launch': ProductLaunch,
+  'square-promo': SquarePromo,
   'story-reel': StoryReel as TemplateDescriptor,
 };

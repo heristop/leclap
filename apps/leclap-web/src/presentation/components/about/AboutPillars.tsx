@@ -18,8 +18,8 @@ ShieldIcon.displayName = 'ShieldIcon';
 
 const pillars: { id: string; Icon: AnimIcon }[] = [
   { id: 'private', Icon: ShieldIcon },
-  { id: 'ffmpeg', Icon: CpuIcon as unknown as AnimIcon },
-  { id: 'templates', Icon: ZapIcon as unknown as AnimIcon },
+  { id: 'ffmpeg', Icon: CpuIcon },
+  { id: 'templates', Icon: ZapIcon },
 ];
 
 interface PillarCardProps {

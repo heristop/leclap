@@ -107,9 +107,12 @@ function makeDeps() {
   const ffmpeg = {
     supportsConcurrentExecute: false,
     execute: vi.fn(async () => ({ rc: 0 })),
-    getInfos: vi.fn(
-      async (): Promise<FFMpegInfos> => ({ duration: 5, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 44100 })
-    ),
+    getInfos: vi.fn(async (): Promise<FFMpegInfos> => ({
+      duration: 5,
+      videoCodec: 'h264',
+      audioCodec: 'aac',
+      sampleRate: 44100,
+    })),
   };
 
   return {

@@ -77,5 +77,5 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
     return { success: false, errors: [{ path: templatePath, message, code: 'load_error' }] };
   }
 
-  return new TemplateValidator().validateTemplate(data) as ValidationResult;
+  return new TemplateValidator().validateTemplate(data);
 }

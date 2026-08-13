@@ -58,7 +58,7 @@ export function commitSugarLine(
   }
 
   const line = value.trim() === '' ? undefined : { en: value };
-  const next = { ...sugar, [lineKey]: line } as AnySugar;
+  const next = { ...sugar, [lineKey]: line };
 
   return hasAnyLine(kind, next) ? next : undefined;
 }

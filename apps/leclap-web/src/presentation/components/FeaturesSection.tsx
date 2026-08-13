@@ -18,11 +18,11 @@ const GlobeIcon = forwardRef<AnimatedIconHandle, { className?: string }>(({ clas
 GlobeIcon.displayName = 'GlobeIcon';
 
 const features: { id: string; Icon: AnimIcon }[] = [
-  { id: 'templates', Icon: FileTextIcon as unknown as AnimIcon },
-  { id: 'forms', Icon: UsersIcon as unknown as AnimIcon },
-  { id: 'processing', Icon: CogIcon as unknown as AnimIcon },
-  { id: 'privacy', Icon: ShieldCheckIcon as unknown as AnimIcon },
-  { id: 'wasm', Icon: ZapIcon as unknown as AnimIcon },
+  { id: 'templates', Icon: FileTextIcon },
+  { id: 'forms', Icon: UsersIcon },
+  { id: 'processing', Icon: CogIcon },
+  { id: 'privacy', Icon: ShieldCheckIcon },
+  { id: 'wasm', Icon: ZapIcon },
   { id: 'crossPlatform', Icon: GlobeIcon },
 ];
 

@@ -50,7 +50,8 @@ function CaptureModeBar({
   if (modes.length <= 1) return null;
 
   return (
-    <div className="flex gap-1 p-1 rounded-full bg-black/60 ring-1 ring-white/20">
+    // Scrolls rather than overflowing when four modes and a wordy locale outgrow a phone's width.
+    <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-black/60 p-1 ring-1 ring-white/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {modes.map((m) => (
         <button
           key={m}
@@ -58,7 +59,9 @@ function CaptureModeBar({
             onChange(m);
           }}
           className={clsx(
-            'flex min-w-[4.75rem] items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+            // min-h-11 keeps each mode a 44px touch target — it is the first control a phone user
+            // hits, and py-1.5 alone left it around 30px.
+            'flex min-h-11 shrink-0 min-w-[3.75rem] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all sm:min-h-0 sm:min-w-[4.75rem] sm:px-4 sm:py-1.5',
             active === m
               ? 'bg-white font-semibold text-black shadow-sm'
               : 'text-white/70 hover:bg-white/10 hover:text-white'
@@ -264,13 +267,16 @@ interface ControlsProps {
 const PreviewControls = ({ onConfirm, onRetake }: Pick<ControlsProps, 'onConfirm' | 'onRetake'>) => {
   const { t } = useTranslation('media');
 
+  // Stacked on phones with the confirm at the bottom, nearest the thumb; side-by-side from `sm`.
+  // Side-by-side at every width overflowed the viewport as soon as a locale spelled these out —
+  // French's "Utiliser cette vidéo" beside "Refaire une prise" runs well past a 390px screen.
   return (
-    <div className="flex items-center justify-center gap-4">
-      <Button onClick={onRetake} variant="secondary" size="lg">
-        <RotateCcw /> {t('camera.retake')}
+    <div className="mx-auto flex w-full max-w-md flex-col items-stretch gap-3 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+      <Button onClick={onRetake} variant="secondary" size="lg" className="w-full min-w-0 sm:w-auto">
+        <RotateCcw /> <span className="truncate">{t('camera.retake')}</span>
       </Button>
-      <Button onClick={onConfirm} size="lg">
-        <Check /> {t('camera.useVideo')}
+      <Button onClick={onConfirm} size="lg" className="w-full min-w-0 sm:w-auto">
+        <Check /> <span className="truncate">{t('camera.useVideo')}</span>
       </Button>
     </div>
   );
@@ -405,11 +411,15 @@ function BackgroundStage({
           )}
         />
 
-        {/* Review the recorded clip in the app's custom player (not the browser's default controls). */}
+        {/* Review the recorded clip in the app's custom player (not the browser's default controls).
+            The player fills the stage minus the floating chrome (top bar / retake+confirm), so a
+            portrait take is shown as large as the frame allows instead of pillar-boxed in the middle
+            of a mostly-empty black screen. The bottom inset is deeper on phones, where the two
+            actions stack. */}
         {state === 'preview' && previewUrl && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black p-3 sm:p-4">
-            <div className="w-full max-w-[min(100%,26rem)]">
-              <VideoPreview url={previewUrl} autoPlay loop muted />
+          <div className="absolute inset-0 flex items-center justify-center bg-black px-3 pb-[11.5rem] pt-20 sm:px-4 sm:pb-32 sm:pt-24">
+            <div className="h-full w-full max-w-[min(100%,26rem)]">
+              <VideoPreview url={previewUrl} autoPlay loop muted fill />
             </div>
           </div>
         )}
@@ -501,7 +511,7 @@ export const CameraCapture = ({
       </div>
 
       {/* Top bar */}
-      <div className="absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/55 to-transparent pb-8">
+      <div className="absolute inset-x-0 top-0 z-20 bg-linear-to-b from-black/55 to-transparent pb-8">
         <CameraTopBar
           state={session.state}
           mode={session.mode}
@@ -522,7 +532,7 @@ export const CameraCapture = ({
       </div>
 
       {/* Bottom controls */}
-      <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent pt-8 safe-b">
+      <div className="absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-black/55 to-transparent pt-8 safe-b">
         <div className="px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4">
           <CameraControls
             state={session.state}

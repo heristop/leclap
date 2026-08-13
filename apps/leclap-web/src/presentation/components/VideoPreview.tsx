@@ -17,6 +17,10 @@ interface VideoPreviewProps {
   autoPlay?: boolean;
   loop?: boolean;
   muted?: boolean;
+  // Fill the parent box instead of sizing to the clip. The camera review stage is a fixed-height
+  // area, and the default `max-h` cap leaves a portrait take pillar-boxed inside a much wider
+  // player; filling lets `object-contain` use the whole stage instead.
+  fill?: boolean;
 }
 
 const formatDuration = (seconds: number) => {
@@ -26,8 +30,25 @@ const formatDuration = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+// 44px on touch (the transport sits over video, where a mis-tap plays/pauses instead), tightening to
+// the denser 36px on pointer widths where the bar shares space with the filename.
 const ICON_BUTTON =
-  'grid h-9 w-9 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 [&_svg]:size-4';
+  'grid h-11 w-11 place-items-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:h-9 sm:w-9 [&_svg]:size-4';
+
+// Three sizing modes for the frame + the clip inside it: fullscreen (fills the screen), `fill` (fills
+// whatever box the parent gives it — the camera review stage), and the default, which sizes to the
+// clip under a cap. That cap is viewport-relative on phones so a portrait clip can't push the
+// surrounding panel — modal title, download/next actions — off-screen; desktop keeps a fixed 24rem.
+const frameClass = (isFullscreen: boolean, fill: boolean): string => {
+  if (isFullscreen) return 'flex h-full w-full items-center justify-center rounded-none border-0';
+
+  if (fill) return 'flex h-full w-full items-center justify-center rounded-xl border border-foreground/10';
+
+  return 'rounded-xl border border-foreground/10';
+};
+
+const clipClass = (isFullscreen: boolean, fill: boolean): string =>
+  isFullscreen || fill ? 'h-full max-h-full w-full' : 'h-auto max-h-[45dvh] w-full sm:max-h-96';
 
 interface VolumeControlProps {
   isMuted: boolean;
@@ -97,7 +118,14 @@ const PlayOverlay = ({ isPlaying, onPlayPause, t }: PlayOverlayProps) => {
 
 // Self-contained processed-video player: a tap-anywhere play/pause surface, a custom play overlay,
 // and a controls bar with volume + fullscreen. Shared by the export panel and the onboarding result.
-export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, muted = false }: VideoPreviewProps) => {
+export const VideoPreview = ({
+  url,
+  duration,
+  autoPlay = false,
+  loop = false,
+  muted = false,
+  fill = false,
+}: VideoPreviewProps) => {
   const { t } = useTranslation('process');
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -171,18 +199,13 @@ export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, mu
   return (
     <div
       ref={containerRef}
-      className={clsx(
-        'group relative overflow-hidden bg-black shadow-2xl',
-        isFullscreen
-          ? 'flex h-full w-full items-center justify-center rounded-none border-0'
-          : 'rounded-xl border border-foreground/10'
-      )}
+      className={clsx('group relative overflow-hidden bg-black shadow-2xl', frameClass(isFullscreen, fill))}
     >
       <video
         ref={videoRef}
         src={url}
         aria-label={t('export.preview.videoAriaLabel')}
-        className={clsx('object-contain', isFullscreen ? 'h-full max-h-full w-full' : 'h-auto max-h-96 w-full')}
+        className={clsx('object-contain', clipClass(isFullscreen, fill))}
         onClick={handlePlayPause}
         onPlay={() => {
           setIsPlaying(true);
@@ -200,7 +223,7 @@ export const VideoPreview = ({ url, duration, autoPlay = false, loop = false, mu
 
       <PlayOverlay isPlaying={isPlaying} onPlayPause={handlePlayPause} t={t} />
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-4 pt-12">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 to-transparent p-4 pt-12">
         <div className="flex items-center justify-between gap-3 text-sm text-white">
           <div className="flex min-w-0 items-center gap-2">
             <FileVideo className="h-4 w-4 shrink-0 text-brand-300" />

@@ -29,8 +29,9 @@ No backend is required — the compile runs entirely in a Web Worker via `@ffmpe
 
 The app is a static SPA, so deployment is "build, then upload `dist/`". It compiles video with
 FFmpeg WASM, which needs **cross-origin isolation** — `public/_headers` sets the required
-`COOP`/`COEP`/`CORP` headers in production (mirroring `vite.config.ts`'s dev server), and
-`public/_redirects` adds the SPA fallback. Both are copied into `dist/` by Vite and read by Pages.
+`COOP`/`COEP`/`CORP` headers in production (mirroring `vite.config.ts`'s dev server); Vite copies it
+into `dist/` and Pages reads it. There is no `_redirects` file: Pages already serves `index.html`
+for unmatched paths, so the SPA fallback needs no configuration.
 
 ```bash
 # one-time: register leclap.dev in Cloudflare, then authenticate + create the project

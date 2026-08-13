@@ -1,16 +1,17 @@
 {
-  // Cloudflare Workers static-assets deploy for the web SPA. Set the Pages/Workers project's
-  // "Root directory" to apps/leclap-web so `wrangler deploy` runs here (not the pnpm workspace root,
-  // which trips wrangler's app auto-detection). `directory` is relative to this app → dist/.
-  // public/_headers (COOP/COEP cross-origin isolation) is copied into dist and honored by Workers static
-  // assets. SPA fallback is handled by `not_found_handling` below — no _redirects file (a `/* /index.html`
-  // rewrite is rejected by Workers static-assets validation as a self-referential loop).
+  // Workers static-assets config, kept for a `wrangler deploy` of this app on its own. It does NOT
+  // describe how leclap.dev is served: production is Cloudflare **Pages** — the apex CNAMEs to
+  // leclap.pages.dev and ships via `wrangler pages deploy apps/leclap-web/dist` (see README) — and
+  // Pages ignores this `assets` block entirely. Nothing in package.json or CI reads this file.
   //
-  // Trailing slashes are NOT configured here. leclap.dev is served by Cloudflare Pages, which
-  // ignores this `assets` block entirely (it is Workers static-assets config) and whose slash handling
-  // is fixed and non-configurable. scripts/seo-prerender.ts instead emits sibling `<route>.html` files
-  // rather than `<route>/index.html`, which both Pages and Workers serve at the slash-less URL our
-  // canonicals and sitemap declare. Setting `html_handling` here looks like it fixes that and does not.
+  // What that means for anything you might be tempted to "fix" here:
+  //   • SPA fallback on production does not come from `not_found_handling` below. Pages serves
+  //     index.html for unmatched paths on its own; every app route, prerendered or not, answers 200.
+  //   • `public/_headers` (COOP/COEP, required for the FFmpeg WASM cross-origin isolation) is copied
+  //     into dist by Vite and honoured by Pages. There is no _redirects file and none is needed.
+  //   • Trailing slashes are not configurable on Pages. scripts/seo-prerender.ts is what makes the
+  //     slash-less canonicals resolve: it emits sibling `<route>.html` files rather than
+  //     `<route>/index.html`. Adding `html_handling` here looks like it addresses that and cannot.
   "name": "leclap",
   "compatibility_date": "2026-06-16",
   "assets": {

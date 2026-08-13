@@ -1,12 +1,16 @@
 import { Composition } from 'remotion';
 import { Bumper } from './Bumper';
 import { Kinetic } from './Kinetic';
+import { Banner } from './Banner';
+import { Linkedin } from './Linkedin';
 import { Marketing } from './Marketing';
 import { WebCreate } from './WebCreate';
 
 const bumperProps = { wordmark: 'LeClap', tagline: 'CINEMATIC VIDEOS, ANYWHERE' };
 const kineticProps = { wordmark: 'LeClap', tagline: 'MOTION, AUTHORED' };
 const marketingProps = { wordmark: 'LeClap', url: 'Free · in your browser · no sign-up' };
+const linkedinProps = { wordmark: 'LeClap', url: 'leclap.dev · github.com/heristop/leclap' };
+const bannerProps = { wordmark: 'LeClap', tagline: 'ON-DEVICE VIDEO COMPOSER' };
 // 23s @ 30fps: 3s bumper + three ~5.6s beats + a CTA (shared shape, see PromoVideo.tsx).
 const PROMO_FRAMES = 690;
 
@@ -101,6 +105,29 @@ export const RemotionRoot = () => (
       width={1080}
       height={1920}
       defaultProps={marketingProps}
+    />
+    {/* LinkedIn launch cut at 4:5 — the tallest aspect the feed shows without cropping, so the post's
+        video takes the most vertical space available. Captions are on-screen because feed video
+        autoplays muted. `pnpm --filter @leclap/brand-motion render:linkedin`. */}
+    <Composition
+      id="LeClapLinkedin"
+      component={Linkedin}
+      durationInFrames={PROMO_FRAMES}
+      fps={30}
+      width={1080}
+      height={1350}
+      defaultProps={linkedinProps}
+    />
+    {/* Wide logotype banner, rendered as a still for link-in-bio cards and README headers.
+        `pnpm --filter @leclap/brand-motion render:banner`. Duration is 1 frame: nothing animates. */}
+    <Composition
+      id="LeClapBanner"
+      component={Banner}
+      durationInFrames={1}
+      fps={30}
+      width={1200}
+      height={360}
+      defaultProps={bannerProps}
     />
   </>
 );

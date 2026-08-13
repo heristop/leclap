@@ -9,6 +9,8 @@
     "render:bumper": "node render-bumper.ts",
     "render:og": "node render-og.ts",
     "render:marketing": "node render-marketing.ts",
+    "render:linkedin": "node render-linkedin.ts",
+    "render:banner": "node render-banner.ts",
     "studio": "remotion studio"
   },
   "dependencies": {

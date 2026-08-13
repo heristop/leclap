@@ -39,6 +39,12 @@ export interface PromoVideoProps {
   addressLabel: string;
   wordmark?: string;
   url: string;
+  /**
+   * Where the browser frame sits, as a fraction of frame height. Defaults to 0.4, which suits 16:9 and
+   * 9:16. Squarer aspects (the 4:5 LinkedIn cut) want it tighter, or the caption floats away from the
+   * frame it belongs to.
+   */
+  frameTopRatio?: number;
 }
 
 export const PromoVideo = ({
@@ -48,6 +54,7 @@ export const PromoVideo = ({
   addressLabel,
   wordmark = 'LeClap',
   url,
+  frameTopRatio,
 }: PromoVideoProps) => {
   const shotStart = (i: number): number => INTRO + i * (SHOT_DUR - OVERLAP);
   const ctaFrom = shotStart(shots.length);
@@ -62,7 +69,7 @@ export const PromoVideo = ({
 
       {shots.map((shot, i) => (
         <Sequence key={shot.src} from={shotStart(i)} durationInFrames={SHOT_DUR}>
-          <Shot shot={shot} addressLabel={addressLabel} />
+          <Shot shot={shot} addressLabel={addressLabel} frameTopRatio={frameTopRatio} />
         </Sequence>
       ))}
 
@@ -95,7 +102,15 @@ const DriftGlow = () => {
 
 // One beat: caption above a browser frame holding the recording (the clip's own motion carries it),
 // fading in/out at its edges so consecutive beats cross-dissolve.
-const Shot = ({ shot, addressLabel }: { shot: PromoShot; addressLabel: string }) => {
+const Shot = ({
+  shot,
+  addressLabel,
+  frameTopRatio,
+}: {
+  shot: PromoShot;
+  addressLabel: string;
+  frameTopRatio?: number;
+}) => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   const portrait = height >= width;
@@ -105,7 +120,7 @@ const Shot = ({ shot, addressLabel }: { shot: PromoShot; addressLabel: string })
 
   const frameW = portrait ? width * 0.86 : width * 0.5;
   const captionTop = portrait ? height * 0.09 : height * 0.075;
-  const frameTop = portrait ? height * 0.4 : height * 0.4;
+  const frameTop = height * (frameTopRatio ?? 0.4);
 
   return (
     <AbsoluteFill style={{ opacity: fade }}>

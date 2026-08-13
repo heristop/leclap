@@ -58,3 +58,6 @@ apps/leclap-expo/modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework/
 
 # Brainstorming/plan docs kept locally only, never tracked.
 docs/superpowers/
+
+# Remotion build-time renders (LinkedIn cut and other hand-uploaded assets)
+packages/leclap-brand-motion/out/

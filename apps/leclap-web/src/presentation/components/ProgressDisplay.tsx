@@ -87,13 +87,15 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
   return (
     <div className="flex flex-col items-center space-y-2">
       <div className="relative">
+        {/* The active step is marked by its gradient fill and ring, not by a loop: only two things
+            move during a compile — the bar's tally light (ambient "still working") and the burst a
+            step fires when it actually completes (an event). Anything else read as flicker. */}
         <div
           className={clsx(
-            'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] border',
+            'relative w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] border',
             isCompleted &&
               'bg-success border-success text-success-foreground scale-105 shadow-[0_0_10px_oklch(0.84_0.065_160/0.45)]',
-            isCurrent &&
-              'brand-gradient border-transparent text-white animate-pulse motion-reduce:animate-none ring-4 ring-brand-500/25',
+            isCurrent && 'brand-gradient border-transparent text-white ring-4 ring-brand-500/25',
             isPending && 'bg-surface-2 border-foreground/15 text-gray-500'
           )}
         >
@@ -120,12 +122,12 @@ interface MetricProps {
 }
 
 const Metric = ({ icon: Icon, label, value }: MetricProps) => (
-  <div className="text-center">
-    <div className="flex items-center justify-center space-x-1 text-sm text-gray-400 mb-1">
-      <Icon className="w-4 h-4" />
-      <span>{label}</span>
+  <div className="min-w-0 text-center">
+    <div className="mb-1 flex items-center justify-center gap-1 text-[0.7rem] text-gray-400 sm:text-sm">
+      <Icon className="w-3.5 h-3.5 shrink-0 sm:w-4 sm:h-4" />
+      <span className="truncate">{label}</span>
     </div>
-    <p className="text-lg font-semibold text-foreground">{value}</p>
+    <p className="truncate text-sm font-semibold text-foreground sm:text-lg">{value}</p>
   </div>
 );
 
@@ -140,7 +142,7 @@ const PerformanceMetrics = ({ percentage, elapsedMs }: PerformanceMetricsProps) 
   const { t } = useTranslation('process');
 
   return (
-    <div className="grid grid-cols-3 gap-4 p-4 bg-surface/40 rounded-xl border border-foreground/5">
+    <div className="grid grid-cols-3 gap-2 rounded-xl border border-foreground/5 bg-surface/40 p-3 sm:gap-4 sm:p-4">
       <Metric icon={ShieldCheckIcon} label={t('progress.metrics.private')} value={t('progress.metrics.onDevice')} />
       <Metric icon={ClockIcon} label={t('progress.metrics.elapsed')} value={formatTime(elapsedMs)} />
       <Metric icon={ZapIcon} label={t('progress.metrics.progress')} value={`${Math.round(percentage)}%`} />
@@ -167,35 +169,32 @@ const ProgressHeader = ({
   const StageIcon = getStageIcon(percentage);
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {/* The stage badge sits still — the moving sweep on the bar below already carries "working",
+            and a second pulsing element here made the whole header feel like it was flickering. */}
         <div
           className={clsx(
-            'p-2 rounded-lg transition-all duration-300',
+            'shrink-0 rounded-lg p-2 transition-colors duration-300',
             percentage >= 100
               ? 'bg-success/15 text-success-foreground'
               : 'bg-brand-500/15 text-brand-700 dark:text-brand-300'
           )}
         >
-          <StageIcon
-            className={clsx(
-              'w-5 h-5',
-              percentage < 100 && percentage > 0 && 'animate-pulse motion-reduce:animate-none'
-            )}
-          />
+          <StageIcon className="w-5 h-5" />
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-semibold text-foreground sm:text-lg">
             {stage.length > 0 ? stage : t('progress.header.title')}
           </h3>
-          <p className="text-sm text-gray-400">
+          <p className="text-xs text-gray-400 sm:text-sm">
             {t('progress.header.step', { current: currentStepIndex, total: totalSteps })}
           </p>
         </div>
       </div>
 
       {estimatedTimeRemaining !== undefined && estimatedTimeRemaining > 0 && (
-        <div className="flex items-center space-x-2 text-sm text-gray-400">
+        <div className="flex shrink-0 items-center gap-2 text-xs text-gray-400 sm:text-sm">
           <ClockIcon size={16} />
           <span>{t('progress.header.timeRemaining', { time: formatTime(estimatedTimeRemaining) })}</span>
         </div>
@@ -215,26 +214,31 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-300">
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <span className="min-w-0 flex-1 truncate font-medium text-gray-300">
           {currentStep.length > 0 ? currentStep : t('progress.bar.currentStepFallback')}
         </span>
+        {/* Tabular + a reserved min-width so the readout never reflows the step label as it climbs
+            from one to three digits. */}
         <span
-          className={clsx('font-semibold', done ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300')}
+          className={clsx(
+            'shrink-0 text-right font-semibold tabular-nums [min-width:3.25ch]',
+            done ? 'text-success-foreground' : 'text-brand-700 dark:text-brand-300'
+          )}
         >
           {Math.round(percentage)}%
         </span>
       </div>
 
-      {/* The render bar now reads in the shared GradientMeter family (lavender→pink) instead of a
-          bespoke track, keeping its original completion behaviour: a still success-green swap plus a
-          travelling shimmer that stops the moment the bar completes. */}
+      {/* The render bar reads in the shared GradientMeter family (lavender→pink): a tally light rides
+          the leading edge while the compile runs, and the fill settles to success green — light gone
+          — the moment it completes. */}
       <GradientMeter
         progress={percentage / 100}
         variant="bar"
         size={12}
         success={done}
-        shimmer
+        live
         label={t('progress.bar.ariaLabel')}
       />
     </div>
@@ -291,7 +295,9 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
   }, [done]);
 
   return (
-    <div className="space-y-6 processing fade-in" role="status" aria-live="polite" aria-atomic="false">
+    // The panel itself doesn't breathe — a looping opacity dip on this container fades its own text
+    // for the length of the compile. The bar's tally light carries liveness on its own.
+    <div className="space-y-5 fade-in sm:space-y-6" role="status" aria-live="polite" aria-atomic="false">
       <ProgressHeader
         stage={stage}
         percentage={percentage}

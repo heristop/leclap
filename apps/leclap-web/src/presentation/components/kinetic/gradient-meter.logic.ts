@@ -22,8 +22,8 @@ export const ratio01 = (value: number, total: number): number => {
   return clamp01(value / total);
 };
 
-// Whether the travelling shimmer highlight should ride the fill: opt-in (`shimmer`), and suppressed
-// once the meter is in its success state or fully filled, so the moving sweep never competes with a
-// settled/complete bar (the render bar keeps its still success-green swap on completion).
-export const showShimmer = (shimmer: boolean, success: boolean, progress: number): boolean =>
-  shimmer && !success && clamp01(progress) < 1;
+// Whether the live head-light should ride the fill's leading edge: opt-in (`live`), and suppressed
+// once the meter is in its success state or fully filled, so nothing keeps moving on a settled or
+// complete bar (the render bar keeps its still success-green swap on completion).
+export const showLiveHead = (live: boolean, success: boolean, progress: number): boolean =>
+  live && !success && clamp01(progress) < 1;

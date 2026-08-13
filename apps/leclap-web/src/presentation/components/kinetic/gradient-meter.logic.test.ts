@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clamp01, arcRadius, circumference, dashOffset, barPct, ratio01, showShimmer } from './gradient-meter.logic';
+import { clamp01, arcRadius, circumference, dashOffset, barPct, ratio01, showLiveHead } from './gradient-meter.logic';
 
 describe('clamp01', () => {
   it('clamps below 0 and above 1', () => {
@@ -56,21 +56,21 @@ describe('ratio01', () => {
   });
 });
 
-describe('showShimmer', () => {
+describe('showLiveHead', () => {
   it('rides an opted-in fill that is still in progress', () => {
-    expect(showShimmer(true, false, 0.5)).toBe(true);
+    expect(showLiveHead(true, false, 0.5)).toBe(true);
   });
 
   it('is off when not opted in', () => {
-    expect(showShimmer(false, false, 0.5)).toBe(false);
+    expect(showLiveHead(false, false, 0.5)).toBe(false);
   });
 
   it('is suppressed in the success state', () => {
-    expect(showShimmer(true, true, 0.5)).toBe(false);
+    expect(showLiveHead(true, true, 0.5)).toBe(false);
   });
 
   it('is suppressed once full (including out-of-range progress)', () => {
-    expect(showShimmer(true, false, 1)).toBe(false);
-    expect(showShimmer(true, false, 1.4)).toBe(false);
+    expect(showLiveHead(true, false, 1)).toBe(false);
+    expect(showLiveHead(true, false, 1.4)).toBe(false);
   });
 });

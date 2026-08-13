@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Validates a media manifest and the tree it describes: the manifest itself is well-formed (no unsafe
+# or duplicate paths, not empty), every asset exists, is LFS-tracked, is not still a pointer file, and
+# — since the manifest carries digests — matches its recorded SHA-256.
+#
+#   bash scripts/ci/verify-lfs-assets.sh [manifest]
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=scripts/ci/media-bundle.sh
+source "$script_dir/media-bundle.sh"
+
 repo_root=${REPO_ROOT:-$(git rev-parse --show-toplevel)}
 manifest=${1:-scripts/ci/lfs-test-assets.txt}
 
@@ -28,6 +38,9 @@ while IFS= read -r raw_line || [[ -n $raw_line ]]; do
 
   [[ -n $entry ]] || continue
 
+  # The digest column is validated by content below; path safety is checked on the path alone.
+  entry=$(printf '%s\n' "$entry" | sed -e 's/^[0-9a-f]\{64\}[[:space:]][[:space:]]*//')
+
   case "$entry" in
     /* | .. | ../* | */../* | */..)
       fail "unsafe asset path on line $line_number: $entry"
@@ -53,9 +66,12 @@ while IFS= read -r entry; do
 
   first_line=''
   IFS= read -r first_line < "$asset_path" || true
-  if [[ $first_line == 'version https://git-lfs.github.com/spec/v1' ]]; then
+  if [[ $first_line == "$MEDIA_LFS_POINTER" ]]; then
     fail "asset is still an LFS pointer: $entry"
   fi
 done < "$entries_file"
 
-printf 'verified %d materialized Git LFS assets\n' "$count"
+# Content check. A stale or truncated bundle satisfies every assertion above and still renders garbage.
+media_verify_digests "$manifest_path" "$repo_root" || exit 1
+
+printf 'verified %d materialized Git LFS assets (content matches manifest)\n' "$count"

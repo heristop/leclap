@@ -1,13 +1,11 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { OSWALD } from './fonts';
+import { LAVENDER, PINK, INK } from './brand';
 
 // A kinetic-typography title card: the wordmark reveals letter-by-letter on a staggered spring
 // (each glyph rises + unblurs), an accent bar wipes in beneath it, and a soft radial glow drifts
 // across the frame — per-letter spring physics an FFmpeg filtergraph can't express. Parametrized
 // via inputProps (wordmark/tagline), 3s @ 30fps, renders cleanly at both aspects.
-const INK = '#07080d';
-const LAVENDER = '#7C83FD';
-const PINK = '#FF8AAE';
 
 export interface KineticProps {
   wordmark?: string;

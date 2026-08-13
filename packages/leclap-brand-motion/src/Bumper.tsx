@@ -1,21 +1,17 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { OSWALD } from './fonts';
+import { LAVENDER, PINK, YELLOW, INK, STRIPE_YELLOW } from './brand';
 
 // The LeClap brand bumper: the playful clapper (vector) on a gradient disc with a gold ring.
 // The clapper top is hinged at the board's top-left corner; it lifts open then SLAMS shut (the
 // clack), then springs back open to rest. The slam is the beat the recoil, bloom, flash, and
 // wordmark all key off — so the motion reads as cause-and-effect.
-const LAVENDER = '#7C83FD';
-const PINK = '#FF8AAE';
-const YELLOW = '#FFE45E';
-const INK = '#0b0b0f';
 // Deeper disc gradient so the clapper reads clearly on it (matches the app icon / favicon).
 const DISC_A = '#C3C7FF';
 const DISC_B = '#FFCFDE';
 
 // Clapper palette + geometry (sampled from the original logo; inline mark's 600 viewBox).
 const OUTLINE = '#5E51AC';
-const STRIPE_YELLOW = '#FEF0A6';
 const STRIPE_PERI = '#8C80D8';
 const HINGE = '140 250';
 const OPEN = -25; // resting open angle — matches the static logo

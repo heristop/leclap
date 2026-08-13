@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, StatusBar, Alert } from 'react-native';
 import { MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { VideoFile } from 'react-native-vision-camera';
@@ -57,43 +58,51 @@ const RecordSectionHeader = ({
   shotTotal,
   onBack,
   t,
-}: RecordSectionHeaderProps) => (
-  <View style={styles.headerBar}>
-    <PressableScale
-      style={styles.headerBack}
-      onPress={onBack}
-      disabled={backDisabled}
-      accessibilityLabel={t('actions.back', { ns: 'common' })}
-    >
-      <Ionicons name="chevron-back" size={26} color={backDisabled ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} />
-    </PressableScale>
+}: RecordSectionHeaderProps) => {
+  // `StatusBar.currentHeight` is Android-only — on iOS it is undefined, which left the bar flush with
+  // the top of the screen and slid the shot badge under the notch/Dynamic Island. The safe-area inset
+  // covers both; Android keeps the status-bar height when it reports the larger value.
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, StatusBar.currentHeight ?? 0);
 
-    <View style={styles.headerTitleContainer}>
-      {shotIndex ? (
-        <Text style={styles.shotBadge}>
-          {t('shot', { defaultValue: 'SHOT' })} {pad(shotIndex)} / {pad(shotTotal)}
+  return (
+    <View style={[styles.headerBar, { height: 60 + topInset, paddingTop: topInset }]}>
+      <PressableScale
+        style={styles.headerBack}
+        onPress={onBack}
+        disabled={backDisabled}
+        accessibilityLabel={t('actions.back', { ns: 'common' })}
+      >
+        <Ionicons name="chevron-back" size={26} color={backDisabled ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} />
+      </PressableScale>
+
+      <View style={styles.headerTitleContainer}>
+        {shotIndex ? (
+          <Text style={styles.shotBadge}>
+            {t('shot', { defaultValue: 'SHOT' })} {pad(shotIndex)} / {pad(shotTotal)}
+          </Text>
+        ) : null}
+        <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+          {section.title?.en ?? section.name}
         </Text>
-      ) : null}
-      <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
-        {section.title?.en ?? section.name}
-      </Text>
-    </View>
-
-    {isRecording ? (
-      <View style={styles.timerContainer}>
-        <MotiView
-          from={{ opacity: 0.4 }}
-          animate={{ opacity: 1 }}
-          transition={{ loop: true, repeatReverse: true, type: 'timing', duration: 700 }}
-          style={styles.recordingIndicator}
-        />
-        <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
       </View>
-    ) : (
-      <View style={styles.headerBack} />
-    )}
-  </View>
-);
+
+      {isRecording ? (
+        <View style={styles.timerContainer}>
+          <MotiView
+            from={{ opacity: 0.4 }}
+            animate={{ opacity: 1 }}
+            transition={{ loop: true, repeatReverse: true, type: 'timing', duration: 700 }}
+            style={styles.recordingIndicator}
+          />
+          <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
+        </View>
+      ) : (
+        <View style={styles.headerBack} />
+      )}
+    </View>
+  );
+};
 
 const buildUpdatedProject = (
   project: NonNullable<ReturnType<typeof useProject>['data']>,
@@ -335,8 +344,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 60 + (StatusBar.currentHeight ?? 0),
-    paddingTop: StatusBar.currentHeight ?? 0,
+    // height/paddingTop are applied at runtime from the safe-area inset (see RecordSectionHeader).
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 5,
     flexDirection: 'row',

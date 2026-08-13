@@ -5,6 +5,37 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-13
+
+### Added
+
+- `compose_video` now returns a `resource_link` alongside its text and structured
+  content — a `file://` URI for the rendered `video/mp4`. Clients open or fetch the
+  file themselves instead of the server inlining megabytes of base64 into the
+  conversation.
+- Render progress. The forked worker reports fractional progress over the IPC channel,
+  throttled to 2% steps (the terminal 100% always gets through, exactly once), and
+  `compose_video` writes it to **stderr** as `[compose_video] render <id> NN%`. It is
+  not a protocol notification: the per-request log channel is deprecated in the
+  2026-07-28 revision, which names stderr as the replacement for stdio servers, and
+  stdout remains reserved for JSON-RPC framing.
+
+### Changed
+
+- Migrated from the monolithic `@modelcontextprotocol/sdk` v1 to the split SDK v2
+  (`@modelcontextprotocol/server`), which implements the
+  [2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28) protocol
+  revision — the stateless one, with `server/discover` in place of the `initialize`
+  handshake. Clients still on a 2025-era revision keep working: the stdio entry serves
+  both eras from the same tool definitions.
+- `tools/list`, `prompts/list`, and `server/discover` now advertise cache hints
+  (5-minute TTL, `private` scope) instead of the SDK's conservative `ttlMs: 0`. The
+  tool surface is fixed for the process lifetime, so a real freshness window is
+  correct; `private` because the listing depends on this server's configuration.
+- Tool and prompt argument schemas are declared as `z.object(...)` (the raw-shape
+  overload is deprecated in v2), and handlers now receive the v2 `ServerContext` —
+  cancellation moved from v1's flat `extra.signal` to `ctx.mcpReq.signal`.
+
 ## [0.2.0] - 2026-07-24
 
 ### Security

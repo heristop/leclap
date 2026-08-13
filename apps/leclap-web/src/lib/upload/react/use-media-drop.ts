@@ -160,6 +160,11 @@ export const useMediaDrop = ({
     },
     onClick: open,
     onKeyDown: (event: KeyboardEvent) => {
+      // Only when the root itself has focus. react-dropzone compared against its root node for the
+      // same reason: Enter/Space bubble from every descendant, so without this a text field or an
+      // extra button placed inside the zone would swallow the space bar and open the file picker.
+      if (event.target !== event.currentTarget) return;
+
       if (event.key !== 'Enter' && event.key !== ' ') return;
 
       event.preventDefault();

@@ -86,9 +86,12 @@ export const expandDroppedEntries = async (
 
   try {
     const walked = await Promise.all(entries.filter((entry) => entry !== null).map(walk));
-    const files = walked.flat();
 
-    return files.length > 0 ? files : fallback;
+    // A completed walk is authoritative even when it found nothing. Falling back on an empty result
+    // would hand back `dataTransfer.files`, where an empty (or video-free) folder reappears as one
+    // zero-byte, extension-less File — reported to the user as an unreadable video named after their
+    // folder, which is the exact failure this module exists to prevent.
+    return walked.flat();
   } catch {
     return fallback;
   }

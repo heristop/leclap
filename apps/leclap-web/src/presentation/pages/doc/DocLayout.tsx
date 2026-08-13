@@ -5,21 +5,30 @@ import { CopyPageButton } from '@/presentation/components/doc/CopyPageButton';
 import { KineticHeading } from '@/presentation/components/kinetic';
 import { docNav } from './docNav';
 
+// Two shapes for one nav, no duplicated markup: a horizontally scrolling chip rail on phones, the
+// bordered vertical rail from `lg`. Stacked, these twelve links cost roughly 430px — so every doc
+// page opened on a wall of navigation and the first sentence of the actual reference started below
+// the fold. Scrolling them sideways keeps all twelve one tap away in the height of a single row.
 const linkClass = (isActive: boolean): string =>
-  `-ml-px block border-l-2 py-1 pl-4 text-sm transition-all duration-300 ease-[var(--ease-out-expo)] focus-visible:border-brand-400 focus-visible:text-foreground ${
+  [
+    'block shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-sm transition-all duration-300 ease-[var(--ease-out-expo)]',
+    'lg:-ml-px lg:shrink lg:whitespace-normal lg:rounded-none lg:border-l-2 lg:px-0 lg:py-1 lg:pl-4',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 lg:focus-visible:border-brand-400 lg:focus-visible:text-foreground',
     isActive
-      ? 'translate-x-0.5 border-brand-400 font-medium text-foreground'
-      : 'border-transparent text-gray-400 hover:translate-x-0.5 hover:border-brand-400/60 hover:text-foreground'
-  }`;
+      ? 'bg-brand-500/15 font-medium text-foreground ring-1 ring-brand-500/30 lg:translate-x-0.5 lg:border-brand-400 lg:bg-transparent lg:ring-0'
+      : 'text-gray-400 hover:text-foreground lg:border-transparent lg:hover:translate-x-0.5 lg:hover:border-brand-400/60',
+  ].join(' ');
 
-// Persistent docs nav. Vertical rail on desktop (sticky); on mobile it sits above the content so every
-// page stays reachable.
 const DocSidebar = () => (
   <nav aria-label="Documentation" className="lg:sticky lg:top-28 lg:self-start">
-    <p className="mb-3 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gray-500">Documentation</p>
-    <ul className="space-y-1 border-l border-divider">
+    <p className="mb-3 hidden text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gray-500 lg:block">
+      Documentation
+    </p>
+    {/* The rail scrolls inside the container: a negative-margin edge bleed here widens the grid past
+        the viewport and puts the whole doc page into horizontal scroll. */}
+    <ul className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] lg:block lg:space-y-1 lg:overflow-visible lg:border-l lg:border-divider [&::-webkit-scrollbar]:hidden">
       {docNav.map((item) => (
-        <li key={item.to}>
+        <li key={item.to} className="shrink-0">
           <NavLink to={item.to} end={item.end} viewTransition className={({ isActive }) => linkClass(isActive)}>
             {item.label}
           </NavLink>
@@ -103,7 +112,11 @@ export const DocLayout = () => {
       </div>
 
       <div className="relative z-10 container mx-auto max-w-6xl px-4 pb-16 pt-24 lg:pt-28">
-        <div className="grid gap-10 lg:grid-cols-[13rem_1fr]">
+        {/* `grid-cols-1` is load-bearing: it resolves to `minmax(0, 1fr)`, whereas the implicit
+            single column is `auto` and sizes to max-content — which the horizontally scrolling nav
+            rail would then stretch to the width of all twelve chips, pushing the whole page into
+            horizontal scroll instead of scrolling inside itself. */}
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[13rem_1fr]">
           <DocSidebar />
           <div className="min-w-0">
             <div className="mb-4 flex justify-end">

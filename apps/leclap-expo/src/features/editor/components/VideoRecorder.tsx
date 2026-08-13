@@ -1236,9 +1236,12 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.85)',
     fontSize: 13,
   },
-  portraitInstructions: { bottom: 150 },
+  // Clears the record button (bottom 50, 82pt tall). The chip is anchored to the screen, not the
+  // preview, so in 1:1 framing — where the preview's bottom edge lands near 208 — too low a value
+  // puts it on that edge instead of over the preview.
+  portraitInstructions: { bottom: 166 },
   // Lifted clear of the mode toggle (which sits at bottom 146, ~38pt tall) with an 8pt-rhythm gap.
-  portraitInstructionsWithBar: { bottom: 206 },
+  portraitInstructionsWithBar: { bottom: 222 },
   landscapeInstructions: { bottom: 20 },
   errorText: { ...typography.body, color: colors.error, textAlign: 'center' },
   permissionContainer: {

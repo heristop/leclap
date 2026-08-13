@@ -44,7 +44,7 @@ const RushThumb = ({ file, index, selected, onSelect, onRemove }: RushThumbProps
             <Check className="size-3" />
           </span>
         )}
-        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1.5 py-1 text-left text-[0.62rem] font-semibold text-white">
+        <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-1.5 py-1 text-left text-[0.62rem] font-semibold text-white">
           {label}
         </span>
       </button>

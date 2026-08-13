@@ -118,7 +118,7 @@ const ActionButtons = ({
         >
           {showCopied ? (
             <>
-              <Check className="!size-4 pop-in" />
+              <Check className="size-4! pop-in" />
               <span>{t('export.actions.copied')}</span>
             </>
           ) : (
@@ -135,7 +135,7 @@ const ActionButtons = ({
             onClick={onShare}
             className="px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20"
           >
-            <Share2 className="!size-4" />
+            <Share2 className="size-4!" />
             <span>{t('export.actions.share')}</span>
           </Button>
         )}

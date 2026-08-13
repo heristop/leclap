@@ -125,7 +125,7 @@ export const PhoneShowcase = () => {
               aria-hidden="true"
               className={cn(
                 'pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl transition-opacity duration-1000',
-                'bg-gradient-to-tr from-brand-500/25 via-secondary-500/12 to-accent-400/20',
+                'bg-linear-to-tr from-brand-500/25 via-secondary-500/12 to-accent-400/20',
                 revealed ? 'opacity-100' : 'opacity-0'
               )}
             />
@@ -133,7 +133,7 @@ export const PhoneShowcase = () => {
             <div
               ref={setFrameRef}
               className={cn(
-                'relative mx-auto w-full max-w-[290px] rounded-[2.8rem] bg-gradient-to-b from-neutral-700 via-neutral-900 to-neutral-950 p-[11px]',
+                'relative mx-auto w-full max-w-[290px] rounded-[2.8rem] bg-linear-to-b from-neutral-700 via-neutral-900 to-neutral-950 p-[11px]',
                 'shadow-[0_34px_60px_-22px_oklch(0_0_0_/_0.6),0_10px_22px_-12px_oklch(0_0_0_/_0.45)] ring-1 ring-black/60',
                 'transition-all duration-700 ease-[var(--ease-spring)]',
                 'motion-reduce:transition-none motion-reduce:!translate-y-0 motion-reduce:!scale-100 motion-reduce:!opacity-100',

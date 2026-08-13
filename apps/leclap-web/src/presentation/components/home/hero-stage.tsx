@@ -138,7 +138,7 @@ export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-t from-background via-transparent to-background/40"
+        className="pointer-events-none absolute inset-0 z-0 bg-linear-to-t from-background via-transparent to-background/40"
       />
     </>
   );

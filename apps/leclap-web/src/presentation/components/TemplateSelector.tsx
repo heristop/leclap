@@ -286,7 +286,7 @@ export const TemplateSelector = ({
           <PressableScale
             onClick={onBuildFromScratch}
             hoverLift
-            className="group relative flex w-full items-center gap-6 overflow-hidden rounded-2xl border border-brand-500/25 bg-gradient-to-r from-brand-600/30 via-brand-500/15 to-violet-600/20 px-8 py-6 text-left transition-all hover:border-brand-500/50 hover:from-brand-600/40 hover:via-brand-500/25 hover:to-violet-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="group relative flex w-full items-center gap-6 overflow-hidden rounded-2xl border border-brand-500/25 bg-linear-to-r from-brand-600/30 via-brand-500/15 to-violet-600/20 px-8 py-6 text-left transition-all hover:border-brand-500/50 hover:from-brand-600/40 hover:via-brand-500/25 hover:to-violet-600/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <span
               aria-hidden="true"

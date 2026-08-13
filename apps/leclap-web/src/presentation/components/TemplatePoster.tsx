@@ -22,7 +22,7 @@ export const TemplatePoster = ({ template, isSelected = false }: TemplatePosterP
         aria-hidden
         className="absolute inset-0 bg-[radial-gradient(115%_115%_at_0%_0%,rgba(255,255,255,0.32),transparent_55%)]"
       />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/25 to-transparent" />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-black/25 to-transparent" />
 
       <span className="absolute left-3 top-3 rounded-full bg-black/25 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white ring-1 ring-white/25 backdrop-blur-sm">
         {t(`complexity.${template.complexity}`)}

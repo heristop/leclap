@@ -39,7 +39,7 @@ export const ProjectThumbnail = ({ project, poster, onOpen }: ProjectThumbnailPr
             aria-hidden
             className="absolute inset-0 bg-black/20 transition-opacity duration-300 group-hover/thumb:opacity-50"
           />
-          <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          <span aria-hidden className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
           <span aria-hidden className="absolute inset-0 grid place-items-center">
             <span className="grid size-12 place-items-center rounded-full bg-white/90 text-brand-600 shadow-lg ring-1 ring-black/10 transition-transform duration-200 group-hover/thumb:scale-110 motion-reduce:transition-none">
               <PlayIcon size={20} className="[&_polygon]:fill-current" />

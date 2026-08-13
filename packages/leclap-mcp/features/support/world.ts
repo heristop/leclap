@@ -4,8 +4,8 @@ import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 import { After, AfterAll, Before, setDefaultTimeout, setWorldConstructor, World } from '@cucumber/cucumber';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { Client } from '@modelcontextprotocol/client';
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 
 // A real render through the forked worker takes a few seconds.
 setDefaultTimeout(120_000);

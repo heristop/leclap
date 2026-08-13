@@ -53,6 +53,11 @@ node packages/leclap-mcp/dist/index.js
 It speaks MCP over **stdio** (stdout is the protocol channel — all diagnostics go to stderr).
 The published `bin` is `leclap-mcp`.
 
+Built on the MCP TypeScript SDK v2 (`@modelcontextprotocol/server`), which implements the
+[**2026-07-28**](https://modelcontextprotocol.io/specification/2026-07-28) protocol revision — the
+stateless one (no `initialize` handshake, `server/discover` instead). Clients still on a 2025-era
+revision keep working: the stdio entry serves both eras from the same tool definitions.
+
 ### Configuration
 
 | Setting         | Flag                  | Env                            | Default             |
@@ -116,7 +121,7 @@ real (pino-heavy) compile.
 
 ## Not yet (future)
 
-HTTP/SSE transport, MCP resources (`leclap://templates/{name}`), progress notifications,
+Streamable HTTP transport, MCP resources (`leclap://templates/{name}`), progress notifications,
 remote-URL probing, an async job API. This package is structured tarball-clean but is not yet
 published to npm.
 

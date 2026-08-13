@@ -16,12 +16,8 @@ import { Writable } from 'node:stream';
 export function installStdoutGuard(): Writable {
   const realWrite = process.stdout.write.bind(process.stdout);
 
-  process.stdout.write = ((chunk: unknown, encoding?: unknown, callback?: unknown): boolean =>
-    (process.stderr.write as (...args: unknown[]) => boolean)(
-      chunk,
-      encoding,
-      callback
-    )) as typeof process.stdout.write;
+  process.stdout.write = (chunk: unknown, encoding?: unknown, callback?: unknown): boolean =>
+    (process.stderr.write as (...args: unknown[]) => boolean)(chunk, encoding, callback);
 
   return new Writable({
     write(chunk: unknown, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {

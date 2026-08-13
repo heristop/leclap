@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
@@ -30,7 +30,7 @@ async function withTimeout<T>(label: string, ms: number, run: () => Promise<T>):
   }
 }
 
-const inputShape = {
+const inputSchema = z.object({
   // Path to the consumer's Remotion entry (the module that calls registerRoot). Falls back to the
   // server's configured default (LECLAP_MCP_REMOTION_ENTRY). `serveUrl` skips bundling entirely.
   entry: z.string().optional(),
@@ -41,15 +41,15 @@ const inputShape = {
     .string()
     .regex(/^[\w-]+$/)
     .optional(),
-};
+});
 
-const outputShape = {
+const outputSchema = z.object({
   path: z.string(),
   width: z.number(),
   height: z.number(),
   durationSeconds: z.number(),
   sectionHint: z.string(),
-};
+});
 
 type ClipArgs = {
   entry?: string;
@@ -298,8 +298,8 @@ export function registerRenderRemotionClip(server: McpServer, config: McpConfig)
         'the clip path; feed it to compose_video as a `project_video` clip (see sectionHint) so FFmpeg ' +
         'composites it in front of your scenes. Needs the optional peer deps @remotion/renderer + ' +
         '@remotion/bundler; design-time only (headless Chromium), not an on-device path.',
-      inputSchema: inputShape,
-      outputSchema: outputShape,
+      inputSchema,
+      outputSchema,
     },
     (args: ClipArgs) => handleRender(args, config)
   );

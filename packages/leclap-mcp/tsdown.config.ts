@@ -4,7 +4,9 @@ import { defineConfig } from 'tsdown';
 // already-compiled core dist; the SDK and reflect-metadata stay node_modules deps.
 const external = [
   'ffmpeg-video-composer',
-  '@modelcontextprotocol/sdk',
+  '@modelcontextprotocol/server',
+  '@modelcontextprotocol/server/stdio',
+  '@modelcontextprotocol/core',
   'reflect-metadata',
   // Optional peer deps for render_remotion_clip — dynamically imported, never bundled.
   '@remotion/bundler',

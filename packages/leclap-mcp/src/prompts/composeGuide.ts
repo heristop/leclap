@@ -1,10 +1,10 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 // Surfaces in clients (e.g. Claude Desktop) as a `/compose-video` affordance. It primes the agent
 // to author a PREMIUM, deterministic, on-device-safe template and to iterate with validate_template
 // before the slower compose_video render.
-const argsShape = {
+const argsSchema = z.object({
   goal: z
     .string()
     .optional()
@@ -13,7 +13,7 @@ const argsShape = {
     .enum(['landscape', 'portrait', 'square'])
     .optional()
     .describe('landscape (16:9), portrait (9:16) or square (1:1).'),
-};
+});
 
 type GuideArgs = { goal?: string; orientation?: 'landscape' | 'portrait' | 'square' };
 
@@ -89,7 +89,7 @@ export function registerComposeGuide(server: McpServer): void {
       description:
         'Guided authoring for a premium, deterministic, on-device-safe LeClap template — primes the ' +
         'schema, the premium filter/typography recipes, and the validate→compose loop.',
-      argsSchema: argsShape,
+      argsSchema,
     },
     (args: GuideArgs) => ({
       messages: [

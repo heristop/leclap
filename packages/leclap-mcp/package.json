@@ -20,7 +20,7 @@
     "test:integration": "pnpm --filter ffmpeg-video-composer build && pnpm build && NODE_OPTIONS=\"--import tsx/esm\" cucumber-js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "ffmpeg-video-composer": "workspace:*",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.4.3"
@@ -38,12 +38,13 @@
     }
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^13.0.0",
-    "@remotion/bundler": "^4.0.478",
-    "@remotion/renderer": "^4.0.478",
+    "@cucumber/cucumber": "^13.2.1",
+    "@modelcontextprotocol/client": "^2.0.0",
+    "@remotion/bundler": "^4.0.509",
+    "@remotion/renderer": "^4.0.509",
     "@types/node": "^25.9.3",
-    "tsdown": "^0.22.2",
-    "tsx": "^4.22.4",
+    "tsdown": "^0.22.14",
+    "tsx": "^4.23.12",
     "typescript": "^6.0.3"
   },
   "engines": {

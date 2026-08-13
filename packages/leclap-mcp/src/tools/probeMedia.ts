@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
@@ -17,17 +17,17 @@ const requireModule = createRequire(import.meta.url);
 // SIGKILLs the child on overrun, and the rejected promise surfaces as a clean tool error.
 const PROBE_TIMEOUT_MS = 30_000;
 
-const inputShape = {
+const inputSchema = z.object({
   path: z.string(),
-};
+});
 
-const outputShape = {
+const outputSchema = z.object({
   durationSeconds: z.number().nullable(),
   videoCodec: z.string().nullable(),
   audioCodec: z.string().nullable(),
   sampleRate: z.number().nullable(),
   sizeBytes: z.number(),
-};
+});
 
 interface FFProbeStream {
   codec_type: string;
@@ -185,8 +185,8 @@ export function registerProbe(server: McpServer, config: McpConfig, runner: Prob
         'Inspect a local media file (absolute path under the configured media dir) and return its ' +
         'duration, video/audio codecs, audio sample rate, and byte size. Probes via ffprobe directly ' +
         'so it never writes to stdout.',
-      inputSchema: inputShape,
-      outputSchema: outputShape,
+      inputSchema,
+      outputSchema,
     },
     (args: { path: string }) => handleProbe(args, config, runner)
   );

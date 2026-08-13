@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
@@ -12,7 +12,9 @@ import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { validateTemplate } from '../compose/validation.js';
 import { runRender, type RenderResult } from '../compose/renderRunner.js';
 
-const inputShape = {
+// Standard Schema objects, not the raw `{ field: z.type() }` shapes: the SDK's raw-shape overload is
+// deprecated since v2 and the object form is what `tools/list` converts to JSON Schema.
+const inputSchema = z.object({
   template: z.record(z.string(), z.unknown()),
   fields: z.record(z.string(), z.string()).optional(),
   userVideoPaths: z.record(z.string(), z.string()).optional(),
@@ -21,16 +23,16 @@ const inputShape = {
     .string()
     .regex(/^[\w-]+$/)
     .optional(),
-};
+});
 
-const outputShape = {
+const outputSchema = z.object({
   outputPath: z.string(),
   durationSeconds: z.number().nullable(),
   sizeBytes: z.number(),
   videoCodec: z.string().nullable(),
   audioCodec: z.string().nullable(),
   renderId: z.string(),
-};
+});
 
 type ComposeArgs = {
   template: Record<string, unknown>;
@@ -300,9 +302,11 @@ export function registerCompose(server: McpServer, config: McpConfig): void {
         'userVideoPaths (absolute paths under the configured media dir) for each project_video ' +
         'section, optional form `fields`, and an optional `locale`. Renders in a forked worker and ' +
         'returns the output mp4 path plus duration/codec metadata.',
-      inputSchema: inputShape,
-      outputSchema: outputShape,
+      inputSchema,
+      outputSchema,
     },
-    (args: ComposeArgs, extra?: { signal?: AbortSignal }) => handleCompose(args, config, extra?.signal)
+    // The v2 handler context replaces v1's flat `extra`: the cancellation signal now lives at
+    // `ctx.mcpReq.signal`. Optional so the unit tests can invoke the handler with args alone.
+    (args: ComposeArgs, ctx?: ServerContext) => handleCompose(args, config, ctx?.mcpReq.signal)
   );
 }

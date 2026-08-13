@@ -1,20 +1,20 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type { TemplateDescriptor } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import { validateTemplate } from '../compose/validation.js';
 
-const inputShape = {
+const inputSchema = z.object({
   template: z.record(z.string(), z.unknown()),
-};
+});
 
-const outputShape = {
+const outputSchema = z.object({
   valid: z.boolean(),
   sectionCount: z.number(),
   orientation: z.string().nullable(),
   requiredClips: z.array(z.string()),
   formFields: z.array(z.string()),
-};
+});
 
 type ValidateArgs = { template: Record<string, unknown> };
 type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
@@ -97,8 +97,8 @@ export function registerValidateTemplate(server: McpServer): void {
         'instantly. Get back whether it is valid plus what compose_video will require: the ' +
         'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
         'milliseconds before the slower compose_video render.',
-      inputSchema: inputShape,
-      outputSchema: outputShape,
+      inputSchema,
+      outputSchema,
     },
     (args: ValidateArgs) => handleValidate(args)
   );

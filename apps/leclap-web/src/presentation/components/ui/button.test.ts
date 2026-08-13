@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { cn } from '@/lib/utils';
 import { buttonVariants } from './button';
 
 // The label's anaglyph ghost is deliberately confined to `primary`: the design tokens are
@@ -7,14 +8,14 @@ import { buttonVariants } from './button';
 // near-black label in the light theme or dark text on the accent yellow.
 describe('button anaglyph ghost', () => {
   it('ghosts the primary label', () => {
-    expect(buttonVariants({ variant: 'primary', size: 'md' })).toContain('text-ghost-3d');
+    expect(buttonVariants({ variant: 'primary', size: 'md' })).toContain('label-ghost-3d');
   });
 
   it('leaves every other variant unghosted', () => {
     const others = ['secondary', 'outline', 'ghost', 'accent', 'danger', 'link'] as const;
 
     for (const variant of others) {
-      expect(buttonVariants({ variant, size: 'md' })).not.toContain('text-ghost-3d');
+      expect(buttonVariants({ variant, size: 'md' })).not.toContain('label-ghost-3d');
     }
   });
 
@@ -27,6 +28,13 @@ describe('button anaglyph ghost', () => {
   // Icon-only buttons have no text node, so the shadow no-ops on its own — but the class must still
   // be present, since size and variant are independent axes.
   it('keeps the ghost on the icon size, where it simply has no text to paint', () => {
-    expect(buttonVariants({ variant: 'primary', size: 'icon' })).toContain('text-ghost-3d');
+    expect(buttonVariants({ variant: 'primary', size: 'icon' })).toContain('label-ghost-3d');
+  });
+
+  // buttonVariants() is the pre-merge string; the DOM gets cn()'s output. A utility whose name falls
+  // into one of tailwind-merge's groups (anything `text-*`, say) is silently dropped there and the
+  // effect never renders, which no assertion on buttonVariants() can see.
+  it('survives the tailwind-merge pass that produces the real className', () => {
+    expect(cn(buttonVariants({ variant: 'primary', size: 'md' }))).toContain('label-ghost-3d');
   });
 });

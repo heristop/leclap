@@ -1,33 +1,39 @@
+# The Git LFS assets CI needs materialized to run the real-render suites, as `<sha256>  <path>`.
+# Consumed by scripts/ci/fetch-test-media.sh and verify-lfs-assets.sh, and mirrored by the
+# ci-test-media.tar.gz bundle, which is addressed by the digest of THIS FILE — republish after any change:
+#   bash scripts/ci/update-media-manifest.sh
+#   bash scripts/ci/publish-media-bundles.sh
+
 # Core real-render videos
-packages/leclap-creative-kit/src/library/videos/earth.mp4
-packages/leclap-creative-kit/src/library/videos/earth-no-audio.mp4
-packages/leclap-creative-kit/src/library/videos/outro.mp4
-packages/leclap-creative-kit/src/library/videos/video_1.mp4
-packages/leclap-creative-kit/src/library/videos/video_2.mp4
-packages/leclap-creative-kit/src/library/videos/video_portrait.mp4
+8ab080c1406dff77f8897955cf977e9ad779e40ab3a07bc2f8694fbd2fc2be21  packages/leclap-creative-kit/src/library/videos/earth.mp4
+2dc9c7607a95d7a9723f1730a4269a41938de88c4efd7ae4b556338f1e4802e8  packages/leclap-creative-kit/src/library/videos/earth-no-audio.mp4
+984a822e3844926e0910aa7377ada0f93201a620dd624f10c8f0ba0e1df4c5a0  packages/leclap-creative-kit/src/library/videos/outro.mp4
+24b40629abdbadd3b6d8669b9cfa7a0fc5a72dc514f888dec9ba9a7bf78469a5  packages/leclap-creative-kit/src/library/videos/video_1.mp4
+7465d20760e6ef7e4985131ae15ec5c4ba03c7126cc8415f79a165a190aef53d  packages/leclap-creative-kit/src/library/videos/video_2.mp4
+c50d6e6376db69df565c4a3da7c2a94733c0206f1352ab392de139e4192dc920  packages/leclap-creative-kit/src/library/videos/video_portrait.mp4
 
 # Core real-render music
-packages/leclap-creative-kit/src/library/musics/future-bass-energy.mp3
-packages/leclap-creative-kit/src/library/musics/indie-rock-dreamy.mp3
-packages/leclap-creative-kit/src/library/musics/lofi-sentimental-jazz.mp3
-packages/leclap-creative-kit/src/library/musics/party-dance.mp3
-packages/leclap-creative-kit/src/library/musics/point-being.mp3
-packages/leclap-creative-kit/src/library/musics/pop.mp3
-packages/leclap-creative-kit/src/library/musics/romantic-piano.mp3
-packages/leclap-creative-kit/src/library/musics/the-builder.mp3
-packages/leclap-creative-kit/src/library/musics/upbeat-electronic.mp3
+89e742776f02eba2ceaf7b9d8145cc657f67dc26de2bd7887e64cd4ee96a23cf  packages/leclap-creative-kit/src/library/musics/future-bass-energy.mp3
+ff05341afbfe8b9184c9818239771f20deb0c14046c4c4ae1606ef10f746dfb1  packages/leclap-creative-kit/src/library/musics/indie-rock-dreamy.mp3
+1dcbefd551553386a9e5b08c52af33a556af4b62e92d7849698d2c4fe88ce923  packages/leclap-creative-kit/src/library/musics/lofi-sentimental-jazz.mp3
+c02f8808315b302a52653a79127fc893b39241e1749d83cce564b4aa847c6f61  packages/leclap-creative-kit/src/library/musics/party-dance.mp3
+b81b6effca2f04d7432589140c63b5a6da5f4091d977b15a7e736ca2652de0dc  packages/leclap-creative-kit/src/library/musics/point-being.mp3
+718f6dae61e700056ef4e4ab787c3e8dc1f95646694d74771a48867be4571277  packages/leclap-creative-kit/src/library/musics/pop.mp3
+87a68b3aae0888dbdcd24b317cc2ac9654cffef4c932d9af238ea8ccaaff72a9  packages/leclap-creative-kit/src/library/musics/romantic-piano.mp3
+e77d43a14ddf81c675d7171833ee3196a8bf8f7717039af6d48cc4f849b60577  packages/leclap-creative-kit/src/library/musics/the-builder.mp3
+c82bb5a7970730639e08eb8259dae9aba9eddb19a0cafe07b2de240f031a55a1  packages/leclap-creative-kit/src/library/musics/upbeat-electronic.mp3
 
 # Core real-render overlays and pictures
-packages/leclap-creative-kit/src/library/animations/animation_icons.apng
-packages/leclap-creative-kit/src/library/animations/corner_brackets.apng
-packages/leclap-creative-kit/src/library/animations/glow_border.apng
-packages/leclap-creative-kit/src/library/animations/light_leak.apng
-packages/leclap-creative-kit/src/library/animations/pulse_ring.apng
-packages/leclap-creative-kit/src/library/animations/rounded_border.apng
-packages/leclap-creative-kit/src/library/animations/spec_orbit.apng
-packages/leclap-creative-kit/src/library/animations/tap_pulse.apng
-packages/leclap-creative-kit/src/library/animations/white_border.apng
-packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png
+c42ff84648e785a0062b322564dd1fd7c22e09b0053bed9e37a36267e6107572  packages/leclap-creative-kit/src/library/animations/animation_icons.apng
+ae1cdb5b3d11bc13c1c9d07f2905f75d2618c8853a1870c24d8676ad5ed32b0a  packages/leclap-creative-kit/src/library/animations/corner_brackets.apng
+e4ce17022f05445db90b82196846d9ee00ed4b2c3cdfd9840d5620ad5bcfe65f  packages/leclap-creative-kit/src/library/animations/glow_border.apng
+44fb252a7eeef2ca6853492ab63fec24f9e3683c277c1eaf6fb39d66d494db2c  packages/leclap-creative-kit/src/library/animations/light_leak.apng
+30e61fedc37d85924041cf1085199ef23d808b44e4c59f10577568c62fab1c21  packages/leclap-creative-kit/src/library/animations/pulse_ring.apng
+fe5a97c6335829045dd05c1ad508cca369d0a07deca048c261e20a3d99e92d0e  packages/leclap-creative-kit/src/library/animations/rounded_border.apng
+6fe82a5cf30266a33aaedcbbee8201efd0b755ce7c9003d624670b9c31c55eb6  packages/leclap-creative-kit/src/library/animations/spec_orbit.apng
+273556cf11cc6f0839ebe4d23f6aee3c76c7b39a15c42b2bd5ccf5c02a04414c  packages/leclap-creative-kit/src/library/animations/tap_pulse.apng
+d3a3a984a0047edc8c2ad1c6cd7bb2b8ecdcf250018fe9e43f87ac84fc490013  packages/leclap-creative-kit/src/library/animations/white_border.apng
+9fafb12db000b3f7dfbb18c2cd9ce36b2c142743e06a955a66f1fbe8116aa235  packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png
 
 # MCP probe fixture
-packages/ffmpeg-engine/tests/fixtures/sample.mp4
+4579cd1d00136580c01e9e508d45013c21037e01fa1a7c4e3f0876bc17215ba1  packages/ffmpeg-engine/tests/fixtures/sample.mp4

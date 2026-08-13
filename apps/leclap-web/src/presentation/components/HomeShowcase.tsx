@@ -15,8 +15,8 @@ import { perforationMaskStyle, perforationTileStyle } from '@/lib/film-strip';
 // Served VP9/WebM first (smaller) with an H.264/MP4 fallback for older Safari/iOS. The file is
 // lazy-mounted only as the frame nears the viewport, so it never costs an above-the-fold visitor.
 // Reduced-motion users get a paused player with native controls.
-const VIDEO_SRC_WEBM = '/videos/drink-and-coffee.webm';
-const VIDEO_SRC_MP4 = '/videos/drink-and-coffee.mp4';
+const VIDEO_SRC_WEBM = '/videos/drink-and-coffee.webm?v1';
+const VIDEO_SRC_MP4 = '/videos/drink-and-coffee.mp4?v1';
 const DEFAULT_VOLUME = 0.7;
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;

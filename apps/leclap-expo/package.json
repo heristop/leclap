@@ -93,7 +93,7 @@
     "jest-expo": "~56.0.5",
     "react-test-renderer": "19.2.7",
     "ts-jest": "^29.4.11",
-    "typescript": "~6.0.3"
+    "typescript": "~7.0.2"
   },
   "jest": {
     "preset": "jest-expo"

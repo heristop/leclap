@@ -33,6 +33,12 @@ minimumReleaseAgeExclude:
   - caniuse-lite@1.0.30001797
   - '@vitejs/plugin-react@6.0.3'
   - vite@8.1.0
+  - typescript@7.0.2
+  # Temporary: the MCP SDK v1 → v2 rename (@modelcontextprotocol/sdk → /server + /client).
+  # Both were published 2026-07-27, inside the minimum-release-age window, so the install can't
+  # resolve them without an exception. Drop these two lines once they age past the window.
+  - '@modelcontextprotocol/server@2.0.0'
+  - '@modelcontextprotocol/client@2.0.0'
 
 onlyBuiltDependencies:
   - '@swc/core'

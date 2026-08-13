@@ -83,7 +83,8 @@ export const styles = StyleSheet.create({
   },
 
   // Keyframe dot (status)
-  keyframe: { width: 14, height: 14, borderRadius: 4, transform: [{ rotate: '45deg' }], overflow: 'hidden' },
+  keyframe: { width: 14, height: 14, borderRadius: 4, transform: [{ rotate: '45deg' }] },
+  keyframeFill: { borderRadius: 4 },
   keyframePending: {
     borderWidth: 2,
     borderColor: colors.divider,

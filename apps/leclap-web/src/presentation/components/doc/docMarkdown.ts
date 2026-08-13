@@ -9,8 +9,8 @@ export type McpEditor = 'cursor' | 'vscode';
 // Keep inlined page content well under common URL ceilings when handing a page to a chat assistant.
 const MAX_INLINE_MARKDOWN = 6000;
 
-// The MCP server the editor deep-links install. `@leclap/mcp` is not yet published to npm, so this is
-// forward-looking: the deep-links resolve once it ships. Until then the README documents a manual config.
+// The MCP server the editor deep-links install: `npx` resolves the published `@leclap/mcp` package, so
+// the one-click install needs no checkout.
 const MCP_NAME = 'leclap';
 const MCP_CONFIG = { command: 'npx', args: ['-y', '@leclap/mcp'] };
 

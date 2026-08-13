@@ -54,12 +54,14 @@ export const mcpDoc: McpDoc = {
     { label: 'Remotion entry', value: 'LECLAP_MCP_REMOTION_ENTRY or --remotion-entry (for render_remotion_clip)' },
     { label: 'Render timeout', value: 'LECLAP_MCP_RENDER_TIMEOUT_MS or --render-timeout-ms' },
   ],
+  // Mirrors the one-click editor deep-links in docMarkdown.ts, which install via npx. Env values are
+  // absolute because they are not tilde-expanded.
   sampleConfig: JSON.stringify(
     {
       mcpServers: {
         leclap: {
-          command: 'node',
-          args: ['/abs/path/to/ffmpeg-video-composer/packages/leclap-mcp/dist/index.js'],
+          command: 'npx',
+          args: ['-y', '@leclap/mcp'],
           env: {
             LECLAP_MCP_OUTPUT_DIR: '/abs/path/to/Movies/leclap-renders',
             LECLAP_MCP_MEDIA_DIR: '/abs/path/to/Movies',

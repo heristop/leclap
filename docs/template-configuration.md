@@ -24,15 +24,9 @@ Because `filters[]` is a raw pass-through, its `values` keys stay **FFmpeg-nativ
 
 ```jsonc
 {
-  "meta": {
-    /* Optional display metadata */
-  },
-  "global": {
-    /* GlobalConfig — project-wide defaults */
-  },
-  "sections": [
-    /* ordered Section[] — each becomes a clip, composed in order */
-  ],
+  "meta": {/* Optional display metadata */},
+  "global": {/* GlobalConfig — project-wide defaults */},
+  "sections": [/* ordered Section[] — each becomes a clip, composed in order */],
 }
 ```
 
@@ -476,9 +470,7 @@ An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 w
     "rotation": 0, // clockwise degrees applied before compositing (default upright)
     "motion": "rise", // animated entrance, reuses the Reveal vocabulary (see below)
   },
-  "filters": [
-    /* optional raw chain on this input before compositing */
-  ],
+  "filters": [/* optional raw chain on this input before compositing */],
 }
 ```
 

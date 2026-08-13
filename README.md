@@ -80,21 +80,21 @@ npx @leclap/cli init my-video         # scaffold a starter project
 npx @leclap/cli render template.json  # render it (`leclap diagnose` checks your FFmpeg)
 ```
 
-Or drive it from an AI agent: the [`@leclap/mcp`](packages/leclap-mcp) server exposes the engine as MCP tools — discover → validate → render — with no LLM in the output path.
+Or drive it from an AI agent: the [`@leclap/mcp`](packages/leclap-mcp) server exposes the engine as MCP tools — schema → validate → render — with no LLM in the output path.
 
 ## 📦 Monorepo
 
 pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The root is a private orchestrator (`leclap`); `ffmpeg-video-composer`, `@leclap/cli`, and `@leclap/mcp` are published to npm. The web and mobile apps both run the same core — the mobile app drives it **fully on-device** via the embedded native engine (no server), the web app in-browser via WASM.
 
-| Package                                                   | Description                                                                   |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) | **The library** — cross-platform composition engine (Node, browser, WASM).    |
-| [`@leclap/cli`](packages/leclap-cli)                      | **The CLI** — the `leclap` dev tool: scaffold (`init`), `render`, `diagnose`. |
-| [`@leclap/creative-kit`](packages/leclap-creative-kit)    | Shared creative catalog — templates, partials, fonts, media, bundled assets.  |
-| [`@leclap/mcp`](packages/leclap-mcp)                      | MCP server — the engine as agent-callable tools (compose/list/probe).         |
-| [`@leclap/web`](apps/leclap-web)                          | React 19 + Vite + Tailwind — in-browser FFmpeg via WASM _(reference)_.        |
-| [`@leclap/expo`](apps/leclap-expo)                        | Expo / React Native — on-device compiles via the native engine _(reference)_. |
-| [`ffmpeg-engine`](packages/ffmpeg-engine)                 | Rust engine embedding FFmpeg fftools for on-device compiles.                  |
+| Package                                                   | Description                                                                      |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [`ffmpeg-video-composer`](packages/ffmpeg-video-composer) | **The library** — cross-platform composition engine (Node, browser, WASM).       |
+| [`@leclap/cli`](packages/leclap-cli)                      | **The CLI** — the `leclap` dev tool: scaffold (`init`), `render`, `diagnose`.    |
+| [`@leclap/creative-kit`](packages/leclap-creative-kit)    | Shared creative catalog — templates, partials, fonts, media, bundled assets.     |
+| [`@leclap/mcp`](packages/leclap-mcp)                      | MCP server — the engine as agent-callable tools (schema/validate/compose/probe). |
+| [`@leclap/web`](apps/leclap-web)                          | React 19 + Vite + Tailwind — in-browser FFmpeg via WASM _(reference)_.           |
+| [`@leclap/expo`](apps/leclap-expo)                        | Expo / React Native — on-device compiles via the native engine _(reference)_.    |
+| [`ffmpeg-engine`](packages/ffmpeg-engine)                 | Rust engine embedding FFmpeg fftools for on-device compiles.                     |
 
 ## 🧩 Templates & library
 

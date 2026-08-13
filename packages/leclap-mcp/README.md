@@ -13,13 +13,14 @@ The result is _agent-composable, deterministic, reproducible_ video — the oppo
 
 ## Tools
 
-| Tool                   | Description                                                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                       |
-| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`              |
-| `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }` |
-| `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                          |
-| `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section     |
+| Tool                   | Description                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                                                          |
+| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`                                                 |
+| `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
+| `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                             |
+| `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                        |
+| `ping`                 | Liveness check                                                                                                                                               |
 
 Typical agent flow: `get_template_schema` → author an inline descriptor (optionally prepend a
 `render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`
@@ -44,7 +45,12 @@ on-device filter allowlist), and the `validate_template` → `compose_video` loo
 ## Run
 
 ```bash
-# build the engine + this server, then start it over stdio
+# published — no checkout needed
+npx -y @leclap/mcp
+```
+
+```bash
+# or from a checkout: build the engine + this server, then start it over stdio
 pnpm --filter ffmpeg-video-composer build
 pnpm --filter @leclap/mcp build
 node packages/leclap-mcp/dist/index.js
@@ -53,10 +59,9 @@ node packages/leclap-mcp/dist/index.js
 It speaks MCP over **stdio** (stdout is the protocol channel — all diagnostics go to stderr).
 The published `bin` is `leclap-mcp`.
 
-Built on the MCP TypeScript SDK v2 (`@modelcontextprotocol/server`), which implements the
-[**2026-07-28**](https://modelcontextprotocol.io/specification/2026-07-28) protocol revision — the
-stateless one (no `initialize` handshake, `server/discover` instead). Clients still on a 2025-era
-revision keep working: the stdio entry serves both eras from the same tool definitions.
+Built on the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+(`@modelcontextprotocol/server`), tracking the current protocol revision. Clients on an older revision
+keep working — the stdio entry serves both eras from the same tool definitions.
 
 ### Configuration
 
@@ -77,8 +82,8 @@ Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoP
 {
   "mcpServers": {
     "leclap": {
-      "command": "node",
-      "args": ["/abs/path/to/ffmpeg-video-composer/packages/leclap-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@leclap/mcp"],
       "env": {
         "LECLAP_MCP_OUTPUT_DIR": "/abs/path/to/Movies/leclap-renders",
         "LECLAP_MCP_MEDIA_DIR": "/abs/path/to/Movies"
@@ -88,7 +93,12 @@ Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoP
 }
 ```
 
-Then ask the agent to _"list the video templates, then render the sample template"_ and open the returned path.
+From a checkout, swap the command for `"command": "node"` with
+`"args": ["/abs/path/to/ffmpeg-video-composer/packages/leclap-mcp/dist/index.js"]`.
+
+Then ask the agent to _"compose a 10-second vertical title card with a fade-in and music, then render it"_ —
+it fetches the schema, authors a descriptor, validates it, and renders. Open the returned `outputPath`.
+(There is no catalog to list: the server authors templates rather than serving stock ones.)
 
 ### Inspector
 
@@ -103,6 +113,11 @@ render (including pino writing directly to fd 1), which would corrupt the MCP JS
 the render runs in a **forked child worker** (`dist/render-worker.js`) and the result returns over
 the **IPC channel**, never the child's stdout. This also gives clean error capture (the parent
 buffers the worker's logs), render timeouts, and DI state isolation between renders.
+
+`compose_video` returns a **`resource_link`** pointing at the rendered file rather than inlining
+megabytes of base64 — the client opens or fetches it. Render progress is written to **stderr**
+(`[compose_video] render <id> NN%`), not sent as a protocol notification: the per-request log channel
+is deprecated in the current revision, and stdout is reserved for JSON-RPC framing.
 
 Security is inherited from the core: FFmpeg runs via `execFile` (no shell); remote template URLs are
 SSRF-guarded (private/metadata IPs + redirects blocked, http(s) only); descriptors are
@@ -121,9 +136,8 @@ real (pino-heavy) compile.
 
 ## Not yet (future)
 
-Streamable HTTP transport, MCP resources (`leclap://templates/{name}`), progress notifications,
-remote-URL probing, an async job API. This package is structured tarball-clean but is not yet
-published to npm.
+Streamable HTTP transport, MCP resources (`leclap://templates/{name}`), client-visible progress
+notifications, remote-URL probing, an async job API.
 
 ---
 

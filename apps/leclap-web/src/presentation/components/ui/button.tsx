@@ -18,7 +18,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: `brand-gradient text-white shadow-lg shadow-brand-900/30 hover:-translate-y-0.5 hover:shadow-brand-500/40 ${DISABLED_FILL}`,
+        primary: `brand-gradient text-ghost-3d text-white shadow-lg shadow-brand-900/30 hover:-translate-y-0.5 hover:shadow-brand-500/40 disabled:[text-shadow:none] ${DISABLED_FILL}`,
         secondary: 'bg-surface-2 text-foreground border border-divider hover:-translate-y-0.5 disabled:opacity-50',
         outline: 'border border-divider bg-transparent text-foreground hover:bg-foreground/5 disabled:opacity-50',
         ghost: 'text-gray-300 hover:text-foreground hover:bg-foreground/10 disabled:opacity-50',

@@ -169,7 +169,7 @@ const Placeholder = ({
   return (
     // relative z-10 keeps the empty-state guidance above the template's <Overlays> (which paint after
     // it) — otherwise a centred drawbox/drawtext crosses the text and reads as a cropped title.
-    <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15 p-6 text-center">
+    <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-3 bg-linear-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15 p-6 text-center">
       <span className="grid size-12 place-items-center rounded-2xl bg-white/10 text-white/70 ring-1 ring-white/15">
         <Icon className="size-6" />
       </span>

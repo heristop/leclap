@@ -69,7 +69,7 @@ export const AboutAuthor = () => {
     <section className="glass-panel-dark rounded-2xl p-8 md:p-12 shadow-2xl">
       <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
         <div className="relative group shrink-0">
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-brand-500 to-secondary-500 blur opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+          <div className="absolute -inset-1 rounded-full bg-linear-to-br from-brand-500 to-secondary-500 blur opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
           <img
             src="/images/avatar.webp"
             alt={t('author.avatarAlt')}

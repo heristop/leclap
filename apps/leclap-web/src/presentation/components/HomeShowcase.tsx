@@ -128,7 +128,7 @@ export const HomeShowcase = () => {
           <p className="mt-4 leading-relaxed text-gray-400">{t('showcase.subtitle')}</p>
         </div>
 
-        <div ref={revealScopeRef} className="relative mx-auto mt-8 max-w-4xl [perspective:1400px] sm:mt-12">
+        <div ref={revealScopeRef} className="relative mx-auto mt-8 max-w-4xl perspective-[1400px] sm:mt-12">
           {/* Projector glow — a soft brand aura behind the frame that fades in with it, then slowly
               drifts/breathes (animate-aurora) so the frame reads as lit by a projector. Frozen under
               the global reduced-motion reset. */}
@@ -136,7 +136,7 @@ export const HomeShowcase = () => {
             aria-hidden="true"
             className={cn(
               'animate-aurora pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl transition-opacity duration-1000',
-              'bg-gradient-to-tr from-brand-500/20 via-secondary-500/10 to-accent-400/20',
+              'bg-linear-to-tr from-brand-500/20 via-secondary-500/10 to-accent-400/20',
               revealed ? 'opacity-100' : 'opacity-0'
             )}
           />
@@ -160,7 +160,7 @@ export const HomeShowcase = () => {
               {!shouldLoad && (
                 <div
                   aria-hidden="true"
-                  className="absolute inset-0 animate-pulse bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
+                  className="absolute inset-0 animate-pulse bg-linear-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
                 />
               )}
 

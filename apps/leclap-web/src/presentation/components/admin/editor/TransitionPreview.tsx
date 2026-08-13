@@ -33,7 +33,7 @@ export const TransitionPreview = ({ type, className }: TransitionPreviewProps) =
   if (type === 'cut') {
     return (
       <div className={className}>
-        <div className="grid h-full w-full place-items-center rounded-md bg-gradient-to-br from-secondary-500/70 to-brand-500/70 text-[0.6rem] font-bold uppercase tracking-wider text-white/90">
+        <div className="grid h-full w-full place-items-center rounded-md bg-linear-to-br from-secondary-500/70 to-brand-500/70 text-[0.6rem] font-bold uppercase tracking-wider text-white/90">
           {t('transition.cut')}
         </div>
       </div>

@@ -101,7 +101,7 @@ export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
       <div ref={scrollLayerRef} aria-hidden="true" className="absolute -inset-28 z-0 will-change-transform">
         {/* The film layer counter-moves the pointer slightly — footage behind the glass. */}
         <div className="hero-parallax absolute inset-0 [--parallax:-0.05]">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
+          <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-blue-900 to-purple-900 opacity-80" />
           {stageReady && (
             <video
               ref={videoRef}

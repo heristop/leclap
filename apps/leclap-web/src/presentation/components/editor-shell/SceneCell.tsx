@@ -38,7 +38,7 @@ const PosterTile = ({
 }: Pick<SceneCellProps, 'index' | 'icon' | 'poster' | 'done' | 'active' | 'isNext' | 'durationLabel' | 'compact'>) => (
   <span
     className={cn(
-      'relative grid w-full place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-brand-500/25 to-secondary-500/20',
+      'relative grid w-full place-items-center overflow-hidden rounded-lg bg-linear-to-br from-brand-500/25 to-secondary-500/20',
       compact ? 'h-12' : 'h-16'
     )}
   >

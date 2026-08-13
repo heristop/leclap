@@ -166,7 +166,7 @@ export const PhoneShowcase = () => {
                 {!shouldLoad && (
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 animate-pulse bg-gradient-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
+                    className="absolute inset-0 animate-pulse bg-linear-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
                   />
                 )}
 

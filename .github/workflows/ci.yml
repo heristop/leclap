@@ -23,12 +23,21 @@ jobs:
         uses: actions/checkout@v5
 
       # The real-render/probe media lives in Git LFS; the default checkout leaves pointer files, which
-      # FFmpeg rejects. Fetch the reviewed allowlist (scripts/ci/lfs-test-assets.txt) from the
-      # ci-assets-v1 release bundle over HTTPS instead of `git lfs pull` — release-asset downloads are
-      # not billed against the LFS bandwidth budget. verify-lfs-assets.sh still confirms the files are
-      # materialized and LFS-tracked. Expo destinations are regenerated from creative-kit by
-      # copy-core-assets.ts, so fetching their duplicate paths is unnecessary.
-      - name: Fetch test media (release bundle)
+      # FFmpeg rejects. Fetch the reviewed allowlist (scripts/ci/lfs-test-assets.txt) as a bundle over
+      # HTTPS instead of `git lfs pull` — this repo's LFS budget is exhausted, so LFS downloads 403 and
+      # `git lfs pull` exits 0 having materialized nothing. The bundle URL is resolved from the
+      # manifest's own digest, so no variable here needs updating when media changes; set
+      # CI_MEDIA_BASE_URL to override (see scripts/ci/media-bundle.sh). Expo destinations are
+      # regenerated from creative-kit by copy-core-assets.ts, so fetching their duplicates is unnecessary.
+      # The media pipeline is shell, so it is not covered by vitest. These suites run offline against
+      # fake bundles served over file:// and are the only regression net for the fetch/verify logic.
+      # Invoked with bash rather than pnpm so it does not depend on the toolchain set up below, and
+      # placed BEFORE the fetch so a broken parser or fetcher fails here — with a named assertion —
+      # instead of surfacing as an opaque network error in the step after.
+      - name: Test media pipeline scripts
+        run: bash scripts/ci/test-media-pipeline.sh
+
+      - name: Fetch test media (bundle)
         shell: bash
         run: |
           bash scripts/ci/fetch-test-media.sh
@@ -90,9 +99,10 @@ jobs:
 
       # cli.rs renders from tests/fixtures/sample.mp4, which is stored in Git LFS; the default
       # checkout leaves a pointer file that ffmpeg can't decode. Fetch just that fixture from the
-      # ci-assets-v1 release bundle over HTTPS instead of `git lfs pull` (keeps CI off the LFS
-      # bandwidth budget).
-      - name: Fetch test fixtures (release bundle)
+      # bundle over HTTPS instead of `git lfs pull` (this repo's LFS budget is exhausted). Passing the
+      # path extracts that single member and verifies its SHA-256 against the manifest — until this
+      # was unified with the web fetcher, this job fetched with no verification at all.
+      - name: Fetch test fixture (bundle)
         run: bash scripts/ci/fetch-test-media.sh packages/ffmpeg-engine/tests/fixtures/sample.mp4
 
       - name: Set up Rust

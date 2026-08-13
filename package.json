@@ -28,6 +28,7 @@
     "test:coverage": "vp test run --coverage",
     "test:integration": "pnpm --filter ffmpeg-video-composer test:integration && pnpm --filter @leclap/mcp test:integration",
     "test:build": "pnpm --filter ffmpeg-video-composer build && vp test run packages/ffmpeg-video-composer/tests/build-output.test.ts",
+    "test:scripts": "bash scripts/ci/test-media-pipeline.sh",
     "gen:icons": "node scripts/gen-icons.ts",
     "gen:icons:native": "node scripts/gen-expo-native-icons.ts",
     "deps:check": "depcruise packages/ffmpeg-video-composer/src",
@@ -46,16 +47,16 @@
     "@resvg/resvg-js": "^2.6.2",
     "@swc/core": "^1.15.43",
     "@types/node": "^25.9.4",
-    "@vitest/coverage-v8": "^4.1.9",
-    "@vitest/ui": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/ui": "^4.1.10",
     "dependency-cruiser": "^17.4.3",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "unplugin-swc": "^1.5.9",
     "vite-plugin-checker": "^0.14.4",
-    "vite-plus": "^0.1.24",
+    "vite-plus": "^0.2.9",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=24.11.0"

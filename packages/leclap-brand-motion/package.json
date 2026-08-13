@@ -11,7 +11,8 @@
     "render:marketing": "node render-marketing.ts",
     "render:linkedin": "node render-linkedin.ts",
     "render:banner": "node render-banner.ts",
-    "studio": "remotion studio"
+    "studio": "remotion studio",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.478",

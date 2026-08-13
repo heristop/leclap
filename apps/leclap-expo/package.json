@@ -8,6 +8,7 @@
     "android": "node ../../scripts/copy-core-assets.ts && expo run:android",
     "ios": "node ../../scripts/copy-core-assets.ts && expo run:ios",
     "web": "node ../../scripts/copy-core-assets.ts && expo start --web",
+    "typecheck": "tsc --noEmit",
     "test": "jest -c jest.unit.config.cjs",
     "test:watch": "jest -c jest.unit.config.cjs --watch",
     "test:unit": "jest -c jest.unit.config.cjs",

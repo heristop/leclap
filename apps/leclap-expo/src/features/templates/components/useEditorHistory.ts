@@ -28,7 +28,7 @@ export function useEditorHistory(init: () => EditorState): EditorHistory {
 
   const setState = useCallback((updater: Updater) => {
     setHistory((h) => {
-      const next = typeof updater === 'function' ? (updater as (s: EditorState) => EditorState)(h.present) : updater;
+      const next = typeof updater === 'function' ? updater(h.present) : updater;
 
       if (next === h.present) return h;
 

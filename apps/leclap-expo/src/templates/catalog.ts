@@ -1,6 +1,5 @@
 import type { Template, TemplateDescriptor } from '@/src/types';
 import { expandPartialsSafe } from '@leclap/creative-kit/partials';
-import type { TemplateDescriptor as CreativeKitDescriptor } from '@leclap/creative-kit';
 import { SAMPLE_TEMPLATES, type CatalogTemplate } from './sampleTemplates';
 import type { UserTemplate } from '@/src/stores/useUserTemplateStore';
 
@@ -15,7 +14,7 @@ import type { UserTemplate } from '@/src/stores/useUserTemplateStore';
 // before compile — against the bundled partial registry, so the validator and engine only ever see
 // real sections (matches the web's materializeTemplatePartials and creative-kit's "expanded at load").
 export const expandCatalogPartials = (descriptor: TemplateDescriptor): TemplateDescriptor => {
-  const result = expandPartialsSafe(descriptor as unknown as CreativeKitDescriptor);
+  const result = expandPartialsSafe(descriptor);
 
   if (result.ok) return result.data as TemplateDescriptor;
 

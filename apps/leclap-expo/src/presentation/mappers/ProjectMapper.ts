@@ -1,5 +1,5 @@
 import { Project as DomainProject } from '@/src/domain/entities/Project';
-import type { Project as UIProject, TemplateDescriptor, Orientation } from '@/src/types';
+import type { Project as UIProject, Orientation } from '@/src/types';
 import { VideoMetadata } from '@/src/domain/valueObjects/VideoMetadata';
 import { ProjectStatus } from '@/src/domain/valueObjects/ProjectStatus';
 
@@ -39,8 +39,8 @@ export class ProjectMapper {
       id: domainProject.id,
       name: domainProject.name,
       templateName: domainProject.templateName,
-      templateContent: domainProject.templateContent as TemplateDescriptor,
-      status: domainProject.status as 'draft' | 'processing' | 'completed' | 'failed',
+      templateContent: domainProject.templateContent,
+      status: domainProject.status,
       formData: domainProject.formData,
       recordedVideos,
       outputVideoUri: domainProject.outputVideoUri,

@@ -46,11 +46,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           return (
             <TouchableOpacity key={route.key} onPress={onPress} style={styles.tabItem} activeOpacity={0.7}>
               <View style={isFocused ? styles.activeIconContainer : styles.inactiveIconContainer}>
-                <Ionicons
-                  name={iconName as keyof typeof Ionicons.glyphMap}
-                  size={24}
-                  color={isFocused ? colors.primary : '#888888'}
-                />
+                <Ionicons name={iconName} size={24} color={isFocused ? colors.primary : '#888888'} />
               </View>
               <Text style={[styles.tabLabel, { color: isFocused ? colors.primary : '#888888' }]}>{label}</Text>
             </TouchableOpacity>

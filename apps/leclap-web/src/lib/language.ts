@@ -19,6 +19,22 @@ export const LANGUAGES: ReadonlyArray<{ code: Language; nativeName: string }> = 
 // for multilingual SEO. The active language is therefore derived from the URL, not localStorage.
 export const LOCALE_PREFIXES: Language[] = LANGUAGES.map((l) => l.code).filter((c) => c !== 'en');
 
+/** Where an explicit language choice is remembered. Also read by the redirect script in index.html. */
+export const LANGUAGE_STORAGE_KEY = 'leclap-lang';
+
+/**
+ * Remember a language the visitor picked themselves. The pre-paint redirect in index.html reads this
+ * back on the next visit to the root and honours it over the browser's own languages — so choosing
+ * English on a French browser sticks, instead of being undone by detection on the way back in.
+ */
+export const setStoredLanguage = (lng: Language): void => {
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
+  } catch {
+    /* storage may be unavailable (private mode) — the URL still carries the language */
+  }
+};
+
 const normalize = (lng: string | undefined): Language => {
   const base = (lng ?? '').split('-')[0];
 

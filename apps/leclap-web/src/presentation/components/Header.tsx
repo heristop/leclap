@@ -14,7 +14,7 @@ import { GithubIcon, type GithubIconHandle } from './icons/github';
 import { GlobeIcon } from './icons/globe';
 import { useIconHover } from './icons/useIconHover';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
-import { getLanguage, localePath, LANGUAGES, type Language } from '../../lib/language';
+import { getLanguage, localePath, setStoredLanguage, LANGUAGES, type Language } from '../../lib/language';
 
 type ThemeToggleProps = {
   theme: Theme;
@@ -374,6 +374,9 @@ export const Header = () => {
     if (next === language) {
       return;
     }
+    // Remember it: an explicit pick outranks browser detection on every later landing on the root,
+    // so choosing English on a French browser isn't undone by the redirect in index.html.
+    setStoredLanguage(next);
     // Full navigation (not client-side) so the app re-boots under the new locale prefix: the router
     // basename, i18n language and prerendered <head> all derive from the URL.
     const { pathname, search, hash } = window.location;

@@ -11,6 +11,8 @@ import {
   type TemplateDescriptor,
 } from 'ffmpeg-video-composer';
 
+import { createProgressReporter, type ProgressMessage } from './progress-reporter.js';
+
 // Job sent from the parent over the IPC channel. The parent never reads this process's
 // stdout/stderr for the result — that fd is polluted by the core's console.log/pino — so the
 // outcome travels ONLY via process.send (IPC).
@@ -42,8 +44,16 @@ async function describeOutput(outputPath: string): Promise<WorkerResult> {
   return { ok: true, outputPath, infos, sizeBytes };
 }
 
+// Progress pings are best-effort telemetry: if the channel is gone the render still completes, so
+// this never throws. The terminal result still travels via sendAndExit's acknowledged send.
+function sendProgress(message: ProgressMessage): void {
+  process.send?.(message);
+}
+
 async function runJob(job: RenderJob): Promise<WorkerResult> {
-  const outputPath = await compile(job.projectConfig, job.template);
+  const outputPath = await compile(job.projectConfig, job.template, {
+    onProgress: createProgressReporter(sendProgress),
+  });
 
   if (typeof outputPath !== 'string' || outputPath.length === 0) {
     return { ok: false };

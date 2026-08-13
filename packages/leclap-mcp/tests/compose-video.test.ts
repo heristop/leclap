@@ -15,8 +15,10 @@ vi.mock('../src/compose/renderRunner.js', () => ({
 const runRenderMock = vi.mocked(runRender);
 
 // Minimal McpServer stand-in: captures the handler the tool registers so we can invoke it
-// directly with crafted args, no transport needed.
-type Handler = (args: Record<string, unknown>) => unknown;
+// directly with crafted args, no transport needed. The context is optional here for the same reason
+// it is optional in the handler: most cases don't need a client to notify.
+type Ctx = { mcpReq: { signal?: AbortSignal } };
+type Handler = (args: Record<string, unknown>, ctx?: Ctx) => unknown;
 
 function captureHandler(cfg: McpConfig): Handler {
   let captured: Handler | undefined;
@@ -136,5 +138,73 @@ describe('compose_video handler', () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('Invalid template');
     expect(runRenderMock).not.toHaveBeenCalled();
+  });
+});
+
+const renderOk = {
+  ok: true as const,
+  outputPath: '/tmp/render/output.mp4',
+  durationSeconds: 3,
+  sizeBytes: 42,
+  videoCodec: 'h264',
+  audioCodec: 'aac',
+};
+
+describe('compose_video progress', () => {
+  // Progress is reported on stderr, not as a `notifications/message`: `ctx.mcpReq.log` is deprecated
+  // as of protocol 2026-07-28 (SEP-2577), which names stderr as the STDIO replacement.
+  it('writes each progress fraction the runner reports to stderr', async () => {
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+    runRenderMock.mockImplementation(async (_job, opts) => {
+      opts.onProgress?.(0.25);
+      opts.onProgress?.(1);
+
+      return renderOk;
+    });
+
+    await setup()({ template: clipTemplate, userVideoPaths: await stageClip() });
+
+    const lines = stderr.mock.calls.map((call) => String(call[0])).filter((line) => line.includes('[compose_video]'));
+
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain('25%');
+    expect(lines[1]).toContain('100%');
+    stderr.mockRestore();
+  });
+
+  it('never writes progress to stdout, which carries the JSON-RPC framing', async () => {
+    const stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    runRenderMock.mockImplementation(async (_job, opts) => {
+      opts.onProgress?.(0.5);
+
+      return renderOk;
+    });
+
+    await setup()({ template: clipTemplate, userVideoPaths: await stageClip() });
+
+    expect(stdout).not.toHaveBeenCalled();
+    vi.restoreAllMocks();
+  });
+
+  it('renders without a context (no client to notify)', async () => {
+    runRenderMock.mockResolvedValue(renderOk);
+
+    await expect(setup()({ template: clipTemplate, userVideoPaths: await stageClip() })).resolves.toBeDefined();
+  });
+
+  it('returns the output as a resource link', async () => {
+    runRenderMock.mockResolvedValue(renderOk);
+
+    const result = (await setup()({ template: clipTemplate, userVideoPaths: await stageClip() })) as {
+      content: Array<Record<string, string>>;
+    };
+    const link = result.content.find((block) => block.type === 'resource_link');
+
+    expect(link).toMatchObject({
+      uri: 'file:///tmp/render/output.mp4',
+      mimeType: 'video/mp4',
+      name: 'output.mp4',
+    });
   });
 });

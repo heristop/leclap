@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer';
 
+import type { ProgressMessage } from '../worker/progress-reporter.js';
+
 // One render job, shipped to the forked worker over IPC.
 export interface RenderJob {
   projectConfig: ProjectConfig;
@@ -42,6 +44,36 @@ export interface RenderOptions {
   // Aborts when the MCP client cancels the tool call; kills the worker and frees its slot at once
   // instead of holding it for the full timeout.
   signal?: AbortSignal;
+  // Called with the 0..1 compilation fraction each time the worker reports one. Advisory only: a
+  // progress ping must never settle the render or clear its guards.
+  onProgress?: (fraction: number) => void;
+}
+
+type InboundMessage = WorkerMessage | ProgressMessage;
+
+interface MessageHandlers {
+  onProgress?: (fraction: number) => void;
+  onResult: (message: WorkerMessage) => void;
+}
+
+// `WorkerMessage` has no `kind` field at all, so its presence alone is the discriminator.
+function isProgress(message: InboundMessage): message is ProgressMessage {
+  return 'kind' in message;
+}
+
+/**
+ * Split the IPC stream in two. Progress pings are advisory and recur; exactly one terminal result
+ * message ever arrives, and only that one may settle the render. Exported for unit test — the fork
+ * itself is exercised by the compose-video suite.
+ */
+export function routeWorkerMessage(message: InboundMessage, handlers: MessageHandlers): void {
+  if (isProgress(message)) {
+    handlers.onProgress?.(message.fraction);
+
+    return;
+  }
+
+  handlers.onResult(message);
 }
 
 const GRACE_MS = 5_000;
@@ -237,9 +269,14 @@ function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResul
       opts.signal?.removeEventListener('abort', onAbort);
     }
 
-    child.on('message', (msg: WorkerMessage) => {
-      clearGuards();
-      onMessage(state, msg);
+    child.on('message', (msg: InboundMessage) => {
+      routeWorkerMessage(msg, {
+        onProgress: opts.onProgress,
+        onResult: (result) => {
+          clearGuards();
+          onMessage(state, result);
+        },
+      });
     });
 
     child.on('exit', (code) => {

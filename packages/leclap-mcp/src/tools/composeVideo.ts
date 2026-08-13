@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer';
@@ -155,6 +156,14 @@ function successPayload(result: Extract<RenderResult, { ok: true }>, renderId: s
         type: 'text' as const,
         text: `Rendered ${result.outputPath} (${result.durationSeconds ?? '?'}s, ${result.sizeBytes} bytes).`,
       },
+      // The protocol's pointer-to-an-artifact block: the client can open or fetch the file itself
+      // rather than the server inlining megabytes of base64 mp4 into the conversation.
+      {
+        type: 'resource_link' as const,
+        uri: pathToFileURL(result.outputPath).href,
+        name: path.basename(result.outputPath),
+        mimeType: 'video/mp4',
+      },
     ],
     structuredContent: {
       outputPath: result.outputPath,
@@ -220,7 +229,18 @@ async function finalizeRender(result: Extract<RenderResult, { ok: true }>, args:
   return successPayload({ ...result, outputPath }, renderId);
 }
 
-async function handleCompose(args: ComposeArgs, config: McpConfig, signal?: AbortSignal) {
+// Render progress goes to stderr, not to a `notifications/message`: `ctx.mcpReq.log` is deprecated
+// as of protocol 2026-07-28 (SEP-2577), which names stderr as the replacement for STDIO servers.
+// stderr is also the only channel this server may write diagnostics on — stdout carries JSON-RPC
+// framing and is owned by the stdout guard. Synchronous and never throws, so a render can't fail on
+// its own telemetry.
+function progressLogger(renderId: string): (fraction: number) => void {
+  return (fraction: number): void => {
+    console.error(`[compose_video] render ${renderId} ${Math.round(fraction * 100)}%`);
+  };
+}
+
+async function handleCompose(args: ComposeArgs, config: McpConfig, ctx?: ServerContext) {
   const prepared = await prepareCompose(args, config);
 
   if ('isError' in prepared) {
@@ -232,7 +252,11 @@ async function handleCompose(args: ComposeArgs, config: McpConfig, signal?: Abor
   const projectConfig = await buildProjectConfig(args, prepared.paths, config.outputDir, renderId);
   const result = await runRender(
     { projectConfig, template: prepared.descriptor },
-    { timeoutMs: config.renderTimeoutMs, signal }
+    {
+      timeoutMs: config.renderTimeoutMs,
+      signal: ctx?.mcpReq.signal,
+      onProgress: progressLogger(renderId),
+    }
   );
 
   if (!result.ok) {
@@ -305,8 +329,9 @@ export function registerCompose(server: McpServer, config: McpConfig): void {
       inputSchema,
       outputSchema,
     },
-    // The v2 handler context replaces v1's flat `extra`: the cancellation signal now lives at
-    // `ctx.mcpReq.signal`. Optional so the unit tests can invoke the handler with args alone.
-    (args: ComposeArgs, ctx?: ServerContext) => handleCompose(args, config, ctx?.mcpReq.signal)
+    // The v2 handler context replaces v1's flat `extra`: cancellation lives at `ctx.mcpReq.signal`
+    // and the per-request log channel at `ctx.mcpReq.log`. Optional so the unit tests can invoke the
+    // handler with args alone.
+    (args: ComposeArgs, ctx?: ServerContext) => handleCompose(args, config, ctx)
   );
 }

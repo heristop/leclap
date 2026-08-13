@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { compile } from '@/index';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { testBuildDir } from './fixtures/build-dir';
 
 // Smoke-compiles every bundled creative-kit template through the Node engine so a template (or an
 // engine change) that breaks a real render is caught. The shared `partial` outro (logo-bumper) is
@@ -16,7 +17,7 @@ const templatesDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/te
 const videosDir = path.resolve(libDir, 'videos');
 // A per-file build dir so this suite never shares build/output.mp4 with the other parallel real-compile
 // suites (a sibling's end-of-run cleanup would otherwise delete this file's output mid-render — a race).
-const buildDir = path.resolve(repoRoot, 'build/templates-compile');
+const buildDir = testBuildDir('templates-compile');
 
 // Sample values for any form field a template might reference (extra keys are harmless).
 const FIELDS: Record<string, string> = {

@@ -1,12 +1,9 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { compile } from '@/index';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { testBuildDir } from './fixtures/build-dir';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, '../../..');
-const buildDir = path.resolve(repoRoot, 'build/compile-validation-test');
+const buildDir = testBuildDir('compile-validation-test');
 
 const baseConfig = () =>
   ({

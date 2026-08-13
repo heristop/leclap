@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { compile } from '@/index';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { testBuildDir } from './fixtures/build-dir';
 
 const execFileAsync = promisify(execFile);
 
@@ -20,7 +21,7 @@ const execFileAsync = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
 const libDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
-const buildDir = path.resolve(repoRoot, 'build/still-image-overlay-compile');
+const buildDir = testBuildDir('still-image-overlay-compile');
 
 async function ffprobeDuration(filePath: string): Promise<number> {
   const { stdout } = await execFileAsync('ffprobe', [

@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
 import { compile, FFmpegNodeAdapter } from '@/index';
+import { testBuildDir } from './fixtures/build-dir';
 
 // Template fixtures load via the `@` alias (-> packages/ffmpeg-video-composer/src). Directory paths the engine
 // reads from disk (assets, build output) resolve relative to this test file so the suite runs
@@ -11,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
 // A per-file build dir so the parallel real-compile suites never share build/output.mp4 (compile's
 // end-of-run cleanup would otherwise delete a sibling file's output mid-probe — a flaky race).
-const buildDir = path.resolve(repoRoot, 'build/director');
+const buildDir = testBuildDir('director');
 const assetsDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 
 // Project Configuration

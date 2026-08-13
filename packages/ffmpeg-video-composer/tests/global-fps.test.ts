@@ -1,11 +1,10 @@
-import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { GlobalConfigSchema } from '@/schemas/global.schemas';
 import { compile } from '@/index';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { testBuildDir } from './fixtures/build-dir';
 
 const execFileAsync = promisify(execFile);
 
@@ -44,9 +43,7 @@ describe('global.fps', () => {
   });
 });
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, '../../..');
-const buildDir = path.resolve(repoRoot, 'build/global-fps-test');
+const buildDir = testBuildDir('global-fps-test');
 
 describe('global.fps end-to-end', () => {
   it('compiles a color card at 24 fps', async () => {

@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { compile } from '@/index';
 import { TemplateDescriptorSchema } from '@/schemas/template.schemas';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { testBuildDir } from './fixtures/build-dir';
 
 // Real-render coverage for the ffmpeg-feature sugar added to the descriptor engine: text shadow/outline,
 // LUT looks (lut3d), chroma-key background removal (colorkey) and animated overlay motion (overlay
@@ -18,7 +19,7 @@ const libDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library'
 const fixturesDir = path.resolve(here, 'fixtures');
 // A per-file build dir so this suite never shares build/output.mp4 with the other parallel real-compile
 // suites (a sibling's end-of-run cleanup would otherwise delete this file's output mid-render — a race).
-const buildDir = path.resolve(repoRoot, 'build/effects-fixtures');
+const buildDir = testBuildDir('effects-fixtures');
 
 const FIXTURES = [
   'effects-text',

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { compile } from '@/index';
 import type { CompileReporter, ProjectConfig, TemplateDescriptor } from '@/core/types';
+import { testBuildDir } from './fixtures/build-dir';
 
 // The Node `compile()` accepts an optional reporter so a host (the `leclap` CLI) can render live
 // progress and tee the engine's logs. This proves the wiring end to end on real ffmpeg with the
@@ -13,7 +14,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../../..');
 const libDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 const fixturesDir = path.resolve(here, 'fixtures');
-const buildDir = path.resolve(repoRoot, 'build/compile-reporter');
+const buildDir = testBuildDir('compile-reporter');
 
 function load(id: string): TemplateDescriptor {
   return JSON.parse(fs.readFileSync(path.resolve(fixturesDir, `${id}.json`), 'utf8')) as TemplateDescriptor;

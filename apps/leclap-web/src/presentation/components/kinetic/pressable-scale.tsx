@@ -15,6 +15,14 @@ export interface PressableScaleProps extends Omit<HTMLMotionProps<'button'>, 'ch
   haptic?: HapticInput | null;
 }
 
+// Outcome patterns describe how an action RESOLVED, so they belong on the commit (click). Everything
+// else — 'selection' and friends — describes the press itself and must fire on pointer-DOWN, on the
+// same frame as the scale dip. Fired on click, a press haptic lags its own visual by the whole length
+// of the press, and the two stop reading as one event.
+const OUTCOME_HAPTICS = new Set(['success', 'warning', 'error', 'notification']);
+
+const firesOnCommit = (input: HapticInput): boolean => typeof input === 'string' && OUTCOME_HAPTICS.has(input);
+
 // Tactile tap for anything that isn't a full Button — CTAs, tiles, chips. Dips on press with the
 // shared `tap` spring and fires a best-effort haptic, so the surface has native "give". Renders a
 // real <button> for accessibility. Honours reduced-motion (no scale/lift). Forwards its ref to the
@@ -27,6 +35,7 @@ export const PressableScale = forwardRef<HTMLButtonElement, PressableScaleProps>
     haptic = 'selection',
     className,
     onClick,
+    onPointerDown,
     disabled,
     type = 'button',
     ...props
@@ -34,9 +43,19 @@ export const PressableScale = forwardRef<HTMLButtonElement, PressableScaleProps>
   ref
 ) {
   const reduced = useReducedMotion();
+  const onCommit = haptic !== null && firesOnCommit(haptic);
 
+  // Press feedback rides pointer-down so the buzz and the scale dip land on the same frame.
+  const handlePointerDown: PressableScaleProps['onPointerDown'] = (event) => {
+    if (haptic && !onCommit && !disabled) fireHaptic(haptic);
+
+    onPointerDown?.(event);
+  };
+
+  // Outcome feedback waits for the commit — and still reaches keyboard users, who never send a
+  // pointer event at all.
   const handleClick: PressableScaleProps['onClick'] = (event) => {
-    if (haptic) fireHaptic(haptic);
+    if (haptic && onCommit) fireHaptic(haptic);
 
     onClick?.(event);
   };
@@ -47,6 +66,7 @@ export const PressableScale = forwardRef<HTMLButtonElement, PressableScaleProps>
       type={type}
       disabled={disabled}
       onClick={handleClick}
+      onPointerDown={handlePointerDown}
       className={cn('touch-manipulation', className)}
       whileTap={reduced || disabled ? undefined : { scale: scaleTo }}
       whileHover={reduced || disabled || !hoverLift ? undefined : { y: -2 }}

@@ -81,7 +81,7 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         // Exclude Node.js-only modules that can't be polyfilled
         'boxen',
@@ -117,9 +117,9 @@ export default defineConfig({
           }
 
           // Each entry is a library (or set) that loads on every page; assigning it a fixed chunk name
-          // keeps it in a stable, separately-cacheable group. Radix and react-dropzone are intentionally
-          // absent — they're editor/upload-only, so they stay unassigned and split into their own lazy
-          // route chunks instead of riding along on the landing page.
+          // keeps it in a stable, separately-cacheable group. Radix is intentionally absent — it's
+          // editor-only, so it stays unassigned and splits into its own lazy route chunk instead of
+          // riding along on the landing page.
           const group = VENDOR_GROUPS.find(({ test }) => test.test(id));
 
           return group?.name;

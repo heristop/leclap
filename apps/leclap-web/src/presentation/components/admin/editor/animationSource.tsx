@@ -4,7 +4,7 @@
 // These are the single source for the animation source/playback UI so both consumers reuse them.
 import { useState, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDropzone } from 'react-dropzone';
+import { useMediaDrop, type AcceptSpec, type Rejection } from '@/lib/upload';
 import { Upload, X, Check } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { Button, Checkbox, SegmentedControl } from '@/presentation/components/ui';
@@ -22,6 +22,12 @@ const startCanvasDrag = (event: DragEvent, payload: DropPayload) => {
 };
 
 type Tab = 'library' | 'upload' | 'url';
+
+// Both concrete types (no wildcard), so the picker advertises the extensions alongside them.
+const ANIMATION_ACCEPT: AcceptSpec = [
+  { mime: 'image/apng', extensions: ['.apng'] },
+  { mime: 'video/webm', extensions: ['.webm'] },
+];
 
 // Library cards + upload preview sit on the transparency checker so transparent/white overlays stay
 // readable; the placement panel below (when present) carries its own switchable backdrop.
@@ -253,29 +259,20 @@ interface PaneProps {
   onChange: (value?: AnimationOverlay) => void;
 }
 
-// Reject anything that isn't an .apng / .webm, mirroring the original file-input guard.
-export const isAnimationFile = (file: File): boolean =>
-  /\.(apng|webm)$/i.test(file.name) || file.type === 'image/apng' || file.type === 'video/webm';
-
 const AnimationUploadPane = ({ value, onChange }: PaneProps) => {
   const { t } = useTranslation('admin');
   const [invalid, setInvalid] = useState(false);
 
-  const onDrop = (files: File[]) => {
-    setInvalid(false);
+  // ANIMATION_ACCEPT is the only type guard: useMediaDrop validates against it and hands the
+  // failures back here, so a dropped .gif reports `animation.invalidType` instead of vanishing.
+  const onDrop = (files: File[], rejections: Rejection[]) => {
+    setInvalid(rejections.length > 0);
 
     if (files.length === 0) {
       return;
     }
 
     const file = files[0];
-
-    if (!isAnimationFile(file)) {
-      setInvalid(true);
-
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
@@ -285,10 +282,10 @@ const AnimationUploadPane = ({ value, onChange }: PaneProps) => {
     reader.readAsDataURL(file);
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useMediaDrop({
     onDrop,
-    accept: { 'image/apng': ['.apng'], 'video/webm': ['.webm'] },
-    maxFiles: 1,
+    accept: ANIMATION_ACCEPT,
+    remaining: 1,
     multiple: false,
   });
 

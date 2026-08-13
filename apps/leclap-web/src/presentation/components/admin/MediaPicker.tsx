@@ -1,5 +1,5 @@
 import { useState, useId, useRef, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useMediaDrop, type AcceptSpec } from '@/lib/upload';
 import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Video as VideoIcon, Check, X } from '@/presentation/components/icons';
 import { PlayIcon } from '@/presentation/components/icons/play';
@@ -40,10 +40,12 @@ interface CardProps {
   onPick: () => void;
 }
 
-const ACCEPT: Record<MediaKind, Record<string, string[]>> = {
-  music: { 'audio/*': ['.mp3', '.wav', '.m4a', '.aac', '.ogg'] },
-  picture: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
-  video: { 'video/*': ['.mp4', '.mov', '.webm', '.m4v'] },
+// Wildcard groups: the extensions are for validation and copy only. They must never reach the
+// <input accept> attribute, or iOS/Android stop offering Camera and Photo Library.
+const ACCEPT: Record<MediaKind, AcceptSpec> = {
+  music: [{ mime: 'audio/*', extensions: ['.mp3', '.wav', '.m4a', '.aac', '.ogg'] }],
+  picture: [{ mime: 'image/*', extensions: ['.jpg', '.jpeg', '.png', '.webp'] }],
+  video: [{ mime: 'video/*', extensions: ['.mp4', '.mov', '.webm', '.m4v'] }],
 };
 
 // Per-kind copy + glyph for the upload pane / selected-upload chip / empty state.
@@ -459,10 +461,10 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
       .catch(() => {});
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useMediaDrop({
     onDrop,
     accept: ACCEPT[kind],
-    maxFiles: 1,
+    remaining: 1,
     multiple: false,
   });
 

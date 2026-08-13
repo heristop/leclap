@@ -9,9 +9,9 @@
     "uploadAria": "Upload video files",
     "removeAria": "Remove {{name}}",
     "errorsTitle": "Upload errors:",
-    "errorTooLarge": "{{name}} is too large (max {{size}}MB)",
-    "errorInvalidType": "{{name}} is not a valid video file",
-    "errorTooMany": "Too many files. Maximum {{max}} files allowed",
+    "errorTooLarge": "{{name}} is too large (max {{size}}MB) — trim it or pick a smaller file",
+    "errorInvalidType": "{{name}} isn't a video we can read — try MP4, MOV or WebM",
+    "errorTooMany": "Too many files. Maximum {{max}} — remove one to add another",
     "or": "or",
     "recordWithCamera": "Record with camera",
     "uploadedFiles": "Uploaded Files:"

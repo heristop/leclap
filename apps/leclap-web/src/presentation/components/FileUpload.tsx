@@ -1,13 +1,15 @@
 import { useState, startTransition } from 'react';
-import { useDropzone, type FileRejection } from 'react-dropzone';
-import { X, File, AlertCircle, Video as VideoIcon } from '@/presentation/components/icons';
+import { useMediaDrop, type AcceptSpec, type Rejection } from '@/lib/upload';
+import { MediaDropzone } from '@/presentation/components/upload/media-dropzone';
+import { RejectionSlate } from '@/presentation/components/upload/rejection-slate';
+import { X, File, Video as VideoIcon } from '@/presentation/components/icons';
 import { UploadIcon } from '@/presentation/components/icons/upload';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
-import { Button, Card, Badge } from '@/presentation/components/ui';
+import { Button, Badge } from '@/presentation/components/ui';
 import type { FramingGuideConfig } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import type { CaptureMode, TemplateOrientation } from '@leclap/creative-kit';
 
@@ -40,36 +42,6 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-interface UploadErrorsProps {
-  errors: string[];
-}
-
-function UploadErrors({ errors }: UploadErrorsProps) {
-  const { t } = useTranslation('media');
-
-  if (errors.length === 0) return null;
-
-  return (
-    <Card
-      elevation="flat"
-      className="bg-[var(--color-error)]/10 border-[var(--color-error)]/30 rounded-xl p-4 fade-in backdrop-blur-sm"
-      role="alert"
-    >
-      <div className="flex items-start">
-        <AlertCircle className="w-5 h-5 text-[var(--color-error)] mt-0.5 mr-2 shrink-0" />
-        <div>
-          <h4 className="text-sm font-medium text-[var(--color-error)] mb-1">{t('upload.errorsTitle')}</h4>
-          <ul className="text-sm text-[var(--color-error)]/90 space-y-1">
-            {errors.map((error, index) => (
-              <li key={index}>• {error}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 interface UploadedFileItemProps {
   file: File;
   index: number;
@@ -97,7 +69,7 @@ function UploadedFileItem({ file, index, onRemove }: UploadedFileItemProps) {
         onClick={() => {
           onRemove(index);
         }}
-        className="p-1 text-gray-500 hover:text-[var(--color-error)] [&_svg]:size-4"
+        className="size-11 text-gray-500 hover:text-[var(--color-error)] [&_svg]:size-4"
         aria-label={t('upload.removeAria', { name: file.name })}
       >
         <X />
@@ -106,8 +78,12 @@ function UploadedFileItem({ file, index, onRemove }: UploadedFileItemProps) {
   );
 }
 
+// Wildcard group: the extensions validate and feed the "Supports MP4…" copy, but never reach the
+// <input accept> attribute — that is what keeps Camera and Photo Library in the mobile picker.
+const VIDEO_ACCEPT: AcceptSpec = [{ mime: 'video/*', extensions: ['.mp4', '.avi', '.mov', '.mkv', '.webm'] }];
+
 function collectDropErrors(
-  rejectedFiles: FileRejection[],
+  rejectedFiles: Rejection[],
   maxSizeInMB: number,
   maxFiles: number,
   t: TFunction<'media'>
@@ -126,93 +102,14 @@ function collectDropErrors(
         continue;
       }
 
-      if (error.code === 'too-many-files') {
-        errors.push(t('upload.errorTooMany', { max: maxFiles }));
-        continue;
-      }
+      // RejectionCode is exhaustive, so the remaining case is too-many-files.
+      errors.push(t('upload.errorTooMany', { max: maxFiles }));
     }
   }
 
-  return errors;
-}
-
-interface DropZoneProps {
-  getRootProps: () => Record<string, unknown>;
-  getInputProps: () => Record<string, unknown>;
-  isDragActive: boolean;
-  dragActive: boolean;
-  uploadedFiles: File[];
-  maxFiles: number;
-  maxSizeInMB: number;
-}
-
-function DropZone({
-  getRootProps,
-  getInputProps,
-  isDragActive,
-  dragActive,
-  uploadedFiles,
-  maxFiles,
-  maxSizeInMB,
-}: DropZoneProps) {
-  const { t } = useTranslation('media');
-  const { ref: uploadRef, hoverProps } = useIconHover();
-
-  return (
-    <div
-      {...getRootProps()}
-      {...hoverProps}
-      aria-label={t('upload.uploadAria')}
-      className={clsx(
-        'tap group relative cursor-pointer rounded-2xl border-2 border-dashed p-3.5 text-center transition-all duration-300 fade-in backdrop-blur-sm sm:p-8',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-        isDragActive || dragActive
-          ? 'border-brand-500 bg-brand-500/10 scale-[1.02] shadow-lg shadow-brand-500/10'
-          : 'border-foreground/10 hover:border-brand-500/50 hover:bg-surface/40',
-        uploadedFiles.length >= maxFiles && 'opacity-50 cursor-not-allowed'
-      )}
-    >
-      <input {...getInputProps()} aria-label={t('upload.uploadAria')} />
-
-      {/* Two shapes for one control. Phones get a compact row — icon beside a single "pick a video"
-          line — because there is nothing to drag on a touch device and the tall centered stack pushed
-          the record button (the actual primary action here) below the fold. The full stacked drop
-          target, with its drag copy and format hint, returns at `sm`. */}
-      <div className="flex items-center gap-3 text-left sm:flex-col sm:gap-0 sm:space-y-4 sm:text-center">
-        <div
-          className={clsx(
-            'shrink-0 rounded-full p-2.5 shadow-lg transition-all duration-300 sm:p-4',
-            isDragActive || dragActive
-              ? 'bg-brand-600 text-white scale-110 shadow-brand-500/30'
-              : 'bg-surface text-gray-400 shadow-black/20 group-hover:scale-105 group-hover:text-brand-700 dark:group-hover:text-brand-300'
-          )}
-        >
-          <UploadIcon ref={uploadRef} className="size-5 sm:size-8" />
-        </div>
-
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-foreground sm:hidden">
-            {isDragActive ? t('upload.dropActive') : t('upload.pickFile')}
-          </p>
-          <p className="hidden text-lg font-medium text-foreground sm:block">
-            {isDragActive ? t('upload.dropActive') : t('upload.dropIdle')}
-          </p>
-          <p className="mt-1 hidden text-sm text-gray-400 sm:block">
-            {t('upload.browse', { count: maxFiles - uploadedFiles.length })}
-          </p>
-          <p className="mt-0.5 text-xs text-gray-500 sm:mt-2">{t('upload.formats', { size: maxSizeInMB })}</p>
-        </div>
-      </div>
-
-      {uploadedFiles.length > 0 && (
-        <div className="absolute top-2 right-2">
-          <Badge variant="success" className="normal-case tracking-normal">
-            {t('upload.filesBadge', { count: uploadedFiles.length, max: maxFiles })}
-          </Badge>
-        </div>
-      )}
-    </div>
-  );
+  // One line per distinct complaint: the too-many-files message names no file, so a drop with three
+  // surplus clips would otherwise print the same sentence three times.
+  return [...new Set(errors)];
 }
 
 export const FileUpload = ({
@@ -229,8 +126,10 @@ export const FileUpload = ({
   allowedCaptureModes,
 }: FileUploadProps) => {
   const { t } = useTranslation('media');
-  const [dragActive, setDragActive] = useState(false);
+  const { ref: uploadRef, hoverProps } = useIconHover();
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  // Bumped per accepted drop so the dropzone can replay its landing flourish.
+  const [dropCount, setDropCount] = useState(0);
   const [showCamera, setShowCamera] = useState(false);
 
   const atCapacity = uploadedFiles.length >= maxFiles;
@@ -242,16 +141,14 @@ export const FileUpload = ({
     });
   };
 
-  const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    const errors = collectDropErrors(rejectedFiles, maxSizeInMB, maxFiles, t);
+  // Report rejections WITHOUT discarding what came through: an over-limit drop now yields the files
+  // that fit plus a too-many-files rejection, and the old early return would have thrown them away.
+  const onDrop = (acceptedFiles: File[], rejectedFiles: Rejection[]) => {
+    setUploadErrors(collectDropErrors(rejectedFiles, maxSizeInMB, maxFiles, t));
 
-    if (errors.length > 0) {
-      setUploadErrors(errors);
+    if (acceptedFiles.length === 0) return;
 
-      return;
-    }
-
-    setUploadErrors([]);
+    setDropCount((count) => count + 1);
 
     startTransition(() => {
       const newFiles = [...uploadedFiles, ...acceptedFiles].slice(0, maxFiles);
@@ -266,32 +163,37 @@ export const FileUpload = ({
     });
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useMediaDrop({
     onDrop,
-    accept: {
-      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.webm'],
-    },
-    maxFiles: maxFiles - uploadedFiles.length,
+    accept: VIDEO_ACCEPT,
+    remaining: maxFiles - uploadedFiles.length,
     maxSize: maxSizeInMB * 1024 * 1024,
     multiple: true,
-    onDragEnter: () => {
-      setDragActive(true);
-    },
-    onDragLeave: () => {
-      setDragActive(false);
-    },
+    disabled: atCapacity,
   });
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <DropZone
+      <MediaDropzone
         getRootProps={getRootProps}
         getInputProps={getInputProps}
         isDragActive={isDragActive}
-        dragActive={dragActive}
-        uploadedFiles={uploadedFiles}
-        maxFiles={maxFiles}
-        maxSizeInMB={maxSizeInMB}
+        dropCount={dropCount}
+        disabled={atCapacity}
+        title={isDragActive ? t('upload.dropActive') : t('upload.dropIdle')}
+        compactTitle={isDragActive ? t('upload.dropActive') : t('upload.pickFile')}
+        detail={t('upload.browse', { count: maxFiles - uploadedFiles.length })}
+        hint={t('upload.formats', { size: maxSizeInMB })}
+        icon={<UploadIcon ref={uploadRef} className="size-5 sm:size-6" />}
+        hoverProps={hoverProps}
+        inputAriaLabel={t('upload.uploadAria')}
+        badge={
+          uploadedFiles.length > 0 ? (
+            <Badge variant="success" className="tracking-normal normal-case">
+              {t('upload.filesBadge', { count: uploadedFiles.length, max: maxFiles })}
+            </Badge>
+          ) : undefined
+        }
       />
 
       {/* Record-with-camera alternative to uploading a file. */}
@@ -318,7 +220,7 @@ export const FileUpload = ({
         {t('upload.recordWithCamera')}
       </Button>
 
-      <UploadErrors errors={uploadErrors} />
+      <RejectionSlate title={t('upload.errorsTitle')} messages={uploadErrors} />
 
       {showCamera && (
         <CameraCapture

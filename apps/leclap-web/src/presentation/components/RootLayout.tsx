@@ -65,8 +65,11 @@ export function RootLayout() {
         <Header />
 
         {/* tabIndex={-1} so the skip link can move keyboard focus here, not just scroll — without it
-            focus stays on the link and the next Tab falls back into the header nav. */}
-        <main id="main-content" tabIndex={-1} className="outline-none">
+            focus stays on the link and the next Tab falls back into the header nav.
+            `flex-1` makes main absorb the leftover column space, so a short page (404, an error) can
+            fill the gap with `flex-1` of its own instead of hard-coding `100vh - header` — which
+            overshoots by exactly the footer's height and pushes it below the fold. */}
+        <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
           {/* Lazy routes resolve under this boundary; null fallback avoids a flash on fast chunk loads. */}
           <Suspense fallback={null}>
             <Outlet />

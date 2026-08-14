@@ -6,7 +6,7 @@
 
 **Deterministic, on-device, agent-callable video — composed by prompt or by hand.**
 
-Describe a video in one JSON _template_ — sections, filters, music, overlays — then render the **same template identically** on a phone (React Native, **on-device**) or in the **browser** (WebAssembly). No upload, no server, no generative model: the output is deterministic and reproducible.
+Describe a video in one JSON _template_ — sections, filters, music, overlays — then render **that same template** on a phone (React Native, **on-device**) or in the **browser** (WebAssembly). No upload, no server, no generative model: the render is deterministic and reproducible, not sampled.
 
 [![CI](https://github.com/heristop/leclap/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/leclap/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
@@ -64,7 +64,7 @@ LeClap's corner is **native on-device + reproducible + agent-callable** video, w
 | Authored by an AI agent             |               ✅ MCP                |      ⚠️ an LLM writes React code 🔗      | ✅ MCP (cloud) 🔗 |                 ✅ prompt                 |
 | Composition model                   |            JSON template            |             React components             |   JSON timeline   |                  prompt                   |
 
-<sub><strong>The honest caveats.</strong> "Same input → same output" means <em>per platform</em>, not across platforms: LeClap's on-device build is LGPL (<code>--disable-gpl</code>), so it encodes with <code>libopenh264</code> instead of <code>libx264</code>, drops <code>boxblur</code>, and rewrites <code>eq</code>→<code>lutyuv</code> (see <a href="packages/ffmpeg-video-composer/tests/filter-compat-drop.test.ts"><code>filter-compat-drop.test.ts</code></a>) — same template, same composition, different pixels from the Node build. Remotion's browser renderer carries the mirror-image caveat: it emulates layout onto a canvas rather than screenshotting a page, so it does not match its own server output pixel-for-pixel.</sub>
+<sub><strong>The honest caveats.</strong> "Same input → same output" means <em>per platform</em>, not across platforms — and the gap is wider than one encoder swap. Node and the browser take the libx264-style software path (crf/tune/profile); the on-device build is LGPL (<code>--disable-gpl</code>, no libx264), so <strong>Android</strong> encodes with <code>libopenh264</code> and <strong>iOS</strong> with Apple's hardware <code>h264_videotoolbox</code>, both driven by a bitrate target instead (<a href="packages/ffmpeg-video-composer/src/core/encoding.ts"><code>encoding.ts</code></a> picks the args, <a href="apps/leclap-expo/src/services/compile/CoreCompilationService.ts"><code>CoreCompilationService.ts</code></a> picks the codec per platform). Three targets, three encoders. The on-device filter set is narrower too: <code>boxblur</code> is dropped and <code>eq</code> is rewritten to <code>lutyuv</code> (<a href="packages/ffmpeg-video-composer/tests/filter-compat-drop.test.ts"><code>filter-compat-drop.test.ts</code></a>). Same template, same composition, same cuts — different pixels on each target. Remotion's browser renderer carries the mirror-image caveat: it emulates layout onto a canvas rather than screenshotting a page, so it does not match its own server output pixel-for-pixel.</sub>
 
 <sub>🔗 Claims checked against vendor docs on 2026-08-14: <a href="https://www.remotion.dev/docs/client-side-rendering">Remotion renders client-side "without requiring server-side infrastructure"</a> (stable since 4.0.491; Chrome 94+, Firefox 130+, Safari 26+) but <a href="https://www.remotion.dev/docs/client-side-rendering/limitations">"the browser must support the WebCodecs API"</a>; <a href="https://www.remotion.dev/docs/flickering">"a component should not rely on randomness"</a>; <a href="https://www.remotion.dev/docs/ai/system-prompt">Remotion's agent story is a system prompt that teaches an LLM "the mechanics and rules of Remotion"</a>; <a href="https://shotstack.io/docs/guide/">Shotstack is "a REST based API hosted in the cloud"</a> and ships an <a href="https://shotstack.io/docs/guide/agents/mcp-server">MCP server</a>; <a href="https://developers.openai.com/api/docs/guides/video-generation">OpenAI's video API documents no seed</a> and <a href="https://help.runwayml.com/hc/en-us/articles/37327109429011-Creating-with-Gen-4-Video">Runway's fixed seed yields "similar style and movement"</a>. Something out of date or unfair? Open an issue — we'll fix the table.</sub>
 
@@ -72,14 +72,14 @@ Generative tools can't reproduce a result twice. Cloud renderers can't run in yo
 
 ## 🧰 Highlights
 
-| Highlight                         | What it means                                                                                                                      |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                            |
-| 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, deterministic output.                                                 |
-| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.              |
-| 🤖 **Agent-callable**             | An [MCP server](packages/leclap-mcp) lets an AI agent author & render a template — no LLM in the loop, just deterministic output.  |
-| 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder. |
-| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                      |
+| Highlight                         | What it means                                                                                                                                |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                                      |
+| 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, reproducible on each (the encoder differs per platform, see above).             |
+| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.                        |
+| 🤖 **Agent-callable**             | An [MCP server](packages/leclap-mcp) lets an AI agent author & render a template — no LLM in the output path, so it's rendered, not sampled. |
+| 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder.           |
+| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                                |
 
 ## 🚀 Quick start
 

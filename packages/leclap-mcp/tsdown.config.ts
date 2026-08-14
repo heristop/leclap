@@ -11,6 +11,10 @@ const external = [
   // Optional peer deps for render_remotion_clip — dynamically imported, never bundled.
   '@remotion/bundler',
   '@remotion/renderer',
+  // Probed (not depended on) by remotion-webpack-override to detect TypeScript 7's dropped config
+  // API. Kept external so the compiler never lands inside dist; a failed import means "no TypeScript
+  // here", which is exactly the answer the probe wants.
+  'typescript',
   'child_process',
   'node:child_process',
   'fs',

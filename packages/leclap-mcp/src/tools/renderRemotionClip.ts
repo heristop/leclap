@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
+import { remotionBundleOptions } from './remotion-webpack-override.js';
 
 // bundle() (webpack over an arbitrary entry) and ensureBrowser() (can DOWNLOAD Chromium on first
 // run) are otherwise unbounded — only renderMedia carries a cancel signal. Bound the setup steps too
@@ -67,7 +68,7 @@ function errorResult(text: string): ToolError {
 // Remotion is an OPTIONAL peer dependency, loaded only when this tool runs so the MCP stays
 // self-contained for consumers who don't use it. A missing module surfaces as a clear error.
 type RemotionModules = {
-  bundle: (options: { entryPoint: string }) => Promise<string>;
+  bundle: (options: { entryPoint: string; webpackOverride?: unknown }) => Promise<string>;
   ensureBrowser: () => Promise<unknown>;
   selectComposition: (options: { serveUrl: string; id: string; inputProps?: unknown }) => Promise<{
     width: number;
@@ -168,8 +169,10 @@ async function resolveServeUrl(
     return errorResult(`Remotion entry not found: ${entry}`);
   }
 
+  const options = await remotionBundleOptions(entry);
+
   return {
-    serveUrl: await withTimeout('Remotion bundle', SETUP_TIMEOUT_MS, () => remotion.bundle({ entryPoint: entry })),
+    serveUrl: await withTimeout('Remotion bundle', SETUP_TIMEOUT_MS, () => remotion.bundle(options)),
   };
 }
 

@@ -8,3 +8,9 @@
 apps/leclap-web/public/og-image.png filter=lfs diff=lfs merge=lfs -text
 packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png filter=lfs diff=lfs merge=lfs -text
 packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_5mbmb.png filter=lfs diff=lfs merge=lfs -text
+
+# README/npm artwork, served straight from raw.githubusercontent.com — it has to be the real bytes in
+# the repo, not an LFS pointer. This repo's LFS budget is exhausted (see .github/workflows/ci.yml),
+# so raw.githubusercontent.com would hand GitHub's camo proxy and npm the 131-byte pointer file as
+# text/plain and both would render a broken image. Kept binary (-text) so no eol conversion runs.
+.github/media/** -filter -diff -merge -text

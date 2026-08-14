@@ -63,7 +63,9 @@ describe('render_remotion_clip handler', () => {
     })) as { isError?: boolean; structuredContent?: Record<string, unknown> };
 
     expect(result.isError).toBeUndefined();
-    expect(bundleMock).toHaveBeenCalledWith({ entryPoint: '/proj/src/index.ts' });
+    // objectContaining, not an exact match: bundle() also carries the TypeScript 7 webpack override
+    // when the resolvable TypeScript has dropped the config API (see remotion-webpack-override).
+    expect(bundleMock).toHaveBeenCalledWith(expect.objectContaining({ entryPoint: '/proj/src/index.ts' }));
     expect(selectCompositionMock).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'MyIntro', inputProps: { wordmark: 'ACME' } })
     );
@@ -80,7 +82,7 @@ describe('render_remotion_clip handler', () => {
 
     await captureHandler(withDefault)({ compositionId: 'C' });
 
-    expect(bundleMock).toHaveBeenCalledWith({ entryPoint: '/default/index.ts' });
+    expect(bundleMock).toHaveBeenCalledWith(expect.objectContaining({ entryPoint: '/default/index.ts' }));
   });
 
   it('errors when neither entry, serveUrl, nor a configured default is available', async () => {

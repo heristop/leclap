@@ -47,7 +47,7 @@
       "lead": "Es la mejor herramienta más a menudo de lo que suele reconocer una página comparativa.",
       "composition": {
         "title": "Tu composición es de verdad un árbol de componentes",
-        "body": "Hooks, muelles, interpolación, reutilización de componentes, una vista previa en vivo integrada — cosas expresivas que un descriptor JSON es deliberadamente demasiado estrecho para expresar. Si ya piensas en React, Remotion te deja seguir pensando en React."
+        "body": "Hooks, spring(), interpolación, reutilización de componentes, una vista previa en vivo integrada — cosas expresivas que un descriptor JSON es deliberadamente demasiado estrecho para expresar. Si ya piensas en React, Remotion te deja seguir pensando en React."
       },
       "scale": {
         "title": "Renderizas en servidores, a escala",
@@ -71,7 +71,7 @@
       },
       "privacy": {
         "title": "Los archivos nunca deben salir del dispositivo",
-        "body": "No hay una subida que desactivar, porque no hay subida. Nada se envía a ninguna parte, así que no hay que confiárselo a nadie."
+        "body": "No hay una subida que desactivar, porque no hay subida. Tu material nunca sale del dispositivo: el render ocurre donde está la cámara."
       },
       "agent": {
         "title": "Un agente escribe el vídeo",
@@ -89,6 +89,8 @@
       "limitations": "Remotion — límites del renderizado del lado del cliente",
       "randomness": "Remotion — parpadeo y aleatoriedad",
       "systemPrompt": "Remotion — el prompt de sistema para la IA",
+      "player": "Remotion — el reproductor integrable",
+      "lambda": "Remotion — renderizado en AWS Lambda",
       "readme": "LeClap — la misma tabla, en el README"
     },
     "cta": {

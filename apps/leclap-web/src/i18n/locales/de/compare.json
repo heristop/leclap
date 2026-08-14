@@ -47,7 +47,7 @@
       "lead": "Es ist häufiger das bessere Werkzeug, als eine Vergleichsseite üblicherweise zugibt.",
       "composition": {
         "title": "Deine Komposition wirklich ein Komponentenbaum ist",
-        "body": "Hooks, Federn, Interpolation, Wiederverwendung von Komponenten, eine eingebettete Live-Vorschau — ausdrucksstarke Dinge, für die ein JSON-Deskriptor bewusst zu eng ist. Wer ohnehin in React denkt, darf mit Remotion in React weiterdenken."
+        "body": "Hooks, spring(), Interpolation, Wiederverwendung von Komponenten, eine eingebettete Live-Vorschau — ausdrucksstarke Dinge, für die ein JSON-Deskriptor bewusst zu eng ist. Wer ohnehin in React denkt, darf mit Remotion in React weiterdenken."
       },
       "scale": {
         "title": "Du auf Servern renderst, in großem Maßstab",
@@ -71,7 +71,7 @@
       },
       "privacy": {
         "title": "Die Medien das Gerät nie verlassen dürfen",
-        "body": "Es gibt keinen Upload, den man abschalten müsste, weil es gar keinen Upload gibt. Nichts wird irgendwohin gesendet, also muss niemandem etwas anvertraut werden."
+        "body": "Es gibt keinen Upload, den man abschalten müsste, weil es gar keinen Upload gibt. Dein Material verlässt das Gerät nie — gerendert wird dort, wo die Kamera ist."
       },
       "agent": {
         "title": "Ein Agent das Video schreibt",
@@ -89,6 +89,8 @@
       "limitations": "Remotion — Grenzen des clientseitigen Renderings",
       "randomness": "Remotion — Flackern und Zufall",
       "systemPrompt": "Remotion — der System-Prompt für KI",
+      "player": "Remotion — der einbettbare Player",
+      "lambda": "Remotion — Rendern auf AWS Lambda",
       "readme": "LeClap — dieselbe Tabelle, in der README"
     },
     "cta": {

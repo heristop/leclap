@@ -24,7 +24,7 @@
       "deterministic": {
         "label": "Stesso input, stesso output",
         "leclap": "Per piattaforma — l’encoder cambia, vedi le avvertenze",
-        "remotion": "Per progetto, se la composizione evita la casualità"
+        "remotion": "Per costruzione, se la composizione evita la casualità"
       },
       "agent": {
         "label": "Scritto da un agente IA",
@@ -47,7 +47,7 @@
       "lead": "È lo strumento migliore più spesso di quanto una pagina di confronto ammetta di solito.",
       "composition": {
         "title": "La tua composizione è davvero un albero di componenti",
-        "body": "Hook, molle, interpolazione, riuso di componenti, un’anteprima dal vivo integrata — cose espressive che un descrittore JSON è deliberatamente troppo stretto per dire. Se pensi già in React, Remotion ti lascia continuare a pensare in React."
+        "body": "Hook, spring(), interpolazione, riuso di componenti, un’anteprima dal vivo integrata — cose espressive che un descrittore JSON è deliberatamente troppo stretto per dire. Se pensi già in React, Remotion ti lascia continuare a pensare in React."
       },
       "scale": {
         "title": "Renderizzi su server, su larga scala",
@@ -71,11 +71,11 @@
       },
       "privacy": {
         "title": "I file non devono mai lasciare il dispositivo",
-        "body": "Non c’è un caricamento da disattivare, perché non c’è alcun caricamento. Niente viene inviato da nessuna parte, quindi non serve affidarlo a nessuno."
+        "body": "Non c’è un caricamento da disattivare, perché non c’è alcun caricamento. Il tuo materiale non lascia mai il dispositivo — il rendering avviene dove si trova la fotocamera."
       },
       "agent": {
         "title": "È un agente a scrivere il video",
-        "body": "Il server MCP espone schema, validazione e composizione come strumenti: un modello scrive un modello JSON e il motore lo renderizza. Nessun LLM nel percorso di output — il risultato è renderizzato, non campionato."
+        "body": "Il server MCP espone schema, validazione e composizione come strumenti: un LLM scrive un modello JSON e il motore lo renderizza. Nessun LLM nel percorso di output — il risultato è renderizzato, non campionato."
       },
       "data": {
         "title": "La composizione la genera un programma",
@@ -89,6 +89,8 @@
       "limitations": "Remotion — limiti del rendering lato client",
       "randomness": "Remotion — sfarfallio e casualità",
       "systemPrompt": "Remotion — il system prompt per l’IA",
+      "player": "Remotion — il player integrabile",
+      "lambda": "Remotion — il rendering su AWS Lambda",
       "readme": "LeClap — la stessa tabella, nel README"
     },
     "cta": {

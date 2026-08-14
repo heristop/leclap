@@ -45,6 +45,8 @@ const SOURCES = [
   { id: 'limitations', href: 'https://www.remotion.dev/docs/client-side-rendering/limitations' },
   { id: 'randomness', href: 'https://www.remotion.dev/docs/flickering' },
   { id: 'systemPrompt', href: 'https://www.remotion.dev/docs/ai/system-prompt' },
+  { id: 'player', href: 'https://www.remotion.dev/docs/player' },
+  { id: 'lambda', href: 'https://www.remotion.dev/docs/lambda' },
   { id: 'readme', href: 'https://github.com/heristop/leclap#-why-leclap' },
 ] as const;
 

@@ -47,7 +47,7 @@
       "lead": "C’est le meilleur outil plus souvent qu’une page comparative ne l’admet d’ordinaire.",
       "composition": {
         "title": "Ta composition est vraiment un arbre de composants",
-        "body": "Hooks, ressorts, interpolation, réutilisation de composants, aperçu intégré en direct — autant de choses expressives qu’un descripteur JSON est délibérément trop étroit pour exprimer. Si tu penses déjà en React, Remotion te laisse continuer à penser en React."
+        "body": "Hooks, spring(), interpolation, réutilisation de composants, aperçu intégré en direct — autant de choses expressives qu’un descripteur JSON est délibérément trop étroit pour exprimer. Si tu penses déjà en React, Remotion te laisse continuer à penser en React."
       },
       "scale": {
         "title": "Tu rends sur des serveurs, à grande échelle",
@@ -71,11 +71,11 @@
       },
       "privacy": {
         "title": "Les médias ne doivent jamais quitter l’appareil",
-        "body": "Il n’y a pas d’envoi à désactiver, parce qu’il n’y a pas d’envoi du tout. Rien n’est transmis nulle part, donc rien n’a besoin d’être confié à personne."
+        "body": "Il n’y a pas d’envoi à désactiver, parce qu’il n’y a pas d’envoi du tout. Tes rushes ne quittent jamais l’appareil — le rendu se fait là où se trouve la caméra."
       },
       "agent": {
         "title": "Un agent écrit la vidéo",
-        "body": "Le serveur MCP expose schéma, validation et composition sous forme d’outils : un modèle rédige un modèle JSON et le moteur le rend. Aucun LLM dans la chaîne de sortie — le résultat est rendu, pas échantillonné."
+        "body": "Le serveur MCP expose schéma, validation et composition sous forme d’outils : un LLM rédige un modèle JSON et le moteur le rend. Aucun LLM dans la chaîne de sortie — le résultat est rendu, pas échantillonné."
       },
       "data": {
         "title": "La composition est générée par un programme",
@@ -89,6 +89,8 @@
       "limitations": "Remotion — limites du rendu côté client",
       "randomness": "Remotion — scintillement et aléatoire",
       "systemPrompt": "Remotion — le prompt système pour l’IA",
+      "player": "Remotion — le lecteur intégrable",
+      "lambda": "Remotion — le rendu sur AWS Lambda",
       "readme": "LeClap — le même tableau, dans le README"
     },
     "cta": {

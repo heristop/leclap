@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LOCALIZED_PATHS, localeUrl, OG_LOCALE, SITE_URL, TITLE_VERBATIM_PATHS } from '@/config/site';
+import { LOCALIZED_PATHS, localeUrl, OG_LOCALE, SITE_URL } from '@/config/site';
 import { getLanguage, LANGUAGES, LOCALE_PREFIXES, type Language } from '@/lib/language';
+import { documentTitle } from '@/lib/seo-title';
 
 // The domain, the og:locale map, the URL shape and the set of fully-translated routes all come from
 // the site manifest, which scripts/seo-prerender.ts reads too — so the <head> this component sets at
@@ -69,23 +70,6 @@ function clearAlternates(): void {
 }
 
 /**
- * The document title for a route, matching what scripts/seo-prerender.ts bakes in: the page title
- * suffixed with the brand, unless the route is flagged `titleVerbatim` because its bundle title
- * already reads as a full sentence (the home page, the comparison pages).
- */
-function documentTitle(title: string | undefined, path: string, fallback: string): string {
-  if (title === undefined) {
-    return fallback;
-  }
-
-  if (TITLE_VERBATIM_PATHS.has(path)) {
-    return title;
-  }
-
-  return `${title} — LeClap`;
-}
-
-/**
  * Manages document head SEO tags for the current route. Renders nothing.
  * Drop `<Seo title="…" description="…" path="/…" />` at the top of a page.
  *
@@ -94,13 +78,16 @@ function documentTitle(title: string | undefined, path: string, fallback: string
  * canonicalize to their English root URL. This is the duplicate-content-safe multilingual setup Google
  * expects — distinct URLs tied together by reciprocal hreflang rather than many URLs of similar content.
  */
-export function Seo({ title, description, path = '/', noindex = false }: SeoProps): null {
+export function Seo({ title, description, path, noindex = false }: SeoProps): null {
   const { t } = useTranslation('seo');
   const lng = getLanguage();
+  // `path` is optional, but every URL derived below needs one; only documentTitle cares whether the
+  // caller actually supplied it (see the note there), so it takes the raw prop rather than this.
+  const routePath = path ?? '/';
   const fullTitle = documentTitle(title, path, t('default.title'));
   const desc = description ?? t('default.description');
-  const localized = LOCALIZED_PATHS.has(path);
-  const canonical = localized ? localeUrl(lng, path) : `${SITE_URL}${path}`;
+  const localized = LOCALIZED_PATHS.has(routePath);
+  const canonical = localized ? localeUrl(lng, routePath) : `${SITE_URL}${routePath}`;
   // A non-localized route reached under a locale prefix (e.g. /es/templates, /fr/doc) is a duplicate
   // of its English root URL. The canonical already points there; noindexing the prefixed variant too
   // means only the single root URL can ever be indexed.
@@ -131,14 +118,14 @@ export function Seo({ title, description, path = '/', noindex = false }: SeoProp
     // Reciprocal hreflang: one alternate per language plus x-default → English. Every localized URL
     // lists the same complete set (including itself), which is what Google requires.
     for (const { code } of LANGUAGES) {
-      upsertLink('alternate', localeUrl(code, path), code);
+      upsertLink('alternate', localeUrl(code, routePath), code);
 
       if (code !== lng) {
         appendMeta('og:locale:alternate', OG_LOCALE[code]);
       }
     }
-    upsertLink('alternate', localeUrl('en', path), 'x-default');
-  }, [fullTitle, desc, canonical, effectiveNoindex, localized, lng, path]);
+    upsertLink('alternate', localeUrl('en', routePath), 'x-default');
+  }, [fullTitle, desc, canonical, effectiveNoindex, localized, lng, routePath]);
 
   return null;
 }

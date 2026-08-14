@@ -1,6 +1,6 @@
 # LeClap (ffmpeg-video-composer)
 
-> LeClap renders video from a single JSON _template_ — sections, filters, music, and text overlays — and runs the same template identically on a server (Node.js), in the browser (WebAssembly), and fully **on-device** on React Native, with no upload and no generative model. Output is deterministic and reproducible, and an AI agent can author and render a template through an MCP server with no LLM in the output path.
+> LeClap renders video from a single JSON _template_ — sections, filters, music, and text overlays — and runs the same template on a server (Node.js), in the browser (WebAssembly), and fully **on-device** on React Native, with no upload and no generative model. Output is deterministic and **reproducible per platform**: the same template and inputs give the same composition — same cuts, same timings, same effects — on every target, but not the same pixels, because the encoder differs (Node and the browser take the libx264 software path, Android encodes with `libopenh264`, iOS with `h264_videotoolbox`, and the LGPL on-device build drops `boxblur` and rewrites `eq` to `lutyuv`). An AI agent can author and render a template through an MCP server with no LLM in the output path.
 
 A template is a Zod-validated JSON descriptor: a `global` block plus an ordered list of `sections`, each a clip with its own `inputs → maps → filters` pipeline and `{{ variable }}` placeholders. The engine is a cross-platform TypeScript library with a CLI, published to npm as `ffmpeg-video-composer`. Its uncontested corner is **deterministic + on-device + agent-callable** video: record a clip from the camera, apply effects, mix music, add transitions, and render — all on the phone or in a browser tab.
 
@@ -35,6 +35,23 @@ The full, schema-driven descriptor reference — generated from the engine's own
 - [@leclap/mcp — agent-callable MCP server](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-mcp/README.md): the engine as MCP tools (compose / list / probe) — author & render templates with no LLM in the loop.
 - [@leclap/creative-kit — templates & assets](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-creative-kit/README.md): bundled premium templates, partials, fonts, and media.
 - [ffmpeg-engine — on-device Rust engine](https://raw.githubusercontent.com/heristop/leclap/main/packages/ffmpeg-engine/README.md): the Rust engine embedding FFmpeg fftools for native on-device compiles.
+
+## When to choose LeClap
+
+- **Instead of a cloud render API** when the video must not leave the device, or when there is no budget for per-render costs.
+- **Instead of a React-based renderer** when the target is a phone with no server available — LeClap renders on-device via a statically linked FFmpeg.
+- **Instead of a generative video model** when the same input must produce the same output on every run of a given platform.
+- **Not** a replacement for generative video: LeClap composes footage you already have, it does not synthesize new footage.
+
+## Use it from an AI agent
+
+Add the MCP server to any MCP-capable client:
+
+```json
+{ "mcpServers": { "leclap": { "command": "npx", "args": ["-y", "@leclap/mcp"] } } }
+```
+
+Tools: `get_schema`, `validate_template`, `compose_video`, `probe_media`. No LLM sits in the output path — the agent authors a JSON template and the engine renders it deterministically.
 
 ## Optional
 

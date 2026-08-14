@@ -5,6 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-08-15
+
+### Fixed
+
+- Partial `codecConfig` / `hardwareConfig` / `audioConfig` / `videoConfig` blocks now merge
+  over the defaults instead of replacing them wholesale — a partial `audioConfig` used to
+  drop `channelLayout` and fail every blank-audio section with an invalid
+  `anullsrc=channel_layout=:` argument.
+- `compile()` now fails when the music-mix or overlay finalize pass errors, instead of
+  resolving success with a missing or half-built `output.mp4`.
+- Probing a stream that carries no duration (e.g. WebM/MKV browser captures) yields `null`
+  instead of `NaN`, so the declared `options.duration` fallback applies instead of the
+  render aborting with "No section info found".
+- Music display names with spaces or quotes no longer break the mix: staged music filenames
+  are slugged, and music paths are argv-guarded before command assembly.
+- `@name` map references are matched escaped, end-anchored, and longest-first — an input
+  named `logo` can no longer corrupt `@logo2`, and names carrying regex metacharacters
+  resolve literally instead of misfiring.
+- Animated `drawtext` with numeric `x`/`y` anchors at the authored position instead of the
+  frame origin, and `end={{ section_duration }}` in a filter `range` resolves to the section
+  duration instead of emitting an always-false `between(t,…,NaN)` enable.
+
 ## [2.2.0] - 2026-07-27
 
 ### Added

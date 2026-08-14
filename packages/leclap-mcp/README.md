@@ -8,8 +8,7 @@ template with nice effects** from the schema, then validates and renders it **de
 an mp4. The server ships **no built-in template catalog** — it is decoupled from the app's
 creative-kit — so it stays a generic authoring tool. Remotion-assisted authoring is a bonus path.
 The result is _agent-composable, deterministic, reproducible_ video — the opposite of generative
-(Sora/Runway). Design spec:
-[`docs/superpowers/specs/2026-06-11-leclap-mcp-design.md`](../../docs/superpowers/specs/2026-06-11-leclap-mcp-design.md).
+(Sora/Runway).
 
 ## Tools
 
@@ -68,11 +67,16 @@ keep working — the stdio entry serves both eras from the same tool definitions
 | Setting         | Flag                  | Env                            | Default             |
 | --------------- | --------------------- | ------------------------------ | ------------------- |
 | Output dir      | `--output-dir`        | `LECLAP_MCP_OUTPUT_DIR`        | `~/.leclap/renders` |
-| Media allowlist | `--media-dir`         | `LECLAP_MCP_MEDIA_DIR`         | `~` (home)          |
+| Media allowlist | `--media-dir`         | `LECLAP_MCP_MEDIA_DIR`         | `~/.leclap/media`   |
+| Remotion opt-in | `--allow-remotion`    | `LECLAP_MCP_ALLOW_REMOTION`    | off                 |
 | Render timeout  | `--render-timeout-ms` | `LECLAP_MCP_RENDER_TIMEOUT_MS` | `600000` (10 min)   |
 
 Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoPaths`,
-`probe_media`) must resolve **inside** the media-dir (symlink-safe containment check).
+`probe_media`) must resolve **inside** the media-dir (symlink-safe containment check). The
+media-dir default is deliberately narrow — pointing it at `~` would let any tool call read the
+whole home directory. `render_remotion_clip` executes your project's own JS, so it is registered
+only when the opt-in is set (`--allow-remotion` or `LECLAP_MCP_ALLOW_REMOTION=1`); `leclap init
+--remotion` scaffolds a `.mcp.json` with it enabled.
 
 ### Claude Desktop
 

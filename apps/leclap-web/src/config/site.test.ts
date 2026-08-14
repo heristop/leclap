@@ -27,36 +27,99 @@ function joinPath(parent: string, child: string): string {
   return `${parent === '/' ? '' : parent}/${child}`;
 }
 
+type RouteTag = { attrs: string; selfClosing: boolean };
+
+/**
+ * The `<Route …>` / `</Route>` tags in `App.tsx`, in source order.
+ *
+ * Deliberately not line-based: prettier wraps a <Route> across lines as soon as its attributes get
+ * long, and a line-oriented scanner would simply stop seeing that route — the drift test would keep
+ * passing while the drift it exists to catch shipped. So this walks the source character by
+ * character, tracking brace depth and quotes so the `/>` inside `element={<Home />}` is not mistaken
+ * for the end of the Route tag, and newlines inside a tag are just whitespace.
+ */
+function routeTags(source: string): (RouteTag | 'close')[] {
+  const tags: (RouteTag | 'close')[] = [];
+  let i = 0;
+
+  while (i < source.length) {
+    if (source.startsWith('</Route>', i)) {
+      tags.push('close');
+      i += '</Route>'.length;
+      continue;
+    }
+
+    // `<Route` must be the whole element name: `errorElement={<RouteError />}` is not a route.
+    if (!/^<Route[\s/>]/.test(source.slice(i, i + 7))) {
+      i += 1;
+      continue;
+    }
+
+    let depth = 0;
+    let quote = '';
+    let j = i + '<Route'.length;
+
+    for (; j < source.length; j += 1) {
+      const c = source[j];
+
+      if (quote !== '') {
+        if (c === quote) {
+          quote = '';
+        }
+        continue;
+      }
+
+      if (c === '"' || c === "'") {
+        quote = c;
+        continue;
+      }
+
+      if (c === '{') {
+        depth += 1;
+        continue;
+      }
+
+      if (c === '}') {
+        depth -= 1;
+        continue;
+      }
+
+      if (c === '>' && depth === 0) {
+        break;
+      }
+    }
+
+    const attrs = source.slice(i + '<Route'.length, j);
+    tags.push({ attrs, selfClosing: attrs.trimEnd().endsWith('/') });
+    i = j + 1;
+  }
+
+  return tags;
+}
+
 /**
  * The paths `App.tsx` actually serves, read from its source rather than by importing it — importing
  * the router would pull the whole app (and its WASM-loading pages) into a node-environment test.
- * Every <Route> in that file is a single line, which is what prettier produces and what this parses.
  */
 function routerPaths(source: string): string[] {
   const found: string[] = [];
   const stack: string[] = ['/'];
 
-  for (const raw of source.split('\n')) {
-    const line = raw.trim();
-
-    if (line.startsWith('</Route>')) {
+  for (const tag of routeTags(source)) {
+    if (tag === 'close') {
       stack.pop();
       continue;
     }
 
-    if (!line.startsWith('<Route')) {
-      continue;
-    }
-
     const parent = stack.at(-1) ?? '/';
-    const match = /path="([^"]+)"/.exec(line);
+    const match = /\bpath\s*=\s*"([^"]+)"/.exec(tag.attrs);
     const resolved = match ? joinPath(parent, match[1]) : parent;
 
-    if (match || line.includes('<Route index')) {
+    if (match || /(^|\s)index(\s|$)/.test(tag.attrs)) {
       found.push(resolved);
     }
 
-    if (!line.endsWith('/>')) {
+    if (!tag.selfClosing) {
       stack.push(resolved);
     }
   }
@@ -81,6 +144,28 @@ describe('site route manifests', () => {
     expect(served.size).toBeGreaterThan(20);
     expect(served.has('/')).toBe(true);
     expect(served.has('/doc/sections')).toBe(true);
+  });
+
+  // The failure this guards against is silent: a wrapped route disappears from `served`, and every
+  // assertion below still passes because they only ever check what the parser found.
+  it('sees a route whose attributes are wrapped across lines', () => {
+    const wrapped = [
+      '<Route element={<RootLayout />} errorElement={<RouteError />}>',
+      '  <Route path="/" element={<Home />} />',
+      '  <Route',
+      '    path="/compare/remotion"',
+      '    element={<CompareRemotion />}',
+      '  />',
+      '  <Route path="/doc" element={<DocLayout />}>',
+      '    <Route index element={<DocOverview />} />',
+      '    <Route path="sections" element={<DocSections />} />',
+      '  </Route>',
+      '  <Route path="*" element={<NotFound />} />',
+      '</Route>',
+    ].join('\n');
+
+    // Deduped because an `index` route resolves to its parent's path, which the parent already emitted.
+    expect([...new Set(routerPaths(wrapped))]).toEqual(['/', '/compare/remotion', '/doc', '/doc/sections', '*']);
   });
 
   it('classifies every route the router serves', () => {

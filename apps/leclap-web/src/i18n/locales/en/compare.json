@@ -47,7 +47,7 @@
       "lead": "It is the better tool more often than a comparison page usually admits.",
       "composition": {
         "title": "Your composition is really a component tree",
-        "body": "Hooks, springs, interpolation, component reuse, a live in-page preview — expressive things a JSON descriptor is deliberately too narrow to say. If you are already thinking in React, Remotion lets you keep thinking in React."
+        "body": "Hooks, spring(), interpolation, component reuse, a live in-page preview — expressive things a JSON descriptor is deliberately too narrow to say. If you are already thinking in React, Remotion lets you keep thinking in React."
       },
       "scale": {
         "title": "You render on servers, at scale",
@@ -71,7 +71,7 @@
       },
       "privacy": {
         "title": "The media must never leave the device",
-        "body": "There is no upload step to disable, because there is no upload step. Nothing is sent anywhere, so nothing has to be trusted with it."
+        "body": "There is no upload step to disable, because there is no upload step. Your footage never leaves the device — the render happens where the camera is."
       },
       "agent": {
         "title": "An agent authors the video",
@@ -89,6 +89,8 @@
       "limitations": "Remotion — client-side rendering limitations",
       "randomness": "Remotion — flickering and randomness",
       "systemPrompt": "Remotion — the AI system prompt",
+      "player": "Remotion — the embeddable Player",
+      "lambda": "Remotion — rendering on AWS Lambda",
       "readme": "LeClap — the same table, in the README"
     },
     "cta": {

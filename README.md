@@ -48,7 +48,7 @@ Two looks at LeClap — a finished clip rendered from a single JSON template, an
 
 <div align="center">
 
-![LeClap — one JSON template, rendered on Node, in the browser, and on-device](https://raw.githubusercontent.com/heristop/leclap/main/apps/leclap-web/public/og-image.jpg)
+![A phone composing a LeClap template on-device: tapping Create my video, FFmpeg rendering on the handset, then the finished clip playing back — no upload, no server](https://raw.githubusercontent.com/heristop/leclap/main/.github/media/readme-hero.gif)
 
 </div>
 

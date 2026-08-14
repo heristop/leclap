@@ -4,6 +4,10 @@
     "module": "esnext",
     "target": "es2020",
     "moduleResolution": "bundler",
+    // The render-*.ts entry points are run by `node` directly (type stripping), which resolves
+    // relative imports literally and so needs the `.ts` written out. Only ever type-checked here —
+    // nothing in this package is emitted.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,

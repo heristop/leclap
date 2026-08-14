@@ -5,6 +5,7 @@ import { Banner } from './Banner';
 import { Linkedin } from './Linkedin';
 import { Marketing } from './Marketing';
 import { WebCreate } from './WebCreate';
+import { OnDeviceHero } from './on-device-hero';
 
 const bumperProps = { wordmark: 'LeClap', tagline: 'CINEMATIC VIDEOS, ANYWHERE' };
 const kineticProps = { wordmark: 'LeClap', tagline: 'MOTION, AUTHORED' };
@@ -13,6 +14,9 @@ const linkedinProps = { wordmark: 'LeClap', url: 'leclap.dev · github.com/heris
 const bannerProps = { wordmark: 'LeClap', tagline: 'ON-DEVICE VIDEO COMPOSER' };
 // 23s @ 30fps: 3s bumper + three ~5.6s beats + a CTA (shared shape, see PromoVideo.tsx).
 const PROMO_FRAMES = 690;
+// 9.8s @ 30fps — exactly the length of public/captures/ondevice-render.mp4, so the hero neither
+// freezes on the clip's last frame nor cuts it short.
+const HERO_FRAMES = 294;
 
 // 3s @ 30fps. The marks are centered, so each composition renders cleanly at both aspects.
 // `wordmark`/`tagline` are overridable via inputProps (e.g. the MCP's render_remotion_bumper tool).
@@ -65,6 +69,31 @@ export const RemotionRoot = () => (
       width={1200}
       height={630}
       defaultProps={bumperProps}
+    />
+    {/* GitHub's social preview is a 1280x640 upload — anything else is cropped to it, so this is a
+        separate composition from LeClapOg (1200x630, the og:image the site serves). Same bumper,
+        rendered as a still on its settled last frame by `render:og`. */}
+    <Composition
+      id="LeClapSocialPreview"
+      component={Bumper}
+      durationInFrames={90}
+      fps={30}
+      width={1280}
+      height={640}
+      defaultProps={bumperProps}
+    />
+    {/* The README/npm hero: the Android demo rendering on-device, in a phone frame with the pitch
+        beside it. Encoded to an animated GIF because npm strips GitHub's video attachments, so the
+        npm package page would otherwise show no motion at all.
+        `pnpm --filter @leclap/brand-motion render:hero`. */}
+    <Composition
+      id="LeClapHero"
+      component={OnDeviceHero}
+      durationInFrames={HERO_FRAMES}
+      fps={30}
+      width={1280}
+      height={720}
+      defaultProps={{ wordmark: 'LeClap' }}
     />
     {/* Marketing promo for the web template builder — real /templates/new screen-captures in a browser
         frame with brand captions. Rendered to mp4 via `pnpm --filter @leclap/brand-motion render:marketing`. */}

@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
@@ -79,20 +80,41 @@ async function resolveFfprobeBin(): Promise<string> {
   }
 }
 
+const NO_FFPROBE_MESSAGE =
+  'No ffprobe binary found. Install FFmpeg so `ffprobe` is on PATH, or add the optional `ffprobe-static` package next to @leclap/mcp.';
+
 function resolveStaticFfprobe(): string {
   try {
+    // Not a dependency of this package — an operator opt-in. When installed, its platform binary
+    // is a real ffprobe; nothing in the default install satisfies this require.
     const ffprobeStatic = requireModule('ffprobe-static') as { path: string };
 
     return ffprobeStatic.path;
   } catch {
-    const ffmpegStatic = requireModule('ffmpeg-static') as string | null;
-
-    if (!ffmpegStatic) {
-      throw new Error('No ffprobe binary found (PATH and ffmpeg-static both unavailable).');
-    }
-
-    return ffmpegStatic.replace(/ffmpeg(\.exe)?$/, (_m, ext: string | undefined) => `ffprobe${ext ?? ''}`);
+    return resolveFfprobeBesideFfmpegStatic();
   }
+}
+
+// `ffmpeg-static` ships ONLY an ffmpeg binary — there is no sibling ffprobe in the package — so the
+// name-swapped path is useful solely for layouts where an operator dropped an ffprobe next to it.
+// The existence check turns the old raw `spawn …/ffprobe ENOENT` into the actionable message.
+function resolveFfprobeBesideFfmpegStatic(): string {
+  let candidate: string | null = null;
+
+  try {
+    const ffmpegStatic = requireModule('ffmpeg-static') as string | null;
+    candidate = ffmpegStatic
+      ? ffmpegStatic.replace(/ffmpeg(\.exe)?$/, (_m, ext: string | undefined) => `ffprobe${ext ?? ''}`)
+      : null;
+  } catch {
+    throw new Error(NO_FFPROBE_MESSAGE);
+  }
+
+  if (!candidate || !existsSync(candidate)) {
+    throw new Error(NO_FFPROBE_MESSAGE);
+  }
+
+  return candidate;
 }
 
 // Probe a local file by invoking ffprobe directly via execFile. This captures stdout into a buffer

@@ -134,15 +134,20 @@ function newRenderId(): string {
 async function buildProjectConfig(
   args: ComposeArgs,
   userVideoPaths: Record<string, string>,
-  outputDir: string,
+  config: McpConfig,
   renderId: string
 ): Promise<ProjectConfig> {
-  const buildDir = path.join(outputDir, renderId);
+  const buildDir = path.join(config.outputDir, renderId);
   await fs.mkdir(buildDir, { recursive: true });
 
   return {
     buildDir,
-    assetsDir: buildDir,
+    // The engine treats assetsDir as its read-only asset LIBRARY and as a staged-read root
+    // (assetsDir/tmpdir/buildDir are the only places local descriptor paths may resolve). The
+    // media dir IS this server's library: pointing assetsDir at the fresh buildDir instead used
+    // to make the engine reject descriptor assets under LECLAP_MCP_MEDIA_DIR that probe_media
+    // and the fontfile guard both explicitly allow.
+    assetsDir: config.mediaDir,
     userVideoPaths,
     fields: args.fields,
     currentLocale: args.locale,
@@ -249,7 +254,7 @@ async function handleCompose(args: ComposeArgs, config: McpConfig, ctx?: ServerC
 
   const renderId = newRenderId();
   const buildDir = path.join(config.outputDir, renderId);
-  const projectConfig = await buildProjectConfig(args, prepared.paths, config.outputDir, renderId);
+  const projectConfig = await buildProjectConfig(args, prepared.paths, config, renderId);
   const result = await runRender(
     { projectConfig, template: prepared.descriptor },
     {

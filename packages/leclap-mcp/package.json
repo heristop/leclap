@@ -2,6 +2,24 @@
   "name": "@leclap/mcp",
   "version": "0.3.0",
   "description": "MCP server exposing ffmpeg-video-composer as agent-callable video composition tools",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "agent-tools",
+    "video",
+    "video-composition",
+    "ffmpeg",
+    "leclap",
+    "deterministic",
+    "on-device"
+  ],
+  "homepage": "https://leclap.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heristop/leclap.git",
+    "directory": "packages/leclap-mcp"
+  },
   "author": "heristop",
   "license": "MIT",
   "type": "module",
@@ -45,7 +63,7 @@
     "@types/node": "^25.9.3",
     "tsdown": "^0.22.14",
     "tsx": "^4.23.12",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=24.11.0"

@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-08-15
+
+### Fixed
+
+- `--orientation` now overrides `descriptor.global.orientation` (validated against the
+  engine's own enum) — it used to be forwarded to a config field no engine code reads,
+  silently no-opping and, worse, flipping portrait templates to landscape by clobbering
+  the default video config.
+- `leclap init --remotion` scaffolds `.mcp.json` with `LECLAP_MCP_ALLOW_REMOTION=1`, so
+  the `render_remotion_clip` workflow the generated README documents is actually
+  registered by the server.
+
 ## [0.2.2] - 2026-08-13
 
 ### Changed

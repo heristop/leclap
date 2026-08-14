@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-08-15
+
+### Fixed
+
+- `validate_template` and `compose_video` now run the engine's full `TemplateValidator`
+  (schema plus section-reference, transition, motion, animation, watermark, and font rules)
+  with partials expanded first — a template can no longer validate clean and then fail
+  mid-render, and a `project_video` living inside a partial now surfaces in
+  `requiredClips` and the clip-coverage checks.
+- `compose_video` passes the configured media dir as the engine's assets root, so
+  descriptor asset paths under `LECLAP_MCP_MEDIA_DIR` resolve during renders — they were
+  rejected as "outside the staged media directories" while `probe_media` accepted the
+  same paths.
+- The `probe_media` ffprobe fallback is honest: the name-swapped `ffmpeg-static` path is
+  existence-checked (the package ships no ffprobe) and a missing binary yields an
+  actionable install message instead of a raw spawn error.
+
+### Changed
+
+- The README documents the real media allowlist default (`~/.leclap/media`, not the home
+  directory) and the `--allow-remotion` / `LECLAP_MCP_ALLOW_REMOTION` opt-in that gates
+  `render_remotion_clip`.
+
 ## [0.3.0] - 2026-08-13
 
 ### Added

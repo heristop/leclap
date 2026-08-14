@@ -2,7 +2,7 @@
   "name": "ffmpeg-video-composer",
   "version": "2.2.0",
   "description": "Template-driven video composition: one JSON spec renders on Node, in the browser via WebAssembly, and fully on-device on React Native — powered by FFmpeg.",
-  "homepage": "https://github.com/heristop/leclap#readme",
+  "homepage": "https://leclap.dev",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

@@ -23,7 +23,7 @@ Describe a video in one JSON _template_ — sections, filters, music, overlays �
 
 ## ✨ What is LeClap?
 
-One JSON template. It renders on Node, in the browser via WebAssembly, and **fully on-device on React Native** — same input, same bytes out. No upload, no server, no generative model.
+One JSON template. It renders on Node, in the browser via WebAssembly, and **natively on-device on React Native** — same template, same pipeline, reproducible run after run on a given platform. No upload, no server, no generative model.
 
 ## 🎥 Demo
 
@@ -54,19 +54,21 @@ Two looks at LeClap — a finished clip rendered from a single JSON template, an
 
 ## 🤔 Why LeClap?
 
-LeClap's uncontested corner is **deterministic + on-device + agent-callable** video, where generative tools (Sora/Runway) and backend-bound renderers (Remotion/Shotstack) can't reach: the full loop — record a clip from the camera, apply effects, mix music, add transitions, render — runs on the phone (or a browser tab), and an AI agent can author and render a template with no LLM in the output path.
+LeClap's corner is **native on-device + reproducible + agent-callable** video, where generative tools (Sora/Runway) and cloud renderers (Shotstack) can't reach — and where Remotion, since it ships a browser renderer, reaches by a different route: the full loop — record a clip from the camera, apply effects, mix music, add transitions, render — runs inside your app, and an AI agent can author and render a template with no LLM in the output path.
 
-|                             |  **LeClap**   |               Remotion                |     Shotstack      | Sora / Runway |
-| --------------------------- | :-----------: | :-----------------------------------: | :----------------: | :-----------: |
-| Renders on a phone, offline |      ✅       |        ❌ renders server-side         |    ❌ cloud API    | ❌ cloud API  |
-| Runs with no server         |      ✅       |       ⚠️ needs Node + Chromium        |    ❌ cloud API    | ❌ cloud API  |
-| Same input → same output    |      ✅       | ✅ by design, if you avoid randomness | ⚠️ not documented  |  ❌ no seed   |
-| Authored by an AI agent     |    ✅ MCP     |      ⚠️ an LLM writes React code      | ✅ MCP (cloud API) |   ✅ prompt   |
-| Composition model           | JSON template |           React components            |   JSON timeline    |    prompt     |
+|                                     |             **LeClap**              |                 Remotion                 |     Shotstack     |               Sora / Runway               |
+| ----------------------------------- | :---------------------------------: | :--------------------------------------: | :---------------: | :---------------------------------------: |
+| Renders in a native app, no browser |  ✅ React Native, FFmpeg linked in  |     ❌ needs a WebCodecs browser 🔗      |   ❌ cloud API    |               ❌ cloud API                |
+| Runs with no server                 |                 ✅                  |   ✅ in the browser, since 4.0.491 🔗    |   ❌ cloud API    |               ❌ cloud API                |
+| Same input → same output            | ✅ per platform, see the note below | ✅ by design, if you avoid randomness 🔗 | ⚠️ not documented | ❌ seeds give "similar", not identical 🔗 |
+| Authored by an AI agent             |               ✅ MCP                |      ⚠️ an LLM writes React code 🔗      | ✅ MCP (cloud) 🔗 |                 ✅ prompt                 |
+| Composition model                   |            JSON template            |             React components             |   JSON timeline   |                  prompt                   |
 
-<sub>Claims checked against vendor docs on 2026-08-14: <a href="https://www.remotion.dev/docs/renderer">Remotion renders "server-side"</a> and <a href="https://www.remotion.dev/docs/renderer/render-media">downloads a Chromium binary</a>; <a href="https://www.remotion.dev/docs/flickering">Remotion requires deterministic components</a> ("a component should not rely on randomness"); <a href="https://shotstack.io/docs/guide/">Shotstack is "a REST based API hosted in the cloud"</a> and ships an <a href="https://shotstack.io/docs/guide/agents/mcp-server">MCP server</a>. Corrections welcome via issue.</sub>
+<sub><strong>The honest caveats.</strong> "Same input → same output" means <em>per platform</em>, not across platforms: LeClap's on-device build is LGPL (<code>--disable-gpl</code>), so it encodes with <code>libopenh264</code> instead of <code>libx264</code>, drops <code>boxblur</code>, and rewrites <code>eq</code>→<code>lutyuv</code> (see <a href="packages/ffmpeg-video-composer/tests/filter-compat-drop.test.ts"><code>filter-compat-drop.test.ts</code></a>) — same template, same composition, different pixels from the Node build. Remotion's browser renderer carries the mirror-image caveat: it emulates layout onto a canvas rather than screenshotting a page, so it does not match its own server output pixel-for-pixel.</sub>
 
-Generative tools can't reproduce a result twice. Server renderers can't run in your user's pocket. LeClap gives up generation to get both.
+<sub>🔗 Claims checked against vendor docs on 2026-08-14: <a href="https://www.remotion.dev/docs/client-side-rendering">Remotion renders client-side "without requiring server-side infrastructure"</a> (stable since 4.0.491; Chrome 94+, Firefox 130+, Safari 26+) but <a href="https://www.remotion.dev/docs/client-side-rendering/limitations">"the browser must support the WebCodecs API"</a>; <a href="https://www.remotion.dev/docs/flickering">"a component should not rely on randomness"</a>; <a href="https://www.remotion.dev/docs/ai/system-prompt">Remotion's agent story is a system prompt that teaches an LLM "the mechanics and rules of Remotion"</a>; <a href="https://shotstack.io/docs/guide/">Shotstack is "a REST based API hosted in the cloud"</a> and ships an <a href="https://shotstack.io/docs/guide/agents/mcp-server">MCP server</a>; <a href="https://developers.openai.com/api/docs/guides/video-generation">OpenAI's video API documents no seed</a> and <a href="https://help.runwayml.com/hc/en-us/articles/37327109429011-Creating-with-Gen-4-Video">Runway's fixed seed yields "similar style and movement"</a>. Something out of date or unfair? Open an issue — we'll fix the table.</sub>
+
+Generative tools can't reproduce a result twice. Cloud renderers can't run in your user's pocket. Remotion can render without a server, but it needs a browser engine to do it; LeClap links FFmpeg into the app itself.
 
 ## 🧰 Highlights
 

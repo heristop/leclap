@@ -70,6 +70,8 @@ LeClap's corner is **native on-device + reproducible + agent-callable** video, w
 
 Generative tools can't reproduce a result twice. Cloud renderers can't run in your user's pocket. Remotion can render without a server, but it needs a browser engine to do it; LeClap links FFmpeg into the app itself.
 
+Remotion is the closest neighbour, so it gets a page of its own: **[LeClap vs Remotion](https://leclap.dev/compare/remotion)** — the same table with the reasoning spelled out, including when to pick Remotion.
+
 ## 🧰 Highlights
 
 | Highlight                         | What it means                                                                                                                                |

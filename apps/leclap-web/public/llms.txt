@@ -12,6 +12,7 @@ A template is a Zod-validated JSON descriptor: a `global` block plus an ordered 
 - [FFmpeg fallback strategy](https://raw.githubusercontent.com/heristop/leclap/main/docs/architecture.md): how automatic FFmpeg detection (native / WASM) chooses a backend.
 - [On-device compilation](https://raw.githubusercontent.com/heristop/leclap/main/docs/on-device-compilation.md): the serverless Expo / React Native compile pipeline.
 - [AGENTS.md — repo conventions](https://raw.githubusercontent.com/heristop/leclap/main/AGENTS.md): repo layout, commands, and conventions for contributors and AI agents.
+- [LeClap vs Remotion](https://leclap.dev/compare/remotion): the side-by-side against the closest neighbour — where each one wins, the per-platform determinism caveats, and when to pick Remotion instead. Every claim is sourced to Remotion's own docs.
 
 ## Template descriptor reference (web)
 

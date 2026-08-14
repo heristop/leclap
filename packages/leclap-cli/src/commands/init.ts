@@ -141,6 +141,10 @@ function mcpConfig(projectDir: string, remotion: boolean) {
 
   if (remotion) {
     env.LECLAP_MCP_REMOTION_ENTRY = path.join(projectDir, 'remotion', 'index.ts');
+    // render_remotion_clip executes project-supplied JS, so the server registers it only behind
+    // this explicit opt-in (default off). Without it the scaffolded workflow references a tool
+    // that never appears in tools/list.
+    env.LECLAP_MCP_ALLOW_REMOTION = '1';
   }
 
   // With Remotion the MCP is a local devDep (so it resolves the project's @remotion) — run the local

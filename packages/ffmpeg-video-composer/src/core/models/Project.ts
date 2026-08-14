@@ -66,8 +66,14 @@ class Project {
     this.finalVideo = '';
   };
 
+  // Per-block merge: a caller-provided block only overrides the fields it names, every other
+  // field keeps its default, and config keys outside the four blocks pass through untouched.
+  // The raw config is spread FIRST so the merged blocks win — a trailing spread would re-apply
+  // the caller's raw partial blocks and silently drop the remaining defaults (a partial
+  // `audioConfig: { sampleRate }` used to lose channelLayout and break addBlankAudio's anullsrc).
   applyDefault = () => {
     this.config = {
+      ...this.config,
       codecConfig: {
         videoCodec: DefaultConfig.VIDEO_CODEC,
         audioCodec: DefaultConfig.AUDIO_CODEC,
@@ -90,7 +96,6 @@ class Project {
         ...this.config.videoConfig,
       },
       currentLocale: this.config.currentLocale ?? DefaultConfig.CURRENT_LOCALE,
-      ...this.config,
     };
   };
 

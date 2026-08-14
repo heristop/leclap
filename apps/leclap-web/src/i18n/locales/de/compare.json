@@ -1,0 +1,99 @@
+{
+  "remotion": {
+    "badge": "Ehrlicher Vergleich",
+    "title": "LeClap vs. Remotion",
+    "tagline": "Zwei Wege, Code deterministisch in Video zu verwandeln. Remotion komponiert mit React-Komponenten und rendert in Node oder im Browser. LeClap komponiert aus einer JSON-Vorlage und bindet FFmpeg direkt in die App ein, sodass dieselbe Vorlage auch nativ auf einem Telefon rendert. Hier steht, wo jedes von beiden gewinnt — auch dort, wo Remotion gewinnt.",
+    "table": {
+      "heading": "Gegenüberstellung",
+      "criterion": "Kriterium",
+      "leclap": "LeClap",
+      "remotion": "Remotion",
+      "yes": "Ja",
+      "no": "Nein",
+      "partial": "Teilweise",
+      "native": {
+        "label": "Rendert in einer nativen App, ohne Browser-Engine",
+        "leclap": "React Native, mit in die App eingebundenem FFmpeg",
+        "remotion": "Braucht eine Browser-Engine mit WebCodecs"
+      },
+      "server": {
+        "label": "Läuft ohne Server",
+        "leclap": "Node, Browser (WebAssembly) und auf dem Gerät",
+        "remotion": "Im Browser, stabil seit 4.0.491"
+      },
+      "deterministic": {
+        "label": "Gleiche Eingabe, gleiche Ausgabe",
+        "leclap": "Pro Plattform — der Encoder unterscheidet sich, siehe Einschränkungen",
+        "remotion": "Von Haus aus, sofern die Komposition Zufall meidet"
+      },
+      "agent": {
+        "label": "Von einem KI-Agenten geschrieben",
+        "leclap": "MCP-Tools, ohne LLM im Ausgabepfad",
+        "remotion": "Ein System-Prompt bringt einem LLM React bei"
+      },
+      "model": {
+        "label": "Kompositionsmodell",
+        "leclap": "Zod-validierte JSON-Vorlage",
+        "remotion": "React-Komponenten"
+      }
+    },
+    "caveats": {
+      "title": "Die ehrlichen Einschränkungen",
+      "leclap": "LeClaps Determinismus gilt pro Plattform, nicht plattformübergreifend. Node und der Browser nehmen den Software-Weg im libx264-Stil; der Build für das Gerät ist LGPL, also encodiert Android mit libopenh264 und iOS mit Apples h264_videotoolbox, beide stattdessen über eine Ziel-Bitrate gesteuert. Auch der Filtersatz auf dem Gerät ist schmaler: boxblur entfällt und eq wird zu lutyuv umgeschrieben. Gleiche Vorlage, gleiche Schnitte, gleiches Timing — aber andere Pixel auf jedem Ziel.",
+      "remotion": "Remotions Browser-Renderer trägt die spiegelbildliche Einschränkung: Er emuliert das Layout auf einem Canvas, statt eine Seite abzufotografieren, und trifft deshalb die eigene serverseitige Ausgabe nicht Pixel für Pixel."
+    },
+    "chooseRemotion": {
+      "title": "Nimm Remotion, wenn …",
+      "lead": "Es ist häufiger das bessere Werkzeug, als eine Vergleichsseite üblicherweise zugibt.",
+      "composition": {
+        "title": "Deine Komposition wirklich ein Komponentenbaum ist",
+        "body": "Hooks, Federn, Interpolation, Wiederverwendung von Komponenten, eine eingebettete Live-Vorschau — ausdrucksstarke Dinge, für die ein JSON-Deskriptor bewusst zu eng ist. Wer ohnehin in React denkt, darf mit Remotion in React weiterdenken."
+      },
+      "scale": {
+        "title": "Du auf Servern renderst, in großem Maßstab",
+        "body": "Remotion hat einen dokumentierten, ausgereiften Weg für verteiltes und serverloses Rendern — eine Render-Farm, die du auf eine Warteschlange richtest. LeClap hat dafür kein Gegenstück und baut auch keins."
+      },
+      "ecosystem": {
+        "title": "Du ein reifes Ökosystem willst",
+        "body": "Jahre an Releases, eine große Community, Vorlagen, ein einbettbarer Player, Editor-Pakete und Antworten auf Fragen, die an LeClap noch niemand gestellt hat."
+      },
+      "web": {
+        "title": "Dein Publikum im Web sitzt",
+        "body": "Wenn deine Nutzer einen Browser mit WebCodecs haben, liefert Remotions clientseitiger Renderer bereits ein serverloses Rendering. Die unten beschriebene Lücke bei nativen Apps betrifft dich dann schlicht nicht."
+      }
+    },
+    "chooseLeClap": {
+      "title": "Nimm LeClap, wenn …",
+      "lead": "Die Nische, in der die Browser-Engine das Problem ist, nicht die Plattform.",
+      "native": {
+        "title": "Das Video in einer nativen App entsteht",
+        "body": "Von der Kamera aufnehmen, Effekte anwenden, Musik mischen, Übergänge setzen, rendern — die ganze Schleife läuft in deiner iOS- oder Android-App, mit eingebundenem FFmpeg und ohne jede Browser-Engine im Pfad."
+      },
+      "privacy": {
+        "title": "Die Medien das Gerät nie verlassen dürfen",
+        "body": "Es gibt keinen Upload, den man abschalten müsste, weil es gar keinen Upload gibt. Nichts wird irgendwohin gesendet, also muss niemandem etwas anvertraut werden."
+      },
+      "agent": {
+        "title": "Ein Agent das Video schreibt",
+        "body": "Der MCP-Server stellt Schema, Validierung und Komposition als Tools bereit: Ein Modell schreibt eine JSON-Vorlage, die Engine rendert sie. Kein LLM im Ausgabepfad — das Ergebnis wird gerendert, nicht gesampelt."
+      },
+      "data": {
+        "title": "Die Komposition von einem Programm erzeugt wird",
+        "body": "Ein validierter JSON-Deskriptor lässt sich weit einfacher ausgeben, vergleichen, speichern und prüfen als eine React-Komponente, die man erst kompilieren muss."
+      }
+    },
+    "sources": {
+      "title": "Quellen",
+      "lead": "Jede Aussage über Remotion oben wurde am 14. August 2026 gegen Remotions eigene Dokumentation geprüft. Etwas veraltet oder unfair? Öffne ein Issue, dann korrigieren wir die Tabelle.",
+      "clientSide": "Remotion — clientseitiges Rendering",
+      "limitations": "Remotion — Grenzen des clientseitigen Renderings",
+      "randomness": "Remotion — Flackern und Zufall",
+      "systemPrompt": "Remotion — der System-Prompt für KI",
+      "readme": "LeClap — dieselbe Tabelle, in der README"
+    },
+    "cta": {
+      "prompt": "Neugierig, wie eine JSON-Vorlage tatsächlich aussieht?",
+      "start": "Studio öffnen"
+    }
+  }
+}

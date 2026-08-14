@@ -48,7 +48,17 @@ const seoByLocale = Object.fromEntries(
   await Promise.all(
     LOCALES.map(async (l) => [l, JSON.parse(await readFile(path.join(localesDir, l, 'seo.json'), 'utf8'))] as const)
   )
-) as Record<Locale, { default: SeoEntry; studio: SeoEntry; about: SeoEntry; legal: SeoEntry; privacy: SeoEntry }>;
+) as Record<
+  Locale,
+  {
+    default: SeoEntry;
+    studio: SeoEntry;
+    about: SeoEntry;
+    compareRemotion: SeoEntry;
+    legal: SeoEntry;
+    privacy: SeoEntry;
+  }
+>;
 
 type SeoEntry = { title: string; description: string };
 

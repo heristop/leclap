@@ -16,12 +16,34 @@ describe('README structure', () => {
     expect(demo).toBeLessThan(features);
   });
 
+  // Asserting on the prose is vacuous — the positioning paragraph already name-drops
+  // "(Remotion/Shotstack)". Assert on the table itself, so deleting it turns this red.
   it('carries a comparison table naming the alternatives people already know', () => {
     const why = readme.indexOf('## 🤔 Why LeClap?');
     expect(why, 'Why LeClap? section missing').toBeGreaterThan(-1);
-    const section = readme.slice(why, why + 2000);
-    expect(section).toContain('Remotion');
-    expect(section).toContain('Shotstack');
+
+    const lines = readme.slice(why).split('\n');
+    const headerIndex = lines.findIndex(
+      (line) => line.startsWith('|') && line.includes('Remotion') && line.includes('Shotstack')
+    );
+    expect(headerIndex, 'comparison table header row missing').toBeGreaterThan(-1);
+
+    const columns = lines[headerIndex]
+      .split('|')
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    expect(columns, 'one column per alternative, plus the criterion column').toHaveLength(5);
+    expect(columns.join(' '), 'LeClap needs its own column').toContain('LeClap');
+
+    // a markdown table header is followed by its alignment separator
+    expect(lines[headerIndex + 1], 'header row is not a table header').toMatch(/^\|[\s:|-]+\|$/);
+
+    const rows: string[] = [];
+    for (const line of lines.slice(headerIndex + 2)) {
+      if (!line.startsWith('|')) break;
+      rows.push(line);
+    }
+    expect(rows.length, 'the table has to actually compare something').toBeGreaterThanOrEqual(3);
   });
 
   // npm strips GitHub user-attachment videos, so the npm page must still show motion.

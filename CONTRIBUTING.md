@@ -28,17 +28,19 @@ pnpm --filter ffmpeg-video-composer build   # dist/, read by the diagnose and bu
 pnpm --filter ffmpeg-video-composer test
 ```
 
-Both fetch steps are required. The render suites decode real media that a clone does **not** carry:
+Every step above is load-bearing. The render suites decode real media that a clone does **not** carry:
 the checkout leaves Git LFS pointer files, and FFmpeg rejects those with `moov atom not found`. The
 scripts pull the same digest-pinned bundles CI uses, over plain HTTPS rather than `git lfs pull` —
-this repository's LFS bandwidth budget is exhausted, so LFS downloads return 403. Skip them and 81 of
-the 1412 tests fail; skip the build and 25 more do.
+this repository's LFS bandwidth budget is exhausted, so LFS downloads return 403. Drop a step and the
+suite goes red: 81 of 1412 tests with no media at all, 49 with the test bundle but no build, and 2
+with both (the `video_3.mp4` those two director suites render is covered by the web manifest, not the
+test one).
 
 `--filter=blob:none` fetches file contents lazily, which is worth doing here: the repository carries
-rendered media in its history. Budget four to five minutes end to end on a fast connection — mostly
-the ~350 MB of media and the two-minute render suite. Rust is needed only for
-`packages/ffmpeg-engine`, and Expo only for `apps/leclap-expo` — neither is required to change the
-engine, the CLI, or the MCP server.
+rendered media in its history. The whole sequence took 3m23s on a fast connection — mostly the
+~350 MB of media and the two-minute render suite. Rust is needed only for `packages/ffmpeg-engine`,
+and Expo only for `apps/leclap-expo` — neither is required to change the engine, the CLI, or the MCP
+server.
 
 ## Repository layout
 

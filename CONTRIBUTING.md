@@ -13,6 +13,22 @@ pnpm install     # installs workspace dependencies
 
 `engine-strict` rejects the wrong Node version, so use the pinned toolchain rather than a system install.
 
+### Just want to fix something in the engine?
+
+You do not need Rust, Expo, or the on-device toolchain. The engine and its 77 test files run on
+Node plus any system FFmpeg:
+
+```bash
+git clone --filter=blob:none https://github.com/heristop/leclap.git   # ~7 MB of .git, not ~310 MB
+cd leclap
+pnpm install
+pnpm --filter ffmpeg-video-composer test
+```
+
+`--filter=blob:none` fetches file contents lazily, which is worth doing here: the repository carries
+rendered media in its history. Rust is needed only for `packages/ffmpeg-engine`, and Expo only for
+`apps/leclap-expo` — neither is required to change the engine, the CLI, or the MCP server.
+
 ## Repository layout
 
 This is a pnpm-workspace monorepo (`apps/*`, `packages/*`). The full layout, architecture, and conventions live in **[AGENTS.md](./AGENTS.md)** — read it first; it is the single source of truth.

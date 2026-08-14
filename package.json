@@ -31,6 +31,7 @@
     "test:scripts": "bash scripts/ci/test-media-pipeline.sh",
     "gen:icons": "node scripts/gen-icons.ts",
     "gen:icons:native": "node scripts/gen-expo-native-icons.ts",
+    "sync:repo-meta": "node scripts/sync-repo-metadata.ts",
     "deps:check": "depcruise packages/ffmpeg-video-composer/src",
     "deps:dot": "depcruise packages/ffmpeg-video-composer/src --output-type dot > docs/graph.dot",
     "deps:graph": "depcruise packages/ffmpeg-video-composer/src --output-type dot | dot -T svg > docs/dependency-graph.svg",

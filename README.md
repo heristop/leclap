@@ -23,16 +23,7 @@ Describe a video in one JSON _template_ — sections, filters, music, overlays �
 
 ## ✨ What is LeClap?
 
-LeClap renders video from a single JSON _template_: the same spec — sections, filters, music, text overlays — runs in the browser via WebAssembly and fully **on-device** on React Native, with no upload and no server required. Its uncontested corner is **deterministic + on-device + agent-callable** video, where generative tools (Sora/Runway) and backend-bound renderers (Remotion/Shotstack) can't reach: the full loop — record a clip from the camera, apply effects, mix music, add transitions, render — runs on the phone (or a browser tab), and an AI agent can author and render a template with no LLM in the output path.
-
-| Highlight                         | What it means                                                                                                                      |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                            |
-| 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, deterministic output.                                                 |
-| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.              |
-| 🤖 **Agent-callable**             | An [MCP server](packages/leclap-mcp) lets an AI agent author & render a template — no LLM in the loop, just deterministic output.  |
-| 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder. |
-| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                      |
+One JSON template. It renders on Node, in the browser via WebAssembly, and **fully on-device on React Native** — same input, same bytes out. No upload, no server, no generative model.
 
 ## 🎥 Demo
 
@@ -54,6 +45,39 @@ Two looks at LeClap — a finished clip rendered from a single JSON template, an
     </td>
   </tr>
 </table>
+
+<div align="center">
+
+![LeClap — one JSON template, rendered on Node, in the browser, and on-device](https://raw.githubusercontent.com/heristop/leclap/main/apps/leclap-web/public/og-image.jpg)
+
+</div>
+
+## 🤔 Why LeClap?
+
+LeClap's uncontested corner is **deterministic + on-device + agent-callable** video, where generative tools (Sora/Runway) and backend-bound renderers (Remotion/Shotstack) can't reach: the full loop — record a clip from the camera, apply effects, mix music, add transitions, render — runs on the phone (or a browser tab), and an AI agent can author and render a template with no LLM in the output path.
+
+|                             |  **LeClap**   |               Remotion                |     Shotstack      | Sora / Runway |
+| --------------------------- | :-----------: | :-----------------------------------: | :----------------: | :-----------: |
+| Renders on a phone, offline |      ✅       |        ❌ renders server-side         |    ❌ cloud API    | ❌ cloud API  |
+| Runs with no server         |      ✅       |       ⚠️ needs Node + Chromium        |    ❌ cloud API    | ❌ cloud API  |
+| Same input → same output    |      ✅       | ✅ by design, if you avoid randomness | ⚠️ not documented  |  ❌ no seed   |
+| Authored by an AI agent     |    ✅ MCP     |      ⚠️ an LLM writes React code      | ✅ MCP (cloud API) |   ✅ prompt   |
+| Composition model           | JSON template |           React components            |   JSON timeline    |    prompt     |
+
+<sub>Claims checked against vendor docs on 2026-08-14: <a href="https://www.remotion.dev/docs/renderer">Remotion renders "server-side"</a> and <a href="https://www.remotion.dev/docs/renderer/render-media">downloads a Chromium binary</a>; <a href="https://www.remotion.dev/docs/flickering">Remotion requires deterministic components</a> ("a component should not rely on randomness"); <a href="https://shotstack.io/docs/guide/">Shotstack is "a REST based API hosted in the cloud"</a> and ships an <a href="https://shotstack.io/docs/guide/agents/mcp-server">MCP server</a>. Corrections welcome via issue.</sub>
+
+Generative tools can't reproduce a result twice. Server renderers can't run in your user's pocket. LeClap gives up generation to get both.
+
+## 🧰 Highlights
+
+| Highlight                         | What it means                                                                                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                            |
+| 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, deterministic output.                                                 |
+| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.              |
+| 🤖 **Agent-callable**             | An [MCP server](packages/leclap-mcp) lets an AI agent author & render a template — no LLM in the loop, just deterministic output.  |
+| 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder. |
+| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                      |
 
 ## 🚀 Quick start
 

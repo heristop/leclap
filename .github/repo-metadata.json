@@ -1,0 +1,23 @@
+{
+  "description": "Deterministic video composition from one JSON template — renders on Node, in the browser via WebAssembly, and fully on-device on React Native. No server, no upload, no generative model. Agent-callable over MCP.",
+  "homepage": "https://leclap.dev",
+  "topics": [
+    "ffmpeg",
+    "ffmpeg-wrapper",
+    "video-composition",
+    "video-editing",
+    "video-processing",
+    "on-device",
+    "webassembly",
+    "wasm",
+    "react-native",
+    "expo",
+    "nodejs",
+    "typescript",
+    "rust",
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "leclap"
+  ]
+}

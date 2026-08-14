@@ -60,7 +60,9 @@ export const RemotionRoot = () => (
       defaultProps={kineticProps}
     />
     {/* 1200x630 social card (og:image / twitter:image). Rendered as a still on the settled
-        final frame via `pnpm --filter @leclap/brand-motion render:og`. */}
+        final frame via `pnpm --filter @leclap/brand-motion render:og`.
+        Same crowding as the GitHub card — 547px of stack in a 630px frame leaves ~19px above the disc
+        once the -22px lift applies. Scaled so the mark keeps a margin wherever a feed crops it. */}
     <Composition
       id="LeClapOg"
       component={Bumper}
@@ -68,11 +70,14 @@ export const RemotionRoot = () => (
       fps={30}
       width={1200}
       height={630}
-      defaultProps={bumperProps}
+      defaultProps={{ ...bumperProps, scale: 0.82 }}
     />
     {/* GitHub's social preview is a 1280x640 upload — anything else is cropped to it, so this is a
         separate composition from LeClapOg (1200x630, the og:image the site serves). Same bumper,
-        rendered as a still on its settled last frame by `render:og`. */}
+        rendered as a still on its settled last frame by `render:og`.
+        Scaled to 0.78: at 1:1 the stack leaves ~14px above the disc once the push settles, so the mark
+        reads as clipped in GitHub's card and gets cut outright by platforms that crop tighter than 2:1
+        (X renders link cards nearer 1.91:1). 0.78 buys ~100px of top and bottom margin. */}
     <Composition
       id="LeClapSocialPreview"
       component={Bumper}
@@ -80,7 +85,7 @@ export const RemotionRoot = () => (
       fps={30}
       width={1280}
       height={640}
-      defaultProps={bumperProps}
+      defaultProps={{ ...bumperProps, scale: 0.78 }}
     />
     {/* The README/npm hero: the Android demo rendering on-device, in a phone frame with the pitch
         beside it. Encoded to an animated GIF because npm strips GitHub's video attachments, so the

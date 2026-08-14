@@ -22,9 +22,16 @@ export interface BumperProps {
   wordmark?: string;
   /** The small tagline under the wordmark (rendered uppercase). */
   tagline?: string;
+  /**
+   * Uniform scale on the mark + wordmark stack. The stack is a fixed ~547px tall (disc 328, gap 44,
+   * wordmark 132, gap 14, tagline 29), which fits a square frame but crowds a short one: at 1280x640
+   * the settled push (1.06) and the -22px lift put the disc within ~14px of the top edge, and social
+   * platforms crop further still. Scale it down for wide cards so the mark keeps a real margin.
+   */
+  scale?: number;
 }
 
-export const Bumper = ({ wordmark = 'LeClap', tagline = 'CINEMATIC VIDEOS, ANYWHERE' }: BumperProps) => {
+export const Bumper = ({ wordmark = 'LeClap', tagline = 'CINEMATIC VIDEOS, ANYWHERE', scale = 1 }: BumperProps) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const r = (s: number) => Math.round(s * fps);
@@ -92,7 +99,9 @@ export const Bumper = ({ wordmark = 'LeClap', tagline = 'CINEMATIC VIDEOS, ANYWH
           flexDirection: 'column',
           alignItems: 'center',
           gap: 44,
-          transform: 'translateY(-22px)',
+          // The -22px lift centres the stack optically (the tagline reads lighter than the disc), but
+          // it eats top margin, so it scales with the stack rather than staying a fixed 22px.
+          transform: `scale(${scale}) translateY(${-22 * scale}px)`,
         }}
       >
         <div

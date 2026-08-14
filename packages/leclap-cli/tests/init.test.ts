@@ -63,6 +63,10 @@ describe('starterFiles (mcp + remotion)', () => {
     expect(env.LECLAP_MCP_MEDIA_DIR).toBe('/abs/demo');
     expect(env.LECLAP_MCP_OUTPUT_DIR).toBe('/abs/demo/build');
     expect(env.LECLAP_MCP_REMOTION_ENTRY).toBe('/abs/demo/remotion/index.ts');
+    // Regression guard: the server registers render_remotion_clip only behind this opt-in
+    // (default off), so a scaffold that sets the entry but not the opt-in ships a README whose
+    // headline tool never appears in tools/list.
+    expect(env.LECLAP_MCP_ALLOW_REMOTION).toBe('1');
     // With Remotion the MCP must run from the local devDep (no `-y`) so it resolves @remotion.
     expect(args).toEqual(['@leclap/mcp']);
   });

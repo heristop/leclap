@@ -88,11 +88,14 @@
       })();
     </script>
 
-    <!-- Structured data: the web app itself -->
+    <!-- Structured data: the web app itself. It carries an @id so the SoftwareSourceCode block
+         below can point at it (targetProduct) instead of leaving two unlinked top-level entities,
+         which would make the page's primary subject ambiguous to a consumer. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
+        "@id": "https://leclap.dev/#webapp",
         "name": "LeClap",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Any (modern web browser)",
@@ -111,7 +114,9 @@
       {
         "@context": "https://schema.org",
         "@type": "SoftwareSourceCode",
+        "@id": "https://leclap.dev/#source",
         "name": "LeClap",
+        "targetProduct": { "@id": "https://leclap.dev/#webapp" },
         "description": "Deterministic video composition from one JSON template — renders on Node, in the browser via WebAssembly, and fully on-device on React Native. No server, no upload, no generative model. Agent-callable over MCP.",
         "codeRepository": "https://github.com/heristop/leclap",
         "programmingLanguage": ["TypeScript", "Rust"],

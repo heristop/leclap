@@ -102,6 +102,24 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
+    <!-- Structured data: the open-source project behind the app. The description is the canonical
+         one-liner from .github/repo-metadata.json — same pitch on GitHub, on npm and here, so a
+         crawler that reads any one of them summarises the project the same way. It says
+         "deterministic" and names the runtimes; it deliberately does not claim identical bytes
+         across them (the encoder differs per platform — see the caveat table in README.md). -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "LeClap",
+        "description": "Deterministic video composition from one JSON template — renders on Node, in the browser via WebAssembly, and fully on-device on React Native. No server, no upload, no generative model. Agent-callable over MCP.",
+        "codeRepository": "https://github.com/heristop/leclap",
+        "programmingLanguage": ["TypeScript", "Rust"],
+        "runtimePlatform": ["Node.js", "WebAssembly", "React Native"],
+        "license": "https://opensource.org/licenses/MIT",
+        "author": { "@type": "Person", "name": "Alexandre Mogère" }
+      }
+    </script>
     <!-- Apply the theme before paint to avoid a flash of the wrong one. Default is the OS color
          scheme; a saved choice (only written when the user toggles) overrides it. -->
     <script>

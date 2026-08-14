@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { ProjectConfig } from 'ffmpeg-video-composer';
+import { OrientationSchema, type ProjectConfig, type TemplateDescriptor } from 'ffmpeg-video-composer';
 
 // Pure assembly of a render's ProjectConfig from CLI flags — kept out of the command so it is unit
 // testable without touching the filesystem or the engine.
@@ -11,7 +11,7 @@ export interface RenderFlags {
   video?: string[];
   /** `--locale` → `currentLocale`. */
   locale?: string;
-  /** `--orientation` → `videoConfig.orientation`. */
+  /** `--orientation` → overrides `descriptor.global.orientation` (see withOrientation). */
   orientation?: string;
   /** `--assets` dir override (resolved vs cwd; defaults to `<cwd>/assets`). */
   assets?: string;
@@ -67,9 +67,25 @@ export function buildProjectConfig(cwd: string, flags: RenderFlags): ProjectConf
     config.currentLocale = flags.locale;
   }
 
-  if (flags.orientation) {
-    config.videoConfig = { orientation: flags.orientation };
+  return config;
+}
+
+/**
+ * Apply the `--orientation` override to the loaded template. The engine resolves orientation from
+ * `descriptor.global.orientation` (TemplateDirector), never from ProjectConfig — the old
+ * `videoConfig: { orientation }` forwarding was a silent no-op. Validates against the engine's own
+ * enum so a typo fails fast with the flag name instead of a schema error mid-compile.
+ */
+export function withOrientation(template: TemplateDescriptor, orientation: string | undefined): TemplateDescriptor {
+  if (!orientation) {
+    return template;
   }
 
-  return config;
+  const parsed = OrientationSchema.safeParse(orientation);
+
+  if (!parsed.success) {
+    throw new Error(`--orientation expects ${OrientationSchema.options.join(' | ')}, got "${orientation}"`);
+  }
+
+  return { ...template, global: { ...template.global, orientation: parsed.data } };
 }

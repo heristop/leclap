@@ -13,7 +13,7 @@ import {
 } from 'ffmpeg-video-composer';
 import { setEngineLogLevel } from '../log.js';
 import { LiveRenderer } from '../render-progress.js';
-import { buildProjectConfig, type RenderFlags } from '../render-args.js';
+import { buildProjectConfig, withOrientation, type RenderFlags } from '../render-args.js';
 import { summaryLine, safeSize } from '../render-format.js';
 import { watchPaths } from '../watch.js';
 import { fail, hint, step } from '../ui.js';
@@ -23,6 +23,8 @@ import { wordmark, statusRow, ok, bad, dot } from '../theme.js';
 interface RenderOptions {
   templatePath: string;
   projectConfig: ProjectConfig & { buildDir: string };
+  /** `--orientation` override, applied to the loaded descriptor each compile (watch re-loads). */
+  orientation?: string;
   outputAbs?: string;
   quiet: boolean;
   json: boolean;
@@ -94,7 +96,7 @@ async function finalizeOutput(result: string, outputAbs: string | undefined): Pr
 
 // Re-load the template (so watch picks up edits), compile, and place the output. Throws on failure.
 async function compileOnce(opts: RenderOptions, reporter?: CompileReporter): Promise<string> {
-  const template = await loadConfig(opts.templatePath);
+  const template = withOrientation(await loadConfig(opts.templatePath), opts.orientation);
   const result = await compile(opts.projectConfig, template, reporter);
 
   if (!result) throw new Error('Compilation failed to produce output');
@@ -161,6 +163,7 @@ function buildOptions(templatePath: string, flags: RenderFlags, mode: ModeFlags)
     return {
       templatePath,
       projectConfig: buildProjectConfig(process.cwd(), flags),
+      orientation: flags.orientation,
       outputAbs: mode.output ? path.resolve(process.cwd(), mode.output) : undefined,
       quiet: mode.quiet,
       json: mode.json,

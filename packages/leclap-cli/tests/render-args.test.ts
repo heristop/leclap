@@ -1,6 +1,32 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { parseKeyValues, buildProjectConfig } from '../src/render-args';
+import { parseKeyValues, buildProjectConfig, withOrientation } from '../src/render-args';
+
+describe('withOrientation', () => {
+  const template = {
+    global: { orientation: 'portrait', musicEnabled: true },
+    sections: [{ name: 'intro', type: 'video' }],
+  } as Parameters<typeof withOrientation>[0];
+
+  it('returns the template untouched when no orientation flag was passed', () => {
+    expect(withOrientation(template, undefined)).toBe(template);
+  });
+
+  // The engine reads orientation from descriptor.global.orientation (TemplateDirector), never from
+  // ProjectConfig — so the flag must override the descriptor to have any effect.
+  it('overrides descriptor.global.orientation without mutating the loaded template', () => {
+    const out = withOrientation(template, 'landscape');
+
+    expect(out.global?.orientation).toBe('landscape');
+    expect(out.global?.musicEnabled).toBe(true);
+    expect(out.sections).toBe(template.sections);
+    expect(template.global?.orientation).toBe('portrait');
+  });
+
+  it('rejects a value the engine schema would refuse', () => {
+    expect(() => withOrientation(template, 'diagonal')).toThrow(/--orientation/);
+  });
+});
 
 describe('parseKeyValues', () => {
   it('parses key=value pairs into a record', () => {
@@ -42,7 +68,7 @@ describe('buildProjectConfig', () => {
     expect(cfg.fields).toEqual({});
   });
 
-  it('merges fields, resolves userVideoPaths vs cwd, and sets locale + orientation', () => {
+  it('merges fields, resolves userVideoPaths vs cwd, and sets locale', () => {
     const cfg = buildProjectConfig(cwd, {
       field: ['title=Hi'],
       video: ['intro=clips/intro.mp4'],
@@ -52,7 +78,10 @@ describe('buildProjectConfig', () => {
     expect(cfg.fields).toEqual({ title: 'Hi' });
     expect(cfg.userVideoPaths).toEqual({ intro: path.resolve(cwd, 'clips/intro.mp4') });
     expect(cfg.currentLocale).toBe('fr');
-    expect(cfg.videoConfig?.orientation).toBe('portrait');
+    // Regression guard: --orientation used to be forwarded as videoConfig.orientation, a field no
+    // engine code reads — and the bare block also clobbered the engine's videoConfig defaults. The
+    // flag now overrides the descriptor instead (see withOrientation).
+    expect(cfg.videoConfig).toBeUndefined();
   });
 
   it('honors --assets and --build overrides (resolved vs cwd)', () => {

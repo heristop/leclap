@@ -1,0 +1,81 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.heristop/leclap",
+  "title": "LeClap",
+  "description": "Compose and render video from one JSON template. Deterministic, runs locally, no generative model.",
+  "version": "0.3.0",
+  "websiteUrl": "https://leclap.dev",
+  "repository": {
+    "url": "https://github.com/heristop/leclap",
+    "source": "github",
+    "subfolder": "packages/leclap-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@leclap/mcp",
+      "version": "0.3.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "LECLAP_MCP_OUTPUT_DIR",
+          "description": "Directory rendered videos are written to. Defaults to ~/.leclap/renders.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_MEDIA_DIR",
+          "description": "Allowlisted directory the server may read source media from. Defaults to ~/.leclap/media.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_RENDER_TIMEOUT_MS",
+          "description": "Per-render timeout in milliseconds. Defaults to 600000.",
+          "format": "number",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_ALLOW_REMOTION",
+          "description": "Opt in to the Remotion clip renderer, which executes local JavaScript. Off by default.",
+          "format": "boolean",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "io.github.heristop.leclap": {
+        "tools": [
+          {
+            "name": "get_template_schema",
+            "description": "Return the authoritative template descriptor JSON Schema plus the authoring guide."
+          },
+          {
+            "name": "validate_template",
+            "description": "Validate a template without rendering and report the clips and fields compose_video will require."
+          },
+          {
+            "name": "compose_video",
+            "description": "Render a template to an MP4 with FFmpeg and return the output path."
+          },
+          {
+            "name": "probe_media",
+            "description": "Inspect a local media file and report its streams, duration, and dimensions."
+          }
+        ],
+        "prompts": ["compose-video"],
+        "notes": "render_remotion_clip is registered only when LECLAP_MCP_ALLOW_REMOTION is set, because it executes caller-supplied local JavaScript."
+      }
+    }
+  }
+}

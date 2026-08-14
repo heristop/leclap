@@ -621,6 +621,22 @@ describe('FilterManager', () => {
     expect(out).toBe('multi:drawtext');
   });
 
+  // Regression guard: bakeTextAnimation coerced schema-valid NUMERIC x/y (FilterValuesSchema allows
+  // number | string) to '0', so a positioned drawtext with a reveal animated around the frame origin
+  // and settled at the top-left instead of its authored position.
+  it('bakes a reveal animation around a numeric base position', () => {
+    const { manager, formatters } = build({ section: { name: 's', type: 'video', options: { duration: 5 } } });
+    manager.addFilter({
+      type: 'drawtext',
+      reveal: 'rise',
+      values: { text: { en: 'Hi' }, x: 100, y: 500 },
+    } as unknown as Filter);
+
+    const baked = formatters.formatMultipleTypesValues.mock.calls.at(-1)?.[0] as Filter;
+    expect(String(baked.values?.y)).toContain('(500)');
+    expect(String(baked.values?.y)).not.toContain('(0)');
+  });
+
   it('returns the bare type when neither value nor values present', () => {
     const { manager } = build();
     expect(manager.addFilter({ type: 'hflip' } as Filter)).toBe('hflip');
@@ -677,6 +693,24 @@ describe('FilterManager', () => {
       const filter = { type: 'overlay', value: 'v', range: 'start=1:end=6' } as Filter;
       const out = manager.remapEnableBetweenSuffix(filter);
       expect(out.value).toContain('between(t,1,6)');
+    });
+
+    // Regression guard: parseFloat used to run on the RAW end text, so the documented
+    // `end={{ section_duration }}` token parsed to NaN, slipped past the undefined check, and
+    // emitted between(t,…,NaN) — an enable expression that is never true, silently disabling
+    // the filter for the whole section.
+    it('resolves an end={{ section_duration }} token to the section duration', () => {
+      const { manager } = build({ section: { name: 's', type: 'video', options: { duration: 6 } } });
+      const filter = { type: 'overlay', value: 'v', range: 'start=0.5:end={{ section_duration }}' } as Filter;
+      const out = manager.remapEnableBetweenSuffix(filter);
+      expect(out.value).toContain("enable='between(t,0.5,6)'");
+    });
+
+    it('falls back to the transition-duration end when the end value is unparseable', () => {
+      const { manager } = build({ transitionDuration: 3 });
+      const filter = { type: 'overlay', value: 'v', range: 'start=1:end=oops' } as Filter;
+      const out = manager.remapEnableBetweenSuffix(filter);
+      expect(out.value).toContain('between(t,1,3)');
     });
   });
 
@@ -922,6 +956,35 @@ describe('MapManager', () => {
       expect(manager.mapInputsVariables('@logo')).toBe('3:v');
       // the animation still resolves to its overlay pad
       expect(manager.mapInputsVariables('@spark')).toBe('spark');
+    });
+
+    // Regression guard: the substitution regex was unescaped and unanchored, so the earlier
+    // input 'logo' matched the front of '@logo2' ('@logo2' → '1:v' + leftover '2' = '2:v2'-style
+    // corruption), and a name containing regex metachars ('fx(' ) threw SyntaxError at compile.
+    it('does not let an input name rewrite a longer name it prefixes', () => {
+      const section = {
+        name: 's',
+        type: 'color_background', // increment = 1
+        inputs: {
+          0: { name: 'logo', type: 'image', options: {} },
+          1: { name: 'logo2', type: 'image', options: {} },
+        },
+      } as unknown as Section;
+      const { manager } = build({ section });
+      // logo at position 0 -> 2:v; logo2 at position 1 -> 3:v — never '2:v2'
+      expect(manager.mapInputsVariables('@logo')).toBe('2:v');
+      expect(manager.mapInputsVariables('@logo2')).toBe('3:v');
+      expect(manager.mapInputsVariables('[@logo][@logo2]overlay')).toBe('[2:v][3:v]overlay');
+    });
+
+    it('treats regex metacharacters in an input name as literal text', () => {
+      const section = {
+        name: 's',
+        type: 'color_background', // increment = 1
+        inputs: { 0: { name: 'fx(1)', type: 'image', options: {} } },
+      } as unknown as Section;
+      const { manager } = build({ section });
+      expect(manager.mapInputsVariables('@fx(1)')).toBe('2:v');
     });
   });
 

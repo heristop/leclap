@@ -8,6 +8,16 @@ import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
 import { applyAnimation } from '../presets/text';
 import type FormatterManager from './FormatterManager';
 
+// A drawtext base coordinate may be authored as a number or an expression string; anything else
+// (absent, malformed) falls back to the frame origin.
+function baseCoordinate(value: unknown): string | number {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value;
+  }
+
+  return '0';
+}
+
 @injectable()
 class FilterManager {
   constructor(
@@ -68,7 +78,9 @@ class FilterManager {
 
     const values = { ...filter.values } as Record<string, unknown>;
     const duration = this.segment.currentSection?.options?.duration ?? 0;
-    const base = { x: typeof values.x === 'string' ? values.x : '0', y: typeof values.y === 'string' ? values.y : '0' };
+    // The schema allows numeric x/y as well as expression strings; both are valid base positions.
+    // Coercing a number to '0' would anchor the animation to the frame origin.
+    const base = { x: baseCoordinate(values.x), y: baseCoordinate(values.y) };
     applyAnimation(values, filter.reveal, filter.exit, base, duration);
 
     return { ...filter, values };
@@ -85,14 +97,25 @@ class FilterManager {
       return filter;
     }
 
-    let end = this.template.descriptor.global?.transition?.duration ?? 0;
-    let start = 0;
+    // `{{ section_duration }}` is substituted BEFORE parsing: parseFloat on the raw token yields
+    // NaN, which used to slip past the undefined checks and emit between(t,…,NaN) — an enable
+    // expression that is never true, silently disabling the filter for the whole section.
+    const sectionDuration = this.segment.currentSection?.options?.duration ?? 0;
 
     function extractTimeValue(pattern: RegExp, duration: string): number | undefined {
       const matches = pattern.exec(duration);
 
-      return matches ? parseFloat(matches[1]) : undefined;
+      if (!matches) {
+        return undefined;
+      }
+
+      const parsed = parseFloat(matches[1].replace('{{ section_duration }}', sectionDuration.toString()));
+
+      return Number.isFinite(parsed) ? parsed : undefined;
     }
+
+    let end = this.template.descriptor.global?.transition?.duration ?? 0;
+    let start = 0;
 
     const startTime = extractTimeValue(/start=(.*)/, durations[0]);
 
@@ -102,8 +125,7 @@ class FilterManager {
       const endTime = extractTimeValue(/end=(.*)/, durations[1]);
 
       if (undefined !== endTime) {
-        const time = this.segment.currentSection?.options?.duration;
-        end = parseFloat(endTime.toString().replace('{{ section_duration }}', (time ?? 0).toString()));
+        end = endTime;
       }
     }
 

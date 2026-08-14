@@ -22,12 +22,23 @@ Node plus any system FFmpeg:
 git clone --filter=blob:none https://github.com/heristop/leclap.git   # ~7 MB of .git, not ~310 MB
 cd leclap
 pnpm install
+bash scripts/ci/fetch-test-media.sh   # render fixtures: videos, music, overlays (~145 MB)
+bash scripts/ci/fetch-web-media.sh    # video_3/video_4, which two director suites also render
+pnpm --filter ffmpeg-video-composer build   # dist/, read by the diagnose and build-output suites
 pnpm --filter ffmpeg-video-composer test
 ```
 
+Both fetch steps are required. The render suites decode real media that a clone does **not** carry:
+the checkout leaves Git LFS pointer files, and FFmpeg rejects those with `moov atom not found`. The
+scripts pull the same digest-pinned bundles CI uses, over plain HTTPS rather than `git lfs pull` —
+this repository's LFS bandwidth budget is exhausted, so LFS downloads return 403. Skip them and 81 of
+the 1412 tests fail; skip the build and 25 more do.
+
 `--filter=blob:none` fetches file contents lazily, which is worth doing here: the repository carries
-rendered media in its history. Rust is needed only for `packages/ffmpeg-engine`, and Expo only for
-`apps/leclap-expo` — neither is required to change the engine, the CLI, or the MCP server.
+rendered media in its history. Budget four to five minutes end to end on a fast connection — mostly
+the ~350 MB of media and the two-minute render suite. Rust is needed only for
+`packages/ffmpeg-engine`, and Expo only for `apps/leclap-expo` — neither is required to change the
+engine, the CLI, or the MCP server.
 
 ## Repository layout
 

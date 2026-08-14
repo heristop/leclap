@@ -3,6 +3,11 @@ import type Template from '../../core/models/Template';
 import type Project from '../../core/models/Project';
 import type { Variables } from '@/core/types';
 
+/** Escape a free-text value so it matches literally inside a RegExp. */
+export function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+}
+
 @injectable()
 class VariableManager {
   constructor(
@@ -29,7 +34,7 @@ class VariableManager {
 
     // Resolve every placeholder in a single pass with one compiled regex instead of
     // recompiling a RegExp and re-scanning the whole string once per variable.
-    const pattern = new RegExp(keys.map((key) => VariableManager.escapeRegExp(`{{ ${key} }}`)).join('|'), 'g');
+    const pattern = new RegExp(keys.map((key) => escapeRegExp(`{{ ${key} }}`)).join('|'), 'g');
 
     return value.replace(pattern, (match) => {
       // Recover the key from the matched "{{ key }}" placeholder.
@@ -38,10 +43,6 @@ class VariableManager {
       return Array.isArray(placeholderValue) ? placeholderValue.join(', ') : placeholderValue;
     });
   };
-
-  private static escapeRegExp(value: string): string {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-  }
 
   /**
    * Replace fields

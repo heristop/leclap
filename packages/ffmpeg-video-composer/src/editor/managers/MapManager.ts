@@ -10,6 +10,7 @@ import {
 } from '../utils/input-sources';
 import type FormattersManager from './FormatterManager';
 import type FilterManager from './FilterManager';
+import { escapeRegExp } from './VariableManager';
 
 // Section.inputs is typed as Input[] for schema purposes, but at runtime it holds
 // MapAnimationInput objects indexed by string keys (used as a keyed record).
@@ -337,22 +338,28 @@ class MapManager {
       // Resolve it a single time instead of re-scanning on every input.
       result = result.replace(/^@video$/g, `${this.getVideoInputIncrement()}:v`);
 
-      const keys = Object.keys(inputs);
+      // The input name is author-chosen free text, so it is escaped (metacharacters like `(` would
+      // otherwise build an invalid or wrong RegExp), matched longest-first (so `logo` can never
+      // rewrite the front of `@logo2`), and end-anchored against a following name character. The
+      // stream index still comes from each input's ORIGINAL section position.
+      const entries = Object.keys(inputs)
+        .map((key, position) => ({ input: inputs[key], position }))
+        .sort((a, b) => b.input.name.length - a.input.name.length);
 
-      for (let i = 0; i < keys.length; i++) {
-        const input = inputs[keys[i]];
+      for (const { input, position } of entries) {
+        const reference = new RegExp(`@${escapeRegExp(input.name)}(?![\\w-])`, 'g');
 
         // Animation inputs are composited into an overlay pad named after the input:
         // `@foo` → `foo`, the pad label emitted by addAnimationOverlay (dropping the `@`).
         if (input.type === 'animation') {
-          result = result.replace(new RegExp(`@${input.name}`, 'g'), input.name);
+          result = result.replace(reference, input.name);
 
           continue;
         }
 
-        const increment = this.getVideoInputIncrement() + 1 + i;
+        const increment = this.getVideoInputIncrement() + 1 + position;
 
-        result = result.replace(new RegExp(`@${input.name}`, 'g'), `${increment}:v`);
+        result = result.replace(reference, `${increment}:v`);
       }
     }
 

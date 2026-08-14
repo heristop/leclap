@@ -30,4 +30,39 @@ describe('validateTemplate', () => {
       expect(result.message.split(';').length).toBeLessThanOrEqual(3);
     }
   });
+
+  // Regression guard: this module used to run only the bare Zod schema while the engine's compile
+  // gate runs the full TemplateValidator, so a schema-valid template with a dangling section
+  // reference validated clean here and then failed mid-render inside compose_video.
+  it('rejects a schema-valid descriptor whose section reference the engine would refuse', () => {
+    const result = validateTemplate({
+      sections: [
+        { name: 'intro', type: 'video', options: { duration: 3 } },
+        { name: 'echo', type: 'video', options: { duration: 3, useVideoSection: 'nope' } },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.message).toContain('nope');
+    }
+  });
+
+  // Regression guard: `{type:'partial'}` sections are expanded by the engine before rendering, so
+  // the descriptor handed to the coverage checks must carry the REAL sections — a project_video
+  // living inside a partial used to be invisible to requiredClips/checkSectionCoverage.
+  it('returns the partial-expanded descriptor so inner sections are visible', () => {
+    const result = validateTemplate({
+      partials: [{ id: 'cam', sections: [{ name: 'clip', type: 'project_video', options: { duration: 3 } }] }],
+      sections: [{ type: 'partial', ref: 'cam' }],
+    });
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.descriptor.sections?.map((section) => section.type)).toEqual(['project_video']);
+      expect(result.descriptor.sections?.[0].name).toBe('clip');
+    }
+  });
 });

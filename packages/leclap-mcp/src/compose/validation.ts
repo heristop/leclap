@@ -1,33 +1,31 @@
-import { TemplateDescriptorSchema, type TemplateDescriptor } from 'ffmpeg-video-composer';
-
-// Derive the error type from the exported schema so this module needs no direct zod dependency.
-type SafeParseResult = ReturnType<typeof TemplateDescriptorSchema.safeParse>;
-type TemplateValidationError = Extract<SafeParseResult, { success: false }>['error'];
+import { TemplateValidator, type TemplateDescriptor, type ValidationError } from 'ffmpeg-video-composer';
 
 export type ValidationResult = { ok: true; descriptor: TemplateDescriptor } | { ok: false; message: string };
 
-// Summarize the first three schema issues as `dotted.path: message`, capping the rest with a
-// `(+N more)` suffix, so the full error tree (and any internal schema detail) never leaks to the
+// Summarize the first three issues as `dotted.path: message`, capping the rest with a
+// `(+N more)` suffix, so the full error tree (and any internal validator detail) never leaks to the
 // agent.
-function summarizeIssues(error: TemplateValidationError): string {
-  const issues = error.issues.slice(0, 3).map((issue) => {
-    const at = issue.path.length > 0 ? issue.path.join('.') : '(root)';
-
-    return `${at}: ${issue.message}`;
-  });
-  const suffix = error.issues.length > 3 ? ` (+${error.issues.length - 3} more)` : '';
+function summarizeErrors(errors: ValidationError[]): string {
+  const issues = errors.slice(0, 3).map((error) => `${error.path || '(root)'}: ${error.message}`);
+  const suffix = errors.length > 3 ? ` (+${errors.length - 3} more)` : '';
 
   return `Invalid template: ${issues.join('; ')}${suffix}`;
 }
 
-// Validate an untrusted, agent-supplied template object against the core descriptor schema at the
-// tool boundary. Malformed input is rejected with a short message instead of reaching compile().
+// Validate an untrusted, agent-supplied template object with the SAME TemplateValidator the engine's
+// compile gate runs — the Zod schema plus the descriptor rules (section references, transitions,
+// motion, global animations, watermark, fonts) — so validate_template can never bless a template
+// that compile() would reject mid-render. The validator expands `{type:'partial'}` sections first
+// and the descriptor returned here carries those REAL sections, which keeps a project_video living
+// inside a partial visible to the clip-coverage checks.
 export function validateTemplate(raw: unknown): ValidationResult {
-  const parsed = TemplateDescriptorSchema.safeParse(raw);
+  const validation = new TemplateValidator().validateTemplate(raw);
 
-  if (!parsed.success) {
-    return { ok: false, message: summarizeIssues(parsed.error) };
+  if (!validation.success || !validation.data) {
+    return { ok: false, message: summarizeErrors(validation.errors ?? []) };
   }
 
-  return { ok: true, descriptor: parsed.data };
+  // The engine types `data` as `TemplateDescriptor | Section` because the same result shape also
+  // serves validateSection; validateTemplate only ever yields a descriptor.
+  return { ok: true, descriptor: validation.data as TemplateDescriptor };
 }

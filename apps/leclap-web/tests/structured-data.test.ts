@@ -10,8 +10,11 @@ const llmsTxt = readFileSync(join(repoRoot, 'apps/leclap-web/public/llms.txt'), 
 // The MCP tool names llms.txt advertises are read back out of the server source, so a rename in
 // packages/leclap-mcp turns this suite red instead of shipping a name no agent can call.
 const mcpSrc = join(repoRoot, 'packages/leclap-mcp/src');
+// Any quote style the server source might use — prettier could switch the repo to double quotes, or
+// a codemod could leave a template literal behind. Matching only `'…'` used to make this scrape
+// return nothing, which turned every assertion derived from it into a vacuous pass.
 const REGISTERED_TOOLS = [join(mcpSrc, 'server.ts'), ...listToolModules()]
-  .flatMap((file) => [...readFileSync(file, 'utf8').matchAll(/registerTool\(\s*'([a-z][a-z_]*)'/g)])
+  .flatMap((file) => [...readFileSync(file, 'utf8').matchAll(/registerTool\(\s*['"`]([a-z][a-z0-9_]*)['"`]/g)])
   .map(([, name]) => name)
   .sort();
 
@@ -22,8 +25,21 @@ function listToolModules(): string[] {
     .map((file) => join(dir, file));
 }
 
-// What llms.txt is expected to advertise: the authoring surface, whole names, no substrings.
-const DOCUMENTED_TOOLS = ['get_template_schema', 'validate_template', 'compose_video', 'probe_media'];
+// `ping` is a health check, not an authoring tool; `render_remotion_clip` is registered only when
+// the operator opts in (it executes caller-supplied JS), so it is not advertised.
+const EXCUSED_TOOLS = ['ping', 'render_remotion_clip'];
+
+// What llms.txt is expected to advertise: the authoring surface, whole names, no substrings. Derived
+// from what the server registers rather than written out by hand, so a fifth tool is documented by
+// editing llms.txt alone. The previous hardcoded literal pinned llms.txt to exactly four names while
+// a second test demanded every registered tool be documented — two assertions no edit to llms.txt
+// could satisfy at once.
+const DOCUMENTED_TOOLS = REGISTERED_TOOLS.filter((name) => !EXCUSED_TOOLS.includes(name));
+
+// Every assertion about tool names below is derived from REGISTERED_TOOLS, so a scrape that comes
+// back empty would make all of them pass while checking nothing. Anchor it: the four authoring tools
+// are the surface llms.txt exists to describe, and a genuine rename should be a deliberate edit here.
+const SCRAPE_ANCHORS = ['compose_video', 'get_template_schema', 'probe_media', 'validate_template'];
 
 const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(([, json]) =>
   JSON.parse(json)
@@ -92,28 +108,36 @@ describe('llms.txt', () => {
     expect(llmsTxt).toContain('@leclap/mcp');
   });
 
-  // An agent copies these names straight out of this file and calls them. A `toContain` check is
-  // useless here — 'get_schema' is a substring of 'get_template_schema', so it passes on a wrong
-  // name. Compare whole names against what the server actually registers instead.
-  it('lists MCP tool names that the server really registers', () => {
-    const section = llmsTxt.slice(llmsTxt.indexOf('## Use it from an AI agent'));
-    const listed = [...section.matchAll(/`([a-z][a-z_]*[a-z])`/g)].map(([, name]) => name).sort();
-
-    expect(listed, 'the agent section lists no tools at all').not.toHaveLength(0);
-    expect(listed).toEqual([...DOCUMENTED_TOOLS].sort());
-    for (const name of listed) {
-      expect(REGISTERED_TOOLS, `llms.txt names a tool the server never registers: ${name}`).toContain(name);
+  // The scrape that every tool-name assertion here rests on. Kept as its own test so an empty
+  // REGISTERED_TOOLS fails loudly instead of quietly satisfying the checks below.
+  it('scrapes the registered tool names out of the MCP server source', () => {
+    expect(REGISTERED_TOOLS, 'the registerTool scrape found nothing — its regex has drifted').not.toHaveLength(0);
+    for (const anchor of SCRAPE_ANCHORS) {
+      expect(REGISTERED_TOOLS, `the server no longer registers ${anchor}`).toContain(anchor);
     }
   });
 
-  // The other direction: a tool added to the server must be documented here or explicitly excused,
-  // so the file cannot silently fall behind the surface it claims to describe.
-  it('documents every registered tool except the deliberately undocumented ones', () => {
-    // `ping` is a health check, not an authoring tool; `render_remotion_clip` is registered only
-    // when the operator opts in (it executes caller-supplied JS), so it is not advertised.
-    const excused = ['ping', 'render_remotion_clip'];
-    const undocumented = REGISTERED_TOOLS.filter((name) => !DOCUMENTED_TOOLS.includes(name) && !excused.includes(name));
-    expect(undocumented, 'new MCP tool is missing from llms.txt').toEqual([]);
+  // An agent copies these names straight out of this file and calls them. A `toContain` check is
+  // useless here — 'get_schema' is a substring of 'get_template_schema', so it passes on a wrong
+  // name. Compare whole names against what the server actually registers instead.
+  //
+  // One equality, both directions: llms.txt cannot invent a tool the server never registers, and it
+  // cannot fall behind a tool the server gained — a new tool is documented by editing llms.txt, and
+  // deliberately hiding one means adding it to EXCUSED_TOOLS.
+  it('lists exactly the MCP tools the server registers and does not excuse', () => {
+    const section = llmsTxt.slice(llmsTxt.indexOf('## Use it from an AI agent'));
+    const listed = [...section.matchAll(/`([a-z][a-z0-9_]*[a-z0-9])`/g)].map(([, name]) => name).sort();
+
+    expect(listed, 'the agent section lists no tools at all').not.toHaveLength(0);
+    expect(DOCUMENTED_TOOLS, 'every registered tool is excused — nothing left to advertise').not.toHaveLength(0);
+    expect(listed).toEqual([...DOCUMENTED_TOOLS].sort());
+  });
+
+  // The excuse list is the one hand-written escape hatch above, so it needs its own guard: a renamed
+  // or deleted tool would otherwise leave a stale entry that silently widens what llms.txt may omit.
+  it('excuses only tools the server actually registers', () => {
+    const stale = EXCUSED_TOOLS.filter((name) => !REGISTERED_TOOLS.includes(name));
+    expect(stale, 'EXCUSED_TOOLS names a tool the server no longer registers').toEqual([]);
   });
 
   // The prose shorthand in the Packages list drifted too — it used to advertise a `list` tool that

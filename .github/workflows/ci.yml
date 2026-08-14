@@ -77,6 +77,14 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: pnpm test:ci
 
+      # The web app's colocated unit suite (apps/leclap-web/src/**/*.test.{ts,tsx}) runs under the
+      # app's own vitest config — its aliases resolve differently from the root config, so the root
+      # vitest run above never collects it. Without this step the route-manifest and seo-title
+      # drift guards (site.test.ts, seo-title.test.ts) and the rest of the ~880 colocated web tests
+      # never run in CI.
+      - name: Run Web App Tests
+        run: pnpm --filter @leclap/web test
+
       # The Expo app's unit suite runs on jest (not vitest), so the root vitest run above doesn't
       # include it. Run it explicitly so CI covers the whole monorepo (Build precedes this, so its
       # core-dist + copied-template imports resolve).

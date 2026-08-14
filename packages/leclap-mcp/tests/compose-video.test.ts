@@ -100,6 +100,27 @@ describe('compose_video handler', () => {
     expect(result.structuredContent?.renderId).toBeTypeOf('string');
   });
 
+  // Regression guard: assetsDir used to be set to the per-render buildDir, so the engine's
+  // staged-read allowlist (assetsDir/tempDir/buildDir) never contained the configured media dir —
+  // a descriptor pictureUrl/musicUrl under LECLAP_MCP_MEDIA_DIR was rejected as 'outside the
+  // staged media directories' even though probe_media could read the same file.
+  it('passes the configured media dir as the engine assetsDir', async () => {
+    runRenderMock.mockResolvedValue({
+      ok: true,
+      outputPath: '/tmp/out.mp4',
+      durationSeconds: 1,
+      sizeBytes: 1,
+      videoCodec: 'h264',
+      audioCodec: null,
+    });
+
+    await setup()({ template: clipTemplate, userVideoPaths: await stageClip() });
+
+    const job = runRenderMock.mock.calls.at(-1)?.[0] as { projectConfig: { assetsDir?: string; buildDir?: string } };
+    expect(job.projectConfig.assetsDir).toBe(mediaDir);
+    expect(job.projectConfig.buildDir?.startsWith(outputDir)).toBe(true);
+  });
+
   it('surfaces a render failure (with log tail) as an error result', async () => {
     runRenderMock.mockResolvedValue({
       ok: false,

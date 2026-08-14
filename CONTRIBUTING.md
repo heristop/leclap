@@ -42,6 +42,10 @@ rendered media in its history. The whole sequence took 3m23s on a fast connectio
 and Expo only for `apps/leclap-expo` — neither is required to change the engine, the CLI, or the MCP
 server.
 
+Looking for somewhere to start? The
+[good first issues](https://github.com/heristop/leclap/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
+are scoped so that none of them requires the on-device toolchain.
+
 ## Repository layout
 
 This is a pnpm-workspace monorepo (`apps/*`, `packages/*`). The full layout, architecture, and conventions live in **[AGENTS.md](./AGENTS.md)** — read it first; it is the single source of truth.

@@ -1,4 +1,5 @@
 import { container, inject, injectable } from 'tsyringe';
+import { assertSafeArgToken } from '@/core/arg-guard';
 import type { MusicConfig, Section } from '@/core/types';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
@@ -10,6 +11,7 @@ import type Project from '../core/models/Project';
 import { resolveVideoInput, type VideoSource } from './utils/video-input';
 import { resolveMusicFade } from './utils/music-fade';
 import { finalizeLeg, type PendingLeg } from './utils/music-leg';
+import { formatMusicName, removeExtension } from './utils/music-name';
 import { musicAssetUrl } from '@/core/asset-source';
 
 type AppendMusicOptions = {
@@ -87,7 +89,7 @@ class MusicComposer {
       return;
     }
 
-    const musicFormattedName = this.formatMusicName(music);
+    const musicFormattedName = formatMusicName(music);
 
     const cachedPath = await this.resolveCachedMusic(music, musicFormattedName);
 
@@ -137,7 +139,7 @@ class MusicComposer {
       return byName;
     }
 
-    const urlName = music.url ? this.removeExtension(music.url.split('/').at(-1) ?? '') : '';
+    const urlName = music.url ? removeExtension(music.url.split('/').at(-1) ?? '') : '';
 
     if (urlName && urlName !== formattedName) {
       const byUrl = `${this.musicAssetsDir}/${urlName}.mp3`;
@@ -158,25 +160,6 @@ class MusicComposer {
 
   private async downloadMusic(url: string): Promise<string> {
     return await this.filesystemAdapter.fetch(url);
-  }
-
-  /**
-   * Format music name from config or extract from URL
-   */
-  private formatMusicName(music: MusicConfig): string {
-    if (music.name) {
-      return this.removeExtension(music.name);
-    }
-
-    const urlParts = music.url?.split('/') ?? [];
-    const lastSegment = urlParts.slice(-1);
-    const fileName = lastSegment[0] ?? '';
-
-    return this.removeExtension(fileName);
-  }
-
-  private removeExtension(filename: string): string {
-    return filename.replace(/\.[^/.]+$/, '');
   }
 
   private async checkMusicExists(filePath: string): Promise<boolean> {
@@ -388,6 +371,9 @@ class MusicComposer {
    * Mix background music with video audio
    */
   appendMusic = async (segments: Section[], finalVideo: string, videoSource?: VideoSource): Promise<void> => {
+    // Fail fast, BEFORE resolveVideoInput moves the final video aside: the mix command is
+    // space-split by parseCommand, so a path with raw whitespace would silently mis-tokenize.
+    assertSafeArgToken(this.project.buildInfos.musicPath, 'music path');
     const source: VideoSource = videoSource ?? { kind: 'file', path: finalVideo };
     const reduceNoiseConfig = 'afftdn=nr=20:nf=-20';
 

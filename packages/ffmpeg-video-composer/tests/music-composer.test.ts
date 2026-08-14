@@ -135,6 +135,21 @@ describe('MusicComposer.loadMusic', () => {
     expect(project.buildInfos.musicPath).toBe('/build/assets/remote.mp3');
   });
 
+  // Regression guard: the schema documents `name` as the human-readable track name, but the name
+  // used to flow verbatim into the staged filename, and `-i <path>` is space-split by parseCommand —
+  // 'Epic Rise' produced '-i …/Epic Rise.mp3', two argv tokens, and the mix failed 'No such file'.
+  it('slugs whitespace and quotes out of the staged filename derived from a display name', async () => {
+    const project = makeProject({ music: { name: "Epic Rise's Theme", url: 'https://cdn.test/epic.mp3' } });
+    const filesystem = makeFilesystem();
+    filesystem.stat.mockResolvedValue(false);
+    const { composer } = makeComposer({ project, filesystem });
+
+    await composer.loadMusic();
+
+    expect(filesystem.move).toHaveBeenCalledWith('/downloads/track.mp3', '/build/assets/Epic_Rise_s_Theme.mp3');
+    expect(project.buildInfos.musicPath).toBe('/build/assets/Epic_Rise_s_Theme.mp3');
+  });
+
   it('derives the music name from the URL when no name is provided', async () => {
     const project = makeProject({ music: { name: '', url: 'https://cdn.test/path/cool-track.mp3' } });
     const filesystem = makeFilesystem();
@@ -377,6 +392,25 @@ describe('MusicComposer.appendMusic', () => {
     await expect(composer.appendMusic(segments1, '/build/output.mp4')).rejects.toThrow('Error on music add');
     // temp file is not unlinked when the command failed
     expect(filesystem.unlink).not.toHaveBeenCalled();
+  });
+
+  // The mix command is a space-split string; a musicPath with raw whitespace (e.g. a bundled file
+  // that bypassed the loadMusic slug) must fail loudly at the guard, never mis-tokenize into
+  // '-i …/Epic' plus a stray 'Rise.mp3' argument.
+  it('rejects a music path containing whitespace instead of splitting the command', async () => {
+    const project = makeProject();
+    project.buildInfos.musicPath = '/cache/musics/Epic Rise.mp3';
+    const ffmpeg = {
+      execute: vi.fn(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const filesystem = makeFilesystem();
+    const { composer } = makeComposer({ project, ffmpeg, filesystem });
+
+    await expect(composer.appendMusic(segments1, '/build/output.mp4')).rejects.toThrow('Unsafe music path');
+    // fails fast: the final video is never moved aside and no ffmpeg process runs
+    expect(filesystem.move).not.toHaveBeenCalled();
+    expect(ffmpeg.execute).not.toHaveBeenCalled();
   });
 });
 

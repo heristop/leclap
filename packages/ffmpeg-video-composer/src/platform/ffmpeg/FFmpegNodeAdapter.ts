@@ -49,9 +49,12 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
 
       const videoStream = info.streams.find((s) => s.codec_type === 'video');
       const audioStream = info.streams.find((s) => s.codec_type === 'audio');
+      // WebM/MKV streams often carry no duration (or 'N/A'); parseFloat would yield NaN, which
+      // slips past `!== null` checks and defeats the declared-duration fallback downstream.
+      const parsedDuration = videoStream ? parseFloat(videoStream.duration) : NaN;
 
       return {
-        duration: videoStream ? parseFloat(videoStream.duration) : null,
+        duration: Number.isFinite(parsedDuration) ? parsedDuration : null,
         videoCodec: videoStream?.codec_name ?? null,
         audioCodec: audioStream?.codec_name ?? null,
         sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate, 10) : null,

@@ -110,6 +110,35 @@ describe('FFmpegNodeAdapter — shell injection hardening', () => {
     expect(execFileCalls[0].file).toBe('ffprobe');
     expect(execFileCalls[0].args).toEqual(['-v', 'quiet', '-print_format', 'json', '-show_streams', source]);
   });
+
+  // Regression guard: ffprobe omits the stream-level duration for WebM/MKV (e.g. a browser
+  // MediaRecorder capture). parseFloat(undefined) is NaN, and NaN !== null used to slip past the
+  // declared-duration fallback in section-infos, aborting the render with 'No section info found'
+  // even when options.duration was declared. A missing or 'N/A' duration must probe as null.
+  it('returns a null duration when the video stream has no duration field', async () => {
+    const adapter = new FFmpegNodeAdapter();
+    execFileHandler = () => ({
+      stdout: JSON.stringify({ streams: [{ codec_type: 'video', codec_name: 'vp9' }] }),
+      stderr: '',
+    });
+
+    const infos = await adapter.getInfos('capture.webm');
+
+    expect(infos.duration).toBeNull();
+    expect(infos.videoCodec).toBe('vp9');
+  });
+
+  it("returns a null duration when ffprobe reports 'N/A'", async () => {
+    const adapter = new FFmpegNodeAdapter();
+    execFileHandler = () => ({
+      stdout: JSON.stringify({ streams: [{ codec_type: 'video', codec_name: 'h264', duration: 'N/A' }] }),
+      stderr: '',
+    });
+
+    const infos = await adapter.getInfos('stream.mkv');
+
+    expect(infos.duration).toBeNull();
+  });
 });
 
 describe('supportsConcurrentExecute capability', () => {

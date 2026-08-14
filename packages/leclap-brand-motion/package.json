@@ -11,6 +11,7 @@
     "render:marketing": "node render-marketing.ts",
     "render:linkedin": "node render-linkedin.ts",
     "render:banner": "node render-banner.ts",
+    "render:hero": "node render-hero.ts",
     "studio": "remotion studio",
     "typecheck": "tsc --noEmit"
   },

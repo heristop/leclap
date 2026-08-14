@@ -8,6 +8,7 @@ import { rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderMedia } from '@remotion/renderer';
+import { webpackOverride } from './webpack-override.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const videosDir = path.resolve(here, '../../apps/leclap-web/public/videos');
@@ -37,7 +38,7 @@ const forEachSeq = async <T>(items: readonly T[], fn: (item: T) => Promise<void>
 };
 
 await ensureBrowser();
-const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts') });
+const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts'), webpackOverride });
 
 // Render each target sequentially — they embed OffthreadVideo clips (one ffmpeg frame-extract per frame),
 // so capped concurrency + a generous delayRender timeout keep the brand-font load from starving under

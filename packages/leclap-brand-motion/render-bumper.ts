@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderMedia } from '@remotion/renderer';
+import { webpackOverride } from './webpack-override.ts';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -33,7 +34,7 @@ const inputProps = {
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 await ensureBrowser();
-const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts') });
+const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts'), webpackOverride });
 const composition = await selectComposition({ serveUrl, id: compositionId, inputProps });
 await renderMedia({ composition, serveUrl, codec: 'h264', outputLocation: out, inputProps });
 

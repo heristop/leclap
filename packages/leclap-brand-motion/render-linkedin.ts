@@ -8,6 +8,7 @@ import { mkdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderMedia, renderStill } from '@remotion/renderer';
+import { webpackOverride } from './webpack-override.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, 'out');
@@ -35,7 +36,7 @@ const STILL_FRAMES = [140, 300, 460, 640];
 
 mkdirSync(outDir, { recursive: true });
 await ensureBrowser();
-const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts') });
+const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts'), webpackOverride });
 const composition = await selectComposition({ serveUrl, id: COMPOSITION });
 
 // Sequential: each still spins up a page, and the brand font load is delayRender-gated.

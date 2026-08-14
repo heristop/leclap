@@ -8,6 +8,7 @@ import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderStill } from '@remotion/renderer';
+import { webpackOverride } from './webpack-override.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, 'out');
@@ -16,7 +17,7 @@ const webp = path.resolve(outDir, 'leclap-banner.webp');
 
 mkdirSync(outDir, { recursive: true });
 await ensureBrowser();
-const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts') });
+const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts'), webpackOverride });
 const composition = await selectComposition({ serveUrl, id: 'LeClapBanner' });
 
 await renderStill({ composition, serveUrl, output: png, imageFormat: 'png', frame: 0, scale: 2 });

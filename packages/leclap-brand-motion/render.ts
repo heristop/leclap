@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundle } from '@remotion/bundler';
 import { ensureBrowser, selectComposition, renderMedia } from '@remotion/renderer';
+import { webpackOverride } from './webpack-override.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const videosDir = path.resolve(here, '../leclap-creative-kit/src/library/videos');
@@ -14,7 +15,7 @@ const targets = [
 ];
 
 await ensureBrowser();
-const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts') });
+const serveUrl = await bundle({ entryPoint: path.resolve(here, 'src/index.ts'), webpackOverride });
 
 await Promise.all(
   targets.map(async (target) => {

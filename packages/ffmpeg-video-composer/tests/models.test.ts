@@ -216,7 +216,7 @@ describe('Project', () => {
       expect(project.config.currentLocale).toBe(DefaultConfig.CURRENT_LOCALE);
     });
 
-    it('lets a user-provided nested config block override the defaults entirely', () => {
+    it('merges a user-provided nested config block over the defaults, keeping unset fields', () => {
       project.config = {
         currentLocale: 'fr',
         hardwareConfig: { preset: 'fast' },
@@ -227,11 +227,10 @@ describe('Project', () => {
 
       expect(project.config.currentLocale).toBe('fr');
       expect(project.config.hardwareConfig?.preset).toBe('fast');
-      // The trailing `...this.config` spread wins, so the user's hardwareConfig
-      // object replaces the default-merged one wholesale (hwaccel not present).
-      expect(project.config.hardwareConfig?.hwaccel).toBeUndefined();
+      // A partial block only overrides the fields it names; the rest keep their defaults.
+      expect(project.config.hardwareConfig?.hwaccel).toBe(DefaultConfig.HWACCEL);
       expect(project.config.videoConfig?.scale).toBe('1920:1080');
-      expect(project.config.videoConfig?.orientation).toBeUndefined();
+      expect(project.config.videoConfig?.orientation).toBe(DefaultConfig.ORIENTATION);
       // Blocks the user did NOT provide still receive their full defaults.
       expect(project.config.audioConfig).toEqual({
         sampleRate: DefaultConfig.SAMPLE_RATE,
@@ -241,6 +240,30 @@ describe('Project', () => {
         videoCodec: DefaultConfig.VIDEO_CODEC,
         audioCodec: DefaultConfig.AUDIO_CODEC,
       });
+    });
+
+    // Regression guard: the old trailing `...this.config` spread re-applied the caller's RAW
+    // partial blocks over the merged ones, so `audioConfig: { sampleRate }` dropped
+    // channelLayout and addBlankAudio emitted `anullsrc=channel_layout=:…`, which ffmpeg
+    // rejects on every color/image-background section.
+    it('keeps channelLayout when the caller provides only a sampleRate', () => {
+      project.config = { audioConfig: { sampleRate: 44100 } };
+
+      project.applyDefault();
+
+      expect(project.config.audioConfig).toEqual({
+        sampleRate: 44100,
+        channelLayout: DefaultConfig.CHANNEL_LAYOUT,
+      });
+    });
+
+    it('preserves config fields outside the merged blocks', () => {
+      project.config = { buildDir: '/tmp/b', userVideoPaths: { intro: '/tmp/a.mp4' } };
+
+      project.applyDefault();
+
+      expect(project.config.buildDir).toBe('/tmp/b');
+      expect(project.config.userVideoPaths).toEqual({ intro: '/tmp/a.mp4' });
     });
 
     it('keeps an explicitly provided currentLocale via the nullish branch', () => {

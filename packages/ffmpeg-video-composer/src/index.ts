@@ -153,9 +153,9 @@ function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor:
 // benchmarks showed videotoolbox is SLOWER than libx264 ultrafast on short multi-segment renders
 // (per-segment hardware-session setup) and only ~5% faster on heavy single encodes, so auto-on
 // regresses the common case (see docs/perf-findings.md). When enabled and the ffmpeg build exposes a
-// platform hw encoder, inject a COMPLETE codecConfig block (videoCodec + audioCodec) so
-// Project.applyDefault's wholesale-replace semantic never drops audioCodec. An explicit
-// codecConfig.videoCodec always wins. Never throws. Node-only; browser/reactnative untouched.
+// platform hw encoder, set codecConfig.videoCodec; Project.applyDefault merges per block, so the
+// audioCodec default (or the caller's explicit one) survives. An explicit codecConfig.videoCodec
+// always wins. Never throws. Node-only; browser/reactnative untouched.
 async function autoSelectHardwareEncoder(projectConfig: ProjectConfig, logger: AbstractLogger): Promise<void> {
   if (projectConfig.codecConfig?.videoCodec || !process.env.FVC_HWENCODE) {
     return;
@@ -168,7 +168,7 @@ async function autoSelectHardwareEncoder(projectConfig: ProjectConfig, logger: A
       return;
     }
 
-    projectConfig.codecConfig = { videoCodec: selected, audioCodec: projectConfig.codecConfig?.audioCodec ?? '' };
+    projectConfig.codecConfig = { ...projectConfig.codecConfig, videoCodec: selected };
     logger.info(`[Encoder] auto-selected hardware encoder ${selected}`);
   } catch (error) {
     logger.info(`[Encoder] hardware encoder probe skipped: ${error instanceof Error ? error.message : String(error)}`);

@@ -609,11 +609,12 @@ class SegmentBuilder {
   };
 
   /**
-   * Generate blank audio track for concatenation
+   * Generate blank audio track for concatenation. Falls back to the defaults rather than '' —
+   * an empty option value (`anullsrc=channel_layout=:…`) is rejected by ffmpeg outright.
    */
   addBlankAudio = (): string => {
-    const channelLayout = this.project.config.audioConfig?.channelLayout ?? '';
-    const sampleRate = this.project.config.audioConfig?.sampleRate ?? '';
+    const channelLayout = this.project.config.audioConfig?.channelLayout ?? DefaultConfig.CHANNEL_LAYOUT;
+    const sampleRate = this.project.config.audioConfig?.sampleRate ?? DefaultConfig.SAMPLE_RATE;
 
     return ' -f lavfi -i anullsrc=channel_layout=' + channelLayout + ':sample_rate=' + sampleRate + ' ';
   };

@@ -4,6 +4,7 @@ import Video from '@/editor/segments/VideoSegment';
 import ProjectVideo from '@/editor/segments/ProjectVideoSegment';
 import ImageBackground from '@/editor/segments/ImageBackgroundSegment';
 import ColorBackground from '@/editor/segments/ColorBackgroundSegment';
+import DefaultConfig from '@/core/default.config';
 import type { SectionOptions } from '@/core/types';
 
 type SegmentClass = typeof Video | typeof ProjectVideo | typeof ImageBackground | typeof ColorBackground;
@@ -434,13 +435,17 @@ describe('addBlankAudio (inherited)', () => {
     expect(blank).toContain('-f lavfi');
   });
 
-  it('falls back to empty strings when audioConfig is absent', () => {
+  // Regression guard: the fallback used to be '' on both options, emitting
+  // `anullsrc=channel_layout=:sample_rate=` — an empty option value ffmpeg rejects outright.
+  it('falls back to the default layout and sample rate when audioConfig is absent', () => {
     const { seg } = buildSegment(Video, {
       projectConfig: { audioConfig: undefined, videoConfig: { scale: '1280:720' } },
     });
 
     const blank = seg.addBlankAudio();
 
-    expect(blank).toContain('channel_layout=:sample_rate=');
+    expect(blank).toContain(
+      `anullsrc=channel_layout=${DefaultConfig.CHANNEL_LAYOUT}:sample_rate=${DefaultConfig.SAMPLE_RATE}`
+    );
   });
 });

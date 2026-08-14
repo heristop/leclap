@@ -24,6 +24,7 @@ const TemplateEditorPage = lazyPage(() => import('@/presentation/pages/TemplateE
 const PartialsPage = lazyPage(() => import('@/presentation/pages/PartialsPage'), 'PartialsPage');
 const Design = lazyPage(() => import('@/presentation/pages/Design'), 'Design');
 const About = lazyPage(() => import('@/presentation/pages/static-pages'), 'About');
+const CompareRemotion = lazyPage(() => import('@/presentation/pages/compare-remotion'), 'CompareRemotion');
 const Legal = lazyPage(() => import('@/presentation/pages/static-pages'), 'Legal');
 const Privacy = lazyPage(() => import('@/presentation/pages/static-pages'), 'Privacy');
 const NotFound = lazyPage(() => import('@/presentation/pages/NotFound'), 'NotFound');
@@ -92,6 +93,7 @@ const router = createBrowserRouter(
         <Route path="mcp" element={<DocMcp />} />
       </Route>
       <Route path="/about" element={<About />} />
+      <Route path="/compare/remotion" element={<CompareRemotion />} />
       <Route path="/legal" element={<Legal />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<NotFound />} />

@@ -55,7 +55,7 @@ export const localeUrl = (lng: Language, path: string): string =>
  */
 export type LocalizedRoute = {
   path: string;
-  seoKey: 'default' | 'studio' | 'about' | 'legal' | 'privacy';
+  seoKey: 'default' | 'studio' | 'about' | 'compareRemotion' | 'legal' | 'privacy';
   titleVerbatim?: boolean;
   priority: string;
   changefreq: string;
@@ -65,12 +65,24 @@ export const LOCALIZED_ROUTES: readonly LocalizedRoute[] = [
   { path: '/', seoKey: 'default', titleVerbatim: true, priority: '1.0', changefreq: 'weekly' },
   { path: '/studio', seoKey: 'studio', priority: '0.9', changefreq: 'weekly' },
   { path: '/about', seoKey: 'about', priority: '0.5', changefreq: 'monthly' },
+  // titleVerbatim: the bundle title already names both products, so suffixing " — LeClap" would
+  // print the brand twice in the SERP.
+  { path: '/compare/remotion', seoKey: 'compareRemotion', titleVerbatim: true, priority: '0.7', changefreq: 'monthly' },
   { path: '/legal', seoKey: 'legal', priority: '0.2', changefreq: 'yearly' },
   { path: '/privacy', seoKey: 'privacy', priority: '0.2', changefreq: 'yearly' },
 ];
 
 /** The same set as a lookup, for the runtime <Seo> component. */
 export const LOCALIZED_PATHS: ReadonlySet<string> = new Set(LOCALIZED_ROUTES.map((r) => r.path));
+
+/**
+ * The `titleVerbatim` routes as a lookup. The runtime <Seo> reads it for the same reason the
+ * prerender reads the flag: both must decide the " — LeClap" suffix from one table, or the title a
+ * crawler sees and the title a visitor's tab shows would differ on exactly these routes.
+ */
+export const TITLE_VERBATIM_PATHS: ReadonlySet<string> = new Set(
+  LOCALIZED_ROUTES.filter((r) => r.titleVerbatim).map((r) => r.path)
+);
 
 /**
  * Router paths that are deliberately never indexed: no prerendered file, no sitemap entry, and

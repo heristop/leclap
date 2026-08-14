@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LOCALIZED_PATHS, localeUrl, OG_LOCALE, SITE_URL } from '@/config/site';
+import { LOCALIZED_PATHS, localeUrl, OG_LOCALE, SITE_URL, TITLE_VERBATIM_PATHS } from '@/config/site';
 import { getLanguage, LANGUAGES, LOCALE_PREFIXES, type Language } from '@/lib/language';
 
 // The domain, the og:locale map, the URL shape and the set of fully-translated routes all come from
@@ -69,6 +69,23 @@ function clearAlternates(): void {
 }
 
 /**
+ * The document title for a route, matching what scripts/seo-prerender.ts bakes in: the page title
+ * suffixed with the brand, unless the route is flagged `titleVerbatim` because its bundle title
+ * already reads as a full sentence (the home page, the comparison pages).
+ */
+function documentTitle(title: string | undefined, path: string, fallback: string): string {
+  if (title === undefined) {
+    return fallback;
+  }
+
+  if (TITLE_VERBATIM_PATHS.has(path)) {
+    return title;
+  }
+
+  return `${title} — LeClap`;
+}
+
+/**
  * Manages document head SEO tags for the current route. Renders nothing.
  * Drop `<Seo title="…" description="…" path="/…" />` at the top of a page.
  *
@@ -80,7 +97,7 @@ function clearAlternates(): void {
 export function Seo({ title, description, path = '/', noindex = false }: SeoProps): null {
   const { t } = useTranslation('seo');
   const lng = getLanguage();
-  const fullTitle = title ? `${title} — LeClap` : t('default.title');
+  const fullTitle = documentTitle(title, path, t('default.title'));
   const desc = description ?? t('default.description');
   const localized = LOCALIZED_PATHS.has(path);
   const canonical = localized ? localeUrl(lng, path) : `${SITE_URL}${path}`;

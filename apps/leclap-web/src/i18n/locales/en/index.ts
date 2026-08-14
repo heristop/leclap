@@ -4,6 +4,7 @@
 import common from './common.json';
 import home from './home.json';
 import about from './about.json';
+import compare from './compare.json';
 import seo from './seo.json';
 import onboarding from './onboarding.json';
 import media from './media.json';
@@ -21,6 +22,7 @@ export const en = {
   common,
   home,
   about,
+  compare,
   seo,
   legal,
   privacy,

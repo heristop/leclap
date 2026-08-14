@@ -11,6 +11,10 @@
     "title": "About",
     "description": "LeClap is an open, browser-based cinematic video composer powered by WebAssembly and FFmpeg. Learn what it is and who built it."
   },
+  "compareRemotion": {
+    "title": "LeClap vs Remotion — on-device video rendering compared",
+    "description": "Both render video deterministically from code. Remotion composes in React and needs a browser engine; LeClap renders a JSON template natively on-device. An honest side-by-side."
+  },
   "templates": {
     "title": "Builder"
   },

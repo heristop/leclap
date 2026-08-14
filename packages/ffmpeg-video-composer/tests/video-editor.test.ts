@@ -272,7 +272,10 @@ describe('VideoEditor.finalize', () => {
     expect(logger.warn).toHaveBeenCalledWith('Could not delete segments file: Unknown error');
   });
 
-  it('catches and logs errors thrown during finalize', async () => {
+  // Regression guard: finalize used to log-and-swallow, so a failed music/animation pass let
+  // compile() resolve a path to an output.mp4 the pass never wrote (in the folded path, that pass
+  // IS what writes the final file). It must log, record the error, and rethrow so compile() fails.
+  it('logs, records and rethrows errors thrown during finalize', async () => {
     const template = makeTemplate({ global: { musicEnabled: true } });
     const project = makeProject();
     project.finalVideo = '/build/output.mp4';
@@ -285,28 +288,29 @@ describe('VideoEditor.finalize', () => {
     };
     const { editor, logger } = makeEditor({ template, project, musicComposer });
 
-    await editor.finalize(segments);
+    await expect(editor.finalize(segments)).rejects.toThrow('loop boom');
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('[Finalize] Error: loop boom'));
+    expect(project.errors).toContain('finalize');
   });
 
-  it("swallows a non-Error thrown during finalize and logs 'Unknown error'", async () => {
+  it("rethrows a non-Error thrown during finalize and logs 'Unknown error'", async () => {
     const template = makeTemplate({ global: { musicEnabled: true } });
     const project = makeProject();
     project.finalVideo = '/build/output.mp4';
     project.buildInfos.musicPath = '/build/music.mp3'; // a resolved track → music block runs
     const musicComposer = {
       loopMusic: vi.fn(async () => {
-        // throw a NON-Error -> finalize catch ternary false side (line 125)
+        // throw a NON-Error -> finalize catch ternary false side
         const boom: unknown = 'loop string boom';
         throw boom;
       }),
       appendMusic: vi.fn(async () => undefined),
     };
-    const { editor, logger } = makeEditor({ template, project, musicComposer });
+    const { editor, logger, project: proj } = makeEditor({ template, project, musicComposer });
 
-    // finalize must NOT rethrow (swallowed)
-    await expect(editor.finalize(segments)).resolves.toBeUndefined();
+    await expect(editor.finalize(segments)).rejects.toBe('loop string boom');
     expect(logger.error).toHaveBeenCalledWith('[Finalize] Error: Unknown error');
+    expect(proj.errors).toContain('finalize');
   });
 });

@@ -364,6 +364,13 @@ class VideoEditor {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`[Finalize] Error: ${message}`);
+      // Record then rethrow: in the folded path the music/normalize pass is what WRITES the final
+      // file, so swallowing here made compile() resolve a path to an output that never existed.
+      // The non-empty errors list also keeps emitFinalize/clean() skipped, and resetBuildState
+      // clears it at the start of the next compile.
+      this.project.errors.push('finalize');
+
+      throw error;
     }
   };
 }

@@ -9,6 +9,13 @@ apps/leclap-web/public/og-image.png filter=lfs diff=lfs merge=lfs -text
 packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png filter=lfs diff=lfs merge=lfs -text
 packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_5mbmb.png filter=lfs diff=lfs merge=lfs -text
 
+# Remotion render input for the README hero. Its payload never reached GitHub (this repo's LFS
+# budget is exhausted), so leaving it as a pointer makes `git push` fail GitHub's GH008 integrity
+# check outright, and `staticFile('captures/ondevice-render.mp4')` would feed the bundler 131 bytes
+# of text on a fresh clone. Stored as a plain blob instead (~292 KB). The sibling captures/*.mp4
+# predate this and their payloads are already on GitHub, so they stay in LFS.
+packages/leclap-brand-motion/public/captures/ondevice-render.mp4 -filter -diff -merge -text
+
 # README/npm artwork, served straight from raw.githubusercontent.com — it has to be the real bytes in
 # the repo, not an LFS pointer. This repo's LFS budget is exhausted (see .github/workflows/ci.yml),
 # so raw.githubusercontent.com would hand GitHub's camo proxy and npm the 131-byte pointer file as

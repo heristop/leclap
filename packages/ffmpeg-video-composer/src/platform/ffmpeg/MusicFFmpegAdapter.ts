@@ -1,4 +1,5 @@
 import { container, injectable } from 'tsyringe';
+import { assertSafeArgToken } from '../../core/arg-guard';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
 import type AbstractFFmpeg from './AbstractFFmpeg';
@@ -43,7 +44,9 @@ class MusicFFmpegAdapter implements AbstractMusic {
 
       const buildDir = filesystemAdapter.getBuildDir() ?? '/tmp/build';
       const loopPath = `${buildDir}/loop_music.m4a`;
-      const command = ` -y -stream_loop -1 -i ${musicPath} -t ${totalLength} -c:a aac -b:a 192k ${loopPath} `;
+      // The command string is space-split into argv; a path with raw whitespace must fail loudly
+      // here rather than mis-tokenize into extra ffmpeg arguments.
+      const command = ` -y -stream_loop -1 -i ${assertSafeArgToken(musicPath, 'music path')} -t ${totalLength} -c:a aac -b:a 192k ${loopPath} `;
       logger.debug(`[MusicFFmpegAdapter][Command] ffmpeg ${command}`);
 
       const result = await ffmpeg.execute(command);

@@ -47,4 +47,18 @@ describe('validate_template handler', () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('Invalid template');
   });
+
+  // Regression guard: a project_video declared inside a `{type:'partial'}` section must surface in
+  // requiredClips — the engine expands partials before rendering, so compose_video WILL demand a
+  // clip for it, and this tool used to report no clips at all for such templates.
+  it('lists a partial-provided project_video section in requiredClips', () => {
+    const template: Record<string, unknown> = {
+      partials: [{ id: 'cam', sections: [{ name: 'clip', type: 'project_video', options: { duration: 3 } }] }],
+      sections: [{ type: 'partial', ref: 'cam' }],
+    };
+    const result = setup()({ template });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent).toMatchObject({ valid: true, requiredClips: ['clip'] });
+  });
 });

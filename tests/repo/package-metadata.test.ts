@@ -10,6 +10,32 @@ const PUBLISHED = ['packages/ffmpeg-video-composer', 'packages/leclap-cli', 'pac
 
 const readPkg = (dir: string) => JSON.parse(readFileSync(join(repoRoot, dir, 'package.json'), 'utf8'));
 
+// Every way the brand can be written, correct or not: `Leclap`, `leclap`, `LECLAP`, `leClap`,
+// `Le Clap`, `le-clap`. Matches are returned with their original casing so the spellings can be
+// compared, not merely counted.
+const brandMentions = (text: string): string[] => [...text.matchAll(/le[\s._-]*clap/gi)].map(([match]) => match);
+
+// npm rejects uppercase in package names, so identifiers carry the brand lowercased. Anywhere a
+// human reads it — a description, the README, the npm page blurb — it is `LeClap`.
+const IDENTIFIER_SPELLING = 'leclap';
+const PROSE_SPELLING = 'LeClap';
+
+// How many times each surface mentions the brand today, recorded per package.
+//
+// This table is what makes the spelling assertions real. A bare negative regex over a description
+// passes for free whenever the description never mentions the brand at all — true for
+// `ffmpeg-video-composer` (deliberately unbranded, it is the generic engine package) and for
+// `@leclap/mcp` (its description leads with the MCP protocol, not the brand). Pinning the expected
+// count first means an absent brand is asserted, not assumed, and a newly introduced mention has to
+// be spelled correctly and recorded here before the suite goes green again.
+const BRAND_MENTIONS: Record<string, { name: number; keywords: number; description: number }> = {
+  'packages/ffmpeg-video-composer': { name: 0, keywords: 0, description: 0 },
+  'packages/leclap-cli': { name: 1, keywords: 1, description: 1 },
+  'packages/leclap-mcp': { name: 1, keywords: 1, description: 0 },
+};
+
+const majorOf = (range: string) => range.replace(/^[\^~]/, '').split('.')[0];
+
 describe.each(PUBLISHED)('%s', (dir) => {
   const pkg = readPkg(dir);
 
@@ -27,15 +53,33 @@ describe.each(PUBLISHED)('%s', (dir) => {
     expect(pkg.keywords?.length ?? 0).toBeGreaterThanOrEqual(5);
   });
 
-  it('spells the brand LeClap in its description', () => {
-    expect(pkg.description).not.toMatch(/\bLeclap\b|\bleClap\b/);
+  it('spells the brand LeClap wherever npm shows it', () => {
+    const expected = BRAND_MENTIONS[dir];
+    const inName = brandMentions(pkg.name);
+    const inKeywords = brandMentions((pkg.keywords ?? []).join(' '));
+    const inDescription = brandMentions(pkg.description ?? '');
+
+    // Counts first. Without them a package that simply never says "LeClap" would satisfy every
+    // spelling check below by default.
+    expect(inName.length, 'brand mentions in name').toBe(expected.name);
+    expect(inKeywords.length, 'brand mentions in keywords').toBe(expected.keywords);
+    expect(inDescription.length, 'brand mentions in description').toBe(expected.description);
+
+    // Then the spelling of each mention. Expectations are built from the two constants above, so a
+    // misspelling cannot be waved through by editing the table.
+    expect(inName, 'name').toEqual(Array(expected.name).fill(IDENTIFIER_SPELLING));
+    expect(inKeywords, 'keywords').toEqual(Array(expected.keywords).fill(IDENTIFIER_SPELLING));
+    expect(inDescription, 'description').toEqual(Array(expected.description).fill(PROSE_SPELLING));
   });
 
   it('pins the same typescript major as the workspace root', () => {
     const rootTs = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8')).devDependencies.typescript;
     const ownTs = pkg.devDependencies?.typescript;
-    if (ownTs === undefined) return;
-    expect(ownTs.replace(/^\^|~/, '').split('.')[0]).toBe(rootTs.replace(/^\^|~/, '').split('.')[0]);
+    // Each published package builds its own dist, so each owns a typescript devDependency.
+    // Asserting that outright stops the major-version check from vanishing into a silent pass if
+    // the field is ever dropped.
+    expect(ownTs, 'devDependencies.typescript').toBeDefined();
+    expect(majorOf(ownTs), 'typescript major').toBe(majorOf(rootTs));
   });
 });
 

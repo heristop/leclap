@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/server';
 
 import type { McpConfig } from './config.js';
@@ -30,11 +31,19 @@ function registerPing(server: McpServer, _config: McpConfig): void {
 // server's configuration — no shared intermediary should serve it to another client.
 const LIST_CACHE_HINT = { ttlMs: 300_000, cacheScope: 'private' } as const;
 
+// `serverInfo.version` is what every MCP client displays and what the registry listing shows, so it
+// has to be the real package version. It was a hardcoded '0.1.0' and had drifted three minor
+// releases behind before a pre-release handshake caught it. Read at runtime via createRequire rather
+// than imported: tsdown bundles this file into dist/index.js, and a static import would inline the
+// version at build time (drifting again the moment changesets bumps it) or make the bundler try to
+// resolve the manifest as a module. From dist/, '../package.json' is the published manifest.
+const SERVER_VERSION: string = createRequire(import.meta.url)('../package.json').version;
+
 // Side-effect-free: builds and configures the server but does NOT connect a transport, so it
 // stays unit-testable. The caller (index.ts) hands it to `serveStdio` as a per-connection factory.
 export function createServer(config: McpConfig): McpServer {
   const server = new McpServer(
-    { name: 'leclap', version: '0.1.0' },
+    { name: 'leclap', version: SERVER_VERSION },
     {
       capabilities: { tools: {}, prompts: {} },
       cacheHints: {

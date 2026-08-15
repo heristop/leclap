@@ -54,23 +54,18 @@ Two looks at LeClap — a finished clip rendered from a single JSON template, an
 
 ## 🤔 Why LeClap?
 
-LeClap's corner is **native on-device + reproducible + agent-callable** video, where generative tools (Sora/Runway) and cloud renderers (Shotstack) can't reach — and where Remotion, since it ships a browser renderer, reaches by a different route: the full loop — record a clip from the camera, apply effects, mix music, add transitions, render — runs inside your app, and an AI agent can author and render a template with no LLM in the output path.
+Generative tools can't reproduce a result twice. Cloud renderers can't run in your user's pocket. Remotion renders without a server, but needs a browser engine to do it — LeClap links FFmpeg into the app itself.
 
-|                                     |             **LeClap**              |                 Remotion                 |     Shotstack     |               Sora / Runway               |
-| ----------------------------------- | :---------------------------------: | :--------------------------------------: | :---------------: | :---------------------------------------: |
-| Renders in a native app, no browser |  ✅ React Native, FFmpeg linked in  |     ❌ needs a WebCodecs browser 🔗      |   ❌ cloud API    |               ❌ cloud API                |
-| Runs with no server                 |                 ✅                  |   ✅ in the browser, since 4.0.491 🔗    |   ❌ cloud API    |               ❌ cloud API                |
-| Same input → same output            | ✅ per platform, see the note below | ✅ by design, if you avoid randomness 🔗 | ⚠️ not documented | ❌ seeds give "similar", not identical 🔗 |
-| Authored by an AI agent             |               ✅ MCP                |      ⚠️ an LLM writes React code 🔗      | ✅ MCP (cloud) 🔗 |                 ✅ prompt                 |
-| Composition model                   |            JSON template            |             React components             |   JSON timeline   |                  prompt                   |
+|                                     |            **LeClap**             |             Remotion             |     Shotstack     |     Generative video     |
+| ----------------------------------- | :-------------------------------: | :------------------------------: | :---------------: | :----------------------: |
+| Renders in a native app, no browser | ✅ React Native, FFmpeg linked in |   ❌ needs a WebCodecs browser   |   ❌ cloud API    |       ❌ cloud API       |
+| Runs with no server                 |                ✅                 | ✅ in the browser, since 4.0.491 |   ❌ cloud API    |       ❌ cloud API       |
+| Same input → same output            |         ✅ per platform¹          |    ✅ if you avoid randomness    | ⚠️ not documented | ❌ sampled, not rendered |
+| Authored by an AI agent             |              ✅ MCP               |   ⚠️ an LLM writes React code    |  ✅ MCP (cloud)   |        ✅ prompt         |
 
-<sub><strong>The honest caveats.</strong> "Same input → same output" means <em>per platform</em>, not across platforms — and the gap is wider than one encoder swap. Node and the browser take the libx264-style software path (crf/tune/profile); the on-device build is LGPL (<code>--disable-gpl</code>, no libx264), so <strong>Android</strong> encodes with <code>libopenh264</code> and <strong>iOS</strong> with Apple's hardware <code>h264_videotoolbox</code>, both driven by a bitrate target instead (<a href="packages/ffmpeg-video-composer/src/core/encoding.ts"><code>encoding.ts</code></a> picks the args, <a href="apps/leclap-expo/src/services/compile/CoreCompilationService.ts"><code>CoreCompilationService.ts</code></a> picks the codec per platform). Three targets, three encoders. The on-device filter set is narrower too: <code>boxblur</code> is dropped and <code>eq</code> is rewritten to <code>lutyuv</code> (<a href="packages/ffmpeg-video-composer/tests/filter-compat-drop.test.ts"><code>filter-compat-drop.test.ts</code></a>). Same template, same composition, same cuts — different pixels on each target. Remotion's browser renderer carries the mirror-image caveat: it emulates layout onto a canvas rather than screenshotting a page, so it does not match its own server output pixel-for-pixel.</sub>
+<sub>¹ Per platform, not across them: Node and the browser encode with libx264, Android with `libopenh264`, iOS with `h264_videotoolbox`, and the on-device build drops `boxblur` and rewrites `eq`→`lutyuv`. Same composition, different pixels.</sub>
 
-<sub>🔗 Claims checked against vendor docs on 2026-08-14: <a href="https://www.remotion.dev/docs/client-side-rendering">Remotion renders client-side "without requiring server-side infrastructure"</a> (stable since 4.0.491; Chrome 94+, Firefox 130+, Safari 26+) but <a href="https://www.remotion.dev/docs/client-side-rendering/limitations">"the browser must support the WebCodecs API"</a>; <a href="https://www.remotion.dev/docs/flickering">"a component should not rely on randomness"</a>; <a href="https://www.remotion.dev/docs/ai/system-prompt">Remotion's agent story is a system prompt that teaches an LLM "the mechanics and rules of Remotion"</a>; <a href="https://shotstack.io/docs/guide/">Shotstack is "a REST based API hosted in the cloud"</a> and ships an <a href="https://shotstack.io/docs/guide/agents/mcp-server">MCP server</a>; <a href="https://developers.openai.com/api/docs/guides/video-generation">OpenAI's video API documents no seed</a> and <a href="https://help.runwayml.com/hc/en-us/articles/37327109429011-Creating-with-Gen-4-Video">Runway's fixed seed yields "similar style and movement"</a>. Something out of date or unfair? Open an issue — we'll fix the table.</sub>
-
-Generative tools can't reproduce a result twice. Cloud renderers can't run in your user's pocket. Remotion can render without a server, but it needs a browser engine to do it; LeClap links FFmpeg into the app itself.
-
-Remotion is the closest neighbour, so it gets a page of its own: **[LeClap vs Remotion](https://leclap.dev/compare/remotion)** — the same table with the reasoning spelled out, including when to pick Remotion.
+**[LeClap vs Remotion →](https://leclap.dev/compare/remotion)** — the reasoning behind each row, the full caveats, every claim sourced to vendor docs, and when to pick Remotion instead.
 
 ## 🧰 Highlights
 

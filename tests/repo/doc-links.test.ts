@@ -51,7 +51,10 @@ describe('link extraction', () => {
     expect(hrefs(readme, MARKDOWN_LINK)).toContain('docs/architecture.md');
   });
 
+  // Pinned to the masthead logo rather than a prose link: prose gets rewritten (an earlier version
+  // pinned a citation that a README trim deleted, failing this for the wrong reason), but the <img>
+  // in the centred header block is structural.
   it('finds README html links', () => {
-    expect(hrefs(readme, HTML_LINK)).toContain('packages/ffmpeg-video-composer/tests/filter-compat-drop.test.ts');
+    expect(hrefs(readme, HTML_LINK)).toContain('apps/leclap-web/public/pwa-512x512.png');
   });
 });

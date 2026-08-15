@@ -8,7 +8,7 @@ template with nice effects** from the schema, then validates and renders it **de
 an mp4. The server ships **no built-in template catalog** — it is decoupled from the app's
 creative-kit — so it stays a generic authoring tool. Remotion-assisted authoring is a bonus path.
 The result is _agent-composable, deterministic, reproducible_ video — the opposite of generative
-(Sora/Runway).
+video models, which sample rather than render.
 
 ## Tools
 

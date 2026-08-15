@@ -10,24 +10,29 @@ const PUBLISHED = ['packages/ffmpeg-video-composer', 'packages/leclap-cli', 'pac
 
 const readPkg = (dir: string) => JSON.parse(readFileSync(join(repoRoot, dir, 'package.json'), 'utf8'));
 
-// @leclap/cli and @leclap/mcp depend on ffmpeg-video-composer via `workspace:*`, which only pnpm
-// knows how to rewrite at pack time. The release used `changeset publish`, which shells out to
-// `npm publish` — npm shipped the literal string "workspace:*" to the registry, so 0.2.2 and 0.3.0
-// installed straight into EUNSUPPORTEDPROTOCOL and nobody could run `npx @leclap/cli`.
-//
-// The fix is to let pnpm do the packing. This pins that: if the release script ever goes back to an
-// npm-based publisher while any published package still uses the workspace protocol, it fails here
-// rather than on the registry.
-describe('release pipeline', () => {
-  const root = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
-  const usesWorkspaceProtocol = PUBLISHED.some((dir) =>
-    Object.values(readPkg(dir).dependencies ?? {}).some((range) => String(range).startsWith('workspace:'))
-  );
+// The dependency fields that ship inside a published tarball. devDependencies are stripped on
+// publish, so a workspace protocol there is harmless.
+const SHIPPED_DEP_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies'] as const;
 
-  it('publishes with pnpm, the only packer that rewrites workspace: ranges', () => {
-    expect(usesWorkspaceProtocol, 'precondition: a published package still uses workspace:').toBe(true);
-    expect(root.scripts.release, 'npm publish ships "workspace:*" verbatim').toContain('pnpm publish');
-    expect(root.scripts.release, 'changeset publish shells out to npm publish').not.toContain('changeset publish');
+// pnpm's `workspace:*` protocol is rewritten to a real version only when *pnpm* packs. Both
+// `changeset publish` and a hand-run `npm publish` shell out to npm, which ships the literal string
+// to the registry: @leclap/cli 0.2.2 and 0.2.3 and @leclap/mcp 0.3.0 and 0.3.1 all went out that way
+// and cannot be installed at all — `npm i @leclap/cli` dies with EUNSUPPORTEDPROTOCOL.
+//
+// A plain semver range cannot be published wrong by any packer, which is why the published packages
+// use one and this test keeps them that way. Local development still resolves to the copy in this
+// repo via `linkWorkspacePackages` in pnpm-workspace.yaml.
+describe.each(PUBLISHED)('%s shipped dependencies', (dir) => {
+  const pkg = readPkg(dir);
+
+  it('declares no workspace-protocol ranges', () => {
+    const offenders = SHIPPED_DEP_FIELDS.flatMap((field) =>
+      Object.entries(pkg[field] ?? {})
+        .filter(([, range]) => String(range).startsWith('workspace:'))
+        .map(([name, range]) => `${field}.${name}=${String(range)}`)
+    );
+
+    expect(offenders, 'npm publishes these verbatim; installs then fail EUNSUPPORTEDPROTOCOL').toEqual([]);
   });
 });
 

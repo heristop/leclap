@@ -75,15 +75,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm i
 
-      # `pnpm release` packs and publishes with pnpm, NOT `changeset publish`. That matters: changesets
-      # shells out to `npm publish`, and npm does not understand pnpm's `workspace:*` protocol — it
-      # shipped that literal string to the registry, so @leclap/cli 0.2.2 and @leclap/mcp 0.3.0 both
-      # install into EUNSUPPORTEDPROTOCOL and cannot be run with npx. pnpm rewrites the protocol to the
-      # concrete version at pack time. `tests/repo/package-metadata.test.ts` pins this.
+      # The published packages depend on ffmpeg-video-composer by plain semver range, never by pnpm's
+      # `workspace:*` protocol. That protocol only survives if pnpm does the packing; `changeset
+      # publish` and a bare `npm publish` both shell out to npm, which ships the literal string
+      # "workspace:*" to the registry — @leclap/cli 0.2.2/0.2.3 and @leclap/mcp 0.3.0/0.3.1 all went
+      # out that way and cannot be installed at all (EUNSUPPORTEDPROTOCOL).
       #
-      # Trade-off: changesets/action creates GitHub Releases by parsing `New tag:` lines out of the
-      # publish output, which pnpm does not emit. Versioning, changelogs and the release PR still work
-      # (the `version` job above); tagging a GitHub Release is manual for now.
+      # A semver range cannot be published wrong by any packer, so releasing works the same whether it
+      # runs here, via `pnpm release`, or via a hand-run `npm publish`.
+      # `tests/repo/package-metadata.test.ts` pins it.
       - name: Publish Packages
         uses: changesets/action@v1
         with:

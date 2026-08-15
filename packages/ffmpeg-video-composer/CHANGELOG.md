@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-08-16
+
+### Changed
+
+- **`FFmpegLeclapAdapter` is renamed to `FFmpegDeviceAdapter`.** The adapter drives any
+  injected `NativeEngine` and imports no app or Expo code, so the old name named the wrong
+  thing; its siblings (`FFmpegNodeAdapter`, `FFmpegWasmAdapter`, `FFmpegStaticAdapter`) are
+  named for how they run. Code importing `FFmpegLeclapAdapter` from
+  `ffmpeg-video-composer/reactnative` must import `FFmpegDeviceAdapter` instead — no alias is
+  kept. Behaviour and the `NativeEngine` interface are unchanged, so
+  `createReactNativeContainer` consumers need no edit.
+
 ## [2.2.1] - 2026-08-15
 
 ### Fixed

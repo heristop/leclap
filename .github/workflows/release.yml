@@ -75,6 +75,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm i
 
+      # `pnpm release` packs and publishes with pnpm, NOT `changeset publish`. That matters: changesets
+      # shells out to `npm publish`, and npm does not understand pnpm's `workspace:*` protocol — it
+      # shipped that literal string to the registry, so @leclap/cli 0.2.2 and @leclap/mcp 0.3.0 both
+      # install into EUNSUPPORTEDPROTOCOL and cannot be run with npx. pnpm rewrites the protocol to the
+      # concrete version at pack time. `tests/repo/package-metadata.test.ts` pins this.
+      #
+      # Trade-off: changesets/action creates GitHub Releases by parsing `New tag:` lines out of the
+      # publish output, which pnpm does not emit. Versioning, changelogs and the release PR still work
+      # (the `version` job above); tagging a GitHub Release is manual for now.
       - name: Publish Packages
         uses: changesets/action@v1
         with:

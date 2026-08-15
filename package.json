@@ -14,7 +14,7 @@
     "build": "pnpm -r build",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm --filter ffmpeg-video-composer --filter @leclap/cli --filter @leclap/mcp build && changeset publish",
+    "release": "pnpm --filter ffmpeg-video-composer --filter @leclap/cli --filter @leclap/mcp build && pnpm publish -r --filter ffmpeg-video-composer --filter @leclap/cli --filter @leclap/mcp --access public --no-git-checks",
     "build:exe": "pnpm --filter @leclap/cli run build:exe",
     "build:exe:all": "pnpm --filter @leclap/cli run build:exe:all",
     "lint": "vp lint",

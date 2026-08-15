@@ -10,6 +10,27 @@ const PUBLISHED = ['packages/ffmpeg-video-composer', 'packages/leclap-cli', 'pac
 
 const readPkg = (dir: string) => JSON.parse(readFileSync(join(repoRoot, dir, 'package.json'), 'utf8'));
 
+// @leclap/cli and @leclap/mcp depend on ffmpeg-video-composer via `workspace:*`, which only pnpm
+// knows how to rewrite at pack time. The release used `changeset publish`, which shells out to
+// `npm publish` — npm shipped the literal string "workspace:*" to the registry, so 0.2.2 and 0.3.0
+// installed straight into EUNSUPPORTEDPROTOCOL and nobody could run `npx @leclap/cli`.
+//
+// The fix is to let pnpm do the packing. This pins that: if the release script ever goes back to an
+// npm-based publisher while any published package still uses the workspace protocol, it fails here
+// rather than on the registry.
+describe('release pipeline', () => {
+  const root = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
+  const usesWorkspaceProtocol = PUBLISHED.some((dir) =>
+    Object.values(readPkg(dir).dependencies ?? {}).some((range) => String(range).startsWith('workspace:'))
+  );
+
+  it('publishes with pnpm, the only packer that rewrites workspace: ranges', () => {
+    expect(usesWorkspaceProtocol, 'precondition: a published package still uses workspace:').toBe(true);
+    expect(root.scripts.release, 'npm publish ships "workspace:*" verbatim').toContain('pnpm publish');
+    expect(root.scripts.release, 'changeset publish shells out to npm publish').not.toContain('changeset publish');
+  });
+});
+
 // Every way the brand can be written, correct or not: `Leclap`, `leclap`, `LECLAP`, `leClap`,
 // `Le Clap`, `le-clap`. Matches are returned with their original casing so the spellings can be
 // compared, not merely counted.

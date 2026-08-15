@@ -56,7 +56,7 @@ interface ProbeStream {
  * program name); we split it to argv and run it natively — no MEMFS bridging, since the engine reads
  * the real device paths the core wrote. `getInfos()` shells ffprobe to JSON and maps it to FFMpegInfos.
  */
-class FFmpegLeclapAdapter extends AbstractFFmpeg {
+class FFmpegDeviceAdapter extends AbstractFFmpeg {
   constructor(private readonly engine: NativeEngine) {
     super();
   }
@@ -140,12 +140,12 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
 
   private readonly parseProbeStreams = (output: string, source: string): ProbeStream[] => {
     try {
-      return (JSON.parse(FFmpegLeclapAdapter.extractJsonObject(output)) as { streams?: ProbeStream[] }).streams ?? [];
+      return (JSON.parse(FFmpegDeviceAdapter.extractJsonObject(output)) as { streams?: ProbeStream[] }).streams ?? [];
     } catch (error) {
       // Some camera-recorded MP4s (e.g. react-native-vision-camera output) make ffprobe emit a non-JSON
       // line instead of the document. Don't abort the whole compile — return no streams so the caller
       // falls back to the section's declared duration; the render still decodes the clip natively.
-      console.warn(`[FFmpegLeclapAdapter] ffprobe output not parseable for ${source}: ${String(error)}`);
+      console.warn(`[FFmpegDeviceAdapter] ffprobe output not parseable for ${source}: ${String(error)}`);
 
       return [];
     }
@@ -181,4 +181,4 @@ class FFmpegLeclapAdapter extends AbstractFFmpeg {
   };
 }
 
-export default FFmpegLeclapAdapter;
+export default FFmpegDeviceAdapter;

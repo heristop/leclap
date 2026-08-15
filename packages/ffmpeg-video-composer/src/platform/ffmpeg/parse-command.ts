@@ -4,7 +4,7 @@
  * `-filter_complex`) is kept literal — which the filtergraph needs for values like `text='Hello'`.
  *
  * Shared by the adapters that bridge the core's CLI command strings to an argv-based runner
- * (FFmpegWasmAdapter → ffmpeg.wasm, FFmpegLeclapAdapter → the native engine).
+ * (FFmpegWasmAdapter → ffmpeg.wasm, FFmpegDeviceAdapter → the native engine).
  */
 export function parseCommand(command: string): string[] {
   const args: string[] = [];

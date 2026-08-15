@@ -7,7 +7,7 @@ import { container } from 'tsyringe';
 import TemplateDirector from './director/TemplateDirector';
 import TemplateConcreteBuilder from './director/TemplateConcreteBuilder';
 import FilesystemExpoAdapter from './platform/filesystem/FilesystemExpoAdapter';
-import FFmpegLeclapAdapter, { type NativeEngine } from './platform/ffmpeg/FFmpegLeclapAdapter';
+import FFmpegDeviceAdapter, { type NativeEngine } from './platform/ffmpeg/FFmpegDeviceAdapter';
 import MusicFFmpegAdapter from './platform/ffmpeg/MusicFFmpegAdapter';
 import AssetManager from './editor/managers/AssetManager';
 import VariableManager from './editor/managers/VariableManager';
@@ -46,7 +46,7 @@ let isInitialized = false;
 
 function registerAdapters(logger: AbstractLogger, engine: NativeEngine): void {
   const fileSystem = new FilesystemExpoAdapter();
-  const ffmpegAdapter = new FFmpegLeclapAdapter(engine);
+  const ffmpegAdapter = new FFmpegDeviceAdapter(engine);
   const musicAdapter = new MusicFFmpegAdapter();
 
   container.registerInstance('logger', logger);
@@ -94,7 +94,7 @@ function validateTemplate(template: Template, templateDescriptor: TemplateDescri
 interface CompilationContext {
   eventManager: BrowserEventManager;
   logger: AbstractLogger;
-  ffmpegAdapter: FFmpegLeclapAdapter;
+  ffmpegAdapter: FFmpegDeviceAdapter;
   filesystemAdapter: FilesystemExpoAdapter;
   project: Project;
   template: Template;
@@ -189,7 +189,7 @@ export async function compileReactNative(
   const ctx: CompilationContext = {
     eventManager: container.resolve<BrowserEventManager>('eventManager'),
     logger: container.resolve<AbstractLogger>('logger'),
-    ffmpegAdapter: container.resolve<FFmpegLeclapAdapter>('ffmpegAdapter'),
+    ffmpegAdapter: container.resolve<FFmpegDeviceAdapter>('ffmpegAdapter'),
     filesystemAdapter: container.resolve<FilesystemExpoAdapter>('filesystemAdapter'),
     project: new Project(),
     template: new Template(),
@@ -219,6 +219,6 @@ export async function compileReactNative(
   }
 }
 
-export { default as FFmpegLeclapAdapter, type NativeEngine } from './platform/ffmpeg/FFmpegLeclapAdapter';
+export { default as FFmpegDeviceAdapter, type NativeEngine } from './platform/ffmpeg/FFmpegDeviceAdapter';
 export { default as FilesystemExpoAdapter } from './platform/filesystem/FilesystemExpoAdapter';
 export type { ProjectConfig, TemplateDescriptor, Section, Filter } from './core/types';

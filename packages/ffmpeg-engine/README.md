@@ -16,7 +16,7 @@ this crate links against. Full architecture:
 ```text
 template JSON
   → ffmpeg-video-composer (reactnative.ts)         build the ffmpeg argv
-  → FFmpegLeclapAdapter                              core ⇄ engine boundary
+  → FFmpegDeviceAdapter                              core ⇄ engine boundary
   → leclap-ffmpeg Expo module (Kotlin / Swift)       JS → native
   → leclap_ffmpeg_core  (THIS crate, via uniffi)     native → FFmpeg
   → libfftools.a + static FFmpeg libs                the actual encode

@@ -4,7 +4,7 @@
  * call, making it re-entrant). These wrappers prepend the conventional argv[0] program name and
  * forward to the renamed entrypoints, returning the process-style exit code.
  *
- * The core (FFmpegLeclapAdapter) hands us the command WITHOUT a program name, e.g.
+ * The core (FFmpegDeviceAdapter) hands us the command WITHOUT a program name, e.g.
  *   ["-y", "-i", "in.mp4", "-vf", "scale=1280:720", "out.mp4"]
  * so we synthesize argv[0].
  */

@@ -51,7 +51,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
       // ffmpeg-core's own `progress` ratio is unreliable — for the per-segment compile passes the input has
       // no parseable Duration, so it comes back as garbage (huge negative). Derive the 0..1 fraction from the
       // reliable elapsed `time` (microseconds) over the director-supplied expected duration instead, the same
-      // way the on-device CLI adapter does (FFmpegLeclapAdapter.pollProgress).
+      // way the on-device CLI adapter does (FFmpegDeviceAdapter.pollProgress).
       this.ffmpeg.on('progress', ({ time }) => {
         const duration = this.expectedDurationSeconds;
 

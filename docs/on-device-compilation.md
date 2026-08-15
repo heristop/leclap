@@ -59,7 +59,7 @@ graph TD
         direction TB
         crn["compileReactNative()"]:::core
         director["TemplateDirector → SegmentBuilder<br/>→ VideoEditor → MusicComposer"]:::core
-        adapter["FFmpegLeclapAdapter.execute(cmd)<br/>parseCommand → engine.run(args)"]:::core
+        adapter["FFmpegDeviceAdapter.execute(cmd)<br/>parseCommand → engine.run(args)"]:::core
         fs["FilesystemExpoAdapter (device FS)"]:::core
     end
 
@@ -149,7 +149,7 @@ Each hop and exactly what crosses it:
 | App → router            | `compileHybrid(descriptor, recordedVideos, opts)`                    | `TemplateDescriptor`, `CompileRecordedVideos` = `Record<string, {path, orientation, trim?, crop?}>` | `HybridResult {success, outputUri?, error?, engine: 'on-device' \| 'server'}` |
 | router → on-device      | `CoreCompilationService.compile(input)`                              | `CompileInput {descriptor, clips}`                                                                  | `CompileResult {success, outputUri?, error?}`                                 |
 | service → core          | `compileReactNative(projectConfig, descriptor, engine, onProgress?)` | `ProjectConfig`, `TemplateDescriptor`, `NativeEngine`                                               | `string \| null` (output path)                                                |
-| core → engine (adapter) | `FFmpegLeclapAdapter.execute(cmd)` / `getInfos(src)`                 | command `string`                                                                                    | `{rc: number}` (throws `FFmpegError` on non-zero) / `FFMpegInfos`             |
+| core → engine (adapter) | `FFmpegDeviceAdapter.execute(cmd)` / `getInfos(src)`                 | command `string`                                                                                    | `{rc: number}` (throws `FFmpegError` on non-zero) / `FFMpegInfos`             |
 | adapter → native module | `engine.run(args)` / `engine.probe(args)`                            | `string[]` (argv, no program name)                                                                  | `RunResult {code, log}` / `ProbeResult {code, output}`                        |
 | module → Rust (uniffi)  | `run` / `probe` / `version`                                          | `Vec<String>`                                                                                       | `RunResult {code: i32, log}` / `ProbeResult {code: i32, output}` / `String`   |
 | Rust → C shim           | `leclap_ffmpeg_run` / `leclap_ffprobe_run`                           | `argc, argv` (no `argv[0]`)                                                                         | `int` exit code                                                               |
@@ -177,7 +177,7 @@ Which FFmpeg filters run on which backend — Node (full build), browser WASM (f
 | On-device service (builds config + engine) | `apps/leclap-expo/src/services/compile/CoreCompilationService.ts`                                                                           |
 | Expo native module (JS surface)            | `apps/leclap-expo/modules/leclap-ffmpeg/index.ts` (+ Android Kotlin, iOS Swift, `jniLibs/`)                                                 |
 | Core RN entrypoint                         | `packages/ffmpeg-video-composer/src/reactnative.ts`                                                                                         |
-| FFmpeg adapter (core ⇄ engine)             | `packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegLeclapAdapter.ts`                                                                 |
+| FFmpeg adapter (core ⇄ engine)             | `packages/ffmpeg-video-composer/src/platform/ffmpeg/FFmpegDeviceAdapter.ts`                                                                 |
 | Device filesystem adapter                  | `packages/ffmpeg-video-composer/src/platform/filesystem/FilesystemExpoAdapter.ts`                                                           |
 | Rust engine crate                          | `packages/ffmpeg-engine/{Cargo.toml, src/lib.rs, csrc/ffmpeg_shim.c, build.rs}`                                                             |
 | FFmpeg build toolchain                     | `scripts/ffmpeg/{versions.env, common.sh, build-engine.sh, build-deps.sh, build-host.sh, build-android.sh, build-ios.sh, patch-fftools.sh}` |

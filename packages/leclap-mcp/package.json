@@ -23,6 +23,9 @@
   },
   "author": "heristop",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
     "leclap-mcp": "./dist/index.js"

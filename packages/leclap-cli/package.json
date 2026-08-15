@@ -5,6 +5,9 @@
   "homepage": "https://leclap.dev",
   "author": "heristop",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
     "leclap": "./dist/index.js"

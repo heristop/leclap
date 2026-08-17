@@ -5,7 +5,10 @@ import { haptic } from '@/lib/haptics';
 import { Header } from '@/presentation/components/Header';
 import { Footer } from '@/presentation/components/Footer';
 import { LanguageSuggestion } from '@/presentation/components/LanguageSuggestion';
+import { ConsentBanner } from '@/presentation/components/ConsentBanner';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useConsent } from '@/hooks/useConsent';
+import { usePageViews } from '@/hooks/usePageViews';
 import { useSmoothScroll } from '@/hooks/use-smooth-scroll';
 
 // Onboarding pulls in the compile pipeline (and FFmpeg WASM); it only shows on the first studio
@@ -20,7 +23,10 @@ const Onboarding = lazy(() =>
 export function RootLayout() {
   const { t } = useTranslation();
   const { show, dismiss, openIfFirstTime } = useOnboarding();
+  const { answered, answer, reopen } = useConsent();
   const location = useLocation();
+
+  usePageViews();
 
   // Eased scrolling, marketing routes only — the hero's scroll-driven film only reads as film if the
   // scroll carrying it has weight. Mounted here so it spans the whole page, not just the hero.
@@ -76,11 +82,14 @@ export function RootLayout() {
           </Suspense>
         </main>
 
-        <Footer />
+        {/* The footer owns the way back to the consent question — an answer nobody can revisit is not
+            really a choice, and the bar itself is gone once given. */}
+        <Footer onReviewConsent={reopen} />
       </div>
 
-      {/* Offers the visitor's browser language instead of redirecting them to it (see index.html). */}
-      <LanguageSuggestion />
+      {/* Both live in the bottom slot, so they take turns: consent first, the language offer once it
+          is answered. Offers the visitor's browser language instead of redirecting them (index.html). */}
+      {answered ? <LanguageSuggestion /> : <ConsentBanner onAnswer={answer} />}
 
       {/* First-studio-visit guided intro (record → compile a sample → download). */}
       {show && (

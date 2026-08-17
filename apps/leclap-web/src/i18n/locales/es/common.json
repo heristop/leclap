@@ -49,11 +49,18 @@
     "accept": "Español",
     "dismiss": "Cerrar"
   },
+  "consent": {
+    "title": "Privacidad ante todo",
+    "text": "Las palomitas serían mejores, pero la web solo sirve cookies. Solo páginas vistas, sin perfiles, y tu material nunca sale de este dispositivo. ¿Trato hecho?",
+    "accept": "Vale",
+    "decline": "No, gracias"
+  },
   "footer": "Todo el procesamiento ocurre localmente en tu navegador: tus archivos nunca salen de tu dispositivo",
   "footerNav": {
     "label": "Enlaces legales",
     "legal": "Aviso legal",
     "privacy": "Privacidad",
+    "cookies": "Cookies",
     "license": "Licencia MIT"
   },
   "routeError": {

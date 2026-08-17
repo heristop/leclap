@@ -9,11 +9,15 @@
     },
     "data": {
       "heading": "Daten, die wir erfassen",
-      "body": "Keine. LeClap hat kein Kontosystem und keinen Backend-Server. Es erfasst keine personenbezogenen Daten und enthält keine Analyse- oder Tracking-Funktionen."
+      "body": "Kein Konto, kein Backend-Server, keine personenbezogenen Daten. Gemessen wird ausschließlich die anonyme Zahl der Seitenaufrufe, und nur wenn du zustimmst."
     },
     "storage": {
       "heading": "Browser-Speicher",
       "body": "LeClap nutzt den lokalen Speicher deines Browsers nur, um sich Einstellungen wie Design und Sprache zu merken und deine laufenden Projekte auf deinem Gerät zu behalten. Du kannst ihn jederzeit über deine Browser-Einstellungen löschen."
+    },
+    "analytics": {
+      "heading": "Seitenaufrufe, mit deiner Einwilligung",
+      "body": "Wenn du zustimmst, zählt Google Analytics, welche Seiten geöffnet werden und woher die Besucher kommen. Ohne deine Zustimmung wird nichts an Google gesendet – das Skript wird vorher nicht einmal geladen – und Signale für Werbung oder Personalisierung bleiben aus. Lösche den Browser-Speicher dieser Seite, um erneut gefragt zu werden."
     },
     "thirdParty": {
       "heading": "Ressourcen von Drittanbietern",
@@ -24,5 +28,5 @@
       "body": "Bei Fragen zu dieser Erklärung wende dich über das Projekt auf GitHub unter github.com/heristop/leclap an uns."
     }
   },
-  "updated": "Zuletzt aktualisiert: Juni 2026"
+  "updated": "Zuletzt aktualisiert: August 2026"
 }

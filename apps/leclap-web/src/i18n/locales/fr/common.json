@@ -49,11 +49,18 @@
     "accept": "Français",
     "dismiss": "Fermer"
   },
+  "consent": {
+    "title": "Confidentialité d’abord",
+    "text": "Le popcorn serait plus sympa, mais le web ne sert que des cookies. Uniquement des pages vues, aucun profil, et tes images ne quittent jamais cet appareil. Ça te va ?",
+    "accept": "Ça me va",
+    "decline": "Non merci"
+  },
   "footer": "Tout se passe en local, dans ton navigateur — tes fichiers ne quittent jamais ton appareil",
   "footerNav": {
     "label": "Liens légaux",
     "legal": "Mentions légales",
     "privacy": "Confidentialité",
+    "cookies": "Cookies",
     "license": "Sous licence MIT"
   },
   "routeError": {

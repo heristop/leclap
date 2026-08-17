@@ -12,7 +12,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { LOCALE_CODES, LOCALIZED_ROUTES, UNINDEXED_PATHS } from './site';
+import { GA_MEASUREMENT_ID, LOCALE_CODES, LOCALIZED_ROUTES, UNINDEXED_PATHS } from './site';
+import { CONSENT_STORAGE_KEY } from '@/lib/analytics';
 import { DOC_ROUTES } from './doc-routes';
 
 const srcDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -200,5 +201,31 @@ describe('localized route copy', () => {
     });
 
     expect(missing.map((r) => r.seoKey)).toEqual([]);
+  });
+});
+
+// The GA snippet runs before the app boots, so it lives in index.html, which nothing typechecks — the
+// measurement id and the consent key are literals there. A renamed key would load gtag.js for someone
+// who never accepted; a changed id would split the app's hits from the prerendered pages'.
+describe('analytics snippet in index.html', () => {
+  const html = readFileSync(path.resolve(srcDir, '../index.html'), 'utf8');
+
+  it('configures the property from the manifest', () => {
+    expect(html).toContain(`gtag('config', '${GA_MEASUREMENT_ID}'`);
+    expect(html).toContain(`gtag/js?id=${GA_MEASUREMENT_ID}`);
+  });
+
+  it('reads the same storage key the consent banner writes', () => {
+    expect(html).toContain(`localStorage.getItem('${CONSENT_STORAGE_KEY}')`);
+  });
+
+  it('does not request gtag.js before consent', () => {
+    const beforeLoader = html.slice(0, html.indexOf('window.loadGoogleAnalytics'));
+
+    expect(beforeLoader).not.toContain('googletagmanager.com');
+  });
+
+  it('leaves the first page_view to the router', () => {
+    expect(html).toContain('send_page_view: false');
   });
 });

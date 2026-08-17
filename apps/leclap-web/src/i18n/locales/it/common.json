@@ -49,11 +49,18 @@
     "accept": "Italiano",
     "dismiss": "Chiudi"
   },
+  "consent": {
+    "title": "Privacy prima di tutto",
+    "text": "Il popcorn sarebbe meglio, ma il web serve solo cookie. Solo pagine viste, nessun profilo, e il tuo girato non lascia mai questo dispositivo. Ci sta?",
+    "accept": "Va bene",
+    "decline": "No, grazie"
+  },
   "footer": "Tutta l’elaborazione avviene in locale nel tuo browser - i tuoi file non lasciano mai il dispositivo",
   "footerNav": {
     "label": "Link legali",
     "legal": "Note legali",
     "privacy": "Privacy",
+    "cookies": "Cookie",
     "license": "Licenza MIT"
   },
   "routeError": {

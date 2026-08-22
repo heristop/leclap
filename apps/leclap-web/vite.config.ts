@@ -57,11 +57,13 @@ function analyticsTag(): Plugin {
       const hostUrl = trimmed(env.VITE_UMAMI_HOST_URL as string | undefined);
       const host = hostUrl ? ` data-host-url="${attr(hostUrl)}"` : '';
 
-      return html.replace(
-        ANALYTICS_BLOCK,
+      const tag =
         `<script async src="${attr(src)}" data-website-id="${attr(websiteId)}"` +
-          ` data-auto-track="false"${host} id="umami-tag"></script>`
-      );
+        ` data-auto-track="false"${host} id="umami-tag"></script>`;
+
+      // Replaced through a function: as a string, `$&` or `$1` in an env value would be read as a
+      // replacement pattern and splice the GA block back into the page it was meant to replace.
+      return html.replace(ANALYTICS_BLOCK, () => tag);
     },
   };
 }

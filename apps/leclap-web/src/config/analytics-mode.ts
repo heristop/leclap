@@ -69,5 +69,10 @@ export const analyticsMode = (env: AnalyticsEnv, gaMeasurementId: string): Analy
 /**
  * Self-hosted Umami sets no cookie and stores no visitor identifier, so there is nothing to ask
  * about: in that mode the banner and the footer's way back to it are never rendered.
+ *
+ * Every other mode keeps the question, `none` included — the GA snippet is authored in index.html
+ * and only the Umami swap takes it off the page. An empty measurement id would otherwise hide the
+ * banner while the snippet still loaded gtag.js for a visitor with a stored yes, and that visitor
+ * would have no way left to withdraw it.
  */
-export const consentRequired = (mode: AnalyticsMode): boolean => mode === 'ga';
+export const consentRequired = (mode: AnalyticsMode): boolean => mode !== 'umami';

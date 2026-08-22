@@ -45,9 +45,11 @@ describe('analyticsMode', () => {
     expect(analyticsMode({ VITE_UMAMI_SRC: '  ', VITE_UMAMI_WEBSITE_ID: '  ' }, '   ')).toBe('none');
   });
 
-  it('measures nothing when neither is configured', () => {
+  it('measures nothing when neither is configured, but still asks', () => {
     expect(analyticsMode({}, '')).toBe('none');
-    expect(consentRequired(analyticsMode({}, ''))).toBe(false);
+    // The GA snippet is authored in index.html and only the Umami swap removes it, so an empty
+    // measurement id must not take the banner away while the snippet is still on the page.
+    expect(consentRequired(analyticsMode({}, ''))).toBe(true);
   });
 });
 

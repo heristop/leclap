@@ -128,8 +128,8 @@
     <!-- The analytics tag. Swapped wholesale at build time for the configured tracker — a
          self-hosted Umami replaces everything between these markers with its own cookieless
          tag, and then none of the consent machinery below ships at all. See vite.config.ts and
-         src/config/analytics-mode.ts; site.test.ts pins the markers so the swap cannot go
-         silently missing. -->
+         src/config/analytics-mode.ts; analytics-mode.test.ts pins the markers so the swap cannot
+         go silently missing. -->
     <!-- analytics:start -->
     <!-- Google Analytics 4. gtag.js is not requested here: with analytics_storage denied the tag still
          sends a cookieless ping, so Consent Mode alone would not make "nothing is sent unless you

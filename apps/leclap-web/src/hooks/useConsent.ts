@@ -1,22 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
 import { isBot } from '@/lib/isBot';
-import { readConsent, setConsent, type ConsentChoice } from '@/lib/analytics';
+import { isConsentRequired, readConsent, setConsent, type ConsentChoice } from '@/lib/analytics';
 
 /**
  * The visitor's analytics answer, the setter the banner calls, and the footer's way back to the
  * question. `answered` starts true and is corrected in an effect, so the bar is never in the first
  * render — it would otherwise flash over the hero for everyone, including a visitor who answered
- * months ago. Crawlers count as answered.
+ * months ago. Crawlers count as answered, and so does everyone under a cookieless tracker: there is
+ * no question to put to them.
+ *
+ * `reopen` is undefined in that case, which is what removes the footer's link — the control renders
+ * only when it is given one.
  */
 export function useConsent(): {
   answered: boolean;
   answer: (choice: ConsentChoice) => void;
-  reopen: () => void;
+  reopen: (() => void) | undefined;
 } {
   const [answered, setAnswered] = useState(true);
 
   useEffect(() => {
-    if (isBot()) {
+    if (isBot() || !isConsentRequired()) {
       return;
     }
 
@@ -34,5 +38,5 @@ export function useConsent(): {
     setAnswered(false);
   }, []);
 
-  return { answered, answer, reopen };
+  return { answered, answer, reopen: isConsentRequired() ? reopen : undefined };
 }

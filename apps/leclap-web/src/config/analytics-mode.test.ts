@@ -45,11 +45,11 @@ describe('analyticsMode', () => {
     expect(analyticsMode({ VITE_UMAMI_SRC: '  ', VITE_UMAMI_WEBSITE_ID: '  ' }, '   ')).toBe('none');
   });
 
-  it('measures nothing when neither is configured, but still asks', () => {
+  it('measures nothing, and asks nothing, when neither is configured', () => {
     expect(analyticsMode({}, '')).toBe('none');
-    // The GA snippet is authored in index.html and only the Umami swap removes it, so an empty
-    // measurement id must not take the banner away while the snippet is still on the page.
-    expect(consentRequired(analyticsMode({}, ''))).toBe(true);
+    // Only sound because the build removes the authored GA block when the property is cleared —
+    // pinned below.
+    expect(consentRequired(analyticsMode({}, ''))).toBe(false);
   });
 });
 
@@ -88,6 +88,13 @@ describe('the build half of the decision', () => {
 
   it('swaps the same block this file names', () => {
     expect(config).toContain(ANALYTICS_BLOCK.source);
+  });
+
+  it('takes the authored block out when the GA property is cleared', () => {
+    // The objective this serves: clearing the property has to switch Google
+    // Analytics off, not leave a snippet configuring gtag with no id.
+    expect(config).toContain(String.raw`gtag\('config',\s*''`);
+    expect(config).toContain('html.replace(ANALYTICS_BLOCK, () => *EMPTY*)'.replace('*EMPTY*', "''"));
   });
 
   it('emits a tag lib/umami.ts can find, with auto-track off', () => {

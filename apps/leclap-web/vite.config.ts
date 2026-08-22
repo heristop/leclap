@@ -13,6 +13,9 @@ const projectDir = path.dirname(fileURLToPath(import.meta.url));
 // seam the way site.test.ts guards index.html.
 const ANALYTICS_BLOCK = /<!-- analytics:start -->[\s\S]*?<!-- analytics:end -->/;
 
+/** The snippet with its measurement id emptied — i.e. Google Analytics turned off. */
+const GA_PROPERTY_CLEARED = /gtag\('config',\s*''/;
+
 /** An env var reaches the page as an attribute value; a stray quote would end it and open markup. */
 const attr = (value: string): string => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
@@ -51,7 +54,13 @@ function analyticsTag(): Plugin {
       const websiteId = trimmed(env.VITE_UMAMI_WEBSITE_ID as string | undefined);
 
       if (!src || !websiteId) {
-        return html;
+        // No Umami, so the authored block stays — unless the GA property it
+        // configures has been cleared. The id lives in the snippet, which
+        // site.test.ts pins to src/config/site.ts, so the two are emptied
+        // together; left in place the block would still configure gtag with no
+        // id and load the library for anyone with a stored yes. Taking it out
+        // is what makes clearing the property switch Google Analytics off.
+        return GA_PROPERTY_CLEARED.test(html) ? html.replace(ANALYTICS_BLOCK, () => '') : html;
       }
 
       const hostUrl = trimmed(env.VITE_UMAMI_HOST_URL as string | undefined);

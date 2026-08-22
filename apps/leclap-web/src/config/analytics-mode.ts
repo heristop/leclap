@@ -67,14 +67,13 @@ export const analyticsMode = (env: AnalyticsEnv, gaMeasurementId: string): Analy
 };
 
 /**
- * Self-hosted Umami sets no cookie and writes no identifier on the visitor's device, which is what
- * the bar asks about — so in that mode it and the footer's way back to it are never rendered. (It
- * still derives a pseudonymous visitor hash server-side: cookieless is not the same claim as
- * anonymous.)
+ * Only Google Analytics asks. Umami sets no cookie and writes no identifier on the visitor's device
+ * — which is what the bar asks about — and `none` puts no tag on the page at all, so in both cases
+ * the bar would be a question about nothing. (Umami still derives a pseudonymous visitor hash
+ * server-side: cookieless is not the same claim as anonymous.)
  *
- * Every other mode keeps the question, `none` included — the GA snippet is authored in index.html
- * and only the Umami swap takes it off the page. An empty measurement id would otherwise hide the
- * banner while the snippet still loaded gtag.js for a visitor with a stored yes, and that visitor
- * would have no way left to withdraw it.
+ * `none` only holds because the build takes the authored GA block out when the property is cleared;
+ * see the plugin in vite.config.ts. Without that, clearing the id would hide the bar while the
+ * snippet kept loading gtag.js for anyone with a stored yes.
  */
-export const consentRequired = (mode: AnalyticsMode): boolean => mode !== 'umami';
+export const consentRequired = (mode: AnalyticsMode): boolean => mode === 'ga';

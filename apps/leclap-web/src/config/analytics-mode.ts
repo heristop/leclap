@@ -67,8 +67,10 @@ export const analyticsMode = (env: AnalyticsEnv, gaMeasurementId: string): Analy
 };
 
 /**
- * Self-hosted Umami sets no cookie and stores no visitor identifier, so there is nothing to ask
- * about: in that mode the banner and the footer's way back to it are never rendered.
+ * Self-hosted Umami sets no cookie and writes no identifier on the visitor's device, which is what
+ * the bar asks about — so in that mode it and the footer's way back to it are never rendered. (It
+ * still derives a pseudonymous visitor hash server-side: cookieless is not the same claim as
+ * anonymous.)
  *
  * Every other mode keeps the question, `none` included — the GA snippet is authored in index.html
  * and only the Umami swap takes it off the page. An empty measurement id would otherwise hide the

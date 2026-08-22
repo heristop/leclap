@@ -22,7 +22,7 @@ describe('parseConsent', () => {
 });
 
 describe('measurementAllowed', () => {
-  const base = { consent: 'granted' as const, prod: true, bot: false };
+  const base = { consent: 'granted' as const, consentRequired: true, prod: true, bot: false };
 
   it('allows measurement for a human who accepted, in production', () => {
     expect(measurementAllowed(base)).toBe(true);
@@ -31,6 +31,19 @@ describe('measurementAllowed', () => {
   it('refuses without an explicit yes', () => {
     expect(measurementAllowed({ ...base, consent: null })).toBe(false);
     expect(measurementAllowed({ ...base, consent: 'denied' })).toBe(false);
+  });
+
+  it('measures without an answer under a tracker that asks for none', () => {
+    // Umami sets no cookie, so nobody is ever asked — and an unanswered visitor must not be the
+    // reason a cookieless page view is dropped.
+    expect(measurementAllowed({ ...base, consentRequired: false, consent: null })).toBe(true);
+  });
+
+  it('still refuses in development and for crawlers when no consent is required', () => {
+    // The consent half is the only one the tracker gets to relax: a dev page load and a crawler are
+    // wrong in the numbers whoever counts them.
+    expect(measurementAllowed({ ...base, consentRequired: false, consent: null, prod: false })).toBe(false);
+    expect(measurementAllowed({ ...base, consentRequired: false, consent: null, bot: true })).toBe(false);
   });
 
   it('refuses in development, so local page loads stay out of the property', () => {

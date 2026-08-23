@@ -11,12 +11,7 @@ const REPO_URL = 'https://github.com/heristop/leclap';
 // is the product's differentiator, so it gets the green "on-device" status dot used elsewhere (the
 // compile overlay's "Rendering privately on your device" badge) rather than reading as plain gray text.
 // Legal links sit opposite the brand; a slim meta row carries the copyright and source link.
-type FooterProps = {
-  /** Brings the consent bar back, for a visitor who wants to change the answer they already gave. */
-  onReviewConsent?: () => void;
-};
-
-export const Footer = ({ onReviewConsent }: FooterProps) => {
+export const Footer = () => {
   const { t } = useTranslation();
   const logoRef = useRef<LogoMarkHandle>(null);
   const githubRef = useRef<GithubIconHandle>(null);
@@ -89,19 +84,6 @@ export const Footer = ({ onReviewConsent }: FooterProps) => {
             <span aria-hidden="true" className="text-brand-500/40">
               •
             </span>
-            {/* A button, not a link: it reopens the ask in place rather than going anywhere. Wearing the
-                same credits treatment as its neighbours keeps the row one thing, and it only appears
-                where something can act on it. */}
-            {onReviewConsent && (
-              <>
-                <button type="button" onClick={onReviewConsent} className={linkClass}>
-                  {t('footerNav.cookies')}
-                </button>
-                <span aria-hidden="true" className="text-brand-500/40">
-                  •
-                </span>
-              </>
-            )}
             <a href={`${REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer noopener" className={linkClass}>
               {t('footerNav.license')}
             </a>

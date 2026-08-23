@@ -49,18 +49,11 @@
     "accept": "English",
     "dismiss": "Dismiss"
   },
-  "consent": {
-    "title": "Privacy-first",
-    "text": "Popcorn would be nicer, but the web only serves cookies. Page views only, no profiles, and your footage never leaves this device. Deal?",
-    "accept": "Fine by me",
-    "decline": "No thanks"
-  },
   "footer": "All processing happens locally in your browser - your files never leave your device",
   "footerNav": {
     "label": "Legal links",
     "legal": "Legal Notice",
     "privacy": "Privacy",
-    "cookies": "Cookies",
     "license": "MIT licensed"
   },
   "routeError": {

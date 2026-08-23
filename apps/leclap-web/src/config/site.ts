@@ -43,12 +43,6 @@ export const OG_LOCALE = Object.fromEntries(LOCALES.map((l) => [l.code, l.ogLoca
 /** Where an explicit language choice is remembered (see lib/language.ts). */
 export const LANGUAGE_STORAGE_KEY = 'leclap-lang';
 
-/**
- * GA4 property for leclap.dev ("LeClap Web App" stream). Public by nature — it ships in every page —
- * so it sits with the site's identity, not in an env var. Nothing is sent until the visitor accepts.
- */
-export const GA_MEASUREMENT_ID = 'G-RLQZSC8H80';
-
 /** Absolute URL for `path` in `lng` — English at the root, other languages under a /<lng> prefix. */
 export const localeUrl = (lng: Language, path: string): string =>
   lng === DEFAULT_LOCALE ? `${SITE_URL}${path}` : `${SITE_URL}/${lng}${path === '/' ? '' : path}`;

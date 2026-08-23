@@ -9,15 +9,15 @@
     },
     "data": {
       "heading": "Données que nous collectons",
-      "body": "Ni compte, ni serveur backend, ni information personnelle. La seule mesure est le comptage anonyme des visites, et uniquement si tu l’acceptes."
+      "body": "Ni compte, ni serveur backend, ni information personnelle. La seule mesure est un comptage anonyme des visites, sans cookie."
     },
     "storage": {
       "heading": "Stockage du navigateur",
       "body": "LeClap utilise le stockage local de ton navigateur uniquement pour mémoriser tes préférences, comme le thème et la langue, et pour conserver tes projets en cours sur ton appareil. Tu peux l’effacer à tout moment depuis les réglages de ton navigateur."
     },
     "analytics": {
-      "heading": "Visites de pages, avec ton accord",
-      "body": "Si tu acceptes, Google Analytics compte les pages ouvertes et la provenance des visiteurs. Rien n’est envoyé à Google sans ton accord — le script n’est même pas chargé avant — et aucun signal publicitaire ou de personnalisation n’est activé. Efface le stockage local de ce site pour que la question soit reposée."
+      "heading": "Visites de pages",
+      "body": "Ce site ne charge aucun script de mesure qui lui soit propre : il n’y a donc rien à te demander, et aucun bandeau à écarter. Le comptage des visites vient de la mesure effectuée par notre hébergeur, qui ne dépose aucun cookie et ne stocke rien sur ton appareil."
     },
     "thirdParty": {
       "heading": "Ressources tierces",

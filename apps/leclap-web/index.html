@@ -125,56 +125,6 @@
         "author": { "@type": "Person", "name": "Alexandre Mogère" }
       }
     </script>
-    <!-- The analytics tag. Swapped wholesale at build time for the configured tracker — a
-         self-hosted Umami replaces everything between these markers with its own cookieless
-         tag, and then none of the consent machinery below ships at all. See vite.config.ts and
-         src/config/analytics-mode.ts; analytics-mode.test.ts pins the markers so the swap cannot
-         go silently missing. -->
-    <!-- analytics:start -->
-    <!-- Google Analytics 4. gtag.js is not requested here: with analytics_storage denied the tag still
-         sends a cookieless ping, so Consent Mode alone would not make "nothing is sent unless you
-         allow it" true. Only loadGoogleAnalytics() fetches the library, called by <ConsentBanner> or
-         by a stored yes below. The shim lives here rather than in lib/analytics.ts because gtag.js
-         only reads dataLayer entries that are `arguments` objects — an array sends no hit. The
-         measurement id belongs to src/config/site.ts; site.test.ts pins this copy to it. -->
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        window.dataLayer.push(arguments);
-      }
-      window.gtag = gtag;
-
-      gtag('consent', 'default', {
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        analytics_storage: 'denied',
-      });
-
-      gtag('js', new Date());
-      // send_page_view: false — the router changes pages without reloading, so every page_view
-      // including the first is sent by usePageViews(); leaving it on double-counts the landing page.
-      gtag('config', 'G-RLQZSC8H80', { send_page_view: false });
-
-      window.loadGoogleAnalytics = function () {
-        if (document.getElementById('ga-tag')) return;
-        var tag = document.createElement('script');
-        tag.id = 'ga-tag';
-        tag.async = true;
-        tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-RLQZSC8H80';
-        document.head.appendChild(tag);
-      };
-
-      try {
-        if (localStorage.getItem('leclap-consent') === 'granted') {
-          gtag('consent', 'update', { analytics_storage: 'granted' });
-          window.loadGoogleAnalytics();
-        }
-      } catch (e) {
-        /* storage blocked — stay denied and load nothing */
-      }
-    </script>
-    <!-- analytics:end -->
 
     <!-- Apply the theme before paint to avoid a flash of the wrong one. Default is the OS color
          scheme; a saved choice (only written when the user toggles) overrides it. -->

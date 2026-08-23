@@ -9,15 +9,15 @@
     },
     "data": {
       "heading": "Data we collect",
-      "body": "No account, no backend server, no personal information. The only thing measured is anonymous page visits, and only if you agree to it."
+      "body": "No account, no backend server, no personal information. The only thing measured is an anonymous count of page visits, without cookies."
     },
     "storage": {
       "heading": "Browser storage",
       "body": "LeClap uses your browser's local storage only to remember preferences such as theme and language, and to keep your in-progress projects on your device. You can clear it at any time from your browser settings."
     },
     "analytics": {
-      "heading": "Page visits, with your consent",
-      "body": "If you accept, Google Analytics counts which pages are opened and where visitors arrive from. Nothing is sent to Google unless you accept — the script is not even loaded before then — and no advertising or personalisation signal is ever enabled. Clear this site’s browser storage to be asked again."
+      "heading": "Page visits",
+      "body": "This site loads no analytics script of its own, so there is nothing to ask you about and no banner to dismiss. Visit counts come from measurement run by our host, which sets no cookie and stores nothing on your device."
     },
     "thirdParty": {
       "heading": "Third-party resources",

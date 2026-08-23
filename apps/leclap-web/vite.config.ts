@@ -1,81 +1,11 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig, type Plugin, type ResolvedConfig } from 'vite';
+import { defineConfig } from 'vite';
 import react, { type Options as ReactPluginOptions } from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 const projectDir = path.dirname(fileURLToPath(import.meta.url));
-
-// The block in index.html this plugin swaps. Kept in step with src/config/analytics-mode.ts by
-// analytics-mode.test.ts, which reads both files: the project reference between tsconfig.json and
-// tsconfig.node.json means the config and app source cannot share a module, so a test guards the
-// seam the way site.test.ts guards index.html.
-const ANALYTICS_BLOCK = /<!-- analytics:start -->[\s\S]*?<!-- analytics:end -->/;
-
-/** The snippet with its measurement id emptied — i.e. Google Analytics turned off. */
-const GA_PROPERTY_CLEARED = /gtag\('config',\s*''/;
-
-/** An env var reaches the page as an attribute value; a stray quote would end it and open markup. */
-const attr = (value: string): string => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
-const trimmed = (value: string | undefined): string | undefined => {
-  const text = value?.trim();
-
-  // A variable set to whitespace is a variable someone meant to leave empty.
-  return text === '' ? undefined : text;
-};
-
-/**
- * Puts the configured tracker's tag in index.html. Only Umami swaps anything: the GA snippet is
- * authored in the file, so the default build is the file as written.
- *
- * The env comes from the resolved config rather than a second loadEnv() call, so the tag on the page
- * and the mode the app computes from `import.meta.env` are read from the exact same values — and
- * scripts/seo-prerender.ts copies the built index.html into every prerendered page, which carries
- * the swap to all 45 of them.
- *
- * `data-auto-track` stays off for the same reason GA's `send_page_view` does: the router changes
- * pages without reloading, and usePageViews() reports every one of them, the first included.
- */
-function analyticsTag(): Plugin {
-  let env: ResolvedConfig['env'] = {};
-
-  return {
-    name: 'leclap-analytics-tag',
-
-    configResolved(config) {
-      env = config.env;
-    },
-
-    transformIndexHtml(html) {
-      // Both halves or nothing: neither one alone can send a hit.
-      const src = trimmed(env.VITE_UMAMI_SRC as string | undefined);
-      const websiteId = trimmed(env.VITE_UMAMI_WEBSITE_ID as string | undefined);
-
-      if (!src || !websiteId) {
-        // No Umami, so the authored block stays — unless the GA property it
-        // configures has been cleared. The id lives in the snippet, which
-        // site.test.ts pins to src/config/site.ts, so the two are emptied
-        // together; left in place the block would still configure gtag with no
-        // id and load the library for anyone with a stored yes. Taking it out
-        // is what makes clearing the property switch Google Analytics off.
-        return GA_PROPERTY_CLEARED.test(html) ? html.replace(ANALYTICS_BLOCK, () => '') : html;
-      }
-
-      const hostUrl = trimmed(env.VITE_UMAMI_HOST_URL as string | undefined);
-      const host = hostUrl ? ` data-host-url="${attr(hostUrl)}"` : '';
-
-      const tag =
-        `<script async src="${attr(src)}" data-website-id="${attr(websiteId)}"` +
-        ` data-auto-track="false"${host} id="umami-tag"></script>`;
-
-      // Replaced through a function: as a string, `$&` or `$1` in an env value would be read as a
-      // replacement pattern and splice the GA block back into the page it was meant to replace.
-      return html.replace(ANALYTICS_BLOCK, () => tag);
-    },
-  };
-}
 
 // Vendor libraries that load on every page, each pinned to a stable chunk name (see manualChunks).
 // They change far less often than app code, so an app-only release no longer busts their cache and the
@@ -101,7 +31,6 @@ export default defineConfig({
       },
     } as ReactPluginOptions & { babel?: { plugins?: unknown[] } }),
     tailwindcss(),
-    analyticsTag(),
     nodePolyfills({
       // Enable polyfills for specific globals and modules
       globals: {

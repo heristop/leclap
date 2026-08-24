@@ -6,6 +6,7 @@ import {
   FilesystemNodeAdapter,
   PinoLogAdapter,
   createBundledFontLoader,
+  type GeometryWarning,
 } from 'ffmpeg-video-composer';
 import { success, fail, step, hint } from '../ui.js';
 import { wordmark } from '../theme.js';
@@ -18,9 +19,16 @@ interface ValidationError {
   code?: string;
 }
 
+// Mirrors GeometryWarning wholesale (code/severity/approx included, not just path/message): the CLI
+// resolves no bundled fonts outside the test suite, so every finding here is an estimate, and the
+// `--json` path is documented to emit the field unchanged. Dropping `approx` would print a confident
+// pixel count for a number that was, in fact, guessed.
 interface ValidationWarning {
   path: string;
   message: string;
+  code?: string;
+  severity?: string;
+  approx?: boolean;
 }
 
 interface ValidationResult {
@@ -34,7 +42,11 @@ interface ValidationResult {
 // and failure paths and never affect which of those two paths is taken. ANSI styling is applied but
 // picocolors honours NO_COLOR.
 export function formatValidation(result: ValidationResult): string[] {
-  const warnings = (result.warnings ?? []).map((w) => step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}`));
+  const warnings = (result.warnings ?? []).map((w) => {
+    const approx = w.approx ? ' (approx: font not staged)' : '';
+
+    return step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}${approx}`);
+  });
 
   if (result.success) {
     return [success('Template is valid'), ...warnings];
@@ -132,7 +144,30 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
     return result;
   }
 
-  const warnings = await validator.getGeometryWarnings(descriptor, bundledFontLoader());
+  const warnings = await safeGeometryWarnings(validator, descriptor);
 
-  return { ...result, warnings: warnings.map((w) => ({ path: w.path, message: w.message })) };
+  // Absent, not empty: a clean template must not emit `"warnings":[]` — that is the zero-token
+  // guarantee, and it only holds if the key itself disappears.
+  if (warnings.length === 0) {
+    return result;
+  }
+
+  // Passed through wholesale (code/severity/approx included): `--json` is documented to emit
+  // whatever `getGeometryWarnings` returned, unreshaped.
+  return { ...result, warnings };
+}
+
+// Advisory findings must never take the exit code hostage. `bundledFontLoader()` and
+// `getGeometryWarnings` both run here so a throw from either — a missing platform dependency, a
+// font that fails to parse — degrades to "no warnings" instead of crashing an otherwise valid
+// template.
+async function safeGeometryWarnings(
+  validator: TemplateValidator,
+  descriptor: Parameters<TemplateValidator['getGeometryWarnings']>[0]
+): Promise<GeometryWarning[]> {
+  try {
+    return await validator.getGeometryWarnings(descriptor, bundledFontLoader());
+  } catch {
+    return [];
+  }
 }

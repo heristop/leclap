@@ -317,13 +317,13 @@
     "uploadImage": "Carica un’immagine di sfondo",
     "dropTrack": "Rilascia una traccia o clicca per sfogliare",
     "dropImage": "Rilascia un’immagine o clicca per sfogliare",
-    "musicFormats": "MP3, WAV, M4A · salvato su questo dispositivo",
-    "imageFormats": "JPG, PNG, WebP · salvato su questo dispositivo",
+    "musicFormats": "{{formats}} · salvato su questo dispositivo",
+    "imageFormats": "{{formats}} · salvato su questo dispositivo",
     "uploaded": "Caricato · salvato su questo dispositivo",
     "removeUpload": "Rimuovi il file caricato",
     "uploadVideo": "Carica una clip video",
     "dropVideo": "Trascina un video o clicca per sfogliare",
-    "videoFormats": "MP4, MOV, WebM · salvato su questo dispositivo"
+    "videoFormats": "{{formats}} · salvato su questo dispositivo"
   },
   "overlay": {
     "textOverlays": "Overlay di testo",

@@ -317,13 +317,13 @@
     "uploadImage": "Ein Hintergrundbild hochladen",
     "dropTrack": "Track ablegen oder klicken zum Durchsuchen",
     "dropImage": "Bild ablegen oder klicken zum Durchsuchen",
-    "musicFormats": "MP3, WAV, M4A · auf diesem Gerät gespeichert",
-    "imageFormats": "JPG, PNG, WebP · auf diesem Gerät gespeichert",
+    "musicFormats": "{{formats}} · auf diesem Gerät gespeichert",
+    "imageFormats": "{{formats}} · auf diesem Gerät gespeichert",
     "uploaded": "Hochgeladen · auf diesem Gerät gespeichert",
     "removeUpload": "Hochgeladene Datei entfernen",
     "uploadVideo": "Einen Videoclip hochladen",
     "dropVideo": "Video ablegen oder klicken zum Durchsuchen",
-    "videoFormats": "MP4, MOV, WebM · auf diesem Gerät gespeichert"
+    "videoFormats": "{{formats}} · auf diesem Gerät gespeichert"
   },
   "overlay": {
     "textOverlays": "Text-Overlays",

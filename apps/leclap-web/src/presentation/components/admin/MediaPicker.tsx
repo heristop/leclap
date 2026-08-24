@@ -1,5 +1,6 @@
 import { useState, useId, useRef, useEffect } from 'react';
 import { useMediaDrop, type AcceptSpec } from '@/lib/upload';
+import { describeAccept } from '@/lib/upload/core/describe-accept';
 import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Video as VideoIcon, Check, X } from '@/presentation/components/icons';
 import { PlayIcon } from '@/presentation/components/icons/play';
@@ -492,7 +493,7 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
       <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
       <Upload className="h-6 w-6 text-gray-400" />
       <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
-      <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind])}</span>
+      <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind], { formats: describeAccept(ACCEPT[kind]) })}</span>
     </div>
   );
 };

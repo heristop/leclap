@@ -23,7 +23,7 @@
 // `node scripts/seo-prerender.ts`, and Node's type-stripping applies neither tsconfig path mapping
 // nor extensionless resolution.
 
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -40,7 +40,6 @@ import { DOC_ROUTES } from '../src/config/doc-routes.ts';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(scriptDir, '..');
 const distDir = path.join(appDir, 'dist');
-const assetsDir = path.join(distDir, 'assets');
 const localesDir = path.join(appDir, 'src/i18n/locales');
 
 const LOCALES = LOCALE_CODES;
@@ -240,26 +239,51 @@ if (!template.includes(SITE_URL)) {
 // The names are content-hashed, so they're read back out of the build rather than written down here:
 // a hardcoded hash would go stale on the next build and preload a 404. English is absent by design —
 // `en` ships inside the eager graph, so the root pages already have it.
-const assetFiles = await readdir(assetsDir);
+//
+// Read from the build manifest (`build.manifest: true` in vite.config.ts), which maps source module
+// to emitted file, rather than by scanning dist/assets for `<lng>-*.js`. Filenames cannot carry that
+// question: rolldown names an unassigned node_modules chunk after the module's basename, so
+// `es-toolkit-<hash>.js`, `de-indent-<hash>.js` and `it-tools-<hash>.js` are all valid answers to a
+// `^<lng>-[A-Za-z0-9_-]+\.js$` pattern — and the "exactly one chunk per locale" assumption is
+// already false for `en`, which emits a facade plus a payload and escapes only by being filtered out.
+const MANIFEST_FILE = path.join(distDir, '.vite/manifest.json');
 
-const localeChunks = Object.fromEntries(
-  LOCALES.filter((lng) => lng !== 'en').map((lng) => {
-    // The class excludes '.', so this matches the locale's own chunk (`fr-5osEa0YK.js`) and not a
-    // dotted module chunk that merely starts with the same two letters.
-    const matches = assetFiles.filter((file) => new RegExp(`^${lng}-[A-Za-z0-9_-]+\\.js$`).test(file));
+/** The preload is a cosmetic hint. Nothing here may fail a build that has already succeeded. */
+function skipPreloads(reason: string): Partial<Record<Locale, string>> {
+  console.warn(`[seo-prerender] no locale modulepreloads: ${reason}`);
 
-    // Fail loudly rather than silently skipping the preload: a locale that stops resolving to
-    // exactly one chunk means the i18n code-splitting changed shape, and that is worth a look.
-    if (matches.length !== 1) {
-      throw new Error(
-        `expected exactly one dist/assets/${lng}-*.js chunk, found ${matches.length} (${matches.join(', ') || 'none'}) — ` +
-          `did the locale code-splitting in src/i18n/index.ts change?`
-      );
+  return {};
+}
+
+async function readLocaleChunks(): Promise<Partial<Record<Locale, string>>> {
+  const manifest = await readFile(MANIFEST_FILE, 'utf8').then(
+    (raw) => JSON.parse(raw) as Record<string, { file?: string } | undefined>,
+    (error: unknown) => {
+      console.warn(`[seo-prerender] could not read ${MANIFEST_FILE}: ${String(error)}`);
+
+      return null;
     }
+  );
 
-    return [lng, `/assets/${matches[0]}`] as const;
-  })
-) as Partial<Record<Locale, string>>;
+  if (!manifest) {
+    return skipPreloads('the build manifest is missing (is build.manifest still enabled?)');
+  }
+
+  const entries = LOCALES.filter((lng) => lng !== 'en').map(
+    (lng) => [lng, manifest[`src/i18n/locales/${lng}/index.ts`]?.file] as const
+  );
+  const missing = entries.filter(([, file]) => !file).map(([lng]) => lng);
+
+  // Warn rather than throw: a locale that stops resolving to a chunk means the code-splitting in
+  // src/i18n/index.ts changed shape, which is worth a look — but it is not worth failing a release.
+  if (missing.length > 0) {
+    return skipPreloads(`no manifest entry for ${missing.join(', ')} — did src/i18n/index.ts change shape?`);
+  }
+
+  return Object.fromEntries(entries.map(([lng, file]) => [lng, `/${file}`]));
+}
+
+const localeChunks = await readLocaleChunks();
 
 async function writeFileFor(routePath: string, lng: Locale, spec: HeadSpec) {
   const file = fileFor(routePath, lng);

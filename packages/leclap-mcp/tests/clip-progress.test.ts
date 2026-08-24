@@ -43,6 +43,24 @@ describe('createClipProgressHandler', () => {
     expect(lines).toHaveLength(2);
   });
 
+  // The field is forwarded unvalidated, so a Remotion build that renames it — or any callback fired
+  // before the first frame — hands through `undefined`. `Math.min(1, Math.max(0, undefined))` is NaN,
+  // and NaN loses every comparison: the throttle stops returning and `last` is poisoned, so a
+  // 10-second 30fps render writes 300 `NaN%` lines down the MCP stderr channel instead of ~50.
+  it('drops a non-finite update instead of logging NaN% and disabling the throttle', () => {
+    const { lines, log } = collect();
+    const onProgress = createClipProgressHandler('abc123', log);
+    onProgress({} as { progress: number });
+    onProgress({ progress: Number.NaN });
+
+    expect(lines).toEqual([]);
+
+    onProgress({ progress: 0.5 });
+    onProgress({ progress: 0.5 + PROGRESS_STEP / 2 });
+
+    expect(lines).toEqual(['[render_remotion_clip] render abc123 50%']);
+  });
+
   it('always emits the terminal 100%', () => {
     const { lines, log } = collect();
     const onProgress = createClipProgressHandler('abc123', log);

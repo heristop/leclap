@@ -450,9 +450,16 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
   const { t } = useTranslation('admin');
   const inputId = useId();
   const [errors, setErrors] = useState<string[]>([]);
+  // Which drop the current messages belong to. `role="alert"` announces on mount and on a text
+  // change beneath it — so a second drop yielding byte-identical messages reconciles the same list
+  // items with the same text, mutates nothing, and is announced not at all. Keying the items by
+  // attempt remounts them even when the words are the same, which is the case that matters: the
+  // screen-reader user who retries and needs to hear that the retry was rejected too.
+  const [attempt, setAttempt] = useState(0);
   const formats = describeAccept(ACCEPT[kind]);
 
   const onDrop = (files: File[], rejections: Rejection[]) => {
+    setAttempt((n) => n + 1);
     setErrors(rejectionMessages(rejections, t, formats));
 
     if (files.length === 0) {
@@ -460,16 +467,22 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
     }
 
     const file = files[0];
-    browserMediaService
-      .save(file, kind)
-      .then(({ key }) => {
+    // Two-callback `.then`, not a trailing `.catch`: a `.catch` chained after `onChange` would also
+    // catch a throw from `onChange` itself and blame it on storage, telling the user to clear their
+    // browser data over a file that was in fact saved.
+    browserMediaService.save(file, kind).then(
+      ({ key }) => {
         onChange({ source: 'upload', key, label: file.name });
-      })
-      .catch(() => {
+      },
+      (error: unknown) => {
         // A storage failure used to be swallowed here, so a full quota looked exactly like nothing
-        // happening. Surface it in the same place as a rejection.
-        setErrors([t('media.rejectSaveFailed', { name: file.name })]);
-      });
+        // happening. Surface it in the same place as a rejection — appended, not substituted, so the
+        // rejection lines this same drop produced a moment ago survive. The real error still goes to
+        // the console: quota, an IndexedDB abort and a coding bug read identically to the user.
+        console.error('Saving dropped media failed', error);
+        setErrors((previous) => [...previous, t('media.rejectSaveFailed', { name: file.name })]);
+      }
+    );
   };
 
   const { getRootProps, getInputProps, isDragActive } = useMediaDrop({
@@ -513,10 +526,13 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
         </div>
       )}
       {errors.length > 0 ? (
-        <div role="alert" className="mt-3 rounded-lg bg-[var(--color-error)]/8 px-3 py-2">
-          <ul className="space-y-1 text-xs leading-5 text-[var(--color-error)]">
+        <div className="mt-3 rounded-lg bg-[var(--color-error)]/8 px-3 py-2">
+          {/* `role="alert"` sits on the list, not on the wrapper: everything inside the alert is read
+              out on every announcement, so a Dismiss button in there makes each rejection end with
+              "Dismiss, button" — a control announced as part of the message it dismisses. */}
+          <ul role="alert" className="space-y-1 text-xs leading-5 text-[var(--color-error)]">
             {errors.map((message, index) => (
-              <li key={index}>{message}</li>
+              <li key={`${attempt}-${index}`}>{message}</li>
             ))}
           </ul>
           <button

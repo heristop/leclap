@@ -65,4 +65,24 @@ describe('createProgressReporter', () => {
 
     expect(sent.map((m) => m.fraction)).toEqual([0, 1]);
   });
+
+  // NaN is not merely an unusable line. Every comparison against it is false, so `clamped - last <
+  // PROGRESS_STEP` stops being able to return — and once `last` is NaN it stays NaN, so the throttle
+  // is off for the rest of the render and every per-frame callback emits.
+  it('ignores a non-finite fraction', () => {
+    const { sent, send } = collect();
+    createProgressReporter(send)(Number.NaN);
+
+    expect(sent).toEqual([]);
+  });
+
+  it('still throttles after a non-finite fraction', () => {
+    const { sent, send } = collect();
+    const report = createProgressReporter(send);
+    report(Number.NaN);
+    report(0.5);
+    report(0.5 + PROGRESS_STEP / 2);
+
+    expect(sent.map((m) => m.fraction)).toEqual([0.5]);
+  });
 });

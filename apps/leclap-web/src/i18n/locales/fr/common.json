@@ -46,7 +46,7 @@
   "languageSuggestion": {
     "region": "Langue",
     "title": "Choisis ta langue",
-    "body": "Tu lis ce site en <em>{{from}}</em>. Tu préfères le lire en <em>{{to}}</em> ?",
+    "body": "Tu lis ce site en <from/>. Tu préfères le lire en <to/> ?",
     "accept": "Passer en {{language}}",
     "dismiss": "Fermer"
   },

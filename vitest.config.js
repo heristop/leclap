@@ -19,10 +19,15 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     root: './',
-    // Core tests live in the core package; web-app unit tests live under its tests/ dir.
+    // Core and MCP tests live in their packages; repo-level ones in tests/. The web app is absent on
+    // purpose — `pnpm --filter @leclap/web test` owns both of its trees (src/ and tests/) under the
+    // app's own config. Globbing apps/leclap-web/tests/** here too ran those files twice under two
+    // non-equivalent pipelines (this one transforms with swc so tsyringe's decorator metadata
+    // survives, resolves tsconfig paths and serializes files; the app's uses raw Oxc, hand-written
+    // aliases and parallel files) — so the first web test to touch a DI decorator or a tsconfig-only
+    // alias would pass in one CI step and fail in the other, under the same filename.
     include: [
       'packages/ffmpeg-video-composer/tests/**/*.test.ts',
-      'apps/leclap-web/tests/**/*.test.ts',
       'packages/leclap-mcp/tests/**/*.test.ts',
       'tests/**/*.test.ts',
     ],

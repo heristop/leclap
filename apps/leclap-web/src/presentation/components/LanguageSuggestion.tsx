@@ -8,7 +8,12 @@ import { GlobeIcon } from '@/presentation/components/icons/globe';
 import { ChevronRightIcon } from '@/presentation/components/icons/chevron-right';
 import { XIcon } from '@/presentation/components/icons/x';
 import { getLanguage, localePath, setStoredLanguage, LANGUAGE_STORAGE_KEY, type Language } from '@/lib/language';
-import { nativeName, pickSuggestedLanguage, splitEmphasis, SUGGESTION_DISMISSED_KEY } from '@/lib/language-suggestion';
+import {
+  pickSuggestedLanguage,
+  resolveOfferCopy,
+  SUGGESTION_DISMISSED_KEY,
+  type OfferCopy,
+} from '@/lib/language-suggestion';
 
 // Offers the visitor their browser's language instead of redirecting them to it. Shown only when
 // their top shipped preference differs from what they're reading, and only until they answer it
@@ -31,8 +36,35 @@ import { nativeName, pickSuggestedLanguage, splitEmphasis, SUGGESTION_DISMISSED_
 // two names are the only words that matter, so they are marked in the copy and drawn stronger; the
 // EN → FR chips below repeat that pair wordlessly, and are `aria-hidden` because they are a second
 // telling of the sentence, not a second piece of information.
+//
+// Because the sentence holds words from two languages, `lang` cannot be a single attribute on the
+// card: each name carries its own (see composeOffer), and the card's own attribute names the language
+// the *prose* is in — which is English whenever the offered locale's copy is not in the store.
+//
+// The resolved copy IS the state. It is not derived at render from a `t` looked up on the fly,
+// because that made the card's words and its `lang` two separate decisions taken at two different
+// moments: the card painted from the English fallback, labelled itself with the offered language, and
+// — being painted exactly once — stayed that way for the session. Resolving both together and storing
+// the result means a repaint is the only way the copy can change, and every repaint re-decides both.
+
+/** The offer, once decided: which language is on offer, and the copy the card is currently painting. */
+type Offer = { readonly language: Language; readonly copy: OfferCopy };
+
+/**
+ * Bind `resolveOfferCopy` to the live i18next store.
+ *
+ * `hasResourceBundle` is the load question's only honest answer. `loadLanguages()` resolves
+ * immediately for any language already in `options.preload` — which every second call in a session
+ * is, and StrictMode's double-invoked effect plus any remount of this component both produce a second
+ * call — so its promise reports success while the chunk is still in flight.
+ */
+const readOfferCopy = (current: Language, suggested: Language): OfferCopy =>
+  resolveOfferCopy(current, suggested, i18n.hasResourceBundle(suggested, 'common'), (lng, key, options) =>
+    i18n.getFixedT(lng, 'common')(key, options)
+  );
+
 export function LanguageSuggestion() {
-  const [suggested, setSuggested] = useState<Language | null>(null);
+  const [offer, setOffer] = useState<Offer | null>(null);
   // Already de-prefixed: the router mounts under a /<lng> basename, so this is the bare route.
   const { pathname } = useLocation();
   const offerable = LOCALIZED_PATHS.has(pathname);
@@ -42,6 +74,9 @@ export function LanguageSuggestion() {
     // before the card can be shown in it — so the effect always returns the same cleanup and does its
     // bailing inside `decide`, where an early return costs nothing.
     let live = true;
+    // Set by `decide` only when it subscribes to i18next; the no-op covers every path that bails out
+    // before there is anything to unsubscribe.
+    let cleanup = (): void => {};
 
     const read = (key: string): string | null => {
       try {
@@ -70,38 +105,56 @@ export function LanguageSuggestion() {
         return;
       }
 
-      const reveal = (): void => {
+      // Re-resolve the copy against the store as it is right now and paint that. Called on every
+      // event that can change the answer, so the card cannot get stuck in a language it was painted
+      // in before its own words arrived.
+      const paint = (): void => {
         if (live) {
-          setSuggested(next);
+          setOffer({ language: next, copy: readOfferCopy(getLanguage(), next) });
         }
       };
 
       // Exactly one locale bundle is ever loaded per session — the page's own (see i18n/index.ts) —
       // and `getFixedT` reads that store rather than filling it. Without this the offer renders
       // through the English fallback, i.e. in the very language the visitor is being offered an
-      // escape from. A failed chunk is no reason to withhold the offer, so `reveal` runs either way:
-      // the copy degrades to English and the link it carries — the part that has to work — does not.
-      i18n.loadLanguages(next).then(reveal).catch(reveal);
+      // escape from.
+      //
+      // `loaded` is what actually turns an English card into a French one: the promise below can
+      // resolve before the chunk is in the store (see readOfferCopy), so it is the arrival of the
+      // bundle, not the settling of the promise, that has to trigger the repaint. The promise still
+      // paints — it is what shows the card at all when the bundle is already there, and what shows it
+      // in English when the chunk genuinely failed. A failed chunk is no reason to withhold the
+      // offer: the copy degrades to English, says so in its `lang`, and the link it carries — the
+      // part that has to work — does not degrade at all.
+      i18n.on('loaded', paint);
+      i18n.loadLanguages(next).then(paint, paint);
+
+      cleanup = () => {
+        i18n.off('loaded', paint);
+      };
     };
 
     decide();
 
     return () => {
       live = false;
+      cleanup();
     };
   }, []);
 
   // Gated at render rather than inside the effect, so navigating out of a working surface and back
   // to a localized page restores the offer instead of losing it to a one-shot effect.
-  if (!suggested || !offerable) {
+  if (!offer || !offerable) {
     return null;
   }
 
+  const suggested = offer.language;
   const current = getLanguage();
-  const t = i18n.getFixedT(suggested, 'common');
-  const dismissLabel = t('languageSuggestion.dismiss');
-  // Both names are endonyms, so the sentence reads the same way the header's language picker does.
-  const body = splitEmphasis(t('languageSuggestion.body', { from: nativeName(current), to: nativeName(suggested) }));
+  // Every string below comes out of this one value, resolved together with the `lang` that labels it
+  // (see resolveOfferCopy). Nothing here re-reads i18next: a second lookup at render time is how the
+  // words and the attribute got to disagree in the first place.
+  const { copy } = offer;
+  const dismissLabel = copy.dismiss;
 
   const remember = (): void => {
     try {
@@ -138,13 +191,15 @@ export function LanguageSuggestion() {
     // shifts the hero — the LCP element.
     <aside
       role="region"
-      // Every string in here is written in the language being OFFERED, not the one <html lang> says
-      // the page is in — without this a screen reader pronounces "Tu lis ce site en English" with an
-      // English synthesizer, which is the one sentence the feature exists to convey.
-      lang={suggested}
+      // The prose in here is written in the language being OFFERED, not the one <html lang> says the
+      // page is in — without this a screen reader reads the offer with the wrong synthesizer, which
+      // is the one sentence the feature exists to convey. The two language *names* inside the
+      // sentence carry their own `lang` below, since each is a word in its own language; and if the
+      // offered locale's chunk failed, this says `en`, because that is what the words then are.
+      lang={copy.lang}
       // A short landmark name, not the prompt: reusing the visible sentence makes a screen reader
       // announce it twice — once naming the region, once reading the paragraph.
-      aria-label={t('languageSuggestion.region')}
+      aria-label={copy.region}
       className={cn(
         'fixed inset-x-4 z-50 mx-auto max-w-md',
         'bottom-[calc(1rem+env(safe-area-inset-bottom))]',
@@ -170,7 +225,7 @@ export function LanguageSuggestion() {
           title={dismissLabel}
           onClick={() => {
             remember();
-            setSuggested(null);
+            setOffer(null);
           }}
           className={cn(
             'absolute top-2 right-2 inline-flex size-9 cursor-pointer items-center justify-center rounded-full',
@@ -188,16 +243,16 @@ export function LanguageSuggestion() {
           <div className="flex items-center gap-2 pr-9">
             <GlobeIcon className="size-4 shrink-0 text-brand-600 dark:text-brand-400" aria-hidden="true" />
             <h2 className="font-display text-base leading-tight font-bold tracking-tight text-foreground">
-              {t('languageSuggestion.title')}
+              {copy.title}
             </h2>
           </div>
 
           {/* `text-pretty` rather than `text-balance`: this is two sentences, and balancing them
               evens out line lengths at the cost of leaving the second one visibly short. */}
           <p className="mt-2 text-sm leading-relaxed text-pretty text-muted-foreground">
-            {body.map((run, index) =>
-              run.emphasis ? (
-                <strong key={index} className="font-semibold text-foreground">
+            {copy.body.map((run, index) =>
+              run.lang ? (
+                <strong key={index} lang={run.lang} className="font-semibold text-foreground">
                   {run.text}
                 </strong>
               ) : (
@@ -240,7 +295,7 @@ export function LanguageSuggestion() {
               focusRing
             )}
           >
-            {t('languageSuggestion.accept', { language: nativeName(suggested) })}
+            {copy.accept}
           </a>
         </div>
       </div>

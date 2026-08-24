@@ -11,7 +11,7 @@
 // Google-recommended multilingual-SEO pattern) and avoids serving two languages from one URL.
 // The resolved language is mirrored onto <html lang> so the document advertises it to crawlers
 // and assistive tech. Switching language navigates to the prefixed URL (see lib/language.ts).
-import i18n from 'i18next';
+import i18n, { type ReadCallback, type ResourceKey } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
@@ -41,10 +41,21 @@ const applyDocumentLang = (lng: string): void => {
 // The specifier has to stay statically analysable — one interpolated segment and the explicit
 // `/index.ts` — or the bundler gives up on the pattern and inlines every locale back into the
 // entry chunk, which builds and tests exactly the same but ships nothing smaller.
-const localeBackend = resourcesToBackend(async (language: string, namespace: string) => {
-  const bundle = (await import(`./locales/${language}/index.ts`)) as Record<string, Record<string, unknown>>;
-
-  return bundle[language][namespace];
+//
+// The three-argument (callback) form is mandatory here. Given a promise-returning loader,
+// i18next-resources-to-backend resolves it with `callback(null, data && data.default || data)` —
+// and every locale's `seo.json` has a top-level `default` key, so that unwrap would silently
+// replace the whole `seo` namespace with its own `default` sub-object. The callback form skips the
+// unwrap entirely.
+const localeBackend = resourcesToBackend((language: string, namespace: string, callback: ReadCallback) => {
+  import(`./locales/${language}/index.ts`).then(
+    (bundle: Record<string, Record<string, ResourceKey>>) => {
+      callback(null, bundle[language][namespace]);
+    },
+    (error: unknown) => {
+      callback(error instanceof Error ? error : new Error(String(error)), null);
+    }
+  );
 });
 
 export const i18nReady = i18n

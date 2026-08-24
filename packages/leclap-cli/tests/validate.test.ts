@@ -11,6 +11,9 @@ vi.mock('ffmpeg-video-composer', () => ({
       getGeometryWarnings: getGeometryWarningsMock,
     };
   }),
+  FilesystemNodeAdapter: vi.fn(),
+  PinoLogAdapter: vi.fn(),
+  createBundledFontLoader: vi.fn(() => vi.fn()),
 }));
 
 vi.mock('node:fs/promises', () => ({

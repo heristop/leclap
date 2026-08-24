@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "dev.leclap/mcp",
+  "name": "dev.leclap/video",
   "title": "LeClap",
   "description": "Compose and render video from one JSON template. Deterministic, runs locally, no generative model.",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "websiteUrl": "https://leclap.dev",
   "repository": {
     "url": "https://github.com/heristop/leclap",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@leclap/mcp",
-      "version": "0.3.3",
+      "version": "0.3.4",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
@@ -61,7 +61,7 @@
   ],
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
-      "dev.leclap.mcp": {
+      "dev.leclap.video": {
         "tools": [
           {
             "name": "ping",

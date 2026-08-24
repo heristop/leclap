@@ -1,6 +1,8 @@
 import { useState, useId, useRef, useEffect } from 'react';
 import { useMediaDrop, type AcceptSpec } from '@/lib/upload';
 import { describeAccept } from '@/lib/upload/core/describe-accept';
+import type { Rejection } from '@/lib/upload/core/types';
+import { rejectionMessages } from './media-picker-rejections';
 import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Video as VideoIcon, Check, X } from '@/presentation/components/icons';
 import { PlayIcon } from '@/presentation/components/icons/play';
@@ -447,8 +449,12 @@ interface UploadPaneProps {
 const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
   const { t } = useTranslation('admin');
   const inputId = useId();
+  const [errors, setErrors] = useState<string[]>([]);
+  const formats = describeAccept(ACCEPT[kind]);
 
-  const onDrop = (files: File[]) => {
+  const onDrop = (files: File[], rejections: Rejection[]) => {
+    setErrors(rejectionMessages(rejections, t, formats));
+
     if (files.length === 0) {
       return;
     }
@@ -459,7 +465,11 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
       .then(({ key }) => {
         onChange({ source: 'upload', key, label: file.name });
       })
-      .catch(() => {});
+      .catch(() => {
+        // A storage failure used to be swallowed here, so a full quota looked exactly like nothing
+        // happening. Surface it in the same place as a rejection.
+        setErrors([t('media.rejectSaveFailed', { name: file.name })]);
+      });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useMediaDrop({
@@ -482,19 +492,39 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
   }
 
   return (
-    <div
-      {...getRootProps()}
-      aria-label={t(UPLOAD_LABEL_KEY[kind])}
-      className={cn(
-        'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
-        isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
-      )}
-    >
-      <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
-      <Upload className="h-6 w-6 text-gray-400" />
-      <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
-      <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind], { formats: describeAccept(ACCEPT[kind]) })}</span>
-    </div>
+    <>
+      <div
+        {...getRootProps()}
+        aria-label={t(UPLOAD_LABEL_KEY[kind])}
+        className={cn(
+          'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
+          isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
+        )}
+      >
+        <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
+        <Upload className="h-6 w-6 text-gray-400" />
+        <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
+        <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind], { formats })}</span>
+      </div>
+      {errors.length > 0 ? (
+        <div role="alert" className="mt-3 rounded-lg bg-[var(--color-error)]/8 px-3 py-2">
+          <ul className="space-y-1 text-xs leading-5 text-[var(--color-error)]">
+            {errors.map((message, index) => (
+              <li key={index}>{message}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => {
+              setErrors([]);
+            }}
+            className="mt-1.5 text-[0.7rem] font-semibold uppercase tracking-wider text-[var(--color-error)]/80 hover:text-[var(--color-error)]"
+          >
+            {t('media.rejectDismiss')}
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 };
 

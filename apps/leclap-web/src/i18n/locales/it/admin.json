@@ -323,7 +323,12 @@
     "removeUpload": "Rimuovi il file caricato",
     "uploadVideo": "Carica una clip video",
     "dropVideo": "Trascina un video o clicca per sfogliare",
-    "videoFormats": "{{formats}} · salvato su questo dispositivo"
+    "videoFormats": "{{formats}} · salvato su questo dispositivo",
+    "rejectInvalidType": "{{name}} non è un file utilizzabile qui — prova con {{formats}}",
+    "rejectTooLarge": "{{name}} è troppo grande per essere salvato su questo dispositivo",
+    "rejectTooMany": "{{name}} è stato ignorato — questo spazio accetta un solo file",
+    "rejectSaveFailed": "Impossibile salvare {{name}} — lo spazio di archiviazione di questo dispositivo potrebbe essere pieno",
+    "rejectDismiss": "Ignora"
   },
   "overlay": {
     "textOverlays": "Overlay di testo",

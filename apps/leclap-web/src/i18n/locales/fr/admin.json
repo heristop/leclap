@@ -323,7 +323,12 @@
     "removeUpload": "Supprimer le fichier importé",
     "uploadVideo": "Importer un clip vidéo",
     "dropVideo": "Dépose une vidéo ou clique pour parcourir",
-    "videoFormats": "{{formats}} · stocké sur cet appareil"
+    "videoFormats": "{{formats}} · stocké sur cet appareil",
+    "rejectInvalidType": "{{name}} n’est pas un fichier utilisable ici — essaie {{formats}}",
+    "rejectTooLarge": "{{name}} est trop volumineux pour être stocké sur cet appareil",
+    "rejectTooMany": "{{name}} a été ignoré — cet emplacement n’accepte qu’un seul fichier",
+    "rejectSaveFailed": "Impossible d’enregistrer {{name}} — le stockage de cet appareil est peut-être plein",
+    "rejectDismiss": "Ignorer"
   },
   "overlay": {
     "textOverlays": "Incrustations de texte",

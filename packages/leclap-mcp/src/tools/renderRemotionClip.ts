@@ -9,6 +9,7 @@ import { z } from 'zod';
 import type { McpConfig } from '../config.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
 import { remotionBundleOptions } from './remotion-webpack-override.js';
+import { createClipProgressHandler } from './clip-progress.js';
 
 // bundle() (webpack over an arbitrary entry) and ensureBrowser() (can DOWNLOAD Chromium on first
 // run) are otherwise unbounded — only renderMedia carries a cancel signal. Bound the setup steps too
@@ -190,6 +191,8 @@ interface RenderJob {
   outPath: string;
   inputProps?: Record<string, unknown>;
   timeoutMs: number;
+  /** Correlates the stderr progress lines with this render. */
+  renderId: string;
 }
 
 // Render the selected composition to `outPath`, cancelling if it overruns the render timeout.
@@ -205,6 +208,7 @@ async function renderToFile(remotion: RemotionModules, job: RenderJob): Promise<
       outputLocation: job.outPath,
       inputProps: job.inputProps,
       cancelSignal,
+      onProgress: createClipProgressHandler(job.renderId),
     });
 
     return undefined;
@@ -256,6 +260,7 @@ async function handleRender(args: ClipArgs, config: McpConfig) {
     outPath,
     inputProps: args.inputProps,
     timeoutMs: config.renderTimeoutMs,
+    renderId: randomBytes(3).toString('hex'),
   });
 
   if (failure) {

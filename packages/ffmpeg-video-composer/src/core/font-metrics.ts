@@ -5,6 +5,10 @@
 // Kerning is deliberately ignored. It requires `kern`/`GPOS` and almost always *narrows* a string,
 // so omitting it makes every measurement slightly conservative — overflow detection errs toward
 // warning rather than staying silent, which is the safe direction.
+//
+// Built on DataView/Uint8Array rather than Node's Buffer: this module is reached from the browser
+// and React Native entry points (via TemplateValidator), and neither environment provides the
+// `Buffer` global — using it here would throw `ReferenceError: Buffer is not defined` at load time.
 
 export interface FontMetrics {
   unitsPerEm: number;
@@ -16,24 +20,30 @@ interface TableRecord {
   length: number;
 }
 
-function readTableDirectory(buffer: Buffer): Map<string, TableRecord> | null {
+// 4-byte ASCII table tag. Built from code points rather than TextDecoder: table tags are ASCII by
+// spec, and String.fromCodePoint needs no runtime API beyond the language itself.
+function readTag(bytes: Uint8Array, offset: number): string {
+  return String.fromCodePoint(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+}
+
+function readTableDirectory(view: DataView, bytes: Uint8Array): Map<string, TableRecord> | null {
   // 12-byte offset table, then 16 bytes per table record.
-  if (buffer.length < 12) {
+  if (view.byteLength < 12) {
     return null;
   }
 
-  const numTables = buffer.readUInt16BE(4);
+  const numTables = view.getUint16(4, false);
   const tables = new Map<string, TableRecord>();
 
-  if (buffer.length < 12 + numTables * 16) {
+  if (view.byteLength < 12 + numTables * 16) {
     return null;
   }
 
   for (let i = 0; i < numTables; i++) {
     const base = 12 + i * 16;
-    const tag = buffer.toString('ascii', base, base + 4);
+    const tag = readTag(bytes, base);
 
-    tables.set(tag, { offset: buffer.readUInt32BE(base + 8), length: buffer.readUInt32BE(base + 12) });
+    tables.set(tag, { offset: view.getUint32(base + 8, false), length: view.getUint32(base + 12, false) });
   }
 
   return tables;
@@ -49,7 +59,7 @@ interface CmapSegment {
 
 // One segment's worth of code -> glyph entries. Split out of readCmapFormat4 purely to keep that
 // function's statement count down; the logic is the direct format-4 lookup algorithm.
-function resolveSegmentGlyphs(buffer: Buffer, segment: CmapSegment, map: Map<number, number>): void {
+function resolveSegmentGlyphs(view: DataView, segment: CmapSegment, map: Map<number, number>): void {
   const { start, end, delta, rangeOffset, rangeOffsetFieldAddress } = segment;
 
   for (let code = start; code <= end && code !== 0xffff; code++) {
@@ -60,11 +70,11 @@ function resolveSegmentGlyphs(buffer: Buffer, segment: CmapSegment, map: Map<num
 
     const glyphAddress = rangeOffsetFieldAddress + rangeOffset + (code - start) * 2;
 
-    if (glyphAddress + 1 >= buffer.length) {
+    if (glyphAddress + 1 >= view.byteLength) {
       continue;
     }
 
-    const glyph = buffer.readUInt16BE(glyphAddress);
+    const glyph = view.getUint16(glyphAddress, false);
 
     map.set(code, glyph === 0 ? 0 : (glyph + delta) & 0xffff);
   }
@@ -73,9 +83,9 @@ function resolveSegmentGlyphs(buffer: Buffer, segment: CmapSegment, map: Map<num
 // cmap format 4: the segmented mapping every Latin font ships. Other formats are not read; a font
 // exposing only format 0/6/12 yields an empty map and every glyph measures zero, which the caller
 // detects and treats as "no metrics".
-function readCmapFormat4(buffer: Buffer, offset: number): Map<number, number> {
+function readCmapFormat4(view: DataView, offset: number): Map<number, number> {
   const map = new Map<number, number>();
-  const segCountX2 = buffer.readUInt16BE(offset + 6);
+  const segCountX2 = view.getUint16(offset + 6, false);
   const segCount = segCountX2 / 2;
 
   const endCodes = offset + 14;
@@ -84,20 +94,20 @@ function readCmapFormat4(buffer: Buffer, offset: number): Map<number, number> {
   const idRangeOffsets = idDeltas + segCountX2;
 
   for (let seg = 0; seg < segCount; seg++) {
-    const start = buffer.readUInt16BE(startCodes + seg * 2);
-    const end = buffer.readUInt16BE(endCodes + seg * 2);
+    const start = view.getUint16(startCodes + seg * 2, false);
+    const end = view.getUint16(endCodes + seg * 2, false);
 
     if (start > end) {
       continue;
     }
 
     resolveSegmentGlyphs(
-      buffer,
+      view,
       {
         start,
         end,
-        delta: buffer.readInt16BE(idDeltas + seg * 2),
-        rangeOffset: buffer.readUInt16BE(idRangeOffsets + seg * 2),
+        delta: view.getInt16(idDeltas + seg * 2, false),
+        rangeOffset: view.getUint16(idRangeOffsets + seg * 2, false),
         rangeOffsetFieldAddress: idRangeOffsets + seg * 2,
       },
       map
@@ -107,24 +117,24 @@ function readCmapFormat4(buffer: Buffer, offset: number): Map<number, number> {
   return map;
 }
 
-function readCmap(buffer: Buffer, table: TableRecord): Map<number, number> {
-  const numSubtables = buffer.readUInt16BE(table.offset + 2);
+function readCmap(view: DataView, table: TableRecord): Map<number, number> {
+  const numSubtables = view.getUint16(table.offset + 2, false);
 
   for (let i = 0; i < numSubtables; i++) {
     const record = table.offset + 4 + i * 8;
 
-    if (record + 8 > buffer.length) {
+    if (record + 8 > view.byteLength) {
       continue;
     }
 
-    const subtableOffset = table.offset + buffer.readUInt32BE(record + 4);
+    const subtableOffset = table.offset + view.getUint32(record + 4, false);
 
-    if (subtableOffset + 14 > buffer.length) {
+    if (subtableOffset + 14 > view.byteLength) {
       continue;
     }
 
-    if (buffer.readUInt16BE(subtableOffset) === 4) {
-      return readCmapFormat4(buffer, subtableOffset);
+    if (view.getUint16(subtableOffset, false) === 4) {
+      return readCmapFormat4(view, subtableOffset);
     }
   }
 
@@ -133,28 +143,30 @@ function readCmap(buffer: Buffer, table: TableRecord): Map<number, number> {
 
 // hmtx holds `numberOfHMetrics` advance widths; every glyph beyond that reuses the final one
 // (monospaced tails are stored this way). Returns widths in font units.
-function readAdvanceWidths(buffer: Buffer, hmtx: TableRecord, numberOfHMetrics: number): number[] {
+function readAdvanceWidths(view: DataView, hmtx: TableRecord, numberOfHMetrics: number): number[] {
   const widths: number[] = [];
 
   for (let i = 0; i < numberOfHMetrics; i++) {
     const at = hmtx.offset + i * 4;
 
-    if (at + 1 >= buffer.length) {
+    if (at + 1 >= view.byteLength) {
       break;
     }
 
-    widths.push(buffer.readUInt16BE(at));
+    widths.push(view.getUint16(at, false));
   }
 
   return widths;
 }
 
-// Accepts any Uint8Array (Buffer extends it, but a plain Uint8Array — e.g. from a caller's fetch
-// or fs read — is not itself a Buffer). Wrap it once here so the byte-level helpers below can keep
-// using Buffer's read*BE/toString accessors.
+// Accepts any Uint8Array (a Node Buffer included, since Buffer extends Uint8Array — but this
+// module never depends on that; it only ever touches the Uint8Array/DataView surface). A DataView
+// is constructed over the exact byteOffset/byteLength of the input rather than its `.buffer`
+// directly, because a Uint8Array may be a view into a larger, shared ArrayBuffer — reading from
+// `.buffer` alone would read the right bytes at the wrong place whenever byteOffset isn't 0.
 export function parseFontMetrics(bytes: Uint8Array): FontMetrics | null {
-  const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const tables = readTableDirectory(buffer);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const tables = readTableDirectory(view, bytes);
 
   if (!tables) {
     return null;
@@ -169,19 +181,19 @@ export function parseFontMetrics(bytes: Uint8Array): FontMetrics | null {
     return null;
   }
 
-  if (head.offset + 20 > buffer.length || hhea.offset + 36 > buffer.length || cmap.offset + 4 > buffer.length) {
+  if (head.offset + 20 > view.byteLength || hhea.offset + 36 > view.byteLength || cmap.offset + 4 > view.byteLength) {
     return null;
   }
 
-  const unitsPerEm = buffer.readUInt16BE(head.offset + 18);
+  const unitsPerEm = view.getUint16(head.offset + 18, false);
 
   if (unitsPerEm === 0) {
     return null;
   }
 
-  const numberOfHMetrics = buffer.readUInt16BE(hhea.offset + 34);
-  const widths = readAdvanceWidths(buffer, hmtx, numberOfHMetrics);
-  const charToGlyph = readCmap(buffer, cmap);
+  const numberOfHMetrics = view.getUint16(hhea.offset + 34, false);
+  const widths = readAdvanceWidths(view, hmtx, numberOfHMetrics);
+  const charToGlyph = readCmap(view, cmap);
   const fallback = widths.at(-1) ?? 0;
 
   return {

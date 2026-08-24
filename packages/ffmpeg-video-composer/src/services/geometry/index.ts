@@ -3,14 +3,13 @@ import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
 import { canvasFor, collectBoxes } from './text-boxes';
 import { collisionWarnings, legibilityWarnings, overflowWarnings, type GeometryWarning } from './rules';
+// FontLoader lives in bundled-font-loader.ts, not here, so this barrel only ever imports *from* that
+// module — never the reverse — keeping the re-export of `createBundledFontLoader` below cycle-free.
+import type { FontLoader } from './bundled-font-loader';
 
 export type { GeometryWarning } from './rules';
 export type { Box, Canvas } from './text-boxes';
-
-// Supplied by the caller, because this module must stay free of filesystem and network access: it
-// is imported by TemplateValidator, whose import graph reaches the browser build, the React-Native
-// build, and the web app. Returning null means "not available here" and is expected, not an error.
-export type FontLoader = (fontFile: string) => Promise<Uint8Array | null>;
+export { createBundledFontLoader, type FontLoader } from './bundled-font-loader';
 
 // Past this, the report stops being read and starts being scrolled past. The first twenty findings
 // are the ones worth acting on.

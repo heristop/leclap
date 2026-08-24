@@ -1,7 +1,12 @@
 import { defineCommand } from 'citty';
 import fs from 'node:fs/promises';
 import pc from 'picocolors';
-import { TemplateValidator } from 'ffmpeg-video-composer';
+import {
+  TemplateValidator,
+  FilesystemNodeAdapter,
+  PinoLogAdapter,
+  createBundledFontLoader,
+} from 'ffmpeg-video-composer';
 import { success, fail, step, hint } from '../ui.js';
 import { wordmark } from '../theme.js';
 
@@ -102,12 +107,23 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
   return attachGeometryWarnings(new TemplateValidator(), data);
 }
 
+// A Node filesystem adapter, built directly rather than through the engine's tsyringe container: the
+// container only registers `'logger'` inside `compile()`/`loadConfig()`, neither of which `validate`
+// calls, so `container.resolve(FilesystemNodeAdapter)` would throw here. `@inject('logger')` only
+// matters when tsyringe itself constructs the class; a plain `new` with a logger instance satisfies
+// the constructor without the container. Its `resolveBundledFont`/`readFile` never call the logger,
+// so a bare `PinoLogAdapter` (no engine log-level wiring needed) is enough.
+function bundledFontLoader() {
+  return createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
+}
+
 // `validateTemplate`'s `data` is a `TemplateDescriptor | Section` union (shared with `validateSection`);
 // only the descriptor shape carries `sections`, so `'type' in descriptor` (a Section-only field) tells
 // them apart. Geometry checks only make sense for a full descriptor, and only run when the descriptor
 // parsed — schema failures without `data` skip straight through. Warnings are advisory: they attach
-// alongside whatever `success`/`errors` the schema validator produced and never change them (no font
-// loader is passed, so measurements are approximate — a follow-up task wires a real one).
+// alongside whatever `success`/`errors` the schema validator produced and never change them. The font
+// loader degrades to `null` per font (no bundled fonts found, e.g. a published install) rather than
+// throwing, so a miss falls back to approximate measurement instead of breaking validation.
 async function attachGeometryWarnings(validator: TemplateValidator, data: unknown): Promise<ValidationResult> {
   const result = validator.validateTemplate(data);
   const descriptor = result.data;
@@ -116,7 +132,7 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
     return result;
   }
 
-  const warnings = await validator.getGeometryWarnings(descriptor);
+  const warnings = await validator.getGeometryWarnings(descriptor, bundledFontLoader());
 
   return { ...result, warnings: warnings.map((w) => ({ path: w.path, message: w.message })) };
 }

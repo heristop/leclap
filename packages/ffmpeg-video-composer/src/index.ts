@@ -290,6 +290,7 @@ export {
   type GeometryWarning,
   type FontLoader,
 } from './services/TemplateValidator';
+export { createBundledFontLoader } from './services/geometry';
 export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {
   TemplateDescriptorSchema,

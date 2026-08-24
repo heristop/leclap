@@ -16,7 +16,13 @@ const outputSchema = z.object({
   formFields: z.array(z.string()),
   // Present only when there is something to say. A clean template omits the field rather than
   // sending an empty array — the agent pays for every key it reads.
-  geometry: z.array(z.string()).optional(),
+  geometry: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Text that would overflow the frame, collide with other text, or render too small to read — ' +
+        'one line per finding, present only when there is something to fix; check this before rendering.'
+    ),
 });
 
 type ValidateArgs = { template: Record<string, unknown> };
@@ -125,7 +131,9 @@ export function registerValidateTemplate(server: McpServer): void {
         'Dry-run an inline `template` descriptor against the core schema WITHOUT rendering — returns ' +
         'instantly. Get back whether it is valid plus what compose_video will require: the ' +
         'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
-        'milliseconds before the slower compose_video render.',
+        'milliseconds before the slower compose_video render. Also catches, render-free, text that ' +
+        'overflows the frame, collides with other text, or is too small to read — see the `geometry` ' +
+        'field.',
       inputSchema,
       outputSchema,
     },

@@ -14,12 +14,9 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import resourcesToBackend from 'i18next-resources-to-backend';
 import { LOCALE_CODES } from '@/config/site';
 import { en } from './locales/en';
-import { fr } from './locales/fr';
-import { de } from './locales/de';
-import { es } from './locales/es';
-import { it } from './locales/it';
 
 export const defaultNS = 'common';
 
@@ -34,11 +31,32 @@ const applyDocumentLang = (lng: string): void => {
   document.documentElement.lang = lng.split('-')[0];
 };
 
-i18n
+// English stays in the entry chunk: it is the fallback and the language served at the root URL, so
+// a lazy `en` would just be a guaranteed extra round-trip. The other four are one dynamic chunk
+// each — the barrel, not the raw JSON, so `satisfies LocaleShape<Resources>` still gates parity.
+//
+// Only ever one of them loads per session: the language comes from the URL path prefix, and the
+// switcher navigates (window.location.assign) rather than calling changeLanguage.
+//
+// The specifier has to stay statically analysable — one interpolated segment and the explicit
+// `/index.ts` — or the bundler gives up on the pattern and inlines every locale back into the
+// entry chunk, which builds and tests exactly the same but ships nothing smaller.
+const localeBackend = resourcesToBackend(async (language: string, namespace: string) => {
+  const bundle = (await import(`./locales/${language}/index.ts`)) as Record<string, Record<string, unknown>>;
+
+  return bundle[language][namespace];
+});
+
+export const i18nReady = i18n
+  .use(localeBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: { en, fr, de, es, it },
+    resources: { en },
+    // `resources` carries English only, so the detected language's namespaces still have to come
+    // from the backend above; without this flag i18next treats a non-empty `resources` as complete
+    // and never asks.
+    partialBundledLanguages: true,
     fallbackLng: 'en',
     supportedLngs: [...supportedLngs],
     load: 'languageOnly',

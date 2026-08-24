@@ -3,7 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 import './index.css';
-import i18n from '@/i18n';
+import i18n, { i18nReady } from '@/i18n';
 import App from '@/App';
 import { isBot } from '@/lib/isBot';
 import { watchSystemTheme } from '@/lib/theme';
@@ -16,6 +16,10 @@ if (!rootElement) {
 
 // Default theme is the OS color scheme: follow it live until the user picks one via the toggle.
 watchSystemTheme();
+
+// The active language's bundle is a lazy chunk (see i18n/index.ts), and it has to be in memory
+// before the first paint: rendering early would show English and then swap once the chunk lands.
+await i18nReady;
 
 createRoot(rootElement).render(
   <StrictMode>

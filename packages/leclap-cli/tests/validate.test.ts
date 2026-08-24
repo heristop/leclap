@@ -3,6 +3,9 @@ import { formatValidation, exitCodeFor } from '../src/commands/validate';
 
 const validateTemplateMock = vi.fn();
 const getGeometryWarningsMock = vi.fn();
+// A recognisable stand-in for the loader `createBundledFontLoader` produces, so a test can assert
+// this exact value — not just "a function" — reaches `getGeometryWarnings`.
+const bundledFontLoaderMock = vi.fn();
 
 vi.mock('ffmpeg-video-composer', () => ({
   TemplateValidator: vi.fn().mockImplementation(function TemplateValidatorMock() {
@@ -13,7 +16,7 @@ vi.mock('ffmpeg-video-composer', () => ({
   }),
   FilesystemNodeAdapter: vi.fn(),
   PinoLogAdapter: vi.fn(),
-  createBundledFontLoader: vi.fn(() => vi.fn()),
+  createBundledFontLoader: vi.fn(() => bundledFontLoaderMock),
 }));
 
 vi.mock('node:fs/promises', () => ({
@@ -150,5 +153,21 @@ describe('validate command exit code with geometry warnings', () => {
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
+  });
+
+  // Passing no loader is itself a legitimate, fully-supported path (measurements degrade to
+  // approximate), so nothing else here would fail if the wiring were silently dropped. This pins
+  // that `getGeometryWarnings` is actually called with a loader — and specifically the one
+  // `createBundledFontLoader` produced, not merely "some function" — so removing the wiring fails
+  // this test even though the command would still run, still print, and still exit 0.
+  it('passes the loader produced by createBundledFontLoader to getGeometryWarnings', async () => {
+    const descriptor = { sections: [] };
+    validateTemplateMock.mockReturnValue({ success: true, data: descriptor });
+    getGeometryWarningsMock.mockResolvedValue([]);
+
+    const { validate } = await import('../src/commands/validate');
+    await validate.run?.({ args: { template: 'template.json', json: true } } as never);
+
+    expect(getGeometryWarningsMock).toHaveBeenCalledWith(descriptor, bundledFontLoaderMock);
   });
 });

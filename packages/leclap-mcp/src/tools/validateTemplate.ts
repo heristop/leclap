@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/server';
-import type { TemplateDescriptor } from 'ffmpeg-video-composer';
+import { TemplateValidator, type TemplateDescriptor, type TemplateDescriptorSchema } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import { validateTemplate } from '../compose/validation.js';
@@ -14,6 +14,9 @@ const outputSchema = z.object({
   orientation: z.string().nullable(),
   requiredClips: z.array(z.string()),
   formFields: z.array(z.string()),
+  // Present only when there is something to say. A clean template omits the field rather than
+  // sending an empty array — the agent pays for every key it reads.
+  geometry: z.array(z.string()).optional(),
 });
 
 type ValidateArgs = { template: Record<string, unknown> };
@@ -50,11 +53,31 @@ function formFields(descriptor: TemplateDescriptor): string[] {
     .map((field) => field.name);
 }
 
-function summary(descriptor: TemplateDescriptor) {
+// The package exports two distinct `TemplateDescriptor` shapes: the hand-written `core/types`
+// interface (the public `TemplateDescriptor` name this file uses throughout) and the zod-inferred
+// type `getGeometryWarnings` actually expects internally. They describe the same JSON, so bridge
+// with a cast rather than threading a second descriptor type through this file's public API.
+type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
+
+// One line per finding: path, message, and an `approx` marker when the measurement fell back to an
+// estimate because the font was not staged. Returns undefined — not [] — when there is nothing to
+// report, so the field disappears from the payload.
+export async function geometryLines(descriptor: TemplateDescriptor): Promise<string[] | undefined> {
+  const warnings = await new TemplateValidator().getGeometryWarnings(descriptor as unknown as GeometryDescriptor);
+
+  if (warnings.length === 0) {
+    return undefined;
+  }
+
+  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? ' (approx: font not staged)' : ''}`);
+}
+
+async function summary(descriptor: TemplateDescriptor) {
   const sectionCount = descriptor.sections?.length ?? 0;
   const orientation = descriptor.global?.orientation ?? null;
   const clips = requiredClips(descriptor);
   const fields = formFields(descriptor);
+  const geometry = await geometryLines(descriptor);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -73,11 +96,12 @@ function summary(descriptor: TemplateDescriptor) {
       orientation,
       requiredClips: clips,
       formFields: fields,
+      geometry,
     },
   };
 }
 
-function handleValidate(args: ValidateArgs) {
+async function handleValidate(args: ValidateArgs) {
   const resolved = resolveDescriptor(args);
 
   if ('isError' in resolved) {

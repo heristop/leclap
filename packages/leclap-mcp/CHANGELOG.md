@@ -5,6 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-08-24
+
+### Changed
+
+- The MCP registry name moves from `io.github.heristop/leclap` to `dev.leclap/mcp`, matching
+  the project's own domain rather than a personal GitHub handle. `mcpName` is validated from
+  the published tarball, which is why the rename needs a release.
+
+### Added
+
+- `bugs` now points at the issue tracker explicitly instead of being inferred from
+  `repository`.
+
+## [0.3.2] - 2026-08-15
+
+### Fixed
+
+- `ffmpeg-video-composer` is depended on by a plain semver range. 0.3.0 and 0.3.1 shipped the
+  literal string `workspace:*` — npm publishes it verbatim, so both releases fail to install
+  with `EUNSUPPORTEDPROTOCOL`. Use 0.3.2 or later.
+- `serverInfo.version` reports the real published version rather than a stale constant.
+
 ## [0.3.1] - 2026-08-15
 
 ### Fixed

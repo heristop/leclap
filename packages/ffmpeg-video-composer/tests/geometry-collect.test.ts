@@ -121,6 +121,40 @@ describe('collectGeometryWarnings', () => {
     expect(calls).toHaveLength(1);
   });
 
+  // The defect this pins: sections lay out strictly sequentially with at most one box each, so two
+  // captions can never share a time window and collisionWarnings was dead code on any real
+  // descriptor. A lowerThird shares its section's window with the caption, so this is the one case
+  // that can actually collide — built from a descriptor, not from hand-constructed Box[] like
+  // geometry-rules.test.ts does.
+  it('fires a collision warning when a caption and a lowerThird overlap in the same section', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4 },
+          caption: { text: { en: 'hello there' }, fontsize: 40, align: 'left', position: 'bottom' },
+          lowerThird: { title: { en: 'World' }, subtitle: { en: 'subtitle line' } },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_collision')).toBe(true);
+  });
+
+  it('flags a zero/negative-duration section as empty_section', async () => {
+    const template = {
+      sections: [{ type: 'color_background', name: 'a', options: { duration: -1 } }],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'empty_section')).toBe(true);
+  });
+
   it('does not reject when the loader throws', async () => {
     const throwing = async (): Promise<Uint8Array | null> => {
       throw new Error('disk on fire');

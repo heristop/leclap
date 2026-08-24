@@ -1,8 +1,20 @@
 import { findFont, DEFAULT_FONT_ID } from '@/core/fonts';
 import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import { canvasFor, collectBoxes } from './text-boxes';
-import { collisionWarnings, legibilityWarnings, overflowWarnings, type GeometryWarning } from './rules';
+import {
+  canvasFor,
+  collectBoxes,
+  collectSectionSpans,
+  LOWER_THIRD_TITLE_FONT,
+  LOWER_THIRD_SUBTITLE_FONT,
+} from './text-boxes';
+import {
+  collisionWarnings,
+  emptySectionWarnings,
+  legibilityWarnings,
+  overflowWarnings,
+  type GeometryWarning,
+} from './rules';
 // FontLoader lives in bundled-font-loader.ts, not here, so this barrel only ever imports *from* that
 // module — never the reverse — keeping the re-export of `createBundledFontLoader` below cycle-free.
 import type { FontLoader } from './bundled-font-loader';
@@ -29,13 +41,20 @@ function fontFileFor(id: string): string | null {
   return findFont(id)?.file ?? null;
 }
 
-// Every distinct font the template's captions reference, defaulted where unset.
+// Every distinct font the template's captions reference, defaulted where unset, plus the two fixed
+// fonts the lowerThird preset always renders with. The latter are not descriptor-configurable, but
+// resolving them keeps a lowerThird finding's `approx` marker honest instead of always claiming
+// uncertainty for a font that is, in fact, bundled.
 function referencedFontIds(template: TemplateDescriptor): string[] {
-  const ids = (template.sections ?? [])
+  const sections = template.sections ?? [];
+  const captionIds = sections
     .filter((section) => section.caption)
     .map((section) => section.caption?.font ?? DEFAULT_FONT_ID);
+  const lowerThirdIds = sections
+    .filter((section) => section.lowerThird)
+    .flatMap(() => [LOWER_THIRD_TITLE_FONT, LOWER_THIRD_SUBTITLE_FONT]);
 
-  return [...new Set(ids)];
+  return [...new Set([...captionIds, ...lowerThirdIds])];
 }
 
 // Load and parse each font once. A loader that returns null, yields bytes that will not parse, or
@@ -86,9 +105,12 @@ export async function collectGeometryWarnings(
   const canvas = canvasFor(template.global?.orientation);
   const metrics = await loadMetrics(template, loadFont);
   const boxes = collectBoxes(template, (font) => metrics.get(font ?? DEFAULT_FONT_ID) ?? null);
+  const spans = collectSectionSpans(template);
 
-  return [...overflowWarnings(boxes, canvas), ...legibilityWarnings(boxes, canvas), ...collisionWarnings(boxes)].slice(
-    0,
-    MAX_WARNINGS
-  );
+  return [
+    ...overflowWarnings(boxes, canvas),
+    ...legibilityWarnings(boxes, canvas),
+    ...collisionWarnings(boxes),
+    ...emptySectionWarnings(spans),
+  ].slice(0, MAX_WARNINGS);
 }

@@ -60,8 +60,9 @@ Entry, formatted for this list:
 - [heristop/leclap](https://github.com/heristop/leclap) 📇 🏠 🍎 🪟 🐧 - Compose and render video from JSON templates. Deterministic, runs locally, no LLM in the output path. `npx -y @leclap/mcp`
 ```
 
-Do not include that `npx` invocation until the packaging defect in `packages/leclap-mcp` is fixed and
-republished — see `.superpowers/sdd/2026-08-14-open-source-visibility/task-8-10-report.md`.
+The `npx` invocation is safe to include. It was withheld while `@leclap/mcp` 0.3.0 and 0.3.1 shipped a
+literal `workspace:*` range and could not be installed at all; 0.3.2 republished with a plain semver
+range and `tests/repo/package-metadata.test.ts` now fails the build if that regresses.
 
 ### wong2/awesome-mcp-servers — replaces modelcontextprotocol/servers
 

@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.heristop/leclap",
+  "name": "dev.leclap/mcp",
   "title": "LeClap",
   "description": "Compose and render video from one JSON template. Deterministic, runs locally, no generative model.",
-  "version": "0.3.0",
+  "version": "0.3.3",
   "websiteUrl": "https://leclap.dev",
   "repository": {
     "url": "https://github.com/heristop/leclap",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@leclap/mcp",
-      "version": "0.3.0",
+      "version": "0.3.3",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
@@ -48,14 +48,25 @@
           "format": "boolean",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_REMOTION_ENTRY",
+          "description": "Path to a Remotion entry point used by render_remotion_clip when it is enabled.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
         }
       ]
     }
   ],
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
-      "io.github.heristop.leclap": {
+      "dev.leclap.mcp": {
         "tools": [
+          {
+            "name": "ping",
+            "description": "Health check that returns a fixed readiness string."
+          },
           {
             "name": "get_template_schema",
             "description": "Return the authoritative template descriptor JSON Schema plus the authoring guide."
@@ -71,6 +82,10 @@
           {
             "name": "probe_media",
             "description": "Inspect a local media file and report its streams, duration, and dimensions."
+          },
+          {
+            "name": "render_remotion_clip",
+            "description": "Render a composition from your own Remotion project to an MP4. Gated \u2014 see notes."
           }
         ],
         "prompts": ["compose-video"],

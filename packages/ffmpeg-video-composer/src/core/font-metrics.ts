@@ -149,7 +149,11 @@ function readAdvanceWidths(buffer: Buffer, hmtx: TableRecord, numberOfHMetrics: 
   return widths;
 }
 
-export function parseFontMetrics(buffer: Buffer): FontMetrics | null {
+// Accepts any Uint8Array (Buffer extends it, but a plain Uint8Array — e.g. from a caller's fetch
+// or fs read — is not itself a Buffer). Wrap it once here so the byte-level helpers below can keep
+// using Buffer's read*BE/toString accessors.
+export function parseFontMetrics(bytes: Uint8Array): FontMetrics | null {
+  const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const tables = readTableDirectory(buffer);
 
   if (!tables) {

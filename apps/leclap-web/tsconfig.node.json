@@ -1,11 +1,15 @@
 {
   "compilerOptions": {
     "composite": true,
+    // The config imports ./vite/oxc-react-compiler.ts by its real extension, which Vite's native
+    // config loader requires and which TS only allows when it is not emitting JS.
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "vite"]
 }

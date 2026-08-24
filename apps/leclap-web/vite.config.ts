@@ -1,9 +1,10 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
-import react, { type Options as ReactPluginOptions } from '@vitejs/plugin-react';
+import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { oxcReactCompiler } from './vite/oxc-react-compiler.ts';
 
 const projectDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,14 +23,10 @@ const VENDOR_GROUPS: { test: RegExp; name: string }[] = [
 
 export default defineConfig({
   plugins: [
-    // React Compiler runs through the React plugin's own Babel pass, which only
-    // transforms this app's JSX/TSX. A standalone Babel preset would also try to
-    // compile packages/ffmpeg-video-composer (which uses TS decorators) and fail to parse them.
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler', {}]],
-      },
-    } as ReactPluginOptions & { babel?: { plugins?: unknown[] } }),
+    // React Compiler, then the React plugin's JSX/Fast Refresh pass — both Oxc, no Babel anywhere.
+    // Order matters and is why the compiler plugin declares `enforce: 'pre'`.
+    oxcReactCompiler(),
+    react(),
     tailwindcss(),
     nodePolyfills({
       // Enable polyfills for specific globals and modules

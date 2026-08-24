@@ -65,7 +65,7 @@ Run from the repo root unless noted. Tooling is **vite-plus (`vp`)**.
 - **Format** (enforced by `vp`): semicolons, single quotes, `printWidth: 120`, `tabWidth: 2`, `trailingComma: es5`.
 - **Path alias** — `@/*` → `packages/ffmpeg-video-composer/src/*`.
 - **Decorators** — DI/decorators require `reflect-metadata` to be imported once at the entry point.
-- **React Compiler is enabled** in both apps (`apps/leclap-web` via `@vitejs/plugin-react`'s Babel pass; `apps/leclap-expo` via `app.json` → `experiments.reactCompiler`). Don't add `useMemo`/`useCallback`/`React.memo` — the compiler memoizes automatically.
+- **React Compiler is enabled** in both apps, through Oxc's Rust port (`oxc-transform-react`) rather than the Babel plugin: `apps/leclap-web` via `vite/oxc-react-compiler.ts`, `apps/leclap-expo` via `metro/oxc-react-compiler-transformer.js`. Both are scoped to the app's own sources and leave JSX to the downstream pass. Don't add `useMemo`/`useCallback`/`React.memo` — the compiler memoizes automatically.
 - **Tests** — core's unit + integration suite lives in `packages/ffmpeg-video-composer/tests/` (run by the root `pnpm test` / vitest); the Expo app keeps its own jest tests under `apps/leclap-expo`.
 - Prefer reusing existing managers/adapters/factories over adding new abstractions; follow the patterns already in `packages/ffmpeg-video-composer`.
 

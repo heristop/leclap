@@ -53,10 +53,15 @@ function formFields(descriptor: TemplateDescriptor): string[] {
     .map((field) => field.name);
 }
 
-// The package exports two distinct `TemplateDescriptor` shapes: the hand-written `core/types`
-// interface (the public `TemplateDescriptor` name this file uses throughout) and the zod-inferred
-// type `getGeometryWarnings` actually expects internally. They describe the same JSON, so bridge
-// with a cast rather than threading a second descriptor type through this file's public API.
+// `descriptor` reaches this function via `compose/validation.ts`'s `validateTemplate()`, which parses
+// the raw input with `TemplateDescriptorSchema` and then casts that zod-shaped result to the public
+// `TemplateDescriptor` (core/types) to satisfy its own return type. So at runtime the value was never
+// actually the public interface shape — it is (and always was) the zod-inferred shape. This cast just
+// names that reality so it type-checks here too. It is NOT the same cast as the one in validation.ts:
+// that one goes the opposite direction and exists to satisfy `ValidationResult.data`'s type; this one
+// undoes it. Safe because `getGeometryWarnings`'s consumers (collectGeometryWarnings, text-boxes.ts)
+// only read fields off the object — they never re-parse it — so the zod type's extra optional fields
+// (e.g. `partials`) are simply absent/inert, never a problem.
 type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 
 // One line per finding: path, message, and an `approx` marker when the measurement fell back to an

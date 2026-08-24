@@ -81,4 +81,21 @@ describe('font metrics', () => {
     expect(() => parseFontMetrics(buffer)).not.toThrow();
     expect(parseFontMetrics(buffer)).toBeNull();
   });
+
+  it('parses identically from a Uint8Array view at a non-zero offset into a larger buffer', () => {
+    const fontBytes = readFileSync(fontPath);
+    const padding = 17; // arbitrary, non-zero and not 4-byte aligned
+    const padded = new Uint8Array(padding + fontBytes.byteLength + padding);
+
+    padded.set(fontBytes, padding);
+
+    const view = new Uint8Array(padded.buffer, padding, fontBytes.byteLength);
+
+    const direct = parseFontMetrics(fontBytes)!;
+    const fromView = parseFontMetrics(view)!;
+
+    expect(fromView).not.toBeNull();
+    expect(fromView.unitsPerEm).toBe(direct.unitsPerEm);
+    expect(measureTextWidth(fromView, 'Hello world', 48)).toBe(measureTextWidth(direct, 'Hello world', 48));
+  });
 });

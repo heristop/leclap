@@ -479,33 +479,39 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
     multiple: false,
   });
 
-  if (value?.source === 'upload') {
-    return (
-      <SelectedUpload
-        kind={kind}
-        label={value.label}
-        onClear={() => {
-          onChange(null);
-        }}
-      />
-    );
-  }
-
+  // A rejection reported by one drop (e.g. the surplus file in a two-file drop) is unrelated to
+  // whatever this pane currently holds, so the two branches below share one errors block instead of
+  // each owning their own — the alert used to live only in the dropzone branch and unmounted the
+  // instant `onChange` fired from underneath it (the accepted file's save resolves in milliseconds),
+  // hiding a message the user had no real chance to read.
   return (
     <>
-      <div
-        {...getRootProps()}
-        aria-label={t(UPLOAD_LABEL_KEY[kind])}
-        className={cn(
-          'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
-          isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
-        )}
-      >
-        <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
-        <Upload className="h-6 w-6 text-gray-400" />
-        <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
-        <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind], { formats })}</span>
-      </div>
+      {value?.source === 'upload' ? (
+        <SelectedUpload
+          kind={kind}
+          label={value.label}
+          onClear={() => {
+            // Clearing the selection also clears any leftover rejection from the drop that produced
+            // it — otherwise a stale message from a previous attempt reappears on the empty dropzone.
+            setErrors([]);
+            onChange(null);
+          }}
+        />
+      ) : (
+        <div
+          {...getRootProps()}
+          aria-label={t(UPLOAD_LABEL_KEY[kind])}
+          className={cn(
+            'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
+            isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
+          )}
+        >
+          <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
+          <Upload className="h-6 w-6 text-gray-400" />
+          <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
+          <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind], { formats })}</span>
+        </div>
+      )}
       {errors.length > 0 ? (
         <div role="alert" className="mt-3 rounded-lg bg-[var(--color-error)]/8 px-3 py-2">
           <ul className="space-y-1 text-xs leading-5 text-[var(--color-error)]">

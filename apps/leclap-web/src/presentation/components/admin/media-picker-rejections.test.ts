@@ -41,8 +41,10 @@ describe('rejectionMessages', () => {
   });
 
   // A file can carry both codes (wrong type AND oversized). One line per file, not per code —
-  // two lines about the same file reads as two problems.
-  it('emits one line for a file that fails on two counts', () => {
+  // two lines about the same file reads as two problems. Asserting the exact message (not just the
+  // count) pins which code wins: a `PRIORITY` that put `file-too-large` first would still produce
+  // one line, but the wrong one, and a length-only assertion would miss that.
+  it('prefers the invalid-type message when a file is both the wrong type and oversized', () => {
     const both: Rejection = {
       file: new File(['x'], 'huge.pdf'),
       errors: [
@@ -50,8 +52,25 @@ describe('rejectionMessages', () => {
         { code: 'file-too-large', message: 'dev' },
       ],
     };
+    const messages = rejectionMessages([both], t, 'MP4');
 
-    expect(rejectionMessages([both], t, 'MP4')).toHaveLength(1);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toBe('media.rejectInvalidType({"name":"huge.pdf","formats":"MP4"})');
+  });
+
+  // Same shape one tier down: too-large must still beat too-many when both apply to one file.
+  it('prefers the too-large message over too-many when a file is both', () => {
+    const both: Rejection = {
+      file: new File(['x'], 'huge.mp4'),
+      errors: [
+        { code: 'file-too-large', message: 'dev' },
+        { code: 'too-many-files', message: 'dev' },
+      ],
+    };
+    const messages = rejectionMessages([both], t, 'MP4');
+
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toBe('media.rejectTooLarge({"name":"huge.mp4"})');
   });
 
   it('returns nothing for an empty list', () => {

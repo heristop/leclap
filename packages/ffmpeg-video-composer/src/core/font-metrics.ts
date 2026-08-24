@@ -112,6 +112,11 @@ function readCmap(buffer: Buffer, table: TableRecord): Map<number, number> {
 
   for (let i = 0; i < numSubtables; i++) {
     const record = table.offset + 4 + i * 8;
+
+    if (record + 8 > buffer.length) {
+      continue;
+    }
+
     const subtableOffset = table.offset + buffer.readUInt32BE(record + 4);
 
     if (subtableOffset + 14 > buffer.length) {
@@ -160,7 +165,7 @@ export function parseFontMetrics(buffer: Buffer): FontMetrics | null {
     return null;
   }
 
-  if (head.offset + 20 > buffer.length || hhea.offset + 36 > buffer.length) {
+  if (head.offset + 20 > buffer.length || hhea.offset + 36 > buffer.length || cmap.offset + 4 > buffer.length) {
     return null;
   }
 

@@ -13,27 +13,47 @@ interface ValidationError {
   code?: string;
 }
 
+interface ValidationWarning {
+  path: string;
+  message: string;
+}
+
 interface ValidationResult {
   success: boolean;
   errors?: ValidationError[];
+  warnings?: ValidationWarning[];
 }
 
 // Pure: turn a validation result into display lines (no IO). On failure, one line per error plus a
-// count; on success a single confirmation. ANSI styling is applied but picocolors honours NO_COLOR.
+// count; on success a single confirmation. Warnings are advisory — they render on both the success
+// and failure paths and never affect which of those two paths is taken. ANSI styling is applied but
+// picocolors honours NO_COLOR.
 export function formatValidation(result: ValidationResult): string[] {
+  const warnings = (result.warnings ?? []).map((w) => step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}`));
+
   if (result.success) {
-    return [success('Template is valid')];
+    return [success('Template is valid'), ...warnings];
   }
 
   const errors = result.errors ?? [];
 
   if (errors.length === 0) {
-    return [fail('Template is invalid')];
+    return [fail('Template is invalid'), ...warnings];
   }
 
   const lines = errors.map((e) => step(`${pc.red('✗')} ${pc.bold(e.path)} — ${e.message}`));
 
-  return [fail(`Template is invalid (${errors.length} ${errors.length === 1 ? 'problem' : 'problems'})`), ...lines];
+  return [
+    fail(`Template is invalid (${errors.length} ${errors.length === 1 ? 'problem' : 'problems'})`),
+    ...lines,
+    ...warnings,
+  ];
+}
+
+// The exit code is driven solely by `success`; geometry (and any other) warnings must never flip it,
+// or `leclap validate` stops being usable as a CI gate.
+export function exitCodeFor(result: ValidationResult): number {
+  return result.success ? 0 : 1;
 }
 
 async function loadJson(templatePath: string): Promise<unknown> {
@@ -56,7 +76,9 @@ export const validate = defineCommand({
     const output = json ? `${JSON.stringify(result)}\n` : `${formatValidation(result).join('\n')}\n`;
     process.stdout.write(output);
 
-    if (!result.success) process.exit(1);
+    const code = exitCodeFor(result);
+
+    if (code !== 0) process.exit(code);
   },
 });
 
@@ -77,5 +99,24 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
     return { success: false, errors: [{ path: templatePath, message, code: 'load_error' }] };
   }
 
-  return new TemplateValidator().validateTemplate(data);
+  return attachGeometryWarnings(new TemplateValidator(), data);
+}
+
+// `validateTemplate`'s `data` is a `TemplateDescriptor | Section` union (shared with `validateSection`);
+// only the descriptor shape carries `sections`, so `'type' in descriptor` (a Section-only field) tells
+// them apart. Geometry checks only make sense for a full descriptor, and only run when the descriptor
+// parsed — schema failures without `data` skip straight through. Warnings are advisory: they attach
+// alongside whatever `success`/`errors` the schema validator produced and never change them (no font
+// loader is passed, so measurements are approximate — a follow-up task wires a real one).
+async function attachGeometryWarnings(validator: TemplateValidator, data: unknown): Promise<ValidationResult> {
+  const result = validator.validateTemplate(data);
+  const descriptor = result.data;
+
+  if (!descriptor || 'type' in descriptor) {
+    return result;
+  }
+
+  const warnings = await validator.getGeometryWarnings(descriptor);
+
+  return { ...result, warnings: warnings.map((w) => ({ path: w.path, message: w.message })) };
 }

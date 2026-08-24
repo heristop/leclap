@@ -1,7 +1,24 @@
+// The MCP reference data behind /doc/mcp. Mirrors packages/leclap-mcp (src/server.ts, src/config.ts
+// and the per-tool input schemas) — tool names, arguments, config keys and defaults must match the
+// server, so change them together.
+
 export interface McpToolDoc {
   name: string;
+  /** The tool's input arguments, in the tools/list order. `?` marks an optional one. */
+  args: string;
   purpose: string;
   when: string;
+  /** Registered only behind `--allow-remotion`; rendered with an opt-in marker. */
+  optIn?: boolean;
+}
+
+export interface McpConfigDoc {
+  label: string;
+  flag: string;
+  env: string;
+  /** The value the server falls back to with neither flag nor env set. */
+  fallback: string;
+  detail: string;
 }
 
 export interface McpDoc {
@@ -10,8 +27,9 @@ export interface McpDoc {
   intro: string;
   flow: string[];
   tools: McpToolDoc[];
-  config: Array<{ label: string; value: string }>;
+  config: McpConfigDoc[];
   sampleConfig: string;
+  projectConfig: string;
 }
 
 export const mcpDoc: McpDoc = {
@@ -23,36 +41,83 @@ export const mcpDoc: McpDoc = {
   tools: [
     {
       name: 'get_template_schema',
+      args: 'no arguments',
       purpose: 'Returns the authoritative JSON Schema for the template descriptor plus a short authoring guide.',
       when: 'Use before authoring or modifying descriptor JSON.',
     },
     {
       name: 'validate_template',
-      purpose: 'Dry-runs validation of an inline descriptor and reports required clips and form fields.',
+      args: 'template',
+      purpose:
+        'Dry-runs validation of an inline descriptor — no render. Returns valid, sectionCount, orientation, requiredClips and formFields.',
       when: 'Use repeatedly to iterate on the descriptor before a slower render.',
     },
     {
       name: 'compose_video',
-      purpose: 'Renders an inline descriptor to MP4 and returns output metadata.',
-      when: 'Use after validation succeeds and required media paths are available.',
-    },
-    {
-      name: 'render_remotion_clip',
+      args: 'template, fields?, userVideoPaths?, locale?, outputBaseName?',
       purpose:
-        'Renders a composition from your own Remotion project to an MP4 clip — motion graphics FFmpeg cannot express.',
-      when: 'Optional: for an animated intro, then feed the clip to compose_video as a project_video via userVideoPaths. Needs @remotion/* and a configured entry.',
+        'Validates then renders an inline descriptor. Returns outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec and renderId, plus a resource_link to the mp4.',
+      when: 'Use after validation succeeds and every project_video section has a clip in userVideoPaths.',
     },
     {
       name: 'probe_media',
+      args: 'path',
       purpose: 'Inspects a local media file and reports codecs, duration, sample rate, and size.',
-      when: 'Use to check a user-supplied clip before composing.',
+      when: 'Use to check a user-supplied clip before composing. The path must resolve inside the media dir.',
+    },
+    {
+      name: 'render_remotion_clip',
+      args: 'compositionId, entry?, serveUrl?, inputProps?, outputName?',
+      purpose:
+        'Renders a composition from your own Remotion project to an MP4 clip — motion graphics FFmpeg cannot express.',
+      when: 'For an animated intro: render the clip, then feed it to compose_video as a project_video via userVideoPaths.',
+      optIn: true,
+    },
+    {
+      name: 'ping',
+      args: 'no arguments',
+      purpose: 'Liveness check — returns a fixed readiness string.',
+      when: 'Use to confirm the server is up before a longer session.',
     },
   ],
   config: [
-    { label: 'Output dir', value: 'LECLAP_MCP_OUTPUT_DIR or --output-dir' },
-    { label: 'Media allowlist', value: 'LECLAP_MCP_MEDIA_DIR or --media-dir' },
-    { label: 'Remotion entry', value: 'LECLAP_MCP_REMOTION_ENTRY or --remotion-entry (for render_remotion_clip)' },
-    { label: 'Render timeout', value: 'LECLAP_MCP_RENDER_TIMEOUT_MS or --render-timeout-ms' },
+    {
+      label: 'Output dir',
+      flag: '--output-dir',
+      env: 'LECLAP_MCP_OUTPUT_DIR',
+      fallback: '~/.leclap/renders',
+      detail: 'Where renders land — one folder per renderId.',
+    },
+    {
+      label: 'Media allowlist',
+      flag: '--media-dir',
+      env: 'LECLAP_MCP_MEDIA_DIR',
+      fallback: '~/.leclap/media',
+      detail:
+        'The containment root for local input files. The default is deliberately narrow: pointing it at your home directory would let any tool call read the whole of $HOME.',
+    },
+    {
+      label: 'Remotion opt-in',
+      flag: '--allow-remotion',
+      env: 'LECLAP_MCP_ALLOW_REMOTION',
+      fallback: 'off',
+      detail:
+        'render_remotion_clip bundles and executes a caller-supplied entry — arbitrary local JS. Without this the tool is never registered and never appears in tools/list.',
+    },
+    {
+      label: 'Remotion entry',
+      flag: '--remotion-entry',
+      env: 'LECLAP_MCP_REMOTION_ENTRY',
+      fallback: 'none',
+      detail: 'A default entry module (the one that calls registerRoot) so calls can omit the entry argument.',
+    },
+    {
+      label: 'Render timeout',
+      flag: '--render-timeout-ms',
+      env: 'LECLAP_MCP_RENDER_TIMEOUT_MS',
+      fallback: '600000 (10 minutes)',
+      detail: 'How long a single render may run before the worker is killed.',
+    },
   ],
   // Mirrors the one-click editor deep-links in docMarkdown.ts, which install via npx. Env values are
   // absolute because they are not tilde-expanded.
@@ -65,6 +130,26 @@ export const mcpDoc: McpDoc = {
           env: {
             LECLAP_MCP_OUTPUT_DIR: '/abs/path/to/Movies/leclap-renders',
             LECLAP_MCP_MEDIA_DIR: '/abs/path/to/Movies',
+          },
+        },
+      },
+    },
+    null,
+    2
+  ),
+  // What `leclap init --mcp --remotion` writes as the project's .mcp.json: the media dir is scoped to
+  // the project, and the Remotion opt-in is set because the scaffold ships a remotion/ entry.
+  projectConfig: JSON.stringify(
+    {
+      mcpServers: {
+        leclap: {
+          command: 'npx',
+          args: ['@leclap/mcp'],
+          env: {
+            LECLAP_MCP_MEDIA_DIR: '/abs/path/to/my-video',
+            LECLAP_MCP_OUTPUT_DIR: '/abs/path/to/my-video/build',
+            LECLAP_MCP_REMOTION_ENTRY: '/abs/path/to/my-video/remotion/index.ts',
+            LECLAP_MCP_ALLOW_REMOTION: '1',
           },
         },
       },

@@ -7,8 +7,12 @@ import { logger } from '@/lib/logger';
 import type { FieldRow } from './schemaFields';
 
 // ── Copyable command pill ───────────────────────────────────────────────────────
-// A dark terminal chip: a `$` prompt + the command; the whole pill copies on click and flashes a
-// checkmark.
+// A dark terminal chip: a `$` prompt + the command, with the (visible) label underneath explaining
+// what the command does. The whole pill copies the command on click and flashes a checkmark.
+//
+// It is a *block*: a row of these must stack, and a pill wide enough to overflow scrolls its own
+// command rather than pushing the page sideways. It used to be `inline-flex`, which turned every
+// `space-y-*` list of pills into an inline run that wrapped three-across.
 
 export const CommandPill = ({ command, label }: { command: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
@@ -32,30 +36,45 @@ export const CommandPill = ({ command, label }: { command: string; label?: strin
       type="button"
       onClick={copy}
       aria-label={copied ? 'Copied' : `Copy: ${command}`}
-      className="tap group inline-flex max-w-full items-center gap-4 rounded-xl border border-white/10 bg-[oklch(0.2_0.01_280)] px-4 py-3 text-left shadow-lg shadow-black/20 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+      className="tap group flex w-full items-start gap-4 rounded-xl border border-white/10 bg-[oklch(0.2_0.01_280)] px-4 py-3 text-left shadow-lg shadow-black/20 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
     >
       {/* The pill is always dark, but the theme's gray scale is tuned for light surfaces — use fixed
           light tones so the command isn't dark-on-dark. */}
-      <code className="overflow-x-auto whitespace-nowrap font-mono text-sm text-[oklch(0.92_0.008_280)]">
-        <span aria-hidden className="select-none text-[oklch(0.62_0.01_280)]">
-          ${' '}
-        </span>
-        {command}
-      </code>
+      <span className="min-w-0 flex-1">
+        {/* A long command wraps onto a second line with a hanging indent (continuations line up past
+            the `$` prompt) rather than scrolling sideways inside the pill — a scrollbar here hides
+            half the flags behind a gesture nobody thinks to try, and the pill copies the whole
+            command anyway. `anywhere` is the fallback for a single unbreakable token, e.g. a path. */}
+        <code className="block whitespace-pre-wrap pl-[1.4em] -indent-[1.4em] font-mono text-sm leading-6 text-[oklch(0.92_0.008_280)] [overflow-wrap:anywhere]">
+          <span aria-hidden className="select-none text-[oklch(0.62_0.01_280)]">
+            ${' '}
+          </span>
+          {command}
+        </code>
+        {label ? (
+          <span className="mt-1.5 block text-[0.78rem] leading-5 text-[oklch(0.68_0.01_280)]">{label}</span>
+        ) : null}
+      </span>
       <span
         className={cn(
-          'ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md transition-colors',
+          'grid h-7 w-7 shrink-0 place-items-center rounded-md transition-colors',
           copied
             ? 'text-success'
             : 'text-[oklch(0.68_0.01_280)] group-hover:bg-white/10 group-hover:text-[oklch(0.95_0.005_280)]'
         )}
       >
         {copied ? <Check className="h-4 w-4 pop-in" /> : <CopyIcon size={16} />}
-        {label && <span className="sr-only">{label}</span>}
       </span>
     </button>
   );
 };
+
+// A column of CommandPills. Explicit flex column so the stacking never depends on the pills' own
+// display mode, and capped so a terminal line doesn't run the full content width.
+
+export const CommandList = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={cn('flex max-w-2xl flex-col gap-2', className)}>{children}</div>
+);
 
 // ── Anchored section heading ────────────────────────────────────────────────────
 // Owns an anchor id with scroll-mt for the sticky header; shows a "#" permalink on hover.
@@ -83,20 +102,58 @@ export const DocSection = ({ id, title, kicker, children }: DocSectionProps) => 
         </span>
       </a>
     </header>
-    {children}
+    {/* One vertical rhythm for every block a section holds — prose, command lists, JSON, callouts —
+        so a Tip never butts against the code block above it and no call site has to hand-tune a
+        margin between two siblings. */}
+    <div className="space-y-5">{children}</div>
   </section>
 );
 
 // ── Prose ───────────────────────────────────────────────────────────────────────
 
+// Preflight resets `list-style` and the list padding to nothing, so a bare <ul> in a doc page renders
+// as unmarked, unindented paragraphs — indistinguishable from body copy. Restore markers here rather
+// than at each call site.
+const PROSE_LISTS =
+  '[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_li]:pl-1 [&_li]:marker:text-brand-500/70 [&_li+li]:mt-2';
+
 export const Prose = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn('max-w-[68ch] text-[0.95rem] leading-7 text-gray-300 space-y-4', className)}>{children}</div>
+  <div className={cn('max-w-[68ch] text-[0.95rem] leading-7 text-gray-300 space-y-4', PROSE_LISTS, className)}>
+    {children}
+  </div>
 );
 
 export const Code = ({ children }: { children: React.ReactNode }) => (
   <code className="rounded-md border border-brand-500/20 bg-brand-500/10 px-1.5 py-0.5 font-mono text-[0.82em] font-medium text-brand-700 dark:border-brand-400/20 dark:bg-surface-2 dark:text-brand-200">
     {children}
   </code>
+);
+
+// ── Definition list ─────────────────────────────────────────────────────────────
+// The workhorse for "one monospace name, one plain-English description" reference blocks: MCP tools,
+// env vars, CLI flags. `meta` carries a secondary monospace line (a tool's arguments, a flag's
+// default) so the shape stays name · meta · meaning everywhere.
+
+export interface DefRow {
+  term: string;
+  meta?: string;
+  children: React.ReactNode;
+}
+
+export const DefList = ({ rows }: { rows: readonly DefRow[] }) => (
+  <dl className="space-y-4">
+    {rows.map((row) => (
+      <div key={row.term}>
+        <dt className="font-mono text-sm font-semibold text-foreground">{row.term}</dt>
+        {row.meta ? (
+          <dd className="mt-0.5 font-mono text-[0.78rem] text-secondary-700 dark:text-secondary-300">{row.meta}</dd>
+        ) : null}
+        <dd className={cn('max-w-[68ch] text-sm leading-6 text-gray-400', row.meta ? 'mt-1' : 'mt-1.5')}>
+          {row.children}
+        </dd>
+      </div>
+    ))}
+  </dl>
 );
 
 // ── CLI quick-start with a package-manager switch ────────────────────────────────
@@ -337,7 +394,7 @@ export const Callout = ({
 }) => (
   <aside className={cn('rounded-2xl border-l-2 border-brand-500/60 bg-brand-500/5 px-5 py-4', className)}>
     <Badge variant="brand">{label}</Badge>
-    <div className="mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300">{children}</div>
+    <div className={cn('mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300', PROSE_LISTS)}>{children}</div>
   </aside>
 );
 
@@ -354,6 +411,6 @@ export const Tip = ({ children, className }: { children: React.ReactNode; classN
     <p className="flex items-center gap-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-accent-700 dark:text-accent-400">
       <Lightbulb aria-hidden="true" className="h-3.5 w-3.5" /> Tip
     </p>
-    <div className="mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300">{children}</div>
+    <div className={cn('mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300', PROSE_LISTS)}>{children}</div>
   </aside>
 );

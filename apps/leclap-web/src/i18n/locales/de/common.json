@@ -45,8 +45,9 @@
   "skipToContent": "Zum Hauptinhalt springen",
   "languageSuggestion": {
     "region": "Sprache",
-    "prompt": "Diese Seite auf Deutsch ansehen?",
-    "accept": "Deutsch",
+    "title": "Wähle deine Sprache",
+    "body": "Du liest diese Seite gerade auf <em>{{from}}</em>. Möchtest du sie lieber auf <em>{{to}}</em> lesen?",
+    "accept": "Auf {{language}} wechseln",
     "dismiss": "Schließen"
   },
   "footer": "Alles läuft lokal in deinem Browser – deine Dateien verlassen nie dein Gerät",

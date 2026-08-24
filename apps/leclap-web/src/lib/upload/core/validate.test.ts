@@ -49,3 +49,41 @@ describe('validateFiles', () => {
     expect(codes).toEqual(['file-invalid-type', 'file-too-large']);
   });
 });
+
+describe('validateFiles — multiple', () => {
+  // `multiple: false` reads as "at most one file". The <input multiple> attribute only constrains
+  // the picker; a drop bypasses the input entirely, so the cap has to live here too.
+  it('caps the batch at one when multiple is false and no remaining is given', () => {
+    const files = [sized('a.mp4', 'video/mp4', 1), sized('b.mp4', 'video/mp4', 1), sized('c.mp4', 'video/mp4', 1)];
+    const { accepted, rejections } = validateFiles(files, { accept: VIDEO, multiple: false });
+
+    expect(accepted.map((f) => f.name)).toEqual(['a.mp4']);
+    expect(rejections).toHaveLength(2);
+    expect(rejections.every((r) => r.errors.some((e) => e.code === 'too-many-files'))).toBe(true);
+  });
+
+  it('leaves the batch uncapped when multiple is true', () => {
+    const files = [sized('a.mp4', 'video/mp4', 1), sized('b.mp4', 'video/mp4', 1)];
+    const { accepted } = validateFiles(files, { accept: VIDEO, multiple: true });
+
+    expect(accepted).toHaveLength(2);
+  });
+
+  it('takes the stricter of multiple and remaining', () => {
+    const files = [sized('a.mp4', 'video/mp4', 1), sized('b.mp4', 'video/mp4', 1), sized('c.mp4', 'video/mp4', 1)];
+    const { accepted } = validateFiles(files, { accept: VIDEO, multiple: false, remaining: 3 });
+
+    expect(accepted).toHaveLength(1);
+  });
+
+  // remaining: 0 must still mean zero — multiple: true cannot loosen an explicit cap.
+  it('honours remaining 0 even when multiple is true', () => {
+    const { accepted } = validateFiles([sized('a.mp4', 'video/mp4', 1)], {
+      accept: VIDEO,
+      multiple: true,
+      remaining: 0,
+    });
+
+    expect(accepted).toHaveLength(0);
+  });
+});

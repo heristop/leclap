@@ -25,6 +25,11 @@ if (!config.resolver.assetExts.includes('apng')) {
 // them; without this it falls back to a non-existent `main` and throws UnableToResolveError.
 config.resolver.unstable_enablePackageExports = true;
 
+// React Compiler runs through Oxc's Rust port rather than babel-plugin-react-compiler (which is why
+// `experiments.reactCompiler` is off in app.json — the two must not both run). The wrapper delegates
+// everything else to Expo's stock babel transformer; see the file for the scoping rules.
+config.transformer.babelTransformerPath = require.resolve('./metro/oxc-react-compiler-transformer.js');
+
 // NOTE: no Node-module shims are needed. The reused core is cleanly split behind its platform
 // abstractions, so the React-Native entry (`ffmpeg-video-composer/src/reactnative.ts`) pulls only
 // Hermes-safe deps (tsyringe, zod, expo-file-system) — verified by tracing its import graph. If a

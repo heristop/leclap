@@ -283,7 +283,13 @@ export {
   type PartialExpansion,
 } from './core/partials';
 export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
-export { TemplateValidator, type ValidationResult, type ValidationError } from './services/TemplateValidator';
+export {
+  TemplateValidator,
+  type ValidationResult,
+  type ValidationError,
+  type GeometryWarning,
+  type FontLoader,
+} from './services/TemplateValidator';
 export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {
   TemplateDescriptorSchema,

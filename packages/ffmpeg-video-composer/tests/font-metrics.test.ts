@@ -144,6 +144,27 @@ describe('font metrics', () => {
     expect(parseFontMetrics(buffer)).toBeNull();
   });
 
+  it('bounds hmtx against the table length, not the whole file', () => {
+    // hmtx normally sorts before loca/maxp/name/post, so a truncated hmtx still "fits" inside the
+    // file and the reader walks straight into the following tables, returning their bytes as advance
+    // widths — with `fallback` standing in for the entire tail of the font. Checking only
+    // `view.byteLength` is no check at all in that layout. `hmtx.length` says how long it really is.
+    const buffer = readFileSync(fontPath);
+    const truncated = Buffer.from(buffer);
+    const numTables = truncated.readUInt16BE(4);
+
+    for (let i = 0; i < numTables; i++) {
+      const base = 12 + i * 16;
+
+      if (truncated.toString('ascii', base, base + 4) === 'hmtx') {
+        truncated.writeUInt32BE(8, base + 12); // claim the table is 8 bytes long
+      }
+    }
+
+    expect(parseFontMetrics(buffer)).not.toBeNull();
+    expect(parseFontMetrics(truncated)).toBeNull();
+  });
+
   it('returns null rather than throwing when the cmap record points past the end of the buffer', () => {
     const buffer = bufferWithOutOfBoundsCmap();
 

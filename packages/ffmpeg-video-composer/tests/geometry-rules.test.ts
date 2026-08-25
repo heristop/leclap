@@ -83,6 +83,23 @@ describe('overflowWarnings', () => {
 
     expect(warnings[0].approx).toBe(true);
   });
+
+  it('takes the vertical safe margin from the frame HEIGHT, not its width', () => {
+    // The engine's own `position: "top"` preset draws the glyph box at y=60 and the default `bar`
+    // style's background box reaches 18px further up, so y=42. Five percent of a 720px-high frame is
+    // 36px — inside the margin. Deriving that inset from the 1280px WIDTH makes it 64px instead, and
+    // a two-word default caption was reported as "extends 22px past the title-safe margin".
+    expect(overflowWarnings([box({ x: 599, y: 42, width: 82, height: 91.2 })], canvas)).toEqual([]);
+
+    const portrait = { width: 720, height: 1280 };
+
+    // The same mistake in the other direction: on portrait the width-derived inset is 36px, so a box
+    // 40px from the top cleared a margin that is really 64px. It must be reported.
+    const warnings = overflowWarnings([box({ x: 300, y: 40, width: 120, height: 50 })], portrait);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_overflow');
+  });
 });
 
 describe('legibilityWarnings', () => {
@@ -162,7 +179,11 @@ describe('contrastWarnings', () => {
     expect(warnings).toHaveLength(1);
     expect(warnings[0].code).toBe('text_low_contrast');
     expect(warnings[0].severity).toBe('warn');
-    expect(warnings[0].message).toBe('sections[0].caption: #333333 on #1a1a1a — contrast 1.4:1, below the 3:1 minimum');
+    expect(warnings[0].path).toBe('sections[0].caption');
+    // The LABEL, like every other rule — not the path. Both consumers print `path` in front of
+    // `message`, so a path here rendered as `sections[0].caption: sections[0].caption: …`.
+    expect(warnings[0].message).toBe('Section "a" caption: #333333 on #1a1a1a — contrast 1.4:1, below the 3:1 minimum');
+    expect(warnings[0].message.startsWith(warnings[0].path)).toBe(false);
   });
 
   it('is never approximate, regardless of the box own approx flag', () => {
@@ -190,8 +211,12 @@ describe('footageLegibilityWarnings', () => {
     expect(warnings[0].code).toBe('text_unreadable_over_footage');
     expect(warnings[0].severity).toBe('warn');
     expect(warnings[0].approx).toBe(false);
+    expect(warnings[0].path).toBe('sections[1].caption');
+    // "unknown background", not "footage": a color_background card that never set a backgroundColor
+    // lands here too, and calling its backdrop footage is simply wrong.
     expect(warnings[0].message).toBe(
-      'sections[1].caption: drawn over footage with no box, shadow or outline — legibility depends on the clip'
+      'Section "a" caption: no box, shadow or outline over an unknown background — legibility depends on what is behind it'
     );
+    expect(warnings[0].message.startsWith(warnings[0].path)).toBe(false);
   });
 });

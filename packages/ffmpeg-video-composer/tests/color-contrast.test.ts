@@ -36,6 +36,15 @@ describe('parseColor', () => {
   it('returns null for a non-numeric alpha suffix', () => {
     expect(parseColor('#000000@oops')).toBeNull();
   });
+
+  it('returns null for a name inherited from Object.prototype rather than a bogus Paint', () => {
+    // `NAMED_COLORS.constructor` is the truthy `Object` constructor and `NAMED_COLORS.__proto__` is
+    // Object.prototype, so `TABLE[name] ?? null` never reached the fallback. Every channel then read
+    // as `undefined`, and the contrast rule reported "contrast NaN:1, below the 3:1 minimum".
+    expect(parseColor('constructor')).toBeNull();
+    expect(parseColor('__proto__')).toBeNull();
+    expect(parseColor('toString')).toBeNull();
+  });
 });
 
 describe('relativeLuminance', () => {

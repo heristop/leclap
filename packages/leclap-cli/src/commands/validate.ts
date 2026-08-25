@@ -19,17 +19,11 @@ interface ValidationError {
   code?: string;
 }
 
-// Mirrors GeometryWarning wholesale (code/severity/approx included, not just path/message): a
-// finding is only as trustworthy as the metrics behind it, and `approx` is the flag that says which
-// kind it is. The `--json` path is documented to emit the field unchanged; dropping `approx` would
-// print a confident pixel count for a number that was, in fact, guessed.
-interface ValidationWarning {
-  path: string;
-  message: string;
-  code?: string;
-  severity?: string;
-  approx?: boolean;
-}
+// The engine's type itself, not a hand-written mirror. A mirror that made `code`/`severity`/`approx`
+// optional was strictly weaker than the original: renaming or dropping `approx` upstream would still
+// type-check here and just silently stop printing the approximation marker — a confident pixel
+// count for a number that was, in fact, guessed. `--json` emits the field unchanged.
+type ValidationWarning = GeometryWarning;
 
 interface ValidationResult {
   success: boolean;
@@ -43,7 +37,7 @@ interface ValidationResult {
 // picocolors honours NO_COLOR.
 export function formatValidation(result: ValidationResult): string[] {
   const warnings = (result.warnings ?? []).map((w) => {
-    const approx = w.approx ? ' (approx: font not staged)' : '';
+    const approx = w.approx ? ' (approx: estimated, not measured)' : '';
 
     return step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}${approx}`);
   });

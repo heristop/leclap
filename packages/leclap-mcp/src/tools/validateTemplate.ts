@@ -80,7 +80,7 @@ type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 // The MCP server is a Node process with the engine's bundled fonts reachable, so it measures real
 // glyph advances rather than the 0.5em-per-character estimate. Without this the agent-facing surface
 // — the one authoring the most templates, with the least ability to eyeball a render — would see
-// "(approx: font not staged)" on every line forever.
+// every line marked approximate forever.
 //
 // Built once and its reads cached, because unlike the CLI this process is long-lived: an agent
 // iterating on a descriptor calls validate_template dozens of times, and each call would otherwise
@@ -98,7 +98,18 @@ function bundledFontLoader() {
       return cached;
     }
 
-    const pending = load(file);
+    // Only a SUCCESSFUL read is cached for the life of the process. `createBundledFontLoader`
+    // collapses "not bundled here" and "the read blew up" into the same null, so caching that null
+    // would let one transient failure — an EMFILE under load, a half-written file — pin every later
+    // validate_template to approximate measurements until the server restarts, with nothing in the
+    // output to say why. Re-resolving a genuinely absent font costs a handful of stat() calls.
+    const pending = load(file).then((bytes) => {
+      if (!bytes) {
+        fontBytes.delete(file);
+      }
+
+      return bytes;
+    });
 
     fontBytes.set(file, pending);
 
@@ -107,7 +118,8 @@ function bundledFontLoader() {
 }
 
 // One line per finding: path, message, and an `approx` marker when the measurement fell back to an
-// estimate because the font was not staged. Returns undefined — not [] — when there is nothing to
+// estimate — no font metrics, or text carrying a {{ var }} that only resolves at render time.
+// Returns undefined — not [] — when there is nothing to
 // report, so the field disappears from the payload.
 //
 // Geometry is advisory, so it must not be able to fail the tool call: `handleValidate` is async now,
@@ -120,7 +132,7 @@ export async function geometryLines(descriptor: TemplateDescriptor): Promise<str
     return undefined;
   }
 
-  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? ' (approx: font not staged)' : ''}`);
+  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? ' (approx: estimated, not measured)' : ''}`);
 }
 
 async function safeGeometryWarnings(descriptor: TemplateDescriptor) {

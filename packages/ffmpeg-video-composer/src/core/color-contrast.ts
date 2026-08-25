@@ -60,6 +60,10 @@ function parseHex(base: string): Rgb | null {
   };
 }
 
+// `Object.hasOwn`, not `NAMED_COLORS[name] ?? null`: a plain object inherits `constructor` and
+// `__proto__`, both lowercase and both truthy, so `??` never reaches the fallback. A caption with
+// `color: "constructor"` handed back the `Object` constructor as if it were an Rgb, every channel
+// read as `undefined`, and the rule reported "contrast NaN:1, below the 3:1 minimum".
 function parseBaseColor(base: string): Rgb | null {
   const hex = parseHex(base);
 
@@ -67,7 +71,9 @@ function parseBaseColor(base: string): Rgb | null {
     return hex;
   }
 
-  return NAMED_COLORS[base.toLowerCase()] ?? null;
+  const name = base.toLowerCase();
+
+  return Object.hasOwn(NAMED_COLORS, name) ? NAMED_COLORS[name] : null;
 }
 
 // No `@alpha` suffix means fully opaque; a suffix that isn't a number invalidates the whole token.

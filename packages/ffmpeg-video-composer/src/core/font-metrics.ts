@@ -197,7 +197,17 @@ interface AdvanceWidths {
 // relocated hmtx record, that turned a 2302px headline into a 218330px one — reported, because the
 // font "parsed", as an exact measurement. Refusing to parse degrades to the estimate instead.
 function readAdvanceWidths(view: DataView, hmtx: TableRecord, numberOfHMetrics: number): AdvanceWidths | null {
-  if (numberOfHMetrics < 1 || hmtx.offset + numberOfHMetrics * 4 > view.byteLength) {
+  // Bounded against the TABLE, not the file. `view.byteLength` alone is no check at all in the
+  // normal sfnt layout, where hmtx sorts before loca/maxp/name/post: a truncated hmtx still "fits"
+  // inside the file, so the reader walks straight into the following tables and returns their bytes
+  // as advance widths — with `fallback` standing in for the whole tail of the font. That is exactly
+  // the 2302px-headline-becomes-218330px failure this function was written to refuse, reported as an
+  // exact measurement. `hmtx.length` was parsed into TableRecord and then never read.
+  if (
+    numberOfHMetrics < 1 ||
+    numberOfHMetrics * 4 > hmtx.length ||
+    hmtx.offset + numberOfHMetrics * 4 > view.byteLength
+  ) {
     return null;
   }
 

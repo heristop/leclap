@@ -343,9 +343,9 @@ export class TemplateValidator {
   // Advisory, exactly like getVariableWarnings: geometry findings never enter `errors` and never
   // flip `success`. A template that renders badly still renders, so this is guidance, not a gate.
   // Lazily loaded: the geometry graph (font metrics, colour-contrast math, caption layout) is only
-  // ever called from Node consumers (CLI, MCP server, library API). A static import here is a
-  // method on a class, so bundlers can't tree-shake it away — dynamic import keeps it out of the
-  // browser and React Native chunks entirely while leaving the public API unchanged.
+  // ever called from Node consumers, and a static import on a class method can't be tree-shaken out
+  // of the browser and React Native chunks. `collectGeometryWarnings` expands partials itself, so a
+  // caller that skipped `validateTemplate` still gets the partial's sections measured.
   async getGeometryWarnings(template: TemplateDescriptor, loadFont?: FontLoader): Promise<GeometryWarning[]> {
     const { collectGeometryWarnings } = await import('./geometry');
 

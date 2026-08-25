@@ -1,4 +1,5 @@
-import { measureTextWidth, type FontMetrics } from '@/core/font-metrics';
+import DefaultConfig from '@/core/default.config';
+import type { FontMetrics } from '@/core/font-metrics';
 import {
   CAPTION_ALIGN_MARGIN,
   CAPTION_DEFAULT_ALIGN,
@@ -6,9 +7,26 @@ import {
   captionAnchorY,
   captionStyleValues,
   type CaptionStyleValues,
-} from '@/editor/presets/caption-layout';
+} from '../../editor/presets/caption-layout';
+import { resolveFontFile } from '../../editor/presets/text';
+import { VIDEO_SEGMENT_TYPES } from '../../editor/utils/section-types';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import { captionAppearance, lowerThirdAppearance, type TextEffectLike } from './text-appearance';
+import { captionAppearance, captionBoxOpacity, lowerThirdAppearance, type TextEffectLike } from './text-appearance';
+import { measure } from './text-measure';
+
+// The font file the renderer will ACTUALLY use, via the very helper captions.ts calls — not a second
+// resolution rule. Re-deriving it here dropped `resolveFontFile`'s preset fallback, so an
+// unrecognised `caption.font` ("Helvetica", or a typo'd registry id) yielded no metrics at all: the
+// box fell back to the 0.5em-per-glyph estimate while the render used Oswald. The same caption was
+// reported as "extends 218px past the frame edge" instead of "extends 55px past the title-safe
+// margin". A `{{ var }}` still returns null — that one really is unknowable until render time.
+export function captionFontFile(font: string | undefined, preset: CaptionStyleValues): string | null {
+  if (font?.includes('{{')) {
+    return null;
+  }
+
+  return resolveFontFile(font, preset.fontfile);
+}
 
 // A positioned piece of text with the window during which it is on screen. Rules read these; nothing
 // here judges anything.
@@ -42,10 +60,20 @@ export interface Canvas {
   height: number;
 }
 
+// Read from the engine's own scale constants rather than re-typed here: a second copy of
+// 1280x720/720x1280/1080x1080 is one edit away from laying text out on a frame the renderer does not
+// use, which is the same drift `caption-layout.ts` was extracted to stop. Portrait is the landscape
+// preset transposed — exactly what TemplateDirector does with `DefaultConfig.SCALE`.
+function canvasFromScale(scale: string, transpose = false): Canvas {
+  const [width, height] = scale.split(':').map(Number);
+
+  return transpose ? { width: height, height: width } : { width, height };
+}
+
 const CANVASES: Record<string, Canvas> = {
-  landscape: { width: 1280, height: 720 },
-  portrait: { width: 720, height: 1280 },
-  square: { width: 1080, height: 1080 },
+  landscape: canvasFromScale(DefaultConfig.SCALE),
+  portrait: canvasFromScale(DefaultConfig.SCALE, true),
+  square: canvasFromScale(DefaultConfig.SQUARE_SCALE),
 };
 
 // `Object.hasOwn`, not `CANVASES[key] ?? fallback`: every plain object inherits truthy `toString`,
@@ -61,11 +89,6 @@ export function canvasFor(orientation: string | undefined): Canvas {
 // seconds is a neutral stand-in: it keeps later sections roughly ordered on the timeline so that
 // temporal overlap stays meaningful, without pretending to know the real length.
 const ASSUMED_DURATION_SEC = 2;
-
-// Without real metrics, assume every glyph is 0.5em — roughly the Latin average. It is not
-// conservative in either direction (Rubik averages ~0.49em, Oswald ~0.37em), so an estimated box is
-// a guess, not a bound. That is exactly why every finding drawn from one is flagged `approx`.
-const ASSUMED_ADVANCE_EM = 0.5;
 
 // drawtext has no leading of its own; this is the box height the geometry model ascribes to one line
 // of type at a given size. Carried on `Box.fontSize` too, so the rules never have to divide it back
@@ -93,75 +116,6 @@ const LOWER_THIRD_TITLE_COLOR = '#ffffff';
 const LOWER_THIRD_SUBTITLE_COLOR = '#c9d0f5';
 const LOWER_THIRD_DEFAULT_BAND_COLOR = '#0a0f14';
 const LOWER_THIRD_DEFAULT_BAND_OPACITY = 0.6;
-
-// caption.text (and lowerThird.title/subtitle) is a TranslationSchema (locale map) for every
-// schema-valid template. The bare-string branch stays for callers that hand collectBoxes unvalidated
-// input directly. Blank strings are dropped here rather than at the call site so the trim matches
-// the engine's own `hasText` (editor/presets/text.ts) — a whitespace-only caption draws nothing, so
-// modelling a box for it invents findings about text that never appears.
-function localeCandidates(value: unknown): string[] {
-  if (typeof value === 'string') {
-    return value.trim() === '' ? [] : [value];
-  }
-
-  if (!value || typeof value !== 'object') {
-    return [];
-  }
-
-  return Object.values(value as Record<string, unknown>).filter(
-    (v): v is string => typeof v === 'string' && v.trim() !== ''
-  );
-}
-
-interface Measurement {
-  width: number;
-  approx: boolean;
-}
-
-// Code points, the same unit `measureTextWidth` iterates and drawtext advances by. `text.length`
-// counts UTF-16 units instead, which doubles an NFD accent and reads one ZWJ family emoji as eleven
-// characters — so the estimate and the measurement would disagree about the very same string for
-// reasons that have nothing to do with the typeface.
-function codePointCount(text: string): number {
-  let count = 0;
-
-  for (const _codePoint of text) {
-    count++;
-  }
-
-  return count;
-}
-
-// A `{{ var }}` is substituted at render time, so a placeholder's width is a stand-in and never a
-// fact — the same reason `fontFileFor` refuses to resolve a templated font id. Measuring it anyway
-// beats silence, but the finding must not claim to be exact.
-function isTemplated(text: string): boolean {
-  return text.includes('{{');
-}
-
-// The widest locale wins, measured rather than counted: 24 "W"s render three times wider than 26
-// "l"s, so picking the locale with the most UTF-16 code units drops real overflows and invents fake
-// ones. Every locale is a candidate because any of them may be the one that ships.
-function measure(value: unknown, fontSize: number, metrics: FontMetrics | null): Measurement | null {
-  const candidates = localeCandidates(value);
-
-  if (candidates.length === 0) {
-    return null;
-  }
-
-  let width = 0;
-  let approx = false;
-
-  for (const text of candidates) {
-    const exact = metrics && !isTemplated(text) ? measureTextWidth(metrics, text, fontSize) : null;
-    const estimated = codePointCount(text) * ASSUMED_ADVANCE_EM * fontSize;
-
-    approx = approx || exact === null;
-    width = Math.max(width, exact ?? estimated);
-  }
-
-  return { width, approx };
-}
 
 // Absolute pixel margins, mirroring captions.ts's ALIGN_X. Not a fraction of the frame: 80px is 6%
 // of a landscape width and 11% of a portrait one, so a ratio is wrong in at least one orientation.
@@ -210,6 +164,9 @@ interface CaptionedSection {
   options?: {
     duration?: number;
     backgroundColor?: string;
+    layers?: unknown[];
+    upperCase?: boolean;
+    lowerCase?: boolean;
   };
   caption?: {
     text?: unknown;
@@ -238,6 +195,15 @@ function sectionDuration(section: { options?: { duration?: number } }): number {
   return section.options?.duration ?? ASSUMED_DURATION_SEC;
 }
 
+// `caption`/`lowerThird` live on the BASE section schema, so a `form` or `music` section may carry
+// one and still be schema-valid — but TemplateDirector renders only VIDEO_SEGMENT_TYPES, so no
+// drawtext is ever emitted for them. Modelling those boxes sent authors to fix a caption that
+// produces no filter at all, and let a `music` padding section advance the modelled cursor by
+// seconds of output the render never contains.
+function isRenderableSection(section: CaptionedSection): boolean {
+  return section.type !== undefined && VIDEO_SEGMENT_TYPES.has(section.type);
+}
+
 // Everything boxForSection/lowerThirdBoxes need about where a section sits on the timeline and canvas,
 // bundled so those functions stay under the lint's max-params limit.
 interface SectionPlacement {
@@ -252,7 +218,9 @@ interface SectionPlacement {
 // screen is wider and taller than the glyphs. It is on by default for the `bar` style — the schema
 // default — which made the un-padded model under-report every default caption by 36px.
 function boxPadding(caption: NonNullable<CaptionedSection['caption']>, preset: CaptionStyleValues): number {
-  const boxOn = caption.box ?? Boolean(preset.box);
+  // Same predicate the appearance side uses: a `boxOpacity: 0` box paints nothing, so padding the
+  // modelled rectangle by 36px for it invents a border that never reaches the frame.
+  const boxOn = (caption.box ?? Boolean(preset.box)) && captionBoxOpacity(caption) > 0;
 
   return boxOn ? (preset.boxborderw ?? CAPTION_DEFAULT_BOX_BORDER) : 0;
 }
@@ -272,7 +240,8 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
   // preset.fontsize`). Both are absolute and orientation-independent.
   const preset = captionStyleValues(caption.style);
   const fontSize = caption.fontsize ?? preset.fontsize;
-  const measured = measure(caption.text, fontSize, resolve(caption.font ?? preset.fontfile));
+  const fontFile = captionFontFile(caption.font, preset);
+  const measured = measure(caption.text, fontSize, fontFile ? resolve(fontFile) : null, section.options);
 
   if (!measured) {
     return null;
@@ -338,7 +307,7 @@ function lowerThirdLineBox(
 ): Box | null {
   const { index, startSec, duration, canvas, resolve } = placement;
   const fontSize = canvas.height * spec.sizeRatio;
-  const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font));
+  const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font), section.options);
 
   if (!measured) {
     return null;
@@ -401,11 +370,21 @@ export function collectBoxes(
   resolve: (font: string) => FontMetrics | null
 ): Box[] {
   const boxes: Box[] = [];
-  const sections = template.sections ?? [];
+  // `Array.isArray`, not `?? []`: this function is exported and reached from the public
+  // `getGeometryWarnings`, so a `sections: "nope"` throws `sections.length is not a function` out of
+  // an advisory checker — and only when a font loader was supplied, since without one the metrics
+  // pass returns early and the same input comes back silently clean. TemplateDirector guards the
+  // identical case the same way.
+  const sections: (CaptionedSection | null | undefined)[] = Array.isArray(template.sections) ? template.sections : [];
   let cursorSec = 0;
 
   for (let index = 0; index < sections.length; index++) {
     const section = sections[index];
+
+    if (!section || !isRenderableSection(section)) {
+      continue;
+    }
+
     // A negative duration must not rewind the cursor, nor end a box before it starts. The schema
     // forbids one (`z.number().positive()`), so this is unreachable from a validated descriptor —
     // but `collectBoxes` is exported and may be handed unvalidated input, where one bad section

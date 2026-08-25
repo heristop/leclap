@@ -1,7 +1,13 @@
 import { defineCommand } from 'citty';
 import fs from 'node:fs/promises';
 import pc from 'picocolors';
-import { TemplateValidator } from 'ffmpeg-video-composer';
+import {
+  TemplateValidator,
+  FilesystemNodeAdapter,
+  PinoLogAdapter,
+  createBundledFontLoader,
+  type GeometryWarning,
+} from 'ffmpeg-video-composer';
 import { success, fail, step, hint } from '../ui.js';
 import { wordmark } from '../theme.js';
 
@@ -13,27 +19,52 @@ interface ValidationError {
   code?: string;
 }
 
+// The engine's type itself, not a hand-written mirror. A mirror that made `code`/`severity`/`approx`
+// optional was strictly weaker than the original: renaming or dropping `approx` upstream would still
+// type-check here and just silently stop printing the approximation marker — a confident pixel
+// count for a number that was, in fact, guessed. `--json` emits the field unchanged.
+type ValidationWarning = GeometryWarning;
+
 interface ValidationResult {
   success: boolean;
   errors?: ValidationError[];
+  warnings?: ValidationWarning[];
 }
 
 // Pure: turn a validation result into display lines (no IO). On failure, one line per error plus a
-// count; on success a single confirmation. ANSI styling is applied but picocolors honours NO_COLOR.
+// count; on success a single confirmation. Warnings are advisory — they render on both the success
+// and failure paths and never affect which of those two paths is taken. ANSI styling is applied but
+// picocolors honours NO_COLOR.
 export function formatValidation(result: ValidationResult): string[] {
+  const warnings = (result.warnings ?? []).map((w) => {
+    const approx = w.approx ? ' (approx: estimated, not measured)' : '';
+
+    return step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}${approx}`);
+  });
+
   if (result.success) {
-    return [success('Template is valid')];
+    return [success('Template is valid'), ...warnings];
   }
 
   const errors = result.errors ?? [];
 
   if (errors.length === 0) {
-    return [fail('Template is invalid')];
+    return [fail('Template is invalid'), ...warnings];
   }
 
   const lines = errors.map((e) => step(`${pc.red('✗')} ${pc.bold(e.path)} — ${e.message}`));
 
-  return [fail(`Template is invalid (${errors.length} ${errors.length === 1 ? 'problem' : 'problems'})`), ...lines];
+  return [
+    fail(`Template is invalid (${errors.length} ${errors.length === 1 ? 'problem' : 'problems'})`),
+    ...lines,
+    ...warnings,
+  ];
+}
+
+// The exit code is driven solely by `success`; geometry (and any other) warnings must never flip it,
+// or `leclap validate` stops being usable as a CI gate.
+export function exitCodeFor(result: ValidationResult): number {
+  return result.success ? 0 : 1;
 }
 
 async function loadJson(templatePath: string): Promise<unknown> {
@@ -56,7 +87,11 @@ export const validate = defineCommand({
     const output = json ? `${JSON.stringify(result)}\n` : `${formatValidation(result).join('\n')}\n`;
     process.stdout.write(output);
 
-    if (!result.success) process.exit(1);
+    // `process.exitCode`, never `process.exit()`: writes to a pipe are asynchronous on POSIX, and
+    // exiting outright discards whatever libuv has still queued. Piping `--json` into `jq` was
+    // losing everything past the first pipe buffer — 64KB of a 600KB payload — which is exactly the
+    // failing-template case that produces the most errors, and now also carries the warnings array.
+    process.exitCode = exitCodeFor(result);
   },
 });
 
@@ -77,5 +112,72 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
     return { success: false, errors: [{ path: templatePath, message, code: 'load_error' }] };
   }
 
-  return new TemplateValidator().validateTemplate(data);
+  return attachGeometryWarnings(new TemplateValidator(), data);
+}
+
+// A Node filesystem adapter, built directly rather than through the engine's tsyringe container: the
+// container only registers `'logger'` inside `compile()`/`loadConfig()`, neither of which `validate`
+// calls, so `container.resolve(FilesystemNodeAdapter)` would throw here. `@inject('logger')` only
+// matters when tsyringe itself constructs the class; a plain `new` with a logger instance satisfies
+// the constructor without the container. Its `resolveBundledFont`/`readFile` never call the logger,
+// so a bare `PinoLogAdapter` (no engine log-level wiring needed) is enough.
+function bundledFontLoader() {
+  return createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
+}
+
+// `validateTemplate`'s `data` is a `TemplateDescriptor | Section` union (shared with `validateSection`);
+// only the descriptor shape carries `sections`, so `'type' in descriptor` (a Section-only field) tells
+// them apart. Geometry checks only make sense for a full descriptor, and only run when the descriptor
+// parsed — schema failures without `data` skip straight through. Warnings are advisory: they attach
+// alongside whatever `success`/`errors` the schema validator produced and never change them. The font
+// loader degrades to `null` per font (no bundled fonts found, e.g. a published install) rather than
+// throwing, so a miss falls back to approximate measurement instead of breaking validation.
+async function attachGeometryWarnings(validator: TemplateValidator, data: unknown): Promise<ValidationResult> {
+  const result = validator.validateTemplate(data);
+  const descriptor = result.data;
+
+  if (!descriptor || 'type' in descriptor) {
+    return result;
+  }
+
+  // The RAW descriptor, not `result.data`: `validateTemplate` expands `{ type: "partial", ref }`
+  // sections inline before it returns, which shifts every later index — so a caption the author
+  // wrote at `sections[1]` behind a three-section partial came back reported at `sections[3]`, and
+  // an agent editing that path would touch the wrong section. `getGeometryWarnings` expands for
+  // itself and maps the findings back to authored indices, so it needs the descriptor as written.
+  const warnings = await safeGeometryWarnings(
+    validator,
+    data as Parameters<TemplateValidator['getGeometryWarnings']>[0]
+  );
+
+  // Absent, not empty: a clean template must not emit `"warnings":[]` — that is the zero-token
+  // guarantee, and it only holds if the key itself disappears.
+  if (warnings.length === 0) {
+    return result;
+  }
+
+  // Passed through wholesale (code/severity/approx included): `--json` is documented to emit
+  // whatever `getGeometryWarnings` returned, unreshaped.
+  return { ...result, warnings };
+}
+
+// Advisory findings must never take the exit code hostage. `bundledFontLoader()` and
+// `getGeometryWarnings` both run here so a throw from either — a missing platform dependency, a
+// font that fails to parse — degrades to "no warnings" instead of crashing an otherwise valid
+// template.
+async function safeGeometryWarnings(
+  validator: TemplateValidator,
+  descriptor: Parameters<TemplateValidator['getGeometryWarnings']>[0]
+): Promise<GeometryWarning[]> {
+  try {
+    return await validator.getGeometryWarnings(descriptor, bundledFontLoader());
+  } catch (error) {
+    // Degrade, but not in silence. Every *expected* failure — no bundled fonts, an unreadable .ttf —
+    // is already handled inside the loader and the parser, so anything arriving here is a bug, and
+    // swallowing it outright makes a broken checker indistinguishable from a clean template. stderr,
+    // so `--json` on stdout stays parseable.
+    process.stderr.write(`geometry checks skipped: ${error instanceof Error ? error.message : String(error)}\n`);
+
+    return [];
+  }
 }

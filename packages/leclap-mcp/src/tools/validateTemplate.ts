@@ -1,5 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/server';
-import type { TemplateDescriptor } from 'ffmpeg-video-composer';
+import {
+  FilesystemNodeAdapter,
+  PinoLogAdapter,
+  TemplateValidator,
+  createBundledFontLoader,
+  type TemplateDescriptor,
+  type TemplateDescriptorSchema,
+} from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import { validateTemplate } from '../compose/validation.js';
@@ -14,6 +21,15 @@ const outputSchema = z.object({
   orientation: z.string().nullable(),
   requiredClips: z.array(z.string()),
   formFields: z.array(z.string()),
+  // Present only when there is something to say. A clean template omits the field rather than
+  // sending an empty array — the agent pays for every key it reads.
+  geometry: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Text that would overflow the frame, collide with other text, or render too small to read — ' +
+        'one line per finding, present only when there is something to fix; check this before rendering.'
+    ),
 });
 
 type ValidateArgs = { template: Record<string, unknown> };
@@ -50,11 +66,130 @@ function formFields(descriptor: TemplateDescriptor): string[] {
     .map((field) => field.name);
 }
 
-function summary(descriptor: TemplateDescriptor) {
+// `descriptor` reaches this function via `compose/validation.ts`'s `validateTemplate()`, which parses
+// the raw input with `TemplateDescriptorSchema` and then casts that zod-shaped result to the public
+// `TemplateDescriptor` (core/types) to satisfy its own return type. So at runtime the value was never
+// actually the public interface shape — it is (and always was) the zod-inferred shape. This cast just
+// names that reality so it type-checks here too. It is NOT the same cast as the one in validation.ts:
+// that one goes the opposite direction and exists to satisfy `ValidationResult.data`'s type; this one
+// undoes it. Safe because `getGeometryWarnings`'s consumers (collectGeometryWarnings, text-boxes.ts)
+// only read fields off the object — they never re-parse it — so the zod type's extra optional fields
+// (e.g. `partials`) are simply absent/inert, never a problem.
+type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
+
+// The MCP server is a Node process with the engine's bundled fonts reachable, so it measures real
+// glyph advances rather than the 0.5em-per-character estimate. Without this the agent-facing surface
+// — the one authoring the most templates, with the least ability to eyeball a render — would see
+// every line marked approximate forever.
+//
+// Built once, at module load, and its reads cached — because unlike the CLI this process is
+// long-lived: an agent iterating on a descriptor calls validate_template dozens of times, and each
+// call would otherwise re-stat and re-read the same ~700KB of TTFs for a tool that advertises itself
+// as instant. The bundled set cannot change under a running server.
+//
+// Module scope rather than a per-call factory, which is what this comment used to describe while the
+// code rebuilt a FilesystemNodeAdapter and a pino logger on every invocation. That is more than an
+// allocation: pino's default destination is fd 1, the same stdio channel carrying the MCP JSON-RPC
+// frames (probeMedia.ts and renderWorker.ts both route around it for exactly that reason), so the
+// fewer loggers bound to it, the better.
+const loadBundledFont = createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
+
+// Stateless, so one instance serves every call.
+const validator = new TemplateValidator();
+
+const fontBytes = new Map<string, Promise<Uint8Array | null>>();
+
+function bundledFont(file: string): Promise<Uint8Array | null> {
+  const cached = fontBytes.get(file);
+
+  if (cached) {
+    return cached;
+  }
+
+  // Only a SUCCESSFUL read is cached for the life of the process. `createBundledFontLoader`
+  // collapses "not bundled here" and "the read blew up" into the same null, so caching that null
+  // would let one transient failure — an EMFILE under load, a half-written file — pin every later
+  // validate_template to approximate measurements until the server restarts, with nothing in the
+  // output to say why. Re-resolving a genuinely absent font costs a handful of stat() calls.
+  //
+  // A rejection evicts for the same reason, and one more: the loader swallows everything today, but
+  // that is one edit away, and a cached REJECTED promise would both pin the process to estimates and
+  // become an unhandled-rejection source on its first cache hit.
+  const pending = loadBundledFont(file).then(
+    (bytes) => {
+      if (!bytes) {
+        fontBytes.delete(file);
+      }
+
+      return bytes;
+    },
+    (error: unknown) => {
+      fontBytes.delete(file);
+
+      throw error;
+    }
+  );
+
+  fontBytes.set(file, pending);
+
+  return pending;
+}
+
+// One line per finding: path, message, and an `approx` marker when the measurement fell back to an
+// estimate — no font metrics, or text carrying a {{ var }} that only resolves at render time.
+// Returns undefined — not [] — when there is nothing to
+// report, so the field disappears from the payload.
+//
+// Geometry is advisory, so it must not be able to fail the tool call: `handleValidate` is async now,
+// and an unguarded throw here would turn a perfectly valid template into an MCP protocol error. The
+// CLI guards the same call for the same reason (leclap-cli's `safeGeometryWarnings`).
+export async function geometryLines(descriptor: TemplateDescriptor): Promise<string[] | undefined> {
+  const warnings = await safeGeometryWarnings(descriptor);
+
+  if (warnings.length === 0) {
+    return undefined;
+  }
+
+  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? ' (approx: estimated, not measured)' : ''}`);
+}
+
+async function safeGeometryWarnings(descriptor: TemplateDescriptor) {
+  try {
+    return await validator.getGeometryWarnings(descriptor as unknown as GeometryDescriptor, bundledFont);
+  } catch (error) {
+    // Every expected failure — no bundled fonts, an unreadable .ttf — is already handled inside the
+    // loader and the parser, so anything landing here is a bug. Note it on stderr (stdout is the MCP
+    // protocol channel) rather than letting a broken checker look like a clean template.
+    process.stderr.write(`geometry checks skipped: ${error instanceof Error ? error.message : String(error)}\n`);
+
+    return [];
+  }
+}
+
+// `authored` is the descriptor exactly as the caller sent it. `descriptor` has already had its
+// `{ type: "partial", ref }` sections expanded inline by `validateTemplate`, which shifts every
+// later index — so a caption authored at `sections[1]` behind a three-section partial came back
+// reported at `sections[3]`, a path the agent cannot act on. `geometryLines` expands for itself and
+// maps findings back to authored indices, so it gets the untouched input.
+// The findings have to reach the `content` block too, not only `structuredContent`. Text content is
+// the baseline channel every MCP client renders; one without structured-output support showed the
+// model a bare "Valid template — 3 section(s)…" for a descriptor whose captions run off the frame,
+// and it went straight to compose_video — the precise failure the tool description tells it to check
+// for. One line plus the findings, since the agent pays for every token it reads.
+function geometryNote(geometry: string[] | undefined): string {
+  if (!geometry) {
+    return '';
+  }
+
+  return ` ${geometry.length} geometry finding(s):\n- ${geometry.join('\n- ')}`;
+}
+
+async function summary(descriptor: TemplateDescriptor, authored: TemplateDescriptor) {
   const sectionCount = descriptor.sections?.length ?? 0;
   const orientation = descriptor.global?.orientation ?? null;
   const clips = requiredClips(descriptor);
   const fields = formFields(descriptor);
+  const geometry = await geometryLines(authored);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -64,7 +199,7 @@ function summary(descriptor: TemplateDescriptor) {
     content: [
       {
         type: 'text' as const,
-        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.`,
+        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${geometryNote(geometry)}`,
       },
     ],
     structuredContent: {
@@ -73,18 +208,19 @@ function summary(descriptor: TemplateDescriptor) {
       orientation,
       requiredClips: clips,
       formFields: fields,
+      geometry,
     },
   };
 }
 
-function handleValidate(args: ValidateArgs) {
+async function handleValidate(args: ValidateArgs) {
   const resolved = resolveDescriptor(args);
 
   if ('isError' in resolved) {
     return resolved;
   }
 
-  return summary(resolved.descriptor);
+  return summary(resolved.descriptor, args.template);
 }
 
 export function registerValidateTemplate(server: McpServer): void {
@@ -96,7 +232,9 @@ export function registerValidateTemplate(server: McpServer): void {
         'Dry-run an inline `template` descriptor against the core schema WITHOUT rendering — returns ' +
         'instantly. Get back whether it is valid plus what compose_video will require: the ' +
         'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
-        'milliseconds before the slower compose_video render.',
+        'milliseconds before the slower compose_video render. Also catches, render-free, text that ' +
+        'overflows the frame, collides with other text, or is too small to read — see the `geometry` ' +
+        'field.',
       inputSchema,
       outputSchema,
     },

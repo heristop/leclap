@@ -49,8 +49,8 @@ export const mcpDoc: McpDoc = {
       name: 'validate_template',
       args: 'template',
       purpose:
-        'Dry-runs validation of an inline descriptor — no render. Returns valid, sectionCount, orientation, requiredClips and formFields.',
-      when: 'Use repeatedly to iterate on the descriptor before a slower render.',
+        'Dry-runs validation of an inline descriptor — no render. Returns valid, sectionCount, orientation, requiredClips and formFields, plus an optional geometry array listing text that would overflow the frame, collide with other text, or render too small to read.',
+      when: 'Use repeatedly to iterate on the descriptor before a slower render. The geometry findings are advisory — valid stays true — and the field is absent when there is nothing to fix.',
     },
     {
       name: 'compose_video',

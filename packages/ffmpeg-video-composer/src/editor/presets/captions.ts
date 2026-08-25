@@ -1,70 +1,49 @@
 import type { Filter } from '@/core/types';
 import type { Caption } from '../../schemas/section.schemas';
+import {
+  CAPTION_ALIGN_MARGIN,
+  CAPTION_ANCHOR_Y,
+  CAPTION_DEFAULT_ALIGN,
+  CAPTION_DEFAULT_BOX_BORDER,
+  CAPTION_DEFAULT_BOX_COLOR,
+  CAPTION_DEFAULT_BOX_OPACITY,
+  CAPTION_DEFAULT_POSITION,
+  captionStyleValues,
+  type CaptionStyleValues,
+} from './caption-layout';
 import { applyReveal, applyTextEffect, hasText, resolveFontFile } from './text';
 
 // ---------------------------------------------------------------------------
 // captionToFilters
 // ---------------------------------------------------------------------------
 
-// Vertical placement expressions. y is the preset offset.
+// Vertical placement expressions, built from the shared anchors in caption-layout.ts so the geometry
+// validator resolves the same numbers this stringifies. `center` centres the drawn box, which is why
+// it subtracts `text_h` rather than sitting at `h/2`.
 const POSITION_Y: Record<string, string> = {
-  top: '60',
+  top: String(CAPTION_ANCHOR_Y.top.offset),
   center: '(h-text_h)/2',
-  bottom: '(h-text_h)-60',
-  'lower-third': '(h-text_h)-110',
+  bottom: `(h-text_h)-${CAPTION_ANCHOR_Y.bottom.offset}`,
+  'lower-third': `(h-text_h)-${CAPTION_ANCHOR_Y['lower-third'].offset}`,
 };
 
-const DEFAULT_POSITION = 'lower-third';
+const DEFAULT_POSITION = CAPTION_DEFAULT_POSITION;
 
-// Horizontal alignment expressions. `left`/`right` use an 80px margin to match the
-// premium templates' convention; `center` is the classic centred drawtext expression.
-const ALIGN_MARGIN = 80;
+// Horizontal alignment expressions; `center` is the classic centred drawtext expression.
 const ALIGN_X: Record<string, string> = {
-  left: String(ALIGN_MARGIN),
+  left: String(CAPTION_ALIGN_MARGIN),
   center: '(w-text_w)/2',
-  right: `w-text_w-${ALIGN_MARGIN}`,
+  right: `w-text_w-${CAPTION_ALIGN_MARGIN}`,
 };
 
-const DEFAULT_ALIGN = 'center';
+const DEFAULT_ALIGN = CAPTION_DEFAULT_ALIGN;
 
-type StyleValues = {
-  fontfile: string;
-  fontsize: number;
-  fontcolor: string;
-  box?: number;
-  boxcolor?: string;
-  boxborderw?: number;
-};
-
-// Fixed look per style preset. `bar` is a boxed lower-third; `subtle`/`bold`
-// draw no background box.
-const STYLE_VALUES: Record<string, StyleValues> = {
-  bar: {
-    fontfile: 'Oswald.ttf',
-    fontsize: 46,
-    fontcolor: '#f5f5f0',
-    box: 1,
-    boxcolor: '#141416@0.8',
-    boxborderw: 18,
-  },
-  subtle: {
-    fontfile: 'Rubik.ttf',
-    fontsize: 44,
-    fontcolor: '#ffffff',
-  },
-  bold: {
-    fontfile: 'BebasNeue.ttf',
-    fontsize: 72,
-    fontcolor: '#ffffff',
-  },
-};
-
-const DEFAULT_STYLE = 'bar';
+type StyleValues = CaptionStyleValues;
 
 // Box defaults applied when the caption explicitly turns a box ON but the preset had none.
-const DEFAULT_BOX_COLOR = '#000000';
-const DEFAULT_BOX_OPACITY = 0.8;
-const DEFAULT_BOX_BORDER = 18;
+const DEFAULT_BOX_COLOR = CAPTION_DEFAULT_BOX_COLOR;
+const DEFAULT_BOX_OPACITY = CAPTION_DEFAULT_BOX_OPACITY;
+const DEFAULT_BOX_BORDER = CAPTION_DEFAULT_BOX_BORDER;
 
 // Resolve the box drawtext values, layering caption overrides over the preset. Returns the empty
 // object when the box is off (preset default unless the caption explicitly toggles it). An explicit
@@ -103,7 +82,7 @@ export function captionToFilters(caption?: Caption): Filter[] {
 
   const y = POSITION_Y[caption.position ?? DEFAULT_POSITION];
   const x = ALIGN_X[caption.align ?? DEFAULT_ALIGN];
-  const preset = STYLE_VALUES[caption.style ?? DEFAULT_STYLE];
+  const preset = captionStyleValues(caption.style);
 
   const values: Record<string, unknown> = {
     text: { ...caption.text },

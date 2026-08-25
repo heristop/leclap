@@ -19,10 +19,10 @@ interface ValidationError {
   code?: string;
 }
 
-// Mirrors GeometryWarning wholesale (code/severity/approx included, not just path/message): the CLI
-// resolves no bundled fonts outside the test suite, so every finding here is an estimate, and the
-// `--json` path is documented to emit the field unchanged. Dropping `approx` would print a confident
-// pixel count for a number that was, in fact, guessed.
+// Mirrors GeometryWarning wholesale (code/severity/approx included, not just path/message): a
+// finding is only as trustworthy as the metrics behind it, and `approx` is the flag that says which
+// kind it is. The `--json` path is documented to emit the field unchanged; dropping `approx` would
+// print a confident pixel count for a number that was, in fact, guessed.
 interface ValidationWarning {
   path: string;
   message: string;
@@ -93,9 +93,11 @@ export const validate = defineCommand({
     const output = json ? `${JSON.stringify(result)}\n` : `${formatValidation(result).join('\n')}\n`;
     process.stdout.write(output);
 
-    const code = exitCodeFor(result);
-
-    if (code !== 0) process.exit(code);
+    // `process.exitCode`, never `process.exit()`: writes to a pipe are asynchronous on POSIX, and
+    // exiting outright discards whatever libuv has still queued. Piping `--json` into `jq` was
+    // losing everything past the first pipe buffer — 64KB of a 600KB payload — which is exactly the
+    // failing-template case that produces the most errors, and now also carries the warnings array.
+    process.exitCode = exitCodeFor(result);
   },
 });
 
@@ -167,7 +169,13 @@ async function safeGeometryWarnings(
 ): Promise<GeometryWarning[]> {
   try {
     return await validator.getGeometryWarnings(descriptor, bundledFontLoader());
-  } catch {
+  } catch (error) {
+    // Degrade, but not in silence. Every *expected* failure — no bundled fonts, an unreadable .ttf —
+    // is already handled inside the loader and the parser, so anything arriving here is a bug, and
+    // swallowing it outright makes a broken checker indistinguishable from a clean template. stderr,
+    // so `--json` on stdout stays parseable.
+    process.stderr.write(`geometry checks skipped: ${error instanceof Error ? error.message : String(error)}\n`);
+
     return [];
   }
 }

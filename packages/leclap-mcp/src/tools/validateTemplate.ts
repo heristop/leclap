@@ -1,5 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/server';
-import { TemplateValidator, type TemplateDescriptor, type TemplateDescriptorSchema } from 'ffmpeg-video-composer';
+import {
+  FilesystemNodeAdapter,
+  PinoLogAdapter,
+  TemplateValidator,
+  createBundledFontLoader,
+  type TemplateDescriptor,
+  type TemplateDescriptorSchema,
+} from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import { validateTemplate } from '../compose/validation.js';
@@ -70,17 +77,66 @@ function formFields(descriptor: TemplateDescriptor): string[] {
 // (e.g. `partials`) are simply absent/inert, never a problem.
 type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 
+// The MCP server is a Node process with the engine's bundled fonts reachable, so it measures real
+// glyph advances rather than the 0.5em-per-character estimate. Without this the agent-facing surface
+// — the one authoring the most templates, with the least ability to eyeball a render — would see
+// "(approx: font not staged)" on every line forever.
+//
+// Built once and its reads cached, because unlike the CLI this process is long-lived: an agent
+// iterating on a descriptor calls validate_template dozens of times, and each call would otherwise
+// re-stat and re-read the same ~700KB of TTFs for a tool that advertises itself as instant. The
+// bundled set cannot change under a running server.
+const fontBytes = new Map<string, Promise<Uint8Array | null>>();
+
+function bundledFontLoader() {
+  const load = createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
+
+  return (file: string): Promise<Uint8Array | null> => {
+    const cached = fontBytes.get(file);
+
+    if (cached) {
+      return cached;
+    }
+
+    const pending = load(file);
+
+    fontBytes.set(file, pending);
+
+    return pending;
+  };
+}
+
 // One line per finding: path, message, and an `approx` marker when the measurement fell back to an
 // estimate because the font was not staged. Returns undefined — not [] — when there is nothing to
 // report, so the field disappears from the payload.
+//
+// Geometry is advisory, so it must not be able to fail the tool call: `handleValidate` is async now,
+// and an unguarded throw here would turn a perfectly valid template into an MCP protocol error. The
+// CLI guards the same call for the same reason (leclap-cli's `safeGeometryWarnings`).
 export async function geometryLines(descriptor: TemplateDescriptor): Promise<string[] | undefined> {
-  const warnings = await new TemplateValidator().getGeometryWarnings(descriptor as unknown as GeometryDescriptor);
+  const warnings = await safeGeometryWarnings(descriptor);
 
   if (warnings.length === 0) {
     return undefined;
   }
 
   return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? ' (approx: font not staged)' : ''}`);
+}
+
+async function safeGeometryWarnings(descriptor: TemplateDescriptor) {
+  try {
+    return await new TemplateValidator().getGeometryWarnings(
+      descriptor as unknown as GeometryDescriptor,
+      bundledFontLoader()
+    );
+  } catch (error) {
+    // Every expected failure — no bundled fonts, an unreadable .ttf — is already handled inside the
+    // loader and the parser, so anything landing here is a bug. Note it on stderr (stdout is the MCP
+    // protocol channel) rather than letting a broken checker look like a clean template.
+    process.stderr.write(`geometry checks skipped: ${error instanceof Error ? error.message : String(error)}\n`);
+
+    return [];
+  }
 }
 
 async function summary(descriptor: TemplateDescriptor) {

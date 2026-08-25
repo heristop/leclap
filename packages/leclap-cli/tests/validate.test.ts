@@ -106,17 +106,20 @@ describe('exitCodeFor', () => {
 // against a mocked engine, so a future change that lets a warning leak into `errors` — or otherwise
 // flips `success` — fails here even if it never touches `formatValidation` or `exitCodeFor` directly.
 describe('validate command exit code with geometry warnings', () => {
-  let exitSpy: ReturnType<typeof vi.spyOn>;
   let writeSpy: ReturnType<typeof vi.spyOn>;
+  let previousExitCode: typeof process.exitCode;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    exitSpy = vi.spyOn(process, 'exit').mockImplementation(((): never => undefined as never) as never);
+    previousExitCode = process.exitCode;
+    process.exitCode = undefined;
     writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
   });
 
   afterEach(() => {
-    exitSpy.mockRestore();
+    // The command sets `process.exitCode` rather than calling `process.exit()`, so leaving it set
+    // would fail the whole vitest run — restore whatever the runner had.
+    process.exitCode = previousExitCode;
     writeSpy.mockRestore();
   });
 
@@ -135,7 +138,7 @@ describe('validate command exit code with geometry warnings', () => {
     const { validate } = await import('../src/commands/validate');
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
 
-    expect(exitSpy).not.toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(0);
 
     const out = writeSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
     expect(out).toContain('"success":true');
@@ -152,7 +155,7 @@ describe('validate command exit code with geometry warnings', () => {
     const { validate } = await import('../src/commands/validate');
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
 
-    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
   });
 
   // Passing no loader is itself a legitimate, fully-supported path (measurements degrade to

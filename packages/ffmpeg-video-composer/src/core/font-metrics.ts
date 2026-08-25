@@ -12,7 +12,10 @@
 
 export interface FontMetrics {
   unitsPerEm: number;
-  advanceWidth(codePoint: number): number;
+  // null means "this font has no glyph for that code point" — distinct from a glyph whose advance is
+  // legitimately 0 (a combining mark). Callers must not treat the two the same: summing a missing
+  // glyph as 0 reports a confident width of 0 for a string the font cannot render at all.
+  advanceWidth(codePoint: number): number | null;
 }
 
 interface TableRecord {
@@ -62,9 +65,19 @@ interface CmapSegment {
 function resolveSegmentGlyphs(view: DataView, segment: CmapSegment, map: Map<number, number>): void {
   const { start, end, delta, rangeOffset, rangeOffsetFieldAddress } = segment;
 
+  // Glyph 0 is `.notdef` — the empty box a font draws for a character it does not have. Per the
+  // format-4 spec that is the "missing" answer, so it is left OUT of the map rather than recorded as
+  // a mapping: recording it would make `advanceWidth` hand back the .notdef advance as if it were a
+  // real measurement, and the whole point of the null return is that an unrenderable string cannot
+  // be measured.
   for (let code = start; code <= end && code !== 0xffff; code++) {
     if (rangeOffset === 0) {
-      map.set(code, (code + delta) & 0xffff);
+      const glyph = (code + delta) & 0xffff;
+
+      if (glyph !== 0) {
+        map.set(code, glyph);
+      }
+
       continue;
     }
 
@@ -76,22 +89,33 @@ function resolveSegmentGlyphs(view: DataView, segment: CmapSegment, map: Map<num
 
     const glyph = view.getUint16(glyphAddress, false);
 
-    map.set(code, glyph === 0 ? 0 : (glyph + delta) & 0xffff);
+    if (glyph !== 0) {
+      map.set(code, (glyph + delta) & 0xffff);
+    }
   }
 }
 
 // cmap format 4: the segmented mapping every Latin font ships. Other formats are not read; a font
-// exposing only format 0/6/12 yields an empty map and every glyph measures zero, which the caller
-// detects and treats as "no metrics".
+// exposing only format 0/6/12 yields an empty map, and `parseFontMetrics` turns that into a null
+// return so the caller falls back to the estimate rather than measuring against an empty table.
 function readCmapFormat4(view: DataView, offset: number): Map<number, number> {
   const map = new Map<number, number>();
   const segCountX2 = view.getUint16(offset + 6, false);
-  const segCount = segCountX2 / 2;
+  // Floor rather than trust the division: `segCountX2` is untrusted, and an odd value would make
+  // `segCount` fractional, running the loop one extra time past the end of every segment array.
+  const segCount = Math.floor(segCountX2 / 2);
 
   const endCodes = offset + 14;
   const startCodes = endCodes + segCountX2 + 2; // +2 skips reservedPad
   const idDeltas = startCodes + segCountX2;
   const idRangeOffsets = idDeltas + segCountX2;
+
+  // Every one of the four segment arrays is sized from `segCountX2`, so a truncated or malformed
+  // subtable would drive `getUint16` past the buffer and throw RangeError out of `parseFontMetrics`
+  // — whose contract, and whose own test, say it returns null instead. One check covers all four.
+  if (idRangeOffsets + segCountX2 > view.byteLength) {
+    return map;
+  }
 
   for (let seg = 0; seg < segCount; seg++) {
     const start = view.getUint16(startCodes + seg * 2, false);
@@ -117,6 +141,19 @@ function readCmapFormat4(view: DataView, offset: number): Map<number, number> {
   return map;
 }
 
+// Unicode-keyed encodings, in the order the spec recommends preferring them: Windows BMP, Windows
+// full repertoire, then the platform-independent Unicode entries. A symbol face's (3,0) subtable is
+// also format 4, but it is keyed on the U+F000 private-use block — taking the first format-4 subtable
+// found would key the map on codes no caption contains, so every character would miss and a
+// perfectly measurable string would silently fall back to the estimate.
+function isUnicodeEncoding(platformId: number, encodingId: number): boolean {
+  if (platformId === 3) {
+    return encodingId === 1 || encodingId === 10;
+  }
+
+  return platformId === 0;
+}
+
 function readCmap(view: DataView, table: TableRecord): Map<number, number> {
   const numSubtables = view.getUint16(table.offset + 2, false);
 
@@ -124,6 +161,10 @@ function readCmap(view: DataView, table: TableRecord): Map<number, number> {
     const record = table.offset + 4 + i * 8;
 
     if (record + 8 > view.byteLength) {
+      continue;
+    }
+
+    if (!isUnicodeEncoding(view.getUint16(record, false), view.getUint16(record + 2, false))) {
       continue;
     }
 
@@ -141,22 +182,40 @@ function readCmap(view: DataView, table: TableRecord): Map<number, number> {
   return new Map();
 }
 
-// hmtx holds `numberOfHMetrics` advance widths; every glyph beyond that reuses the final one
-// (monospaced tails are stored this way). Returns widths in font units.
-function readAdvanceWidths(view: DataView, hmtx: TableRecord, numberOfHMetrics: number): number[] {
+interface AdvanceWidths {
+  // In font units, one per glyph up to `numberOfHMetrics`.
+  widths: number[];
+  // Glyphs past `numberOfHMetrics` reuse the final advance — how monospaced tails are stored.
+  fallback: number;
+}
+
+// hmtx holds exactly `numberOfHMetrics` advance widths. Null when it does not.
+//
+// Stopping early on a short table is not an option: `fallback` is the last width read, and it stands
+// in for every glyph past `numberOfHMetrics`. A table truncated mid-way would therefore hand an
+// arbitrary glyph's advance to the entire tail of the font. Measured on a real Rubik.ttf with a
+// relocated hmtx record, that turned a 2302px headline into a 218330px one — reported, because the
+// font "parsed", as an exact measurement. Refusing to parse degrades to the estimate instead.
+function readAdvanceWidths(view: DataView, hmtx: TableRecord, numberOfHMetrics: number): AdvanceWidths | null {
+  if (numberOfHMetrics < 1 || hmtx.offset + numberOfHMetrics * 4 > view.byteLength) {
+    return null;
+  }
+
   const widths: number[] = [];
 
   for (let i = 0; i < numberOfHMetrics; i++) {
-    const at = hmtx.offset + i * 4;
-
-    if (at + 1 >= view.byteLength) {
-      break;
-    }
-
-    widths.push(view.getUint16(at, false));
+    widths.push(view.getUint16(hmtx.offset + i * 4, false));
   }
 
-  return widths;
+  return { widths, fallback: widths[numberOfHMetrics - 1] };
+}
+
+// Each table this reader touches must hold the fields it is about to read: head's unitsPerEm at +18,
+// hhea's numberOfHMetrics at +34, and cmap's subtable count at +2.
+function tablesAreReadable(view: DataView, head: TableRecord, hhea: TableRecord, cmap: TableRecord): boolean {
+  return (
+    head.offset + 20 <= view.byteLength && hhea.offset + 36 <= view.byteLength && cmap.offset + 4 <= view.byteLength
+  );
 }
 
 // Accepts any Uint8Array (a Node Buffer included, since Buffer extends Uint8Array — but this
@@ -177,32 +236,35 @@ export function parseFontMetrics(bytes: Uint8Array): FontMetrics | null {
   const hmtx = tables.get('hmtx');
   const cmap = tables.get('cmap');
 
-  if (!head || !hhea || !hmtx || !cmap) {
-    return null;
-  }
-
-  if (head.offset + 20 > view.byteLength || hhea.offset + 36 > view.byteLength || cmap.offset + 4 > view.byteLength) {
+  if (!head || !hhea || !hmtx || !cmap || !tablesAreReadable(view, head, hhea, cmap)) {
     return null;
   }
 
   const unitsPerEm = view.getUint16(head.offset + 18, false);
+  const advances = readAdvanceWidths(view, hmtx, view.getUint16(hhea.offset + 34, false));
 
-  if (unitsPerEm === 0) {
+  if (unitsPerEm === 0 || !advances) {
     return null;
   }
 
-  const numberOfHMetrics = view.getUint16(hhea.offset + 34, false);
-  const widths = readAdvanceWidths(view, hmtx, numberOfHMetrics);
   const charToGlyph = readCmap(view, cmap);
-  const fallback = widths.at(-1) ?? 0;
+
+  // An empty map means the character-to-glyph table was unreadable — a format this reader does not
+  // handle, or a malformed one. Every lookup would miss, so hand back "no metrics" once rather than
+  // a metrics object that answers null to everything.
+  if (charToGlyph.size === 0) {
+    return null;
+  }
+
+  const { widths, fallback } = advances;
 
   return {
     unitsPerEm,
-    advanceWidth(codePoint: number): number {
+    advanceWidth(codePoint: number): number | null {
       const glyph = charToGlyph.get(codePoint);
 
       if (glyph === undefined) {
-        return 0;
+        return null;
       }
 
       return widths[glyph] ?? fallback;
@@ -210,11 +272,21 @@ export function parseFontMetrics(bytes: Uint8Array): FontMetrics | null {
   };
 }
 
-export function measureTextWidth(metrics: FontMetrics, text: string, fontSizePx: number): number {
+// Null when the font cannot render some code point in `text`. Returning a number there would be a
+// lie dressed as a measurement: a Latin-only face has no glyph for a CJK caption, so every advance
+// would be absent, the sum would be 0, and a caller that trusts the number would conclude the text
+// fits in any frame and cannot collide with anything (a zero-width box overlaps nothing).
+export function measureTextWidth(metrics: FontMetrics, text: string, fontSizePx: number): number | null {
   let units = 0;
 
   for (const char of text) {
-    units += metrics.advanceWidth(char.codePointAt(0) as number);
+    const advance = metrics.advanceWidth(char.codePointAt(0) as number);
+
+    if (advance === null) {
+      return null;
+    }
+
+    units += advance;
   }
 
   return (units / metrics.unitsPerEm) * fontSizePx;

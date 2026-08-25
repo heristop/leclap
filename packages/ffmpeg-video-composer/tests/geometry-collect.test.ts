@@ -32,7 +32,20 @@ describe('collectGeometryWarnings', () => {
     expect(warnings).toEqual([]);
   });
 
-  it('reports a caption too long for the frame', async () => {
+  it('reports a caption that crosses the title-safe margin', async () => {
+    // Wide enough to cross the margin, narrow enough to stay on screen — the finding an author can
+    // fix by trimming a word rather than by rethinking the section.
+    const template = templateWith({
+      text: { en: 'A caption a fair bit wider than the title-safe band' },
+      fontsize: 48,
+    });
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_overflow')).toBe(true);
+  });
+
+  it('reports a caption that runs clean off the frame as out of frame, not merely unsafe', async () => {
     const template = templateWith({
       text: { en: 'This caption is far too long to fit inside the frame at this size' },
       fontsize: 90,
@@ -41,7 +54,7 @@ describe('collectGeometryWarnings', () => {
     const warnings = await collectGeometryWarnings(template);
 
     expect(warnings.length).toBeGreaterThan(0);
-    expect(warnings.some((w) => w.code === 'text_overflow')).toBe(true);
+    expect(warnings.some((w) => w.code === 'text_out_of_frame')).toBe(true);
   });
 
   it('never returns an error severity', async () => {

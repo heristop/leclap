@@ -12,6 +12,7 @@ function box(overrides: Partial<Box> = {}): Box {
     y: 500,
     width: 200,
     height: 48,
+    fontSize: 40,
     startSec: 0,
     endSec: 5,
     approx: false,
@@ -24,8 +25,8 @@ describe('overflowWarnings', () => {
     expect(overflowWarnings([box()], canvas)).toEqual([]);
   });
 
-  it('reports a box wider than the usable width', () => {
-    const warnings = overflowWarnings([box({ x: 40, width: 1300 })], canvas);
+  it('reports a box that crosses the title-safe margin while staying inside the frame', () => {
+    const warnings = overflowWarnings([box({ x: 10, width: 1260 })], canvas);
 
     expect(warnings).toHaveLength(1);
     expect(warnings[0].code).toBe('text_overflow');
@@ -38,6 +39,34 @@ describe('overflowWarnings', () => {
     expect(warnings[0].code).toBe('text_out_of_frame');
   });
 
+  it('stays quiet about a sub-pixel excess instead of reporting "overflows ... by 0px"', () => {
+    // Flush against the left title-safe margin and four tenths of a pixel past the right one — the
+    // measurement's own noise, which rounding turned into a finding whose text said the excess was
+    // zero.
+    const margin = canvas.width * 0.05;
+
+    expect(overflowWarnings([box({ x: margin, width: canvas.width - margin * 2 + 0.4 })], canvas)).toEqual([]);
+  });
+
+  it('flags text that clears the safe margin on one side even though it fits the safe width', () => {
+    // 1140px inside a 1152px safe width, but pinned at the engine's absolute 80px left margin, so it
+    // reaches 1220 — four pixels past the right margin at 1216. A width-only rule says nothing.
+    const warnings = overflowWarnings([box({ x: 80, width: 1140 })], canvas);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_overflow');
+  });
+
+  it('prefers the out-of-frame finding over the softer safe-area one', () => {
+    // 40 + 1300 = 1340 on a 1280-wide frame: 60px of it is not on screen at all, which is worse than
+    // — and hides — the title-safe margin it also crosses.
+    const warnings = overflowWarnings([box({ x: 40, width: 1300 })], canvas);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_out_of_frame');
+    expect(warnings[0].message).toContain('60px');
+  });
+
   it('carries the approximate flag through to the warning', () => {
     const warnings = overflowWarnings([box({ x: 40, width: 1300, approx: true })], canvas);
 
@@ -47,15 +76,23 @@ describe('overflowWarnings', () => {
 
 describe('legibilityWarnings', () => {
   it('accepts type at a readable size', () => {
-    expect(legibilityWarnings([box({ height: 48 })], canvas)).toEqual([]);
+    expect(legibilityWarnings([box({ fontSize: 40 })], canvas)).toEqual([]);
   });
 
   it('flags type below the readable floor', () => {
-    // height is fontSize × 1.2, so 12px of height is a 10px font on a 720px canvas.
-    const warnings = legibilityWarnings([box({ height: 12 })], canvas);
+    // The floor is 2.5% of frame height: 18px on a 720px canvas.
+    const warnings = legibilityWarnings([box({ fontSize: 10 })], canvas);
 
     expect(warnings).toHaveLength(1);
     expect(warnings[0].code).toBe('text_too_small');
+  });
+
+  it('reads the size off the box rather than dividing the height back out', () => {
+    // `height` also carries the background box's padding, so recovering the size from it would
+    // report a number the author never wrote and cannot map back to their descriptor.
+    const warnings = legibilityWarnings([box({ fontSize: 10, height: 10 * 1.2 + 36 })], canvas);
+
+    expect(warnings[0].message).toContain('10px');
   });
 });
 

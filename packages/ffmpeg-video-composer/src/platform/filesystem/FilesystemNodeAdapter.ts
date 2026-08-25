@@ -71,6 +71,29 @@ async function requestWithGuardedRedirects(
   return requestWithGuardedRedirects(next, responseType, origin, hop + 1);
 }
 
+// Where `@leclap/creative-kit`'s library might sit relative to this module, checked at every ancestor
+// directory so the answer is the same whether this file is running from `src/platform/filesystem/`
+// (tests) or from a bundled `dist/` (the CLI, the MCP server, any installed consumer). Bounded by the
+// filesystem root, which `path.dirname` reaches as a fixed point.
+function creativeKitCandidates(moduleDir: string, kind: string, file: string): string[] {
+  const candidates: string[] = [];
+  let dir = moduleDir;
+
+  for (let hop = 0; hop < 8; hop++) {
+    candidates.push(path.join(dir, 'leclap-creative-kit', 'src', 'library', kind, file));
+
+    const parent = path.dirname(dir);
+
+    if (parent === dir) {
+      break;
+    }
+
+    dir = parent;
+  }
+
+  return candidates;
+}
+
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {
   protected override root: string = globalThis.process.cwd();
@@ -248,8 +271,14 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   // Resolve a file shipped with the package (under `library/<kind>`) to an absolute local path.
-  // Candidates cover both the bundled build (dist/<kind>, next to the entry) and running from
-  // source/tests (packages/leclap-creative-kit/src/library/<kind>). Returns null when it isn't bundled.
+  // Returns null when it isn't reachable.
+  //
+  // The creative-kit candidate WALKS UP from the module directory rather than hard-coding a hop
+  // count. A fixed `../../../../` is only correct for one layout: it resolves from
+  // `src/platform/filesystem/` (vitest, which aliases `@/` to source) and lands outside the repo
+  // from `dist/` (every built consumer — the CLI, the MCP server, any library user). That is why
+  // `leclap validate` reported every geometry finding as "(approx: font not staged)" while the
+  // engine's own tests measured real glyphs: the two were resolving different trees.
   private async resolveBundledAsset(kind: string, file: string): Promise<string | null> {
     let moduleDir: string;
 
@@ -259,10 +288,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       return null;
     }
 
-    const candidates = [
-      path.join(moduleDir, kind, file),
-      path.join(moduleDir, '..', '..', '..', '..', 'leclap-creative-kit', 'src', 'library', kind, file),
-    ];
+    const candidates = [path.join(moduleDir, kind, file), ...creativeKitCandidates(moduleDir, kind, file)];
     const present = await Promise.all(candidates.map((candidate) => this.stat(candidate)));
     const index = present.findIndex(Boolean);
 

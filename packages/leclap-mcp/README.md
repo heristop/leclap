@@ -15,7 +15,7 @@ video models, which sample rather than render.
 | Tool                   | Description                                                                                                                                                  |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                                                          |
-| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields }`                                                 |
+| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields, geometry? }`                                      |
 | `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
 | `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                             |
 | `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                        |
@@ -24,6 +24,12 @@ video models, which sample rather than render.
 Typical agent flow: `get_template_schema` → author an inline descriptor (optionally prepend a
 `render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`
 → read the returned `outputPath`.
+
+`validate_template` also reports, render-free, text that would overflow the frame, collide with other
+text, or render too small to read. Those findings arrive on the optional `geometry` field — one line
+each, and the field is absent entirely when there is nothing to fix. They are advisory: `valid` stays
+`true`. A line ending `(approx: font not staged)` was estimated rather than measured, because the
+font it needed could not be read.
 
 **Bring-your-own Remotion (optional).** If you have a Remotion project, `render_remotion_clip` renders
 one of its compositions — genuine motion graphics (spring physics, kinetic typography) an FFmpeg

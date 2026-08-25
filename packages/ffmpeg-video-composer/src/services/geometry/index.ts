@@ -1,5 +1,6 @@
-import { findFont, DEFAULT_FONT_ID } from '@/core/fonts';
+import { findFont } from '@/core/fonts';
 import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
+import { captionStyleValues } from '@/editor/presets/caption-layout';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
 import { canvasFor, collectBoxes, LOWER_THIRD_TITLE_FONT, LOWER_THIRD_SUBTITLE_FONT } from './text-boxes';
 import { collisionWarnings, legibilityWarnings, overflowWarnings, type GeometryWarning } from './rules';
@@ -29,15 +30,17 @@ function fontFileFor(id: string): string | null {
   return findFont(id)?.file ?? null;
 }
 
-// Every distinct font the template's captions reference, defaulted where unset, plus the two fixed
-// fonts the lowerThird preset always renders with. The latter are not descriptor-configurable, but
-// resolving them keeps a lowerThird finding's `approx` marker honest instead of always claiming
-// uncertainty for a font that is, in fact, bundled.
+// Every distinct font the template's captions reference, plus the two fixed fonts the lowerThird
+// preset always renders with. An unset `caption.font` defaults to the STYLE preset's file — Oswald
+// for the default `bar`, BebasNeue for `bold` — not to the registry default: that is what
+// `captionToFilters` does, and measuring a caption in a typeface the render will not use produces a
+// confident wrong number. The lowerThird fonts are not descriptor-configurable, but resolving them
+// keeps a lowerThird finding's `approx` marker honest.
 function referencedFontIds(template: TemplateDescriptor): string[] {
   const sections = template.sections ?? [];
   const captionIds = sections
     .filter((section) => section.caption)
-    .map((section) => section.caption?.font ?? DEFAULT_FONT_ID);
+    .map((section) => section.caption?.font ?? captionStyleValues(section.caption?.style).fontfile);
   const lowerThirdIds = sections
     .filter((section) => section.lowerThird)
     .flatMap(() => [LOWER_THIRD_TITLE_FONT, LOWER_THIRD_SUBTITLE_FONT]);
@@ -49,6 +52,10 @@ function referencedFontIds(template: TemplateDescriptor): string[] {
 // throws outright all land in the same place: no metrics for that id, so its boxes fall back to the
 // approximation and every warning drawn from them is flagged `approx`. Validation is advisory and
 // must never be the thing that fails.
+//
+// Deduplication happens on the FILE, not the id: `caption.font` accepts either a registry id or a
+// raw filename ("rubik" and "Rubik.ttf" are both schema-valid and resolve to the same 351 KB file),
+// so keying the I/O on the id would read and parse it twice for one typeface.
 async function loadMetrics(
   template: TemplateDescriptor,
   loadFont: FontLoader | undefined
@@ -63,10 +70,12 @@ async function loadMetrics(
     .map((id) => ({ id, file: fontFileFor(id) }))
     .filter((entry): entry is { id: string; file: string } => entry.file !== null);
 
-  const parsed = await Promise.all(entries.map((entry) => parseOne(loadFont, entry.file)));
+  const files = [...new Set(entries.map((entry) => entry.file))];
+  const parsed = await Promise.all(files.map((file) => parseOne(loadFont, file)));
+  const byFile = new Map(files.map((file, index) => [file, parsed[index]]));
 
-  for (const [index, entry] of entries.entries()) {
-    const metrics = parsed[index];
+  for (const entry of entries) {
+    const metrics = byFile.get(entry.file);
 
     if (metrics) {
       resolved.set(entry.id, metrics);
@@ -92,10 +101,14 @@ export async function collectGeometryWarnings(
 ): Promise<GeometryWarning[]> {
   const canvas = canvasFor(template.global?.orientation);
   const metrics = await loadMetrics(template, loadFont);
-  const boxes = collectBoxes(template, (font) => metrics.get(font ?? DEFAULT_FONT_ID) ?? null);
+  const boxes = collectBoxes(template, canvas, (font) => metrics.get(font) ?? null);
 
-  return [...overflowWarnings(boxes, canvas), ...legibilityWarnings(boxes, canvas), ...collisionWarnings(boxes)].slice(
-    0,
-    MAX_WARNINGS
-  );
+  const findings = [...overflowWarnings(boxes, canvas), ...legibilityWarnings(boxes, canvas)];
+
+  // Collisions run last and are told how much of the budget is left, so a template that already
+  // filled the report with overflow findings doesn't also pay for a full pairwise sweep whose
+  // results are about to be sliced away.
+  findings.push(...collisionWarnings(boxes, Math.max(MAX_WARNINGS - findings.length, 0)));
+
+  return findings.slice(0, MAX_WARNINGS);
 }

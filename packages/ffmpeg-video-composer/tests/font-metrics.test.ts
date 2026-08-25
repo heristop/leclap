@@ -37,6 +37,49 @@ function bufferWithOutOfBoundsCmap(): Buffer {
   return buffer;
 }
 
+// A structurally valid sfnt whose cmap subtable IS format 4 and in bounds, but whose `segCountX2`
+// claims far more segments than the buffer holds. The subtable-level guard only proves the 14-byte
+// header fits; the four segment arrays live past it.
+function bufferWithOversizedCmapSegments(): Buffer {
+  const buffer = Buffer.alloc(200);
+
+  buffer.writeUInt16BE(4, 4); // numTables
+
+  const writeRecord = (index: number, tag: string, offset: number, length: number): void => {
+    const base = 12 + index * 16;
+
+    buffer.write(tag, base, 'ascii');
+    buffer.writeUInt32BE(offset, base + 8);
+    buffer.writeUInt32BE(length, base + 12);
+  };
+
+  writeRecord(0, 'head', 76, 20);
+  writeRecord(1, 'hhea', 96, 36);
+  writeRecord(2, 'hmtx', 132, 4);
+  writeRecord(3, 'cmap', 140, 40);
+
+  buffer.writeUInt16BE(1000, 76 + 18); // head.unitsPerEm
+  buffer.writeUInt16BE(1, 96 + 34); // hhea.numberOfHMetrics
+  buffer.writeUInt16BE(500, 132); // the single hmtx advance
+
+  buffer.writeUInt16BE(1, 142); // cmap.numSubtables
+  buffer.writeUInt32BE(20, 148); // subtable at 140 + 20 = 160
+  buffer.writeUInt16BE(4, 160); // subtable format
+  buffer.writeUInt16BE(0xffff, 166); // segCountX2 — 32767.5 segments in a 200-byte buffer
+
+  return buffer;
+}
+
+// Same shape, but `hhea` promises 40 advance records and `hmtx` has room for far fewer.
+function bufferWithTruncatedHmtx(): Buffer {
+  const buffer = bufferWithOversizedCmapSegments();
+
+  buffer.writeUInt16BE(4, 166); // a sane segCountX2 so cmap is no longer the reason it fails
+  buffer.writeUInt16BE(40, 96 + 34); // hhea.numberOfHMetrics — 160 bytes of hmtx from offset 132
+
+  return buffer;
+}
+
 describe('font metrics', () => {
   it('returns null for a buffer that is not a font', () => {
     expect(parseFontMetrics(Buffer.from('not a font at all'))).toBeNull();
@@ -54,8 +97,8 @@ describe('font metrics', () => {
   it('measures a wider string as wider', () => {
     const metrics = parseFontMetrics(readFileSync(fontPath))!;
 
-    const short = measureTextWidth(metrics, 'ii', 48);
-    const long = measureTextWidth(metrics, 'WWWWWWWW', 48);
+    const short = measureTextWidth(metrics, 'ii', 48)!;
+    const long = measureTextWidth(metrics, 'WWWWWWWW', 48)!;
 
     expect(long).toBeGreaterThan(short);
   });
@@ -63,16 +106,42 @@ describe('font metrics', () => {
   it('scales linearly with font size', () => {
     const metrics = parseFontMetrics(readFileSync(fontPath))!;
 
-    const at24 = measureTextWidth(metrics, 'Hello world', 24);
-    const at48 = measureTextWidth(metrics, 'Hello world', 48);
+    const at24 = measureTextWidth(metrics, 'Hello world', 24)!;
+    const at48 = measureTextWidth(metrics, 'Hello world', 48)!;
 
     expect(at48).toBeCloseTo(at24 * 2, 5);
   });
 
-  it('treats an unmapped code point as zero rather than throwing', () => {
+  it('reports an unmapped code point as null rather than as a zero-width glyph', () => {
     const metrics = parseFontMetrics(readFileSync(fontPath))!;
 
     expect(() => measureTextWidth(metrics, '\u{10FFFF}', 48)).not.toThrow();
+    expect(metrics.advanceWidth(0x10ffff)).toBeNull();
+  });
+
+  it('refuses to measure a string the font cannot render, instead of summing missing glyphs to 0', () => {
+    // Rubik has no CJK coverage. A 0 here would read as "this text fits any frame and overlaps
+    // nothing", so every geometry rule would stay silent on a caption that runs clean off screen.
+    const metrics = parseFontMetrics(readFileSync(fontPath))!;
+
+    expect(measureTextWidth(metrics, '这是一个非常长的中文标题', 96)).toBeNull();
+    expect(measureTextWidth(metrics, 'Hello world', 96)).toBeGreaterThan(0);
+  });
+
+  it('returns null rather than throwing when a cmap format-4 subtable declares more segments than it holds', () => {
+    const buffer = bufferWithOversizedCmapSegments();
+
+    expect(() => parseFontMetrics(buffer)).not.toThrow();
+    expect(parseFontMetrics(buffer)).toBeNull();
+  });
+
+  it('returns null when hmtx holds fewer records than hhea promised', () => {
+    // Stopping early instead would leave the last successfully-read advance standing in for every
+    // glyph past the cut — measured on a real font, a 2302px headline became a 218330px one, and it
+    // was reported as an exact measurement.
+    const buffer = bufferWithTruncatedHmtx();
+
+    expect(parseFontMetrics(buffer)).toBeNull();
   });
 
   it('returns null rather than throwing when the cmap record points past the end of the buffer', () => {

@@ -20,28 +20,60 @@ function warn(box: Box, code: string, message: string): GeometryWarning {
   return { path: box.path, message, code, severity: 'warn', approx: box.approx };
 }
 
+// Below this, an "overflow" is inside the noise of the measurement itself — the difference between
+// one digit and another in the variable a caption interpolates. Reporting it produced findings that
+// read "overflows the safe width by 0px", which tells an author nothing they can act on.
+const OVERFLOW_TOLERANCE_PX = 2;
+
+// How far the box pokes out of the given inset rectangle, on whichever of the four sides is worst.
+// Position matters as much as size: a left-aligned caption 1140px wide fits inside a 1152px safe
+// width and still crosses the right-hand margin, because it starts at x=80 rather than at x=64.
+// Comparing width against a budget — which is all the first version did — fires only for centred text.
+function insetExcess(box: Box, canvas: Canvas, inset: number): number {
+  return Math.max(
+    inset - box.x,
+    box.x + box.width - (canvas.width - inset),
+    inset - box.y,
+    box.y + box.height - (canvas.height - inset)
+  );
+}
+
+function frameExcess(box: Box, canvas: Canvas): number {
+  return insetExcess(box, canvas, 0);
+}
+
+// Broadcast title-safe: the middle 90% of the frame.
+function safeAreaExcess(box: Box, canvas: Canvas): number {
+  return insetExcess(box, canvas, canvas.width * SAFE_MARGIN_RATIO);
+}
+
 export function overflowWarnings(boxes: Box[], canvas: Canvas): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];
-  const usable = canvas.width * (1 - SAFE_MARGIN_RATIO * 2);
 
   for (const box of boxes) {
-    if (box.width > usable) {
-      const excess = Math.round(box.width - usable);
+    // A severity ladder, worst first: text past the frame edge is simply not on screen, whereas text
+    // past the title-safe margin merely risks being cropped. Both carry a pixel count, because
+    // "shorten it" is only actionable if the author knows by how much.
+    const offFrame = Math.round(frameExcess(box, canvas));
 
+    if (offFrame >= OVERFLOW_TOLERANCE_PX) {
+      warnings.push(warn(box, 'text_out_of_frame', `${box.label}: extends ${offFrame}px past the frame edge`));
+      continue;
+    }
+
+    const excess = Math.round(safeAreaExcess(box, canvas));
+
+    if (excess >= OVERFLOW_TOLERANCE_PX) {
+      // "extends Npx past", not "overflows by Npx": N is how far the box pokes out on its worst
+      // side, which for centred text is half the width that would have to come off. Phrasing it as
+      // an amount to remove would understate the edit by exactly a factor of two.
       warnings.push(
         warn(
           box,
           'text_overflow',
-          `${box.label}: overflows the safe width by ${excess}px — shorten it or reduce the size`
+          `${box.label}: extends ${excess}px past the title-safe margin — shorten it or reduce the size`
         )
       );
-      continue;
-    }
-
-    const runsOff = box.x < 0 || box.x + box.width > canvas.width || box.y < 0 || box.y + box.height > canvas.height;
-
-    if (runsOff) {
-      warnings.push(warn(box, 'text_out_of_frame', `${box.label}: extends past the frame edge`));
     }
   }
 
@@ -53,8 +85,7 @@ export function legibilityWarnings(boxes: Box[], canvas: Canvas): GeometryWarnin
   const floor = canvas.height * MIN_LEGIBLE_RATIO;
 
   for (const box of boxes) {
-    // Box height is the font size plus leading; recover the size to report something recognisable.
-    const fontSize = box.height / 1.2;
+    const fontSize = box.fontSize;
 
     if (fontSize >= floor) {
       continue;
@@ -87,13 +118,24 @@ function overlapsInSpace(a: Box, b: Box): boolean {
 
 // A collision needs both dimensions. Two captions in the same place at different moments are the
 // normal way a template works — reporting those would bury the real findings in noise.
-export function collisionWarnings(boxes: Box[]): GeometryWarning[] {
+//
+// `collectBoxes` emits boxes in non-decreasing `startSec` (its cursor only ever advances), so once
+// `b` starts at or after `a` ends, no later box can overlap `a` either and the inner scan is done.
+// That turns the pairwise sweep from quadratic into roughly linear: 200 captioned sections drop from
+// ~180k comparisons to a few hundred.
+export function collisionWarnings(boxes: Box[], limit = Number.POSITIVE_INFINITY): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];
 
-  for (let i = 0; i < boxes.length; i++) {
-    for (let j = i + 1; j < boxes.length; j++) {
-      const a = boxes[i];
+  for (let i = 0; i < boxes.length && warnings.length < limit; i++) {
+    const a = boxes[i];
+
+    for (let j = i + 1; j < boxes.length && warnings.length < limit; j++) {
       const b = boxes[j];
+
+      if (b.startSec >= a.endSec) {
+        break;
+      }
+
       const shared = overlapsInTime(a, b);
 
       if (shared <= 0 || !overlapsInSpace(a, b)) {

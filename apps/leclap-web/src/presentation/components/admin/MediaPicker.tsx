@@ -1,5 +1,8 @@
 import { useState, useId, useRef, useEffect } from 'react';
 import { useMediaDrop, type AcceptSpec } from '@/lib/upload';
+import { describeAccept } from '@/lib/upload/core/describe-accept';
+import type { Rejection } from '@/lib/upload/core/types';
+import { rejectionMessages } from './media-picker-rejections';
 import { useTranslation } from 'react-i18next';
 import { Upload, Music, Image as ImageIcon, Video as VideoIcon, Check, X } from '@/presentation/components/icons';
 import { PlayIcon } from '@/presentation/components/icons/play';
@@ -446,19 +449,40 @@ interface UploadPaneProps {
 const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
   const { t } = useTranslation('admin');
   const inputId = useId();
+  const [errors, setErrors] = useState<string[]>([]);
+  // Which drop the current messages belong to. `role="alert"` announces on mount and on a text
+  // change beneath it — so a second drop yielding byte-identical messages reconciles the same list
+  // items with the same text, mutates nothing, and is announced not at all. Keying the items by
+  // attempt remounts them even when the words are the same, which is the case that matters: the
+  // screen-reader user who retries and needs to hear that the retry was rejected too.
+  const [attempt, setAttempt] = useState(0);
+  const formats = describeAccept(ACCEPT[kind]);
 
-  const onDrop = (files: File[]) => {
+  const onDrop = (files: File[], rejections: Rejection[]) => {
+    setAttempt((n) => n + 1);
+    setErrors(rejectionMessages(rejections, t, formats));
+
     if (files.length === 0) {
       return;
     }
 
     const file = files[0];
-    browserMediaService
-      .save(file, kind)
-      .then(({ key }) => {
+    // Two-callback `.then`, not a trailing `.catch`: a `.catch` chained after `onChange` would also
+    // catch a throw from `onChange` itself and blame it on storage, telling the user to clear their
+    // browser data over a file that was in fact saved.
+    browserMediaService.save(file, kind).then(
+      ({ key }) => {
         onChange({ source: 'upload', key, label: file.name });
-      })
-      .catch(() => {});
+      },
+      (error: unknown) => {
+        // A storage failure used to be swallowed here, so a full quota looked exactly like nothing
+        // happening. Surface it in the same place as a rejection — appended, not substituted, so the
+        // rejection lines this same drop produced a moment ago survive. The real error still goes to
+        // the console: quota, an IndexedDB abort and a coding bug read identically to the user.
+        console.error('Saving dropped media failed', error);
+        setErrors((previous) => [...previous, t('media.rejectSaveFailed', { name: file.name })]);
+      }
+    );
   };
 
   const { getRootProps, getInputProps, isDragActive } = useMediaDrop({
@@ -468,32 +492,61 @@ const UploadPane = ({ kind, value, onChange }: UploadPaneProps) => {
     multiple: false,
   });
 
-  if (value?.source === 'upload') {
-    return (
-      <SelectedUpload
-        kind={kind}
-        label={value.label}
-        onClear={() => {
-          onChange(null);
-        }}
-      />
-    );
-  }
-
+  // A rejection reported by one drop (e.g. the surplus file in a two-file drop) is unrelated to
+  // whatever this pane currently holds, so the two branches below share one errors block instead of
+  // each owning their own — the alert used to live only in the dropzone branch and unmounted the
+  // instant `onChange` fired from underneath it (the accepted file's save resolves in milliseconds),
+  // hiding a message the user had no real chance to read.
   return (
-    <div
-      {...getRootProps()}
-      aria-label={t(UPLOAD_LABEL_KEY[kind])}
-      className={cn(
-        'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
-        isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
+    <>
+      {value?.source === 'upload' ? (
+        <SelectedUpload
+          kind={kind}
+          label={value.label}
+          onClear={() => {
+            // Clearing the selection also clears any leftover rejection from the drop that produced
+            // it — otherwise a stale message from a previous attempt reappears on the empty dropzone.
+            setErrors([]);
+            onChange(null);
+          }}
+        />
+      ) : (
+        <div
+          {...getRootProps()}
+          aria-label={t(UPLOAD_LABEL_KEY[kind])}
+          className={cn(
+            'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors',
+            isDragActive ? 'border-brand-500 bg-brand-500/10' : 'border-foreground/15 hover:border-brand-500/50'
+          )}
+        >
+          <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
+          <Upload className="h-6 w-6 text-gray-400" />
+          <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
+          <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind], { formats })}</span>
+        </div>
       )}
-    >
-      <input {...getInputProps()} id={inputId} aria-label={t(UPLOAD_LABEL_KEY[kind])} />
-      <Upload className="h-6 w-6 text-gray-400" />
-      <span className="text-sm text-gray-300">{t(DROP_KEY[kind])}</span>
-      <span className="text-xs text-gray-500">{t(FORMATS_KEY[kind])}</span>
-    </div>
+      {errors.length > 0 ? (
+        <div className="mt-3 rounded-lg bg-[var(--color-error)]/8 px-3 py-2">
+          {/* `role="alert"` sits on the list, not on the wrapper: everything inside the alert is read
+              out on every announcement, so a Dismiss button in there makes each rejection end with
+              "Dismiss, button" — a control announced as part of the message it dismisses. */}
+          <ul role="alert" className="space-y-1 text-xs leading-5 text-[var(--color-error)]">
+            {errors.map((message, index) => (
+              <li key={`${attempt}-${index}`}>{message}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => {
+              setErrors([]);
+            }}
+            className="mt-1.5 text-[0.7rem] font-semibold uppercase tracking-wider text-[var(--color-error)]/80 hover:text-[var(--color-error)]"
+          >
+            {t('media.rejectDismiss')}
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 };
 

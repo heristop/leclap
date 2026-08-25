@@ -24,7 +24,11 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}'],
+    // Both trees: feature logic lives beside the source under src/, while the older
+    // integration-flavoured suites live in tests/. This config is the only one that runs either —
+    // the root config (vitest.config.js) deliberately no longer globs `apps/leclap-web/**`, so every
+    // web test runs exactly once, under the aliases the app itself builds with.
+    include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       include: ['src/domain/valueObjects/videoEdits.ts'],

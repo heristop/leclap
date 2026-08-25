@@ -23,6 +23,14 @@ export function createProgressReporter(send: (message: ProgressMessage) => void)
   let last = -1;
 
   return (fraction: number): void => {
+    // A non-finite input has to be dropped before it reaches `last`, not clamped: `Math.min`/`Math.max`
+    // pass NaN through, and NaN loses every comparison — so the step guard below stops being able to
+    // return, `last` is poisoned, and every remaining per-frame callback emits `NaN`. Callers hand
+    // this whatever their renderer reported, and a missing field is `undefined`.
+    if (!Number.isFinite(fraction)) {
+      return;
+    }
+
     const clamped = Math.min(1, Math.max(0, fraction));
     const isFinal = clamped >= 1 && last < 1;
 

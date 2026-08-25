@@ -45,8 +45,9 @@
   "skipToContent": "Skip to main content",
   "languageSuggestion": {
     "region": "Language",
-    "prompt": "View this site in English?",
-    "accept": "English",
+    "title": "Choose your language",
+    "body": "You're reading this site in <from/>. Would you rather read it in <to/>?",
+    "accept": "Switch to {{language}}",
     "dismiss": "Dismiss"
   },
   "footer": "All processing happens locally in your browser - your files never leave your device",

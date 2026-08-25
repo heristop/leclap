@@ -77,11 +77,13 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: pnpm test:ci
 
-      # The web app's colocated unit suite (apps/leclap-web/src/**/*.test.{ts,tsx}) runs under the
-      # app's own vitest config — its aliases resolve differently from the root config, so the root
-      # vitest run above never collects it. Without this step the route-manifest and seo-title
-      # drift guards (site.test.ts, seo-title.test.ts) and the rest of the ~880 colocated web tests
-      # never run in CI.
+      # The whole web-app suite — both apps/leclap-web/src/**/*.test.{ts,tsx} and
+      # apps/leclap-web/tests/** — runs here and only here, under the app's own vitest config. The
+      # root config above deliberately does not glob apps/leclap-web/**: its aliases and transform
+      # differ (swc + tsconfig paths vs raw Oxc + hand-written aliases), so a file collected by both
+      # could pass in one step and fail in the other under the same name. Without this step the
+      # route-manifest and seo-title drift guards (site.test.ts, seo-title.test.ts) and the rest of
+      # the web tests never run in CI.
       - name: Run Web App Tests
         run: pnpm --filter @leclap/web test
 

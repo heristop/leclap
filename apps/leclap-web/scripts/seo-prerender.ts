@@ -10,6 +10,8 @@
 //      (English at the root, others under /<lng>) — each with a self-referencing canonical and a full
 //      set of reciprocal hreflang alternates (every language + x-default → English). This is the
 //      duplicate-content-safe multilingual setup Google expects: distinct URLs tied by hreflang.
+//      Each non-English page also gets a modulepreload for its own lazy UI-strings chunk, which the
+//      bundler can't emit itself because the language comes from the URL, not the module graph.
 //   3. generates dist/sitemap.xml from the same manifests, with xhtml:link alternates on the
 //      localized URLs — so the sitemap can never drift from the routes, and noindex pages are absent.
 //
@@ -110,6 +112,24 @@ function alternateLines(spec: HeadSpec) {
   return lines;
 }
 
+// Everything this script appends to <head>: the language's lazy UI chunk (non-English pages, so the
+// browser starts fetching it alongside the eager graph instead of a round-trip later), then the
+// reciprocal hreflang set on the marketing routes. Doc routes are English-only and get neither.
+function headExtras(spec: HeadSpec) {
+  const lines: string[] = [];
+  const localeChunk = localeChunks[spec.lang];
+
+  if (localeChunk) {
+    lines.push(`    <link rel="modulepreload" crossorigin href="${localeChunk}">`);
+  }
+
+  if (spec.alternates) {
+    lines.push(...alternateLines(spec));
+  }
+
+  return lines;
+}
+
 // Swap a head tag's value in place, tolerant of the multi-line attribute formatting Vite preserves.
 function patchHead(html: string, spec: HeadSpec) {
   const title = escapeAttr(spec.title);
@@ -140,11 +160,13 @@ function patchHead(html: string, spec: HeadSpec) {
     (_m: string, p1: string, p2: string) => p1 + url + p2
   );
 
-  if (!spec.alternates) {
+  const extras = headExtras(spec);
+
+  if (extras.length === 0) {
     return out;
   }
 
-  return out.replace('</head>', `${alternateLines(spec).join('\n')}\n  </head>`);
+  return out.replace('</head>', `${extras.join('\n')}\n  </head>`);
 }
 
 const marketingTitle = (route: MarketingRoute, lng: Locale) => {
@@ -206,6 +228,62 @@ const template = await readFile(path.join(distDir, 'index.html'), 'utf8');
 if (!template.includes(SITE_URL)) {
   throw new Error(`dist/index.html does not reference ${SITE_URL} — rebuild before prerendering.`);
 }
+
+// Each non-English UI bundle is a lazy chunk (see src/i18n/index.ts). Vite's own modulepreload tags
+// cover the eager graph only, and the language is a property of the URL rather than of the bundle
+// graph — so on a cold /fr visit the browser can't even discover the French chunk until the entry
+// has run and the path detector has resolved the language. That serializes a whole round-trip ahead
+// of first paint, on exactly the prefixed pages this script exists to make fast. Naming the chunk in
+// the prerendered <head> lets the fetch start with the rest of the eager graph instead of after it.
+//
+// The names are content-hashed, so they're read back out of the build rather than written down here:
+// a hardcoded hash would go stale on the next build and preload a 404. English is absent by design —
+// `en` ships inside the eager graph, so the root pages already have it.
+//
+// Read from the build manifest (`build.manifest: true` in vite.config.ts), which maps source module
+// to emitted file, rather than by scanning dist/assets for `<lng>-*.js`. Filenames cannot carry that
+// question: rolldown names an unassigned node_modules chunk after the module's basename, so
+// `es-toolkit-<hash>.js`, `de-indent-<hash>.js` and `it-tools-<hash>.js` are all valid answers to a
+// `^<lng>-[A-Za-z0-9_-]+\.js$` pattern — and the "exactly one chunk per locale" assumption is
+// already false for `en`, which emits a facade plus a payload and escapes only by being filtered out.
+const MANIFEST_FILE = path.join(distDir, '.vite/manifest.json');
+
+/** The preload is a cosmetic hint. Nothing here may fail a build that has already succeeded. */
+function skipPreloads(reason: string): Partial<Record<Locale, string>> {
+  console.warn(`[seo-prerender] no locale modulepreloads: ${reason}`);
+
+  return {};
+}
+
+async function readLocaleChunks(): Promise<Partial<Record<Locale, string>>> {
+  const manifest = await readFile(MANIFEST_FILE, 'utf8').then(
+    (raw) => JSON.parse(raw) as Record<string, { file?: string } | undefined>,
+    (error: unknown) => {
+      console.warn(`[seo-prerender] could not read ${MANIFEST_FILE}: ${String(error)}`);
+
+      return null;
+    }
+  );
+
+  if (!manifest) {
+    return skipPreloads('the build manifest is missing (is build.manifest still enabled?)');
+  }
+
+  const entries = LOCALES.filter((lng) => lng !== 'en').map(
+    (lng) => [lng, manifest[`src/i18n/locales/${lng}/index.ts`]?.file] as const
+  );
+  const missing = entries.filter(([, file]) => !file).map(([lng]) => lng);
+
+  // Warn rather than throw: a locale that stops resolving to a chunk means the code-splitting in
+  // src/i18n/index.ts changed shape, which is worth a look — but it is not worth failing a release.
+  if (missing.length > 0) {
+    return skipPreloads(`no manifest entry for ${missing.join(', ')} — did src/i18n/index.ts change shape?`);
+  }
+
+  return Object.fromEntries(entries.map(([lng, file]) => [lng, `/${file}`]));
+}
+
+const localeChunks = await readLocaleChunks();
 
 async function writeFileFor(routePath: string, lng: Locale, spec: HeadSpec) {
   const file = fileFor(routePath, lng);

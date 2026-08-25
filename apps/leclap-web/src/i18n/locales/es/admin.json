@@ -317,13 +317,18 @@
     "uploadImage": "Subir una imagen de fondo",
     "dropTrack": "Suelta una pista o haz clic para explorar",
     "dropImage": "Suelta una imagen o haz clic para explorar",
-    "musicFormats": "MP3, WAV, M4A · almacenado en este dispositivo",
-    "imageFormats": "JPG, PNG, WebP · almacenado en este dispositivo",
+    "musicFormats": "{{formats}} · almacenado en este dispositivo",
+    "imageFormats": "{{formats}} · almacenado en este dispositivo",
     "uploaded": "Subido · almacenado en este dispositivo",
     "removeUpload": "Quitar el archivo subido",
     "uploadVideo": "Subir un clip de vídeo",
     "dropVideo": "Suelta un vídeo o haz clic para explorar",
-    "videoFormats": "MP4, MOV, WebM · almacenado en este dispositivo"
+    "videoFormats": "{{formats}} · almacenado en este dispositivo",
+    "rejectInvalidType": "{{name}} no es un archivo que podamos usar aquí — prueba con {{formats}}",
+    "rejectTooLarge": "{{name}} es demasiado grande para guardarlo en este dispositivo",
+    "rejectTooMany": "{{name}} se omitió — este espacio admite un solo archivo",
+    "rejectSaveFailed": "No se pudo guardar {{name}} — puede que el almacenamiento de este dispositivo esté lleno",
+    "rejectDismiss": "Descartar"
   },
   "overlay": {
     "textOverlays": "Superposiciones de texto",

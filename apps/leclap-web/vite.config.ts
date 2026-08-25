@@ -78,6 +78,11 @@ export default defineConfig({
     },
   },
   build: {
+    // scripts/seo-prerender.ts needs to name each locale's lazy chunk in the prerendered <head>, and
+    // the names are content-hashed. The manifest maps source module -> emitted file, so the script
+    // can look `src/i18n/locales/fr/index.ts` up directly instead of pattern-matching filenames in
+    // dist/assets — where `es-toolkit-<hash>.js` and friends are indistinguishable from a locale.
+    manifest: true,
     rolldownOptions: {
       external: [
         // Exclude Node.js-only modules that can't be polyfilled

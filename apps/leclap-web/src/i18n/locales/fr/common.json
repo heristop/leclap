@@ -45,8 +45,9 @@
   "skipToContent": "Aller au contenu principal",
   "languageSuggestion": {
     "region": "Langue",
-    "prompt": "Voir ce site en français ?",
-    "accept": "Français",
+    "title": "Choisis ta langue",
+    "body": "Tu lis ce site en <from/>. Tu préfères le lire en <to/> ?",
+    "accept": "Passer en {{language}}",
     "dismiss": "Fermer"
   },
   "footer": "Tout se passe en local, dans ton navigateur — tes fichiers ne quittent jamais ton appareil",

@@ -317,13 +317,18 @@
     "uploadImage": "Upload a background image",
     "dropTrack": "Drop a track or click to browse",
     "dropImage": "Drop an image or click to browse",
-    "musicFormats": "MP3, WAV, M4A · stored on this device",
-    "imageFormats": "JPG, PNG, WebP · stored on this device",
+    "musicFormats": "{{formats}} · stored on this device",
+    "imageFormats": "{{formats}} · stored on this device",
     "uploaded": "Uploaded · stored on this device",
     "removeUpload": "Remove uploaded file",
     "uploadVideo": "Upload a video clip",
     "dropVideo": "Drop a video or click to browse",
-    "videoFormats": "MP4, MOV, WebM · stored on this device"
+    "videoFormats": "{{formats}} · stored on this device",
+    "rejectInvalidType": "{{name}} isn't a file we can use here — try {{formats}}",
+    "rejectTooLarge": "{{name}} is too large to store on this device",
+    "rejectTooMany": "{{name}} was skipped — this slot takes one file",
+    "rejectSaveFailed": "Couldn't save {{name}} — this device's storage may be full",
+    "rejectDismiss": "Dismiss"
   },
   "overlay": {
     "textOverlays": "Text overlays",

@@ -45,8 +45,9 @@
   "skipToContent": "Saltar al contenido principal",
   "languageSuggestion": {
     "region": "Idioma",
-    "prompt": "¿Ver este sitio en español?",
-    "accept": "Español",
+    "title": "Elige tu idioma",
+    "body": "Estás leyendo este sitio en <from/>. ¿Prefieres leerlo en <to/>?",
+    "accept": "Cambiar a {{language}}",
     "dismiss": "Cerrar"
   },
   "footer": "Todo el procesamiento ocurre localmente en tu navegador: tus archivos nunca salen de tu dispositivo",

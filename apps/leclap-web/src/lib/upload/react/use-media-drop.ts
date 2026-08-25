@@ -89,7 +89,7 @@ export const useMediaDrop = ({
   };
 
   const deliver = (files: File[]) => {
-    const { accepted, rejections } = validateFiles(files, { accept, maxSize, remaining });
+    const { accepted, rejections } = validateFiles(files, { accept, maxSize, remaining, multiple });
     onDrop(accepted, rejections);
   };
 

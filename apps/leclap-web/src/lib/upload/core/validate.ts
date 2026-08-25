@@ -7,6 +7,12 @@ export interface ValidateOptions {
   maxSize?: number;
   /** How many more files may be accepted. 0 means none — unlike react-dropzone, which read <1 as Infinity. */
   remaining?: number;
+  /**
+   * Whether the surface takes more than one file. `false` caps the batch at one here, not just on
+   * the `<input multiple>` attribute — a drop bypasses the input, so the attribute alone would let
+   * a `multiple: false` consumer receive five files.
+   */
+  multiple?: boolean;
 }
 
 export interface ValidateResult {
@@ -27,7 +33,9 @@ const reject = (file: File, codes: RejectionCode[]): Rejection => ({
 });
 
 export const validateFiles = (files: File[], options: ValidateOptions = {}): ValidateResult => {
-  const { accept = [], maxSize, remaining } = options;
+  const { accept = [], maxSize, remaining, multiple } = options;
+  // The stricter of the two caps wins, and an explicit `remaining: 0` still means zero.
+  const cap = Math.min(remaining ?? Infinity, multiple === false ? 1 : Infinity);
   const accepted: File[] = [];
   const rejections: Rejection[] = [];
 
@@ -43,7 +51,7 @@ export const validateFiles = (files: File[], options: ValidateOptions = {}): Val
       continue;
     }
 
-    if (remaining !== undefined && accepted.length >= remaining) {
+    if (accepted.length >= cap) {
       rejections.push(reject(file, ['too-many-files']));
       continue;
     }

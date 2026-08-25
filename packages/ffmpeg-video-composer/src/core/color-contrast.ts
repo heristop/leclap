@@ -77,18 +77,32 @@ function parseBaseColor(base: string): Rgb | null {
 }
 
 // No `@alpha` suffix means fully opaque; a suffix that isn't a number invalidates the whole token.
+//
+// Both of FFmpeg's alpha spellings, matched WHOLE. `Number.parseFloat` reads neither faithfully
+// because it accepts a partial parse: it stops at the `x`, so the opaque `#141416@0xff` came back as
+// alpha 0 and was composited away entirely, and it stops at the first junk character, so the
+// malformed `#0a0f14@0.5@0.6` that `lowerThirdBandToken` builds from an author-supplied
+// `bandColor: '#0a0f14@0.5'` yielded a confident 0.5 for a token `av_parse_color` rejects outright.
+const DECIMAL_ALPHA = /^\d*\.?\d+$/;
+const HEX_ALPHA = /^0[xX]([0-9a-fA-F]{1,2})$/;
+
 function parseAlpha(token: string | undefined): number | null {
   if (token === undefined) {
     return 1;
   }
 
-  const value = Number.parseFloat(token);
+  const trimmed = token.trim();
+  const hex = HEX_ALPHA.exec(trimmed);
 
-  if (Number.isNaN(value)) {
+  if (hex) {
+    return Number.parseInt(hex[1], 16) / 255;
+  }
+
+  if (!DECIMAL_ALPHA.test(trimmed)) {
     return null;
   }
 
-  return Math.min(1, Math.max(0, value));
+  return Math.min(1, Math.max(0, Number.parseFloat(trimmed)));
 }
 
 /**

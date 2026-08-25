@@ -98,10 +98,12 @@ export function measure(
   for (const authored of candidates) {
     const text = applyCase(authored, options);
     const exact = metrics && !isTemplated(text) ? measureTextWidth(metrics, text, fontSize) : null;
-    const estimated = codePointCount(text) * ASSUMED_ADVANCE_EM * fontSize;
 
     approx = approx || exact === null;
-    width = Math.max(width, exact ?? estimated);
+    // The estimate is built only when the measurement genuinely failed. Computed unconditionally it
+    // was a second full code-point walk of every locale of every caption, discarded one line later
+    // on the whole happy path.
+    width = Math.max(width, exact ?? codePointCount(text) * ASSUMED_ADVANCE_EM * fontSize);
   }
 
   return { width, approx };

@@ -6,6 +6,7 @@ import {
   canvasFor,
   captionFontFile,
   collectBoxes,
+  isRenderableSection,
   LOWER_THIRD_TITLE_FONT,
   LOWER_THIRD_SUBTITLE_FONT,
 } from './text-boxes';
@@ -22,12 +23,30 @@ import {
 import type { FontLoader } from './bundled-font-loader';
 
 export type { GeometryWarning } from './rules';
-export type { Box, Canvas } from './text-boxes';
 export { createBundledFontLoader, type FontLoader } from './bundled-font-loader';
 
 // Past this, the report stops being read and starts being scrolled past. The first twenty findings
 // are the ones worth acting on.
 const MAX_WARNINGS = 20;
+
+// Worst first, so the cut above keeps the findings worth acting on. Text off the frame edge is
+// simply not on screen; a collision is two things fighting for one place; an overflow only risks a
+// crop; the remaining three are legibility hints. Anything unranked sorts last rather than throwing
+// the order away.
+const SEVERITY_ORDER = [
+  'text_out_of_frame',
+  'text_collision',
+  'text_overflow',
+  'text_low_contrast',
+  'text_too_small',
+  'text_unreadable_over_footage',
+];
+
+function severityRank(warning: GeometryWarning): number {
+  const rank = SEVERITY_ORDER.indexOf(warning.code);
+
+  return rank === -1 ? SEVERITY_ORDER.length : rank;
+}
 
 // Every distinct font FILE the template's text will actually render with, plus the two fixed files
 // the lowerThird preset always uses. Resolution goes through `captionFontFile`, which wraps the very
@@ -43,7 +62,12 @@ function referencedFontFiles(template: TemplateDescriptor): string[] {
   // `sections.filter is not a function` out of an advisory checker — and only when a font loader was
   // supplied, since without one this whole function is skipped and the same input came back clean.
   type LooseSection = TemplateDescriptor['sections'] extends (infer S)[] | undefined ? S | null | undefined : never;
-  const sections: LooseSection[] = Array.isArray(template.sections) ? template.sections : [];
+  const all: LooseSection[] = Array.isArray(template.sections) ? template.sections : [];
+  // The same gate `collectBoxes` applies. Without it the two walks disagreed about which sections
+  // carry text, so a `form` or `music` section with a caption — schema-valid, but never lowered to a
+  // drawtext filter — made the validator resolve, read and parse a ~350KB TTF whose metrics were
+  // then never consulted.
+  const sections = all.filter((section) => section && isRenderableSection(section));
   const captionFiles = sections
     .filter((section) => section?.caption)
     .map((section) => captionFontFile(section?.caption?.font, captionStyleValues(section?.caption?.style)));
@@ -103,6 +127,41 @@ function expanded(template: TemplateDescriptor): TemplateDescriptor {
   return expansion.ok ? (expansion.data as TemplateDescriptor) : template;
 }
 
+// Which AUTHORED section each expanded section came from.
+//
+// `path` is what an MCP agent edits against, so it has to address the descriptor the author holds,
+// not the one the model measured. Expansion splices a partial's sections inline, shifting every
+// later index — a caption authored at `sections[1]` behind a three-section partial was reported at
+// `sections[3]`, which is either the wrong section or none at all.
+//
+// Rebuilt through the public API rather than by threading provenance through `partials.ts`:
+// expansion maps each authored section to 0..n expanded ones *in order*, so expanding one authored
+// section at a time (against the same descriptor, so its `partials` registry still resolves) yields
+// the counts. A caption a partial supplied resolves to the ref section that pulled it in, which is
+// where the author has to go to change it.
+function authoredOrigins(raw: TemplateDescriptor, expandedCount: number): number[] {
+  const authored = Array.isArray(raw.sections) ? raw.sections : [];
+  const origins: number[] = [];
+
+  for (const [index, section] of authored.entries()) {
+    const one = expandPartialsSafe({ ...raw, sections: [section] });
+    const produced = one.ok ? ((one.data as TemplateDescriptor).sections?.length ?? 0) : 1;
+
+    for (let k = 0; k < produced; k++) {
+      origins.push(index);
+    }
+  }
+
+  // A disagreement means the per-section walk and the whole-descriptor one diverged, which would
+  // silently mis-address every finding. Identity is wrong in the same way the old code was, but it
+  // is at least the failure everyone already reasons about.
+  if (origins.length !== expandedCount) {
+    return Array.from({ length: expandedCount }, (_, i) => i);
+  }
+
+  return origins;
+}
+
 export async function collectGeometryWarnings(
   raw: TemplateDescriptor,
   loadFont?: FontLoader
@@ -110,19 +169,24 @@ export async function collectGeometryWarnings(
   const template = expanded(raw);
   const canvas = canvasFor(template.global?.orientation);
   const metrics = await loadMetrics(template, loadFont);
-  const boxes = collectBoxes(template, canvas, (font) => metrics.get(font) ?? null);
+  const origins = authoredOrigins(raw, Array.isArray(template.sections) ? template.sections.length : 0);
+  const boxes = collectBoxes(template, canvas, (font) => metrics.get(font) ?? null, origins);
 
   const findings = [
     ...overflowWarnings(boxes, canvas),
     ...legibilityWarnings(boxes, canvas),
     ...contrastWarnings(boxes),
     ...footageLegibilityWarnings(boxes),
+    // Capped at the whole budget, not at whatever the earlier rules left over. Handing collisions
+    // the REMAINDER starved them: `text_unreadable_over_footage` fires once per unaided caption, so
+    // 20 such sections filled the report and the sweep was called with a limit of 0 — its loop
+    // condition false on entry, zero comparisons, every genuine overlap reported as clean. The cap
+    // still stops the pairwise walk from running away; it just no longer depends on rule order.
+    ...collisionWarnings(boxes, MAX_WARNINGS),
   ];
 
-  // Collisions run last and are told how much of the budget is left, so a template that already
-  // filled the report with overflow findings doesn't also pay for a full pairwise sweep whose
-  // results are about to be sliced away.
-  findings.push(...collisionWarnings(boxes, Math.max(MAX_WARNINGS - findings.length, 0)));
-
-  return findings.slice(0, MAX_WARNINGS);
+  // Ordered by severity before truncating, so which findings survive the cut is a property of the
+  // findings rather than of the order the rules happen to run in. `sort` is stable, so each rule's
+  // own ordering (and the timeline order `collectBoxes` emits) is preserved within a rank.
+  return findings.sort((a, b) => severityRank(a) - severityRank(b)).slice(0, MAX_WARNINGS);
 }

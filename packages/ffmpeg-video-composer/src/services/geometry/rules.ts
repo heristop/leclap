@@ -1,4 +1,4 @@
-import { contrastRatio, parseColor } from '@/core/color-contrast';
+import { compositeOver, contrastRatio, parseColor } from '@/core/color-contrast';
 import type { Box, Canvas } from './text-boxes';
 
 // Advisory only. Nothing here is ever an `error`: a template that renders badly still renders, and
@@ -40,22 +40,39 @@ const OVERFLOW_TOLERANCE_PX = 2;
 // tall on a 720px-high landscape frame instead of 36px, which fired on the engine's own presets: a
 // two-word default caption at `position: "top"` sits at y=42 and was reported as "extends 22px past
 // the title-safe margin", advice its author cannot act on.
+function horizontalExcess(box: Box, canvas: Canvas, inset: number): number {
+  return Math.max(inset - box.x, box.x + box.width - (canvas.width - inset));
+}
+
+function verticalExcess(box: Box, canvas: Canvas, inset: number): number {
+  return Math.max(inset - box.y, box.y + box.height - (canvas.height - inset));
+}
+
 function insetExcess(box: Box, canvas: Canvas, insetX: number, insetY: number): number {
-  return Math.max(
-    insetX - box.x,
-    box.x + box.width - (canvas.width - insetX),
-    insetY - box.y,
-    box.y + box.height - (canvas.height - insetY)
-  );
+  return Math.max(horizontalExcess(box, canvas, insetX), verticalExcess(box, canvas, insetY));
 }
 
 function frameExcess(box: Box, canvas: Canvas): number {
   return insetExcess(box, canvas, 0, 0);
 }
 
-// Broadcast title-safe: the middle 90% of the frame, on both axes.
+// Broadcast title-safe: the middle 90% of the frame — on both axes for author-positioned text, and
+// on the horizontal one alone for text whose `y` comes from a preset.
+//
+// The lowerThird preset anchors its lines inside a band pinned to the frame edge, so their vertical
+// placement is not a choice the author made. Checking it fired on the engine's own preset in every
+// orientation — 6px landscape, 11px portrait, 9px square — for a two-character subtitle, since the
+// excess is pure geometry (`bandY + h*0.125 + h*0.028*1.2` against `h - h*0.05`) with the text
+// playing no part. The advice attached to it, "shorten it or reduce the size", could not help:
+// neither moves a band-anchored y. Width stays checked because that one really is the author's.
 function safeAreaExcess(box: Box, canvas: Canvas): number {
-  return insetExcess(box, canvas, canvas.width * SAFE_MARGIN_RATIO, canvas.height * SAFE_MARGIN_RATIO);
+  const horizontal = horizontalExcess(box, canvas, canvas.width * SAFE_MARGIN_RATIO);
+
+  if (!box.verticalPositionAuthored) {
+    return horizontal;
+  }
+
+  return Math.max(horizontal, verticalExcess(box, canvas, canvas.height * SAFE_MARGIN_RATIO));
 }
 
 export function overflowWarnings(boxes: Box[], canvas: Canvas): GeometryWarning[] {
@@ -137,7 +154,12 @@ export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
       continue;
     }
 
-    const ratio = contrastRatio(text.rgb, backdrop.rgb);
+    // Composited, not `text.rgb`: drawtext's `fontcolor` takes an `@alpha` suffix and `caption.color`
+    // is a free-form string, so `#ffffff@0.1` paints ~#1a1a1a on a black box — a 1.1:1 ratio the
+    // un-composited read scored at 21:1 and passed in silence, the same confident-and-wrong number
+    // the backdrop side already composites to avoid. Opaque text composites to itself, so every token
+    // the presets emit is unaffected.
+    const ratio = contrastRatio(compositeOver(text, backdrop.rgb), backdrop.rgb);
 
     if (ratio >= MIN_TEXT_CONTRAST) {
       continue;

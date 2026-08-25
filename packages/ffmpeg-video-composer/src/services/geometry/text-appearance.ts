@@ -46,7 +46,16 @@ function knownSectionBackground(section: AppearanceSection): string | null {
     return null;
   }
 
-  return section.options?.backgroundColor ?? null;
+  const background = section.options?.backgroundColor;
+
+  // Parsed here, not just downstream: `null` is this module's "unknowable" sentinel and the
+  // over-footage rule keys off it, so a token nobody can read has to land there too. Handing the raw
+  // string back let an unparseable-but-truthy colour defeat BOTH rules at once — `0x141416`,
+  // `tomato`, `{{ brand }}` — because contrastWarnings bails when parseColor fails while
+  // footageLegibilityWarnings bails because the backdrop is not null. A caption with no box, shadow
+  // or outline over a background nobody can read then produced no finding at all, which is the exact
+  // hole the over-footage rule exists to close.
+  return background && parseColor(background) ? background : null;
 }
 
 // A translucent paint is only a known backdrop once composited against a known base — treating a

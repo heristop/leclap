@@ -8,6 +8,7 @@ import {
   type CaptionStyleValues,
 } from '@/editor/presets/caption-layout';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
+import { captionAppearance, lowerThirdAppearance, type TextEffectLike } from './text-appearance';
 
 // A positioned piece of text with the window during which it is on screen. Rules read these; nothing
 // here judges anything.
@@ -25,6 +26,15 @@ export interface Box {
   startSec: number;
   endSec: number;
   approx: boolean;
+  // The effective text colour token, or `null` when missing/unreadable — never a guess.
+  color: string | null;
+  // What the text actually sits on: a box/band colour composited over the section background
+  // when it carries alpha, the section's background when there is no box, or `null` when
+  // genuinely unknowable (over footage, or behind an unparseable custom colour).
+  backdrop: string | null;
+  // Whether the author has already done something about legibility: a box/band, a shadow, or an
+  // outline. The over-footage rule fires only when this is false.
+  legibilityAid: boolean;
 }
 
 export interface Canvas {
@@ -76,6 +86,13 @@ const LOWER_THIRD_SUBTITLE_Y_RATIO = 0.125;
 const LOWER_THIRD_SUBTITLE_SIZE_RATIO = 0.028;
 export const LOWER_THIRD_TITLE_FONT = 'Anton.ttf';
 export const LOWER_THIRD_SUBTITLE_FONT = 'Oswald.ttf';
+
+// Hardcoded in the lowerThird preset (text-blocks.ts) — LowerThirdSchema has no colour override
+// for the text itself, only for the band. Mirrored here for the same reason as the six ratios above.
+const LOWER_THIRD_TITLE_COLOR = '#ffffff';
+const LOWER_THIRD_SUBTITLE_COLOR = '#c9d0f5';
+const LOWER_THIRD_DEFAULT_BAND_COLOR = '#0a0f14';
+const LOWER_THIRD_DEFAULT_BAND_OPACITY = 0.6;
 
 // caption.text (and lowerThird.title/subtitle) is a TranslationSchema (locale map) for every
 // schema-valid template. The bare-string branch stays for callers that hand collectBoxes unvalidated
@@ -189,6 +206,11 @@ function sectionLabel(section: { name?: string }, index: number): string {
 // helper works for every section variant without importing each one's specific schema type.
 interface CaptionedSection {
   name?: string;
+  type?: string;
+  options?: {
+    duration?: number;
+    backgroundColor?: string;
+  };
   caption?: {
     text?: unknown;
     style?: string;
@@ -197,11 +219,18 @@ interface CaptionedSection {
     align?: string;
     position?: string;
     box?: boolean;
+    color?: string;
+    boxColor?: string;
+    boxOpacity?: number;
+    effect?: TextEffectLike;
   };
   lowerThird?: {
     title?: unknown;
     subtitle?: unknown;
     position?: string;
+    bandColor?: string;
+    boxOpacity?: number;
+    effect?: TextEffectLike;
   };
 }
 
@@ -256,6 +285,7 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
   const padding = boxPadding(caption, preset);
   const textWidth = measured.width;
   const textHeight = fontSize * LINE_HEIGHT;
+  const appearance = captionAppearance(caption, preset, section);
 
   return {
     path: `sections[${index}].caption`,
@@ -268,6 +298,9 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
     startSec,
     endSec: startSec + duration,
     approx: measured.approx,
+    color: appearance.color,
+    backdrop: appearance.backdrop,
+    legibilityAid: appearance.legibilityAid,
   };
 }
 
@@ -276,6 +309,7 @@ interface LowerThirdLineSpec {
   font: string;
   yRatio: number;
   sizeRatio: number;
+  color: string;
 }
 
 const LOWER_THIRD_LINES: LowerThirdLineSpec[] = [
@@ -284,12 +318,14 @@ const LOWER_THIRD_LINES: LowerThirdLineSpec[] = [
     font: LOWER_THIRD_TITLE_FONT,
     yRatio: LOWER_THIRD_TITLE_Y_RATIO,
     sizeRatio: LOWER_THIRD_TITLE_SIZE_RATIO,
+    color: LOWER_THIRD_TITLE_COLOR,
   },
   {
     key: 'subtitle',
     font: LOWER_THIRD_SUBTITLE_FONT,
     yRatio: LOWER_THIRD_SUBTITLE_Y_RATIO,
     sizeRatio: LOWER_THIRD_SUBTITLE_SIZE_RATIO,
+    color: LOWER_THIRD_SUBTITLE_COLOR,
   },
 ];
 
@@ -310,6 +346,12 @@ function lowerThirdLineBox(
 
   const bandHeight = canvas.height * LOWER_THIRD_BAND_HEIGHT_RATIO;
   const bandY = lowerThird.position === 'top' ? 0 : canvas.height - bandHeight;
+  const appearance = lowerThirdAppearance(
+    lowerThird,
+    section,
+    LOWER_THIRD_DEFAULT_BAND_COLOR,
+    LOWER_THIRD_DEFAULT_BAND_OPACITY
+  );
 
   return {
     path: `sections[${index}].lowerThird.${spec.key}`,
@@ -322,6 +364,9 @@ function lowerThirdLineBox(
     startSec,
     endSec: startSec + duration,
     approx: measured.approx,
+    color: spec.color,
+    backdrop: appearance.backdrop,
+    legibilityAid: appearance.legibilityAid,
   };
 }
 

@@ -140,7 +140,15 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
     return result;
   }
 
-  const warnings = await safeGeometryWarnings(validator, descriptor);
+  // The RAW descriptor, not `result.data`: `validateTemplate` expands `{ type: "partial", ref }`
+  // sections inline before it returns, which shifts every later index — so a caption the author
+  // wrote at `sections[1]` behind a three-section partial came back reported at `sections[3]`, and
+  // an agent editing that path would touch the wrong section. `getGeometryWarnings` expands for
+  // itself and maps the findings back to authored indices, so it needs the descriptor as written.
+  const warnings = await safeGeometryWarnings(
+    validator,
+    data as Parameters<TemplateValidator['getGeometryWarnings']>[0]
+  );
 
   // Absent, not empty: a clean template must not emit `"warnings":[]` — that is the zero-token
   // guarantee, and it only holds if the key itself disappears.

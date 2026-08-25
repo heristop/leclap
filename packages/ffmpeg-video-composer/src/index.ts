@@ -290,7 +290,12 @@ export {
   type GeometryWarning,
   type FontLoader,
 } from './services/TemplateValidator';
-export { createBundledFontLoader } from './services/geometry';
+// From the loader module, not the geometry barrel. The barrel statically imports font-metrics, the
+// colour math, caption-layout, text-boxes and the rules, so re-exporting through it pulled that whole
+// graph back into the eager Node chunk and rolldown reported the sibling `await import('./geometry')`
+// in TemplateValidator as INEFFECTIVE_DYNAMIC_IMPORT — the lazy load bought nothing. This module has
+// no value imports of its own (only the AbstractFilesystem type), so the deferral survives.
+export { createBundledFontLoader } from './services/geometry/bundled-font-loader';
 export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {
   TemplateDescriptorSchema,

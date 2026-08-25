@@ -27,6 +27,9 @@ function box(overrides: Partial<Box> = {}): Box {
     // Defaults to "handled" so a test exercising an unrelated rule never trips the footage rule
     // by accident; the contrast/footage describe blocks below override this explicitly.
     legibilityAid: true,
+    // Captions are author-positioned, so both axes are checked. The lowerThird boxes set this
+    // false; see the "preset-anchored" cases in the overflow block below.
+    verticalPositionAuthored: true,
     ...overrides,
   };
 }
@@ -42,6 +45,36 @@ describe('overflowWarnings', () => {
     expect(warnings).toHaveLength(1);
     expect(warnings[0].code).toBe('text_overflow');
     expect(warnings[0].severity).toBe('warn');
+  });
+
+  // The lowerThird preset anchors its lines inside a band pinned to the frame edge, so their `y` is
+  // not something the author chose — and on the engine's OWN preset the subtitle lands 6px below the
+  // landscape title-safe line (11px portrait, 9px square). Checking that axis therefore fired on
+  // every lowerThird in every orientation, with a two-character subtitle, telling the author to
+  // "shorten it or reduce the size" when neither can move a band-anchored y.
+  it('does not apply the vertical title-safe margin to preset-anchored text', () => {
+    const subtitle = box({ y: 666, height: 24.2, verticalPositionAuthored: false });
+
+    expect(overflowWarnings([subtitle], canvas)).toEqual([]);
+  });
+
+  // Width is still the author's to fix even inside a band, so the horizontal half must keep firing.
+  it('still reports horizontal overflow for preset-anchored text', () => {
+    const wide = box({ x: 10, width: 1260, y: 666, height: 24.2, verticalPositionAuthored: false });
+    const warnings = overflowWarnings([wide], canvas);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_overflow');
+  });
+
+  // Exempting the title-safe margin must not also exempt the frame edge: text genuinely off-screen
+  // is a real defect whoever positioned it.
+  it('still reports preset-anchored text that leaves the frame entirely', () => {
+    const offFrame = box({ y: 710, height: 40, verticalPositionAuthored: false });
+    const warnings = overflowWarnings([offFrame], canvas);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_out_of_frame');
   });
 
   it('reports a box running off the right edge', () => {

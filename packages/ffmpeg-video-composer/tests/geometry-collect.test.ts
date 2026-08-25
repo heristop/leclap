@@ -267,6 +267,73 @@ describe('collectGeometryWarnings', () => {
     expect(warnings.some((w) => w.code === 'text_unreadable_over_footage')).toBe(false);
   });
 
+  // `caption` sits on the BASE section schema, so a `form` section may carry one and still validate
+  // — but TemplateDirector emits no drawtext for it, which is why collectBoxes skips it. The font
+  // pass did not, so a caption that produces nothing still read and parsed a ~350KB TTF.
+  it('does not load fonts for sections that render no text', async () => {
+    const requested: string[] = [];
+    const spy = async (fontFile: string): Promise<Uint8Array | null> => {
+      requested.push(fontFile);
+
+      return loadFont(fontFile);
+    };
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [{ type: 'form', name: 'f', options: { duration: 4 }, caption: { text: { en: 'never drawn' } } }],
+    } as unknown as TemplateDescriptor;
+
+    await collectGeometryWarnings(template, spy);
+
+    expect(requested).toEqual([]);
+  });
+
+  it('still loads fonts for sections that do render text', async () => {
+    const requested: string[] = [];
+    const spy = async (fontFile: string): Promise<Uint8Array | null> => {
+      requested.push(fontFile);
+
+      return loadFont(fontFile);
+    };
+
+    await collectGeometryWarnings(templateWith({ text: { en: 'drawn' }, fontsize: 40 }), spy);
+
+    expect(requested).toEqual(['Oswald.ttf']);
+  });
+
+  // `path` is the machine-readable field an MCP agent edits against, so it has to address the
+  // descriptor the author actually holds. Expansion splices a partial's sections inline and shifts
+  // every later index, so a caption authored at sections[1] was reported at sections[3] — an agent
+  // acting on that edits the wrong section, or one that does not exist.
+  it('reports paths against the authored descriptor, not the expanded one', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      partials: [
+        {
+          id: 'intro',
+          sections: [
+            { type: 'color_background', name: 'p1', options: { duration: 1 } },
+            { type: 'color_background', name: 'p2', options: { duration: 1 } },
+            { type: 'color_background', name: 'p3', options: { duration: 1 } },
+          ],
+        },
+      ],
+      sections: [
+        { type: 'partial', ref: 'intro' },
+        {
+          type: 'color_background',
+          name: 'main',
+          options: { duration: 3 },
+          caption: { text: { en: 'A caption far too wide to fit inside this frame at all' }, fontsize: 96 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template, loadFont);
+
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0].path).toBe('sections[1].caption');
+  });
+
   it('does not reject when the loader throws', async () => {
     const throwing = async (): Promise<Uint8Array | null> => {
       throw new Error('disk on fire');

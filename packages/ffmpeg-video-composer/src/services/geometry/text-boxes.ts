@@ -53,6 +53,10 @@ export interface Box {
   // Whether the author has already done something about legibility: a box/band, a shadow, or an
   // outline. The over-footage rule fires only when this is false.
   legibilityAid: boolean;
+  // Whether `y` came from something the author chose (a caption's `position`) rather than from a
+  // preset's fixed anchor (a lowerThird's band). The title-safe rule skips the vertical axis when
+  // this is false, because a finding the author cannot act on is noise — see rules.ts.
+  verticalPositionAuthored: boolean;
 }
 
 export interface Canvas {
@@ -191,8 +195,15 @@ interface CaptionedSection {
   };
 }
 
+// `Number.isFinite`, not `?? ASSUMED_DURATION_SEC` alone: `??` only covers null/undefined, and
+// `Math.max(NaN, 0)` at the call site is NaN, so one `duration: "abc"` from unvalidated input made
+// the cursor NaN and every later box's window with it. The finding read "overlaps … for NaNs", and
+// because every NaN comparison is false the collision rule's `b.startSec >= a.endSec` early exit
+// never fired either — silently restoring the O(n^2) sweep the break exists to avoid.
 function sectionDuration(section: { options?: { duration?: number } }): number {
-  return section.options?.duration ?? ASSUMED_DURATION_SEC;
+  const duration = section.options?.duration;
+
+  return Number.isFinite(duration) ? (duration as number) : ASSUMED_DURATION_SEC;
 }
 
 // `caption`/`lowerThird` live on the BASE section schema, so a `form` or `music` section may carry
@@ -200,7 +211,7 @@ function sectionDuration(section: { options?: { duration?: number } }): number {
 // drawtext is ever emitted for them. Modelling those boxes sent authors to fix a caption that
 // produces no filter at all, and let a `music` padding section advance the modelled cursor by
 // seconds of output the render never contains.
-function isRenderableSection(section: CaptionedSection): boolean {
+export function isRenderableSection(section: CaptionedSection): boolean {
   return section.type !== undefined && VIDEO_SEGMENT_TYPES.has(section.type);
 }
 
@@ -208,6 +219,10 @@ function isRenderableSection(section: CaptionedSection): boolean {
 // bundled so those functions stay under the lint's max-params limit.
 interface SectionPlacement {
   index: number;
+  // The index this section occupies in the descriptor the AUTHOR wrote, which differs from `index`
+  // once a partial has been expanded inline. Every `path` is built from this one; `index` is only
+  // the position in the expanded list. See `authoredOrigins` in ./index.ts.
+  authoredIndex: number;
   startSec: number;
   duration: number;
   canvas: Canvas;
@@ -228,7 +243,7 @@ function boxPadding(caption: NonNullable<CaptionedSection['caption']>, preset: C
 // Builds the box for a single section's caption, or null when the section has no renderable text.
 // Split out of collectBoxes to keep that function's statement count within the lint limit.
 function boxForSection(section: CaptionedSection, placement: SectionPlacement): Box | null {
-  const { index, startSec, duration, canvas, resolve } = placement;
+  const { index, authoredIndex, startSec, duration, canvas, resolve } = placement;
   const caption = section.caption;
 
   if (!caption) {
@@ -257,7 +272,7 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
   const appearance = captionAppearance(caption, preset, section);
 
   return {
-    path: `sections[${index}].caption`,
+    path: `sections[${authoredIndex}].caption`,
     label: `Section "${sectionLabel(section, index)}" caption`,
     x: horizontalOrigin(caption.align, textWidth, canvas) - padding,
     y: verticalOrigin(caption.position, textHeight, canvas) - padding,
@@ -270,6 +285,8 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
     color: appearance.color,
     backdrop: appearance.backdrop,
     legibilityAid: appearance.legibilityAid,
+    // `caption.position` is the author's, so both axes are theirs to fix.
+    verticalPositionAuthored: true,
   };
 }
 
@@ -305,7 +322,7 @@ function lowerThirdLineBox(
   section: CaptionedSection,
   placement: SectionPlacement
 ): Box | null {
-  const { index, startSec, duration, canvas, resolve } = placement;
+  const { index, authoredIndex, startSec, duration, canvas, resolve } = placement;
   const fontSize = canvas.height * spec.sizeRatio;
   const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font), section.options);
 
@@ -323,7 +340,7 @@ function lowerThirdLineBox(
   );
 
   return {
-    path: `sections[${index}].lowerThird.${spec.key}`,
+    path: `sections[${authoredIndex}].lowerThird.${spec.key}`,
     label: `Section "${sectionLabel(section, index)}" lower third ${spec.key}`,
     x: canvas.width * LOWER_THIRD_MARGIN_RATIO,
     y: bandY + canvas.height * spec.yRatio,
@@ -336,6 +353,9 @@ function lowerThirdLineBox(
     color: spec.color,
     backdrop: appearance.backdrop,
     legibilityAid: appearance.legibilityAid,
+    // The band, and every line inside it, is pinned by the preset — only `position` (top/bottom) is
+    // the author's, and neither choice clears the title-safe line. See rules.ts safeAreaExcess.
+    verticalPositionAuthored: false,
   };
 }
 
@@ -364,10 +384,14 @@ function lowerThirdBoxes(section: CaptionedSection, placement: SectionPlacement)
 // The canvas is a parameter rather than re-derived here: `collectGeometryWarnings` already computed
 // one to judge the boxes against, and two independent derivations from the same descriptor is one
 // edit away from laying text out on one frame and measuring it against another.
+// `origins[i]` is the index section `i` occupied in the descriptor the AUTHOR wrote, before partial
+// expansion spliced sections inline. Every `path` is built from it. Defaults to identity so a caller
+// measuring an already-flat descriptor — or a test — need not supply one.
 export function collectBoxes(
   template: TemplateDescriptor,
   canvas: Canvas,
-  resolve: (font: string) => FontMetrics | null
+  resolve: (font: string) => FontMetrics | null,
+  origins?: number[]
 ): Box[] {
   const boxes: Box[] = [];
   // `Array.isArray`, not `?? []`: this function is exported and reached from the public
@@ -391,7 +415,14 @@ export function collectBoxes(
     // would shift every later box's window and turn a single mistake into a cascade of bogus
     // collision findings.
     const duration = Math.max(sectionDuration(section), 0);
-    const placement: SectionPlacement = { index, startSec: cursorSec, duration, canvas, resolve };
+    const placement: SectionPlacement = {
+      index,
+      authoredIndex: origins?.[index] ?? index,
+      startSec: cursorSec,
+      duration,
+      canvas,
+      resolve,
+    };
     const captionBox = boxForSection(section, placement);
 
     if (captionBox) {

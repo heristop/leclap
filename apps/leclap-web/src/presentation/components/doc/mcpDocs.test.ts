@@ -58,6 +58,16 @@ describe('mcpDoc', () => {
     expect(optIn?.fallback).toBe('off');
   });
 
+  // The tool's output schema gained `geometry` without this page mentioning it, so the reference
+  // described a return shape the server had stopped producing. Pinned here because the drift is
+  // silent: nothing else on the site reads these strings.
+  it('documents the geometry findings validate_template returns', () => {
+    const validate = mcpDoc.tools.find((tool) => tool.name === 'validate_template');
+
+    expect(validate?.purpose).toContain('geometry');
+    expect(validate?.when).toContain('advisory');
+  });
+
   it('ships configs whose env paths are absolute — they are not tilde-expanded', () => {
     for (const raw of [mcpDoc.sampleConfig, mcpDoc.projectConfig]) {
       const parsed = JSON.parse(raw) as { mcpServers: { leclap: { env: Record<string, string> } } };

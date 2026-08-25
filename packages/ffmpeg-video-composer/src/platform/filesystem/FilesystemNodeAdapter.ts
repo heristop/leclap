@@ -94,6 +94,18 @@ function creativeKitCandidates(moduleDir: string, kind: string, file: string): s
   return candidates;
 }
 
+// A bundled asset is addressed by BARE FILENAME — `Oswald.ttf`, `lofi-chill.mp3` — so anything
+// carrying a separator is not naming one. `path.join` normalises `..` away silently, and the name
+// reaching here is descriptor-controlled: `resolveFontFile` hands back `caption.font` verbatim
+// whenever it ends in `.ttf`, so a font of `'../'.repeat(20) + 'etc/passwd.ttf'` resolved and its
+// bytes were read (verified). That was only the render path before; geometry validation now stats
+// and reads the same name from `leclap validate` and from the MCP `validate_template` tool, both of
+// which advertise themselves as render-free dry runs. The walk-up multiplies the roots it is joined
+// against, so the guard belongs here rather than at any one call site.
+function isBundledAssetName(file: string): boolean {
+  return file.length > 0 && !file.startsWith('.') && !file.includes('/') && !file.includes('\\');
+}
+
 @injectable()
 class FilesystemNodeAdapter extends AbstractFilesystem {
   protected override root: string = globalThis.process.cwd();
@@ -285,6 +297,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     try {
       moduleDir = path.dirname(fileURLToPath(import.meta.url));
     } catch {
+      return null;
+    }
+
+    if (!isBundledAssetName(file)) {
       return null;
     }
 

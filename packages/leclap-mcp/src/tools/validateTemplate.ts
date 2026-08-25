@@ -82,39 +82,57 @@ type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 // — the one authoring the most templates, with the least ability to eyeball a render — would see
 // every line marked approximate forever.
 //
-// Built once and its reads cached, because unlike the CLI this process is long-lived: an agent
-// iterating on a descriptor calls validate_template dozens of times, and each call would otherwise
-// re-stat and re-read the same ~700KB of TTFs for a tool that advertises itself as instant. The
-// bundled set cannot change under a running server.
+// Built once, at module load, and its reads cached — because unlike the CLI this process is
+// long-lived: an agent iterating on a descriptor calls validate_template dozens of times, and each
+// call would otherwise re-stat and re-read the same ~700KB of TTFs for a tool that advertises itself
+// as instant. The bundled set cannot change under a running server.
+//
+// Module scope rather than a per-call factory, which is what this comment used to describe while the
+// code rebuilt a FilesystemNodeAdapter and a pino logger on every invocation. That is more than an
+// allocation: pino's default destination is fd 1, the same stdio channel carrying the MCP JSON-RPC
+// frames (probeMedia.ts and renderWorker.ts both route around it for exactly that reason), so the
+// fewer loggers bound to it, the better.
+const loadBundledFont = createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
+
+// Stateless, so one instance serves every call.
+const validator = new TemplateValidator();
+
 const fontBytes = new Map<string, Promise<Uint8Array | null>>();
 
-function bundledFontLoader() {
-  const load = createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
+function bundledFont(file: string): Promise<Uint8Array | null> {
+  const cached = fontBytes.get(file);
 
-  return (file: string): Promise<Uint8Array | null> => {
-    const cached = fontBytes.get(file);
+  if (cached) {
+    return cached;
+  }
 
-    if (cached) {
-      return cached;
-    }
-
-    // Only a SUCCESSFUL read is cached for the life of the process. `createBundledFontLoader`
-    // collapses "not bundled here" and "the read blew up" into the same null, so caching that null
-    // would let one transient failure — an EMFILE under load, a half-written file — pin every later
-    // validate_template to approximate measurements until the server restarts, with nothing in the
-    // output to say why. Re-resolving a genuinely absent font costs a handful of stat() calls.
-    const pending = load(file).then((bytes) => {
+  // Only a SUCCESSFUL read is cached for the life of the process. `createBundledFontLoader`
+  // collapses "not bundled here" and "the read blew up" into the same null, so caching that null
+  // would let one transient failure — an EMFILE under load, a half-written file — pin every later
+  // validate_template to approximate measurements until the server restarts, with nothing in the
+  // output to say why. Re-resolving a genuinely absent font costs a handful of stat() calls.
+  //
+  // A rejection evicts for the same reason, and one more: the loader swallows everything today, but
+  // that is one edit away, and a cached REJECTED promise would both pin the process to estimates and
+  // become an unhandled-rejection source on its first cache hit.
+  const pending = loadBundledFont(file).then(
+    (bytes) => {
       if (!bytes) {
         fontBytes.delete(file);
       }
 
       return bytes;
-    });
+    },
+    (error: unknown) => {
+      fontBytes.delete(file);
 
-    fontBytes.set(file, pending);
+      throw error;
+    }
+  );
 
-    return pending;
-  };
+  fontBytes.set(file, pending);
+
+  return pending;
 }
 
 // One line per finding: path, message, and an `approx` marker when the measurement fell back to an
@@ -137,10 +155,7 @@ export async function geometryLines(descriptor: TemplateDescriptor): Promise<str
 
 async function safeGeometryWarnings(descriptor: TemplateDescriptor) {
   try {
-    return await new TemplateValidator().getGeometryWarnings(
-      descriptor as unknown as GeometryDescriptor,
-      bundledFontLoader()
-    );
+    return await validator.getGeometryWarnings(descriptor as unknown as GeometryDescriptor, bundledFont);
   } catch (error) {
     // Every expected failure — no bundled fonts, an unreadable .ttf — is already handled inside the
     // loader and the parser, so anything landing here is a bug. Note it on stderr (stdout is the MCP
@@ -151,12 +166,30 @@ async function safeGeometryWarnings(descriptor: TemplateDescriptor) {
   }
 }
 
-async function summary(descriptor: TemplateDescriptor) {
+// `authored` is the descriptor exactly as the caller sent it. `descriptor` has already had its
+// `{ type: "partial", ref }` sections expanded inline by `validateTemplate`, which shifts every
+// later index — so a caption authored at `sections[1]` behind a three-section partial came back
+// reported at `sections[3]`, a path the agent cannot act on. `geometryLines` expands for itself and
+// maps findings back to authored indices, so it gets the untouched input.
+// The findings have to reach the `content` block too, not only `structuredContent`. Text content is
+// the baseline channel every MCP client renders; one without structured-output support showed the
+// model a bare "Valid template — 3 section(s)…" for a descriptor whose captions run off the frame,
+// and it went straight to compose_video — the precise failure the tool description tells it to check
+// for. One line plus the findings, since the agent pays for every token it reads.
+function geometryNote(geometry: string[] | undefined): string {
+  if (!geometry) {
+    return '';
+  }
+
+  return ` ${geometry.length} geometry finding(s):\n- ${geometry.join('\n- ')}`;
+}
+
+async function summary(descriptor: TemplateDescriptor, authored: TemplateDescriptor) {
   const sectionCount = descriptor.sections?.length ?? 0;
   const orientation = descriptor.global?.orientation ?? null;
   const clips = requiredClips(descriptor);
   const fields = formFields(descriptor);
-  const geometry = await geometryLines(descriptor);
+  const geometry = await geometryLines(authored);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -166,7 +199,7 @@ async function summary(descriptor: TemplateDescriptor) {
     content: [
       {
         type: 'text' as const,
-        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.`,
+        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${geometryNote(geometry)}`,
       },
     ],
     structuredContent: {
@@ -187,7 +220,7 @@ async function handleValidate(args: ValidateArgs) {
     return resolved;
   }
 
-  return summary(resolved.descriptor);
+  return summary(resolved.descriptor, args.template);
 }
 
 export function registerValidateTemplate(server: McpServer): void {

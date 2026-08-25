@@ -6,7 +6,7 @@ import {
   CAPTION_DEFAULT_BOX_COLOR,
   CAPTION_DEFAULT_BOX_OPACITY,
   type CaptionStyleValues,
-} from '@/editor/presets/caption-layout';
+} from '../../editor/presets/caption-layout';
 
 // `shadow`/`outline` are `boolean | object` on TextEffectSchema; all this needs is whether either
 // is present at all.
@@ -24,22 +24,29 @@ export interface AppearanceSection {
   type?: string;
   options?: {
     backgroundColor?: string;
+    layers?: unknown[];
   };
-}
-
-// The section's own solid background colour, or `null` when unset.
-function sectionBackgroundColor(section: AppearanceSection): string | null {
-  return section.options?.backgroundColor ?? null;
 }
 
 // A `color_background` section's colour is a genuine backdrop; any other type may show footage or
 // an image underneath, so the honest answer there is "unknown" rather than "none".
+//
+// `options.backgroundColor` lives on the BASE section schema, so a `project_video` can carry one
+// too — it just does not describe what is behind the text there, because the clip is. Every caller
+// must go through this gate: compositing a translucent caption box over a footage section's
+// `backgroundColor` produced exactly the confident-and-wrong contrast number this module exists to
+// avoid.
+//
+// `options.layers` composite ON TOP of the base colour and default to the full frame, so a single
+// opaque layer hides `backgroundColor` completely. Reading the covered colour reported 21:1 for
+// white-on-white. Whether a layer is opaque, and where it lands, is not modelled here — so the only
+// honest answer once layers exist is "unknown".
 function knownSectionBackground(section: AppearanceSection): string | null {
-  if (section.type !== 'color_background') {
+  if (section.type !== 'color_background' || (section.options?.layers?.length ?? 0) > 0) {
     return null;
   }
 
-  return sectionBackgroundColor(section);
+  return section.options?.backgroundColor ?? null;
 }
 
 // A translucent paint is only a known backdrop once composited against a known base — treating a
@@ -56,8 +63,10 @@ function resolveBackdrop(token: string | null, sectionBg: string | null): string
     return null;
   }
 
+  // Normalised, not the raw token: `#1a1a1a@1` is opaque `#1a1a1a`, and echoing the alpha suffix
+  // back into a contrast message ("on #1a1a1a@1") reads as if the alpha mattered to the number.
   if (paint.alpha >= 1) {
-    return token;
+    return rgbToHex(paint.rgb);
   }
 
   const bg = sectionBg ? parseColor(sectionBg) : null;
@@ -85,8 +94,17 @@ export interface CaptionAppearanceInput {
 
 // Mirrors captions.ts's resolveBox: on when explicitly set or defaulted by the preset; an explicit
 // override (or a preset with no box colour) builds a fresh token instead of reusing the preset's.
+//
+// `boxOpacity: 0` is schema-valid (`z.number().min(0)`) and paints nothing — drawtext still emits a
+// `boxcolor` of `…@0`. Returning a truthy token for it made `legibilityAid` true, so the
+// over-footage rule stayed silent about text with no visible background at all, while the very same
+// caption written `box: false` was flagged. `lowerThirdBandToken` already guards this.
+export function captionBoxOpacity(caption: CaptionAppearanceInput): number {
+  return caption.boxOpacity ?? CAPTION_DEFAULT_BOX_OPACITY;
+}
+
 function captionBoxColorToken(caption: CaptionAppearanceInput, preset: CaptionStyleValues): string | null {
-  const boxOn = caption.box ?? Boolean(preset.box);
+  const boxOn = (caption.box ?? Boolean(preset.box)) && captionBoxOpacity(caption) > 0;
 
   if (!boxOn) {
     return null;
@@ -110,7 +128,7 @@ export function captionAppearance(
 ): Appearance {
   const boxToken = captionBoxColorToken(caption, preset);
   const backdrop = boxToken
-    ? resolveBackdrop(boxToken, sectionBackgroundColor(section))
+    ? resolveBackdrop(boxToken, knownSectionBackground(section))
     : knownSectionBackground(section);
 
   return {
@@ -147,7 +165,7 @@ export function lowerThirdAppearance(
 ): { backdrop: string | null; legibilityAid: boolean } {
   const bandToken = lowerThirdBandToken(lowerThird, defaultColor, defaultOpacity);
   const backdrop = bandToken
-    ? resolveBackdrop(bandToken, sectionBackgroundColor(section))
+    ? resolveBackdrop(bandToken, knownSectionBackground(section))
     : knownSectionBackground(section);
 
   return {

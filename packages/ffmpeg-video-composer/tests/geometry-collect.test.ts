@@ -82,6 +82,18 @@ describe('collectGeometryWarnings', () => {
     await expect(collectGeometryWarnings({} as TemplateDescriptor)).resolves.toEqual([]);
   });
 
+  it('does not throw on a malformed sections value, with or without a loader', async () => {
+    // The font pass runs before the box pass and used to `.filter()` straight onto whatever
+    // `sections` held, so `"nope"` threw a TypeError out of an advisory checker — but only when a
+    // loader was supplied, which made the same input look clean in the no-loader path.
+    for (const sections of ['nope', [null], 7]) {
+      const template = { sections } as unknown as TemplateDescriptor;
+
+      await expect(collectGeometryWarnings(template)).resolves.toEqual([]);
+      await expect(collectGeometryWarnings(template, loadFont)).resolves.toEqual([]);
+    }
+  });
+
   it('marks every warning approximate when no loader is supplied', async () => {
     const warnings = await collectGeometryWarnings(templateWith({ text: { en: 'z'.repeat(200) }, fontsize: 80 }));
 

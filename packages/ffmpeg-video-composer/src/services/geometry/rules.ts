@@ -17,8 +17,13 @@ const SAFE_MARGIN_RATIO = 0.05;
 // Below this fraction of the output height, type is unreadable on a phone.
 const MIN_LEGIBLE_RATIO = 0.025;
 
-function warn(box: Box, code: string, message: string): GeometryWarning {
-  return { path: box.path, message, code, severity: 'warn', approx: box.approx };
+// Every rule builds its finding here. `approx` defaults to the box's own flag and is overridden by
+// the two rules that read exact colour tokens rather than font metrics, and by the collision rule,
+// which spans two boxes. Without the override the three of them hand-rolled the same five-key
+// literal, and `severity: 'warn'` — the one field GeometryWarning pins to a single value — was
+// written out four times.
+function warn(box: Box, code: string, message: string, approx: boolean = box.approx): GeometryWarning {
+  return { path: box.path, message, code, severity: 'warn', approx };
 }
 
 // Below this, an "overflow" is inside the noise of the measurement itself — the difference between
@@ -30,22 +35,27 @@ const OVERFLOW_TOLERANCE_PX = 2;
 // Position matters as much as size: a left-aligned caption 1140px wide fits inside a 1152px safe
 // width and still crosses the right-hand margin, because it starts at x=80 rather than at x=64.
 // Comparing width against a budget — which is all the first version did — fires only for centred text.
-function insetExcess(box: Box, canvas: Canvas, inset: number): number {
+//
+// The two insets are per-AXIS. Deriving the vertical one from the frame WIDTH makes the margin 64px
+// tall on a 720px-high landscape frame instead of 36px, which fired on the engine's own presets: a
+// two-word default caption at `position: "top"` sits at y=42 and was reported as "extends 22px past
+// the title-safe margin", advice its author cannot act on.
+function insetExcess(box: Box, canvas: Canvas, insetX: number, insetY: number): number {
   return Math.max(
-    inset - box.x,
-    box.x + box.width - (canvas.width - inset),
-    inset - box.y,
-    box.y + box.height - (canvas.height - inset)
+    insetX - box.x,
+    box.x + box.width - (canvas.width - insetX),
+    insetY - box.y,
+    box.y + box.height - (canvas.height - insetY)
   );
 }
 
 function frameExcess(box: Box, canvas: Canvas): number {
-  return insetExcess(box, canvas, 0);
+  return insetExcess(box, canvas, 0, 0);
 }
 
-// Broadcast title-safe: the middle 90% of the frame.
+// Broadcast title-safe: the middle 90% of the frame, on both axes.
 function safeAreaExcess(box: Box, canvas: Canvas): number {
-  return insetExcess(box, canvas, canvas.width * SAFE_MARGIN_RATIO);
+  return insetExcess(box, canvas, canvas.width * SAFE_MARGIN_RATIO, canvas.height * SAFE_MARGIN_RATIO);
 }
 
 export function overflowWarnings(boxes: Box[], canvas: Canvas): GeometryWarning[] {
@@ -133,13 +143,17 @@ export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
       continue;
     }
 
-    warnings.push({
-      path: box.path,
-      message: `${box.path}: ${box.color} on ${box.backdrop} — contrast ${ratio.toFixed(1)}:1, below the ${MIN_TEXT_CONTRAST}:1 minimum`,
-      code: 'text_low_contrast',
-      severity: 'warn',
-      approx: false,
-    });
+    // `box.label`, like every other rule — not `box.path`. Both consumers (the CLI's
+    // `formatValidation`, the MCP's `geometryLines`) already print `path` in front of `message`, so
+    // repeating it here rendered as `sections[0].caption: sections[0].caption: …`.
+    warnings.push(
+      warn(
+        box,
+        'text_low_contrast',
+        `${box.label}: ${box.color} on ${box.backdrop} — contrast ${ratio.toFixed(1)}:1, below the ${MIN_TEXT_CONTRAST}:1 minimum`,
+        false
+      )
+    );
   }
 
   return warnings;
@@ -148,6 +162,11 @@ export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
 // Fires only on the conjunction: unknown backdrop (footage/image, or an unparseable custom colour)
 // AND no box/band AND no shadow/outline. Any one of those is the author having already handled
 // legibility, so warning anyway would fire on most templates and turn the report into noise.
+//
+// "unknown background", not "footage": a `color_background` section that never set
+// `options.backgroundColor` also lands here (the engine pushes no `color=` source for it, so what
+// shows through is whatever the layers leave behind), and telling its author their colour card is
+// footage is simply wrong.
 export function footageLegibilityWarnings(boxes: Box[]): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];
 
@@ -156,13 +175,14 @@ export function footageLegibilityWarnings(boxes: Box[]): GeometryWarning[] {
       continue;
     }
 
-    warnings.push({
-      path: box.path,
-      message: `${box.path}: drawn over footage with no box, shadow or outline — legibility depends on the clip`,
-      code: 'text_unreadable_over_footage',
-      severity: 'warn',
-      approx: false,
-    });
+    warnings.push(
+      warn(
+        box,
+        'text_unreadable_over_footage',
+        `${box.label}: no box, shadow or outline over an unknown background — legibility depends on what is behind it`,
+        false
+      )
+    );
   }
 
   return warnings;
@@ -205,13 +225,9 @@ export function collisionWarnings(boxes: Box[], limit = Number.POSITIVE_INFINITY
         continue;
       }
 
-      warnings.push({
-        path: a.path,
-        message: `${a.label} overlaps ${b.label} for ${shared.toFixed(1)}s`,
-        code: 'text_collision',
-        severity: 'warn',
-        approx: a.approx || b.approx,
-      });
+      warnings.push(
+        warn(a, 'text_collision', `${a.label} overlaps ${b.label} for ${shared.toFixed(1)}s`, a.approx || b.approx)
+      );
     }
   }
 

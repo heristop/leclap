@@ -196,6 +196,179 @@ describe('collectBoxes', () => {
     expect(boxesOf(template, canvasFor('portrait'))[0].x).toBe(80 - BAR_PADDING / 2);
   });
 
+  it('measures an unrecognised font id in the preset font the renderer will fall back to', () => {
+    // `resolveFontFile` (which captionToFilters lowers with) resolves an unknown id to the style
+    // preset's file, so the render uses Oswald. A second resolution rule that returned null instead
+    // left the box on the 0.5em estimate: the same caption came back as "extends 218px past the
+    // frame edge" rather than "extends 55px past the title-safe margin", and flagged approximate.
+    const asked: string[] = [];
+    const metrics = (font: string): FontMetrics => {
+      asked.push(font);
+
+      return halfEmMetrics;
+    };
+    const template = {
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4 },
+          caption: { text: { en: 'ab' }, font: 'Helvetica', fontsize: 40 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const [box] = boxesOf(template, landscape, metrics);
+
+    expect(asked).toEqual(['Oswald.ttf']);
+    expect(box.approx).toBe(false);
+    expect(box.width).toBeCloseTo(2 * 0.5 * 40 + BAR_PADDING, 5);
+  });
+
+  it('refuses to measure a templated font id, which only resolves at render time', () => {
+    const asked: string[] = [];
+    const metrics = (font: string): FontMetrics => {
+      asked.push(font);
+
+      return halfEmMetrics;
+    };
+    const template = {
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4 },
+          caption: { text: { en: 'ab' }, font: '{{ brandFont }}', fontsize: 40 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const [box] = boxesOf(template, landscape, metrics);
+
+    expect(asked).toEqual([]);
+    expect(box.approx).toBe(true);
+  });
+
+  it('measures the string the section will actually draw, honouring options.upperCase', () => {
+    // FormatterManager.formatText uppercases every text value in a section carrying upperCase, and
+    // uppercase Latin runs wider. Measuring the authored casing reported a caption as clean that
+    // paints past the frame edge — with approx:false, i.e. as an exact measurement.
+    const wide: Record<number, number> = { 0x41: 1000, 0x61: 200 };
+    const metrics = (): FontMetrics => ({ unitsPerEm: 1000, advanceWidth: (cp: number) => wide[cp] ?? 500 });
+    const build = (options: Record<string, unknown>): TemplateDescriptor =>
+      ({
+        sections: [
+          {
+            type: 'color_background',
+            name: 'a',
+            options: { duration: 4, ...options },
+            caption: { text: { en: 'aaaa' }, fontsize: 40, box: false },
+          },
+        ],
+      }) as unknown as TemplateDescriptor;
+
+    expect(boxesOf(build({}), landscape, metrics)[0].width).toBeCloseTo(4 * 0.2 * 40, 5);
+    expect(boxesOf(build({ upperCase: true }), landscape, metrics)[0].width).toBeCloseTo(4 * 1.0 * 40, 5);
+  });
+
+  it('ignores sections the director never renders', () => {
+    // caption/lowerThird sit on the BASE section schema, so a form or music section may carry one —
+    // but only VIDEO_SEGMENT_TYPES reach the filtergraph, so no drawtext is ever emitted for them.
+    const template = {
+      sections: [
+        {
+          type: 'form',
+          name: 'f',
+          options: { duration: 4 },
+          caption: { text: { en: 'x'.repeat(200) }, fontsize: 96 },
+        },
+        { type: 'color_background', name: 'b', options: { duration: 3 }, caption: { text: { en: 'hi' } } },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const boxes = boxesOf(template);
+
+    expect(boxes).toHaveLength(1);
+    expect(boxes[0].path).toBe('sections[1].caption');
+    // The skipped section must not advance the modelled timeline either.
+    expect(boxes[0].startSec).toBe(0);
+  });
+
+  it('survives a malformed sections value instead of throwing out of an advisory checker', () => {
+    expect(boxesOf({ sections: 'nope' })).toEqual([]);
+    expect(boxesOf({ sections: [null] })).toEqual([]);
+  });
+
+  it('treats a fully transparent box as no box at all', () => {
+    // `boxOpacity: 0` is schema-valid and paints nothing, so it is neither a legibility aid nor
+    // 36px of padding — exactly how lowerThirdBandToken already treats the same value.
+    const template = {
+      sections: [
+        {
+          type: 'project_video',
+          name: 'clip',
+          options: { duration: 4 },
+          caption: { text: { en: 'ab' }, fontsize: 40, box: true, boxOpacity: 0 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const [box] = boxesOf(template);
+
+    expect(box.legibilityAid).toBe(false);
+    expect(box.width).toBeCloseTo(2 * 0.5 * 40, 5);
+  });
+
+  it('does not read a section background that layers composite over', () => {
+    // Layers paint on top of backgroundColor and default to the full frame, so an opaque one hides
+    // it completely — reading the covered colour reported 21:1 for white-on-white.
+    const template = {
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4, backgroundColor: '#000000', layers: [{ color: '#ffffff' }] },
+          caption: { text: { en: 'ab' }, fontsize: 40, box: false },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    expect(boxesOf(template)[0].backdrop).toBeNull();
+  });
+
+  it('does not treat a footage section options.backgroundColor as the text backdrop', () => {
+    // `backgroundColor` sits on the BASE section schema, so a project_video can carry one — but the
+    // clip is what is behind the text, not that colour. Compositing a translucent caption box over
+    // it reported a confident "#cccccc on #ffffff — contrast 1.6:1" for text drawn over footage.
+    const template = {
+      sections: [
+        {
+          type: 'project_video',
+          name: 'clip',
+          options: { duration: 4, backgroundColor: '#ffffff' },
+          caption: { text: { en: 'ab' }, fontsize: 40, box: true, boxColor: '#ffffff', boxOpacity: 0.2 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    expect(boxesOf(template)[0].backdrop).toBeNull();
+  });
+
+  it('reports an opaque backdrop without its redundant alpha suffix', () => {
+    const template = {
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4, backgroundColor: '#ffffff' },
+          caption: { text: { en: 'ab' }, fontsize: 40, box: true, boxColor: '#1a1a1a', boxOpacity: 1 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    expect(boxesOf(template)[0].backdrop).toBe('#1a1a1a');
+  });
+
   it('falls back to the estimate, and says so, when the font cannot render the text', () => {
     // A Latin-only face has no glyph for a CJK caption. Summing the missing advances as zero would
     // report a 0px-wide box: it fits any frame and overlaps nothing, so every rule stays silent.

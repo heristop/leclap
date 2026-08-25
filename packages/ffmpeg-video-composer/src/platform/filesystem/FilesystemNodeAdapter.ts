@@ -277,7 +277,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   // count. A fixed `../../../../` is only correct for one layout: it resolves from
   // `src/platform/filesystem/` (vitest, which aliases `@/` to source) and lands outside the repo
   // from `dist/` (every built consumer — the CLI, the MCP server, any library user). That is why
-  // `leclap validate` reported every geometry finding as "(approx: font not staged)" while the
+  // `leclap validate` reported every geometry finding as approximate while the
   // engine's own tests measured real glyphs: the two were resolving different trees.
   private async resolveBundledAsset(kind: string, file: string): Promise<string | null> {
     let moduleDir: string;

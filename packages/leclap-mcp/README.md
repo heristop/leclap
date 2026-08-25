@@ -28,8 +28,9 @@ Typical agent flow: `get_template_schema` → author an inline descriptor (optio
 `validate_template` also reports, render-free, text that would overflow the frame, collide with other
 text, or render too small to read. Those findings arrive on the optional `geometry` field — one line
 each, and the field is absent entirely when there is nothing to fix. They are advisory: `valid` stays
-`true`. A line ending `(approx: font not staged)` was estimated rather than measured, because the
-font it needed could not be read.
+`true`. A line ending `(approx: estimated, not measured)` was estimated rather than measured — either the
+font it needed could not be read, or the text carries a `{{ variable }}` that only resolves at
+render time.
 
 **Bring-your-own Remotion (optional).** If you have a Remotion project, `render_remotion_clip` renders
 one of its compositions — genuine motion graphics (spring physics, kinetic typography) an FFmpeg

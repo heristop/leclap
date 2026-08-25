@@ -27,8 +27,6 @@ const POSITION_Y: Record<string, string> = {
   'lower-third': `(h-text_h)-${CAPTION_ANCHOR_Y['lower-third'].offset}`,
 };
 
-const DEFAULT_POSITION = CAPTION_DEFAULT_POSITION;
-
 // Horizontal alignment expressions; `center` is the classic centred drawtext expression.
 const ALIGN_X: Record<string, string> = {
   left: String(CAPTION_ALIGN_MARGIN),
@@ -36,20 +34,23 @@ const ALIGN_X: Record<string, string> = {
   right: `w-text_w-${CAPTION_ALIGN_MARGIN}`,
 };
 
-const DEFAULT_ALIGN = CAPTION_DEFAULT_ALIGN;
+// `Object.hasOwn`, not `TABLE[key] ?? fallback` — the same guard `captionStyleValues` and
+// `captionAnchorY` already carry in caption-layout.ts. These two tables are plain objects, so they
+// inherit truthy `toString`/`constructor`/`__proto__`: `??` never reaches the fallback and hands
+// back a Function, which then stringifies into the drawtext `x`/`y` expression. The schema's
+// z.enum makes that unreachable for a validated descriptor, but compile() also accepts one straight
+// from a caller, and only one of the four lookups was guarded.
+function expressionFor(table: Record<string, string>, key: string | undefined, fallback: string): string {
+  const name = key ?? fallback;
 
-type StyleValues = CaptionStyleValues;
-
-// Box defaults applied when the caption explicitly turns a box ON but the preset had none.
-const DEFAULT_BOX_COLOR = CAPTION_DEFAULT_BOX_COLOR;
-const DEFAULT_BOX_OPACITY = CAPTION_DEFAULT_BOX_OPACITY;
-const DEFAULT_BOX_BORDER = CAPTION_DEFAULT_BOX_BORDER;
+  return Object.hasOwn(table, name) ? table[name] : table[fallback];
+}
 
 // Resolve the box drawtext values, layering caption overrides over the preset. Returns the empty
 // object when the box is off (preset default unless the caption explicitly toggles it). An explicit
 // boxColor/boxOpacity override (or a preset with no box) builds a fresh `#rrggbb@opacity` token;
 // otherwise the preset token is reused.
-function resolveBox(caption: Caption, preset: StyleValues): Record<string, unknown> {
+function resolveBox(caption: Caption, preset: CaptionStyleValues): Record<string, unknown> {
   const boxOn = caption.box ?? Boolean(preset.box);
 
   if (!boxOn) return {};
@@ -57,10 +58,10 @@ function resolveBox(caption: Caption, preset: StyleValues): Record<string, unkno
   const hasOverride = caption.boxColor !== undefined || caption.boxOpacity !== undefined;
   const boxcolor =
     hasOverride || preset.boxcolor === undefined
-      ? `${caption.boxColor ?? DEFAULT_BOX_COLOR}@${caption.boxOpacity ?? DEFAULT_BOX_OPACITY}`
+      ? `${caption.boxColor ?? CAPTION_DEFAULT_BOX_COLOR}@${caption.boxOpacity ?? CAPTION_DEFAULT_BOX_OPACITY}`
       : preset.boxcolor;
 
-  return { box: 1, boxcolor, boxborderw: preset.boxborderw ?? DEFAULT_BOX_BORDER };
+  return { box: 1, boxcolor, boxborderw: preset.boxborderw ?? CAPTION_DEFAULT_BOX_BORDER };
 }
 
 /**
@@ -80,8 +81,8 @@ export function captionToFilters(caption?: Caption): Filter[] {
     return [];
   }
 
-  const y = POSITION_Y[caption.position ?? DEFAULT_POSITION];
-  const x = ALIGN_X[caption.align ?? DEFAULT_ALIGN];
+  const y = expressionFor(POSITION_Y, caption.position, CAPTION_DEFAULT_POSITION);
+  const x = expressionFor(ALIGN_X, caption.align, CAPTION_DEFAULT_ALIGN);
   const preset = captionStyleValues(caption.style);
 
   const values: Record<string, unknown> = {

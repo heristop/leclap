@@ -73,11 +73,16 @@ async function stageClip(name = 'video_1'): Promise<Record<string, string>> {
   return { [name]: clip };
 }
 
+// The mocked `outputPath` is deliberately nested one level deeper than the temp root. On a
+// successful render `finalizeRender` calls `pruneRenderDir(path.dirname(outputPath))`, which
+// `fs.rm`s every entry in that directory except the deliverable — so mocking `/tmp/out.mp4` made
+// running this file delete the contents of the machine's entire /tmp. It cost a CI runner's scratch
+// space and several local scratch dirs before anyone noticed, because the suite still passed.
 describe('compose_video handler', () => {
   it('returns structuredContent on a successful render', async () => {
     runRenderMock.mockResolvedValue({
       ok: true,
-      outputPath: '/tmp/out.mp4',
+      outputPath: '/tmp/leclap-compose-test/out.mp4',
       durationSeconds: 12.5,
       sizeBytes: 2048,
       videoCodec: 'h264',
@@ -91,7 +96,7 @@ describe('compose_video handler', () => {
 
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent).toMatchObject({
-      outputPath: '/tmp/out.mp4',
+      outputPath: '/tmp/leclap-compose-test/out.mp4',
       durationSeconds: 12.5,
       sizeBytes: 2048,
       videoCodec: 'h264',
@@ -107,7 +112,7 @@ describe('compose_video handler', () => {
   it('passes the configured media dir as the engine assetsDir', async () => {
     runRenderMock.mockResolvedValue({
       ok: true,
-      outputPath: '/tmp/out.mp4',
+      outputPath: '/tmp/leclap-compose-test/out.mp4',
       durationSeconds: 1,
       sizeBytes: 1,
       videoCodec: 'h264',

@@ -15,7 +15,7 @@ const readPkg = (dir: string) => JSON.parse(readFileSync(join(repoRoot, dir, 'pa
 const SHIPPED_DEP_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies'] as const;
 
 // pnpm's `workspace:*` protocol is rewritten to a real version only when *pnpm* packs. Both
-// `changeset publish` and a hand-run `npm publish` shell out to npm, which ships the literal string
+// A hand-run `npm publish` shells out to npm, which ships the literal string
 // to the registry: @leclap/cli 0.2.2 and 0.2.3 and @leclap/mcp 0.3.0 and 0.3.1 all went out that way
 // and cannot be installed at all — `npm i @leclap/cli` dies with EUNSUPPORTEDPROTOCOL.
 //

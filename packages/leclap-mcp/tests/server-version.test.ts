@@ -24,7 +24,7 @@ describe('server version', () => {
   it('states no hardcoded version literal in the server identity', () => {
     const identity = source.match(/\{\s*name:\s*'leclap',[^}]*\}/)?.[0] ?? '';
     expect(identity, 'server identity block not found').not.toBe('');
-    expect(identity, 'a literal here drifts the moment changesets bumps the package').not.toMatch(
+    expect(identity, 'a literal here drifts the moment the package is bumped').not.toMatch(
       /version:\s*['"]\d+\.\d+\.\d+['"]/
     );
   });

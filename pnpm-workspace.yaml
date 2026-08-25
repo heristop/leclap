@@ -8,7 +8,7 @@ packages:
 #
 # @leclap/cli and @leclap/mcp declare that dependency as a plain semver range rather than
 # `workspace:*` on purpose: the protocol is rewritten only when *pnpm* packs, and both
-# `changeset publish` and a hand-run `npm publish` shell out to npm, which ships the literal string
+# A hand-run `npm publish` shells out to npm, which ships the literal string
 # "workspace:*". Four releases went out that way and could not be installed at all. A semver range
 # cannot be published wrong; this setting is what keeps local development linked to the source.
 linkWorkspacePackages: true

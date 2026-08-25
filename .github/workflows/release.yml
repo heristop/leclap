@@ -1,37 +1,42 @@
 name: Release
 
-# Changesets-driven release.
-#   - On every push to main: open/update the "Version Packages" PR (bumps versions +
-#     changelogs). This NEVER publishes.
-#   - Publishing is manual: trigger "Run workflow" (workflow_dispatch) to publish the
-#     bumped packages to npm + create GitHub releases.
-# See .changeset/ for the workflow and CONTRIBUTING for how to add a changeset.
+# Manual release, by design. There is no automation that decides a version for you and no bot that
+# opens a release PR — bumping a version and writing its changelog entry is a deliberate act done in
+# a normal PR, and publishing is a button someone presses afterwards.
+#
+# This replaced a Changesets setup whose push-to-main job could not work here at all: it tried to
+# open the "Version Packages" PR itself, and this repository does not allow GitHub Actions to create
+# pull requests ("GitHub Actions is not permitted to create or approve pull requests"), so every
+# push to main failed on a step that was never going to succeed.
+#
+# To release:
+#   1. In a PR, bump the version in the package's package.json and add its CHANGELOG.md entry.
+#   2. Merge it.
+#   3. Run this workflow (Actions → Release → Run workflow).
+#
+# `pnpm publish` skips any version already on the registry, so running this with nothing bumped is a
+# no-op rather than an error — safe to press when unsure.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+# Only what publishing needs. The old setup also asked for `pull-requests: write` for the bot PR;
+# nothing here opens a PR any more.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  version:
-    name: Version Packages PR
-    if: github.event_name == 'push'
+  publish:
+    name: Publish to npm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
-        with:
-          # Changesets needs full history to diff against the base branch and tag releases.
-          fetch-depth: 0
 
-      # No media step here on purpose. This job builds only ffmpeg-video-composer, @leclap/cli and
+      # No media step on purpose. This job builds only ffmpeg-video-composer, @leclap/cli and
       # @leclap/mcp — none of which depend on @leclap/creative-kit or embed any of its media: each
       # `build` is a bare tsdown over TypeScript entries, and every published `files` list is dist/
       # plus markdown. Assets are fetched at runtime from the raw-GitHub base URL in asset-source.ts.
@@ -45,49 +50,14 @@ jobs:
       - name: Install Dependencies
         run: pnpm i
 
-      - name: Create or Update Version Packages PR
-        uses: changesets/action@v1
-        with:
-          version: pnpm version-packages
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish:
-    name: Publish to npm
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
-        with:
-          # Changesets needs full history to diff against the base branch and tag releases.
-          fetch-depth: 0
-
-      # No media step here on purpose — see the note in the `version` job above. The published
-      # packages embed none of the creative-kit library.
-
-      # Toolchain pinned in mise.toml (Node, pnpm).
-      - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
-
-      - name: Install Dependencies
-        run: pnpm i
-
       # The published packages depend on ffmpeg-video-composer by plain semver range, never by pnpm's
-      # `workspace:*` protocol. That protocol only survives if pnpm does the packing; `changeset
-      # publish` and a bare `npm publish` both shell out to npm, which ships the literal string
-      # "workspace:*" to the registry — @leclap/cli 0.2.2/0.2.3 and @leclap/mcp 0.3.0/0.3.1 all went
-      # out that way and cannot be installed at all (EUNSUPPORTEDPROTOCOL).
-      #
-      # A semver range cannot be published wrong by any packer, so releasing works the same whether it
-      # runs here, via `pnpm release`, or via a hand-run `npm publish`.
-      # `tests/repo/package-metadata.test.ts` pins it.
+      # `workspace:*` protocol. That protocol only survives if pnpm does the packing; a bare
+      # `npm publish` ships the literal string "workspace:*" to the registry — @leclap/cli 0.2.2/0.2.3
+      # and @leclap/mcp 0.3.0/0.3.1 all went out that way and cannot be installed at all
+      # (EUNSUPPORTEDPROTOCOL). `tests/repo/package-metadata.test.ts` pins the semver range so a
+      # regression fails CI rather than the registry.
       - name: Publish Packages
-        uses: changesets/action@v1
-        with:
-          publish: pnpm release
+        run: pnpm release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

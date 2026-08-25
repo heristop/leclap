@@ -105,33 +105,43 @@ Pre-commit hooks (vite-plus staged checks) run `vp fmt` and `vp lint` on staged 
 
 ## Releasing
 
-Releases are managed with [Changesets](https://github.com/changesets/changesets). Only the three published packages are versioned independently: `ffmpeg-video-composer`, `@leclap/cli`, and `@leclap/mcp` (the apps and shared kits are private and skipped).
+Releases are manual, on purpose. Nothing decides a version for you and no bot opens a release PR —
+bumping a version is a deliberate act, reviewed like any other change.
 
-When a PR changes a published package, add a changeset describing the bump:
+Three packages are published and versioned independently: `ffmpeg-video-composer`, `@leclap/cli`,
+and `@leclap/mcp`. The apps and shared kits are private and never published.
 
-```bash
-pnpm changeset        # pick package(s), bump (patch/minor/major), write a summary
-```
+When a PR changes a published package, bump it in the same PR:
 
-Commit the generated `.changeset/*.md` file with your PR. The summary becomes the changelog entry, so write it for consumers.
+1. Raise the `version` in that package's `package.json`, following semver.
+2. Add the entry to that package's `CHANGELOG.md`, newest first. The format is
+   [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — a `## [x.y.z] - YYYY-MM-DD` heading
+   with `### Added` / `### Changed` / `### Fixed` sections. Write it for consumers, not for us.
+3. If nothing user-facing changed in a published package, bump nothing. Not every PR is a release.
 
-On merge to `main`, the [Release workflow](./.github/workflows/release.yml) takes over:
+Once merged, publish by running the [Release workflow](./.github/workflows/release.yml) from the
+Actions tab (**Actions → Release → Run workflow**). It builds the three packages and runs
+`pnpm release`. Publishing needs an `NPM_TOKEN` repository secret.
 
-1. With pending changesets, it opens/updates a **"Version Packages"** PR that bumps versions and writes each package's `CHANGELOG.md`.
-2. Merging that PR publishes the bumped packages to npm and creates GitHub releases.
+`pnpm publish` skips any version already on the registry, so running the workflow with nothing
+bumped is a no-op rather than an error — safe to press when you are unsure whether a release went
+out.
 
-Publishing requires an `NPM_TOKEN` repository secret.
+To publish from a checkout instead, `pnpm release` does the same thing. Use `pnpm`, never a bare
+`npm publish`: the published packages depend on `ffmpeg-video-composer` by plain semver range, and
+`npm` ships pnpm's `workspace:*` protocol to the registry verbatim, producing a release that cannot
+be installed at all. `tests/repo/package-metadata.test.ts` pins the range so a regression fails CI
+rather than the registry.
 
 ### Prereleases (beta)
 
-`ffmpeg-video-composer` is in a `2.0.0` beta cycle. To cut beta releases, enter prerelease mode once and commit the marker:
+Publish a prerelease by giving it a prerelease version and a dist-tag, so it never becomes
+`latest`:
 
 ```bash
-pnpm changeset pre enter beta   # creates .changeset/pre.json — commit it
+# in the package: set "version": "2.0.0-beta.1", then
+pnpm --filter ffmpeg-video-composer publish --tag beta --access public
 ```
 
-While in pre mode every managed package versions as `-beta.N`. Before the first stable `2.0.0`, leave pre mode:
-
-```bash
-pnpm changeset pre exit         # commit the removal
-```
+Consumers opt in with `pnpm add ffmpeg-video-composer@beta`. Promote a beta by publishing the
+stable version normally.

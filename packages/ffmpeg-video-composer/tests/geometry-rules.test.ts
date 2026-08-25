@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {
-  overflowWarnings,
-  legibilityWarnings,
-  collisionWarnings,
-  emptySectionWarnings,
-} from '@/services/geometry/rules';
-import type { Box, SectionSpan } from '@/services/geometry/text-boxes';
+import { overflowWarnings, legibilityWarnings, collisionWarnings } from '@/services/geometry/rules';
+import type { Box } from '@/services/geometry/text-boxes';
 
 const canvas = { width: 1280, height: 720 };
 
@@ -96,30 +91,5 @@ describe('collisionWarnings', () => {
     const b = box({ path: 'sections[1].caption', startSec: 0, endSec: 5 });
 
     expect(collisionWarnings([a, b])).toHaveLength(1);
-  });
-});
-
-describe('emptySectionWarnings', () => {
-  function span(overrides: Partial<SectionSpan> = {}): SectionSpan {
-    return { path: 'sections[0]', label: 'Section "a"', duration: 4, ...overrides };
-  }
-
-  it('says nothing about a section with a positive duration', () => {
-    expect(emptySectionWarnings([span({ duration: 4 })])).toEqual([]);
-  });
-
-  it('flags a zero-duration section', () => {
-    const warnings = emptySectionWarnings([span({ duration: 0 })]);
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0].code).toBe('empty_section');
-    expect(warnings[0].severity).toBe('warn');
-  });
-
-  it('flags a negative-duration section', () => {
-    const warnings = emptySectionWarnings([span({ duration: -2 })]);
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0].code).toBe('empty_section');
   });
 });

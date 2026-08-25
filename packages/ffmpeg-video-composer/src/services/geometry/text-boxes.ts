@@ -15,15 +15,6 @@ export interface Box {
   approx: boolean;
 }
 
-// A section's slot on the timeline, independent of whether it carries any text. `emptySectionWarnings`
-// (rules.ts) reads these to flag a section that will render nothing, which a Box-only view cannot see
-// since a textless section never produces a Box at all.
-export interface SectionSpan {
-  path: string;
-  label: string;
-  duration: number;
-}
-
 export interface Canvas {
   width: number;
   height: number;
@@ -284,22 +275,12 @@ export function collectBoxes(
 
     boxes.push(...lowerThirdBoxes(section, placement));
 
-    // A negative or zero duration must not rewind the cursor: one bad section would otherwise shift
-    // every later box's timeline, turning one `empty_section` finding into a cascade of bogus ones.
+    // A negative duration must not rewind the cursor. The schema forbids one (`z.number().positive()`),
+    // so this is unreachable from a validated descriptor — but `collectBoxes` is exported and may be
+    // handed unvalidated input, where one bad section would shift every later box's window and turn a
+    // single authoring mistake into a cascade of bogus collision findings.
     cursorSec += Math.max(duration, 0);
   }
 
   return boxes;
-}
-
-// One entry per section regardless of whether it carries any text, so `emptySectionWarnings` can flag
-// a zero/negative-duration section even when it has no caption or lowerThird to produce a Box.
-export function collectSectionSpans(template: TemplateDescriptor): SectionSpan[] {
-  const sections = template.sections ?? [];
-
-  return sections.map((section, index) => ({
-    path: `sections[${index}]`,
-    label: `Section "${sectionLabel(section, index)}"`,
-    duration: sectionDuration(section),
-  }));
 }

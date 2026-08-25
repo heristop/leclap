@@ -1,20 +1,8 @@
 import { findFont, DEFAULT_FONT_ID } from '@/core/fonts';
 import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import {
-  canvasFor,
-  collectBoxes,
-  collectSectionSpans,
-  LOWER_THIRD_TITLE_FONT,
-  LOWER_THIRD_SUBTITLE_FONT,
-} from './text-boxes';
-import {
-  collisionWarnings,
-  emptySectionWarnings,
-  legibilityWarnings,
-  overflowWarnings,
-  type GeometryWarning,
-} from './rules';
+import { canvasFor, collectBoxes, LOWER_THIRD_TITLE_FONT, LOWER_THIRD_SUBTITLE_FONT } from './text-boxes';
+import { collisionWarnings, legibilityWarnings, overflowWarnings, type GeometryWarning } from './rules';
 // FontLoader lives in bundled-font-loader.ts, not here, so this barrel only ever imports *from* that
 // module — never the reverse — keeping the re-export of `createBundledFontLoader` below cycle-free.
 import type { FontLoader } from './bundled-font-loader';
@@ -105,12 +93,9 @@ export async function collectGeometryWarnings(
   const canvas = canvasFor(template.global?.orientation);
   const metrics = await loadMetrics(template, loadFont);
   const boxes = collectBoxes(template, (font) => metrics.get(font ?? DEFAULT_FONT_ID) ?? null);
-  const spans = collectSectionSpans(template);
 
-  return [
-    ...overflowWarnings(boxes, canvas),
-    ...legibilityWarnings(boxes, canvas),
-    ...collisionWarnings(boxes),
-    ...emptySectionWarnings(spans),
-  ].slice(0, MAX_WARNINGS);
+  return [...overflowWarnings(boxes, canvas), ...legibilityWarnings(boxes, canvas), ...collisionWarnings(boxes)].slice(
+    0,
+    MAX_WARNINGS
+  );
 }

@@ -145,16 +145,6 @@ describe('collectGeometryWarnings', () => {
     expect(warnings.some((w) => w.code === 'text_collision')).toBe(true);
   });
 
-  it('flags a zero/negative-duration section as empty_section', async () => {
-    const template = {
-      sections: [{ type: 'color_background', name: 'a', options: { duration: -1 } }],
-    } as unknown as TemplateDescriptor;
-
-    const warnings = await collectGeometryWarnings(template);
-
-    expect(warnings.some((w) => w.code === 'empty_section')).toBe(true);
-  });
-
   it('does not reject when the loader throws', async () => {
     const throwing = async (): Promise<Uint8Array | null> => {
       throw new Error('disk on fire');

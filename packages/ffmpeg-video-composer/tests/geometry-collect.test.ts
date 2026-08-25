@@ -158,6 +158,103 @@ describe('collectGeometryWarnings', () => {
     expect(warnings.some((w) => w.code === 'text_collision')).toBe(true);
   });
 
+  it('reports low contrast when a caption colour and its opaque box colour are both dark', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4, backgroundColor: '#ffffff' },
+          caption: {
+            text: { en: 'Short' },
+            fontsize: 40,
+            color: '#333333',
+            box: true,
+            boxColor: '#1a1a1a',
+            boxOpacity: 1,
+          },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_low_contrast')).toBe(true);
+  });
+
+  it('reports no low contrast for the default bar caption on a light section background', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options: { duration: 4, backgroundColor: '#ffffff' },
+          caption: { text: { en: 'Short' }, fontsize: 40 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_low_contrast')).toBe(false);
+  });
+
+  it('flags a caption drawn over footage with no box, shadow or outline', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'project_video',
+          name: 'clip',
+          options: { duration: 4 },
+          caption: { text: { en: 'Short' }, fontsize: 40, box: false },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_unreadable_over_footage')).toBe(true);
+  });
+
+  it('does not flag the same caption once it carries a shadow', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'project_video',
+          name: 'clip',
+          options: { duration: 4 },
+          caption: { text: { en: 'Short' }, fontsize: 40, box: false, effect: { shadow: true } },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_unreadable_over_footage')).toBe(false);
+  });
+
+  it('does not flag a boxed caption over footage even without a known backdrop', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'project_video',
+          name: 'clip',
+          options: { duration: 4 },
+          caption: { text: { en: 'Short' }, fontsize: 40, box: true, boxOpacity: 0.3 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const warnings = await collectGeometryWarnings(template);
+
+    expect(warnings.some((w) => w.code === 'text_unreadable_over_footage')).toBe(false);
+  });
+
   it('does not reject when the loader throws', async () => {
     const throwing = async (): Promise<Uint8Array | null> => {
       throw new Error('disk on fire');

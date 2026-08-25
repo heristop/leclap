@@ -3,7 +3,14 @@ import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import { captionStyleValues } from '@/editor/presets/caption-layout';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
 import { canvasFor, collectBoxes, LOWER_THIRD_TITLE_FONT, LOWER_THIRD_SUBTITLE_FONT } from './text-boxes';
-import { collisionWarnings, legibilityWarnings, overflowWarnings, type GeometryWarning } from './rules';
+import {
+  collisionWarnings,
+  contrastWarnings,
+  footageLegibilityWarnings,
+  legibilityWarnings,
+  overflowWarnings,
+  type GeometryWarning,
+} from './rules';
 // FontLoader lives in bundled-font-loader.ts, not here, so this barrel only ever imports *from* that
 // module — never the reverse — keeping the re-export of `createBundledFontLoader` below cycle-free.
 import type { FontLoader } from './bundled-font-loader';
@@ -103,7 +110,12 @@ export async function collectGeometryWarnings(
   const metrics = await loadMetrics(template, loadFont);
   const boxes = collectBoxes(template, canvas, (font) => metrics.get(font) ?? null);
 
-  const findings = [...overflowWarnings(boxes, canvas), ...legibilityWarnings(boxes, canvas)];
+  const findings = [
+    ...overflowWarnings(boxes, canvas),
+    ...legibilityWarnings(boxes, canvas),
+    ...contrastWarnings(boxes),
+    ...footageLegibilityWarnings(boxes),
+  ];
 
   // Collisions run last and are told how much of the budget is left, so a template that already
   // filled the report with overflow findings doesn't also pay for a full pairwise sweep whose

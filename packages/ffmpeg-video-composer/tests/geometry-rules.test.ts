@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { overflowWarnings, legibilityWarnings, collisionWarnings } from '@/services/geometry/rules';
+import {
+  overflowWarnings,
+  legibilityWarnings,
+  collisionWarnings,
+  contrastWarnings,
+  footageLegibilityWarnings,
+} from '@/services/geometry/rules';
 import type { Box } from '@/services/geometry/text-boxes';
 
 const canvas = { width: 1280, height: 720 };
@@ -16,6 +22,11 @@ function box(overrides: Partial<Box> = {}): Box {
     startSec: 0,
     endSec: 5,
     approx: false,
+    color: null,
+    backdrop: null,
+    // Defaults to "handled" so a test exercising an unrelated rule never trips the footage rule
+    // by accident; the contrast/footage describe blocks below override this explicitly.
+    legibilityAid: true,
     ...overrides,
   };
 }
@@ -128,5 +139,59 @@ describe('collisionWarnings', () => {
     const b = box({ path: 'sections[1].caption', startSec: 0, endSec: 5 });
 
     expect(collisionWarnings([a, b])).toHaveLength(1);
+  });
+});
+
+describe('contrastWarnings', () => {
+  it('says nothing when either colour is missing', () => {
+    expect(contrastWarnings([box({ color: null, backdrop: '#000000' })])).toEqual([]);
+    expect(contrastWarnings([box({ color: '#ffffff', backdrop: null })])).toEqual([]);
+  });
+
+  it('says nothing when either colour is unparseable, rather than guessing', () => {
+    expect(contrastWarnings([box({ color: '{{ accent }}', backdrop: '#000000' })])).toEqual([]);
+  });
+
+  it('says nothing about text that clears the 3:1 floor', () => {
+    expect(contrastWarnings([box({ color: '#f5f5f0', backdrop: '#141416' })])).toEqual([]);
+  });
+
+  it('flags text below the 3:1 floor, carrying both colours and the ratio', () => {
+    const warnings = contrastWarnings([box({ path: 'sections[0].caption', color: '#333333', backdrop: '#1a1a1a' })]);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_low_contrast');
+    expect(warnings[0].severity).toBe('warn');
+    expect(warnings[0].message).toBe('sections[0].caption: #333333 on #1a1a1a — contrast 1.4:1, below the 3:1 minimum');
+  });
+
+  it('is never approximate, regardless of the box own approx flag', () => {
+    const warnings = contrastWarnings([box({ color: '#333333', backdrop: '#1a1a1a', approx: true })]);
+
+    expect(warnings[0].approx).toBe(false);
+  });
+});
+
+describe('footageLegibilityWarnings', () => {
+  it('says nothing when the backdrop is known', () => {
+    expect(footageLegibilityWarnings([box({ backdrop: '#141416', legibilityAid: false })])).toEqual([]);
+  });
+
+  it('says nothing when a box, shadow or outline already handles it', () => {
+    expect(footageLegibilityWarnings([box({ backdrop: null, legibilityAid: true })])).toEqual([]);
+  });
+
+  it('flags text over an unknown backdrop with no box, shadow or outline', () => {
+    const warnings = footageLegibilityWarnings([
+      box({ path: 'sections[1].caption', backdrop: null, legibilityAid: false }),
+    ]);
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].code).toBe('text_unreadable_over_footage');
+    expect(warnings[0].severity).toBe('warn');
+    expect(warnings[0].approx).toBe(false);
+    expect(warnings[0].message).toBe(
+      'sections[1].caption: drawn over footage with no box, shadow or outline — legibility depends on the clip'
+    );
   });
 });

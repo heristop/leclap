@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canvasFor, collectBoxes, collectSectionSpans } from '@/services/geometry/text-boxes';
+import { canvasFor, collectBoxes } from '@/services/geometry/text-boxes';
 import type { TemplateDescriptor } from '@/schemas/template.schemas';
 
 // A stand-in for real font metrics: every glyph is half an em wide. Keeps these tests about
@@ -194,34 +194,5 @@ describe('collectBoxes', () => {
     // Without the clamp this would be -3, corrupting every box after the bad section.
     expect(box.startSec).toBe(0);
     expect(box.endSec).toBe(4);
-  });
-});
-
-describe('collectSectionSpans', () => {
-  it('returns one span per section regardless of whether it carries text', () => {
-    const template = {
-      sections: [
-        { type: 'color_background', name: 'a', options: { duration: 3 } },
-        { type: 'color_background', name: 'b', options: { duration: -1 } },
-      ],
-    } as unknown as TemplateDescriptor;
-
-    const spans = collectSectionSpans(template);
-
-    expect(spans).toEqual([
-      { path: 'sections[0]', label: 'Section "a"', duration: 3 },
-      { path: 'sections[1]', label: 'Section "b"', duration: -1 },
-    ]);
-  });
-
-  it('falls back to a positional label for an unnamed section', () => {
-    const template = {
-      sections: [{ type: 'color_background', options: { duration: 3 } }],
-    } as unknown as TemplateDescriptor;
-
-    const [span] = collectSectionSpans(template);
-
-    expect(span.label).not.toContain('undefined');
-    expect(span.label).toContain('sections[0]');
   });
 });

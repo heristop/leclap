@@ -1,4 +1,4 @@
-import type { Box, Canvas, SectionSpan } from './text-boxes';
+import type { Box, Canvas } from './text-boxes';
 
 // Advisory only. Nothing here is ever an `error`: a template that renders badly still renders, and
 // failing a build over a legibility hint would make `leclap validate` unusable in CI.
@@ -69,29 +69,6 @@ export function legibilityWarnings(boxes: Box[], canvas: Canvas): GeometryWarnin
         `${box.label}: ${Math.round(fontSize)}px is ${percent}% of frame height (minimum ${(MIN_LEGIBLE_RATIO * 100).toFixed(1)}%)`
       )
     );
-  }
-
-  return warnings;
-}
-
-// A section whose effective duration is zero or negative renders nothing: the plan promised this
-// check but it never existed. Advisory, same as every other rule here — a bad duration is a hint,
-// not a build failure.
-export function emptySectionWarnings(spans: SectionSpan[]): GeometryWarning[] {
-  const warnings: GeometryWarning[] = [];
-
-  for (const span of spans) {
-    if (span.duration > 0) {
-      continue;
-    }
-
-    warnings.push({
-      path: span.path,
-      message: `${span.label}: duration is ${span.duration}s — the section renders nothing`,
-      code: 'empty_section',
-      severity: 'warn',
-      approx: false,
-    });
   }
 
   return warnings;

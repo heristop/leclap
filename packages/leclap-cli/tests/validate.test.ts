@@ -60,7 +60,15 @@ describe('formatValidation with geometry warnings', () => {
   it('prints warnings even when the template is valid', () => {
     const output = formatValidation({
       success: true,
-      warnings: [{ path: 'sections[0].caption', message: 'overflows the safe width by 84px' }],
+      warnings: [
+        {
+          path: 'sections[0].caption',
+          message: 'overflows the safe width by 84px',
+          code: 'text_overflow',
+          severity: 'warn',
+          approx: false,
+        },
+      ],
     })
       .map(plain)
       .join('\n');
@@ -72,7 +80,9 @@ describe('formatValidation with geometry warnings', () => {
   it('still reports success when the only findings are warnings', () => {
     const output = formatValidation({
       success: true,
-      warnings: [{ path: 'sections[0].caption', message: 'too small' }],
+      warnings: [
+        { path: 'sections[0].caption', message: 'too small', code: 'text_too_small', severity: 'warn', approx: false },
+      ],
     })
       .map(plain)
       .join('\n');
@@ -92,7 +102,15 @@ describe('exitCodeFor', () => {
     expect(
       exitCodeFor({
         success: true,
-        warnings: [{ path: 'sections[0].caption', message: 'too small' }],
+        warnings: [
+          {
+            path: 'sections[0].caption',
+            message: 'too small',
+            code: 'text_too_small',
+            severity: 'warn',
+            approx: false,
+          },
+        ],
       })
     ).toBe(0);
   });

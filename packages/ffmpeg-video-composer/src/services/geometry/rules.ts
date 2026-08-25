@@ -1,3 +1,4 @@
+import { contrastRatio, parseColor } from '@/core/color-contrast';
 import type { Box, Canvas } from './text-boxes';
 
 // Advisory only. Nothing here is ever an `error`: a template that renders badly still renders, and
@@ -100,6 +101,68 @@ export function legibilityWarnings(boxes: Box[], canvas: Canvas): GeometryWarnin
         `${box.label}: ${Math.round(fontSize)}px is ${percent}% of frame height (minimum ${(MIN_LEGIBLE_RATIO * 100).toFixed(1)}%)`
       )
     );
+  }
+
+  return warnings;
+}
+
+// WCAG AA for large text (the 4.5:1 minimum is for normal text; captions/lower-thirds/title cards
+// all render well above that size threshold).
+const MIN_TEXT_CONTRAST = 3.0;
+
+// Exact colour tokens, not font metrics, so a finding here is never an estimate: `approx` is
+// always false regardless of the box's own approx flag.
+export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
+  const warnings: GeometryWarning[] = [];
+
+  for (const box of boxes) {
+    if (!box.color || !box.backdrop) {
+      continue;
+    }
+
+    const text = parseColor(box.color);
+    const backdrop = parseColor(box.backdrop);
+
+    if (!text || !backdrop) {
+      continue;
+    }
+
+    const ratio = contrastRatio(text.rgb, backdrop.rgb);
+
+    if (ratio >= MIN_TEXT_CONTRAST) {
+      continue;
+    }
+
+    warnings.push({
+      path: box.path,
+      message: `${box.path}: ${box.color} on ${box.backdrop} — contrast ${ratio.toFixed(1)}:1, below the ${MIN_TEXT_CONTRAST}:1 minimum`,
+      code: 'text_low_contrast',
+      severity: 'warn',
+      approx: false,
+    });
+  }
+
+  return warnings;
+}
+
+// Fires only on the conjunction: unknown backdrop (footage/image, or an unparseable custom colour)
+// AND no box/band AND no shadow/outline. Any one of those is the author having already handled
+// legibility, so warning anyway would fire on most templates and turn the report into noise.
+export function footageLegibilityWarnings(boxes: Box[]): GeometryWarning[] {
+  const warnings: GeometryWarning[] = [];
+
+  for (const box of boxes) {
+    if (box.backdrop !== null || box.legibilityAid) {
+      continue;
+    }
+
+    warnings.push({
+      path: box.path,
+      message: `${box.path}: drawn over footage with no box, shadow or outline — legibility depends on the clip`,
+      code: 'text_unreadable_over_footage',
+      severity: 'warn',
+      approx: false,
+    });
   }
 
   return warnings;

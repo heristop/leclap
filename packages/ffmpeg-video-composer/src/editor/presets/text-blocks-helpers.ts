@@ -1,4 +1,5 @@
 import type { Filter } from '@/core/types';
+import type { FontInput } from '@/core/fonts';
 import {
   type RevealInput,
   type TextEffect,
@@ -24,7 +25,7 @@ export type LineSpec = {
   text: Translation | undefined;
   x: string;
   y: number;
-  font: string;
+  font: FontInput;
   size: number;
   color: string;
 };

@@ -34,3 +34,42 @@ export function findFontByFile(file: string): FontEntry | undefined {
 }
 
 export const DEFAULT_FONT_ID = 'rubik';
+
+// ---------------------------------------------------------------------------
+// resolved fonts — a font named by family rather than by bundled file
+// ---------------------------------------------------------------------------
+//
+// The curated registry above covers the fonts LeClap ships. A `FontRef` names any other family and
+// is resolved on demand (see `google-fonts.ts`). It is deliberately an OBJECT so it stays
+// structurally distinct from a registry id: a typo in `"bebas"` remains a local validator error
+// instead of turning into a network round-trip that fails mid-render.
+export interface FontRef {
+  family: string;
+  /** 100–900 in steps of 100. Defaults to 400. */
+  weight?: number;
+  style?: 'normal' | 'italic';
+}
+
+/** A font as authored: a registry id, a raw `.ttf` filename, or a resolved family. */
+export type FontInput = string | FontRef;
+
+export const DEFAULT_FONT_WEIGHT = 400;
+
+export function isFontRef(font: FontInput | undefined): font is FontRef {
+  return typeof font === 'object' && typeof font.family === 'string';
+}
+
+// The staged filename for a ref. This is a CACHE KEY ONLY — it is written, never parsed back.
+// Decoding a slug into a family name is lossy exactly where it matters ("Press Start 2P" →
+// `press-start-2p` → ?), which is the guess that made the old filename-derived lookup wrong.
+export function fontRefSlug(ref: FontRef): string {
+  const family = ref.family
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const weight = ref.weight ?? DEFAULT_FONT_WEIGHT;
+  const italic = ref.style === 'italic' ? '-italic' : '';
+
+  return `google-${family}-${weight}${italic}.ttf`;
+}

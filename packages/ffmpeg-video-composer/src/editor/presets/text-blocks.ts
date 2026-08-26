@@ -1,4 +1,5 @@
 import type { Filter, GlobalTextOverlay } from '@/core/types';
+import type { FontInput } from '@/core/fonts';
 import {
   type RevealInput,
   type TextEffect,
@@ -27,7 +28,7 @@ const DEFAULT_BAND_OPACITY = 0.6;
 // colour, so existing cards render identically.
 export type TitleCardLineStyle = {
   /** Font id (bundled registry) or a raw .ttf filename. */
-  font?: string;
+  font?: FontInput;
   /** Font size in px; overrides the scale-derived size. */
   fontsize?: number;
   /** Text colour as a CSS hex string. */
@@ -39,7 +40,7 @@ export type TitleCardLineStyle = {
 function styledLook(
   defaults: { font: string; size: number; color: string },
   style: TitleCardLineStyle | undefined
-): { font: string; size: number; color: string } {
+): { font: FontInput; size: number; color: string } {
   return {
     font: resolveFontFile(style?.font, defaults.font),
     size: style?.fontsize ?? defaults.size,

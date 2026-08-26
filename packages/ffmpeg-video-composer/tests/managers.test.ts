@@ -46,7 +46,7 @@ function createSegment(currentSection?: Section) {
     mapsList: [] as string[],
     assetsDir: '',
     fontsDir: '',
-    tempFonts: [] as string[],
+    tempFonts: [] as { file: string; ref?: { family: string; weight?: number; style?: string } }[],
     lutsDir: '',
     tempLuts: [] as string[],
     inputsAsset: [] as string[],
@@ -399,7 +399,7 @@ describe('FormatterManager', () => {
       const filter = { type: 'drawtext', values: { fontfile: 'Roboto-Bold.ttf' } } as unknown as Filter;
       const result = manager.formatMultipleTypesValues(filter);
       expect(result).toContain('fontfile=');
-      expect(segment.tempFonts).toContain('Roboto-Bold.ttf');
+      expect(segment.tempFonts).toContainEqual({ file: 'Roboto-Bold.ttf' });
     });
 
     it('fontfile defaults to empty string when not provided', () => {
@@ -476,15 +476,44 @@ describe('FormatterManager', () => {
       segment.fontsDir = '/fonts';
       const result = manager.formatFont('NewFont.ttf');
       expect(result).toBe('/fonts/NewFont.ttf');
-      expect(segment.tempFonts).toContain('NewFont.ttf');
+      expect(segment.tempFonts).toContainEqual({ file: 'NewFont.ttf' });
     });
 
     it('does not re-queue a font already in tempFonts', () => {
       const { manager, segment } = build({ section: { name: 's', type: 'video' } });
       segment.fontsDir = '/fonts';
-      segment.tempFonts.push('Existing.ttf');
+      segment.tempFonts.push({ file: 'Existing.ttf' });
       manager.formatFont('Existing.ttf');
-      expect(segment.tempFonts.filter((f) => f === 'Existing.ttf')).toHaveLength(1);
+      expect(segment.tempFonts.filter((f) => f.file === 'Existing.ttf')).toHaveLength(1);
+    });
+
+    // A font named by family is staged under a slug derived from family+weight+style, and the ref
+    // travels with it so the download requests that exact face rather than guessing from the name.
+    it('queues a FontRef under its slug and keeps the ref alongside', () => {
+      const { manager, segment } = build({ section: { name: 's', type: 'video' } });
+      segment.fontsDir = '/fonts';
+      const result = manager.formatFont({ family: 'Playfair Display', weight: 700 });
+      expect(result).toBe('/fonts/google-playfair-display-700.ttf');
+      expect(segment.tempFonts).toContainEqual({
+        file: 'google-playfair-display-700.ttf',
+        ref: { family: 'Playfair Display', weight: 700 },
+      });
+    });
+
+    it('does not re-queue the same family and weight twice', () => {
+      const { manager, segment } = build({ section: { name: 's', type: 'video' } });
+      segment.fontsDir = '/fonts';
+      manager.formatFont({ family: 'Inter', weight: 700 });
+      manager.formatFont({ family: 'Inter', weight: 700 });
+      expect(segment.tempFonts).toHaveLength(1);
+    });
+
+    it('queues two weights of one family separately', () => {
+      const { manager, segment } = build({ section: { name: 's', type: 'video' } });
+      segment.fontsDir = '/fonts';
+      manager.formatFont({ family: 'Inter', weight: 400 });
+      manager.formatFont({ family: 'Inter', weight: 700 });
+      expect(segment.tempFonts).toHaveLength(2);
     });
   });
 

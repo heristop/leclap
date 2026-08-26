@@ -76,6 +76,13 @@ async function estimateStorageUsage(): Promise<{ used: number; available?: numbe
 
 @injectable()
 class BrowserFilesystemAdapter extends AbstractFilesystem {
+  // A browser cannot override the User-Agent on a fetch, and Google keys the CSS response format off
+  // it — so this platform only ever receives woff2, which drawtext cannot read. Declaring no support
+  // makes a font named by family fail up front with an explanation, rather than downloading a file
+  // the renderer silently ignores and emitting a video in the wrong typeface. Web apps ship the
+  // fonts they need instead (see the bundled-font preload in the web app).
+  override readonly supportsRemoteFonts = false;
+
   private readonly dbName = 'leclap-fs';
   private readonly dbVersion = 1;
   private readonly storeName = 'files';

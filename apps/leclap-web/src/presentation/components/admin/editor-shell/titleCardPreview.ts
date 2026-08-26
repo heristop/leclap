@@ -3,7 +3,7 @@
 // text-blocks.ts): the same margins, y positions, font files and colours, computed in engine px
 // (with the engine's rounding) then rescaled to the preview frame. Reveal/fade are entrance
 // animations — the preview renders the resting (fully revealed) state.
-import { findFont, findFontByFile } from '@leclap/creative-kit/fonts';
+import { findFont, findFontByFile, isFontRef, type FontInput } from '@leclap/creative-kit/fonts';
 import type { TitleCard, Orientation } from '../templateEditorModel';
 import {
   ENGINE_FRAME,
@@ -33,10 +33,14 @@ type LineSpec = {
   style?: LineStyle;
 };
 
-// A styled font id → its CSS family; a raw .ttf resolved by file name; anything unknown keeps the
-// preset family (the engine's resolveFontFile falls back the same way).
-function lineFontFamily(font: string | undefined, presetFamily: string): string {
+// A styled font id → its CSS family; a raw .ttf resolved by file name; a font named by family uses
+// that family verbatim (a Google family name IS its CSS family name, so the preview matches the
+// render as long as the browser has the face); anything unknown keeps the preset family (the
+// engine's resolveFontFile falls back the same way).
+function lineFontFamily(font: FontInput | undefined, presetFamily: string): string {
   if (!font) return presetFamily;
+
+  if (isFontRef(font)) return font.family;
 
   const byId = findFont(font);
 

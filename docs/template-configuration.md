@@ -330,10 +330,47 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 | `style`                           | preset        | Visual preset (default `bar`).                                                  |
 | `position`                        | enum          | Vertical placement (default `lower-third`).                                     |
 | `align`                           | enum          | Horizontal alignment (default `center`).                                        |
-| `font` / `fontsize` / `color`     | overrides     | Override the preset's font (bundled id or `.ttf`), size (px), colour (hex).     |
+| `font` / `fontsize` / `color`     | overrides     | Override the preset's font (see [Fonts](#fonts)), size (px), colour (hex).      |
 | `box` / `boxColor` / `boxOpacity` | box style     | Background box behind the text, its colour (hex) and opacity (0..1).            |
 | `reveal`                          | `Reveal`      | Animated entrance (see [Reveal](#reveal)).                                      |
 | `effect`                          | `TextEffect`  | Drop shadow / outline for legibility (see [Text legibility](#text-legibility)). |
+
+## Fonts
+
+`font` accepts three forms anywhere a text sugar takes one (`caption`, `titleCard` line styles, `global.overlays`):
+
+| Form                          | Resolved                       | Example                                        |
+| ----------------------------- | ------------------------------ | ---------------------------------------------- |
+| Bundled registry id           | locally, offline               | `"font": "bebas"`                              |
+| Raw `.ttf` filename           | bundled / catalog, else remote | `"font": "Oswald.ttf"`                         |
+| `{ family, weight?, style? }` | downloaded from Google Fonts   | `"font": { "family": "Inter", "weight": 700 }` |
+
+The object form names any Google Fonts family, including multi-word ones, and picks an exact weight
+(`100`–`900` in steps of 100, default `400`) and `style` (`normal` / `italic`, default `normal`):
+
+```json
+{ "caption": { "text": { "en": "Hello" }, "font": { "family": "Playfair Display", "weight": 700, "style": "italic" } } }
+```
+
+It is deliberately a different _shape_ from the string forms rather than another string: a typo in a
+registry id (`"bebbas"`) stays a local `unknown_font` validation error instead of becoming a network
+lookup that fails mid-render. The trade-off is that a family name is **not** checked at validation
+time — there is no offline copy of Google's catalogue — so a family that does not exist surfaces as a
+resolution error during the render, naming the family.
+
+**Staging order.** A font is resolved from the cheapest source first: already staged → bundled with
+the package → a persistent on-disk cache → the catalog → Google Fonts. A font that cannot be resolved
+**fails the render**; it is never skipped, because a missing font does not stop `drawtext` — it just
+draws with the wrong face, so the only symptom would be a silently wrong video.
+
+**Caching.** A downloaded face is copied into `~/.cache/leclap/fonts` (override with
+`FVC_FONT_CACHE_DIR`), which outlives the build directory, so a repeat render of the same font needs
+no network and does not re-hit Google's rate limit.
+
+**Platform support.** Resolving a font by family requires sending a legacy `User-Agent` — Google keys
+the response format off it and otherwise returns woff2, which `drawtext` cannot read. Node and Expo
+can do this; a browser cannot override the header, so the browser/WASM backend rejects the object form
+up front with an explanatory error. Web apps should ship the fonts they need instead.
 
 ## Text legibility
 
@@ -708,7 +745,7 @@ A complete, valid descriptor exercising the structured-sugar layer: a layered ti
 
 ## Validating
 
-Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. Cross-field rules also flag: a whole-video animation with no url (`global_animation_missing_url`) and a `caption`/`global.overlays` `font` that is neither a bundled id nor a `.ttf` filename (`unknown_font` — a typo would otherwise silently fall back to the default font). After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
+Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. Cross-field rules also flag: a whole-video animation with no url (`global_animation_missing_url`) and a `caption`/`global.overlays` `font` string that is neither a bundled id nor a `.ttf` filename (`unknown_font` — a typo would otherwise silently fall back to the default font; the `{ family }` object form is checked at render time instead, see [Fonts](#fonts)). After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
 
 ## Migrating older templates
 

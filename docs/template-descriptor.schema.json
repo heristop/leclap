@@ -364,8 +364,35 @@
                 "enum": ["top-left", "top-right", "bottom-left", "bottom-right", "top", "bottom", "center"]
               },
               "font": {
-                "description": "Font id or .ttf filename (default Oswald).",
-                "type": "string"
+                "description": "Font id, .ttf filename, or { family, weight, style } for any Google Fonts family (default Oswald).",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "family": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                      },
+                      "weight": {
+                        "description": "Font weight 100..900 in steps of 100 (default 400).",
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 900
+                      },
+                      "style": {
+                        "description": "Font style (default normal).",
+                        "type": "string",
+                        "enum": ["normal", "italic"]
+                      }
+                    },
+                    "required": ["family"],
+                    "additionalProperties": false
+                  }
+                ]
               },
               "size": {
                 "description": "Font size in px; default derived from the output height.",
@@ -1934,8 +1961,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",
@@ -4014,8 +4068,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",
@@ -6136,8 +6217,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",
@@ -8216,8 +8324,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",
@@ -8915,8 +9050,35 @@
                     "type": "object",
                     "properties": {
                       "font": {
-                        "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                        "type": "string"
+                        "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "family": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                              },
+                              "weight": {
+                                "description": "Font weight 100..900 in steps of 100 (default 400).",
+                                "type": "integer",
+                                "minimum": 100,
+                                "maximum": 900
+                              },
+                              "style": {
+                                "description": "Font style (default normal).",
+                                "type": "string",
+                                "enum": ["normal", "italic"]
+                              }
+                            },
+                            "required": ["family"],
+                            "additionalProperties": false
+                          }
+                        ]
                       },
                       "fontsize": {
                         "description": "Font size in px; overrides the scale-derived size.",
@@ -8935,8 +9097,35 @@
                     "type": "object",
                     "properties": {
                       "font": {
-                        "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                        "type": "string"
+                        "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "family": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                              },
+                              "weight": {
+                                "description": "Font weight 100..900 in steps of 100 (default 400).",
+                                "type": "integer",
+                                "minimum": 100,
+                                "maximum": 900
+                              },
+                              "style": {
+                                "description": "Font style (default normal).",
+                                "type": "string",
+                                "enum": ["normal", "italic"]
+                              }
+                            },
+                            "required": ["family"],
+                            "additionalProperties": false
+                          }
+                        ]
                       },
                       "fontsize": {
                         "description": "Font size in px; overrides the scale-derived size.",
@@ -8955,8 +9144,35 @@
                     "type": "object",
                     "properties": {
                       "font": {
-                        "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                        "type": "string"
+                        "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "family": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                              },
+                              "weight": {
+                                "description": "Font weight 100..900 in steps of 100 (default 400).",
+                                "type": "integer",
+                                "minimum": 100,
+                                "maximum": 900
+                              },
+                              "style": {
+                                "description": "Font style (default normal).",
+                                "type": "string",
+                                "enum": ["normal", "italic"]
+                              }
+                            },
+                            "required": ["family"],
+                            "additionalProperties": false
+                          }
+                        ]
                       },
                       "fontsize": {
                         "description": "Font size in px; overrides the scale-derived size.",
@@ -10674,8 +10890,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",
@@ -12754,8 +12997,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",
@@ -14834,8 +15104,35 @@
                     "enum": ["left", "center", "right"]
                   },
                   "font": {
-                    "description": "Font id (bundled registry) or a raw .ttf filename; overrides the preset font.",
-                    "type": "string"
+                    "description": "Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any Google Fonts family; overrides the preset font.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "family": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "Font family name as Google Fonts spells it, e.g. \"Playfair Display\"."
+                          },
+                          "weight": {
+                            "description": "Font weight 100..900 in steps of 100 (default 400).",
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 900
+                          },
+                          "style": {
+                            "description": "Font style (default normal).",
+                            "type": "string",
+                            "enum": ["normal", "italic"]
+                          }
+                        },
+                        "required": ["family"],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "fontsize": {
                     "description": "Font size in px; overrides the preset size.",

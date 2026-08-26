@@ -12,6 +12,7 @@ export type {
   Caption,
 } from './descriptor-text';
 import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
+import type { FontInput } from './fonts';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
@@ -116,7 +117,7 @@ export interface TemplateDescriptorGlobal {
 export interface GlobalTextOverlay {
   text: Translation;
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top' | 'bottom' | 'center';
-  font?: string;
+  font?: FontInput;
   size?: number;
   color?: string;
   opacity?: number;

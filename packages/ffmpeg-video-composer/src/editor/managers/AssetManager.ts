@@ -7,8 +7,18 @@ import type Segment from '../../core/models/Segment';
 import type VariableManager from './VariableManager';
 import { cubeFor } from '../presets/lut-library';
 import { parsePanelUrl, panelFileName, roundedPanelPng } from '../presets/rounded-panel';
-import { findFontByFile } from '@/core/fonts';
+import { findFontByFile, DEFAULT_FONT_WEIGHT, type FontRef } from '@/core/fonts';
+import { googleCssUrl, extractTtfUrl, GOOGLE_FONTS_USER_AGENT } from '@/core/google-fonts';
 import { fontAssetUrl } from '@/core/asset-source';
+import type { FontRequest } from '../../core/models/Segment';
+
+// Back-compat for a raw `.ttf` filename that is neither bundled nor in the catalog: the family is
+// guessed from the file stem, as it always was. The guess only holds for single-word families
+// (`Roboto-Bold.ttf` → "Roboto", and the weight in the name is ignored) — which is exactly why
+// `FontRef` exists. Authoring a font by family should always be preferred over relying on this.
+function legacyRefFromFileName(file: string): FontRef {
+  return { family: file.split('-')[0].split('.')[0] };
+}
 
 // The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
 // but it is used at runtime as a string-keyed cache of staged media paths.
@@ -122,65 +132,107 @@ class AssetManager {
   };
 
   fetchFonts = async (): Promise<void> => {
-    await Promise.all(this.segment.tempFonts.map((fontFile) => this.stageFont(fontFile)));
+    await Promise.all(this.segment.tempFonts.map((request) => this.stageFont(request)));
   };
 
-  private async stageFont(fontFile: string): Promise<void> {
-    const targetPath = `${this.segment.fontsDir}/${fontFile}`;
+  // Stages one font, trying the cheapest source first. Every rung is a real fallback except the last:
+  // a font that cannot be staged throws, because a missing font does not stop the render — drawtext
+  // simply draws with the wrong face, and the failure only shows up as a visibly wrong video.
+  private async stageFont({ file, ref }: FontRequest): Promise<void> {
+    const targetPath = `${this.segment.fontsDir}/${file}`;
+
+    if (await this.stageFontLocally(file, targetPath)) {
+      return;
+    }
+
+    await this.fetchRemoteFont(file, ref ?? legacyRefFromFileName(file), targetPath);
+  }
+
+  // The rungs that need no Google lookup, cheapest first. Returns true once the font is in place.
+  private async stageFontLocally(file: string, targetPath: string): Promise<boolean> {
+    const section = this.segment.currentSection?.name;
 
     // Reuse an already-downloaded font instead of re-fetching it. This keeps the same font family
     // from being requested once per section, which is what gets Google Fonts to rate-limit.
     if (await this.filesystemAdapter.stat(targetPath)) {
-      this.logger.info(`[${this.segment.currentSection?.name}][Font] cached ${fontFile}`);
+      this.logger.info(`[${section}][Font] cached ${file}`);
 
-      return;
+      return true;
     }
 
     // Prefer a font shipped/staged alongside the package (resolved locally on Node) over a network
     // fetch, so renders work offline when assets are pre-staged. Falls through when not present.
-    const bundled = await this.filesystemAdapter.resolveBundledFont(fontFile);
+    const bundled = await this.filesystemAdapter.resolveBundledFont(file);
 
     if (bundled) {
       await this.filesystemAdapter.copy(bundled, targetPath);
-      this.logger.info(`[${this.segment.currentSection?.name}][Font] bundled ${fontFile}`);
+      this.logger.info(`[${section}][Font] bundled ${file}`);
 
-      return;
+      return true;
     }
 
-    // Catalog fonts (premium single-token families Google Fonts can't resolve) are fetched by file
-    // name from the asset source (GitHub by default, see asset-source.ts) instead of being bundled.
-    if (findFontByFile(fontFile)) {
-      const assetUrl = fontAssetUrl(fontFile);
-      this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${assetUrl}`);
+    // A font downloaded by an earlier render. The build dir is wiped between runs, so this cache is
+    // what keeps a repeat render of the same resolved font offline.
+    const cached = await this.filesystemAdapter.resolveCachedFont(file);
 
-      const downloaded = await this.filesystemAdapter.fetch(assetUrl);
-      await this.filesystemAdapter.move(downloaded, targetPath);
+    if (cached) {
+      await this.filesystemAdapter.copy(cached, targetPath);
+      this.logger.info(`[${section}][Font] cache hit ${file}`);
 
-      return;
+      return true;
     }
 
-    await this.fetchGoogleFont(fontFile, targetPath);
+    return this.stageCatalogFont(file, targetPath);
   }
 
-  // Fall back to Google Fonts for standard families (a single-segment `family` derived from the file).
-  private async fetchGoogleFont(fontFile: string, targetPath: string): Promise<void> {
-    const fontFamily = fontFile.split('-')[0].split('.')[0];
-    const url = `https://fonts.googleapis.com/css?family=${fontFamily}`;
-    this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${url}`);
-
-    const cssContent = await this.filesystemAdapter.fetchAndRead(url);
-    const fontUrl = this.extractFontUrlFromCSS(cssContent);
-
-    if (!fontUrl) {
-      this.logger.info(`[${this.segment.currentSection?.name}][Font] no font url found in CSS for ${fontFamily}`);
-
-      return;
+  // Catalog fonts (premium single-token families Google Fonts can't resolve) are fetched by file
+  // name from the asset source (GitHub by default, see asset-source.ts) instead of being bundled.
+  private async stageCatalogFont(file: string, targetPath: string): Promise<boolean> {
+    if (!findFontByFile(file)) {
+      return false;
     }
 
-    this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${fontUrl}`);
+    const assetUrl = fontAssetUrl(file);
+    this.logger.info(`[${this.segment.currentSection?.name}][Font] fetching ${assetUrl}`);
+
+    const downloaded = await this.filesystemAdapter.fetch(assetUrl);
+    await this.filesystemAdapter.move(downloaded, targetPath);
+
+    return true;
+  }
+
+  // Downloads the face named by `ref` from Google Fonts and stages it, then seeds the persistent
+  // cache so the next render skips the network entirely.
+  private async fetchRemoteFont(file: string, ref: FontRef, targetPath: string): Promise<void> {
+    const section = this.segment.currentSection?.name;
+
+    if (!this.filesystemAdapter.supportsRemoteFonts) {
+      throw new Error(
+        `[${section}][Font] cannot resolve "${ref.family}" on this platform: it cannot request a TrueType face ` +
+          `(Google returns woff2, which drawtext cannot read). Bundle the font with the app instead.`
+      );
+    }
+
+    const url = googleCssUrl(ref);
+    this.logger.info(`[${section}][Font] fetching ${url}`);
+
+    const cssContent = await this.filesystemAdapter.fetchAndRead(url, {
+      'User-Agent': GOOGLE_FONTS_USER_AGENT,
+    });
+    const fontUrl = extractTtfUrl(cssContent);
+
+    if (!fontUrl) {
+      throw new Error(
+        `[${section}][Font] no TrueType face for "${ref.family}" weight ${ref.weight ?? DEFAULT_FONT_WEIGHT}` +
+          `${ref.style === 'italic' ? ' italic' : ''} (staged as ${file}). Check the family name exists on Google Fonts.`
+      );
+    }
+
+    this.logger.info(`[${section}][Font] fetching ${fontUrl}`);
 
     const path = await this.filesystemAdapter.fetch(fontUrl);
     await this.filesystemAdapter.move(path, targetPath);
+    await this.filesystemAdapter.cacheFont(file, targetPath);
   }
 
   // Write `produce()` to `targetPath` unless it is already staged, logging cached/staged under `label`.
@@ -228,13 +280,6 @@ class AssetManager {
         }
       })
     );
-  };
-
-  private readonly extractFontUrlFromCSS = (cssContent: string): string | null => {
-    const regex = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/;
-    const match = cssContent.match(regex);
-
-    return match ? match[1] : null;
   };
 
   fetchMedia = async (media: Media, frame = 0): Promise<void> => {

@@ -4,6 +4,8 @@
 // (no import back into `types.d.ts`) so the module graph stays acyclic — a localised string map is
 // spelled inline as `Record<string, string | undefined>` (the `Translation` shape) to avoid a cycle.
 
+import type { FontInput } from './fonts';
+
 export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
 export type Reveal = RevealType | { type: RevealType; delay?: number; duration?: number; distance?: number };
 export type Exit = RevealType | { type: RevealType; after?: number; duration?: number; distance?: number };
@@ -46,7 +48,7 @@ export interface Caption {
   style?: 'bar' | 'subtle' | 'bold';
   position?: 'top' | 'center' | 'bottom' | 'lower-third';
   align?: 'left' | 'center' | 'right';
-  font?: string;
+  font?: FontInput;
   fontsize?: number;
   color?: string;
   box?: boolean;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { RevealSchema, TextEffectSchema } from './effects.schemas';
-import { TranslationSchema } from './global.schemas';
+import { TranslationSchema, FontInputSchema } from './global.schemas';
 
 // Author-facing text sugar — caption, title card and lower third. Each lowers to drawtext/drawbox/fade
 // filters via the text presets (editor/presets/captions.ts, text-blocks.ts), so authors describe intent
@@ -24,10 +24,10 @@ export const CaptionSchema = z
       .optional()
       .describe('Vertical placement of the caption (default "lower-third").'),
     align: z.enum(CAPTION_ALIGNS).optional().describe('Horizontal alignment of the caption (default "center").'),
-    font: z
-      .string()
-      .optional()
-      .describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
+    font: FontInputSchema.optional().describe(
+      'Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any ' +
+        'Google Fonts family; overrides the preset font.'
+    ),
     fontsize: z.number().positive().optional().describe('Font size in px; overrides the preset size.'),
     color: z.string().optional().describe('Text colour as a CSS hex string; overrides the preset colour.'),
     box: z
@@ -50,10 +50,10 @@ export type Caption = z.infer<typeof CaptionSchema>;
 // (font / scale-derived size / colour) stays the default; set fields win over it.
 export const TitleCardLineStyleSchema = z
   .object({
-    font: z
-      .string()
-      .optional()
-      .describe('Font id (bundled registry) or a raw .ttf filename; overrides the preset font.'),
+    font: FontInputSchema.optional().describe(
+      'Font id (bundled registry), a raw .ttf filename, or { family, weight, style } to resolve any ' +
+        'Google Fonts family; overrides the preset font.'
+    ),
     fontsize: z.number().positive().optional().describe('Font size in px; overrides the scale-derived size.'),
     color: z.string().optional().describe('Text colour as a CSS hex string; overrides the preset colour.'),
   })

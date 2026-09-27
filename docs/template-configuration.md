@@ -341,9 +341,9 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 
 | Form                          | Resolved                       | Example                                        |
 | ----------------------------- | ------------------------------ | ---------------------------------------------- |
-| Bundled registry id           | locally, offline               | `"font": "bebas"`                              |
+| Bundled registry id           | bundled, else catalog (cached) | `"font": "bebas"`                              |
 | Raw `.ttf` filename           | bundled / catalog, else remote | `"font": "Oswald.ttf"`                         |
-| `{ family, weight?, style? }` | downloaded from Google Fonts   | `"font": { "family": "Inter", "weight": 700 }` |
+| `{ family, weight?, style? }` | Google Fonts (cached)          | `"font": { "family": "Inter", "weight": 700 }` |
 
 The object form names any Google Fonts family, including multi-word ones, and picks an exact weight
 (`100`–`900` in steps of 100, default `400`) and `style` (`normal` / `italic`, default `normal`):
@@ -363,14 +363,16 @@ the package → a persistent on-disk cache → the catalog → Google Fonts. A f
 **fails the render**; it is never skipped, because a missing font does not stop `drawtext` — it just
 draws with the wrong face, so the only symptom would be a silently wrong video.
 
-**Caching.** A downloaded face is copied into `~/.cache/leclap/fonts` (override with
-`FVC_FONT_CACHE_DIR`), which outlives the build directory, so a repeat render of the same font needs
-no network and does not re-hit Google's rate limit.
+**Caching.** A face resolved by family, and a catalog font, is copied into `~/.cache/leclap/fonts`
+(override with `FVC_FONT_CACHE_DIR`), which outlives the build directory, so a repeat render of the
+same font needs no network and does not re-hit Google's rate limit. Entries are written atomically, so
+renders sharing the cache never read a half-written face. A raw filename resolved from Google is not
+cached: its face is guessed from the file stem (the weight in `Roboto-Bold.ttf` is ignored).
 
 **Platform support.** Resolving a font by family requires sending a legacy `User-Agent` — Google keys
 the response format off it and otherwise returns woff2, which `drawtext` cannot read. Node and Expo
 can do this; a browser cannot override the header, so the browser/WASM backend rejects the object form
-up front with an explanatory error. Web apps should ship the fonts they need instead.
+up front, before rendering, with an explanatory error. Web apps should ship the fonts they need instead.
 
 ## Text legibility
 

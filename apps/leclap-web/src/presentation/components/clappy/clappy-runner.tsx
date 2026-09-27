@@ -1,0 +1,83 @@
+import { motion, useReducedMotion } from 'motion/react';
+import { cn } from '@/lib/utils';
+import { useAnimationClock } from '@/hooks/use-animation-clock';
+import { kineticMotion } from '@/presentation/components/kinetic';
+import { barPct } from '@/presentation/components/kinetic/gradient-meter.logic';
+import { Clappy, clappyHeight } from './clappy';
+import { runnerFrame } from './clappy.logic';
+
+export interface ClappyRunnerProps {
+  /** How far along the track Clappy has run, 0..1: the progress of the bar under him. */
+  progress: number;
+  /** The run is over: Clappy stops at the finish line, arms up. */
+  done?: boolean;
+  /** Clappy's width in px. */
+  size?: number;
+  className?: string;
+}
+
+// The render loader, as the showcase film plays it: Clappy runs the lane above a progress bar, keeping pace
+// with its fill — feet trading places, arms pumping, the clapper clacking on each step, dust puffing behind —
+// and throws his arms up at the finish. He is the loader's one ambient mover, so he keeps running while a slow
+// segment holds the bar still: that is what says the render is still going. Under reduced motion he stands at
+// his place on the track instead. Decorative: the bar under him carries the progressbar role.
+export function ClappyRunner({ progress, done = false, size = 64, className }: ClappyRunnerProps) {
+  const reduced = useReducedMotion() ?? false;
+  const seconds = useAnimationClock(!done && !reduced);
+  const { pose, bob, lean } = runnerFrame(seconds, { done, still: reduced });
+  const squash = bob * 0.03;
+
+  return (
+    <div aria-hidden="true" className={cn('relative', className)} style={{ height: clappyHeight(size) }}>
+      {/* The rail is the lane less Clappy's own width, so a percentage along it keeps him on the track from
+          start to finish. He moves on the meter's own transition, keeping pace with the fill. */}
+      <div className="absolute inset-y-0 left-0" style={{ right: size }}>
+        <motion.div
+          className="absolute bottom-0"
+          initial={{ left: '0%' }}
+          animate={{ left: `${barPct(progress)}%` }}
+          transition={{ duration: reduced ? 0 : kineticMotion.duration.ring, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {pose.stride !== undefined && <Dust size={size} stride={pose.stride} />}
+          <div
+            style={{
+              transform: `translateY(${-bob * (size / 12)}px) rotate(${lean}deg) scale(${1 + squash}, ${1 - squash})`,
+              transformOrigin: '50% 92%',
+            }}
+          >
+            <Clappy size={size} {...pose} />
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/** Three puffs kicked up behind the runner, each drifting back and fading over one stride. */
+const Dust = ({ size, stride }: { size: number; stride: number }) => {
+  // The film's puffs were sized for a 120 px runner.
+  const scale = size / 120;
+
+  return (
+    <>
+      {[0, 1, 2].map((index) => {
+        const age = (stride + index / 3) % 1;
+        const puff = (10 + age * 16) * scale;
+
+        return (
+          <span
+            key={index}
+            className="absolute rounded-full bg-brand-300 blur-[1px]"
+            style={{
+              left: (18 - age * 46) * scale,
+              bottom: (8 + age * 14) * scale,
+              width: puff,
+              height: puff,
+              opacity: (1 - age) * 0.6,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};

@@ -97,6 +97,7 @@ export const UNINDEXED_PATHS: readonly string[] = [
   '/studio/new',
   '/studio/builder',
   '/builder',
+  // Retired: redirects to the saved projects on the studio home.
   '/projects',
   '/templates',
   '/templates/new',

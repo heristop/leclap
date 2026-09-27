@@ -133,11 +133,21 @@ export const CinematicHero = () => {
             <span className="text-gradient-animated">{t('hero.eyebrow')}</span>
           </p>
           {/* The set call — one line, three beats; each word is a cut landing on the stagger. The claim
-              is real text (sr-only) rather than an aria-label, so translation, reader mode and braille keep it. */}
+              is real text (sr-only) rather than an aria-label, so translation, reader mode and braille keep it.
+              Where the call wraps, the other languages get a row gap on top of the heading's 0.98 leading, so a
+              cedilla (ÇA) or an accent (CÁMARA) clears the line beside it (see SectionHeading). */}
           <h1>
             <span className="sr-only">{headline}</span>
             <span aria-hidden="true" className="block">
-              <KineticHeading as="span" text={headline} level="mega" align="center" uppercase stagger={BEAT_STAGGER} />
+              <KineticHeading
+                as="span"
+                text={headline}
+                level="mega"
+                align="center"
+                uppercase
+                stagger={BEAT_STAGGER}
+                className="[&:not(:lang(en))]:gap-y-[0.18em]"
+              />
             </span>
           </h1>
 

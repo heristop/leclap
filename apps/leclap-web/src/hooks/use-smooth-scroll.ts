@@ -5,7 +5,7 @@ import { subscribe } from '@/lib/ticker';
 // The marketing surface — the only places eased scrolling is mounted. An allowlist rather than a
 // "/studio" denylist: the editor, builder, admin and doc routes all own scroll containers of their
 // own, and a page that forgets to opt out should get native scrolling, not a fight.
-const MARKETING_PATHS = new Set(['/', '/about', '/legal', '/privacy']);
+const MARKETING_PATHS = new Set(['/', '/about', '/compare/remotion', '/legal', '/privacy']);
 
 // How far the eased position travels toward the target each frame. Low enough to read as weight,
 // high enough that the film scrub never feels like it lags the wheel.

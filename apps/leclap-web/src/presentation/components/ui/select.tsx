@@ -3,6 +3,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check } from '@/presentation/components/icons';
 import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 // shadcn-style Select over Radix — custom on-brand dropdown (replaces the native
 // <select>), keyboard-navigable and accessible.
@@ -30,35 +31,44 @@ const SelectTrigger = React.forwardRef<
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
+// Below `sm` the list docks as a bottom sheet (the max-sm classes below), which needs item-aligned placement:
+// in popper mode Radix wraps the content in a transformed positioner, and that transform becomes the fixed
+// sheet's containing block — the sheet collapsed to a sliver above the viewport.
+const PHONE = '(max-width: 39.99rem)';
+
 const SelectContent = React.forwardRef<
   React.ComponentRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = 'popper', ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      position={position}
-      className={cn(
-        'relative z-[60] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-divider bg-surface shadow-[var(--shadow-lg)]',
-        position === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
-        // On phones, break out of the anchored popper and dock to the bottom as a full-width sheet —
-        // easier to reach and read than a tiny dropdown. `!` overrides Radix's inline popper styles.
-        'max-sm:!fixed max-sm:!inset-x-2 max-sm:!bottom-2 max-sm:!top-auto max-sm:!w-auto max-sm:!min-w-0 max-sm:!max-h-[60vh] max-sm:!transform-none max-sm:rounded-2xl',
-        className
-      )}
-      {...props}
-    >
-      <SelectPrimitive.Viewport
+>(({ className, children, position = 'popper', ...props }, ref) => {
+  const placement = useMediaQuery(PHONE) ? 'item-aligned' : position;
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={ref}
+        position={placement}
         className={cn(
-          'p-1 max-sm:p-1.5',
-          position === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)] max-sm:min-w-0'
+          'relative z-[60] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-divider bg-surface shadow-[var(--shadow-lg)]',
+          placement === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
+          // On phones, break out of the anchored popper and dock to the bottom as a full-width sheet —
+          // easier to reach and read than a tiny dropdown. `!` overrides Radix's inline popper styles.
+          'max-sm:!fixed max-sm:!inset-x-2 max-sm:!bottom-2 max-sm:!top-auto max-sm:!w-auto max-sm:!min-w-0 max-sm:!max-h-[60vh] max-sm:!transform-none max-sm:rounded-2xl',
+          className
         )}
+        {...props}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
+        <SelectPrimitive.Viewport
+          className={cn(
+            'p-1 max-sm:p-1.5',
+            placement === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)] max-sm:min-w-0'
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  );
+});
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 
 const SelectItem = React.forwardRef<

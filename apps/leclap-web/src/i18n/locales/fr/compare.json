@@ -2,9 +2,10 @@
   "remotion": {
     "badge": "Comparatif honnête",
     "title": "LeClap vs Remotion",
-    "tagline": "Deux façons de transformer du code en vidéo, de manière déterministe. Remotion compose avec des composants React et rend dans Node ou dans le navigateur. LeClap compose à partir d’un modèle JSON et intègre FFmpeg directement dans l’application, si bien que le même modèle se rend aussi nativement sur un téléphone. Voici où chacun l’emporte — y compris là où Remotion l’emporte.",
+    "tagline": "Deux façons de transformer du code en vidéo, de manière déterministe. Voici où chacun l’emporte — y compris là où Remotion l’emporte.",
     "table": {
       "heading": "Face à face",
+      "lead": "Remotion compose avec des composants React et rend dans Node ou dans le navigateur. LeClap compose à partir d’un modèle JSON et intègre FFmpeg directement dans l’application, si bien que le même modèle se rend aussi nativement sur un téléphone.",
       "criterion": "Critère",
       "leclap": "LeClap",
       "remotion": "Remotion",
@@ -39,8 +40,24 @@
     },
     "caveats": {
       "title": "Les réserves, en toute honnêteté",
-      "leclap": "Le déterminisme de LeClap vaut par plateforme, pas d’une plateforme à l’autre. Node et le navigateur passent par la voie logicielle façon libx264 ; la version embarquée est LGPL, donc Android encode avec libopenh264 et iOS avec h264_videotoolbox d’Apple, tous deux pilotés par un débit cible. Le jeu de filtres sur l’appareil est lui aussi plus étroit : boxblur est abandonné et eq est réécrit en lutyuv. Même modèle, mêmes coupes, mêmes timings — mais des pixels différents sur chaque cible.",
-      "remotion": "Le moteur de rendu navigateur de Remotion porte la réserve inverse : il émule la mise en page sur un canvas au lieu de capturer une page, si bien qu’il ne reproduit pas au pixel près son propre rendu côté serveur."
+      "leclap": {
+        "lead": "Le déterminisme de LeClap vaut par plateforme, pas d’une plateforme à l’autre.",
+        "web": {
+          "target": "Node et le navigateur",
+          "encoder": "La voie logicielle façon libx264."
+        },
+        "android": {
+          "target": "Android",
+          "encoder": "libopenh264, piloté par un débit cible."
+        },
+        "ios": {
+          "target": "iOS",
+          "encoder": "h264_videotoolbox d’Apple, piloté par un débit cible."
+        },
+        "filters": "La version embarquée est LGPL : c’est ce qui impose ces deux encodeurs sur téléphone, et un jeu de filtres plus étroit — boxblur est abandonné et eq est réécrit en lutyuv.",
+        "close": "Même modèle, mêmes coupes, mêmes timings — mais des pixels différents sur chaque cible."
+      },
+      "remotion": "Le moteur de rendu navigateur de Remotion porte la réserve inverse : il émule la mise en page sur un canvas au lieu de capturer une page, si bien qu’il ne reproduit pas au pixel près son propre rendu côté serveur."
     },
     "chooseRemotion": {
       "title": "Choisis Remotion quand…",
@@ -59,7 +76,7 @@
       },
       "web": {
         "title": "Ton public est sur le web",
-        "body": "Si tes utilisateurs disposent d’un navigateur compatible WebCodecs, le rendu côté client de Remotion te donne déjà un rendu sans serveur. L’écart sur l’app native décrit ci-dessous ne te concerne tout simplement pas."
+        "body": "Si tes utilisateurs disposent d’un navigateur compatible WebCodecs, le rendu côté client de Remotion te donne déjà un rendu sans serveur. La ligne du tableau sur l’app native ne te concerne tout simplement pas."
       }
     },
     "chooseLeClap": {
@@ -75,7 +92,7 @@
       },
       "agent": {
         "title": "Un agent écrit la vidéo",
-        "body": "Le serveur MCP expose schéma, validation et composition sous forme d’outils : un LLM rédige un modèle JSON et le moteur le rend. Aucun LLM dans la chaîne de sortie — le résultat est rendu, pas échantillonné."
+        "body": "Le serveur MCP expose schéma, validation et composition sous forme d’outils : un LLM rédige un modèle JSON et le moteur le rend. Aucun LLM dans la chaîne de sortie — le résultat est rendu, pas échantillonné."
       },
       "data": {
         "title": "La composition est générée par un programme",
@@ -84,7 +101,7 @@
     },
     "sources": {
       "title": "Sources",
-      "lead": "Chaque affirmation sur Remotion ci-dessus a été vérifiée dans la documentation officielle de Remotion le 14 août 2026. Quelque chose d’obsolète ou d’injuste ? Ouvre une issue et nous corrigerons le tableau.",
+      "lead": "Chaque affirmation sur Remotion ci-dessus a été vérifiée dans la documentation officielle de Remotion le 14 août 2026. Quelque chose d’obsolète ou d’injuste ? Ouvre une issue et nous corrigerons le tableau.",
       "clientSide": "Remotion — rendu côté client",
       "limitations": "Remotion — limites du rendu côté client",
       "randomness": "Remotion — scintillement et aléatoire",
@@ -94,7 +111,8 @@
       "readme": "LeClap — le même tableau, dans le README"
     },
     "cta": {
-      "prompt": "Envie de voir à quoi ressemble vraiment un modèle JSON ?",
+      "prompt": "Envie de voir à quoi ressemble vraiment un modèle JSON ?",
+      "example": "Voir un vrai modèle",
       "start": "Ouvrir le studio"
     }
   }

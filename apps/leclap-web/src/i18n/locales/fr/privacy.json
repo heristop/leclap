@@ -17,16 +17,16 @@
     },
     "analytics": {
       "heading": "Visites de pages",
-      "body": "Ce site ne charge aucun script de mesure qui lui soit propre : il n’y a donc rien à te demander, et aucun bandeau à écarter. Le comptage des visites vient de la mesure effectuée par notre hébergeur, qui ne dépose aucun cookie et ne stocke rien sur ton appareil."
+      "body": "Ce site ne charge aucun script de mesure qui lui soit propre : il n’y a donc rien à te demander, et aucun bandeau à écarter. Le comptage des visites vient de la mesure effectuée par notre hébergeur, qui ne dépose aucun cookie et ne stocke rien sur ton appareil."
     },
     "thirdParty": {
       "heading": "Ressources tierces",
-      "body": "Certaines ressources — polices, le cœur de FFmpeg et des médias d’exemple — sont chargées depuis des CDN publics et GitHub. Ces requêtes atteignent directement les fournisseurs et suivent leurs propres politiques ; aucune donnée personnelle n’y est associée."
+      "body": "Certaines ressources — polices, le cœur de FFmpeg et des médias d’exemple — sont chargées depuis des CDN publics et GitHub. Ces requêtes atteignent directement les fournisseurs et suivent leurs propres politiques ; aucune donnée personnelle n’y est associée."
     },
     "contact": {
       "heading": "Questions",
       "body": "Pour toute question sur cette politique, contacte-nous via le projet sur GitHub à l’adresse github.com/heristop/leclap."
     }
   },
-  "updated": "Dernière mise à jour : août 2026"
+  "updated": "Dernière mise à jour : août 2026"
 }

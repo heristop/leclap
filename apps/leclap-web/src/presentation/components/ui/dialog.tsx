@@ -26,8 +26,17 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => {
+>(({ className, children, onCloseAutoFocus, ...props }, ref) => {
   const { t } = useTranslation('common');
+  // What had focus when the dialog opened, to hand it back on close. Radix returns focus to its Trigger, but
+  // a dialog opened from state (a delete confirm after a card action, say) has none, and focus fell to <body>.
+  // Read in a layout effect: it runs before Radix moves focus into the panel.
+  const returnTo = React.useRef<HTMLElement | null>(null);
+
+  React.useLayoutEffect(() => {
+    const active = document.activeElement;
+    returnTo.current = active instanceof HTMLElement && active !== document.body ? active : null;
+  }, []);
 
   return (
     <DialogPortal>
@@ -38,6 +47,16 @@ const DialogContent = React.forwardRef<
       <div className="dark pointer-events-none fixed inset-0 z-[59] grid place-items-center overflow-y-auto p-4">
         <DialogPrimitive.Content
           ref={ref}
+          onCloseAutoFocus={(event) => {
+            onCloseAutoFocus?.(event);
+
+            const target = returnTo.current;
+
+            if (event.defaultPrevented || !target?.isConnected) return;
+
+            event.preventDefault();
+            target.focus({ preventScroll: true });
+          }}
           className={cn(
             'rise-in pointer-events-auto relative grid w-full max-w-lg gap-1 rounded-2xl border border-divider bg-surface p-6 shadow-[var(--shadow-lg)] focus:outline-none',
             className

@@ -49,7 +49,7 @@
     "accept": "Switch to {{language}}",
     "dismiss": "Dismiss"
   },
-  "footer": "All processing happens locally in your browser - your files never leave your device",
+  "footer": "All processing happens locally in your browser — your files never leave your device",
   "footerNav": {
     "label": "Legal links",
     "legal": "Legal Notice",

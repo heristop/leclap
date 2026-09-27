@@ -1,7 +1,8 @@
 import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogoMark, type LogoMarkHandle } from './LogoMark';
+import { ArrowUpRight } from './icons';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
 import { perforationMaskStyle, perforationTileStyle } from '@/lib/film-strip';
 
@@ -20,8 +21,11 @@ export const Footer = () => {
   // playhead-scrubber underline on hover, so the links read as end-of-reel credits.
   // `py-3` carries the tap area to ~40px on a row of three adjacent links, where text height alone
   // is an easy miss. Vertical only, so the playhead underline still hugs the words.
+  // The page being read keeps its underline drawn and its ink full: on the legal pages this row is the
+  // only navigation that names them, so it is where "you are here" has to show. NavLink sets the
+  // aria-current that both the style and assistive tech read.
   const linkClass =
-    'playhead-link inline-flex items-center rounded py-3 font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
+    'playhead-link inline-flex items-center gap-1 rounded py-3 font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 aria-[current=page]:text-foreground aria-[current=page]:after:[transform:scaleX(1)]';
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-divider bg-surface">
@@ -71,21 +75,28 @@ export const Footer = () => {
             <span className="text-xl font-bold tracking-tight text-foreground">{t('brand')}</span>
           </Link>
 
-          <nav aria-label={t('footerNav.label')} className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:justify-end">
-            <Link to="/legal" viewTransition className={linkClass}>
+          {/* The dots only from `sm`, where the row always fits one line: on a phone a long locale wraps it
+              (French does), and a separator would be left hanging at the end of the first line. */}
+          <nav
+            aria-label={t('footerNav.label')}
+            className="flex flex-wrap items-center gap-x-5 gap-y-0 sm:justify-end sm:gap-x-4"
+          >
+            <NavLink to="/legal" viewTransition className={linkClass}>
               {t('footerNav.legal')}
-            </Link>
-            <span aria-hidden="true" className="text-brand-500/40">
+            </NavLink>
+            <span aria-hidden="true" className="hidden text-brand-500/40 sm:inline">
               •
             </span>
-            <Link to="/privacy" viewTransition className={linkClass}>
+            <NavLink to="/privacy" viewTransition className={linkClass}>
               {t('footerNav.privacy')}
-            </Link>
-            <span aria-hidden="true" className="text-brand-500/40">
+            </NavLink>
+            <span aria-hidden="true" className="hidden text-brand-500/40 sm:inline">
               •
             </span>
+            {/* The one link here that leaves the site, so it says so, as the site's other outbound links do. */}
             <a href={`${REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer noopener" className={linkClass}>
               {t('footerNav.license')}
+              <ArrowUpRight aria-hidden="true" className="size-3 shrink-0" />
             </a>
           </nav>
         </div>

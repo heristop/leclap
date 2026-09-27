@@ -49,7 +49,7 @@
     "accept": "Passa a {{language}}",
     "dismiss": "Chiudi"
   },
-  "footer": "Tutta l’elaborazione avviene in locale nel tuo browser - i tuoi file non lasciano mai il dispositivo",
+  "footer": "Tutta l’elaborazione avviene in locale nel tuo browser — i tuoi file non lasciano mai il dispositivo",
   "footerNav": {
     "label": "Link legali",
     "legal": "Note legali",

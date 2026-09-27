@@ -25,10 +25,14 @@ interface FilmPlayerProps {
   className?: string;
 }
 
+// Nothing streams before the frame nears the viewport, even where the element already exists (reduced motion).
+const preloadWhen = (near: boolean): 'metadata' | 'none' => (near ? 'metadata' : 'none');
+
+type SaveDataNavigator = Navigator & { connection?: { saveData?: boolean } };
+
 // Save-Data visitors get the poster and the play button: nothing streams until they ask for it.
 const prefersSaveData = (): boolean =>
-  typeof navigator !== 'undefined' &&
-  (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+  (globalThis.navigator as SaveDataNavigator | undefined)?.connection?.saveData === true;
 
 // A film in the page's one video frame (film-frame.tsx), like the in-browser render: it loads as it nears the
 // viewport, plays while on screen and rests off-screen. It speaks with the landing's one sound: muted until
@@ -48,6 +52,11 @@ export const FilmPlayer = ({ film, title, badge, captionsLabel, captionsLang, la
   const [cue, setCue] = useState('');
   // Whether the film has played with sound yet: the first time it does, it starts from the top.
   const heard = useRef(false);
+  // Every control exists before the film does, so a keyboard visitor tabbing down the page lands on them
+  // instead of skipping the frame (focusing one scrolls the frame near, and the film mounts): the pill from
+  // the first render, and under reduced motion the native player itself, which fetches nothing until the
+  // frame nears the viewport.
+  const mounted = shouldLoad || reduced;
 
   const setFrameRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -157,47 +166,46 @@ export const FilmPlayer = ({ film, title, badge, captionsLabel, captionsLang, la
     video.play().catch(() => {});
   };
 
-  const control =
-    shouldLoad && !reduced ? (
-      <>
-        <SoundControl
-          muted={muted}
-          volume={volume}
-          playing={!paused}
-          onToggle={() => {
-            const turningOn = muted;
+  const control = reduced ? undefined : (
+    <>
+      <SoundControl
+        muted={muted}
+        volume={volume}
+        playing={!paused}
+        onToggle={() => {
+          const turningOn = muted;
 
-            toggle();
+          toggle();
 
-            if (turningOn) hearFromTheTop();
-          }}
-          onVolume={(next) => {
-            const turningOn = muted && next > 0;
+          if (turningOn) hearFromTheTop();
+        }}
+        onVolume={(next) => {
+          const turningOn = muted && next > 0;
 
-            changeVolume(next);
+          changeVolume(next);
 
-            if (turningOn) hearFromTheTop();
-          }}
-        />
-        <FrameButton label={paused ? labels.play : labels.pause} onClick={togglePlay}>
-          {paused ? <Play /> : <Pause />}
-        </FrameButton>
-        <FrameButton
-          label={labels.captions}
-          pressed={captions}
-          onClick={() => {
-            setCaptions((shown) => !shown);
-          }}
-        >
-          {captions ? <Captions /> : <CaptionsOff />}
-        </FrameButton>
-      </>
-    ) : undefined;
+          if (turningOn) hearFromTheTop();
+        }}
+      />
+      <FrameButton label={paused ? labels.play : labels.pause} onClick={togglePlay}>
+        {paused ? <Play /> : <Pause />}
+      </FrameButton>
+      <FrameButton
+        label={labels.captions}
+        pressed={captions}
+        onClick={() => {
+          setCaptions((shown) => !shown);
+        }}
+      >
+        {captions ? <Captions /> : <CaptionsOff />}
+      </FrameButton>
+    </>
+  );
 
   return (
     <FilmStage frameRef={setFrameRef} className={className}>
       <FilmScreen badge={badge} control={control} controlLabel={title} paused={paused}>
-        {!shouldLoad && (
+        {!mounted && (
           <img
             src={film.poster}
             alt=""
@@ -206,14 +214,14 @@ export const FilmPlayer = ({ film, title, badge, captionsLabel, captionsLang, la
             className="absolute inset-0 size-full object-cover"
           />
         )}
-        {shouldLoad && (
+        {mounted && (
           <video
             ref={setVideoEl}
             className="absolute inset-0 size-full object-cover"
             poster={film.poster}
             loop={muted}
             playsInline
-            preload="metadata"
+            preload={preloadWhen(shouldLoad)}
             controls={reduced}
             aria-label={title}
             onPlay={() => {

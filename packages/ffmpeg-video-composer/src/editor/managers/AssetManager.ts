@@ -15,9 +15,15 @@ import type { FontRequest } from '../../core/models/Segment';
 // Back-compat for a raw `.ttf` filename that is neither bundled nor in the catalog: the family is
 // guessed from the file stem, as it always was. The guess only holds for single-word families
 // (`Roboto-Bold.ttf` → "Roboto", and the weight in the name is ignored) — which is exactly why
-// `FontRef` exists. Authoring a font by family should always be preferred over relying on this.
+// `FontRef` exists. Authoring a font by family should always be preferred over relying on this. A
+// `+` in the stem spells a space, as in Google's own URLs (`Rubik+Doodle+Shadow.ttf`).
 function legacyRefFromFileName(file: string): FontRef {
-  return { family: file.split('-')[0].split('.')[0] };
+  return { family: file.split('-')[0].split('.')[0].replaceAll('+', ' ') };
+}
+
+// A face as the error messages name it: `"Bebas Neue" weight 400 italic`.
+function describeFace(ref: FontRef): string {
+  return `"${ref.family}" weight ${ref.weight ?? DEFAULT_FONT_WEIGHT}${ref.style === 'italic' ? ' italic' : ''}`;
 }
 
 // The shared TemplateAssets type declares `inputs` as string[] for legacy reasons,
@@ -146,6 +152,13 @@ class AssetManager {
     }
 
     await this.fetchRemoteFont(file, ref ?? legacyRefFromFileName(file), targetPath);
+
+    // Only an exact face seeds the persistent cache, so the next render skips the network. A legacy
+    // filename's face is a guess from its stem (the weight in `Roboto-Bold.ttf` is dropped), and
+    // persisting that guess under the file's name would outlive any fix to it.
+    if (ref) {
+      await this.filesystemAdapter.cacheFont(file, targetPath);
+    }
   }
 
   // The rungs that need no Google lookup, cheapest first. Returns true once the font is in place.
@@ -175,8 +188,7 @@ class AssetManager {
     // what keeps a repeat render of the same resolved font offline.
     const cached = await this.filesystemAdapter.resolveCachedFont(file);
 
-    if (cached) {
-      await this.filesystemAdapter.copy(cached, targetPath);
+    if (cached && (await this.copyCachedFont(cached, targetPath))) {
       this.logger.info(`[${section}][Font] cache hit ${file}`);
 
       return true;
@@ -185,8 +197,26 @@ class AssetManager {
     return this.stageCatalogFont(file, targetPath);
   }
 
+  // Best-effort, like writing the cache: an entry that exists but can't be read (a shared cache dir
+  // written by another user, a stray directory) falls through to the catalog/download instead of
+  // failing the section.
+  private async copyCachedFont(cached: string, targetPath: string): Promise<boolean> {
+    try {
+      await this.filesystemAdapter.copy(cached, targetPath);
+
+      return true;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`[${this.segment.currentSection?.name}][Font] unreadable cache entry ${cached}: ${reason}`);
+
+      return false;
+    }
+  }
+
   // Catalog fonts (premium single-token families Google Fonts can't resolve) are fetched by file
   // name from the asset source (GitHub by default, see asset-source.ts) instead of being bundled.
+  // The download seeds the persistent cache too: a published install ships no fonts and every MCP
+  // render starts from a fresh build dir, so without it each render would fetch them again.
   private async stageCatalogFont(file: string, targetPath: string): Promise<boolean> {
     if (!findFontByFile(file)) {
       return false;
@@ -197,12 +227,12 @@ class AssetManager {
 
     const downloaded = await this.filesystemAdapter.fetch(assetUrl);
     await this.filesystemAdapter.move(downloaded, targetPath);
+    await this.filesystemAdapter.cacheFont(file, targetPath);
 
     return true;
   }
 
-  // Downloads the face named by `ref` from Google Fonts and stages it, then seeds the persistent
-  // cache so the next render skips the network entirely.
+  // Downloads the face named by `ref` from Google Fonts and stages it.
   private async fetchRemoteFont(file: string, ref: FontRef, targetPath: string): Promise<void> {
     const section = this.segment.currentSection?.name;
 
@@ -213,18 +243,12 @@ class AssetManager {
       );
     }
 
-    const url = googleCssUrl(ref);
-    this.logger.info(`[${section}][Font] fetching ${url}`);
-
-    const cssContent = await this.filesystemAdapter.fetchAndRead(url, {
-      'User-Agent': GOOGLE_FONTS_USER_AGENT,
-    });
-    const fontUrl = extractTtfUrl(cssContent);
+    const fontUrl = extractTtfUrl(await this.fetchFontCss(file, ref));
 
     if (!fontUrl) {
       throw new Error(
-        `[${section}][Font] no TrueType face for "${ref.family}" weight ${ref.weight ?? DEFAULT_FONT_WEIGHT}` +
-          `${ref.style === 'italic' ? ' italic' : ''} (staged as ${file}). Check the family name exists on Google Fonts.`
+        `[${section}][Font] no TrueType face for ${describeFace(ref)} (staged as ${file}). ` +
+          'Check the family name exists on Google Fonts.'
       );
     }
 
@@ -232,7 +256,27 @@ class AssetManager {
 
     const path = await this.filesystemAdapter.fetch(fontUrl);
     await this.filesystemAdapter.move(path, targetPath);
-    await this.filesystemAdapter.cacheFont(file, targetPath);
+  }
+
+  // Google answers an unknown family, a wrongly-cased one, a weight the family lacks or italic on an
+  // upright-only family with HTTP 400, which the Node adapter surfaces as a bare "Request failed with
+  // status code 400". Re-raised naming the face, so the error says WHICH font could not be resolved.
+  private async fetchFontCss(file: string, ref: FontRef): Promise<string> {
+    const section = this.segment.currentSection?.name;
+    const url = googleCssUrl(ref);
+    this.logger.info(`[${section}][Font] fetching ${url}`);
+
+    try {
+      return await this.filesystemAdapter.fetchAndRead(url, { 'User-Agent': GOOGLE_FONTS_USER_AGENT });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+
+      throw new Error(
+        `[${section}][Font] Google Fonts could not resolve ${describeFace(ref)} (staged as ${file}): ${reason}. ` +
+          'Check the family name (exact case), weight and style exist on Google Fonts.',
+        { cause: error }
+      );
+    }
   }
 
   // Write `produce()` to `targetPath` unless it is already staged, logging cached/staged under `label`.

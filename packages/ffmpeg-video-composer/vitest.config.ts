@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import swc from 'unplugin-swc';
 import { configDefaults, defineConfig } from 'vitest/config';
 
@@ -21,6 +24,10 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     root: './',
+    // Renders that download a font seed the persistent font cache (FVC_FONT_CACHE_DIR, else
+    // ~/.cache/leclap/fonts). A throwaway dir keeps the suite out of the developer's home and makes
+    // every run exercise the download path from a cold cache.
+    env: { FVC_FONT_CACHE_DIR: mkdtempSync(join(tmpdir(), 'leclap-test-fonts-')) },
     include: ['tests/**/*.test.ts'],
     exclude: [...configDefaults.exclude, '**/e2e/**'],
     pool: 'threads',

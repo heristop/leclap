@@ -131,25 +131,25 @@ export function validateGlobalWatermark(template: TemplateDescriptor): Validatio
   ];
 }
 
-// unknown_font: a sugar `font` (caption / whole-video overlay) that won't resolve — neither a bundled
-// font id nor a `.ttf` filename — so the renderer would silently fall back to the default. Surfacing it
-// catches typos (e.g. "Oswlad"). A `{{ var }}` is resolved at runtime, so it is left alone.
+// unknown_font: a sugar `font` string (caption / whole-video overlay) that won't resolve — neither a
+// bundled font id nor a `.ttf` filename — so the renderer would silently fall back to the default.
+// Surfacing it catches typos (e.g. "Oswlad"). A `{{ var }}` is resolved at runtime, so it is left alone.
 //
-// A font named by family carries its own family/weight/style and is resolved at render time. There is
-// no offline index of Google's catalog, so the family cannot be checked here — a family that does not
-// exist surfaces as a resolution error during the render, naming the family. This is exactly why the
-// object form is a separate shape: registry ids keep their fast local typo check.
-function isResolvableFont(font: FontInput): boolean {
-  if (isFontRef(font)) {
-    return true;
-  }
-
+// A font named by family (`{ family }`) is never flagged: there is no offline index of Google's
+// catalog, so the family cannot be checked here — one that does not exist surfaces as a resolution
+// error during the render, naming the family. This is exactly why the object form is a separate
+// shape: registry ids keep their fast local typo check.
+function isResolvableFont(font: string): boolean {
   return font.includes('{{') || font.endsWith('.ttf') || findFont(font) !== undefined;
 }
 
-// Renders a font for an error message — an object form is stringified so the message stays readable.
-function describeFont(font: FontInput): string {
-  return isFontRef(font) ? JSON.stringify(font) : font;
+// The authored font when it is a string that won't resolve, else null.
+function unresolvableFont(font: FontInput | undefined): string | null {
+  if (!font || isFontRef(font) || isResolvableFont(font)) {
+    return null;
+  }
+
+  return font;
 }
 
 const KNOWN_FONTS_HINT = 'known ids: rubik, oswald, bebas, … — or a .ttf filename';
@@ -159,12 +159,12 @@ export function validateFonts(template: TemplateDescriptor): ValidationError[] {
   const sections = template.sections ?? [];
 
   for (let index = 0; index < sections.length; index++) {
-    const font = sections[index].caption?.font;
+    const font = unresolvableFont(sections[index].caption?.font);
 
-    if (font && !isResolvableFont(font)) {
+    if (font) {
       errors.push({
         path: `sections[${index}].caption.font`,
-        message: `Section "${sections[index].name}": unknown caption font "${describeFont(font)}" (${KNOWN_FONTS_HINT})`,
+        message: `Section "${sections[index].name}": unknown caption font "${font}" (${KNOWN_FONTS_HINT})`,
         code: 'unknown_font',
       });
     }
@@ -173,12 +173,12 @@ export function validateFonts(template: TemplateDescriptor): ValidationError[] {
   const overlays = template.global?.overlays ?? [];
 
   for (let index = 0; index < overlays.length; index++) {
-    const font = overlays[index].font;
+    const font = unresolvableFont(overlays[index].font);
 
-    if (font && !isResolvableFont(font)) {
+    if (font) {
       errors.push({
         path: `global.overlays[${index}].font`,
-        message: `Whole-video overlay ${index}: unknown font "${describeFont(font)}" (${KNOWN_FONTS_HINT})`,
+        message: `Whole-video overlay ${index}: unknown font "${font}" (${KNOWN_FONTS_HINT})`,
         code: 'unknown_font',
       });
     }

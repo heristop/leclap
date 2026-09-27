@@ -8,7 +8,7 @@ export type Translation = Record<string, string | undefined>;
 // A font named by family is passed through untouched: it is the FormatterManager that turns it into
 // a staged filename, because that is where the staging queue lives and where the family / weight /
 // style must travel together to the download.
-export function resolveFontFile(font: FontInput | undefined, presetFile: string): string | FontInput {
+export function resolveFontFile(font: FontInput | undefined, presetFile: string): FontInput {
   if (!font) {
     return presetFile;
   }

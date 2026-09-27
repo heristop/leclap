@@ -93,7 +93,10 @@ class FilesystemExpoAdapter extends AbstractFilesystem {
   };
 
   override fetch = async (url: string): Promise<string> => {
-    const dest = join(this.tempDir, basename(url));
+    // A unique temp name per download: two requests for one font face in a section fetch the same URL
+    // concurrently, and a shared file would be truncated under the first download.
+    const unique = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const dest = join(this.tempDir, `${unique}-${basename(url)}`);
 
     if (url.startsWith('http://') || url.startsWith('https://')) {
       await FileSystem.downloadAsync(url, toUri(dest));
@@ -142,8 +145,15 @@ class FilesystemExpoAdapter extends AbstractFilesystem {
   override move = async (sourcePath: string, targetPath: string): Promise<void> =>
     FileSystem.moveAsync({ from: toUri(sourcePath), to: toUri(targetPath) });
 
-  override fetchAndRead = async (url: string): Promise<string> => {
-    const response = await fetch(url);
+  // Forwards `headers` (the font resolver's legacy User-Agent — both OkHttp and NSURLSession honour
+  // it) and rejects on an HTTP error like the Node adapter does, instead of handing an error page
+  // over as if it were CSS.
+  override fetchAndRead = async (url: string, headers?: Record<string, string>): Promise<string> => {
+    const response = await fetch(url, headers ? { headers } : undefined);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} fetching ${url}`);
+    }
 
     return response.text();
   };

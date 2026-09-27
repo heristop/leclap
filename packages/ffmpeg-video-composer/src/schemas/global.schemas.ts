@@ -20,7 +20,8 @@ export const TranslationSchema = z
 // a local validation error instead of turning it into a network lookup that fails mid-render.
 //
 // The weight is constrained to the 100..900 steps Google Fonts serves, so an unservable weight is
-// caught at author time rather than surfacing as a failed download.
+// caught at author time rather than surfacing as a failed download. `multipleOf` (not a refine) so the
+// step also reaches the generated JSON Schema that schema-driven authors (MCP, editors) validate with.
 export const FontRefSchema = z
   .object({
     family: z.string().trim().min(1).describe('Font family name as Google Fonts spells it, e.g. "Playfair Display".'),
@@ -29,7 +30,7 @@ export const FontRefSchema = z
       .int()
       .min(100)
       .max(900)
-      .refine((weight) => weight % 100 === 0, { message: 'weight must be a multiple of 100' })
+      .multipleOf(100, { message: 'weight must be a multiple of 100' })
       .optional()
       .describe('Font weight 100..900 in steps of 100 (default 400).'),
     style: z.enum(['normal', 'italic']).optional().describe('Font style (default normal).'),

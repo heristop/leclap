@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import SegmentBuilder from '@/editor/SegmentBuilder';
+import { SectionError } from '@/core/errors/section-error';
 import type { ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 
 function makeLogger() {
@@ -135,16 +136,29 @@ describe('SegmentBuilder.init', () => {
     expect(managers.assetManager.fetchFonts).toHaveBeenCalled();
   });
 
-  it('returns false when building the segment throws', async () => {
+  // A swallowed build error left the command at `-version`, so the section rendered nothing and the
+  // compile still "succeeded" with that section missing. The failure must reach the director.
+  it('rejects with a SectionError naming the section and the cause when building throws', async () => {
     const managers = makeManagers();
-    managers.assetManager.fetchAssets.mockRejectedValue(new Error('asset boom'));
+    const cause = new Error('asset boom');
+    managers.assetManager.fetchAssets.mockRejectedValue(cause);
     const { builder } = makeBuilder({ managers });
     builder.hydrate({ name: 'clip', type: 'video', options: {} });
 
-    const result = await builder.init();
+    const failure = await builder.init().catch((error: unknown) => error);
 
-    expect(result).toBe(false);
-    expect(managers.logger.error).toHaveBeenCalledWith('asset boom');
+    expect(failure).toBeInstanceOf(SectionError);
+    expect(failure).toMatchObject({ section: 'clip', cause, message: 'Section "clip" failed: asset boom' });
+    expect(managers.logger.error).toHaveBeenCalledWith('Section "clip" failed: asset boom');
+  });
+
+  it('rejects when a font cannot be resolved', async () => {
+    const managers = makeManagers();
+    managers.assetManager.fetchFonts.mockRejectedValue(new Error('No cache found for keys Nope.ttf'));
+    const { builder } = makeBuilder({ managers });
+    builder.hydrate({ name: 'title', type: 'color_background', options: { duration: 1 } });
+
+    await expect(builder.init()).rejects.toThrow('Section "title" failed: No cache found for keys Nope.ttf');
   });
 
   it('normalizes a background color through the formatter before building', async () => {

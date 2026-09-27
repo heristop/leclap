@@ -211,6 +211,14 @@ async function runConstruction(
 
     await emitPerfReport(logger, projectConfig.buildDir ?? '', templateDescriptor);
 
+    // The director reports a failed build through `task-stopped` and resolves null; rethrow the cause
+    // so compile() hands it to the reporter instead of failing without saying which section broke.
+    const failure = listeners.getError();
+
+    if (output === null && failure) {
+      throw failure instanceof Error ? failure : new Error(JSON.stringify(failure));
+    }
+
     return output;
   } finally {
     listeners.detach();
@@ -245,11 +253,13 @@ export async function compile(
   } catch (error) {
     if (!(error instanceof Error)) {
       console.error('Unknown compilation error');
+      reporter?.onError?.(new Error(`Unknown compilation error: ${JSON.stringify(error)}`));
 
       return null;
     }
 
     console.error(`Compilation error: ${error.message}`);
+    reporter?.onError?.(error);
 
     if (error.stack) console.error('Stack:', error.stack);
 

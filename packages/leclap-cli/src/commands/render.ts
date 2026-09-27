@@ -92,12 +92,19 @@ async function finalizeOutput(result: string, outputAbs: string | undefined): Pr
   return outputAbs;
 }
 
-// Re-load the template (so watch picks up edits), compile, and place the output. Throws on failure.
+// Re-load the template (so watch picks up edits), compile, and place the output. Throws on failure,
+// with the engine's own cause (e.g. which section failed) when it reported one.
 async function compileOnce(opts: RenderOptions, reporter?: CompileReporter): Promise<string> {
   const template = withOrientation(await loadConfig(opts.templatePath), opts.orientation);
-  const result = await compile(opts.projectConfig, template, reporter);
+  const failure: { error?: Error } = {};
+  const result = await compile(opts.projectConfig, template, {
+    ...reporter,
+    onError: (error) => {
+      failure.error = error;
+    },
+  });
 
-  if (!result) throw new Error('Compilation failed to produce output');
+  if (!result) throw failure.error ?? new Error('Compilation failed to produce output');
 
   return finalizeOutput(result, opts.outputAbs);
 }

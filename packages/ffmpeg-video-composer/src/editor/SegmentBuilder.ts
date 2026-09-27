@@ -12,6 +12,7 @@ import type MapManager from '../editor/managers/MapManager';
 import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/arg-guard';
+import { SectionError } from '@/core/errors/section-error';
 import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
 import {
   buildSingleFileAnimationSource,
@@ -181,11 +182,7 @@ class SegmentBuilder {
     await this.assetManager.setUpPaths();
     this.normalizeBackgroundColor();
 
-    const built = await this.buildSegment();
-
-    if (!built) {
-      return false;
-    }
+    await this.buildSegment();
 
     this.applyHwaccel();
     this.configure();
@@ -202,7 +199,9 @@ class SegmentBuilder {
     }
   };
 
-  private readonly buildSegment = async (): Promise<boolean> => {
+  // Rethrows any failure as a SectionError. Swallowing it left the command at `-version`, so the
+  // section rendered nothing and the concat silently dropped it from the final video.
+  private readonly buildSegment = async (): Promise<void> => {
     const timer = getPerfTimer();
 
     try {
@@ -230,12 +229,11 @@ class SegmentBuilder {
 
       await timer.span('segment:luts', () => this.assetManager.fetchLuts());
       this.logger.info(`[${this.section.name}][LUTs] fetched`);
-
-      return true;
     } catch (error) {
-      this.logger.error(error instanceof Error ? error.message : String(error));
+      const failure = new SectionError(this.section.name, error);
+      this.logger.error(failure.message);
 
-      return false;
+      throw failure;
     }
   };
 

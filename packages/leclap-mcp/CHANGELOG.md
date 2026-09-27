@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stdout is untouched: it stays the JSON-RPC framing channel, and the tool's result payload is
   unchanged.
 
+### Fixed
+
+- `compose_video` no longer returns a successful result for a video missing a section. When a
+  section fails to build, the tool returns `isError` with the engine's cause, naming the section
+  (`Section "outro" failed: …`), instead of a bare "compilation failed". Requires
+  `ffmpeg-video-composer` 2.4.0.
+
 ## [0.3.4] - 2026-08-24
 
 ### Changed

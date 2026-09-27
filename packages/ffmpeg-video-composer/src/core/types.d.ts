@@ -30,6 +30,8 @@ export type LogParams = Record<string, unknown>;
 export type CompileReporter = {
   onProgress?: (fraction: number) => void;
   onLog?: (line: { level: 'debug' | 'info' | 'warn' | 'error'; message: string }) => void;
+  // Called once with the cause when compile() resolves null — e.g. a SectionError naming the section.
+  onError?: (error: Error) => void;
 };
 export type ProjectConfig = {
   buildDir?: string;

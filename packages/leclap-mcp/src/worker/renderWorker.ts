@@ -51,12 +51,17 @@ function sendProgress(message: ProgressMessage): void {
 }
 
 async function runJob(job: RenderJob): Promise<WorkerResult> {
+  // compile() resolves null on failure and hands the cause (e.g. which section failed) to onError.
+  const failure: { error?: Error } = {};
   const outputPath = await compile(job.projectConfig, job.template, {
     onProgress: createProgressReporter(sendProgress),
+    onError: (error) => {
+      failure.error = error;
+    },
   });
 
   if (typeof outputPath !== 'string' || outputPath.length === 0) {
-    return { ok: false };
+    return { ok: false, error: failure.error?.message };
   }
 
   return describeOutput(outputPath);

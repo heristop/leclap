@@ -43,6 +43,7 @@ vi.mock('@/editor/factories/SegmentFactory', () => {
 import TemplateConcreteBuilder from '@/director/TemplateConcreteBuilder';
 import FFmpegWasmAdapter from '@/platform/ffmpeg/FFmpegWasmAdapter';
 import { hasVirtualFilesystem } from '@/platform/ffmpeg/AbstractFFmpeg';
+import { SectionError } from '@/core/errors/section-error';
 import type { ProjectConfig, Section } from '@/core/types';
 
 type ProjectStub = { errors: string[]; config: ProjectConfig };
@@ -106,13 +107,16 @@ describe('TemplateConcreteBuilder.build', () => {
     expect(segmentStub.init).toHaveBeenCalled();
   });
 
-  it('returns ok=false when the segment fails to init', async () => {
+  // The director used to ignore `ok`, render the unbuilt section's `-version` command, and drop it
+  // from the final video. A segment that reports failure without throwing must still stop the compile.
+  it('rejects with a SectionError when the segment reports a failed init', async () => {
     segmentStub.initResult = false;
     const { builder } = makeBuilder({});
 
-    const { ok } = await builder.build(baseSection, { buildDir: '/build' });
+    const failure = builder.build(baseSection, { buildDir: '/build' });
 
-    expect(ok).toBe(false);
+    await expect(failure).rejects.toBeInstanceOf(SectionError);
+    await expect(failure).rejects.toThrow('Section "intro" failed: build did not complete');
   });
 
   it('assigns the projectConfig to the project when the section is project_video', async () => {
@@ -156,7 +160,9 @@ describe('TemplateConcreteBuilder.render (native adapter)', () => {
     expect(project.errors).toHaveLength(0);
   });
 
-  it('records an error when the output file is missing on rc 0', async () => {
+  // A missing segment output was only logged, so the concat skipped it and the compile still
+  // resolved a path to a video without that section.
+  it('rejects with a SectionError when the output file is missing on rc 0', async () => {
     const filesystem = makeFilesystem();
     // stat resolves false for a missing file (the adapter contract returns a boolean, never throws).
     filesystem.stat.mockResolvedValue(false);
@@ -166,20 +172,24 @@ describe('TemplateConcreteBuilder.render (native adapter)', () => {
     });
 
     const { segment } = await builder.build(baseSection, { buildDir: '/build' });
-    await builder.render(segment, baseSection);
+    const failure = builder.render(segment, baseSection);
 
+    await expect(failure).rejects.toBeInstanceOf(SectionError);
+    await expect(failure).rejects.toThrow('Section "intro" failed: output file not found at /build/seg_output.mp4');
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('[intro][RenderPart] output file not found'));
     expect(project.errors).toContain('intro');
   });
 
-  it('pushes the section name to project errors when ffmpeg returns rc 1', async () => {
+  it('rejects with a SectionError when ffmpeg returns rc 1', async () => {
     const { builder, project } = makeBuilder({
       ffmpeg: { execute: vi.fn(async () => ({ rc: 1 })) },
     });
 
     const { segment } = await builder.build(baseSection, { buildDir: '/build' });
-    await builder.render(segment, baseSection);
 
+    await expect(builder.render(segment, baseSection)).rejects.toThrow(
+      'Section "intro" failed: ffmpeg exited with rc 1'
+    );
     expect(project.errors).toContain('intro');
   });
 });
@@ -402,12 +412,14 @@ describe('TemplateConcreteBuilder.render (WASM adapter)', () => {
 
     const { segment } = await builder.build(baseSection, { buildDir: '/build' });
 
-    await expect(builder.render(segment, baseSection)).rejects.toThrow('Failed to read output file from FFmpeg');
+    await expect(builder.render(segment, baseSection)).rejects.toThrow(
+      'Section "intro" failed: Failed to read output file from FFmpeg'
+    );
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Output file not found in WASM'));
     expect(project.errors).toContain('intro');
   });
 
-  it('records an error (no success handling) when WASM ffmpeg returns rc 1', async () => {
+  it('rejects (no success handling) when WASM ffmpeg returns rc 1', async () => {
     const wasm = makeWasmAdapter();
     wasm.execute.mockResolvedValue({ rc: 1 });
 
@@ -416,7 +428,7 @@ describe('TemplateConcreteBuilder.render (WASM adapter)', () => {
     const { builder, project } = makeBuilder({ ffmpeg: wasm as never });
 
     const { segment } = await builder.build(baseSection, { buildDir: '/build' });
-    await builder.render(segment, baseSection);
+    await expect(builder.render(segment, baseSection)).rejects.toBeInstanceOf(SectionError);
 
     expect(project.errors).toContain('intro');
     // No output transfer attempted on failure

@@ -1,0 +1,339 @@
+{
+  "meta": {
+    "name": "Kiln & Co. — Brand Intro",
+    "description": "A five-second brand intro for a ceramics shop: the mug rises into a warm kiln glow with embers, an iris opens onto cream, and the wordmark assembles letter by letter around it with the tagline."
+  },
+  "global": {
+    "orientation": "landscape",
+    "fps": 30,
+    "variables": {
+      "glow": "/assets/pictures/kiln-glow.jpg",
+      "mug": "/assets/pictures/kiln-mug-oat.png",
+      "tagline": "H A N D M A D E   I N   L I S B O N"
+    },
+    "musicEnabled": true,
+    "music": {
+      "name": "cafe-bossa-nova.mp3"
+    },
+    "transition": {
+      "type": "circleopen",
+      "duration": 1.1
+    },
+    "audio": {
+      "musicVolume": 0.6,
+      "musicFade": 0.7
+    },
+    "grade": {
+      "grain": 0.08
+    }
+  },
+  "sections": [
+    {
+      "name": "kiln",
+      "type": "image_background",
+      "options": {
+        "pictureUrl": "{{ glow }}",
+        "duration": 2.1
+      },
+      "motion": [
+        {
+          "type": "kenburns",
+          "direction": "in",
+          "intensity": 1.1
+        }
+      ],
+      "inputs": [
+        {
+          "name": "kiln_light",
+          "url": "/assets/animations/light_leak.apng",
+          "type": "animation",
+          "options": {
+            "loop": true,
+            "position": "0:0",
+            "scale": "1280:720",
+            "opacity": 0.45
+          }
+        },
+        {
+          "name": "kiln_embers",
+          "url": "/assets/animations/sparkle.apng",
+          "type": "animation",
+          "options": {
+            "loop": true,
+            "position": "0:0",
+            "scale": "1280:720",
+            "opacity": 0.75
+          }
+        },
+        {
+          "name": "kiln_mug",
+          "url": "{{ mug }}",
+          "type": "image",
+          "options": {
+            "position": "470:190",
+            "scale": "340:340",
+            "motion": {
+              "type": "rise",
+              "delay": 0,
+              "duration": 0.9,
+              "distance": 560,
+              "easing": "ease-out"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "lockup",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#f6efe4",
+        "duration": 3.9,
+        "layers": [
+          {
+            "x": 391,
+            "y": 596,
+            "w": 44,
+            "h": 2,
+            "gradient": {
+              "from": "#b4532a",
+              "to": "#b4532a"
+            },
+            "reveal": {
+              "type": "fade",
+              "delay": 2.0,
+              "duration": 0.5
+            }
+          },
+          {
+            "x": 845,
+            "y": 596,
+            "w": 44,
+            "h": 2,
+            "gradient": {
+              "from": "#b4532a",
+              "to": "#b4532a"
+            },
+            "reveal": {
+              "type": "fade",
+              "delay": 2.0,
+              "duration": 0.5
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "name": "lockup_mug",
+          "url": "{{ mug }}",
+          "type": "image",
+          "options": {
+            "position": "470:95",
+            "scale": "340:340",
+            "motion": {
+              "type": "rise",
+              "delay": 0.8,
+              "duration": 0.8,
+              "distance": 95,
+              "easing": "ease-in-out"
+            }
+          }
+        },
+        {
+          "name": "lockup_glint",
+          "url": "/assets/animations/shine_sweep.apng",
+          "type": "animation",
+          "options": {
+            "start": 1.4,
+            "loops": 1,
+            "position": "0:0",
+            "scale": "1280:720",
+            "opacity": 0.5
+          }
+        }
+      ],
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "k"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 353,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.57,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "i"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 426,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.49,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "l"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 464,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.41,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "n"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 502,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.33,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "&"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#b4532a",
+            "x": 614,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.25,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "c"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 757,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.33,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "o"
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 821,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.41,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "."
+            },
+            "fontfile": "PlayfairDisplay.ttf",
+            "fontsize": 132,
+            "fontcolor": "#5c4a3a",
+            "x": 894,
+            "y": "544-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.49,
+            "duration": 0.6,
+            "distance": 34,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ tagline }}"
+            },
+            "fontfile": "Rubik.ttf",
+            "fontsize": 25,
+            "fontcolor": "#7d6655",
+            "x": "(w-text_w)/2",
+            "y": "606-ascent"
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 1.85,
+            "duration": 0.6,
+            "distance": 12,
+            "easing": "ease-out"
+          }
+        }
+      ]
+    }
+  ]
+}

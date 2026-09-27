@@ -6,6 +6,12 @@ import { Linkedin } from './Linkedin';
 import { Marketing } from './Marketing';
 import { WebCreate } from './WebCreate';
 import { OnDeviceHero } from './on-device-hero';
+import { Showcase } from './showcase/showcase';
+import { PRODUCT_DEMO, ProductDemoTake } from './showcase/product-demo-take';
+import { AgenticFilm } from './agentic/agentic-film';
+import { CLAPPY_PREVIEW, ClappyPreview } from './film/clappy-preview';
+import { DURATION as AGENTIC_DURATION } from './agentic/timeline';
+import { DURATION, FPS, HEIGHT, WIDTH } from './showcase/timeline';
 
 const bumperProps = { wordmark: 'LeClap', tagline: 'CINEMATIC VIDEOS, ANYWHERE' };
 const kineticProps = { wordmark: 'LeClap', tagline: 'MOTION, AUTHORED' };
@@ -151,6 +157,65 @@ export const RemotionRoot = () => (
       width={1080}
       height={1350}
       defaultProps={linkedinProps}
+    />
+    {/* The 78s showcase film: tool, use cases, agentic development — scored and narrated.
+        Voice + score are generated first (audio/), then `pnpm --filter @leclap/brand-motion render:showcase`.
+        The Fr id is the French cut (copy, narration and evidence in French): `… render:showcase --lang fr`. */}
+    <Composition
+      id="LeClapShowcase"
+      component={Showcase}
+      durationInFrames={DURATION * FPS}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+      defaultProps={{ lang: 'en' }}
+    />
+    <Composition
+      id="LeClapShowcaseFr"
+      component={Showcase}
+      durationInFrames={DURATION * FPS}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+      defaultProps={{ lang: 'fr' }}
+    />
+    {/* The agentic-development film: 50s on "don't describe the change, show it", narrated and scored.
+        `pnpm --filter @leclap/brand-motion render:agentic` (add `--lang fr` for LeClapAgenticFr). */}
+    <Composition
+      id="LeClapAgentic"
+      component={AgenticFilm}
+      durationInFrames={AGENTIC_DURATION * FPS}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+      defaultProps={{ lang: 'en' }}
+    />
+    <Composition
+      id="LeClapAgenticFr"
+      component={AgenticFilm}
+      durationInFrames={AGENTIC_DURATION * FPS}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+      defaultProps={{ lang: 'fr' }}
+    />
+    {/* Clappy's model sheet (film/clappy-preview.tsx) — not part of the films. */}
+    <Composition
+      id="ClappyPreview"
+      component={ClappyPreview}
+      durationInFrames={CLAPPY_PREVIEW.frames}
+      fps={CLAPPY_PREVIEW.fps}
+      width={CLAPPY_PREVIEW.width}
+      height={CLAPPY_PREVIEW.height}
+    />
+    {/* The product-demo edit (square) fed to the real App Tutorial template by media/render-product-demo.ts. */}
+    <Composition
+      id="LeClapProductDemoTake"
+      component={ProductDemoTake}
+      durationInFrames={PRODUCT_DEMO.frames}
+      fps={PRODUCT_DEMO.fps}
+      width={PRODUCT_DEMO.width}
+      height={PRODUCT_DEMO.height}
     />
     {/* Wide logotype banner, rendered as a still for link-in-bio cards and README headers.
         `pnpm --filter @leclap/brand-motion render:banner`. Duration is 1 frame: nothing animates. */}

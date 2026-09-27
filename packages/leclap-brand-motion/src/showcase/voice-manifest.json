@@ -1,0 +1,107 @@
+{
+  "voice": "kokoro:af_heart",
+  "lines": [
+    {
+      "id": "vo-01",
+      "start": 0.9,
+      "duration": 1.647,
+      "file": "showcase/voice/vo-01.wav"
+    },
+    {
+      "id": "vo-02",
+      "start": 3.1,
+      "duration": 2.197,
+      "file": "showcase/voice/vo-02.wav"
+    },
+    {
+      "id": "vo-03",
+      "start": 6.8,
+      "duration": 2.744,
+      "file": "showcase/voice/vo-03.wav"
+    },
+    {
+      "id": "vo-04",
+      "start": 10.5,
+      "duration": 7.308,
+      "file": "showcase/voice/vo-04.wav"
+    },
+    {
+      "id": "vo-05",
+      "start": 18.3,
+      "duration": 3.998,
+      "file": "showcase/voice/vo-05.wav"
+    },
+    {
+      "id": "vo-06",
+      "start": 24.3,
+      "duration": 7.335,
+      "file": "showcase/voice/vo-06.wav"
+    },
+    {
+      "id": "vo-07",
+      "start": 32.5,
+      "duration": 1.107,
+      "file": "showcase/voice/vo-07.wav"
+    },
+    {
+      "id": "vo-08",
+      "start": 34.7,
+      "duration": 1.943,
+      "file": "showcase/voice/vo-08.wav"
+    },
+    {
+      "id": "vo-09",
+      "start": 37.4,
+      "duration": 1.939,
+      "file": "showcase/voice/vo-09.wav"
+    },
+    {
+      "id": "vo-10",
+      "start": 42.3,
+      "duration": 3.7,
+      "file": "showcase/voice/vo-10.wav"
+    },
+    {
+      "id": "vo-11",
+      "start": 48.2,
+      "duration": 4.994,
+      "file": "showcase/voice/vo-11.wav"
+    },
+    {
+      "id": "vo-12",
+      "start": 54.4,
+      "duration": 5.358,
+      "file": "showcase/voice/vo-12.wav"
+    },
+    {
+      "id": "vo-12b",
+      "start": 60,
+      "duration": 2.62,
+      "file": "showcase/voice/vo-12b.wav"
+    },
+    {
+      "id": "vo-12c",
+      "start": 63.8,
+      "duration": 2.673,
+      "file": "showcase/voice/vo-12c.wav"
+    },
+    {
+      "id": "vo-13",
+      "start": 67.2,
+      "duration": 2.113,
+      "file": "showcase/voice/vo-13.wav"
+    },
+    {
+      "id": "vo-14",
+      "start": 70.8,
+      "duration": 2.694,
+      "file": "showcase/voice/vo-14.wav"
+    },
+    {
+      "id": "vo-15",
+      "start": 74.6,
+      "duration": 1.988,
+      "file": "showcase/voice/vo-15.wav"
+    }
+  ]
+}

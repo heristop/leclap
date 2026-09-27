@@ -12,6 +12,11 @@
     "render:linkedin": "node render-linkedin.ts",
     "render:banner": "node render-banner.ts",
     "render:hero": "node render-hero.ts",
+    "render:showcase": "node render-film.ts",
+    "render:agentic": "node render-film.ts --film agentic",
+    "showcase:voice": "node audio/generate-voice.ts",
+    "showcase:score": "node audio/generate-score.ts",
+    "showcase:phone-take": "node media/render-phone-take.ts",
     "studio": "remotion studio",
     "typecheck": "tsc --noEmit"
   },

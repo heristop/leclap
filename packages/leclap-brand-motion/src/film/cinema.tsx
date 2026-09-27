@@ -318,6 +318,59 @@ export const TrackingTitle = ({
 };
 
 /** Kinetic Editorial heading: each word rises in on a staggered spring. */
+const hexRgb = (hex: string): readonly [number, number, number] => [
+  Number.parseInt(hex.slice(1, 3), 16),
+  Number.parseInt(hex.slice(3, 5), 16),
+  Number.parseInt(hex.slice(5, 7), 16),
+];
+
+/** The colour `t` (0–1) of the way along the brand gradient, lavender → pink. */
+const brandAt = (t: number): string => {
+  const from = hexRgb(LAVENDER);
+  const to = hexRgb(PINK);
+  const [r, g, b] = from.map((channel, index) => Math.round(channel + (to[index] - channel) * t));
+
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+/**
+ * Each gradient word's slice of the brand gradient, `[from, to]` in 0–1, keyed by word index.
+ * Consecutive gradient words share one sweep, sliced by characters (spaces included), so "VIDÉO FINIE"
+ * reads as one gradient rather than two words each running lavender → pink.
+ */
+const gradientSlices = (
+  words: readonly string[],
+  gradientWords: readonly string[]
+): Map<number, readonly [number, number]> => {
+  const slices = new Map<number, readonly [number, number]>();
+  let first = 0;
+
+  while (first < words.length) {
+    if (!gradientWords.includes(words[first])) {
+      first += 1;
+      continue;
+    }
+
+    let last = first;
+
+    while (last + 1 < words.length && gradientWords.includes(words[last + 1])) last += 1;
+
+    const total = words.slice(first, last + 1).join(' ').length;
+    let offset = 0;
+
+    for (let index = first; index <= last; index += 1) {
+      const from = offset / total;
+      offset += words[index].length;
+      slices.set(index, [from, offset / total]);
+      offset += 1;
+    }
+
+    first = last + 1;
+  }
+
+  return slices;
+};
+
 export const KineticWords = ({
   text,
   start,
@@ -338,6 +391,7 @@ export const KineticWords = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const words = text.split(' ');
+  const slices = gradientSlices(words, gradientWords);
 
   return (
     <div
@@ -359,7 +413,7 @@ export const KineticWords = ({
           fps,
           config: { damping: 14, stiffness: 180, mass: 0.6 },
         });
-        const gradient = gradientWords.includes(word);
+        const slice = slices.get(index);
 
         return (
           <span
@@ -368,7 +422,12 @@ export const KineticWords = ({
               display: 'inline-block',
               opacity: Math.min(1, enter * 1.4),
               transform: `translateY(${interpolate(enter, [0, 1], [0.6, 0]) * size}px) scale(${interpolate(enter, [0, 1], [0.8, 1])})`,
-              ...(gradient ? BRAND_TEXT : { color }),
+              ...(slice
+                ? {
+                    ...BRAND_TEXT,
+                    backgroundImage: `linear-gradient(100deg, ${brandAt(slice[0])}, ${brandAt(slice[1])})`,
+                  }
+                : { color }),
             }}
           >
             {word}

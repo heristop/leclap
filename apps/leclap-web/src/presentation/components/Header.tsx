@@ -15,6 +15,7 @@ import { GlobeIcon } from './icons/globe';
 import { useIconHover } from './icons/useIconHover';
 import { visibleNavItems, type NavItem } from './header-nav.logic';
 import { useHasProjects } from '@/hooks/use-has-projects';
+import { useNotFound } from '@/hooks/use-not-found';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 import { getLanguage, localePath, setStoredLanguage, LANGUAGES, type Language } from '../../lib/language';
 
@@ -416,10 +417,12 @@ export const Header = () => {
   // The studio browsing pages (gallery / templates / projects) are always-dark app surfaces that
   // fill the viewport behind the fixed header. Force a dark header context on them too, so the nav
   // is legible in light mode (and the header reads as part of the dark app, like the editor).
+  // A 404 under one of those roots (/studio/nwe) is not that surface: the not-found page follows the theme.
   const darkSurfaceRoots = ['/studio', '/templates', '/projects', '/partials', '/legal', '/privacy'];
-  const onDarkSurface = darkSurfaceRoots.some(
-    (root) => location.pathname === root || location.pathname.startsWith(`${root}/`)
-  );
+  const notFound = useNotFound();
+  const onDarkSurface =
+    !notFound &&
+    darkSurfaceRoots.some((root) => location.pathname === root || location.pathname.startsWith(`${root}/`));
 
   return (
     <header

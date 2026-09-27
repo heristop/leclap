@@ -6,7 +6,7 @@
 import { useTranslation } from 'react-i18next';
 import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
 import { cn } from '@/lib/utils';
-import type { EditorState, GlobalTextOverlay } from '../templateEditorModel';
+import { fontLabel, type EditorState, type GlobalTextOverlay } from '../templateEditorModel';
 import {
   Button,
   ColorPicker,
@@ -26,6 +26,7 @@ import { VariableTextField } from './VariableTextField';
 import { EDITOR_INPUT_CLASS } from './editorStyles';
 import { overlaySectionChoices, toggleOverlaySection } from './global-overlay-sections';
 import { overlayDisplayText, withOverlayText } from './global-overlay-text';
+import { FONT_REF_OPTION, fontPickerValue } from './font-picker';
 
 type Position = NonNullable<GlobalTextOverlay['position']>;
 
@@ -239,7 +240,7 @@ const PositionPad = ({ value, onChange }: { value: Position; onChange: (next: Po
 // "Defaults" fallback when none is set.
 function advancedSummary(overlay: GlobalTextOverlay, t: (key: string, opts?: { count: number }) => string): string {
   const parts = [
-    overlay.font ? (FONTS.find((f) => f.id === overlay.font)?.label ?? overlay.font) : null,
+    overlay.font ? fontLabel(overlay.font) : null,
     overlay.size === undefined ? null : `${overlay.size}px`,
     overlay.opacity === undefined ? null : `${Math.round(overlay.opacity * 100)}%`,
     overlay.sections ? t('globalOverlay.sectionsSummary', { count: overlay.sections.length }) : null,
@@ -271,9 +272,7 @@ const OverlayAdvanced = ({
             {t('globalOverlay.font')}
           </span>
           <Select
-            // The picker only lists curated registry ids, so a font named by family shows as the
-            // default here — see fontIdFromFile in creative-kit for the round-trip caveat.
-            value={isFontRef(overlay.font) ? FONT_DEFAULT : (overlay.font ?? FONT_DEFAULT)}
+            value={fontPickerValue(overlay.font, FONT_DEFAULT)}
             onValueChange={(font) => {
               onChange(font === FONT_DEFAULT ? withoutFont(overlay) : { ...overlay, font });
             }}
@@ -283,6 +282,11 @@ const OverlayAdvanced = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={FONT_DEFAULT}>{t('globalOverlay.fontDefault')}</SelectItem>
+              {isFontRef(overlay.font) ? (
+                <SelectItem value={FONT_REF_OPTION} disabled>
+                  {fontLabel(overlay.font)}
+                </SelectItem>
+              ) : null}
               {FONTS.map((font) => (
                 <SelectItem key={font.id} value={font.id} style={{ fontFamily: font.cssFamily }}>
                   {font.label}

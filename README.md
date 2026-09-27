@@ -27,7 +27,7 @@ One JSON template. It renders on Node, in the browser via WebAssembly, and **nat
 
 ## 🎥 Demo
 
-https://github.com/user-attachments/assets/a4a1ead3-90b8-4d0f-8461-a722419ed7b7
+https://github.com/user-attachments/assets/e5e6f7a1-3c84-479b-b6d7-83209e83017d
 
 ## 🤔 Why LeClap?
 

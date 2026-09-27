@@ -6,7 +6,12 @@
     "module": "ESNext",
     "paths": {
       "@/core/*": ["../../packages/ffmpeg-video-composer/src/core/*"],
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      // The Expo app stays on React Native's pinned @types/react, and pnpm hoists that copy for
+      // libraries without an @types/react peer (motion, react-router…). Pin every `react` type
+      // import in this program to the app's own copy so both versions never meet.
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"]
     },
     "types": ["node", "vite/client"],
     "skipLibCheck": true,

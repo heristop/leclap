@@ -1,7 +1,9 @@
 // Record real screen-capture VIDEO clips of the web template builder (/templates/new) for the Remotion
 // promos (Marketing, the showcase's desktop beat). Each beat is screencast in its own 2x context
-// (scripts/screencast.ts — crisp, high-bitrate) into the brand-motion package's public/captures dir, where
+// (scripts/screencast.ts — crisp, high-bitrate) into the brand-motion repo's public/captures dir, where
 // the compositions embed them via <OffthreadVideo>/staticFile().
+// They land in the private leclap-brand-motion repo (github.com/heristop/leclap-brand-motion):
+// LECLAP_BRAND_MOTION points at its checkout, a sibling of this monorepo by default.
 //
 // Needs the dev server up:  pnpm --filter @leclap/web dev   (default :5174; override with E2E_BASE_URL)
 // Needs ffmpeg on PATH. Run:  node apps/leclap-web/scripts/capture-builder.ts
@@ -13,7 +15,8 @@ import { recordScreencast } from './screencast.ts';
 
 const BASE = process.env.E2E_BASE_URL ?? 'http://localhost:5174';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const outDir = path.resolve(here, '../../../packages/leclap-brand-motion/public/captures');
+const brandMotion = process.env.LECLAP_BRAND_MOTION ?? path.resolve(here, '../../../../leclap-brand-motion');
+const outDir = path.join(brandMotion, 'public/captures');
 const SIZE = { width: 1440, height: 900 };
 
 // Run an async step for each item in order (a lint-clean alternative to `await` inside a for-loop).

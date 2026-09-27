@@ -1,7 +1,9 @@
 // Record real screen-capture VIDEO clips of the web app's video-creation flow (/studio → editor →
 // render) for the Remotion promos (WebCreate, the showcase's desktop beat). Each beat is screencast in its
-// own 2x context (scripts/screencast.ts — crisp, high-bitrate) into the brand-motion public/captures dir,
-// where the compositions embed them via <OffthreadVideo>/staticFile().
+// own 2x context (scripts/screencast.ts — crisp, high-bitrate) into the brand-motion repo's public/captures
+// dir, where the compositions embed them via <OffthreadVideo>/staticFile().
+// They land in the private leclap-brand-motion repo (github.com/heristop/leclap-brand-motion):
+// LECLAP_BRAND_MOTION points at its checkout, a sibling of this monorepo by default.
 //
 // Needs the dev server up:  pnpm --filter @leclap/web dev   (default :5174; override with E2E_BASE_URL)
 // Needs ffmpeg on PATH. Run:  node apps/leclap-web/scripts/capture-studio.ts  [--only gallery,compose,trim,result]
@@ -13,12 +15,13 @@ import { recordScreencast } from './screencast.ts';
 
 const BASE = process.env.E2E_BASE_URL ?? 'http://localhost:5174';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const outDir = path.resolve(here, '../../../packages/leclap-brand-motion/public/captures');
+const brandMotion = process.env.LECLAP_BRAND_MOTION ?? path.resolve(here, '../../../../leclap-brand-motion');
+const outDir = path.join(brandMotion, 'public/captures');
 const SIZE = { width: 1600, height: 900 };
 // Portrait, so the selfie clip below fills the preview whole instead of a centre-cropped band.
 const TEMPLATE = 'present-yourself-portrait';
 // The same person the showcase's mobile beat follows (Alex, filming herself) — bright, and one story.
-const SAMPLE = path.resolve(here, '../../../packages/leclap-brand-motion/public/captures/selfie-wave-source.mp4');
+const SAMPLE = path.join(outDir, 'selfie-wave-source.mp4');
 
 // Run an async step for each item in order (a lint-clean alternative to `await` inside a for-loop).
 const forEachSeq = async <T>(items: readonly T[], fn: (item: T) => Promise<void>): Promise<void> => {

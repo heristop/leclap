@@ -54,7 +54,7 @@ a compile end-to-end and hard-refresh a deep link (e.g. `/templates`) to confirm
 
 `public/og-image.png` (2400×1260 — the recommended 1.91:1 ratio at 2× for high-DPI feeds,
 referenced by `index.html`/`Seo.tsx`) is rendered from the Remotion brand composition —
-regenerate it with `pnpm --filter @leclap/brand-motion render:og`.
+regenerate it with `pnpm render:og` in the private leclap-brand-motion repo.
 
 ---
 

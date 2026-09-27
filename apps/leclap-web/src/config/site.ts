@@ -14,6 +14,9 @@
 /** Production domain. Also literal in index.html, public/robots.txt and public/llms.txt. */
 export const SITE_URL = 'https://leclap.dev';
 
+/** The public repository, where bug reports go. */
+export const REPO_URL = 'https://github.com/heristop/leclap';
+
 // Endonyms — each language labelled in its own tongue, the convention for a language picker (a
 // French speaker scans for "Français", not "French"). Order: English first, then by reach.
 // `ogLocale` is the BCP-47-ish form Open Graph wants (xx_XX).

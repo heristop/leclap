@@ -58,10 +58,46 @@
     "license": "MIT-Lizenz"
   },
   "routeError": {
-    "heading": "Etwas ist schiefgelaufen",
-    "fallbackStatus": "Hoppla",
-    "message": "Ein unerwarteter Fehler hat diese Seite unterbrochen.",
-    "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
-    "reload": "Neu laden"
+    "seoTitle": {
+      "notFound": "Seite nicht gefunden",
+      "badRequest": "Ungültige Anfrage",
+      "update": "Update verfügbar",
+      "offline": "Offline",
+      "crash": "Etwas ist schiefgelaufen"
+    },
+    "reload": "Neu laden",
+    "home": "Zur Startseite",
+    "back": "Zurück",
+    "details": "Technische Details",
+    "copy": "Details kopieren",
+    "copied": "Kopiert",
+    "report": "Auf GitHub melden",
+    "badRequest": {
+      "slate": "Szene {{status}}",
+      "eyebrow": "Fehler {{status}} · Ungültige Anfrage",
+      "title": "Aus dieser Anfrage wird niemand schlau.",
+      "message": "LeClap konnte sie nicht verstehen: Vielleicht ist der Link abgeschnitten oder von Hand bearbeitet. Geh zurück und versuch es direkt auf der Seite noch einmal."
+    },
+    "update": {
+      "slate": "Neuer Take",
+      "eyebrow": "Update verfügbar",
+      "title": "LeClap wurde aktualisiert, während dieser Tab offen war.",
+      "message": "Diese Seite gehört zu der Version, die du vorhin geöffnet hast. Lade neu, um zur neuen zu wechseln – deine gespeicherten Projekte bleiben in diesem Browser."
+    },
+    "offline": {
+      "slate": "Kein Signal",
+      "eyebrow": "Offline",
+      "title": "Du bist offline.",
+      "message": "Diese Seite ist noch nicht auf diesem Gerät gespeichert. Verbinde dich wieder und lade dann neu.",
+      "backTitle": "Du bist wieder online.",
+      "backMessage": "Lade neu, um dort weiterzumachen, wo du aufgehört hast."
+    },
+    "crash": {
+      "slate": "Schnitt",
+      "eyebrow": "Unerwarteter Fehler",
+      "eyebrowStatus": "Fehler {{status}}",
+      "title": "Schnitt! Bei uns ist etwas kaputtgegangen.",
+      "message": "LeClap ist auf einen Fehler gestoßen, mit dem es nicht gerechnet hat. Deine gespeicherten Projekte bleiben in diesem Browser – Neuladen rührt sie nicht an."
+    }
   }
 }

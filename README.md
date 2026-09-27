@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="apps/leclap-web/public/pwa-512x512.png" alt="LeClap" width="104" height="104" />
+<img src=".github/media/clappy.png" alt="Clappy, the LeClap mascot" width="126" height="120" />
 
 # LeClap
 
@@ -27,30 +27,7 @@ One JSON template. It renders on Node, in the browser via WebAssembly, and **nat
 
 ## 🎥 Demo
 
-Two looks at LeClap — a finished clip rendered from a single JSON template, and the mobile app composing one fully **on-device**.
-
-<table>
-  <tr>
-    <td align="center" width="60%" valign="top">
-      <strong>🎬 Template-driven render</strong><br />
-      <sub>one JSON template → a finished clip · <em>unmute for sound</em></sub>
-      <br /><br />
-      <video src="https://github.com/user-attachments/assets/19f59a73-d35a-470d-9c42-3945ba51e5ba" controls muted width="100%"></video>
-    </td>
-    <td align="center" width="40%" valign="top">
-      <strong>📱 On-device on Android</strong><br />
-      <sub>the app: capture → compose → render, on the phone</sub>
-      <br /><br />
-      <video src="https://github.com/user-attachments/assets/4337ccdc-efa5-4d58-b201-1b50630e8cda" controls muted width="260"></video>
-    </td>
-  </tr>
-</table>
-
-<div align="center">
-
-![A phone composing a LeClap template on-device: tapping Create my video, FFmpeg rendering on the handset, then the finished clip playing back — no upload, no server](https://raw.githubusercontent.com/heristop/leclap/main/.github/media/readme-hero.gif)
-
-</div>
+https://github.com/user-attachments/assets/a4a1ead3-90b8-4d0f-8461-a722419ed7b7
 
 ## 🤔 Why LeClap?
 

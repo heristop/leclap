@@ -14,6 +14,30 @@ export const TranslationSchema = z
   .record(z.string(), z.string())
   .describe('Locale-keyed map of translated strings, e.g. { en: "Hello", fr: "Bonjour" }.');
 
+// How a font is named anywhere in a descriptor. A string is a bundled registry id or a raw .ttf
+// filename, both resolved locally. The object form names a family that is resolved on demand, and is
+// deliberately a DIFFERENT SHAPE rather than another string: it keeps a typo'd registry id ("bebbas")
+// a local validation error instead of turning it into a network lookup that fails mid-render.
+//
+// The weight is constrained to the 100..900 steps Google Fonts serves, so an unservable weight is
+// caught at author time rather than surfacing as a failed download.
+export const FontRefSchema = z
+  .object({
+    family: z.string().trim().min(1).describe('Font family name as Google Fonts spells it, e.g. "Playfair Display".'),
+    weight: z
+      .number()
+      .int()
+      .min(100)
+      .max(900)
+      .refine((weight) => weight % 100 === 0, { message: 'weight must be a multiple of 100' })
+      .optional()
+      .describe('Font weight 100..900 in steps of 100 (default 400).'),
+    style: z.enum(['normal', 'italic']).optional().describe('Font style (default normal).'),
+  })
+  .strict();
+
+export const FontInputSchema = z.union([z.string(), FontRefSchema]);
+
 // A whole-video text overlay (e.g. a brand watermark) authored once in global and composited onto
 // every section — the text sibling of global.animations. Lowered by the global-decorations preset.
 export const GLOBAL_TEXT_POSITIONS = [
@@ -30,7 +54,9 @@ export const GlobalTextOverlaySchema = z
   .object({
     text: TranslationSchema.describe('Localised text drawn over every section (e.g. a brand name).'),
     position: z.enum(GLOBAL_TEXT_POSITIONS).optional().describe('Anchor for the text (default top-right).'),
-    font: z.string().optional().describe('Font id or .ttf filename (default Oswald).'),
+    font: FontInputSchema.optional().describe(
+      'Font id, .ttf filename, or { family, weight, style } for any Google Fonts family (default Oswald).'
+    ),
     size: z.number().positive().optional().describe('Font size in px; default derived from the output height.'),
     color: z.string().optional().describe('Text colour as a CSS hex string (default white).'),
     opacity: z.number().min(0).max(1).optional().describe('Static text alpha 0..1 when no reveal is set (default 1).'),

@@ -83,7 +83,9 @@ Segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `Segment
 
 ## Validating
 
-Validate with `TemplateValidator` (zod + cross-field rules). zod reports the exact path/field on failure. Cross-field rules reject: a non-`cut` transition on the last rendering section (`dangling_transition`); an effective transition duration ≥ the smaller adjacent declared `duration` (`transition_too_long`); `kenburns` outside `image_background`/video (`motion_unsupported_section`); a whole-video animation with no url (`global_animation_missing_url`); and a `caption`/`global.overlays` `font` that is neither a bundled id nor a `.ttf` (`unknown_font` — catches typos that would otherwise silently fall back to the default). After editing any `.json`, run `pnpm fmt`.
+Validate with `TemplateValidator` (zod + cross-field rules). zod reports the exact path/field on failure. Cross-field rules reject: a non-`cut` transition on the last rendering section (`dangling_transition`); an effective transition duration ≥ the smaller adjacent declared `duration` (`transition_too_long`); `kenburns` outside `image_background`/video (`motion_unsupported_section`); a whole-video animation with no url (`global_animation_missing_url`); and a `caption`/`global.overlays` `font` **string** that is neither a bundled id nor a `.ttf` (`unknown_font` — catches typos that would otherwise silently fall back to the default).
+
+- **Fonts** — `font` takes a bundled id (`"bebas"`), a `.ttf` filename, or `{ family, weight?, style? }` to pull any Google Fonts family (`{ "family": "Playfair Display", "weight": 700 }`; weight 100..900 in steps of 100, default 400; style `normal`/`italic`). The object form is not validated against Google's catalogue — a bad family fails at render time naming the family — but it is the only way to get a multi-word family or a specific weight. An unresolvable font fails the render rather than silently drawing the wrong face. Not supported on the browser/WASM backend. After editing any `.json`, run `pnpm fmt`.
 
 ## Common mistakes
 

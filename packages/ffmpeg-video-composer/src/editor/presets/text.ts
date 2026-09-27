@@ -1,12 +1,20 @@
-import { findFont } from '@/core/fonts';
+import { findFont, isFontRef, type FontInput } from '@/core/fonts';
 
 export type Translation = Record<string, string | undefined>;
 
-// Resolve a font id (bundled registry) or raw .ttf filename to a drawtext fontfile, falling back to
-// the given preset file. Shared by every text sugar so font handling lives in one place.
-export function resolveFontFile(font: string | undefined, presetFile: string): string {
+// Resolve an authored font to a drawtext fontfile, falling back to the given preset file. Shared by
+// every text sugar so font handling lives in one place.
+//
+// A font named by family is passed through untouched: it is the FormatterManager that turns it into
+// a staged filename, because that is where the staging queue lives and where the family / weight /
+// style must travel together to the download.
+export function resolveFontFile(font: FontInput | undefined, presetFile: string): string | FontInput {
   if (!font) {
     return presetFile;
+  }
+
+  if (isFontRef(font)) {
+    return font;
   }
 
   const entry = findFont(font);

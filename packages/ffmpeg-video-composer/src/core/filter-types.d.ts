@@ -2,6 +2,7 @@
 // recipe — live here to keep `types.d.ts` under the max-lines budget; the public ones are re-exported
 // from `./types` so `@/core/types` stays the single entry point.
 import type { Reveal, Exit } from './descriptor-text';
+import type { FontRef } from './fonts';
 
 /** How an overlay maps into its "w:h" scale box: free stretch, letterbox inside, or fill + centre-crop. */
 export type OverlayFit = 'stretch' | 'contain' | 'cover';
@@ -98,7 +99,8 @@ export interface FilterValues {
   text?: Translation;
   fontcolor?: string;
   fontsize?: number | string;
-  fontfile?: string;
+  // A staged `.ttf` filename, or a font named by family that the FormatterManager resolves to one.
+  fontfile?: string | FontRef;
   alpha?: string;
   d?: string;
   st?: string;

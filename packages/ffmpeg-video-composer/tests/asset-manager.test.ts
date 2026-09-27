@@ -20,6 +20,10 @@ function createFilesystem() {
     writeFile: vi.fn(async (_path: string, _bytes: Uint8Array) => undefined),
     // Default to "not bundled" so these tests still exercise the Google Fonts download path.
     resolveBundledFont: vi.fn(async (): Promise<string | null> => null),
+    // Default to "not cached" so these tests still exercise the download path.
+    resolveCachedFont: vi.fn(async (): Promise<string | null> => null),
+    cacheFont: vi.fn(async () => undefined),
+    supportsRemoteFonts: true,
     // Default to "no local copy" so media tests still exercise the download path.
     resolveLocalAsset: vi.fn(async (): Promise<string | null> => null),
   };
@@ -54,7 +58,7 @@ function build(
     currentSection: opts.section,
     assetsDir: '/assets',
     fontsDir: '/fonts',
-    tempFonts: [] as string[],
+    tempFonts: [] as { file: string; ref?: { family: string; weight?: number; style?: string } }[],
     lutsDir: '/luts',
     tempLuts: [] as string[],
     panelsDir: '/panels',
@@ -266,7 +270,7 @@ describe('AssetManager.fetchFonts', () => {
     const fs = createFilesystem();
     fs.stat.mockResolvedValue(true);
     const { manager, logger } = build({ section: { name: 's', type: 'video' }, fs });
-    manager.segment.tempFonts = ['Roboto-Bold.ttf'];
+    manager.segment.tempFonts = [{ file: 'Roboto-Bold.ttf' }];
     await manager.fetchFonts();
     expect(fs.fetchAndRead).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('cached'));
@@ -276,7 +280,7 @@ describe('AssetManager.fetchFonts', () => {
     const fs = createFilesystem();
     fs.resolveBundledFont.mockResolvedValue('/pkg/dist/fonts/BebasNeue.ttf');
     const { manager, logger } = build({ section: { name: 's', type: 'video' }, fs });
-    manager.segment.tempFonts = ['BebasNeue.ttf'];
+    manager.segment.tempFonts = [{ file: 'BebasNeue.ttf' }];
     await manager.fetchFonts();
     expect(fs.copy).toHaveBeenCalledWith('/pkg/dist/fonts/BebasNeue.ttf', '/fonts/BebasNeue.ttf');
     expect(fs.fetchAndRead).not.toHaveBeenCalled();
@@ -289,20 +293,92 @@ describe('AssetManager.fetchFonts', () => {
     fs.fetchAndRead.mockResolvedValue('src: url(https://fonts.gstatic.com/s/roboto/v1/font.ttf) format("truetype");');
     fs.fetch.mockResolvedValue('/tmp/font.ttf');
     const { manager } = build({ section: { name: 's', type: 'video' }, fs });
-    manager.segment.tempFonts = ['Roboto-Bold.ttf'];
+    manager.segment.tempFonts = [{ file: 'Roboto-Bold.ttf' }];
     await manager.fetchFonts();
     expect(fs.fetch).toHaveBeenCalledWith('https://fonts.gstatic.com/s/roboto/v1/font.ttf');
     expect(fs.move).toHaveBeenCalledWith('/tmp/font.ttf', '/fonts/Roboto-Bold.ttf');
   });
 
-  it('logs and skips when the CSS has no gstatic font url', async () => {
+  // Previously this logged "no font url found" and returned, leaving the segment to render with no
+  // font at all — a silently wrong video. A font that cannot be staged is now a hard failure.
+  it('throws when the CSS carries no gstatic font url', async () => {
     const fs = createFilesystem();
     fs.fetchAndRead.mockResolvedValue('/* no font here */');
-    const { manager, logger } = build({ section: { name: 's', type: 'video' }, fs });
-    manager.segment.tempFonts = ['Mystery.ttf'];
-    await manager.fetchFonts();
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'Mystery.ttf' }];
+    await expect(manager.fetchFonts()).rejects.toThrow(/Mystery\.ttf/);
     expect(fs.fetch).not.toHaveBeenCalled();
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('no font url found'));
+  });
+});
+
+// A FontRef names a family directly instead of leaning on a filename, so the exact weight/style is
+// requested rather than guessed from the file stem.
+describe('AssetManager.fetchFonts with a FontRef', () => {
+  const ttfCss = "src: url(https://fonts.gstatic.com/s/inter/v20/UcCO3Fwr.ttf) format('truetype');";
+
+  it('requests the family and weight named by the ref, not the filename', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockResolvedValue(ttfCss);
+    fs.fetch.mockResolvedValue('/tmp/inter.ttf');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-inter-700.ttf', ref: { family: 'Inter', weight: 700 } }];
+    await manager.fetchFonts();
+    expect(fs.fetchAndRead).toHaveBeenCalledWith(
+      'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,700',
+      expect.objectContaining({ 'User-Agent': expect.any(String) })
+    );
+    expect(fs.move).toHaveBeenCalledWith('/tmp/inter.ttf', '/fonts/google-inter-700.ttf');
+  });
+
+  it('resolves a multi-word family the old filename-derived lookup could not', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockResolvedValue(ttfCss);
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-playfair-display-400.ttf', ref: { family: 'Playfair Display' } }];
+    await manager.fetchFonts();
+    expect(fs.fetchAndRead).toHaveBeenCalledWith(
+      'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400',
+      expect.anything()
+    );
+  });
+
+  it('reuses a font already in the persistent cache instead of downloading', async () => {
+    const fs = createFilesystem();
+    fs.resolveCachedFont.mockResolvedValue('/cache/google-inter-400.ttf');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-inter-400.ttf', ref: { family: 'Inter' } }];
+    await manager.fetchFonts();
+    expect(fs.copy).toHaveBeenCalledWith('/cache/google-inter-400.ttf', '/fonts/google-inter-400.ttf');
+    expect(fs.fetchAndRead).not.toHaveBeenCalled();
+  });
+
+  it('populates the persistent cache after a download so the next render works offline', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockResolvedValue(ttfCss);
+    fs.fetch.mockResolvedValue('/tmp/inter.ttf');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-inter-400.ttf', ref: { family: 'Inter' } }];
+    await manager.fetchFonts();
+    expect(fs.cacheFont).toHaveBeenCalledWith('google-inter-400.ttf', '/fonts/google-inter-400.ttf');
+  });
+
+  // A browser cannot override User-Agent, so Google returns woff2, which drawtext cannot read.
+  // Failing up front beats emitting a video with the wrong typeface.
+  it('throws on a platform that cannot fetch a truetype face', async () => {
+    const fs = createFilesystem();
+    fs.supportsRemoteFonts = false;
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-inter-400.ttf', ref: { family: 'Inter' } }];
+    await expect(manager.fetchFonts()).rejects.toThrow(/Inter/);
+    expect(fs.fetchAndRead).not.toHaveBeenCalled();
+  });
+
+  it('names the family in the error when the family does not exist', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockResolvedValue('/* 400 */');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-intr-400.ttf', ref: { family: 'Intr' } }];
+    await expect(manager.fetchFonts()).rejects.toThrow(/Intr/);
   });
 });
 

@@ -3,7 +3,7 @@
 // the engine turns into the drawtext/drawbox/fade filters intros used to author by hand. Clearing every
 // line removes the card. Distinct from the positional OverlayCanvas — this is the structured card.
 import { useTranslation } from 'react-i18next';
-import { FONTS } from '@leclap/creative-kit/fonts';
+import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
 import type { TitleCard } from '../../templateEditorModel';
 import {
   Checkbox,
@@ -286,7 +286,9 @@ const LineStyleControl = ({
             {t('titleCard.font')}
           </span>
           <Select
-            value={style?.font ?? ''}
+            // The picker only lists curated registry ids, so a font named by family shows as the
+            // default here — see fontIdFromFile in creative-kit for the round-trip caveat.
+            value={isFontRef(style?.font) ? '' : (style?.font ?? '')}
             onValueChange={(font) => {
               patch({ font });
             }}

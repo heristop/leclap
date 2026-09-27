@@ -33,7 +33,8 @@ async function requestWithGuardedRedirects(
   url: string,
   responseType: ResponseType,
   origin: string = url,
-  hop = 0
+  hop = 0,
+  headers?: Record<string, string>
 ): Promise<AxiosResponse> {
   if (hop > MAX_REDIRECT_HOPS) {
     throw new Error(`Too many redirects (more than ${MAX_REDIRECT_HOPS}) while fetching ${origin}`);
@@ -46,6 +47,7 @@ async function requestWithGuardedRedirects(
     method: 'get',
     url,
     responseType,
+    headers,
     maxRedirects: 0,
     httpAgent,
     httpsAgent,
@@ -68,7 +70,7 @@ async function requestWithGuardedRedirects(
   // then recurse so the destination is guarded before the next request.
   const next = new URL(location, url).toString();
 
-  return requestWithGuardedRedirects(next, responseType, origin, hop + 1);
+  return requestWithGuardedRedirects(next, responseType, origin, hop + 1, headers);
 }
 
 @injectable()
@@ -280,6 +282,43 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   override resolveBundledMusic = (musicFile: string): Promise<string | null> =>
     this.resolveBundledAsset('musics', musicFile);
 
+  // A font downloaded by an earlier render, kept OUTSIDE the build dir (which is wiped between runs)
+  // so a repeat render of the same resolved font needs no network. Overridable with FVC_FONT_CACHE_DIR
+  // so a CI job can point it at a warm, shared directory.
+  private fontCacheDir(): string {
+    const configured = process.env.FVC_FONT_CACHE_DIR?.trim();
+
+    if (configured) {
+      return configured;
+    }
+
+    return path.join(os.homedir(), '.cache', 'leclap', 'fonts');
+  }
+
+  override resolveCachedFont = async (fontFile: string): Promise<string | null> => {
+    const cached = path.join(this.fontCacheDir(), fontFile);
+
+    return (await fs
+      .access(cached)
+      .then(() => true)
+      .catch(() => false))
+      ? cached
+      : null;
+  };
+
+  // Best-effort by contract: a cache that cannot be written (read-only home, full disk) must never
+  // fail a render that has already produced the font.
+  override cacheFont = async (fontFile: string, stagedPath: string): Promise<void> => {
+    try {
+      const dir = this.fontCacheDir();
+      await fs.mkdir(dir, { recursive: true });
+      await fs.copyFile(stagedPath, path.join(dir, fontFile));
+    } catch (error) {
+      const params = error instanceof Error ? { message: error.message } : undefined;
+      this.logger.warn(`Could not cache font ${fontFile}:`, params);
+    }
+  };
+
   override move = async (sourcePath: string, targetPath: string): Promise<void> => {
     const exists = await fs
       .access(sourcePath)
@@ -331,12 +370,12 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     return fs.appendFile(targetPath, content);
   };
 
-  fetchAndRead = async (url: string): Promise<string> => {
+  fetchAndRead = async (url: string, headers?: Record<string, string>): Promise<string> => {
     try {
       // SSRF guard: same class as fetch() — a template-supplied font URL must not be able to
       // reach cloud metadata, loopback, or RFC1918 hosts, on the first request or any redirect.
       // Google Fonts CSS can answer 302, so redirects are followed but re-validated per hop.
-      const response = await requestWithGuardedRedirects(url, 'text');
+      const response = await requestWithGuardedRedirects(url, 'text', url, 0, headers);
 
       return response.data;
     } catch (error) {

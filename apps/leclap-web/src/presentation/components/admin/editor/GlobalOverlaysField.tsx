@@ -4,7 +4,7 @@
 // font/size/opacity overrides and the per-scene targeting the engine already honours. Empty rows are
 // dropped on emit.
 import { useTranslation } from 'react-i18next';
-import { FONTS } from '@leclap/creative-kit/fonts';
+import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
 import { cn } from '@/lib/utils';
 import type { EditorState, GlobalTextOverlay } from '../templateEditorModel';
 import {
@@ -271,7 +271,9 @@ const OverlayAdvanced = ({
             {t('globalOverlay.font')}
           </span>
           <Select
-            value={overlay.font ?? FONT_DEFAULT}
+            // The picker only lists curated registry ids, so a font named by family shows as the
+            // default here — see fontIdFromFile in creative-kit for the round-trip caveat.
+            value={isFontRef(overlay.font) ? FONT_DEFAULT : (overlay.font ?? FONT_DEFAULT)}
             onValueChange={(font) => {
               onChange(font === FONT_DEFAULT ? withoutFont(overlay) : { ...overlay, font });
             }}

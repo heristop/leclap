@@ -35,7 +35,7 @@ import type {
   WatermarkSchema,
 } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import type { AccentBar } from './accent-bar';
-import { FONTS, DEFAULT_FONT_ID } from '../fonts';
+import { FONTS, DEFAULT_FONT_ID, isFontRef, type FontInput } from '../fonts';
 
 export type MediaChoice =
   | { source: 'library'; id: string }
@@ -467,8 +467,14 @@ export function newOverlay(): TextOverlay {
 
 // Resolve a font id from a stored drawtext `fontfile`, falling back to the
 // default font when the file is unknown or missing.
-export function fontIdFromFile(file: string | undefined): string {
-  return FONTS.find((f) => f.file === file)?.id ?? DEFAULT_FONT_ID;
+//
+// The editor's font control is a picker over the curated registry, so it cannot represent a font
+// named by family ({ family, weight, style }) — those are authored by hand or through MCP. Such a
+// font reads back as the DEFAULT id here, so opening and re-saving that template in the editor
+// REPLACES its font. Templates using one should not be round-tripped through the editor until the
+// picker can carry it.
+export function fontIdFromFile(file: FontInput | undefined): string {
+  return isFontRef(file) ? DEFAULT_FONT_ID : (FONTS.find((f) => f.file === file)?.id ?? DEFAULT_FONT_ID);
 }
 
 export function newSection(kind: EditorSection['kind']): EditorSection {

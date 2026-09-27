@@ -4,7 +4,7 @@
 // line removes the card. Distinct from the positional OverlayCanvas — this is the structured card.
 import { useTranslation } from 'react-i18next';
 import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
-import type { TitleCard } from '../../templateEditorModel';
+import { fontLabel, type TitleCard } from '../../templateEditorModel';
 import {
   Checkbox,
   ColorPicker,
@@ -21,6 +21,7 @@ import { SectionDisclosure } from '../SectionDisclosure';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { VariableTextField } from '../VariableTextField';
+import { FONT_REF_OPTION, fontPickerValue } from '../font-picker';
 
 type Align = NonNullable<TitleCard['align']>;
 type LineStyle = NonNullable<TitleCard['kickerStyle']>;
@@ -55,8 +56,8 @@ function setLine(value: string): TitleCard['headline'] | undefined {
 // The disclosure summary: the overridden font label / size / colour, or the fallback when the line
 // still renders with the engine preset.
 function lineStyleSummary(style: LineStyle | undefined, fallback: string): string {
-  const fontLabel = style?.font ? (FONTS.find((f) => f.id === style.font)?.label ?? style.font) : null;
-  const parts = [fontLabel, style?.fontsize ? `${style.fontsize}px` : null, style?.color ?? null].filter(
+  const font = style?.font ? fontLabel(style.font) : null;
+  const parts = [font, style?.fontsize ? `${style.fontsize}px` : null, style?.color ?? null].filter(
     (part): part is string => Boolean(part)
   );
 
@@ -286,9 +287,7 @@ const LineStyleControl = ({
             {t('titleCard.font')}
           </span>
           <Select
-            // The picker only lists curated registry ids, so a font named by family shows as the
-            // default here — see fontIdFromFile in creative-kit for the round-trip caveat.
-            value={isFontRef(style?.font) ? '' : (style?.font ?? '')}
+            value={fontPickerValue(style?.font, '')}
             onValueChange={(font) => {
               patch({ font });
             }}
@@ -297,6 +296,11 @@ const LineStyleControl = ({
               <SelectValue placeholder={t('titleCard.fontDefault')} />
             </SelectTrigger>
             <SelectContent>
+              {isFontRef(style?.font) ? (
+                <SelectItem value={FONT_REF_OPTION} disabled>
+                  {fontLabel(style.font)}
+                </SelectItem>
+              ) : null}
               {FONTS.map((font) => (
                 <SelectItem key={font.id} value={font.id} style={{ fontFamily: font.cssFamily }}>
                   {font.label}

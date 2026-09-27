@@ -3,7 +3,6 @@
 // text-blocks.ts): the same margins, y positions, font files and colours, computed in engine px
 // (with the engine's rounding) then rescaled to the preview frame. Reveal/fade are entrance
 // animations — the preview renders the resting (fully revealed) state.
-import { findFont, findFontByFile, isFontRef, type FontInput } from '@leclap/creative-kit/fonts';
 import type { TitleCard, Orientation } from '../templateEditorModel';
 import {
   ENGINE_FRAME,
@@ -13,6 +12,7 @@ import {
   type SugarBar,
   type SugarTextLine,
 } from './sugarPreviewGeometry';
+import { previewFontFamily } from './preview-font-family';
 
 export interface TitleCardPreview {
   lines: SugarTextLine[];
@@ -32,24 +32,6 @@ type LineSpec = {
   color: string;
   style?: LineStyle;
 };
-
-// A styled font id → its CSS family; a raw .ttf resolved by file name; a font named by family uses
-// that family verbatim (a Google family name IS its CSS family name, so the preview matches the
-// render as long as the browser has the face); anything unknown keeps the preset family (the
-// engine's resolveFontFile falls back the same way).
-function lineFontFamily(font: FontInput | undefined, presetFamily: string): string {
-  if (!font) return presetFamily;
-
-  if (isFontRef(font)) return font.family;
-
-  const byId = findFont(font);
-
-  if (byId) return byId.cssFamily;
-
-  if (font.endsWith('.ttf')) return findFontByFile(font)?.cssFamily ?? presetFamily;
-
-  return presetFamily;
-}
 
 /**
  * Lays out a titleCard as positioned preview boxes, or null when the card has no text at all
@@ -115,7 +97,7 @@ export function titleCardPreview(
       y: { edge: 'top', px: Math.round(h * spec.yFrac) * f },
       // A styled fontsize is absolute engine px (like caption overrides); otherwise scale-derived.
       fontPx: (spec.style?.fontsize ?? Math.round(h * spec.sizeFrac)) * f,
-      fontFamily: lineFontFamily(spec.style?.font, spec.fontFamily),
+      fontFamily: previewFontFamily(spec.style?.font, spec.fontFamily),
       color: spec.style?.color ?? spec.color,
       // The engine applies the card effect to every pushLine (text-blocks.ts titleCardToFilters).
       ...(card.effect ? { effect: card.effect } : {}),

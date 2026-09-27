@@ -4,9 +4,9 @@
 // are ABSOLUTE engine px (fontsize 46, offsets 60/110, margin 80, border 18), so they scale by the
 // preview/engine height factor — proportionally larger on the 720-high landscape frame than on the
 // 1280-high portrait one, exactly like the render.
-import { findFont, findFontByFile } from '@leclap/creative-kit/fonts';
 import type { EditorCaption, Orientation } from '../templateEditorModel';
 import { previewScale, type SugarAnchorX, type SugarAnchorY, type SugarTextLine } from './sugarPreviewGeometry';
+import { previewFontFamily } from './preview-font-family';
 
 // Engine constants from captions.ts.
 const ALIGN_MARGIN = 80;
@@ -45,21 +45,6 @@ const POSITION_ANCHORS: Record<string, SugarAnchorY> = {
   bottom: { edge: 'bottom', px: BOTTOM_OFFSET },
   'lower-third': { edge: 'bottom', px: LOWER_THIRD_OFFSET },
 };
-
-// Mirror the engine's resolveFontFile → CSS family: a registry id wins, then a known .ttf filename;
-// anything else keeps the preset font (an unknown .ttf would render server-side but the browser has
-// no face for it, so the preset family is the closest preview).
-function captionFontFamily(font: string | undefined, preset: StylePreset): string {
-  if (!font) return preset.fontFamily;
-
-  const byId = findFont(font);
-
-  if (byId) return byId.cssFamily;
-
-  if (font.endsWith('.ttf')) return findFontByFile(font)?.cssFamily ?? preset.fontFamily;
-
-  return preset.fontFamily;
-}
 
 // The engine's resolveBox: preset box unless the caption toggles it, with explicit colour/opacity
 // overrides (or a boxless preset) rebuilding the colour@opacity token from the defaults.
@@ -107,7 +92,7 @@ export function captionPreview(
     x,
     y,
     fontPx: (caption.fontsize ?? preset.fontsize) * f,
-    fontFamily: captionFontFamily(caption.font, preset),
+    fontFamily: previewFontFamily(caption.font, preset.fontFamily),
     color: caption.color ?? preset.color,
     ...(box ? { box } : {}),
     // The engine applies the caption effect to the drawtext (captions.ts applyTextEffect).

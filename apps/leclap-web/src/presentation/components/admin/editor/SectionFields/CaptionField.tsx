@@ -12,8 +12,14 @@ import {
   CAPTION_STYLES,
   CAPTION_ALIGNS,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import { FONTS } from '@leclap/creative-kit/fonts';
-import type { CaptionAlign, CaptionPosition, CaptionStyle, VisualCaption } from '../../templateEditorModel';
+import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
+import {
+  fontLabel,
+  type CaptionAlign,
+  type CaptionPosition,
+  type CaptionStyle,
+  type VisualCaption,
+} from '../../templateEditorModel';
 import {
   Checkbox,
   ColorPicker,
@@ -28,6 +34,7 @@ import { SectionDisclosure } from '../SectionDisclosure';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { NumberField } from '@/presentation/components/ui/NumberField';
+import { FONT_REF_OPTION, fontPickerValue } from '../font-picker';
 
 const DEFAULT_FONTSIZE = 48;
 
@@ -134,7 +141,7 @@ const CaptionAdvanced = ({
 
   const summaryParts = [
     caption.align ? t(`caption.align.${caption.align}`) : null,
-    caption.font ? (FONTS.find((f) => f.id === caption.font)?.label ?? caption.font) : null,
+    caption.font ? fontLabel(caption.font) : null,
     caption.color ?? null,
   ].filter((part): part is string => Boolean(part));
   const summary = summaryParts.length > 0 ? summaryParts.join(' · ') : t('caption.advancedNone');
@@ -155,7 +162,7 @@ const CaptionAdvanced = ({
             {t('caption.font')}
           </span>
           <Select
-            value={caption.font ?? ''}
+            value={fontPickerValue(caption.font, '')}
             onValueChange={(font) => {
               onChange(nextCaption(caption, { font }));
             }}
@@ -164,6 +171,11 @@ const CaptionAdvanced = ({
               <SelectValue placeholder={t('caption.fontDefault')} />
             </SelectTrigger>
             <SelectContent>
+              {isFontRef(caption.font) ? (
+                <SelectItem value={FONT_REF_OPTION} disabled>
+                  {fontLabel(caption.font)}
+                </SelectItem>
+              ) : null}
               {FONTS.map((font) => (
                 <SelectItem key={font.id} value={font.id} style={{ fontFamily: font.cssFamily }}>
                   {font.label}

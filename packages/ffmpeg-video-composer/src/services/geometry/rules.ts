@@ -1,5 +1,10 @@
 import { compositeOver, contrastRatio, parseColor } from '@/core/color-contrast';
-import type { Box, Canvas } from './text-boxes';
+import type { Box, Canvas, Panel } from './geometry-types';
+
+// Why a finding is an estimate. `font`: no metrics for the typeface, so widths are guessed;
+// `variable`: the text holds a `{{ var }}` only filled at render time; `duration`: a section
+// declares no duration, so when things are on screen is assumed.
+export type GeometryApproxReason = 'font' | 'variable' | 'duration';
 
 // Advisory only. Nothing here is ever an `error`: a template that renders badly still renders, and
 // failing a build over a legibility hint would make `leclap validate` unusable in CI.
@@ -9,6 +14,7 @@ export interface GeometryWarning {
   code: string;
   severity: 'warn';
   approx: boolean;
+  approxReason?: GeometryApproxReason;
 }
 
 // Broadcast title-safe: keep text inside the middle 90%.
@@ -17,171 +23,141 @@ const SAFE_MARGIN_RATIO = 0.05;
 // Below this fraction of the output height, type is unreadable on a phone.
 const MIN_LEGIBLE_RATIO = 0.025;
 
-// Every rule builds its finding here. `approx` defaults to the box's own flag and is overridden by
-// the two rules that read exact colour tokens rather than font metrics, and by the collision rule,
-// which spans two boxes. Without the override the three of them hand-rolled the same five-key
-// literal, and `severity: 'warn'` — the one field GeometryWarning pins to a single value — was
-// written out four times.
-function warn(box: Box, code: string, message: string, approx: boolean = box.approx): GeometryWarning {
-  return { path: box.path, message, code, severity: 'warn', approx };
-}
-
-// Below this, an "overflow" is inside the noise of the measurement itself — the difference between
-// one digit and another in the variable a caption interpolates. Reporting it produced findings that
-// read "overflows the safe width by 0px", which tells an author nothing they can act on.
+// Below this, an "overflow" is inside the noise of the measurement itself.
 const OVERFLOW_TOLERANCE_PX = 2;
 
-// How far the box pokes out of the given inset rectangle, on whichever of the four sides is worst.
-// Position matters as much as size: a left-aligned caption 1140px wide fits inside a 1152px safe
-// width and still crosses the right-hand margin, because it starts at x=80 rather than at x=64.
-// Comparing width against a budget — which is all the first version did — fires only for centred text.
-//
-// The two insets are per-AXIS. Deriving the vertical one from the frame WIDTH makes the margin 64px
-// tall on a 720px-high landscape frame instead of 36px, which fired on the engine's own presets: a
-// two-word default caption at `position: "top"` sits at y=42 and was reported as "extends 22px past
-// the title-safe margin", advice its author cannot act on.
-//
-// A side the preset pins (Box.anchoredSide) is skipped: a left- or right-aligned caption sits a fixed
-// distance from that frame edge whatever its text, so "shorten it or reduce the size" cannot move it.
-// With the default box that is 80 − 18 = 62px against a 64px landscape inset, which reported every
-// left- or right-aligned `bar` caption — the docs' own example included — as crossing by 2px.
-function horizontalExcess(box: Box, canvas: Canvas, inset: number): number {
-  const left = box.anchoredSide === 'left' ? Number.NEGATIVE_INFINITY : inset - box.x;
-  const right = box.anchoredSide === 'right' ? Number.NEGATIVE_INFINITY : box.x + box.width - (canvas.width - inset);
+// Pixel counts are reported to the nearest 5px. The model reads real font metrics and the renderer's
+// own positions, but not drawtext's exact glyph bounds, so a figure claiming single-pixel precision
+// promises more than it knows.
+const REPORT_STEP_PX = 5;
 
-  return Math.max(left, right);
+function about(px: number): string {
+  return `~${Math.max(REPORT_STEP_PX, Math.round(px / REPORT_STEP_PX) * REPORT_STEP_PX)}px`;
 }
 
-function verticalExcess(box: Box, canvas: Canvas, inset: number): number {
-  return Math.max(inset - box.y, box.y + box.height - (canvas.height - inset));
+function warn(
+  box: Box,
+  code: string,
+  message: string,
+  // `null` is "exact": an explicit `undefined` would fall through to this default.
+  approxReason: GeometryApproxReason | null = box.approxReason ?? (box.approx ? 'font' : null)
+): GeometryWarning {
+  const finding: GeometryWarning = { path: box.path, message, code, severity: 'warn', approx: approxReason !== null };
+
+  return approxReason === null ? finding : { ...finding, approxReason };
 }
 
-function insetExcess(box: Box, canvas: Canvas, insetX: number, insetY: number): number {
-  return Math.max(horizontalExcess(box, canvas, insetX), verticalExcess(box, canvas, insetY));
+interface Excess {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }
 
-function frameExcess(box: Box, canvas: Canvas): number {
-  return insetExcess(box, canvas, 0, 0);
+// How far the box pokes out of an inset rectangle on each side. A side the preset pins
+// (Box.anchoredSide) is skipped: it sits a fixed distance from that edge whatever the text says, so
+// "shorten it" cannot move it. The vertical sides are skipped when `y` is not the author's.
+function excess(box: Box, canvas: Canvas, insetX: number, insetY: number, checkVertical: boolean): Excess {
+  const none = Number.NEGATIVE_INFINITY;
+
+  return {
+    left: box.anchoredSide === 'left' ? none : insetX - box.x,
+    right: box.anchoredSide === 'right' ? none : box.x + box.width - (canvas.width - insetX),
+    top: checkVertical ? insetY - box.y : none,
+    bottom: checkVertical ? box.y + box.height - (canvas.height - insetY) : none,
+  };
 }
 
-// Broadcast title-safe: the middle 90% of the frame — on both axes for author-positioned text, and
-// on the horizontal one alone for text whose `y` comes from a preset.
-//
-// The lowerThird preset anchors its lines inside a band pinned to the frame edge, so their vertical
-// placement is not a choice the author made. Checking it fired on the engine's own preset in every
-// orientation — 6px landscape, 11px portrait, 9px square — for a two-character subtitle, since the
-// excess is pure geometry (`bandY + h*0.125 + h*0.028*1.2` against `h - h*0.05`) with the text
-// playing no part. The advice attached to it, "shorten it or reduce the size", could not help:
-// neither moves a band-anchored y. Width stays checked because that one really is the author's.
-function safeAreaExcess(box: Box, canvas: Canvas): number {
-  const horizontal = horizontalExcess(box, canvas, canvas.width * SAFE_MARGIN_RATIO);
+// The edit that fixes it. Centred text crossing BOTH sides has to lose the sum, not the worst side —
+// quoting one side understated the edit by half.
+function over(value: number): boolean {
+  return value >= OVERFLOW_TOLERANCE_PX;
+}
 
-  if (!box.verticalPositionAuthored) {
-    return horizontal;
+function describeExcess(sides: Excess, edge: string): string | null {
+  if (over(sides.left) && over(sides.right)) {
+    return `is ${about(sides.left + sides.right)} too wide for the ${edge}`;
   }
 
-  return Math.max(horizontal, verticalExcess(box, canvas, canvas.height * SAFE_MARGIN_RATIO));
+  const worst = Math.max(sides.left, sides.right, sides.top, sides.bottom);
+
+  return over(worst) ? `extends ${about(worst)} past the ${edge}` : null;
 }
 
 export function overflowWarnings(boxes: Box[], canvas: Canvas): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];
 
   for (const box of boxes) {
-    // A severity ladder, worst first: text past the frame edge is simply not on screen, whereas text
-    // past the title-safe margin merely risks being cropped. Both carry a pixel count, because
-    // "shorten it" is only actionable if the author knows by how much.
-    const offFrame = Math.round(frameExcess(box, canvas));
+    // Worst first: text past the frame edge is not on screen; past title-safe it merely risks a crop.
+    // The frame check keeps both axes even for a preset-pinned `y` — off-screen is off-screen.
+    const offFrame = describeExcess(excess(box, canvas, 0, 0, true), 'frame');
 
-    if (offFrame >= OVERFLOW_TOLERANCE_PX) {
-      warnings.push(warn(box, 'text_out_of_frame', `${box.label}: extends ${offFrame}px past the frame edge`));
+    if (offFrame) {
+      warnings.push(warn(box, 'text_out_of_frame', `${box.label} ${offFrame} — shorten it or reduce the size`));
       continue;
     }
 
-    const excess = Math.round(safeAreaExcess(box, canvas));
+    const insetX = canvas.width * SAFE_MARGIN_RATIO;
+    const insetY = canvas.height * SAFE_MARGIN_RATIO;
+    const unsafe = describeExcess(excess(box, canvas, insetX, insetY, box.verticalPositionAuthored), 'title-safe area');
 
-    if (excess >= OVERFLOW_TOLERANCE_PX) {
-      // "extends Npx past", not "overflows by Npx": N is how far the box pokes out on its worst
-      // side, which for centred text is half the width that would have to come off. Phrasing it as
-      // an amount to remove would understate the edit by exactly a factor of two.
-      warnings.push(
-        warn(
-          box,
-          'text_overflow',
-          `${box.label}: extends ${excess}px past the title-safe margin — shorten it or reduce the size`
-        )
-      );
+    if (unsafe) {
+      warnings.push(warn(box, 'text_overflow', `${box.label} ${unsafe} — shorten it or reduce the size`));
     }
   }
 
   return warnings;
+}
+
+// A global overlay is a watermark or a brand mark — discreet on purpose, so "too small" is noise there.
+function isWatermark(box: Box): boolean {
+  return box.path.startsWith('global.overlays[');
 }
 
 export function legibilityWarnings(boxes: Box[], canvas: Canvas): GeometryWarning[] {
-  const warnings: GeometryWarning[] = [];
   const floor = canvas.height * MIN_LEGIBLE_RATIO;
 
-  for (const box of boxes) {
-    const fontSize = box.fontSize;
-
-    if (fontSize >= floor) {
-      continue;
-    }
-
-    const percent = ((fontSize / canvas.height) * 100).toFixed(1);
-
-    warnings.push(
+  return boxes
+    .filter((box) => box.fontSize < floor && !isWatermark(box))
+    .map((box) =>
       warn(
         box,
         'text_too_small',
-        `${box.label}: ${Math.round(fontSize)}px is ${percent}% of frame height (minimum ${(MIN_LEGIBLE_RATIO * 100).toFixed(1)}%)`
+        `${box.label} is ${Math.round(box.fontSize)}px, too small to read on a phone — use at least ${Math.ceil(floor)}px`,
+        // Size is read straight off the filter, never estimated.
+        null
       )
     );
-  }
-
-  return warnings;
 }
 
-// WCAG AA for large text (the 4.5:1 minimum is for normal text; captions/lower-thirds/title cards
-// all render well above that size threshold).
+// WCAG AA for large text (captions, lower thirds and title cards all render above that threshold).
 const MIN_TEXT_CONTRAST = 3.0;
 
-// Exact colour tokens, not font metrics, so a finding here is never an estimate: `approx` is
-// always false regardless of the box's own approx flag.
 export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];
 
   for (const box of boxes) {
-    if (!box.color || !box.backdrop) {
-      continue;
-    }
-
-    const text = parseColor(box.color);
-    const backdrop = parseColor(box.backdrop);
+    const text = box.color ? parseColor(box.color) : null;
+    const backdrop = box.backdrop ? parseColor(box.backdrop) : null;
 
     if (!text || !backdrop) {
       continue;
     }
 
-    // Composited, not `text.rgb`: drawtext's `fontcolor` takes an `@alpha` suffix and `caption.color`
-    // is a free-form string, so `#ffffff@0.1` paints ~#1a1a1a on a black box — a 1.1:1 ratio the
-    // un-composited read scored at 21:1 and passed in silence, the same confident-and-wrong number
-    // the backdrop side already composites to avoid. Opaque text composites to itself, so every token
-    // the presets emit is unaffected.
+    // Composited: drawtext's `fontcolor` takes an `@alpha` suffix, and `#ffffff@0.1` paints ~#1a1a1a.
     const ratio = contrastRatio(compositeOver(text, backdrop.rgb), backdrop.rgb);
 
     if (ratio >= MIN_TEXT_CONTRAST) {
       continue;
     }
 
-    // `box.label`, like every other rule — not `box.path`. Both consumers (the CLI's
-    // `formatValidation`, the MCP's `geometryLines`) already print `path` in front of `message`, so
-    // repeating it here rendered as `sections[0].caption: sections[0].caption: …`.
     warnings.push(
       warn(
         box,
         'text_low_contrast',
-        `${box.label}: ${box.color} on ${box.backdrop} — contrast ${ratio.toFixed(1)}:1, below the ${MIN_TEXT_CONTRAST}:1 minimum`,
-        false
+        `${box.label}: ${box.color} on ${box.backdrop} is ${ratio.toFixed(1)}:1, below ${MIN_TEXT_CONTRAST}:1 — change the text colour or the background`,
+        // Exact colour tokens, not font metrics: never an estimate.
+        null
       )
     );
   }
@@ -189,53 +165,46 @@ export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
   return warnings;
 }
 
-// Fires only on the conjunction: unknown backdrop (footage/image, or an unparseable custom colour)
-// AND no box/band AND no shadow/outline. Any one of those is the author having already handled
-// legibility, so warning anyway would fire on most templates and turn the report into noise.
-//
-// "unknown background", not "footage": a `color_background` section that never set
-// `options.backgroundColor` also lands here (the engine pushes no `color=` source for it, so what
-// shows through is whatever the layers leave behind), and telling its author their colour card is
-// footage is simply wrong.
+// Fires only on the conjunction: unknown backdrop (footage, an image, an unparseable colour) AND no
+// box, outline or shadow. Any one of those is the author having already handled legibility.
 export function footageLegibilityWarnings(boxes: Box[]): GeometryWarning[] {
-  const warnings: GeometryWarning[] = [];
-
-  for (const box of boxes) {
-    if (box.backdrop !== null || box.legibilityAid) {
-      continue;
-    }
-
-    warnings.push(
+  return boxes
+    .filter((box) => box.backdrop === null && !box.legibilityAid)
+    .map((box) =>
       warn(
         box,
         'text_unreadable_over_footage',
-        `${box.label}: no box, shadow or outline over an unknown background — legibility depends on what is behind it`,
-        false
+        `${box.label} has no box, outline or shadow over footage or an image — add \`effect: { "shadow": true }\` or a background box`,
+        null
       )
     );
-  }
-
-  return warnings;
 }
 
-function overlapsInTime(a: Box, b: Box): number {
-  const start = Math.max(a.startSec, b.startSec);
-  const end = Math.min(a.endSec, b.endSec);
-
-  return end - start;
+interface Timed {
+  startSec: number;
+  endSec: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
-function overlapsInSpace(a: Box, b: Box): boolean {
+function overlapsInTime(a: Timed, b: Timed): number {
+  return Math.min(a.endSec, b.endSec) - Math.max(a.startSec, b.startSec);
+}
+
+function overlapsInSpace(a: Timed, b: Timed): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
-// A collision needs both dimensions. Two captions in the same place at different moments are the
-// normal way a template works — reporting those would bury the real findings in noise.
-//
-// `collectBoxes` emits boxes in non-decreasing `startSec` (its cursor only ever advances), so once
-// `b` starts at or after `a` ends, no later box can overlap `a` either and the inner scan is done.
-// That turns the pairwise sweep from quadratic into roughly linear: 200 captioned sections drop from
-// ~180k comparisons to a few hundred.
+function timingReason(a: Box, b: Box): GeometryApproxReason | null {
+  const width = a.approxReason ?? b.approxReason ?? (a.approx || b.approx ? 'font' : null);
+
+  return width ?? (a.timingAssumed || b.timingAssumed ? 'duration' : null);
+}
+
+// A collision needs both dimensions. Boxes arrive in non-decreasing `startSec`, so once `b` starts at
+// or after `a` ends no later box can overlap `a` either: the sweep is roughly linear, not quadratic.
 export function collisionWarnings(boxes: Box[], limit = Number.POSITIVE_INFINITY): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];
 
@@ -255,11 +224,47 @@ export function collisionWarnings(boxes: Box[], limit = Number.POSITIVE_INFINITY
         continue;
       }
 
-      // Either width may be estimated, and either window may be assumed (see Box.timingAssumed) —
-      // a section with no duration gets a stand-in length the model cannot know.
-      const approx = a.approx || b.approx || a.timingAssumed || b.timingAssumed;
+      warnings.push(
+        warn(
+          a,
+          'text_collision',
+          `${a.label} overlaps ${b.label} for ${shared.toFixed(1)}s — move one of them or shorten it`,
+          timingReason(a, b)
+        )
+      );
+    }
+  }
 
-      warnings.push(warn(a, 'text_collision', `${a.label} overlaps ${b.label} for ${shared.toFixed(1)}s`, approx));
+  return warnings;
+}
+
+// Below this opacity a panel drawn over text tints it rather than hides it.
+const COVERING_OPACITY = 0.3;
+
+// A filled panel drawn AFTER a piece of text in the same section paints over it: a caption sitting
+// where a lowerThird's band lands is dimmed under the band, and nothing else would say so.
+export function coveredTextWarnings(boxes: Box[], panels: Panel[]): GeometryWarning[] {
+  const warnings: GeometryWarning[] = [];
+
+  for (const box of boxes) {
+    const cover = panels.find(
+      (panel) =>
+        panel.sectionIndex === box.sectionIndex &&
+        panel.drawIndex > box.drawIndex &&
+        (parseColor(panel.color)?.alpha ?? 1) >= COVERING_OPACITY &&
+        overlapsInTime(panel, box) > 0 &&
+        overlapsInSpace(panel, box)
+    );
+
+    if (cover) {
+      warnings.push(
+        warn(
+          box,
+          'text_covered',
+          `${box.label} is drawn under ${cover.label} — move it (\`position\`) or remove the overlap`,
+          box.approxReason ?? (box.timingAssumed ? 'duration' : null)
+        )
+      );
     }
   }
 

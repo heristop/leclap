@@ -14,9 +14,22 @@ import type { GeometryWarning } from './rules';
 // React-Native builds. The CLI and the MCP server both call `nodeGeometryWarnings` rather than
 // wiring the loader themselves — two hand-rolled copies had already drifted apart.
 
-// Appended to a finding measured from an estimate. Agents parse it out of the MCP `geometry` array,
-// so the CLI and the MCP server must print the same string.
-export const GEOMETRY_APPROX_MARKER = ' (approx: estimated, not measured)';
+// Appended to a finding drawn from an estimate, saying WHY — "estimated" alone left the author no way
+// to make it exact. Agents parse it out of the MCP `geometry` array, so the CLI and the MCP server
+// print it through this one function.
+const APPROX_NOTES: Record<string, string> = {
+  font: ' (approx: font unavailable, width estimated)',
+  variable: ' (approx: {{ variable }} length unknown until render)',
+  duration: ' (approx: section duration assumed)',
+};
+
+export function geometryApproxNote(warning: Pick<GeometryWarning, 'approx' | 'approxReason'>): string {
+  if (!warning.approx) {
+    return '';
+  }
+
+  return APPROX_NOTES[warning.approxReason ?? ''] ?? ' (approx: estimated)';
+}
 
 // A catalog download that makes no progress for this long is abandoned and its font measured
 // approximately: validation is a dry run, and `leclap validate` / `validate_template` must answer

@@ -31,6 +31,8 @@ function box(overrides: Partial<Box> = {}): Box {
     // false; see the "preset-anchored" cases in the overflow block below.
     verticalPositionAuthored: true,
     timingAssumed: false,
+    sectionIndex: 0,
+    drawIndex: 0,
     ...overrides,
   };
 }
@@ -216,7 +218,9 @@ describe('contrastWarnings', () => {
     expect(warnings[0].path).toBe('sections[0].caption');
     // The LABEL, like every other rule — not the path. Both consumers print `path` in front of
     // `message`, so a path here rendered as `sections[0].caption: sections[0].caption: …`.
-    expect(warnings[0].message).toBe('Section "a" caption: #333333 on #1a1a1a — contrast 1.4:1, below the 3:1 minimum');
+    expect(warnings[0].message).toBe(
+      'Section "a" caption: #333333 on #1a1a1a is 1.4:1, below 3:1 — change the text colour or the background'
+    );
     expect(warnings[0].message.startsWith(warnings[0].path)).toBe(false);
   });
 
@@ -249,7 +253,7 @@ describe('footageLegibilityWarnings', () => {
     // "unknown background", not "footage": a color_background card that never set a backgroundColor
     // lands here too, and calling its backdrop footage is simply wrong.
     expect(warnings[0].message).toBe(
-      'Section "a" caption: no box, shadow or outline over an unknown background — legibility depends on what is behind it'
+      'Section "a" caption has no box, outline or shadow over footage or an image — add `effect: { "shadow": true }` or a background box'
     );
     expect(warnings[0].message.startsWith(warnings[0].path)).toBe(false);
   });

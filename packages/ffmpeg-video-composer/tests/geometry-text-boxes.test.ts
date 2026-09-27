@@ -488,8 +488,10 @@ describe('collectBoxes', () => {
     const boxes = boxesOf(template);
 
     expect(boxes.map((b) => b.path)).toEqual(['sections[0].lowerThird.title', 'sections[0].lowerThird.subtitle']);
-    // Both lines are on screen for the section's whole window, same as a caption.
-    expect(boxes[0].startSec).toBe(0);
+    // Each line is on screen from when its (staggered) reveal starts to the section's end — read off
+    // the renderer's own alpha ramp, not assumed to span the whole window.
+    expect(boxes[0].startSec).toBeGreaterThan(0);
+    expect(boxes[0].startSec).toBeLessThan(boxes[1].startSec);
     expect(boxes[0].endSec).toBe(5);
   });
 
@@ -540,7 +542,8 @@ describe('collectBoxes', () => {
     const boxes = boxesOf(template);
 
     expect(boxes).toHaveLength(3);
-    expect(boxes.every((b) => b.startSec === 0 && b.endSec === 5)).toBe(true);
+    // Co-temporal: the lowerThird lines enter with their reveal, then share the caption's screen time.
+    expect(boxes.every((b) => b.startSec < 1 && b.endSec === 5)).toBe(true);
   });
 
   it('clamps the cursor at 0 so a negative-duration section cannot rewind later timelines', () => {

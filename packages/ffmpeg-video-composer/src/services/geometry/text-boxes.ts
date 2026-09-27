@@ -1,427 +1,220 @@
 import DefaultConfig from '@/core/default.config';
 import type { FontMetrics } from '@/core/font-metrics';
-import {
-  CAPTION_ALIGN_MARGIN,
-  CAPTION_DEFAULT_ALIGN,
-  CAPTION_DEFAULT_BOX_BORDER,
-  captionAnchorY,
-  captionStyleValues,
-  type CaptionStyleValues,
-} from '../../editor/presets/caption-layout';
-import { resolveFontFile } from '../../editor/presets/text';
+import type { Section } from '@/core/types';
 import { VIDEO_SEGMENT_TYPES } from '../../editor/utils/section-types';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import {
-  LOWER_THIRD_BAND_HEIGHT_RATIO,
-  LOWER_THIRD_LINES,
-  LOWER_THIRD_MARGIN_RATIO,
-  type LowerThirdLineSpec,
-} from './lower-third-layout';
-import {
-  captionAppearance,
-  captionBoxOpacity,
-  lowerThirdAppearance,
-  type AppearanceGlobal,
-  type AppearanceSection,
-  type TextEffectLike,
-} from './text-appearance';
-import { measure, type TextVariables } from './text-measure';
+import { sectionDrawLayers, type DrawLayer } from './draw-layers';
+import { evaluateExpr } from './drawtext-expr';
+import { anchoredSide, track } from './layer-track';
+import type { Box, Canvas, Panel } from './geometry-types';
+import { appearanceOver, panelFor } from './panels';
+import { boxPaints, hasLegibilityAid, sectionBackdrop, type AppearanceGlobal } from './text-appearance';
 
-// The font file the renderer will ACTUALLY use, via the very helper captions.ts calls — not a second
-// resolution rule. Re-deriving it here dropped `resolveFontFile`'s preset fallback, so an
-// unrecognised `caption.font` ("Helvetica", or a typo'd registry id) yielded no metrics at all: the
-// box fell back to the 0.5em-per-glyph estimate while the render used Oswald. The same caption was
-// reported as "extends 218px past the frame edge" instead of "extends 55px past the title-safe
-// margin". A `{{ var }}` font takes the same fallback: nothing substitutes variables into `fontfile`
-// (FormatterManager.formatFont), so the render draws that caption in the preset face — and it is
-// measured in it, rather than estimated at 0.5em and reported as overflowing by the difference.
-export function captionFontFile(font: string | undefined, preset: CaptionStyleValues): string {
-  return resolveFontFile(font, preset.fontfile);
-}
-
-// A positioned piece of text with the window during which it is on screen. Rules read these; nothing
-// here judges anything.
-export interface Box {
-  path: string;
-  label: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  // The type size the engine will render at. Carried rather than recovered from `height`: `height`
-  // also includes any background-box padding, so dividing it by the leading no longer gives the size
-  // back — and the legibility rule reports that number to the author.
-  fontSize: number;
-  startSec: number;
-  endSec: number;
-  approx: boolean;
-  // The effective text colour token, or `null` when missing/unreadable — never a guess.
-  color: string | null;
-  // What the text actually sits on: a box/band colour composited over the section background
-  // when it carries alpha, the section's background when there is no box, or `null` when
-  // genuinely unknowable (over footage, or behind an unparseable custom colour).
-  backdrop: string | null;
-  // Whether the author has already done something about legibility: a box/band, a shadow, or an
-  // outline. The over-footage rule fires only when this is false.
-  legibilityAid: boolean;
-  // Whether `y` came from something the author chose (a caption's `position`) rather than from a
-  // preset's fixed anchor (a lowerThird's band). The title-safe rule skips the vertical axis when
-  // this is false, because a finding the author cannot act on is noise — see rules.ts.
-  verticalPositionAuthored: boolean;
-  // The side a left/right-aligned caption is pinned to by the preset's fixed CAPTION_ALIGN_MARGIN.
-  // That edge sits the same distance from the frame whatever the text says — with the default box,
-  // 80 − 18 = 62px, 2px past the landscape title-safe line — so the title-safe rule judges only the
-  // side the text grows toward, the one "shorten it" can actually move.
-  anchoredSide?: 'left' | 'right';
-  // Whether this box's time window rests on ASSUMED_DURATION_SEC — its own section declared no
-  // duration, or an earlier one did and shifted the cursor. Kept apart from `approx`, which is about
-  // width: only the collision rule reads the timeline, so only it should be qualified by this.
-  timingAssumed: boolean;
-}
-
-export interface Canvas {
-  width: number;
-  height: number;
-}
-
-// Read from the engine's own scale constants rather than re-typed here: a second copy of
-// 1280x720/720x1280/1080x1080 is one edit away from laying text out on a frame the renderer does not
-// use, which is the same drift `caption-layout.ts` was extracted to stop. Portrait is the landscape
-// preset transposed — exactly what TemplateDirector does with `DefaultConfig.SCALE`.
-function canvasFromScale(scale: string, transpose = false): Canvas {
-  const [width, height] = scale.split(':').map(Number);
-
-  return transpose ? { width: height, height: width } : { width, height };
-}
-
-const CANVASES: Record<string, Canvas> = {
-  landscape: canvasFromScale(DefaultConfig.SCALE),
-  portrait: canvasFromScale(DefaultConfig.SCALE, true),
-  square: canvasFromScale(DefaultConfig.SQUARE_SCALE),
-};
-
-// `Object.hasOwn`, not `CANVASES[key] ?? fallback`: every plain object inherits truthy `toString`,
-// `constructor` and `__proto__`, so `??` would never reach the fallback and `canvas.width` would be
-// undefined — making every threshold NaN and every rule silently pass.
-export function canvasFor(orientation: string | undefined): Canvas {
-  const key = orientation ?? 'landscape';
-
-  return Object.hasOwn(CANVASES, key) ? CANVASES[key] : CANVASES.landscape;
-}
+export { canvasFor } from './canvas';
+export type { Box, Canvas, Panel } from './geometry-types';
+import { measure, type TextCaseOptions, type TextVariables } from './text-measure';
 
 // When a section declares no duration the engine derives one at render time from the clip. Two
-// seconds is a neutral stand-in: it keeps later sections roughly ordered on the timeline so that
-// temporal overlap stays meaningful, without pretending to know the real length.
+// seconds keeps later sections roughly ordered without pretending to know the real length.
 const ASSUMED_DURATION_SEC = 2;
 
-// drawtext has no leading of its own; this is the box height the geometry model ascribes to one line
-// of type at a given size. Carried on `Box.fontSize` too, so the rules never have to divide it back
-// out to recover the size they want to report.
+// drawtext has no leading of its own; the box height ascribed to one line at a given size.
 const LINE_HEIGHT = 1.2;
 
-// Absolute pixel margins, mirroring captions.ts's ALIGN_X. Not a fraction of the frame: 80px is 6%
-// of a landscape width and 11% of a portrait one, so a ratio is wrong in at least one orientation.
-function horizontalOrigin(align: string | undefined, width: number, canvas: Canvas): number {
-  const key = align ?? CAPTION_DEFAULT_ALIGN;
+// drawtext's default when a filter sets no size.
+const DRAWTEXT_DEFAULT_FONT_SIZE = 16;
 
-  if (key === 'left') {
-    return CAPTION_ALIGN_MARGIN;
-  }
+type LooseSection = Section & { options?: Section['options'] & TextCaseOptions };
 
-  if (key === 'right') {
-    return canvas.width - width - CAPTION_ALIGN_MARGIN;
-  }
-
-  return (canvas.width - width) / 2;
-}
-
-// Which side, if any, `horizontalOrigin` pins to the preset margin. See Box.anchoredSide.
-function anchoredSide(align: string | undefined): Box['anchoredSide'] {
-  const key = align ?? CAPTION_DEFAULT_ALIGN;
-
-  return key === 'left' || key === 'right' ? key : undefined;
-}
-
-// Resolves captions.ts's drawtext expressions against a known box height. `top` is a fixed offset
-// from the top edge; `bottom`/`lower-third` are offsets from the bottom edge of the drawn box; and
-// `center` centres that box — `(h-text_h)/2`, not `h/2`, which is half a line lower.
-function verticalOrigin(position: string | undefined, height: number, canvas: Canvas): number {
-  const anchor = captionAnchorY(position);
-
-  if (anchor.edge === 'top') {
-    return anchor.offset;
-  }
-
-  if (anchor.edge === 'center') {
-    return (canvas.height - height) / 2;
-  }
-
-  return canvas.height - height - anchor.offset;
-}
-
-// A section's name, or a positional fallback when it has none — so an unnamed section reads as
-// `sections[2]` rather than the literal string "undefined".
-function sectionLabel(section: { name?: string }, index: number): string {
-  return section.name ?? `sections[${index}]`;
-}
-
-// Section shape is intentionally loose here: only the fields collectBoxes reads are named, so this
-// helper works for every section variant without importing each one's specific schema type. The
-// fields that decide what the text is drawn over come from AppearanceSection.
-interface CaptionedSection extends AppearanceSection {
-  name?: string;
-  options?: AppearanceSection['options'] & {
-    duration?: number;
-    upperCase?: boolean;
-    lowerCase?: boolean;
-  };
-  caption?: {
-    text?: unknown;
-    style?: string;
-    font?: string;
-    fontsize?: number;
-    align?: string;
-    position?: string;
-    box?: boolean;
-    color?: string;
-    boxColor?: string;
-    boxOpacity?: number;
-    effect?: TextEffectLike;
-  };
-  lowerThird?: {
-    title?: unknown;
-    subtitle?: unknown;
-    position?: string;
-    bandColor?: string;
-    boxOpacity?: number;
-    effect?: TextEffectLike;
-  };
-}
-
-// The template-wide settings a box depends on: `global.variables`, substituted into text before it is
-// drawn, and the decorations that recolour every section (`look`/`grade`).
-type TemplateGlobal = AppearanceGlobal & { variables?: TextVariables };
-
-// `Number.isFinite`, not a bare `??`: `??` only covers null/undefined, and
-// `Math.max(NaN, 0)` at the call site is NaN, so one `duration: "abc"` from unvalidated input made
-// the cursor NaN and every later box's window with it. The finding read "overlaps … for NaNs", and
-// because every NaN comparison is false the collision rule's `b.startSec >= a.endSec` early exit
-// never fired either — silently restoring the O(n^2) sweep the break exists to avoid.
+// `Number.isFinite`, not `??`: a `duration: "abc"` from unvalidated input would otherwise make every
+// later window NaN, and every NaN comparison false.
 function declaredDuration(section: { options?: { duration?: number } }): number | null {
   const duration = section.options?.duration;
 
   return Number.isFinite(duration) ? (duration as number) : null;
 }
 
-// `caption`/`lowerThird` live on the BASE section schema, so a `form` or `music` section may carry
-// one and still be schema-valid — but TemplateDirector renders only VIDEO_SEGMENT_TYPES, so no
-// drawtext is ever emitted for them. Modelling those boxes sent authors to fix a caption that
-// produces no filter at all, and let a `music` padding section advance the modelled cursor by
-// seconds of output the render never contains.
-export function isRenderableSection(section: CaptionedSection): boolean {
+// TemplateDirector renders only VIDEO_SEGMENT_TYPES; a `form` or `music` section's caption is never
+// lowered to a filter, and its duration adds nothing to the output timeline.
+export function isRenderableSection(section: { type?: string }): boolean {
   return section.type !== undefined && VIDEO_SEGMENT_TYPES.has(section.type);
 }
 
-// Everything boxForSection/lowerThirdBoxes need about where a section sits on the timeline and canvas,
-// bundled so those functions stay under the lint's max-params limit.
-interface SectionPlacement {
-  index: number;
-  // Where the author edits this section: `sections[i]` in the descriptor as written, or — for a
-  // section a partial supplied — the partial's own entry (`partials[p].sections[j]`, or the inline
-  // `sections[i].sections[j]`). `index` is only the position in the expanded list. Every `path` is
-  // built from this one; see `authoredPaths` in ./index.ts.
-  authoredPath: string;
+// One renderable section, lowered: its place on the timeline and what it draws, in draw order.
+export interface LoweredSection {
+  section: LooseSection;
+  sectionIndex: number;
   startSec: number;
   duration: number;
   timingAssumed: boolean;
+  layers: DrawLayer[];
+}
+
+type TemplateGlobal = AppearanceGlobal & { variables?: TextVariables; overlays?: unknown };
+
+// `origins[i]` is where the author edits expanded section `i` (see authoredPaths in ./index.ts).
+export function lowerTemplate(template: TemplateDescriptor, canvas: Canvas, origins?: string[]): LoweredSection[] {
+  const sections: (LooseSection | null | undefined)[] = Array.isArray(template.sections)
+    ? (template.sections as unknown as LooseSection[])
+    : [];
+  const global = template.global as TemplateGlobal | undefined;
+  const lowered: LoweredSection[] = [];
+  let cursorSec = 0;
+  let timingAssumed = false;
+
+  for (const [index, section] of sections.entries()) {
+    if (!section || !isRenderableSection(section)) {
+      continue;
+    }
+
+    const declared = declaredDuration(section);
+    // A negative duration must not rewind the cursor (unreachable from a validated descriptor).
+    const duration = Math.max(declared ?? ASSUMED_DURATION_SEC, 0);
+    // Sticky: once one window is a guess, every later start time is built on it.
+    timingAssumed ||= declared === null;
+    const ctx = {
+      duration,
+      scale: `${canvas.width}:${canvas.height}`,
+      fps: DefaultConfig.FPS,
+      isVideo: section.type === 'project_video' || section.type === 'video',
+    };
+    // Typed as required, but an unvalidated descriptor may omit it.
+    const name: unknown = section.name;
+    const label = `Section "${typeof name === 'string' ? name : `sections[${index}]`}"`;
+    const owner = { path: origins?.[index] ?? `sections[${index}]`, label };
+
+    lowered.push({
+      section,
+      sectionIndex: index,
+      startSec: cursorSec,
+      duration,
+      timingAssumed,
+      layers: sectionDrawLayers(section, global, ctx, owner),
+    });
+    cursorSec += duration;
+  }
+
+  return lowered;
+}
+
+// Every font file the lowered text draws with, so each is loaded and parsed once.
+export function referencedFontFiles(lowered: LoweredSection[]): string[] {
+  const files = lowered.flatMap((entry) =>
+    entry.layers.filter((layer) => layer.kind === 'text').map((layer) => layer.values.fontfile)
+  );
+
+  return [...new Set(files.filter((file): file is string => typeof file === 'string'))];
+}
+
+interface Placement {
+  entry: LoweredSection;
   canvas: Canvas;
   resolve: (font: string) => FontMetrics | null;
-  global: TemplateGlobal | undefined;
+  variables: TextVariables | undefined;
 }
 
-// drawtext's background box pads the painted area by `boxborderw` on every side, so the rectangle on
-// screen is wider and taller than the glyphs. It is on by default for the `bar` style — the schema
-// default — which made the un-padded model under-report every default caption by 36px.
-function boxPadding(caption: NonNullable<CaptionedSection['caption']>, preset: CaptionStyleValues): number {
-  // Same predicate the appearance side uses: a `boxOpacity: 0` box paints nothing, so padding the
-  // modelled rectangle by 36px for it invents a border that never reaches the frame.
-  const boxOn = (caption.box ?? Boolean(preset.box)) && captionBoxOpacity(caption) > 0;
+function textBox(layer: DrawLayer, drawIndex: number, placement: Placement): Box | null {
+  const { entry, canvas, resolve, variables } = placement;
+  const values = layer.values;
+  const frame = { w: canvas.width, h: canvas.height };
+  const fontSize = evaluateExpr(values.fontsize ?? DRAWTEXT_DEFAULT_FONT_SIZE, frame);
+  const fontFile = typeof values.fontfile === 'string' ? values.fontfile : null;
 
-  return boxOn ? (preset.boxborderw ?? CAPTION_DEFAULT_BOX_BORDER) : 0;
-}
-
-// Builds the box for a single section's caption, or null when the section has no renderable text.
-// Split out of collectBoxes to keep that function's statement count within the lint limit.
-function boxForSection(section: CaptionedSection, placement: SectionPlacement): Box | null {
-  const { index, authoredPath, startSec, duration, timingAssumed, canvas, resolve, global } = placement;
-  const caption = section.caption;
-
-  if (!caption) {
+  if (fontSize === null || fontSize <= 0) {
     return null;
   }
 
-  // The style preset supplies the font file and the size when the caption overrides neither
-  // (captions.ts's `resolveFontFile(caption.font, preset.fontfile)` / `caption.fontsize ??
-  // preset.fontsize`). Both are absolute and orientation-independent.
-  const preset = captionStyleValues(caption.style);
-  const fontSize = caption.fontsize ?? preset.fontsize;
-  const fontFile = captionFontFile(caption.font, preset);
-  const measured = measure(caption.text, fontSize, resolve(fontFile), section.options, global?.variables);
+  const measured = measure(
+    values.text,
+    fontSize,
+    fontFile ? resolve(fontFile) : null,
+    entry.section.options,
+    variables
+  );
 
   if (!measured) {
     return null;
   }
 
-  // drawtext anchors the GLYPH box — `x`/`y` in captions.ts are `w-text_w-80` and `(h-text_h)-110`,
-  // both in terms of text_w/text_h — and the background box then grows outward by `boxborderw` on
-  // every side. Anchoring the padded rectangle instead would slide it 18px off the very edge it is
-  // pinned to, in the direction the author is watching.
-  const padding = boxPadding(caption, preset);
-  const textWidth = measured.width;
-  const textHeight = fontSize * LINE_HEIGHT * measured.lines;
-  const appearance = captionAppearance(caption, preset, section, global);
+  const vars = { ...frame, text_w: measured.width, text_h: fontSize * LINE_HEIGHT * measured.lines };
+  const position = track(values, vars, entry.duration);
 
-  return {
-    path: `${authoredPath}.caption`,
-    label: `Section "${sectionLabel(section, index)}" caption`,
-    x: horizontalOrigin(caption.align, textWidth, canvas) - padding,
-    y: verticalOrigin(caption.position, textHeight, canvas) - padding,
-    width: textWidth + padding * 2,
-    height: textHeight + padding * 2,
-    fontSize,
-    startSec,
-    endSec: startSec + duration,
-    timingAssumed,
-    approx: measured.approx,
-    color: appearance.color,
-    backdrop: appearance.backdrop,
-    legibilityAid: appearance.legibilityAid,
-    // `caption.position` is the author's, so both axes are theirs to fix.
-    verticalPositionAuthored: true,
-    anchoredSide: anchoredSide(caption.align),
-  };
-}
-
-// Builds the box for one lowerThird line (title or subtitle), or null when that line has no text.
-function lowerThirdLineBox(
-  lowerThird: NonNullable<CaptionedSection['lowerThird']>,
-  spec: LowerThirdLineSpec,
-  section: CaptionedSection,
-  placement: SectionPlacement
-): Box | null {
-  const { index, authoredPath, startSec, duration, timingAssumed, canvas, resolve, global } = placement;
-  const fontSize = canvas.height * spec.sizeRatio;
-  const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font), section.options, global?.variables);
-
-  if (!measured) {
+  if (!position) {
     return null;
   }
 
-  const bandHeight = canvas.height * LOWER_THIRD_BAND_HEIGHT_RATIO;
-  const bandY = lowerThird.position === 'top' ? 0 : canvas.height - bandHeight;
-  const appearance = lowerThirdAppearance(lowerThird, section, global);
+  // drawtext anchors the GLYPH box; its background box then grows outward by `boxborderw`.
+  const padding = boxPaints(values) ? (evaluateExpr(values.boxborderw ?? 0, frame) ?? 0) : 0;
 
   return {
-    path: `${authoredPath}.lowerThird.${spec.key}`,
-    label: `Section "${sectionLabel(section, index)}" lower third ${spec.key}`,
-    x: canvas.width * LOWER_THIRD_MARGIN_RATIO,
-    y: bandY + canvas.height * spec.yRatio,
-    width: measured.width,
-    height: fontSize * LINE_HEIGHT * measured.lines,
+    path: layer.path,
+    label: layer.label,
+    x: position.x - padding,
+    y: position.y - padding,
+    width: vars.text_w + padding * 2,
+    height: vars.text_h + padding * 2,
     fontSize,
-    startSec,
-    endSec: startSec + duration,
-    timingAssumed,
+    startSec: entry.startSec + position.from,
+    endSec: entry.startSec + position.to,
+    timingAssumed: entry.timingAssumed,
     approx: measured.approx,
-    color: spec.color,
-    backdrop: appearance.backdrop,
-    legibilityAid: appearance.legibilityAid,
-    // The band, and every line inside it, is pinned by the preset — only `position` (top/bottom) is
-    // the author's, and neither choice clears the title-safe line. See rules.ts safeAreaExcess.
-    verticalPositionAuthored: false,
+    approxReason: measured.approxReason,
+    color: typeof values.fontcolor === 'string' ? values.fontcolor : null,
+    backdrop: null,
+    legibilityAid: hasLegibilityAid(values),
+    verticalPositionAuthored: layer.authoredPosition,
+    anchoredSide: anchoredSide(values, vars, vars.text_w, position.at),
+    sectionIndex: entry.sectionIndex,
+    drawIndex,
   };
 }
 
-// A lowerThird's title and subtitle as separate boxes, on screen for the same window as the section's
-// caption — the case that makes collision reachable at all (see rules.ts collisionWarnings).
-function lowerThirdBoxes(section: CaptionedSection, placement: SectionPlacement): Box[] {
-  const lowerThird = section.lowerThird;
-
-  if (!lowerThird) {
-    return [];
-  }
-
+export function measureLayers(
+  lowered: LoweredSection[],
+  canvas: Canvas,
+  resolve: (font: string) => FontMetrics | null,
+  global?: TemplateGlobal
+): { boxes: Box[]; panels: Panel[] } {
   const boxes: Box[] = [];
+  const panels: Panel[] = [];
 
-  for (const spec of LOWER_THIRD_LINES) {
-    const box = lowerThirdLineBox(lowerThird, spec, section, placement);
+  for (const entry of lowered) {
+    const placement = { entry, canvas, resolve, variables: global?.variables };
+    const base = sectionBackdrop(entry.section, global);
+    const sectionPanels: Panel[] = [];
 
-    if (box) {
-      boxes.push(box);
+    for (const [drawIndex, layer] of entry.layers.entries()) {
+      if (layer.kind === 'panel') {
+        const panel = panelFor(layer, drawIndex, placement);
+
+        if (panel) {
+          sectionPanels.push(panel);
+        }
+
+        continue;
+      }
+
+      const box = textBox(layer, drawIndex, placement);
+
+      if (box) {
+        boxes.push({ ...box, ...appearanceOver(box, layer.values, sectionPanels, base) });
+      }
     }
+
+    panels.push(...sectionPanels);
   }
 
-  return boxes;
+  // The collision sweep's early exit needs non-decreasing start times; a staggered reveal can start a
+  // later-drawn line before an earlier one. `sort` is stable, so draw order holds within a start time.
+  return { boxes: boxes.sort((a, b) => a.startSec - b.startSec), panels };
 }
 
-// The canvas is a parameter rather than re-derived here: `collectGeometryWarnings` already computed
-// one to judge the boxes against, and two independent derivations from the same descriptor is one
-// edit away from laying text out on one frame and measuring it against another.
-// `origins[i]` is where the author edits expanded section `i` (see SectionPlacement.authoredPath).
-// Every `path` is built from it. Defaults to `sections[i]` so a caller measuring an already-flat
-// descriptor — or a test — need not supply one.
+// The whole pass for one descriptor: lower it, then measure what it draws.
 export function collectBoxes(
   template: TemplateDescriptor,
   canvas: Canvas,
   resolve: (font: string) => FontMetrics | null,
   origins?: string[]
 ): Box[] {
-  const boxes: Box[] = [];
-  // `Array.isArray`, not `?? []`: this function is exported and reached from the public
-  // `getGeometryWarnings`, so a `sections: "nope"` throws `sections.length is not a function` out of
-  // an advisory checker — and only when a font loader was supplied, since without one the metrics
-  // pass returns early and the same input comes back silently clean. TemplateDirector guards the
-  // identical case the same way.
-  const sections: (CaptionedSection | null | undefined)[] = Array.isArray(template.sections) ? template.sections : [];
-  let cursorSec = 0;
-  let timingAssumed = false;
-
-  for (let index = 0; index < sections.length; index++) {
-    const section = sections[index];
-
-    if (!section || !isRenderableSection(section)) {
-      continue;
-    }
-
-    // A negative duration must not rewind the cursor, nor end a box before it starts. The schema
-    // forbids one (`z.number().positive()`), so this is unreachable from a validated descriptor —
-    // but `collectBoxes` is exported and may be handed unvalidated input, where one bad section
-    // would shift every later box's window and turn a single mistake into a cascade of bogus
-    // collision findings.
-    const declared = declaredDuration(section);
-    const duration = Math.max(declared ?? ASSUMED_DURATION_SEC, 0);
-    // Sticky: once one window is a guess, every later start time is built on it.
-    timingAssumed ||= declared === null;
-    const placement: SectionPlacement = {
-      index,
-      authoredPath: origins?.[index] ?? `sections[${index}]`,
-      startSec: cursorSec,
-      duration,
-      timingAssumed,
-      canvas,
-      resolve,
-      global: template.global,
-    };
-    const captionBox = boxForSection(section, placement);
-
-    if (captionBox) {
-      boxes.push(captionBox);
-    }
-
-    boxes.push(...lowerThirdBoxes(section, placement));
-
-    cursorSec += duration;
-  }
-
-  return boxes;
+  return measureLayers(lowerTemplate(template, canvas, origins), canvas, resolve, template.global).boxes;
 }

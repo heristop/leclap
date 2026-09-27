@@ -23,11 +23,15 @@ export interface TextCaseOptions {
 // `global.variables`: fixed by the descriptor itself, so — unlike a form field — known before render.
 export type TextVariables = Record<string, unknown>;
 
+// Why a width is an estimate: no metrics for the font, or a `{{ var }}` only filled at render time.
+export type ApproxReason = 'font' | 'variable';
+
 export interface Measurement {
   width: number;
   // How many lines drawtext stacks for the tallest locale; the box is that many lines high.
   lines: number;
   approx: boolean;
+  approxReason?: ApproxReason;
 }
 
 // caption.text (and lowerThird.title/subtitle) is a TranslationSchema (locale map) for every
@@ -65,8 +69,12 @@ function codePointCount(text: string): number {
 }
 
 // A `{{ var }}` left after `substituteVariables` is filled at render time (a form field, a runtime
-// value), so a placeholder's width is a stand-in and never a fact — measuring it anyway beats
-// silence, but the finding must not claim to be exact.
+// value). Measuring the placeholder itself made findings depend on the variable's NAME —
+// `{{ form_1_product_name }}` reported a headline 250px off the frame that "Nova" would never reach.
+// Only the literal text around it is measured: a lower bound, so whatever it finds holds for any
+// value — still flagged approximate, since the real text can only be wider.
+const PLACEHOLDER = /\{\{.*?\}\}/g;
+
 function isTemplated(text: string): boolean {
   return text.includes('{{');
 }
@@ -117,7 +125,7 @@ export function measure(
 
   let width = 0;
   let lines = 1;
-  let approx = false;
+  let approxReason: ApproxReason | undefined;
 
   for (const authored of candidates) {
     const drawn = asDrawn(substituteVariables(authored, variables), options).split(LINE_BREAK);
@@ -125,14 +133,19 @@ export function measure(
     lines = Math.max(lines, drawn.length);
 
     for (const line of drawn) {
-      const exact = metrics && !isTemplated(line) ? measureTextWidth(metrics, line, fontSize) : null;
+      const templated = isTemplated(line);
+      const literal = templated ? line.replace(PLACEHOLDER, '') : line;
+      const exact = metrics ? measureTextWidth(metrics, literal, fontSize) : null;
 
-      approx = approx || exact === null;
+      if (templated || exact === null) {
+        approxReason ??= exact === null ? 'font' : 'variable';
+      }
+
       // The estimate is built only when the measurement genuinely failed. Computed unconditionally it
       // was a second full code-point walk of every line, discarded on the whole happy path.
-      width = Math.max(width, exact ?? codePointCount(line) * ASSUMED_ADVANCE_EM * fontSize);
+      width = Math.max(width, exact ?? codePointCount(literal) * ASSUMED_ADVANCE_EM * fontSize);
     }
   }
 
-  return { width, lines, approx };
+  return { width, lines, approx: approxReason !== undefined, approxReason };
 }

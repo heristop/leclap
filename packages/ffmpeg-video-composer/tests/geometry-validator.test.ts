@@ -9,7 +9,7 @@ const overflowing = {
       type: 'color_background',
       name: 'a',
       options: { duration: 4 },
-      caption: { text: 'An extremely long caption that cannot possibly fit', fontsize: 90 },
+      caption: { text: { en: 'An extremely long caption that cannot possibly fit' }, fontsize: 90 },
     },
   ],
 } as unknown as TemplateDescriptor;
@@ -35,7 +35,7 @@ describe('TemplateValidator geometry channel', () => {
               type: 'color_background',
               name: 'c',
               options: { duration: 3 },
-              caption: { text: 'An extremely long caption that cannot possibly fit', fontsize: 96 },
+              caption: { text: { en: 'An extremely long caption that cannot possibly fit' }, fontsize: 96 },
             },
           ],
         },

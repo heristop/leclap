@@ -1,12 +1,11 @@
 import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import { expandPartialsSafe } from '@/core/partials';
-import { captionStyleValues } from '../../editor/presets/caption-layout';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import { LOWER_THIRD_LINES } from './lower-third-layout';
-import { canvasFor, captionFontFile, collectBoxes, isRenderableSection } from './text-boxes';
+import { canvasFor, lowerTemplate, measureLayers, referencedFontFiles, type LoweredSection } from './text-boxes';
 import {
   collisionWarnings,
   contrastWarnings,
+  coveredTextWarnings,
   footageLegibilityWarnings,
   legibilityWarnings,
   overflowWarnings,
@@ -16,7 +15,7 @@ import {
 // module — never the reverse — keeping the re-export of `createBundledFontLoader` below cycle-free.
 import type { FontLoader } from './bundled-font-loader';
 
-export type { GeometryWarning } from './rules';
+export type { GeometryWarning, GeometryApproxReason } from './rules';
 export { createBundledFontLoader, type FontLoader } from './bundled-font-loader';
 
 // Past this, the report stops being read and starts being scrolled past. The first twenty findings
@@ -30,6 +29,7 @@ const MAX_WARNINGS = 20;
 const SEVERITY_ORDER = [
   'text_out_of_frame',
   'text_collision',
+  'text_covered',
   'text_overflow',
   'text_low_contrast',
   'text_too_small',
@@ -42,42 +42,12 @@ function severityRank(warning: GeometryWarning): number {
   return rank === -1 ? SEVERITY_ORDER.length : rank;
 }
 
-// Every distinct font FILE the template's text will actually render with, plus the two fixed files
-// the lowerThird preset always uses. Resolution goes through `captionFontFile`, which wraps the very
-// helper captions.ts lowers with (`resolveFontFile`) — an unset `caption.font` therefore falls back
-// to the STYLE preset's file (Oswald for the default `bar`, BebasNeue for `bold`), and so does an
-// unrecognised one. Measuring a caption in a typeface the render will not use produces a confident
-// wrong number; so does refusing to measure one the render resolves perfectly well.
-//
-// Keyed on the FILE, not the descriptor's `font` id: "rubik" and "Rubik.ttf" are both schema-valid
-// and name the same 351 KB file, so keying on the id would read and parse it twice for one typeface.
-function referencedFontFiles(template: TemplateDescriptor): string[] {
-  // `Array.isArray`, like collectBoxes: this runs BEFORE the box pass, so a `sections: "nope"` threw
-  // `sections.filter is not a function` out of an advisory checker — and only when a font loader was
-  // supplied, since without one this whole function is skipped and the same input came back clean.
-  type LooseSection = TemplateDescriptor['sections'] extends (infer S)[] | undefined ? S | null | undefined : never;
-  const all: LooseSection[] = Array.isArray(template.sections) ? template.sections : [];
-  // The same gate `collectBoxes` applies. Without it the two walks disagreed about which sections
-  // carry text, so a `form` or `music` section with a caption — schema-valid, but never lowered to a
-  // drawtext filter — made the validator resolve, read and parse a ~350KB TTF whose metrics were
-  // then never consulted.
-  const sections = all.filter((section) => section && isRenderableSection(section));
-  const captionFiles = sections
-    .filter((section) => section?.caption)
-    .map((section) => captionFontFile(section?.caption?.font, captionStyleValues(section?.caption?.style)));
-  const lowerThirdFiles = sections
-    .filter((section) => section?.lowerThird)
-    .flatMap(() => LOWER_THIRD_LINES.map((line) => line.font));
-
-  return [...new Set([...captionFiles, ...lowerThirdFiles])];
-}
-
 // Load and parse each font file once. A loader that returns null, yields bytes that will not parse,
 // or throws outright all land in the same place: no metrics for that file, so its boxes fall back to
 // the approximation and every warning drawn from them is flagged `approx`. Validation is advisory
 // and must never be the thing that fails.
 async function loadMetrics(
-  template: TemplateDescriptor,
+  lowered: LoweredSection[],
   loadFont: FontLoader | undefined
 ): Promise<Map<string, FontMetrics>> {
   const resolved = new Map<string, FontMetrics>();
@@ -86,7 +56,8 @@ async function loadMetrics(
     return resolved;
   }
 
-  const files = referencedFontFiles(template);
+  // Keyed on the FILE the filters draw with, so each typeface is read and parsed once.
+  const files = referencedFontFiles(lowered);
   const parsed = await Promise.all(files.map((file) => parseOne(loadFont, file)));
 
   for (const [index, file] of files.entries()) {
@@ -184,31 +155,65 @@ function authoredPaths(raw: TemplateDescriptor, expandedCount: number): string[]
   return paths;
 }
 
+// Every section repeats a global overlay, so its findings would repeat once per section.
+function unique(findings: GeometryWarning[]): GeometryWarning[] {
+  const seen = new Set<string>();
+
+  return findings.filter((finding) => {
+    const key = `${finding.code} ${finding.path} ${finding.message}`;
+    const fresh = !seen.has(key);
+
+    seen.add(key);
+
+    return fresh;
+  });
+}
+
+// A silent cut left an agent fixing twenty findings and meeting the next batch unannounced, so the
+// last line says how many were left out. A finding like any other, so the CLI, `--json` and the MCP
+// tool all carry it without a new field.
+function truncated(findings: GeometryWarning[]): GeometryWarning[] {
+  if (findings.length <= MAX_WARNINGS) {
+    return findings;
+  }
+
+  const kept = findings.slice(0, MAX_WARNINGS - 1);
+  const more = findings.length - kept.length;
+
+  return [
+    ...kept,
+    {
+      path: 'template',
+      code: 'geometry_truncated',
+      severity: 'warn',
+      approx: false,
+      message: `…and ${more} more finding(s) — showing the ${kept.length} most severe; fix these and validate again`,
+    },
+  ];
+}
+
 export async function collectGeometryWarnings(
   raw: TemplateDescriptor,
   loadFont?: FontLoader
 ): Promise<GeometryWarning[]> {
   const template = expanded(raw);
   const canvas = canvasFor(template.global?.orientation);
-  const metrics = await loadMetrics(template, loadFont);
   const origins = authoredPaths(raw, Array.isArray(template.sections) ? template.sections.length : 0);
-  const boxes = collectBoxes(template, canvas, (font) => metrics.get(font) ?? null, origins);
+  const lowered = lowerTemplate(template, canvas, origins);
+  const metrics = await loadMetrics(lowered, loadFont);
+  const { boxes, panels } = measureLayers(lowered, canvas, (font) => metrics.get(font) ?? null, template.global);
 
   const findings = [
     ...overflowWarnings(boxes, canvas),
     ...legibilityWarnings(boxes, canvas),
     ...contrastWarnings(boxes),
     ...footageLegibilityWarnings(boxes),
-    // Capped at the whole budget, not at whatever the earlier rules left over. Handing collisions
-    // the REMAINDER starved them: `text_unreadable_over_footage` fires once per unaided caption, so
-    // 20 such sections filled the report and the sweep was called with a limit of 0 — its loop
-    // condition false on entry, zero comparisons, every genuine overlap reported as clean. The cap
-    // still stops the pairwise walk from running away; it just no longer depends on rule order.
-    ...collisionWarnings(boxes, MAX_WARNINGS),
+    ...coveredTextWarnings(boxes, panels),
+    // Capped at the whole budget rather than the remainder the earlier rules left, which starved it.
+    ...collisionWarnings(boxes, MAX_WARNINGS + 1),
   ];
 
   // Ordered by severity before truncating, so which findings survive the cut is a property of the
-  // findings rather than of the order the rules happen to run in. `sort` is stable, so each rule's
-  // own ordering (and the timeline order `collectBoxes` emits) is preserved within a rank.
-  return findings.sort((a, b) => severityRank(a) - severityRank(b)).slice(0, MAX_WARNINGS);
+  // findings rather than of rule order. `sort` is stable, so timeline order holds within a rank.
+  return truncated(unique(findings).sort((a, b) => severityRank(a) - severityRank(b)));
 }

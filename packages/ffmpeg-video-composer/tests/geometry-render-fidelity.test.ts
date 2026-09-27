@@ -131,15 +131,19 @@ describe('what the text is drawn over', () => {
   // is drawn, so its `backgroundColor` says nothing about what the text sits on.
   it.each([
     ['an image input', { inputs: [{ name: 'photo', type: 'image', url: 'pictures/photo.png' }] }],
-    [
-      'an authored fill',
-      { filters: [{ type: 'drawbox', values: { x: 0, y: 0, w: 'iw', h: 'ih', c: '#000000', t: 'fill' } }] },
-    ],
     ['a section grade', { grade: { brightness: -0.6 } }],
   ])('treats the backdrop as unknown under %s', async (_, cover) => {
     expect(await codes(descriptor({ ...white, ...cover, caption: whiteCaption }))).toEqual([
       'text_unreadable_over_footage',
     ]);
+  });
+
+  // An authored drawbox is one of the filters the model reads: white text on a full-frame black fill
+  // is legible, and the section's white background underneath no longer matters.
+  it('reads an authored fill as the backdrop', async () => {
+    const fill = { filters: [{ type: 'drawbox', values: { x: 0, y: 0, w: 'iw', h: 'ih', c: '#000000', t: 'fill' } }] };
+
+    expect(await codes(descriptor({ ...white, ...fill, caption: whiteCaption }))).toEqual([]);
   });
 
   it('treats the backdrop as unknown under a template-wide grade', async () => {

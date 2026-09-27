@@ -49,7 +49,9 @@ function makeFakeFfmpeg() {
     },
     readFile: (name: string) =>
       memfs.has(name) ? Promise.resolve(memfs.get(name)) : Promise.reject(new Error(`ENOENT ${name}`)),
-    deleteFile: () => Promise.resolve(),
+    // Like ffmpeg.wasm, deleting a file that isn't there rejects.
+    deleteFile: (name: string) =>
+      memfs.delete(name) ? Promise.resolve() : Promise.reject(new Error(`ENOENT ${name}`)),
     listDir: () => Promise.resolve([]),
     createDir: (path: string) => {
       dirs.add(path);
@@ -140,5 +142,41 @@ describe('FFmpegWasmAdapter FS bridge', () => {
     const result = await adapter.execute('-version');
 
     expect(result).toEqual({ rc: 0 });
+  });
+
+  it('fails a run that writes nothing, even when an earlier render left a file at its output path', async () => {
+    const fakeFs = makeFakeFs({ '/tmp/video_1.mp4': new Uint8Array([0, 1, 2]) });
+    const adapter: any = new FFmpegWasmAdapter(fakeFs as never);
+    const fakeFfmpeg = makeFakeFfmpeg();
+    adapter.ffmpeg = fakeFfmpeg;
+    adapter.isLoaded = true;
+    // MEMFS outlives a render: the previous render's segment is still at this path...
+    fakeFfmpeg.memfs.set('/tmp/build/video_1_output.mp4', new Uint8Array([7, 7, 7]));
+    // ...and this time FFmpeg can't read the clip, so it writes nothing.
+    fakeFfmpeg.exec = () => Promise.resolve();
+
+    await expect(adapter.execute('-y -i /tmp/video_1.mp4 /tmp/build/video_1_output.mp4')).rejects.toThrow(
+      'FFmpeg WASM execution failed'
+    );
+    // The stale segment must not pass for this run's output.
+    expect(fakeFs.files.has('/tmp/build/video_1_output.mp4')).toBe(false);
+  });
+
+  it('leaves a file the command reads as an input in place', async () => {
+    const fakeFs = makeFakeFs({ '/tmp/build/intro_output.mp4': new Uint8Array([4, 4]) });
+    const adapter: any = new FFmpegWasmAdapter(fakeFs as never);
+    const fakeFfmpeg = makeFakeFfmpeg();
+    adapter.ffmpeg = fakeFfmpeg;
+    adapter.isLoaded = true;
+    let seen: Uint8Array | undefined;
+    fakeFfmpeg.exec = () => {
+      seen = fakeFfmpeg.memfs.get('/tmp/build/intro_output.mp4');
+
+      return Promise.resolve();
+    };
+
+    await adapter.execute('-y -i /tmp/build/intro_output.mp4 -c copy /tmp/build/intro_output.mp4');
+
+    expect(seen).toEqual(new Uint8Array([4, 4]));
   });
 });

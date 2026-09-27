@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Seo } from '@/presentation/components/Seo';
 import { EditorShell, CompileMonitor, StepResult, type SaveStatus } from '@/presentation/components/builder';
 import { EditorLoadingShell } from '@/presentation/components/builder/editor-loading-shell';
+import { renderPhase, type RenderPhase } from '@/presentation/components/builder/render-phase';
+import { orientationOf } from '@/presentation/components/builder/editorPanels';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { templateService, type Template, type InputSection, type QualityTier } from '@/services/templateService';
 import { findMusicByUrl } from '@/data/mediaCatalog';
@@ -112,97 +114,6 @@ const isStepComplete = (step: WizardStep, s: BuilderState): boolean => {
 const allInputsComplete = (steps: WizardStep[], s: BuilderState): boolean =>
   steps.filter((st) => st.kind === 'form' || st.kind === 'clip').every((st) => isStepComplete(st, s));
 
-// ── Shared step screens ────────────────────────────────────────────────────────────────────────
-
-interface StepProcessProps {
-  selectedTemplate: Template | null;
-  clipFiles: File[];
-  formData: Record<string, string>;
-  isProcessing: boolean;
-  progress: ReturnType<typeof useVideoProcessing>['progress'];
-  error: string | null;
-  qualityTier: QualityTier;
-  onCancelProcessing: () => void;
-}
-
-const StepProcess = ({
-  selectedTemplate,
-  clipFiles,
-  formData,
-  isProcessing,
-  progress,
-  error,
-  qualityTier,
-  onCancelProcessing,
-}: StepProcessProps) => {
-  if (!selectedTemplate) return null;
-
-  return (
-    <CompileMonitor
-      template={selectedTemplate}
-      clipFiles={clipFiles}
-      formData={formData}
-      isProcessing={isProcessing}
-      progress={progress}
-      error={error}
-      qualityTier={qualityTier}
-      onCancel={onCancelProcessing}
-    />
-  );
-};
-
-interface StepContentProps {
-  step: WizardStep;
-  selectedTemplate: Template | null;
-  model: WizardModel;
-  clipCount: number;
-  processedVideo: ProcessedVideo | null;
-  processing: {
-    isFFmpegReady: boolean;
-    isProcessing: boolean;
-    canProcess: boolean;
-    progress: ProcessProgress;
-    error: string | null;
-  };
-  qualityTier: QualityTier;
-  onFormDataChange: (d: Record<string, string>) => void;
-  onClipChange: (sectionName: string, file: File | undefined) => void;
-  onEditChange: (sectionName: string, edit: VideoEdit | undefined) => void;
-  onMusicChange: (c: MediaChoice | null) => void;
-  onBackgroundChange: (c: MediaChoice | null) => void;
-  onStartProcessing: () => void;
-  onCancelProcessing: () => void;
-  onResultBack: () => void;
-  onReset: () => void;
-}
-
-// Renders the shared phases that live outside the editor shell: compile and result. Template picking
-// now lives on the studio home (/studio); per-section input editing belongs to the shell itself.
-const StepContent = (p: StepContentProps) => {
-  const { step, selectedTemplate, model } = p;
-
-  if (step.kind === 'process') {
-    return (
-      <StepProcess
-        selectedTemplate={selectedTemplate}
-        clipFiles={Object.values(model.clipsBySection)}
-        formData={model.formData}
-        isProcessing={p.processing.isProcessing}
-        progress={p.processing.progress}
-        error={p.processing.error}
-        qualityTier={p.qualityTier}
-        onCancelProcessing={p.onCancelProcessing}
-      />
-    );
-  }
-
-  if (p.processedVideo) {
-    return <StepResult processedVideo={p.processedVideo} onBack={p.onResultBack} onReset={p.onReset} />;
-  }
-
-  return null;
-};
-
 type ProcessProgress = ReturnType<typeof useVideoProcessing>['progress'];
 
 // Callbacks the flow needs — bundled so the flow component takes one prop instead of a dozen.
@@ -217,6 +128,8 @@ interface WizardHandlers {
   onBackgroundChange: (c: MediaChoice | null) => void;
   onStartProcessing: () => void;
   onCancelProcessing: () => void;
+  onRetryProcessing: () => void;
+  onBackToEdit: () => void;
   onResultBack: () => void;
   onReset: () => void;
 }
@@ -237,6 +150,8 @@ interface FlowProps {
     progress: ProcessProgress;
     error: string | null;
   };
+  // The user stopped the current render; see renderPhase.
+  stopped: boolean;
   qualityTier: QualityTier;
   onQualityTierChange: (tier: QualityTier) => void;
   handlers: WizardHandlers;
@@ -247,56 +162,90 @@ interface FlowProps {
   lastSavedAt: number | null;
 }
 
-// Index of the process / result steps, used by the hub to reuse the shared screens for those phases.
+// Index of the process step, and of the last input step before it — where a stopped or failed render,
+// and "Keep editing" from the result, hand the viewer back to.
 const processIndex = (steps: WizardStep[]): number => steps.findIndex((s) => s.kind === 'process');
-const resultIndex = (steps: WizardStep[]): number => steps.findIndex((s) => s.kind === 'result');
+const editIndex = (steps: WizardStep[]): number => Math.max(0, processIndex(steps) - 1);
 
-// The editor flow: EditorShell → Process → Result. The Process and Result phases reuse the linear
-// screens via StepContent so there's a single source of truth for them. The template chooser now
-// lives on the studio home — with nothing selected, the editor has nothing to edit, so bounce there.
+interface PhaseContentProps {
+  phase: RenderPhase;
+  template: Template;
+  model: WizardModel;
+  processedVideo: ProcessedVideo | null;
+  processing: FlowProps['processing'];
+  qualityTier: QualityTier;
+  handlers: WizardHandlers;
+}
+
+// The shell body for the two phases beyond editing: the render monitor (running or failed), then the
+// finished video.
+const PhaseContent = ({
+  phase,
+  template,
+  model,
+  processedVideo,
+  processing,
+  qualityTier,
+  handlers,
+}: PhaseContentProps) => {
+  if (phase === 'result' && processedVideo) {
+    return (
+      <StepResult
+        processedVideo={processedVideo}
+        title={template.name}
+        orientation={orientationOf(template)}
+        onBack={handlers.onResultBack}
+        onReset={handlers.onReset}
+      />
+    );
+  }
+
+  if (phase !== 'processing') return null;
+
+  return (
+    <CompileMonitor
+      template={template}
+      clipFiles={Object.values(model.clipsBySection)}
+      formData={model.formData}
+      isProcessing={processing.isProcessing}
+      progress={processing.progress}
+      error={processing.error}
+      qualityTier={qualityTier}
+      onCancel={handlers.onCancelProcessing}
+      onRetry={handlers.onRetryProcessing}
+      onBackToEdit={handlers.onBackToEdit}
+    />
+  );
+};
+
+// The editor flow: one fullscreen EditorShell hosts every phase — editing scenes, the render and its
+// result. The template chooser lives on the studio home: with nothing selected, the editor has
+// nothing to edit, so bounce there.
 const HubFlow = (p: FlowProps) => {
-  const { selectedTemplate, model, steps, stepIndex, handlers } = p;
+  const { selectedTemplate, model, handlers } = p;
 
   if (!selectedTemplate) {
     return <Navigate to="/studio" replace />;
   }
 
-  // One fullscreen editor shell hosts every phase: editing scenes, the compile, and the result. The
-  // compile/result phases reuse the linear StepContent screens, rendered inside the shell's body.
-  const onProcess = stepIndex === processIndex(steps);
-  const onResult = stepIndex === resultIndex(steps);
-  const derivePhase = (): 'edit' | 'processing' | 'result' => {
-    if (p.processedVideo) return 'result';
+  const phase = renderPhase({
+    hasResult: Boolean(p.processedVideo),
+    isProcessing: p.processing.isProcessing,
+    failed: p.processing.error !== null,
+    stopped: p.stopped,
+  });
 
-    // Keep the compile view mounted on failure (isProcessing has flipped false but error is set), so
-    // CompileMonitor shows its error panel instead of the flow silently reverting to a blank/edit view.
-    if (onProcess || onResult || p.processing.isProcessing || p.processing.error) return 'processing';
-
-    return 'edit';
-  };
-  const phase = derivePhase();
-
-  const phaseContent =
-    phase === 'edit' ? null : (
-      <StepContent
-        step={steps[onResult || p.processedVideo ? resultIndex(steps) : processIndex(steps)]}
-        selectedTemplate={selectedTemplate}
-        model={model}
-        clipCount={p.clipCount}
-        processedVideo={p.processedVideo}
-        processing={p.processing}
-        qualityTier={p.qualityTier}
-        onFormDataChange={handlers.onFormDataChange}
-        onClipChange={handlers.onClipChange}
-        onEditChange={handlers.onEditChange}
-        onMusicChange={handlers.onMusicChange}
-        onBackgroundChange={handlers.onBackgroundChange}
-        onStartProcessing={handlers.onStartProcessing}
-        onCancelProcessing={handlers.onCancelProcessing}
-        onResultBack={handlers.onResultBack}
-        onReset={handlers.onReset}
-      />
-    );
+  const phaseContent = (
+    <PhaseContent
+      phase={phase}
+      template={selectedTemplate}
+      model={model}
+      processedVideo={p.processedVideo}
+      processing={p.processing}
+      qualityTier={p.qualityTier}
+      handlers={handlers}
+    />
+  );
 
   return (
     <EditorShell
@@ -319,10 +268,7 @@ const HubFlow = (p: FlowProps) => {
       onEditChange={handlers.onEditChange}
       onMusicChange={handlers.onMusicChange}
       onBackgroundChange={handlers.onBackgroundChange}
-      onCreate={() => {
-        p.goTo(processIndex(steps));
-        handlers.onStartProcessing();
-      }}
+      onCreate={handlers.onStartProcessing}
       onCancel={handlers.onCancelProcessing}
       onExit={handlers.onReset}
     />
@@ -337,18 +283,19 @@ interface ActionDeps {
   steps: WizardStep[];
   stepIndex: number;
   allComplete: boolean;
-  error: string | null;
   qualityTier: QualityTier;
   setSelectedTemplate: (t: Template | null) => void;
   setModel: (value: WizardModel | ((m: WizardModel) => WizardModel)) => void;
+  setStopped: (stopped: boolean) => void;
   processVideo: ReturnType<typeof useVideoProcessing>['processVideo'];
   cancelProcessing: ReturnType<typeof useVideoProcessing>['cancelProcessing'];
+  clearResults: ReturnType<typeof useVideoProcessing>['clearResults'];
 }
 
 // Builds every callback the flows need. Pure factory (no hooks) so it doesn't bloat the component.
 const makeWizardActions = (deps: ActionDeps) => {
-  const { model, selectedTemplate, steps, stepIndex, allComplete, error, qualityTier, setSelectedTemplate, setModel } =
-    deps;
+  const { model, selectedTemplate, steps, stepIndex, allComplete, qualityTier, setSelectedTemplate, setModel } = deps;
+  const { setStopped } = deps;
   const update = (patch: Partial<WizardModel>) => {
     setModel((m) => ({ ...m, ...patch }));
   };
@@ -366,9 +313,15 @@ const makeWizardActions = (deps: ActionDeps) => {
       return { ...m, ...removeRush(m, sectionName, m.clipsBySection[sectionName]) };
     });
   };
+  // The render's outcome is not written back into the step index: processVideo settles the same way
+  // whether it succeeded, failed or was stopped, and reading the step from it once parked failures and
+  // stops on an empty result screen. The shell reads the outcome from the render state instead
+  // (renderPhase).
   const startProcessing = () => {
     if (!selectedTemplate || !allComplete) return;
     const mediaChoices: MediaChoices = { music: model.musicChoice, background: model.backgroundChoice };
+    setStopped(false);
+    goTo(processIndex(steps));
     deps
       .processVideo(
         model.clipsBySection,
@@ -377,14 +330,9 @@ const makeWizardActions = (deps: ActionDeps) => {
         mediaChoices,
         qualityTier
       )
-      .then(
-        () => {
-          if (!error) update({ stepIndex: steps.findIndex((s) => s.kind === 'result') });
-        },
-        (error_: unknown) => {
-          console.error('Processing error', error_);
-        }
-      );
+      .catch((error_: unknown) => {
+        console.error('Processing error', error_);
+      });
   };
   const handlers: WizardHandlers = {
     onFormDataChange: (d) => {
@@ -410,7 +358,18 @@ const makeWizardActions = (deps: ActionDeps) => {
       update({ backgroundChoice: c });
     },
     onStartProcessing: startProcessing,
-    onCancelProcessing: deps.cancelProcessing,
+    // Stopping hands the viewer straight back to the scene they were on: once the render is gone the
+    // monitor has nothing left to show.
+    onCancelProcessing: () => {
+      deps.cancelProcessing();
+      setStopped(true);
+      goTo(editIndex(steps));
+    },
+    onRetryProcessing: startProcessing,
+    onBackToEdit: () => {
+      deps.clearResults();
+      goTo(editIndex(steps));
+    },
     onResultBack: () => {
       update({ stepIndex: 1 });
     },
@@ -806,6 +765,20 @@ const deriveFlowBasics = (selectedTemplate: Template | null, model: WizardModel,
   return { stepIndex, currentStepKind, clipCount, builderState, allComplete };
 };
 
+// A Stop pressed while the engine is still loading can't reach it (coreCompilationService.cancel drops
+// it), so that render runs on and its video still lands. The viewer asked for it to stop: hide what it
+// produces and let the late video go, rather than pulling them out of the editor into a result they
+// cancelled.
+const useStoppedRender = (processedVideo: ProcessedVideo | null, clearResults: () => void) => {
+  const [stopped, setStopped] = useState(false);
+
+  useEffect(() => {
+    if (stopped && processedVideo) clearResults();
+  }, [stopped, processedVideo, clearResults]);
+
+  return { stopped, setStopped, liveResult: stopped ? null : processedVideo };
+};
+
 // Owns all wizard state + derived values + actions, so the Builder component is render-only.
 const useBuilderController = () => {
   const navigate = useNavigate();
@@ -818,6 +791,7 @@ const useBuilderController = () => {
   const [qualityTier, setQualityTier] = useState<QualityTier>('standard');
   const { isProcessing, progress, processedVideo, error, processVideo, cancelProcessing, clearResults, isFFmpegReady } =
     useVideoProcessing();
+  const { stopped, setStopped, liveResult } = useStoppedRender(processedVideo, clearResults);
   const { templateParam, projectIdParam, resolving } = useTemplatePreselect({
     setSelectedTemplate,
     setModel,
@@ -836,7 +810,7 @@ const useBuilderController = () => {
       model,
       currentStepKind,
       isProcessing,
-      processedVideo,
+      processedVideo: liveResult,
       setSelectedTemplate,
       setModel,
     });
@@ -847,12 +821,13 @@ const useBuilderController = () => {
     steps,
     stepIndex,
     allComplete,
-    error,
     qualityTier,
     setSelectedTemplate,
     setModel,
+    setStopped,
     processVideo,
     cancelProcessing,
+    clearResults,
   });
 
   const handlers: WizardHandlers = {
@@ -864,7 +839,7 @@ const useBuilderController = () => {
     onResultBack: () => {
       clearResults();
       clearHydratedResult();
-      const backTo = Math.max(0, processIndex(steps) - 1);
+      const backTo = editIndex(steps);
       setModel((m) => ({ ...m, stepIndex: backTo }));
     },
     // "Change template" / back: leave the editor and return to the gallery to pick another. The
@@ -883,7 +858,7 @@ const useBuilderController = () => {
     clipCount,
     builderState,
     allComplete,
-    processedVideo: processedVideo ?? hydratedResult,
+    processedVideo: liveResult ?? hydratedResult,
     processing: {
       isFFmpegReady,
       isProcessing,
@@ -891,6 +866,7 @@ const useBuilderController = () => {
       progress,
       error,
     },
+    stopped,
     qualityTier,
     onQualityTierChange: setQualityTier,
     handlers,

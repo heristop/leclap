@@ -37,6 +37,7 @@
     "music": "Musique",
     "background": "Image d’arrière-plan",
     "formatTitle": "Format",
+    "formatNote": "Fixé par le modèle",
     "aspect": {
       "portrait": "Vertical 9:16",
       "landscape": "Paysage 16:9",
@@ -60,7 +61,7 @@
     "emptyClipTitle": "Pas encore de clip",
     "emptyClipHint": "Filme ou importe dans le panneau Contenu pour le voir ici.",
     "emptyFormTitle": "Rien à prévisualiser pour l’instant",
-    "emptyFormHint": "Remplis le panneau Contenu et tes incrustations apparaissent ici.",
+    "emptyFormHint": "Tes réponses apparaissent dans les scènes qui les utilisent.",
     "save": {
       "saving": "Enregistrement…",
       "saved": "Enregistré",
@@ -89,23 +90,21 @@
     "progress": "Progression du traitement"
   },
   "compile": {
-    "preparing": "Préparation du rendu",
-    "rendering": "Rendu en cours",
-    "complete": "Rendu terminé",
-    "failed": "Échec du rendu",
     "stop": "Arrêter le rendu",
     "finishing": "Finalisation…",
     "errorTitle": "Échec du rendu",
+    "errorHint": "Tes scènes sont intactes. Réessaie, ou reviens vérifier tes clips.",
+    "backToEdit": "Retour à l’édition",
     "clips": "Clips",
     "clipCount_one": "{{count}} clip",
     "clipCount_other": "{{count}} clips",
     "project": "Projet"
   },
   "stepResult": {
-    "title": "Ta vidéo est prête !",
-    "subtitle": "Télécharge et partage ta création",
-    "editProject": "Continuer à modifier cette vidéo",
-    "createAnother": "Créer une autre vidéo"
+    "title": "C’est dans la boîte !",
+    "subtitle": "Rendue dans ton navigateur — tes clips n’ont jamais quitté cet appareil.",
+    "editProject": "Continuer l’édition",
+    "createAnother": "Nouvelle vidéo"
   },
   "stepForm": {
     "defaultTitle": "Tes informations",
@@ -120,7 +119,8 @@
     "take": "Prise {{number}}",
     "use": "Utiliser la prise {{number}}",
     "remove": "Supprimer la prise {{number}}",
-    "addAnother": "Filmer une autre prise"
+    "addAnother": "Filmer une autre prise",
+    "addTake": "Ajouter une prise"
   },
   "edit": {
     "trim": "Rogner",
@@ -128,7 +128,21 @@
     "videoAriaLabel": "Vidéo en cours d’édition",
     "resetTrim": "Réinitialiser le rognage",
     "resetCrop": "Réinitialiser le recadrage",
-    "cropHint": "Glisse le cadre ou ses coins pour recadrer."
+    "cropHint": "Glisse le cadre ou ses coins pour recadrer.",
+    "trimHint": "Glisse les bords d’un clip pour le rogner · Scinder coupe à la tête de lecture · ⋮ règle la vitesse",
+    "play": "Lire",
+    "pause": "Pause",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "split": "Scinder",
+    "splitHere": "Scinder ici",
+    "deleteSegment": "Supprimer le segment",
+    "segmentOptions": "Options du segment",
+    "speed": "Vitesse",
+    "invert": "Inverser",
+    "trimStart": "Début du rognage",
+    "trimEnd": "Fin du rognage",
+    "segment": "Segment {{number}}, de {{start}} à {{end}}"
   },
   "hub": {
     "subtitle": "Remplis chaque partie, puis crée ta vidéo",
@@ -155,7 +169,12 @@
       "label": "Qualité",
       "draft": "Brouillon",
       "standard": "Standard",
-      "high": "Élevée"
+      "high": "Élevée",
+      "hint": {
+        "draft": "Le rendu le plus rapide et un fichier plus léger — pour vérifier le timing.",
+        "standard": "Le bon équilibre entre image et temps de rendu.",
+        "high": "L’image la plus nette ; rendu plus long, fichier plus lourd."
+      }
     }
   }
 }

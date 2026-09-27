@@ -218,7 +218,11 @@ const ToolPanel = (p: ToolPanelProps) => {
     );
   }
 
-  if (p.tool === 'format') return <FormatPanel template={p.template} />;
+  if (p.tool === 'format') {
+    return (
+      <FormatPanel template={p.template} qualityTier={p.qualityTier} onQualityTierChange={p.onQualityTierChange} />
+    );
+  }
 
   if (!p.section) return null;
 
@@ -308,7 +312,8 @@ const ProgramArea = ({ clipFile, section, editForClip, onEditChange, template, m
       )}
       <div className="min-h-0 flex-1">
         {editMode && clipFile && section ? (
-          <div className="h-full overflow-y-auto p-4">
+          // Scrolls only when the viewport is too short for the editor's own fit (a phone on its side).
+          <div className="h-full overflow-y-auto p-3 sm:p-4">
             <TimelineEditor
               file={clipFile}
               label={t('stepClip.editorLabel')}
@@ -322,7 +327,7 @@ const ProgramArea = ({ clipFile, section, editForClip, onEditChange, template, m
           <ProgramMonitor
             label={t('editor.preview')}
             note={t('editor.approx')}
-            meta={orientationOf(template)}
+            meta={t(`stepMedia.aspect.${orientationOf(template)}`)}
             swapKey={section?.name}
           >
             <SectionPreview template={template} section={section} model={model} />
@@ -542,7 +547,7 @@ export const EditorShell = (p: EditorShellProps) => {
         />
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-6xl px-4 py-8">{p.phaseContent}</div>
+          <div className="mx-auto max-w-6xl px-4 py-5 short:py-3 sm:py-8">{p.phaseContent}</div>
         </div>
       )}
     </div>,

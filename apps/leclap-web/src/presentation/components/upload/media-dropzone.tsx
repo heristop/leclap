@@ -10,6 +10,8 @@ interface MediaDropzoneProps {
   /** Increments on every accepted drop; remounts SnakeBorder to replay the pass. */
   dropCount: number;
   disabled?: boolean;
+  /** The one-line shape at every width: a secondary intake that should not outweigh what is above it. */
+  dense?: boolean;
   /** Headline at `sm` and up. */
   title: string;
   /** Headline below `sm`; falls back to `title`. Phones have nothing to drag, so the copy differs. */
@@ -33,12 +35,54 @@ interface MediaDropzoneProps {
 // because there is nothing to drag on a touch device and a tall stack pushes the record button (the
 // real primary action) below the fold. The left-aligned spine layout suits both, so the difference is
 // now only density and copy rather than a separate arrangement.
+// The headline, the secondary "or browse" line and the formats hint, in the two densities: phones and
+// the dense intake get one short line, a roomy dropzone gets the full headline from `sm` up.
+const DropzoneCopy = ({
+  dense,
+  title,
+  compactTitle,
+  detail,
+  hint,
+  hintId,
+}: Pick<MediaDropzoneProps, 'title' | 'compactTitle' | 'detail' | 'hint'> & { dense: boolean; hintId: string }) => (
+  <div className="min-w-0">
+    <p className={cn('font-display text-base leading-tight font-semibold tracking-tight', !dense && 'sm:hidden')}>
+      {compactTitle ?? title}
+    </p>
+    {!dense && (
+      <p className="font-display hidden text-xl leading-tight font-semibold tracking-tight sm:block">{title}</p>
+    )}
+
+    {detail !== undefined && !dense && <p className="mt-1 hidden text-sm text-muted-foreground sm:block">{detail}</p>}
+
+    <p id={hintId} className={cn('mt-0.5 text-xs text-muted-foreground', !dense && 'sm:mt-1.5 sm:text-sm')}>
+      {hint}
+    </p>
+  </div>
+);
+
+const surfaceClass = (dense: boolean, isDragActive: boolean, disabled: boolean): string =>
+  cn(
+    'studio-stage hairline group relative overflow-hidden rounded-2xl',
+    dense ? 'py-2.5 pr-3 pl-7' : 'py-4 pr-4 pl-8 sm:py-7',
+    'tap cursor-pointer transition-[transform,box-shadow,border-color] duration-200 ease-[var(--ease-out-expo)]',
+    'focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
+    isDragActive && 'glow-brand scale-[1.02] border-brand-500',
+    !isDragActive && !disabled && 'hover:border-brand-500/50',
+    // Dimmed, not `pointer-events-none`: the surface must keep receiving dragover/drop so it can
+    // cancel them. Taking it out of hit-testing would let a drop fall through to the browser's
+    // default action, which navigates the tab to the file and discards the whole in-memory
+    // session. The hook already refuses to open the picker or accept files while disabled.
+    disabled && 'cursor-not-allowed opacity-55'
+  );
+
 export function MediaDropzone({
   getRootProps,
   getInputProps,
   isDragActive,
   dropCount,
   disabled = false,
+  dense = false,
   title,
   compactTitle,
   hint,
@@ -59,18 +103,7 @@ export function MediaDropzone({
       {...hoverProps}
       aria-label={inputAriaLabel}
       aria-describedby={hintId}
-      className={cn(
-        'studio-stage hairline group relative overflow-hidden rounded-2xl py-4 pr-4 pl-8 sm:py-7',
-        'tap cursor-pointer transition-[transform,box-shadow,border-color] duration-200 ease-[var(--ease-out-expo)]',
-        'focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none',
-        isDragActive && 'glow-brand scale-[1.02] border-brand-500',
-        !isDragActive && !disabled && 'hover:border-brand-500/50',
-        // Dimmed, not `pointer-events-none`: the surface must keep receiving dragover/drop so it can
-        // cancel them. Taking it out of hit-testing would let a drop fall through to the browser's
-        // default action, which navigates the tab to the file and discards the whole in-memory
-        // session. The hook already refuses to open the picker or accept files while disabled.
-        disabled && 'cursor-not-allowed opacity-55'
-      )}
+      className={surfaceClass(dense, isDragActive, disabled)}
     >
       <FilmstripEdge className="absolute inset-y-0 left-0" />
 
@@ -86,7 +119,8 @@ export function MediaDropzone({
         {icon !== undefined && (
           <div
             className={cn(
-              'shrink-0 rounded-full p-2.5 transition-transform duration-200 ease-[var(--ease-out-expo)]',
+              'shrink-0 rounded-full transition-transform duration-200 ease-[var(--ease-out-expo)]',
+              dense ? 'p-2' : 'p-2.5',
               isDragActive ? 'bg-brand-600 text-white' : 'bg-surface/70 text-gray-400 group-hover:scale-105'
             )}
           >
@@ -94,18 +128,14 @@ export function MediaDropzone({
           </div>
         )}
 
-        <div className="min-w-0">
-          <p className="font-display text-base leading-tight font-semibold tracking-tight sm:hidden">
-            {compactTitle ?? title}
-          </p>
-          <p className="font-display hidden text-xl leading-tight font-semibold tracking-tight sm:block">{title}</p>
-
-          {detail !== undefined && <p className="mt-1 hidden text-sm text-muted-foreground sm:block">{detail}</p>}
-
-          <p id={hintId} className="mt-0.5 text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">
-            {hint}
-          </p>
-        </div>
+        <DropzoneCopy
+          dense={dense}
+          title={title}
+          compactTitle={compactTitle}
+          detail={detail}
+          hint={hint}
+          hintId={hintId}
+        />
       </div>
     </div>
   );

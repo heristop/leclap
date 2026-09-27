@@ -21,6 +21,11 @@ interface VideoPreviewProps {
   // area, and the default `max-h` cap leaves a portrait take pillar-boxed inside a much wider
   // player; filling lets `object-contain` use the whole stage instead.
   fill?: boolean;
+  // The caption in the controls bar. Defaults to "Processed video"; null drops it where that would be
+  // untrue or redundant (a raw camera take, a result whose screen already names it).
+  label?: string | null;
+  // The clip's facts once its metadata has loaded, for callers that list them.
+  onMetadata?: (meta: { duration: number; width: number; height: number }) => void;
 }
 
 const formatDuration = (seconds: number) => {
@@ -125,6 +130,8 @@ export const VideoPreview = ({
   loop = false,
   muted = false,
   fill = false,
+  label,
+  onMetadata,
 }: VideoPreviewProps) => {
   const { t } = useTranslation('process');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -133,7 +140,11 @@ export const VideoPreview = ({
   const [isMuted, setIsMuted] = useState(muted);
   const [volume, setVolume] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Renders don't report their length, so read it off the element rather than show no time at all.
+  const [loadedDuration, setLoadedDuration] = useState<number | null>(null);
   const { ref: maximizeRef, hoverProps: maximizeHoverProps } = useIconHover();
+  const shownDuration = duration ?? loadedDuration;
+  const caption = label === undefined ? t('export.preview.label') : label;
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -199,7 +210,7 @@ export const VideoPreview = ({
   return (
     <div
       ref={containerRef}
-      className={clsx('group relative overflow-hidden bg-black shadow-2xl', frameClass(isFullscreen, fill))}
+      className={clsx('group @container relative overflow-hidden bg-black shadow-2xl', frameClass(isFullscreen, fill))}
     >
       <video
         ref={videoRef}
@@ -213,6 +224,13 @@ export const VideoPreview = ({
         onPause={() => {
           setIsPlaying(false);
         }}
+        onLoadedMetadata={(e) => {
+          const el = e.currentTarget;
+
+          if (Number.isFinite(el.duration)) setLoadedDuration(el.duration);
+
+          onMetadata?.({ duration: el.duration, width: el.videoWidth, height: el.videoHeight });
+        }}
         controls={false}
         autoPlay={autoPlay}
         loop={loop}
@@ -223,16 +241,24 @@ export const VideoPreview = ({
 
       <PlayOverlay isPlaying={isPlaying} onPlayPause={handlePlayPause} t={t} />
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 to-transparent p-4 pt-12">
+      {/* A narrow player (a portrait take or render in a small box) keeps its controls and drops the
+          readout: at ~6rem wide the duration pushed fullscreen off the edge. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 to-transparent p-4 pt-12 @max-[12rem]:px-1.5 @max-[12rem]:pb-1.5">
         <div className="flex items-center justify-between gap-3 text-sm text-white">
-          <div className="flex min-w-0 items-center gap-2">
-            <FileVideo className="h-4 w-4 shrink-0 text-brand-300" />
-            <span className="truncate font-medium">{t('export.preview.label')}</span>
-          </div>
+          {caption ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <FileVideo className="h-4 w-4 shrink-0 text-brand-300" />
+              <span className="truncate font-medium">{caption}</span>
+            </div>
+          ) : (
+            <span />
+          )}
           <div className="pointer-events-auto flex items-center gap-1">
-            {duration && (
-              <span className="mr-1 font-mono text-xs tabular-nums text-white/70">{formatDuration(duration)}</span>
-            )}
+            {shownDuration ? (
+              <span className="mr-1 font-mono text-xs tabular-nums text-white/70 @max-[12rem]:hidden">
+                {formatDuration(shownDuration)}
+              </span>
+            ) : null}
             <VolumeControl
               isMuted={isMuted}
               volume={volume}

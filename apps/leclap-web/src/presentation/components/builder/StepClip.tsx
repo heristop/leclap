@@ -88,30 +88,47 @@ const ClipCapture = ({
   // take list). Without the gallery it falls back to showing the single selected clip.
   const fallbackFiles = file ? [file] : [];
 
+  const intake = (
+    <FileUpload
+      onFilesUploaded={(files) => {
+        onCaptured(files.at(-1));
+      }}
+      uploadedFiles={onAddRush ? [] : fallbackFiles}
+      maxFiles={1}
+      compact={Boolean(showChooser)}
+      countdownSeconds={rec.countdownSeconds}
+      maxDurationSeconds={rec.maxDurationSeconds}
+      framingGuide={rec.framingGuide}
+      description={hint}
+      orientation={orientation}
+      defaultCaptureMode={rec.defaultCaptureMode}
+      allowedCaptureModes={rec.allowedCaptureModes}
+    />
+  );
+
+  // Once there is a take, the take is the thing to look at: the gallery moves to the top and the
+  // capture controls shrink to an "add a take" row under it. Before that, capture is the whole job and
+  // gets the full dropzone. The intake keeps one position in the tree either way, so it isn't remounted
+  // (and its drop flourish cut short) by the take that just landed.
   return (
     <>
-      <FileUpload
-        onFilesUploaded={(files) => {
-          onCaptured(files.at(-1));
-        }}
-        uploadedFiles={onAddRush ? [] : fallbackFiles}
-        maxFiles={1}
-        countdownSeconds={rec.countdownSeconds}
-        maxDurationSeconds={rec.maxDurationSeconds}
-        framingGuide={rec.framingGuide}
-        description={hint}
-        orientation={orientation}
-        defaultCaptureMode={rec.defaultCaptureMode}
-        allowedCaptureModes={rec.allowedCaptureModes}
-      />
       {showChooser && (
         <RushChooser
           rushes={takes}
           selectedRush={selectedRush}
           onSelectRush={onSelectRush}
           onRemoveRush={onRemoveRush}
+          orientation={orientation}
         />
       )}
+      <div className="space-y-2">
+        {showChooser && (
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {t('rush.addTake')}
+          </p>
+        )}
+        {intake}
+      </div>
       {showEditor && file && (
         <TimelineEditor file={file} label={t('stepClip.editorLabel')} edit={edit} onChange={onEditChange} />
       )}

@@ -85,16 +85,21 @@ export const CompileMonitor = ({
 
   return (
     <div className="fade-in grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-      <section className="studio-stage overflow-hidden rounded-2xl border border-foreground/10 p-6 sm:p-8">
-        <MonitorEyebrow phase={phase} t={t} />
-
-        <div className="mt-5">
-          <ProgressDisplay progress={progress} />
-        </div>
-
-        <div className="mt-6">
-          <MonitorControl phase={phase} error={error} onCancel={onCancel} t={t} />
-        </div>
+      <section className="studio-stage overflow-hidden rounded-2xl border border-foreground/10 p-5 sm:p-8">
+        {phase === 'error' && error ? (
+          <RenderFailed error={error} onRetry={onRetry} onBackToEdit={onBackToEdit} t={t} />
+        ) : (
+          <>
+            <ProgressDisplay progress={progress} />
+            <div className="mt-6 flex justify-center">
+              {phase === 'complete' ? (
+                <p className="text-sm text-muted-foreground">{t('compile.finishing')}</p>
+              ) : (
+                <StopButton onClick={onCancel} label={t('compile.stop')} />
+              )}
+            </div>
+          </>
+        )}
       </section>
 
       <CompileSummary template={template} clipCount={clipFiles.length} formData={formData} qualityTier={qualityTier} />

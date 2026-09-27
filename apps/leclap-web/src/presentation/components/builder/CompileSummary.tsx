@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { type Template } from '@/services/templateService';
 import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { buildFieldLabels, humanizeKey } from './templateSummary';
+import { orientationOf } from './editorPanels';
 
 interface CompileSummaryProps {
   template: Template;
@@ -19,15 +20,15 @@ const Eyebrow = ({ children }: { children: React.ReactNode }) => (
 const Fact = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="min-w-0">
     <Eyebrow>{label}</Eyebrow>
-    <p className="mt-0.5 truncate text-sm text-foreground capitalize">{value}</p>
+    <p className="mt-0.5 truncate text-sm text-foreground">{value}</p>
   </div>
 );
 
 // A low-visual-weight project summary rail that frames the render monitor without competing with it:
 // the project name + description, a tight row of facts, and (when present) the user's answers.
 export const CompileSummary = ({ template, clipCount, formData, qualityTier }: CompileSummaryProps) => {
-  const { t } = useTranslation(['process', 'builder']);
-  const fieldLabels = buildFieldLabels(template);
+  const { t, i18n } = useTranslation(['process', 'builder']);
+  const fieldLabels = buildFieldLabels(template, i18n.language);
   const answers = Object.entries(formData).filter(([, value]) => value.trim().length > 0);
   const sectionCount = template.descriptor.sections?.length ?? 0;
   const musicOn = template.descriptor.global?.musicEnabled ?? false;
@@ -41,7 +42,10 @@ export const CompileSummary = ({ template, clipCount, formData, qualityTier }: C
       </div>
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-foreground/10 pt-4">
-        <Fact label={t('process:processor.template.orientation')} value={template.orientation} />
+        <Fact
+          label={t('process:processor.template.orientation')}
+          value={t(`builder:stepMedia.aspect.${orientationOf(template)}`)}
+        />
         <Fact label={t('process:processor.template.sections')} value={sectionCount} />
         <Fact label={t('builder:compile.clips')} value={clipCount} />
         <Fact

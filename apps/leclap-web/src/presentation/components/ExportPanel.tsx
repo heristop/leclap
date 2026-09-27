@@ -1,13 +1,11 @@
-import { useState, startTransition } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Share2, Check, FileVideo, HardDrive, CheckCircle2 } from '@/presentation/components/icons';
+import { Check, Share2 } from '@/presentation/components/icons';
 import { DownloadIcon } from '@/presentation/components/icons/download';
-import { CopyIcon } from '@/presentation/components/icons/copy';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
-import clsx from 'clsx';
 import { logger } from '@/lib/logger';
-import { Button, Card } from '@/presentation/components/ui';
-import { VideoPreview } from '@/presentation/components/VideoPreview';
+import { Button } from '@/presentation/components/ui';
+import { formatBytes } from '@/presentation/components/builder/file-size';
 
 interface ProcessedVideo {
   blob: Blob;
@@ -18,179 +16,73 @@ interface ProcessedVideo {
 
 interface ExportPanelProps {
   processedVideo: ProcessedVideo;
+  // What the file is saved and shared as (see downloadName).
+  fileName: string;
+  // The project title, used as the share sheet's title.
+  title: string;
+  // The render's frame size once the player has read it; the facts line leaves it out until then.
+  frame: { width: number; height: number } | null;
 }
 
-const formatFileSize = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+type SaveState = 'idle' | 'saving' | 'saved' | 'started';
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+// How long the "Saved" / "Download started" confirmation holds on the button before it resets.
+const CONFIRM_MS = 2500;
+
+// Whether the platform share sheet takes this file. `navigator.share` existing is not enough: most
+// desktop browsers have it but refuse files, and a Share button that opens nothing is worse than none.
+const canShareFile = (file: File): boolean =>
+  typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
+
+const anchorDownload = (url: string, fileName: string): void => {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
-interface VideoInfoProps {
-  processedVideo: ProcessedVideo;
-}
-
-// Compact meta chip — keeps the file facts visible but secondary to the video preview above.
-const MetaChip = ({ icon: Icon, label, value }: { icon: typeof HardDrive; label: string; value: string }) => (
-  <span className="inline-flex items-center gap-2 rounded-lg border border-foreground/10 bg-foreground/[0.04] px-3 py-1.5 text-sm">
-    <Icon className="h-4 w-4 text-brand-600 dark:text-brand-300" />
-    <span className="text-gray-400">{label}</span>
-    <span className="font-semibold tabular-nums text-foreground">{value}</span>
-  </span>
-);
-
-const VideoInfo = ({ processedVideo }: VideoInfoProps) => {
+const DownloadLabel = ({ state }: { state: SaveState }) => {
   const { t } = useTranslation('process');
 
-  return (
-    <div className="flex flex-wrap items-center justify-center gap-2">
-      <MetaChip icon={HardDrive} label={t('export.info.fileSize')} value={formatFileSize(processedVideo.size)} />
-      {/* i18n-ignore */}
-      <MetaChip icon={FileVideo} label={t('export.info.format')} value="MP4" />
-    </div>
-  );
+  if (state === 'saving') return <span>{t('export.actions.saving')}</span>;
+
+  if (state === 'saved') return <span>{t('export.actions.saved')}</span>;
+
+  if (state === 'started') return <span>{t('export.actions.started')}</span>;
+
+  return <span>{t('export.actions.download')}</span>;
 };
 
-interface ActionButtonsProps {
-  processedVideo: ProcessedVideo;
-  downloadProgress: number;
-  showCopied: boolean;
-  onDownload: () => void;
-  onCopyLink: () => void;
-  onShare: () => void;
-}
+// The export rail of the result screen: the file's facts, then Download (the screen's one primary
+// action) and — only where the platform can actually share a video file — Share. There is no "copy
+// link": a render lives in this tab as a blob: URL, which opens nowhere else.
+export const ExportPanel = ({ processedVideo, fileName, title, frame }: ExportPanelProps) => {
+  const { t, i18n } = useTranslation('process');
+  const [state, setState] = useState<SaveState>('idle');
+  const resetTimer = useRef<number | null>(null);
+  const { ref: downloadRef, hoverProps: downloadHoverProps } = useIconHover();
+  const file = new File([processedVideo.blob], fileName, { type: 'video/mp4' });
+  const shareable = canShareFile(file);
 
-const ActionButtons = ({
-  processedVideo: _processedVideo,
-  downloadProgress,
-  showCopied,
-  onDownload,
-  onCopyLink,
-  onShare,
-}: ActionButtonsProps) => {
-  const { t } = useTranslation('process');
-  const { ref: dlRef, hoverProps: dlHoverProps } = useIconHover();
-  const { ref: copyRef, hoverProps: copyHoverProps } = useIconHover();
+  const clearResetTimer = () => {
+    if (resetTimer.current !== null) window.clearTimeout(resetTimer.current);
+  };
 
-  return (
-    <div className="space-y-3">
-      {/* Primary Download Button */}
-      <Button
-        onClick={onDownload}
-        disabled={downloadProgress > 0 && downloadProgress < 100}
-        size="lg"
-        className={clsx(
-          'w-full text-white hover:shadow-success/20 hover:scale-[1.02] focus-visible:ring-success/30',
-          downloadProgress > 0 && downloadProgress < 100 && 'cursor-wait opacity-75'
-        )}
-        {...dlHoverProps}
-      >
-        <span className="p-2 bg-foreground/20 rounded-lg [&_svg]:size-6">
-          <DownloadIcon ref={dlRef} size={24} />
-        </span>
-        <span>
-          {downloadProgress > 0 && downloadProgress < 100
-            ? t('export.actions.downloading', { progress: downloadProgress })
-            : t('export.actions.download')}
-        </span>
-      </Button>
+  useEffect(() => clearResetTimer, []);
 
-      {/* Progress Bar for Download */}
-      {downloadProgress > 0 && downloadProgress < 100 && (
-        <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
-          <div className="h-full bg-success transition-all duration-300" style={{ width: `${downloadProgress}%` }} />
-        </div>
-      )}
-
-      {/* Secondary Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          onClick={onCopyLink}
-          className={clsx(
-            'px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20',
-            showCopied && 'border-success/50 text-success-foreground bg-success/10'
-          )}
-          {...copyHoverProps}
-        >
-          {showCopied ? (
-            <>
-              <Check className="size-4! pop-in" />
-              <span>{t('export.actions.copied')}</span>
-            </>
-          ) : (
-            <>
-              <CopyIcon ref={copyRef} size={16} />
-              <span>{t('export.actions.copyLink')}</span>
-            </>
-          )}
-        </Button>
-
-        {'share' in navigator && (
-          <Button
-            variant="outline"
-            onClick={onShare}
-            className="px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-foreground/20"
-          >
-            <Share2 className="size-4!" />
-            <span>{t('export.actions.share')}</span>
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const SuccessMessage = () => {
-  const { t } = useTranslation('process');
-
-  return (
-    <Card elevation="flat" className="p-4 bg-surface/40 border-foreground/10 rounded-xl backdrop-blur-sm">
-      <h4 className="font-medium text-gray-300 mb-2 flex items-center gap-2">
-        <CheckCircle2 className="w-4 h-4 text-success-foreground" /> {t('export.success.title')}
-      </h4>
-      <ul className="text-sm text-gray-400 space-y-1">
-        <li>• {t('export.success.processed')}</li>
-        <li>• {t('export.success.local')}</li>
-        <li>• {t('export.success.noData')}</li>
-        <li>• {t('export.success.downloadShare')}</li>
-      </ul>
-    </Card>
-  );
-};
-
-export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
-  const { t } = useTranslation('process');
-  const [showCopied, setShowCopied] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const confirm = (next: 'saved' | 'started') => {
+    setState(next);
+    clearResetTimer();
+    resetTimer.current = window.setTimeout(() => {
+      setState('idle');
+    }, CONFIRM_MS);
+  };
 
   const fallbackDownload = () => {
-    setDownloadProgress(0);
-    const interval = setInterval(() => {
-      setDownloadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-
-          return 100;
-        }
-
-        return prev + 10;
-      });
-    }, 50);
-
-    const link = document.createElement('a');
-    link.href = processedVideo.url;
-    link.download = `leclap-video-${Date.now()}.mp4`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-      setDownloadProgress(0);
-    }, 2000);
+    anchorDownload(processedVideo.url, fileName);
+    confirm('started');
   };
 
   const handleDownload = () => {
@@ -205,80 +97,69 @@ export const ExportPanel = ({ processedVideo }: ExportPanelProps) => {
     const showSaveFilePicker = window.showSaveFilePicker as (opts?: unknown) => Promise<FileSystemFileHandle>;
 
     showSaveFilePicker({
-      suggestedName: `leclap-video-${Date.now()}.mp4`,
-      types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
+      suggestedName: fileName,
+      types: [{ description: t('export.fileType'), accept: { 'video/mp4': ['.mp4'] } }],
     })
       .then(async (fileHandle) => {
-        setDownloadProgress(10);
+        setState('saving');
         const writable = await fileHandle.createWritable();
-        setDownloadProgress(40);
         await writable.write(processedVideo.blob);
-        setDownloadProgress(90);
         await writable.close();
-        setDownloadProgress(100);
-        setTimeout(() => {
-          setDownloadProgress(0);
-        }, 2000);
+        confirm('saved');
       })
       .catch((error: unknown) => {
-        if (error instanceof Error && error.name !== 'AbortError') {
-          fallbackDownload();
-        }
-      });
-  };
+        // Dismissing the save dialog is a choice, not a failure: leave the button as it was.
+        if (error instanceof Error && error.name === 'AbortError') {
+          setState('idle');
 
-  const handleCopyLink = () => {
-    navigator.clipboard
-      .writeText(processedVideo.url)
-      .then(() => {
-        startTransition(() => {
-          setShowCopied(true);
-        });
-        setTimeout(() => {
-          setShowCopied(false);
-        }, 2000);
-      })
-      .catch((error: unknown) => {
-        logger.error('Failed to copy:', error);
+          return;
+        }
+
+        fallbackDownload();
       });
   };
 
   const handleShare = () => {
-    if (!('share' in navigator)) return;
-    const file = new File([processedVideo.blob], 'processed-video.mp4', {
-      type: 'video/mp4',
+    navigator.share({ title, text: t('export.share.text'), files: [file] }).catch((error: unknown) => {
+      if (error instanceof Error && error.name === 'AbortError') return;
+
+      logger.error('Error sharing:', error);
     });
-    navigator
-      .share({
-        title: t('export.share.title'),
-        text: t('export.share.text'),
-        files: [file],
-      })
-      .catch((error: unknown) => {
-        logger.error('Error sharing:', error);
-      });
   };
 
+  const facts = [
+    // i18n-ignore — the container format's name, the same in every language.
+    'MP4',
+    frame ? `${frame.width}×${frame.height}` : null,
+    formatBytes(processedVideo.size, i18n.language),
+  ].filter(Boolean);
+  const confirmed = state === 'saved' || state === 'started';
+
   return (
-    <div className="space-y-6 fade-in">
-      {/* Video Preview */}
-      <VideoPreview url={processedVideo.url} duration={processedVideo.duration} />
+    <div className="space-y-3">
+      <p className="text-sm tabular-nums text-muted-foreground">{facts.join(' · ')}</p>
 
-      {/* Video Information */}
-      <VideoInfo processedVideo={processedVideo} />
+      <Button
+        size="lg"
+        onClick={handleDownload}
+        disabled={state === 'saving'}
+        className="w-full [&_svg]:size-5"
+        {...downloadHoverProps}
+      >
+        {confirmed ? <Check className="pop-in" /> : <DownloadIcon ref={downloadRef} size={20} />}
+        <DownloadLabel state={state} />
+      </Button>
+      {/* The button's label change isn't announced on its own; this is. */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {confirmed ? <DownloadLabel state={state} /> : null}
+      </span>
 
-      {/* Action Buttons */}
-      <ActionButtons
-        processedVideo={processedVideo}
-        downloadProgress={downloadProgress}
-        showCopied={showCopied}
-        onDownload={handleDownload}
-        onCopyLink={handleCopyLink}
-        onShare={handleShare}
-      />
-
-      {/* Success Message */}
-      <SuccessMessage />
+      {shareable && (
+        <Button variant="secondary" onClick={handleShare} className="w-full [&_svg]:size-4">
+          <Share2 />
+          {t('actions.share', { ns: 'common' })}
+        </Button>
+      )}
     </div>
   );
 };

@@ -43,29 +43,54 @@
   },
   "progress": {
     "header": {
-      "title": "Traitement de la vidéo",
-      "step": "Étape {{current}} sur {{total}}",
-      "timeRemaining": "~{{time}} restant"
+      "title": "Rendu de ta vidéo"
+    },
+    "stage": {
+      "initializing": "Démarrage du moteur",
+      "editing": "Découpe de tes clips",
+      "preparing": "Chargement de tes clips",
+      "configuring": "Préparation du projet",
+      "processing": "Lecture du modèle",
+      "compiling": "Rendu des scènes",
+      "finalizing": "Finalisation",
+      "complete": "Terminé",
+      "error": "Échec du rendu"
+    },
+    "quip": {
+      "projector": "On chauffe le projecteur…",
+      "reels": "On charge les bobines…",
+      "pixels": "On remet chaque pixel à sa place…",
+      "soundtrack": "On cale la bande-son…",
+      "dance": "On apprend à tes images à danser…",
+      "splice": "On colle les meilleurs moments…",
+      "colors": "On règle les couleurs…",
+      "magic": "Une pincée de magie du cinéma…",
+      "transitions": "On adoucit chaque transition…",
+      "frames": "On peaufine chaque image…",
+      "mix": "On mixe le montage final…",
+      "finish": "On prépare le grand final…",
+      "carpet": "On déroule le tapis rouge…",
+      "showtime": "Bientôt l’heure de la séance…"
     },
     "metrics": {
       "private": "Privé",
       "onDevice": "Sur l’appareil",
       "elapsed": "Écoulé",
-      "progress": "Progression"
+      "left": "Restant",
+      "estimating": "Estimation…",
+      "about": "~{{time}}"
     },
     "bar": {
-      "currentStepFallback": "Traitement...",
       "ariaLabel": "Progression du traitement vidéo"
     },
     "complete": {
-      "title": "Traitement terminé !",
-      "description": "Ta vidéo est prête à être téléchargée."
+      "title": "Ta vidéo est prête"
     }
   },
   "export": {
     "preview": {
-      "videoAriaLabel": "Aperçu de la vidéo traitée",
-      "label": "Vidéo traitée",
+      "videoAriaLabel": "Vidéo rendue",
+      "label": "Vidéo rendue",
       "pause": "Mettre en pause",
       "play": "Lire la vidéo",
       "mute": "Couper le son",
@@ -74,27 +99,15 @@
       "exitFullscreen": "Quitter le plein écran",
       "enterFullscreen": "Passer en plein écran"
     },
-    "info": {
-      "fileSize": "Taille du fichier",
-      "format": "Format"
-    },
     "actions": {
-      "downloading": "Téléchargement... {{progress}} %",
       "download": "Télécharger la vidéo",
-      "copied": "Copié !",
-      "copyLink": "Copier le lien",
-      "share": "Partager"
+      "saving": "Enregistrement…",
+      "saved": "Enregistrée",
+      "started": "Téléchargement lancé"
     },
-    "success": {
-      "title": "Vidéo terminée !",
-      "processed": "Ta vidéo a bien été traitée",
-      "local": "Tout le traitement s’est fait en local, dans ton navigateur",
-      "noData": "Aucune donnée n’a été envoyée à un serveur externe",
-      "downloadShare": "Tu peux la télécharger et la partager dès maintenant"
-    },
+    "fileType": "Vidéo MP4",
     "share": {
-      "title": "Vidéo traitée",
-      "text": "Regarde cette vidéo que j’ai créée avec FFmpeg Video Composer !"
+      "text": "Faite avec LeClap — rendue directement dans mon navigateur."
     }
   }
 }

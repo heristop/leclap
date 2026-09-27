@@ -3,7 +3,8 @@ import { Proportions } from '@/presentation/components/icons';
 import { TemplateForm } from '@/presentation/components/TemplateForm';
 import { StepClip } from '@/presentation/components/builder/StepClip';
 import { MediaPicker } from '@/presentation/components/admin/MediaPicker';
-import type { Template, InputSection } from '@/services/templateService';
+import { SegmentedControl } from '@/presentation/components/ui';
+import type { Template, InputSection, QualityTier } from '@/services/templateService';
 import type { VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { MediaChoice } from '@/presentation/components/admin/templateEditorModel';
 import { buildDescriptionVars } from '@/lib/i18nText';
@@ -145,23 +146,47 @@ export const MediaToolPanel = ({ template, model, onMusicChange, onBackgroundCha
   );
 };
 
-// Read-only format summary — the template's orientation drives the output aspect; the builder doesn't
-// let the viewer change it (that's an authoring decision), so this is informational, not a control.
-export const FormatPanel = ({ template }: { template: Template }) => {
+const QUALITY_TIERS: QualityTier[] = ['draft', 'standard', 'high'];
+
+interface FormatPanelProps {
+  template: Template;
+  qualityTier: QualityTier;
+  onQualityTierChange: (tier: QualityTier) => void;
+}
+
+// The output settings. The frame is the template's (an authoring decision, so it reads as a fact, not a
+// control); the render quality is the viewer's. From `sm` up the quality switch lives in the titlebar,
+// so here it only shows on phones — which otherwise had no way to pick it at all.
+export const FormatPanel = ({ template, qualityTier, onQualityTierChange }: FormatPanelProps) => {
   const { t } = useTranslation('builder');
   const orientation = orientationOf(template);
 
   return (
-    <div className="space-y-3">
-      <h3 className="font-display text-base font-semibold text-foreground">{t('stepMedia.formatTitle')}</h3>
+    <div className="space-y-6">
       <div className="flex items-center gap-3 rounded-xl border border-foreground/10 bg-surface/50 p-4">
-        <span className="grid size-10 place-items-center rounded-lg bg-brand-500/10 text-brand-500">
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-500/10 text-brand-500">
           <Proportions className="size-5" />
         </span>
-        <div>
-          <p className="text-sm font-semibold capitalize text-foreground">{orientation}</p>
-          <p className="text-xs text-gray-400">{t(`stepMedia.aspect.${orientation}`)}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{t(`stepMedia.aspect.${orientation}`)}</p>
+          <p className="text-xs text-gray-400">{t('stepMedia.formatNote')}</p>
         </div>
+      </div>
+
+      <div className="space-y-2 sm:hidden">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {t('hub.quality.label')}
+        </p>
+        <SegmentedControl
+          ariaLabel={t('hub.quality.label')}
+          value={qualityTier}
+          onChange={(next) => {
+            onQualityTierChange(next as QualityTier);
+          }}
+          options={QUALITY_TIERS.map((tier) => ({ value: tier, label: t(`hub.quality.${tier}`) }))}
+          classNames={{ track: 'flex w-full', button: 'flex-1 min-h-11' }}
+        />
+        <p className="text-xs leading-relaxed text-gray-400">{t(`hub.quality.hint.${qualityTier}`)}</p>
       </div>
     </div>
   );

@@ -43,29 +43,54 @@
   },
   "progress": {
     "header": {
-      "title": "Video wird verarbeitet",
-      "step": "Schritt {{current}} von {{total}}",
-      "timeRemaining": "noch ~{{time}}"
+      "title": "Dein Video wird gerendert"
+    },
+    "stage": {
+      "initializing": "Engine startet",
+      "editing": "Clips werden gekürzt",
+      "preparing": "Clips werden geladen",
+      "configuring": "Projekt wird eingerichtet",
+      "processing": "Vorlage wird gelesen",
+      "compiling": "Szenen werden gerendert",
+      "finalizing": "Letzter Schliff",
+      "complete": "Fertig",
+      "error": "Render fehlgeschlagen"
+    },
+    "quip": {
+      "projector": "Der Projektor läuft warm …",
+      "reels": "Die Filmrollen werden eingelegt …",
+      "pixels": "Jedes Pixel kommt an seinen Platz …",
+      "soundtrack": "Der Soundtrack wird angelegt …",
+      "dance": "Deine Bilder lernen tanzen …",
+      "splice": "Die besten Momente werden eingeschnitten …",
+      "colors": "Die Farben werden abgestimmt …",
+      "magic": "Eine Prise Kinomagie …",
+      "transitions": "Jeder Übergang wird geglättet …",
+      "frames": "Jedes Bild bekommt den letzten Schliff …",
+      "mix": "Der Final Cut wird gemischt …",
+      "finish": "Das große Finale wird vorbereitet …",
+      "carpet": "Der rote Teppich wird ausgerollt …",
+      "showtime": "Gleich beginnt die Vorstellung …"
     },
     "metrics": {
       "private": "Privat",
       "onDevice": "Auf dem Gerät",
       "elapsed": "Vergangen",
-      "progress": "Fortschritt"
+      "left": "Verbleibend",
+      "estimating": "Schätzung …",
+      "about": "~{{time}}"
     },
     "bar": {
-      "currentStepFallback": "Verarbeitung …",
       "ariaLabel": "Fortschritt der Videoverarbeitung"
     },
     "complete": {
-      "title": "Verarbeitung abgeschlossen!",
-      "description": "Dein Video wurde verarbeitet und ist bereit zum Herunterladen."
+      "title": "Dein Video ist fertig"
     }
   },
   "export": {
     "preview": {
-      "videoAriaLabel": "Vorschau des verarbeiteten Videos",
-      "label": "Verarbeitetes Video",
+      "videoAriaLabel": "Gerendertes Video",
+      "label": "Gerendertes Video",
       "pause": "Video pausieren",
       "play": "Video abspielen",
       "mute": "Stummschalten",
@@ -74,27 +99,15 @@
       "exitFullscreen": "Vollbild verlassen",
       "enterFullscreen": "Vollbild starten"
     },
-    "info": {
-      "fileSize": "Dateigröße",
-      "format": "Format"
-    },
     "actions": {
-      "downloading": "Wird heruntergeladen … {{progress}} %",
       "download": "Video herunterladen",
-      "copied": "Kopiert!",
-      "copyLink": "Link kopieren",
-      "share": "Teilen"
+      "saving": "Wird gespeichert …",
+      "saved": "Gespeichert",
+      "started": "Download gestartet"
     },
-    "success": {
-      "title": "Videoverarbeitung abgeschlossen!",
-      "processed": "Dein Video wurde verarbeitet",
-      "local": "Alles wurde lokal in deinem Browser verarbeitet",
-      "noData": "Es wurden keine Daten an externe Server gesendet",
-      "downloadShare": "Du kannst dein Video jetzt herunterladen und teilen"
-    },
+    "fileType": "MP4-Video",
     "share": {
-      "title": "Verarbeitetes Video",
-      "text": "Schau dir dieses Video an, das ich mit dem FFmpeg Video Composer erstellt habe!"
+      "text": "Mit LeClap gemacht — direkt in meinem Browser gerendert."
     }
   }
 }

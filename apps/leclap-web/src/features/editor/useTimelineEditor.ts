@@ -236,8 +236,15 @@ export function useTimelineEditor({ file, edit, onChange }: UseTimelineEditorPar
     setSpeed: (id: string, speed: number) => {
       commit(setSegmentSpeed(segments, id, speed), crop);
     },
-    trim: (id: string, side: 'start' | 'end', t: number) => {
-      commit(trimEdge(segments, id, side, t, duration), crop);
+    // A drag is one edit, not one per pointer move: beginTrim records the history once at the grab, and
+    // the moves that follow pass record=false. Without it, Undo after a drag stepped back a few pixels
+    // at a time. A keyboard nudge is its own edit, so it records.
+    beginTrim: () => {
+      setPast((p) => [...p, segments]);
+      setFuture([]);
+    },
+    trim: (id: string, side: 'start' | 'end', t: number, record = true) => {
+      commit(trimEdge(segments, id, side, t, duration), crop, record);
     },
     remove: (id: string) => {
       const next = deleteSegment(segments, id);

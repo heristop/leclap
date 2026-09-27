@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Scissors, Trash2 } from '@/presentation/components/icons';
 import { GaugeIcon } from '@/presentation/components/icons/gauge';
 import { cn } from '@/lib/utils';
@@ -17,19 +18,31 @@ interface SegmentMenuProps {
 }
 
 // A right-click / kebab menu anchored to a segment: speed presets, split at this point, and delete.
-// Renders fixed at the pointer; an invisible backdrop closes it, as does Escape.
+// Renders fixed at the pointer; an invisible backdrop closes it, as does Escape. Focus moves onto the
+// current speed when it opens and goes back to whatever opened it when it closes, so a keyboard user
+// lands in the menu and returns to the block they were on.
 export function SegmentMenu({ x, y, segment, canDelete, onSetSpeed, onSplit, onDelete, onClose }: SegmentMenuProps) {
+  const { t } = useTranslation('builder');
+  const currentSpeedRef = useRef<HTMLButtonElement>(null);
+  // The timeline re-renders under an open menu (the playhead moves), handing a fresh onClose each
+  // time; reading it through a ref keeps the focus hand-off below to one mount and one unmount.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
 
+    currentSpeedRef.current?.focus();
     window.addEventListener('keydown', onKey);
 
     return () => {
       window.removeEventListener('keydown', onKey);
+      opener?.focus();
     };
-  }, [onClose]);
+  }, []);
 
   // Keep the menu fully on-screen (≈ w-44 + padding ≈ 188px wide, ≈ 170px tall).
   const left = Math.max(8, Math.min(x, window.innerWidth - 196));
@@ -45,7 +58,7 @@ export function SegmentMenu({ x, y, segment, canDelete, onSetSpeed, onSplit, onD
     >
       <div
         role="menu"
-        aria-label="Segment options"
+        aria-label={t('edit.segmentOptions')}
         onPointerDown={(e) => {
           e.stopPropagation();
         }}
@@ -54,12 +67,13 @@ export function SegmentMenu({ x, y, segment, canDelete, onSetSpeed, onSplit, onD
       >
         <div className="flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-gray-400">
           <GaugeIcon size={14} />
-          Speed
+          {t('edit.speed')}
         </div>
         <div className="grid grid-cols-5 gap-0.5 px-1 pb-1.5">
           {SPEED_PRESETS.map((preset) => (
             <button
               key={preset}
+              ref={segment.speed === preset ? currentSpeedRef : undefined}
               type="button"
               role="menuitemradio"
               aria-checked={segment.speed === preset}
@@ -68,7 +82,7 @@ export function SegmentMenu({ x, y, segment, canDelete, onSetSpeed, onSplit, onD
                 onClose();
               }}
               className={cn(
-                'tap rounded-md py-1 text-xs font-semibold tabular-nums transition-colors',
+                'tap rounded-md py-1 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60',
                 segment.speed === preset ? 'bg-brand-500 text-white shadow-sm' : 'text-gray-300 hover:bg-foreground/10'
               )}
             >
@@ -81,11 +95,11 @@ export function SegmentMenu({ x, y, segment, canDelete, onSetSpeed, onSplit, onD
 
         <MenuRow onClick={onSplit}>
           <Scissors className="h-4 w-4" />
-          Split here
+          {t('edit.splitHere')}
         </MenuRow>
         <MenuRow onClick={onDelete} disabled={!canDelete} danger>
           <Trash2 className="h-4 w-4" />
-          Delete segment
+          {t('edit.deleteSegment')}
         </MenuRow>
       </div>
     </div>
@@ -110,7 +124,7 @@ function MenuRow({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'tap flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors [&_svg]:size-4',
+        'tap flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 [&_svg]:size-4',
         disabled && 'cursor-not-allowed opacity-40',
         danger
           ? 'text-gray-200 hover:bg-[var(--color-error)]/15 hover:text-[var(--color-error)]'

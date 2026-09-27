@@ -31,6 +31,9 @@ interface FileUploadProps {
   defaultCaptureMode?: CaptureMode;
   // Which capture mode tabs to show.
   allowedCaptureModes?: CaptureMode[];
+  // A secondary intake under takes already captured: a one-line dropzone and a plain record button,
+  // instead of the full-size drop target that leads an empty section.
+  compact?: boolean;
 }
 
 function formatFileSize(bytes: number): string {
@@ -112,6 +115,43 @@ function collectDropErrors(
   return [...new Set(errors)];
 }
 
+interface RecordWithCameraProps {
+  compact: boolean;
+  disabled: boolean;
+  onOpen: () => void;
+  t: TFunction<'media'>;
+}
+
+// The record-with-camera alternative to uploading, behind an "or" rule — except in the compact intake,
+// where the two sit as a plain pair under the takes and the rule would only add height.
+const RecordWithCamera = ({ compact, disabled, onOpen, t }: RecordWithCameraProps) => (
+  <>
+    {!compact && (
+      <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
+        <span className="flex-1 h-px bg-foreground/10" />
+        {t('upload.or')}
+        <span className="flex-1 h-px bg-foreground/10" />
+      </div>
+    )}
+
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onOpen}
+      disabled={disabled}
+      className={clsx(
+        'group w-full',
+        compact ? 'px-4 py-2.5' : 'px-4 py-3 sm:px-6 sm:py-4',
+        !disabled &&
+          'border-brand-500/30 bg-brand-500/10 text-brand-700 dark:text-brand-200 hover:bg-brand-500/20 hover:border-brand-500/50 hover:-translate-y-0.5'
+      )}
+    >
+      <VideoIcon className="transition-transform duration-300 group-hover:scale-110" />
+      {t('upload.recordWithCamera')}
+    </Button>
+  </>
+);
+
 export const FileUpload = ({
   onFilesUploaded,
   uploadedFiles,
@@ -124,6 +164,7 @@ export const FileUpload = ({
   orientation,
   defaultCaptureMode,
   allowedCaptureModes,
+  compact = false,
 }: FileUploadProps) => {
   const { t } = useTranslation('media');
   const { ref: uploadRef, hoverProps } = useIconHover();
@@ -173,18 +214,21 @@ export const FileUpload = ({
   });
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className={compact ? 'space-y-2' : 'space-y-3 sm:space-y-4'}>
       <MediaDropzone
         getRootProps={getRootProps}
         getInputProps={getInputProps}
         isDragActive={isDragActive}
         dropCount={dropCount}
         disabled={atCapacity}
+        dense={compact}
         title={isDragActive ? t('upload.dropActive') : t('upload.dropIdle')}
         compactTitle={isDragActive ? t('upload.dropActive') : t('upload.pickFile')}
-        detail={t('upload.browse', { count: maxFiles - uploadedFiles.length })}
+        // The "(N remaining)" count only means something when several files can be picked at once; a
+        // take intake always accepts one more, and "1 remaining" read as a limit that isn't there.
+        detail={maxFiles > 1 ? t('upload.browse', { count: maxFiles - uploadedFiles.length }) : undefined}
         hint={t('upload.formats', { size: maxSizeInMB })}
-        icon={<UploadIcon ref={uploadRef} className="size-5 sm:size-6" />}
+        icon={<UploadIcon ref={uploadRef} className={compact ? 'size-5' : 'size-5 sm:size-6'} />}
         hoverProps={hoverProps}
         inputAriaLabel={t('upload.uploadAria')}
         badge={
@@ -196,29 +240,14 @@ export const FileUpload = ({
         }
       />
 
-      {/* Record-with-camera alternative to uploading a file. */}
-      <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-gray-500">
-        <span className="flex-1 h-px bg-foreground/10" />
-        {t('upload.or')}
-        <span className="flex-1 h-px bg-foreground/10" />
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => {
+      <RecordWithCamera
+        compact={compact}
+        disabled={atCapacity}
+        onOpen={() => {
           setShowCamera(true);
         }}
-        disabled={atCapacity}
-        className={clsx(
-          'group w-full px-4 py-3 sm:px-6 sm:py-4',
-          !atCapacity &&
-            'border-brand-500/30 bg-brand-500/10 text-brand-700 dark:text-brand-200 hover:bg-brand-500/20 hover:border-brand-500/50 hover:-translate-y-0.5'
-        )}
-      >
-        <VideoIcon className="transition-transform duration-300 group-hover:scale-110" />
-        {t('upload.recordWithCamera')}
-      </Button>
+        t={t}
+      />
 
       <RejectionSlate title={t('upload.errorsTitle')} messages={uploadErrors} />
 

@@ -1,20 +1,30 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TemplateOrientation } from '@leclap/creative-kit';
 import { Check, X } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useObjectUrl } from './useObjectUrl';
+
+// Thumbs take the template's frame, so a take previews the way it will be used; one fixed 3:4 tile
+// cropped a landscape take down to its middle.
+const THUMB_SHAPE: Record<TemplateOrientation, string> = {
+  landscape: 'aspect-video w-32',
+  portrait: 'aspect-[9/16] w-20',
+  square: 'aspect-square w-24',
+};
 
 interface RushThumbProps {
   file: File;
   index: number;
   selected: boolean;
+  shape: string;
   onSelect: () => void;
   onRemove: () => void;
 }
 
 // A single take cell: a poster frame, a radio-like selected ring/check, a "Take N" label, and a
 // remove (×) control. Selecting makes this the take the editor/preview/render use.
-const RushThumb = ({ file, index, selected, onSelect, onRemove }: RushThumbProps) => {
+const RushThumb = ({ file, index, selected, shape, onSelect, onRemove }: RushThumbProps) => {
   const { t } = useTranslation('builder');
   const url = useObjectUrl(file);
   const label = t('rush.take', { number: index + 1 });
@@ -27,7 +37,8 @@ const RushThumb = ({ file, index, selected, onSelect, onRemove }: RushThumbProps
         aria-pressed={selected}
         aria-label={t('rush.use', { number: index + 1 })}
         className={cn(
-          'group relative block aspect-[3/4] w-20 overflow-hidden rounded-lg bg-surface-2 ring-2 transition-colors focus-visible:outline-none focus-visible:ring-brand-500',
+          'group relative block overflow-hidden rounded-lg bg-surface-2 ring-2 transition-colors focus-visible:outline-none focus-visible:ring-brand-500',
+          shape,
           selected ? 'ring-brand-500' : 'ring-foreground/10 hover:ring-foreground/30'
         )}
       >
@@ -65,12 +76,19 @@ interface RushChooserProps {
   selectedRush: File | undefined;
   onSelectRush: (file: File) => void;
   onRemoveRush: (file: File) => void;
+  orientation?: TemplateOrientation;
 }
 
 // The take gallery: a horizontal row of the section's recorded/uploaded takes. Shown as soon as there
 // is one take, so a single recording still has a visible thumbnail to confirm/remove; with several,
 // it's the chooser for the keeper. Hidden only when there are no takes.
-export const RushChooser = ({ rushes, selectedRush, onSelectRush, onRemoveRush }: RushChooserProps) => {
+export const RushChooser = ({
+  rushes,
+  selectedRush,
+  onSelectRush,
+  onRemoveRush,
+  orientation = 'portrait',
+}: RushChooserProps) => {
   const { t } = useTranslation('builder');
   // A stable key per File so React keeps each thumb's video element across reorders/removals.
   const [keys] = useState(() => new WeakMap<File, string>());
@@ -99,6 +117,7 @@ export const RushChooser = ({ rushes, selectedRush, onSelectRush, onRemoveRush }
             file={file}
             index={i}
             selected={file === selectedRush}
+            shape={THUMB_SHAPE[orientation]}
             onSelect={() => {
               onSelectRush(file);
             }}

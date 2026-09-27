@@ -48,14 +48,11 @@
       "subtitle": "Renseigne les informations requises pour personnaliser ta vidéo"
     },
     "status": {
-      "required": "Champ requis",
       "completed": "Champ complété",
       "maxChars": "{{count}} caractères maximum",
-      "remaining": "{{count}} restant(s)",
       "counter": "{{count}}/{{max}}",
       "requiredMark": "requis",
-      "fieldRequired": "Ce champ est requis",
-      "maxCharsLabel": "({{count}} car. max)"
+      "fieldRequired": "Ce champ est requis"
     },
     "placeholder": {
       "firstName": "Ton prénom",
@@ -64,12 +61,6 @@
       "keyword": "Un mot-clé",
       "description": "Une description...",
       "generic": "{{label}}"
-    },
-    "validation": {
-      "completeTitle": "Formulaire complété !",
-      "completeMessage": "Tous les champs requis sont remplis. Tu peux continuer.",
-      "incompleteTitle": "Formulaire incomplet",
-      "incompleteMessage": "Il reste {{count}} champ(s) à remplir."
     },
     "noForm": {
       "title": "Aucun formulaire nécessaire",

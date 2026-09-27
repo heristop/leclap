@@ -37,6 +37,7 @@
     "music": "Música",
     "background": "Imagen de fondo",
     "formatTitle": "Formato",
+    "formatNote": "Lo fija la plantilla",
     "aspect": {
       "portrait": "Vertical 9:16",
       "landscape": "Horizontal 16:9",
@@ -60,7 +61,7 @@
     "emptyClipTitle": "Aún no hay clip",
     "emptyClipHint": "Graba o sube algo en el panel de Contenido para verlo aquí.",
     "emptyFormTitle": "Nada que previsualizar todavía",
-    "emptyFormHint": "Rellena el panel de Contenido y tus superposiciones aparecerán aquí.",
+    "emptyFormHint": "Tus respuestas aparecen en las escenas que las usan.",
     "save": {
       "saving": "Guardando…",
       "saved": "Guardado",
@@ -89,23 +90,21 @@
     "progress": "Progreso del procesamiento"
   },
   "compile": {
-    "preparing": "Preparando el render",
-    "rendering": "Renderizando",
-    "complete": "Render completado",
-    "failed": "Error en el render",
     "stop": "Detener el render",
     "finishing": "Finalizando…",
     "errorTitle": "Error en el render",
+    "errorHint": "Tus escenas siguen intactas. Vuelve a intentarlo o revisa tus clips.",
+    "backToEdit": "Volver a editar",
     "clips": "Clips",
     "clipCount_one": "{{count}} clip",
     "clipCount_other": "{{count}} clips",
     "project": "Proyecto"
   },
   "stepResult": {
-    "title": "¡Tu vídeo está listo!",
-    "subtitle": "Descarga y comparte tu creación",
-    "editProject": "Seguir editando este vídeo",
-    "createAnother": "Crear otro vídeo"
+    "title": "¡Toma buena!",
+    "subtitle": "Renderizado en tu navegador — tus clips nunca salieron de este dispositivo.",
+    "editProject": "Seguir editando",
+    "createAnother": "Nuevo vídeo"
   },
   "stepForm": {
     "defaultTitle": "Tus datos",
@@ -120,7 +119,8 @@
     "take": "Toma {{number}}",
     "use": "Usar la toma {{number}}",
     "remove": "Quitar la toma {{number}}",
-    "addAnother": "Grabar otra toma"
+    "addAnother": "Grabar otra toma",
+    "addTake": "Añadir una toma"
   },
   "edit": {
     "trim": "Recortar",
@@ -128,7 +128,21 @@
     "videoAriaLabel": "Vídeo en edición",
     "resetTrim": "Restablecer recorte",
     "resetCrop": "Restablecer encuadre",
-    "cropHint": "Arrastra el marco o sus esquinas para encuadrar."
+    "cropHint": "Arrastra el marco o sus esquinas para encuadrar.",
+    "trimHint": "Arrastra los bordes de un clip para recortarlo · Dividir corta en el cabezal · ⋮ ajusta la velocidad",
+    "play": "Reproducir",
+    "pause": "Pausa",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "split": "Dividir",
+    "splitHere": "Dividir aquí",
+    "deleteSegment": "Eliminar segmento",
+    "segmentOptions": "Opciones del segmento",
+    "speed": "Velocidad",
+    "invert": "Invertir",
+    "trimStart": "Inicio del recorte",
+    "trimEnd": "Final del recorte",
+    "segment": "Segmento {{number}}, de {{start}} a {{end}}"
   },
   "hub": {
     "subtitle": "Rellena cada parte y luego crea tu vídeo",
@@ -155,7 +169,12 @@
       "label": "Calidad",
       "draft": "Borrador",
       "standard": "Estándar",
-      "high": "Alta"
+      "high": "Alta",
+      "hint": {
+        "draft": "El render más rápido y un archivo más ligero, para revisar el ritmo.",
+        "standard": "Equilibrio entre imagen y tiempo de render.",
+        "high": "La imagen más nítida; tarda más en renderizar y el archivo pesa más."
+      }
     }
   }
 }

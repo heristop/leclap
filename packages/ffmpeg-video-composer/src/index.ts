@@ -273,7 +273,16 @@ export { FFmpegDetector, FFmpegAvailability } from './platform/ffmpeg/FFmpegDete
 export type { FFmpegDetectionResult } from './platform/ffmpeg/FFmpegDetector';
 export { Terminal } from './utils/terminal';
 export { container };
-export { FONTS, findFont, findFontByFile, DEFAULT_FONT_ID, type FontEntry } from './core/fonts';
+export {
+  FONTS,
+  findFont,
+  findFontByFile,
+  DEFAULT_FONT_ID,
+  isFontRef,
+  type FontEntry,
+  type FontRef,
+  type FontInput,
+} from './core/fonts';
 export { assetBaseUrl, fontAssetUrl, musicAssetUrl } from './core/asset-source';
 export {
   expandPartials,
@@ -308,7 +317,7 @@ export type {
   BackgroundLayer,
   FramingGuide,
 } from './schemas/template.schemas';
-export { OrientationSchema } from './schemas/global.schemas';
+export { OrientationSchema, FontRefSchema, FontInputSchema } from './schemas/global.schemas';
 export type { Orientation } from './schemas/global.schemas';
 export { CaptureModeSchema } from './schemas/section.schemas';
 export type { CaptureMode } from './schemas/section.schemas';

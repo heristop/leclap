@@ -27,7 +27,7 @@ const DEFAULT_BAND_OPACITY = 0.6;
 // A per-line override of the preset look. Unset fields keep the preset font / scale-derived size /
 // colour, so existing cards render identically.
 export type TitleCardLineStyle = {
-  /** Font id (bundled registry) or a raw .ttf filename. */
+  /** Font id (bundled registry), a raw .ttf filename, or `{ family, weight?, style? }`. */
   font?: FontInput;
   /** Font size in px; overrides the scale-derived size. */
   fontsize?: number;

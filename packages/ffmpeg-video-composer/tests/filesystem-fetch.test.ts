@@ -52,7 +52,8 @@ describe('FilesystemNodeAdapter.fetch', () => {
 
     const dest = await makeAdapter().fetch('https://example.com/file.bin');
 
-    expect(dest).toBe(path.join(os.tmpdir(), 'file.bin'));
+    expect(path.dirname(dest)).toBe(os.tmpdir());
+    expect(path.basename(dest)).toMatch(/-file\.bin$/);
     expect(await fs.readFile(dest, 'utf-8')).toBe('hello world');
 
     await fs.unlink(dest).catch(() => undefined);
@@ -66,11 +67,11 @@ describe('FilesystemNodeAdapter.fetch', () => {
     });
     mockedAxios.mockResolvedValue(ok(errStream));
 
-    const dest = path.join(os.tmpdir(), 'err.bin');
+    const name = `err-${process.pid}.bin`;
 
-    await expect(makeAdapter().fetch('https://example.com/err.bin')).rejects.toThrow('stream boom');
+    await expect(makeAdapter().fetch(`https://example.com/${name}`)).rejects.toThrow('stream boom');
     // The partial download must not be left behind.
-    await expect(fs.access(dest)).rejects.toBeInstanceOf(Error);
+    expect((await fs.readdir(os.tmpdir())).filter((file) => file.endsWith(`-${name}`))).toEqual([]);
   });
 });
 
@@ -115,7 +116,8 @@ describe('FilesystemNodeAdapter.fetch SSRF guard', () => {
 
     expect(mockedLookup).toHaveBeenCalledWith('cdn.example.com', { all: true });
     expect(mockedAxios).toHaveBeenCalledTimes(1);
-    expect(dest).toBe(path.join(os.tmpdir(), 'clip.mp4'));
+    expect(path.dirname(dest)).toBe(os.tmpdir());
+    expect(path.basename(dest)).toMatch(/-clip\.mp4$/);
     expect(await fs.readFile(dest, 'utf-8')).toBe('public body');
 
     await fs.unlink(dest).catch(() => undefined);
@@ -235,7 +237,8 @@ describe('FilesystemNodeAdapter.fetch catalog-relative fallback', () => {
     expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({
       url: 'https://github.com/heristop/leclap/raw/main/packages/leclap-creative-kit/src/library/videos/outro.mp4',
     });
-    expect(dest).toBe(path.join(os.tmpdir(), 'outro.mp4'));
+    expect(path.dirname(dest)).toBe(os.tmpdir());
+    expect(path.basename(dest)).toMatch(/-outro\.mp4$/);
     expect(await fs.readFile(dest, 'utf-8')).toBe('clip bytes');
 
     await fs.unlink(dest).catch(() => undefined);

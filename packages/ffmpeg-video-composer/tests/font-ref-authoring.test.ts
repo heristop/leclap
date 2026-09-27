@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { resolveFontFile } from '@/editor/presets/text';
 import { CaptionSchema } from '@/schemas/text.schemas';
+import { templateDescriptorJsonSchema } from '@/schemas/template.schemas';
 import { TemplateValidator } from '@/services/TemplateValidator';
 
 // `font` accepts a registry id, a raw .ttf filename, or a FontRef naming any family. The first two
@@ -59,6 +60,12 @@ describe('CaptionSchema font', () => {
 
   it('rejects an unknown style', () => {
     expect(CaptionSchema.safeParse({ ...base, font: { family: 'Inter', style: 'oblique' } }).success).toBe(false);
+  });
+
+  // The generated JSON Schema (docs/, MCP get_template_schema) must carry the step zod enforces, or a
+  // schema-driven author is told weight 650 is valid only to have the validator reject it.
+  it('publishes the weight step in the JSON schema', () => {
+    expect(JSON.stringify(templateDescriptorJsonSchema)).toContain('"multipleOf":100');
   });
 });
 

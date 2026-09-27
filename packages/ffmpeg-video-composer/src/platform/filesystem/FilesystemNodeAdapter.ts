@@ -1,5 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import { promises as fs, createWriteStream } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import https from 'node:https';
@@ -32,9 +33,9 @@ const httpsAgent = new https.Agent({ keepAlive: false });
 async function requestWithGuardedRedirects(
   url: string,
   responseType: ResponseType,
+  headers?: Record<string, string>,
   origin: string = url,
-  hop = 0,
-  headers?: Record<string, string>
+  hop = 0
 ): Promise<AxiosResponse> {
   if (hop > MAX_REDIRECT_HOPS) {
     throw new Error(`Too many redirects (more than ${MAX_REDIRECT_HOPS}) while fetching ${origin}`);
@@ -70,7 +71,7 @@ async function requestWithGuardedRedirects(
   // then recurse so the destination is guarded before the next request.
   const next = new URL(location, url).toString();
 
-  return requestWithGuardedRedirects(next, responseType, origin, hop + 1, headers);
+  return requestWithGuardedRedirects(next, responseType, headers, origin, hop + 1);
 }
 
 @injectable()
@@ -78,7 +79,9 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   protected override root: string = globalThis.process.cwd();
   protected override tempDir: string = os.tmpdir();
 
-  constructor(@inject('logger') private readonly logger: AbstractLogger) {
+  // Optional because the Node entry builds this adapter through PlatformBridge (`new AdapterClass()`),
+  // outside DI: there is no logger in production, so logging must never be what throws.
+  constructor(@inject('logger') private readonly logger?: AbstractLogger) {
     super();
   }
 
@@ -152,7 +155,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   override fetch = async (url: string): Promise<string> => {
-    const dest = path.join(this.tempDir, path.basename(url));
+    // A unique temp name per download: concurrent renders (MCP workers), or two requests for one font
+    // face in a section, fetching the same URL would otherwise truncate and interleave writes in one
+    // shared file — the first to finish would carry a zero-filled hole onward, into the font cache too.
+    const dest = path.join(this.tempDir, `${randomUUID()}-${path.basename(url)}`);
     const remote = await this.resolveFetchUrl(url, dest);
 
     if (remote === null) {
@@ -295,27 +301,49 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
     return path.join(os.homedir(), '.cache', 'leclap', 'fonts');
   }
 
-  override resolveCachedFont = async (fontFile: string): Promise<string | null> => {
-    const cached = path.join(this.fontCacheDir(), fontFile);
+  // Where a font lives in the cache, or null when it can't be cached. The key must be a bare file
+  // name: a template-authored legacy name like `Roboto-/../google-inter-700.ttf` would otherwise read
+  // or overwrite files outside the cache dir — another font's entry included. A home dir that can't
+  // be resolved (no HOME, no passwd entry) simply means no cache.
+  private cachedFontPath(fontFile: string): string | null {
+    if (fontFile === '' || fontFile === '.' || fontFile === '..' || path.basename(fontFile) !== fontFile) {
+      return null;
+    }
 
-    return (await fs
-      .access(cached)
-      .then(() => true)
-      .catch(() => false))
-      ? cached
-      : null;
+    try {
+      return path.join(this.fontCacheDir(), fontFile);
+    } catch {
+      return null;
+    }
+  }
+
+  override resolveCachedFont = async (fontFile: string): Promise<string | null> => {
+    const cached = this.cachedFontPath(fontFile);
+
+    return cached && (await this.stat(cached)) ? cached : null;
   };
 
   // Best-effort by contract: a cache that cannot be written (read-only home, full disk) must never
-  // fail a render that has already produced the font.
+  // fail a render that has already produced the font. The entry is written under a unique temporary
+  // name and renamed into place — atomic within the directory — so a concurrent render sharing the
+  // cache, or one killed mid-copy, can never pick up a half-written face as a cache hit.
   override cacheFont = async (fontFile: string, stagedPath: string): Promise<void> => {
+    const target = this.cachedFontPath(fontFile);
+
+    if (!target) {
+      return;
+    }
+
+    const partial = `${target}.${process.pid}-${Date.now()}.partial`;
+
     try {
-      const dir = this.fontCacheDir();
-      await fs.mkdir(dir, { recursive: true });
-      await fs.copyFile(stagedPath, path.join(dir, fontFile));
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.copyFile(stagedPath, partial);
+      await fs.rename(partial, target);
     } catch (error) {
+      await fs.unlink(partial).catch(() => {});
       const params = error instanceof Error ? { message: error.message } : undefined;
-      this.logger.warn(`Could not cache font ${fontFile}:`, params);
+      this.logger?.warn(`Could not cache font ${fontFile}:`, params);
     }
   };
 
@@ -375,12 +403,12 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       // SSRF guard: same class as fetch() — a template-supplied font URL must not be able to
       // reach cloud metadata, loopback, or RFC1918 hosts, on the first request or any redirect.
       // Google Fonts CSS can answer 302, so redirects are followed but re-validated per hop.
-      const response = await requestWithGuardedRedirects(url, 'text', url, 0, headers);
+      const response = await requestWithGuardedRedirects(url, 'text', headers);
 
       return response.data;
     } catch (error) {
       const params = error instanceof Error ? { message: error.message } : undefined;
-      this.logger.error(`Error downloading from ${url}:`, params);
+      this.logger?.error(`Error downloading from ${url}:`, params);
 
       throw error;
     }

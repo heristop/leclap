@@ -222,3 +222,4 @@ export async function compileReactNative(
 export { default as FFmpegDeviceAdapter, type NativeEngine } from './platform/ffmpeg/FFmpegDeviceAdapter';
 export { default as FilesystemExpoAdapter } from './platform/filesystem/FilesystemExpoAdapter';
 export type { ProjectConfig, TemplateDescriptor, Section, Filter } from './core/types';
+export { isFontRef, type FontRef, type FontInput } from './core/fonts';

@@ -8,6 +8,17 @@ describe('mcpDoc', () => {
     expect(mcpDoc.flow).toEqual(['get_template_schema', 'validate_template', 'compose_video']);
   });
 
+  it('documents the agentic PR evidence recipe without claiming upload support', () => {
+    expect(mcpDoc.agenticReview.steps).toEqual([
+      'collect implementation evidence',
+      'author the review template',
+      'validate_template',
+      'compose_video',
+      'attach the returned outputPath to the PR or MR',
+    ]);
+    expect(mcpDoc.agenticReview.uploadBoundary).toContain('does not upload');
+  });
+
   it('includes every tool the server registers', () => {
     const toolNames = mcpDoc.tools.map((tool) => tool.name);
 

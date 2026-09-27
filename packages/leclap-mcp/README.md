@@ -25,6 +25,19 @@ Typical agent flow: `get_template_schema` → author an inline descriptor (optio
 `render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`
 → read the returned `outputPath`.
 
+### Recipe: video evidence for a pull or merge request
+
+An agent working on a code change can use LeClap to package visual evidence for review:
+
+1. Collect a short, real screen recording and state what the reviewer should inspect.
+2. Author or reuse a review template such as [`examples/agentic-pr-video`](../../examples/agentic-pr-video).
+3. Call `validate_template` until the descriptor is valid.
+4. Call `compose_video` with the recording in `userVideoPaths` and the review context in `fields`.
+5. Attach the returned `outputPath` to the PR or MR beside the diff.
+
+The MCP server renders and returns a local artifact. It **does not upload to GitHub or GitLab**;
+that remains an explicit step in the surrounding agent workflow.
+
 **Bring-your-own Remotion (optional).** If you have a Remotion project, `render_remotion_clip` renders
 one of its compositions — genuine motion graphics (spring physics, kinetic typography) an FFmpeg
 filtergraph can't express — to an mp4. Point it at your `entry` (the module that calls `registerRoot`)

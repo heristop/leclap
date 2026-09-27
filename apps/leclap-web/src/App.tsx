@@ -19,7 +19,6 @@ const StudioTemplateBuilderPage = lazyPage(
   () => import('@/presentation/pages/StudioTemplateBuilderPage'),
   'StudioTemplateBuilderPage'
 );
-const ProjectsPage = lazyPage(() => import('@/presentation/pages/ProjectsPage'), 'ProjectsPage');
 const Admin = lazyPage(() => import('@/presentation/pages/Admin'), 'Admin');
 const TemplateEditorPage = lazyPage(() => import('@/presentation/pages/TemplateEditorPage'), 'TemplateEditorPage');
 const PartialsPage = lazyPage(() => import('@/presentation/pages/PartialsPage'), 'PartialsPage');
@@ -69,7 +68,8 @@ const router = createBrowserRouter(
       <Route path="/studio/builder" element={<StudioTemplateBuilderPage />} />
       {/* Legacy path kept so existing bookmarks/links keep working. */}
       <Route path="/builder" element={<Navigate to="/studio/new" replace />} />
-      <Route path="/projects" element={<ProjectsPage />} />
+      {/* Retired page: the saved projects live on the studio home now; old links land on them. */}
+      <Route path="/projects" element={<Navigate to="/studio#projects" replace />} />
       <Route path="/templates" element={<Admin />} />
       <Route path="/templates/new" element={<TemplateEditorPage />} />
       <Route path="/templates/:id/edit" element={<TemplateEditorPage />} />

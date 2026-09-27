@@ -27,10 +27,9 @@
   "nav": {
     "home": "Start",
     "studio": "Studio",
-    "projects": "Projekte",
     "templates": "Vorlagen",
     "docs": "Docs",
-    "about": "Über uns",
+    "about": "Über LeClap",
     "primaryLabel": "Primär"
   },
   "header": {

@@ -238,6 +238,46 @@ const ExpandedContent = ({
   </div>
 );
 
+interface StatusPillProps {
+  checked: boolean;
+  browserInfo: BrowserInfo | null;
+  onOpen: () => void;
+  t: TFunction<'browser'>;
+}
+
+// The status as one quiet line: a light (grey while checking, green when ready), the verdict and the
+// browser. It opens the full panel for anyone who wants the per-feature detail.
+const StatusPill = ({ checked, browserInfo, onOpen, t }: StatusPillProps) => (
+  <button
+    type="button"
+    onClick={onOpen}
+    disabled={!checked}
+    aria-expanded={false}
+    className="inline-flex min-h-9 items-center gap-2 rounded-full border border-foreground/10 bg-surface-2/60 px-3.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-default"
+  >
+    <span
+      aria-hidden="true"
+      className={clsx(
+        'size-2 shrink-0 rounded-full',
+        checked ? 'bg-[var(--color-success)]' : 'animate-pulse bg-foreground/30 motion-reduce:animate-none'
+      )}
+    />
+    <span className="sr-only">{t('title')}: </span>
+    {checked ? t('ready') : t('checking')}
+    {checked && browserInfo && (
+      <>
+        <span aria-hidden="true" className="text-foreground/25">
+          ·
+        </span>
+        <span>
+          {browserInfo.name} {browserInfo.version}
+        </span>
+      </>
+    )}
+    {checked && <ChevronDown aria-hidden="true" className="size-3.5" />}
+  </button>
+);
+
 export const BrowserCompatibility = () => {
   const { t } = useTranslation('browser');
   const [checks, setChecks] = useState<CompatibilityCheck[]>(() => INITIAL_CHECKS.map((check) => ({ ...check })));
@@ -246,11 +286,12 @@ export const BrowserCompatibility = () => {
   const checksRef = useRef(checks);
 
   useEffect(() => {
+    // The checks are instant; the timer only moves the state update out of the effect's own pass.
     const timer = setTimeout(() => {
       const newChecks = runCompatibilityChecks(checksRef.current);
       setChecks(newChecks);
       setBrowserInfo(detectBrowser(t));
-    }, 500);
+    }, 0);
 
     return () => {
       clearTimeout(timer);
@@ -262,8 +303,28 @@ export const BrowserCompatibility = () => {
   const requiredSupported = checks.filter((check) => check.required && check.status === 'supported').length;
   const overallStatus: 'supported' | 'partial' = requiredSupported === requiredCount ? 'supported' : 'partial';
   const isOk = overallStatus === 'supported';
+  // Until the checks have run, "partial" only means "not checked yet": show nothing alarming.
+  const checked = checks.every((check) => check.status !== 'checking');
 
   const BrowserIcon = browserInfo ? getBrowserIcon(browserInfo.name) : Info;
+
+  // A browser that can render needs no panel on every visit: while the checks run, and whenever they all
+  // pass, the status is one quiet pill. The full panel opens on demand — and by itself when something is
+  // missing, the one case worth the room.
+  if (!checked || (isOk && !isExpanded)) {
+    return (
+      <div className="mb-8 fade-in">
+        <StatusPill
+          checked={checked}
+          browserInfo={browserInfo}
+          onOpen={() => {
+            setIsExpanded(true);
+          }}
+          t={t}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8 fade-in">

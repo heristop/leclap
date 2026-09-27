@@ -13,9 +13,8 @@ import { MoonIcon } from './icons/moon';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
 import { GlobeIcon } from './icons/globe';
 import { useIconHover } from './icons/useIconHover';
-import { visibleNavItems, type NavItem } from './header-nav.logic';
-import { useHasProjects } from '@/hooks/use-has-projects';
-import { useNotFound } from '@/hooks/use-not-found';
+import { isNavActive, navigationItems, type NavItem } from './header-nav.logic';
+import { useDarkSurface } from '@/hooks/use-dark-surface';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 import { getLanguage, localePath, setStoredLanguage, LANGUAGES, type Language } from '../../lib/language';
 
@@ -151,7 +150,12 @@ const LanguagePicker = ({ language, onSelect, className }: LanguagePickerProps) 
         aria-label={t('header.changeLanguage')}
         className={clsx(
           'absolute right-0 top-[calc(100%+0.5rem)] z-50 hidden w-44 origin-top-right rounded-2xl border border-foreground/10 bg-surface/95 p-1.5 shadow-[var(--shadow-lg)] backdrop-blur-xl transition duration-200 ease-[var(--ease-out-expo)] sm:block',
-          open ? 'pointer-events-auto scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
+          // Hidden, not just transparent, when closed: its buttons would otherwise stay in the Tab order and
+          // take focus out of sight. Visibility flips after the fade, so the close still animates.
+          '[transition-property:opacity,scale,transform,visibility]',
+          open
+            ? 'visible pointer-events-auto scale-100 opacity-100'
+            : 'invisible pointer-events-none scale-95 opacity-0'
         )}
       >
         {items}
@@ -289,7 +293,7 @@ const DesktopNav = ({ pathname, items }: { pathname: string; items: readonly Nav
         style={{ left: playhead.left, width: playhead.width, opacity: playhead.opacity }}
       />
       {items.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive = isNavActive(pathname, item.href);
 
         return (
           <Link
@@ -337,7 +341,7 @@ const MobileMenu = ({ isOpen, currentPath, items, onClose }: MobileMenuProps) =>
       id="mobile-menu"
     >
       {items.map((item) => (
-        <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
+        <NavLink key={item.href} item={item} isActive={isNavActive(currentPath, item.href)} mobile onClick={onClose} />
       ))}
 
       {/* GitHub is an external, secondary action — separated from the in-app nav by a divider so it
@@ -368,7 +372,7 @@ export const Header = () => {
   // locale-prefixed URL, which reloads with the new language resolved from the path.
   const language = getLanguage();
   const location = useLocation();
-  const navItems = visibleNavItems(useHasProjects());
+  const navItems = navigationItems;
   // Drive the GitHub mark's animation from the whole button's hover (group hover), not just the
   // 16px icon — the icon's imperative handle is made for exactly this.
   const githubRef = useRef<GithubIconHandle>(null);
@@ -414,15 +418,8 @@ export const Header = () => {
   // while it sits over the hero — the nav stays legible over the film in any theme — and takes the page's
   // theme once the hero has scrolled out from under it: a light frosted bar over the light sections.
   const overHero = location.pathname === '/' && !pastHero;
-  // The studio browsing pages (gallery / templates / projects) are always-dark app surfaces that
-  // fill the viewport behind the fixed header. Force a dark header context on them too, so the nav
-  // is legible in light mode (and the header reads as part of the dark app, like the editor).
-  // A 404 under one of those roots (/studio/nwe) is not that surface: the not-found page follows the theme.
-  const darkSurfaceRoots = ['/studio', '/templates', '/projects', '/partials', '/legal', '/privacy'];
-  const notFound = useNotFound();
-  const onDarkSurface =
-    !notFound &&
-    darkSurfaceRoots.some((root) => location.pathname === root || location.pathname.startsWith(`${root}/`));
+  // The studio's always-dark app surfaces (use-dark-surface.ts) keep the header dark too, in any theme.
+  const onDarkSurface = useDarkSurface();
 
   return (
     <header
@@ -458,9 +455,8 @@ export const Header = () => {
               ref={logoRef}
               className="tap w-10 h-10 cursor-pointer [filter:drop-shadow(0_6px_14px_rgba(91,97,214,0.35))] group-hover:-rotate-6 group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             />
-            <div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">{t('brand')}</h1>
-            </div>
+            {/* The wordmark, not a heading: each page owns its one <h1>. */}
+            <span className="text-xl font-bold text-foreground tracking-tight">{t('brand')}</span>
           </Link>
 
           {/* Desktop Navigation — magnetic sliding pill */}
@@ -494,7 +490,9 @@ export const Header = () => {
                 }}
               >
                 <GithubIcon ref={githubRef} size={16} />
-                <span>{t('header.github')}</span>
+                {/* Icon-only until `lg`: at 768 px the full nav and a labelled button ran 20 px off-screen. The
+                    link keeps its accessible name either way. */}
+                <span className="hidden lg:inline">{t('header.github')}</span>
               </a>
             </Button>
 

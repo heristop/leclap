@@ -1,10 +1,9 @@
 {
-  "kicker": "Deine Arbeit",
-  "title": "Projekte",
-  "subtitle": "Jeder Build wird hier automatisch gespeichert – mach an einem Entwurf weiter, wo du aufgehört hast, oder öffne ein fertiges Video erneut.",
-  "seo": {
-    "title": "Projekte",
-    "description": "Deine gespeicherten LeClap-Videoprojekte – Entwürfe fortsetzen und fertige Videos erneut öffnen."
+  "shelf": {
+    "title": "Deine Projekte",
+    "hint": "Automatisch in diesem Browser gespeichert.",
+    "showAll": "Alle {{count}} anzeigen",
+    "showFewer": "Weniger anzeigen"
   },
   "status": {
     "draft": "Entwurf",
@@ -21,7 +20,6 @@
     "months": "vor {{count}} Mon."
   },
   "actions": {
-    "new": "Neues Projekt",
     "open": "{{name}} öffnen",
     "resume": "Fortsetzen",
     "view": "Ansehen",
@@ -29,10 +27,6 @@
     "rename": "Projekt umbenennen",
     "duplicate": "Projekt duplizieren",
     "delete": "Projekt löschen"
-  },
-  "empty": {
-    "title": "Noch keine Projekte",
-    "hint": "Starte einen Build und er wird hier gespeichert, damit du jederzeit zurückkehren kannst."
   },
   "delete": {
     "title": "Dieses Projekt löschen?",

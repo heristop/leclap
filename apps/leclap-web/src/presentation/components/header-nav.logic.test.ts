@@ -1,19 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { navigationItems, visibleNavItems } from './header-nav.logic';
+import { isNavActive } from './header-nav.logic';
 
-const hrefs = (items: readonly { href: string }[]) => items.map((item) => item.href);
-
-describe('visibleNavItems', () => {
-  it('hides Projects while this browser has no saved project', () => {
-    expect(hrefs(visibleNavItems(false))).not.toContain('/projects');
+describe('isNavActive', () => {
+  it('lights an entry on its own page and on every page below it', () => {
+    expect(isNavActive('/doc', '/doc')).toBe(true);
+    expect(isNavActive('/doc/cli', '/doc')).toBe(true);
+    expect(isNavActive('/studio/new', '/studio')).toBe(true);
   });
 
-  it('shows Projects once one exists', () => {
-    expect(hrefs(visibleNavItems(true))).toContain('/projects');
+  it('does not confuse a page with another that merely shares its first letters', () => {
+    expect(isNavActive('/docs-archive', '/doc')).toBe(false);
+    expect(isNavActive('/templates', '/doc')).toBe(false);
   });
 
-  it('leaves every other entry in place, in order', () => {
-    expect(hrefs(visibleNavItems(true))).toEqual(hrefs(navigationItems));
-    expect(hrefs(visibleNavItems(false))).toEqual(hrefs(navigationItems).filter((href) => href !== '/projects'));
+  it('lights Home on the home page only', () => {
+    expect(isNavActive('/', '/')).toBe(true);
+    expect(isNavActive('/about', '/')).toBe(false);
   });
 });

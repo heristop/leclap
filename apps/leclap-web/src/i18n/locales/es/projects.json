@@ -1,10 +1,9 @@
 {
-  "kicker": "Tu trabajo",
-  "title": "Proyectos",
-  "subtitle": "Cada creación se guarda aquí automáticamente: retoma un borrador donde lo dejaste o vuelve a abrir un vídeo terminado.",
-  "seo": {
-    "title": "Proyectos",
-    "description": "Tus proyectos de vídeo de LeClap guardados: retoma borradores y vuelve a abrir vídeos terminados."
+  "shelf": {
+    "title": "Tus proyectos",
+    "hint": "Se guardan automáticamente en este navegador.",
+    "showAll": "Ver los {{count}}",
+    "showFewer": "Ver menos"
   },
   "status": {
     "draft": "Borrador",
@@ -21,7 +20,6 @@
     "months": "hace {{count}} mes"
   },
   "actions": {
-    "new": "Nuevo proyecto",
     "open": "Abrir {{name}}",
     "resume": "Retomar",
     "view": "Ver",
@@ -29,10 +27,6 @@
     "rename": "Renombrar proyecto",
     "duplicate": "Duplicar proyecto",
     "delete": "Eliminar proyecto"
-  },
-  "empty": {
-    "title": "Aún no hay proyectos",
-    "hint": "Empieza una creación y se guardará aquí para que puedas volver a ella cuando quieras."
   },
   "delete": {
     "title": "¿Eliminar este proyecto?",

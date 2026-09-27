@@ -28,8 +28,8 @@ const formatDuration = (seconds: number): string => {
 
 // A saved build, presented like a library item in a pro video app: a calm dark card whose hero is the REAL
 // render frame (completed) or a neutral studio-stage tile (draft) — no per-template color band. The card
-// rests quiet; the action row is revealed on hover / focus-within on pointer devices and always shown on
-// touch. The title is rename-in-place.
+// rests quiet: its one action (Resume / View) always shows, the secondary ones wait for a hover or focus where
+// there is a pointer (ProjectActions). The title is rename-in-place.
 export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, onRename }: ProjectCardProps) => {
   const { t } = useTranslation('projects');
   const completed = project.status === 'completed';
@@ -100,7 +100,7 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
                 setName(project.name);
                 setRenaming(true);
               }}
-              className="tap shrink-0 rounded p-1 text-muted-foreground opacity-100 transition-opacity hover:text-foreground focus-visible:opacity-100 sm:opacity-0 sm:group-hover/card:opacity-100 sm:group-focus-within/card:opacity-100 motion-reduce:transition-none"
+              className="tap shrink-0 rounded p-1 text-muted-foreground opacity-100 transition-opacity hover:text-foreground focus-visible:opacity-100 pointer-fine:opacity-0 pointer-fine:group-hover/card:opacity-100 pointer-fine:group-focus-within/card:opacity-100 motion-reduce:transition-none"
             >
               <Pencil className="size-3.5" />
             </button>
@@ -126,7 +126,7 @@ export const ProjectCard = ({ project, onOpen, onEdit, onDuplicate, onDelete, on
           )}
         </p>
 
-        <div className="mt-auto transition-opacity duration-200 sm:opacity-0 sm:group-hover/card:opacity-100 sm:group-focus-within/card:opacity-100 motion-reduce:transition-none">
+        <div className="mt-auto">
           <ProjectActions
             project={project}
             onOpen={handleOpen}

@@ -1,10 +1,9 @@
 {
-  "kicker": "Your work",
-  "title": "Projects",
-  "subtitle": "Every build is saved here automatically — pick up a draft where you left off, or re-open a finished video.",
-  "seo": {
-    "title": "Projects",
-    "description": "Your saved LeClap video projects — resume drafts and re-open finished videos."
+  "shelf": {
+    "title": "Your projects",
+    "hint": "Saved automatically in this browser.",
+    "showAll": "Show all {{count}}",
+    "showFewer": "Show fewer"
   },
   "status": {
     "draft": "Draft",
@@ -21,7 +20,6 @@
     "months": "{{count}}mo ago"
   },
   "actions": {
-    "new": "New project",
     "open": "Open {{name}}",
     "resume": "Resume",
     "view": "View",
@@ -29,10 +27,6 @@
     "rename": "Rename project",
     "duplicate": "Duplicate project",
     "delete": "Delete project"
-  },
-  "empty": {
-    "title": "No projects yet",
-    "hint": "Start a build and it'll be saved here so you can come back to it anytime."
   },
   "delete": {
     "title": "Delete this project?",

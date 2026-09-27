@@ -23,7 +23,7 @@ const DOC_PATHS = [
 ];
 
 // The app's own pages: unindexed, but real places to land.
-const APP_PATHS = ['/studio/new', '/studio/builder', '/projects', '/templates', '/templates/new', '/partials'];
+const APP_PATHS = ['/studio/new', '/studio/builder', '/templates', '/templates/new', '/partials'];
 
 /** Every page the router serves, less the redirects and home, which the 404 offers anyway. */
 export const KNOWN_PATHS: readonly string[] = [

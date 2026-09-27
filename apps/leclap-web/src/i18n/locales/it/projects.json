@@ -1,10 +1,9 @@
 {
-  "kicker": "I tuoi lavori",
-  "title": "Progetti",
-  "subtitle": "Ogni creazione viene salvata qui automaticamente — riprendi una bozza da dove l’avevi lasciata, o riapri un video finito.",
-  "seo": {
-    "title": "Progetti",
-    "description": "I tuoi progetti video LeClap salvati — riprendi le bozze e riapri i video finiti."
+  "shelf": {
+    "title": "I tuoi progetti",
+    "hint": "Salvati automaticamente in questo browser.",
+    "showAll": "Mostra tutti ({{count}})",
+    "showFewer": "Mostra meno"
   },
   "status": {
     "draft": "Bozza",
@@ -21,7 +20,6 @@
     "months": "{{count}}mesi fa"
   },
   "actions": {
-    "new": "Nuovo progetto",
     "open": "Apri {{name}}",
     "resume": "Riprendi",
     "view": "Visualizza",
@@ -29,10 +27,6 @@
     "rename": "Rinomina progetto",
     "duplicate": "Duplica progetto",
     "delete": "Elimina progetto"
-  },
-  "empty": {
-    "title": "Ancora nessun progetto",
-    "hint": "Inizia una creazione e verrà salvata qui, così potrai riprenderla quando vuoi."
   },
   "delete": {
     "title": "Eliminare questo progetto?",

@@ -11,20 +11,31 @@ import {
 import { resolveFontFile } from '../../editor/presets/text';
 import { VIDEO_SEGMENT_TYPES } from '../../editor/utils/section-types';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import { captionAppearance, captionBoxOpacity, lowerThirdAppearance, type TextEffectLike } from './text-appearance';
-import { measure } from './text-measure';
+import {
+  LOWER_THIRD_BAND_HEIGHT_RATIO,
+  LOWER_THIRD_LINES,
+  LOWER_THIRD_MARGIN_RATIO,
+  type LowerThirdLineSpec,
+} from './lower-third-layout';
+import {
+  captionAppearance,
+  captionBoxOpacity,
+  lowerThirdAppearance,
+  type AppearanceGlobal,
+  type AppearanceSection,
+  type TextEffectLike,
+} from './text-appearance';
+import { measure, type TextVariables } from './text-measure';
 
 // The font file the renderer will ACTUALLY use, via the very helper captions.ts calls — not a second
 // resolution rule. Re-deriving it here dropped `resolveFontFile`'s preset fallback, so an
 // unrecognised `caption.font` ("Helvetica", or a typo'd registry id) yielded no metrics at all: the
 // box fell back to the 0.5em-per-glyph estimate while the render used Oswald. The same caption was
 // reported as "extends 218px past the frame edge" instead of "extends 55px past the title-safe
-// margin". A `{{ var }}` still returns null — that one really is unknowable until render time.
-export function captionFontFile(font: string | undefined, preset: CaptionStyleValues): string | null {
-  if (font?.includes('{{')) {
-    return null;
-  }
-
+// margin". A `{{ var }}` font takes the same fallback: nothing substitutes variables into `fontfile`
+// (FormatterManager.formatFont), so the render draws that caption in the preset face — and it is
+// measured in it, rather than estimated at 0.5em and reported as overflowing by the difference.
+export function captionFontFile(font: string | undefined, preset: CaptionStyleValues): string {
   return resolveFontFile(font, preset.fontfile);
 }
 
@@ -57,6 +68,11 @@ export interface Box {
   // preset's fixed anchor (a lowerThird's band). The title-safe rule skips the vertical axis when
   // this is false, because a finding the author cannot act on is noise — see rules.ts.
   verticalPositionAuthored: boolean;
+  // The side a left/right-aligned caption is pinned to by the preset's fixed CAPTION_ALIGN_MARGIN.
+  // That edge sits the same distance from the frame whatever the text says — with the default box,
+  // 80 − 18 = 62px, 2px past the landscape title-safe line — so the title-safe rule judges only the
+  // side the text grows toward, the one "shorten it" can actually move.
+  anchoredSide?: 'left' | 'right';
   // Whether this box's time window rests on ASSUMED_DURATION_SEC — its own section declared no
   // duration, or an earlier one did and shifted the cursor. Kept apart from `approx`, which is about
   // width: only the collision rule reads the timeline, so only it should be qualified by this.
@@ -103,28 +119,6 @@ const ASSUMED_DURATION_SEC = 2;
 // out to recover the size they want to report.
 const LINE_HEIGHT = 1.2;
 
-// Layout constants mirrored from the lowerThird preset (editor/presets/text-blocks.ts): a translucent
-// band anchored top or bottom, a left-margined title and subtitle inside it. Still transcribed by
-// hand, unlike the caption numbers above, which now come from the shared `caption-layout.ts` — the
-// lowerThird's are tangled up with the band/accent/badge filters and want the same extraction. Until
-// then these six can drift, and there is no test that would notice. They match `text-blocks.ts` as
-// of this writing; the badge line is absent here entirely and so is never measured.
-const LOWER_THIRD_MARGIN_RATIO = 0.06;
-const LOWER_THIRD_BAND_HEIGHT_RATIO = 0.2;
-const LOWER_THIRD_TITLE_Y_RATIO = 0.055;
-const LOWER_THIRD_TITLE_SIZE_RATIO = 0.05;
-const LOWER_THIRD_SUBTITLE_Y_RATIO = 0.125;
-const LOWER_THIRD_SUBTITLE_SIZE_RATIO = 0.028;
-export const LOWER_THIRD_TITLE_FONT = 'Anton.ttf';
-export const LOWER_THIRD_SUBTITLE_FONT = 'Oswald.ttf';
-
-// Hardcoded in the lowerThird preset (text-blocks.ts) — LowerThirdSchema has no colour override
-// for the text itself, only for the band. Mirrored here for the same reason as the six ratios above.
-const LOWER_THIRD_TITLE_COLOR = '#ffffff';
-const LOWER_THIRD_SUBTITLE_COLOR = '#c9d0f5';
-const LOWER_THIRD_DEFAULT_BAND_COLOR = '#0a0f14';
-const LOWER_THIRD_DEFAULT_BAND_OPACITY = 0.6;
-
 // Absolute pixel margins, mirroring captions.ts's ALIGN_X. Not a fraction of the frame: 80px is 6%
 // of a landscape width and 11% of a portrait one, so a ratio is wrong in at least one orientation.
 function horizontalOrigin(align: string | undefined, width: number, canvas: Canvas): number {
@@ -139,6 +133,13 @@ function horizontalOrigin(align: string | undefined, width: number, canvas: Canv
   }
 
   return (canvas.width - width) / 2;
+}
+
+// Which side, if any, `horizontalOrigin` pins to the preset margin. See Box.anchoredSide.
+function anchoredSide(align: string | undefined): Box['anchoredSide'] {
+  const key = align ?? CAPTION_DEFAULT_ALIGN;
+
+  return key === 'left' || key === 'right' ? key : undefined;
 }
 
 // Resolves captions.ts's drawtext expressions against a known box height. `top` is a fixed offset
@@ -165,14 +166,12 @@ function sectionLabel(section: { name?: string }, index: number): string {
 }
 
 // Section shape is intentionally loose here: only the fields collectBoxes reads are named, so this
-// helper works for every section variant without importing each one's specific schema type.
-interface CaptionedSection {
+// helper works for every section variant without importing each one's specific schema type. The
+// fields that decide what the text is drawn over come from AppearanceSection.
+interface CaptionedSection extends AppearanceSection {
   name?: string;
-  type?: string;
-  options?: {
+  options?: AppearanceSection['options'] & {
     duration?: number;
-    backgroundColor?: string;
-    layers?: unknown[];
     upperCase?: boolean;
     lowerCase?: boolean;
   };
@@ -199,6 +198,10 @@ interface CaptionedSection {
   };
 }
 
+// The template-wide settings a box depends on: `global.variables`, substituted into text before it is
+// drawn, and the decorations that recolour every section (`look`/`grade`).
+type TemplateGlobal = AppearanceGlobal & { variables?: TextVariables };
+
 // `Number.isFinite`, not a bare `??`: `??` only covers null/undefined, and
 // `Math.max(NaN, 0)` at the call site is NaN, so one `duration: "abc"` from unvalidated input made
 // the cursor NaN and every later box's window with it. The finding read "overlaps … for NaNs", and
@@ -223,15 +226,17 @@ export function isRenderableSection(section: CaptionedSection): boolean {
 // bundled so those functions stay under the lint's max-params limit.
 interface SectionPlacement {
   index: number;
-  // The index this section occupies in the descriptor the AUTHOR wrote, which differs from `index`
-  // once a partial has been expanded inline. Every `path` is built from this one; `index` is only
-  // the position in the expanded list. See `authoredOrigins` in ./index.ts.
-  authoredIndex: number;
+  // Where the author edits this section: `sections[i]` in the descriptor as written, or — for a
+  // section a partial supplied — the partial's own entry (`partials[p].sections[j]`, or the inline
+  // `sections[i].sections[j]`). `index` is only the position in the expanded list. Every `path` is
+  // built from this one; see `authoredPaths` in ./index.ts.
+  authoredPath: string;
   startSec: number;
   duration: number;
   timingAssumed: boolean;
   canvas: Canvas;
   resolve: (font: string) => FontMetrics | null;
+  global: TemplateGlobal | undefined;
 }
 
 // drawtext's background box pads the painted area by `boxborderw` on every side, so the rectangle on
@@ -248,7 +253,7 @@ function boxPadding(caption: NonNullable<CaptionedSection['caption']>, preset: C
 // Builds the box for a single section's caption, or null when the section has no renderable text.
 // Split out of collectBoxes to keep that function's statement count within the lint limit.
 function boxForSection(section: CaptionedSection, placement: SectionPlacement): Box | null {
-  const { index, authoredIndex, startSec, duration, timingAssumed, canvas, resolve } = placement;
+  const { index, authoredPath, startSec, duration, timingAssumed, canvas, resolve, global } = placement;
   const caption = section.caption;
 
   if (!caption) {
@@ -261,7 +266,7 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
   const preset = captionStyleValues(caption.style);
   const fontSize = caption.fontsize ?? preset.fontsize;
   const fontFile = captionFontFile(caption.font, preset);
-  const measured = measure(caption.text, fontSize, fontFile ? resolve(fontFile) : null, section.options);
+  const measured = measure(caption.text, fontSize, resolve(fontFile), section.options, global?.variables);
 
   if (!measured) {
     return null;
@@ -273,11 +278,11 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
   // pinned to, in the direction the author is watching.
   const padding = boxPadding(caption, preset);
   const textWidth = measured.width;
-  const textHeight = fontSize * LINE_HEIGHT;
-  const appearance = captionAppearance(caption, preset, section);
+  const textHeight = fontSize * LINE_HEIGHT * measured.lines;
+  const appearance = captionAppearance(caption, preset, section, global);
 
   return {
-    path: `sections[${authoredIndex}].caption`,
+    path: `${authoredPath}.caption`,
     label: `Section "${sectionLabel(section, index)}" caption`,
     x: horizontalOrigin(caption.align, textWidth, canvas) - padding,
     y: verticalOrigin(caption.position, textHeight, canvas) - padding,
@@ -293,33 +298,9 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
     legibilityAid: appearance.legibilityAid,
     // `caption.position` is the author's, so both axes are theirs to fix.
     verticalPositionAuthored: true,
+    anchoredSide: anchoredSide(caption.align),
   };
 }
-
-interface LowerThirdLineSpec {
-  key: 'title' | 'subtitle';
-  font: string;
-  yRatio: number;
-  sizeRatio: number;
-  color: string;
-}
-
-const LOWER_THIRD_LINES: LowerThirdLineSpec[] = [
-  {
-    key: 'title',
-    font: LOWER_THIRD_TITLE_FONT,
-    yRatio: LOWER_THIRD_TITLE_Y_RATIO,
-    sizeRatio: LOWER_THIRD_TITLE_SIZE_RATIO,
-    color: LOWER_THIRD_TITLE_COLOR,
-  },
-  {
-    key: 'subtitle',
-    font: LOWER_THIRD_SUBTITLE_FONT,
-    yRatio: LOWER_THIRD_SUBTITLE_Y_RATIO,
-    sizeRatio: LOWER_THIRD_SUBTITLE_SIZE_RATIO,
-    color: LOWER_THIRD_SUBTITLE_COLOR,
-  },
-];
 
 // Builds the box for one lowerThird line (title or subtitle), or null when that line has no text.
 function lowerThirdLineBox(
@@ -328,9 +309,9 @@ function lowerThirdLineBox(
   section: CaptionedSection,
   placement: SectionPlacement
 ): Box | null {
-  const { index, authoredIndex, startSec, duration, timingAssumed, canvas, resolve } = placement;
+  const { index, authoredPath, startSec, duration, timingAssumed, canvas, resolve, global } = placement;
   const fontSize = canvas.height * spec.sizeRatio;
-  const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font), section.options);
+  const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font), section.options, global?.variables);
 
   if (!measured) {
     return null;
@@ -338,20 +319,15 @@ function lowerThirdLineBox(
 
   const bandHeight = canvas.height * LOWER_THIRD_BAND_HEIGHT_RATIO;
   const bandY = lowerThird.position === 'top' ? 0 : canvas.height - bandHeight;
-  const appearance = lowerThirdAppearance(
-    lowerThird,
-    section,
-    LOWER_THIRD_DEFAULT_BAND_COLOR,
-    LOWER_THIRD_DEFAULT_BAND_OPACITY
-  );
+  const appearance = lowerThirdAppearance(lowerThird, section, global);
 
   return {
-    path: `sections[${authoredIndex}].lowerThird.${spec.key}`,
+    path: `${authoredPath}.lowerThird.${spec.key}`,
     label: `Section "${sectionLabel(section, index)}" lower third ${spec.key}`,
     x: canvas.width * LOWER_THIRD_MARGIN_RATIO,
     y: bandY + canvas.height * spec.yRatio,
     width: measured.width,
-    height: fontSize * LINE_HEIGHT,
+    height: fontSize * LINE_HEIGHT * measured.lines,
     fontSize,
     startSec,
     endSec: startSec + duration,
@@ -391,14 +367,14 @@ function lowerThirdBoxes(section: CaptionedSection, placement: SectionPlacement)
 // The canvas is a parameter rather than re-derived here: `collectGeometryWarnings` already computed
 // one to judge the boxes against, and two independent derivations from the same descriptor is one
 // edit away from laying text out on one frame and measuring it against another.
-// `origins[i]` is the index section `i` occupied in the descriptor the AUTHOR wrote, before partial
-// expansion spliced sections inline. Every `path` is built from it. Defaults to identity so a caller
-// measuring an already-flat descriptor — or a test — need not supply one.
+// `origins[i]` is where the author edits expanded section `i` (see SectionPlacement.authoredPath).
+// Every `path` is built from it. Defaults to `sections[i]` so a caller measuring an already-flat
+// descriptor — or a test — need not supply one.
 export function collectBoxes(
   template: TemplateDescriptor,
   canvas: Canvas,
   resolve: (font: string) => FontMetrics | null,
-  origins?: number[]
+  origins?: string[]
 ): Box[] {
   const boxes: Box[] = [];
   // `Array.isArray`, not `?? []`: this function is exported and reached from the public
@@ -428,12 +404,13 @@ export function collectBoxes(
     timingAssumed ||= declared === null;
     const placement: SectionPlacement = {
       index,
-      authoredIndex: origins?.[index] ?? index,
+      authoredPath: origins?.[index] ?? `sections[${index}]`,
       startSec: cursorSec,
       duration,
       timingAssumed,
       canvas,
       resolve,
+      global: template.global,
     };
     const captionBox = boxForSection(section, placement);
 

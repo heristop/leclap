@@ -46,7 +46,9 @@ describe('TemplateValidator geometry channel', () => {
     const warnings = await new TemplateValidator().getGeometryWarnings(template);
 
     expect(warnings.length).toBeGreaterThan(0);
-    expect(warnings[0].path).toBe('sections[0].caption');
+    // Addressed where the caption is authored: expansion discards anything set on the ref itself, so
+    // `sections[0].caption` would send an agent to an edit that changes nothing.
+    expect(warnings[0].path).toBe('partials[0].sections[0].caption');
   });
 
   it('leaves validateTemplate success untouched', () => {

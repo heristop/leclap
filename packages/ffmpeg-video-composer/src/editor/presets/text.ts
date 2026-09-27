@@ -310,8 +310,9 @@ export type TextEffect = {
   outline?: boolean | { color?: string; width?: number };
 };
 
-const SHADOW_DEFAULTS = { color: '#000000@0.6', dx: 2, dy: 2 };
-const OUTLINE_DEFAULTS = { color: '#000000', width: 2 };
+// Exported so the geometry validator judges an effect by what this lowering actually draws.
+export const SHADOW_DEFAULTS = { color: '#000000@0.6', dx: 2, dy: 2 };
+export const OUTLINE_DEFAULTS = { color: '#000000', width: 2 };
 
 // Merges a text effect's shadow/outline drawtext keys onto a values object (mutating it). Shared by
 // every text sugar so the wiring lives in one place — same shape as `applyReveal`.

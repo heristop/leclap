@@ -8,6 +8,11 @@ import { measureTextWidth, type FontMetrics } from '@/core/font-metrics';
 // a guess, not a bound. That is exactly why every finding drawn from one is flagged `approx`.
 const ASSUMED_ADVANCE_EM = 0.5;
 
+// drawtext starts a new line at each of these (vf_drawtext's `is_newline`), so `\r\n` makes two; its
+// text_w is the widest line and its text_h grows with every one. No bundled font maps U+000A, so
+// measuring the string as one run fell back to the estimate for the lines laid end to end.
+const LINE_BREAK = /[\n\r\f\v]/;
+
 // The section options that change the drawn string. `upperCase`/`lowerCase` live on the BASE section
 // schema and are applied by FormatterManager.formatText to every text value in the section.
 export interface TextCaseOptions {
@@ -15,8 +20,13 @@ export interface TextCaseOptions {
   lowerCase?: boolean;
 }
 
+// `global.variables`: fixed by the descriptor itself, so — unlike a form field — known before render.
+export type TextVariables = Record<string, unknown>;
+
 export interface Measurement {
   width: number;
+  // How many lines drawtext stacks for the tallest locale; the box is that many lines high.
+  lines: number;
   approx: boolean;
 }
 
@@ -54,37 +64,50 @@ function codePointCount(text: string): number {
   return count;
 }
 
-// A `{{ var }}` is substituted at render time, so a placeholder's width is a stand-in and never a
-// fact — the same reason `captionFontFile` refuses to resolve a templated font id. Measuring it
-// anyway beats silence, but the finding must not claim to be exact.
+// A `{{ var }}` left after `substituteVariables` is filled at render time (a form field, a runtime
+// value), so a placeholder's width is a stand-in and never a fact — measuring it anyway beats
+// silence, but the finding must not claim to be exact.
 function isTemplated(text: string): boolean {
   return text.includes('{{');
 }
 
-// `options.upperCase` / `options.lowerCase` re-case EVERY text value in the section before drawtext
-// sees it. Measuring the authored string instead of the drawn one is not a rounding error: uppercase
-// Latin runs ~20% wider, so a caption measured at 1102px in Oswald actually paints 1341px on a
-// 1280px frame — and was reported as clean, with `approx: false`.
-function applyCase(text: string, options: TextCaseOptions | undefined): string {
-  if (options?.upperCase) {
-    return text.toUpperCase();
+// The descriptor's own `global.variables` are substituted before anything is drawn
+// (VariableManager.mapVariables: `{{ key }}` with one space each side, an array joined with ', '), so
+// they are measured as the text they become. Measuring the placeholder instead reported a caption
+// whose variable holds a 70-character headline as clean.
+function substituteVariables(text: string, variables: TextVariables | undefined): string {
+  if (!variables) {
+    return text;
   }
 
-  if (options?.lowerCase) {
-    return text.toLowerCase();
-  }
+  return text.replace(/\{\{ (.+?) \}\}/g, (placeholder: string, key: string) => {
+    const value = Object.hasOwn(variables, key) ? variables[key] : undefined;
+    const resolved = Array.isArray(value) ? value.join(', ') : value;
 
-  return text;
+    return typeof resolved === 'string' || typeof resolved === 'number' ? String(resolved) : placeholder;
+  });
 }
 
-// The widest locale wins, measured rather than counted: 24 "W"s render three times wider than 26
-// "l"s, so picking the locale with the most UTF-16 code units drops real overflows and invents fake
-// ones. Every locale is a candidate because any of them may be the one that ships.
+// The string drawtext receives, built the way FormatterManager.formatText builds it: straight quotes
+// become typographic ones (’ ”, wider in every bundled face but BebasNeue), then `upperCase` and
+// `lowerCase` apply in THAT order — a section setting both draws lowercase. Uppercase Latin runs ~20%
+// wider, so measuring the authored string instead of the drawn one is not a rounding error.
+function asDrawn(text: string, options: TextCaseOptions | undefined): string {
+  const typographic = text.replace(/'/g, '’').replace(/"/g, '”');
+  const upper = options?.upperCase ? typographic.toUpperCase() : typographic;
+
+  return options?.lowerCase ? upper.toLowerCase() : upper;
+}
+
+// The widest line of the widest locale wins, measured rather than counted: 24 "W"s render three times
+// wider than 26 "l"s, so picking the locale with the most UTF-16 code units drops real overflows and
+// invents fake ones. Every locale is a candidate because any of them may be the one that ships.
 export function measure(
   value: unknown,
   fontSize: number,
   metrics: FontMetrics | null,
-  options?: TextCaseOptions
+  options?: TextCaseOptions,
+  variables?: TextVariables
 ): Measurement | null {
   const candidates = localeCandidates(value);
 
@@ -93,18 +116,23 @@ export function measure(
   }
 
   let width = 0;
+  let lines = 1;
   let approx = false;
 
   for (const authored of candidates) {
-    const text = applyCase(authored, options);
-    const exact = metrics && !isTemplated(text) ? measureTextWidth(metrics, text, fontSize) : null;
+    const drawn = asDrawn(substituteVariables(authored, variables), options).split(LINE_BREAK);
 
-    approx = approx || exact === null;
-    // The estimate is built only when the measurement genuinely failed. Computed unconditionally it
-    // was a second full code-point walk of every locale of every caption, discarded one line later
-    // on the whole happy path.
-    width = Math.max(width, exact ?? codePointCount(text) * ASSUMED_ADVANCE_EM * fontSize);
+    lines = Math.max(lines, drawn.length);
+
+    for (const line of drawn) {
+      const exact = metrics && !isTemplated(line) ? measureTextWidth(metrics, line, fontSize) : null;
+
+      approx = approx || exact === null;
+      // The estimate is built only when the measurement genuinely failed. Computed unconditionally it
+      // was a second full code-point walk of every line, discarded on the whole happy path.
+      width = Math.max(width, exact ?? codePointCount(line) * ASSUMED_ADVANCE_EM * fontSize);
+    }
   }
 
-  return { width, approx };
+  return { width, lines, approx };
 }

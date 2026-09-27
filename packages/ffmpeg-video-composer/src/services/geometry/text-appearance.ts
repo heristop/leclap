@@ -7,25 +7,79 @@ import {
   CAPTION_DEFAULT_BOX_OPACITY,
   type CaptionStyleValues,
 } from '../../editor/presets/caption-layout';
+import { OUTLINE_DEFAULTS, SHADOW_DEFAULTS, type TextEffect } from '../../editor/presets/text';
+import { LOWER_THIRD_DEFAULT_BAND_COLOR, LOWER_THIRD_DEFAULT_BAND_OPACITY } from './lower-third-layout';
 
-// `shadow`/`outline` are `boolean | object` on TextEffectSchema; all this needs is whether either
-// is present at all.
-export interface TextEffectLike {
-  shadow?: unknown;
-  outline?: unknown;
+// `shadow`/`outline` as TextEffectSchema has them: `true`, or an object overriding the defaults.
+export type TextEffectLike = TextEffect;
+
+// Whether a colour token puts any paint on the frame. A token nobody can read gets the benefit of the
+// doubt: the over-footage rule must not invent a finding from a colour it does not understand.
+function paints(color: string): boolean {
+  const paint = parseColor(color);
+
+  return paint === null || paint.alpha > 0;
+}
+
+// A shadow or outline helps only when it draws something. applyTextEffect merges these same defaults
+// (`true` or `{}` is a 2px offset / a 2px border), so what draws nothing is an explicit zero offset or
+// width, or a fully transparent colour — the same trap as a `boxOpacity: 0` box. Counting any of them
+// as an aid silenced the over-footage rule for text with nothing around it at all.
+function shadowPaints(shadow: TextEffect['shadow']): boolean {
+  if (!shadow) {
+    return false;
+  }
+
+  const { color, dx, dy } = shadow === true ? SHADOW_DEFAULTS : { ...SHADOW_DEFAULTS, ...shadow };
+
+  return (dx !== 0 || dy !== 0) && paints(color);
+}
+
+function outlinePaints(outline: TextEffect['outline']): boolean {
+  if (!outline) {
+    return false;
+  }
+
+  const { color, width } = outline === true ? OUTLINE_DEFAULTS : { ...OUTLINE_DEFAULTS, ...outline };
+
+  return width > 0 && paints(color);
 }
 
 function hasLegibilityEffect(effect: TextEffectLike | undefined): boolean {
-  return Boolean(effect?.shadow) || Boolean(effect?.outline);
+  return shadowPaints(effect?.shadow) || outlinePaints(effect?.outline);
 }
 
-// Loose section shape matching text-boxes.ts's CaptionedSection.
+// Loose section shape: the fields that decide what a section's text is drawn over.
 export interface AppearanceSection {
   type?: string;
   options?: {
     backgroundColor?: string;
     layers?: unknown[];
   };
+  inputs?: unknown[];
+  filters?: unknown[];
+  look?: unknown;
+  grade?: unknown;
+  letterbox?: unknown;
+}
+
+// The template-wide decorations that recolour every section (compileGlobalDecorations).
+export interface AppearanceGlobal {
+  look?: unknown;
+  grade?: unknown;
+}
+
+// Everything the renderer paints over — or recolours — the base colour before the text lands, none of
+// which this module models: `options.layers` and composited `inputs` (images, animations, full-frame
+// by default), the section's authored `filters` (a full-frame `drawbox … t=fill`), a section or
+// template-wide `grade`/`look` (background-layer sugar, applied ahead of the text), and `letterbox`
+// bars. Scoring text against `backgroundColor` under any of them reported white-on-white at 1.0:1 for
+// a caption sitting on a photo, and stayed silent for black text on a graded-down white card.
+function backgroundCovered(section: AppearanceSection, global: AppearanceGlobal | undefined): boolean {
+  const drawnOver = [section.options?.layers, section.inputs, section.filters].some((list) => (list?.length ?? 0) > 0);
+  const recoloured = [section.look, section.grade, section.letterbox, global?.look, global?.grade];
+
+  return drawnOver || recoloured.some((decoration) => decoration !== undefined);
 }
 
 // A `color_background` section's colour is a genuine backdrop; any other type may show footage or
@@ -35,14 +89,9 @@ export interface AppearanceSection {
 // too — it just does not describe what is behind the text there, because the clip is. Every caller
 // must go through this gate: compositing a translucent caption box over a footage section's
 // `backgroundColor` produced exactly the confident-and-wrong contrast number this module exists to
-// avoid.
-//
-// `options.layers` composite ON TOP of the base colour and default to the full frame, so a single
-// opaque layer hides `backgroundColor` completely. Reading the covered colour reported 21:1 for
-// white-on-white. Whether a layer is opaque, and where it lands, is not modelled here — so the only
-// honest answer once layers exist is "unknown".
-function knownSectionBackground(section: AppearanceSection): string | null {
-  if (section.type !== 'color_background' || (section.options?.layers?.length ?? 0) > 0) {
+// avoid. Whatever covers or recolours the base (backgroundCovered) makes it unknown the same way.
+function knownSectionBackground(section: AppearanceSection, global: AppearanceGlobal | undefined): string | null {
+  if (section.type !== 'color_background' || backgroundCovered(section, global)) {
     return null;
   }
 
@@ -101,9 +150,6 @@ export interface CaptionAppearanceInput {
   effect?: TextEffectLike;
 }
 
-// Mirrors captions.ts's resolveBox: on when explicitly set or defaulted by the preset; an explicit
-// override (or a preset with no box colour) builds a fresh token instead of reusing the preset's.
-//
 // `boxOpacity: 0` is schema-valid (`z.number().min(0)`) and paints nothing — drawtext still emits a
 // `boxcolor` of `…@0`. Returning a truthy token for it made `legibilityAid` true, so the
 // over-footage rule stayed silent about text with no visible background at all, while the very same
@@ -112,6 +158,8 @@ export function captionBoxOpacity(caption: CaptionAppearanceInput): number {
   return caption.boxOpacity ?? CAPTION_DEFAULT_BOX_OPACITY;
 }
 
+// Mirrors captions.ts's resolveBox: on when explicitly set or defaulted by the preset; an explicit
+// override (or a preset with no box colour) builds a fresh token instead of reusing the preset's.
 function captionBoxColorToken(caption: CaptionAppearanceInput, preset: CaptionStyleValues): string | null {
   const boxOn = (caption.box ?? Boolean(preset.box)) && captionBoxOpacity(caption) > 0;
 
@@ -133,16 +181,15 @@ function captionBoxColorToken(caption: CaptionAppearanceInput, preset: CaptionSt
 export function captionAppearance(
   caption: CaptionAppearanceInput,
   preset: CaptionStyleValues,
-  section: AppearanceSection
+  section: AppearanceSection,
+  global: AppearanceGlobal | undefined
 ): Appearance {
   const boxToken = captionBoxColorToken(caption, preset);
-  const backdrop = boxToken
-    ? resolveBackdrop(boxToken, knownSectionBackground(section))
-    : knownSectionBackground(section);
+  const background = knownSectionBackground(section, global);
 
   return {
     color: caption.color ?? preset.fontcolor,
-    backdrop,
+    backdrop: boxToken ? resolveBackdrop(boxToken, background) : background,
     legibilityAid: Boolean(boxToken) || hasLegibilityEffect(caption.effect),
   };
 }
@@ -154,31 +201,27 @@ export interface LowerThirdAppearanceInput {
 }
 
 // `null` once the author turns the band off (`boxOpacity: 0`).
-function lowerThirdBandToken(lowerThird: LowerThirdAppearanceInput, defaultColor: string, defaultOpacity: number) {
-  const opacity = lowerThird.boxOpacity ?? defaultOpacity;
+function lowerThirdBandToken(lowerThird: LowerThirdAppearanceInput): string | null {
+  const opacity = lowerThird.boxOpacity ?? LOWER_THIRD_DEFAULT_BAND_OPACITY;
 
   if (opacity <= 0) {
     return null;
   }
 
-  return `${lowerThird.bandColor ?? defaultColor}@${opacity}`;
+  return `${lowerThird.bandColor ?? LOWER_THIRD_DEFAULT_BAND_COLOR}@${opacity}`;
 }
 
-// Shared by a lowerThird's title and subtitle (same band). `defaultColor`/`defaultOpacity` are
-// passed in so this module stays free of the lowerThird preset's own layout constants.
+// Shared by a lowerThird's title and subtitle (same band).
 export function lowerThirdAppearance(
   lowerThird: LowerThirdAppearanceInput,
   section: AppearanceSection,
-  defaultColor: string,
-  defaultOpacity: number
+  global: AppearanceGlobal | undefined
 ): { backdrop: string | null; legibilityAid: boolean } {
-  const bandToken = lowerThirdBandToken(lowerThird, defaultColor, defaultOpacity);
-  const backdrop = bandToken
-    ? resolveBackdrop(bandToken, knownSectionBackground(section))
-    : knownSectionBackground(section);
+  const bandToken = lowerThirdBandToken(lowerThird);
+  const background = knownSectionBackground(section, global);
 
   return {
-    backdrop,
+    backdrop: bandToken ? resolveBackdrop(bandToken, background) : background,
     legibilityAid: Boolean(bandToken) || hasLegibilityEffect(lowerThird.effect),
   };
 }

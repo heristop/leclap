@@ -2,14 +2,8 @@ import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import { expandPartialsSafe } from '@/core/partials';
 import { captionStyleValues } from '../../editor/presets/caption-layout';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import {
-  canvasFor,
-  captionFontFile,
-  collectBoxes,
-  isRenderableSection,
-  LOWER_THIRD_TITLE_FONT,
-  LOWER_THIRD_SUBTITLE_FONT,
-} from './text-boxes';
+import { LOWER_THIRD_LINES } from './lower-third-layout';
+import { canvasFor, captionFontFile, collectBoxes, isRenderableSection } from './text-boxes';
 import {
   collisionWarnings,
   contrastWarnings,
@@ -73,9 +67,9 @@ function referencedFontFiles(template: TemplateDescriptor): string[] {
     .map((section) => captionFontFile(section?.caption?.font, captionStyleValues(section?.caption?.style)));
   const lowerThirdFiles = sections
     .filter((section) => section?.lowerThird)
-    .flatMap(() => [LOWER_THIRD_TITLE_FONT, LOWER_THIRD_SUBTITLE_FONT]);
+    .flatMap(() => LOWER_THIRD_LINES.map((line) => line.font));
 
-  return [...new Set([...captionFiles, ...lowerThirdFiles])].filter((file): file is string => file !== null);
+  return [...new Set([...captionFiles, ...lowerThirdFiles])];
 }
 
 // Load and parse each font file once. A loader that returns null, yields bytes that will not parse,
@@ -127,7 +121,34 @@ function expanded(template: TemplateDescriptor): TemplateDescriptor {
   return expansion.ok ? (expansion.data as TemplateDescriptor) : template;
 }
 
-// Which AUTHORED section each expanded section came from.
+interface LoosePartialRef {
+  type?: unknown;
+  ref?: unknown;
+}
+
+// Where the sections a `{ type: "partial" }` entry expands into are AUTHORED, mirroring
+// expandRefSection's choice of source: the registry partial its `ref` names — the last one with that
+// id, as `partialsById` keeps — when that partial has sections, otherwise the entry's own inline
+// `sections`. Only there does an edit take effect: expansion discards anything set on the ref itself,
+// so a finding addressed to `sections[i].caption` sent an agent to add a caption the renderer throws
+// away, and the same finding came back.
+function partialSourcePath(raw: TemplateDescriptor, entry: LoosePartialRef, index: number): string {
+  const ref = typeof entry.ref === 'string' ? entry.ref.trim() : '';
+  const registry: ({ id?: unknown; sections?: unknown } | null | undefined)[] = Array.isArray(raw.partials)
+    ? raw.partials
+    : [];
+  let found = -1;
+
+  for (const [position, partial] of registry.entries()) {
+    found = ref !== '' && partial?.id === ref ? position : found;
+  }
+
+  return found === -1 || !Array.isArray(registry[found]?.sections)
+    ? `sections[${index}].sections`
+    : `partials[${found}].sections`;
+}
+
+// Where the author edits each EXPANDED section.
 //
 // `path` is what an MCP agent edits against, so it has to address the descriptor the author holds,
 // not the one the model measured. Expansion splices a partial's sections inline, shifting every
@@ -137,29 +158,30 @@ function expanded(template: TemplateDescriptor): TemplateDescriptor {
 // Rebuilt through the public API rather than by threading provenance through `partials.ts`:
 // expansion maps each authored section to 0..n expanded ones *in order*, so expanding one authored
 // section at a time (against the same descriptor, so its `partials` registry still resolves) yields
-// the counts. A caption a partial supplied resolves to the ref section that pulled it in, which is
-// where the author has to go to change it.
-function authoredOrigins(raw: TemplateDescriptor, expandedCount: number): number[] {
-  const authored = Array.isArray(raw.sections) ? raw.sections : [];
-  const origins: number[] = [];
+// the counts, and a partial's k-th expanded section is its source's k-th section.
+function authoredPaths(raw: TemplateDescriptor, expandedCount: number): string[] {
+  const authored: unknown[] = Array.isArray(raw.sections) ? raw.sections : [];
+  const paths: string[] = [];
 
   for (const [index, section] of authored.entries()) {
     const one = expandPartialsSafe({ ...raw, sections: [section] });
     const produced = one.ok ? ((one.data as TemplateDescriptor).sections?.length ?? 0) : 1;
+    const entry = (section ?? {}) as LoosePartialRef;
+    const source = entry.type === 'partial' && one.ok ? partialSourcePath(raw, entry, index) : null;
 
     for (let k = 0; k < produced; k++) {
-      origins.push(index);
+      paths.push(source === null ? `sections[${index}]` : `${source}[${k}]`);
     }
   }
 
   // A disagreement means the per-section walk and the whole-descriptor one diverged, which would
   // silently mis-address every finding. Identity is wrong in the same way the old code was, but it
   // is at least the failure everyone already reasons about.
-  if (origins.length !== expandedCount) {
-    return Array.from({ length: expandedCount }, (_, i) => i);
+  if (paths.length !== expandedCount) {
+    return Array.from({ length: expandedCount }, (_, i) => `sections[${i}]`);
   }
 
-  return origins;
+  return paths;
 }
 
 export async function collectGeometryWarnings(
@@ -169,7 +191,7 @@ export async function collectGeometryWarnings(
   const template = expanded(raw);
   const canvas = canvasFor(template.global?.orientation);
   const metrics = await loadMetrics(template, loadFont);
-  const origins = authoredOrigins(raw, Array.isArray(template.sections) ? template.sections.length : 0);
+  const origins = authoredPaths(raw, Array.isArray(template.sections) ? template.sections.length : 0);
   const boxes = collectBoxes(template, canvas, (font) => metrics.get(font) ?? null, origins);
 
   const findings = [

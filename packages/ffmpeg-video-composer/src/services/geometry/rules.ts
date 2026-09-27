@@ -40,8 +40,16 @@ const OVERFLOW_TOLERANCE_PX = 2;
 // tall on a 720px-high landscape frame instead of 36px, which fired on the engine's own presets: a
 // two-word default caption at `position: "top"` sits at y=42 and was reported as "extends 22px past
 // the title-safe margin", advice its author cannot act on.
+//
+// A side the preset pins (Box.anchoredSide) is skipped: a left- or right-aligned caption sits a fixed
+// distance from that frame edge whatever its text, so "shorten it or reduce the size" cannot move it.
+// With the default box that is 80 − 18 = 62px against a 64px landscape inset, which reported every
+// left- or right-aligned `bar` caption — the docs' own example included — as crossing by 2px.
 function horizontalExcess(box: Box, canvas: Canvas, inset: number): number {
-  return Math.max(inset - box.x, box.x + box.width - (canvas.width - inset));
+  const left = box.anchoredSide === 'left' ? Number.NEGATIVE_INFINITY : inset - box.x;
+  const right = box.anchoredSide === 'right' ? Number.NEGATIVE_INFINITY : box.x + box.width - (canvas.width - inset);
+
+  return Math.max(left, right);
 }
 
 function verticalExcess(box: Box, canvas: Canvas, inset: number): number {

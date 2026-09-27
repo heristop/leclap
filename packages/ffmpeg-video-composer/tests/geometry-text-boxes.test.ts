@@ -225,7 +225,10 @@ describe('collectBoxes', () => {
     expect(box.width).toBeCloseTo(2 * 0.5 * 40 + BAR_PADDING, 5);
   });
 
-  it('refuses to measure a templated font id, which only resolves at render time', () => {
+  it('measures a templated font id in the preset face, which is what the render draws', () => {
+    // Nothing substitutes variables into `fontfile` (FormatterManager.formatFont), and
+    // `resolveFontFile` sends an id it does not know to the style preset — so the render draws this
+    // caption in Oswald, and estimating it at 0.5em instead reported overflows it does not have.
     const asked: string[] = [];
     const metrics = (font: string): FontMetrics => {
       asked.push(font);
@@ -245,8 +248,8 @@ describe('collectBoxes', () => {
 
     const [box] = boxesOf(template, landscape, metrics);
 
-    expect(asked).toEqual([]);
-    expect(box.approx).toBe(true);
+    expect(asked).toEqual(['Oswald.ttf']);
+    expect(box.approx).toBe(false);
   });
 
   it('measures the string the section will actually draw, honouring options.upperCase', () => {

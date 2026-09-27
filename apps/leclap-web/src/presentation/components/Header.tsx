@@ -13,6 +13,8 @@ import { MoonIcon } from './icons/moon';
 import { GithubIcon, type GithubIconHandle } from './icons/github';
 import { GlobeIcon } from './icons/globe';
 import { useIconHover } from './icons/useIconHover';
+import { visibleNavItems, type NavItem } from './header-nav.logic';
+import { useHasProjects } from '@/hooks/use-has-projects';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
 import { getLanguage, localePath, setStoredLanguage, LANGUAGES, type Language } from '../../lib/language';
 
@@ -171,19 +173,6 @@ const LanguagePicker = ({ language, onSelect, className }: LanguagePickerProps) 
   );
 };
 
-// href carries the route; labelKey resolves to a common.nav.* translation.
-const navigationItems = [
-  { labelKey: 'nav.home', href: '/' },
-  // Studio is the create-a-video flow; Templates is the template manager/authoring area.
-  { labelKey: 'nav.studio', href: '/studio' },
-  { labelKey: 'nav.templates', href: '/templates' },
-  { labelKey: 'nav.projects', href: '/projects' },
-  { labelKey: 'nav.docs', href: '/doc' },
-  { labelKey: 'nav.about', href: '/about' },
-] as const;
-
-type NavItem = (typeof navigationItems)[number];
-
 type NavLinkProps = {
   item: NavItem;
   isActive: boolean;
@@ -225,9 +214,22 @@ const NavLink = ({ item, isActive, mobile, onClick }: NavLinkProps) => {
 
 type Indicator = { left: number; width: number; opacity: number };
 
+/** Where the header's bar ends: once the landing hero's foot passes it, the hero is out from under it. */
+const HEADER_CLEARANCE = 64;
+
+/**
+ * Where the landing hero ends, in viewport pixels: measured once it is on the page, otherwise estimated from
+ * its minimum height (92svh), which is all a first paint before the route has mounted needs.
+ */
+const heroBottom = (): number => {
+  const hero = document.querySelector('[data-landing-hero]');
+
+  return hero ? hero.getBoundingClientRect().bottom : window.innerHeight * 0.92 - window.scrollY;
+};
+
 /** Desktop nav: a magnetic gray pill follows hover, while a persistent brand "playhead" underline
     marks the active route (and the active item traces a snake border on change). */
-const DesktopNav = ({ pathname }: { pathname: string }) => {
+const DesktopNav = ({ pathname, items }: { pathname: string; items: readonly NavItem[] }) => {
   const { t } = useTranslation();
   const navRef = useRef<HTMLElement>(null);
   const [pill, setPill] = useState<Indicator>({ left: 0, width: 0, opacity: 0 });
@@ -255,9 +257,11 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
     setPlayhead((p) => ({ ...p, opacity: 0 }));
   }, []);
 
+  // Also re-measured when an entry comes or goes (Projects follows the saved projects), because
+  // every item after it moves.
   useEffect(() => {
     syncPlayhead();
-  }, [pathname, syncPlayhead]);
+  }, [pathname, items, syncPlayhead]);
   useEffect(() => {
     window.addEventListener('resize', syncPlayhead);
 
@@ -283,7 +287,7 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
         className="brand-gradient pointer-events-none absolute bottom-1 h-0.5 rounded-full transition-[left,width,opacity] duration-300 ease-[var(--ease-out-expo)]"
         style={{ left: playhead.left, width: playhead.width, opacity: playhead.opacity }}
       />
-      {navigationItems.map((item) => {
+      {items.map((item) => {
         const isActive = pathname === item.href;
 
         return (
@@ -314,10 +318,11 @@ const DesktopNav = ({ pathname }: { pathname: string }) => {
 type MobileMenuProps = {
   isOpen: boolean;
   currentPath: string;
+  items: readonly NavItem[];
   onClose: () => void;
 };
 
-const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => {
+const MobileMenu = ({ isOpen, currentPath, items, onClose }: MobileMenuProps) => {
   const { t } = useTranslation();
 
   return (
@@ -330,7 +335,7 @@ const MobileMenu = ({ isOpen, currentPath, onClose }: MobileMenuProps) => {
       panelClassName="space-y-1"
       id="mobile-menu"
     >
-      {navigationItems.map((item) => (
+      {items.map((item) => (
         <NavLink key={item.href} item={item} isActive={currentPath === item.href} mobile onClick={onClose} />
       ))}
 
@@ -356,11 +361,13 @@ export const Header = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
   // Language is fixed for the lifetime of the page — switching it is a full navigation to the
   // locale-prefixed URL, which reloads with the new language resolved from the path.
   const language = getLanguage();
   const location = useLocation();
+  const navItems = visibleNavItems(useHasProjects());
   // Drive the GitHub mark's animation from the whole button's hover (group hover), not just the
   // 16px icon — the icon's imperative handle is made for exactly this.
   const githubRef = useRef<GithubIconHandle>(null);
@@ -387,21 +394,25 @@ export const Header = () => {
   // toggle's state so its icon stays in sync (the class is applied globally in main.tsx).
   useEffect(() => watchSystemTheme(setThemeState), []);
 
+  // Re-read on every route change too: a visit that lands at the top, where no scroll event fires, must not
+  // keep the last page's reading.
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+      setPastHero(heroBottom() <= HEADER_CLEARANCE);
     };
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [location.pathname]);
 
-  // The Home hero is an always-dark band. While the transparent header overlays
-  // it (home route, not scrolled), force a dark context so the nav stays legible
-  // regardless of the active theme.
-  const overHero = location.pathname === '/' && !scrolled;
+  // The landing follows the theme, but its hero is a dark monitor in both, so the header keeps a dark context
+  // while it sits over the hero — the nav stays legible over the film in any theme — and takes the page's
+  // theme once the hero has scrolled out from under it: a light frosted bar over the light sections.
+  const overHero = location.pathname === '/' && !pastHero;
   // The studio browsing pages (gallery / templates / projects) are always-dark app surfaces that
   // fill the viewport behind the fixed header. Force a dark header context on them too, so the nav
   // is legible in light mode (and the header reads as part of the dark app, like the editor).
@@ -450,7 +461,7 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation — magnetic sliding pill */}
-          <DesktopNav pathname={location.pathname} />
+          <DesktopNav pathname={location.pathname} items={navItems} />
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
@@ -505,6 +516,7 @@ export const Header = () => {
         <MobileMenu
           isOpen={isMenuOpen}
           currentPath={location.pathname}
+          items={navItems}
           onClose={() => {
             setIsMenuOpen(false);
           }}

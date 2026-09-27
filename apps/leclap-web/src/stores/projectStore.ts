@@ -8,7 +8,18 @@ const STORAGE_KEY = 'leclap.projects';
  * so this never re-stamps a record. Mirrors UserTemplateService's shape and best-effort semantics.
  */
 export class UserProjectService {
+  private readonly listeners = new Set<() => void>();
+
   constructor(private readonly storage: Storage | null) {}
+
+  /** Called after every write that lands, so a view of the list (the header's Projects link) follows it. */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
 
   list(): StoredProject[] {
     if (!this.storage) return [];
@@ -50,6 +61,11 @@ export class UserProjectService {
       this.storage.setItem(STORAGE_KEY, JSON.stringify(projects));
     } catch {
       // Quota exceeded / private mode — best-effort; the in-memory list is unchanged.
+      return;
+    }
+
+    for (const listener of this.listeners) {
+      listener();
     }
   }
 }

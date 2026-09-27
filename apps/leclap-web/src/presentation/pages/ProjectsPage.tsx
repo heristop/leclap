@@ -90,7 +90,7 @@ export const ProjectsPage = () => {
         </Button>
       }
     >
-      <Seo title={t('seo.title')} description={t('seo.description')} path="/projects" />
+      <Seo title={t('seo.title')} description={t('seo.description')} path="/projects" noindex />
 
       {projects.length === 0 ? (
         <EmptyState

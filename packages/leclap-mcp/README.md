@@ -34,6 +34,12 @@ carries a `{{ variable }}` that only resolves at render time, or a section decla
 font is not bundled, the server fetches it from the LeClap asset catalog (5s timeout); offline, it
 estimates.
 
+Pass `render: true` to `validate_template` to also render the sections that hold text and measure
+their contrast from real pixels — it settles text over images, grades and looks that the render-free
+check can only call unknown. It costs seconds (two renders of those sections), goes through the same
+media-dir sandbox as `compose_video`, reads assets from the media dir, and adds a `render` field
+(`measured`, `seconds`, and `unavailable` when it could not render).
+
 ### Recipe: video evidence for a pull or merge request
 
 An agent working on a code change can use LeClap to package visual evidence for review:

@@ -78,6 +78,14 @@ Generative tools can't reproduce a result twice. Cloud renderers can't run in yo
 | 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder.           |
 | 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                                |
 
+## 🎬 Don't describe the change. Show it.
+
+LeClap can sit inside an agentic development loop. After implementing a change, an agent collects a short screen recording and a precise review focus, authors a reusable template, validates it, and renders a deterministic MP4. The resulting clip can be attached to a pull or merge request beside the diff, so the reviewer sees the behavior before digging into the implementation.
+
+The workflow is explicit: **implement → collect evidence → author template → validate → render → attach to PR/MR**. LeClap creates the video artifact; the surrounding workflow decides when and where to upload it.
+
+**[See the use case →](https://leclap.dev/#agentic)** · **[Run the example](examples/agentic-pr-video)**
+
 ## 🚀 Quick start
 
 > 💡 **Recommended: [mise](https://mise.jdx.dev).** `mise install` provisions the exact pinned toolchain — **Node 24, pnpm 11, FFmpeg 8.1.1, and Rust** — so every contributor and CI run identical versions. Managing versions yourself? Bring **Node ≥ 24** and **pnpm 11**.

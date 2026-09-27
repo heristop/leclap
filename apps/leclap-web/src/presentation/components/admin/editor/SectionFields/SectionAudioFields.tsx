@@ -6,11 +6,12 @@
 // resolves through the `sectionAudio.*` locale keys (all five locales carry them).
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
+import { Checkbox, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import type { AudioEffect, EditorSection, SectionAudioFade } from '../../templateEditorModel';
 import { SegmentedControl, VolumeSlider, type SegmentOption } from '../controls';
+import { EditorSelectContent } from '../editor-select-content';
 
 // Section options.audioEffect enum (echo/telephone/muffled), plus the sentinel "none" the
 // SegmentedControl needs to represent "no effect" as a real, selectable option.
@@ -229,7 +230,7 @@ const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSid
           <SelectTrigger id={curveId} aria-label={t('sectionAudio.fadeCurve', { side: label })}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <EditorSelectContent>
             {/* Friendly name first, raw FFmpeg id in parens (falls back to the id if a label is
                 ever missing) — the select never reads as a bare engine-token list. */}
             {AFADE_CURVES.map((c) => (
@@ -237,7 +238,7 @@ const FadeSideFields = ({ label, duration, curve, onDuration, onCurve }: FadeSid
                 {t(`sectionAudio.curves.${c}`, c)}
               </SelectItem>
             ))}
-          </SelectContent>
+          </EditorSelectContent>
         </Select>
       </div>
     </div>

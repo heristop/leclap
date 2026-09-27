@@ -4,10 +4,11 @@ import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';
-import { Badge, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
+import { Badge, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { VariableTextField } from '../VariableTextField';
 import { FieldGroupHeader } from '../FieldGroupHeader';
 import { partialVariableNames } from '@/lib/partialVariables';
+import { EditorSelectContent } from '../editor-select-content';
 
 type PartialSection = Extract<EditorSection, { kind: 'partial' }>;
 
@@ -47,7 +48,7 @@ export const PartialFields = ({ section, partials, variables, onChange, inputCls
   };
 
   return (
-    <div className="space-y-3 pl-7">
+    <div className="space-y-3">
       <div className="grid gap-2 sm:grid-cols-[1fr_10rem]">
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -63,13 +64,13 @@ export const PartialFields = ({ section, partials, variables, onChange, inputCls
             <SelectTrigger aria-label="Partial">
               <SelectValue placeholder="Select partial" />
             </SelectTrigger>
-            <SelectContent>
+            <EditorSelectContent>
               {partials.map((partial) => (
                 <SelectItem key={partial.id} value={partial.id}>
                   {partial.id}
                 </SelectItem>
               ))}
-            </SelectContent>
+            </EditorSelectContent>
           </Select>
         </div>
         <div>

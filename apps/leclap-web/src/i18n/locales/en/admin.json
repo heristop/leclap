@@ -8,19 +8,21 @@
     }
   },
   "page": {
-    "kicker": "Your templates",
-    "heading": "Builder",
-    "subtitle": "Use a sample or craft your own — saved in this browser.",
+    "kicker": "Templates",
+    "heading": "Make your own",
+    "subtitle": "Templates you author are saved in this browser, ready to film in the studio.",
     "create": "Create template",
     "myTemplates": "My templates",
     "count": "({{count}})",
     "empty": {
-      "title": "You haven't created any templates yet.",
-      "subtitle": "Start from scratch, or duplicate a sample below.",
-      "create": "Create your first template"
+      "title": "Your templates will live here.",
+      "subtitle": "Start from a blank canvas, or duplicate a sample below and make it yours.",
+      "create": "Build from scratch"
     },
     "samples": "Sample templates",
-    "goToBuilder": "Go to Templates",
+    "samplesError": "Couldn’t load the sample templates.",
+    "retry": "Try again",
+    "goToBuilder": "Open the studio",
     "partials": "Partials",
     "contribute": {
       "title": "Contribute a template",
@@ -43,6 +45,12 @@
     "delete": "Delete {{name}}",
     "convertToPartial": "Convert {{name}} to partial",
     "share": "Share {{name}} on GitHub",
+    "deleteDialog": {
+      "title": "Delete this template?",
+      "description": "“{{name}}” will be removed from this browser. There’s no undo.",
+      "cancel": "Keep it",
+      "confirm": "Delete template"
+    },
     "convertDialog": {
       "title": "Convert to partial?",
       "description": "\"{{name}}\" will be converted into a reusable partial scene. The original template is not deleted — you can still edit it from the list.",
@@ -57,8 +65,9 @@
       "step2": "Open the repo on GitHub, create a new branch, paste the JSON as a new template file, then open a pull request.",
       "copy": "Copy JSON",
       "copied": "Copied!",
-      "openGithub": "Open GitHub →"
-    }
+      "openGithub": "Open GitHub"
+    },
+    "copyName": "{{name}} (copy)"
   },
   "orientationLabel": {
     "landscape": "landscape",
@@ -71,8 +80,10 @@
     "advanced": "advanced"
   },
   "seo": {
+    "library": "Templates",
     "edit": "Edit template",
-    "create": "Create a template"
+    "create": "Create a template",
+    "buildFromScratch": "Build from scratch"
   },
   "editor": {
     "title": {
@@ -170,7 +181,8 @@
       "form": "Form fields",
       "color": "Color background",
       "music": "Music selection",
-      "image": "Background image"
+      "image": "Background image",
+      "partial": "Partial"
     },
     "card": {
       "dragToReorder": "Drag to reorder",
@@ -206,7 +218,7 @@
       "description": "The file is not a valid template descriptor."
     },
     "save": "Save template",
-    "saveAndFilm": "Save & film →",
+    "saveAndFilm": "Save & film",
     "cancel": "Cancel",
     "untitled": "Untitled template"
   },
@@ -233,6 +245,13 @@
     "partialNew": "New partial",
     "partialDelete": "Delete partial",
     "partialDescription": "Description",
+    "partialDescriptionPlaceholder": "Reusable intro",
+    "partialReadonly": "Built-in partials are read-only. Duplicate one to make it your own — your copy is saved in this browser.",
+    "partialDeleteDialog": {
+      "title": "Delete this partial?",
+      "description": "“{{name}}” will be removed from this browser, and templates that use it won’t render until you replace it.",
+      "confirm": "Delete partial"
+    },
     "partialBuiltin": "Built-in",
     "partialLocal": "Local",
     "partialSaveFailed": "Could not save the partial.",

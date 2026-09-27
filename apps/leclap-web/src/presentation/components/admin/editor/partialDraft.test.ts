@@ -26,6 +26,17 @@ describe('partialDraft', () => {
     expect(state.sections.map((section) => section.kind)).toEqual(['color', 'form']);
   });
 
+  it('carries the partial variable defaults through an edit', () => {
+    const withDefaults: TemplatePartial = { ...partial, variables: { optionA: 'THIS', colorA: '#ff2e4d' } };
+    const state = draftStateFromPartial(withDefaults);
+
+    expect(state.globalVariables).toEqual([
+      { name: 'optionA', value: 'THIS' },
+      { name: 'colorA', value: '#ff2e4d' },
+    ]);
+    expect(partialFromDraftState(state).variables).toEqual({ optionA: 'THIS', colorA: '#ff2e4d' });
+  });
+
   it('serializes an editor draft back to a partial descriptor fragment', () => {
     const state = draftStateFromPartial(partial);
     const saved = partialFromDraftState({ ...state, sections: [newSection('color')] });

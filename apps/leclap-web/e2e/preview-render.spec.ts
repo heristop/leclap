@@ -19,6 +19,8 @@ async function addScene(page: import('@playwright/test').Page, label: string): P
 test('Preview render compiles a video + color + image template from the button', async ({ page }) => {
   test.setTimeout(8 * 60 * 1000);
   await page.goto('/templates/new');
+  // A new template opens on the starter picker; these checks start from the blank one.
+  await page.getByRole('dialog').getByRole('button', { name: 'Start blank' }).click();
 
   // A fresh template already has one video section; add a color and an image background scene.
   await addScene(page, 'Color background');

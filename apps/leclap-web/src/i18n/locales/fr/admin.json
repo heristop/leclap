@@ -8,19 +8,21 @@
     }
   },
   "page": {
-    "kicker": "Tes modèles",
-    "heading": "Éditeur",
-    "subtitle": "Pars d’un exemple ou crée le tien — enregistré dans ce navigateur.",
+    "kicker": "Modèles",
+    "heading": "Crée les tiens",
+    "subtitle": "Les modèles que tu crées restent dans ce navigateur, prêts à tourner dans le studio.",
     "create": "Créer un modèle",
     "myTemplates": "Mes modèles",
     "count": "({{count}})",
     "empty": {
-      "title": "Tu n’as pas encore créé de modèle.",
-      "subtitle": "Pars de zéro, ou duplique un exemple ci-dessous.",
-      "create": "Créer ton premier modèle"
+      "title": "Tes modèles vivront ici.",
+      "subtitle": "Pars d’une page blanche, ou duplique un exemple ci-dessous pour en faire le tien.",
+      "create": "Partir de zéro"
     },
     "samples": "Modèles d’exemple",
-    "goToBuilder": "Aller aux modèles",
+    "samplesError": "Impossible de charger les modèles d’exemple.",
+    "retry": "Réessayer",
+    "goToBuilder": "Ouvrir le studio",
     "partials": "Fragments",
     "contribute": {
       "title": "Proposer un modèle",
@@ -43,6 +45,12 @@
     "delete": "Supprimer {{name}}",
     "convertToPartial": "Convertir {{name}} en fragment",
     "share": "Partager {{name}} sur GitHub",
+    "deleteDialog": {
+      "title": "Supprimer ce modèle ?",
+      "description": "« {{name}} » sera supprimé de ce navigateur. Impossible de revenir en arrière.",
+      "cancel": "Le garder",
+      "confirm": "Supprimer le modèle"
+    },
     "convertDialog": {
       "title": "Convertir en fragment ?",
       "description": "« {{name}} » deviendra un fragment de scène réutilisable. Le modèle d’origine n’est pas supprimé — tu peux toujours le modifier depuis la liste.",
@@ -57,8 +65,9 @@
       "step2": "Ouvre le dépôt sur GitHub, crée une branche, colle le JSON dans un nouveau fichier de modèle, puis ouvre une pull request.",
       "copy": "Copier le JSON",
       "copied": "Copié !",
-      "openGithub": "Ouvrir GitHub →"
-    }
+      "openGithub": "Ouvrir GitHub"
+    },
+    "copyName": "{{name}} (copie)"
   },
   "orientationLabel": {
     "landscape": "paysage",
@@ -71,8 +80,10 @@
     "advanced": "avancé"
   },
   "seo": {
+    "library": "Modèles",
     "edit": "Modifier le modèle",
-    "create": "Créer un modèle"
+    "create": "Créer un modèle",
+    "buildFromScratch": "Partir de zéro"
   },
   "editor": {
     "title": {
@@ -170,7 +181,8 @@
       "form": "Champs de formulaire",
       "color": "Arrière-plan couleur",
       "music": "Sélection musicale",
-      "image": "Image d’arrière-plan"
+      "image": "Image d’arrière-plan",
+      "partial": "Fragment"
     },
     "card": {
       "dragToReorder": "Glisse pour réorganiser",
@@ -206,7 +218,7 @@
       "description": "Le fichier n’est pas un descripteur de modèle valide."
     },
     "save": "Enregistrer le modèle",
-    "saveAndFilm": "Enregistrer et filmer →",
+    "saveAndFilm": "Enregistrer et filmer",
     "cancel": "Annuler",
     "untitled": "Modèle sans titre"
   },
@@ -233,6 +245,13 @@
     "partialNew": "Nouveau fragment",
     "partialDelete": "Supprimer le fragment",
     "partialDescription": "Description",
+    "partialDescriptionPlaceholder": "Intro réutilisable",
+    "partialReadonly": "Les fragments intégrés sont en lecture seule. Duplique-en un pour te l’approprier — ta copie est enregistrée dans ce navigateur.",
+    "partialDeleteDialog": {
+      "title": "Supprimer ce fragment ?",
+      "description": "« {{name}} » sera supprimé de ce navigateur, et les modèles qui l’utilisent ne pourront plus être rendus tant que tu ne l’auras pas remplacé.",
+      "confirm": "Supprimer le fragment"
+    },
     "partialBuiltin": "Intégré",
     "partialLocal": "Local",
     "partialSaveFailed": "Impossible d’enregistrer le fragment.",

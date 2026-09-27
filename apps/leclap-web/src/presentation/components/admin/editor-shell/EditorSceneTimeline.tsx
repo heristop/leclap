@@ -104,9 +104,10 @@ export const EditorSceneTimeline = ({
       aria-label={t('shell.scenes')}
       className="track-edge-fade flex flex-1 items-stretch gap-2 overflow-x-auto overscroll-x-contain px-3 py-2.5 [scrollbar-width:thin]"
     >
-      {/* Tells the user the cards are reorderable; hidden mid-drag to declutter. */}
+      {/* Tells the user the cards are reorderable; hidden mid-drag to declutter, and on phones, where
+          it would take a third of the strip from the scenes themselves. */}
       {sections.length > 1 && draggingIndex === null && (
-        <span className="flex shrink-0 select-none items-center gap-1.5 self-center pr-1 text-[0.62rem] font-semibold uppercase tracking-wide text-gray-500">
+        <span className="hidden shrink-0 select-none items-center gap-1.5 self-center pr-1 text-[0.62rem] font-semibold uppercase tracking-wide text-gray-500 sm:flex">
           <Move className="size-3.5" aria-hidden />
           {t('shell.dragToReorder')}
         </span>

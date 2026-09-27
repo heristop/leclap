@@ -9,6 +9,8 @@ test.use({ reducedMotion: 'reduce' });
 
 test('the tool dock indicator bar stays vertically centered on the active tool', async ({ page }) => {
   await page.goto('/templates/new');
+  // A new template opens on the starter picker; these checks start from the blank one.
+  await page.getByRole('dialog').getByRole('button', { name: 'Start blank' }).click();
 
   const toolbar = page.getByRole('toolbar', { name: 'Editor tools' });
   await expect(toolbar).toBeVisible();

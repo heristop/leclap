@@ -6,12 +6,11 @@ import { ColorVariablesProvider } from '@/presentation/components/ui';
 import type { Template } from '@/services/templateService';
 import { userPartialService } from '@/services/userPartialService';
 import { listAvailablePartials } from '@/services/templatePartialService';
-import type { StoredPartial } from '@/stores/userPartialStore';
 import type { StoredTemplate } from '@/stores/userTemplateStore';
 import { useEditorHistory } from '@/hooks/useEditorHistory';
 import { useEditorShortcuts } from '@/hooks/useEditorShortcuts';
 import { useEditorSectionOps } from '../editor/useEditorSectionOps';
-import { toEditorState, SECTION_LABELS, type EditorSection } from '../templateEditorModel';
+import { toEditorState, type EditorSection } from '../templateEditorModel';
 import { buildEditorTools, nextTool, prevTool } from './editorTools';
 import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { useSectionSelection } from './useSectionSelection';
@@ -19,25 +18,17 @@ import { EditorPanelSwitch } from './EditorPanelSwitch';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
 import { useProgramMonitor, useTemplatePersistence } from './use-template-editor-shell';
 import { ShellTitlebar, ShellMonitor, ShellModals } from './shell-slots';
+import { sectionLabelKey, sectionTitle } from './section-label';
 
 interface TemplateEditorShellProps {
   initial: Template | null;
   onSaved: (saved: StoredTemplate) => void;
   onCancel: () => void;
+  // Where Back (onCancel) returns to, named in the titlebar; defaults to the templates list.
+  backLabel?: string;
   // When provided, a "Save & film →" CTA is shown that saves the template and immediately
   // launches the Builder wizard — skipping the gallery entirely.
   onSaveAndCompile?: (saved: StoredTemplate) => void;
-}
-
-// A readable cell title: a video section's first non-empty overlay, else the kind label.
-function sectionTitle(section: EditorSection): string {
-  if (section.kind === 'video') {
-    const text = section.overlays.find((o) => o.text.trim() !== '')?.text.trim();
-
-    if (text) return text;
-  }
-
-  return SECTION_LABELS[section.kind];
 }
 
 // The template-authoring editor re-housed inside the studio shell. Reuses the exact same state hooks as
@@ -58,13 +49,19 @@ const buildViewTabs = (
   ];
 };
 
-export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompile }: TemplateEditorShellProps) => {
+export const TemplateEditorShell = ({
+  initial,
+  onSaved,
+  onCancel,
+  backLabel,
+  onSaveAndCompile,
+}: TemplateEditorShellProps) => {
   const { t } = useTranslation('admin');
   const history = useEditorHistory(toEditorState(initial));
   const { state, set, undo, redo, canUndo, canRedo, reset } = history;
   const ops = useEditorSectionOps(set);
   const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition } = ops;
-  const [localPartials] = useState<StoredPartial[]>(() => userPartialService.list());
+  const [localPartials] = useState(() => userPartialService.list());
   const [helpOpen, setHelpOpen] = useState(false);
   // Cold start (building from scratch): offer starter presets before showing the blank editor.
   const [presetsOpen, setPresetsOpen] = useState(initial === null);
@@ -74,7 +71,15 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   const [sel, dispatch] = useEditorSelection({ activeTool: 'scenes', selectedIndex: 0 });
   const sectionSelection = useSectionSelection(String(sel.selectedIndex));
   const monitor = useProgramMonitor(state);
-  const save = useTemplatePersistence({ state, t, onSaved, onSaveAndCompile });
+  const save = useTemplatePersistence({
+    state,
+    t,
+    onSaved,
+    onSaveAndCompile,
+    onShowScene: (index) => {
+      dispatch({ type: 'selectScene', index });
+    },
+  });
 
   useEffect(() => {
     dispatch({ type: 'clamp', count: state.sections.length });
@@ -106,9 +111,7 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
   useEditorShortcuts({
     onUndo: undo,
     onRedo: redo,
-    onSave: () => {
-      if (!save.guardFails) save.handleSave();
-    },
+    onSave: save.handleSave,
     onDeleteScene: () => {
       // While a canvas element is selected, Delete/Backspace belongs to the element (its own focused
       // handlers act on it) — never nuke the whole scene out from under that intent.
@@ -167,9 +170,12 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
             onUndo={undo}
             onRedo={redo}
             onCancel={onCancel}
+            backLabel={backLabel}
             onSave={save.handleSave}
-            saveDisabled={save.guardFails}
             onSaveAndCompile={onSaveAndCompile ? save.handleSaveAndCompile : undefined}
+            feedback={save.feedback}
+            nameInvalid={save.blocker?.kind === 'name'}
+            nameRef={save.nameRef}
           />
         }
         dock={
@@ -183,29 +189,19 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
           />
         }
         panel={
-          <>
-            <EditorPanelSwitch
-              activeTool={sel.activeTool}
-              state={state}
-              section={selectedSection}
-              partials={listAvailablePartials(localPartials)}
-              patch={patch}
-              patchSection={(p) => {
-                patchSection(sel.selectedIndex, p);
-              }}
-              onImport={reset}
-              selection={sectionSelection.state}
-              onSelectElement={sectionSelection.selectElement}
-            />
-            {save.error && (
-              <p
-                role="alert"
-                className="border-t border-foreground/10 px-4 py-2 text-xs font-medium text-[var(--color-error)]"
-              >
-                {save.error}
-              </p>
-            )}
-          </>
+          <EditorPanelSwitch
+            activeTool={sel.activeTool}
+            state={state}
+            section={selectedSection}
+            partials={listAvailablePartials(localPartials)}
+            patch={patch}
+            patchSection={(p) => {
+              patchSection(sel.selectedIndex, p);
+            }}
+            onImport={reset}
+            selection={sectionSelection.state}
+            onSelectElement={sectionSelection.selectElement}
+          />
         }
         monitor={
           <ShellMonitor
@@ -239,8 +235,8 @@ export const TemplateEditorShell = ({ initial, onSaved, onCancel, onSaveAndCompi
             onReorder={reorderScenes}
             onTransition={setTransition}
             defaultTransition={state.defaultTransition}
-            sectionTitle={sectionTitle}
-            sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
+            sectionTitle={(section) => sectionTitle(section, t)}
+            sectionKindLabel={(section) => t(sectionLabelKey(section.kind))}
             onBrowsePresets={() => {
               setPresetsOpen(true);
             }}

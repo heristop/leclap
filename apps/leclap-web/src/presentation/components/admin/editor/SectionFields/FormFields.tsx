@@ -1,4 +1,7 @@
-// Field block for a form section: a column header over an editable list of {id, label, maxLength} rows.
+// Field block for a form section: one compact card per field, then Add field. The label the viewer
+// reads gets the full panel width on top; the variable id and the character cap share the row below.
+// Laid out for the narrow editor panel — a four-column row there left every input three letters wide.
+import { useId } from 'react';
 import { Trash2 } from '@/presentation/components/icons';
 import { PlusIcon } from '@/presentation/components/icons/plus';
 import { useTranslation } from 'react-i18next';
@@ -15,83 +18,91 @@ interface FormFieldsProps {
   inputCls: string;
 }
 
-// id | label | max-length | delete — one template shared by the header and every row so the columns
-// line up. The max-length column is narrow (just a 2-digit counter) and the delete column is icon-sized.
-// minmax(0,1fr) lets the text inputs shrink below their intrinsic width so a 320px panel never
-// horizontal-scrolls.
-const COLS = 'grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5rem_2.25rem] gap-2';
-const COL_LABEL = 'self-end px-1 text-[0.65rem] font-semibold uppercase leading-tight tracking-wider text-gray-500';
-// One height for all three controls so the row reads as a single aligned set.
+// Small-caps control labels. `leading-tight` lets a long localized one ("Lunghezza massima") wrap onto
+// two lines; the row aligns on the inputs' bottom edge, so the fields still line up.
+const LABEL_CLS =
+  'mb-1 block text-[0.65rem] font-semibold uppercase leading-tight tracking-wider text-muted-foreground';
+// One height for all three controls so each card reads as an aligned set.
 const FIELD_H = 'h-10';
 
-const FieldHeader = () => {
-  const { t } = useTranslation('admin');
-
-  return (
-    <div className={`${COLS} items-end px-2`}>
-      <span className={COL_LABEL}>{t('form.fieldId')}</span>
-      <span className={COL_LABEL}>{t('form.fieldLabel')}</span>
-      <span className={COL_LABEL}>{t('form.maxLength')}</span>
-      <span aria-hidden />
-    </div>
-  );
-};
-
-interface FieldRowProps {
+interface FieldCardProps {
   field: FormField;
   inputCls: string;
   onPatch: (patch: Partial<FormField>) => void;
   onRemove: () => void;
 }
 
-const FieldRow = ({ field, inputCls, onPatch, onRemove }: FieldRowProps) => {
+const FieldCard = ({ field, inputCls, onPatch, onRemove }: FieldCardProps) => {
   const { t } = useTranslation('admin');
+  const id = useId();
 
   return (
-    <div className={`group ${COLS} -mx-2 items-center rounded-xl p-2 transition-colors hover:bg-foreground/[0.03]`}>
-      <input
-        aria-label={t('form.fieldId')}
-        className={`${inputCls} ${FIELD_H} font-mono text-[0.82rem]`}
-        value={field.name}
-        onChange={(e) => {
-          onPatch({ name: e.target.value });
-        }}
-        placeholder={t('form.fieldIdPlaceholder')}
-        spellCheck={false}
-      />
-      <input
-        aria-label={t('form.fieldLabel')}
-        className={`${inputCls} ${FIELD_H}`}
-        value={field.label}
-        onChange={(e) => {
-          onPatch({ label: e.target.value });
-        }}
-        placeholder={t('form.fieldLabelPlaceholder')}
-      />
-      <NumberField
-        aria-label={t('form.maxLength')}
-        value={field.maxLength}
-        min={1}
-        step={1}
-        unit="ch"
-        compact
-        className="w-full"
-        inputCls={FIELD_H}
-        onChange={(maxLength) => {
-          onPatch({ maxLength });
-        }}
-      />
-      {/* Always visible (dimmed) — a hover-only reveal is unreachable on touch screens. */}
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={t('form.removeField')}
-        title={t('form.removeField')}
-        className="tap grid size-9 place-items-center justify-self-center rounded-lg text-gray-600 opacity-50 transition-all hover:opacity-100 hover:text-[var(--color-error)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 group-hover:opacity-100 active:scale-90"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
-    </div>
+    <li className="rounded-xl border border-foreground/10 bg-surface-2/40 p-3">
+      <div className="flex items-end gap-2">
+        <div className="min-w-0 flex-1">
+          <label htmlFor={`${id}-label`} className={LABEL_CLS}>
+            {t('form.fieldLabel')}
+          </label>
+          <input
+            id={`${id}-label`}
+            className={`${inputCls} ${FIELD_H}`}
+            value={field.label}
+            onChange={(e) => {
+              onPatch({ label: e.target.value });
+            }}
+            placeholder={t('form.fieldLabelPlaceholder')}
+          />
+        </div>
+        {/* Always visible (dimmed) — a hover-only reveal is unreachable on touch screens. */}
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={t('form.removeField')}
+          title={t('form.removeField')}
+          className="tap grid size-10 shrink-0 place-items-center rounded-lg text-muted-foreground opacity-60 transition-all hover:bg-[var(--color-error)]/10 hover:text-[var(--color-error)] hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)]/40 active:scale-90 motion-reduce:transition-none"
+        >
+          <Trash2 className="size-4" />
+        </button>
+      </div>
+      <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_6.5rem] items-end gap-2">
+        <div className="min-w-0">
+          <label htmlFor={`${id}-name`} className={LABEL_CLS}>
+            {t('form.fieldId')}
+          </label>
+          <input
+            id={`${id}-name`}
+            className={`${inputCls} ${FIELD_H} font-mono text-[0.82rem]`}
+            value={field.name}
+            onChange={(e) => {
+              onPatch({ name: e.target.value });
+            }}
+            placeholder={t('form.fieldIdPlaceholder')}
+            spellCheck={false}
+            autoCapitalize="none"
+            autoCorrect="off"
+          />
+        </div>
+        <div>
+          <label htmlFor={`${id}-max`} className={LABEL_CLS}>
+            {t('form.maxLength')}
+          </label>
+          <NumberField
+            id={`${id}-max`}
+            aria-label={t('form.maxLength')}
+            value={field.maxLength}
+            min={1}
+            step={1}
+            unit="ch"
+            compact
+            className="w-full"
+            inputCls={FIELD_H}
+            onChange={(maxLength) => {
+              onPatch({ maxLength });
+            }}
+          />
+        </div>
+      </div>
+    </li>
   );
 };
 
@@ -104,12 +115,10 @@ export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => 
   };
 
   return (
-    <div className="space-y-1.5 pl-7">
-      <FieldHeader />
-
-      <div className="space-y-0.5">
+    <div className="space-y-2">
+      <ul className="space-y-2">
         {section.fields.map((field, fi) => (
-          <FieldRow
+          <FieldCard
             key={fi}
             field={field}
             inputCls={inputCls}
@@ -121,26 +130,24 @@ export const FormFields = ({ section, onChange, inputCls }: FormFieldsProps) => 
             }}
           />
         ))}
-      </div>
+      </ul>
 
-      <div className="pt-1">
-        <button
-          type="button"
-          onClick={() => {
-            onChange({
-              fields: [
-                ...section.fields,
-                { name: `field_${section.fields.length + 1}`, label: t('form.fieldLabelPlaceholder'), maxLength: 40 },
-              ],
-            });
-          }}
-          className="tap inline-flex items-center gap-1.5 rounded-lg border border-dashed border-foreground/20 px-3 py-1.5 text-xs text-gray-500 transition-all hover:border-brand-500/50 hover:bg-brand-500/5 hover:text-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97]"
-          {...plusHoverProps}
-        >
-          <PlusIcon ref={plusRef} size={12} />
-          {t('form.addField')}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => {
+          onChange({
+            fields: [
+              ...section.fields,
+              { name: `field_${section.fields.length + 1}`, label: t('form.fieldLabelPlaceholder'), maxLength: 40 },
+            ],
+          });
+        }}
+        className="tap inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-foreground/20 px-3 text-sm font-medium text-muted-foreground transition-colors hover:border-brand-500/50 hover:bg-brand-500/5 hover:text-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.98] motion-reduce:transition-none"
+        {...plusHoverProps}
+      >
+        <PlusIcon ref={plusRef} size={14} />
+        {t('form.addField')}
+      </button>
     </div>
   );
 };

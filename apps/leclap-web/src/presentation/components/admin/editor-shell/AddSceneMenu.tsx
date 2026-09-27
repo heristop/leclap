@@ -11,7 +11,7 @@ import {
   type SectionCategory,
   type SectionKind,
 } from '@/lib/sectionMeta';
-import { SECTION_LABELS } from '../templateEditorModel';
+import { sectionLabelKey } from './section-label';
 
 interface AddSceneMenuProps {
   onAdd: (kind: SectionKind) => void;
@@ -161,7 +161,7 @@ export const AddSceneMenu = ({ onAdd, kinds }: AddSceneMenuProps) => {
                       <span className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-500/10">
                         <Icon className="size-4 text-brand-700 dark:text-brand-300" aria-hidden="true" />
                       </span>
-                      {SECTION_LABELS[kind]}
+                      {t(sectionLabelKey(kind))}
                     </PressableScale>
                   );
                 })

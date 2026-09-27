@@ -1,6 +1,7 @@
 // The three self-contained slots of TemplateEditorShell's ShellChrome — the titlebar, the program
 // monitor (edit canvas or playback), and the help / starter-preset modals — lifted out so the shell
 // file stays under its dependency budget. Each is a thin presentational wrapper; the shell owns state.
+import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProgramMonitor } from '@/presentation/components/editor-shell';
 import type { EditorSection, EditorState } from '../templateEditorModel';
@@ -14,6 +15,7 @@ import type { ProgramClock } from './use-program-clock';
 import { ProgramPlayer } from './program-player';
 import { ProgramTransport } from './program-transport';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
+import type { SaveFeedback } from './save-blocker.logic';
 
 interface ShellTitlebarProps {
   state: EditorState;
@@ -23,9 +25,12 @@ interface ShellTitlebarProps {
   onUndo: () => void;
   onRedo: () => void;
   onCancel: () => void;
+  backLabel?: string;
   onSave: () => void;
-  saveDisabled: boolean;
   onSaveAndCompile?: () => void;
+  feedback: SaveFeedback | null;
+  nameInvalid: boolean;
+  nameRef: Ref<HTMLInputElement>;
 }
 
 export const ShellTitlebar = ({
@@ -36,9 +41,12 @@ export const ShellTitlebar = ({
   onUndo,
   onRedo,
   onCancel,
+  backLabel,
   onSave,
-  saveDisabled,
   onSaveAndCompile,
+  feedback,
+  nameInvalid,
+  nameRef,
 }: ShellTitlebarProps) => {
   const { t } = useTranslation('admin');
 
@@ -51,9 +59,12 @@ export const ShellTitlebar = ({
       onUndo={onUndo}
       onRedo={onRedo}
       onCancel={onCancel}
+      backLabel={backLabel}
       onSave={onSave}
-      saveDisabled={saveDisabled}
       onSaveAndCompile={onSaveAndCompile}
+      feedback={feedback}
+      nameInvalid={nameInvalid}
+      nameRef={nameRef}
       preview={<TestRenderButton state={state} disabled={state.sections.length === 0} />}
       t={t}
     />
@@ -94,7 +105,7 @@ export const ShellMonitor = ({
   return (
     <ProgramMonitor
       label={playMode ? t('monitor.playing') : t('shell.preview')}
-      meta={state.orientation}
+      meta={t(`orientationLabel.${state.orientation}`)}
       swapKey={playMode ? 'play' : String(selectedIndex)}
       transport={playTimeline.length > 0 ? <ProgramTransport clock={clock} timeline={playTimeline} /> : undefined}
     >

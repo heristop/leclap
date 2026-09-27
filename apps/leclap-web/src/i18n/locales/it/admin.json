@@ -8,19 +8,21 @@
     }
   },
   "page": {
-    "kicker": "I tuoi modelli",
-    "heading": "Builder",
-    "subtitle": "Usa un esempio o crea il tuo — salvato in questo browser.",
+    "kicker": "Modelli",
+    "heading": "Crea i tuoi",
+    "subtitle": "I modelli che crei restano in questo browser, pronti da girare nello studio.",
     "create": "Crea modello",
     "myTemplates": "I miei modelli",
     "count": "({{count}})",
     "empty": {
-      "title": "Non hai ancora creato nessun modello.",
-      "subtitle": "Parti da zero, oppure duplica un esempio qui sotto.",
-      "create": "Crea il tuo primo modello"
+      "title": "Qui vivranno i tuoi modelli.",
+      "subtitle": "Parti da una tela bianca, oppure duplica un esempio qui sotto e fallo tuo.",
+      "create": "Crea da zero"
     },
     "samples": "Modelli di esempio",
-    "goToBuilder": "Vai ai Modelli",
+    "samplesError": "Impossibile caricare i modelli di esempio.",
+    "retry": "Riprova",
+    "goToBuilder": "Apri lo studio",
     "partials": "Partial",
     "contribute": {
       "title": "Contribuisci con un modello",
@@ -43,6 +45,12 @@
     "delete": "Elimina {{name}}",
     "convertToPartial": "Converti {{name}} in partial",
     "share": "Condividi {{name}} su GitHub",
+    "deleteDialog": {
+      "title": "Eliminare questo modello?",
+      "description": "“{{name}}” verrà rimosso da questo browser. Non si può annullare.",
+      "cancel": "Tienilo",
+      "confirm": "Elimina modello"
+    },
     "convertDialog": {
       "title": "Convertire in partial?",
       "description": "“{{name}}” verrà convertito in una scena partial riutilizzabile. Il modello originale non viene eliminato — puoi sempre modificarlo dalla lista.",
@@ -57,8 +65,9 @@
       "step2": "Apri il repo su GitHub, crea un nuovo branch, incolla il JSON come nuovo file di modello, poi apri una pull request.",
       "copy": "Copia JSON",
       "copied": "Copiato!",
-      "openGithub": "Apri GitHub →"
-    }
+      "openGithub": "Apri GitHub"
+    },
+    "copyName": "{{name}} (copia)"
   },
   "orientationLabel": {
     "landscape": "orizzontale",
@@ -71,8 +80,10 @@
     "advanced": "avanzato"
   },
   "seo": {
+    "library": "Modelli",
     "edit": "Modifica modello",
-    "create": "Crea un modello"
+    "create": "Crea un modello",
+    "buildFromScratch": "Crea da zero"
   },
   "editor": {
     "title": {
@@ -170,7 +181,8 @@
       "form": "Campi del form",
       "color": "Sfondo a colori",
       "music": "Selezione musicale",
-      "image": "Immagine di sfondo"
+      "image": "Immagine di sfondo",
+      "partial": "Partial"
     },
     "card": {
       "dragToReorder": "Trascina per riordinare",
@@ -206,7 +218,7 @@
       "description": "Il file non è un descrittore di modello valido."
     },
     "save": "Salva modello",
-    "saveAndFilm": "Salva e gira →",
+    "saveAndFilm": "Salva e gira",
     "cancel": "Annulla",
     "untitled": "Modello senza titolo"
   },
@@ -233,6 +245,13 @@
     "partialNew": "Nuovo partial",
     "partialDelete": "Elimina partial",
     "partialDescription": "Descrizione",
+    "partialDescriptionPlaceholder": "Intro riutilizzabile",
+    "partialReadonly": "I partial integrati sono di sola lettura. Duplicane uno per farlo tuo: la tua copia resta in questo browser.",
+    "partialDeleteDialog": {
+      "title": "Eliminare questo partial?",
+      "description": "“{{name}}” verrà rimosso da questo browser, e i modelli che lo usano non si potranno renderizzare finché non lo sostituisci.",
+      "confirm": "Elimina partial"
+    },
     "partialBuiltin": "Integrato",
     "partialLocal": "Locale",
     "partialSaveFailed": "Impossibile salvare il partial.",

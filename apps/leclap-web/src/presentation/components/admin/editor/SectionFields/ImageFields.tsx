@@ -30,7 +30,7 @@ export const ImageFields = ({ section, onChange, inputCls }: ImageFieldsProps) =
   const advanced = useIsAdvanced();
 
   return (
-    <div className="space-y-3 pl-7">
+    <div className="space-y-3">
       <div className="sm:w-40">
         <NumberField
           label={t('video.duration', { count: section.duration })}

@@ -19,12 +19,12 @@ import {
   Checkbox,
   ColorPicker,
   Select,
-  SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/presentation/components/ui';
 import type { Exit, Reveal, TextOverlay } from '../templateEditorModel';
+import { EditorSelectContent } from '../editor/editor-select-content';
 
 // newOverlay()'s seed fontsize (creative-kit editor model) — the RangeSlider reset target.
 const DEFAULT_FONTSIZE = 48;
@@ -286,13 +286,13 @@ const FontSelect = ({
       <SelectTrigger aria-label={t('overlay.font')} className="w-full">
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      <EditorSelectContent>
         {FONTS.map((font) => (
           <SelectItem key={font.id} value={font.id} style={{ fontFamily: font.cssFamily }}>
             {font.label}
           </SelectItem>
         ))}
-      </SelectContent>
+      </EditorSelectContent>
     </Select>
   </div>
 );

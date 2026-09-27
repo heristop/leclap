@@ -8,8 +8,8 @@ import {
   type LucideIcon,
 } from '@/presentation/components/icons';
 
-// Shared section-type metadata, reused by the add-section palette (SceneList), the template
-// poster glyph strip, and anywhere a section needs a consistent icon.
+// Shared section-type metadata, reused by the add-section menu, the template poster glyph strip, and
+// anywhere a section needs a consistent icon.
 export type SectionKind = 'video' | 'form' | 'color' | 'music' | 'image' | 'partial';
 
 export const SECTION_KINDS: SectionKind[] = ['video', 'form', 'color', 'music', 'image', 'partial'];

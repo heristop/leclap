@@ -21,6 +21,9 @@ playwright-report
 *-smoke.png
 form-banner-*.png
 
+# the agentic PR example's recordings (its README and demo-shop/record.mjs write them here)
+examples/agentic-pr-video/evidence/
+
 # local Claude Code state
 .claude/settings.local.json
 .claude/scheduled_tasks.lock

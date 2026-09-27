@@ -61,7 +61,7 @@ LeClap can sit inside an agentic development loop. After implementing a change, 
 
 The workflow is explicit: **implement → collect evidence → author template → validate → render → attach to PR/MR**. LeClap creates the video artifact; the surrounding workflow decides when and where to upload it.
 
-**[See the use case →](https://leclap.dev/#agentic)** · **[Run the example](examples/agentic-pr-video)**
+**[See the use case →](https://leclap.dev/#agentic)** · **[Run the example](examples/agentic-pr-video)** · **[Copy the agent skill](examples/agentic-pr-video/evidence-skill)**
 
 ## 🚀 Quick start
 

@@ -32,6 +32,7 @@
         "position": "top-right",
         "color": "#5eead4",
         "size": 28,
+        "effect": { "shadow": true },
         "reveal": "fade"
       }
     ]

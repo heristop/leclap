@@ -3,10 +3,15 @@ import type { TFunction } from 'i18next';
 import { type Template } from '@/services/templateService';
 import type { useVideoProcessing } from '@/hooks/useVideoProcessing';
 import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
+import type { CompileFailure } from '@/application/usecases/compile-failure';
+import { CompileFailureText } from '@/presentation/components/compile-failure-text';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { StopButton } from '@/presentation/components/StopButton';
+import { ClappyReaction } from '@/presentation/components/clappy';
+import { ArrowLeft, RotateCcw } from '@/presentation/components/icons';
+import { Button } from '@/presentation/components/ui';
 import { CompileSummary } from './CompileSummary';
-import { compilePhase, type CompilePhase } from './compileState';
+import { compilePhase } from './compileState';
 
 interface CompileMonitorProps {
   template: Template;
@@ -14,62 +19,48 @@ interface CompileMonitorProps {
   formData: Record<string, string>;
   isProcessing: boolean;
   progress: ReturnType<typeof useVideoProcessing>['progress'];
-  error: string | null;
+  error: CompileFailure | null;
   qualityTier: QualityTier;
   onCancel: () => void;
+  onRetry: () => void;
+  onBackToEdit: () => void;
 }
 
-const eyebrowKey: Record<CompilePhase, string> = {
-  preparing: 'compile.preparing',
-  rendering: 'compile.rendering',
-  complete: 'compile.complete',
-  error: 'compile.failed',
-};
+interface RenderFailedProps {
+  error: CompileFailure;
+  onRetry: () => void;
+  onBackToEdit: () => void;
+  t: TFunction<'builder'>;
+}
 
-// The phase name as a small uppercase eyebrow — the studio titlebar already names the project, so this
-// only states where the render is.
-const MonitorEyebrow = ({ phase, t }: { phase: CompilePhase; t: TFunction<'builder'> }) => (
-  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
-    {t(eyebrowKey[phase])}
-  </p>
+// A failed render takes the monitor over: the progress bar has nothing true left to say, and a Clappy
+// still running it would be lying. He calls "cut" instead, above what went wrong and the two ways on.
+// The cause is in the viewer's language; an engine message the app has no words for follows it verbatim.
+const RenderFailed = ({ error, onRetry, onBackToEdit, t }: RenderFailedProps) => (
+  <div role="alert" className="fade-in flex flex-col items-center py-4 text-center sm:py-8">
+    <ClappyReaction reaction="cut" size={104} />
+    <h3 className="mt-4 font-display text-2xl font-bold text-foreground">{t('compile.errorTitle')}</h3>
+    <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">{t('compile.errorHint')}</p>
+    <p className="mt-4 max-w-md rounded-lg bg-[var(--color-error)]/10 px-3 py-2 text-sm text-foreground/85 ring-1 ring-[var(--color-error)]/25">
+      <CompileFailureText failure={error} />
+    </p>
+    <div className="mt-6 flex w-full flex-col-reverse items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
+      <Button variant="ghost" onClick={onBackToEdit}>
+        <ArrowLeft className="size-4!" />
+        {t('compile.backToEdit')}
+      </Button>
+      <Button onClick={onRetry}>
+        <RotateCcw className="size-4!" />
+        {t('actions.tryAgain', { ns: 'common' })}
+      </Button>
+    </div>
+  </div>
 );
 
-// The single control under the monitor, chosen by phase: Stop while it runs, an error panel on failure,
-// a quiet "Finishing…" hint at completion. Early returns, no else.
-const MonitorControl = ({
-  phase,
-  error,
-  onCancel,
-  t,
-}: {
-  phase: CompilePhase;
-  error: string | null;
-  onCancel: () => void;
-  t: TFunction<'builder'>;
-}) => {
-  if (phase === 'error') {
-    return (
-      <div className="rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 p-4 text-center">
-        <p className="text-sm font-semibold text-[var(--color-error)]">{t('compile.errorTitle')}</p>
-        {error && <p className="mt-1 text-sm text-[var(--color-error)]/80">{error}</p>}
-      </div>
-    );
-  }
-
-  if (phase === 'complete') {
-    return <p className="text-center text-sm text-muted-foreground">{t('compile.finishing')}</p>;
-  }
-
-  return (
-    <div className="flex justify-center">
-      <StopButton size="lg" onClick={onCancel} label={t('compile.stop')} />
-    </div>
-  );
-};
-
-// The render monitor: a wide program-monitor column (the existing ProgressDisplay hero on a studio-stage
-// backdrop, with the single phase-appropriate control) beside a narrow project summary rail. Stacks on
-// mobile. The studio titlebar names the project — no marketing hero here.
+// The render monitor: a wide program-monitor column (the ProgressDisplay hero on a studio-stage
+// backdrop, with Stop under it) beside a narrow project summary rail. Stacks on mobile. The studio
+// titlebar names the project, and the progress headline names the stage, so the stage carries no
+// label of its own.
 export const CompileMonitor = ({
   template,
   clipFiles,
@@ -79,9 +70,11 @@ export const CompileMonitor = ({
   error,
   qualityTier,
   onCancel,
+  onRetry,
+  onBackToEdit,
 }: CompileMonitorProps) => {
   const { t } = useTranslation('builder');
-  const phase = compilePhase({ isProcessing, percentage: progress.percentage, error });
+  const phase = compilePhase({ isProcessing, percentage: progress.percentage, failed: error !== null });
 
   return (
     <div className="fade-in grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">

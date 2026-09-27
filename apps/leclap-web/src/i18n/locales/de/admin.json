@@ -312,7 +312,6 @@
     "ariaLabel": "Rendere eine Vorschau dieser Vorlage mit Beispielmaterial",
     "title": "Vorschau-Render",
     "description": "Ein schneller Entwurf mit Beispielmaterial – Platzhalter-Clips stehen für deine Videoabschnitte.",
-    "failed": "Der Vorschau-Render ist fehlgeschlagen.",
     "download": "Entwurf herunterladen"
   },
   "validation": {

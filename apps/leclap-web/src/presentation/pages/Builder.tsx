@@ -148,7 +148,7 @@ interface FlowProps {
     isProcessing: boolean;
     canProcess: boolean;
     progress: ProcessProgress;
-    error: string | null;
+    error: ReturnType<typeof useVideoProcessing>['error'];
   };
   // The user stopped the current render; see renderPhase.
   stopped: boolean;

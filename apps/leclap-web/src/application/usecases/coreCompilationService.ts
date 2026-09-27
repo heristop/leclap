@@ -16,28 +16,13 @@ import { materializeTemplateMedia } from '@/application/usecases/materializeTemp
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
 import { renderQuip } from '@leclap/creative-kit/render-quips';
+import { CompileError, classifyCompileFailure } from './compile-failure';
+import { createRenderQueue } from './render-queue';
 
 export type { MediaChoices, VideoConfigOverride };
 
-// Map a raw engine/FFmpeg failure to a concise, actionable message. The full error (ffmpeg stderr
-// included) is logged separately for debugging; this keeps what surfaces to the user readable instead
-// of a wall of stderr. Recognises the common "input couldn't be read" failures — a clip that is
-// missing, still uploading, or corrupt when it is staged into the WASM filesystem.
-export function describeCompilationError(error: unknown): string {
-  const raw = error instanceof Error ? error.message : String(error);
-
-  if (/moov atom not found|Invalid data found|detected only with low score|does not contain any stream/i.test(raw)) {
-    return 'A clip could not be read — it may still be uploading, missing, or corrupt. Re-select it and try again.';
-  }
-
-  if (/no output produced|No such file/i.test(raw)) {
-    return 'The video could not be assembled. Please try again.';
-  }
-
-  const firstLine = raw.split('\n')[0].trim().slice(0, 200);
-
-  return `Video compilation failed${firstLine ? `: ${firstLine}` : ''}`;
-}
+// How often a stopped render repeats its cancel to the engine until the engine gives up.
+const CANCEL_NUDGE_MS = 250;
 
 export interface CompilationConfig {
   template: Template;
@@ -77,53 +62,32 @@ export interface CompilationResult {
 
 class CoreCompilationService {
   private readonly filesystemAdapter = new BrowserFilesystemAdapter();
+  private readonly renders = createRenderQueue();
 
-  async compileVideo(
+  // Rejects with a CompileError: its failure says why, in terms the interface can translate.
+  compileVideo(
     config: CompilationConfig,
     onProgress: (progress: CompilationProgress) => void
   ): Promise<CompilationResult> {
-    const { template, formData, files, videoEdits, mediaChoices, videoConfig, preset, qualityTier } = config;
+    return this.renders.run((isCurrent) => this.render(config, onProgress, isCurrent));
+  }
+
+  private async render(
+    config: CompilationConfig,
+    onProgress: (progress: CompilationProgress) => void,
+    isCurrent: () => boolean
+  ): Promise<CompilationResult> {
+    // Give up on a render the viewer stopped, or a newer one replaced, before its next step.
+    const checkpoint = () => {
+      if (!isCurrent()) throw new Error('Render stopped');
+    };
 
     try {
-      onProgress({
-        stage: 'Initializing',
-        percentage: 3,
-        currentStep: 'Initializing',
-        totalSteps: 7,
-        currentStepIndex: 1,
-      });
+      checkpoint();
+      const { projectConfig, templateDescriptor, userVideoPaths } = await this.stage(config, onProgress, checkpoint);
 
-      await this.filesystemAdapter.clear();
-
-      const materializedTemplate = { ...template, descriptor: materializeTemplatePartials(template.descriptor) };
-      const clipSectionNames = this.projectVideoSectionNames(materializedTemplate);
-
-      const editedFiles = await this.applyEdits(files, videoEdits, clipSectionNames, onProgress);
-
-      const userVideoPaths = await this.storeUploadedFiles(editedFiles, clipSectionNames, onProgress);
-
-      const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, {
-        videoConfig,
-        preset,
-        qualityTier,
-      });
-
-      // Pre-load bundled TTF fonts so drawtext works in WASM: the WASM
-      // ffmpeg-core's freetype cannot decode the woff2 that Google Fonts serves
-      // ("Could not load font: unimplemented feature"). With the TTF already in
-      // place, fetchFonts() finds it cached and skips the (unusable) woff2 fetch.
-      await this.preloadBundledFonts();
-
-      const templateDescriptor = this.prepareTemplateDescriptor(
-        materializedTemplate,
-        formData,
-        userVideoPaths,
-        onProgress
-      );
-
-      await this.prepareMedia(templateDescriptor, mediaChoices);
-
-      const outputPath = await this.runCompilation(projectConfig, templateDescriptor, onProgress);
+      const outputPath = await this.runCompilation(projectConfig, templateDescriptor, onProgress, isCurrent);
+      checkpoint();
 
       const result = await this.finalizeResult(outputPath, onProgress);
 
@@ -131,25 +95,88 @@ class CoreCompilationService {
 
       return result;
     } catch (error) {
-      // Surface a concise, user-facing message — not the raw ffmpeg stderr wall. The full error stays
-      // available on the thrown Error's cause for anyone who needs to inspect it.
-      const message = describeCompilationError(error);
-      compilationLogger.error('Compilation error:', message);
+      // A voided render fails however it happens to stop (at a checkpoint, mid-clip, or at a segment
+      // boundary with no output) and none of that is an error: the viewer asked for it.
+      if (!isCurrent()) throw new CompileError({ kind: 'stopped', detail: '' }, { cause: error });
 
-      throw new Error(message, { cause: error });
+      const failure = classifyCompileFailure(error);
+      compilationLogger.error(`Compilation error (${failure.kind}):`, error);
+
+      throw new CompileError(failure, { cause: error });
     }
   }
 
-  // Cooperatively stop an in-flight compilation. The engine's TemplateDirector listens for
-  // `task-cancelled` on the shared event manager and flips its stop flag, so the build halts at the
-  // next segment boundary instead of running to completion. Safe to call when nothing is running:
-  // the container resolve just throws (engine not initialised yet) and we swallow it.
+  // Everything the engine needs on disk before it runs: a clean filesystem, the clips (trimmed and
+  // cropped) stored under their section names, the project config, the bundled fonts, and the descriptor
+  // with its media materialized.
+  private async stage(
+    config: CompilationConfig,
+    onProgress: (progress: CompilationProgress) => void,
+    checkpoint: () => void
+  ): Promise<{
+    projectConfig: ProjectConfig;
+    templateDescriptor: TemplateDescriptor;
+    userVideoPaths: Record<string, string>;
+  }> {
+    const { template, formData, files, videoEdits, mediaChoices, videoConfig, preset, qualityTier } = config;
+
+    onProgress({
+      stage: 'Initializing',
+      percentage: 3,
+      currentStep: 'Initializing',
+      totalSteps: 7,
+      currentStepIndex: 1,
+    });
+
+    await this.filesystemAdapter.clear();
+
+    const materializedTemplate = { ...template, descriptor: materializeTemplatePartials(template.descriptor) };
+    const clipSectionNames = this.projectVideoSectionNames(materializedTemplate);
+
+    const editedFiles = await this.applyEdits(files, videoEdits, clipSectionNames, onProgress);
+    checkpoint();
+
+    const userVideoPaths = await this.storeUploadedFiles(editedFiles, clipSectionNames, onProgress);
+    checkpoint();
+
+    const projectConfig = await this.setupProjectConfig(userVideoPaths, formData, onProgress, {
+      videoConfig,
+      preset,
+      qualityTier,
+    });
+
+    // Pre-load bundled TTF fonts so drawtext works in WASM: the WASM
+    // ffmpeg-core's freetype cannot decode the woff2 that Google Fonts serves
+    // ("Could not load font: unimplemented feature"). With the TTF already in
+    // place, fetchFonts() finds it cached and skips the (unusable) woff2 fetch.
+    await this.preloadBundledFonts();
+
+    const templateDescriptor = this.prepareTemplateDescriptor(
+      materializedTemplate,
+      formData,
+      userVideoPaths,
+      onProgress
+    );
+
+    await this.prepareMedia(templateDescriptor, mediaChoices);
+    checkpoint();
+
+    return { projectConfig, templateDescriptor, userVideoPaths };
+  }
+
+  // Stop the render in flight. Its checkpoints give up from here on, and the engine's TemplateDirector,
+  // which listens for `task-cancelled` on the shared event manager, halts at the next segment boundary.
+  // Safe to call when nothing is running.
   cancel(): void {
+    this.renders.stop();
+    this.signalCancel();
+  }
+
+  private signalCancel(): void {
     try {
-      const eventManager = container.resolve<AbstractEventManager>('eventManager');
-      eventManager.connect().emit('task-cancelled');
-    } catch (error) {
-      compilationLogger.warn('Cancel requested before the engine was ready:', error);
+      container.resolve<AbstractEventManager>('eventManager').connect().emit('task-cancelled');
+    } catch {
+      // The engine isn't initialised yet: there is no director to tell, and the checkpoints will do.
     }
   }
 
@@ -345,7 +372,8 @@ class CoreCompilationService {
   private async runCompilation(
     projectConfig: ProjectConfig,
     templateDescriptor: TemplateDescriptor,
-    onProgress: (progress: CompilationProgress) => void
+    onProgress: (progress: CompilationProgress) => void,
+    isCurrent: () => boolean
   ): Promise<string> {
     onProgress({
       stage: 'Compiling',
@@ -359,10 +387,20 @@ class CoreCompilationService {
     // real-time whole-template progress (0..1) into the 14–95% band, keeping the bar (and the derived
     // step dots) moving for the whole render rather than crawling a thin slice of it. The engine runs
     // on the same self-hosted core as the trim/crop pass, so the two share one download.
+    // A Stop pressed while the engine was still loading (the first render fetches the WASM core) had no
+    // director to hear it, so keep saying it until the render gives up: a director that hears it before
+    // its first segment renders nothing at all.
+    const nudge = setInterval(() => {
+      if (!isCurrent()) this.signalCancel();
+    }, CANCEL_NUDGE_MS);
+
     const outputPath = await compile(
       projectConfig,
       templateDescriptor,
       (fraction) => {
+        // A stopped render reports nothing more.
+        if (!isCurrent()) return;
+
         const clamped = Math.min(Math.max(fraction, 0), 1);
         onProgress({
           stage: 'Compiling',
@@ -373,7 +411,9 @@ class CoreCompilationService {
         });
       },
       { loadFFmpegCore: loadSelfHostedCore }
-    );
+    ).finally(() => {
+      clearInterval(nudge);
+    });
 
     if (!outputPath) {
       throw new Error('Core compilation failed - no output produced');

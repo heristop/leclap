@@ -98,5 +98,12 @@
       "title": "Stop! Qualcosa si è rotto da parte nostra.",
       "message": "LeClap si è imbattuto in un errore che non aveva previsto. I progetti che hai salvato restano in questo browser: ricaricare non li tocca."
     }
+  },
+  "compileError": {
+    "missingClip": "Questo modello ha bisogno di almeno una clip.",
+    "unreadableClip": "Non è stato possibile leggere una delle tue clip: forse è danneggiata, o in un formato che questo browser non sa aprire.",
+    "assemblyFailed": "Non è stato possibile unire le scene in un unico video.",
+    "stopped": "Il render è stato interrotto.",
+    "unknown": "Il motore di render ha segnalato un errore."
   }
 }

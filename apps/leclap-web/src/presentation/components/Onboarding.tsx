@@ -136,7 +136,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // The compile flow (step state + start/stop around the in-browser compile) lives in its own hook;
   // `stop` cancels an in-flight compile and closes the dialog.
-  const { step, setStep, progress, result, errorMessage, start, stop } = useOnboardingCompile({
+  const { step, setStep, progress, result, failure, start, stop } = useOnboardingCompile({
     sampleTemplateId,
     template,
     onClose: onDone,
@@ -218,14 +218,17 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
       );
     }
 
-    if (step === 'compiling') return <CompilingStep progress={progress} onStop={stop} />;
+    if (step === 'compiling') return <CompilingStep titleId={titleId} progress={progress} onStop={stop} />;
 
-    if (step === 'done' && result) return <DoneStep result={result} onStartCreating={startCreating} />;
+    if (step === 'done' && result) {
+      return <DoneStep titleId={titleId} result={result} onStartCreating={startCreating} />;
+    }
 
-    if (step === 'error') {
+    if (step === 'error' && failure) {
       return (
         <ErrorStep
-          errorMessage={errorMessage}
+          titleId={titleId}
+          failure={failure}
           onRetry={() => {
             setStep('create');
           }}

@@ -312,7 +312,6 @@
     "ariaLabel": "Lancer un aperçu du rendu de ce modèle avec des images d’exemple",
     "title": "Aperçu du rendu",
     "description": "Un brouillon rapide avec des images d’exemple — des clips fictifs remplacent tes sections vidéo.",
-    "failed": "L’aperçu du rendu a échoué.",
     "download": "Télécharger le brouillon"
   },
   "validation": {

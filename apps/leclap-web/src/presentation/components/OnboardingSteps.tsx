@@ -12,6 +12,13 @@ import { StopButton } from '@/presentation/components/StopButton';
 import { Button, Input } from '@/presentation/components/ui';
 import { useBrowserSupport } from '@/hooks/useBrowserSupport';
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
+import type { CompileFailure } from '@/application/usecases/compile-failure';
+import { CompileFailureText } from '@/presentation/components/compile-failure-text';
+import type { ClipSource } from '@/presentation/components/onboarding.logic';
+
+// Every step's heading carries the id the dialog is labelled by, and takes focus when its step opens
+// (Onboarding.tsx): a script-focused heading draws no ring, like the error pages' headings.
+const TITLE_FOCUS = 'outline-none';
 
 const WELCOME_FEATURES = [
   { id: 'record', icon: VideoIcon },
@@ -344,12 +351,15 @@ export const DoneStep = ({ titleId, result, onStartCreating }: DoneStepProps) =>
 };
 
 interface ErrorStepProps {
-  errorMessage: string;
+  /** The id of this step's heading, which names the dialog. */
+  titleId: string;
+  failure: CompileFailure;
   onRetry: () => void;
-  onDone: () => void;
+  /** Leave the intro for the studio, wherever the dialog was opened from. */
+  onContinue: () => void;
 }
 
-export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => {
+export const ErrorStep = ({ titleId, failure, onRetry, onContinue }: ErrorStepProps) => {
   const { t } = useTranslation('onboarding');
 
   return (
@@ -357,10 +367,19 @@ export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => 
       <div className="pop-in inline-flex p-3 bg-[var(--color-error)]/15 border border-[var(--color-error)]/30 rounded-2xl mb-4">
         <X className="w-6 h-6 text-[var(--color-error)]" />
       </div>
-      <h2 className="mb-2 px-10 font-display text-xl font-bold text-balance text-foreground sm:px-0 sm:text-2xl">
+      <h2
+        id={titleId}
+        tabIndex={-1}
+        className={clsx(
+          'mb-2 px-10 font-display text-xl font-bold text-balance text-foreground sm:px-0 sm:text-2xl',
+          TITLE_FOCUS
+        )}
+      >
         {t('error.title')}
       </h2>
-      <p className="text-gray-300 mb-6 text-sm">{errorMessage}</p>
+      <p className="text-gray-300 mb-6 text-sm">
+        <CompileFailureText failure={failure} />
+      </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Button onClick={onRetry} variant="primary" className="flex-1">
           {t('actions.tryAgain', { ns: 'common' })}

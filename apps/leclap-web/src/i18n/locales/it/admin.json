@@ -312,7 +312,6 @@
     "ariaLabel": "Renderizza un’anteprima di questo modello con filmati di esempio",
     "title": "Anteprima del render",
     "description": "Una bozza veloce con filmati di esempio — clip segnaposto sostituiscono le tue sezioni video.",
-    "failed": "L’anteprima del render non è riuscita.",
     "download": "Scarica la bozza"
   },
   "validation": {

@@ -312,7 +312,6 @@
     "ariaLabel": "Renderiza una vista previa de esta plantilla con material de ejemplo",
     "title": "Renderizar vista previa",
     "description": "Un borrador rápido con material de ejemplo: clips de marcador de posición sustituyen a tus secciones de vídeo.",
-    "failed": "Falló el render de la vista previa.",
     "download": "Descargar borrador"
   },
   "validation": {

@@ -45,8 +45,7 @@
   },
   "error": {
     "title": "That didn't work",
-    "fallback": "Something went wrong while creating your video.",
-    "continueToBuilder": "Continue to Templates"
+    "continueInStudio": "Continue in the studio"
   },
   "skipAria": "Skip onboarding"
 }

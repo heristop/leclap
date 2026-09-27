@@ -45,8 +45,7 @@
   },
   "error": {
     "title": "Non ha funzionato",
-    "fallback": "Qualcosa è andato storto durante la creazione del tuo video.",
-    "continueToBuilder": "Vai ai Modelli"
+    "continueInStudio": "Continua nello studio"
   },
   "skipAria": "Salta l’onboarding"
 }

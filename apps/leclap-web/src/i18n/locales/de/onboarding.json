@@ -45,8 +45,7 @@
   },
   "error": {
     "title": "Das hat nicht geklappt",
-    "fallback": "Beim Erstellen deines Videos ist etwas schiefgelaufen.",
-    "continueToBuilder": "Weiter zu den Vorlagen"
+    "continueInStudio": "Im Studio weitermachen"
   },
   "skipAria": "Onboarding überspringen"
 }

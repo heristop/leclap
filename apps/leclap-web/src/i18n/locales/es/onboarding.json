@@ -45,8 +45,7 @@
   },
   "error": {
     "title": "Eso no funcionó",
-    "fallback": "Algo salió mal al crear tu vídeo.",
-    "continueToBuilder": "Continuar a Plantillas"
+    "continueInStudio": "Seguir en el estudio"
   },
   "skipAria": "Omitir la introducción"
 }

@@ -98,5 +98,12 @@
       "title": "Coupez ! Quelque chose a lâché de notre côté.",
       "message": "LeClap est tombé sur une erreur qu’il n’avait pas vue venir. Tes projets enregistrés restent dans ce navigateur : recharger n’y touchera pas."
     }
+  },
+  "compileError": {
+    "missingClip": "Ce modèle a besoin d’au moins un clip.",
+    "unreadableClip": "Un de tes clips n’a pas pu être lu : il est peut-être abîmé, ou dans un format que ce navigateur ne sait pas ouvrir.",
+    "assemblyFailed": "Les scènes n’ont pas pu être assemblées en une seule vidéo.",
+    "stopped": "Le rendu a été arrêté.",
+    "unknown": "Le moteur de rendu a signalé une erreur."
   }
 }

@@ -1,9 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import {
-  FilesystemNodeAdapter,
-  PinoLogAdapter,
-  TemplateValidator,
-  createBundledFontLoader,
+  GEOMETRY_APPROX_MARKER,
+  nodeGeometryWarnings,
   type TemplateDescriptor,
   type TemplateDescriptorSchema,
 } from 'ffmpeg-video-composer';
@@ -77,93 +75,22 @@ function formFields(descriptor: TemplateDescriptor): string[] {
 // (e.g. `partials`) are simply absent/inert, never a problem.
 type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 
-// The MCP server is a Node process with the engine's bundled fonts reachable, so it measures real
-// glyph advances rather than the 0.5em-per-character estimate. Without this the agent-facing surface
-// — the one authoring the most templates, with the least ability to eyeball a render — would see
-// every line marked approximate forever.
-//
-// Built once, at module load, and its reads cached — because unlike the CLI this process is
-// long-lived: an agent iterating on a descriptor calls validate_template dozens of times, and each
-// call would otherwise re-stat and re-read the same ~700KB of TTFs for a tool that advertises itself
-// as instant. The bundled set cannot change under a running server.
-//
-// Module scope rather than a per-call factory, which is what this comment used to describe while the
-// code rebuilt a FilesystemNodeAdapter and a pino logger on every invocation. That is more than an
-// allocation: pino's default destination is fd 1, the same stdio channel carrying the MCP JSON-RPC
-// frames (probeMedia.ts and renderWorker.ts both route around it for exactly that reason), so the
-// fewer loggers bound to it, the better.
-const loadBundledFont = createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
-
-// Stateless, so one instance serves every call.
-const validator = new TemplateValidator();
-
-const fontBytes = new Map<string, Promise<Uint8Array | null>>();
-
-function bundledFont(file: string): Promise<Uint8Array | null> {
-  const cached = fontBytes.get(file);
-
-  if (cached) {
-    return cached;
-  }
-
-  // Only a SUCCESSFUL read is cached for the life of the process. `createBundledFontLoader`
-  // collapses "not bundled here" and "the read blew up" into the same null, so caching that null
-  // would let one transient failure — an EMFILE under load, a half-written file — pin every later
-  // validate_template to approximate measurements until the server restarts, with nothing in the
-  // output to say why. Re-resolving a genuinely absent font costs a handful of stat() calls.
-  //
-  // A rejection evicts for the same reason, and one more: the loader swallows everything today, but
-  // that is one edit away, and a cached REJECTED promise would both pin the process to estimates and
-  // become an unhandled-rejection source on its first cache hit.
-  const pending = loadBundledFont(file).then(
-    (bytes) => {
-      if (!bytes) {
-        fontBytes.delete(file);
-      }
-
-      return bytes;
-    },
-    (error: unknown) => {
-      fontBytes.delete(file);
-
-      throw error;
-    }
-  );
-
-  fontBytes.set(file, pending);
-
-  return pending;
-}
-
 // One line per finding: path, message, and an `approx` marker when the measurement fell back to an
 // estimate — no font metrics, or text carrying a {{ var }} that only resolves at render time.
 // Returns undefined — not [] — when there is nothing to
 // report, so the field disappears from the payload.
 //
-// Geometry is advisory, so it must not be able to fail the tool call: `handleValidate` is async now,
-// and an unguarded throw here would turn a perfectly valid template into an MCP protocol error. The
-// CLI guards the same call for the same reason (leclap-cli's `safeGeometryWarnings`).
+// `nodeGeometryWarnings` measures with real glyph advances (bundled fonts, else the catalog the
+// renderer fetches from), caches font bytes for the life of this long-lived process, and degrades a
+// throw to no findings — geometry is advisory and must never turn a valid template into an MCP error.
 export async function geometryLines(descriptor: TemplateDescriptor): Promise<string[] | undefined> {
-  const warnings = await safeGeometryWarnings(descriptor);
+  const warnings = await nodeGeometryWarnings(descriptor as unknown as GeometryDescriptor);
 
   if (warnings.length === 0) {
     return undefined;
   }
 
-  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? ' (approx: estimated, not measured)' : ''}`);
-}
-
-async function safeGeometryWarnings(descriptor: TemplateDescriptor) {
-  try {
-    return await validator.getGeometryWarnings(descriptor as unknown as GeometryDescriptor, bundledFont);
-  } catch (error) {
-    // Every expected failure — no bundled fonts, an unreadable .ttf — is already handled inside the
-    // loader and the parser, so anything landing here is a bug. Note it on stderr (stdout is the MCP
-    // protocol channel) rather than letting a broken checker look like a clean template.
-    process.stderr.write(`geometry checks skipped: ${error instanceof Error ? error.message : String(error)}\n`);
-
-    return [];
-  }
+  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? GEOMETRY_APPROX_MARKER : ''}`);
 }
 
 // `authored` is the descriptor exactly as the caller sent it. `descriptor` has already had its

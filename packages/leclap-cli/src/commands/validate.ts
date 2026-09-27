@@ -3,9 +3,8 @@ import fs from 'node:fs/promises';
 import pc from 'picocolors';
 import {
   TemplateValidator,
-  FilesystemNodeAdapter,
-  PinoLogAdapter,
-  createBundledFontLoader,
+  GEOMETRY_APPROX_MARKER,
+  nodeGeometryWarnings,
   type GeometryWarning,
 } from 'ffmpeg-video-composer';
 import { success, fail, step, hint } from '../ui.js';
@@ -37,7 +36,7 @@ interface ValidationResult {
 // picocolors honours NO_COLOR.
 export function formatValidation(result: ValidationResult): string[] {
   const warnings = (result.warnings ?? []).map((w) => {
-    const approx = w.approx ? ' (approx: estimated, not measured)' : '';
+    const approx = w.approx ? GEOMETRY_APPROX_MARKER : '';
 
     return step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}${approx}`);
   });
@@ -115,23 +114,14 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
   return attachGeometryWarnings(new TemplateValidator(), data);
 }
 
-// A Node filesystem adapter, built directly rather than through the engine's tsyringe container: the
-// container only registers `'logger'` inside `compile()`/`loadConfig()`, neither of which `validate`
-// calls, so `container.resolve(FilesystemNodeAdapter)` would throw here. `@inject('logger')` only
-// matters when tsyringe itself constructs the class; a plain `new` with a logger instance satisfies
-// the constructor without the container. Its `resolveBundledFont`/`readFile` never call the logger,
-// so a bare `PinoLogAdapter` (no engine log-level wiring needed) is enough.
-function bundledFontLoader() {
-  return createBundledFontLoader(new FilesystemNodeAdapter(new PinoLogAdapter()));
-}
-
 // `validateTemplate`'s `data` is a `TemplateDescriptor | Section` union (shared with `validateSection`);
 // only the descriptor shape carries `sections`, so `'type' in descriptor` (a Section-only field) tells
 // them apart. Geometry checks only make sense for a full descriptor, and only run when the descriptor
 // parsed — schema failures without `data` skip straight through. Warnings are advisory: they attach
 // alongside whatever `success`/`errors` the schema validator produced and never change them. The font
-// loader degrades to `null` per font (no bundled fonts found, e.g. a published install) rather than
-// throwing, so a miss falls back to approximate measurement instead of breaking validation.
+// loader tries the bundled fonts, then the catalog the renderer fetches from, and degrades to `null`
+// per font (offline, unknown file) rather than throwing, so a miss falls back to approximate
+// measurement instead of breaking validation.
 async function attachGeometryWarnings(validator: TemplateValidator, data: unknown): Promise<ValidationResult> {
   const result = validator.validateTemplate(data);
   const descriptor = result.data;
@@ -145,10 +135,7 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
   // wrote at `sections[1]` behind a three-section partial came back reported at `sections[3]`, and
   // an agent editing that path would touch the wrong section. `getGeometryWarnings` expands for
   // itself and maps the findings back to authored indices, so it needs the descriptor as written.
-  const warnings = await safeGeometryWarnings(
-    validator,
-    data as Parameters<TemplateValidator['getGeometryWarnings']>[0]
-  );
+  const warnings = await nodeGeometryWarnings(data as Parameters<typeof nodeGeometryWarnings>[0], { validator });
 
   // Absent, not empty: a clean template must not emit `"warnings":[]` — that is the zero-token
   // guarantee, and it only holds if the key itself disappears.
@@ -159,25 +146,4 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
   // Passed through wholesale (code/severity/approx included): `--json` is documented to emit
   // whatever `getGeometryWarnings` returned, unreshaped.
   return { ...result, warnings };
-}
-
-// Advisory findings must never take the exit code hostage. `bundledFontLoader()` and
-// `getGeometryWarnings` both run here so a throw from either — a missing platform dependency, a
-// font that fails to parse — degrades to "no warnings" instead of crashing an otherwise valid
-// template.
-async function safeGeometryWarnings(
-  validator: TemplateValidator,
-  descriptor: Parameters<TemplateValidator['getGeometryWarnings']>[0]
-): Promise<GeometryWarning[]> {
-  try {
-    return await validator.getGeometryWarnings(descriptor, bundledFontLoader());
-  } catch (error) {
-    // Degrade, but not in silence. Every *expected* failure — no bundled fonts, an unreadable .ttf —
-    // is already handled inside the loader and the parser, so anything arriving here is a bug, and
-    // swallowing it outright makes a broken checker indistinguishable from a clean template. stderr,
-    // so `--json` on stdout stays parseable.
-    process.stderr.write(`geometry checks skipped: ${error instanceof Error ? error.message : String(error)}\n`);
-
-    return [];
-  }
 }

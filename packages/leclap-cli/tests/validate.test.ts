@@ -2,21 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatValidation, exitCodeFor } from '../src/commands/validate';
 
 const validateTemplateMock = vi.fn();
-const getGeometryWarningsMock = vi.fn();
-// A recognisable stand-in for the loader `createBundledFontLoader` produces, so a test can assert
-// this exact value — not just "a function" — reaches `getGeometryWarnings`.
-const bundledFontLoaderMock = vi.fn();
+const nodeGeometryWarningsMock = vi.fn();
 
 vi.mock('ffmpeg-video-composer', () => ({
   TemplateValidator: vi.fn().mockImplementation(function TemplateValidatorMock() {
     return {
       validateTemplate: validateTemplateMock,
-      getGeometryWarnings: getGeometryWarningsMock,
     };
   }),
-  FilesystemNodeAdapter: vi.fn(),
-  PinoLogAdapter: vi.fn(),
-  createBundledFontLoader: vi.fn(() => bundledFontLoaderMock),
+  GEOMETRY_APPROX_MARKER: ' (approx: estimated, not measured)',
+  nodeGeometryWarnings: (...args: unknown[]) => nodeGeometryWarningsMock(...args),
 }));
 
 vi.mock('node:fs/promises', () => ({
@@ -143,7 +138,7 @@ describe('validate command exit code with geometry warnings', () => {
 
   it('never exits 1 when the template is valid but geometry warnings are found', async () => {
     validateTemplateMock.mockReturnValue({ success: true, data: { sections: [] } });
-    getGeometryWarningsMock.mockResolvedValue([
+    nodeGeometryWarningsMock.mockResolvedValue([
       {
         path: 'sections[0].caption',
         message: 'overflows the safe width by 84px',
@@ -168,7 +163,7 @@ describe('validate command exit code with geometry warnings', () => {
       success: false,
       errors: [{ path: 'sections[0].type', message: 'unknown section type', code: 'invalid' }],
     });
-    getGeometryWarningsMock.mockResolvedValue([]);
+    nodeGeometryWarningsMock.mockResolvedValue([]);
 
     const { validate } = await import('../src/commands/validate');
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
@@ -176,19 +171,15 @@ describe('validate command exit code with geometry warnings', () => {
     expect(process.exitCode).toBe(1);
   });
 
-  // Passing no loader is itself a legitimate, fully-supported path (measurements degrade to
-  // approximate), so nothing else here would fail if the wiring were silently dropped. This pins
-  // that `getGeometryWarnings` is actually called with a loader — and specifically the one
-  // `createBundledFontLoader` produced, not merely "some function" — so removing the wiring fails
-  // this test even though the command would still run, still print, and still exit 0.
-  it('passes the loader produced by createBundledFontLoader to getGeometryWarnings', async () => {
-    const descriptor = { sections: [] };
-    validateTemplateMock.mockReturnValue({ success: true, data: descriptor });
-    getGeometryWarningsMock.mockResolvedValue([]);
+  // The loader wiring now lives in the engine (`nodeGeometryWarnings`), shared with the MCP server.
+  // This pins that the command still routes through it, with the descriptor as the author wrote it.
+  it('asks the engine for geometry warnings on the raw descriptor', async () => {
+    validateTemplateMock.mockReturnValue({ success: true, data: { sections: [], expanded: true } });
+    nodeGeometryWarningsMock.mockResolvedValue([]);
 
     const { validate } = await import('../src/commands/validate');
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
 
-    expect(getGeometryWarningsMock).toHaveBeenCalledWith(descriptor, bundledFontLoaderMock);
+    expect(nodeGeometryWarningsMock).toHaveBeenCalledWith({ sections: [] }, expect.anything());
   });
 });

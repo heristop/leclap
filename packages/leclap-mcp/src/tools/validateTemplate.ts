@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import {
-  GEOMETRY_APPROX_MARKER,
+  geometryApproxNote,
   nodeGeometryWarnings,
   type TemplateDescriptor,
   type TemplateDescriptorSchema,
@@ -25,8 +25,9 @@ const outputSchema = z.object({
     .array(z.string())
     .optional()
     .describe(
-      'Text that would overflow the frame, collide with other text, or render too small to read — ' +
-        'one line per finding, present only when there is something to fix; check this before rendering.'
+      'Text that would run off the frame or out of title-safe, collide with other text, sit under a band, ' +
+        'be too small, lack contrast, or sit over footage with no box/outline/shadow — one line per finding ' +
+        'saying what to change, present only when there is something to fix; check this before rendering.'
     ),
 });
 
@@ -90,7 +91,7 @@ export async function geometryLines(descriptor: TemplateDescriptor): Promise<str
     return undefined;
   }
 
-  return warnings.map((w) => `${w.path}: ${w.message}${w.approx ? GEOMETRY_APPROX_MARKER : ''}`);
+  return warnings.map((w) => `${w.path}: ${w.message}${geometryApproxNote(w)}`);
 }
 
 // `authored` is the descriptor exactly as the caller sent it. `descriptor` has already had its
@@ -160,8 +161,8 @@ export function registerValidateTemplate(server: McpServer): void {
         'instantly. Get back whether it is valid plus what compose_video will require: the ' +
         'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
         'milliseconds before the slower compose_video render. Also catches, render-free, text that ' +
-        'overflows the frame, collides with other text, or is too small to read — see the `geometry` ' +
-        'field.',
+        'runs off the frame or out of title-safe, collides with other text, sits under a band, is too ' +
+        'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field.',
       inputSchema,
       outputSchema,
     },

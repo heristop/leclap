@@ -23,7 +23,7 @@ describe('geometryLines', () => {
           type: 'color_background',
           name: 'a',
           options: { duration: 3 },
-          caption: { text: 'A caption far too long to fit in frame', fontsize: 96 },
+          caption: { text: { en: 'A caption far too long to fit in frame' }, fontsize: 96 },
         },
       ],
     } as unknown as TemplateDescriptor;

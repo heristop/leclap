@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { formatValidation, exitCodeFor } from '../src/commands/validate';
+import { formatValidation, exitCodeFor, bracketPath } from '../src/commands/validate';
 
 const validateTemplateMock = vi.fn();
 const nodeGeometryWarningsMock = vi.fn();
@@ -10,7 +10,7 @@ vi.mock('ffmpeg-video-composer', () => ({
       validateTemplate: validateTemplateMock,
     };
   }),
-  GEOMETRY_APPROX_MARKER: ' (approx: estimated, not measured)',
+  geometryApproxNote: (w: { approx: boolean }) => (w.approx ? ' (approx: font unavailable, width estimated)' : ''),
   nodeGeometryWarnings: (...args: unknown[]) => nodeGeometryWarningsMock(...args),
 }));
 
@@ -181,5 +181,28 @@ describe('validate command exit code with geometry warnings', () => {
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
 
     expect(nodeGeometryWarningsMock).toHaveBeenCalledWith({ sections: [] }, expect.anything());
+  });
+});
+
+describe('one report, one notation', () => {
+  it('writes schema error paths the way findings and agents address them', () => {
+    expect(bracketPath('sections.1.caption.font')).toBe('sections[1].caption.font');
+    expect(bracketPath('partials.0.sections.2')).toBe('partials[0].sections[2]');
+    expect(bracketPath('global.orientation')).toBe('global.orientation');
+  });
+
+  it('counts warnings in the headline and names each location once', () => {
+    const warning = {
+      path: 'sections[0].caption',
+      message: 'Section "a" caption is 8px, too small to read on a phone — use at least 18px',
+      code: 'text_too_small',
+      severity: 'warn' as const,
+      approx: true,
+    };
+    const lines = formatValidation({ success: true, warnings: [warning, warning] }).map(plain);
+
+    expect(lines[0]).toContain('Template is valid — 2 warnings');
+    expect(lines[1]).toContain('(approx: font unavailable, width estimated) sections[0].caption');
+    expect(lines[1].match(/sections\[0\]\.caption/g)).toHaveLength(1);
   });
 });

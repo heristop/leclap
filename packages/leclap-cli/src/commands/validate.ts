@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import pc from 'picocolors';
 import {
   TemplateValidator,
-  GEOMETRY_APPROX_MARKER,
+  geometryApproxNote,
   nodeGeometryWarnings,
   type GeometryWarning,
 } from 'ffmpeg-video-composer';
@@ -30,34 +30,39 @@ interface ValidationResult {
   warnings?: ValidationWarning[];
 }
 
-// Pure: turn a validation result into display lines (no IO). On failure, one line per error plus a
-// count; on success a single confirmation. Warnings are advisory — they render on both the success
-// and failure paths and never affect which of those two paths is taken. ANSI styling is applied but
-// picocolors honours NO_COLOR.
-export function formatValidation(result: ValidationResult): string[] {
-  const warnings = (result.warnings ?? []).map((w) => {
-    const approx = w.approx ? GEOMETRY_APPROX_MARKER : '';
+// Schema errors arrive as `sections.1.caption`; geometry findings — and what an agent edits against —
+// use `sections[1].caption`. One notation in one report.
+export function bracketPath(path: string): string {
+  return path.replace(/\.(\d+)(?=\.|$)/g, '[$1]');
+}
 
-    return step(`${pc.yellow('!')} ${pc.bold(w.path)} — ${w.message}${approx}`);
-  });
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
+// Pure: turn a validation result into display lines (no IO). On failure, one line per error plus a
+// count; on success a single confirmation. Warnings are advisory — they render on both paths, never
+// decide between them, and are counted in the headline so "valid" followed by yellow lines does not
+// read as a contradiction. Each finding's message already names the section, so the path follows it
+// dimmed rather than leading it a second time. picocolors honours NO_COLOR.
+export function formatValidation(result: ValidationResult): string[] {
+  const found = result.warnings ?? [];
+  const warnings = found.map((w) => step(`${pc.yellow('!')} ${w.message}${geometryApproxNote(w)} ${pc.dim(w.path)}`));
+  const warned = found.length > 0 ? ` — ${plural(found.length, 'warning')}` : '';
 
   if (result.success) {
-    return [success('Template is valid'), ...warnings];
+    return [success(`Template is valid${warned}`), ...warnings];
   }
 
   const errors = result.errors ?? [];
 
   if (errors.length === 0) {
-    return [fail('Template is invalid'), ...warnings];
+    return [fail(`Template is invalid${warned}`), ...warnings];
   }
 
-  const lines = errors.map((e) => step(`${pc.red('✗')} ${pc.bold(e.path)} — ${e.message}`));
+  const lines = errors.map((e) => step(`${pc.red('✗')} ${pc.bold(bracketPath(e.path))} — ${e.message}`));
 
-  return [
-    fail(`Template is invalid (${errors.length} ${errors.length === 1 ? 'problem' : 'problems'})`),
-    ...lines,
-    ...warnings,
-  ];
+  return [fail(`Template is invalid (${plural(errors.length, 'problem')})${warned}`), ...lines, ...warnings];
 }
 
 // The exit code is driven solely by `success`; geometry (and any other) warnings must never flip it,

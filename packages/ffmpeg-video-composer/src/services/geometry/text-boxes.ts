@@ -57,6 +57,10 @@ export interface Box {
   // preset's fixed anchor (a lowerThird's band). The title-safe rule skips the vertical axis when
   // this is false, because a finding the author cannot act on is noise — see rules.ts.
   verticalPositionAuthored: boolean;
+  // Whether this box's time window rests on ASSUMED_DURATION_SEC — its own section declared no
+  // duration, or an earlier one did and shifted the cursor. Kept apart from `approx`, which is about
+  // width: only the collision rule reads the timeline, so only it should be qualified by this.
+  timingAssumed: boolean;
 }
 
 export interface Canvas {
@@ -195,15 +199,15 @@ interface CaptionedSection {
   };
 }
 
-// `Number.isFinite`, not `?? ASSUMED_DURATION_SEC` alone: `??` only covers null/undefined, and
+// `Number.isFinite`, not a bare `??`: `??` only covers null/undefined, and
 // `Math.max(NaN, 0)` at the call site is NaN, so one `duration: "abc"` from unvalidated input made
 // the cursor NaN and every later box's window with it. The finding read "overlaps … for NaNs", and
 // because every NaN comparison is false the collision rule's `b.startSec >= a.endSec` early exit
 // never fired either — silently restoring the O(n^2) sweep the break exists to avoid.
-function sectionDuration(section: { options?: { duration?: number } }): number {
+function declaredDuration(section: { options?: { duration?: number } }): number | null {
   const duration = section.options?.duration;
 
-  return Number.isFinite(duration) ? (duration as number) : ASSUMED_DURATION_SEC;
+  return Number.isFinite(duration) ? (duration as number) : null;
 }
 
 // `caption`/`lowerThird` live on the BASE section schema, so a `form` or `music` section may carry
@@ -225,6 +229,7 @@ interface SectionPlacement {
   authoredIndex: number;
   startSec: number;
   duration: number;
+  timingAssumed: boolean;
   canvas: Canvas;
   resolve: (font: string) => FontMetrics | null;
 }
@@ -243,7 +248,7 @@ function boxPadding(caption: NonNullable<CaptionedSection['caption']>, preset: C
 // Builds the box for a single section's caption, or null when the section has no renderable text.
 // Split out of collectBoxes to keep that function's statement count within the lint limit.
 function boxForSection(section: CaptionedSection, placement: SectionPlacement): Box | null {
-  const { index, authoredIndex, startSec, duration, canvas, resolve } = placement;
+  const { index, authoredIndex, startSec, duration, timingAssumed, canvas, resolve } = placement;
   const caption = section.caption;
 
   if (!caption) {
@@ -281,6 +286,7 @@ function boxForSection(section: CaptionedSection, placement: SectionPlacement): 
     fontSize,
     startSec,
     endSec: startSec + duration,
+    timingAssumed,
     approx: measured.approx,
     color: appearance.color,
     backdrop: appearance.backdrop,
@@ -322,7 +328,7 @@ function lowerThirdLineBox(
   section: CaptionedSection,
   placement: SectionPlacement
 ): Box | null {
-  const { index, authoredIndex, startSec, duration, canvas, resolve } = placement;
+  const { index, authoredIndex, startSec, duration, timingAssumed, canvas, resolve } = placement;
   const fontSize = canvas.height * spec.sizeRatio;
   const measured = measure(lowerThird[spec.key], fontSize, resolve(spec.font), section.options);
 
@@ -349,6 +355,7 @@ function lowerThirdLineBox(
     fontSize,
     startSec,
     endSec: startSec + duration,
+    timingAssumed,
     approx: measured.approx,
     color: spec.color,
     backdrop: appearance.backdrop,
@@ -401,6 +408,7 @@ export function collectBoxes(
   // identical case the same way.
   const sections: (CaptionedSection | null | undefined)[] = Array.isArray(template.sections) ? template.sections : [];
   let cursorSec = 0;
+  let timingAssumed = false;
 
   for (let index = 0; index < sections.length; index++) {
     const section = sections[index];
@@ -414,12 +422,16 @@ export function collectBoxes(
     // but `collectBoxes` is exported and may be handed unvalidated input, where one bad section
     // would shift every later box's window and turn a single mistake into a cascade of bogus
     // collision findings.
-    const duration = Math.max(sectionDuration(section), 0);
+    const declared = declaredDuration(section);
+    const duration = Math.max(declared ?? ASSUMED_DURATION_SEC, 0);
+    // Sticky: once one window is a guess, every later start time is built on it.
+    timingAssumed ||= declared === null;
     const placement: SectionPlacement = {
       index,
       authoredIndex: origins?.[index] ?? index,
       startSec: cursorSec,
       duration,
+      timingAssumed,
       canvas,
       resolve,
     };

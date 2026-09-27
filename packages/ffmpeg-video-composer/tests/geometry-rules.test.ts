@@ -30,6 +30,7 @@ function box(overrides: Partial<Box> = {}): Box {
     // Captions are author-positioned, so both axes are checked. The lowerThird boxes set this
     // false; see the "preset-anchored" cases in the overflow block below.
     verticalPositionAuthored: true,
+    timingAssumed: false,
     ...overrides,
   };
 }
@@ -251,5 +252,23 @@ describe('footageLegibilityWarnings', () => {
       'Section "a" caption: no box, shadow or outline over an unknown background — legibility depends on what is behind it'
     );
     expect(warnings[0].message.startsWith(warnings[0].path)).toBe(false);
+  });
+});
+
+describe('collisionWarnings on an assumed timeline', () => {
+  // A section with no duration gets a stand-in window, so any overlap in TIME between its box and
+  // another is a guess — even when both widths were measured from real font metrics.
+  it('flags a collision as approximate when either window was assumed', () => {
+    const a = box({ path: 'sections[0].caption', startSec: 0, endSec: 2, timingAssumed: true });
+    const b = box({ path: 'sections[1].caption', startSec: 1, endSec: 3 });
+
+    expect(collisionWarnings([a, b])[0].approx).toBe(true);
+  });
+
+  it('keeps a collision exact when both windows were declared', () => {
+    const a = box({ path: 'sections[0].caption', startSec: 0, endSec: 2 });
+    const b = box({ path: 'sections[1].caption', startSec: 1, endSec: 3 });
+
+    expect(collisionWarnings([a, b])[0].approx).toBe(false);
   });
 });

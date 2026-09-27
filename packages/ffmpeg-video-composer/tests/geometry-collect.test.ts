@@ -346,3 +346,59 @@ describe('collectGeometryWarnings', () => {
     ).resolves.toBeInstanceOf(Array);
   });
 });
+
+describe('collectGeometryWarnings on sections without a duration', () => {
+  // The engine derives the length at render time; the model can only assume one. A caption and a
+  // lowerThird sharing that window "collide" only on the assumption, so the finding must say so —
+  // even though both widths were measured from real font metrics.
+  function captionOverLowerThird(options: Record<string, unknown>): TemplateDescriptor {
+    return {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          options,
+          caption: { text: { en: 'hello there' }, fontsize: 40, align: 'left', position: 'bottom' },
+          lowerThird: { title: { en: 'World' }, subtitle: { en: 'subtitle line' } },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+  }
+
+  async function collisions(template: TemplateDescriptor) {
+    return (await collectGeometryWarnings(template, loadFont)).filter((w) => w.code === 'text_collision');
+  }
+
+  it('marks a collision drawn from an assumed window as approximate', async () => {
+    const found = await collisions(captionOverLowerThird({}));
+
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.every((w) => w.approx)).toBe(true);
+  });
+
+  it('keeps the same collision exact once the duration is declared', async () => {
+    const found = await collisions(captionOverLowerThird({ duration: 4 }));
+
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.some((w) => w.approx)).toBe(false);
+  });
+
+  it('leaves width findings unqualified, since they never read the timeline', async () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [
+        {
+          type: 'color_background',
+          name: 'a',
+          caption: { text: { en: 'This caption is far too long to fit inside the frame at this size' }, fontsize: 90 },
+        },
+      ],
+    } as unknown as TemplateDescriptor;
+
+    const found = (await collectGeometryWarnings(template, loadFont)).filter((w) => w.code === 'text_out_of_frame');
+
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.some((w) => w.approx)).toBe(false);
+  });
+});

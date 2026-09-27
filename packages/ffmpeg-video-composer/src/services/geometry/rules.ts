@@ -247,9 +247,11 @@ export function collisionWarnings(boxes: Box[], limit = Number.POSITIVE_INFINITY
         continue;
       }
 
-      warnings.push(
-        warn(a, 'text_collision', `${a.label} overlaps ${b.label} for ${shared.toFixed(1)}s`, a.approx || b.approx)
-      );
+      // Either width may be estimated, and either window may be assumed (see Box.timingAssumed) —
+      // a section with no duration gets a stand-in length the model cannot know.
+      const approx = a.approx || b.approx || a.timingAssumed || b.timingAssumed;
+
+      warnings.push(warn(a, 'text_collision', `${a.label} overlaps ${b.label} for ${shared.toFixed(1)}s`, approx));
     }
   }
 

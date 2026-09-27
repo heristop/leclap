@@ -113,6 +113,9 @@ html {
   /* Reserve the scrollbar gutter so opening a dialog (which locks body scroll)
      doesn't add compensating padding and trigger a horizontal scrollbar. */
   scrollbar-gutter: stable;
+  /* The header is fixed, so anchor jumps (#film, #features…) and focus moved by Tab stop below it
+     instead of landing underneath it. */
+  scroll-padding-top: 5rem;
 }
 
 /* Lenis (marketing routes) tags the root while it's mounted and owns easing from
@@ -264,6 +267,9 @@ body {
   --text-display-l: clamp(2rem, 1.5rem + 2.4vw, 2.75rem);
   --text-display-m: clamp(1.65rem, 1.35rem + 1.4vw, 2.125rem);
   --text-display-s: clamp(1.4rem, 1.25rem + 0.9vw, 1.75rem);
+  /* The landing's section headlines (SectionHeading): 48px on phones growing to 81px on desktop, fluid
+     in between rather than jumping at a breakpoint, one clear step under the hero's `mega`. */
+  --text-display-section: clamp(3rem, 1.6rem + 4.4vw, 4.5rem);
 
   /* Kinetic Editorial — shared motion durations (seconds), aligned to the Expo motion vocabulary.
      Mirrored for the JS primitives in components/kinetic/motion.ts. */
@@ -401,14 +407,16 @@ body {
 /* Radial-clipped shimmer text (the codewiki hero technique, on the lavender palette): a hot-white
    core over the upper half of the line, cooling to the brand tint at the edges — reads as a beam
    caught on glass rather than the ambient gradient-pan above. Deliberately static (no infinite
-   animation) so it stays legible as body copy and doesn't compete with the animated eyebrow. */
+   animation) so it stays legible as body copy and doesn't compete with the animated eyebrow. The cool
+   end stops at brand-300: the glyphs' lower edges sit over the hero film, and brand-400 there fell to
+   about 2:1 on its brightest frames. */
 @utility text-shimmer-radial {
   background-image: radial-gradient(
     120% 160% at 50% 20%,
     oklch(1 0 0 / 0.98) 0%,
     oklch(1 0 0 / 0.82) 38%,
-    var(--color-brand-300) 72%,
-    var(--color-brand-400) 100%
+    var(--color-brand-200) 72%,
+    var(--color-brand-300) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -549,6 +557,29 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .tally-ping {
+    display: none;
+  }
+}
+
+/* The frame's sound hint arrives with one soft ping: a halo of the lit chip's light spreading out and fading,
+   once, as the label finishes unfolding. A box-shadow keeps the halo the chip's own shape at any label width,
+   and the `both` fill holds it invisible through the delay. The tally's gentle ease-out, not the expo curve:
+   an expo halo has faded before it has spread. Hidden under reduced motion. */
+@keyframes sound-ping {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-brand-200) 60%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 14px color-mix(in oklch, var(--color-brand-200) 0%, transparent);
+  }
+}
+
+@utility sound-ping {
+  animation: sound-ping 1.4s cubic-bezier(0, 0, 0.2, 1) 0.45s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sound-ping {
     display: none;
   }
 }
@@ -1359,14 +1390,19 @@ body {
 /* `animate-float` / `animate-glow` are auto-generated from the `--animate-*`
    theme tokens, so no manual class is needed. */
 
-/* Respect users who prefer less motion — disable looping/entrance FX. */
+/* Respect users who prefer less motion — disable looping/entrance FX. The delays go too: a staggered
+   entrance keeps its `both` fill (hidden) for the whole delay, so without this, reduced-motion visitors
+   would wait up to a second and a half for content that then pops in. `!important` also beats the inline
+   `animationDelay` styles that stagger those entrances. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }
@@ -1513,11 +1549,48 @@ html.theme-vt::view-transition-new(root) {
   box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-brand-500) 40%, transparent);
 }
 
+/* One rule per engine: a selector list holding the other engine's pseudo-element is invalid as a whole,
+   so a combined rule would be dropped everywhere (and the global reset doesn't reach slider thumbs). */
 @media (prefers-reduced-motion: reduce) {
-  .studio-range::-webkit-slider-thumb,
+  .studio-range::-webkit-slider-thumb {
+    transition: none;
+  }
+
   .studio-range::-moz-range-thumb {
     transition: none;
   }
+}
+
+/* The hero's scrubber is the landing's one draggable control, and on a phone it is thumb-driven: the input
+   grows to a 44px touch target around the same centred track, and the negative margins hand the height back
+   so the timeline strip doesn't move. It sits on video, so its keyboard ring is a solid foreground ring on a
+   background gap rather than the translucent brand halo, which drops under 2:1 over the hero's dark foot. */
+.studio-range.hero-scrub {
+  height: 2.75rem;
+  margin-block: -0.625rem;
+}
+
+/* The thumb ring below is the indicator; the browser's own outline would box the whole 44px strip. */
+.studio-range.hero-scrub:focus-visible {
+  outline: none;
+}
+
+.studio-range.hero-scrub:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px var(--color-background),
+    0 0 0 4px var(--color-foreground);
+}
+
+.studio-range.hero-scrub:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px var(--color-background),
+    0 0 0 4px var(--color-foreground);
+}
+
+/* The hero monitor at rest — paused by the visitor, or scrolled away — stills its ambient loops along with
+   the film: the kicker's gradient pan (a repaint every frame), the aurora, the raster and the tally light. */
+[data-paused='true'] :is(.text-gradient-animated, .animate-aurora, .animate-scanline, .tally-ping) {
+  animation-play-state: paused;
 }
 
 /* Juicy: breathing halo on the active stepper node */

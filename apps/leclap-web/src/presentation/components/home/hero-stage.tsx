@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useHeroVideoSrc } from '@/hooks/useHeroVideoSrc';
+import { playWithSound } from '@/lib/landing-sound';
 import { subscribe } from '@/lib/ticker';
 
 interface HeroStageProps {
@@ -7,6 +8,10 @@ interface HeroStageProps {
   reduced: boolean;
   /** Whether the hero is on screen — playback pauses off-screen so the clip never decodes unseen. */
   inView: boolean;
+  /** The monitor is held (the visitor paused it, or reduced motion and no play yet), or the playhead is. */
+  paused: boolean;
+  /** Whether the film is heard: the landing's sound is on and the hero fills the top of the screen. */
+  audible: boolean;
 }
 
 // A faint CRT raster drifting down the whole monitor — the ambient "live video surface" cue.
@@ -23,7 +28,7 @@ const SCANLINE_STYLE = {
 // over-sized (-inset-28) and drifts at a fraction of scroll speed (rAF transform, off the render
 // path); the two `hero-parallax` layers add pointer-reactive depth from the --mx/--my vars the hero
 // root writes. The clip mounts on browser idle so its fetch/decode never races first paint.
-export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
+export function HeroStage({ videoRef, reduced, inView, paused, audible }: HeroStageProps) {
   const heroSrc = useHeroVideoSrc();
   const scrollLayerRef = useRef<HTMLDivElement>(null);
   const [stageReady, setStageReady] = useState(false);
@@ -57,28 +62,32 @@ export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
     };
   }, []);
 
-  // Pause the film off-screen and resume on return; reduced-motion viewers keep a still frame.
+  // Pause the film off-screen, or while it is held, and resume on return, heard when the landing's sound is
+  // on (the bundled clip is silent; a visitor's own onboarding render may not be). Reduced motion arrives as a
+  // hold (the hero starts paused for those viewers), so a still frame stays still until they press play. A
+  // browser that refuses the sound simply leaves the backdrop muted: the switch still drives the clapper.
   useEffect(() => {
     const el = videoRef.current;
 
-    if (!el || reduced || !stageReady) return;
+    if (!el || !stageReady) return;
 
-    if (!inView) {
+    if (!inView || paused) {
       el.pause();
 
       return;
     }
 
-    el.play().catch(() => {});
-  }, [inView, reduced, heroSrc, stageReady, videoRef]);
+    playWithSound(el, audible, () => {});
+  }, [inView, paused, audible, heroSrc, stageReady, videoRef]);
 
   // Scroll parallax: the stage drifts down at a fraction of scroll speed so the footage reads as
   // depth behind the copy. Driven by the shared ticker rather than a scroll listener of its own, so
   // it reads the same frame as the playhead; the layer is over-sized so no edge shows.
   // The written value is compared before assignment — an unchanged transform still dirties the
-  // compositor, and a page at rest should cost nothing.
+  // compositor, and a page at rest should cost nothing. Off-screen the subscription is dropped
+  // altogether: nobody sees the layer, and phones have no Lenis loop that would tick it anyway.
   useEffect(() => {
-    if (reduced) return () => {};
+    if (reduced || !inView) return () => {};
 
     let painted = '';
 
@@ -94,7 +103,7 @@ export function HeroStage({ videoRef, reduced, inView }: HeroStageProps) {
       painted = next;
       el.style.transform = next;
     });
-  }, [reduced]);
+  }, [reduced, inView]);
 
   return (
     <>

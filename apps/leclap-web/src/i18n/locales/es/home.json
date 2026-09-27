@@ -1,7 +1,7 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Graba. Monta. Comparte.",
+    "headlineA": "Luces. Cámara. Render.",
     "headlineB": "en tu navegador.",
     "subtagline": "El compositor de vídeo cinematográfico que funciona íntegramente en tu navegador.",
     "privacy": "Tu material nunca sale de tu dispositivo.",
@@ -9,8 +9,9 @@
     "scrubAria": "Desplazar la película de fondo",
     "startCreating": "Empezar a crear",
     "seeHow": "Mira cómo funciona",
-    "soundOn": "Activar el sonido del hero",
-    "soundOff": "Silenciar el sonido del hero"
+    "play": "Reproducir la película del hero",
+    "pause": "Pausar la película del hero",
+    "scrubValue": "{{seconds}} de {{total}} segundos"
   },
   "showcase": {
     "eyebrow": "Míralo en acción",
@@ -18,42 +19,90 @@
     "subtitle": "Sin subir nada, sin servidor: este clip se compuso en el dispositivo a partir de una plantilla con transiciones, música, efectos, texto y animaciones, y luego se renderizó con FFmpeg en WebAssembly.",
     "badge": "Render de ejemplo · en el navegador",
     "videoAria": "Un vídeo de ejemplo compuesto en LeClap, reproduciéndose en bucle",
-    "mute": "Silenciar",
-    "unmute": "Activar sonido",
-    "volume": "Volumen",
+    "play": "Reproducir el render",
+    "pause": "Pausar el render",
     "cta": "Crea el tuyo",
     "browseTemplates": "Explorar plantillas",
     "readDocs": "Leer la documentación"
   },
-  "createShowcase": {
-    "eyebrow": "Haz un vídeo",
-    "title": "De la plantilla al vídeo terminado",
-    "subtitle": "Elige una plantilla, coloca tu clip y renderiza un vídeo pulido directamente en tu navegador: FFmpeg en WebAssembly, sin subir nada, sin cuenta.",
-    "badge": "Studio · en el navegador",
-    "videoAria": "Una grabación de pantalla de la creación de un vídeo en el Studio de LeClap, reproduciéndose en bucle",
-    "cta": "Empezar a crear"
+  "sound": {
+    "on": "Activar el sonido",
+    "off": "Silenciar",
+    "volume": "Volumen"
   },
-  "builderShowcase": {
-    "eyebrow": "Constrúyelo tú mismo",
-    "title": "Compón una plantilla, visualmente",
-    "subtitle": "Añade escenas, arrastra texto y fondos en el lienzo y previsualiza el render en vivo: todo en tu navegador, sin instalar nada.",
-    "badge": "El editor de plantillas",
-    "videoAria": "Una grabación de pantalla del editor de plantillas de LeClap, reproduciéndose en bucle",
-    "cta": "Abrir el editor"
+  "film": {
+    "eyebrow": "La película",
+    "title": "Una plantilla. Todas las pantallas.",
+    "subtitle": "78 segundos, cada plano renderizado o grabado de verdad: la plantilla, el motor, el navegador, el móvil y el agente.",
+    "name": "LeClap — la película",
+    "badge": "El tráiler · 1:18",
+    "play": "Ver la película",
+    "pause": "Pausar la película",
+    "captions": "Subtítulos en inglés",
+    "captionsToggle": "Subtítulos"
   },
-  "phoneShowcase": {
-    "eyebrow": "También en tu teléfono",
-    "title": "Todo el Studio, en tu bolsillo",
-    "subtitle": "LeClap en iPhone y Android hace lo mismo que la app web: graba, compón y renderiza un clip terminado sin que nada salga de tu dispositivo.",
-    "bullets": {
-      "capture": "Graba directamente desde la cámara y coloca la toma en una plantilla.",
-      "effects": "Superpón efectos, música y transiciones, con vista previa en vivo mientras los ajustas.",
-      "offline": "Todo se renderiza en el dispositivo: sin subir nada, sin cuenta, funciona sin conexión."
+  "mobile": {
+    "eyebrow": "En tu móvil",
+    "title": "Graba y renderiza, en el propio móvil.",
+    "subtitle": "Las mismas plantillas funcionan en el móvil: FFmpeg va compilado en la app, así que tus imágenes nunca salen de tus manos.",
+    "chapters": {
+      "pick": {
+        "title": "Elige una plantilla",
+        "body": "Explora estilos listos para usar y elige el que encaja con tu historia."
+      },
+      "shoot": {
+        "title": "Graba tu clip",
+        "body": "Graba directamente desde la app, con cuenta atrás y guía de encuadre."
+      },
+      "render": {
+        "title": "Renderizado en el móvil",
+        "body": "FFmpeg compone el vídeo final en el dispositivo. Sin servidor, sin subidas."
+      },
+      "result": {
+        "title": "Tu vídeo, terminado",
+        "body": "Títulos, etalonaje y rótulo incluidos: listo para publicar, y todavía en tu móvil."
+      }
     },
-    "badge": "En iOS y Android · en el dispositivo",
-    "videoAria": "Una grabación de pantalla de la app móvil de LeClap componiendo un vídeo, reproduciéndose en bucle",
-    "cta": "Empezar a crear",
-    "secondaryCta": "Leer la documentación"
+    "badge": "En el dispositivo · sin subidas",
+    "phoneAria": "Un móvil con la app de LeClap",
+    "cta": "Prueba las plantillas en tu navegador"
+  },
+  "agentic": {
+    "eyebrow": "Para el desarrollo agéntico",
+    "title": "No describas el cambio. Muéstralo.",
+    "subtitle": "Tu agente de código graba el cambio, LeClap renderiza un breve vídeo de antes y después, y tu flujo de trabajo lo adjunta a la pull request.",
+    "chapters": {
+      "implement": {
+        "title": "El agente implementa",
+        "body": "Cambia el producto y deja claro qué hay que revisar."
+      },
+      "record": {
+        "title": "Graba el antes y el después",
+        "body": "Grabaciones de pantalla reales de la rama base y del cambio, no imágenes generadas."
+      },
+      "render": {
+        "title": "LeClap valida y renderiza",
+        "body": "Primero se valida la plantilla y luego se compone en un vídeo determinista."
+      },
+      "attach": {
+        "title": "Tu flujo de trabajo lo adjunta",
+        "body": "Quien revisa pulsa play en la pull request en lugar de imaginarse el cambio."
+      }
+    },
+    "steps": {
+      "implement": "Implementar",
+      "record": "Grabar",
+      "render": "Renderizar",
+      "attach": "Adjuntar"
+    },
+    "cardAria": "Una pull request con un vídeo de antes y después renderizado y adjunto",
+    "evidencePlay": "Reproducir el vídeo de antes y después",
+    "evidencePause": "Pausar el vídeo de antes y después",
+    "filmTitle": "De la historia de usuario a la vista previa",
+    "filmName": "LeClap para el desarrollo agéntico — la película",
+    "filmBadge": "Desarrollo agéntico · 0:50",
+    "cta": "Abrir el ejemplo ejecutable",
+    "ctaSecondary": "Usar la receta MCP"
   },
   "features": {
     "badge": "Todo, del lado del cliente",
@@ -62,33 +111,27 @@
     "items": {
       "templates": {
         "title": "Plantillas JSON reales",
-        "highlight": "Listas para producción",
-        "description": "Usa archivos de plantilla reales del paquete principal con configuraciones, filtros y efectos complejos de FFmpeg."
+        "description": "Un único archivo JSON describe todo el vídeo: secciones, filtros, texto y música. El mismo archivo se renderiza en la CLI, en el navegador y en el móvil."
       },
       "forms": {
-        "title": "Formularios interactivos",
-        "highlight": "Dinámicos",
-        "description": "Generación dinámica de formularios a partir de las definiciones de plantilla, con validación en tiempo real y procesamiento de los datos del usuario."
+        "title": "Formularios de la plantilla",
+        "description": "Cada plantilla declara sus campos. Con ellos, el studio construye el formulario y comprueba cada valor antes de renderizar."
       },
       "processing": {
-        "title": "Procesamiento avanzado",
-        "highlight": "Profesional",
-        "description": "Flujo completo de FFmpeg con filtros de vídeo, superposiciones de texto, transiciones y mezcla de audio."
+        "title": "Todo el pipeline de FFmpeg",
+        "description": "Filtros de vídeo, superposiciones de texto, transiciones y mezcla de audio, compilados a comandos reales de FFmpeg."
       },
       "privacy": {
-        "title": "Privacidad total",
-        "highlight": "Privado",
-        "description": "Todo el procesamiento ocurre localmente en tu navegador. Tus archivos nunca salen de tu dispositivo ni pasan por ningún servidor."
+        "title": "Nada sale del dispositivo",
+        "description": "El renderizado se hace en esta pestaña. Tus archivos nunca se suben, así que no tienes que confiar en ningún servidor."
       },
       "wasm": {
-        "title": "Con la potencia de WebAssembly",
-        "highlight": "Rápido",
-        "description": "Procesamiento de vídeo ultrarrápido con FFmpeg en WebAssembly para un rendimiento casi nativo."
+        "title": "FFmpeg en WebAssembly",
+        "description": "El mismo FFmpeg que ejecutarías en un servidor, compilado para el navegador. Más lento que en nativo, y sin nada que instalar."
       },
       "crossPlatform": {
-        "title": "Multiplataforma",
-        "highlight": "Universal",
-        "description": "Funciona en cualquier navegador moderno en escritorio, móvil y tablet. Sin instalación."
+        "title": "Escritorio, tablet, móvil",
+        "description": "Funciona en los navegadores actuales, desde un monitor de escritorio hasta la pantalla de un móvil."
       }
     }
   }

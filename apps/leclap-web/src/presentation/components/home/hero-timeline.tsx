@@ -1,4 +1,4 @@
-import { type ChangeEvent, type RefObject } from 'react';
+import { type ChangeEvent, type FocusEvent, type KeyboardEvent, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SCRUB_RESOLUTION } from './use-hero-playhead';
 
@@ -15,12 +15,19 @@ const RULER_STYLE = {
 interface HeroTimelineProps {
   scrubRef: RefObject<HTMLInputElement | null>;
   onScrub: (event: ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+  /** Hold the film while the playhead is dragged or keyboard-focused (useHeroPlayhead). */
+  handlers: {
+    onPointerDown: () => void;
+    onFocus: (event: FocusEvent<HTMLInputElement>) => void;
+    onBlur: () => void;
+  };
 }
 
 // The hero's working timeline — a real, keyboard-operable scrubber (a styled range input riding the
 // shared studio-range playhead) that seeks the background film, framed by ruler ticks and the
 // editor's track badges. This is the hero's interaction: the landing page is already an edit bay.
-export function HeroTimeline({ scrubRef, onScrub }: HeroTimelineProps) {
+export function HeroTimeline({ scrubRef, onScrub, onKeyDown, handlers }: HeroTimelineProps) {
   const { t } = useTranslation('home');
 
   return (
@@ -28,7 +35,9 @@ export function HeroTimeline({ scrubRef, onScrub }: HeroTimelineProps) {
     // assembled. Plain fade-in, so reduced-motion viewers get it settled instantly.
     // inset-x-11 clears the viewfinder's bottom corner brackets (inset-x-4 + size-6) on phones,
     // where the track would otherwise run straight through them; sm+ has room for the wider gutter.
-    <div className="fade-in absolute inset-x-11 bottom-7 z-[6] sm:inset-x-16" style={{ animationDelay: '0.85s' }}>
+    // z-20 lifts it over the copy (z-10), whose bottom padding would otherwise cover the scrubber on
+    // phones and take the taps meant for it.
+    <div className="fade-in absolute inset-x-11 bottom-7 z-20 sm:inset-x-16" style={{ animationDelay: '0.85s' }}>
       {/* items-end + the badges' bottom nudge keeps their centers on the track line, not the
           taller ruler+track column's center. */}
       <div className="flex items-end gap-3">
@@ -51,7 +60,9 @@ export function HeroTimeline({ scrubRef, onScrub }: HeroTimelineProps) {
             defaultValue={0}
             aria-label={t('hero.scrubAria')}
             onChange={onScrub}
-            className="studio-range w-full"
+            onKeyDown={onKeyDown}
+            {...handlers}
+            className="studio-range hero-scrub w-full"
           />
         </div>
         <span

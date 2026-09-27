@@ -7,8 +7,8 @@ import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
 import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
 import { useTranslation } from 'react-i18next';
-import { Badge, Card, Reveal } from '@/presentation/components/ui';
-import { KineticHeading } from '@/presentation/components/kinetic';
+import { Reveal } from '@/presentation/components/ui';
+import { SectionHeading } from '@/presentation/components/home/section-heading';
 
 type AnimIcon = React.ForwardRefExoticComponent<{ className?: string } & React.RefAttributes<AnimatedIconHandle>>;
 
@@ -26,70 +26,55 @@ const features: { id: string; Icon: AnimIcon }[] = [
   { id: 'crossPlatform', Icon: GlobeIcon },
 ];
 
-interface FeatureCardProps {
+interface FeatureItemProps {
   id: string;
   Icon: AnimIcon;
 }
 
-const FeatureCard = ({ id, Icon }: FeatureCardProps) => {
+// One line of the spec sheet: a hairline, the icon, a title and one precise sentence. No card, border glow or
+// hover lift — nothing here is clickable, so nothing pretends to be; only the icon's own hover animation plays.
+const FeatureItem = ({ id, Icon }: FeatureItemProps) => {
   const { t } = useTranslation('home');
   const { ref, hoverProps } = useIconHover();
 
   return (
-    <Card
-      elevation="flat"
-      gradientBorder
-      glow
-      className="group relative h-full bg-surface/40 p-6 transition-[border-color,box-shadow] duration-300 hover:border-brand-500/40 hover:shadow-xl hover:shadow-brand-500/10"
-      {...hoverProps}
-    >
-      <div className="flex items-center gap-4 mb-4">
-        <span className="grid place-items-center w-12 h-12 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-300 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:bg-brand-500/20 group-hover:scale-105 group-hover:-rotate-6">
-          <Icon className="w-6 h-6" ref={ref} />
-        </span>
-        <div className="min-w-0">
-          <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-brand-600/80 dark:text-brand-300/70">
-            {t(`features.items.${id}.highlight`)}
-          </span>
-          <h3 className="text-lg font-bold font-display text-foreground leading-tight">
-            {t(`features.items.${id}.title`)}
-          </h3>
-        </div>
-      </div>
-      <p className="text-sm text-gray-400 leading-relaxed">{t(`features.items.${id}.description`)}</p>
-    </Card>
+    <div className="h-full border-t border-divider pt-7 pb-9" {...hoverProps}>
+      <Icon className="size-6 text-brand-600 dark:text-brand-300" ref={ref} />
+      <h3 className="mt-5 font-display text-xl font-bold uppercase leading-tight tracking-[0.02em] text-foreground">
+        {t(`features.items.${id}.title`)}
+      </h3>
+      <p className="mt-2 max-w-sm leading-relaxed text-gray-400 text-pretty">{t(`features.items.${id}.description`)}</p>
+    </div>
   );
 };
 
+// The page's coda: what the composer is, as a spec sheet under the same heading as every other section.
 export const FeaturesSection = () => {
   const { t } = useTranslation('home');
 
   return (
-    <section id="features" className="relative overflow-hidden py-10 sm:py-16 lg:py-24">
-      {/* Living brand glow — two aurora blobs drift on opposite phases so the band feels lit, not flat.
-          animate-aurora freezes under the global reduced-motion reset. */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="animate-aurora absolute -top-24 right-0 h-80 w-80 rounded-full bg-brand-500/10 blur-[120px]" />
-        <div className="animate-aurora absolute bottom-0 left-0 h-80 w-80 rounded-full bg-secondary-500/10 blur-[120px] [animation-delay:-9s]" />
-      </div>
+    <section id="features" className="relative bg-background py-24 text-foreground sm:py-32">
+      {/* A soft pool of the brand pink low on the left, fading out well inside the section: no edge to clip. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(45%_40%_at_18%_72%,rgba(255,138,174,0.07),transparent_70%)]"
+      />
+      <SectionHeading eyebrow={t('features.badge')} title={t('features.title')} subtitle={t('features.subtitle')} />
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4">
-        <Reveal className="max-w-2xl mb-10 sm:mb-14" rootMargin="0px" threshold={0.2}>
-          <Badge variant="brand" className="tracking-[0.18em]">
-            {t('features.badge')}
-          </Badge>
-          <KineticHeading text={t('features.title')} as="h2" level="m" revealOnView className="mt-3" />
-          <p className="mt-3 text-lg text-gray-400 leading-relaxed">{t('features.subtitle')}</p>
-        </Reveal>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ id, Icon }, index) => (
-            <Reveal key={id} delay={index * 80} scale className="h-full" rootMargin="0px" threshold={0.2}>
-              <FeatureCard id={id} Icon={Icon} />
+      <ul className="relative mx-auto mt-14 grid w-full max-w-6xl grid-cols-1 gap-x-10 px-4 sm:mt-20 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 lg:gap-x-14">
+        {features.map(({ id, Icon }, index) => (
+          <li key={id}>
+            <Reveal
+              delay={(index % 3) * 70}
+              className="h-full ease-[var(--ease-out-expo)]"
+              rootMargin="0px"
+              threshold={0.2}
+            >
+              <FeatureItem id={id} Icon={Icon} />
             </Reveal>
-          ))}
-        </div>
-      </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 };

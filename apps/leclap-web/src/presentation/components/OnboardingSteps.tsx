@@ -14,6 +14,7 @@ import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
+import { ClappyCheer } from '@/presentation/components/clappy';
 import { VideoPreview } from '@/presentation/components/VideoPreview';
 import { StopButton } from '@/presentation/components/StopButton';
 import { Button, Input } from '@/presentation/components/ui';
@@ -278,9 +279,8 @@ export const DoneStep = ({ result, onStartCreating }: DoneStepProps) => {
 
   return (
     <div className="text-center">
-      <div className="pop-in inline-flex p-3 bg-success rounded-2xl shadow-lg shadow-success/30 ring-4 ring-success/15 mb-4">
-        <Check className="w-6 h-6 text-white" />
-      </div>
+      {/* The first video is in the can: Clappy claps it, with the clack when the sound is on. */}
+      <ClappyCheer size={80} className="mb-3" />
       {/* `px-10` keeps the centered title clear of the close button, and `text-balance` stops a
           long localized title ("Ta première vidéo est prête !") from dropping its last glyph alone
           onto a second line. */}

@@ -8,6 +8,7 @@ import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
 import clsx from 'clsx';
 import { Card } from '@/presentation/components/ui';
 import { GradientMeter } from '@/presentation/components/kinetic';
+import { ClappyRunner } from '@/presentation/components/clappy';
 
 interface ProcessingProgress {
   stage: string;
@@ -88,7 +89,7 @@ const StepIndicator = ({ stepNumber, currentStepIndex }: StepIndicatorProps) => 
     <div className="flex flex-col items-center space-y-2">
       <div className="relative">
         {/* The active step is marked by its gradient fill and ring, not by a loop: only two things
-            move during a compile — the bar's tally light (ambient "still working") and the burst a
+            move during a compile — Clappy running the bar (ambient "still working") and the burst a
             step fires when it actually completes (an event). Anything else read as flicker. */}
         <div
           className={clsx(
@@ -171,8 +172,8 @@ const ProgressHeader = ({
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        {/* The stage badge sits still — the moving sweep on the bar below already carries "working",
-            and a second pulsing element here made the whole header feel like it was flickering. */}
+        {/* The stage badge sits still — Clappy running the bar below already carries "working", and a
+            second pulsing element here made the whole header feel like it was flickering. */}
         <div
           className={clsx(
             'shrink-0 rounded-lg p-2 transition-colors duration-300',
@@ -230,17 +231,19 @@ const ProgressBar = ({ percentage, currentStep }: ProgressBarProps) => {
         </span>
       </div>
 
-      {/* The render bar reads in the shared GradientMeter family (lavender→pink): a tally light rides
-          the leading edge while the compile runs, and the fill settles to success green — light gone
-          — the moment it completes. */}
-      <GradientMeter
-        progress={percentage / 100}
-        variant="bar"
-        size={12}
-        success={done}
-        live
-        label={t('progress.bar.ariaLabel')}
-      />
+      {/* The render bar reads in the shared GradientMeter family (lavender→pink), with Clappy running
+          its lane: he keeps pace with the fill while the compile runs, and throws his arms up as it
+          settles to success green on completion. */}
+      <div>
+        <ClappyRunner progress={percentage / 100} done={done} />
+        <GradientMeter
+          progress={percentage / 100}
+          variant="bar"
+          size={12}
+          success={done}
+          label={t('progress.bar.ariaLabel')}
+        />
+      </div>
     </div>
   );
 };
@@ -296,7 +299,7 @@ export const ProgressDisplay = ({ progress }: ProgressDisplayProps) => {
 
   return (
     // The panel itself doesn't breathe — a looping opacity dip on this container fades its own text
-    // for the length of the compile. The bar's tally light carries liveness on its own.
+    // for the length of the compile. Clappy, running the bar, carries liveness on his own.
     <div className="space-y-5 fade-in sm:space-y-6" role="status" aria-live="polite" aria-atomic="false">
       <ProgressHeader
         stage={stage}

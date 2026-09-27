@@ -240,9 +240,6 @@ body {
   --animate-phone-sheen: phone-sheen 7s var(--ease-out-expo) infinite;
   /* Magnetic stretch the editor tool-dock indicator plays as it springs to a new tool. */
   --animate-dock-stretch: dock-stretch 0.32s var(--ease-spring);
-  /* The tally light riding the leading edge of an in-progress meter — the render bar's only moving
-     part. Keep it transform/opacity only: a background-position sweep tiles and snaps at each loop. */
-  --animate-meter-head: meter-head 2s ease-in-out infinite;
   /* The stacked shell's two surfaces enter from the side their tab sits on, so switching reads as
      travel across one room rather than two unrelated screens appearing in place. */
   --animate-surface-in-left: surface-in-left 0.26s var(--ease-out-expo) both;
@@ -1224,19 +1221,6 @@ body {
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-/* The tally light at the fill's leading edge — breathes rather than blinks. */
-@keyframes meter-head {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(0.9);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
   }
 }
 

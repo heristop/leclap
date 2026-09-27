@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ExportPanel } from '@/presentation/components/ExportPanel';
 import { Seo } from '@/presentation/components/Seo';
-import { EditorShell, CompileMonitor, type SaveStatus } from '@/presentation/components/builder';
+import { EditorShell, CompileMonitor, StepResult, type SaveStatus } from '@/presentation/components/builder';
 import { EditorLoadingShell } from '@/presentation/components/builder/editor-loading-shell';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
 import { useFFmpeg } from '@/hooks/useFFmpeg';
@@ -15,10 +14,7 @@ import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
 import { addRush, selectRush, removeRush } from '@/lib/rushActions';
 import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/projectService';
 import { Loader2 } from '@/presentation/components/icons';
-import { ArrowLeftIcon } from '@/presentation/components/icons/arrow-left';
-import { ArrowRightIcon } from '@/presentation/components/icons/arrow-right';
-import { useIconHover } from '@/presentation/components/icons/useIconHover';
-import { Button, Card, Reveal } from '@/presentation/components/ui';
+import { Card } from '@/presentation/components/ui';
 
 // The template's default soundtrack as a library MediaChoice, so the Music step opens pre-selected on
 // the track the template was authored with. Only when music is enabled and the default is one of the
@@ -154,51 +150,6 @@ const StepProcess = ({
       qualityTier={qualityTier}
       onCancel={onCancelProcessing}
     />
-  );
-};
-
-const StepResult = ({
-  processedVideo,
-  onBack,
-  onReset,
-}: {
-  processedVideo: ProcessedVideo;
-  onBack: () => void;
-  onReset: () => void;
-}) => {
-  const { t } = useTranslation('builder');
-  const { ref: backRef, hoverProps: backHoverProps } = useIconHover();
-  const { ref: resetRef, hoverProps: resetHoverProps } = useIconHover();
-
-  return (
-    <div className="fade-in text-center max-w-4xl mx-auto">
-      <div className="mb-12">
-        <h2 className="text-5xl font-bold font-display brand-gradient-text leading-[1.15] pb-1 mb-4">
-          {t('stepResult.title')}
-        </h2>
-        <p className="text-gray-300 text-lg">{t('stepResult.subtitle')}</p>
-      </div>
-      <Reveal>
-        <Card elevation="flat" className="glass-panel-dark p-8 md:p-12 shadow-2xl">
-          <ExportPanel processedVideo={processedVideo} />
-          <div className="mt-8 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="w-full sm:w-auto px-6 py-3 rounded-full bg-foreground/5 hover:bg-foreground/10"
-              {...backHoverProps}
-            >
-              <ArrowLeftIcon ref={backRef} size={18} />
-              <span>{t('stepResult.editProject')}</span>
-            </Button>
-            <Button variant="link" onClick={onReset} className="w-full sm:w-auto px-6 py-3" {...resetHoverProps}>
-              <span>{t('stepResult.createAnother')}</span>
-              <ArrowRightIcon ref={resetRef} size={18} />
-            </Button>
-          </div>
-        </Card>
-      </Reveal>
-    </div>
   );
 };
 

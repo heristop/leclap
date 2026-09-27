@@ -3,6 +3,7 @@ import { formatValidation, exitCodeFor, bracketPath } from '../src/commands/vali
 
 const validateTemplateMock = vi.fn();
 const nodeGeometryWarningsMock = vi.fn();
+const renderedGeometryWarningsMock = vi.fn();
 
 vi.mock('ffmpeg-video-composer', () => ({
   TemplateValidator: vi.fn().mockImplementation(function TemplateValidatorMock() {
@@ -12,6 +13,7 @@ vi.mock('ffmpeg-video-composer', () => ({
   }),
   geometryApproxNote: (w: { approx: boolean }) => (w.approx ? ' (approx: font unavailable, width estimated)' : ''),
   nodeGeometryWarnings: (...args: unknown[]) => nodeGeometryWarningsMock(...args),
+  renderedGeometryWarnings: (...args: unknown[]) => renderedGeometryWarningsMock(...args),
 }));
 
 vi.mock('node:fs/promises', () => ({
@@ -204,5 +206,82 @@ describe('one report, one notation', () => {
     expect(lines[0]).toContain('Template is valid — 2 warnings');
     expect(lines[1]).toContain('(approx: font unavailable, width estimated) sections[0].caption');
     expect(lines[1].match(/sections\[0\]\.caption/g)).toHaveLength(1);
+  });
+});
+
+describe('the rendered check (--render)', () => {
+  let writeSpy: ReturnType<typeof vi.spyOn>;
+  let previousExitCode: typeof process.exitCode;
+  const previousLogLevel = process.env.LECLAP_LOG_LEVEL;
+  const finding = {
+    path: 'sections[0].caption',
+    message: 'Section "a" caption renders at 1.2:1 against what surrounds it',
+    code: 'text_low_contrast_rendered',
+    severity: 'warn' as const,
+    approx: false,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    process.exitCode = previousExitCode;
+    process.env.LECLAP_LOG_LEVEL = previousLogLevel;
+    writeSpy.mockRestore();
+  });
+
+  it('says how many texts it measured and how long the render took', () => {
+    const lines = formatValidation({ success: true, warnings: [finding], render: { measured: 2, seconds: 3.4 } }).map(
+      plain
+    );
+
+    expect(lines.at(-1)).toContain('rendered check: 2 texts measured from pixels in 3.4s');
+  });
+
+  it('says why it did not render, instead of implying the template came out clean', () => {
+    const lines = formatValidation({
+      success: true,
+      render: { measured: 0, seconds: 0.1, unavailable: 'the rendered check needs a native FFmpeg' },
+    }).map(plain);
+
+    expect(lines.at(-1)).toContain('rendered check skipped — the rendered check needs a native FFmpeg');
+  });
+
+  it('renders against the caller’s assets dir, silences the engine, and never flips the exit code', async () => {
+    validateTemplateMock.mockReturnValue({ success: true, data: { sections: [] } });
+    renderedGeometryWarningsMock.mockResolvedValue({ warnings: [finding], measured: 1 });
+
+    const { validate } = await import('../src/commands/validate');
+    await validate.run?.({ args: { template: 'template.json', json: true, render: true } } as never);
+
+    expect(nodeGeometryWarningsMock).not.toHaveBeenCalled();
+    expect(renderedGeometryWarningsMock).toHaveBeenCalledWith(
+      { sections: [] },
+      { assetsDir: expect.stringMatching(/assets$/) }
+    );
+    expect(process.env.LECLAP_LOG_LEVEL).toBe('silent');
+    expect(process.exitCode).toBe(0);
+
+    const out = JSON.parse(writeSpy.mock.calls.map((c: unknown[]) => String(c[0])).join(''));
+
+    expect(out.warnings).toEqual([finding]);
+    expect(out.render).toMatchObject({ measured: 1 });
+  });
+
+  it('does not render a template that failed validation', async () => {
+    validateTemplateMock.mockReturnValue({
+      success: false,
+      errors: [{ path: 'sections[0].type', message: 'unknown section type', code: 'invalid' }],
+    });
+
+    const { validate } = await import('../src/commands/validate');
+    await validate.run?.({ args: { template: 'template.json', json: true, render: true } } as never);
+
+    expect(renderedGeometryWarningsMock).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
   });
 });

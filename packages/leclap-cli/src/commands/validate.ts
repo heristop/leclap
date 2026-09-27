@@ -5,8 +5,11 @@ import {
   TemplateValidator,
   geometryApproxNote,
   nodeGeometryWarnings,
+  renderedGeometryWarnings,
   type GeometryWarning,
 } from 'ffmpeg-video-composer';
+import { setEngineLogLevel } from '../log.js';
+import { resolveAssetsDir } from '../resolve-assets-dir.js';
 import { success, fail, step, hint } from '../ui.js';
 import { wordmark } from '../theme.js';
 
@@ -24,10 +27,19 @@ interface ValidationError {
 // count for a number that was, in fact, guessed. `--json` emits the field unchanged.
 type ValidationWarning = GeometryWarning;
 
+// Present only with `--render`: what the rendered check measured, how long it took, and — when it
+// could not render — why, so a report with no rendered findings never reads as a clean render.
+interface RenderSummary {
+  measured: number;
+  seconds: number;
+  unavailable?: string;
+}
+
 interface ValidationResult {
   success: boolean;
   errors?: ValidationError[];
   warnings?: ValidationWarning[];
+  render?: RenderSummary;
 }
 
 // Schema errors arrive as `sections.1.caption`; geometry findings — and what an agent edits against —
@@ -46,6 +58,24 @@ function plural(count: number, noun: string): string {
 // read as a contradiction. Each finding's message already names the section, so the path follows it
 // dimmed rather than leading it a second time. picocolors honours NO_COLOR.
 export function formatValidation(result: ValidationResult): string[] {
+  return [...formatFindings(result), ...renderLines(result.render)];
+}
+
+function renderLines(render: RenderSummary | undefined): string[] {
+  if (!render) {
+    return [];
+  }
+
+  if (render.unavailable) {
+    return [hint(`  rendered check skipped — ${render.unavailable}`)];
+  }
+
+  return [
+    hint(`  rendered check: ${plural(render.measured, 'text')} measured from pixels in ${render.seconds.toFixed(1)}s`),
+  ];
+}
+
+function formatFindings(result: ValidationResult): string[] {
   const found = result.warnings ?? [];
   const warnings = found.map((w) => step(`${pc.yellow('!')} ${w.message}${geometryApproxNote(w)} ${pc.dim(w.path)}`));
   const warned = found.length > 0 ? ` — ${plural(found.length, 'warning')}` : '';
@@ -82,11 +112,16 @@ export const validate = defineCommand({
   args: {
     template: { type: 'positional', description: 'Path to a template JSON file', required: true },
     json: { type: 'boolean', description: 'Emit a machine-readable JSON result', default: false },
+    render: {
+      type: 'boolean',
+      description: 'Also render the sections with text and measure its contrast from pixels (needs FFmpeg; seconds)',
+      default: false,
+    },
   },
   async run({ args }) {
     const json = args.json;
 
-    const result = await runValidation(args.template, json);
+    const result = await runValidation(args.template, json, args.render);
 
     const output = json ? `${JSON.stringify(result)}\n` : `${formatValidation(result).join('\n')}\n`;
     process.stdout.write(output);
@@ -101,7 +136,7 @@ export const validate = defineCommand({
 
 // Load + validate, mapping a missing file or JSON syntax error into a structured result (so both the
 // human and --json paths render it uniformly). Prints the wordmark only in the human path.
-async function runValidation(templatePath: string, json: boolean): Promise<ValidationResult> {
+async function runValidation(templatePath: string, json: boolean, render: boolean): Promise<ValidationResult> {
   if (!json) process.stdout.write(wordmark());
 
   let data: unknown;
@@ -116,8 +151,10 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
     return { success: false, errors: [{ path: templatePath, message, code: 'load_error' }] };
   }
 
-  return attachGeometryWarnings(new TemplateValidator(), data);
+  return attachGeometryWarnings(new TemplateValidator(), data, render);
 }
+
+type GeometryDescriptor = Parameters<typeof nodeGeometryWarnings>[0];
 
 // `validateTemplate`'s `data` is a `TemplateDescriptor | Section` union (shared with `validateSection`);
 // only the descriptor shape carries `sections`, so `'type' in descriptor` (a Section-only field) tells
@@ -127,7 +164,11 @@ async function runValidation(templatePath: string, json: boolean): Promise<Valid
 // loader tries the bundled fonts, then the catalog the renderer fetches from, and degrades to `null`
 // per font (offline, unknown file) rather than throwing, so a miss falls back to approximate
 // measurement instead of breaking validation.
-async function attachGeometryWarnings(validator: TemplateValidator, data: unknown): Promise<ValidationResult> {
+async function attachGeometryWarnings(
+  validator: TemplateValidator,
+  data: unknown,
+  render: boolean
+): Promise<ValidationResult> {
   const result = validator.validateTemplate(data);
   const descriptor = result.data;
 
@@ -135,12 +176,16 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
     return result;
   }
 
+  if (render && result.success) {
+    return attachRenderedWarnings(result, data);
+  }
+
   // The RAW descriptor, not `result.data`: `validateTemplate` expands `{ type: "partial", ref }`
   // sections inline before it returns, which shifts every later index — so a caption the author
   // wrote at `sections[1]` behind a three-section partial came back reported at `sections[3]`, and
   // an agent editing that path would touch the wrong section. `getGeometryWarnings` expands for
   // itself and maps the findings back to authored indices, so it needs the descriptor as written.
-  const warnings = await nodeGeometryWarnings(data as Parameters<typeof nodeGeometryWarnings>[0], { validator });
+  const warnings = await nodeGeometryWarnings(data as GeometryDescriptor, { validator });
 
   // Absent, not empty: a clean template must not emit `"warnings":[]` — that is the zero-token
   // guarantee, and it only holds if the key itself disappears.
@@ -151,4 +196,22 @@ async function attachGeometryWarnings(validator: TemplateValidator, data: unknow
   // Passed through wholesale (code/severity/approx included): `--json` is documented to emit
   // whatever `getGeometryWarnings` returned, unreshaped.
   return { ...result, warnings };
+}
+
+// `--render`: the static findings refined by a real render of the sections with text, against the same
+// `<cwd>/assets` a `leclap render` reads. The engine logs to stdout while it compiles, which would
+// break `--json`, so it is silenced first. Advisory like the rest: `success` is left as it was.
+async function attachRenderedWarnings(result: ValidationResult, data: unknown): Promise<ValidationResult> {
+  setEngineLogLevel('silent');
+
+  const started = performance.now();
+  const rendered = await renderedGeometryWarnings(data as GeometryDescriptor, {
+    assetsDir: resolveAssetsDir(process.cwd()),
+  });
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  const render: RenderSummary = rendered.unavailable
+    ? { measured: rendered.measured, seconds, unavailable: rendered.unavailable }
+    : { measured: rendered.measured, seconds };
+
+  return rendered.warnings.length > 0 ? { ...result, warnings: rendered.warnings, render } : { ...result, render };
 }

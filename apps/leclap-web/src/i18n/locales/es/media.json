@@ -28,6 +28,7 @@
       "screenFailed": "No se pudo iniciar la grabación de pantalla en este dispositivo."
     },
     "getReady": "Prepárate…",
+    "action": "¡Acción!",
     "recordingIn": "Grabando en {{value}}",
     "wrapUp": "Termina — quedan {{remaining}} s",
     "timesUp": "Se acabó el tiempo",

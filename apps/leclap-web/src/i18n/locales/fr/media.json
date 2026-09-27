@@ -28,6 +28,7 @@
       "screenFailed": "Impossible de démarrer l’enregistrement d’écran sur cet appareil."
     },
     "getReady": "C’est parti…",
+    "action": "Action !",
     "recordingIn": "Ça tourne dans {{value}}",
     "wrapUp": "On conclut — encore {{remaining}} s",
     "timesUp": "Temps écoulé",

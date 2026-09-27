@@ -16,6 +16,9 @@ import { formatPerfReport } from './utils/perf-report';
 import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 import { selectVideoCodec } from './platform/ffmpeg/select-video-codec';
 import { TemplateValidator } from './services/TemplateValidator';
+import type { TemplateDescriptor as SchemaTemplateDescriptor } from './schemas/template.schemas';
+import { nodeFontLoader } from './services/geometry/node-geometry';
+import { runRenderCheck, type RenderCheckOptions, type RenderedGeometry } from './services/geometry/render-check';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -269,6 +272,17 @@ export async function compile(
   }
 }
 
+// Node entry only, like nodeGeometryWarnings: render the sections holding text through this engine and
+// measure their contrast from pixels (services/geometry/render-check.ts). Seconds per call, so opt-in.
+export function renderedGeometryWarnings(
+  descriptor: SchemaTemplateDescriptor,
+  options: RenderCheckOptions = {}
+): Promise<RenderedGeometry> {
+  const engine = { compile, detect: () => FFmpegDetector.detect() };
+
+  return runRenderCheck(descriptor, { ...options, loadFont: options.loadFont ?? nodeFontLoader() }, engine);
+}
+
 export { TemplateDirector };
 export { VideoEditor };
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
@@ -324,6 +338,7 @@ export { createBundledFontLoader } from './services/geometry/bundled-font-loader
 // the MCP server share. The browser and React-Native entries never see it — it reaches disk and
 // network. Its geometry imports are type-only, so the lazy `import('./geometry')` still holds.
 export { geometryApproxNote, nodeGeometryWarnings } from './services/geometry/node-geometry';
+export type { RenderCheckOptions, RenderedGeometry } from './services/geometry/render-check';
 export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {
   TemplateDescriptorSchema,

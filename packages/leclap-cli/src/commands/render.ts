@@ -13,7 +13,7 @@ import {
 } from 'ffmpeg-video-composer';
 import { setEngineLogLevel } from '../log.js';
 import { LiveRenderer } from '../render-progress.js';
-import { buildProjectConfig, withOrientation, type RenderFlags } from '../render-args.js';
+import { buildProjectConfig, collectRepeated, withOrientation, type RenderFlags } from '../render-args.js';
 import { summaryLine, safeSize } from '../render-format.js';
 import { watchPaths } from '../watch.js';
 import { fail, hint, step } from '../ui.js';
@@ -32,14 +32,12 @@ interface RenderOptions {
   watch: boolean;
 }
 
-// citty hands a repeatable string flag back as a single string, an array, or undefined — normalize to
-// a string[] without stringifying non-strings (avoids `[object Object]` surprises).
-function toList(value: unknown): string[] {
-  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string');
+// Every value of a repeatable flag. They come from raw argv, because citty keeps only the last value
+// of a repeated flag; programmatic callers that invoke run() without rawArgs fall back to the parsed one.
+function repeatedFlag(rawArgs: readonly string[] | undefined, parsed: unknown, name: string): string[] {
+  if (rawArgs) return collectRepeated(rawArgs, name);
 
-  if (typeof value === 'string') return [value];
-
-  return [];
+  return [parsed].flat().filter((value): value is string => typeof value === 'string');
 }
 
 // Fail with a machine-readable `{ok:false,error}` on stdout in --json mode (so a consumer parsing
@@ -120,7 +118,7 @@ export const render = defineCommand({
     json: { type: 'boolean', description: 'Emit a machine-readable JSON result', default: false },
     verbose: { type: 'boolean', description: 'Stream the underlying engine logs', default: false },
   },
-  async run({ args }) {
+  async run({ args, rawArgs }) {
     const json = args.json;
     const quiet = args.quiet || json;
     const verbose = args.verbose && !json;
@@ -133,8 +131,8 @@ export const render = defineCommand({
     await ensureTemplateExists(args.template, json);
 
     const flags: RenderFlags = {
-      field: toList(args.field),
-      video: toList(args.video),
+      field: repeatedFlag(rawArgs, args.field, 'field'),
+      video: repeatedFlag(rawArgs, args.video, 'video'),
       locale: args.locale,
       orientation: args.orientation,
       assets: args.assets,

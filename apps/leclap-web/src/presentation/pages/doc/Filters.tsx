@@ -23,7 +23,7 @@ export const DocFilters = () => (
       <Code>caption</Code> and <Code>layers</Code> first; use <Code>filters[]</Code> only for what they can't express.
     </Callout>
 
-    <DocSection id="filters" title="Raw filters" kicker="filters[]">
+    <DocSection id="filters" title="Raw filters" kicker="`filters[]`">
       <Prose className="mb-5">
         <p>
           Each entry names a filter (<Code>type</Code>) and carries its arguments under <Code>values</Code> — whose keys
@@ -48,7 +48,7 @@ export const DocFilters = () => (
       <Sample code={snippets.filters} title="A raw drawtext filter" />
     </DocSection>
 
-    <DocSection id="maps" title="Filtergraph maps" kicker="maps[]">
+    <DocSection id="maps" title="Filtergraph maps" kicker="`maps[]`">
       <Prose className="mb-5">
         <p>
           <Code>maps[]</Code> gives explicit control over the filtergraph — naming <Code>inputs</Code> and{' '}

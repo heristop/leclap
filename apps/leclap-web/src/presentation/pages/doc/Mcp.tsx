@@ -78,7 +78,7 @@ export const DocMcp = () => (
       </Callout>
     </DocSection>
 
-    <DocSection id="prompt" title="Guided prompt" kicker="compose-video">
+    <DocSection id="prompt" title="Guided prompt" kicker="`compose-video`">
       <Prose>
         <p>
           The server also ships a prompt, <Code>compose-video</Code>, which surfaces as <Code>/compose-video</Code> in
@@ -149,7 +149,7 @@ export const DocMcp = () => (
       </Callout>
     </DocSection>
 
-    <DocSection id="claude-desktop" title="Claude Desktop" kicker="claude_desktop_config.json">
+    <DocSection id="claude-desktop" title="Claude Desktop" kicker="`claude_desktop_config.json`">
       <Prose>
         <p>
           Add the server to <Code>~/Library/Application Support/Claude/claude_desktop_config.json</Code> (
@@ -169,7 +169,7 @@ export const DocMcp = () => (
       </Prose>
     </DocSection>
 
-    <DocSection id="project-scoped" title="Project-scoped wiring" kicker=".mcp.json">
+    <DocSection id="project-scoped" title="Project-scoped wiring" kicker="`.mcp.json`">
       <Prose>
         <p>
           For a per-project server — the shape Claude Code and Cursor read — let the CLI write it:{' '}

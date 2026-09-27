@@ -1,10 +1,36 @@
-import { useState } from 'react';
-import { Check, Lightbulb } from '@/presentation/components/icons';
+import { useId, useState } from 'react';
+import { Check, Info, Lightbulb } from '@/presentation/components/icons';
 import { CopyIcon } from '@/presentation/components/icons/copy';
 import { cn } from '@/lib/utils';
-import { Badge, SegmentedControl } from '@/presentation/components/ui';
-import { logger } from '@/lib/logger';
+import { SegmentedControl } from '@/presentation/components/ui';
+import { commandSegments } from './command-wrap.logic';
+import { parseKicker } from './kicker.logic';
 import type { FieldRow } from './schemaFields';
+import { useCopyFlash } from './use-copy-flash';
+
+// ── Shared rhythm ───────────────────────────────────────────────────────────────
+// Oswald is condensed: at the old 68ch a line carried ~90 characters, which the eye loses on the way
+// back to the next line. 33rem holds it to about 70 at the 1rem body size, in prose and callouts alike.
+const MEASURE = 'max-w-[33rem]';
+
+// html's scroll-padding-top already clears the fixed site header. Below `xl` the sticky doc bar sits
+// under it too, so an anchor target needs that much more; with the rail instead it only needs a breath
+// of air. The scroll-spy reads the same computed margin, so a jump and the highlight agree on where a
+// section starts.
+const ANCHOR_OFFSET = 'scroll-mt-12 xl:scroll-mt-4';
+
+// Brand-700 on the light canvas, brand-400 on ink: the lighter brand tones fail AA at eyebrow size on
+// the light theme.
+const EYEBROW = 'text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-400';
+
+// Announces a completed copy to assistive tech: a button's own children are presentational, so the
+// live region sits beside it, and it is always mounted — a region that appears with its message is
+// not announced.
+const CopyStatus = ({ copied }: { copied: boolean }) => (
+  <span role="status" className="sr-only">
+    {copied ? 'Copied to clipboard' : ''}
+  </span>
+);
 
 // ── Copyable command pill ───────────────────────────────────────────────────────
 // A dark terminal chip: a `$` prompt + the command, with the (visible) label underneath explaining
@@ -14,58 +40,65 @@ import type { FieldRow } from './schemaFields';
 // command rather than pushing the page sideways. It used to be `inline-flex`, which turned every
 // `space-y-*` list of pills into an inline run that wrapped three-across.
 
-export const CommandPill = ({ command, label }: { command: string; label?: string }) => {
-  const [copied, setCopied] = useState(false);
+// About as many mono characters as a 320px-wide pill holds on one line: a token up to this long never
+// splits (see command-wrap.logic.ts), a longer one — a path — may.
+const WHOLE_TOKEN_MAX = 24;
 
-  const copy = () => {
-    navigator.clipboard
-      .writeText(command)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => {
-          setCopied(false);
-        }, 1500);
-      })
-      .catch((error: unknown) => {
-        logger.error('Copy failed', error);
-      });
-  };
+export const CommandPill = ({ command, label }: { command: string; label?: string }) => {
+  const { copied, copy } = useCopyFlash();
+  const labelId = useId();
 
   return (
-    <button
-      type="button"
-      onClick={copy}
-      aria-label={copied ? 'Copied' : `Copy: ${command}`}
-      className="tap group flex w-full items-start gap-4 rounded-xl border border-white/10 bg-[oklch(0.2_0.01_280)] px-4 py-3 text-left shadow-lg shadow-black/20 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-    >
-      {/* The pill is always dark, but the theme's gray scale is tuned for light surfaces — use fixed
-          light tones so the command isn't dark-on-dark. */}
-      <span className="min-w-0 flex-1">
-        {/* A long command wraps onto a second line with a hanging indent (continuations line up past
-            the `$` prompt) rather than scrolling sideways inside the pill — a scrollbar here hides
-            half the flags behind a gesture nobody thinks to try, and the pill copies the whole
-            command anyway. `anywhere` is the fallback for a single unbreakable token, e.g. a path. */}
-        <code className="block whitespace-pre-wrap pl-[1.4em] -indent-[1.4em] font-mono text-sm leading-6 text-[oklch(0.92_0.008_280)] [overflow-wrap:anywhere]">
-          <span aria-hidden className="select-none text-[oklch(0.62_0.01_280)]">
-            ${' '}
-          </span>
-          {command}
-        </code>
-        {label ? (
-          <span className="mt-1.5 block text-[0.78rem] leading-5 text-[oklch(0.68_0.01_280)]">{label}</span>
-        ) : null}
-      </span>
-      <span
-        className={cn(
-          'grid h-7 w-7 shrink-0 place-items-center rounded-md transition-colors',
-          copied
-            ? 'text-success'
-            : 'text-[oklch(0.68_0.01_280)] group-hover:bg-white/10 group-hover:text-[oklch(0.95_0.005_280)]'
-        )}
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          copy(command);
+        }}
+        aria-label={`Copy: ${command}`}
+        aria-describedby={label ? labelId : undefined}
+        // The Copy-page export skips buttons; these hand it the pill's content (see docMarkdown).
+        data-md-command={command}
+        data-md-label={label ?? ''}
+        className="tap group flex w-full items-start gap-4 rounded-xl border border-white/10 bg-[oklch(0.2_0.01_280)] px-4 py-3 text-left shadow-lg shadow-black/20 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
       >
-        {copied ? <Check className="h-4 w-4 pop-in" /> : <CopyIcon size={16} />}
-      </span>
-    </button>
+        {/* The pill is always dark, but the theme's gray scale is tuned for light surfaces — use fixed
+            light tones so the command isn't dark-on-dark. */}
+        <span className="min-w-0 flex-1">
+          {/* A long command wraps onto a second line with a hanging indent (continuations line up past
+              the `$` prompt) rather than scrolling sideways inside the pill — a scrollbar here hides
+              half the flags behind a gesture nobody thinks to try, and the pill copies the whole
+              command anyway. It wraps between tokens, never inside a flag; `anywhere` is the fallback
+              for a token too long for the line, e.g. a path. */}
+          <code className="block whitespace-pre-wrap pl-[1.4em] -indent-[1.4em] font-mono text-sm leading-6 text-[oklch(0.92_0.008_280)] [overflow-wrap:anywhere]">
+            <span aria-hidden className="select-none text-[oklch(0.62_0.01_280)]">
+              ${' '}
+            </span>
+            {commandSegments(command, WHOLE_TOKEN_MAX).map((segment, index) => (
+              <span key={index} className={segment.whole ? 'whitespace-nowrap' : undefined}>
+                {segment.text}
+              </span>
+            ))}
+          </code>
+          {label ? (
+            <span id={labelId} className="mt-1.5 block text-[0.78rem] leading-5 text-[oklch(0.68_0.01_280)]">
+              {label}
+            </span>
+          ) : null}
+        </span>
+        <span
+          className={cn(
+            'grid h-7 w-7 shrink-0 place-items-center rounded-md transition-colors',
+            copied
+              ? 'text-success'
+              : 'text-[oklch(0.68_0.01_280)] group-hover:bg-white/10 group-hover:text-[oklch(0.95_0.005_280)]'
+          )}
+        >
+          {copied ? <Check className="h-4 w-4 pop-in" /> : <CopyIcon size={16} />}
+        </span>
+      </button>
+      <CopyStatus copied={copied} />
+    </>
   );
 };
 
@@ -76,8 +109,38 @@ export const CommandList = ({ children, className }: { children: React.ReactNode
   <div className={cn('flex max-w-2xl flex-col gap-2', className)}>{children}</div>
 );
 
-// ── Anchored section heading ────────────────────────────────────────────────────
-// Owns an anchor id with scroll-mt for the sticky header; shows a "#" permalink on hover.
+// ── Eyebrow + anchored headings ─────────────────────────────────────────────────
+
+// The small label above a heading. A backtick-wrapped kicker is a code identifier (see
+// kicker.logic.ts) and keeps its case in mono; anything else is the tracked uppercase eyebrow.
+export const Eyebrow = ({ kicker, className }: { kicker: string; className?: string }) => {
+  const { text, code } = parseKicker(kicker);
+
+  if (code) {
+    return (
+      <p className={cn('font-mono text-[0.8rem] font-medium text-brand-700 dark:text-brand-300', className)}>
+        <code>{text}</code>
+      </p>
+    );
+  }
+
+  return <p className={cn(EYEBROW, className)}>{text}</p>;
+};
+
+// The heading text links to its own anchor, so any heading is one click from a shareable URL. The "#"
+// only surfaces on hover or keyboard focus: the affordance is discoverable without every heading
+// carrying a glyph at rest.
+const AnchorLink = ({ id, children }: { id: string; children: React.ReactNode }) => (
+  <a href={`#${id}`} className="group/anchor rounded-sm">
+    {children}
+    <span
+      aria-hidden="true"
+      className="ml-2 font-sans text-brand-600 opacity-0 transition-opacity group-hover/anchor:opacity-100 group-focus-visible/anchor:opacity-100 dark:text-brand-300"
+    >
+      #
+    </span>
+  </a>
+);
 
 interface DocSectionProps {
   id: string;
@@ -86,21 +149,17 @@ interface DocSectionProps {
   children: React.ReactNode;
 }
 
+// `data-toc-level` is what the "On this page" list and the scroll-spy collect: a DocSection is a
+// top-level entry, a RefTable or an example nests under it.
 export const DocSection = ({ id, title, kicker, children }: DocSectionProps) => (
-  <section id={id} className="scroll-mt-28 mb-16">
-    <header className="mb-5">
-      {kicker ? (
-        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-brand-500/90 mb-1.5">{kicker}</p>
-      ) : null}
-      <a href={`#${id}`} className="group inline-flex items-baseline gap-2 no-underline">
-        <h2 className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-foreground">{title}</h2>
-        <span
-          aria-hidden="true"
-          className="text-brand-600 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-brand-300"
-        >
-          #
-        </span>
-      </a>
+  <section id={id} data-toc-level="2" className={cn('mb-16', ANCHOR_OFFSET)}>
+    <header className="mb-6">
+      {kicker ? <Eyebrow kicker={kicker} className="mb-2" /> : null}
+      {/* One clear step under the page title (the h1 is display-l): at the old 3xl the two read as the
+          same size, and a page's outline came down to which heading had the eyebrow above it. */}
+      <h2 className="text-balance font-display text-[1.375rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.625rem]">
+        <AnchorLink id={id}>{title}</AnchorLink>
+      </h2>
     </header>
     {/* One vertical rhythm for every block a section holds — prose, command lists, JSON, callouts —
         so a Tip never butts against the code block above it and no call site has to hand-tune a
@@ -117,14 +176,35 @@ export const DocSection = ({ id, title, kicker, children }: DocSectionProps) => 
 const PROSE_LISTS =
   '[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_li]:pl-1 [&_li]:marker:text-brand-500/70 [&_li+li]:mt-2';
 
+// Preflight also leaves links in the text colour with no underline — a link in a paragraph was
+// indistinguishable from the words around it. Colour plus a quiet underline that firms up on hover,
+// so a link reads as one without shouting in a reference page full of them.
+const PROSE_LINKS =
+  '[&_a]:font-medium [&_a]:text-brand-700 [&_a]:underline [&_a]:decoration-brand-500/40 [&_a]:underline-offset-[0.2em] [&_a:hover]:decoration-current dark:[&_a]:text-brand-300';
+
 export const Prose = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn('max-w-[68ch] text-[0.95rem] leading-7 text-gray-300 space-y-4', PROSE_LISTS, className)}>
+  <div className={cn(MEASURE, 'space-y-4 text-base leading-7 text-gray-300', PROSE_LISTS, PROSE_LINKS, className)}>
     {children}
   </div>
 );
 
+// An identifier this short fits any line, so it never splits: broken at its hyphen, `ffmpeg-static`
+// read as two tokens. Anything longer (a path, a flag run) may still wrap on a phone.
+const UNBROKEN_CODE_MAX = 24;
+
+// `leading-none` keeps the chip inside the paragraph's line box: inheriting the prose line height, the
+// mono face sat on a different baseline and pushed every line holding a chip a few pixels taller than
+// its neighbours. `box-decoration-clone` gives each half of a wrapped chip its own padding and border,
+// and `anywhere` lets a path too long for a phone line break inside rather than widen the page.
+// Light-theme text is brand-800: brand-700 on the chip's tint sat right at 4.5:1, too thin a margin
+// for the densest text on the page.
 export const Code = ({ children }: { children: React.ReactNode }) => (
-  <code className="rounded-md border border-brand-500/20 bg-brand-500/10 px-1.5 py-0.5 font-mono text-[0.82em] font-medium text-brand-700 dark:border-brand-400/20 dark:bg-surface-2 dark:text-brand-200">
+  <code
+    className={cn(
+      'box-decoration-clone rounded-md border border-brand-500/20 bg-brand-500/10 px-1.5 py-0.5 font-mono text-[0.82em] font-medium leading-none text-brand-800 [overflow-wrap:anywhere] dark:border-brand-400/20 dark:bg-surface-2 dark:text-brand-200',
+      typeof children === 'string' && children.length <= UNBROKEN_CODE_MAX && 'whitespace-nowrap'
+    )}
+  >
     {children}
   </code>
 );
@@ -141,14 +221,16 @@ export interface DefRow {
 }
 
 export const DefList = ({ rows }: { rows: readonly DefRow[] }) => (
-  <dl className="space-y-4">
+  <dl className="space-y-5">
     {rows.map((row) => (
       <div key={row.term}>
-        <dt className="font-mono text-sm font-semibold text-foreground">{row.term}</dt>
+        <dt className="font-mono text-sm font-semibold text-foreground [overflow-wrap:anywhere]">{row.term}</dt>
         {row.meta ? (
-          <dd className="mt-0.5 font-mono text-[0.78rem] text-secondary-700 dark:text-secondary-300">{row.meta}</dd>
+          <dd className="mt-0.5 font-mono text-[0.78rem] text-secondary-700 [overflow-wrap:anywhere] dark:text-secondary-300">
+            {row.meta}
+          </dd>
         ) : null}
-        <dd className={cn('max-w-[68ch] text-sm leading-6 text-gray-400', row.meta ? 'mt-1' : 'mt-1.5')}>
+        <dd className={cn(MEASURE, 'text-sm leading-6 text-gray-400', PROSE_LINKS, row.meta ? 'mt-1' : 'mt-1.5')}>
           {row.children}
         </dd>
       </div>
@@ -186,6 +268,7 @@ export const CliGetStarted = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Get started with the CLI</p>
         <SegmentedControl
           value={pm}
+          ariaLabel="Package manager"
           onChange={(value) => {
             setPm(value as PackageManager);
           }}
@@ -212,28 +295,46 @@ export const CliGetStarted = () => {
 
 // ── Field table ─────────────────────────────────────────────────────────────────
 // Schema-driven: each row is one object property (name · type · constraints · meaning).
+//
+// Below `sm` a three-column table leaves the description a 120px strip that wraps every few words
+// while the Constraints column mostly holds a dash. There each row restacks: name and meaning across
+// the full width, type and constraints on the line under it. The explicit roles keep it a table for
+// assistive tech — WebKit drops table semantics once `display` stops being a table value.
 
 export const FieldTable = ({ rows }: { rows: FieldRow[] }) => {
   if (rows.length === 0) return null;
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-divider bg-surface/60">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="border-b border-divider bg-foreground/[0.025] text-[0.7rem] uppercase tracking-wider text-gray-500">
-            <th className="px-4 py-3 font-semibold">Field</th>
-            <th className="px-4 py-3 font-semibold">Type</th>
-            <th className="px-4 py-3 font-semibold">Constraints</th>
+      <table role="table" className="w-full border-collapse text-left text-sm max-sm:block">
+        <thead role="rowgroup" className="max-sm:sr-only">
+          <tr
+            role="row"
+            className="border-b border-divider bg-foreground/[0.025] text-[0.7rem] uppercase tracking-wider text-gray-500"
+          >
+            <th role="columnheader" className="px-4 py-3 font-semibold">
+              Field
+            </th>
+            <th role="columnheader" className="px-4 py-3 font-semibold">
+              Type
+            </th>
+            <th role="columnheader" className="px-4 py-3 font-semibold">
+              Constraints
+            </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody role="rowgroup" className="max-sm:block">
           {rows.map((row) => (
             <tr
               key={row.name}
-              className="border-b border-divider/60 align-top transition-colors last:border-0 hover:bg-foreground/[0.025]"
+              role="row"
+              className="border-b border-divider/60 align-top transition-colors last:border-0 hover:bg-foreground/[0.025] max-sm:grid max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:gap-x-4 max-sm:gap-y-2 max-sm:px-4 max-sm:py-4"
             >
-              <td className="px-4 py-3 whitespace-nowrap">
-                <span className="inline-flex items-center gap-2">
+              <td
+                role="cell"
+                className="whitespace-nowrap px-4 py-3 max-sm:col-span-2 max-sm:whitespace-normal max-sm:p-0"
+              >
+                <span className="inline-flex flex-wrap items-center gap-2">
                   <span className="font-mono text-[0.85rem] font-medium text-foreground">{row.name}</span>
                   {row.required ? (
                     <span className="rounded bg-brand-500/12 px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
@@ -241,15 +342,23 @@ export const FieldTable = ({ rows }: { rows: FieldRow[] }) => {
                     </span>
                   ) : null}
                 </span>
-                <p className="mt-1.5 max-w-[42ch] text-[0.8rem] leading-5 text-gray-400 whitespace-normal">
+                <p className="mt-1.5 whitespace-normal text-[0.85rem] leading-6 text-gray-400 sm:max-w-[42ch]">
                   {row.description}
                 </p>
               </td>
-              <td className="px-4 py-3">
+              <td role="cell" className="px-4 py-3 max-sm:p-0">
                 <span className="font-mono text-[0.78rem] text-secondary-700 dark:text-secondary-300">{row.type}</span>
               </td>
-              <td className="px-4 py-3">
-                <span className="font-mono text-[0.78rem] text-gray-400">{row.constraints || '—'}</span>
+              <td role="cell" className="px-4 py-3 max-sm:p-0">
+                {/* An unconstrained field shows a dash in the grid, but reads as an empty cell rather
+                    than "dash"; stacked on a phone the dash would dangle beside the type, so it goes. */}
+                <span className="font-mono text-[0.78rem] text-gray-400 [overflow-wrap:anywhere]">
+                  {row.constraints || (
+                    <span aria-hidden="true" className="max-sm:hidden">
+                      —
+                    </span>
+                  )}
+                </span>
               </td>
             </tr>
           ))}
@@ -258,6 +367,35 @@ export const FieldTable = ({ rows }: { rows: FieldRow[] }) => {
     </div>
   );
 };
+
+// ── Anchored subsection ─────────────────────────────────────────────────────────
+// The level under a DocSection: a reference table, an example. Its title is an h3 — the section's h2
+// is the level above — with the same permalink, and it nests under that h2 in "On this page".
+// `code` sets the title in mono, for a title that is a schema name rather than a phrase.
+
+export const DocSubsection = ({
+  id,
+  title,
+  code = false,
+  children,
+}: {
+  id: string;
+  title: string;
+  code?: boolean;
+  children: React.ReactNode;
+}) => (
+  <section id={id} data-toc-level="3" className={ANCHOR_OFFSET}>
+    <h3
+      className={cn(
+        'mb-1.5 font-semibold text-foreground [overflow-wrap:anywhere]',
+        code ? 'font-mono text-[1.0625rem]' : 'font-display text-lg tracking-tight'
+      )}
+    >
+      <AnchorLink id={id}>{title}</AnchorLink>
+    </h3>
+    {children}
+  </section>
+);
 
 // ── Named reference table ───────────────────────────────────────────────────────
 // A schema-driven field table with its own anchored heading + summary. The workhorse of the
@@ -274,11 +412,10 @@ export const RefTable = ({
   summary?: string;
   rows: FieldRow[];
 }) => (
-  <section id={id} className="scroll-mt-28">
-    <h2 className="mb-1 font-mono text-lg font-semibold text-foreground">{title}</h2>
-    {summary ? <p className="mb-3 max-w-[68ch] text-sm leading-6 text-gray-400">{summary}</p> : null}
+  <DocSubsection id={id} title={title} code>
+    {summary ? <p className={cn(MEASURE, 'mb-4 text-sm leading-6 text-gray-400')}>{summary}</p> : null}
     <FieldTable rows={rows} />
-  </section>
+  </DocSubsection>
 );
 
 // ── Reference chip list ─────────────────────────────────────────────────────────
@@ -340,11 +477,57 @@ const tintLine = (line: string): React.ReactNode[] => {
   return out;
 };
 
+// "Copy-paste" descriptors used to mean selecting sixty lines by hand. The button sits over the
+// block's top-right corner — every JSON sample opens on a lone `{`, so it covers no code at rest; its
+// own fill keeps a long line scrolled under it from showing through — and it stays visible rather
+// than hover-only, because a phone has no hover to reveal it.
+const CopyCodeButton = ({ code }: { code: string }) => {
+  const { copied, copy } = useCopyFlash();
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          copy(code);
+        }}
+        aria-label="Copy JSON"
+        title="Copy JSON"
+        className={cn(
+          'tap absolute right-2 top-2 z-10 grid h-10 w-10 place-items-center rounded-lg bg-[oklch(0.18_0.01_280_/_0.9)] transition-colors',
+          copied ? 'text-success' : 'text-[oklch(0.68_0.01_280)] hover:bg-white/10 hover:text-[oklch(0.95_0.005_280)]'
+        )}
+      >
+        {copied ? <Check className="h-4 w-4 pop-in" /> : <CopyIcon size={16} />}
+      </button>
+      <CopyStatus copied={copied} />
+    </>
+  );
+};
+
+// Past this many lines a block is a reference to search, not a sample to read. The full generated
+// schema is ~17,600 lines: tokenised row by row it cost ~72k DOM nodes, a 1.5s freeze on a desktop,
+// and a page half a million pixels tall. As one plain text node in a bounded scroller it opens at
+// once, and find-in-page still searches it.
+const LONG_BLOCK_LINES = 400;
+
 export const JsonBlock = ({ code }: { code: string }) => {
   const lines = code.split('\n');
 
+  if (lines.length > LONG_BLOCK_LINES) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl border border-divider bg-[oklch(0.18_0.01_280)]">
+        <CopyCodeButton code={code} />
+        <pre className="max-h-[70vh] overflow-auto overscroll-contain p-4 text-[0.8rem] leading-6">
+          <code className="font-mono text-[oklch(0.78_0.012_280)]">{code}</code>
+        </pre>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-divider bg-[oklch(0.18_0.01_280)]">
+    <div className="relative overflow-hidden rounded-2xl border border-divider bg-[oklch(0.18_0.01_280)]">
+      <CopyCodeButton code={code} />
       <pre className="overflow-x-auto p-4 text-[0.8rem] leading-6">
         <code className="font-mono">
           {lines.map((line, index) => (
@@ -381,7 +564,13 @@ export const Sample = ({
   </div>
 );
 
-// ── Pull-out note ───────────────────────────────────────────────────────────────
+// ── Pull-out notes ──────────────────────────────────────────────────────────────
+// Two tints for two jobs: the brand Callout carries a constraint or a fact worth stopping for, the
+// accent Tip a piece of advice. Same shape for both — a hairline frame on a faint wash, the label set
+// like an eyebrow with its icon — so they differ in meaning, not in construction. (A coloured stripe
+// down one rounded edge bent into a crescent at the corners.)
+
+const NOTE_BODY = cn(MEASURE, 'mt-2 text-[0.95rem] leading-7 text-gray-300', PROSE_LISTS, PROSE_LINKS);
 
 export const Callout = ({
   label,
@@ -392,25 +581,31 @@ export const Callout = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <aside className={cn('rounded-2xl border-l-2 border-brand-500/60 bg-brand-500/5 px-5 py-4', className)}>
-    <Badge variant="brand">{label}</Badge>
-    <div className={cn('mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300', PROSE_LISTS)}>{children}</div>
+  <aside
+    className={cn(
+      'rounded-xl border border-brand-500/25 bg-brand-500/[0.06] px-5 py-4 dark:border-brand-400/20 dark:bg-brand-400/[0.07]',
+      className
+    )}
+  >
+    <p className="flex items-center gap-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-300">
+      <Info aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /> {label}
+    </p>
+    <div className={NOTE_BODY}>{children}</div>
   </aside>
 );
-
-// ── Tip ───────────────────────────────────────────────────────────────────────────
-// Amber aside for "do this" advice — visually distinct from the brand Callout.
 
 export const Tip = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <aside
     className={cn(
-      'rounded-2xl border-l-2 border-accent-600/50 bg-accent-400/[0.08] px-5 py-4 dark:border-accent-400/60',
+      'rounded-xl border border-accent-600/30 bg-accent-400/[0.12] px-5 py-4 dark:border-accent-400/20 dark:bg-accent-400/[0.06]',
       className
     )}
   >
-    <p className="flex items-center gap-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-accent-700 dark:text-accent-400">
-      <Lightbulb aria-hidden="true" className="h-3.5 w-3.5" /> Tip
+    {/* On the light theme even accent-700 falls under 4:1 on the yellow wash at eyebrow size, so the
+        word takes the ink colour and the bulb carries the amber (a glyph needs 3:1, which it clears). */}
+    <p className="flex items-center gap-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-foreground dark:text-accent-400">
+      <Lightbulb aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-accent-700 dark:text-accent-400" /> Tip
     </p>
-    <div className={cn('mt-2 max-w-[64ch] text-[0.9rem] leading-7 text-gray-300', PROSE_LISTS)}>{children}</div>
+    <div className={NOTE_BODY}>{children}</div>
   </aside>
 );

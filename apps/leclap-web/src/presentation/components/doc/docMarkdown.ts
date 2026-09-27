@@ -1,7 +1,7 @@
 // Turns a rendered doc page into Markdown and builds the "take this page elsewhere" links used by the
 // docs Copy-page menu. Doc pages are JSX (no Markdown source), so we serialise the live DOM at click
-// time — the output always matches what the reader sees. Only the link/prompt builders are pure and
-// unit-tested; the DOM walk is exercised in the browser.
+// time — the output always matches what the reader sees. The link/prompt builders and the per-block
+// formatters are pure and unit-tested; the DOM walk that feeds them is exercised in the browser.
 
 export type AiProvider = 'chatgpt' | 'claude';
 export type McpEditor = 'cursor' | 'vscode';
@@ -47,11 +47,47 @@ export function mcpInstallUrl(editor: McpEditor): string {
   return `vscode:mcp/install?${encodeURIComponent(payload)}`;
 }
 
+// ── Block formatters ─────────────────────────────────────────────────────────────
+
+// A code span fenced past the longest backtick run inside it (the CommonMark rule), padded when the
+// content starts or ends with a tick so the fence can't fuse with it.
+export function inlineCode(text: string): string {
+  const longest = Math.max(0, ...Array.from(text.matchAll(/`+/g), (match) => match[0].length));
+  const fence = '`'.repeat(longest + 1);
+  const pad = text.startsWith('`') || text.endsWith('`') ? ' ' : '';
+
+  return `${fence}${pad}${text}${pad}${fence}`;
+}
+
+// A command pill: the command a reader would copy, then what it does.
+export function commandItemMd(command: string, label: string): string {
+  const item = `- ${inlineCode(command)}`;
+
+  return label ? `${item} — ${label}` : item;
+}
+
+// One DefList row — a flag, an env var, an MCP tool: name (meta) — meaning.
+export function definitionMd(term: string, meta: string, description: string): string {
+  const head = meta ? `${inlineCode(term)} (${meta})` : inlineCode(term);
+
+  return description ? `- ${head} — ${description}` : `- ${head}`;
+}
+
+// A Callout or Tip. Serialised as plain text the label ran straight into the body ("TipUse absolute
+// paths"), so it becomes a bold lead-in instead.
+export function calloutMd(label: string, body: string): string {
+  if (!body) return '';
+
+  return label ? `> **${label}:** ${body}` : `> ${body}`;
+}
+
 // ── DOM → Markdown ───────────────────────────────────────────────────────────────
 // Browser-only. Walks the rendered doc content into block-level Markdown, handling the elements our
-// DocBlocks actually emit (headings, prose, inline code, JSON blocks, field tables, callouts, chips).
+// DocBlocks actually emit (headings, prose, inline code, JSON blocks, field tables, definition lists,
+// command pills, callouts, chips).
 
-// Interactive / non-content nodes (the Copy-page toolbar, copy pills, PM switchers, scripts).
+// Interactive / non-content nodes (the Copy-page toolbar, copy buttons, PM switchers, scripts). A
+// command pill is a button too, but it carries content — it opts back in with `data-md-command`.
 const SKIP_TAGS = new Set(['button', 'script', 'style']);
 
 // `Node.textContent` is typed `string | null`; normalise it to a plain string in one place. Routing the
@@ -112,7 +148,10 @@ function inlineMd(node: Node): string {
   return out;
 }
 
-const headingText = (el: HTMLElement): string => collapse(el.textContent).replace(/\s*#$/, '');
+// KineticHeading splits its title into one span per word with no text between them, so its
+// textContent reads "Thetemplatedescriptor"; its aria-label carries the title as written.
+const headingText = (el: HTMLElement): string =>
+  el.getAttribute('aria-label') ?? collapse(el.textContent).replace(/\s*#$/, '');
 
 // JsonBlock renders each line as a grid row: an aria-hidden line-number span + the content span.
 // Take the last span per row so the gutter numbers don't leak into the fence.
@@ -158,9 +197,53 @@ const tableMd = (table: HTMLElement): string => {
 const listMd = (list: HTMLElement): string =>
   [...list.querySelectorAll(':scope > li')].map((li) => `- ${collapse(inlineMd(li))}`).join('\n');
 
+// DefList rows are `dt` + an optional mono meta `dd` + the meaning `dd`.
+const definitionOf = (term: HTMLElement): string => {
+  const defs: HTMLElement[] = [];
+  let next = term.nextElementSibling;
+
+  while (next instanceof HTMLElement && next.tagName === 'DD') {
+    defs.push(next);
+    next = next.nextElementSibling;
+  }
+
+  const meta = defs.length > 1 ? collapse(defs[0].textContent) : '';
+  const meaning = defs.at(-1);
+
+  return definitionMd(collapse(term.textContent), meta, meaning ? collapse(inlineMd(meaning)) : '');
+};
+
+const dlMd = (list: HTMLElement): string =>
+  [...list.querySelectorAll('dt')].map((term) => definitionOf(term)).join('\n');
+
+// Callout / Tip: a label row, then the body.
+const asideMd = (aside: HTMLElement): string => {
+  const label = aside.firstElementChild;
+  const body = [...aside.children].slice(1);
+
+  if (!label) return '';
+
+  if (body.length === 0) return calloutMd('', collapse(inlineMd(label)));
+
+  return calloutMd(collapse(label.textContent), body.map((child) => collapse(inlineMd(child))).join(' '));
+};
+
+// Blocks serialised whole, by tag; anything else is a container the walk descends into.
+const BLOCKS: Partial<Record<string, (el: HTMLElement) => string>> = {
+  pre: (el) => `\`\`\`json\n${preText(el)}\n\`\`\``,
+  table: tableMd,
+  ul: listMd,
+  ol: listMd,
+  dl: dlMd,
+  aside: asideMd,
+};
+
 // Markdown for one block-level element, or null when it's a container whose children carry the blocks.
 const blockMd = (el: HTMLElement): string | null => {
   const tag = el.tagName.toLowerCase();
+  const { mdCommand, mdLabel } = el.dataset;
+
+  if (mdCommand !== undefined) return commandItemMd(mdCommand, mdLabel ?? '');
 
   if (SKIP_TAGS.has(tag)) return '';
 
@@ -173,19 +256,9 @@ const blockMd = (el: HTMLElement): string | null => {
   // Decorative uppercase eyebrows/kickers restate the heading that follows — drop them.
   if (tag === 'p') return el.className.includes('uppercase') ? '' : inlineMd(el).trim();
 
-  if (tag === 'pre') return `\`\`\`json\n${preText(el)}\n\`\`\``;
+  const block = BLOCKS[tag];
 
-  if (tag === 'table') return tableMd(el);
-
-  if (tag === 'ul' || tag === 'ol') return listMd(el);
-
-  if (tag === 'aside') {
-    const text = collapse(el.textContent);
-
-    return text ? `> ${text}` : '';
-  }
-
-  return null;
+  return block ? block(el) : null;
 };
 
 // Append the Markdown for one element (and, for containers, its descendants) to `blocks`.

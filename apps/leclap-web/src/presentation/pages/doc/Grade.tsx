@@ -17,7 +17,7 @@ export const DocGrade = () => (
       so reach for it when a preset is close but not exact, or when you want a bespoke treatment from scratch.
     </DocPageHeader>
 
-    <DocSection id="reference" title="Fields" kicker="grade">
+    <DocSection id="reference" title="Fields" kicker="`grade`">
       <Prose className="mb-5">
         <p>
           <Code>colorBalance</Code> nests per-range red/green/blue offsets (<Code>shadows</Code>, <Code>midtones</Code>,{' '}

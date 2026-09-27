@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { aiChatUrl, mcpInstallUrl, chatPrompt, truncateMarkdown } from './docMarkdown';
+import {
+  aiChatUrl,
+  calloutMd,
+  chatPrompt,
+  commandItemMd,
+  definitionMd,
+  inlineCode,
+  mcpInstallUrl,
+  truncateMarkdown,
+} from './docMarkdown';
 
 describe('truncateMarkdown', () => {
   it('returns the content unchanged when under the cap', () => {
@@ -56,5 +65,54 @@ describe('mcpInstallUrl', () => {
     const payload = JSON.parse(decodeURIComponent(url.split('?')[1]));
     expect(payload.name).toBe('leclap');
     expect(payload.args).toContain('@leclap/mcp');
+  });
+});
+
+describe('inlineCode', () => {
+  it('wraps plain text in single backticks', () => {
+    expect(inlineCode('leclap render')).toBe('`leclap render`');
+  });
+
+  it('fences past any backtick run inside, padding a leading or trailing tick', () => {
+    expect(inlineCode('a`b')).toBe('``a`b``');
+    expect(inlineCode('`a')).toBe('`` `a ``');
+  });
+});
+
+describe('commandItemMd', () => {
+  it('lists a command pill as code with its label', () => {
+    expect(commandItemMd('leclap init [name]', 'scaffold a starter project')).toBe(
+      '- `leclap init [name]` — scaffold a starter project'
+    );
+  });
+
+  it('drops the dash when a pill has no label', () => {
+    expect(commandItemMd('pnpm render', '')).toBe('- `pnpm render`');
+  });
+});
+
+describe('definitionMd', () => {
+  it('renders term, meta and meaning as one list item', () => {
+    expect(definitionMd('--output <path>', '-o', 'Copy the finished mp4.')).toBe(
+      '- `--output <path>` (-o) — Copy the finished mp4.'
+    );
+  });
+
+  it('omits the parenthesis without a meta line', () => {
+    expect(definitionMd('ping', '', 'Liveness check.')).toBe('- `ping` — Liveness check.');
+  });
+});
+
+describe('calloutMd', () => {
+  it('keeps the label apart from the body instead of running the two together', () => {
+    expect(calloutMd('Tip', 'Use absolute paths.')).toBe('> **Tip:** Use absolute paths.');
+  });
+
+  it('quotes a bare body when there is no label', () => {
+    expect(calloutMd('', 'Use absolute paths.')).toBe('> Use absolute paths.');
+  });
+
+  it('is empty when there is nothing to quote', () => {
+    expect(calloutMd('Tip', '')).toBe('');
   });
 });

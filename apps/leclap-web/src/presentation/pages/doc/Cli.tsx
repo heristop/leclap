@@ -111,7 +111,7 @@ export const DocCli = () => (
       </Prose>
     </DocSection>
 
-    <DocSection id="render" title="Rendering" kicker="render">
+    <DocSection id="render" title="Rendering" kicker="`render`">
       <Prose>
         <p>
           <Code>render</Code> loads the descriptor, resolves FFmpeg, and compiles the sections in order. Everything a
@@ -146,7 +146,7 @@ export const DocCli = () => (
       </Tip>
     </DocSection>
 
-    <DocSection id="init" title="Scaffolding a project" kicker="init">
+    <DocSection id="init" title="Scaffolding a project" kicker="`init`">
       <Prose>
         <p>
           <Code>init</Code> writes a project that renders immediately: a <Code>template.json</Code> that needs no

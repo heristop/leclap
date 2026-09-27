@@ -14,7 +14,9 @@ export type FontLoader = (fontFile: string) => Promise<Uint8Array | null>;
 // platform that does not ship fonts locally (its base implementation is a null return), and this
 // loader turns every failure — unresolved, unreadable, or thrown — into null, which the caller
 // reads as "measure approximately and flag it".
-export function createBundledFontLoader(filesystem: AbstractFilesystem): FontLoader {
+export function createBundledFontLoader(
+  filesystem: Pick<AbstractFilesystem, 'resolveBundledFont' | 'readFile'>
+): FontLoader {
   return async (fontFile: string): Promise<Uint8Array | null> => {
     try {
       const path = await filesystem.resolveBundledFont(fontFile);

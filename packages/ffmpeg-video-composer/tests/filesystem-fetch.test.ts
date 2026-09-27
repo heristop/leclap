@@ -75,6 +75,59 @@ describe('FilesystemNodeAdapter.fetch', () => {
   });
 });
 
+describe('FilesystemNodeAdapter.fetchBytes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+  });
+
+  it('returns the body in memory without staging anything under tempDir', async () => {
+    mockedAxios.mockResolvedValue(ok(Buffer.from('font bytes')));
+
+    const bytes = await makeAdapter().fetchBytes('https://cdn.example.com/Probe.ttf', { timeoutMs: 5000 });
+
+    expect(Buffer.from(bytes).toString('utf-8')).toBe('font bytes');
+    // fetch() would have written tempDir/Probe.ttf — the path a render stages the same asset through.
+    await expect(fs.access(path.join(os.tmpdir(), 'Probe.ttf'))).rejects.toBeInstanceOf(Error);
+  });
+
+  it('hands its limits to axios', async () => {
+    mockedAxios.mockResolvedValue(ok(Buffer.from('x')));
+
+    await makeAdapter().fetchBytes('https://cdn.example.com/a.ttf', { timeoutMs: 5000, maxBytes: 1024 });
+
+    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({
+      responseType: 'arraybuffer',
+      timeout: 5000,
+      maxContentLength: 1024,
+    });
+  });
+
+  it('leaves fetch() unbounded, as the render path has always been', async () => {
+    mockedAxios.mockResolvedValue(ok(Readable.from(['body'])));
+
+    const dest = await makeAdapter().fetch('https://cdn.example.com/defaults.bin');
+
+    expect(mockedAxios.mock.calls[0]?.[0]).not.toHaveProperty('timeout');
+    expect(mockedAxios.mock.calls[0]?.[0]).not.toHaveProperty('maxContentLength');
+
+    await fs.unlink(dest).catch(() => undefined);
+  });
+
+  it('rejects a redirect it was not allowed to follow instead of returning its body', async () => {
+    mockedAxios.mockResolvedValue({ status: 302, headers: {}, data: Buffer.from('<html>moved</html>') });
+
+    await expect(makeAdapter().fetchBytes('https://cdn.example.com/a.ttf', { timeoutMs: 5000 })).rejects.toThrow(
+      'HTTP 302'
+    );
+  });
+
+  it('is guarded against private destinations like every other request', async () => {
+    await expect(makeAdapter().fetchBytes('http://169.254.169.254/latest/', { timeoutMs: 5000 })).rejects.toThrow();
+    expect(mockedAxios).not.toHaveBeenCalled();
+  });
+});
+
 describe('FilesystemNodeAdapter.fetch SSRF guard', () => {
   beforeEach(() => {
     vi.clearAllMocks();

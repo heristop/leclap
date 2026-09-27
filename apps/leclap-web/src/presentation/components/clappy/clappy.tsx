@@ -1,6 +1,9 @@
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { REST_ANGLE, feet, type ClappyMood, type ClappyPose } from './clappy.logic';
+import { REST_ANGLE, clapParts, feet, type ClappyMood, type ClappyPose, type ClickClapFrame } from './clappy.logic';
+import { mayFollow } from './clappy-gaze.logic';
+import { GAZE_VAR, useClappyGaze, type GazePose } from './use-clappy-gaze';
+import { useClickClap, type ClickClap } from './use-click-clap';
 
 // Clappy, the LeClap mascot: the logo mark (public/favicon.svg) redrawn by hand and gently chubby, then given
 // a face, arms and little feet. It is the films' character (the private leclap-brand-motion repo:
@@ -27,6 +30,12 @@ const BOARD =
 // the feet at the bottom. Only a wound-up stick or a flung arm reaches past it.
 const VIEW = { x: 0, y: 24, width: 600, height: 536 };
 
+// The row the eyes sit on; the face is drawn around it.
+const EYES_Y = 396;
+
+/** Where Clappy looks from, as a fraction of his frame: between his eyes. */
+const GAZE_FROM = { x: (300 - VIEW.x) / VIEW.width, y: (EYES_Y - VIEW.y) / VIEW.height };
+
 /** Clappy's height for a given width, in px. */
 export const clappyHeight = (width: number): number => (width * VIEW.height) / VIEW.width;
 
@@ -35,23 +44,89 @@ export interface ClappyProps extends ClappyPose {
   size: number;
   /** The soft shadow that lifts it off the page. */
   shadow?: boolean;
+  /**
+   * His eyes, and a little of his face, turn toward the visitor's pointer, then drift back to the pose's own
+   * look once it rests or leaves (use-clappy-gaze.ts). Only where a pointer can hover, never under reduced
+   * motion, and never while dozing or running; on by default. The wrappers keep it off while an act owns his look.
+   */
+  followPointer?: boolean;
+  /**
+   * A click or a tap on his drawing, not the box around it, makes him clap over whatever pose he's in, with the
+   * clack when the site's sound is on (use-click-clap.ts). An easter egg: he stays hidden from assistive tech and
+   * out of the tab order. On by default; off inside an overlay that lets clicks through, or his drawing takes them.
+   */
+  clapOnClick?: boolean;
   className?: string;
 }
 
-export const Clappy = ({ size, shadow = true, className, ...pose }: ClappyProps) => {
+// His feet, where the press and the slam's squash pivot, as in the wrappers (50% 92% of the frame).
+const FEET = { x: 300, y: VIEW.y + VIEW.height * 0.92 };
+
+// The hint that he can be clicked: the hand cursor, and a small dip while pressed. Only his painted drawing
+// takes the click (the svg itself lets clicks through), and a tap shows no highlight box.
+const PRESSABLE =
+  'pointer-events-auto cursor-pointer transition-transform duration-150 ease-out motion-safe:active:scale-[0.96] [-webkit-tap-highlight-color:transparent]';
+const PRESS_ORIGIN = { transformOrigin: `${FEET.x}px ${FEET.y}px` };
+
+/** His drawing's press: the clap and its hint when a click claps him, else nothing, so clicks pass through. */
+const pressOf = (clap: ClickClap | null) =>
+  clap === null ? {} : { className: PRESSABLE, onClick: clap.onClick, onPointerDown: clap.onPointerDown };
+
+/** The pose with a click's clap laid over it: the clap takes the stick, the arms and, for a beat, the mood. */
+const clappedOver = (pose: ClappyPose, frame: ClickClapFrame | null): ClappyPose => {
+  if (frame === null) return pose;
+
+  const { angle, armL, armR, grin } = frame;
+
+  return { ...pose, angle, armL, armR, mood: grin ? 'grin' : pose.mood };
+};
+
+/** The slam's squash onto his feet, as an SVG transform; none without an impact. */
+const squashOn = (frame: ClickClapFrame | null): string | undefined => {
+  if (frame === null || frame.impact === 0) return undefined;
+
+  const squash = frame.impact * 0.1;
+
+  return `translate(${FEET.x} ${FEET.y}) scale(${1 + squash} ${1 - squash}) translate(${-FEET.x} ${-FEET.y})`;
+};
+
+/** What the follower needs of the pose: its look, and whether his eyes may leave it (clappy-gaze.logic.ts). */
+const gazeOf = (pose: ClappyPose, follow: boolean): GazePose => ({
+  lookX: pose.lookX ?? 0,
+  lookY: pose.lookY ?? 0,
+  follow: follow && mayFollow(pose),
+});
+
+export const Clappy = ({
+  size,
+  shadow = true,
+  followPointer = true,
+  clapOnClick = true,
+  className,
+  ...pose
+}: ClappyProps) => {
   const id = `clappy${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const svg = useRef<SVGSVGElement>(null);
+  const clap = useClickClap(clapParts(pose));
+
+  useClappyGaze(svg, GAZE_FROM, gazeOf(pose, followPointer));
 
   return (
     <svg
+      ref={svg}
       aria-hidden="true"
       width={size}
       height={clappyHeight(size)}
       viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}
-      className={cn('overflow-visible', className)}
+      className={cn('pointer-events-none select-none overflow-visible', className)}
     >
       <Defs id={id} />
       <g filter={shadow ? `url(#${id}-shadow)` : undefined}>
-        <Character id={id} {...pose} />
+        <g style={PRESS_ORIGIN} {...pressOf(clapOnClick ? clap : null)}>
+          <g transform={squashOn(clap.frame)}>
+            <Character id={id} {...clappedOver(pose, clap.frame)} />
+          </g>
+        </g>
       </g>
     </svg>
   );
@@ -216,18 +291,37 @@ const eyeShapes = (mood: ClappyMood): readonly [EyeShape, EyeShape] => {
   return ['open', 'open'];
 };
 
+// How far a look carries the face (a small head-turn) and the pupils within their eyes, in the mark's units per
+// look unit. The follower's share moves them just as far, so a look it takes over or hands back never jumps.
+const FACE_TURN = { x: 10, y: 6 };
+const PUPIL_TRAVEL = { x: 10, y: 11 };
+
+/**
+ * A translate by the follower's share of the look, read off the CSS properties it sets on the svg
+ * (use-clappy-gaze.ts: GAZE_VAR), so the face and the pupils follow the pointer without a render. Unset, it is
+ * nothing: a prerender, a touchscreen and reduced motion all draw the pose alone.
+ */
+const followed = (x: string, y: string, travel: { x: number; y: number }) => ({
+  transform: `translate(calc(var(${x}, 0) * ${travel.x}px), calc(var(${y}, 0) * ${travel.y}px))`,
+});
+
+const FACE_FOLLOW = followed(GAZE_VAR.faceX, GAZE_VAR.faceY, FACE_TURN);
+const PUPILS_FOLLOW = followed(GAZE_VAR.eyesX, GAZE_VAR.eyesY, PUPIL_TRAVEL);
+
 const Face = ({ lookX, lookY, eye, mood }: { lookX: number; lookY: number; eye: number; mood: ClappyMood }) => {
   const [left, right] = eyeShapes(mood);
   // Focused narrows the eyes; a blink squashes them shut either way.
-  const open = mood === 'focused' ? eye * 0.62 : eye;
+  const open = mood === 'focused' ? eye * 0.82 : eye;
 
   return (
-    <g transform={`translate(${lookX * 10} ${lookY * 6})`}>
-      <Eye cx={240} cy={396} shape={left} open={open} lookX={lookX} lookY={lookY} />
-      <Eye cx={360} cy={396} shape={right} open={open} lookX={lookX} lookY={lookY} />
-      <Blush cx={186} cy={444} />
-      <Blush cx={414} cy={444} />
-      <Mouth mood={mood} />
+    <g transform={`translate(${lookX * FACE_TURN.x} ${lookY * FACE_TURN.y})`}>
+      <g style={FACE_FOLLOW}>
+        <Eye cx={240} cy={EYES_Y} shape={left} open={open} lookX={lookX} lookY={lookY} />
+        <Eye cx={360} cy={EYES_Y} shape={right} open={open} lookX={lookX} lookY={lookY} />
+        <Blush cx={186} cy={444} />
+        <Blush cx={414} cy={444} />
+        <Mouth mood={mood} />
+      </g>
     </g>
   );
 };
@@ -283,12 +377,18 @@ const Eye = ({
     );
   }
 
+  // Where the pose's look has carried the pupil; the follower's share moves it on from there.
+  const px = lookX * PUPIL_TRAVEL.x;
+  const py = lookY * PUPIL_TRAVEL.y;
+
   return (
     <g transform={`translate(${cx} ${cy}) scale(1 ${open})`}>
       <ellipse rx={33} ry={38} fill="#fff" stroke={OUTLINE} strokeWidth={9} />
-      <ellipse cx={lookX * 10} cy={lookY * 11 + 3} rx={22} ry={25} fill={PUPIL} />
-      <circle cx={lookX * 10 + 9} cy={lookY * 11 - 8} r={9} fill="#fff" />
-      <circle cx={lookX * 10 - 8} cy={lookY * 11 + 13} r={4.5} fill="#fff" />
+      <g style={PUPILS_FOLLOW}>
+        <ellipse cx={px} cy={py + 3} rx={22} ry={25} fill={PUPIL} />
+        <circle cx={px + 9} cy={py - 8} r={9} fill="#fff" />
+        <circle cx={px - 8} cy={py + 13} r={4.5} fill="#fff" />
+      </g>
     </g>
   );
 };

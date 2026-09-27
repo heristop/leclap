@@ -23,6 +23,8 @@
     "namePlaceholder": "ex. {{name}}",
     "recorded": "Intro filmée",
     "reRecord": "Refilmer",
+    "imported": "Clip importé",
+    "changeClip": "Changer de clip",
     "record": "Filmer",
     "upload": "Importer",
     "recordAria": "Filmer une intro avec ta caméra",

@@ -17,6 +17,7 @@ import { TemplatePoster } from './TemplatePoster';
 import { HighlightMatch } from './HighlightMatch';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
+import { ClappyReaction } from '@/presentation/components/clappy';
 
 // SearchX has no animated variant; this shim accepts (and ignores) the handle ref so it satisfies
 // EmptyState's animated-icon prop type without throwing when the hover handler reaches for its handle.
@@ -310,8 +311,10 @@ export const TemplateSelector = ({
       )}
 
       {shown.length === 0 ? (
+        // Nothing matched: Clappy looks around the frame and shrugs, as on the 404 — same meaning, same act.
         <EmptyState
           icon={SearchXIcon}
+          visual={<ClappyReaction reaction="search" size={112} />}
           title={t('empty.title')}
           hint={t('empty.hint')}
           action={{ label: t('empty.clear'), onClick: resetFacets }}

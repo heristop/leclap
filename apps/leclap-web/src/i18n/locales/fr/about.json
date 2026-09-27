@@ -1,33 +1,36 @@
 {
   "hero": {
-    "badge": "Confidentialité d’abord · Dans ton navigateur",
+    "eyebrow": "Composer, pas générer",
     "title": "À propos de LeClap",
-    "tagline": "Un compositeur vidéo cinématographique qui tourne 100 % dans ton navigateur. Compose à partir de vrais modèles, lance le rendu avec FFmpeg compilé en WebAssembly, puis télécharge — sans serveur, sans envoi, sans limite."
+    "tagline": "LeClap transforme un modèle JSON et tes propres rushes en vidéo finie. FFmpeg en fait le rendu dans un terminal, un onglet de navigateur ou sur un téléphone : aucune IA ne génère la moindre image, et tes rushes ne sont jamais envoyés."
   },
   "cta": {
-    "prompt": "Prêt à composer ta première vidéo ?",
-    "start": "Créer ma vidéo"
+    "prompt": "Prêt à composer ta première vidéo ?",
+    "start": "Créer ma vidéo",
+    "compare": "Comparer LeClap et Remotion"
   },
-  "stats": {
-    "browser": "Tourne dans ton navigateur",
-    "uploads": "Fichiers envoyés",
-    "projects": "Projets, toujours gratuits"
-  },
-  "pillars": {
-    "private": {
-      "title": "Privé par conception",
-      "description": "Tes clips ne quittent jamais ton appareil. Aucun envoi, aucun compte, aucun serveur dans la boucle."
-    },
-    "ffmpeg": {
-      "title": "Du vrai FFmpeg, en local",
-      "description": "Le même moteur FFmpeg que la bibliothèque principale, compilé en WebAssembly et exécuté sur ta machine."
-    },
-    "templates": {
-      "title": "Piloté par les modèles",
-      "description": "Compose à partir de vrais modèles JSON — filtres, incrustations, transitions et mixage audio inclus."
+  "story": {
+    "eyebrow": "L’histoire jusqu’ici",
+    "title": "D’une bibliothèque Node à tous les écrans",
+    "lead": "LeClap est né d’un paquet npm qui compile un modèle JSON en commandes FFmpeg. C’est toujours ce qu’il fait ; depuis, tout le travail a consisté à faire tourner cette même étape à plus d’endroits.",
+    "today": "Aujourd’hui",
+    "chapters": {
+      "origin": {
+        "title": "Un modèle en entrée, une vidéo en sortie",
+        "body": "La toute première version, publiée sous le nom ffmpeg-video-composer : une bibliothèque Node qui lit un modèle JSON, le compile en commandes FFmpeg et les exécute."
+      },
+      "everywhere": {
+        "title": "Le même modèle sur tous les écrans",
+        "body": "Le moteur gagne une entrée navigateur, avec FFmpeg compilé en WebAssembly, et une entrée React Native, avec FFmpeg compilé dans l’app. La CLI et le serveur MCP sortent le même jour, chacun dans son propre paquet."
+      },
+      "now": {
+        "title": "Un seul nom pour le tout",
+        "body": "LeClap, c’est le studio dans ce navigateur, l’app React Native, la CLI et le serveur MCP. Le moteur est toujours publié sur npm sous son premier nom, d’une franchise admirable : ffmpeg-video-composer."
+      }
     }
   },
   "author": {
+    "eyebrow": "Créé par",
     "name": "Alexandre Mogère",
     "handle": "@heristop",
     "bio": "Ingénieur software basé à Paris, je crée des outils au service des créateurs et j’écris sur le code et l’IA chez Zazen Code.",

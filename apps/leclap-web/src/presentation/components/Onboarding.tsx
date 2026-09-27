@@ -1,14 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { X } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { CameraCapture } from '@/presentation/components/CameraCapture';
 import { WelcomeStep, CreateStep, CompilingStep, DoneStep, ErrorStep } from '@/presentation/components/OnboardingSteps';
-import { useOnboardingCompile } from '@/hooks/useOnboardingCompile';
+import { useOnboardingCompile, type OnboardingStep } from '@/hooks/useOnboardingCompile';
 import { useSampleTemplate } from '@/hooks/useSampleTemplate';
 import { setHeroVideo } from '@/services/heroVideoStore';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
+import {
+  closesOnBackdrop,
+  closesOnEscape,
+  focusAfterClipPicked,
+  type ClipSource,
+} from '@/presentation/components/onboarding.logic';
 
 // The onboarding makes a first video from the built-in "Present Yourself" template so newcomers see
 // the whole flow (record → compile → download) in one guided pass. One concept, two orientation
@@ -33,6 +39,88 @@ interface OnboardingProps {
   onDone: () => void;
 }
 
+/**
+ * The dialog's modal behaviour: the body scroll lock; the page behind made inert (out of the tab order and
+ * hidden from assistive tech) so Tab stays in the dialog, while the camera, portaled beside it, stays
+ * reachable; focus on each step's heading as it opens, so a screen reader hears where the flow went and the
+ * next Tab lands on the step's first control (the button that moved the flow on left with its step); focus
+ * brought back into the dialog once the camera or the file picker hands it back (onboarding.logic.ts);
+ * Escape; and, on close, focus back on whatever opened it: the landing's "See how it works", or nothing on
+ * the studio's first visit, which opens it by itself.
+ */
+const useOnboardingDialog = ({
+  step,
+  showCamera,
+  hasClip,
+  onDone,
+}: {
+  step: OnboardingStep;
+  showCamera: boolean;
+  hasClip: boolean;
+  onDone: () => void;
+}) => {
+  // Whichever step is showing names the dialog through its heading.
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const createRef = useRef<HTMLButtonElement>(null);
+  // The control that opened the camera: focus goes back to it when the camera closes without a clip.
+  const cameraTriggerRef = useRef<HTMLElement | null>(null);
+
+  useLockBodyScroll();
+
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const app = document.getElementById('root');
+
+    app?.setAttribute('inert', '');
+
+    return () => {
+      app?.removeAttribute('inert');
+
+      if (opener && opener !== document.body && opener.isConnected) opener.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    document.getElementById(titleId)?.focus();
+  }, [step, titleId]);
+
+  useEffect(() => {
+    if (showCamera) return;
+
+    const active = document.activeElement;
+    const target = focusAfterClipPicked({
+      focusInDialog: active !== null && active !== document.body && panelRef.current?.contains(active) === true,
+      hasClip,
+    });
+
+    if (target === 'create') createRef.current?.focus();
+
+    if (target === 'trigger') cameraTriggerRef.current?.focus();
+  }, [showCamera, hasClip]);
+
+  // Escape closes the dialog like its close button, except over the camera, a screen of its own, and during
+  // the render, which only Stop cancels.
+  useEffect(() => {
+    if (showCamera || !closesOnEscape(step)) return () => {};
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onDone();
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [showCamera, step, onDone]);
+
+  const rememberCameraTrigger = () => {
+    cameraTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  };
+
+  return { titleId, panelRef, createRef, rememberCameraTrigger };
+};
+
 export const Onboarding = ({ onDone }: OnboardingProps) => {
   const { t } = useTranslation('onboarding');
   const navigate = useNavigate();
@@ -40,6 +128,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   // Picked once when the modal opens: shown as the field's placeholder and used as the title fallback.
   const [placeholderName] = useState(randomFirstName);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [clipSource, setClipSource] = useState<ClipSource>('camera');
   const [showCamera, setShowCamera] = useState(false);
   // Chosen once when the modal opens so a mid-flow rotation can't swap the template underfoot.
   const [sampleTemplateId] = useState(pickSampleTemplateId);
@@ -52,8 +141,12 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
     template,
     onClose: onDone,
   });
-
-  useLockBodyScroll();
+  const { titleId, panelRef, createRef, rememberCameraTrigger } = useOnboardingDialog({
+    step,
+    showCamera,
+    hasClip: videoFile !== null,
+    onDone,
+  });
 
   // Personalize the Home hero: once the in-browser compile succeeds, show that video as the hero clip
   // for this session (fires an event so a Home behind the modal swaps immediately; not persisted).
@@ -66,13 +159,11 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   // Typed name, or the placeholder sample if left blank — so a recorded clip is always enough to create.
   const effectiveName = name.trim() || placeholderName;
   const canCreate = videoFile !== null;
-  // The welcome/create steps are dismissible (skippable); compiling/done/error are not, so a stray
-  // backdrop click can't tear down an in-flight compile.
-  const dismissible = step === 'welcome' || step === 'create';
 
-  // Close when the click lands on the backdrop itself, not on the modal panel or its children.
+  // Close when the click lands on the backdrop itself, not on the modal panel or its children, and only
+  // while nothing is at stake (onboarding.logic.ts).
   const onBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (dismissible && event.target === event.currentTarget) onDone();
+    if (closesOnBackdrop(step) && event.target === event.currentTarget) onDone();
   };
 
   // "Start creating" from the done step: close the dialog and drop the user into the studio.
@@ -84,13 +175,17 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   const onFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
-    if (file) setVideoFile(file);
+    if (!file) return;
+
+    setVideoFile(file);
+    setClipSource('file');
   };
 
   const renderStep = () => {
     if (step === 'welcome') {
       return (
         <WelcomeStep
+          titleId={titleId}
           onStart={() => {
             setStep('create');
           }}
@@ -102,13 +197,17 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
     if (step === 'create') {
       return (
         <CreateStep
+          titleId={titleId}
           name={name}
           onNameChange={setName}
           sampleName={placeholderName}
           videoFile={videoFile}
+          clipSource={clipSource}
           canCreate={canCreate}
           fileInputRef={fileInputRef}
+          createRef={createRef}
           onOpenCamera={() => {
+            rememberCameraTrigger();
             setShowCamera(true);
           }}
           onFilePicked={onFilePicked}
@@ -130,7 +229,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           onRetry={() => {
             setStep('create');
           }}
-          onDone={onDone}
+          onContinue={startCreating}
         />
       );
     }
@@ -139,7 +238,8 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[55] overflow-y-auto bg-black/40 dark:bg-black/80">
+    // Inert under the camera, which takes the whole screen: Tab must not wander into the dialog behind it.
+    <div inert={showCamera} className="fixed inset-0 z-[55] overflow-y-auto bg-black/40 dark:bg-black/80">
       {/* Ambient brand aurora — drifting multi-color blobs for a first-run "wow" backdrop.
           Hidden on mobile, where the soft glow reads as an unwanted blur on the small modal. */}
       <div className="pointer-events-none absolute inset-0 hidden overflow-hidden sm:block">
@@ -158,7 +258,13 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
         onClick={onBackdropClick}
         className="relative min-h-full flex items-center justify-center p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-4 sm:pt-[max(1.5rem,env(safe-area-inset-top))] safe-b"
       >
-        <div className="relative w-full max-w-lg bg-surface border border-foreground/10 rounded-2xl p-5 sm:p-8 shadow-2xl rise-in">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          className="relative w-full max-w-lg bg-surface border border-foreground/10 rounded-2xl p-5 sm:p-8 shadow-2xl rise-in"
+        >
           <button
             onClick={step === 'compiling' ? stop : onDone}
             className="tap absolute top-3 right-3 sm:top-4 sm:right-4 z-10 grid place-items-center w-10 h-10 rounded-full text-gray-400 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 before:absolute before:-inset-2.5 before:content-['']"
@@ -179,6 +285,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
         <CameraCapture
           onCapture={(file) => {
             setVideoFile(file);
+            setClipSource('camera');
           }}
           onClose={() => {
             setShowCamera(false);

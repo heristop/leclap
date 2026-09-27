@@ -23,6 +23,8 @@
     "namePlaceholder": "p. ej. {{name}}",
     "recorded": "Presentación grabada",
     "reRecord": "Volver a grabar",
+    "imported": "Clip importado",
+    "changeClip": "Cambiar de clip",
     "record": "Grabar",
     "upload": "Subir",
     "recordAria": "Grabar una presentación con tu cámara",

@@ -9,15 +9,19 @@ import { CHEER_SECONDS, SLAM_AT, cheerFrame, crossed } from './clappy.logic';
 export interface ClappyCheerProps {
   /** Clappy's width in px. */
   size?: number;
+  /** Once the cheer has settled, his eyes follow the pointer (Clappy: followPointer). On by default. */
+  followPointer?: boolean;
+  /** A click makes him clap again (Clappy: clapOnClick). On by default. */
+  clapOnClick?: boolean;
   className?: string;
 }
 
 // The finishing clap that greets a finished render: Clappy pops in, winds the clapper up and slams it shut —
 // the clack plays on that very frame when the sound is on — throws both arms up grinning while the stick
-// wobbles back open, then settles into a smile and keeps still. It plays once, when it mounts. Under reduced
-// motion he appears already settled, and the clack alone marks the moment. Decorative: the heading beside
-// him says the video is ready.
-export function ClappyCheer({ size = 88, className }: ClappyCheerProps) {
+// wobbles back open, then settles into a smile and keeps still, only his eyes following the pointer. It plays
+// once, when it mounts. Under reduced motion he appears already settled, and the clack alone marks the moment.
+// Decorative: the heading beside him says the video is ready.
+export function ClappyCheer({ size = 88, followPointer = true, clapOnClick = true, className }: ClappyCheerProps) {
   const reduced = useReducedMotion() ?? false;
   const clock = useAnimationClock(!reduced, { until: CHEER_SECONDS });
   const seconds = reduced ? CHEER_SECONDS : clock;
@@ -38,7 +42,12 @@ export function ClappyCheer({ size = 88, className }: ClappyCheerProps) {
   return (
     <div aria-hidden="true" className={cn('pop-in inline-block', className)} style={{ height: clappyHeight(size) }}>
       <div style={{ transform: `scale(${1 + squash}, ${1 - squash})`, transformOrigin: '50% 92%' }}>
-        <Clappy size={size} {...pose} />
+        <Clappy
+          size={size}
+          {...pose}
+          followPointer={followPointer && clock >= CHEER_SECONDS}
+          clapOnClick={clapOnClick}
+        />
       </div>
     </div>
   );

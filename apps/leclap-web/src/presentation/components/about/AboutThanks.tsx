@@ -47,13 +47,14 @@ export const AboutThanks = () => {
       </svg>
 
       <div className="relative max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-secondary-600 dark:text-secondary-300">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-secondary-700 dark:text-secondary-300">
           {t('thanks.kicker')}
         </p>
 
-        <p className="mt-4 font-display text-2xl md:text-3xl font-semibold leading-snug text-foreground text-balance">
+        {/* The section's heading: the sentence the rest of it explains. */}
+        <h2 className="mt-4 font-display text-2xl md:text-3xl font-semibold leading-snug text-foreground text-balance">
           {t('thanks.lead')}
-        </p>
+        </h2>
 
         <p className="mt-4 text-gray-300 leading-relaxed">{t('thanks.body')}</p>
 
@@ -61,7 +62,8 @@ export const AboutThanks = () => {
           href="https://ffmpeg.org"
           target="_blank"
           rel="noopener noreferrer"
-          className="group mt-6 inline-flex items-center gap-2 text-sm font-medium text-brand-600 dark:text-brand-300 cursor-pointer"
+          // `min-h-11` gives the link a row a thumb can hit; `-mx-2 px-2` keeps the text on the column's edge.
+          className="group mt-4 -mx-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-brand-700 dark:text-brand-300 cursor-pointer"
         >
           {t('thanks.link')}
           <ArrowUpRightIcon

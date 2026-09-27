@@ -1,33 +1,36 @@
 {
   "hero": {
-    "badge": "Privacy-first · In your browser",
+    "eyebrow": "Composition, not generation",
     "title": "About LeClap",
-    "tagline": "A cinematic video composer that runs entirely in your browser. Compose from real templates, render with FFmpeg compiled to WebAssembly, and download — no servers, no uploads, no limits."
+    "tagline": "LeClap turns a JSON template and your own footage into a finished video. FFmpeg renders it in a terminal, a browser tab or on a phone: no model samples a single frame, and your footage is never uploaded."
   },
   "cta": {
     "prompt": "Ready to compose your first video?",
-    "start": "Start creating"
+    "start": "Start creating",
+    "compare": "How LeClap compares to Remotion"
   },
-  "stats": {
-    "browser": "Runs in your browser",
-    "uploads": "Files uploaded",
-    "projects": "Projects, always free"
-  },
-  "pillars": {
-    "private": {
-      "title": "Private by design",
-      "description": "Your clips never leave your device. There is no upload, no account, no server in the loop."
-    },
-    "ffmpeg": {
-      "title": "Real FFmpeg, locally",
-      "description": "The same FFmpeg engine the core library uses, compiled to WebAssembly and run on your machine."
-    },
-    "templates": {
-      "title": "Template-driven",
-      "description": "Compose from real JSON templates — filters, overlays, transitions and audio mixing included."
+  "story": {
+    "eyebrow": "The story so far",
+    "title": "From a Node library to every screen",
+    "lead": "LeClap began as an npm package that compiles a JSON template into FFmpeg commands. It still does exactly that; everything since has been about running that one step in more places.",
+    "today": "Today",
+    "chapters": {
+      "origin": {
+        "title": "A template in, a video out",
+        "body": "The first release of ffmpeg-video-composer: a Node library that reads a JSON template, compiles it into FFmpeg commands and runs them."
+      },
+      "everywhere": {
+        "title": "The same template on every screen",
+        "body": "The engine gains a browser entry, with FFmpeg compiled to WebAssembly, and a React Native one, with FFmpeg compiled into the app. The CLI and the MCP server ship the same day, as packages of their own."
+      },
+      "now": {
+        "title": "One name for all of it",
+        "body": "LeClap is the studio in this browser, the React Native app, the CLI and the MCP server. The engine still ships on npm under its first, admirably literal name: ffmpeg-video-composer."
+      }
     }
   },
   "author": {
+    "eyebrow": "Made by",
     "name": "Alexandre Mogère",
     "handle": "@heristop",
     "bio": "Paris-based software engineer building tools that empower creators, and writing about coding & AI at Zazen Code.",

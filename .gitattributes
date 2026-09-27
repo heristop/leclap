@@ -21,3 +21,9 @@ packages/leclap-brand-motion/public/captures/ondevice-render.mp4 -filter -diff -
 # so raw.githubusercontent.com would hand GitHub's camo proxy and npm the 131-byte pointer file as
 # text/plain and both would render a broken image. Kept binary (-text) so no eol conversion runs.
 .github/media/** -filter -diff -merge -text
+
+# The landing's films and clips, served by the site. New LFS objects can't reach GitHub while the budget is
+# exhausted (a pointer would fail the push's GH008 check), so these are plain blobs — like the README
+# artwork. Kept binary (-text) so no eol conversion runs.
+apps/leclap-web/public/videos/films/** -filter -diff -merge -text
+apps/leclap-web/public/videos/home/** -filter -diff -merge -text

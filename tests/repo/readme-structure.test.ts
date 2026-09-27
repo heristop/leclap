@@ -46,9 +46,10 @@ describe('README structure', () => {
     expect(rows.length, 'the table has to actually compare something').toBeGreaterThanOrEqual(3);
   });
 
-  // npm strips GitHub user-attachment videos, so the npm page must still show motion.
-  it('embeds at least one image asset that renders outside GitHub', () => {
-    expect(readme).toMatch(/!\[[^\]]*\]\(https:\/\/[^)]+\.(gif|png|jpg|webp)\)/);
+  // One film, the trailer, as a GitHub attachment on its own line, where GitHub renders its player. npm never
+  // shows this file — every published package ships its own README — so no GIF fallback rides along.
+  it('shows the trailer, and only the trailer', () => {
+    expect(readme.match(/https:\/\/github\.com\/user-attachments\/assets\/[\w-]+/g)).toHaveLength(1);
   });
 
   it('spells the brand LeClap everywhere', () => {

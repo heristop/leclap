@@ -19,6 +19,7 @@ pnpm render                          # runs the scaffolded `leclap render templa
 ```bash
 leclap init [name]        # scaffold a starter project (template.json + assets/ + README + scripts)
 leclap render <template>  # compile a video from a template JSON
+leclap validate <template> # check a template without rendering (schema + text layout)
 leclap diagnose           # check your FFmpeg setup
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
@@ -27,6 +28,22 @@ leclap --version
 `leclap <template.json>` is a shorthand for `leclap render <template.json>`.
 
 `render` reads assets from `<cwd>/assets` and writes output under `<cwd>/build`.
+
+## `validate` — check before you render
+
+`validate` checks a template against the schema without touching FFmpeg, then reads where the renderer
+will draw every piece of text and warns about text that runs off the frame or out of title-safe,
+collides with other text, sits under a band, is too small, lacks contrast, or sits over footage with no
+box, outline or shadow. Each warning says what to change.
+
+```bash
+leclap validate template.json         # human report; exit 1 only for schema errors
+leclap validate template.json --json  # { success, errors?, warnings? } for scripts and agents
+```
+
+Warnings never change the exit code, so `validate` is safe as a CI gate. At most 20 are shown, worst
+first. Widths come from the real fonts; when a font is not bundled, `validate` fetches it from the
+LeClap asset catalog (5s timeout) and, offline, falls back to an estimate marked `(approx: …)`.
 
 ## `init` — scaffold a project
 

@@ -25,12 +25,14 @@ Typical agent flow: `get_template_schema` → author an inline descriptor (optio
 `render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`
 → read the returned `outputPath`.
 
-`validate_template` also reports, render-free, text that would overflow the frame, collide with other
-text, or render too small to read. Those findings arrive on the optional `geometry` field — one line
-each, and the field is absent entirely when there is nothing to fix. They are advisory: `valid` stays
-`true`. A line ending `(approx: estimated, not measured)` was estimated rather than measured — either the
-font it needed could not be read, or the text carries a `{{ variable }}` that only resolves at
-render time.
+`validate_template` also reports, render-free, text that would run off the frame or out of title-safe,
+collide with other text, sit under a band, be too small, lack contrast, or sit over footage with no box,
+outline or shadow. Those findings arrive on the optional `geometry` field — one line each, saying what to
+change, and the field is absent entirely when there is nothing to fix. They are advisory: `valid` stays
+`true`. A line ending `(approx: …)` says why it is an estimate: the font could not be read, the text
+carries a `{{ variable }}` that only resolves at render time, or a section declares no duration. When a
+font is not bundled, the server fetches it from the LeClap asset catalog (5s timeout); offline, it
+estimates.
 
 ### Recipe: video evidence for a pull or merge request
 

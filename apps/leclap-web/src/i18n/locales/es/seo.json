@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Compositor de vídeo cinematográfico en tu navegador",
-    "description": "Crea vídeos cinematográficos a partir de plantillas directamente en tu navegador. LeClap funciona del lado del cliente con WebAssembly y FFmpeg: sin subir nada, sin servidores, sin límites."
+    "title": "LeClap — Compositor de vídeo para navegador, móvil y agentes IA",
+    "description": "Crea vídeos a partir de una plantilla JSON en tu navegador o en tu móvil, sin subir nada. En el desarrollo agéntico, tu agente adjunta vídeos de antes/después a sus PR."
   },
   "studio": {
     "title": "Studio",

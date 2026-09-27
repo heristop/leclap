@@ -191,6 +191,26 @@ describe('site route manifests', () => {
   });
 });
 
+// scripts/seo-prerender.ts writes the sitemap and the prerendered pages from exactly two tables,
+// LOCALIZED_ROUTES and DOC_ROUTES — so a path in neither, and classified as unindexed, is out of both.
+describe('routes kept out of search', () => {
+  // /projects lists only what this browser saved, so it is empty for anyone arriving from a search.
+  it('keeps /projects out of the sitemap and the prerender', () => {
+    const published = [...LOCALIZED_ROUTES.map((r) => r.path), ...DOC_ROUTES.map((r) => r.path)];
+
+    expect(published).not.toContain('/projects');
+    expect(UNINDEXED_PATHS).toContain('/projects');
+  });
+
+  // The retired use-case page only redirects to the home page's agentic section now.
+  it('keeps the retired /use-cases/agentic-development out of the sitemap and the prerender', () => {
+    const published = [...LOCALIZED_ROUTES.map((r) => r.path), ...DOC_ROUTES.map((r) => r.path)];
+
+    expect(published).not.toContain('/use-cases/agentic-development');
+    expect(UNINDEXED_PATHS).toContain('/use-cases/agentic-development');
+  });
+});
+
 describe('localized route copy', () => {
   it.each(LOCALE_CODES)('resolves every seoKey to a title and a description in %s', (lng) => {
     const missing = LOCALIZED_ROUTES.filter((route) => {

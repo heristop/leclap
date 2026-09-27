@@ -94,6 +94,8 @@ const router = createBrowserRouter(
       </Route>
       <Route path="/about" element={<About />} />
       <Route path="/compare/remotion" element={<CompareRemotion />} />
+      {/* Retired page: its story is the home page's agentic section now; old links land there. */}
+      <Route path="/use-cases/agentic-development" element={<Navigate to="/#agentic" replace />} />
       <Route path="/legal" element={<Legal />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<NotFound />} />

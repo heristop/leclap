@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Compositore di video cinematografici nel tuo browser",
-    "description": "Crea video cinematografici dai modelli direttamente nel tuo browser. LeClap gira lato client con WebAssembly e FFmpeg — niente upload, niente server, nessun limite."
+    "title": "LeClap — Compositore video per browser, telefono e agenti IA",
+    "description": "Crea video da un modello JSON nel browser o sul telefono, senza upload. Nello sviluppo agentico, il tuo agente di coding allega ai PR un video prima/dopo."
   },
   "studio": {
     "title": "Studio",

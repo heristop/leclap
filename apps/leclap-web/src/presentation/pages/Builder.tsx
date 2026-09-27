@@ -5,7 +5,6 @@ import { Seo } from '@/presentation/components/Seo';
 import { EditorShell, CompileMonitor, StepResult, type SaveStatus } from '@/presentation/components/builder';
 import { EditorLoadingShell } from '@/presentation/components/builder/editor-loading-shell';
 import { useVideoProcessing, type ProcessedVideo, type MediaChoices } from '@/hooks/useVideoProcessing';
-import { useFFmpeg } from '@/hooks/useFFmpeg';
 import { templateService, type Template, type InputSection, type QualityTier } from '@/services/templateService';
 import { findMusicByUrl } from '@/data/mediaCatalog';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
@@ -14,7 +13,6 @@ import { type WizardModel, EMPTY_MODEL } from '@/lib/wizardModel';
 import { addRush, selectRush, removeRush } from '@/lib/rushActions';
 import { loadProject, loadOutput, saveDraft, saveCompleted } from '@/services/projectService';
 import { Loader2 } from '@/presentation/components/icons';
-import { Card } from '@/presentation/components/ui';
 
 // The template's default soundtrack as a library MediaChoice, so the Music step opens pre-selected on
 // the track the template was authored with. Only when music is enabled and the default is one of the
@@ -909,13 +907,12 @@ const useBuilderController = () => {
   // Title hint a project open passes through nav state — the morph target while the project hydrates.
   const projectTitle = navStateProjectTitle(location.state);
 
-  return { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate, projectTitle };
+  return { hydrating, resolving, flowProps, needsTemplate, projectTitle };
 };
 
 export const Builder = () => {
   const { t } = useTranslation('builder');
-  const { loadingProgress } = useFFmpeg();
-  const { isFFmpegReady, hydrating, resolving, flowProps, needsTemplate, projectTitle } = useBuilderController();
+  const { hydrating, resolving, flowProps, needsTemplate, projectTitle } = useBuilderController();
 
   // No template/project to edit → send the user to the gallery to pick one.
   if (needsTemplate) {
@@ -954,21 +951,6 @@ export const Builder = () => {
           </>
         ) : (
           <HubFlow {...flowProps} />
-        )}
-        {!isFFmpegReady && (
-          <Card
-            elevation="flat"
-            className="fixed bottom-6 right-6 max-w-sm glass-panel-dark rounded-xl shadow-2xl p-4 border-warning/20 z-50 fade-in"
-          >
-            <div className="flex items-center space-x-3 mb-2">
-              <Loader2 className="w-5 h-5 text-warning animate-spin" />
-              <span className="font-semibold text-warning">{t('loadingEngine')}</span>
-              <span className="ml-auto font-bold text-warning">{Math.round(loadingProgress)}%</span>
-            </div>
-            <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden">
-              <div className="h-full bg-warning transition-all duration-300" style={{ width: `${loadingProgress}%` }} />
-            </div>
-          </Card>
         )}
       </div>
     </div>

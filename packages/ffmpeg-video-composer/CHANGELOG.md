@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-09-28
+
+### Added
+
+- **Any Google Fonts family, by name.** A text `font` now also accepts
+  `{ family, weight?, style? }` (e.g. `{ "family": "Playfair Display", "weight": 700,
+"style": "italic" }`), resolved from Google Fonts at render time. `weight` is 100..900 in steps
+  of 100 (default 400), `style` is `normal` or `italic`. Registry ids and `.ttf` filenames keep
+  working unchanged, and a typo in a registry id is still a validation error rather than a network
+  lookup. A family that does not exist fails the render with an error naming it — a missing font is
+  never silently swapped for another face.
+- **A persistent font cache (Node).** Faces resolved by family, and catalog fonts, are copied to
+  `~/.cache/leclap/fonts` (override with `FVC_FONT_CACHE_DIR`), so a repeat render of the same font
+  needs no network. Entries are written atomically; an unwritable directory only costs the
+  re-download.
+- `isFontRef`, `FontRef` and `FontInput` are exported from every entry point, and `FontRefSchema` /
+  `FontInputSchema` from the Node entry.
+
+### Changed
+
+- The browser/WASM backend cannot request a TrueType face from Google, so it now rejects a template
+  that names a font by family up front, before any section is encoded, with an error listing where.
+  Ship the fonts you need, or use a bundled font id or a `.ttf` filename.
+
 ## [2.3.0] - 2026-08-16
 
 ### Changed

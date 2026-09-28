@@ -31,7 +31,7 @@ The user-facing CLI is `@leclap/cli` (`leclap render|init|diagnose`). The `compi
 
 ## Setup
 
-- **pnpm 11.5.2** (pinned via `packageManager`) and **Node ≥ 24** (pinned to 24 via `mise.toml`; `engine-strict=true` rejects wrong versions).
+- **pnpm 12.6.0** (pinned via `packageManager`) and **Node ≥ 24** (pinned to 24 via `mise.toml`; `engine-strict=true` rejects wrong versions).
 - Install: `pnpm install` at the repo root.
 - FFmpeg is resolved at runtime — system → `ffmpeg-static` → `@ffmpeg/ffmpeg` (WASM). Installing system FFmpeg (e.g. via `mise`) is recommended for Node work. `ffmpeg-static` ships no `ffprobe`, so templates that probe media need system FFmpeg or `ffprobe-static` on that path. See `docs/architecture.md`.
 

@@ -50,9 +50,3 @@ minimumReleaseAgeExclude:
   # resolve them without an exception. Drop these two lines once they age past the window.
   - '@modelcontextprotocol/server@2.0.0'
   - '@modelcontextprotocol/client@2.0.0'
-
-onlyBuiltDependencies:
-  - '@swc/core'
-  - esbuild
-  - ffmpeg-static
-  - msgpackr-extract

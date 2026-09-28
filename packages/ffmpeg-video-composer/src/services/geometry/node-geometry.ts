@@ -121,8 +121,9 @@ const SILENT_LOGGER: AbstractLogger = {
 
 let defaultLoader: FontLoader | undefined;
 
-// Built on first use rather than at import, so merely importing the engine constructs nothing.
-function nodeFontLoader(): FontLoader {
+// Built on first use rather than at import, so merely importing the engine constructs nothing. Shared
+// with the rendered check, so both measure with the same cached fonts.
+export function nodeFontLoader(): FontLoader {
   defaultLoader ??= cachedFontLoader(createNodeFontLoader(new FilesystemNodeAdapter(SILENT_LOGGER)));
 
   return defaultLoader;

@@ -45,6 +45,22 @@ Warnings never change the exit code, so `validate` is safe as a CI gate. At most
 first. Widths come from the real fonts; when a font is not bundled, `validate` fetches it from the
 LeClap asset catalog (5s timeout) and, offline, falls back to an estimate marked `(approx: …)`.
 
+The check above never sees a pixel, so text over a picture, a grade or a look can only be flagged for
+lacking a box, outline or shadow. `--render` settles those: it renders the sections that hold text
+through FFmpeg (twice, the second time with the glyphs recoloured to find them), reads one frame per
+piece of text where it rests, and measures its contrast against the pixels around it.
+
+```bash
+leclap validate template.json --render         # seconds, not milliseconds; reads <cwd>/assets
+leclap validate template.json --render --json  # adds { render: { measured, seconds, unavailable? } }
+```
+
+It needs a native FFmpeg with `drawtext` (`leclap diagnose`). It checks the FFmpeg it would render
+with first — a build without libfreetype has no `drawtext` — and without one it reports the
+render-free findings and says why it skipped. Text over a user recording (`project_video`) is not
+measured — the recording does not exist yet — and over template footage one frame is only one
+frame, so that finding keeps the render-free one beside it.
+
 ## `init` — scaffold a project
 
 `init` writes a minimal, immediately-renderable project: a no-external-media `template.json` (so the

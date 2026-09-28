@@ -1,7 +1,16 @@
 import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import { expandPartialsSafe } from '@/core/partials';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
-import { canvasFor, lowerTemplate, measureLayers, referencedFontFiles, type LoweredSection } from './text-boxes';
+import {
+  canvasFor,
+  lowerTemplate,
+  measureLayers,
+  referencedFontFiles,
+  type Box,
+  type Canvas,
+  type LoweredSection,
+  type Panel,
+} from './text-boxes';
 import {
   collisionWarnings,
   contrastWarnings,
@@ -24,13 +33,14 @@ const MAX_WARNINGS = 20;
 
 // Worst first, so the cut above keeps the findings worth acting on. Text off the frame edge is
 // simply not on screen; a collision is two things fighting for one place; an overflow only risks a
-// crop; the remaining three are legibility hints. Anything unranked sorts last rather than throwing
-// the order away.
+// crop; the rest are legibility hints, a contrast measured from rendered pixels ahead of one computed
+// from colour tokens. Anything unranked sorts last rather than throwing the order away.
 const SEVERITY_ORDER = [
   'text_out_of_frame',
   'text_collision',
   'text_covered',
   'text_overflow',
+  'text_low_contrast_rendered',
   'text_low_contrast',
   'text_too_small',
   'text_unreadable_over_footage',
@@ -192,10 +202,18 @@ function truncated(findings: GeometryWarning[]): GeometryWarning[] {
   ];
 }
 
-export async function collectGeometryWarnings(
-  raw: TemplateDescriptor,
-  loadFont?: FontLoader
-): Promise<GeometryWarning[]> {
+// Everything the rules read, for one descriptor: the expanded template, the lowered sections and
+// the boxes and panels measured from them. Shared with the Node render check (render-check.ts),
+// which needs the same boxes to know where and when to look.
+export interface MeasuredTemplate {
+  template: TemplateDescriptor;
+  canvas: Canvas;
+  lowered: LoweredSection[];
+  boxes: Box[];
+  panels: Panel[];
+}
+
+export async function measureTemplate(raw: TemplateDescriptor, loadFont?: FontLoader): Promise<MeasuredTemplate> {
   const template = expanded(raw);
   const canvas = canvasFor(template.global?.orientation);
   const origins = authoredPaths(raw, Array.isArray(template.sections) ? template.sections.length : 0);
@@ -203,7 +221,12 @@ export async function collectGeometryWarnings(
   const metrics = await loadMetrics(lowered, loadFont);
   const { boxes, panels } = measureLayers(lowered, canvas, (font) => metrics.get(font) ?? null, template.global);
 
-  const findings = [
+  return { template, canvas, lowered, boxes, panels };
+}
+
+// Every finding the static model supports, before de-duplication, ordering and the cut.
+export function staticFindings({ boxes, panels, canvas }: MeasuredTemplate): GeometryWarning[] {
+  return [
     ...overflowWarnings(boxes, canvas),
     ...legibilityWarnings(boxes, canvas),
     ...contrastWarnings(boxes),
@@ -212,8 +235,17 @@ export async function collectGeometryWarnings(
     // Capped at the whole budget rather than the remainder the earlier rules left, which starved it.
     ...collisionWarnings(boxes, MAX_WARNINGS + 1),
   ];
+}
 
-  // Ordered by severity before truncating, so which findings survive the cut is a property of the
-  // findings rather than of rule order. `sort` is stable, so timeline order holds within a rank.
+// Ordered by severity before truncating, so which findings survive the cut is a property of the
+// findings rather than of rule order. `sort` is stable, so timeline order holds within a rank.
+export function finalizeFindings(findings: GeometryWarning[]): GeometryWarning[] {
   return truncated(unique(findings).sort((a, b) => severityRank(a) - severityRank(b)));
+}
+
+export async function collectGeometryWarnings(
+  raw: TemplateDescriptor,
+  loadFont?: FontLoader
+): Promise<GeometryWarning[]> {
+  return finalizeFindings(staticFindings(await measureTemplate(raw, loadFont)));
 }

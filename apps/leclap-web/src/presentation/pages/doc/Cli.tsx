@@ -140,7 +140,9 @@ export const DocCli = () => (
         collides with other text, sits under a band, is too small, lacks contrast, or sits over footage with no box,
         outline or shadow. Those warnings are advisory: they never change the exit code, so the command stays usable as
         a CI gate. On a published install it may fetch fonts from the LeClap catalog to measure them; offline, widths
-        are estimated and marked as such.
+        are estimated and marked as such. Add <Code>--render</Code> to render the sections that hold text and measure
+        their contrast from real pixels — seconds rather than milliseconds, and it settles text over pictures, grades
+        and looks.
       </Tip>
     </DocSection>
 

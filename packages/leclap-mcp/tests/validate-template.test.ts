@@ -1,14 +1,43 @@
 import 'reflect-metadata';
-import { describe, expect, it } from 'vitest';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { runGeometryCheck } from '../src/compose/renderRunner.js';
 import { registerValidateTemplate } from '../src/tools/validateTemplate.js';
 
+// `render: true` renders in the forked worker compose_video uses; the fork itself needs the built
+// dist/render-worker.js, so here the runner is stubbed and the handler's use of it is what is pinned.
+vi.mock('../src/compose/renderRunner.js', () => ({
+  runGeometryCheck: vi.fn(),
+}));
+
+const runGeometryCheckMock = vi.mocked(runGeometryCheck);
+
 // Same fake-server trick as compose-video.test: capture the registered handler and call it directly.
-type Handler = (args: Record<string, unknown>) => Promise<{
+type Ctx = { mcpReq: { signal?: AbortSignal } };
+type Handler = (
+  args: Record<string, unknown>,
+  ctx?: Ctx
+) => Promise<{
   isError?: boolean;
   content: { type: string; text: string }[];
   structuredContent?: Record<string, unknown>;
 }>;
+
+let mediaDir = '';
+let outputDir = '';
+
+beforeAll(async () => {
+  mediaDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-validate-media-')));
+  outputDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-validate-out-')));
+});
+
+afterAll(async () => {
+  await fs.rm(mediaDir, { recursive: true, force: true });
+  await fs.rm(outputDir, { recursive: true, force: true });
+});
 
 function setup(): Handler {
   let captured: Handler | undefined;
@@ -18,7 +47,7 @@ function setup(): Handler {
     },
   };
 
-  registerValidateTemplate(fakeServer as never);
+  registerValidateTemplate(fakeServer as never, { mediaDir, outputDir, renderTimeoutMs: 1000 });
 
   if (!captured) {
     throw new Error('handler was not registered');
@@ -61,5 +90,124 @@ describe('validate_template handler', () => {
 
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent).toMatchObject({ valid: true, requiredClips: ['clip'] });
+  });
+});
+
+describe('validate_template with render: true', () => {
+  const pale: Record<string, unknown> = {
+    global: { orientation: 'landscape' },
+    sections: [
+      {
+        name: 'card',
+        type: 'color_background',
+        options: { backgroundColor: '#ffffff', duration: 2 },
+        caption: { text: { en: 'Pale on white' }, style: 'subtle', color: '#eeeeee' },
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    runGeometryCheckMock.mockReset();
+  });
+
+  it('runs the rendered check in the render worker, with the compose timeout, and reports what it measured', async () => {
+    const signal = new AbortController().signal;
+
+    runGeometryCheckMock.mockResolvedValue({
+      ok: true,
+      geometry: {
+        warnings: [
+          {
+            code: 'text_low_contrast_rendered',
+            path: 'sections[0].caption',
+            message: '#eeeeee text renders at 1.1:1 against what surrounds it',
+            severity: 'warn',
+            approx: false,
+          },
+        ],
+        measured: 1,
+      },
+    });
+
+    const result = await setup()({ template: pale, render: true }, { mcpReq: { signal } });
+    const render = result.structuredContent?.render as { measured: number; unavailable?: string };
+
+    expect(runGeometryCheckMock).toHaveBeenCalledWith(
+      { kind: 'geometry', descriptor: pale, options: { assetsDir: mediaDir, workDir: outputDir } },
+      { timeoutMs: 1000, signal }
+    );
+    expect(render.unavailable).toBeUndefined();
+    expect(render.measured).toBe(1);
+    expect(result.structuredContent?.geometry).toEqual([
+      'sections[0].caption: #eeeeee text renders at 1.1:1 against what surrounds it',
+    ]);
+    expect(result.content[0].text).toContain('Rendered check measured 1 text(s) from pixels');
+  });
+
+  it('passes on why the worker could not render', async () => {
+    runGeometryCheckMock.mockResolvedValue({
+      ok: true,
+      geometry: { warnings: [], measured: 0, unavailable: 'FFmpeg at ffmpeg (on PATH) has no drawtext filter' },
+    });
+
+    const result = await setup()({ template: pale, render: true });
+
+    expect(result.structuredContent?.render).toMatchObject({
+      measured: 0,
+      unavailable: 'FFmpeg at ffmpeg (on PATH) has no drawtext filter',
+    });
+  });
+
+  // A worker that times out, crashes or cannot fork is not the template's fault: the render-free
+  // findings still come back, with the reason, and the call never becomes an MCP error.
+  it('falls back to the render-free findings when the worker times out', async () => {
+    runGeometryCheckMock.mockResolvedValue({ ok: false, error: 'render timed out after 1000ms' });
+
+    const result = await setup()({ template: pale, render: true });
+    const render = result.structuredContent?.render as { measured: number; unavailable?: string };
+
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent?.valid).toBe(true);
+    expect(render).toMatchObject({ measured: 0, unavailable: 'rendered check failed: render timed out after 1000ms' });
+    expect(result.structuredContent?.geometry).toEqual([expect.stringContaining('#eeeeee on #ffffff is 1.2:1')]);
+    expect(result.content[0].text).toContain('Rendered check skipped — rendered check failed: render timed out');
+  });
+
+  it('falls back the same way when the runner itself throws', async () => {
+    runGeometryCheckMock.mockRejectedValue(new Error('spawn EMFILE'));
+
+    const result = await setup()({ template: pale, render: true });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent?.render).toMatchObject({ unavailable: 'rendered check failed: spawn EMFILE' });
+    expect(result.structuredContent?.geometry).toEqual([expect.stringContaining('#eeeeee on #ffffff is 1.2:1')]);
+  });
+
+  it('does not render unless asked', async () => {
+    const result = await setup()({ template: pale });
+
+    expect(result.structuredContent?.render).toBeUndefined();
+    expect(result.structuredContent?.geometry).toEqual([expect.stringContaining('#eeeeee on #ffffff is 1.2:1')]);
+    expect(runGeometryCheckMock).not.toHaveBeenCalled();
+  });
+
+  // It renders what compose_video would, so it refuses what compose_video would refuse.
+  it('does not render a descriptor that escapes the media sandbox', async () => {
+    const escaping: Record<string, unknown> = {
+      sections: [
+        {
+          name: 'card',
+          type: 'color_background',
+          options: { backgroundColor: '#000000', duration: 2 },
+          filters: [{ type: 'curves', value: 'psfile=/etc/passwd' }],
+        },
+      ],
+    };
+    const result = await setup()({ template: escaping, render: true });
+    const render = result.structuredContent?.render as { measured: number; unavailable?: string };
+
+    expect(render.measured).toBe(0);
+    expect(render.unavailable).toMatch(/^not rendered: /);
+    expect(runGeometryCheckMock).not.toHaveBeenCalled();
   });
 });

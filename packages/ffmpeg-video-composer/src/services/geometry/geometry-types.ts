@@ -13,6 +13,9 @@ export interface Box {
   fontSize: number;
   startSec: number;
   endSec: number;
+  // When the text rests fully shown — after a reveal settles, before an exit starts. What a rendered
+  // check samples (render-check.ts).
+  settledSec: number;
   approx: boolean;
   approxReason?: ApproxReason;
   // The text colour token, or `null` when missing/unreadable — never a guess.

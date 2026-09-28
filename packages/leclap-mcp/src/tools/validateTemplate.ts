@@ -1,16 +1,30 @@
-import type { McpServer } from '@modelcontextprotocol/server';
+import fs from 'node:fs/promises';
+import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import {
   geometryApproxNote,
   nodeGeometryWarnings,
+  type GeometryWarning,
+  type RenderedGeometry,
   type TemplateDescriptor,
   type TemplateDescriptorSchema,
 } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
+import type { McpConfig } from '../config.js';
+import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
+import { runGeometryCheck } from '../compose/renderRunner.js';
 import { validateTemplate } from '../compose/validation.js';
 
 const inputSchema = z.object({
   template: z.record(z.string(), z.unknown()),
+  render: z
+    .boolean()
+    .optional()
+    .describe(
+      'Also render the sections that hold text (twice, through FFmpeg) and measure its contrast from real ' +
+        'pixels — settles text over images, grades and looks that the render-free check can only call ' +
+        'unknown. Costs seconds, not milliseconds; default false.'
+    ),
 });
 
 const outputSchema = z.object({
@@ -29,9 +43,16 @@ const outputSchema = z.object({
         'be too small, lack contrast, or sit over footage with no box/outline/shadow — one line per finding ' +
         'saying what to change, present only when there is something to fix; check this before rendering.'
     ),
+  // Present only when `render: true` was asked for.
+  render: z
+    .object({ measured: z.number(), seconds: z.number(), unavailable: z.string().optional() })
+    .optional()
+    .describe('What the rendered check measured from pixels, or why it could not render.'),
 });
 
-type ValidateArgs = { template: Record<string, unknown> };
+type ValidateArgs = { template: Record<string, unknown>; render?: boolean };
+type RenderSummary = { measured: number; seconds: number; unavailable?: string };
+type RenderConfig = Pick<McpConfig, 'mediaDir' | 'outputDir' | 'renderTimeoutMs'>;
 type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
 type DescriptorResult = { ok: true; descriptor: TemplateDescriptor } | ToolError;
 
@@ -85,13 +106,83 @@ type GeometryDescriptor = z.infer<typeof TemplateDescriptorSchema>;
 // renderer fetches from), caches font bytes for the life of this long-lived process, and degrades a
 // throw to no findings — geometry is advisory and must never turn a valid template into an MCP error.
 export async function geometryLines(descriptor: TemplateDescriptor): Promise<string[] | undefined> {
-  const warnings = await nodeGeometryWarnings(descriptor as unknown as GeometryDescriptor);
+  return formatGeometry(await nodeGeometryWarnings(descriptor as unknown as GeometryDescriptor));
+}
 
+function formatGeometry(warnings: GeometryWarning[]): string[] | undefined {
   if (warnings.length === 0) {
     return undefined;
   }
 
   return warnings.map((w) => `${w.path}: ${w.message}${geometryApproxNote(w)}`);
+}
+
+// The rendered check runs in compose_video's render worker, under its timeout and cancellation: the
+// engine's container is process-wide, and a render that hangs or crashes must take down a worker, not
+// this server. A worker that times out, dies or cannot fork is no verdict on the template, so it
+// degrades to the render-free findings with the reason — never a thrown MCP error.
+async function renderInWorker(
+  authored: TemplateDescriptor,
+  config: RenderConfig,
+  signal: AbortSignal | undefined
+): Promise<RenderedGeometry> {
+  const job = {
+    kind: 'geometry' as const,
+    descriptor: authored as unknown as GeometryDescriptor,
+    options: { assetsDir: config.mediaDir, workDir: config.outputDir },
+  };
+  const result = await runGeometryCheck(job, { timeoutMs: config.renderTimeoutMs, signal }).catch((error: unknown) => ({
+    ok: false as const,
+    error: error instanceof Error ? error.message : String(error),
+  }));
+
+  if (result.ok) {
+    return result.geometry;
+  }
+
+  const warnings = await nodeGeometryWarnings(job.descriptor);
+
+  return { warnings, measured: 0, unavailable: `rendered check failed: ${result.error}` };
+}
+
+// `render: true`: the static findings refined by a real render. It renders what compose_video would, so
+// it passes the same sandbox first — a descriptor compose_video would refuse is not rendered here
+// either — and reads assets from the media dir, as a compose does. Advisory: nothing here errors.
+async function renderedGeometry(
+  descriptor: TemplateDescriptor,
+  authored: TemplateDescriptor,
+  config: RenderConfig,
+  signal: AbortSignal | undefined
+): Promise<{ geometry: string[] | undefined; render: RenderSummary }> {
+  const started = performance.now();
+  const safety = await assertDescriptorSafe(descriptor, config.mediaDir);
+
+  if (!safety.ok) {
+    const geometry = await geometryLines(authored);
+
+    return { geometry, render: { measured: 0, seconds: 0, unavailable: `not rendered: ${safety.message}` } };
+  }
+
+  await fs.mkdir(config.outputDir, { recursive: true });
+
+  const rendered = await renderInWorker(authored, config, signal);
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  const summary = { measured: rendered.measured, seconds };
+
+  return {
+    geometry: formatGeometry(rendered.warnings),
+    render: rendered.unavailable ? { ...summary, unavailable: rendered.unavailable } : summary,
+  };
+}
+
+function renderNote(render: RenderSummary | undefined): string {
+  if (!render) {
+    return '';
+  }
+
+  return render.unavailable
+    ? ` Rendered check skipped — ${render.unavailable}.`
+    : ` Rendered check measured ${render.measured} text(s) from pixels in ${render.seconds}s.`;
 }
 
 // `authored` is the descriptor exactly as the caller sent it. `descriptor` has already had its
@@ -112,12 +203,27 @@ function geometryNote(geometry: string[] | undefined): string {
   return ` ${geometry.length} geometry finding(s):\n- ${geometry.join('\n- ')}`;
 }
 
-async function summary(descriptor: TemplateDescriptor, authored: TemplateDescriptor) {
+// Set only for `render: true`: where to render, and the call's cancellation signal.
+type RenderRequest = { config: RenderConfig; signal: AbortSignal | undefined };
+
+async function findings(
+  descriptor: TemplateDescriptor,
+  authored: TemplateDescriptor,
+  request: RenderRequest | null
+): Promise<{ geometry: string[] | undefined; render?: RenderSummary }> {
+  if (!request) {
+    return { geometry: await geometryLines(authored) };
+  }
+
+  return renderedGeometry(descriptor, authored, request.config, request.signal);
+}
+
+async function summary(descriptor: TemplateDescriptor, authored: TemplateDescriptor, request: RenderRequest | null) {
   const sectionCount = descriptor.sections?.length ?? 0;
   const orientation = descriptor.global?.orientation ?? null;
   const clips = requiredClips(descriptor);
   const fields = formFields(descriptor);
-  const geometry = await geometryLines(authored);
+  const { geometry, render } = await findings(descriptor, authored, request);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -127,7 +233,7 @@ async function summary(descriptor: TemplateDescriptor, authored: TemplateDescrip
     content: [
       {
         type: 'text' as const,
-        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${geometryNote(geometry)}`,
+        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${renderNote(render)}${geometryNote(geometry)}`,
       },
     ],
     structuredContent: {
@@ -137,35 +243,41 @@ async function summary(descriptor: TemplateDescriptor, authored: TemplateDescrip
       requiredClips: clips,
       formFields: fields,
       geometry,
+      render,
     },
   };
 }
 
-async function handleValidate(args: ValidateArgs) {
+async function handleValidate(args: ValidateArgs, config: RenderConfig, ctx?: ServerContext) {
   const resolved = resolveDescriptor(args);
 
   if ('isError' in resolved) {
     return resolved;
   }
 
-  return summary(resolved.descriptor, args.template);
+  const request = args.render === true ? { config, signal: ctx?.mcpReq.signal } : null;
+
+  return summary(resolved.descriptor, args.template, request);
 }
 
-export function registerValidateTemplate(server: McpServer): void {
+export function registerValidateTemplate(server: McpServer, config: RenderConfig): void {
   server.registerTool(
     'validate_template',
     {
       title: 'Validate Template',
       description:
         'Dry-run an inline `template` descriptor against the core schema WITHOUT rendering — returns ' +
-        'instantly. Get back whether it is valid plus what compose_video will require: the ' +
+        'instantly unless `render: true`. Get back whether it is valid plus what compose_video will require: the ' +
         'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
         'milliseconds before the slower compose_video render. Also catches, render-free, text that ' +
         'runs off the frame or out of title-safe, collides with other text, sits under a band, is too ' +
-        'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field.',
+        'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field. ' +
+        'Pass `render: true` to also render the text-bearing sections and measure contrast from real pixels ' +
+        '(seconds; settles text over images, grades and looks).',
       inputSchema,
       outputSchema,
     },
-    (args: ValidateArgs) => handleValidate(args)
+    // Optional context, as on compose_video: cancelling the call kills the render worker.
+    (args: ValidateArgs, ctx?: ServerContext) => handleValidate(args, config, ctx)
   );
 }

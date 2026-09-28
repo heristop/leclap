@@ -44,6 +44,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `nodeGeometryWarnings` / `geometryApproxNote`, plus the `GeometryWarning` and `FontLoader` types.
   A finding drawn from an estimate says why: `(approx: font unavailable, width estimated)`,
   `(approx: {{ variable }} length unknown until render)` or `(approx: section duration assumed)`.
+- `renderedGeometryWarnings()` (Node entry) measures text contrast from rendered pixels, on request.
+  The render-free check never sees a pixel: text over a picture, under a grade or a look is only
+  flagged for lacking a box, outline or shadow. This renders the sections that hold text twice — the
+  second time with every glyph recoloured, so the glyphs are exactly the pixels that change — reads
+  one frame per piece of text where it rests, and scores it against the pixels around it (lower
+  quartile, WCAG ratio). It reports `text_low_contrast_rendered` below 3:1, and over a fixed
+  backdrop (colour card, picture) it replaces the render-free contrast and over-footage findings
+  for that text. It costs seconds and needs a native FFmpeg with `drawtext`; without one, or when
+  the render fails, it returns the render-free findings and says why in `unavailable`. The FFmpeg it
+  would render with is asked for its filter list first (once per binary), so a build without
+  libfreetype is named, with what to install, instead of failing every section mid-render.
 
 ### Changed
 

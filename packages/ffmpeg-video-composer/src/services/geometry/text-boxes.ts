@@ -156,6 +156,7 @@ function textBox(layer: DrawLayer, drawIndex: number, placement: Placement): Box
     fontSize,
     startSec: entry.startSec + position.from,
     endSec: entry.startSec + position.to,
+    settledSec: entry.startSec + position.at,
     timingAssumed: entry.timingAssumed,
     approx: measured.approx,
     approxReason: measured.approxReason,

@@ -56,7 +56,7 @@ export function createServer(config: McpConfig): McpServer {
 
   registerPing(server, config);
   registerGetTemplateSchema(server);
-  registerValidateTemplate(server);
+  registerValidateTemplate(server, config);
   registerCompose(server, config);
   registerProbe(server, config);
 

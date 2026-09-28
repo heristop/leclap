@@ -1,9 +1,12 @@
 import { fork, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs/promises';
 import os from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { ProjectConfig, TemplateDescriptor } from 'ffmpeg-video-composer';
+import type { ProjectConfig, RenderedGeometry, TemplateDescriptor } from 'ffmpeg-video-composer';
 
+import type { GeometryJob } from '../worker/geometry-job.js';
 import type { ProgressMessage } from '../worker/progress-reporter.js';
 
 // One render job, shipped to the forked worker over IPC.
@@ -25,8 +28,12 @@ interface WorkerMessage {
   outputPath?: string;
   infos?: WorkerInfos;
   sizeBytes?: number;
+  // A geometry job's result (worker/geometry-job.ts) in place of the render fields.
+  geometry?: RenderedGeometry;
   error?: string;
 }
+
+type WorkerFailure = { ok: false; error: string; logTail?: string };
 
 export type RenderResult =
   | {
@@ -37,7 +44,9 @@ export type RenderResult =
       videoCodec: string | null;
       audioCodec: string | null;
     }
-  | { ok: false; error: string; logTail?: string };
+  | WorkerFailure;
+
+export type GeometryCheckResult = { ok: true; geometry: RenderedGeometry } | WorkerFailure;
 
 export interface RenderOptions {
   timeoutMs: number;
@@ -173,11 +182,32 @@ function successResult(msg: WorkerMessage): RenderResult {
   };
 }
 
-function failureResult(msg: WorkerMessage, logTail: string): RenderResult {
+function failureResult(msg: WorkerMessage, logTail: string): WorkerFailure {
   const lead = leadLine(logTail);
   const base = msg.error ?? lead ?? 'compilation failed';
 
   return { ok: false, error: base, logTail };
+}
+
+function renderResult(msg: WorkerMessage, logTail: string): RenderResult {
+  return msg.ok ? successResult(msg) : failureResult(msg, logTail);
+}
+
+/**
+ * Read a geometry job's terminal message. A success that somehow carries no geometry is a failure, so
+ * the caller falls back to its static findings rather than reporting an empty render. Exported for
+ * unit test.
+ */
+export function geometryCheckResult(msg: WorkerMessage, logTail: string): GeometryCheckResult {
+  if (msg.ok && msg.geometry) {
+    return { ok: true, geometry: msg.geometry };
+  }
+
+  if (msg.ok) {
+    return { ok: false, error: 'render worker returned no geometry', logTail };
+  }
+
+  return failureResult(msg, logTail);
 }
 
 // Force the child down: SIGTERM first, then SIGKILL after a short grace if it is still alive.
@@ -193,14 +223,17 @@ function killChild(child: ChildProcess): void {
 
 // Per-render state shared between the event handlers, so each handler stays tiny and the
 // resolve-once guard lives in one place.
-interface RunState {
+interface RunState<T> {
   child: ChildProcess;
   ring: RingBuffer;
   settled: boolean;
-  resolve: (result: RenderResult) => void;
+  resolve: (result: T | WorkerFailure) => void;
 }
 
-function settle(state: RunState, result: RenderResult): void {
+// How a job kind reads its worker's terminal message.
+type Interpret<T> = (msg: WorkerMessage, logTail: string) => T | WorkerFailure;
+
+function settle<T>(state: RunState<T>, result: T | WorkerFailure): void {
   if (state.settled) {
     return;
   }
@@ -209,14 +242,11 @@ function settle(state: RunState, result: RenderResult): void {
   state.resolve(result);
 }
 
-function onMessage(state: RunState, msg: WorkerMessage): void {
-  const logTail = state.ring.toString();
-  const result = msg.ok ? successResult(msg) : failureResult(msg, logTail);
-
-  settle(state, result);
+function onMessage<T>(state: RunState<T>, msg: WorkerMessage, interpret: Interpret<T>): void {
+  settle(state, interpret(msg, state.ring.toString()));
 }
 
-function onExit(state: RunState, code: number | null): void {
+function onExit<T>(state: RunState<T>, code: number | null): void {
   settle(state, {
     ok: false,
     error: `render worker exited (code ${code ?? 'unknown'})`,
@@ -227,7 +257,7 @@ function onExit(state: RunState, code: number | null): void {
 // A fork() that never spawns (missing worker bundle, EMFILE, ENOMEM) or a send() over a closed
 // channel emits 'error'. Without a listener Node throws it as an uncaught exception, which would
 // crash the whole stdio server instead of failing just this render.
-function onError(state: RunState, error: Error): void {
+function onError<T>(state: RunState<T>, error: Error): void {
   settle(state, {
     ok: false,
     error: `render worker failed: ${error.message}`,
@@ -235,7 +265,7 @@ function onError(state: RunState, error: Error): void {
   });
 }
 
-function onTimeout(state: RunState, timeoutMs: number): void {
+function onTimeout<T>(state: RunState<T>, timeoutMs: number): void {
   killChild(state.child);
   settle(state, {
     ok: false,
@@ -244,11 +274,34 @@ function onTimeout(state: RunState, timeoutMs: number): void {
   });
 }
 
-function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
-  return new Promise<RenderResult>((resolve) => {
+function forkWorker(): ChildProcess {
+  return fork(workerPath(), [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
+}
+
+// Resolves once the worker process is gone: it exited (on its own, or killed on timeout/cancel), or it
+// never spawned at all, in which case 'error' is all it will ever emit.
+function workerGone(child: ChildProcess): Promise<void> {
+  return new Promise<void>((resolve) => {
+    child.once('exit', () => {
+      resolve();
+    });
+    child.on('error', () => {
+      if (child.pid === undefined) {
+        resolve();
+      }
+    });
+  });
+}
+
+function executeJob<T>(
+  job: RenderJob | GeometryJob,
+  opts: RenderOptions,
+  interpret: Interpret<T>,
+  child: ChildProcess = forkWorker()
+): Promise<T | WorkerFailure> {
+  return new Promise<T | WorkerFailure>((resolve) => {
     const ring = new RingBuffer();
-    const child = fork(workerPath(), [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
-    const state: RunState = { child, ring, settled: false, resolve };
+    const state: RunState<T> = { child, ring, settled: false, resolve };
 
     captureStreams(child, ring);
 
@@ -274,7 +327,7 @@ function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResul
         onProgress: opts.onProgress,
         onResult: (result) => {
           clearGuards();
-          onMessage(state, result);
+          onMessage(state, result, interpret);
         },
       });
     });
@@ -307,7 +360,7 @@ function executeRender(job: RenderJob, opts: RenderOptions): Promise<RenderResul
 
 // Bound how many worker forks run at once; queued calls wait for a free slot before forking. If the
 // call was already cancelled while queued, skip the fork entirely.
-export async function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
+async function inSlot<T>(opts: RenderOptions, run: () => Promise<T | WorkerFailure>): Promise<T | WorkerFailure> {
   await renderSemaphore.acquire();
 
   try {
@@ -315,8 +368,40 @@ export async function runRender(job: RenderJob, opts: RenderOptions): Promise<Re
       return { ok: false, error: 'render cancelled' };
     }
 
-    return await executeRender(job, opts);
+    return await run();
   } finally {
     renderSemaphore.release();
   }
+}
+
+export function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderResult> {
+  return inSlot(opts, () => executeJob(job, opts, renderResult));
+}
+
+// `validate_template` with `render: true`: the rendered geometry check in its own worker, under the
+// same slot cap, timeout and cancellation as a compose — it renders the text sections twice, so it
+// costs like one.
+//
+// The worker renders into a scratch folder it removes when it finishes, which it never does when it is
+// killed on timeout or cancel, or crashes. So this process owns that folder: it creates it, hands it to
+// the worker as its workDir, and removes it once the worker is gone — not merely settled, since a
+// killed worker still rendering could write into it again.
+export function runGeometryCheck(job: GeometryJob, opts: RenderOptions): Promise<GeometryCheckResult> {
+  return inSlot(opts, async () => {
+    const scratch = await fs.mkdtemp(path.join(job.options.workDir ?? os.tmpdir(), 'leclap-render-check-'));
+    const child = forkWorker();
+    const gone = workerGone(child);
+
+    try {
+      return await executeJob(
+        { ...job, options: { ...job.options, workDir: scratch } },
+        opts,
+        geometryCheckResult,
+        child
+      );
+    } finally {
+      await gone;
+      await fs.rm(scratch, { recursive: true, force: true });
+    }
+  });
 }

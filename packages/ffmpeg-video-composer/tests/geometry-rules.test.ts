@@ -21,6 +21,7 @@ function box(overrides: Partial<Box> = {}): Box {
     fontSize: 40,
     startSec: 0,
     endSec: 5,
+    settledSec: 2.5,
     approx: false,
     color: null,
     backdrop: null,

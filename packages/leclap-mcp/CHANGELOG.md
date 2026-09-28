@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   text off the frame or out of the title-safe area, colliding, hidden under a band, too small,
   low-contrast, or unguarded over footage. They are advisory and never change `valid`. A finding
   drawn from an estimate carries an `(approx: …)` note saying why.
+- `validate_template` accepts `render: true` to also render the sections that hold text and
+  measure their contrast from real pixels. A new optional `render` field reports how many texts
+  were measured and how long it took, or why nothing was rendered; the render-free findings are
+  returned either way and `valid` never changes. The check runs in the same forked render worker
+  as `compose_video`, under the same timeout and cancellation, so a render that hangs or crashes
+  takes down the worker rather than the server — and a timeout degrades to the render-free
+  findings instead of an error.
 
 ### Fixed
 

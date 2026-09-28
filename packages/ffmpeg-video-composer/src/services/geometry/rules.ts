@@ -131,7 +131,7 @@ export function legibilityWarnings(boxes: Box[], canvas: Canvas): GeometryWarnin
 }
 
 // WCAG AA for large text (captions, lower thirds and title cards all render above that threshold).
-const MIN_TEXT_CONTRAST = 3.0;
+export const MIN_TEXT_CONTRAST = 3.0;
 
 export function contrastWarnings(boxes: Box[]): GeometryWarning[] {
   const warnings: GeometryWarning[] = [];

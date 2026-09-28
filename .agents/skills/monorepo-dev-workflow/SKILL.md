@@ -9,7 +9,7 @@ description: Use when building, testing, linting, formatting, typechecking, or r
 
 pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`vp`)** — it provides lint (oxlint), format, test (vitest), and staged checks. There is **no eslint, no prettier, and no jest at the root** (jest lives only inside `apps/leclap-expo`).
 
-- **pnpm 11.5.2**, **Node ≥ 22.14.0** (`engine-strict` — wrong versions are rejected). Install: `pnpm install`.
+- **pnpm 12.6.0**, **Node ≥ 24.11.0** (`engine-strict` — wrong versions are rejected). Install: `pnpm install`.
 
 ## Command map
 

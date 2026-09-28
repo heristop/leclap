@@ -4,7 +4,7 @@ Thanks for your interest in improving **ffmpeg-video-composer** (the `leclap` mo
 
 ## Prerequisites
 
-The toolchain is pinned via [`mise`](https://mise.jdx.dev/) (Node 24, pnpm 11, Rust stable, and a full FFmpeg build). With `mise` installed:
+The toolchain is pinned via [`mise`](https://mise.jdx.dev/) (Node 24, pnpm 12, Rust stable, and a full FFmpeg build). With `mise` installed:
 
 ```bash
 mise install     # installs Node, pnpm, Rust, FFmpeg at the pinned versions

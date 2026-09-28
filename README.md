@@ -10,7 +10,7 @@ Describe a video in one JSON _template_ — sections, filters, music, overlays �
 
 [![CI](https://github.com/heristop/leclap/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/leclap/actions/workflows/ci.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
-[![pnpm](https://img.shields.io/badge/pnpm-11-f69220.svg)](https://pnpm.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-12-f69220.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Trademark: LeClap](https://img.shields.io/badge/™-LeClap-blue.svg)](TRADEMARK.md)
@@ -65,12 +65,12 @@ The workflow is explicit: **implement → collect evidence → author template �
 
 ## 🚀 Quick start
 
-> 💡 **Recommended: [mise](https://mise.jdx.dev).** `mise install` provisions the exact pinned toolchain — **Node 24, pnpm 11, FFmpeg 8.1.1, and Rust** — so every contributor and CI run identical versions. Managing versions yourself? Bring **Node ≥ 24** and **pnpm 11**.
+> 💡 **Recommended: [mise](https://mise.jdx.dev).** `mise install` provisions the exact pinned toolchain — **Node 24, pnpm 12, FFmpeg 8.1.1, and Rust** — so every contributor and CI run identical versions. Managing versions yourself? Bring **Node ≥ 24** and **pnpm 12**.
 
 ```bash
 git clone https://github.com/heristop/leclap.git
 cd leclap
-mise install     # Node 24, pnpm 11, FFmpeg 8.1.1 + Rust
+mise install     # Node 24, pnpm 12, FFmpeg 8.1.1 + Rust
 pnpm install
 ```
 

@@ -1,6 +1,6 @@
 [tools]
 node = "24"
-pnpm = "11"
+pnpm = "12"
 
 # Rust toolchain for the on-device FFmpeg engine crate (leclap-ffmpeg-core: rsmpeg + uniffi).
 rust = "stable"

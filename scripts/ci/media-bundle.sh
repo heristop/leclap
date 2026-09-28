@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Shared manifest and bundle handling for the media pipeline. Sourced by fetch-{web,test}-media.sh,
-# build-media-bundles.sh, publish-media-bundles.sh and verify-lfs-assets.sh — everything that has to
-# agree on what a manifest means and where a bundle lives.
+# build-media-bundles.sh, publish-media-bundles.sh, verify-lfs-assets.sh and check-web-manifest-drift.sh —
+# everything that has to agree on what a manifest means and where a bundle lives.
 #
 # This repo's media cannot be fetched through Git LFS (the budget is exhausted; downloads return 403
 # and `git lfs pull` exits 0 while materializing nothing), so it ships as tarballs on object storage.
@@ -67,6 +67,30 @@ media_manifest_digest_for() {
 # recommenting a manifest does not orphan a published bundle; only the asset set and its content move it.
 media_manifest_digest() {
   media_manifest_entries "$1" | LC_ALL=C sort | media_sha256 /dev/stdin | cut -c1-12
+}
+
+# The trees whose Git LFS assets the web build ships. lfs-web-assets.txt must list every LFS asset
+# under them and nothing else; its header runs the same filter.
+MEDIA_WEB_LFS_TREES='^(packages/leclap-creative-kit/src/library/|apps/leclap-web/public/videos/)'
+
+# How a web manifest disagrees with the Git LFS assets under MEDIA_WEB_LFS_TREES: `extra <path>` for
+# each path listed but not tracked (media deleted or moved, line left behind), then `missing <path>` for
+# each asset tracked but not listed. Empty output means they agree. Paths compare as sets, so order,
+# comments and digests never count. Tracked is what ls-files reports — the commit plus anything staged,
+# so a deletion only counts once it is committed.
+#
+# Fails, rather than reporting no drift, when git lfs cannot list the tree: an unreadable tree must
+# never pass for a clean one.
+media_web_manifest_drift() {
+  local manifest=$1 root=$2
+  local tracked listed
+
+  tracked=$(git -C "$root" lfs ls-files -n) || return 1
+  tracked=$(printf '%s\n' "$tracked" | grep -E "$MEDIA_WEB_LFS_TREES" | LC_ALL=C sort -u) || true
+  listed=$(media_manifest_paths "$manifest" | LC_ALL=C sort -u)
+
+  LC_ALL=C comm -23 <(printf '%s\n' "$listed") <(printf '%s\n' "$tracked") | sed -e '/^$/d' -e 's/^/extra /'
+  LC_ALL=C comm -13 <(printf '%s\n' "$listed") <(printf '%s\n' "$tracked") | sed -e '/^$/d' -e 's/^/missing /'
 }
 
 # Assets that are absent or still LFS pointer files, one per line. Empty output means the tree is whole.

@@ -9,7 +9,7 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-for suite in media-bundle fetch-media-bundle verify-lfs-assets; do
+for suite in media-bundle fetch-media-bundle verify-lfs-assets check-web-manifest-drift; do
   printf '\n=== %s ===\n' "$suite"
   bash "$script_dir/$suite.test.sh"
 done

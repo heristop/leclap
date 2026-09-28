@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   same loader as its second constructor argument, and `FFMPEG_CORE_VERSION` names the
   `@ffmpeg/core` version to serve. Without the option nothing changes: that pinned version,
   0.12.10, still comes from unpkg.
+- **Any Google Fonts family, by name.** A text `font` now also accepts
+  `{ family, weight?, style? }` (e.g. `{ "family": "Playfair Display", "weight": 700,
+"style": "italic" }`), resolved from Google Fonts at render time. `weight` is 100..900 in steps
+  of 100 (default 400), `style` is `normal` or `italic`. Registry ids and `.ttf` filenames keep
+  working unchanged, and a typo in a registry id is still a validation error rather than a network
+  lookup. A family that does not exist fails the render with an error naming it — a missing font is
+  never silently swapped for another face.
+- **A persistent font cache (Node).** Faces resolved by family, and catalog fonts, are copied to
+  `~/.cache/leclap/fonts` (override with `FVC_FONT_CACHE_DIR`), so a repeat render of the same font
+  needs no network. Entries are written atomically; an unwritable directory only costs the
+  re-download.
+- `isFontRef`, `FontRef` and `FontInput` are exported from every entry point, and `FontRefSchema` /
+  `FontInputSchema` from the Node entry.
 
 ### Changed
 
@@ -24,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   track it was handed when that already covers the video, else a looped copy in the build
   directory. It no longer writes the loop over its input, so a custom `AbstractMusic` must now
   return `musicPath`; the bundled Node, browser and device adapters do.
+- The browser/WASM backend cannot request a TrueType face from Google, so it now rejects a template
+  that names a font by family up front, before any section is encoded, with an error listing where.
+  Ship the fonts you need, or use a bundled font id or a `.ttf` filename.
 
 ### Fixed
 

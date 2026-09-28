@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type * as Fonts from '@/core/fonts';
 
 // ---------------------------------------------------------------------------
 // browser.ts is the WASM/browser entry point. We mock the WASM + browser
@@ -41,12 +42,16 @@ vi.mock('@/platform/ffmpeg/MusicWasmAdapter', () => {
   return { default: MockMusicWasmAdapter };
 });
 
-vi.mock('@/platform/filesystem/BrowserFilesystemAdapter', () => {
+vi.mock('@/platform/filesystem/BrowserFilesystemAdapter', async () => {
+  const { fontRefPaths } = await vi.importActual<typeof Fonts>('@/core/fonts');
+
   class MockBrowserFilesystemAdapter {
     setBuildDir = vi.fn();
     setAssetsDir = vi.fn();
     getBuildPath = vi.fn(async (d: string) => `/build/${d}`);
     read = vi.fn(async () => '{}');
+    // Like the real adapter (no remote-font support): every font named by family is unresolvable.
+    unresolvableFontRefs = (descriptor: unknown) => fontRefPaths(descriptor);
   }
 
   return { default: MockBrowserFilesystemAdapter };
@@ -103,6 +108,21 @@ describe('browser.ts compileBrowser', () => {
     expect(waitForReady).toHaveBeenCalled();
     expect(construct).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Used DI container for instantiation'));
+  });
+
+  // The browser only ever gets woff2 from Google, so a font named by family is refused before any
+  // section is encoded — with the reason, instead of a generic missing-output error from mid-render.
+  it('rejects a font named by family before rendering', async () => {
+    const { compile } = await loadBrowser();
+    const descriptor = {
+      global: { orientation: 'landscape' as const, overlays: [{ text: { en: 'LeClap' }, font: { family: 'Inter' } }] },
+      sections: [],
+    };
+
+    await expect(compile({ buildDir: '/build' }, descriptor)).rejects.toThrow(
+      /font named by family cannot be resolved in the browser \(global\.overlays\[0\]\.font\)/
+    );
+    expect(construct).not.toHaveBeenCalled();
   });
 
   it('initializes the platform only once across compiles', async () => {

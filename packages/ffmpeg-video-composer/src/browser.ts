@@ -128,6 +128,20 @@ function validateTemplate(template: Template, templateDescriptor: TemplateDescri
   }
 }
 
+// The browser cannot request a TrueType face (Google only serves it woff2, which drawtext cannot read),
+// so a font named by family is refused here, before any section is encoded — the staging-time check
+// only fires mid-render, and its message never reaches the caller.
+function assertFontsResolvable(templateDescriptor: TemplateDescriptor, filesystem: BrowserFilesystemAdapter): void {
+  const refs = filesystem.unresolvableFontRefs(templateDescriptor);
+
+  if (refs.length > 0) {
+    throw new Error(
+      `a font named by family cannot be resolved in the browser (${refs.join(', ')}): Google only serves it ` +
+        'woff2, which drawtext cannot read. Use a bundled font id or a .ttf filename instead.'
+    );
+  }
+}
+
 interface ResolvedAdapters {
   eventManager: BrowserEventManager;
   logger: AbstractLogger;
@@ -262,6 +276,7 @@ export async function compileBrowser(
     };
 
     validateTemplate(ctx.template, templateDescriptor);
+    assertFontsResolvable(templateDescriptor, ctx.filesystemAdapter);
 
     return await runCompilation(projectConfig, templateDescriptor, ctx, onProgress);
   } catch (error) {
@@ -283,5 +298,6 @@ export { default as Template } from './core/models/Template';
 export { default as Project } from './core/models/Project';
 export { default as Segment } from './core/models/Segment';
 export type { ProjectConfig, TemplateDescriptor, Variables, Section, Filter } from './core/types';
+export { isFontRef, type FontRef, type FontInput } from './core/fonts';
 export { container } from 'tsyringe';
 export { compileBrowser as compile };

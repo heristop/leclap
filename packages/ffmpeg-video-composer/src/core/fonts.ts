@@ -55,8 +55,28 @@ export type FontInput = string | FontRef;
 
 export const DEFAULT_FONT_WEIGHT = 400;
 
-export function isFontRef(font: FontInput | undefined): font is FontRef {
-  return typeof font === 'object' && typeof font.family === 'string';
+// Takes `unknown` because descriptors are JSON: a `"font": null` must read as "not a ref", not throw.
+export function isFontRef(font: unknown): font is FontRef {
+  return typeof font === 'object' && font !== null && 'family' in font && typeof font.family === 'string';
+}
+
+// Where a descriptor names a font by family, as paths (`sections[1].titleCard.headlineStyle.font`). A
+// platform that cannot resolve one (the browser) refuses the template with these BEFORE rendering,
+// rather than failing once earlier sections have already been encoded.
+export function fontRefPaths(value: unknown, path = ''): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item: unknown, index) => fontRefPaths(item, `${path}[${index}]`));
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return [];
+  }
+
+  return Object.entries(value).flatMap(([key, child]: [string, unknown]) => {
+    const childPath = path ? `${path}.${key}` : key;
+
+    return key === 'font' && isFontRef(child) ? [childPath] : fontRefPaths(child, childPath);
+  });
 }
 
 // The staged filename for a ref. This is a CACHE KEY ONLY — it is written, never parsed back.

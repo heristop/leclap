@@ -176,7 +176,7 @@ describe('FilesystemNodeAdapter', () => {
       createWriteStreamMock.mockReturnValue(writer);
 
       const dest = await adapter.fetch('http://example.com/video.mp4');
-      expect(dest).toBe('/tmp/video.mp4');
+      expect(dest).toMatch(/^\/tmp\/[\w-]+-video\.mp4$/);
       expect(axiosMock).toHaveBeenCalledWith({
         method: 'get',
         url: 'http://example.com/video.mp4',
@@ -216,7 +216,28 @@ describe('FilesystemNodeAdapter', () => {
 
       await expect(adapter.fetch('http://example.com/video.mp4')).rejects.toThrow('boom');
       expect(writer.destroy).toHaveBeenCalled();
-      expect(fsMocks.unlink).toHaveBeenCalledWith('/tmp/video.mp4');
+      expect(fsMocks.unlink).toHaveBeenCalledWith(createWriteStreamMock.mock.calls[0][0]);
+    });
+
+    // Concurrent renders (MCP workers), or two requests for one font face in a section, fetching the
+    // same URL must not share a temp file: the second open truncates the first download mid-write,
+    // and whichever finishes first carries a zero-filled hole onward (into the font cache, even).
+    it('gives every download its own temp file', async () => {
+      axiosMock.mockResolvedValue({ status: 200, headers: {}, data: { on: vi.fn(), pipe: vi.fn() } });
+      createWriteStreamMock.mockReturnValue({
+        on: vi.fn((event: string, cb: () => void) => {
+          if (event === 'finish') {
+            setImmediate(cb);
+          }
+        }),
+        destroy: vi.fn(),
+      });
+
+      const first = await adapter.fetch('https://fonts.gstatic.com/s/roboto/v51/face.ttf');
+      const second = await adapter.fetch('https://fonts.gstatic.com/s/roboto/v51/face.ttf');
+
+      expect(first).not.toBe(second);
+      expect(first).toMatch(/^\/tmp\/[\w-]+-face\.ttf$/);
     });
 
     it('swallows unlink failure during cleanup', async () => {
@@ -356,6 +377,80 @@ describe('FilesystemNodeAdapter', () => {
       await expect(adapter.fetchAndRead('http://x/y')).rejects.toBe('plain string');
       expect(logger.error).toHaveBeenCalledWith('Error downloading from http://x/y:', undefined);
     });
+
+    // Google keys the CSS format off the User-Agent, so the header the font resolver passes must
+    // actually reach the request.
+    it('forwards request headers', async () => {
+      axiosMock.mockResolvedValue({ status: 200, headers: {}, data: 'css' });
+      await adapter.fetchAndRead('https://fonts.googleapis.com/css2?family=Inter', { 'User-Agent': 'Mozilla/4.0' });
+      expect(axiosMock).toHaveBeenCalledWith(expect.objectContaining({ headers: { 'User-Agent': 'Mozilla/4.0' } }));
+    });
+
+    // PlatformBridge builds this adapter with `new FilesystemNodeAdapter()`, outside DI: the failure
+    // must surface as itself, not as a TypeError about the missing logger.
+    it('rethrows the request error when built without a logger', async () => {
+      axiosMock.mockRejectedValue(new Error('Request failed with status code 400'));
+      await expect(new FilesystemNodeAdapter().fetchAndRead('http://x/y')).rejects.toThrow('status code 400');
+    });
+  });
+
+  // The font cache outlives the build dir and is shared by concurrent renders: an entry must never be
+  // observable half-written, it is keyed by a bare file name only, and it is best-effort.
+  describe('persistent font cache', () => {
+    beforeEach(() => {
+      vi.stubEnv('FVC_FONT_CACHE_DIR', '/cache');
+      fsMocks.mkdir.mockResolvedValue(undefined);
+      fsMocks.copyFile.mockResolvedValue(undefined);
+      fsMocks.rename.mockResolvedValue(undefined);
+      fsMocks.unlink.mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('resolves a cached face by name', async () => {
+      fsMocks.stat.mockResolvedValue({});
+      expect(await adapter.resolveCachedFont('google-inter-400.ttf')).toBe('/cache/google-inter-400.ttf');
+    });
+
+    it('misses when the face is not cached', async () => {
+      fsMocks.stat.mockRejectedValue(new Error('ENOENT'));
+      expect(await adapter.resolveCachedFont('google-inter-400.ttf')).toBeNull();
+    });
+
+    it('writes an entry under a temporary name, then renames it into place', async () => {
+      await adapter.cacheFont('google-inter-400.ttf', '/build/fonts/google-inter-400.ttf');
+      const [source, partial] = fsMocks.copyFile.mock.calls[0];
+      expect(source).toBe('/build/fonts/google-inter-400.ttf');
+      expect(partial).not.toBe('/cache/google-inter-400.ttf');
+      expect(fsMocks.rename).toHaveBeenCalledWith(partial, '/cache/google-inter-400.ttf');
+    });
+
+    it('drops the temporary file when the copy fails', async () => {
+      fsMocks.copyFile.mockRejectedValue(new Error('ENOSPC'));
+      await adapter.cacheFont('google-inter-400.ttf', '/build/fonts/google-inter-400.ttf');
+      const [, partial] = fsMocks.copyFile.mock.calls[0];
+      expect(fsMocks.rename).not.toHaveBeenCalled();
+      expect(fsMocks.unlink).toHaveBeenCalledWith(partial);
+      expect(logger.warn).toHaveBeenCalled();
+    });
+
+    // A template-authored legacy name such as `Roboto-/../google-inter-700.ttf` would otherwise read
+    // or overwrite files outside the cache dir — including another font's entry.
+    it('ignores a name with a directory part', async () => {
+      expect(await adapter.resolveCachedFont('Roboto-/../google-inter-700.ttf')).toBeNull();
+      await adapter.cacheFont('Roboto-/../google-inter-700.ttf', '/build/fonts/x.ttf');
+      expect(fsMocks.stat).not.toHaveBeenCalled();
+      expect(fsMocks.copyFile).not.toHaveBeenCalled();
+    });
+
+    it('never fails the render when the cache cannot be written, even without a logger', async () => {
+      fsMocks.mkdir.mockRejectedValue(new Error('EROFS: read-only file system'));
+      await expect(
+        new FilesystemNodeAdapter().cacheFont('google-inter-400.ttf', '/build/fonts/x.ttf')
+      ).resolves.toBeUndefined();
+    });
   });
 });
 
@@ -377,6 +472,16 @@ describe('AbstractFilesystem (defaults via subclass)', () => {
     move = async () => {};
     fetchAndRead = async () => '';
   }
+
+  // A platform that cannot request a TrueType face names every font-by-family ref it would fail on, so
+  // the browser entry can refuse the template before encoding anything; others name none.
+  it('lists the fonts named by family it cannot resolve', () => {
+    const descriptor = { sections: [{ caption: { font: { family: 'Inter' } } }, { caption: { font: 'bebas' } }] };
+    const offline = Object.assign(new StubFilesystem(), { supportsRemoteFonts: false });
+
+    expect(new StubFilesystem().unresolvableFontRefs(descriptor)).toEqual([]);
+    expect(offline.unresolvableFontRefs(descriptor)).toEqual(['sections[0].caption.font']);
+  });
 
   it('returns undefined for unset dirs', () => {
     const fs = new StubFilesystem();

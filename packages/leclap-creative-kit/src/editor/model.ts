@@ -35,7 +35,7 @@ import type {
   WatermarkSchema,
 } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import type { AccentBar } from './accent-bar';
-import { FONTS, DEFAULT_FONT_ID, isFontRef, type FontInput } from '../fonts';
+import { DEFAULT_FONT_ID, findFontByFile, type FontInput } from '../fonts';
 
 export type MediaChoice =
   | { source: 'library'; id: string }
@@ -173,7 +173,9 @@ export interface EditorCaption {
   position?: CaptionPosition;
   style?: CaptionStyle;
   align?: CaptionAlign;
-  font?: string;
+  // A registry id, a raw .ttf filename, or a font named by family (`{ family, weight?, style? }`),
+  // carried through untouched so a template authored by hand or through MCP keeps its face.
+  font?: FontInput;
   fontsize?: number;
   color?: string;
   box?: boolean;
@@ -466,15 +468,11 @@ export function newOverlay(): TextOverlay {
 }
 
 // Resolve a font id from a stored drawtext `fontfile`, falling back to the
-// default font when the file is unknown or missing.
-//
-// The editor's font control is a picker over the curated registry, so it cannot represent a font
-// named by family ({ family, weight, style }) — those are authored by hand or through MCP. Such a
-// font reads back as the DEFAULT id here, so opening and re-saving that template in the editor
-// REPLACES its font. Templates using one should not be round-tripped through the editor until the
-// picker can carry it.
+// default font when the file is unknown or missing (a positioned text overlay only carries a registry
+// id). Caption / title-card / global-overlay fonts never come through here: the editor keeps them as
+// authored, a font named by family included, and a picker only replaces one when another is chosen.
 export function fontIdFromFile(file: FontInput | undefined): string {
-  return isFontRef(file) ? DEFAULT_FONT_ID : (FONTS.find((f) => f.file === file)?.id ?? DEFAULT_FONT_ID);
+  return (typeof file === 'string' ? findFontByFile(file)?.id : undefined) ?? DEFAULT_FONT_ID;
 }
 
 export function newSection(kind: EditorSection['kind']): EditorSection {

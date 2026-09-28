@@ -64,6 +64,14 @@ describe('captionPreview', () => {
     expect(captionPreview({ text: 'Hi', font: 'nope' }, PREVIEW_H, 'landscape')?.fontFamily).toBe('Oswald');
   });
 
+  // A caption may name its font by family (`{ family }`): the preview draws that family (a Google
+  // family name IS its CSS family) instead of crashing the editor on `font.endsWith`.
+  it('draws a font named by family with that family', () => {
+    const caption: EditorCaption = { text: 'Hi', font: { family: 'Playfair Display', weight: 700 } };
+
+    expect(captionPreview(caption, PREVIEW_H, 'landscape')?.fontFamily).toBe('Playfair Display');
+  });
+
   it('mirrors the engine box override matrix (captions.ts resolveBox)', () => {
     // box off on a boxed preset
     expect(captionPreview({ text: 'Hi', box: false }, PREVIEW_H, 'landscape')?.box).toBeUndefined();

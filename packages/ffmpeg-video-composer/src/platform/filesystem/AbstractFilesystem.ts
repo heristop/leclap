@@ -1,4 +1,5 @@
 import { assertSafeSegmentName } from '../../core/arg-guard';
+import { fontRefPaths } from '../../core/fonts';
 
 abstract class AbstractFilesystem {
   protected root: string | undefined;
@@ -28,6 +29,13 @@ abstract class AbstractFilesystem {
   // gets woff2, which drawtext cannot read. Platforms that can't send a legacy UA turn this off and
   // the staging ladder fails loudly instead of rendering with the wrong typeface.
   readonly supportsRemoteFonts: boolean = true;
+
+  // The fonts named by family in `descriptor` that this platform cannot resolve (their paths): all of
+  // them without remote-font support, none otherwise. The browser entry refuses a template with any,
+  // before encoding a single section — the staging-time check only fires mid-render.
+  unresolvableFontRefs(descriptor: unknown): string[] {
+    return this.supportsRemoteFonts ? [] : fontRefPaths(descriptor);
+  }
 
   // Resolve a font that ships with the package to an absolute local path, or null when the platform
   // doesn't bundle fonts locally. The browser/expo adapters seed fonts through their own asset

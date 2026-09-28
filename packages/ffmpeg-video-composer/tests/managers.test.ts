@@ -6,6 +6,7 @@ import MapManager from '@/editor/managers/MapManager';
 import VariableManager from '@/editor/managers/VariableManager';
 import * as filterCompat from '@/editor/utils/filter-compat';
 import type { Filter, Map as FilterMap, MapAnimationInput, Section } from '@/core/types';
+import type { FontRequest } from '@/core/models/Segment';
 
 // ---------------------------------------------------------------------------
 // Lightweight stubs for the DI-injected collaborators. Managers are plain
@@ -46,7 +47,7 @@ function createSegment(currentSection?: Section) {
     mapsList: [] as string[],
     assetsDir: '',
     fontsDir: '',
-    tempFonts: [] as { file: string; ref?: { family: string; weight?: number; style?: string } }[],
+    tempFonts: [] as FontRequest[],
     lutsDir: '',
     tempLuts: [] as string[],
     inputsAsset: [] as string[],

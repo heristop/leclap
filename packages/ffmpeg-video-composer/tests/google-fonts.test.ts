@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isFontRef, fontRefSlug } from '@/core/fonts';
+import { isFontRef, fontRefSlug, fontRefPaths } from '@/core/fonts';
 import { googleCssUrl, extractTtfUrl } from '@/core/google-fonts';
 
 // A resolved font is authored as an object so it stays structurally distinct from a registry id — a
@@ -15,6 +15,31 @@ describe('isFontRef', () => {
 
   it('rejects a raw ttf filename', () => {
     expect(isFontRef('Oswald.ttf')).toBe(false);
+  });
+
+  // Descriptors are JSON: a `"font": null` must read as "no ref", not throw on `null.family`.
+  it('rejects null', () => {
+    expect(isFontRef(null)).toBe(false);
+  });
+});
+
+// The browser cannot resolve a font named by family, so it refuses such a template up front: every
+// ref must be found, wherever a text sugar sits in the descriptor.
+describe('fontRefPaths', () => {
+  it('lists every font named by family in a descriptor', () => {
+    const descriptor = {
+      global: { overlays: [{ text: { en: 'LeClap' }, font: { family: 'Inter' } }] },
+      sections: [
+        { name: 'a', caption: { text: { en: 'hi' }, font: 'bebas' } },
+        { name: 'b', titleCard: { headlineStyle: { font: { family: 'Playfair Display', weight: 700 } } } },
+      ],
+    };
+
+    expect(fontRefPaths(descriptor)).toEqual(['global.overlays[0].font', 'sections[1].titleCard.headlineStyle.font']);
+  });
+
+  it('is empty when every font is a registry id, a filename or null', () => {
+    expect(fontRefPaths({ sections: [{ caption: { font: 'Oswald.ttf' } }, { caption: { font: null } }] })).toEqual([]);
   });
 });
 
@@ -68,6 +93,17 @@ describe('googleCssUrl', () => {
   it('encodes a multi-word family with +', () => {
     expect(googleCssUrl({ family: 'Playfair Display' })).toBe(
       'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400'
+    );
+  });
+
+  // Unencoded, `Roboto&` ends the family parameter early: Google answers 200 with the default weight
+  // 400, so a request for 700 silently draws Regular — and caches it under the 700 key.
+  it('percent-encodes the family so punctuation cannot cut off the axis spec', () => {
+    expect(googleCssUrl({ family: 'Roboto&', weight: 700 })).toBe(
+      'https://fonts.googleapis.com/css2?family=Roboto%26:ital,wght@0,700'
+    );
+    expect(googleCssUrl({ family: 'Roboto#', weight: 700 })).toBe(
+      'https://fonts.googleapis.com/css2?family=Roboto%23:ital,wght@0,700'
     );
   });
 });

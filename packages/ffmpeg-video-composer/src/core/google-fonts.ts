@@ -20,8 +20,11 @@ const GOOGLE_FONTS_CSS_ENDPOINT = 'https://fonts.googleapis.com/css2';
 // decides what gets downloaded next, so it must not be able to point the fetch at another host.
 const GSTATIC_TTF = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+?\.ttf)\)/;
 
+// The family is percent-encoded (spaces as `+`, Google's own spelling): left raw, a stray `&` or `#`
+// ends the parameter before the axis spec, and Google answers 200 with the default weight 400 — a
+// silently wrong face, cached under the key of the weight that was asked for.
 export function googleCssUrl(ref: FontRef): string {
-  const family = ref.family.trim().replace(/\s+/g, '+');
+  const family = encodeURIComponent(ref.family.trim().replace(/\s+/g, ' ')).replace(/%20/g, '+');
   const ital = ref.style === 'italic' ? 1 : 0;
   const weight = ref.weight ?? DEFAULT_FONT_WEIGHT;
 

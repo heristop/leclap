@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AssetManager from '@/editor/managers/AssetManager';
 import type { Media, Section } from '@/core/types';
+import type { FontRequest } from '@/core/models/Segment';
 
 // ---------------------------------------------------------------------------
 // AssetManager performs network/fs work through the injected filesystem adapter
@@ -58,7 +59,7 @@ function build(
     currentSection: opts.section,
     assetsDir: '/assets',
     fontsDir: '/fonts',
-    tempFonts: [] as { file: string; ref?: { family: string; weight?: number; style?: string } }[],
+    tempFonts: [] as FontRequest[],
     lutsDir: '/luts',
     tempLuts: [] as string[],
     panelsDir: '/panels',
@@ -299,6 +300,30 @@ describe('AssetManager.fetchFonts', () => {
     expect(fs.move).toHaveBeenCalledWith('/tmp/font.ttf', '/fonts/Roboto-Bold.ttf');
   });
 
+  // The face behind a legacy filename is a guess from its stem (`Roboto-Bold.ttf` fetches Roboto
+  // 400): persisting it under that name would outlive any fix to the guess.
+  it('does not persist a face guessed from a legacy filename', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockResolvedValue('src: url(https://fonts.gstatic.com/s/roboto/v1/font.ttf) format("truetype");');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'Roboto-Bold.ttf' }];
+    await manager.fetchFonts();
+    expect(fs.cacheFont).not.toHaveBeenCalled();
+  });
+
+  // A catalog font is a download too: seeding the persistent cache is what lets a fresh build dir
+  // (every MCP render) stage it without fetching it again.
+  it('seeds the persistent cache after downloading a catalog font', async () => {
+    const fs = createFilesystem();
+    fs.fetch.mockResolvedValue('/tmp/Oswald.ttf');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'Oswald.ttf' }];
+    await manager.fetchFonts();
+    expect(fs.move).toHaveBeenCalledWith('/tmp/Oswald.ttf', '/fonts/Oswald.ttf');
+    expect(fs.cacheFont).toHaveBeenCalledWith('Oswald.ttf', '/fonts/Oswald.ttf');
+    expect(fs.fetchAndRead).not.toHaveBeenCalled();
+  });
+
   // Previously this logged "no font url found" and returned, leaving the segment to render with no
   // font at all — a silently wrong video. A font that cannot be staged is now a hard failure.
   it('throws when the CSS carries no gstatic font url', async () => {
@@ -373,12 +398,54 @@ describe('AssetManager.fetchFonts with a FontRef', () => {
     expect(fs.fetchAndRead).not.toHaveBeenCalled();
   });
 
-  it('names the family in the error when the family does not exist', async () => {
+  // The Expo adapter used to resolve an HTTP error with its body: the CSS then carries no font url.
+  it('names the family in the error when the css carries no truetype face', async () => {
     const fs = createFilesystem();
     fs.fetchAndRead.mockResolvedValue('/* 400 */');
     const { manager } = build({ section: { name: 's', type: 'video' }, fs });
     manager.segment.tempFonts = [{ file: 'google-intr-400.ttf', ref: { family: 'Intr' } }];
     await expect(manager.fetchFonts()).rejects.toThrow(/Intr/);
+  });
+
+  // Google answers an unknown family, a weight the family lacks or italic on an upright-only family
+  // with HTTP 400, which the Node adapter surfaces as a bare rejection that names no font.
+  it('names the face when google rejects the css request', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockRejectedValue(new Error('Request failed with status code 400'));
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [
+      { file: 'google-bebas-neue-400-italic.ttf', ref: { family: 'Bebas Neue', style: 'italic' } },
+    ];
+    await expect(manager.fetchFonts()).rejects.toThrow(/"Bebas Neue" weight 400 italic.*status code 400/);
+    expect(fs.fetch).not.toHaveBeenCalled();
+  });
+
+  // Legacy filenames spell a multi-word family with `+` (Google's own URL convention); the family
+  // must reach css2 as spaces, not as a literal `+` once the family is percent-encoded.
+  it('reads a legacy filename that spells spaces as + as a multi-word family', async () => {
+    const fs = createFilesystem();
+    fs.fetchAndRead.mockResolvedValue(ttfCss);
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'Rubik+Doodle+Shadow.ttf' }];
+    await manager.fetchFonts();
+    expect(fs.fetchAndRead).toHaveBeenCalledWith(
+      'https://fonts.googleapis.com/css2?family=Rubik+Doodle+Shadow:ital,wght@0,400',
+      expect.anything()
+    );
+  });
+
+  // Reading the cache is best-effort like writing it: an entry that can't be read (a shared cache
+  // written by another user) falls through to the download instead of failing the section.
+  it('downloads when the cached face cannot be read', async () => {
+    const fs = createFilesystem();
+    fs.resolveCachedFont.mockResolvedValue('/cache/google-inter-400.ttf');
+    fs.copy.mockRejectedValue(new Error('EACCES: permission denied'));
+    fs.fetchAndRead.mockResolvedValue(ttfCss);
+    fs.fetch.mockResolvedValue('/tmp/inter.ttf');
+    const { manager } = build({ section: { name: 's', type: 'video' }, fs });
+    manager.segment.tempFonts = [{ file: 'google-inter-400.ttf', ref: { family: 'Inter' } }];
+    await manager.fetchFonts();
+    expect(fs.move).toHaveBeenCalledWith('/tmp/inter.ttf', '/fonts/google-inter-400.ttf');
   });
 });
 

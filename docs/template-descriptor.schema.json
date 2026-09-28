@@ -381,7 +381,8 @@
                         "description": "Font weight 100..900 in steps of 100 (default 400).",
                         "type": "integer",
                         "minimum": 100,
-                        "maximum": 900
+                        "maximum": 900,
+                        "multipleOf": 100
                       },
                       "style": {
                         "description": "Font style (default normal).",
@@ -1978,7 +1979,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",
@@ -4085,7 +4087,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",
@@ -6234,7 +6237,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",
@@ -8341,7 +8345,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",
@@ -9067,7 +9072,8 @@
                                 "description": "Font weight 100..900 in steps of 100 (default 400).",
                                 "type": "integer",
                                 "minimum": 100,
-                                "maximum": 900
+                                "maximum": 900,
+                                "multipleOf": 100
                               },
                               "style": {
                                 "description": "Font style (default normal).",
@@ -9114,7 +9120,8 @@
                                 "description": "Font weight 100..900 in steps of 100 (default 400).",
                                 "type": "integer",
                                 "minimum": 100,
-                                "maximum": 900
+                                "maximum": 900,
+                                "multipleOf": 100
                               },
                               "style": {
                                 "description": "Font style (default normal).",
@@ -9161,7 +9168,8 @@
                                 "description": "Font weight 100..900 in steps of 100 (default 400).",
                                 "type": "integer",
                                 "minimum": 100,
-                                "maximum": 900
+                                "maximum": 900,
+                                "multipleOf": 100
                               },
                               "style": {
                                 "description": "Font style (default normal).",
@@ -10907,7 +10915,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",
@@ -13014,7 +13023,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",
@@ -15121,7 +15131,8 @@
                             "description": "Font weight 100..900 in steps of 100 (default 400).",
                             "type": "integer",
                             "minimum": 100,
-                            "maximum": 900
+                            "maximum": 900,
+                            "multipleOf": 100
                           },
                           "style": {
                             "description": "Font style (default normal).",

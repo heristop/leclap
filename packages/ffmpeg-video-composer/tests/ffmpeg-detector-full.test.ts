@@ -1,4 +1,7 @@
 import 'reflect-metadata';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 /**
@@ -92,6 +95,7 @@ vi.mock('../src/utils/terminal', () => ({ Terminal: h.terminal }));
 
 // Import AFTER mocks are declared (vi.mock is hoisted, but keep it explicit).
 import { FFmpegDetector, FFmpegAvailability } from '@/platform/ffmpeg/FFmpegDetector';
+import { FFPROBE_MISSING_MESSAGE } from '@/platform/ffmpeg/resolve-ffprobe';
 
 // Aliases so the test bodies read naturally.
 const terminalMocks = h.terminal;
@@ -221,6 +225,37 @@ describe('FFmpegDetector (full coverage)', () => {
 
       expect(result.availability).toBe(FFmpegAvailability.NONE);
       expect(result.error).toBe('Static FFmpeg not available: Unknown error');
+    });
+
+    // ffmpeg-static ships no ffprobe and this repo doesn't install ffprobe-static, so one only turns up
+    // when a real file sits beside the ffmpeg binary — the same lookup the static adapter renders with.
+    describe('ffprobe', () => {
+      let binDir: string;
+
+      beforeEach(() => {
+        binDir = mkdtempSync(path.join(tmpdir(), 'fvc-detector-'));
+        h.ffmpegStaticPath = path.join(binDir, 'ffmpeg');
+        h.execImpl = async () => VERSION_OUTPUT('6.0');
+      });
+
+      afterEach(() => {
+        rmSync(binDir, { recursive: true, force: true });
+      });
+
+      it('reports no ffprobe when ffmpeg-static ships only its ffmpeg binary', async () => {
+        const result = await FFmpegDetector.detectStaticFFmpeg();
+
+        expect(result.availability).toBe(FFmpegAvailability.STATIC);
+        expect(result.ffprobe).toBe(false);
+      });
+
+      it('reports the ffprobe that sits beside the ffmpeg binary', async () => {
+        writeFileSync(path.join(binDir, 'ffprobe'), '');
+
+        const result = await FFmpegDetector.detectStaticFFmpeg();
+
+        expect(result.ffprobe).toBe(true);
+      });
     });
   });
 
@@ -490,13 +525,14 @@ describe('FFmpegDetector (full coverage)', () => {
       system?: boolean;
       static?: boolean;
       wasm?: boolean;
+      ffprobe?: boolean;
     }): {
       system: { available: boolean; version?: string; error?: string };
-      static: { available: boolean; version?: string; error?: string };
+      static: { available: boolean; version?: string; error?: string; ffprobe?: boolean };
       wasm: { available: boolean; version?: string; error?: string };
     } => ({
       system: { available: over.system ?? false },
-      static: { available: over.static ?? false },
+      static: { available: over.static ?? false, ffprobe: over.ffprobe },
       wasm: { available: over.wasm ?? false },
     });
 
@@ -531,6 +567,22 @@ describe('FFmpegDetector (full coverage)', () => {
       expect(recs.some((r) => r.includes('Consider installing system FFmpeg'))).toBe(true);
       expect(recs.some((r) => r.includes('static FFmpeg works great'))).toBe(true);
       expect(recs.some((r) => r.includes('No FFmpeg found'))).toBe(false);
+    });
+
+    it('names the missing ffprobe, and FFmpeg as the fix, when ffmpeg-static has none', () => {
+      const recs = FFmpegDetector.generateRecommendations(baseInfo(), status({ static: true, ffprobe: false }));
+
+      expect(recs.some((r) => r.includes(FFPROBE_MISSING_MESSAGE))).toBe(true);
+      expect(recs.some((r) => r.includes('works great'))).toBe(false);
+    });
+
+    it('leaves the static ffprobe out of it when system FFmpeg renders', () => {
+      const recs = FFmpegDetector.generateRecommendations(
+        baseInfo(),
+        status({ system: true, static: true, ffprobe: false })
+      );
+
+      expect(recs.some((r) => r.includes(FFPROBE_MISSING_MESSAGE))).toBe(false);
     });
 
     it('congratulates the user when system ffmpeg is available', () => {
@@ -591,6 +643,21 @@ describe('FFmpegDetector (full coverage)', () => {
       expect(terminalMocks.startSpinner).not.toHaveBeenCalled();
       expect(terminalMocks.showSystemInfo).not.toHaveBeenCalled();
       expect(terminalMocks.showFFmpegStatus).not.toHaveBeenCalled();
+    });
+
+    it('names the missing ffprobe when only ffmpeg-static can render', async () => {
+      h.execImpl = async (cmd) => {
+        if (cmd === 'ffmpeg -version') {
+          throw new Error('no system ffmpeg');
+        }
+
+        return VERSION_OUTPUT('6.0');
+      };
+
+      const report = await FFmpegDetector.runFullDiagnostics(false);
+
+      expect(report.ffmpegStatus.static).toMatchObject({ available: true, ffprobe: false });
+      expect(report.recommendations.some((r) => r.includes(FFPROBE_MISSING_MESSAGE))).toBe(true);
     });
 
     it('drives the Terminal UI when showUI is true (default)', async () => {

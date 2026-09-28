@@ -32,13 +32,15 @@ export class Terminal {
    */
   static showFFmpegStatus(detection: {
     system: { available: boolean; version?: string };
-    static: { available: boolean; version?: string };
+    // `ffprobe: false`: ffmpeg-static has none, so templates that probe media can't render on it.
+    static: { available: boolean; version?: string; ffprobe?: boolean };
     wasm: { available: boolean; version?: string };
   }): void {
     function formatShort(info: { available: boolean; version?: string }) {
       return info.available ? pc.green('✓') : pc.dim('✗');
     }
-    const row = `${pc.dim('FFmpeg')} ${formatShort(detection.system)} sys ${detection.system.version ?? ''}  ${formatShort(detection.static)} static  ${formatShort(detection.wasm)} wasm`;
+    const noFfprobe = detection.static.ffprobe === false ? ` ${pc.yellow('(no ffprobe)')}` : '';
+    const row = `${pc.dim('FFmpeg')} ${formatShort(detection.system)} sys ${detection.system.version ?? ''}  ${formatShort(detection.static)} static${noFfprobe}  ${formatShort(detection.wasm)} wasm`;
     console.log(row);
   }
 

@@ -10,7 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `CompileReporter.onError(error)`: called with the cause when `compile()` resolves `null`, so a
-  host can report why a render failed instead of a generic "no output".
+  host can report why a render failed instead of a generic "no output": the error that stopped
+  the director (a failed section, an FFmpeg command it rejected, a segment it could not probe) or
+  the validation error `compile()` caught itself. A failure the director reported as a bare
+  string arrives as that string, not JSON-quoted.
 - **`compileBrowser` takes a `loadFFmpegCore` option,** for a host that serves the ffmpeg.wasm
   core itself rather than having every visitor fetch it from unpkg (the LeClap web app now
   self-hosts it, which also keeps rendering available offline). `FFmpegWasmAdapter` takes the

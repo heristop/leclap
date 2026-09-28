@@ -14,7 +14,7 @@ set -euo pipefail
 #   bash scripts/ci/publish-media-bundles.sh
 #
 # The bundles are the only surviving copy of this media while LFS is over budget — rebuild from a
-# tree you trust, and check the manifest drift warning below before uploading.
+# tree you trust. A web manifest that has drifted from Git LFS is refused before anything is bundled.
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source=scripts/ci/media-bundle.sh
@@ -74,35 +74,24 @@ build_bundle() {
   printf '  %-22s %s assets  %s\n' "$name" "$count" "$(du -h "$out_dir/$name" | cut -f1)"
 }
 
-# The web manifest should list every LFS asset under the trees the web build consumes. Adding media
-# without updating it would produce a bundle that silently omits the new file, so warn loudly here —
-# the fetcher's post-extract check would otherwise only surface it during a deploy.
-warn_web_manifest_drift() {
-  command -v git >/dev/null || return 0
+# The web manifest must list exactly the LFS assets under the trees the web build ships. One that has
+# drifted builds a bundle that omits new media or carries deleted media to every deploy, so refuse it
+# with the check CI runs, instructions included. Skipped only when git lfs cannot list the tree at all.
+check_web_manifest_drift() {
   git -C "$repo_root" lfs ls-files -n >/dev/null 2>&1 || return 0
-
-  local expected actual
-  expected=$(git -C "$repo_root" lfs ls-files -n \
-    | grep -E '^(packages/leclap-creative-kit/src/library/|apps/leclap-web/public/videos/)' | sort)
-  actual=$(media_manifest_paths "$repo_root/scripts/ci/lfs-web-assets.txt" | sort)
-
-  [ "$expected" = "$actual" ] && return 0
-
-  printf '\nwarning: scripts/ci/lfs-web-assets.txt has drifted from git lfs ls-files\n' >&2
-  diff <(printf '%s\n' "$actual") <(printf '%s\n' "$expected") | sed 's/^/  /' >&2
-  printf '  (< manifest, > tracked in LFS) — update the manifest before uploading.\n\n' >&2
+  REPO_ROOT="$repo_root" bash "$script_dir/check-web-manifest-drift.sh"
 }
 
 echo "building media bundles into ${out_dir}"
 
 case "$only" in
   all)
-    warn_web_manifest_drift
+    check_web_manifest_drift
     build_bundle 'web-media.tar.gz' 'scripts/ci/lfs-web-assets.txt'
     build_bundle 'ci-test-media.tar.gz' 'scripts/ci/lfs-test-assets.txt'
     ;;
   web)
-    warn_web_manifest_drift
+    check_web_manifest_drift
     build_bundle 'web-media.tar.gz' 'scripts/ci/lfs-web-assets.txt'
     ;;
   test)

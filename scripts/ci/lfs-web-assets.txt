@@ -3,10 +3,11 @@
 # and mirrored by the web-media.tar.gz bundle, which is addressed by the digest of THIS FILE — editing
 # an asset's hash here changes the bundle URL, so republish after any change.
 #
-# After adding or removing media, refresh the path list and then the hashes:
+# After adding or removing media, refresh the path list and then the hashes. The list must match exactly:
+# scripts/ci/check-web-manifest-drift.sh fails CI and the bundle build otherwise.
 #   git lfs ls-files -n | grep -E '^(packages/leclap-creative-kit/src/library/|apps/leclap-web/public/videos/)' | sort
 #   bash scripts/ci/update-media-manifest.sh
-#   bash scripts/ci/publish-media-bundles.sh
+#   bash scripts/ci/publish-media-bundles.sh web
 
 # Creative-kit music
 106e739dbb4188c24ac08c4d554eb31426931f139f3d79277b5ec65395b097c2  packages/leclap-creative-kit/src/library/musics/air-prelude.mp3

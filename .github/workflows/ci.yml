@@ -37,6 +37,14 @@ jobs:
       - name: Test media pipeline scripts
         run: bash scripts/ci/test-media-pipeline.sh
 
+      # lfs-web-assets.txt must list exactly the Git LFS assets under the web build's trees, and nothing
+      # downstream notices when it does not: this workflow never fetches the web bundle, and the
+      # Cloudflare Pages build that does extracts all of it, so a line left behind after its media is
+      # deleted re-deploys that file on every build (how e50fd210's ten deleted videos kept shipping).
+      # Reads LFS pointers, not media, so it runs before the fetch.
+      - name: Check web media manifest against Git LFS
+        run: bash scripts/ci/check-web-manifest-drift.sh
+
       - name: Fetch test media (bundle)
         shell: bash
         run: |

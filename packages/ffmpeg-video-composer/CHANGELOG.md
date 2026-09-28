@@ -30,6 +30,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   re-download.
 - `isFontRef`, `FontRef` and `FontInput` are exported from every entry point, and `FontRefSchema` /
   `FontInputSchema` from the Node entry.
+- `TemplateValidator.getGeometryWarnings()` catches templates that are valid but visually broken,
+  before anything renders. It lowers each section through the renderer's own text and box filters
+  (captions, title cards, lower thirds and their badges, global text overlays, authored
+  `drawtext`/`drawbox`) and reports text that runs off the frame or out of the title-safe area,
+  collides with other text on screen at the same time, is drawn under a band or panel that paints
+  over it, is too small to read on a phone, has too little contrast against what it sits on, or sits
+  over footage or an image with no box, outline or shadow. Each finding says what to change.
+  Findings are advisory: they never enter `errors` and never change `success`. At most 20 are
+  returned, worst first; when more exist, the last one says how many were left out.
+- Widths come from the real fonts. The Node entry exports `createBundledFontLoader` (bundled fonts
+  first, then the LeClap asset catalog the renderer uses, 5s timeout per font) and
+  `nodeGeometryWarnings` / `geometryApproxNote`, plus the `GeometryWarning` and `FontLoader` types.
+  A finding drawn from an estimate says why: `(approx: font unavailable, width estimated)`,
+  `(approx: {{ variable }} length unknown until render)` or `(approx: section duration assumed)`.
 
 ### Changed
 
@@ -67,6 +81,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   FFmpeg failed on, instead of its whole stderr: ten lines of version banner, then a dump of
   every input and of the stream mapping, ahead of the line naming the problem. Both adapters
   run FFmpeg at `-loglevel error` and keep the last 20 lines of what it prints.
+- Bundled fonts now resolve from a built `dist/` (the CLI, the MCP server, any installed consumer),
+  not only when running from source.
+- A bundled asset name carrying a path separator or a leading dot is no longer resolved, so a
+  descriptor font such as `../../etc/passwd.ttf` cannot read a file outside the library.
 
 ## [2.3.0] - 2026-08-16
 

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `leclap validate` reports geometry warnings — text off the frame or out of the title-safe area,
+  colliding, hidden under a band, too small, low-contrast, or unguarded over footage. The headline
+  counts them and lists them under it; `--json` carries them on a `warnings` key (absent when there
+  is nothing to report). They never change the exit code, so `validate` stays usable as a CI gate.
+- When a font is not bundled, `validate` fetches it from the LeClap asset catalog (5s timeout per
+  font); offline, it falls back to an estimate and marks the finding approximate.
+
 ### Fixed
 
 - `leclap init` approves dependency builds in a scaffolded `pnpm-workspace.yaml` (`allowBuilds`

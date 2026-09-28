@@ -49,8 +49,8 @@
     "@types/node": "^25.9.3",
     "ffmpeg-video-composer": "workspace:*",
     "typescript": "^7.0.2",
-    "vite-plus": "^0.2.9",
-    "vitest": "^4.1.10",
+    "vite-plus": "1.0.0",
+    "vitest": "5.0.1",
     "zod": "^4.4.3"
   },
   "engines": {

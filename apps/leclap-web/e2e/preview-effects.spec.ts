@@ -8,10 +8,6 @@ import { test, expect } from '@playwright/test';
 //
 // Needs the dev server up:  pnpm --filter @leclap/web dev   (default :5174; override with E2E_BASE_URL)
 
-// The preview loads ffmpeg-core from a CDN; headless Chromium's default cache can't write it
-// (net::ERR_CACHE_WRITE_FAILURE), so point it at a writable on-disk cache.
-test.use({ launchOptions: { args: ['--disk-cache-dir=/tmp/leclap-pw-cache', '--disk-cache-size=104857600'] } });
-
 // Compile a single-video preview after shallow-merging `patch` (a serializable object) onto the
 // default first video section. The patch is passed as evaluate data — no functions cross the bridge.
 async function compileWithPatch(

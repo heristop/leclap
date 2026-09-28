@@ -10,6 +10,7 @@ import { buildConfigOverrides, type VideoConfigOverride } from './compile-config
 import { type Template } from '@/services/templateService';
 import { compilationLogger } from '@/lib/logger';
 import { applyVideoEdits, type VideoEdit } from '@/domain/valueObjects/videoEdits';
+import { loadSelfHostedCore } from '@/infrastructure/ffmpeg-core';
 import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
@@ -356,17 +357,23 @@ class CoreCompilationService {
 
     // The render is the bulk of the wall-clock time, so it owns most of the bar: map the engine's
     // real-time whole-template progress (0..1) into the 14–95% band, keeping the bar (and the derived
-    // step dots) moving for the whole render rather than crawling a thin slice of it.
-    const outputPath = await compile(projectConfig, templateDescriptor, (fraction) => {
-      const clamped = Math.min(Math.max(fraction, 0), 1);
-      onProgress({
-        stage: 'Compiling',
-        percentage: 14 + Math.round(clamped * 81),
-        currentStep: renderQuip(clamped),
-        totalSteps: 7,
-        currentStepIndex: 5,
-      });
-    });
+    // step dots) moving for the whole render rather than crawling a thin slice of it. The engine runs
+    // on the same self-hosted core as the trim/crop pass, so the two share one download.
+    const outputPath = await compile(
+      projectConfig,
+      templateDescriptor,
+      (fraction) => {
+        const clamped = Math.min(Math.max(fraction, 0), 1);
+        onProgress({
+          stage: 'Compiling',
+          percentage: 14 + Math.round(clamped * 81),
+          currentStep: renderQuip(clamped),
+          totalSteps: 7,
+          currentStepIndex: 5,
+        });
+      },
+      { loadFFmpegCore: loadSelfHostedCore }
+    );
 
     if (!outputPath) {
       throw new Error('Core compilation failed - no output produced');

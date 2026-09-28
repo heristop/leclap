@@ -7,10 +7,6 @@ import { test, expect } from '@playwright/test';
 //
 // Needs the dev server up:  pnpm --filter @leclap/web dev   (default :5174; override with E2E_BASE_URL)
 
-// The preview loads ffmpeg-core from a CDN; headless Chromium's default cache can't write it
-// (net::ERR_CACHE_WRITE_FAILURE), so point it at a writable on-disk cache.
-test.use({ launchOptions: { args: ['--disk-cache-dir=/tmp/leclap-pw-cache', '--disk-cache-size=104857600'] } });
-
 // Insert a scene through the timeline's "Add scene" menu (there can be several add tiles → use the last).
 async function addScene(page: import('@playwright/test').Page, label: string): Promise<void> {
   await page.getByRole('button', { name: 'Add scene' }).last().click();

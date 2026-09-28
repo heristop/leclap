@@ -4,7 +4,7 @@ import { container } from 'tsyringe';
 import TemplateDirector from './director/TemplateDirector';
 import TemplateConcreteBuilder from './director/TemplateConcreteBuilder';
 import BrowserFilesystemAdapter from './platform/filesystem/BrowserFilesystemAdapter';
-import FFmpegWasmAdapter from './platform/ffmpeg/FFmpegWasmAdapter';
+import FFmpegWasmAdapter, { type FFmpegCoreLoader } from './platform/ffmpeg/FFmpegWasmAdapter';
 import MusicWasmAdapter from './platform/ffmpeg/MusicWasmAdapter';
 import AssetManager from './editor/managers/AssetManager';
 import VariableManager from './editor/managers/VariableManager';
@@ -21,6 +21,14 @@ import Project from './core/models/Project';
 import Template from './core/models/Template';
 import { attachCompilationListeners } from './platform/compilation-listeners';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
+
+export interface BrowserCompileOptions {
+  /**
+   * Loads the ffmpeg.wasm core, for a host that serves it itself; the pinned version from unpkg when
+   * omitted. Read once, on the compile that initializes the platform.
+   */
+  loadFFmpegCore?: FFmpegCoreLoader;
+}
 
 class BrowserLogger extends AbstractLogger {
   debug(message: string): void {
@@ -47,9 +55,9 @@ class BrowserLogger extends AbstractLogger {
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
 
-async function registerAdapters(logger: AbstractLogger): Promise<void> {
+async function registerAdapters(logger: AbstractLogger, loadFFmpegCore?: FFmpegCoreLoader): Promise<void> {
   const fileSystem = new BrowserFilesystemAdapter();
-  const ffmpegAdapter = new FFmpegWasmAdapter(fileSystem);
+  const ffmpegAdapter = new FFmpegWasmAdapter(fileSystem, loadFFmpegCore);
 
   await ffmpegAdapter.waitForReady();
   logger.info('FFmpeg WASM adapter ready');
@@ -78,7 +86,7 @@ function registerServices(): void {
   container.register('TemplateDirector', { useClass: TemplateDirector });
 }
 
-async function initializeBrowserPlatform(): Promise<void> {
+async function initializeBrowserPlatform(loadFFmpegCore?: FFmpegCoreLoader): Promise<void> {
   if (isInitialized) return;
 
   if (initializationPromise) return initializationPromise;
@@ -89,7 +97,7 @@ async function initializeBrowserPlatform(): Promise<void> {
 
       container.registerInstance('logger', logger);
 
-      await registerAdapters(logger);
+      await registerAdapters(logger, loadFFmpegCore);
       registerServices();
 
       logger.info('Browser platform initialized');
@@ -237,10 +245,11 @@ async function runCompilation(
 export async function compileBrowser(
   projectConfig: ProjectConfig,
   templateDescriptor: TemplateDescriptor,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  options: BrowserCompileOptions = {}
 ): Promise<string | null> {
   try {
-    await initializeBrowserPlatform();
+    await initializeBrowserPlatform(options.loadFFmpegCore);
 
     const ctx: CompilationContext = {
       eventManager: container.resolve<BrowserEventManager>('eventManager'),
@@ -260,7 +269,12 @@ export async function compileBrowser(
   }
 }
 
-export { default as FFmpegWasmAdapter } from './platform/ffmpeg/FFmpegWasmAdapter';
+export {
+  default as FFmpegWasmAdapter,
+  FFMPEG_CORE_VERSION,
+  type FFmpegCoreLoader,
+  type FFmpegCoreTarget,
+} from './platform/ffmpeg/FFmpegWasmAdapter';
 export { default as BrowserFilesystemAdapter } from './platform/filesystem/BrowserFilesystemAdapter';
 export { default as AbstractFFmpeg } from './platform/ffmpeg/AbstractFFmpeg';
 export { default as AbstractFilesystem } from './platform/filesystem/AbstractFilesystem';

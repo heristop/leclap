@@ -8,6 +8,8 @@
 
 const CACHE = 'leclap-v1';
 const APP_SHELL = '/';
+// The ffmpeg.wasm core (see src/infrastructure/ffmpeg-core.ts), one directory per version.
+const CORE_PREFIX = '/ffmpeg-core/';
 
 // Open the cache and store a response, swallowing failures (quota, etc.).
 // Fire-and-forget: the internal chain ends in `.catch`, so nothing floats.
@@ -15,6 +17,37 @@ function cachePut(key, response) {
   caches
     .open(CACHE)
     .then((cache) => cache.put(key, response))
+    .catch(() => {});
+}
+
+// The version a core file belongs to: /ffmpeg-core/<version>/<file>.
+function coreVersion(pathname) {
+  return pathname.slice(CORE_PREFIX.length).split('/')[0];
+}
+
+// Store a core file, then drop every other version's files so an upgrade leaves no 10 MB behind.
+// Fire-and-forget, like cachePut.
+function cacheCore(request, response) {
+  const version = coreVersion(new URL(request.url).pathname);
+
+  caches
+    .open(CACHE)
+    .then((cache) =>
+      cache
+        .put(request, response)
+        .then(() => cache.keys())
+        .then((keys) =>
+          Promise.all(
+            keys
+              .filter((key) => {
+                const { pathname } = new URL(key.url);
+
+                return pathname.startsWith(CORE_PREFIX) && coreVersion(pathname) !== version;
+              })
+              .map((key) => cache.delete(key))
+          )
+        )
+    )
     .catch(() => {});
 }
 
@@ -60,6 +93,26 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => caches.match(APP_SHELL).then((cached) => cached ?? caches.match(request)))
+    );
+
+    return;
+  }
+
+  // The core: a version's files never change, so serve them cache-first. Stale-while-revalidate would
+  // download and store ~10 MB again behind every trim or render. Cached on first use, never preloaded.
+  if (url.pathname.startsWith(CORE_PREFIX)) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ??
+          fetch(request).then((response) => {
+            if (response.ok) {
+              cacheCore(request, response.clone());
+            }
+
+            return response;
+          })
+      )
     );
 
     return;

@@ -272,7 +272,12 @@ export async function compile(
 export { TemplateDirector };
 export { VideoEditor };
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
-export { default as FFmpegWasmAdapter } from './platform/ffmpeg/FFmpegWasmAdapter';
+export {
+  default as FFmpegWasmAdapter,
+  FFMPEG_CORE_VERSION,
+  type FFmpegCoreLoader,
+  type FFmpegCoreTarget,
+} from './platform/ffmpeg/FFmpegWasmAdapter';
 export { default as FilesystemNodeAdapter } from './platform/filesystem/FilesystemNodeAdapter';
 export { default as PinoLogAdapter } from './platform/logging/PinoLogAdapter';
 export { default as AbstractFFmpeg } from './platform/ffmpeg/AbstractFFmpeg';

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node ../../scripts/copy-core-assets.ts && vite",
-    "build": "bash ../../scripts/ci/fetch-web-media.sh && node ../../scripts/copy-core-assets.ts && vite build && node scripts/seo-prerender.ts",
+    "dev": "node ../../scripts/copy-core-assets.ts && node scripts/stage-ffmpeg-core.ts && vite",
+    "build": "bash ../../scripts/ci/fetch-web-media.sh && node ../../scripts/copy-core-assets.ts && node scripts/stage-ffmpeg-core.ts && vite build && node scripts/seo-prerender.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vp test run",
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",
+    "@ffmpeg/core": "0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@leclap/creative-kit": "workspace:*",

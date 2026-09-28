@@ -33,6 +33,8 @@ form-banner-*.png
 /apps/leclap-web/public/backgrounds/
 /apps/leclap-web/public/fonts/
 /apps/leclap-web/public/assets/
+# The ffmpeg.wasm core, staged from @ffmpeg/core on dev/build by apps/leclap-web/scripts/stage-ffmpeg-core.ts.
+/apps/leclap-web/public/ffmpeg-core/
 /apps/leclap-expo/assets/animations/
 /apps/leclap-expo/assets/musics/
 /apps/leclap-expo/assets/backgrounds/

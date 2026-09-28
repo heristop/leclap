@@ -13,6 +13,8 @@ const construct = vi.fn(async () => '/browser/out.mp4');
 const directorConfig = vi.fn(function (this: unknown) {
   return this;
 });
+// The arguments each WASM adapter was constructed with, in order.
+const adapterArgs: unknown[][] = [];
 
 vi.mock('@/platform/ffmpeg/FFmpegWasmAdapter', () => {
   class MockFFmpegWasmAdapter {
@@ -22,6 +24,10 @@ vi.mock('@/platform/ffmpeg/FFmpegWasmAdapter', () => {
     waitForReady = () => this.ready;
     execute = vi.fn();
     getInfos = vi.fn();
+
+    constructor(...args: unknown[]) {
+      adapterArgs.push(args);
+    }
   }
 
   return { default: MockFFmpegWasmAdapter };
@@ -234,6 +240,19 @@ describe('browser.ts compileBrowser', () => {
 
     await expect(compile({ buildDir: '/build' }, validDescriptor)).rejects.toThrow('Failed to fetch');
     await expect(compile({ buildDir: '/build' }, validDescriptor)).resolves.toBe('/browser/out.mp4');
+  });
+
+  it('hands the host core loader to the WASM adapter on the first compile', async () => {
+    // Fresh module: the adapter is only built when the platform initializes.
+    vi.resetModules();
+    adapterArgs.length = 0;
+    const loadFFmpegCore = vi.fn(async () => undefined);
+
+    const { compile } = await loadBrowser();
+    await compile({ buildDir: '/build' }, validDescriptor, undefined, { loadFFmpegCore });
+
+    expect(adapterArgs).toHaveLength(1);
+    expect(adapterArgs[0][1]).toBe(loadFFmpegCore);
   });
 
   it('exposes the browser export surface', async () => {

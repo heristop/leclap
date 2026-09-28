@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `CompileReporter.onError(error)`: called with the cause when `compile()` resolves `null`, so a
   host can report why a render failed instead of a generic "no output".
+- **`compileBrowser` takes a `loadFFmpegCore` option,** for a host that serves the ffmpeg.wasm
+  core itself rather than having every visitor fetch it from unpkg (the LeClap web app now
+  self-hosts it, which also keeps rendering available offline). `FFmpegWasmAdapter` takes the
+  same loader as its second constructor argument, and `FFMPEG_CORE_VERSION` names the
+  `@ffmpeg/core` version to serve. Without the option nothing changes: that pinned version,
+  0.12.10, still comes from unpkg.
 
 ### Changed
 

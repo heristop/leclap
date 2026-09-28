@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { sampleVideo } from './fixtures';
 
-// The edit pre-pass loads ffmpeg-core from a CDN; headless Chromium's default cache can't write it
-// (net::ERR_CACHE_WRITE_FAILURE), so point it at a writable on-disk cache.
-test.use({ launchOptions: { args: ['--disk-cache-dir=/tmp/leclap-pw-cache', '--disk-cache-size=104857600'] } });
-
 // Proves the timeline edit pre-pass really cuts + re-times a clip in ffmpeg.wasm: a two-segment edit
 // keeping [0,2]@2× and [4,6]@1× must render an output of ≈ 2/2 + 2/1 = 3 seconds (the [2,4] gap is
 // dropped, the first slice is sped up). Runs the app's own `applyVideoEdits` against a bundled sample.

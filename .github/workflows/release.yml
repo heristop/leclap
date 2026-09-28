@@ -27,6 +27,8 @@ concurrency:
 # nothing here opens a PR any more.
 permissions:
   contents: read
+  # NPM_CONFIG_PROVENANCE signs each package with the workflow's OIDC identity, which needs an ID token.
+  id-token: write
 
 jobs:
   publish:
@@ -56,8 +58,13 @@ jobs:
       # and @leclap/mcp 0.3.0/0.3.1 all went out that way and cannot be installed at all
       # (EUNSUPPORTEDPROTOCOL). `tests/repo/package-metadata.test.ts` pins the semver range so a
       # regression fails CI rather than the registry.
+      # Nothing else writes the registry credentials: actions/setup-node isn't used (mise installs Node),
+      # and changesets/action, which used to write ~/.npmrc from NPM_TOKEN, is gone. Without this line
+      # pnpm publishes anonymously and npm answers 404 Not Found.
       - name: Publish Packages
-        run: pnpm release
+        run: |
+          printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > "$HOME/.npmrc"
+          pnpm release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

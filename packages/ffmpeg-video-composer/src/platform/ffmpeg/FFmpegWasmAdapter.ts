@@ -1,11 +1,13 @@
 import { inject, injectable } from 'tsyringe';
 import type { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg, { type FSNode, type VirtualFilesystemFFmpeg } from './AbstractFFmpeg';
+import { loadCoreFromCdn, type FFmpegCoreLoader } from './ffmpeg-core';
 import { parseCommand } from './parse-command';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import type AbstractFilesystem from '../filesystem/AbstractFilesystem';
 
 export type { FSNode };
+export { FFMPEG_CORE_VERSION, type FFmpegCoreLoader, type FFmpegCoreTarget } from './ffmpeg-core';
 
 interface FFmpegWasm {
   load(config?: { coreURL: string; wasmURL: string }): Promise<void>;
@@ -29,7 +31,12 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
   // Settles once the core has loaded, or failed to: waitForReady() hands that failure straight back.
   private readonly initialization: Promise<void>;
 
-  constructor(@inject('filesystemAdapter') private readonly fs: AbstractFilesystem) {
+  // `loadCore` decides where the ffmpeg.wasm core comes from; the pinned version from unpkg unless the host
+  // serves its own.
+  constructor(
+    @inject('filesystemAdapter') private readonly fs: AbstractFilesystem,
+    private readonly loadCore: FFmpegCoreLoader = loadCoreFromCdn
+  ) {
     super();
     this.initialization = this.initializeFFmpeg();
     this.initialization.catch((error: unknown) => {
@@ -43,7 +50,6 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
   private async initializeFFmpeg(): Promise<void> {
     try {
       const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-      const { toBlobURL } = await import('@ffmpeg/util');
 
       this.ffmpeg = new FFmpeg() as unknown as FFmpegWasm;
 
@@ -63,11 +69,7 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
         this.progressListener(Math.min(1, Math.max(0, time / 1_000_000 / duration)));
       });
 
-      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
-      await this.ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-      });
+      await this.loadCore(this.ffmpeg);
 
       this.isLoaded = true;
     } catch (error) {

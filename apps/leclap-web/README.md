@@ -24,6 +24,10 @@ No backend is required — the compile runs entirely in a Web Worker via `@ffmpe
 - **Build / preview** — `pnpm --filter @leclap/web build` then `... preview`.
 - **Routing** — React Router; pages under `src/presentation/pages/` (Home, Builder, Templates, Doc, …).
 - **Assets** — bundled media/fonts are staged from `@leclap/creative-kit` into `public/` on dev/build (git-ignored).
+- **ffmpeg.wasm core** — served from the app's own origin, never a CDN: `scripts/stage-ffmpeg-core.ts` stages
+  `@ffmpeg/core` into `public/ffmpeg-core/<version>/` on dev/build, with the wasm gzipped to fit Cloudflare Pages'
+  25 MiB file limit. The trim/crop pass and the engine both load it (`src/infrastructure/ffmpeg-core.ts`), and the
+  service worker keeps it for offline use. Bumping it means bumping the engine's `FFMPEG_CORE_VERSION` too.
 
 ## Deploy — Cloudflare Pages (leclap.dev)
 

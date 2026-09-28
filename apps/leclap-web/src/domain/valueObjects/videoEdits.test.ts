@@ -23,7 +23,16 @@ vi.mock('@ffmpeg/ffmpeg', () => ({
 
 vi.mock('@ffmpeg/util', () => ({
   fetchFile: vi.fn(async () => new Uint8Array([9, 9, 9])),
-  toBlobURL: vi.fn(async (url: string) => `blob:${url}`),
+}));
+
+// The app's self-hosted core loader (tested on its own): here it just loads fixed blob URLs.
+const loadCoreMock = vi.fn(async (ffmpeg: { load(config: { coreURL: string; wasmURL: string }): Promise<unknown> }) => {
+  await ffmpeg.load({ coreURL: 'blob:self-hosted-core', wasmURL: 'blob:self-hosted-wasm' });
+});
+
+vi.mock('@/infrastructure/ffmpeg-core', () => ({
+  loadSelfHostedCore: (ffmpeg: { load(config: { coreURL: string; wasmURL: string }): Promise<unknown> }) =>
+    loadCoreMock(ffmpeg),
 }));
 
 import {
@@ -246,5 +255,37 @@ describe('applyVideoEdits', () => {
 
     expect(out).toBe(files[0]); // original returned on failure
     expect(deleteFileMock).toHaveBeenCalled(); // cleanup still ran
+  });
+});
+
+describe('the edit pass core', () => {
+  const cropEdit: Record<string, VideoEdit> = { s0: { crop: { x: 0.1, y: 0, w: 0.5, h: 1 } } };
+
+  // A fresh module each time: the edit pass keeps its loaded ffmpeg for the page's lifetime.
+  const freshApplyVideoEdits = async () => {
+    vi.resetModules();
+
+    return (await import('@/domain/valueObjects/videoEdits')).applyVideoEdits;
+  };
+
+  it('loads through the self-hosted core, the one the engine loads too', async () => {
+    const apply = await freshApplyVideoEdits();
+
+    await apply([makeFile()], cropEdit, ['s0']);
+
+    expect(loadCoreMock).toHaveBeenCalledTimes(1);
+    expect(loadMock).toHaveBeenCalledTimes(1);
+    expect(loadMock).toHaveBeenCalledWith({ coreURL: 'blob:self-hosted-core', wasmURL: 'blob:self-hosted-wasm' });
+  });
+
+  it('tries a core that failed to load again on the next edit', async () => {
+    const apply = await freshApplyVideoEdits();
+    loadCoreMock.mockRejectedValueOnce(new Error('offline'));
+
+    await expect(apply([makeFile()], cropEdit, ['s0'])).rejects.toThrow('offline');
+    const [out] = await apply([makeFile()], cropEdit, ['s0']);
+
+    expect(out.name).toBe('video_1.mp4');
+    expect(loadCoreMock).toHaveBeenCalledTimes(2);
   });
 });

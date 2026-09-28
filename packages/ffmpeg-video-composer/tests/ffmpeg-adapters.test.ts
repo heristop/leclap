@@ -155,6 +155,7 @@ vi.mock('@ffmpeg/util', () => ({
 import FFmpegNodeAdapter from '@/platform/ffmpeg/FFmpegNodeAdapter';
 import FFmpegStaticAdapter from '@/platform/ffmpeg/FFmpegStaticAdapter';
 import FFmpegWasmAdapter from '@/platform/ffmpeg/FFmpegWasmAdapter';
+import { FFMPEG_CORE_VERSION } from '@/platform/ffmpeg/ffmpeg-core';
 import MusicNodeAdapter from '@/platform/ffmpeg/MusicNodeAdapter';
 import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
 import AbstractMusic from '@/platform/ffmpeg/AbstractMusic';
@@ -505,10 +506,33 @@ describe('FFmpegWasmAdapter', () => {
     const events = ffmpeg.on.mock.calls.map((c) => c[0]);
     expect(events).toContain('log');
     expect(events).toContain('progress');
+  });
 
-    const loadArg = ffmpeg.load.mock.calls[0][0] as { coreURL: string; wasmURL: string };
-    expect(loadArg.coreURL).toContain('blob:');
-    expect(loadArg.wasmURL).toContain('blob:');
+  it('without a core loader, loads the pinned core version from the unpkg CDN', async () => {
+    const { ffmpeg } = await makeReadyWasm();
+    const cdn = `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/esm`;
+
+    // The mocked toBlobURL answers `blob:<url>`, so the load call names the files it fetched.
+    expect(ffmpeg.load).toHaveBeenCalledWith({
+      coreURL: `blob:${cdn}/ffmpeg-core.js`,
+      wasmURL: `blob:${cdn}/ffmpeg-core.wasm`,
+    });
+  });
+
+  it('loads the core through the loader it was given instead of the CDN', async () => {
+    const loadCore = vi.fn(async (target: { load(config: { coreURL: string; wasmURL: string }): Promise<unknown> }) => {
+      await target.load({ coreURL: 'blob:self-hosted-core', wasmURL: 'blob:self-hosted-wasm' });
+    });
+
+    const adapter = new FFmpegWasmAdapter(makeFs(), loadCore);
+    await adapter.waitForReady();
+
+    expect(loadCore).toHaveBeenCalledWith(lastFFmpegInstance);
+    expect(lastFFmpegInstance!.load).toHaveBeenCalledTimes(1);
+    expect(lastFFmpegInstance!.load).toHaveBeenCalledWith({
+      coreURL: 'blob:self-hosted-core',
+      wasmURL: 'blob:self-hosted-wasm',
+    });
   });
 
   it('progress + log listeners run without throwing (covers default callbacks)', async () => {

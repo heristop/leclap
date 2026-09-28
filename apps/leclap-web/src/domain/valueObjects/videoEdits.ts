@@ -5,6 +5,7 @@
 // chunk instead of the entry bundle — matching the engine's FFmpegWasmAdapter (a static import would
 // pull it back into the main chunk and make that dynamic import ineffective).
 import type { FFmpeg } from '@ffmpeg/ffmpeg';
+import { loadSelfHostedCore } from '@/infrastructure/ffmpeg-core';
 import { compilationLogger } from '@/lib/logger';
 
 export interface VideoTrim {
@@ -73,7 +74,8 @@ export const isTimelineApplied = (segments: ClipSegment[], duration: number): bo
 export const isEditApplied = (edit?: VideoEdit, duration = 0): boolean =>
   Boolean(edit && (isCropApplied(edit.crop) || isTrimApplied(edit.trim, duration) || (edit.segments?.length ?? 0) > 0));
 
-// A single ffmpeg.wasm instance for the edit pass, loaded lazily and reused.
+// A single ffmpeg.wasm instance for the edit pass, loaded lazily and reused. Its core is the self-hosted one
+// the engine loads too, so a trim followed by a render downloads it once.
 let ffmpegInstance: FFmpeg | null = null;
 let loadPromise: Promise<FFmpeg> | null = null;
 
@@ -83,16 +85,18 @@ async function getEditFFmpeg(): Promise<FFmpeg> {
   }
 
   loadPromise ??= (async () => {
-    const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import('@ffmpeg/ffmpeg'), import('@ffmpeg/util')]);
+    const { FFmpeg } = await import('@ffmpeg/ffmpeg');
     const ffmpeg = new FFmpeg();
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-    const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
-    const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
-    await ffmpeg.load({ coreURL, wasmURL });
+    await loadSelfHostedCore(ffmpeg);
     ffmpegInstance = ffmpeg;
 
     return ffmpeg;
-  })();
+  })().catch((error: unknown) => {
+    // A load that failed (offline, say) mustn't stick: the next edit tries again.
+    loadPromise = null;
+
+    throw error;
+  });
 
   return loadPromise;
 }

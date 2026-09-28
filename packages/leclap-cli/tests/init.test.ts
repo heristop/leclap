@@ -6,7 +6,13 @@ describe('starterFiles (base)', () => {
   const files = starterFiles('demo');
 
   it('includes the core starter files', () => {
-    expect(Object.keys(files).sort()).toEqual(['README.md', 'assets/.gitkeep', 'package.json', 'template.json']);
+    expect(Object.keys(files).sort()).toEqual([
+      'README.md',
+      'assets/.gitkeep',
+      'package.json',
+      'pnpm-workspace.yaml',
+      'template.json',
+    ]);
   });
 
   it('produces a compile-valid template descriptor', () => {
@@ -37,6 +43,7 @@ describe('starterFiles (mcp + remotion)', () => {
       'README.md',
       'assets/.gitkeep',
       'package.json',
+      'pnpm-workspace.yaml',
       'remotion/Intro.tsx',
       'remotion/Root.tsx',
       'remotion/index.ts',
@@ -122,7 +129,7 @@ describe('starterFiles — versions + package manager', () => {
   const pkgOf = (opts?: Parameters<typeof starterFiles>[1]) =>
     JSON.parse(starterFiles('demo', opts)['package.json']) as {
       devDependencies: Record<string, string>;
-      pnpm: { onlyBuiltDependencies: string[] };
+      pnpm?: unknown;
     };
 
   it('pins @leclap/cli to a caret on the given cli version', () => {
@@ -137,8 +144,15 @@ describe('starterFiles — versions + package manager', () => {
     expect(pkgOf({ mcp: true, remotion: true }).devDependencies['@leclap/mcp']).toBe('latest');
   });
 
-  it('approves pnpm native builds so ffmpeg-static unpacks', () => {
-    expect(pkgOf().pnpm.onlyBuiltDependencies).toContain('ffmpeg-static');
+  it('approves pnpm dependency builds in pnpm-workspace.yaml so ffmpeg-static unpacks', () => {
+    // pnpm 11+ reads build approvals only from pnpm-workspace.yaml's `allowBuilds` map and fails the
+    // install (strictDepBuilds) on any unapproved build script — esbuild comes in with Remotion.
+    const workspace = starterFiles('demo', { mcp: true, remotion: true })['pnpm-workspace.yaml'];
+    expect(workspace).toBe('allowBuilds:\n  esbuild: true\n  ffmpeg-static: true\n');
+  });
+
+  it('drops the `pnpm` package.json field (ignored since pnpm 11)', () => {
+    expect(pkgOf().pnpm).toBeUndefined();
   });
 
   it('renders the detected package manager in the README install steps', () => {

@@ -125,11 +125,14 @@ function packageJson(projectName: string, opts: StarterOptions) {
     type: 'module',
     scripts: { render: 'leclap render template.json' },
     devDependencies,
-    // pnpm 10+ skips dependency build scripts unless allow-listed; without this `ffmpeg-static` never
-    // unpacks its binary and renders fail. Ignored by npm / yarn / bun.
-    pnpm: { onlyBuiltDependencies: ['esbuild', 'ffmpeg-static'] },
   };
 }
+
+// pnpm skips dependency build scripts unless approved, and since pnpm 11 it reads approvals only from
+// `allowBuilds` in pnpm-workspace.yaml (the package.json `pnpm` field is ignored) and fails the install
+// on any unapproved one. Without `ffmpeg-static` the binary never downloads and renders fail; `esbuild`
+// arrives with the Remotion bundler. npm / yarn / bun ignore this file and run the scripts anyway.
+const PNPM_WORKSPACE = 'allowBuilds:\n  esbuild: true\n  ffmpeg-static: true\n';
 
 // The project-scoped MCP server config (Claude Code / generic `.mcp.json` shape). Absolute env paths so
 // it resolves regardless of the client's working directory.
@@ -279,6 +282,7 @@ export function starterFiles(projectName: string, opts: StarterOptions = {}): Re
   const files: Record<string, string> = {
     'template.json': `${JSON.stringify(starterTemplate(Boolean(opts.remotion)), null, 2)}\n`,
     'package.json': `${JSON.stringify(packageJson(projectName, opts), null, 2)}\n`,
+    'pnpm-workspace.yaml': PNPM_WORKSPACE,
     'README.md': readme(projectName, opts),
     'assets/.gitkeep': '',
   };

@@ -770,7 +770,7 @@ describe('MusicNodeAdapter', () => {
     },
   ])('process() probes and loops the track with the $path binaries', async ({ adapter, ffprobe, ffmpeg }) => {
     container.registerInstance('ffmpegAdapter', adapter());
-    // music = 10s, total = 25s -> 3 repetitions in the stream-copy concat loop.
+    // music = 10s, total = 25s -> the track is stream-looped and cut at 25s.
     execHandler = (_command, file) => ({ stdout: file.endsWith('ffprobe') ? '10\n' : '', stderr: '' });
 
     await new MusicNodeAdapter().process(makeLogger(), makeFs(), 25, '/music.mp3');
@@ -779,7 +779,20 @@ describe('MusicNodeAdapter', () => {
       { file: ffprobe, args: [...DURATION_PROBE_ARGS, '/music.mp3'] },
       {
         file: ffmpeg,
-        args: ['-y', '-i', 'concat:/music.mp3|/music.mp3|/music.mp3', '-acodec', 'copy', '/build/loop_music.mp4'],
+        args: [
+          '-y',
+          '-stream_loop',
+          '-1',
+          '-i',
+          '/music.mp3',
+          '-t',
+          '25',
+          '-map',
+          '0:a',
+          '-acodec',
+          'copy',
+          '/build/loop_music.mp4',
+        ],
       },
     ]);
   });
@@ -820,7 +833,7 @@ describe('MusicNodeAdapter', () => {
   it('process() loops a short track into the build dir and returns that copy, leaving the source untouched', async () => {
     const adapter = new MusicNodeAdapter();
     const logger = makeLogger();
-    // music = 10s, total = 35s -> needs 4 repetitions (concat with 3 extra '|').
+    // music = 10s, total = 35s.
     execHandler = (command) => {
       if (command.includes('-acodec copy')) {
         return { stdout: '', stderr: '' };
@@ -831,11 +844,19 @@ describe('MusicNodeAdapter', () => {
 
     const result = await adapter.process(logger, makeFs(), 35, '/music.mp3');
 
-    // The same stream-copy loop, written to the build dir and returned as the track to mix...
+    // The track is demuxed and looped, never byte-concatenated, and cut at the total length; only its audio
+    // is kept, since an embedded cover image can't be muxed into the mp4. The loop is written to the build
+    // dir and returned as the track to mix...
     expect(execFileCalls.at(-1)?.args).toEqual([
       '-y',
+      '-stream_loop',
+      '-1',
       '-i',
-      'concat:/music.mp3|/music.mp3|/music.mp3|/music.mp3',
+      '/music.mp3',
+      '-t',
+      '35',
+      '-map',
+      '0:a',
       '-acodec',
       'copy',
       '/build/loop_music.mp4',

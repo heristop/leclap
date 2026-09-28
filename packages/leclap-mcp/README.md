@@ -37,8 +37,10 @@ estimates.
 Pass `render: true` to `validate_template` to also render the sections that hold text and measure
 their contrast from real pixels — it settles text over images, grades and looks that the render-free
 check can only call unknown. It costs seconds (two renders of those sections), goes through the same
-media-dir sandbox as `compose_video`, reads assets from the media dir, and adds a `render` field
-(`measured`, `seconds`, and `unavailable` when it could not render).
+media-dir sandbox as `compose_video`, reads assets from the media dir, and runs in the same forked
+render worker under the same timeout. It adds a `render` field (`measured`, `seconds`, and
+`unavailable` when it could not render — no FFmpeg with `drawtext`, a failed render, or a timeout);
+the render-free findings come back either way.
 
 ### Recipe: video evidence for a pull or merge request
 

@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises';
-import type { McpServer } from '@modelcontextprotocol/server';
+import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import {
   geometryApproxNote,
   nodeGeometryWarnings,
-  renderedGeometryWarnings,
   type GeometryWarning,
+  type RenderedGeometry,
   type TemplateDescriptor,
   type TemplateDescriptorSchema,
 } from 'ffmpeg-video-composer';
@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
 import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
+import { runGeometryCheck } from '../compose/renderRunner.js';
 import { validateTemplate } from '../compose/validation.js';
 
 const inputSchema = z.object({
@@ -51,7 +52,7 @@ const outputSchema = z.object({
 
 type ValidateArgs = { template: Record<string, unknown>; render?: boolean };
 type RenderSummary = { measured: number; seconds: number; unavailable?: string };
-type RenderConfig = Pick<McpConfig, 'mediaDir' | 'outputDir'>;
+type RenderConfig = Pick<McpConfig, 'mediaDir' | 'outputDir' | 'renderTimeoutMs'>;
 type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
 type DescriptorResult = { ok: true; descriptor: TemplateDescriptor } | ToolError;
 
@@ -116,13 +117,42 @@ function formatGeometry(warnings: GeometryWarning[]): string[] | undefined {
   return warnings.map((w) => `${w.path}: ${w.message}${geometryApproxNote(w)}`);
 }
 
+// The rendered check runs in compose_video's render worker, under its timeout and cancellation: the
+// engine's container is process-wide, and a render that hangs or crashes must take down a worker, not
+// this server. A worker that times out, dies or cannot fork is no verdict on the template, so it
+// degrades to the render-free findings with the reason — never a thrown MCP error.
+async function renderInWorker(
+  authored: TemplateDescriptor,
+  config: RenderConfig,
+  signal: AbortSignal | undefined
+): Promise<RenderedGeometry> {
+  const job = {
+    kind: 'geometry' as const,
+    descriptor: authored as unknown as GeometryDescriptor,
+    options: { assetsDir: config.mediaDir, workDir: config.outputDir },
+  };
+  const result = await runGeometryCheck(job, { timeoutMs: config.renderTimeoutMs, signal }).catch((error: unknown) => ({
+    ok: false as const,
+    error: error instanceof Error ? error.message : String(error),
+  }));
+
+  if (result.ok) {
+    return result.geometry;
+  }
+
+  const warnings = await nodeGeometryWarnings(job.descriptor);
+
+  return { warnings, measured: 0, unavailable: `rendered check failed: ${result.error}` };
+}
+
 // `render: true`: the static findings refined by a real render. It renders what compose_video would, so
 // it passes the same sandbox first — a descriptor compose_video would refuse is not rendered here
 // either — and reads assets from the media dir, as a compose does. Advisory: nothing here errors.
 async function renderedGeometry(
   descriptor: TemplateDescriptor,
   authored: TemplateDescriptor,
-  config: RenderConfig
+  config: RenderConfig,
+  signal: AbortSignal | undefined
 ): Promise<{ geometry: string[] | undefined; render: RenderSummary }> {
   const started = performance.now();
   const safety = await assertDescriptorSafe(descriptor, config.mediaDir);
@@ -135,10 +165,7 @@ async function renderedGeometry(
 
   await fs.mkdir(config.outputDir, { recursive: true });
 
-  const rendered = await renderedGeometryWarnings(authored as unknown as GeometryDescriptor, {
-    assetsDir: config.mediaDir,
-    workDir: config.outputDir,
-  });
+  const rendered = await renderInWorker(authored, config, signal);
   const seconds = Math.round((performance.now() - started) / 100) / 10;
   const summary = { measured: rendered.measured, seconds };
 
@@ -176,24 +203,27 @@ function geometryNote(geometry: string[] | undefined): string {
   return ` ${geometry.length} geometry finding(s):\n- ${geometry.join('\n- ')}`;
 }
 
+// Set only for `render: true`: where to render, and the call's cancellation signal.
+type RenderRequest = { config: RenderConfig; signal: AbortSignal | undefined };
+
 async function findings(
   descriptor: TemplateDescriptor,
   authored: TemplateDescriptor,
-  config: RenderConfig | null
+  request: RenderRequest | null
 ): Promise<{ geometry: string[] | undefined; render?: RenderSummary }> {
-  if (!config) {
+  if (!request) {
     return { geometry: await geometryLines(authored) };
   }
 
-  return renderedGeometry(descriptor, authored, config);
+  return renderedGeometry(descriptor, authored, request.config, request.signal);
 }
 
-async function summary(descriptor: TemplateDescriptor, authored: TemplateDescriptor, config: RenderConfig | null) {
+async function summary(descriptor: TemplateDescriptor, authored: TemplateDescriptor, request: RenderRequest | null) {
   const sectionCount = descriptor.sections?.length ?? 0;
   const orientation = descriptor.global?.orientation ?? null;
   const clips = requiredClips(descriptor);
   const fields = formFields(descriptor);
-  const { geometry, render } = await findings(descriptor, authored, config);
+  const { geometry, render } = await findings(descriptor, authored, request);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -218,14 +248,16 @@ async function summary(descriptor: TemplateDescriptor, authored: TemplateDescrip
   };
 }
 
-async function handleValidate(args: ValidateArgs, config: RenderConfig) {
+async function handleValidate(args: ValidateArgs, config: RenderConfig, ctx?: ServerContext) {
   const resolved = resolveDescriptor(args);
 
   if ('isError' in resolved) {
     return resolved;
   }
 
-  return summary(resolved.descriptor, args.template, args.render === true ? config : null);
+  const request = args.render === true ? { config, signal: ctx?.mcpReq.signal } : null;
+
+  return summary(resolved.descriptor, args.template, request);
 }
 
 export function registerValidateTemplate(server: McpServer, config: RenderConfig): void {
@@ -245,6 +277,7 @@ export function registerValidateTemplate(server: McpServer, config: RenderConfig
       inputSchema,
       outputSchema,
     },
-    (args: ValidateArgs) => handleValidate(args, config)
+    // Optional context, as on compose_video: cancelling the call kills the render worker.
+    (args: ValidateArgs, ctx?: ServerContext) => handleValidate(args, config, ctx)
   );
 }

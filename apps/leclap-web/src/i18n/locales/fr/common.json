@@ -103,6 +103,7 @@
     "missingClip": "Ce modèle a besoin d’au moins un clip.",
     "unreadableClip": "Un de tes clips n’a pas pu être lu : il est peut-être abîmé, ou dans un format que ce navigateur ne sait pas ouvrir.",
     "assemblyFailed": "Les scènes n’ont pas pu être assemblées en une seule vidéo.",
+    "engineUnavailable": "Le moteur vidéo n’a pas pu être téléchargé. Reconnecte-toi, puis réessaie.",
     "stopped": "Le rendu a été arrêté.",
     "unknown": "Le moteur de rendu a signalé une erreur."
   }

@@ -103,6 +103,7 @@
     "missingClip": "Diese Vorlage braucht mindestens einen Clip.",
     "unreadableClip": "Einer deiner Clips ließ sich nicht lesen: Er ist vielleicht beschädigt oder in einem Format, das dieser Browser nicht öffnen kann.",
     "assemblyFailed": "Die Szenen ließen sich nicht zu einem Video zusammenfügen.",
+    "engineUnavailable": "Die Video-Engine ließ sich nicht herunterladen. Verbinde dich wieder und versuch es dann nochmal.",
     "stopped": "Das Rendern wurde gestoppt.",
     "unknown": "Die Render-Engine hat einen Fehler gemeldet."
   }

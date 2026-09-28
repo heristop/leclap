@@ -33,6 +33,35 @@ describe('classifyCompileFailure', () => {
     );
   });
 
+  // The ffmpeg.wasm core never arrives: offline, in each browser's own words; missing from the server; or
+  // stuck until the engine stops waiting.
+  it.each([
+    {
+      from: 'Chrome',
+      message: 'Browser video compilation failed: Failed to initialize FFmpeg WebAssembly: Failed to fetch',
+    },
+    {
+      from: 'Firefox',
+      message:
+        'Browser video compilation failed: Failed to initialize FFmpeg WebAssembly: NetworkError when attempting to fetch resource.',
+    },
+    {
+      from: 'Safari',
+      message: 'Browser video compilation failed: Failed to initialize FFmpeg WebAssembly: Load failed',
+    },
+    {
+      from: 'the self-hosted core',
+      message:
+        'Browser video compilation failed: Failed to initialize FFmpeg WebAssembly: ffmpeg core unavailable: /ffmpeg-core/0.12.10/ffmpeg-core.wasm.gz answered 404',
+    },
+    {
+      from: 'a load that hangs',
+      message: 'Browser video compilation failed: Timeout waiting for FFmpeg WebAssembly to load',
+    },
+  ])('reads a wasm core that could not load as an unavailable engine ($from)', ({ message }) => {
+    expect(classifyCompileFailure(new Error(message))).toEqual({ kind: 'engineUnavailable', detail: '' });
+  });
+
   it('keeps the first line of anything else, trimmed, as the detail', () => {
     const error = new Error('  Template validation failed: sections[2].type is required  \n    at validateTemplate');
 

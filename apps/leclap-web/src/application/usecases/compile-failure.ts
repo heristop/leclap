@@ -2,7 +2,13 @@
 // engine only speaks English stderr. `detail` carries the engine's own first line, verbatim, only when the
 // kind can't say anything more specific; the whole error (stderr included) is logged, and kept as the
 // thrown CompileError's cause.
-export type CompileFailureKind = 'missingClip' | 'unreadableClip' | 'assemblyFailed' | 'stopped' | 'unknown';
+export type CompileFailureKind =
+  | 'missingClip'
+  | 'unreadableClip'
+  | 'assemblyFailed'
+  | 'engineUnavailable'
+  | 'stopped'
+  | 'unknown';
 
 export interface CompileFailure {
   kind: CompileFailureKind;
@@ -10,6 +16,9 @@ export interface CompileFailure {
   detail: string;
 }
 
+// The engine never got its ffmpeg.wasm core (offline on first use, say): the load failed, or the engine gave
+// up waiting for it.
+const ENGINE_UNAVAILABLE = /Failed to initialize FFmpeg WebAssembly|Timeout waiting for FFmpeg WebAssembly to load/i;
 // A clip FFmpeg couldn't open once it was staged into the WASM filesystem: missing, damaged, or in a
 // container this build can't demux.
 const UNREADABLE_CLIP =
@@ -33,6 +42,8 @@ export const classifyCompileFailure = (error: unknown): CompileFailure => {
   if (error instanceof CompileError) return error.failure;
 
   const raw = error instanceof Error ? error.message : String(error);
+
+  if (ENGINE_UNAVAILABLE.test(raw)) return { kind: 'engineUnavailable', detail: '' };
 
   if (UNREADABLE_CLIP.test(raw)) return { kind: 'unreadableClip', detail: '' };
 

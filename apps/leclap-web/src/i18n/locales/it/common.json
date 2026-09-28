@@ -103,6 +103,7 @@
     "missingClip": "Questo modello ha bisogno di almeno una clip.",
     "unreadableClip": "Non è stato possibile leggere una delle tue clip: forse è danneggiata, o in un formato che questo browser non sa aprire.",
     "assemblyFailed": "Non è stato possibile unire le scene in un unico video.",
+    "engineUnavailable": "Non è stato possibile scaricare il motore video. Riconnettiti, poi riprova.",
     "stopped": "Il render è stato interrotto.",
     "unknown": "Il motore di render ha segnalato un errore."
   }

@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { BaseError } from '@/core/errors/BaseError';
 import { FFmpegError } from '@/core/errors/FFmpegError';
 import { AssetNotFoundError } from '@/core/errors/AssetNotFoundError';
+import { SectionError } from '@/core/errors/section-error';
 
 describe('BaseError', () => {
   it('extends Error and exposes the provided message', () => {
@@ -93,5 +94,24 @@ describe('AssetNotFoundError', () => {
     const err = new AssetNotFoundError('logo.png', '');
 
     expect(err.message).toBe('Asset not found: logo.png');
+  });
+});
+
+describe('SectionError', () => {
+  it('extends BaseError and names the failing section plus the underlying cause', () => {
+    const cause = new Error('font Nope.ttf could not be resolved');
+    const err = new SectionError('outro', cause);
+
+    expect(err).toBeInstanceOf(BaseError);
+    expect(err.name).toBe('SectionError');
+    expect(err.section).toBe('outro');
+    expect(err.cause).toBe(cause);
+    expect(err.message).toBe('Section "outro" failed: font Nope.ttf could not be resolved');
+  });
+
+  it('accepts a plain string cause', () => {
+    const err = new SectionError('intro', 'output file not found');
+
+    expect(err.message).toBe('Section "intro" failed: output file not found');
   });
 });

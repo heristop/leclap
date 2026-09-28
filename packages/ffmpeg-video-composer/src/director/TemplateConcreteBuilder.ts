@@ -5,6 +5,7 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type { Section, ProjectConfig } from '@/core/types';
 import type Project from '../core/models/Project';
 import SegmentFactory from '../editor/factories/SegmentFactory';
+import { SectionError } from '../core/errors/section-error';
 import type SegmentBuilder from '../editor/SegmentBuilder';
 
 function hasInputsAsset(value: unknown): value is { inputsAsset: Record<string, string> } {
@@ -47,6 +48,12 @@ class TemplateConcreteBuilder {
 
     const ok = await segment.init();
 
+    // An unbuilt segment still carries its default `-version` command; rendering it let the concat
+    // drop the section and the compile report a video missing it.
+    if (!ok) {
+      throw new SectionError(localSection.name, 'build did not complete');
+    }
+
     return { segment, ok };
   };
 
@@ -72,13 +79,15 @@ class TemplateConcreteBuilder {
     const result = await this.ffmpegAdapter.execute(command);
     this.logger.info(`[${section.name}][RenderPart] ffmpeg process exited with rc ${result.rc}`);
 
-    if (result.rc === 1) {
+    // Most adapters throw on a failed command; one that reports it through `rc` must stop the compile
+    // too, or the concat drops the missing segment and the render still "succeeds".
+    if (result.rc !== 0) {
       this.project.errors.push(section.name);
+
+      throw new SectionError(section.name, `ffmpeg exited with rc ${result.rc}`);
     }
 
-    if (result.rc === 0) {
-      await this.handleSuccessResult(segment, section);
-    }
+    await this.handleSuccessResult(segment, section);
 
     this.logger.info(`[${section.name}][RenderPart] finalized`);
   };
@@ -103,7 +112,7 @@ class TemplateConcreteBuilder {
       this.logger.error(`[${section.name}][RenderPart] output file not found at ${segment.destination}`);
       this.project.errors.push(section.name);
 
-      return;
+      throw new SectionError(section.name, `output file not found at ${segment.destination}`);
     }
 
     this.logger.info(`[${section.name}][RenderPart] output file exists at ${segment.destination}`);
@@ -141,7 +150,7 @@ class TemplateConcreteBuilder {
       this.logger.error(`[${section.name}][RenderPart] ${errorMsg}`);
       this.project.errors.push(section.name);
 
-      throw new Error(errorMsg);
+      throw new SectionError(section.name, errorMsg);
     }
   }
 

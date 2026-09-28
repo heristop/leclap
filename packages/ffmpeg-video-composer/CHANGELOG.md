@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-09-28
+
+### Fixed
+
+- A section that fails to build now fails the whole compile. The build error (an asset or font
+  that can't be resolved, for instance) used to be logged and swallowed: the section rendered
+  nothing, the concat skipped it, and `compile()` resolved `output.mp4` without that section.
+  `compile()` now resolves `null` on the first failing section, the browser and React Native
+  entries reject, and the cause is a `SectionError` whose message names the section —
+  `Section "outro" failed: <cause>`. A segment whose render exits non-zero or leaves no output
+  file fails the compile the same way instead of being dropped from the concat.
+
+### Added
+
+- `CompileReporter.onError(error)`: called with the cause when `compile()` resolves `null`, so a
+  host can report why a render failed instead of a generic "no output".
+
 ## [2.3.0] - 2026-08-16
 
 ### Changed

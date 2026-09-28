@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   field, which pnpm 11+ ignores — a fresh project's `pnpm install` failed on the unapproved
   `ffmpeg-static` build, so the first `render` had no ffmpeg.
 
+## [0.2.5] - 2026-09-28
+
+### Fixed
+
+- `leclap render` no longer reports success for a video missing a section. When a section fails
+  to build, the render exits 1 and prints the engine's cause, naming the section
+  (`Section "outro" failed: …`) — also in the `--json` error payload — instead of
+  "Compilation failed to produce output". Requires `ffmpeg-video-composer` 2.4.0.
+
 ## [0.2.3] - 2026-08-15
 
 ### Fixed

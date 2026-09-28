@@ -69,6 +69,45 @@ describe('render command', () => {
     expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Rendered'));
   });
 
+  // The engine resolves null on failure and hands the cause to the reporter's onError; the CLI must
+  // print that cause (which names the failing section), not the generic "no output" line.
+  function failWithSectionError() {
+    compileMock.mockImplementation(
+      async (_config: unknown, _template: unknown, reporter?: { onError?: (e: Error) => void }) => {
+        reporter?.onError?.(new Error('Section "broken" failed: font Nope.ttf could not be resolved'));
+
+        return null;
+      }
+    );
+  }
+
+  it('exits 1 with the section failure reported by the engine', async () => {
+    failWithSectionError();
+
+    const { render } = await import('../src/commands/render');
+    await render.run?.({ args: { template: 'x.json' } } as never);
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Section "broken" failed: font Nope.ttf'));
+    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Rendered'));
+  });
+
+  it('puts the section failure in the --json error payload', async () => {
+    failWithSectionError();
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    const { render } = await import('../src/commands/render');
+    await render.run?.({ args: { template: 'x.json', json: true } } as never);
+
+    const out = writeSpy.mock.calls.map((c) => String(c[0])).join('');
+    writeSpy.mockRestore();
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(JSON.parse(out.trim())).toEqual({
+      ok: false,
+      error: 'Section "broken" failed: font Nope.ttf could not be resolved',
+    });
+  });
+
   it('emits a machine-readable JSON error (not human stderr) in --json mode when the template is missing', async () => {
     const fsMod = (await import('node:fs/promises')).default;
     vi.mocked(fsMod.access).mockRejectedValueOnce(new Error('ENOENT'));

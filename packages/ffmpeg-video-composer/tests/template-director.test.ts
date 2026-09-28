@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import TemplateDirector from '@/director/TemplateDirector';
+import { SectionError } from '@/core/errors/section-error';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 
 function makeLogger() {
@@ -599,6 +600,47 @@ describe('TemplateDirector.construct', () => {
 
     expect(result).toBeNull();
     expect(emitter.emit).toHaveBeenCalledWith('task-stopped', expect.any(Error));
+  });
+
+  // A section that fails to build must fail the whole compile. Swallowing the failure rendered the
+  // section's default `-version` command, and the concat then produced a video missing that section.
+  describe('when a section fails to build', () => {
+    const sections: Section[] = [
+      { name: 'intro', type: 'video', options: { duration: 2 } },
+      { name: 'middle', type: 'video', options: { duration: 2 } },
+      { name: 'outro', type: 'video', options: { duration: 2 } },
+    ];
+
+    function failMiddle(concreteBuilder: ReturnType<typeof makeDeps>['concreteBuilder']) {
+      concreteBuilder.build.mockImplementation(async (section: Section) => {
+        if (section.name === 'middle') {
+          throw new SectionError('middle', new Error('No cache found for keys Nope.ttf'));
+        }
+
+        return { segment: { getCommand: () => '-y out.mp4', destination: `/build/${section.name}.mp4` }, ok: true };
+      });
+    }
+
+    it.each([
+      ['serial', false],
+      ['concurrent', true],
+    ])('returns null and stops with a SectionError naming the section (%s render)', async (_mode, concurrent) => {
+      const { director, template, concreteBuilder, ffmpeg, emitter, videoEditor } = makeDirector();
+      ffmpeg.supportsConcurrentExecute = concurrent;
+      template.descriptor = { sections };
+      failMiddle(concreteBuilder);
+
+      const result = await director.construct();
+
+      expect(result).toBeNull();
+      expect(emitter.emit).toHaveBeenCalledWith('task-stopped', expect.any(SectionError));
+      const stopped = emitter.emit.mock.calls.find((call: unknown[]) => call[0] === 'task-stopped')?.[1];
+      expect(stopped).toMatchObject({ section: 'middle', message: expect.stringContaining('Section "middle" failed') });
+      expect(concreteBuilder.render).not.toHaveBeenCalledWith(expect.anything(), sections[1]);
+      expect(concreteBuilder.build).not.toHaveBeenCalledWith(sections[2], expect.anything());
+      expect(videoEditor.concat).not.toHaveBeenCalled();
+      expect(videoEditor.finalize).not.toHaveBeenCalled();
+    });
   });
 
   it('returns null when the build was cancelled mid-flight', async () => {

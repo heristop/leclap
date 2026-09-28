@@ -98,10 +98,32 @@ describe('runRenderCheck when it cannot render', () => {
     const engine: RenderEngine = {
       compile: () => Promise.reject(new Error('must not render')),
       detect: () => Promise.resolve({ availability: FFmpegAvailability.WASM }),
+      supportsDrawtext: () => Promise.reject(new Error('must not probe')),
     };
     const result = await runRenderCheck(descriptor, {}, engine);
 
     expect(result.unavailable).toMatch(/native FFmpeg/);
+    expect(result.measured).toBe(0);
+    expect(result.warnings.map((w) => w.code)).toEqual(['text_low_contrast']);
+  });
+
+  it('does not render with an FFmpeg that has no drawtext, and says which one', async () => {
+    const probed: string[] = [];
+    const engine: RenderEngine = {
+      compile: () => Promise.reject(new Error('must not render')),
+      detect: () => Promise.resolve({ availability: FFmpegAvailability.STATIC, path: '/opt/ffmpeg' }),
+      supportsDrawtext: (binary) => {
+        probed.push(binary);
+
+        return Promise.resolve(false);
+      },
+    };
+    const result = await runRenderCheck(descriptor, {}, engine);
+
+    expect(probed).toEqual(['/opt/ffmpeg']);
+    expect(result.unavailable).toBe(
+      'FFmpeg at /opt/ffmpeg has no drawtext filter (built without libfreetype) — install ffmpeg-static or a full build'
+    );
     expect(result.measured).toBe(0);
     expect(result.warnings.map((w) => w.code)).toEqual(['text_low_contrast']);
   });
@@ -113,7 +135,8 @@ describe('runRenderCheck when it cannot render', () => {
 
         return Promise.resolve(null);
       },
-      detect: () => Promise.resolve({ availability: FFmpegAvailability.SYSTEM }),
+      detect: () => Promise.resolve({ availability: FFmpegAvailability.SYSTEM, path: 'system' }),
+      supportsDrawtext: () => Promise.resolve(true),
     };
     const result = await runRenderCheck(descriptor, { workDir: os.tmpdir() }, engine);
 
@@ -125,6 +148,7 @@ describe('runRenderCheck when it cannot render', () => {
     const engine: RenderEngine = {
       compile: () => Promise.reject(new Error('must not render')),
       detect: () => Promise.reject(new Error('must not detect')),
+      supportsDrawtext: () => Promise.reject(new Error('must not probe')),
     };
     const bare = template([
       { type: 'color_background', name: 'plain', options: { duration: 1, backgroundColor: '#000' } },

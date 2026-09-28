@@ -17,6 +17,7 @@ import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 import { selectVideoCodec } from './platform/ffmpeg/select-video-codec';
 import { TemplateValidator } from './services/TemplateValidator';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from './schemas/template.schemas';
+import { hasDrawtext } from './services/geometry/drawtext-probe';
 import { nodeFontLoader } from './services/geometry/node-geometry';
 import { runRenderCheck, type RenderCheckOptions, type RenderedGeometry } from './services/geometry/render-check';
 
@@ -278,7 +279,7 @@ export function renderedGeometryWarnings(
   descriptor: SchemaTemplateDescriptor,
   options: RenderCheckOptions = {}
 ): Promise<RenderedGeometry> {
-  const engine = { compile, detect: () => FFmpegDetector.detect() };
+  const engine = { compile, detect: () => FFmpegDetector.detect(), supportsDrawtext: hasDrawtext };
 
   return runRenderCheck(descriptor, { ...options, loadFont: options.loadFont ?? nodeFontLoader() }, engine);
 }

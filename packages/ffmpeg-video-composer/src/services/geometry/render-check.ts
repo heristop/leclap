@@ -18,6 +18,7 @@ import type AbstractFFmpeg from '../../platform/ffmpeg/AbstractFFmpeg';
 import { FFmpegAvailability, type FFmpegDetectionResult } from '../../platform/ffmpeg/FFmpegDetector';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
 import type { FontLoader } from './bundled-font-loader';
+import { ffmpegBinary, noDrawtextReason } from './drawtext-probe';
 import type { Canvas } from './geometry-types';
 import type { RgbFrame } from './pixel-contrast';
 import type { RenderedResult, RenderTarget } from './render-findings';
@@ -26,6 +27,8 @@ import type { GeometryWarning } from './rules';
 export interface RenderEngine {
   compile(config: ProjectConfig, template: CoreDescriptor, reporter?: CompileReporter): Promise<string | null>;
   detect(): Promise<FFmpegDetectionResult>;
+  // Whether the FFmpeg binary at this path lists the drawtext filter (drawtext-probe.ts).
+  supportsDrawtext(binary: string): Promise<boolean>;
 }
 
 export interface RenderCheckOptions {
@@ -170,6 +173,19 @@ async function renderBoth(
   return withProbeFill(probeTextFill, () => compileQuietly(engine, projectConfig(dirs.probe, options), template));
 }
 
+// Why this engine cannot render the check, or null when it can. Every section it renders holds text,
+// so an FFmpeg without drawtext would fail each one; asking its filter list first names the fix.
+async function renderBlocker(engine: RenderEngine): Promise<string | null> {
+  const detection = await engine.detect();
+  const binary = NATIVE.has(detection.availability) ? ffmpegBinary(detection) : null;
+
+  if (!binary) {
+    return NO_FFMPEG;
+  }
+
+  return (await engine.supportsDrawtext(binary)) ? null : noDrawtextReason(binary);
+}
+
 async function check(
   descriptor: TemplateDescriptor,
   options: RenderCheckOptions,
@@ -185,8 +201,10 @@ async function check(
     return { warnings: unrendered, measured: 0 };
   }
 
-  if (!NATIVE.has((await engine.detect()).availability)) {
-    return { warnings: unrendered, measured: 0, unavailable: NO_FFMPEG };
+  const unavailable = await renderBlocker(engine);
+
+  if (unavailable) {
+    return { warnings: unrendered, measured: 0, unavailable };
   }
 
   const root = await fs.mkdtemp(path.join(options.workDir ?? os.tmpdir(), 'leclap-render-check-'));

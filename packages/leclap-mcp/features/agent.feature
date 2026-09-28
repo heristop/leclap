@@ -39,6 +39,11 @@ Feature: Agent drives the leclap MCP server over stdio
     Then it receives an output path that exists
     And the render has a positive duration and non-zero size
 
+  Scenario: Learn why a render failed
+    When the agent composes a template whose filter FFmpeg rejects
+    Then the call returns an error
+    And the error leads with the reason the engine gave
+
   Scenario: Probe the rendered file
     When the agent composes the color-card template
     And the agent probes the rendered file

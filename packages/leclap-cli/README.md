@@ -55,10 +55,11 @@ leclap validate template.json --render         # seconds, not milliseconds; read
 leclap validate template.json --render --json  # adds { render: { measured, seconds, unavailable? } }
 ```
 
-It needs a native FFmpeg with `drawtext` (`leclap diagnose`); without one it reports the render-free
-findings and says why it skipped. Text over a user recording (`project_video`) is not measured — the
-recording does not exist yet — and over template footage one frame is only one frame, so that
-finding keeps the render-free one beside it.
+It needs a native FFmpeg with `drawtext` (`leclap diagnose`). It checks the FFmpeg it would render
+with first — a build without libfreetype has no `drawtext` — and without one it reports the
+render-free findings and says why it skipped. Text over a user recording (`project_video`) is not
+measured — the recording does not exist yet — and over template footage one frame is only one
+frame, so that finding keeps the render-free one beside it.
 
 ## `init` — scaffold a project
 

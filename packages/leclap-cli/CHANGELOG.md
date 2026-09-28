@@ -17,9 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   font); offline, it falls back to an estimate and marks the finding approximate.
 - `leclap validate --render` also renders the sections that hold text and measures their contrast
   from real pixels, settling text over pictures, grades and looks that the render-free check can
-  only flag as unguarded. It costs seconds and needs a native FFmpeg with `drawtext`; without one,
-  or when the render fails, it prints the render-free findings and says why. The exit code is
-  unchanged.
+  only flag as unguarded. It costs seconds and needs a native FFmpeg with `drawtext` — it checks
+  the FFmpeg it would render with first, and names a build without libfreetype rather than failing
+  mid-render. Without one, or when the render fails, it prints the render-free findings and says
+  why. The exit code is unchanged.
 
 ### Fixed
 

@@ -52,7 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   quartile, WCAG ratio). It reports `text_low_contrast_rendered` below 3:1, and over a fixed
   backdrop (colour card, picture) it replaces the render-free contrast and over-footage findings
   for that text. It costs seconds and needs a native FFmpeg with `drawtext`; without one, or when
-  the render fails, it returns the render-free findings and says why in `unavailable`.
+  the render fails, it returns the render-free findings and says why in `unavailable`. The FFmpeg it
+  would render with is asked for its filter list first (once per binary), so a build without
+  libfreetype is named, with what to install, instead of failing every section mid-render.
 
 ### Changed
 

@@ -31,8 +31,9 @@ leclap --version
 ## `init` — scaffold a project
 
 `init` writes a minimal, immediately-renderable project: a no-external-media `template.json` (so the
-first `render` just works), `package.json`, `README.md`, and `assets/`. It then **prompts** whether to
-also set up:
+first `render` just works), `package.json`, `README.md`, `assets/`, and a `pnpm-workspace.yaml` whose
+`allowBuilds` lets pnpm 11+ run the `ffmpeg-static` download (npm, yarn and bun ignore it). It then
+**prompts** whether to also set up:
 
 - **the MCP server** (default Yes) — adds a project-scoped `.mcp.json` wiring [`@leclap/mcp`](../leclap-mcp)
   so an AI agent can author + render in this project (see below);

@@ -180,9 +180,10 @@ export const DocCli = () => (
           actually provides.
         </p>
         <p>
-          On pnpm 10 and later, dependency build scripts are skipped unless allow-listed — which is why the scaffolded{' '}
-          <Code>package.json</Code> carries an <Code>onlyBuiltDependencies</Code> entry for <Code>ffmpeg-static</Code>.
-          Without it the binary never unpacks and renders fail.
+          pnpm skips dependency build scripts unless they are approved, and since pnpm 11 it reads approvals only from{' '}
+          <Code>pnpm-workspace.yaml</Code> — which is why the scaffold ships one with an <Code>allowBuilds</Code> entry
+          for <Code>ffmpeg-static</Code> (and <Code>esbuild</Code>, for the Remotion bundler). Without it the binary
+          never downloads and renders fail. npm, yarn and bun ignore the file.
         </p>
       </Prose>
     </DocSection>

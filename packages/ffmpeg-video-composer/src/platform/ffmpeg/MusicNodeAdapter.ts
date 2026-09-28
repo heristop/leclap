@@ -1,5 +1,4 @@
 import { container, injectable } from 'tsyringe';
-import fs from 'node:fs/promises';
 import { execFile, type ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
@@ -28,6 +27,7 @@ interface ExecResult {
 
 interface ProcessResult {
   rc: number;
+  musicPath: string;
 }
 
 @injectable()
@@ -70,12 +70,13 @@ class MusicNodeAdapter implements AbstractMusic {
   }
 
   /**
-   * Loop the music file to match the required total length
+   * Loop the music file to match the required total length, into a copy in the build directory
    * @param logger - Logger instance
    * @param musicPath - Path to the music file
    * @param musicLength - Duration of the music file in seconds
    * @param totalLength - Required total length in seconds
    * @param buildDir - Directory to store the looped file
+   * @returns Path of the looped copy
    */
   private async loopMusic(
     logger: AbstractLogger,
@@ -83,7 +84,7 @@ class MusicNodeAdapter implements AbstractMusic {
     musicLength: number,
     totalLength: number,
     buildDir: string
-  ): Promise<void> {
+  ): Promise<string> {
     const loop = path.join(buildDir, 'loop_music.mp4');
 
     let input = `concat:${musicPath}`;
@@ -102,15 +103,14 @@ class MusicNodeAdapter implements AbstractMusic {
     try {
       await execFileAsync(ffmpeg, args);
 
-      await fs.unlink(musicPath);
-      await fs.rename(loop, musicPath);
-
       logger.info(`[Music][Loop] ffmpeg process completed`);
     } catch (error: unknown) {
       const execError = error as ExecException;
 
       throw new Error(`Failed command: ${command}\nError: ${execError.message}`);
     }
+
+    return loop;
   }
 
   /**
@@ -118,8 +118,8 @@ class MusicNodeAdapter implements AbstractMusic {
    * @param logger - Logger instance
    * @param filesystemAdapter - Filesystem adapter instance
    * @param totalLength - Required total length in seconds
-   * @param musicPath - Path to the music file
-   * @returns Promise with process result
+   * @param musicPath - Path to the music file, never written
+   * @returns Promise with process result, whose musicPath is the track to mix: musicPath itself or its looped copy
    * @throws Error if ffmpeg processing fails
    */
   process = async (
@@ -139,10 +139,12 @@ class MusicNodeAdapter implements AbstractMusic {
           throw new Error('Build directory is not set');
         }
 
-        await this.loopMusic(logger, musicPath, musicLength, totalLength, buildDir);
+        const loopPath = await this.loopMusic(logger, musicPath, musicLength, totalLength, buildDir);
+
+        return { rc: 0, musicPath: loopPath };
       }
 
-      return { rc: 0 };
+      return { rc: 0, musicPath };
     } catch (error: unknown) {
       if (!(error instanceof Error)) {
         logger.error('[Music] Unknown error occurred');

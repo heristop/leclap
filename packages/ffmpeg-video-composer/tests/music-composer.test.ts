@@ -69,7 +69,13 @@ function makeComposer(
   };
   const logger = makeLogger();
 
-  musicAdapter = { process: vi.fn(async () => ({ rc: 0 })) };
+  // Defaults to "long enough already": the adapter hands back the source path it was given.
+  musicAdapter = {
+    process: vi.fn(async (_logger: unknown, _fs: unknown, _totalLength: number, musicPath: string) => ({
+      rc: 0,
+      musicPath,
+    })),
+  };
   container.registerInstance('musicAdapter', musicAdapter);
 
   const composer = new MusicComposer(
@@ -486,6 +492,26 @@ describe('MusicComposer.loopMusic', () => {
     await composer.loopMusic();
 
     expect(musicAdapter.process).toHaveBeenCalledWith(logger, filesystem, 42, '/cache/musics/song.mp3');
+  });
+
+  it('mixes the looped copy the adapter returns, not the source track it was handed', async () => {
+    const project = makeProject();
+    project.buildInfos.totalLength = 42;
+    project.buildInfos.musicPath = '/cache/musics/song.mp3';
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 42, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ project, ffmpeg });
+    musicAdapter.process.mockResolvedValueOnce({ rc: 0, musicPath: '/build/loop_music.mp4' });
+
+    await composer.loopMusic();
+    await composer.appendMusic([{ name: 's1', type: 'video', options: { duration: 42 } }], '/build/output.mp4');
+
+    expect(project.buildInfos.musicPath).toBe('/build/loop_music.mp4');
+    const cmd = ffmpeg.execute.mock.calls[0][0];
+    expect(cmd).toContain('-i /build/loop_music.mp4');
+    expect(cmd).not.toContain('/cache/musics/song.mp3');
   });
 });
 

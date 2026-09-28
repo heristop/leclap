@@ -7,6 +7,7 @@ import type AbstractMusic from './AbstractMusic';
 
 interface ProcessResult {
   rc: number;
+  musicPath: string;
 }
 
 // Log the error with a typed message when it's an Error — keeps `process`'s catch under the statement cap.
@@ -39,7 +40,7 @@ class MusicFFmpegAdapter implements AbstractMusic {
       logger.info(`[MusicFFmpegAdapter] Duration: ${musicLength} / ${totalLength}`);
 
       if (musicLength <= 0 || musicLength >= totalLength) {
-        return { rc: 0 };
+        return { rc: 0, musicPath };
       }
 
       const buildDir = filesystemAdapter.getBuildDir() ?? '/tmp/build';
@@ -55,10 +56,9 @@ class MusicFFmpegAdapter implements AbstractMusic {
         throw new Error('Failed to loop music on device');
       }
 
-      await filesystemAdapter.move(loopPath, musicPath);
       logger.info('[MusicFFmpegAdapter][Loop] completed');
 
-      return { rc: 0 };
+      return { rc: 0, musicPath: loopPath };
     } catch (error: unknown) {
       logMusicError(logger, error);
 

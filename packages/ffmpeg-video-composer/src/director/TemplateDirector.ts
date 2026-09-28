@@ -51,6 +51,7 @@ class TemplateDirector {
   private readonly emitter: IEventEmitter;
 
   private stopBuild = false;
+  private readonly onTaskCancelled = () => (this.stopBuild = true);
   private readonly concreteBuilder: TemplateConcreteBuilder;
   private readonly musicComposer: MusicComposer;
   private readonly project: Project;
@@ -72,7 +73,7 @@ class TemplateDirector {
     this.ffmpegAdapter = deps.ffmpegAdapter;
     this.filesystemAdapter = deps.filesystemAdapter;
     this.emitter = this.eventManager.connect();
-    this.emitter.on('task-cancelled', () => (this.stopBuild = true));
+    this.emitter.on('task-cancelled', this.onTaskCancelled);
     this.videoEditor.emitter = this.emitter;
     this.logger.info('Director class created');
   }
@@ -154,6 +155,10 @@ class TemplateDirector {
       this.fireError(error);
 
       return null;
+    } finally {
+      // The browser / React Native event manager hands every compile the SAME emitter, so drop this
+      // director's listener once its build settles — otherwise each render leaks the director through it.
+      this.emitter.off?.('task-cancelled', this.onTaskCancelled);
     }
 
     return null;
@@ -248,8 +253,7 @@ class TemplateDirector {
 
     // Each non-cut boundary cross-dissolves, overlapping its two clips and shortening the rendered
     // timeline by the transition duration. Cut boundaries subtract 0.
-    const transitionTotal = this.project.buildInfos.transitions.reduce((sum, t) => sum + t.duration, 0);
-    this.project.buildInfos.totalLength -= transitionTotal;
+    this.project.buildInfos.totalLength -= this.project.buildInfos.transitions.reduce((sum, t) => sum + t.duration, 0);
   };
 
   getVideoSectionDuration = async (segment: Section): Promise<number> => {
@@ -312,9 +316,8 @@ class TemplateDirector {
   };
 
   updateProgress = (segment: Section): void => {
-    const { totalLength } = this.project.buildInfos;
-    const durMap = this.project.buildInfos.durations;
-    const segmentLength = durMap[segment.name] ?? 0;
+    const { totalLength, durations } = this.project.buildInfos;
+    const segmentLength = durations[segment.name] ?? 0;
 
     this.project.progress = Math.min(1, this.project.progress + segmentLength / totalLength);
     this.project.buildInfos.currentProgress = this.project.progress;

@@ -1,13 +1,25 @@
-import { injectable } from 'tsyringe';
+import { container, injectable } from 'tsyringe';
 import fs from 'node:fs/promises';
 import { execFile, type ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
+import { FFmpegError } from '../../core/errors/FFmpegError';
+import type { default as AbstractFFmpeg, FFmpegBinaries } from './AbstractFFmpeg';
 import type AbstractMusic from './AbstractMusic';
+import { FFPROBE_MISSING_MESSAGE } from './resolve-ffprobe';
 
 const execFileAsync = promisify(execFile);
+
+// For a selected adapter that runs FFmpeg in-process and spawns nothing: the PATH lookup this adapter always did.
+const PATH_BINARIES: FFmpegBinaries = { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
+
+// The binaries of the FFmpeg adapter the bridge selected. Spawning `ffmpeg`/`ffprobe` by name used to miss
+// ffmpeg-static's, which aren't on PATH, so music failed only after every segment had rendered.
+function selectedBinaries(): FFmpegBinaries {
+  return container.resolve<AbstractFFmpeg>('ffmpegAdapter').binaries ?? PATH_BINARIES;
+}
 
 interface ExecResult {
   stdout: string;
@@ -21,14 +33,20 @@ interface ProcessResult {
 @injectable()
 class MusicNodeAdapter implements AbstractMusic {
   /**
-   * Get the duration of a media file using ffprobe
+   * Get the duration of a media file using the selected adapter's ffprobe
    * @param filePath - Path to the media file
    * @returns Promise with the duration in seconds
-   * @throws Error if ffprobe fails to get the duration
+   * @throws Error if there is no ffprobe, or it fails to get the duration
    */
   private async getMediaDuration(filePath: string): Promise<number> {
+    const { ffprobe } = selectedBinaries();
+
+    if (ffprobe === null) {
+      throw new FFmpegError(FFPROBE_MISSING_MESSAGE);
+    }
+
     try {
-      const { stdout }: ExecResult = await execFileAsync('ffprobe', [
+      const { stdout }: ExecResult = await execFileAsync(ffprobe, [
         '-v',
         'error',
         '-show_entries',
@@ -76,12 +94,13 @@ class MusicNodeAdapter implements AbstractMusic {
       repetitions++;
     }
 
+    const { ffmpeg } = selectedBinaries();
     const args = ['-y', '-i', input, '-acodec', 'copy', loop];
-    const command = `ffmpeg ${args.join(' ')}`;
+    const command = `${ffmpeg} ${args.join(' ')}`;
     logger.debug(`[Music][Command] ${command}`);
 
     try {
-      await execFileAsync('ffmpeg', args);
+      await execFileAsync(ffmpeg, args);
 
       await fs.unlink(musicPath);
       await fs.rename(loop, musicPath);

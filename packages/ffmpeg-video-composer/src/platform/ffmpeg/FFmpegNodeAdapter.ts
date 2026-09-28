@@ -2,7 +2,7 @@ import { execFile, type ExecException } from 'node:child_process';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
 import type { FFMpegInfos } from '../../core/types';
-import AbstractFFmpeg from './AbstractFFmpeg';
+import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parse-command';
 import { getPerfTimer } from '../../utils/perf-timer';
@@ -25,6 +25,11 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
   // Each execute() spawns an independent ffmpeg child process, so renders can overlap.
   override get supportsConcurrentExecute(): boolean {
     return true;
+  }
+
+  // The same PATH lookup execute() and getInfos() use.
+  override get binaries(): FFmpegBinaries {
+    return { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
   }
 
   execute = async (command: string): Promise<{ rc: number }> => {

@@ -4,7 +4,10 @@ import { FFmpegDetector } from 'ffmpeg-video-composer';
 import { fail, hint, step } from '../ui.js';
 import { wordmark, statusRow, ok, dot } from '../theme.js';
 
-type ImplStatus = { available: boolean; version?: string };
+// `ffprobe` is only reported for static: false when ffmpeg-static has no ffprobe to probe media with.
+type ImplStatus = { available: boolean; version?: string; ffprobe?: boolean };
+
+type FFmpegStatus = { system: ImplStatus; static: ImplStatus; wasm: ImplStatus };
 
 // One uniform presentation per backend: green ✓ when present, a dim ✗ when not — availability is the
 // only thing colour encodes. (The engine's own diagnostics paint each backend a different hue; we
@@ -12,7 +15,23 @@ type ImplStatus = { available: boolean; version?: string };
 function impl(name: string, status: ImplStatus): string {
   if (!status.available) return pc.dim(`✗ ${name}`);
 
-  return `${ok} ${name} ${pc.dim(status.version ?? '')}`.trimEnd();
+  const backend = `${ok} ${name} ${pc.dim(status.version ?? '')}`.trimEnd();
+
+  if (status.ffprobe === false) return `${backend} ${pc.dim('(no ffprobe)')}`;
+
+  return backend;
+}
+
+// Renders run on system FFmpeg, else on ffmpeg-static — which, without an ffprobe, can't probe media,
+// so templates with transitions, music, whole-video overlays or video clips stop before encoding.
+function verdict(ff: FFmpegStatus): string {
+  if (!ff.system.available && ff.static.available && ff.static.ffprobe === false) {
+    return fail('Setup required for templates with transitions, music, overlays or video clips.');
+  }
+
+  if (ff.system.available || ff.static.available || ff.wasm.available) return `${ok} ${pc.bold('Ready to render.')}`;
+
+  return fail('Setup required before you can render.');
 }
 
 export const diagnose = defineCommand({
@@ -43,15 +62,7 @@ export const diagnose = defineCommand({
         console.log('');
       }
 
-      const ready = ff.system.available || ff.static.available || ff.wasm.available;
-
-      if (ready) {
-        console.log(`${ok} ${pc.bold('Ready to render.')}`);
-
-        return;
-      }
-
-      console.log(fail('Setup required before you can render.'));
+      console.log(verdict(ff));
     } catch (error) {
       console.error(fail(`Diagnostics failed: ${error instanceof Error ? error.message : String(error)}`));
       process.exit(1);

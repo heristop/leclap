@@ -71,6 +71,13 @@ node packages/leclap-mcp/dist/index.js
 It speaks MCP over **stdio** (stdout is the protocol channel — all diagnostics go to stderr).
 The published `bin` is `leclap-mcp`.
 
+**FFmpeg.** `compose_video` renders with the engine's FFmpeg: system FFmpeg first, then the bundled
+`ffmpeg-static`. `ffmpeg-static` ships no `ffprobe`. Templates with transitions, music, whole-video
+overlays or `project_video` clips need one, and so does `probe_media`. On that path a render stops
+before encoding and names the missing binary. Installing FFmpeg (`brew install ffmpeg`,
+`sudo apt install ffmpeg`) provides both. The optional `ffprobe-static` package, installed next to
+the server, also works.
+
 Built on the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 (`@modelcontextprotocol/server`), tracking the current protocol revision. Clients on an older revision
 keep working — the stdio entry serves both eras from the same tool definitions.

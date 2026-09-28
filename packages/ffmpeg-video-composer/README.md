@@ -51,7 +51,10 @@ npx @leclap/cli diagnose                  # check your FFmpeg setup
 The library picks the best available FFmpeg automatically:
 
 1. **System FFmpeg** — your installed binary (fastest, recommended for production).
-2. **Static FFmpeg** — bundled binary via the optional `ffmpeg-static` package.
+2. **Static FFmpeg** — bundled binary via the optional `ffmpeg-static` package. It ships `ffmpeg` only.
+   Templates that probe media (transitions, music, whole-video overlays, `project_video` clips) also
+   need an `ffprobe`, either from the optional `ffprobe-static` package or next to the `ffmpeg-static`
+   binary. Without one they stop before rendering, with an error that names the missing binary.
 3. **WebAssembly** — `@ffmpeg/ffmpeg` in the browser (2 GB input limit).
 4. **None** — a clear error message with installation guidance.
 

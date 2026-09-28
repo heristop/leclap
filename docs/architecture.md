@@ -186,7 +186,7 @@ Provides cross-platform abstractions and implementations:
 #### Platform Adapters
 
 - **FFmpegNodeAdapter** - System FFmpeg implementation
-- **FFmpegStaticAdapter** - Static binary FFmpeg implementation
+- **FFmpegStaticAdapter** - Static binary FFmpeg implementation (`ffmpeg-static` ships `ffmpeg` only; see [Cross-Platform Support](#cross-platform-support) for ffprobe)
 - **FFmpegWasmAdapter** - WebAssembly FFmpeg implementation
 - **FFmpegDetector** - FFmpeg detection and diagnostics
 - **MusicNodeAdapter** - Node.js music processing
@@ -250,6 +250,8 @@ The architecture is designed to support multiple platforms:
 - **Node.js** - Full featured implementation with system FFmpeg support
 - **Browser** - WebAssembly-based implementation for client-side processing
 - **React Native** - On-device compilation through the embedded FFmpeg CLI engine (`packages/ffmpeg-engine` + `FFmpegDeviceAdapter`); see [on-device-compilation.md](./on-device-compilation.md)
+
+On Node, `FFmpegDetector` takes the first FFmpeg that runs: `ffmpeg` on PATH (`FFmpegNodeAdapter`, which probes with the `ffprobe` on PATH), then the `ffmpeg-static` package (`FFmpegStaticAdapter`). `ffmpeg-static` ships no ffprobe, so the static adapter looks for one from the optional `ffprobe-static` package or beside the resolved `ffmpeg` binary, and uses only a binary that exists (`resolve-ffprobe.ts`). With neither, it sets `probeUnavailableReason`, and the director stops any template that probes media before its first segment renders. Transitions, music, whole-video overlays and `project_video` clips all probe. `MusicNodeAdapter` spawns FFmpeg itself to probe and loop the track, and runs the picked adapter's `binaries` to do it, so music needs nothing the other probes don't.
 
 ## Error Handling & Diagnostics
 

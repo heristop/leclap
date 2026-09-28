@@ -1,9 +1,14 @@
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 import { totalmem } from 'node:os';
 import { Terminal } from '../../utils/terminal';
+import { resolveStaticFfprobe } from './resolve-ffprobe';
+import { staticOnlyRecommendations } from './static-only-recommendations';
 
 const execFileAsync = promisify(execFile);
+const requireModule = createRequire(import.meta.url);
 
 export enum FFmpegAvailability {
   SYSTEM = 'system',
@@ -17,6 +22,11 @@ export interface FFmpegDetectionResult {
   version?: string;
   path?: string;
   error?: string;
+  /**
+   * Static detection only: whether ffmpeg-static, which ships no ffprobe, has one to probe with. Without
+   * it, templates with transitions, music, whole-video overlays or project_video clips can't render.
+   */
+  ffprobe?: boolean;
 }
 
 export interface SystemInfo {
@@ -31,7 +41,8 @@ export interface DiagnosticReport {
   systemInfo: SystemInfo;
   ffmpegStatus: {
     system: { available: boolean; version?: string; error?: string };
-    static: { available: boolean; version?: string; error?: string };
+    // `ffprobe` is set once static is available: see FFmpegDetectionResult.ffprobe.
+    static: { available: boolean; version?: string; error?: string; ffprobe?: boolean };
     wasm: { available: boolean; version?: string; error?: string };
   };
   recommendations: string[];
@@ -134,8 +145,10 @@ export class FFmpegDetector {
       const { stdout } = await execFileAsync(ffmpegStatic, ['-version']);
       const versionMatch = stdout.match(/ffmpeg version ([^\s]+)/);
       const version = versionMatch ? versionMatch[1] : 'unknown';
+      // The lookup FFmpegStaticAdapter renders with, so diagnostics can't promise an ffprobe it won't find.
+      const ffprobe = resolveStaticFfprobe(ffmpegStatic, { requireModule, exists: existsSync }) !== null;
 
-      return { availability: FFmpegAvailability.STATIC, version, path: ffmpegStatic };
+      return { availability: FFmpegAvailability.STATIC, version, path: ffmpegStatic, ffprobe };
     } catch (error) {
       return {
         availability: FFmpegAvailability.NONE,
@@ -303,6 +316,7 @@ export class FFmpegDetector {
         available: staticResult.availability === FFmpegAvailability.STATIC,
         version: staticResult.version,
         error: staticResult.error,
+        ffprobe: staticResult.ffprobe,
       },
       wasm: {
         available: wasmResult.availability === FFmpegAvailability.WASM,
@@ -372,8 +386,7 @@ export class FFmpegDetector {
     }
 
     if (!ffmpegStatus.system.available && ffmpegStatus.static.available) {
-      recommendations.push('⚡ Consider installing system FFmpeg for faster processing');
-      recommendations.push('📦 Current static FFmpeg works great but is slower');
+      recommendations.push(...staticOnlyRecommendations(ffmpegStatus.static.ffprobe));
     }
 
     if (ffmpegStatus.system.available) {

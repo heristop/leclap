@@ -1,3 +1,4 @@
+import { stripVTControlCharacters } from 'node:util';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Terminal } from '@/utils/terminal';
 
@@ -104,6 +105,31 @@ describe('Terminal', () => {
       expect(output).toContain('sys');
       expect(output).toContain('static');
       expect(output).toContain('wasm');
+    });
+
+    it('flags a static FFmpeg that has no ffprobe', () => {
+      Terminal.showFFmpegStatus({
+        system: { available: false },
+        static: { available: true, version: '6.0', ffprobe: false },
+        wasm: { available: false },
+      });
+
+      expect(stripVTControlCharacters(consoleSpy.log.mock.calls[0][0])).toContain('static (no ffprobe)');
+    });
+
+    it('does not flag a static FFmpeg whose ffprobe was found or not reported', () => {
+      Terminal.showFFmpegStatus({
+        system: { available: false },
+        static: { available: true, version: '6.0', ffprobe: true },
+        wasm: { available: false },
+      });
+      Terminal.showFFmpegStatus({
+        system: { available: false },
+        static: { available: true, version: '6.0' },
+        wasm: { available: false },
+      });
+
+      expect(joinMockCalls(consoleSpy.log)).not.toContain('ffprobe');
     });
   });
 

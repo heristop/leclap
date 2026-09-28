@@ -1,11 +1,13 @@
 import { execFile, type ExecException } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
 import type { FFMpegInfos } from '@/core/types';
-import AbstractFFmpeg from './AbstractFFmpeg';
+import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parse-command';
+import { FFPROBE_MISSING_MESSAGE, resolveStaticFfprobe } from './resolve-ffprobe';
 
 const requireModule = createRequire(import.meta.url);
 
@@ -37,22 +39,24 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
     return true;
   }
 
+  override get probeUnavailableReason(): string | null {
+    return this.ffprobePath ? null : FFPROBE_MISSING_MESSAGE;
+  }
+
+  override get binaries(): FFmpegBinaries | null {
+    return this.ffmpegPath ? { ffmpeg: this.ffmpegPath, ffprobe: this.ffprobePath } : null;
+  }
+
+  // A missing ffprobe is not fatal here: templates that never probe (cuts-only cards, no music, no
+  // overlays, no clips) still render, so the gap is reported at the first probe or by the director.
   private initializePaths(): void {
     try {
-      const ffmpegStatic = requireModule('ffmpeg-static') as string | null;
-      this.ffmpegPath = ffmpegStatic;
-
-      try {
-        const ffprobeStatic = requireModule('ffprobe-static') as { path: string };
-        this.ffprobePath = ffprobeStatic.path;
-      } catch {
-        if (this.ffmpegPath) {
-          this.ffprobePath = this.ffmpegPath.replace(/ffmpeg$/, 'ffprobe');
-        }
-      }
+      this.ffmpegPath = requireModule('ffmpeg-static') as string | null;
     } catch {
       throw new Error('ffmpeg-static package not found. Please install it as an optional dependency.');
     }
+
+    this.ffprobePath = resolveStaticFfprobe(this.ffmpegPath, { requireModule, exists: existsSync });
   }
 
   execute = async (command: string): Promise<{ rc: number }> => {
@@ -73,7 +77,7 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
 
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     if (!this.ffprobePath) {
-      throw new FFmpegError('FFprobe static binary not available');
+      throw new FFmpegError(FFPROBE_MISSING_MESSAGE);
     }
 
     try {

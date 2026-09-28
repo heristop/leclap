@@ -616,6 +616,56 @@ describe('TemplateDirector.construct', () => {
   });
 });
 
+describe('TemplateDirector probe pre-flight', () => {
+  // An adapter that cannot probe at all (ffmpeg-static without ffprobe). A template that needs probing
+  // must stop before its first segment encodes — not after the whole render, and not by rendering a
+  // clip whose failed probe fell back to its declared duration with the audio replaced by silence.
+  const reason = 'ffprobe not found: install FFmpeg';
+  const card = (name: string): Section => ({ name, type: 'color_background', options: { duration: 2 } });
+
+  function makeDirectorWithoutProbe() {
+    const setup = makeDirector();
+    Object.assign(setup.ffmpeg, { probeUnavailableReason: reason });
+
+    return setup;
+  }
+
+  it.each<[string, TemplateDescriptor, string]>([
+    [
+      'a cross-dissolve',
+      { global: { transition: { type: 'fade', duration: 0.5 } }, sections: [card('a'), card('b')] },
+      '',
+    ],
+    ['a project_video clip', { sections: [{ name: 'clip', type: 'project_video', options: { duration: 2 } }] }, ''],
+    ['background music', { global: { musicEnabled: true }, sections: [card('a')] }, '/build/music.mp3'],
+    ['a whole-video watermark', { global: { watermark: { url: 'pictures/logo.png' } }, sections: [card('a')] }, ''],
+  ])('stops a template with %s before any segment renders', async (_label, descriptor, musicPath) => {
+    const { director, template, project, concreteBuilder, ffmpeg, emitter } = makeDirectorWithoutProbe();
+    template.descriptor = descriptor;
+    project.buildInfos.musicPath = musicPath;
+
+    const result = await director.construct();
+
+    expect(result).toBeNull();
+    expect(concreteBuilder.build).not.toHaveBeenCalled();
+    expect(ffmpeg.getInfos).not.toHaveBeenCalled();
+    expect(emitter.emit).toHaveBeenCalledWith('task-stopped', expect.objectContaining({ message: reason }));
+  });
+
+  it.each<[string, TemplateDescriptor]>([
+    ['cuts-only cards', { sections: [card('a'), card('b')] }],
+    ['music enabled with no track resolved', { global: { musicEnabled: true }, sections: [card('a')] }],
+  ])('still renders %s, which never probe', async (_label, descriptor) => {
+    const { director, template, concreteBuilder } = makeDirectorWithoutProbe();
+    template.descriptor = descriptor;
+
+    const result = await director.construct();
+
+    expect(result).toBe('/build/output.mp4');
+    expect(concreteBuilder.build).toHaveBeenCalled();
+  });
+});
+
 describe('TemplateDirector.buildTransitions + totalLength', () => {
   it('builds per-boundary transitions from section + global and shortens totalLength by non-cut durations', async () => {
     const { director, template, project } = makeDirector();

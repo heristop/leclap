@@ -4,33 +4,29 @@
 // This avoids TypeScript path resolution issues
 
 import 'reflect-metadata';
-import { FFmpegDetector } from './dist/index.js';
+import { FFmpegDetector, Terminal } from './dist/index.js';
 import pc from 'picocolors';
 
 type DiagnosticsReport = Awaited<ReturnType<typeof FFmpegDetector.runFullDiagnostics>>;
 type SystemInfo = DiagnosticsReport['systemInfo'];
 type FFmpegStatus = DiagnosticsReport['ffmpegStatus'];
 
-function formatShort(info: { available: boolean }) {
-  return info.available ? pc.green('✓') : pc.dim('✗');
-}
-
 function printSystemRow({ os, arch, nodeVersion, packageManager, memoryGB }: SystemInfo) {
   const systemRow = `${pc.dim('OS')} ${os} ${arch}  ${pc.dim('Node')} ${nodeVersion}  ${pc.dim('PM')} ${packageManager}  ${pc.dim('RAM')} ${memoryGB}GB`;
   console.log(systemRow);
 }
 
-function printFFmpegRow({
-  system,
-  staticFFmpeg,
-  wasm,
-}: {
-  system: FFmpegStatus['system'];
-  staticFFmpeg: FFmpegStatus['static'];
-  wasm: FFmpegStatus['wasm'];
-}) {
-  const ffmpegRow = `${pc.dim('FFmpeg')} ${formatShort(system)} sys ${system.available ? pc.green(system.version) : ''}  ${formatShort(staticFFmpeg)} static  ${formatShort(wasm)} wasm`;
-  console.log(ffmpegRow);
+// Without system FFmpeg the render runs on ffmpeg-static, which can't probe media when it has no ffprobe.
+function statusLine({ system, static: staticFFmpeg, wasm }: FFmpegStatus) {
+  if (!system.available && staticFFmpeg.available && staticFFmpeg.ffprobe === false) {
+    return pc.yellow('⚠ No ffprobe');
+  }
+
+  if (system.available || staticFFmpeg.available || wasm.available) {
+    return pc.green('✓ Ready');
+  }
+
+  return pc.yellow('⚠ No FFmpeg');
 }
 
 function printRecommendations(recommendations: DiagnosticsReport['recommendations']) {
@@ -50,18 +46,14 @@ async function runDiagnostics() {
 
     const report = await FFmpegDetector.runFullDiagnostics(false);
     const { os, arch, nodeVersion, packageManager, memoryGB } = report.systemInfo;
-    const { system, static: staticFFmpeg, wasm } = report.ffmpegStatus;
 
     // Grid layout - ultra synthetic
     console.log(pc.bold(pc.cyan('\nFFmpeg Video Composer Diagnostics\n')));
 
     printSystemRow({ os, arch, nodeVersion, packageManager, memoryGB });
-    printFFmpegRow({ system, staticFFmpeg, wasm });
+    Terminal.showFFmpegStatus(report.ffmpegStatus);
 
-    // Status
-    const hasFFmpeg = system.available || staticFFmpeg.available || wasm.available;
-    const status = hasFFmpeg ? pc.green('✓ Ready') : pc.yellow('⚠ No FFmpeg');
-    console.log(`\n${status}`);
+    console.log(`\n${statusLine(report.ffmpegStatus)}`);
 
     printRecommendations(report.recommendations);
 
